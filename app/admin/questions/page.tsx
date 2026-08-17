@@ -21,6 +21,15 @@ interface EmailLogEntry {
   complained_at: string | null;
 }
 
+interface ApolloContact {
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  title: string | null;
+  linkedin_url: string | null;
+  found_at: string;
+}
+
 interface Question {
   id: string;
   provider_id: string;
@@ -46,6 +55,8 @@ interface Question {
     archived_at: string | null;
   } | null;
   provider_email_history?: EmailLogEntry[];
+  apollo_contact?: ApolloContact | null;
+  email_source?: string | null;
 }
 
 type TabValue = "unanswered" | "needs_email" | "delivery_issues" | "no_contact" | "not_interested" | "answered" | "archived" | "";
@@ -668,6 +679,164 @@ function InlineEmailInput({
   );
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Apollo Decision-Maker Contact Display (simplified for Questions page)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ApolloContactRow({
+  providerSlug,
+  apolloContact,
+  providerEmail,
+  isAccountClaimed,
+  onContactFound,
+  onEmailApplied,
+}: {
+  providerSlug: string;
+  apolloContact?: ApolloContact | null;
+  providerEmail?: string | null;
+  isAccountClaimed?: boolean;
+  onContactFound: (contact: ApolloContact) => void;
+  onEmailApplied: () => void;
+}) {
+  const [finding, setFinding] = useState(false);
+  const [using, setUsing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Check if Apollo email matches provider's current email
+  const emailsMatch = apolloContact?.email?.toLowerCase() === providerEmail?.toLowerCase();
+
+  async function handleFind() {
+    setFinding(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/questions/find-decision-maker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_slug: providerSlug }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setError(data.error);
+      } else if (data.contact?.email) {
+        // Pass the found contact data up
+        onContactFound({
+          email: data.contact.email,
+          first_name: data.contact.first_name,
+          last_name: data.contact.last_name,
+          title: data.contact.title,
+          linkedin_url: data.contact.linkedin_url,
+          found_at: new Date().toISOString(),
+        });
+        // If auto-confirmed by backend (provider had no email), refresh
+        if (data.auto_confirmed) {
+          onEmailApplied();
+        }
+      } else {
+        setError(data.message || "No decision-maker found");
+      }
+    } catch (err) {
+      setError("Lookup failed");
+    } finally {
+      setFinding(false);
+    }
+  }
+
+  async function handleUseEmail() {
+    if (!apolloContact?.email || using) return;
+
+    setUsing(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/questions/use-apollo-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_slug: providerSlug }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setError(data.error === "claimed_account" ? data.message : data.error);
+      } else {
+        onEmailApplied();
+      }
+    } catch (err) {
+      setError("Failed to apply email");
+    } finally {
+      setUsing(false);
+    }
+  }
+
+  // If no Apollo contact yet, show the Find button
+  if (!apolloContact) {
+    return (
+      <div className="flex items-center gap-2 mt-2">
+        <button
+          type="button"
+          onClick={handleFind}
+          disabled={finding || isAccountClaimed}
+          className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 border border-purple-200 rounded-md hover:bg-purple-100 transition disabled:opacity-50"
+          title={isAccountClaimed ? "Cannot modify claimed account" : "Find decision-maker via Apollo"}
+        >
+          {finding ? "Finding..." : "Find Decision Maker"}
+        </button>
+        {error && <span className="text-xs text-amber-600">{error}</span>}
+      </div>
+    );
+  }
+
+  // Show the Apollo contact
+  const fullName = [apolloContact.first_name, apolloContact.last_name]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <div className="flex flex-wrap items-center gap-2 mt-2 pl-3 border-l-2 border-purple-200">
+      <span className="text-xs font-medium text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded-full">
+        Apollo
+      </span>
+      {fullName && (
+        <span className="text-sm font-medium text-gray-900">{fullName}</span>
+      )}
+      {apolloContact.title && (
+        <span className="text-xs text-gray-500">{apolloContact.title}</span>
+      )}
+      {/* Only show email if it differs from provider's email */}
+      {!emailsMatch && (
+        <span className="text-sm text-purple-600">{apolloContact.email}</span>
+      )}
+      {apolloContact.linkedin_url && (
+        <a
+          href={apolloContact.linkedin_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-blue-600 hover:underline"
+        >
+          LinkedIn
+        </a>
+      )}
+      {/* Show "Use This" button if not already applied */}
+      {!emailsMatch && !isAccountClaimed && (
+        <button
+          type="button"
+          onClick={handleUseEmail}
+          disabled={using}
+          className="px-2 py-0.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded transition disabled:opacity-50"
+        >
+          {using ? "..." : "Use This"}
+        </button>
+      )}
+      {emailsMatch && (
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-50 rounded">
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
+          Applied
+        </span>
+      )}
+      {error && <span className="text-xs text-amber-600">{error}</span>}
+    </div>
+  );
+}
+
 function formatDate(dateStr: string): string {
   const stalenessMs = Date.now() - new Date(dateStr).getTime();
   return `${formatAge(stalenessMs)} ago`;
@@ -722,6 +891,8 @@ export default function AdminQuestionsPage() {
   const [trustingEmailProviders, setTrustingEmailProviders] = useState<Set<string>>(new Set());
   const [trustedEmailProviders, setTrustedEmailProviders] = useState<Set<string>>(new Set());
   const [pendingDelete, setPendingDelete] = useState<{ providerId: string; providerName: string; questionCount: number } | null>(null);
+  // Track Apollo contacts found during session (augments what comes from API)
+  const [sessionApolloContacts, setSessionApolloContacts] = useState<Map<string, ApolloContact>>(new Map());
 
   // Chart and stats UI state
   const [chartExpanded, setChartExpanded] = useState(false);
@@ -1519,6 +1690,24 @@ export default function AdminQuestionsPage() {
                           <a href={`tel:${firstQ.provider_phone}`} className="block text-blue-600 hover:underline">
                             {firstQ.provider_phone}
                           </a>
+                        )}
+
+                        {/* Apollo Decision Maker - show on Needs Email and Delivery Issues tabs */}
+                        {(activeTab === "needs_email" || activeTab === "delivery_issues") && (
+                          <ApolloContactRow
+                            providerSlug={providerId}
+                            apolloContact={sessionApolloContacts.get(providerId) || firstQ.apollo_contact}
+                            providerEmail={firstQ.provider_email}
+                            isAccountClaimed={firstQ.is_account_claimed}
+                            onContactFound={(contact) => {
+                              setSessionApolloContacts((prev) => {
+                                const next = new Map(prev);
+                                next.set(providerId, contact);
+                                return next;
+                              });
+                            }}
+                            onEmailApplied={fetchQuestions}
+                          />
                         )}
                       </div>
                     </div>

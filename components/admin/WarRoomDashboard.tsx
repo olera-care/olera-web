@@ -1,29 +1,35 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AlertTriangle,
-  ArrowRight,
+  ArrowUpRight,
+  Bot,
   Check,
-  CircleDollarSign,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  CircleAlert,
   Clock3,
-  Crosshair,
+  ExternalLink,
+  GitPullRequest,
+  Layers3,
   RefreshCw,
-  ShieldAlert,
+  Search,
+  ShieldCheck,
+  Sparkles,
   ThumbsDown,
-  ThumbsUp,
-  Users,
 } from "lucide-react";
 import type {
-  WarRoomDecision,
-  WarRoomMetric,
-  WarRoomRun,
-  WarRoomSnapshot,
-  WarRoomSource,
+  WarRoomCompanyRead,
+  WarRoomIntegrationStatus,
+  WarRoomInvestigation,
+  WarRoomProbeReading,
+  WarRoomProposal,
+  WarRoomProposalStatus,
+  WarRoomScanCost,
+  WarRoomSupervisorPayload,
 } from "@/lib/war-room/types";
-
-const RANGES = [7, 30, 90] as const;
 
 function relative(iso: string | null) {
   if (!iso) return "never";
@@ -37,509 +43,1064 @@ function relative(iso: string | null) {
   return days === 1 ? "yesterday" : `${days}d ago`;
 }
 
-const metricTone: Record<WarRoomMetric["tone"], string> = {
-  good: "border-emerald-200 bg-emerald-50/50",
-  warning: "border-amber-200 bg-amber-50/50",
-  critical: "border-rose-200 bg-rose-50/60",
-  neutral: "border-gray-200 bg-white",
+/** Admin timestamps read in US Eastern regardless of where the operator is. */
+function measuredOn(iso: string) {
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return "recently";
+  return parsed.toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "America/New_York" });
+}
+
+function formatUsd(value: number) {
+  return value >= 1 ? `$${value.toFixed(2)}` : `$${value.toFixed(3)}`;
+}
+
+/**
+ * Probe rows carry different shapes per probe, so render them structurally
+ * rather than per-probe: numbers are the measurement, strings are what it is of.
+ * A hand-written formatter per probe would drift the moment a probe changes.
+ */
+function splitProbeRow(row: Record<string, string | number>) {
+  const values: Array<[string, string]> = [];
+  const labels: Array<[string, string]> = [];
+  for (const [key, cell] of Object.entries(row)) {
+    if (typeof cell === "number") values.push([key, cell.toLocaleString("en-US")]);
+    else if (cell) labels.push([key, cell]);
+  }
+  // A single number needs no key -- the label already says what it counts. Two
+  // or more are ambiguous without one: "2,663 · 1,496" does not say which half
+  // of the window is which.
+  const render = (entries: Array<[string, string]>) => entries
+    .map(([key, text]) => (entries.length > 1 ? `${key.replace(/_/g, " ")} ${text}` : text))
+    .join(" · ");
+  return { label: render(labels), value: render(values) };
+}
+
+function elapsedMilliseconds(startedAt: string | null, nowIso: string) {
+  if (!startedAt) return 0;
+  return Math.max(0, new Date(nowIso).getTime() - new Date(startedAt).getTime());
+}
+
+/** Sanitized forensics recorded by the failing model call. Never carries prompts, evidence, or credentials. */
+type DiscoveryFailure = {
+  stage?: string;
+  tool?: string;
+  promptVersion?: string;
+  model?: string;
+  status?: number | null;
+  requestId?: string | null;
+  providerErrorType?: string | null;
+  category?: string;
+  detail?: string;
 };
 
-const sourceTone: Record<WarRoomSource["status"], { dot: string; label: string }> = {
-  live: { dot: "bg-emerald-500", label: "Live" },
-  stale: { dot: "bg-amber-500", label: "Stale" },
-  missing: { dot: "bg-gray-300", label: "Blind spot" },
+function discoveryFailure(sourceSummary: unknown): DiscoveryFailure | null {
+  if (!sourceSummary || typeof sourceSummary !== "object") return null;
+  const failure = (sourceSummary as { failure?: unknown }).failure;
+  if (!failure || typeof failure !== "object") return null;
+  return failure as DiscoveryFailure;
+}
+
+function discoveryFailureMessage(message: string | null, failure?: DiscoveryFailure | null) {
+  if (failure?.category === "tool_schema_grammar_limit") {
+    return "The AI provider refused War Room's structured review contract before any analysis ran, because the tool schema is too large for it to compile. This is a code defect, not a data problem. Nothing was saved.";
+  }
+  if (failure?.category === "contract_validation") {
+    return "The AI answered, but the answer failed War Room's own completeness contract, so it was rejected instead of being turned into a false all-clear. The raw answer was kept for diagnosis. Nothing was saved.";
+  }
+  if (failure?.category === "provider_output_truncated") {
+    return "The AI ran out of room mid-answer, so War Room rejected the half-finished review rather than treating it as complete. Nothing was saved. Scanning again should succeed.";
+  }
+  if (failure?.category === "rate_limited") {
+    return "The AI provider rate-limited this scan. Nothing was saved. Scanning again later should succeed.";
+  }
+  if (failure?.category === "provider_unavailable" || failure?.category === "provider_timeout") {
+    return "The AI provider was unavailable or too slow to finish this stage. Nothing was saved. Scanning again should succeed.";
+  }
+  if (!message) return "No proposals were changed. Scan again after fixing the source or model failure.";
+  // Message-level fallbacks, for the case where the structured diagnostic could
+  // not be written before the run was marked failed.
+  if (message.includes("war_room_truncated_tool_output")) {
+    return "The AI ran out of room mid-answer, so War Room rejected the half-finished review rather than treating it as complete. Nothing was saved. Scanning again should succeed.";
+  }
+  if (message.includes("tool_schema_grammar_limit") || message.includes("compiled grammar is too large")) {
+    return "The AI provider refused War Room's structured review contract before any analysis ran, because the tool schema is too large for it to compile. This is a code defect, not a data problem. Nothing was saved.";
+  }
+  if (message.includes("war_room_empty_lens_reviews")) {
+    return "The AI returned an incomplete company review, so War Room rejected it instead of inventing an all-clear. No decision or investigation was saved.";
+  }
+  if (message.includes("war_room_incomplete_lens_coverage")) {
+    return "The AI returned an incomplete company review, so War Room rejected it instead of inventing an all-clear. No decision or investigation was saved.";
+  }
+  if (message.includes("war_room_missing_submit_")) {
+    return "The AI did not return the required structured review. War Room rejected the run, and nothing was saved.";
+  }
+  if (message.includes("invalid_request_error") || message.includes("tools.0.custom")) {
+    return "The AI provider rejected the structured review contract before analysis began. Nothing was saved.";
+  }
+  return message;
+}
+
+function elapsed(startedAt: string | null, nowIso: string) {
+  if (!startedAt) return "less than a minute";
+  const seconds = Math.floor(elapsedMilliseconds(startedAt, nowIso) / 1_000);
+  if (seconds < 60) return `${seconds}s`;
+  const minutes = Math.floor(seconds / 60);
+  const remainder = seconds % 60;
+  return `${minutes}m ${remainder.toString().padStart(2, "0")}s`;
+}
+
+function concise(value: string, maxLength: number) {
+  const clean = value.replace(/\s+/g, " ").trim();
+  if (clean.length <= maxLength) return clean;
+  const sentences = clean.match(/.*?[.!?](?:\s|$)/g) ?? [];
+  let result = "";
+  for (const sentence of sentences) {
+    const candidate = `${result} ${sentence.trim()}`.trim();
+    if (candidate.length > maxLength) break;
+    result = candidate;
+  }
+  if (result) return result;
+  const clipped = clean.slice(0, maxLength - 1);
+  const lastSpace = clipped.lastIndexOf(" ");
+  return `${clipped.slice(0, Math.max(lastSpace, maxLength - 40)).trim()}…`;
+}
+
+const discoveryStages: Record<string, { button: string; title: string; detail: string }> = {
+  queued: {
+    button: "Starting scan",
+    title: "Starting the investigation",
+    detail: "The run is queued and claiming its server worker.",
+  },
+  refreshing_sources: {
+    button: "Reading evidence",
+    title: "Reading the company evidence",
+    detail: "Refreshing connected sources and separating current signals from stale context.",
+  },
+  building_operating_pack: {
+    button: "Checking facts",
+    title: "Cross-checking the facts",
+    detail: "Combining product, customer, revenue, reliability, and source evidence into one frozen operating picture.",
+  },
+  sweeping_lenses: {
+    button: "Sweeping lenses",
+    title: "Reviewing all ten company lenses",
+    detail: "Company, customer, provider, growth, revenue, product, content, operations, market, and data are each getting an explicit review before any case is formed.",
+  },
+  forming_candidates: {
+    button: "Forming cases",
+    title: "Building private opportunity cases",
+    detail: "The chief-of-staff pass is comparing customers, providers, growth, revenue, product, content, operations, market risk, and data without assuming the answer is code.",
+  },
+  drafting_decision: {
+    button: "Writing the brief",
+    title: "Writing the one decision brief",
+    detail: "A single case cleared the founder-interruption standard. It is being written up as a CEO-length brief.",
+  },
+  challenging_candidates: {
+    button: "Applying agenda gate",
+    title: "Protecting your attention",
+    detail: "The CEO council is checking materiality, causality, what already exists, alternative interventions, opportunity cost, and whether any decision deserves to interrupt you.",
+  },
+  saving_decisions: {
+    button: "Saving the company read",
+    title: "Separating decisions from watchlist",
+    detail: "The review is recording private investigations and watchlist items. At most one case can enter the founder agenda.",
+  },
 };
 
-const decisionLabels: Record<WarRoomDecision["decision"], string> = {
-  backed: "Backed",
+const statusLabel: Record<WarRoomProposalStatus, string> = {
+  proposed: "Needs your call",
+  approved: "Approved",
+  dispatching: "Dispatching",
+  executing: "Agent working",
+  review_ready: "Ready for review",
   rejected: "Rejected",
-  completed: "Completed",
+  completed: "Measuring outcome",
+  failed: "Execution failed",
+  superseded: "Superseded",
 };
 
-export default function WarRoomDashboard() {
-  const [days, setDays] = useState<(typeof RANGES)[number]>(30);
-  const [snapshot, setSnapshot] = useState<WarRoomSnapshot | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [deciding, setDeciding] = useState<string | null>(null);
-  const [decisionError, setDecisionError] = useState<string | null>(null);
-  const [runError, setRunError] = useState<string | null>(null);
-  const loadRequest = useRef(0);
+const statusTone: Record<WarRoomProposalStatus, string> = {
+  proposed: "bg-rose-50 text-rose-700",
+  approved: "bg-blue-50 text-blue-700",
+  dispatching: "bg-blue-50 text-blue-700",
+  executing: "bg-violet-50 text-violet-700",
+  review_ready: "bg-emerald-50 text-emerald-700",
+  rejected: "bg-gray-100 text-gray-600",
+  completed: "bg-teal-50 text-teal-700",
+  failed: "bg-amber-50 text-amber-800",
+  superseded: "bg-gray-100 text-gray-500",
+};
 
-  const load = useCallback(async () => {
-    const requestId = ++loadRequest.current;
-    setLoading(true);
-    setError(null);
-    setRunError(null);
-    setDecisionError(null);
-    try {
-      const response = await fetch(`/api/admin/war-room?days=${days}`, { cache: "no-store" });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || "War Room failed to load");
-      if (requestId === loadRequest.current) setSnapshot(payload as WarRoomSnapshot);
-    } catch (loadError) {
-      if (requestId === loadRequest.current) {
-        setError(loadError instanceof Error ? loadError.message : "War Room failed to load");
-      }
-    } finally {
-      if (requestId === loadRequest.current) setLoading(false);
-    }
-  }, [days]);
+const sourceTone: Record<WarRoomIntegrationStatus["status"], string> = {
+  live: "bg-emerald-500",
+  stale: "bg-amber-500",
+  missing: "bg-gray-300",
+};
 
-  useEffect(() => {
-    setSnapshot(null);
-    load();
-  }, [load]);
+const companyReadLabel: Record<WarRoomCompanyRead["stance"], string> = {
+  decision_required: "Decision required",
+  investigating: "Investigating",
+  monitoring: "Monitoring",
+  stable: "No decision today",
+};
 
-  const latestRun = snapshot?.latestRun ?? null;
-  const latestRunId = latestRun?.id ?? null;
-  const latestRunIsActive = Boolean(
-    latestRun
-    && ["queued", "running"].includes(latestRun.status)
-    && Date.now() - new Date(latestRun.created_at).getTime() < 10 * 60_000,
-  );
-  const aiBriefing = latestRun?.status === "completed" ? latestRun.briefing : null;
-  const aiRecommendation = aiBriefing?.recommendation ?? null;
-  const recommendation = aiRecommendation ?? snapshot?.recommendation ?? null;
-  const executionActions = aiRecommendation
-    ? aiRecommendation.actions?.length
-      ? aiRecommendation.actions
-      : recommendation
-        ? [{ label: "Open the recommended workspace", detail: recommendation.move, href: recommendation.href }]
-        : []
-    : snapshot?.recommendation.actions ?? [];
-  const firstAction = executionActions[0] ?? null;
-  const recommendationKey = aiBriefing && latestRun
-    ? `ai:${latestRun.id}`
-    : snapshot?.recommendation.key ?? "fallback";
-  const citationById = useMemo(
-    () => new Map((latestRun?.citations ?? []).map((citation) => [citation.id, citation])),
-    [latestRun?.citations],
-  );
+const companyReadTone: Record<WarRoomCompanyRead["stance"], string> = {
+  decision_required: "bg-rose-50 text-rose-700",
+  investigating: "bg-violet-50 text-violet-700",
+  monitoring: "bg-amber-50 text-amber-800",
+  stable: "bg-gray-100 text-gray-600",
+};
 
-  useEffect(() => {
-    if (!latestRunId || !latestRunIsActive) return;
-    let cancelled = false;
-    const poll = async () => {
-      try {
-        const response = await fetch(`/api/admin/war-room?run_id=${latestRunId}`, { cache: "no-store" });
-        const payload = await response.json();
-        if (!response.ok) throw new Error(payload.error || "Could not check analysis progress");
-        if (!cancelled) {
-          setRunError(null);
-          setSnapshot((current) => current ? { ...current, latestRun: payload.run as WarRoomRun } : current);
-        }
-      } catch (pollError) {
-        if (!cancelled) setRunError(pollError instanceof Error ? pollError.message : "Could not check analysis progress");
-      }
-    };
-    const timer = window.setInterval(poll, 2_500);
-    return () => { cancelled = true; window.clearInterval(timer); };
-  }, [latestRunId, latestRunIsActive]);
+const actionLabel: Record<WarRoomProposal["action_kind"], string> = {
+  code: "Product / code",
+  research: "Research",
+  operations: "Operations",
+  business_development: "Business development",
+  content: "Content",
+  decision: "Founder decision",
+};
 
-  const currentDecision = useMemo(() => snapshot?.decisions.find(
-    (decision) => decision.recommendation_key === recommendationKey,
-  ) ?? null, [recommendationKey, snapshot?.decisions]);
+const approvalLabel: Record<WarRoomProposal["action_kind"], string> = {
+  code: "Build this",
+  research: "Approve research",
+  operations: "Approve plan",
+  business_development: "Approve BD plan",
+  content: "Approve content plan",
+  decision: "Back this decision",
+};
 
-  async function runAnalysis() {
-    if (latestRunIsActive) return;
-    const requestedDays = days;
-    setRunError(null);
-    try {
-      const response = await fetch("/api/admin/war-room", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "run", days: requestedDays }),
-      });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || "Could not start War Room analysis");
-      setSnapshot((current) => current?.windowDays === requestedDays
-        ? { ...current, latestRun: payload.run as WarRoomRun }
-        : current);
-    } catch (analysisError) {
-      setRunError(analysisError instanceof Error ? analysisError.message : "Could not start War Room analysis");
-    }
-  }
-
-  async function decide(decision: WarRoomDecision["decision"]) {
-    if (!snapshot || !recommendation || deciding) return;
-    setDeciding(decision);
-    setDecisionError(null);
-    try {
-      const response = await fetch("/api/admin/war-room", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          recommendationKey,
-          recommendationTitle: recommendation.title,
-          decision,
-        }),
-      });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || "Could not save decision");
-      setSnapshot((current) => current ? {
-        ...current,
-        decisions: [payload.decision as WarRoomDecision, ...current.decisions],
-      } : current);
-    } catch (saveError) {
-      setDecisionError(saveError instanceof Error ? saveError.message : "Could not save decision");
-    } finally {
-      setDeciding(null);
-    }
-  }
-
+function ProposalCard({
+  proposal,
+  busy,
+  onAction,
+  onPass,
+}: {
+  proposal: WarRoomProposal;
+  busy: boolean;
+  onAction: (proposal: WarRoomProposal, action: "approve" | "retry" | "reject" | "complete", note?: string) => Promise<void>;
+  onPass?: () => void;
+}) {
+  const [showRejectReason, setShowRejectReason] = useState(false);
+  const [rejectReason, setRejectReason] = useState("");
+  const isWaiting = proposal.status === "proposed";
+  const isCode = proposal.action_kind === "code";
+  const isAwaitingExecutor = isCode && (proposal.status === "approved" || (proposal.status === "failed" && Boolean(proposal.approved_at)));
+  const isHumanApproved = !isCode && proposal.status === "approved";
+  const isActive = ["dispatching", "executing"].includes(proposal.status);
+  const isReviewReady = proposal.status === "review_ready";
   return (
-    <div className="pb-16">
-      <header className="mb-7 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="mb-2 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-rose-700">
-            <Crosshair className="h-3.5 w-3.5" />
-            Company command center
+    <article className={`overflow-hidden rounded-[1.75rem] border bg-white shadow-sm ${isWaiting ? "border-gray-300" : "border-gray-200"}`}>
+      <div className="p-6 sm:p-7">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className={`rounded-full px-3 py-1 text-[11px] font-semibold ${statusTone[proposal.status]}`}>
+              {statusLabel[proposal.status]}
+            </span>
+            <span className="rounded-full bg-violet-50 px-3 py-1 text-[11px] font-semibold text-violet-700">
+              {actionLabel[proposal.action_kind] ?? "Company action"}
+            </span>
+            <span className="rounded-full bg-gray-100 px-3 py-1 text-[11px] font-medium text-gray-600">
+              {proposal.impact} impact · {proposal.effort} effort
+            </span>
+            <span className="text-[11px] font-semibold capitalize text-gray-400">{proposal.domain ?? "company"}</span>
           </div>
-          <h1 className="font-serif text-4xl font-bold tracking-tight text-gray-950">War Room</h1>
-          <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500">
-            The truth, the next move, and the work we should stop pretending matters.
+          <span className="text-xs text-gray-400">Found {relative(proposal.first_seen_at)}</span>
+        </div>
+
+        <h2 className="mt-5 max-w-4xl font-serif text-2xl font-bold leading-tight tracking-tight text-gray-950 sm:text-3xl">
+          {proposal.title}
+        </h2>
+        <div className="mt-4 max-w-4xl">
+          <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-rose-600">Bottom line</p>
+          <p className="mt-2 text-base font-medium leading-7 text-gray-800 sm:text-lg">
+            {concise(proposal.finding, 360)}
           </p>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            type="button"
-            onClick={runAnalysis}
-            disabled={latestRunIsActive}
-            className="inline-flex items-center gap-2 rounded-full bg-gray-950 px-4 py-2.5 text-xs font-semibold text-white hover:bg-black disabled:cursor-wait disabled:opacity-60"
-          >
-            <Crosshair className={`h-3.5 w-3.5 ${latestRunIsActive ? "animate-pulse" : ""}`} />
-            {latestRunIsActive ? "Claude is investigating" : "Run War Room"}
-          </button>
-          <div className="flex rounded-full border border-gray-200 bg-white p-1">
-            {RANGES.map((range) => (
-              <button
-                key={range}
-                type="button"
-                onClick={() => setDays(range)}
-                className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                  days === range ? "bg-gray-950 text-white" : "text-gray-500 hover:text-gray-900"
-                }`}
-              >
-                {range}d
-              </button>
-            ))}
+
+        <div className="mt-6 grid gap-3 lg:grid-cols-[1fr_0.72fr]">
+          <div className="rounded-2xl bg-gray-950 p-5 text-white">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-emerald-300">My recommendation</p>
+            <p className="mt-2 text-sm leading-6 text-gray-200">{concise(proposal.proposed_solution, 440)}</p>
           </div>
-          <button
-            type="button"
-            onClick={load}
-            disabled={loading}
-            aria-label="Refresh War Room"
-            className="rounded-full border border-gray-200 bg-white p-2.5 text-gray-500 hover:text-gray-900 disabled:opacity-50"
-          >
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          </button>
+          <div className="rounded-2xl border border-rose-100 bg-rose-50/60 p-5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-rose-600">Why this matters to Olera</p>
+            <p className="mt-2 text-sm leading-6 text-gray-700">{concise(proposal.why_now, 360)}</p>
+          </div>
         </div>
+
+        <div className="mt-3 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-2xl border border-gray-200 p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400">Expected impact</p>
+            <p className="mt-2 text-xs leading-5 text-gray-600">{concise(proposal.success_measure, 280)}</p>
+          </div>
+          <div className="rounded-2xl border border-amber-200 bg-amber-50/50 p-4">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-amber-700">Main risk</p>
+            <p className="mt-2 text-xs leading-5 text-gray-700">{concise(proposal.risk, 280)}</p>
+          </div>
+        </div>
+
+        <details className="group mt-5 rounded-2xl border border-gray-200 bg-gray-50/70">
+          <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-sm font-semibold text-gray-700">
+            See the detailed case and action plan
+            <ChevronDown className="h-4 w-4 text-gray-400 transition-transform group-open:rotate-180" />
+          </summary>
+          <div className="border-t border-gray-200 px-5 py-5">
+            <div className="grid gap-4 text-sm leading-6 text-gray-600 lg:grid-cols-3">
+              <div><p className="font-semibold text-gray-950">The issue</p><p className="mt-1">{proposal.finding}</p></div>
+              <div><p className="font-semibold text-gray-950">Proposed solution</p><p className="mt-1">{proposal.proposed_solution}</p></div>
+              <div><p className="font-semibold text-gray-950">Why now</p><p className="mt-1">{proposal.why_now}</p></div>
+            </div>
+
+            {(proposal.why_better_than_alternatives || proposal.decision_required || proposal.cheapest_falsification) ? (
+              <div className="mt-6 grid gap-4 border-t border-gray-200 pt-5 text-sm leading-6 text-gray-600 lg:grid-cols-3">
+                <div><p className="font-semibold text-gray-950">Why this beats the alternatives</p><p className="mt-1">{proposal.why_better_than_alternatives || "Not recorded on this legacy proposal."}</p></div>
+                <div><p className="font-semibold text-gray-950">Your decision</p><p className="mt-1">{proposal.decision_required || "Approve or reject the proposed direction."}</p></div>
+                <div><p className="font-semibold text-gray-950">Cheapest way to prove it wrong</p><p className="mt-1">{proposal.cheapest_falsification || "Not recorded on this legacy proposal."}</p></div>
+              </div>
+            ) : null}
+
+            {proposal.existing_capabilities?.length ? (
+              <div className="mt-6 rounded-2xl border border-blue-100 bg-blue-50/60 p-4">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-blue-700">What Olera already has</p>
+                <ul className="mt-2 space-y-1 text-xs leading-5 text-gray-700">
+                  {proposal.existing_capabilities.map((capability) => <li key={capability}>• {capability}</li>)}
+                </ul>
+              </div>
+            ) : null}
+
+            <div className="mt-6 border-t border-gray-200 pt-5">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-gray-400">Action plan</p>
+              <ol className="mt-3 grid gap-3 lg:grid-cols-2">
+                {proposal.execution_plan.map((step, index) => (
+                  <li key={`${step.label}:${index}`} className="flex gap-3 rounded-2xl border border-gray-200 bg-white p-4">
+                    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-gray-950 text-[11px] font-bold text-white">{index + 1}</span>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-950">{step.label}</p>
+                      <p className="mt-1 text-xs leading-5 text-gray-500">{step.detail}</p>
+                    </div>
+                  </li>
+                ))}
+              </ol>
+            </div>
+
+            <div className="grid gap-5 lg:grid-cols-3">
+              <div className="mt-6 border-t border-gray-200 pt-5">
+                <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Evidence</p>
+                <div className="mt-2 space-y-2">
+                  {proposal.evidence.map((evidence) => {
+                    const content = (
+                      <div className="rounded-xl bg-white p-3 text-xs leading-5 text-gray-600">
+                        <p className="font-semibold text-gray-800">{evidence.label}</p>
+                        <p className="mt-0.5 line-clamp-3">{evidence.detail}</p>
+                        <p className="mt-1 text-[10px] uppercase tracking-wide text-gray-400">
+                          {evidence.source}{evidence.freshness ? ` · ${evidence.freshness}` : ""}
+                        </p>
+                      </div>
+                    );
+                    return evidence.href
+                      ? <a key={evidence.id} href={evidence.href} target={evidence.href.startsWith("http") ? "_blank" : undefined} rel="noreferrer">{content}</a>
+                      : <div key={evidence.id}>{content}</div>;
+                  })}
+                </div>
+              </div>
+              <div className="mt-6 space-y-4 border-t border-gray-200 pt-5 text-xs leading-5 text-gray-600">
+                <div><p className="font-semibold text-gray-900">Counter-evidence</p><p className="mt-1">{proposal.counter_evidence}</p></div>
+                <div><p className="font-semibold text-gray-900">What success means</p><p className="mt-1">{proposal.success_measure}</p></div>
+              </div>
+              <div className="mt-6 space-y-4 border-t border-gray-200 pt-5 text-xs leading-5 text-gray-600">
+                <div><p className="font-semibold text-gray-900">Risk</p><p className="mt-1">{proposal.risk}</p></div>
+                <div><p className="font-semibold text-gray-900">Rollback</p><p className="mt-1">{proposal.rollback_plan}</p></div>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        {proposal.execution_error ? (
+          <div className="mt-4 flex gap-2 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-xs leading-5 text-amber-900">
+            <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+            {proposal.execution_error}
+          </div>
+        ) : null}
+
+        {isWaiting && showRejectReason ? (
+          <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50/60 p-4">
+            <label htmlFor={`reject-${proposal.id}`} className="text-sm font-semibold text-gray-950">
+              What did War Room get wrong?
+            </label>
+            <p className="mt-1 text-xs leading-5 text-gray-600">
+              This becomes memory for later scans. Be blunt. “Already exists” is more useful than a polite rejection.
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {["This already exists", "The evidence is wrong or outdated", "This is not important enough"].map((reason) => (
+                <button
+                  key={reason}
+                  type="button"
+                  onClick={() => setRejectReason(reason)}
+                  className="rounded-full border border-rose-200 bg-white px-3 py-1.5 text-[11px] font-semibold text-rose-700 hover:border-rose-300"
+                >
+                  {reason}
+                </button>
+              ))}
+            </div>
+            <textarea
+              id={`reject-${proposal.id}`}
+              value={rejectReason}
+              onChange={(event) => setRejectReason(event.target.value)}
+              maxLength={1_000}
+              rows={3}
+              placeholder="What should the next scan understand?"
+              className="mt-3 w-full resize-y rounded-xl border border-rose-200 bg-white px-3 py-2 text-sm text-gray-800 outline-none placeholder:text-gray-400 focus:border-rose-400"
+            />
+            <div className="mt-3 flex justify-end gap-2">
+              <button type="button" onClick={() => setShowRejectReason(false)} disabled={busy} className="rounded-full px-4 py-2 text-xs font-semibold text-gray-500 hover:text-gray-900 disabled:opacity-50">
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => onAction(proposal, "reject", rejectReason.trim())}
+                disabled={busy || !rejectReason.trim()}
+                className="rounded-full bg-rose-700 px-4 py-2 text-xs font-bold text-white hover:bg-rose-800 disabled:opacity-50"
+              >
+                {busy ? "Saving…" : "Reject and teach War Room"}
+              </button>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="mt-6 flex flex-col gap-3 border-t border-gray-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3 text-xs text-gray-400">
+            <ShieldCheck className="h-4 w-4" />
+            {isCode
+              ? "Branch + PR only. Never merge, deploy, send, spend, or touch production data."
+              : "Approval records the direction. External action, sends, spend, and production changes remain human-controlled."}
+          </div>
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            {proposal.admin_href ? (
+              <Link href={proposal.admin_href} className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 px-4 py-2.5 text-xs font-semibold text-gray-600 hover:border-gray-300 hover:text-gray-950">
+                Related workspace <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
+            ) : null}
+            {isWaiting ? (
+              <>
+                {onPass ? (
+                  <button
+                    type="button"
+                    onClick={onPass}
+                    disabled={busy}
+                    className="inline-flex items-center gap-1.5 rounded-full border border-gray-200 px-4 py-2.5 text-xs font-semibold text-gray-600 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-950 disabled:opacity-50"
+                  >
+                    Pass for now <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => setShowRejectReason((visible) => !visible)}
+                  disabled={busy}
+                  className="inline-flex items-center gap-2 rounded-full border border-gray-300 px-4 py-2.5 text-xs font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  <ThumbsDown className="h-3.5 w-3.5" /> Reject
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onAction(proposal, "approve")}
+                  disabled={busy}
+                  className="inline-flex items-center gap-2 rounded-full bg-gray-950 px-5 py-2.5 text-xs font-bold text-white hover:bg-gray-800 disabled:opacity-50"
+                >
+                  <Bot className="h-4 w-4" /> {busy ? "Authorizing…" : (approvalLabel[proposal.action_kind] ?? "Approve")}
+                </button>
+              </>
+            ) : null}
+            {isActive ? (
+              <span className="inline-flex items-center gap-2 rounded-full bg-violet-50 px-4 py-2.5 text-xs font-semibold text-violet-700">
+                <RefreshCw className="h-3.5 w-3.5 animate-spin" /> The agent owns this now
+              </span>
+            ) : null}
+            {isAwaitingExecutor ? (
+              <button
+                type="button"
+                onClick={() => onAction(proposal, "retry")}
+                disabled={busy}
+                className="inline-flex items-center gap-2 rounded-full border border-violet-200 bg-violet-50 px-4 py-2.5 text-xs font-semibold text-violet-700 hover:bg-violet-100 disabled:opacity-50"
+              >
+                <RefreshCw className={`h-3.5 w-3.5 ${busy ? "animate-spin" : ""}`} /> Retry executor
+              </button>
+            ) : null}
+            {isHumanApproved ? (
+              <button
+                type="button"
+                onClick={() => onAction(proposal, "complete")}
+                disabled={busy}
+                className="inline-flex items-center gap-2 rounded-full border border-emerald-300 px-4 py-2.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
+              >
+                <Check className="h-4 w-4" /> Mark carried out
+              </button>
+            ) : null}
+            {isReviewReady && proposal.execution_url ? (
+              <>
+                <a href={proposal.execution_url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 rounded-full bg-gray-950 px-5 py-2.5 text-xs font-bold text-white hover:bg-gray-800">
+                  <GitPullRequest className="h-4 w-4" /> Review PR <ExternalLink className="h-3 w-3" />
+                </a>
+                <button type="button" onClick={() => onAction(proposal, "complete")} disabled={busy} className="inline-flex items-center gap-2 rounded-full border border-emerald-300 px-4 py-2.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-50 disabled:opacity-50">
+                  <Check className="h-4 w-4" /> Mark shipped
+                </button>
+              </>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    </article>
+  );
+}
+
+export default function WarRoomDashboard() {
+  const [payload, setPayload] = useState<WarRoomSupervisorPayload | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [scanBusy, setScanBusy] = useState(false);
+
+  const load = useCallback(async (quiet = false) => {
+    if (!quiet) setLoading(true);
+    try {
+      const response = await fetch("/api/admin/war-room/proposals", { cache: "no-store" });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "War Room failed to load");
+      setPayload(data as WarRoomSupervisorPayload);
+      setError(null);
+    } catch (loadError) {
+      setError(loadError instanceof Error ? loadError.message : "War Room failed to load");
+    } finally {
+      if (!quiet) setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { load(); }, [load]);
+
+  const shouldPoll = Boolean(
+    payload?.latestDiscovery && ["queued", "running"].includes(payload.latestDiscovery.status)
+    || payload?.proposals.some((proposal) => ["dispatching", "executing"].includes(proposal.status)),
+  );
+  const discoveryActive = Boolean(
+    payload?.latestDiscovery && ["queued", "running"].includes(payload.latestDiscovery.status),
+  );
+  const discoveryStageKey = payload?.latestDiscovery?.status === "queued"
+    ? "queued"
+    : typeof payload?.latestDiscovery?.source_summary?.stage === "string"
+      ? payload.latestDiscovery.source_summary.stage
+      : "forming_candidates";
+  const discoveryStage = discoveryStages[discoveryStageKey] ?? discoveryStages.forming_candidates;
+  const discoveryStageAttempt = typeof payload?.latestDiscovery?.source_summary?.stage_attempt === "number"
+    ? payload.latestDiscovery.source_summary.stage_attempt
+    : 1;
+  const discoveryStartedAt = payload?.latestDiscovery?.started_at || payload?.latestDiscovery?.created_at || null;
+  const discoveryElapsedMs = payload ? elapsedMilliseconds(discoveryStartedAt, payload.generatedAt) : 0;
+  useEffect(() => {
+    if (!shouldPoll) return;
+    const timer = window.setInterval(() => load(true), 5_000);
+    return () => window.clearInterval(timer);
+  }, [load, shouldPoll]);
+
+  const groups = useMemo(() => {
+    const proposals = payload?.proposals ?? [];
+    const investigations = payload?.investigations ?? [];
+    return {
+      waiting: proposals.filter((proposal) => proposal.status === "proposed").sort((a, b) => b.priority_score - a.priority_score),
+      active: proposals.filter((proposal) =>
+        ["approved", "dispatching", "executing"].includes(proposal.status)
+        || (proposal.status === "failed" && Boolean(proposal.approved_at)),
+      ),
+      review: proposals.filter((proposal) => proposal.status === "review_ready"),
+      recent: proposals.filter((proposal) =>
+        ["completed", "rejected", "superseded"].includes(proposal.status)
+        || (proposal.status === "failed" && !proposal.approved_at),
+      ).slice(0, 6),
+      investigating: investigations.filter((investigation) => investigation.status === "investigating").slice(0, 6),
+      watchlist: investigations.filter((investigation) => investigation.status === "watchlist").slice(0, 6),
+    };
+  }, [payload?.investigations, payload?.proposals]);
+
+  async function scan() {
+    setScanBusy(true);
+    setError(null);
+    try {
+      const response = await fetch("/api/admin/war-room/proposals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "discover" }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not start discovery");
+      await load(true);
+    } catch (scanError) {
+      setError(scanError instanceof Error ? scanError.message : "Could not start discovery");
+    } finally {
+      setScanBusy(false);
+    }
+  }
+
+  async function act(proposal: WarRoomProposal, action: "approve" | "retry" | "reject" | "complete", note?: string) {
+    setBusyId(proposal.id);
+    setError(null);
+    try {
+      const response = await fetch("/api/admin/war-room/proposals", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, proposalId: proposal.id, note }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || "Could not save this decision");
+      await load(true);
+    } catch (actionError) {
+      setError(actionError instanceof Error ? actionError.message : "Could not save this decision");
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  if (loading && !payload) return <LoadingState />;
+
+  return (
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:py-12">
+      <header className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="flex items-center gap-2 text-rose-600">
+            <Sparkles className="h-4 w-4" />
+            <p className="text-xs font-bold uppercase tracking-[0.2em]">Company operating agent</p>
+          </div>
+          <h1 className="mt-2 font-serif text-4xl font-bold tracking-tight text-gray-950 sm:text-5xl">War Room</h1>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-500 sm:text-base">
+            I investigate the company. I interrupt you only when a decision can materially improve Olera&apos;s odds.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={scan}
+          disabled={scanBusy || Boolean(payload?.latestDiscovery && ["queued", "running"].includes(payload.latestDiscovery.status))}
+          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-gray-950 px-5 py-3 text-xs font-bold text-white hover:bg-gray-800 disabled:opacity-50"
+        >
+          <RefreshCw className={`h-4 w-4 ${scanBusy || shouldPoll && payload?.latestDiscovery?.status !== "completed" ? "animate-spin" : ""}`} />
+          {discoveryActive ? discoveryStage.button : "Scan now"}
+        </button>
       </header>
 
-      {loading && !snapshot ? <WarRoomLoading /> : null}
       {error ? (
-        <div className="rounded-3xl border border-rose-200 bg-rose-50 px-6 py-8">
-          <p className="font-semibold text-gray-950">The evidence pipeline broke.</p>
-          <p className="mt-1 text-sm text-gray-600">{error} Fix the source. Do not fill the gap with confidence.</p>
+        <div className="mt-6 flex gap-3 rounded-2xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-900">
+          <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+          <div><p className="font-semibold">War Room hit a real blocker.</p><p className="mt-0.5 text-rose-800">{error}</p></div>
         </div>
       ) : null}
 
-      {snapshot && recommendation ? (
-        <>
-          <section className="relative overflow-hidden rounded-[2rem] bg-gray-950 px-6 py-7 text-white shadow-sm sm:px-8 sm:py-9">
-            <div className="absolute -right-24 -top-24 h-64 w-64 rounded-full bg-rose-600/20 blur-3xl" />
-            <div className="relative">
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-rose-300">
-                  {recommendation.eyebrow}
-                </p>
-                <span className="rounded-full border border-white/15 bg-white/5 px-3 py-1 text-[11px] text-gray-300">
-                  {aiBriefing ? `${latestRun?.model} · AI + critic` : "Rule fallback"} · {recommendation.confidence} confidence · refreshed {relative(aiBriefing ? latestRun?.completed_at ?? snapshot.generatedAt : snapshot.generatedAt)}
-                </span>
-              </div>
-              <h2 className="mt-4 max-w-4xl font-serif text-3xl font-bold leading-tight tracking-tight sm:text-4xl">
-                {recommendation.title}
-              </h2>
-              <p className="mt-4 max-w-3xl text-base leading-7 text-gray-300">
-                {recommendation.verdict}
-              </p>
-
-              <div className="mt-7 grid gap-4 lg:grid-cols-[1fr_0.78fr]">
-                <div className="rounded-2xl border border-white/10 bg-white/[0.06] p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-300">Do this next</p>
-                  <p className="mt-2 leading-6 text-white">{recommendation.move}</p>
-                </div>
-                <div className="rounded-2xl border border-rose-400/20 bg-rose-400/[0.08] p-5">
-                  <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-rose-300">Kill list</p>
-                  <p className="mt-2 leading-6 text-gray-200">{recommendation.kill}</p>
-                </div>
-              </div>
-
-              {executionActions.length ? (
-                <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-5 sm:p-6">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sky-300">Execution plan</p>
-                      <p className="mt-1 text-sm text-gray-400">The exact place to act, the next step, and what moves this forward.</p>
-                    </div>
-                    {firstAction ? (
-                      <Link href={firstAction.href} className="inline-flex min-h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-sky-300 px-4 py-2 text-xs font-bold text-gray-950 hover:bg-sky-200">
-                        Start here <ArrowRight className="h-3.5 w-3.5" />
-                      </Link>
-                    ) : null}
-                  </div>
-                  <ol className="mt-5 grid gap-3 lg:grid-cols-3">
-                    {executionActions.map((action, index) => (
-                      <li key={`${action.href}:${action.label}`} className="flex flex-col rounded-xl border border-white/10 bg-white/[0.04] p-4">
-                        <div className="flex items-start gap-3">
-                          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 text-[11px] font-bold text-white">{index + 1}</span>
-                          <div>
-                            <p className="text-sm font-semibold leading-5 text-white">{action.label}</p>
-                            <p className="mt-1.5 text-xs leading-5 text-gray-400">{action.detail}</p>
-                          </div>
-                        </div>
-                        <Link href={action.href} className="mt-4 inline-flex items-center gap-1.5 self-start text-xs font-semibold text-sky-300 hover:text-sky-200">
-                          Open workspace <ArrowRight className="h-3 w-3" />
-                        </Link>
-                      </li>
+      {!error && payload?.latestDiscovery?.status === "failed" ? (() => {
+        const failure = discoveryFailure(payload.latestDiscovery.source_summary);
+        // Forensics, not a stack trace: enough to reproduce and report the
+        // failure without putting company evidence or prompts in the browser.
+        const forensics = [
+          failure?.stage ? ["Stage", failure.stage] : null,
+          failure?.tool ? ["Contract", failure.tool] : null,
+          failure?.category ? ["Category", failure.category] : null,
+          typeof failure?.status === "number" ? ["Provider status", String(failure.status)] : null,
+          failure?.requestId ? ["Provider request", failure.requestId] : null,
+          failure?.promptVersion ? ["Prompt version", failure.promptVersion] : null,
+          failure?.model ? ["Model", failure.model] : null,
+        ].filter((entry): entry is [string, string] => Boolean(entry));
+        return (
+          <div className="mt-6 flex gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
+            <CircleAlert className="mt-0.5 h-4 w-4 shrink-0" />
+            <div className="min-w-0">
+              <p className="font-semibold">The last discovery run failed honestly.</p>
+              <p className="mt-0.5 break-words">{discoveryFailureMessage(payload.latestDiscovery.error_message, failure)}</p>
+              {forensics.length ? (
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-xs font-semibold text-amber-800">Diagnostic detail</summary>
+                  <dl className="mt-2 grid grid-cols-[auto,1fr] gap-x-3 gap-y-1 text-xs text-amber-800">
+                    {forensics.map(([label, value]) => (
+                      <Fragment key={label}>
+                        <dt className="font-semibold">{label}</dt>
+                        <dd className="break-all font-mono">{value}</dd>
+                      </Fragment>
                     ))}
-                  </ol>
-                </div>
+                  </dl>
+                  {failure?.detail ? <p className="mt-2 break-words font-mono text-xs text-amber-800">{failure.detail}</p> : null}
+                </details>
               ) : null}
-
-              <div className="mt-6 flex flex-col gap-4 border-t border-white/10 pt-5 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex flex-wrap gap-2">
-                  {(aiRecommendation ? aiRecommendation.evidenceIds : snapshot.recommendation.evidence).map((item: string) => {
-                    const citation = aiRecommendation ? citationById.get(item) : null;
-                    const chip = <span className="rounded-full bg-white/[0.07] px-3 py-1.5 text-xs text-gray-300">{citation?.label ?? item}</span>;
-                    return citation?.href ? <Link key={item} href={citation.href}>{chip}</Link> : <span key={item}>{chip}</span>;
-                  })}
-                </div>
-                <div className="flex shrink-0 items-center gap-2">
-                  {currentDecision ? (
-                    <>
-                      <span className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-semibold text-gray-950">
-                        <Check className="h-3.5 w-3.5" /> {decisionLabels[currentDecision.decision]}
-                      </span>
-                      {currentDecision.decision === "backed" ? (
-                        <button
-                          type="button"
-                          onClick={() => decide("completed")}
-                          disabled={Boolean(deciding) || latestRunIsActive}
-                          className="rounded-full border border-white/20 px-4 py-2 text-xs font-semibold text-gray-200 hover:bg-white/10 disabled:opacity-50"
-                        >
-                          Mark complete
-                        </button>
-                      ) : null}
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => decide("rejected")}
-                        disabled={Boolean(deciding) || latestRunIsActive}
-                        className="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-2 text-xs font-semibold text-gray-200 hover:bg-white/10 disabled:opacity-50"
-                      >
-                        <ThumbsDown className="h-3.5 w-3.5" /> Reject
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => decide("backed")}
-                        disabled={Boolean(deciding) || latestRunIsActive}
-                        className="inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-xs font-semibold text-gray-950 hover:bg-gray-100 disabled:opacity-50"
-                      >
-                        <ThumbsUp className="h-3.5 w-3.5" /> Back this move
-                      </button>
-                    </>
-                  )}
-                  <Link href={recommendation.href} className="rounded-full p-2 text-gray-300 hover:bg-white/10 hover:text-white" aria-label="Open recommended work">
-                    <ArrowRight className="h-4 w-4" />
-                  </Link>
-                </div>
-              </div>
-              {decisionError ? <p className="mt-3 text-right text-xs text-rose-300">{decisionError}</p> : null}
-              {aiRecommendation ? (
-                <div className="mt-5 grid gap-3 border-t border-white/10 pt-5 text-sm sm:grid-cols-2">
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400">Counter-evidence</p>
-                    <p className="mt-1 leading-6 text-gray-300">{aiRecommendation.counterEvidence}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400">What changes our mind</p>
-                    <p className="mt-1 leading-6 text-gray-300">{aiRecommendation.whatWouldChangeOurMind}</p>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          </section>
-
-          {runError || latestRun?.status === "failed" ? (
-            <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-5 py-4 text-sm text-amber-900">
-              <span className="font-semibold">AI analysis unavailable.</span>{" "}
-              {runError || latestRun?.error_message || "The saved rule-based briefing remains active."}
-            </div>
-          ) : null}
-
-          <section className="mt-7 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {snapshot.metrics.map((metric) => (
-              <Link key={metric.key} href={metric.href} className={`rounded-2xl border p-5 transition-transform hover:-translate-y-0.5 ${metricTone[metric.tone]}`}>
-                <p className="text-xs font-medium text-gray-500">{metric.label}</p>
-                <p className="mt-2 text-3xl font-semibold tracking-tight text-gray-950">{metric.display}</p>
-                <p className="mt-1 text-xs leading-5 text-gray-500">{metric.detail}</p>
-              </Link>
-            ))}
-          </section>
-
-          <div className="mt-8 grid gap-8 xl:grid-cols-[1.15fr_0.85fr]">
-            <div className="space-y-8">
-              {aiBriefing ? (
-                <section>
-                  <SectionTitle icon={<Crosshair className="h-4 w-4" />} title="The read beneath the numbers" detail="Patterns from the analyst pass, corrected by a separate skeptic." />
-                  <div className="mt-3 space-y-3">
-                    {aiBriefing.observations.map((observation) => (
-                      <div key={observation.title} className="rounded-2xl border border-gray-200 bg-white p-5">
-                        <p className="font-semibold text-gray-950">{observation.title}</p>
-                        <p className="mt-1 text-sm leading-6 text-gray-500">{observation.detail}</p>
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {observation.evidenceIds.map((id) => {
-                            const citation = citationById.get(id);
-                            return <span key={id} className="rounded-full bg-gray-100 px-2.5 py-1 text-[11px] text-gray-500">{citation?.label ?? id}</span>;
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              ) : null}
-              <section>
-                <SectionTitle icon={<ShieldAlert className="h-4 w-4" />} title="What could hurt us" detail="Exceptions, bottlenecks, and lies the averages tell." />
-                <div className="mt-3 space-y-3">
-                  {snapshot.signals.length ? snapshot.signals.map((signal) => (
-                    <Link key={signal.id} href={signal.href} className="group flex gap-4 rounded-2xl border border-gray-200 bg-white p-5 hover:border-gray-300">
-                      <span className={`mt-0.5 rounded-full p-2 ${signal.severity === "urgent" ? "bg-rose-50 text-rose-600" : "bg-amber-50 text-amber-600"}`}>
-                        <AlertTriangle className="h-4 w-4" />
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-semibold text-gray-950">{signal.title}</span>
-                        <span className="mt-1 block text-sm leading-6 text-gray-500">{signal.detail}</span>
-                      </span>
-                      <ArrowRight className="mt-1 h-4 w-4 text-gray-300 group-hover:text-gray-700" />
-                    </Link>
-                  )) : (
-                    <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 text-sm text-emerald-800">
-                      No threshold breach. That is permission to focus, not permission to coast.
-                    </div>
-                  )}
-                </div>
-              </section>
-
-              <section>
-                <SectionTitle icon={<Users className="h-4 w-4" />} title="What customers are saying" detail="Recent inbound email and care-seeker questions. Read the words, not just the count." />
-                <div className="mt-3 overflow-hidden rounded-2xl border border-gray-200 bg-white">
-                  {snapshot.customerVoice.length ? snapshot.customerVoice.map((item, index) => (
-                    <Link key={item.id} href={item.href} className={`block px-5 py-4 hover:bg-gray-50 ${index ? "border-t border-gray-100" : ""}`}>
-                      <div className="flex items-center justify-between gap-3">
-                        <p className="truncate text-sm font-semibold text-gray-900">{item.title}</p>
-                        <span className="shrink-0 text-[11px] text-gray-400">{relative(item.at)}</span>
-                      </div>
-                      <p className="mt-1 text-sm leading-5 text-gray-500">{item.summary}</p>
-                      <div className="mt-2 flex gap-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400">
-                        <span>{item.category.replaceAll("_", " ")}</span><span>·</span><span>{item.priority}</span>
-                      </div>
-                    </Link>
-                  )) : (
-                    <p className="px-5 py-8 text-center text-sm text-gray-500">No recent customer voice is connected.</p>
-                  )}
-                </div>
-              </section>
-            </div>
-
-            <div className="space-y-8">
-              {aiBriefing ? (
-                <section>
-                  <SectionTitle icon={<ShieldAlert className="h-4 w-4" />} title="The skeptic's pass" detail="The memo had to survive an adversarial read before you saw it." />
-                  <div className="mt-3 space-y-3 rounded-2xl border border-gray-200 bg-white p-5 text-sm leading-6">
-                    <div><p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Challenge</p><p className="text-gray-700">{aiBriefing.critic.challenge}</p></div>
-                    <div><p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Correction</p><p className="text-gray-700">{aiBriefing.critic.correction}</p></div>
-                    <div><p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Still unresolved</p><p className="text-gray-700">{aiBriefing.critic.unresolvedRisk}</p></div>
-                  </div>
-                </section>
-              ) : null}
-
-              {aiBriefing?.questionsToResolve.length ? (
-                <section>
-                  <SectionTitle icon={<AlertTriangle className="h-4 w-4" />} title="Questions that would sharpen the call" detail="The next evidence to collect—not more dashboard furniture." />
-                  <ol className="mt-3 space-y-2 rounded-2xl border border-gray-200 bg-white p-5">
-                    {aiBriefing.questionsToResolve.map((question, index) => <li key={question} className="flex gap-3 text-sm leading-6 text-gray-600"><span className="font-semibold text-gray-400">{index + 1}.</span>{question}</li>)}
-                  </ol>
-                </section>
-              ) : null}
-              <section>
-                <SectionTitle icon={<CircleDollarSign className="h-4 w-4" />} title="Evidence coverage" detail="What War Room can prove—and where it is still blind." />
-                <div className="mt-3 rounded-2xl border border-gray-200 bg-white p-2">
-                  {snapshot.sources.map((source) => {
-                    const tone = sourceTone[source.status];
-                    const content = (
-                      <div className="flex items-start gap-3 rounded-xl px-3 py-3 hover:bg-gray-50">
-                        <span className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${tone.dot}`} />
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between gap-3">
-                            <p className="text-sm font-medium text-gray-900">{source.label}</p>
-                            <span className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">{tone.label}</span>
-                          </div>
-                          <p className="mt-0.5 text-xs leading-5 text-gray-500">{source.detail}</p>
-                          {source.updatedAt ? <p className="text-[11px] text-gray-400">Updated {relative(source.updatedAt)}</p> : null}
-                        </div>
-                      </div>
-                    );
-                    return source.href ? <Link key={source.key} href={source.href}>{content}</Link> : <div key={source.key}>{content}</div>;
-                  })}
-                </div>
-              </section>
-
-              <section>
-                <SectionTitle icon={<Clock3 className="h-4 w-4" />} title="Decision trail" detail="Memory prevents us from rewriting history." />
-                <div className="mt-3 rounded-2xl border border-gray-200 bg-white">
-                  {snapshot.decisions.length ? snapshot.decisions.map((decision, index) => (
-                    <div key={decision.id} className={`px-4 py-4 ${index ? "border-t border-gray-100" : ""}`}>
-                      <div className="flex items-start justify-between gap-3">
-                        <p className="text-sm font-medium leading-5 text-gray-900">{decision.recommendation_title}</p>
-                        <span className={`shrink-0 rounded-full px-2 py-1 text-[10px] font-semibold uppercase ${
-                          decision.decision === "backed" ? "bg-emerald-50 text-emerald-700" : decision.decision === "completed" ? "bg-blue-50 text-blue-700" : "bg-gray-100 text-gray-600"
-                        }`}>{decisionLabels[decision.decision]}</span>
-                      </div>
-                      <p className="mt-2 text-[11px] text-gray-400">{decision.decided_by} · {relative(decision.created_at)}</p>
-                    </div>
-                  )) : (
-                    <p className="px-5 py-8 text-center text-sm text-gray-500">No decisions recorded yet. The machine remembers once we choose.</p>
-                  )}
-                </div>
-              </section>
             </div>
           </div>
+        );
+      })() : null}
+
+      {payload ? (
+        <>
+          <details className="group mt-7 rounded-2xl border border-gray-200 bg-white">
+            <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-4 text-sm font-semibold text-gray-700">
+              <span className="flex items-center gap-3">
+                Evidence coverage
+                <span className="flex items-center gap-1.5">
+                  {payload.integrations.map((integration) => <span key={integration.key} title={`${integration.label}: ${integration.status}`} className={`h-2 w-2 rounded-full ${sourceTone[integration.status]}`} />)}
+                </span>
+              </span>
+              <ChevronDown className="h-4 w-4 text-gray-400 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="grid gap-3 border-t border-gray-100 p-4 sm:grid-cols-3">
+              {payload.integrations.map((integration) => (
+                <div key={integration.key} className="rounded-xl bg-gray-50 p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-semibold text-gray-900">{integration.label}</p>
+                    <span className={`h-2.5 w-2.5 rounded-full ${sourceTone[integration.status]}`} />
+                  </div>
+                  <p className="mt-1 text-xs leading-5 text-gray-500">{integration.detail}</p>
+                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-wide text-gray-400">{integration.status}{integration.updatedAt ? ` · ${relative(integration.updatedAt)}` : ""}</p>
+                </div>
+              ))}
+            </div>
+          </details>
+
+          <section className="mt-8 rounded-[1.75rem] bg-gray-950 px-6 py-6 text-white sm:px-8">
+            <div className="grid gap-5 sm:grid-cols-4">
+              <Count label="Decisions waiting" value={payload.counts.waiting} />
+              <Count label="Approved / working" value={payload.counts.working} />
+              <Count label="Open investigations" value={payload.counts.investigating ?? 0} />
+              <Count label="Watchlist" value={payload.counts.watchlist ?? 0} />
+            </div>
+            <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-white/10 pt-4 text-xs text-gray-400">
+              <span className="inline-flex items-center gap-2"><Clock3 className="h-3.5 w-3.5" /> Investigates daily · maximum one founder interruption per scan</span>
+              <span>
+                {payload.latestDiscovery
+                  ? `Last discovery ${payload.latestDiscovery.status} · ${relative(payload.latestDiscovery.completed_at || payload.latestDiscovery.created_at)}`
+                  : "No discovery run yet"}
+              </span>
+            </div>
+          </section>
+
+          {payload.briefing?.length ? <BriefingSection readings={payload.briefing} scanCost={payload.scanCost} /> : null}
+
+          {payload.companyVerdict ? (
+            <section className="mt-5 rounded-2xl border border-gray-200 bg-white px-5 py-5 sm:px-6">
+              <div className="flex gap-3">
+                <Layers3 className="mt-0.5 h-5 w-5 shrink-0 text-gray-400" />
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">Company read</p>
+                    {payload.companyRead ? (
+                      <span className={`rounded-full px-2.5 py-1 text-[10px] font-semibold ${companyReadTone[payload.companyRead.stance]}`}>
+                        {companyReadLabel[payload.companyRead.stance]}
+                      </span>
+                    ) : null}
+                  </div>
+                  <p className="mt-2 max-w-4xl text-sm font-medium leading-6 text-gray-800">{payload.companyVerdict}</p>
+                  {payload.companyRead?.investigationFingerprints.length ? (
+                    <p className="mt-2 text-xs text-gray-500">
+                      Following {payload.companyRead.investigationFingerprints.length} unresolved case{payload.companyRead.investigationFingerprints.length === 1 ? "" : "s"} below.
+                    </p>
+                  ) : null}
+                </div>
+              </div>
+            </section>
+          ) : null}
+
+          {groups.review.length ? <ProposalSection title="The work is back" detail="Review the PR. Shipping is still your decision." proposals={groups.review} busyId={busyId} onAction={act} /> : null}
+          {groups.waiting.length ? <ProposalSection title="Needs your call" detail="One decision at a time. Pass leaves the proposal untouched so you can come back to it." proposals={groups.waiting} busyId={busyId} onAction={act} paged /> : null}
+          {groups.active.length ? <ProposalSection title="Working" detail="You approved the direction. Code goes to the guarded executor; human plans remain human-controlled." proposals={groups.active} busyId={busyId} onAction={act} /> : null}
+
+          {groups.investigating.length ? <InvestigationSection title="Active investigations" detail="These are unresolved company conditions, not tasks. Each case records what is known and the next read-only question that should advance it." investigations={groups.investigating} /> : null}
+          {groups.watchlist.length ? <InvestigationSection title="Watchlist" detail="Real enough to remember; not important or proven enough to consume your attention yet." investigations={groups.watchlist} /> : null}
+
+          {discoveryActive && payload?.latestDiscovery ? (
+            <section className="mt-8 overflow-hidden rounded-[1.75rem] border border-violet-200 bg-violet-50/70 px-6 py-8 sm:px-8">
+              <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex gap-4">
+                  <span className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gray-950 text-white">
+                    <RefreshCw className="h-4 w-4 animate-spin" />
+                  </span>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-violet-700">Still working</p>
+                    <h2 className="mt-1 font-serif text-2xl font-bold text-gray-950">{discoveryStage.title}</h2>
+                    <p className="mt-2 max-w-2xl text-sm leading-6 text-gray-600">{discoveryStage.detail}</p>
+                    {discoveryStageAttempt > 1 ? (
+                      <p className="mt-2 text-xs font-semibold text-violet-700">
+                        Durable retry {discoveryStageAttempt - 1} — completed stages were not repeated.
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+                <div className="shrink-0 rounded-2xl border border-violet-200 bg-white/80 px-5 py-3 text-left sm:text-right">
+                  <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Elapsed</p>
+                  <p className="mt-0.5 text-lg font-semibold tabular-nums text-gray-950">
+                    {elapsed(discoveryStartedAt, payload.generatedAt)}
+                  </p>
+                </div>
+              </div>
+              <p className="mt-5 border-t border-violet-200/70 pt-4 text-xs leading-5 text-gray-500">
+                {discoveryElapsedMs > 4 * 60_000
+                  ? "Deep reasoning is taking longer than usual. It is safe to leave this page: the durable run will retry or resume from its last completed stage."
+                  : "War Room uses two checkpointed deep-reasoning passes. You can leave this page; the result appears here automatically."}
+              </p>
+            </section>
+          ) : null}
+
+          {!discoveryActive
+          && payload.latestDiscovery?.status !== "failed"
+          && !groups.waiting.length
+          && !groups.active.length
+          && !groups.review.length ? (
+            <section className="mt-8 rounded-[1.75rem] border border-emerald-200 bg-emerald-50 px-6 py-12 text-center">
+              <Check className="mx-auto h-6 w-6 text-emerald-600" />
+              <h2 className="mt-3 font-serif text-2xl font-bold text-gray-950">
+                {groups.investigating.length || groups.watchlist.length
+                  ? "No decision needed from you today."
+                  : "No founder decision is supported today."}
+              </h2>
+              <p className="mx-auto mt-2 max-w-xl text-sm leading-6 text-gray-600">
+                {groups.investigating.length || groups.watchlist.length
+                  ? "War Room is preserving the unresolved cases above and will interrupt only when one becomes decision-ready."
+                  : "This scan did not preserve a sufficiently supported private investigation. That is an evidence limitation—not proof that Olera has nothing important to do."}
+              </p>
+            </section>
+          ) : null}
+
+          {groups.recent.length ? (
+            <section className="mt-10">
+              <h2 className="font-serif text-2xl font-bold text-gray-950">Memory</h2>
+              <p className="mt-1 text-sm text-gray-500">Rejected work stays rejected. Completed work stays visible while its outcome is measured.</p>
+              <div className="mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+                {groups.recent.map((proposal, index) => (
+                  <div key={proposal.id} className={`flex flex-col gap-3 px-5 py-4 sm:flex-row sm:items-center sm:justify-between ${index ? "border-t border-gray-100" : ""}`}>
+                    <div>
+                      <p className="text-sm font-semibold text-gray-900">{proposal.title}</p>
+                      <p className="mt-1 text-xs text-gray-400">Last seen {relative(proposal.last_seen_at)} · {proposal.occurrence_count} observation{proposal.occurrence_count === 1 ? "" : "s"}</p>
+                      {proposal.rejection_note ? <p className="mt-2 max-w-3xl text-xs leading-5 text-gray-600">Why we rejected it: {proposal.rejection_note}</p> : null}
+                      {proposal.outcome_note ? <p className="mt-2 max-w-3xl text-xs leading-5 text-gray-600">Outcome: {proposal.outcome_note}</p> : null}
+                    </div>
+                    <div className="flex shrink-0 flex-wrap gap-2">
+                      {proposal.outcome_status ? <span className="self-start rounded-full bg-teal-50 px-3 py-1 text-[11px] font-semibold text-teal-700">Outcome · {proposal.outcome_status}</span> : null}
+                      <span className={`self-start rounded-full px-3 py-1 text-[11px] font-semibold ${statusTone[proposal.status]}`}>{statusLabel[proposal.status]}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
         </>
       ) : null}
     </div>
   );
 }
 
-function SectionTitle({ icon, title, detail }: { icon: React.ReactNode; title: string; detail: string }) {
+/**
+ * The scan's primary output.
+ *
+ * Founder proposals are rare by design, so a page that only surfaces proposals
+ * reads as "War Room found nothing" on days when it measured a great deal. The
+ * brief is what it measured, stated plainly and without a recommendation
+ * attached — every number here is a bounded read-only query, not a judgement.
+ */
+function BriefingSection({
+  readings,
+  scanCost,
+}: {
+  readings: WarRoomProbeReading[];
+  scanCost: WarRoomScanCost | null;
+}) {
   return (
-    <div>
-      <div className="flex items-center gap-2 text-gray-950">{icon}<h2 className="font-serif text-xl font-bold">{title}</h2></div>
-      <p className="mt-1 text-sm text-gray-500">{detail}</p>
-    </div>
+    <section className="mt-8">
+      <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2">
+        <div>
+          <h2 className="font-serif text-2xl font-bold text-gray-950">Today&apos;s read</h2>
+          <p className="mt-1 max-w-2xl text-sm leading-6 text-gray-500">
+            What the last scans actually measured. Facts, not recommendations — nothing here is asking you to decide anything.
+          </p>
+        </div>
+        {scanCost ? (
+          <p className="text-xs text-gray-400">
+            Last scan{scanCost.usd != null ? ` cost ${formatUsd(scanCost.usd)}` : ""}
+            {" · "}
+            {scanCost.inputTokens.toLocaleString("en-US")} in / {scanCost.outputTokens.toLocaleString("en-US")} out
+            {scanCost.usd == null ? ` on ${scanCost.model}` : ""}
+          </p>
+        ) : null}
+      </div>
+      <div className="mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+        {readings.map((reading, index) => (
+          <article key={reading.probeId} className={`px-5 py-5 sm:px-6 ${index ? "border-t border-gray-100" : ""}`}>
+            <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-gray-400">{reading.label}</p>
+              <span className="text-[11px] text-gray-400">measured {measuredOn(reading.measuredAt)}</span>
+            </div>
+            {reading.question ? (
+              <p className="mt-1.5 max-w-2xl text-xs leading-5 text-gray-400">{reading.question}</p>
+            ) : null}
+            <p className="mt-2 max-w-3xl text-[15px] font-semibold leading-6 text-gray-950">{reading.headline}</p>
+            {reading.detail ? (
+              <p className="mt-1.5 max-w-3xl text-sm leading-6 text-gray-600">{reading.detail}</p>
+            ) : null}
+            {reading.rows.length ? (
+              <dl className="mt-3 max-w-lg">
+                {reading.rows.map((row, rowIndex) => {
+                  const { label, value } = splitProbeRow(row);
+                  return (
+                    <div
+                      key={`${reading.probeId}-${rowIndex}`}
+                      className={`flex items-baseline justify-between gap-4 py-1.5 ${rowIndex ? "border-t border-gray-100" : ""}`}
+                    >
+                      <dt className="text-sm leading-5 text-gray-600">{label || "—"}</dt>
+                      <dd className="shrink-0 text-sm font-semibold tabular-nums text-gray-900">{value || "—"}</dd>
+                    </div>
+                  );
+                })}
+              </dl>
+            ) : null}
+            {reading.caveat ? (
+              <p className="mt-3 max-w-3xl text-xs leading-5 text-gray-400">{reading.caveat}</p>
+            ) : null}
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 
-function WarRoomLoading() {
+function ProposalSection({
+  title,
+  detail,
+  proposals,
+  busyId,
+  onAction,
+  paged = false,
+}: {
+  title: string;
+  detail: string;
+  proposals: WarRoomProposal[];
+  busyId: string | null;
+  onAction: (proposal: WarRoomProposal, action: "approve" | "retry" | "reject" | "complete", note?: string) => Promise<void>;
+  paged?: boolean;
+}) {
+  const [activeIndex, setActiveIndex] = useState(0);
+  useEffect(() => {
+    setActiveIndex((current) => Math.min(current, Math.max(0, proposals.length - 1)));
+  }, [proposals.length]);
+  const selectedIndex = Math.min(activeIndex, Math.max(0, proposals.length - 1));
+  const visibleProposals = paged ? proposals.slice(selectedIndex, selectedIndex + 1) : proposals;
+  const showPager = paged && proposals.length > 1;
+  const previous = () => setActiveIndex((current) => (current - 1 + proposals.length) % proposals.length);
+  const next = () => setActiveIndex((current) => (current + 1) % proposals.length);
+
   return (
-    <div className="space-y-5">
-      <div className="h-[420px] animate-pulse rounded-[2rem] bg-gray-900" />
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-4">
-        {[0, 1, 2, 3].map((item) => <div key={item} className="h-32 animate-pulse rounded-2xl bg-gray-100" />)}
+    <section className="mt-10">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <h2 className="font-serif text-2xl font-bold text-gray-950">{title}</h2>
+          <p className="mt-1 text-sm text-gray-500">{detail}</p>
+        </div>
+        {showPager ? (
+          <div className="flex items-center gap-2">
+            <span className="mr-1 text-xs font-semibold tabular-nums text-gray-400">
+              {selectedIndex + 1} of {proposals.length}
+            </span>
+            <button type="button" onClick={previous} aria-label="Previous proposal" className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-white hover:text-gray-950">
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <button type="button" onClick={next} aria-label="Next proposal" className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-white hover:text-gray-950">
+              <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        ) : null}
       </div>
+      <div className="mt-4 space-y-5">
+        {visibleProposals.map((proposal) => (
+          <ProposalCard
+            key={proposal.id}
+            proposal={proposal}
+            busy={busyId === proposal.id}
+            onAction={onAction}
+            onPass={showPager ? next : undefined}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function InvestigationSection({
+  title,
+  detail,
+  investigations,
+}: {
+  title: string;
+  detail: string;
+  investigations: WarRoomInvestigation[];
+}) {
+  return (
+    <section className="mt-10">
+      <h2 className="font-serif text-2xl font-bold text-gray-950">{title}</h2>
+      <p className="mt-1 max-w-3xl text-sm leading-6 text-gray-500">{detail}</p>
+      <div className="mt-4 overflow-hidden rounded-2xl border border-gray-200 bg-white">
+        {investigations.map((investigation, index) => (
+          <details key={investigation.id} className={`group ${index ? "border-t border-gray-100" : ""}`}>
+            <summary className="flex cursor-pointer list-none items-start justify-between gap-4 px-5 py-4 hover:bg-gray-50/70">
+              <div className="flex min-w-0 gap-3">
+                <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gray-100 text-gray-500">
+                  <Search className="h-3.5 w-3.5" />
+                </span>
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="text-sm font-semibold text-gray-900">{investigation.title}</p>
+                    <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold capitalize text-gray-500">{investigation.domain}</span>
+                  </div>
+                  <p className="mt-1 line-clamp-2 text-xs leading-5 text-gray-500">{investigation.readiness_reason}</p>
+                </div>
+              </div>
+              <ChevronDown className="mt-2 h-4 w-4 shrink-0 text-gray-400 transition-transform group-open:rotate-180" />
+            </summary>
+            <div className="border-t border-gray-100 bg-gray-50/50 px-5 py-5">
+              <div className="grid gap-5 text-xs leading-5 text-gray-600 lg:grid-cols-3">
+                <div><p className="font-semibold text-gray-900">What we see</p><p className="mt-1">{investigation.situation}</p></div>
+                <div><p className="font-semibold text-gray-900">Current causal read</p><p className="mt-1">{investigation.likely_cause}</p><p className="mt-2 text-[10px] font-semibold uppercase tracking-wide text-gray-400">{investigation.cause_confidence} confidence</p></div>
+                <div><p className="font-semibold text-gray-900">Why it could matter</p><p className="mt-1">{investigation.why_it_matters}</p></div>
+              </div>
+              {investigation.unknowns?.length ? (
+                <div className="mt-5 border-t border-gray-200 pt-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-gray-400">What War Room still needs to resolve</p>
+                  <ul className="mt-2 grid gap-2 text-xs leading-5 text-gray-600 sm:grid-cols-2">
+                    {investigation.unknowns.map((unknown) => <li key={unknown}>• {unknown}</li>)}
+                  </ul>
+                </div>
+              ) : null}
+              {investigation.progress_summary
+                && investigation.progress_summary !== "No investigation probe has completed yet." ? (
+                  <div className="mt-5 rounded-2xl border border-emerald-100 bg-emerald-50/60 p-4">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-emerald-700">Last probe answer</p>
+                    <p className="mt-2 text-sm leading-6 text-gray-900">{investigation.progress_summary}</p>
+                    {investigation.last_progress_at ? (
+                      <p className="mt-2 text-[11px] text-emerald-800">Measured {relative(investigation.last_progress_at)}</p>
+                    ) : null}
+                  </div>
+                ) : null}
+              {investigation.next_probe ? (
+                <div className="mt-5 rounded-2xl border border-violet-100 bg-violet-50/60 p-4">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-violet-700">Next read-only probe</p>
+                  <p className="mt-2 text-sm font-semibold text-gray-900">{investigation.next_probe.question}</p>
+                  <p className="mt-1 text-xs leading-5 text-gray-600">{investigation.next_probe.method}</p>
+                  <p className="mt-2 text-[11px] leading-5 text-violet-800">Expected learning: {investigation.next_probe.expectedInformationGain}</p>
+                </div>
+              ) : null}
+            </div>
+          </details>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function Count({ label, value }: { label: string; value: number }) {
+  return <div><p className="text-3xl font-semibold tracking-tight">{value}</p><p className="mt-1 text-xs text-gray-400">{label}</p></div>;
+}
+
+function LoadingState() {
+  return (
+    <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6">
+      <div className="h-12 w-56 animate-pulse rounded-xl bg-gray-100" />
+      <div className="mt-8 grid gap-3 sm:grid-cols-3">{[0, 1, 2].map((item) => <div key={item} className="h-28 animate-pulse rounded-2xl bg-gray-100" />)}</div>
+      <div className="mt-5 h-40 animate-pulse rounded-[1.75rem] bg-gray-900" />
     </div>
   );
 }

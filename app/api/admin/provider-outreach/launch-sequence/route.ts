@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { provider_ids, dry_run = true, assigned_to } = body;
+    const { provider_ids, dry_run = true, assigned_to, use_apollo_email } = body;
 
     // Resolve assigned_to: default to current admin if not specified
     const assignedToId = assigned_to || adminUser.id;
@@ -155,6 +155,25 @@ export async function POST(request: NextRequest) {
       .filter((p) => p.city)
       .map((p) => ({ city: p.city, category: p.provider_category }));
     const cityViewsMap = await getCityViewsBatch(cityViewsPairs, db);
+
+    // Batch-fetch tracking records with apollo_contact for decision-maker greetings
+    // This allows previews to show personalized "Hi John," vs "Hi Sunrise Senior Living,"
+    const { data: trackingData } = await db
+      .from("provider_outreach_tracking")
+      .select("provider_id, apollo_contact")
+      .in("provider_id", validProviderIds);
+
+    const apolloContactMap = new Map<string, {
+      first_name?: string;
+      last_name?: string | null;
+      title?: string | null;
+      email?: string;
+    }>();
+    for (const row of trackingData ?? []) {
+      if (row.apollo_contact) {
+        apolloContactMap.set(row.provider_id, row.apollo_contact as { first_name?: string; email?: string });
+      }
+    }
 
     // Check if SmartLead is configured (affects preview rendering)
     const useSmartLead = isSmartleadConfigured();
@@ -242,6 +261,14 @@ export async function POST(request: NextRequest) {
       const cityViewsKey = `${provider.city}|${provider.provider_category || ""}`;
       const cityViews = cityViewsMap.get(cityViewsKey) || 0;
 
+      // Get Apollo contact for personalized greeting
+      const apolloContact = apolloContactMap.get(providerId);
+      const decisionMaker = apolloContact?.first_name ? {
+        first_name: apolloContact.first_name,
+        last_name: apolloContact.last_name ?? null,
+        title: apolloContact.title ?? null,
+      } : undefined;
+
       // Build context and render emails
       const context = buildContextFromProvider({
         provider_id: providerId,
@@ -254,6 +281,7 @@ export async function POST(request: NextRequest) {
       }, {
         gap_list: gapList,
         city_views: cityViews,
+        decision_maker: decisionMaker,
       });
 
       const emails: ProviderPreview["emails"] = [];
@@ -298,6 +326,7 @@ export async function POST(request: NextRequest) {
             unsubscribe_url: context.unsubscribe_url,
             gap_list: gapList,
             city_views: cityViews,
+            decision_maker_first_name: apolloContact?.first_name,
           },
           campaignName: `Preview - ${provider.state || "OTHER"}`,
         });
@@ -411,7 +440,13 @@ export async function POST(request: NextRequest) {
       // 1. Get or create tracking records and move to in_sequence
       const launchedProviders: string[] = [];
       const failedProviders: Array<{ provider_id: string; error: string }> = [];
-      const trackingRecords: Map<string, { trackingId: string; preview: typeof validPreviews[0]; variantAssignment?: VariantAssignment }> = new Map();
+      const trackingRecords: Map<string, {
+        trackingId: string;
+        preview: typeof validPreviews[0];
+        variantAssignment?: VariantAssignment;
+        apolloEmail?: string | null;
+        apolloFirstName?: string | null;
+      }> = new Map();
 
       for (const preview of validPreviews) {
         try {
@@ -431,7 +466,7 @@ export async function POST(request: NextRequest) {
           // Check if tracking record exists
           const { data: existingTracking } = await db
             .from("provider_outreach_tracking")
-            .select("id, stage, assigned_to, smartlead_data")
+            .select("id, stage, assigned_to, smartlead_data, apollo_contact")
             .eq("provider_id", preview.provider_id)
             .maybeSingle();
 
@@ -523,7 +558,11 @@ export async function POST(request: NextRequest) {
 
           // Store variant assignment with tracking record for later use
           const variantAssignment = variantAssignments.get(preview.provider_id);
-          trackingRecords.set(preview.provider_id, { trackingId, preview, variantAssignment });
+          // Get Apollo contact data if available from existing tracking
+          const apolloContact = existingTracking?.apollo_contact as { email?: string; first_name?: string } | null;
+          const apolloEmail = apolloContact?.email ?? null;
+          const apolloFirstName = apolloContact?.first_name ?? null;
+          trackingRecords.set(preview.provider_id, { trackingId, preview, variantAssignment, apolloEmail, apolloFirstName });
         } catch (err) {
           console.error(`Failed to create tracking for ${preview.provider_id}:`, err);
           failedProviders.push({
@@ -539,22 +578,34 @@ export async function POST(request: NextRequest) {
         // Group providers by state for per-state campaigns
         const providersByState = new Map<string, ProviderBridgeRow[]>();
 
-        for (const [providerId, { trackingId, preview }] of trackingRecords) {
+        for (const [providerId, { trackingId, preview, apolloEmail, apolloFirstName }] of trackingRecords) {
           const state = preview.state || "OTHER";
 
           // Get the provider data needed for SmartLead
           const provider = providers?.find((p) => p.provider_id === providerId);
           if (!provider) continue;
 
+          // Use Apollo email if requested and available, otherwise use provider's generic email
+          const effectiveEmail = (use_apollo_email && apolloEmail) ? apolloEmail : provider.email;
+
+          // Build decision_maker for personalized greeting
+          const decisionMaker = apolloFirstName ? {
+            first_name: apolloFirstName,
+            last_name: null,
+            title: null,
+          } : undefined;
+
           // Build context for URL generation
           const context = buildContextFromProvider({
             provider_id: providerId,
             name: provider.provider_name,
-            email: provider.email,
+            email: effectiveEmail,
             city: provider.city,
             state: provider.state,
             category: provider.provider_category,
             slug: provider.slug,
+          }, {
+            decision_maker: decisionMaker,
           });
 
           // Get gap list for this provider
@@ -576,7 +627,7 @@ export async function POST(request: NextRequest) {
             tracking_id: trackingId,
             provider_id: providerId,
             provider_name: provider.provider_name,
-            email: provider.email,
+            email: effectiveEmail,
             city: provider.city,
             state: provider.state,
             category: provider.provider_category,
@@ -588,6 +639,7 @@ export async function POST(request: NextRequest) {
             unsubscribe_url: context.unsubscribe_url,
             gap_list: gapList,
             city_views: cityViews,
+            decision_maker_first_name: apolloFirstName,
           };
 
           if (!providersByState.has(state)) {
@@ -732,11 +784,14 @@ export async function POST(request: NextRequest) {
       }
 
       // Legacy: Create tasks for each cadence step (when SmartLead not configured)
-      for (const [providerId, { trackingId, preview, variantAssignment }] of trackingRecords) {
+      for (const [providerId, { trackingId, preview, variantAssignment, apolloEmail }] of trackingRecords) {
         try {
+          // Use Apollo email if requested and available, otherwise use provider's generic email
+          const effectiveEmail = (use_apollo_email && apolloEmail) ? apolloEmail : preview.email;
+
           const taskRows = schedule.map((step) => {
             const payload: Record<string, unknown> = {
-              recipient_email: preview.email,
+              recipient_email: effectiveEmail,
               provider_name: preview.provider_name,
               city: preview.city,
               state: preview.state,

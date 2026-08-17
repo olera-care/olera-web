@@ -851,6 +851,17 @@ interface OutreachProvider {
   // Questions and leads context
   questions_count?: number;
   leads_count?: number;
+  // Apollo.io decision-maker enrichment
+  apollo_contact?: {
+    email: string;
+    first_name: string | null;
+    last_name: string | null;
+    title: string | null;
+    linkedin_url: string | null;
+    found_at: string;
+  } | null;
+  // Email source: 'organization' (scraped/manual) or 'decision_maker' (Apollo)
+  email_source?: "organization" | "decision_maker" | null;
 }
 
 interface ActiveState {
@@ -1690,6 +1701,220 @@ function ProviderContactEditor({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Apollo Decision-Maker Contact Display
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ApolloContactRow({
+  provider,
+  onUseEmail,
+  onContactFound,
+  onEmailSourceChanged,
+}: {
+  provider: OutreachProvider;
+  onUseEmail: (email: string, emailSource?: "decision_maker") => void;
+  onContactFound: (contact: OutreachProvider["apollo_contact"]) => void;
+  onEmailSourceChanged?: (emailSource: "organization" | "decision_maker") => void;
+}) {
+  const [finding, setFinding] = useState(false);
+  const [using, setUsing] = useState(false);
+  const [switching, setSwitching] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const apolloContact = provider.apollo_contact;
+
+  // Check if Apollo email matches provider's current email
+  const emailsMatch = apolloContact?.email?.toLowerCase() === provider.email?.toLowerCase();
+
+  // Check if already confirmed (email_source is decision_maker)
+  const isConfirmed = provider.email_source === "decision_maker";
+
+  async function handleFind() {
+    setFinding(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-decision-maker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setError(data.error);
+      } else if (data.contact?.email) {
+        // Pass the found contact data up to update state
+        // If auto_confirmed (provider had no email), also set email_source
+        onContactFound({
+          email: data.contact.email,
+          first_name: data.contact.first_name,
+          last_name: data.contact.last_name,
+          title: data.contact.title,
+          linkedin_url: data.contact.linkedin_url,
+          found_at: new Date().toISOString(),
+        });
+        // If auto-confirmed by backend (provider had no email), update email_source in parent
+        if (data.auto_confirmed) {
+          onUseEmail(data.contact.email, "decision_maker");
+        }
+      } else {
+        setError("No decision-maker found");
+      }
+    } catch (err) {
+      setError("Lookup failed");
+    } finally {
+      setFinding(false);
+    }
+  }
+
+  // "Confirm" or "Use This" - set email_source to decision_maker (and update email if different)
+  async function handleConfirm() {
+    if (!apolloContact?.email || using) return;
+    setUsing(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          email: apolloContact.email,
+          confirm_apollo: true, // This sets email_source = 'decision_maker'
+        }),
+      });
+      if (res.ok) {
+        // Update local state with email and email_source
+        onUseEmail(apolloContact.email, "decision_maker");
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to confirm");
+      }
+    } catch (err) {
+      setError("Failed to confirm");
+    } finally {
+      setUsing(false);
+    }
+  }
+
+  // Switch from Decision Maker back to Organization
+  async function handleSwitchToOrganization() {
+    if (switching) return;
+    setSwitching(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email-source", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          email_source: "organization",
+        }),
+      });
+      if (res.ok) {
+        onEmailSourceChanged?.("organization");
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to switch");
+      }
+    } catch (err) {
+      setError("Failed to switch");
+    } finally {
+      setSwitching(false);
+    }
+  }
+
+  // If no Apollo contact yet, show the Find button
+  if (!apolloContact) {
+    return (
+      <div className="flex items-center gap-2 mt-1">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleFind();
+          }}
+          disabled={finding}
+          className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 border border-purple-200 rounded-md hover:bg-purple-100 transition disabled:opacity-50"
+        >
+          {finding ? "Finding..." : "🎯 Find Decision Maker"}
+        </button>
+        {error && <span className="text-xs text-amber-600">{error}</span>}
+      </div>
+    );
+  }
+
+  // Show the Apollo contact below the email
+  const fullName = [apolloContact.first_name, apolloContact.last_name]
+    .filter(Boolean)
+    .join(" ");
+
+  return (
+    <div className="flex items-center gap-2 mt-1 pl-4 border-l-2 border-purple-200">
+      <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
+        Apollo
+      </span>
+      {fullName && (
+        <span className="text-sm font-medium text-gray-900">{fullName}</span>
+      )}
+      {apolloContact.title && (
+        <span className="text-xs text-gray-500">{apolloContact.title}</span>
+      )}
+      {/* Only show email if it differs from provider's email */}
+      {!emailsMatch && (
+        <span className="text-sm text-purple-600">{apolloContact.email}</span>
+      )}
+      {apolloContact.linkedin_url && (
+        <a
+          href={apolloContact.linkedin_url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-xs text-blue-600 hover:underline"
+          onClick={(e) => e.stopPropagation()}
+        >
+          LinkedIn
+        </a>
+      )}
+      {/* Show appropriate action based on state */}
+      {isConfirmed ? (
+        <>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-emerald-700 bg-emerald-50 rounded">
+            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+            </svg>
+            Active
+          </span>
+          {onEmailSourceChanged && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleSwitchToOrganization();
+              }}
+              disabled={switching}
+              className="px-2 py-0.5 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded transition disabled:opacity-50"
+              title="Switch to use organization email instead"
+            >
+              {switching ? "..." : "Use Org Email"}
+            </button>
+          )}
+        </>
+      ) : (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleConfirm();
+          }}
+          disabled={using}
+          className="px-2 py-0.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded transition disabled:opacity-50"
+        >
+          {using ? "..." : emailsMatch ? "Confirm" : "Use This"}
+        </button>
+      )}
+      {error && <span className="text-xs text-amber-600">{error}</span>}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // City Row Component (collapsed/expanded)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -1703,11 +1928,15 @@ interface CityRowProps {
   selectedProviders: Set<string>;
   onToggleProvider: (providerId: string) => void;
   onSelectAllInCity: (providerIds: string[]) => void;
-  onEmailSaved: (providerId: string, newEmail: string) => void;
+  onEmailSaved: (providerId: string, newEmail: string, emailSource?: "decision_maker") => void;
   onPhoneSaved: (providerId: string, newPhone: string | null) => void;
+  onApolloContactFound: (providerId: string, apolloContact: OutreachProvider["apollo_contact"]) => void;
+  onEmailSourceChanged: (providerId: string, emailSource: "organization" | "decision_maker") => void;
   onOpenActionModal: (provider: OutreachProvider) => void;
   onOpenNotesModal: (provider: OutreachProvider) => void;
   onRemoveProvider: (provider: OutreachProvider) => void;
+  // Move to Ready (for Not Interested tab)
+  onMoveToReady?: (providerId: string) => void;
   // City assignment
   cityOwnerId: string | null;
   cityOwnerName: string | null;
@@ -1731,9 +1960,12 @@ function CityRow({
   onSelectAllInCity,
   onEmailSaved,
   onPhoneSaved,
+  onApolloContactFound,
+  onEmailSourceChanged,
   onOpenActionModal,
   onOpenNotesModal,
   onRemoveProvider,
+  onMoveToReady,
   cityOwnerId,
   cityOwnerName,
   isEditingAssignment,
@@ -1757,6 +1989,9 @@ function CityRow({
   const [confirmedProviders, setConfirmedProviders] = useState<Set<string>>(new Set());
   const [confirmingProvider, setConfirmingProvider] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+  // Move to Ready state (for Not Interested tab)
+  const [showMoveToReadyConfirmId, setShowMoveToReadyConfirmId] = useState<string | null>(null);
+  const [movingToReadyId, setMovingToReadyId] = useState<string | null>(null);
 
   // Memoize cityProviders to avoid unnecessary useEffect re-runs
   const cityProviders = useMemo(
@@ -2220,6 +2455,25 @@ function CityRow({
                                   {lookupErrors.get(provider.provider_id)}
                                 </span>
                               )}
+                              {/* Apollo decision-maker contact row */}
+                              {/* Show on Ready tab (when has email) OR on Needs Email tab (always available) */}
+                              {(
+                                // Ready tab: show when provider has email (find decision-maker as upgrade)
+                                ((provider.email || foundEmails.has(provider.provider_id)) && activeTab === "ready") ||
+                                // Needs Email tab: always show Apollo option alongside scraping
+                                activeTab === "needs_email"
+                              ) && (
+                                <ApolloContactRow
+                                  provider={{
+                                    ...provider,
+                                    // Use session-found email if available
+                                    email: provider.email || foundEmails.get(provider.provider_id)?.email || null,
+                                  }}
+                                  onUseEmail={(email, emailSource) => onEmailSaved(provider.provider_id, email, emailSource)}
+                                  onContactFound={(contact) => onApolloContactFound(provider.provider_id, contact)}
+                                  onEmailSourceChanged={activeTab === "ready" ? (emailSource) => onEmailSourceChanged(provider.provider_id, emailSource) : undefined}
+                                />
+                              )}
                             </>
                           )}
                           {/* Questions and leads context pills */}
@@ -2296,6 +2550,54 @@ function CityRow({
                                 >
                                   {provider.profile_completeness}% complete
                                 </span>
+                              )}
+                            </div>
+                          )}
+                          {/* Not Interested providers: Move to Ready button */}
+                          {provider.stage === "not_interested" && provider.email && onMoveToReady && (
+                            <div className="flex items-center gap-2">
+                              {showMoveToReadyConfirmId === provider.provider_id ? (
+                                <div className="flex items-center gap-2 px-2 py-1 bg-emerald-50 border border-emerald-200 rounded">
+                                  <span className="text-xs text-gray-700">Move to Ready?</span>
+                                  <button
+                                    type="button"
+                                    onClick={async (e) => {
+                                      e.stopPropagation();
+                                      setMovingToReadyId(provider.provider_id);
+                                      try {
+                                        await onMoveToReady(provider.provider_id);
+                                      } finally {
+                                        setMovingToReadyId(null);
+                                        setShowMoveToReadyConfirmId(null);
+                                      }
+                                    }}
+                                    disabled={movingToReadyId === provider.provider_id}
+                                    className="px-2 py-0.5 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
+                                  >
+                                    {movingToReadyId === provider.provider_id ? "..." : "Yes"}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setShowMoveToReadyConfirmId(null);
+                                    }}
+                                    className="text-xs text-gray-500 hover:text-gray-700"
+                                  >
+                                    No
+                                  </button>
+                                </div>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setShowMoveToReadyConfirmId(provider.provider_id);
+                                  }}
+                                  className="px-2 py-1 text-xs font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded transition"
+                                >
+                                  Move to Ready
+                                </button>
                               )}
                             </div>
                           )}
@@ -2436,6 +2738,14 @@ function FollowUpProviderRow({
   // LinkedIn finder state
   const [findingLinkedIn, setFindingLinkedIn] = useState(false);
   const [linkedInResult, setLinkedInResult] = useState<{ linkedin_url: string | null; source_url: string | null } | null>(null);
+  // Apollo decision-maker finder state
+  const [findingDecisionMaker, setFindingDecisionMaker] = useState(false);
+  const [apolloError, setApolloError] = useState<string | null>(null);
+  const [localApolloContact, setLocalApolloContact] = useState<OutreachProvider["apollo_contact"]>(provider.apollo_contact);
+  // Sync localApolloContact with props when provider data changes
+  useEffect(() => {
+    setLocalApolloContact(provider.apollo_contact);
+  }, [provider.apollo_contact]);
   // Inline email editing state (for "Wrong Contact" flow)
   const [editingEmail, setEditingEmail] = useState(false);
   const [newEmail, setNewEmail] = useState("");
@@ -2463,6 +2773,11 @@ function FollowUpProviderRow({
   const [addressNotFound, setAddressNotFound] = useState(false);
   // Confirmation checkbox state
   const [confirmedWithProvider, setConfirmedWithProvider] = useState(false);
+  // Reset to Ready state
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resettingToReady, setResettingToReady] = useState(false);
+  // Use Apollo Email (without moving to Ready) state
+  const [savingApolloEmail, setSavingApolloEmail] = useState(false);
   // Session ID to track editing sessions and invalidate stale async operations
   const editingSessionRef = useRef(0);
 
@@ -2489,6 +2804,14 @@ function FollowUpProviderRow({
       setFindingAddress(false);
       setAddressNotFound(false);
       setConfirmedWithProvider(false);
+      // Reset Apollo state
+      setFindingDecisionMaker(false);
+      setApolloError(null);
+      // Reset "Reset to Ready" state
+      setShowResetConfirm(false);
+      setResettingToReady(false);
+      // Reset "Use Apollo Email" state
+      setSavingApolloEmail(false);
     }
   }, [isExpanded]);
 
@@ -2557,6 +2880,141 @@ function FollowUpProviderRow({
       }
     } finally {
       setFindingLinkedIn(false);
+    }
+  };
+
+  // Find decision-maker via Apollo
+  const handleFindDecisionMaker = async () => {
+    setFindingDecisionMaker(true);
+    setApolloError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-decision-maker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+      const data = await res.json();
+      if (!isExpandedRef.current) return; // Row collapsed, ignore result
+
+      if (data.error) {
+        setApolloError(data.error);
+      } else if (data.contact?.email) {
+        const contact = {
+          email: data.contact.email,
+          first_name: data.contact.first_name,
+          last_name: data.contact.last_name,
+          title: data.contact.title,
+          linkedin_url: data.contact.linkedin_url,
+          found_at: new Date().toISOString(),
+        };
+        setLocalApolloContact(contact);
+        // Only save apollo_contact to parent state for display
+        // Do NOT update email or email_source here - user must click
+        // "Reset to Ready with this email" to confirm
+        onProviderUpdated({
+          apollo_contact: contact,
+        });
+      } else {
+        setApolloError("No decision-maker found");
+      }
+    } catch {
+      if (isExpandedRef.current) {
+        setApolloError("Lookup failed");
+      }
+    } finally {
+      setFindingDecisionMaker(false);
+    }
+  };
+
+  // Use Apollo email without moving to Ready (stay in Follow Up)
+  const handleUseApolloEmail = async () => {
+    if (!localApolloContact?.email) return;
+
+    const sessionAtStart = editingSessionRef.current;
+    setSavingApolloEmail(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          email: localApolloContact.email,
+          confirm_apollo: true, // Sets email_source = 'decision_maker'
+        }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (res.ok) {
+        // Update local state with new email
+        // The UI will show "Email saved" because emails now match
+        onProviderUpdated({
+          email: localApolloContact.email,
+          email_source: "decision_maker",
+        });
+      } else if (stillValid) {
+        const data = await res.json();
+        setError(data.error || "Failed to update email");
+      }
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error");
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setSavingApolloEmail(false);
+      }
+    }
+  };
+
+  // Reset provider from Follow-Up back to Ready (when Apollo finds a new email)
+  const handleResetToReady = async () => {
+    if (!localApolloContact?.email) return;
+
+    const sessionAtStart = editingSessionRef.current;
+    setResettingToReady(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          email_source: "decision_maker",
+          use_apollo_email: true,
+        }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (res.ok) {
+        const data = await res.json();
+        // Show warning if email update failed (but stage was still changed)
+        if (data.warning && stillValid) {
+          setError(data.warning);
+        }
+        // Provider was moved to Ready - trigger refresh (delayed if showing warning)
+        if (data.warning) {
+          setTimeout(() => onOutcomeRecorded(true), 2000);
+        } else {
+          onOutcomeRecorded(true);
+        }
+      } else if (stillValid) {
+        const data = await res.json();
+        setError(data.error || "Failed to reset provider");
+      }
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error");
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setResettingToReady(false);
+        setShowResetConfirm(false);
+      }
     }
   };
 
@@ -3298,6 +3756,111 @@ function FollowUpProviderRow({
                     >
                       Edit
                     </button>
+                  </div>
+                )}
+
+                {/* Apollo Decision Maker section */}
+                {localApolloContact ? (
+                  <div className="mt-2 pl-4 border-l-2 border-purple-200">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
+                        Apollo
+                      </span>
+                      {(localApolloContact.first_name || localApolloContact.last_name) && (
+                        <span className="text-sm font-medium text-gray-900">
+                          {[localApolloContact.first_name, localApolloContact.last_name].filter(Boolean).join(" ")}
+                        </span>
+                      )}
+                      {localApolloContact.title && (
+                        <span className="text-xs text-gray-500">{localApolloContact.title}</span>
+                      )}
+                      {/* Only show email if different from current */}
+                      {localApolloContact.email?.toLowerCase() !== provider.email?.toLowerCase() && (
+                        <span className="text-sm text-purple-600">{localApolloContact.email}</span>
+                      )}
+                    </div>
+
+                    {/* Action buttons */}
+                    <div className="flex items-center gap-3 mt-2">
+                      {/* Use This Email button - updates email but stays in Follow Up */}
+                      {localApolloContact.email?.toLowerCase() === provider.email?.toLowerCase() ? (
+                        <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Email saved
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleUseApolloEmail();
+                          }}
+                          disabled={savingApolloEmail}
+                          className="text-xs text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
+                        >
+                          {savingApolloEmail ? "Saving..." : "Use This Email"}
+                        </button>
+                      )}
+
+                      {/* Move to Ready Tab button */}
+                      {showResetConfirm ? (
+                        <div className="flex items-center gap-2 p-2 bg-emerald-50 border border-emerald-200 rounded-md">
+                          <span className="text-xs text-gray-700">
+                            Move to Ready tab?
+                          </span>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleResetToReady();
+                            }}
+                            disabled={resettingToReady}
+                            className="px-2 py-1 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
+                          >
+                            {resettingToReady ? "Moving..." : "Yes, Move"}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setShowResetConfirm(false);
+                            }}
+                            disabled={resettingToReady}
+                            className="text-xs text-gray-500 hover:text-gray-700"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowResetConfirm(true);
+                          }}
+                          className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                        >
+                          Move to Ready Tab
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 mt-2">
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleFindDecisionMaker();
+                      }}
+                      disabled={findingDecisionMaker}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 border border-purple-200 rounded-md hover:bg-purple-100 transition disabled:opacity-50"
+                    >
+                      {findingDecisionMaker ? "Finding..." : "🎯 Find Decision Maker"}
+                    </button>
+                    {apolloError && <span className="text-xs text-amber-600">{apolloError}</span>}
                   </div>
                 )}
               </div>
@@ -4100,6 +4663,8 @@ interface ReEngageQueueProps {
   onArchive: (provider: OutreachProvider) => void;
   onNotInterested: (provider: OutreachProvider, reason: string) => void;
   onOpenNotesModal: (provider: OutreachProvider) => void;
+  onProviderUpdated: (providerId: string, updates: Partial<OutreachProvider>) => void;
+  onResetToReady: (providerId: string) => void;
   adminNameLookup: Map<string, string>;
 }
 
@@ -4107,7 +4672,7 @@ interface ReEngageQueueProps {
 // Tracking Constants and Helpers
 // ─────────────────────────────────────────────────────────────────────────────
 
-const DIRECT_MAIL_EXPIRY_DAYS = 18; // Days in direct_mail before prompting action
+const DIRECT_MAIL_EXPIRY_DAYS = 30; // Days in alternative channels before prompting action
 
 // Helper: calculate days since a date
 function daysSince(dateString: string | null): number {
@@ -4118,8 +4683,205 @@ function daysSince(dateString: string | null): number {
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
-function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenNotesModal, adminNameLookup }: ReEngageQueueProps) {
+function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenNotesModal, onProviderUpdated, onResetToReady, adminNameLookup }: ReEngageQueueProps) {
   // Alternative Channels is tracking-only: fax/mail already sent from Follow Up
+
+  // Email editing state
+  const [editingEmailId, setEditingEmailId] = useState<string | null>(null);
+  const [emailInput, setEmailInput] = useState("");
+  const [savingEmailId, setSavingEmailId] = useState<string | null>(null);
+  const [emailSavedIds, setEmailSavedIds] = useState<Set<string>>(new Set());
+
+  // Move to Ready state (for non-Apollo moves)
+  const [showMoveToReadyConfirmId, setShowMoveToReadyConfirmId] = useState<string | null>(null);
+  const [movingToReadyId, setMovingToReadyId] = useState<string | null>(null);
+
+  // Apollo Decision Maker state
+  const [apolloContactMap, setApolloContactMap] = useState<Map<string, OutreachProvider["apollo_contact"]>>(new Map());
+  const [findingApolloId, setFindingApolloId] = useState<string | null>(null);
+  const [apolloErrorMap, setApolloErrorMap] = useState<Map<string, string>>(new Map());
+  const [savingApolloEmailId, setSavingApolloEmailId] = useState<string | null>(null);
+  const [resettingToReadyId, setResettingToReadyId] = useState<string | null>(null);
+  const [showResetConfirmId, setShowResetConfirmId] = useState<string | null>(null);
+
+  // Initialize apolloContactMap from provider data
+  useEffect(() => {
+    const newMap = new Map<string, OutreachProvider["apollo_contact"]>();
+    for (const p of providers) {
+      if (p.apollo_contact) {
+        newMap.set(p.provider_id, p.apollo_contact);
+      }
+    }
+    setApolloContactMap(newMap);
+  }, [providers]);
+
+  // Apollo handlers
+  const handleFindDecisionMaker = useCallback(async (providerId: string) => {
+    setFindingApolloId(providerId);
+    setApolloErrorMap((prev) => {
+      const next = new Map(prev);
+      next.delete(providerId);
+      return next;
+    });
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-decision-maker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: providerId }),
+      });
+      const data = await res.json();
+
+      if (data.error) {
+        setApolloErrorMap((prev) => new Map(prev).set(providerId, data.error));
+      } else if (data.contact?.email) {
+        const contact = {
+          email: data.contact.email,
+          first_name: data.contact.first_name,
+          last_name: data.contact.last_name,
+          title: data.contact.title,
+          linkedin_url: data.contact.linkedin_url,
+          found_at: new Date().toISOString(),
+        };
+        setApolloContactMap((prev) => new Map(prev).set(providerId, contact));
+        onProviderUpdated(providerId, { apollo_contact: contact });
+      } else {
+        setApolloErrorMap((prev) => new Map(prev).set(providerId, "No decision-maker found"));
+      }
+    } catch {
+      setApolloErrorMap((prev) => new Map(prev).set(providerId, "Lookup failed"));
+    } finally {
+      setFindingApolloId(null);
+    }
+  }, [onProviderUpdated]);
+
+  const handleUseApolloEmail = useCallback(async (providerId: string) => {
+    const apolloContact = apolloContactMap.get(providerId);
+    if (!apolloContact?.email) return;
+
+    setSavingApolloEmailId(providerId);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: providerId,
+          email: apolloContact.email,
+          confirm_apollo: true,
+        }),
+      });
+
+      if (res.ok) {
+        onProviderUpdated(providerId, {
+          email: apolloContact.email,
+          email_source: "decision_maker",
+        });
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to update email");
+      }
+    } catch {
+      alert("Network error updating email");
+    } finally {
+      setSavingApolloEmailId(null);
+    }
+  }, [apolloContactMap, onProviderUpdated]);
+
+  const handleResetToReady = useCallback(async (providerId: string) => {
+    const apolloContact = apolloContactMap.get(providerId);
+    if (!apolloContact?.email) return;
+
+    setResettingToReadyId(providerId);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: providerId,
+          email_source: "decision_maker",
+          use_apollo_email: true,
+        }),
+      });
+
+      if (res.ok) {
+        setShowResetConfirmId(null);
+        onResetToReady(providerId);
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to reset provider");
+      }
+    } catch {
+      alert("Network error");
+    } finally {
+      setResettingToReadyId(null);
+    }
+  }, [apolloContactMap, onResetToReady]);
+
+  // Email save handler
+  const handleSaveEmail = useCallback(async (providerId: string, newEmail: string) => {
+    if (!newEmail.trim()) return;
+    setSavingEmailId(providerId);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: providerId,
+          email: newEmail.trim(),
+        }),
+      });
+      if (res.ok) {
+        onProviderUpdated(providerId, { email: newEmail.trim() });
+        setEditingEmailId(null);
+        setEmailInput("");
+        setEmailSavedIds((prev) => new Set([...prev, providerId]));
+        // Clear saved indicator after 3 seconds
+        setTimeout(() => {
+          setEmailSavedIds((prev) => {
+            const next = new Set(prev);
+            next.delete(providerId);
+            return next;
+          });
+        }, 3000);
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to save email");
+      }
+    } catch {
+      alert("Network error");
+    } finally {
+      setSavingEmailId(null);
+    }
+  }, [onProviderUpdated]);
+
+  // Move to Ready handler (without Apollo - uses current email)
+  const handleMoveToReady = useCallback(async (providerId: string) => {
+    setMovingToReadyId(providerId);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: providerId,
+          email_source: "organization",
+          use_apollo_email: false,
+        }),
+      });
+      if (res.ok) {
+        setShowMoveToReadyConfirmId(null);
+        onResetToReady(providerId);
+      } else {
+        const data = await res.json();
+        alert(data.error || "Failed to move provider");
+      }
+    } catch {
+      alert("Network error");
+    } finally {
+      setMovingToReadyId(null);
+    }
+  }, [onResetToReady]);
 
   // Send Claim Link state
   const [sendingClaimLinkId, setSendingClaimLinkId] = useState<string | null>(null);
@@ -4332,30 +5094,27 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
       {sorted.map((provider) => {
         const waitDays = daysSince(provider.re_engage_entered_at);
 
-        // Check if direct_mail has expired (18+ days without claim)
-        const mailSentAt = mailAnalyticsMap.get(provider.provider_id)?.sent_at;
-        const mailExpired = provider.re_engage_channel === "direct_mail"
-          && mailSentAt
-          && daysSince(mailSentAt) >= DIRECT_MAIL_EXPIRY_DAYS
+        // Check if provider has been in Alternative Channels for 30+ days without claim
+        const isExpired = waitDays >= DIRECT_MAIL_EXPIRY_DAYS
           && !claimedMap.get(provider.provider_id)?.claimed;
 
         return (
           <div key={provider.provider_id} className="border-b border-gray-100">
-            {/* 18-day expiry action bar for direct_mail */}
-            {mailExpired && (
+            {/* 30-day expiry action bar - prompt to mark as Not Interested */}
+            {isExpired && (
               <div className="mx-5 mt-3 flex items-center gap-3 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg">
                 <span className="text-xs text-amber-800 font-medium flex-1">
-                  No response after {daysSince(mailSentAt)} days.
+                  No response after {waitDays} days.
                 </span>
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onArchive(provider);
+                    setConfirmingNotInterested(provider);
                   }}
                   className="px-3 py-1.5 text-xs font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-md transition"
                 >
-                  Archive
+                  Not Interested
                 </button>
               </div>
             )}
@@ -4371,7 +5130,7 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
                 </span>
               </div>
 
-              {/* Row 2: Category, location, email + channel badges */}
+              {/* Row 2: Category, location + channel badges */}
               <div className="flex items-center gap-2 text-xs text-gray-500 mb-1 flex-wrap">
                 {provider.provider_category && (
                   <span className="truncate max-w-[200px]">{provider.provider_category}</span>
@@ -4380,8 +5139,6 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
                 {provider.city && (
                   <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>
                 )}
-                {(provider.provider_category || provider.city) && provider.email && <span>·</span>}
-                {provider.email && <span>{provider.email}</span>}
                 {provider.re_engage_channel && provider.re_engage_channel !== "re_engage" && (
                   <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
                     provider.re_engage_channel === "fax" ? "bg-purple-50 text-purple-700" :
@@ -4406,13 +5163,114 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
                   </span>
                 )}
                 {/* Questions and leads context pills */}
-                {(provider.provider_category || provider.city || provider.email) && <span>·</span>}
+                {(provider.provider_category || provider.city) && <span>·</span>}
                 <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
                   {provider.questions_count ?? 0} Q
                 </span>
                 <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
                   {provider.leads_count ?? 0} Leads
                 </span>
+              </div>
+
+              {/* Row 2.5: Email with edit capability + Move to Ready */}
+              <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
+                <svg className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                {editingEmailId === provider.provider_id ? (
+                  <div className="flex items-center gap-2 flex-1">
+                    <input
+                      type="email"
+                      value={emailInput}
+                      onChange={(e) => setEmailInput(e.target.value)}
+                      placeholder="Enter email..."
+                      className="flex-1 max-w-xs px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
+                      autoFocus
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleSaveEmail(provider.provider_id, emailInput);
+                        } else if (e.key === "Escape") {
+                          setEditingEmailId(null);
+                          setEmailInput("");
+                        }
+                      }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleSaveEmail(provider.provider_id, emailInput)}
+                      disabled={savingEmailId === provider.provider_id || !emailInput.trim()}
+                      className="px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50"
+                    >
+                      {savingEmailId === provider.provider_id ? "..." : "Save"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingEmailId(null);
+                        setEmailInput("");
+                      }}
+                      className="text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 flex-1">
+                    {provider.email ? (
+                      <span className="text-sm">{provider.email}</span>
+                    ) : (
+                      <span className="text-sm text-gray-400 italic">No email</span>
+                    )}
+                    {emailSavedIds.has(provider.provider_id) ? (
+                      <span className="text-xs text-emerald-600 font-medium">✓ Saved</span>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEditingEmailId(provider.provider_id);
+                          setEmailInput(provider.email || "");
+                        }}
+                        className="text-xs text-gray-500 hover:text-gray-700"
+                      >
+                        Edit
+                      </button>
+                    )}
+                    {/* Move to Ready button - only show if provider has email */}
+                    {provider.email && (
+                      <>
+                        <span className="text-gray-300">|</span>
+                        {showMoveToReadyConfirmId === provider.provider_id ? (
+                          <div className="flex items-center gap-2 px-2 py-1 bg-emerald-50 border border-emerald-200 rounded">
+                            <span className="text-xs text-gray-700">Move to Ready?</span>
+                            <button
+                              type="button"
+                              onClick={() => handleMoveToReady(provider.provider_id)}
+                              disabled={movingToReadyId === provider.provider_id}
+                              className="px-2 py-0.5 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
+                            >
+                              {movingToReadyId === provider.provider_id ? "..." : "Yes"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setShowMoveToReadyConfirmId(null)}
+                              className="text-xs text-gray-500 hover:text-gray-700"
+                            >
+                              No
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setShowMoveToReadyConfirmId(provider.provider_id)}
+                            className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                          >
+                            Move to Ready
+                          </button>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Row 3: Assignment */}
@@ -4425,6 +5283,98 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
                   showUnassigned={true}
                 />
               </div>
+
+              {/* Row 3.5: Apollo Decision Maker */}
+              {(() => {
+                const apolloContact = apolloContactMap.get(provider.provider_id);
+                const apolloError = apolloErrorMap.get(provider.provider_id);
+                const isFinding = findingApolloId === provider.provider_id;
+                const isSavingEmail = savingApolloEmailId === provider.provider_id;
+                const isResetting = resettingToReadyId === provider.provider_id;
+                const showResetConfirm = showResetConfirmId === provider.provider_id;
+                const emailsMatch = apolloContact?.email?.toLowerCase() === provider.email?.toLowerCase();
+
+                if (apolloContact) {
+                  const fullName = [apolloContact.first_name, apolloContact.last_name].filter(Boolean).join(" ");
+                  return (
+                    <div className="mt-2 mb-2 pl-3 border-l-2 border-purple-200">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
+                          Apollo
+                        </span>
+                        {fullName && <span className="text-sm font-medium text-gray-900">{fullName}</span>}
+                        {apolloContact.title && <span className="text-xs text-gray-500">{apolloContact.title}</span>}
+                        {!emailsMatch && <span className="text-sm text-purple-600">{apolloContact.email}</span>}
+                      </div>
+                      <div className="flex items-center gap-3 mt-1.5">
+                        {/* Use This Email */}
+                        {emailsMatch ? (
+                          <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Email saved
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleUseApolloEmail(provider.provider_id)}
+                            disabled={isSavingEmail}
+                            className="text-xs text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
+                          >
+                            {isSavingEmail ? "Saving..." : "Use This Email"}
+                          </button>
+                        )}
+                        {/* Move to Ready Tab */}
+                        {showResetConfirm ? (
+                          <div className="flex items-center gap-2 p-2 bg-emerald-50 border border-emerald-200 rounded-md">
+                            <span className="text-xs text-gray-700">Move to Ready tab?</span>
+                            <button
+                              type="button"
+                              onClick={() => handleResetToReady(provider.provider_id)}
+                              disabled={isResetting}
+                              className="px-2 py-1 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
+                            >
+                              {isResetting ? "Moving..." : "Yes, Move"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setShowResetConfirmId(null)}
+                              disabled={isResetting}
+                              className="text-xs text-gray-500 hover:text-gray-700"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setShowResetConfirmId(provider.provider_id)}
+                            className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                          >
+                            Move to Ready Tab
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                }
+
+                // No Apollo contact yet - show Find button
+                return (
+                  <div className="flex items-center gap-2 mt-2 mb-2">
+                    <button
+                      type="button"
+                      onClick={() => handleFindDecisionMaker(provider.provider_id)}
+                      disabled={isFinding}
+                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 border border-purple-200 rounded-md hover:bg-purple-100 transition disabled:opacity-50"
+                    >
+                      {isFinding ? "Finding..." : "🎯 Find Decision Maker"}
+                    </button>
+                    {apolloError && <span className="text-xs text-amber-600">{apolloError}</span>}
+                  </div>
+                );
+              })()}
 
               {/* Row 4: Channel tracking analytics */}
               <ChannelTracking
@@ -4688,6 +5638,10 @@ export default function ProviderOutreachPage() {
   type ChannelFilter = "all" | "email" | "fax" | "direct_mail";
   const [selectedChannelFilter, setSelectedChannelFilter] = useState<ChannelFilter>("all");
 
+  // Ready tab filter state (Organization vs Decision Maker)
+  type ReadyFilter = "all" | "organization" | "decision_maker";
+  const [selectedReadyFilter, setSelectedReadyFilter] = useState<ReadyFilter>("all");
+
   // All admins for name lookup (fetched once)
   interface AdminUser {
     id: string;
@@ -4925,6 +5879,8 @@ export default function ProviderOutreachPage() {
   const [sequenceAssigneeName, setSequenceAssigneeName] = useState<string | null>(null);
   const [showAssigneeAutocomplete, setShowAssigneeAutocomplete] = useState(false);
   const [showSequencePreview, setShowSequencePreview] = useState(false);
+  // Apollo email preference: when true, use decision-maker email for providers that have one
+  const [useApolloEmail, setUseApolloEmail] = useState(true);
   const [sequencePreviewData, setSequencePreviewData] = useState<{
     providers: Array<{
       provider_id: string;
@@ -6302,6 +7258,10 @@ export default function ProviderOutreachPage() {
                   if (tab.value !== "re_engage") {
                     setSelectedChannelFilter("all");
                   }
+                  // Reset ready filter when leaving Ready tab
+                  if (tab.value !== "ready") {
+                    setSelectedReadyFilter("all");
+                  }
                 }}
                 className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === tab.value
@@ -7015,6 +7975,23 @@ export default function ProviderOutreachPage() {
                   name: provider.provider_name,
                 });
               }}
+              onProviderUpdated={(providerId, updates) => {
+                setProviders((prev) =>
+                  prev.map((p) =>
+                    p.provider_id === providerId ? { ...p, ...updates } : p
+                  )
+                );
+              }}
+              onResetToReady={(providerId) => {
+                // Optimistically remove provider from list (they moved to Ready tab)
+                setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+                // Also update stage counts
+                setStageCounts((prev) => ({
+                  ...prev,
+                  re_engage: Math.max(0, prev.re_engage - 1),
+                  ready: prev.ready + 1,
+                }));
+              }}
               adminNameLookup={adminNameLookup}
             />
           </>
@@ -7041,6 +8018,38 @@ export default function ProviderOutreachPage() {
               </details>
             )}
 
+            {/* Ready tab sub-tabs: Organization vs Decision Maker */}
+            {activeTab === "ready" && (
+              <div className="px-5 py-3 border-b border-gray-200 flex items-center gap-2">
+                <span className="text-xs text-gray-500 mr-1">Email Source:</span>
+                {(["all", "organization", "decision_maker"] as const).map((filter) => {
+                  const count = filter === "all"
+                    ? providers.length
+                    : providers.filter((p) => (p.email_source || "organization") === filter).length;
+                  const label = filter === "all" ? "All" :
+                    filter === "organization" ? "Organization" : "Decision Maker";
+                  const isSelected = selectedReadyFilter === filter;
+                  return (
+                    <button
+                      key={filter}
+                      onClick={() => setSelectedReadyFilter(filter)}
+                      className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                        isSelected
+                          ? filter === "decision_maker"
+                            ? "bg-purple-600 text-white"
+                            : "bg-gray-800 text-white"
+                          : filter === "decision_maker"
+                            ? "bg-purple-50 text-purple-700 hover:bg-purple-100"
+                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                      }`}
+                    >
+                      {label} ({count})
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
             {/* Header */}
             <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
               <div className="w-5" />
@@ -7053,8 +8062,15 @@ export default function ProviderOutreachPage() {
               // otherwise compute from providers (which are already filtered by assigned_to)
               // but merge in sequence stats from API for conversion tracking
               // For other stages: always compute from providers
+              // Filter providers by email_source when Ready tab sub-filter is active
+              const filteredProviders = activeTab === "ready" && selectedReadyFilter !== "all"
+                ? providers.filter((p) => (p.email_source || "organization") === selectedReadyFilter)
+                : providers;
+
               const useApiCities = isNotContactedTab(activeTab) && !selectedAdminFilter;
-              let displayCities = useApiCities ? cities : computeCityStatsFromProviders(providers);
+              // When Ready filter is active, recompute city stats from filtered providers
+              const shouldRecomputeCities = activeTab === "ready" && selectedReadyFilter !== "all";
+              let displayCities = (useApiCities && !shouldRecomputeCities) ? cities : computeCityStatsFromProviders(filteredProviders);
               if (activeTab === "needs_email") {
                 displayCities = displayCities.filter((c) => c.needs_email > 0);
               } else if (activeTab === "ready") {
@@ -7090,12 +8106,12 @@ export default function ProviderOutreachPage() {
                       activeTab={activeTab}
                       isExpanded={expandedCities.has(city.city)}
                       onToggle={() => toggleCity(city.city)}
-                      providers={providers}
+                      providers={filteredProviders}
                       loadingProviders={loadingProviders}
                       selectedProviders={selectedProviders}
                       onToggleProvider={toggleProvider}
                       onSelectAllInCity={selectAllInCity}
-                      onEmailSaved={(providerId, newEmail) => {
+                      onEmailSaved={(providerId, newEmail, emailSource) => {
                         // Update local providers state
                         // On "Needs Email" tab, remove the provider (it now has email, belongs in "Ready")
                         // On other tabs, just update the email field
@@ -7109,9 +8125,18 @@ export default function ProviderOutreachPage() {
                           }));
                         } else {
                           // Reset confirmed_at since contact info changed (API also resets it)
+                          // Also update email_source if provided (for Apollo confirmation)
                           setProviders((prev) =>
                             prev.map((p) =>
-                              p.provider_id === providerId ? { ...p, email: newEmail, confirmed_at: null, confirmed_by: null } : p
+                              p.provider_id === providerId
+                                ? {
+                                    ...p,
+                                    email: newEmail,
+                                    confirmed_at: null,
+                                    confirmed_by: null,
+                                    ...(emailSource && { email_source: emailSource }),
+                                  }
+                                : p
                             )
                           );
                         }
@@ -7129,6 +8154,49 @@ export default function ProviderOutreachPage() {
                           )
                         );
                       }}
+                      onApolloContactFound={(providerId, apolloContact) => {
+                        // On Needs Email tab: Apollo found email, provider moves to Ready tab
+                        // Backend auto-confirms (sets email_source, updates email) when provider has no email
+                        if (activeTab === "needs_email") {
+                          // Remove provider from Needs Email list (they now belong in Ready → Decision Maker)
+                          setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+                          // Optimistically update tab counts
+                          setStageCounts((prev) => ({
+                            ...prev,
+                            needs_email: Math.max(0, prev.needs_email - 1),
+                            ready: prev.ready + 1,
+                          }));
+                        } else {
+                          // On Ready tab: just save apollo_contact for review
+                          // User must click "Confirm" to set email_source and move to Decision Maker tab
+                          // Backend no longer auto-confirms when provider already has email
+                          setProviders((prev) =>
+                            prev.map((p) =>
+                              p.provider_id === providerId
+                                ? {
+                                    ...p,
+                                    apollo_contact: apolloContact,
+                                    // Don't set email_source here - wait for user confirmation
+                                  }
+                                : p
+                            )
+                          );
+                        }
+                        // Refresh cities to update counts
+                        if (isNotContactedTab(activeTab)) {
+                          fetchCities();
+                        }
+                      }}
+                      onEmailSourceChanged={(providerId, emailSource) => {
+                        // Update email_source in local state (provider moves between Organization/Decision Maker sub-tabs)
+                        setProviders((prev) =>
+                          prev.map((p) =>
+                            p.provider_id === providerId
+                              ? { ...p, email_source: emailSource }
+                              : p
+                          )
+                        );
+                      }}
                       onOpenActionModal={setActionModalProvider}
                       onOpenNotesModal={(provider) => {
                         setNotesModalProvider({
@@ -7143,6 +8211,35 @@ export default function ProviderOutreachPage() {
                           stage: provider.stage,
                         });
                       }}
+                      onMoveToReady={activeTab === "not_interested" ? async (providerId) => {
+                        try {
+                          const res = await fetch("/api/admin/provider-outreach/update-stage", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              provider_ids: [providerId],
+                              stage: "not_contacted",
+                            }),
+                          });
+                          if (res.ok) {
+                            // Mark as recently moved to filter from stale API responses
+                            markAsRecentlyMoved(providerId);
+                            // Remove from current list and update counts
+                            setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+                            setStageCounts((prev) => ({
+                              ...prev,
+                              not_interested: Math.max(0, prev.not_interested - 1),
+                              ready: prev.ready + 1,
+                            }));
+                            showToast("Moved to Ready", "success");
+                          } else {
+                            const err = await res.json();
+                            showToast(err.error || "Failed to move provider", "error");
+                          }
+                        } catch {
+                          showToast("Network error", "error");
+                        }
+                      } : undefined}
                       cityOwnerId={cityOwners.get(city.city)?.owner_id || null}
                       cityOwnerName={cityOwners.get(city.city)?.owner_name || null}
                       isEditingAssignment={editingCityAssignment === city.city}
@@ -7984,6 +9081,7 @@ export default function ProviderOutreachPage() {
             setSequenceAssigneeId(null);
             setSequenceAssigneeName(null);
             setShowAssigneeAutocomplete(false);
+            setUseApolloEmail(true); // Reset to default
           }}
         >
           <div
@@ -8068,6 +9166,34 @@ export default function ProviderOutreachPage() {
                   )}
                 </div>
               </div>
+
+              {/* Apollo Email Preference - only show if any providers have Apollo contacts */}
+              {sequenceConfirmProviders.some((p) => p.apollo_contact?.email) && (
+                <div className="mb-5">
+                  <h4 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                    Email Preference
+                  </h4>
+                  <label className="flex items-center gap-3 px-3 py-2.5 bg-purple-50 border border-purple-100 rounded-lg cursor-pointer hover:bg-purple-100 transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={useApolloEmail}
+                      onChange={(e) => setUseApolloEmail(e.target.checked)}
+                      className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                    />
+                    <div className="flex-1">
+                      <span className="text-sm font-medium text-purple-900">
+                        Use decision-maker emails
+                      </span>
+                      <p className="text-xs text-purple-600 mt-0.5">
+                        {sequenceConfirmProviders.filter((p) => p.apollo_contact?.email).length} provider(s) have Apollo contacts
+                      </p>
+                    </div>
+                    <span className="text-xs font-medium text-purple-700 bg-purple-100 px-2 py-0.5 rounded-full">
+                      Apollo
+                    </span>
+                  </label>
+                </div>
+              )}
 
               {/* Provider list */}
               <div className="mb-5">
@@ -8305,6 +9431,7 @@ export default function ProviderOutreachPage() {
                   setSequenceAssigneeId(null);
                   setSequenceAssigneeName(null);
                   setShowAssigneeAutocomplete(false);
+                  setUseApolloEmail(true); // Reset to default
                 }}
                 disabled={actionLoading}
                 className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
@@ -8349,6 +9476,7 @@ export default function ProviderOutreachPage() {
                           provider_ids: batch,
                           dry_run: false,
                           assigned_to: sequenceAssigneeId,
+                          use_apollo_email: useApolloEmail,
                         }),
                       });
 
@@ -8404,6 +9532,7 @@ export default function ProviderOutreachPage() {
                   setSequenceAssigneeId(null);
                   setSequenceAssigneeName(null);
                   setShowAssigneeAutocomplete(false);
+                  setUseApolloEmail(true); // Reset to default
                 }}
                 disabled={actionLoading || sequencePreviewLoading || (sequencePreviewData?.summary.valid === 0)}
                 className="px-5 py-2 text-sm font-medium text-white bg-primary-600 hover:bg-primary-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"

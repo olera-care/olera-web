@@ -30,7 +30,9 @@ const VALID_REASONS = new Set<string>(["phone_verified", "official_website", "cl
 // Default question batch size when flushing via this endpoint, so a large
 // backlog (e.g. The Grove's ~24) doesn't blast the provider all at once.
 // Override with ?limit=N; pass a large N to flush everything.
-const DEFAULT_FLUSH_LIMIT = 5;
+// Matches DEFAULT_QUESTION_FLUSH_CAP. Five at once still reads as a blast to a
+// provider hearing from Olera for the first time; ?limit=N raises it per call.
+const DEFAULT_FLUSH_LIMIT = 2;
 
 async function handle(params: {
   email?: string | null;

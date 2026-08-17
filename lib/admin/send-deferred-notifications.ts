@@ -65,11 +65,30 @@ interface SendDeferredNotificationsOptions {
   /**
    * Cap how many QUESTION notifications to send this call (newest first), so a
    * large backlog can be paced instead of blasting the provider all at once.
-   * Undefined = no cap (send all) — preserves existing add-email behavior.
-   * Leads are not capped.
+   * Undefined = DEFAULT_QUESTION_FLUSH_CAP. Leads are not capped.
    */
   maxQuestions?: number;
 }
+
+/**
+ * How many held questions one call may send to a single provider.
+ *
+ * Undefined used to mean "send all", and on 2026-08-17 that put 6 emails into
+ * one provider's inbox inside a single second, 9 into another over two and a
+ * half minutes, and 4+ into 55 providers' inboxes — 263 emails from one admin
+ * session. That reads as a broken system, and the spam complaints it invites
+ * are charged against the whole Resend account, which also carries family mail,
+ * student outreach, and login links.
+ *
+ * Defaulting here rather than at the ~16 call sites is deliberate: only 2 of
+ * them passed a cap, and the next new caller would silently reopen the hole.
+ * A caller that genuinely wants to drain a backlog still passes maxQuestions
+ * explicitly.
+ *
+ * Nothing is dropped — uncapped questions stay unnotified and go out on the
+ * next flush. A provider who reacts at all reacts to the first email.
+ */
+export const DEFAULT_QUESTION_FLUSH_CAP = 2;
 
 /**
  * Send deferred notifications for a provider.
@@ -100,7 +119,7 @@ export async function sendDeferredNotificationsForProvider(
     providerSlug,
     additionalSlugVariants = [],
     leadsUnsubscribed,
-    maxQuestions,
+    maxQuestions = DEFAULT_QUESTION_FLUSH_CAP,
     dryRunQuestions,
   } = options;
   const db = getServiceClient();

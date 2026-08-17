@@ -25,7 +25,7 @@ import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-
  *
  * GET / POST (admin auth, browser-triggerable):
  *   ?dryRun=1        count the target providers/questions, send nothing
- *   ?perProvider=N   max questions per provider this run (default 100)
+ *   ?perProvider=N   max questions per provider this run (default 2)
  *   ?onlyDeliverable=0  also attempt providers whose on-file email isn't a
  *                       known-deliverable role address (default 1 = skip them,
  *                       avoids pointless suppressed-send churn)
@@ -34,7 +34,10 @@ import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-
 export const maxDuration = 300;
 
 const DEADLINE_MS = 250_000; // ~50s headroom under maxDuration for the final writes
-const DEFAULT_PER_PROVIDER = 100;
+// Matches DEFAULT_QUESTION_FLUSH_CAP. 100 was never a pace, it was "send the
+// whole backlog"; with question-text dedupe in place a single provider could
+// still take 14 emails in one run. ?perProvider=N raises it deliberately.
+const DEFAULT_PER_PROVIDER = 2;
 
 type Resolved = {
   email: string | null;

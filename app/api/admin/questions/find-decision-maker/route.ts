@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { provider_slug } = body;
+    const { provider_slug, provider_editor_id } = body;
 
     if (!provider_slug) {
       return NextResponse.json(
@@ -63,8 +63,8 @@ export async function POST(request: NextRequest) {
 
     const db = getServiceClient();
 
-    // Multi-strategy provider lookup (mirrors question submission logic)
-    // Strategy 1: business_profiles by slug
+    // If we have provider_editor_id (olera-providers.provider_id), use it directly
+    // This is the most reliable lookup since it comes from the enriched question data
     let businessProfile: {
       id: string;
       slug: string | null;
@@ -84,17 +84,40 @@ export async function POST(request: NextRequest) {
       slug: string | null;
     } | null = null;
 
-    // Try business_profiles by slug first
-    const { data: bpData } = await db
-      .from("business_profiles")
-      .select("id, slug, display_name, email, source_provider_id, account_id")
-      .eq("slug", provider_slug)
-      .maybeSingle();
+    // Priority lookup: Use provider_editor_id directly if available
+    if (provider_editor_id) {
+      const { data: iosData } = await db
+        .from("olera-providers")
+        .select("provider_id, provider_name, email, website, city, state, slug")
+        .eq("provider_id", provider_editor_id)
+        .not("deleted", "is", true)
+        .maybeSingle();
 
-    businessProfile = bpData;
+      if (iosData) {
+        iosProvider = iosData;
+        // Also get linked business_profile
+        const { data: linkedBp } = await db
+          .from("business_profiles")
+          .select("id, slug, display_name, email, source_provider_id, account_id")
+          .eq("source_provider_id", iosData.provider_id)
+          .maybeSingle();
+        businessProfile = linkedBp;
+      }
+    }
+
+    // Fallback: Try business_profiles by slug
+    if (!iosProvider) {
+      const { data: bpData } = await db
+        .from("business_profiles")
+        .select("id, slug, display_name, email, source_provider_id, account_id")
+        .eq("slug", provider_slug)
+        .maybeSingle();
+
+      businessProfile = bpData;
+    }
 
     // If business_profile found, get linked olera-provider
-    if (businessProfile?.source_provider_id) {
+    if (!iosProvider && businessProfile?.source_provider_id) {
       const { data: iosData } = await db
         .from("olera-providers")
         .select("provider_id, provider_name, email, website, city, state, slug")

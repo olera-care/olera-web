@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { provider_slug } = body;
+    const { provider_slug, provider_editor_id } = body;
 
     if (!provider_slug) {
       return NextResponse.json(
@@ -59,17 +59,39 @@ export async function POST(request: NextRequest) {
       slug: string | null;
     } | null = null;
 
-    // Try business_profiles by slug first
-    const { data: bpData } = await db
-      .from("business_profiles")
-      .select("id, slug, display_name, email, source_provider_id, account_id")
-      .eq("slug", provider_slug)
-      .maybeSingle();
+    // Priority lookup: Use provider_editor_id directly if available
+    if (provider_editor_id) {
+      const { data: iosData } = await db
+        .from("olera-providers")
+        .select("provider_id, provider_name, email, slug")
+        .eq("provider_id", provider_editor_id)
+        .not("deleted", "is", true)
+        .maybeSingle();
 
-    businessProfile = bpData;
+      if (iosData) {
+        iosProvider = iosData;
+        const { data: linkedBp } = await db
+          .from("business_profiles")
+          .select("id, slug, display_name, email, source_provider_id, account_id")
+          .eq("source_provider_id", iosData.provider_id)
+          .maybeSingle();
+        businessProfile = linkedBp;
+      }
+    }
+
+    // Fallback: Try business_profiles by slug
+    if (!iosProvider) {
+      const { data: bpData } = await db
+        .from("business_profiles")
+        .select("id, slug, display_name, email, source_provider_id, account_id")
+        .eq("slug", provider_slug)
+        .maybeSingle();
+
+      businessProfile = bpData;
+    }
 
     // If business_profile found, get linked olera-provider
-    if (businessProfile?.source_provider_id) {
+    if (!iosProvider && businessProfile?.source_provider_id) {
       const { data: iosData } = await db
         .from("olera-providers")
         .select("provider_id, provider_name, email, slug")

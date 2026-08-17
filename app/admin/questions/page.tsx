@@ -685,6 +685,7 @@ function InlineEmailInput({
 
 function ApolloContactRow({
   providerSlug,
+  providerEditorId,
   apolloContact,
   providerEmail,
   isAccountClaimed,
@@ -692,6 +693,7 @@ function ApolloContactRow({
   onEmailApplied,
 }: {
   providerSlug: string;
+  providerEditorId?: string | null;
   apolloContact?: ApolloContact | null;
   providerEmail?: string | null;
   isAccountClaimed?: boolean;
@@ -712,7 +714,7 @@ function ApolloContactRow({
       const res = await fetch("/api/admin/questions/find-decision-maker", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_slug: providerSlug }),
+        body: JSON.stringify({ provider_slug: providerSlug, provider_editor_id: providerEditorId }),
       });
       const data = await res.json();
       if (data.error) {
@@ -750,7 +752,7 @@ function ApolloContactRow({
       const res = await fetch("/api/admin/questions/use-apollo-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_slug: providerSlug }),
+        body: JSON.stringify({ provider_slug: providerSlug, provider_editor_id: providerEditorId }),
       });
       const data = await res.json();
       if (data.error) {
@@ -771,7 +773,10 @@ function ApolloContactRow({
       <div className="flex items-center gap-2 mt-2">
         <button
           type="button"
-          onClick={handleFind}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleFind();
+          }}
           disabled={finding || isAccountClaimed}
           className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 border border-purple-200 rounded-md hover:bg-purple-100 transition disabled:opacity-50"
           title={isAccountClaimed ? "Cannot modify claimed account" : "Find decision-maker via Apollo"}
@@ -817,7 +822,10 @@ function ApolloContactRow({
       {!emailsMatch && !isAccountClaimed && (
         <button
           type="button"
-          onClick={handleUseEmail}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleUseEmail();
+          }}
           disabled={using}
           className="px-2 py-0.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded transition disabled:opacity-50"
         >
@@ -1696,6 +1704,7 @@ export default function AdminQuestionsPage() {
                         {(activeTab === "needs_email" || activeTab === "delivery_issues") && (
                           <ApolloContactRow
                             providerSlug={providerId}
+                            providerEditorId={firstQ.provider_editor_id}
                             apolloContact={sessionApolloContacts.get(providerId) || firstQ.apollo_contact}
                             providerEmail={firstQ.provider_email}
                             isAccountClaimed={firstQ.is_account_claimed}

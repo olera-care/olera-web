@@ -137,6 +137,25 @@ Commercialization Plan"):
   before Aim 3 pricing; business-associate determination for provider tools;
   stubbed student-side MedJobs fee (state employment-agency fee laws).
 
+## Removed in the platform-subsection simplification (2026-08-19, Logan's direction)
+
+- **Execution safety design**: "the platform never submits an application and never
+  holds a portal credential, and VA claims are screened and referred because
+  federal law reserves claim preparation to accredited representatives."
+  **homeless in the RS** — this left the platform subsection and the narrowed
+  Regulatory plan no longer carries it. It is unique, load-bearing compliance
+  design. Candidate homes: Task 1.1's verification scope (zero-unauthorized-
+  transmission is already a 1.1 metric, so the design rationale fits there), the
+  Human Subjects section, and the CP regulatory position. Place during the Task
+  1.1/1.3 pass.
+- Agent grounding constraints (curated database only, never the open web) and the
+  conversational-agent-architecture sentence: removed from the subsection; the
+  grounding facts remain available (KI-2 "grounded in Olera's proprietary
+  elder-care database"; code honesty rails) if a task needs them.
+- Outcome-recording clause (decisions returned so future navigation reflects
+  program decisions): dropped from the loop definition; the concept remains in
+  KI-2/KI-3 and can be stated in Task 1.3B if needed.
+
 ## Standing rule
 
 When the line-by-line pass reaches Aim 2, Aim 3, and Problems and alternatives,

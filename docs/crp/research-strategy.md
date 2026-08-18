@@ -85,13 +85,13 @@ Specific Aim 1: Verify, validate, and drive adoption of the CareNavigator for fa
 
 The CareNavigator Platform.
 
-The intervention is a closed navigation loop: understand a family's needs, identify the aid and services they qualify for, help them act, and follow each case to a decision, recording the outcome so the next family's navigation reflects what programs actually decide.
+The intervention is a closed navigation loop: understand a family's needs, identify the aid and services they qualify for, and help them act.
 
-Matching technology (live). The loop's front half is live nationally today: structured screening, eligibility matching over the expert-curated program database, guidance built from expert-approved responses, and provider matching. A conversational agent architecture that will carry these functions is in development.
+Matching (live). Structured screening establishes the family's needs, and eligibility matching over the expert-curated program database identifies the aid and services they qualify for and the providers who can deliver them. These functions run nationally today.
 
-The execution loop (in development). This loop helps families act on their matches: it prepares applications and documents for the family's review, books assessments, and tracks each case to decision, escalating anything unresolved to a human navigator. The family submits everything; the platform holds no portal credentials, and VA claims are referred to accredited representatives.
+Execution loop (in development). This loop helps the family act on their matches. It prepares applications and documents for the family's review, books assessments, and escalates anything unresolved to a human navigator. The family submits everything.
 
-The follow-up loop (yet to be developed). This loop re-engages the family when a step stalls and returns every reported outcome to the database.
+Follow-up loop (yet to be developed). This loop re-engages the family when a step stalls and follows each case through to a decision.
 
 Each component is verified against pre-specified criteria in Task 1.1.
 

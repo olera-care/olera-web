@@ -68,7 +68,7 @@ What this record means for the CRP. The needs are validated, the MVPs live with 
 
 APPROACH
 
-Overall design and timetable (Figure A). Olera already has broad family and provider traction nationwide, but breadth alone does not create a working marketplace. CareNavigator needs enough families, providers, and workforce in the same local markets for users to receive consistent value and for Olera to generate revenue. The CRP will build that local depth where Olera’s existing family traffic and provider base provide the strongest starting point, then replicate the playbook across other serviceable markets. Aims 1 and 2 will verify, validate, and build adoption of the family and provider products in parallel. Aim 3 will test whether the provider products generate enough revenue to sustain Olera after the award while producing the commercial evidence investors have asked for to reduce investment risk. If successful, Olera can sustain operations through revenue after the award and use private investment to replicate the proven model more quickly across new markets.
+Overall design and timetable (Figure A). Olera already has broad family and provider traction nationwide, but breadth alone does not create a healthy marketplace. CareNavigator needs enough families, providers, and workforce in the same local markets for users to receive consistent value and for Olera to generate revenue. The CRP will therefore build that local depth, starting where Olera’s existing family traffic and provider base provide the strongest foundation, then replicate the playbook across other serviceable markets. Aims 1 and 2 will verify, validate, and build adoption of the family and provider products in parallel. Aim 3 will test whether the provider products generate enough revenue to sustain Olera after the award. Across all three aims, the CRP will also generate the commercial evidence investors have asked for to reduce investment risk.
 
 <div style="margin:6px 0 4px">
 
@@ -81,7 +81,7 @@ Overall design and timetable (Figure A). Olera already has broad family and prov
 
 Regulatory plan. CareNavigator is navigational and administrative software: it matches families to benefits, services, and providers and prepares paperwork, and it does not diagnose, treat, or make clinical decisions. It therefore does not meet the FDA’s definition of a medical device, and no FDA premarket authorization, license, or other regulatory approval is required before commercialization. The laws that govern ongoing operations, including privacy, marketing, and referral practices, are addressed in the Commercialization Plan.
 
-Specific Aim 1: Verify, validate, and drive adoption of the CareNavigator for families. Rationale: Financial aid is one of the main reasons families come to Olera. Matching runs nationally today but families lose the aid while completing the steps and again after filing (Preliminary Work). The execution and follow-up loops close both gaps, and the CRP takes the completed system to commercial readiness. Pricing is Aim 3.
+Specific Aim 1: Verify, validate, and drive adoption of the CareNavigator for families. Rationale: Financial aid is one of the main reasons families come to Olera. However, families can be lost to follow-up while completing the steps required to apply and again after an application is filed (Preliminary Work). The execution and follow-up loops are designed to close these two points of falloff.
 
 The CareNavigator Platform.
 

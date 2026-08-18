@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T09:02:41.392Z
+ * Last updated: 2026-08-18T09:52:08.676Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -114,7 +114,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security or SSI award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements)",
         "Life insurance policies with face values",
@@ -139,6 +139,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "If your loved one receives SSI, they automatically qualify for Medicaid income limits, no separate income verification needed",
         "The 60-month look-back rule creates penalty periods for any assets transferred below fair market value, consult an elder law attorney before transferring property",
         "Dementia diagnosis alone is not sufficient, your loved one must have functional limitations in 2+ activities of daily living verified through assessment",
@@ -294,7 +295,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of age (birth certificate or state-issued ID)",
         "Proof of Mississippi residency (utility bill, lease agreement, or state-issued document)",
         "Social Security award letter or other income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property documents if homeowner (deed, tax statements)",
         "Vehicle titles and registration",
         "Life insurance policies with cash values",
@@ -330,6 +331,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must be assessed in person, remote or phone assessments are not accepted for nursing facility level of care determination",
         "Having dementia or other diagnoses alone doesn't automatically qualify, you must demonstrate need for daily assistance with activities of daily living",
         "If income exceeds 300% of SSI rate, the excess must be paid monthly to Medicaid through a qualified income trust before approval",
@@ -388,7 +390,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 421-2408",
       "sourceUrl": "https://medicaid.ms.gov/programs/elderly-and-disabled-waiver/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "medicare-savings-programs",
@@ -481,7 +484,6 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card",
         "Social Security award letter or most recent statement",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
         "Pay stubs if still working (last 4 weeks)",
         "Proof of Mississippi residency (utility bill, lease, or state ID)",
         "Birth certificate or passport for age verification",
@@ -511,6 +513,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "SLMB provides up to 3 months retroactive coverage, but QMB only starts the month after approval, apply as soon as you think your loved one qualifies",
         "QI tier has federal funding caps and may close to new applicants even if income-eligible, consider applying for SLMB as backup",
         "Income disregards apply: first $20/month from any source, plus $65 in wages and half of remaining wages don't count toward limits",
@@ -692,7 +695,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of age (birth certificate, driver's license, or state ID)",
         "Proof of Mississippi residency (utility bill, lease, or mail)",
         "Social Security award letter or pension statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Rent or mortgage payment receipts",
         "Medical expenses receipts if claiming medical deductions",
         "Vehicle registration and titles",
@@ -770,7 +773,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 948-3050",
       "sourceUrl": "https://www.mdhs.ms.gov/help/snap/special/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -789,7 +793,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles to pay electric or gas bills, LIHEAP makes payments directly to energy companies to help cover home energy costs. Because Mississippi uses 60% of the state median income as the threshold (not federal poverty levels like other states), more middle-income seniors may qualify than you expect.\n\nThe program operates year-round for crisis situations, with seasonal components for heating assistance (October–April) and cooling assistance (May–September). Vulnerable households, including elderly adults, people with disabilities, and families with children age 5 or younger, get priority processing, but anyone meeting income requirements can apply.\n\nFunding is limited and distributed first-come, first-served through Community Action Agencies in each of Mississippi's 82 counties. The exact benefit amount varies based on your loved one's current energy bill and available funds.",
+      "intro": "If your loved one struggles to pay electric or gas bills, LIHEAP makes payments directly to energy companies to help cover home energy costs. Because Mississippi uses 60% of the state median income as the threshold (not federal poverty levels like other states), more middle-income seniors may qualify than you expect.\n\nThe program operates year-round for crisis situations, with help available year-round for both heating and cooling, regardless of season. Vulnerable households, including elderly adults, people with disabilities, and families with children age 5 or younger, get priority processing, but anyone meeting income requirements can apply.\n\nFunding is limited and distributed first-come, first-served through Community Action Agencies in each of Mississippi's 82 counties. The exact benefit amount varies based on your loved one's current energy bill and available funds.",
       "savingsRange": "",
       "savingsSource": "Payment assistance varies by energy bill amount and available funds",
       "savingsVerified": false,
@@ -852,32 +856,32 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Valid government-issued photo ID for everyone over 18 in the household",
-        "Proof of income for last 30 days (pay stubs, Social Security award letters, unemployment benefits letter)",
-        "W-2 forms or 1099 forms if available",
-        "Current electric bill showing amount due",
-        "Current gas or propane bill if applicable",
+        "Social Security cards for every person in the household. They have to be legible, and the agency can help if one is missing.",
+        "Government-issued photo ID for everyone 18 and older. An expired ID is accepted for elderly, disabled, or homebound applicants.",
+        "The current energy bill you need paid. It has to be in your loved one's name or their spouse's.",
+        "Proof of income for the last 30 days (pay stubs, Social Security award letters, unemployment benefits letter)",
         "Proof of residence (lease agreement, mortgage statement, or utility bills)",
-        "Social Security cards for all household members",
-        "Birth certificates for children in household"
+        "For renters whose utilities are in the landlord name: the lease or a completed Landlord Verification Form",
+        "W-2 forms or 1099 forms if available",
+        "This list is not everything. The caseworker will tell you what else they need at the appointment."
       ],
       "contacts": [
         {
-          "label": "Mississippi Department of Human Services, Division of Community  (start here)",
+          "label": "MDHS Division of Community Services, statewide LIHEAP help line (start here)",
           "phone": "(800) 421-0762",
-          "description": "Mississippi Department of Human Services, Division of Community Services — statewide LIHEAP/Community Action Agency help line; local CAA completes the application",
-          "hours": null
+          "description": "They route you to the Community Action Agency for your county, which schedules the appointment and takes the application. You can also start a pre-application at access.ms.gov, but you will not be denied for skipping it. Details at www.mdhs.ms.gov/community/liheap.",
+          "hours": "Mon-Fri, business hours (Central time)"
         },
         {
-          "label": "MDHS Community Services",
+          "label": "Find your county's Community Action Agency",
           "phone": null,
-          "description": "Online application portal and county contact information",
-          "hours": "Visit mdhs.ms.gov/community/liheap/"
+          "description": "MDHS county selector covering all 82 counties. The agency schedules and completes the application. Details at www.mdhs.ms.gov/community.",
+          "hours": null
         },
         {
           "label": "Mississippi 2-1-1",
           "phone": "2-1-1",
-          "description": "Free helpline to find your county's Community Action Agency",
+          "description": "General referral line.",
           "hours": "24 hours, 7 days a week"
         }
       ],
@@ -940,7 +944,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 421-0762",
       "sourceUrl": "https://www.mdhs.ms.gov/community/liheap/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "weatherization-assistance-program",
@@ -1471,26 +1476,28 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Valid photo ID for caregiver",
-        "Proof of Mississippi residency (utility bill or lease)",
-        "Care recipient's identification and age verification",
-        "Documentation of caregiving relationship (birth certificate, marriage certificate, or legal guardianship papers)",
-        "Medical documentation showing care recipient's need for assistance (physician's statement or recent medical records)",
-        "List of current medications and medical conditions for care recipient",
-        "Information about current services or benefits care recipient receives",
-        "Emergency contact information for family members"
+        "Nothing to bring. This is a phone intake. Have ready: your relationship to the person you care for, and that you are not paid for the care.",
+        "The care recipient's age and condition. 60 or older is the main door. Under 60 with Alzheimer's, another dementia, or cognitive impairment routes you to the Mississippi Dementia Care Program at the same number.",
+        "The county where the care recipient lives. Mississippi assigns you to an Area Agency on Aging by county.",
+        "What help you need: respite hours, counseling or a support group, caregiver training, or supplemental items."
       ],
       "contacts": [
         {
-          "label": "Mississippi Access to Care (MAC) Center",
+          "label": "Mississippi Access to Care (MAC) Center (start here)",
           "phone": "844-822-4622",
-          "description": "Primary contact for all caregiver support services and connection to local Area Agencies on Aging",
-          "hours": "Monday-Friday 8am-5pm CT"
+          "description": "One number for both programs. If the person you care for has Alzheimer's, another dementia, or cognitive impairment, say so, because that routes you to the Mississippi Dementia Care Program instead. Details at www.mdhs.ms.gov/aging/caregivers.",
+          "hours": "Mon-Fri, business hours"
+        },
+        {
+          "label": "MDHS Division of Aging and Adult Services",
+          "phone": "601-359-4915",
+          "description": "The state division behind the program.",
+          "hours": "Mon-Fri, business hours"
         },
         {
           "label": "Mississippi 2-1-1",
           "phone": "2-1-1",
-          "description": "24/7 helpline for information about all social services and community resources",
+          "description": "General referral line.",
           "hours": "24 hours, 7 days a week"
         }
       ],
@@ -1553,7 +1560,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "844-822-4622",
       "sourceUrl": "https://www.mdhs.ms.gov/aging/caregivers/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "scsep-employment",

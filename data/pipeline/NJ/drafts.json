@@ -388,7 +388,7 @@
         "Proof of New Jersey residency (utility bill, lease agreement, or state-issued document)",
         "Medicare card if they have one (Medicare is not required for this program)",
         "Social Security award letter or benefit statement",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -420,6 +420,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Clinical assessment is required and determines both eligibility and your specific Plan of Care services",
         "Monthly service caps vary slightly by county ($1,090-$1,156) - confirm your county's current limit",
         "Sliding-scale co-pays are billed directly by your service provider, not the state",
@@ -932,7 +933,6 @@
         "Social Security card for care recipient (and spouse if married)",
         "Proof of New Jersey residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter or pension statements",
-        "Bank statements for all accounts (last 3 months)",
         "Documentation of any other income sources",
         "Investment or asset documentation if applicable",
         "Medical certification of functional impairments from licensed provider",
@@ -954,6 +954,7 @@
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you. Some intakes ask you to self-declare whether income is above or below the poverty line; that is for the agency’s own reporting and you can decline without losing the service.",
         "Each county has its own sponsor agency that administers the program locally, service availability and wait times may vary by county",
         "You can switch from JACC or the Alzheimer's Adult Day Services Program to Statewide Respite, but you cannot participate in both simultaneously",
         "The Caregiver Directed Option allows reimbursement for services or items that make caregiving easier, ask about this flexibility",
@@ -1012,7 +1013,8 @@
       "phone": "1-877-222-3737",
       "sourceUrl": "https://www.nj.gov/humanservices/doas/services/q-z/srcp/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "alzheimers-adult-day-services",
@@ -1094,7 +1096,6 @@
         "Written certification of functional impairments requiring daily assistance",
         "Social Security award letters for all household income sources",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements if applicable)",
         "Life insurance policies with face values",
@@ -1122,6 +1123,7 @@
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you. Some intakes ask you to self-declare whether income is above or below the poverty line; that is for the agency’s own reporting and you can decline without losing the service.",
         "Income and asset limits aren't published in program brochures, contact the Division of Aging Services or participating centers for current financial thresholds",
         "You must use centers that specifically participate in this program and specialize in dementia care, not all adult day centers qualify",
         "Even with subsidies, you'll still pay an income-based copay, ask centers for specific amounts during your initial contact",
@@ -1172,7 +1174,8 @@
       "phone": "(877) 222-3737",
       "sourceUrl": "https://www.nj.gov/humanservices/doas/documents/Adult%20Day%20Services%20Program%20Brochure%20(Web-English).pdf",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "senior-ezpass-discount",

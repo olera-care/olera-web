@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.522Z
+ * Last updated: 2026-08-18T09:44:15.793Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -109,7 +109,7 @@ export const drafts: PipelineStateDrafts = {
         "Birth certificate or other proof of age",
         "Proof of North Carolina residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter or disability determination",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Proof of any other income (pensions, retirement, employment)",
         "Medical records documenting condition requiring daily care assistance",
         "Medicare card if applicable",
@@ -141,6 +141,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Each waiver serves different populations, make sure you're contacting the right one for your loved one's specific condition and age",
         "Waitlist times vary dramatically by region and waiver type, ask about current wait times in your specific county when applying",
         "You can appeal Medicaid denials or functional assessments if you disagree with the determination",
@@ -226,7 +227,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-833-470-0597",
       "sourceUrl": "https://medicaid.ncdhhs.gov/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "pace-comprehensive-care",
@@ -530,7 +532,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of North Carolina residency (utility bill, lease, or state-issued document)",
         "Social Security award letter or most recent statement",
         "Pension or retirement income statements for last 2 months",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Vehicle titles and registration for all vehicles",
         "Life insurance policies with face values",
@@ -561,6 +563,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI program funding is limited and distributed first-come, first-served, if your loved one's income is between $1,585-$1,816/month, apply early in the calendar year",
         "Income includes the standard $20 general disregard, so your loved one may qualify even if their gross income appears slightly over the limit",
         "QMB beneficiaries cannot be billed by providers for covered Medicare services, make sure your loved one carries their MSP identification card",
@@ -630,7 +633,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(888) 245-0179",
       "sourceUrl": "https://medicaid.ncdhhs.gov/providers/programs-and-services/medicare-savings-programs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "snap-food-benefits",
@@ -746,7 +750,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security award letter or pension statements for all household members",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Birth certificate or driver's license for identification",
         "Proof of North Carolina residency (utility bill, lease, or mail)",
         "Medical expense receipts from last 3 months (prescriptions, doctor bills, insurance premiums)",
@@ -838,7 +842,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(866) 719-0141",
       "sourceUrl": "https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -943,7 +948,6 @@ export const drafts: PipelineStateDrafts = {
         "Proof of address (lease, rental agreement, or shelter documentation)",
         "Earned income documentation (wage stubs, tax forms, or employer contact)",
         "Unearned income documentation (benefit award letters, retirement statements)",
-        "Bank statements for all accounts",
         "Asset documentation (ownership records, court documents)",
         "Copy of recent heating bills"
       ],
@@ -1020,7 +1024,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://www.ncdhhs.gov/divisions/social-services/energy-assistance/low-income-energy-assistance-lieap",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "weatherization-assistance-program",
@@ -2640,7 +2645,7 @@ export const drafts: PipelineStateDrafts = {
         "State-issued photo identification (driver's license or ID card)",
         "Social Security award letter or SSI documentation",
         "Proof of all income sources (pensions, retirement, wages, benefits)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Insurance cards (Medicare, Medicaid, private insurance)",
         "Proof of North Carolina residency (utility bill, lease, voter registration)",
         "Asset documentation (property deeds, vehicle titles, investment accounts)",
@@ -2677,6 +2682,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Eligibility is determined case-by-case, meeting the basic criteria doesn't guarantee approval",
         "Your spouse's income and assets do not affect your loved one's eligibility for this program",
         "Enhanced rate ($1,700/month) requires valid FL-2 form specifically documenting Alzheimer's or dementia diagnosis",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.535Z
+ * Last updated: 2026-08-18T09:44:15.806Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -290,7 +290,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security award letter or disability determination",
         "Pay stubs from the last 30 days (if working)",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment account statements (stocks, bonds, retirement accounts)",
         "Property deeds or tax statements",
         "Vehicle titles and registration",
@@ -320,6 +320,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Personal care services are only available to those who don't need nursing facility level of care - if your loved one needs more intensive medical supervision, they'll be referred to waiver programs instead",
         "Home ownership doesn't disqualify your loved one as long as they live there or intend to return - the home is an exempt asset",
         "Dementia or Alzheimer's diagnosis alone doesn't automatically qualify - your loved one must still demonstrate specific functional limitations through the CARE assessment",
@@ -378,7 +379,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 923-4633",
       "sourceUrl": "https://www.hca.wa.gov/free-or-low-cost-health-care/i-need-medical-dental-or-vision-help/apple-health-medicaid-washington",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "mac-waiver",
@@ -472,7 +474,7 @@ export const drafts: PipelineStateDrafts = {
         "Birth certificate or proof of age",
         "Washington State residency proof (utility bill, lease, or state-issued document)",
         "Social Security award letter or pension statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (deed, tax statements)",
         "Vehicle title and registration",
@@ -498,6 +500,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "The 60-month Look-Back Rule is strictly enforced, any assets given away or sold below fair market value in the past 5 years will trigger a penalty period and delay eligibility",
         "Your primary home is exempt only if your loved one lives in it, intends to return to it, or their spouse/dependent relative lives in it, otherwise it counts toward the $2,000 asset limit",
         "The unpaid caregiver requirement is non-negotiable, without an eligible family member or friend willing to provide care, your loved one cannot qualify even if they meet all other criteria",
@@ -549,7 +552,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://www.law.cornell.edu/regulations/washington/WAC-182-513-1605",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "pace-elderly-care",
@@ -650,7 +654,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicaid card (if applicable)",
         "Medicare card if they have one (Medicare is not required for this program)",
         "Social Security award letter or benefits statement",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -688,6 +692,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "PACE becomes your loved one's sole source of Medicare and Medicaid services, they must disenroll from Medicare Advantage, prescription drug plans, and other supplemental coverage",
         "Private pay option is available at the Medicaid rate if your loved one doesn't qualify for Medicaid but needs the comprehensive services",
         "You must live in or be willing to relocate to the PACE service area, in Washington, this is limited to most of King County",
@@ -842,7 +847,6 @@ export const drafts: PipelineStateDrafts = {
         "Social Security award letter or most recent benefits statement",
         "Pension or retirement income statements",
         "Pay stubs if still working (last 30 days)",
-        "Bank statements for all accounts (last 3 months)",
         "Social Security card",
         "Birth certificate or passport for proof of age",
         "Proof of Washington residency (utility bill, lease agreement, or state-issued document)",
@@ -873,6 +877,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QMB recipients cannot be billed by providers for Medicare-covered services, make sure your loved one tells doctors and hospitals about their QMB status",
         "Income calculations use countable income after deductions, so don't assume gross Social Security or pension income disqualifies your loved one",
         "QI program has funding limits and operates first-come, first-served, apply early in the year for best chances",
@@ -2028,7 +2033,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Proof of unemployment status (termination letter, unemployment benefits letter, or signed statement)",
         "Household income verification for last 12 months (Social Security award letters, pension statements, pay stubs)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Veteran discharge papers (DD-214) if claiming veteran priority",
         "Disability documentation if claiming disability priority",
         "Proof of rural residence if claiming rural priority",
@@ -2113,7 +2118,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(425) 366-4457",
       "sourceUrl": "https://www.dol.gov/agencies/eta/seniors",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "legal-aid-seniors",

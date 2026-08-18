@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/DC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.508Z
+ * Last updated: 2026-08-18T09:44:15.777Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -110,7 +110,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Documentation showing countable assets under $4,000",
         "Completed Prescription Order Form (POF) signed by physician or advanced practice registered nurse",
@@ -147,6 +147,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Application is incomplete without both the physician-signed Prescription Order Form and Liberty Healthcare assessment, gather these first",
         "Income limit is 300% of SSI and updates annually, verify current year limits before applying",
         "Asset limit is strictly $4,000 for individuals with no household size variations, plan spend-down if over this amount",
@@ -205,7 +206,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(202) 724-5626",
       "sourceUrl": "https://dacl.dc.gov/service/epd-waiver",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "safe-at-home-program",
@@ -497,7 +499,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Most recent Social Security award letter",
         "Medicare card",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment account statements (stocks, bonds, annuities)",
         "Life insurance policies showing cash value",
         "Prescription Order Form (POF) completed by DC Medicaid provider",
@@ -521,6 +523,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Income and asset limits in sources may be outdated (2021-2023 figures), verify current amounts as they're tied to 300% of SSI",
         "The Prescription Order Form from a DC Medicaid provider is required and often causes application delays if not completed properly",
         "This is primarily enrollment assistance for the EPD Waiver, you'll still need separate Medicaid eligibility and may need spend-down if income is over limit",
@@ -579,7 +582,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(202) 724-5626",
       "sourceUrl": "https://dacl.dc.gov/service/benefits-assistance",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "senior-centers",

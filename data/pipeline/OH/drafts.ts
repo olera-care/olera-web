@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OH/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.528Z
+ * Last updated: 2026-08-18T09:44:15.798Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -123,7 +123,7 @@ export const drafts: PipelineStateDrafts = {
         "Birth certificate or passport for age verification",
         "Proof of Ohio residency (utility bill, lease, or state-issued document)",
         "Social Security award letter or disability determination",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Vehicle titles and registration for all vehicles",
         "Life insurance policies showing cash value",
@@ -149,6 +149,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Income limits vary by county and update annually, always verify current limits with your local JFS office",
         "SSI income is often excluded from countable income calculations, but this must be verified during application",
         "If your loved one's home equity exceeds $752,000, they may still qualify if a spouse, disabled child, or caregiver child lives there",
@@ -207,7 +208,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 324-8680",
       "sourceUrl": "https://medicaid.ohio.gov/families-and-individuals/citizen-programs-and-initiatives/aged-blind-disabled",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "passport-waiver",
@@ -291,7 +293,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card",
         "Medicaid card if already enrolled",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Pension or retirement income statements",
         "Property tax statements or deed if homeowner",
         "Life insurance policies with cash values",
@@ -330,6 +332,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Each of Ohio's 12 Area Agencies on Aging has different local providers and contact numbers, make sure you're calling the right region",
         "Structured Family Caregiving is new as of October 2024, ask specifically about paying family members to provide care. A spouse or a relative with legal decision-making authority is paid only when no other willing and able caregiver is available and the state confirms health and safety needs can be met, capped at 40 hours per week",
         "The nursing home level of care assessment is strict, your loved one must need significant daily assistance, not just occasional help",
@@ -388,7 +391,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-266-4346",
       "sourceUrl": "https://aging.ohio.gov/passport",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "pace-all-inclusive-care",
@@ -701,7 +705,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card",
         "Social Security cards for all household members",
         "Proof of income from last 3 months (Social Security award letter, pension statements, pay stubs)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, annuities)",
         "Life insurance policies with cash values",
         "Vehicle titles and registration",
@@ -733,6 +737,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI-1 applications should be submitted early in January when federal funding resets, slots are limited and allocated first-come, first-served",
         "Income is calculated after standard disregards: $20 general income exclusion plus $65 earned income exclusion and half of remaining wages",
         "SLMB and QI-1 can provide retroactive coverage up to 3 months, but you must have met all eligibility requirements for each of those months",
@@ -920,7 +925,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Social Security award letter or pension statements",
         "Pay stubs from last 30 days (if working)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Rent receipts or mortgage statements",
         "Utility bills (electric, gas, water, phone)",
         "Medical bills and receipts over $35/month",
@@ -1003,7 +1008,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(866) 663-3225",
       "sourceUrl": "https://benefits.ohio.gov/SNAP",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "heap-energy-assistance",
@@ -1986,7 +1992,7 @@ export const drafts: PipelineStateDrafts = {
         "Pay stubs from last job if recently employed",
         "Social Security award letters for all household members receiving benefits",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Veterans discharge papers (DD-214) if applicable",
         "Disability documentation if applicable",
         "Proof of any other household income sources"
@@ -2082,7 +2088,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(614) 466-5500",
       "sourceUrl": "https://aging.ohio.gov/care-and-living/staying-active/staying-active-catalog/senior-community-services-employment-program",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "legal-assistance-seniors",

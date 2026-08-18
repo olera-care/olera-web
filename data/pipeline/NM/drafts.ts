@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NM/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T09:02:41.396Z
+ * Last updated: 2026-08-18T09:44:15.796Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -470,7 +470,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Proof of New Mexico residency (utility bill, lease, or state ID)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Pension or retirement income statements",
         "Property deeds or tax assessments",
         "Vehicle titles and registration",
@@ -501,6 +501,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Some MCOs have immediate openings while others maintain waitlists, ask about current capacity when choosing your MCO",
         "Certain members approved before 2019 may have continuous eligibility without annual reassessments, verify your loved one's status",
         "If your loved one doesn't qualify for full Medicaid, the Central Registry has very limited slots with long wait times",
@@ -852,7 +853,7 @@ export const drafts: PipelineStateDrafts = {
         "Most recent tax return or statement showing family income",
         "Social Security award letter if receiving benefits",
         "Unemployment verification or statement of job loss",
-        "Bank statements (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Proof of address (utility bill, lease agreement, or mail within last 30 days)"
       ],
       "contacts": [
@@ -940,7 +941,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(505) 476-4799",
       "sourceUrl": "https://www.aging.nm.gov/aging-network/senior-employment-programs/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     }
   ],
   "stateOverview": {

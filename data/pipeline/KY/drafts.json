@@ -99,7 +99,7 @@
         "Birth certificate or passport for proof of age and citizenship",
         "Proof of Kentucky residency (utility bill, lease, or state-issued document)",
         "Social Security award letters for all income sources",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment account statements (stocks, bonds, annuities, trusts)",
         "Property deeds and current tax assessments",
         "Vehicle titles and current market value assessments",
@@ -125,6 +125,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "The 60-month look-back period means any gifts or asset transfers in the past 5 years may create penalty periods, gather records of all transfers",
         "Community spouse asset protection varies from $31,584 to $162,660, higher amounts require a fair hearing but are often approved",
         "Home-based waiver services are assessed one-at-a-time based on need, unlike nursing home care which provides comprehensive services immediately",
@@ -175,7 +176,8 @@
       "phone": "(855) 306-8959",
       "sourceUrl": "https://kynect.ky.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "hcbs-waivers",
@@ -187,14 +189,14 @@
       "geographicScope": {
         "type": "state"
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, Kentucky's HCBS Waivers can provide personal care assistance, homemaker services, and adult day health programs through Medicaid. This program serves people who would otherwise need nursing home level care, a physician must certify in writing that nursing facility admission would occur without these services.\n\nServices are individualized based on your loved one's needs and can include respite care for family caregivers, home modifications, meal delivery, and emergency response systems. Your loved one may need to pay part of the cost based on their income after allowing $694 for personal needs and deductions for medical expenses. Income limit: $2,152/month gross, though a Qualifying Income Trust can help if income exceeds this amount.\n\nCritical: There is currently a waiting list for services. Placement is determined by when the completed application is received, so apply immediately even if services aren't needed right now.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, Kentucky's HCBS Waivers can provide personal care assistance, homemaker services, and adult day health programs through Medicaid. This program serves people who would otherwise need nursing home level care, a physician must certify in writing that nursing facility admission would occur without these services.\n\nServices are individualized based on your loved one's needs and can include respite care for family caregivers, home modifications, meal delivery, and emergency response systems. Your loved one may need to pay part of the cost based on their income after allowing $2,901 for personal needs and deductions for medical expenses. Income limit: $2,901/month gross, though a Qualifying Income Trust can help if income exceeds this amount.\n\nCritical: There is currently a waiting list for services. Placement is determined by when the completed application is received, so apply immediately even if services aren't needed right now.",
       "savingsRange": "",
-      "savingsSource": "Free service",
+      "savingsSource": "Kentucky MAP-418 Medicaid Waiver Services Fact Sheet (rev. 7/2025)",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 65+ or disabled at any age",
-          "Income under $2,152/month",
+          "Income under $2,901/month",
           "Medicaid eligible",
           "Needs nursing facility level care",
           "Currently has a waiting list"
@@ -253,7 +255,7 @@
         "Government-issued photo ID",
         "Social Security card",
         "Most recent Social Security award letter or pension statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Resource information: checking and savings balances, CDs, stocks or bonds, life insurance policies, annuities, trusts, vehicles, property, and burial reserves",
         "Documentation of all other income sources",
         "Health insurance card (Medicare, private insurance)",
         "Health insurance premium statements",
@@ -263,28 +265,28 @@
       ],
       "contacts": [
         {
-          "label": "DCBS Benefits Line",
+          "label": "DCBS kynect Benefits Line (start here)",
           "phone": "(855) 306-8959",
-          "description": "Initial Medicaid application and eligibility questions",
-          "hours": "Business hours"
+          "description": "Apply for waiver-supportive Medicaid by phone. At the menu choose healthcare and food benefits, then waiver-supportive Medicaid, and tell them you are applying for Medicaid for waiver.",
+          "hours": "Mon-Fri 8am-4:30pm ET, Sat 9am-2pm ET"
         },
         {
-          "label": "DAIL Information Line",
+          "label": "DAIL HCB Waiver Line",
           "phone": "(877) 315-0589",
-          "description": "HCB program information and questions",
-          "hours": "Business hours"
+          "description": "Questions about the HCB waiver itself, how to apply, and your place on the waiting list. Email HCBInquiries@ky.gov.",
+          "hours": "Weekdays, business hours ET"
         },
         {
-          "label": "Lincoln Trail ADRC",
-          "phone": "(270) 737-6082",
-          "description": "General waiver program information and local assistance",
-          "hours": "Business hours"
+          "label": "Kentucky Aging and Disability Resource Center",
+          "phone": "(877) 925-0037",
+          "description": "Connects you to your regional Area Agency on Aging and Independent Living, which can complete the waiver application with you in person.",
+          "hours": "Weekdays, business hours ET"
         }
       ],
       "applicationNotes": [
-        "You must apply at the DCBS office in the county where your loved one lives, applications cannot be processed across county lines",
+        "Kentucky uses two applications. The phone call starts the Medicaid side. The waiver application itself is filed at kynect.ky.gov or in person at an Aging and Disability Resource Center. Neither can be mailed in.",
         "The physician certification requirement is strict, make sure the doctor understands they must certify that nursing facility admission would happen without waiver services",
-        "If income exceeds $2,152/month, you'll need to establish a Qualifying Income Trust before approval, this adds time and complexity to the process",
+        "If income exceeds $2,901/month, you'll need to establish a Qualifying Income Trust before approval, this adds time and complexity to the process",
         "Patient liability (cost-sharing) will be calculated after approval based on income minus deductions, this amount must be paid to the waiver provider monthly"
       ],
       "relatedPrograms": [
@@ -301,7 +303,7 @@
         },
         {
           "question": "What if my loved one's income is $2,200/month, just over the limit?",
-          "answer": "Your loved one can still qualify by establishing a Qualifying Income Trust (QIT), which redirects excess income to meet the $2,152 limit. This adds complexity to the application process, so consider working with an elder law attorney to set this up properly."
+          "answer": "Your loved one can still qualify by establishing a Qualifying Income Trust (QIT), which redirects excess income to meet the $2,901 limit. This adds complexity to the application process, so consider working with an elder law attorney to set this up properly."
         },
         {
           "question": "How long is the waiting list really?",
@@ -332,7 +334,8 @@
       "phone": "(855) 306-8959",
       "sourceUrl": "https://chfs.ky.gov/agencies/dms/dca/pages/hcb-waiver.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "kentucky-pace",
@@ -600,7 +603,7 @@
         "Medicare card if you have one",
         "Social Security award letter or most recent statement",
         "Pay stubs from last 30 days (if still working)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment statements (stocks, bonds, CDs, savings bonds)",
         "Property tax statements for any real estate owned",
         "Vehicle titles and registration",
@@ -623,6 +626,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI program funding comes from a finite federal block grant, once exhausted, even eligible applicants cannot receive benefits until the next funding cycle",
         "QMB automatically qualifies your loved one for Medicare Part D Extra Help prescription drug assistance",
         "Income limits include a $20 disregard that's already factored into the stated amounts",
@@ -679,7 +683,8 @@
       "phone": null,
       "sourceUrl": "https://chfs.ky.gov/agencies/dms/dpo/epb/Pages/msp.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "snap-food-benefits",
@@ -803,7 +808,7 @@
         "Social Security cards for all household members",
         "Social Security award letter or benefit statement",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Proof of Kentucky residency (utility bill or lease)",
         "Medicare card and premium statements",
         "Prescription drug plan documents and costs",
@@ -1753,7 +1758,7 @@
         "Social Security card or work authorization documents",
         "Proof of Kentucky residency (utility bill, lease agreement, or state-issued document)",
         "Income verification for all household members (Social Security award letters, pay stubs, or tax returns)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "DD-214 or military discharge papers (if claiming veteran priority)",
         "Disability documentation from Social Security or medical provider (if claiming disability priority)",
         "Birth certificates for all household members"
@@ -1835,7 +1840,8 @@
       "phone": "(833) 439-7759",
       "sourceUrl": "https://chfs.ky.gov/agencies/dail/Pages/scsep.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "legal-aid-seniors",
@@ -2136,7 +2142,7 @@
       },
       "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home, Kentucky's HCB Waiver covers the services that would otherwise require nursing home placement. The program provides attendant care, home-delivered meals, personal emergency response systems, and minor home modifications, all at no cost to families who qualify.\n\nYour loved one must first qualify for Medicaid (special financial rules apply that are more generous than regular Medicaid) and meet nursing facility level of care requirements. Because this waiver has a waitlist with priority given by application date, apply as early as possible even if you're not sure about timing.",
       "savingsRange": "",
-      "savingsSource": "Free service",
+      "savingsSource": "Kentucky MAP-418 Medicaid Waiver Services Fact Sheet (rev. 7/2025)",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
@@ -2200,7 +2206,7 @@
         "Kentucky residency documentation",
         "Medicare card",
         "Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Resource information: checking and savings balances, CDs, stocks or bonds, life insurance policies, annuities, trusts, vehicles, property, and burial reserves",
         "Proof of any other income (pensions, retirement accounts)",
         "Medical records showing need for daily assistance",
         "Current medications list",
@@ -2210,22 +2216,22 @@
       ],
       "contacts": [
         {
-          "label": "DCBS Medicaid Line",
+          "label": "DCBS kynect Benefits Line (start here)",
           "phone": "(855) 306-8959",
-          "description": "Medicaid application and eligibility questions",
-          "hours": "Mon-Fri 8am-6pm ET"
+          "description": "Apply for waiver-supportive Medicaid by phone. At the menu choose healthcare and food benefits, then waiver-supportive Medicaid, and tell them you are applying for Medicaid for waiver.",
+          "hours": "Mon-Fri 8am-4:30pm ET, Sat 9am-2pm ET"
         },
         {
-          "label": "DAIL HCB Information",
+          "label": "DAIL HCB Waiver Line",
           "phone": "(877) 315-0589",
-          "description": "HCB waiver program questions and local office referrals",
-          "hours": "Mon-Fri 8am-4:30pm ET"
+          "description": "Questions about the HCB waiver itself, how to apply, and your place on the waiting list. Email HCBInquiries@ky.gov.",
+          "hours": "Weekdays, business hours ET"
         },
         {
-          "label": "Kentucky 2-1-1",
-          "phone": "2-1-1",
-          "description": "General help finding local ADRC or Community Mental Health Centers",
-          "hours": "24 hours, 7 days a week"
+          "label": "Kentucky Aging and Disability Resource Center",
+          "phone": "(877) 925-0037",
+          "description": "Connects you to your regional Area Agency on Aging and Independent Living, which can complete the waiver application with you in person.",
+          "hours": "Weekdays, business hours ET"
         }
       ],
       "applicationNotes": [
@@ -2276,10 +2282,11 @@
         "visualTone": "warm"
       },
       "icon": "House",
-      "phone": "(877) 315-0589",
+      "phone": "(855) 306-8959",
       "sourceUrl": "https://chfs.ky.gov/agencies/dms/dca/pages/hcb-waiver.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "money-follows-person",
@@ -2368,7 +2375,7 @@
         "Documentation showing 60+ consecutive days in nursing home or intermediate care facility",
         "The name of the nursing facility, the date your loved one moved in, and their Medicaid ID number",
         "Income verification for Medicaid (Social Security award letter, pension statements)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Asset documentation (property deeds, vehicle titles, investment statements)",
         "Transition housing plan (lease agreement, homeownership documents, or family housing arrangement)",
         "List of needed support services and equipment for community living"
@@ -2394,6 +2401,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "The program is officially called 'Kentucky Transitions', not generic Money Follows the Person, when speaking with state agencies",
         "Enhanced federal funding lasts exactly 365 days from transition date, then services continue through standard Kentucky Medicaid waivers like ABI or HCBW",
         "Services after transition depend on available waiver slots, so waiver availability in your area may limit service options",

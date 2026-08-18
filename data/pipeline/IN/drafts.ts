@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.514Z
+ * Last updated: 2026-08-18T09:44:15.783Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -289,7 +289,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Indiana residency (utility bill, lease agreement, or state-issued document)",
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements, home equity documentation)",
         "Vehicle titles and registration",
@@ -321,6 +321,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Assessment process is transitioning from Area Agencies on Aging to Maximus Health Services in July 2025, current applicants may experience process changes",
         "Those currently in nursing facilities, hospitals, or at immediate risk of placement receive priority for available slots",
         "You cannot be enrolled in other Indiana waivers (Family Support, Community Integration, TBI, ESRD) while receiving PathWays services",
@@ -481,7 +482,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if you have one",
         "Proof of Indiana residency (utility bill or state-issued document)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property deeds and tax statements",
         "Vehicle titles and registration",
         "Life insurance policies with face values",
@@ -518,6 +519,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "If your loved one was previously on the Aged & Disabled Waiver or in a nursing facility, they were automatically transitioned on July 1, 2024",
         "You have 90 days from enrollment to change managed care entities without penalty",
         "Dual-eligible participants (Medicare + Medicaid) can enroll in D-SNP plans with their chosen managed care entity for better coordination",
@@ -575,7 +577,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(877) 284-9294",
       "sourceUrl": "https://www.in.gov/pathways/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "medicare-savings-programs",
@@ -708,7 +711,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card",
         "Birth certificate or driver's license for identification",
         "Proof of Indiana residency (utility bill or lease)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Pension or retirement income statements",
         "Investment account statements (stocks, bonds, mutual funds)",
         "Life insurance policies showing face value",
@@ -733,6 +736,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI has limited federal funding and may have waitlists, apply early in the calendar year for best chance",
         "If you qualify for QMB, providers cannot balance-bill your loved one for Medicare-covered services, report violations to the state",
         "QMB-Also and SLMB-Also categories provide full Medicaid benefits in addition to Medicare cost assistance if income and assets allow",
@@ -791,7 +795,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 403-0864",
       "sourceUrl": "https://www.in.gov/medicaid/providers/about-ihcp-programs/medicare-savings-programs/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "snap-food-benefits",
@@ -915,7 +920,7 @@ export const drafts: PipelineStateDrafts = {
         "Government-issued photo ID (driver's license, state ID, or passport)",
         "Social Security award letters for all household members receiving benefits",
         "Proof of any pension or retirement income",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Proof of residence (utility bill, lease, or mortgage statement)",
         "Medical expense receipts over $35/month for elderly or disabled members",
         "Rent or mortgage payment documentation",
@@ -1005,7 +1010,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-403-0864",
       "sourceUrl": "https://www.in.gov/fssa/dfr/snap-food-assistance/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "weatherization-assistance-program",
@@ -1585,7 +1591,6 @@ export const drafts: PipelineStateDrafts = {
         "Valid photo ID for care recipient",
         "Social Security cards for all household members",
         "Income verification (pay stubs, Social Security award letters, pension statements)",
-        "Bank statements for all accounts (last 3 months)",
         "Medical records and physician statements documenting functional limitations",
         "Insurance policies and documentation of other assets",
         "Proof of Indiana residency (utility bill, lease agreement, or state-issued document)",
@@ -1611,6 +1616,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you. Some intakes ask you to self-declare whether income is above or below the poverty line; that is for the agency’s own reporting and you can decline without losing the service.",
         "This is not a single program, respite services are embedded within multiple HCBS waivers, so you must first identify which waiver your loved one qualifies for",
         "Medicaid eligibility is required first, with strict income and asset limits that may require spend-down strategies",
         "Some waivers have different ADL requirements, CHOICE requires inability to perform 2+ activities while others require 3+",
@@ -1669,7 +1675,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://faqs.in.gov/hc/en-us/articles/360042089872-Who-is-eligible-to-receive-Caregiver-Support-Services",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "scsep-employment-program",
@@ -1781,7 +1788,7 @@ export const drafts: PipelineStateDrafts = {
         "Unemployment verification (unemployment benefits letter or termination notice)",
         "Veterans DD-214 form (if applicable for priority)",
         "Disability documentation (if applicable for priority)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Tax return from most recent year filed"
       ],
       "contacts": [
@@ -1863,7 +1870,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "2-1-1",
       "sourceUrl": "https://www.in.gov/dwd/files/INDWD_SCSEP_State_Plan_24-27.pdf",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "senior-legal-aid",
@@ -1963,7 +1971,6 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Valid photo ID showing age 60+",
         "Proof of income from last 30 days (Social Security letter, pension statements, pay stubs)",
-        "Bank statements for all accounts (last 3 months)",
         "Documentation related to your legal issue (eviction notice, benefits denial letter, etc.)",
         "Proof of citizenship or legal immigration status",
         "For employment/pension cases: full employer name, Social Security number, date of birth, pension plan name"
@@ -1983,6 +1990,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you. Some intakes ask you to self-declare whether income is above or below the poverty line; that is for the agency’s own reporting and you can decline without losing the service.",
         "LAVA Project for abuse victims has no income limits, all seniors who've experienced financial exploitation or abuse qualify",
         "If your legal issue could generate attorney fees (like personal injury), you may be referred to private attorneys instead"
       ],
@@ -2018,7 +2026,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 869-0212",
       "sourceUrl": "https://www.indianalegalservices.org/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "long-term-care-ombudsman",

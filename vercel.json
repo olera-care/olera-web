@@ -131,6 +131,10 @@
     {
       "path": "/api/cron/war-room-discovery",
       "schedule": "30 10 * * *"
+    },
+    {
+      "path": "/api/cron/enrich-question-providers",
+      "schedule": "10 15 * * 2"
     }
   ]
 }

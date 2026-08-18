@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-04T11:02:39.940Z
+ * Last updated: 2026-08-18T09:44:15.803Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -117,7 +117,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for applicant and spouse",
         "Medicare card showing Part A and/or Part B coverage",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Pay stubs or pension statements (last 30 days)",
         "Investment account statements (stocks, bonds, annuities)",
         "Property tax statements for real estate owned",
@@ -141,6 +141,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI program funding is limited, applications may be denied once yearly funds are exhausted, even if you meet all other requirements",
         "If your loved one is already on TennCare Medicaid, they cannot get QI benefits but may qualify for QMB or SLMB instead",
         "Income and asset limits increase every January, verify current-year thresholds before applying",
@@ -191,7 +192,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(877) 801-0044",
       "sourceUrl": "https://www.tn.gov/tenncare/members-applicants/eligibility/categories.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "snap-food-benefits",
@@ -297,7 +299,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security award letters for all household members",
         "Pension or retirement income statements",
         "Pay stubs if anyone still works (most recent 30 days)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Rent receipts or mortgage statements",
         "Utility bills (electric, gas, water, phone)",
         "Medical expense receipts over $35/month (prescriptions, Medicare premiums, doctor visits)",
@@ -1113,7 +1115,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of citizenship or legal residency status",
         "Birth certificate or other proof of date of birth",
         "Income verification for all household members (Social Security award letters, pension statements, pay stubs from last 30 days)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Proof of Tennessee residency (utility bill, lease agreement, or state-issued document)",
         "Documentation of unemployment status"
       ],
@@ -1200,7 +1202,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(731) 989-5111",
       "sourceUrl": "https://www.tn.gov/workforce/jobs-and-education/services-by-group/services-by-group-redirect/senior-work-experience-program.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "senior-law-alliance",

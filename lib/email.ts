@@ -517,10 +517,6 @@ export async function sendEmail(
           : effectiveStatus(verdict.status, verdict.subStatus);
       if (status === "invalid") {
         suppressReason = "verified undeliverable";
-        if (isUnoverridableVerdict(verdict.status, verdict.subStatus ?? null)) {
-          suppressReason = `undeliverable (${verdict.subStatus})`;
-          overridable = false;
-        }
       } else if (status === "risky" && isColdLane) {
         // Catch-all domains accept everything at the door, so the specific inbox
         // can't be confirmed and they bounce ~15% — too hot for the cold lane.
@@ -532,8 +528,18 @@ export async function sendEmail(
       // Every other (transactional) type stays cache-only (isUndeliverable) so the
       // transactional path never makes a network call. Also fails OPEN.
       suppressReason = "verified undeliverable";
+    }
+
+    // Whether a hard verdict blocks the override is INDEPENDENT of which signal
+    // suppressed the send. Checking it inside the branches above missed the
+    // commonest case by far: an address that had bounced before takes the first
+    // branch, so its verdict was never consulted and trust cleared it anyway —
+    // 60 of the last week's 260 bounces escaped exactly that way. One check,
+    // after the chain, covers every branch. The read is warm (verifyAndCache
+    // just wrote it) and only happens when we were going to drop the send.
+    if (suppressReason) {
       const cached = await getCachedVerification(soleRecipient);
-      if (cached && isUnoverridableVerdict(cached.status, cached.subStatus ?? null)) {
+      if (cached && isUnoverridableVerdict(cached.status, cached.subStatus)) {
         suppressReason = `undeliverable (${cached.subStatus})`;
         overridable = false;
       }

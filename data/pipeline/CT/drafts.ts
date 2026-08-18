@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.776Z
+ * Last updated: 2026-08-18T11:01:04.259Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1440,7 +1440,6 @@ export const drafts: PipelineStateDrafts = {
         "Social Security award letters or other income verification",
         "Physician Statement form with dementia diagnosis confirmation",
         "Completed program application form",
-        "Bank statements showing liquid assets (last 3 months)",
         "Investment account statements if applicable",
         "Power of Attorney documentation if someone else is applying",
         "Conservatorship papers if applicable"
@@ -1466,6 +1465,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you.",
         "Income limits vary in sources, one cites $58,772 annually while another shows $48,266, so verify the current limit when you apply",
         "Funding depends on available state budget, so approval isn't guaranteed even if you meet all requirements",
         "You cannot receive this program and Connecticut Homecare Program for Elders simultaneously, choose the one that better fits your needs",
@@ -1525,7 +1525,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://portal.ct.gov/ads/knowledge-base/articles/independent-living-services/healthy-living-services/connecticut-statewide-respite-care",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-07"
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "scsep-employment-training",

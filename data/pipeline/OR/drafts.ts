@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OR/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.799Z
+ * Last updated: 2026-08-18T11:01:04.280Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -286,7 +286,7 @@ export const drafts: PipelineStateDrafts = {
         "Recent hospital discharge summaries if applicable",
         "Documentation of current care needs and functional limitations",
         "Social Security award letter",
-        "Bank statements if paying privately (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Insurance policies and premium information",
         "Contact information for current doctors and care providers"
       ],
@@ -305,6 +305,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must live within the specific service area of a PACE organization, relocation may be required if moving from outside the service area",
         "PACE requires exclusive use of their providers, your loved one cannot see outside doctors or use other medical services while enrolled",
         "Even if your loved one can live independently now, they must qualify for nursing home-level care to be eligible",
@@ -355,7 +356,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-855-673-2372",
       "sourceUrl": "https://www.oregon.gov/odhs/providers-partners/seniors-disabilities/Documents/pace-fact-sheet.pdf",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "medicare-savings-programs",

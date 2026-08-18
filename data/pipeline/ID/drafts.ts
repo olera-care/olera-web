@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/ID/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.782Z
+ * Last updated: 2026-08-18T11:01:04.265Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1897,7 +1897,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security award letter or benefit statement",
         "Unemployment insurance documentation if applicable",
         "Pension or retirement income statements",
-        "Bank statements from last 3 months",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Veteran discharge papers (DD-214) if applicable",
         "Documentation of any disability status if claiming priority",
         "Proof of rural residence if claiming priority"
@@ -1981,7 +1981,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(208) 454-8555",
       "sourceUrl": "https://www.dol.gov/agencies/eta/seniors",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "long-term-care-ombudsman",

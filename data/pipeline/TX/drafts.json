@@ -593,7 +593,7 @@
         "Documentation of current home care or adult day services",
         "Assessment reports from physical therapy, occupational therapy, or speech therapy",
         "Social Security award letter or other income documentation",
-        "Bank statements for all accounts (last 3 months) if applying for Medicaid",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Life insurance policies with cash values",
         "Property deeds or mortgage statements",
         "Vehicle titles and registration"
@@ -625,6 +625,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Most participants are dually eligible for Medicare and Medicaid, the PACE provider can help determine Medicaid eligibility if your loved one doesn't already have it",
         "Your loved one must disenroll from Medicare Advantage or Medicare prescription drug plans before starting PACE, the provider will guide you through this process",
         "PACE providers conduct the nursing home level of care assessment as part of enrollment, you don't need to get this done separately",
@@ -683,7 +684,7 @@
       "contentStatus": "approved",
       "draftedAt": "2026-04-10",
       "reviewedBy": "Cess",
-      "lastVerifiedDate": "2026-08-04"
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "snap-food-benefits",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/VT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.806Z
+ * Last updated: 2026-08-18T11:01:04.285Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -660,7 +660,6 @@ export const drafts: PipelineStateDrafts = {
         "Pay stubs if still working (last 4 weeks)",
         "Proof of Vermont residency (utility bill, lease agreement, or state-issued document)",
         "Birth certificate or other proof of age and citizenship",
-        "Bank statements (last 3 months) if requested",
         "Documentation of any other income sources",
         "Health insurance premium statements if paying for supplemental coverage"
       ],
@@ -685,6 +684,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Vermont does not count savings or other resources for the Medicare Savings Programs. Only income matters.",
         "Income disregards apply: Vermont excludes the first $20 of any income, plus the first $65 of earned income and 50% of remaining earnings, this can help borderline cases qualify",
         "Vermont's no-asset-test policy is unusual, many people who wouldn't qualify in other states can get coverage here",
         "If your loved one has full Medicaid, they can't get QI but may qualify for QMB or SLMB which provide additional Medicare cost coverage",
@@ -755,7 +755,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://dvha.vermont.gov/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-07"
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "3squaresvt-older-vermonters",

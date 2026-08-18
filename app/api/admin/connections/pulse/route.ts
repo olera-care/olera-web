@@ -1,15 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { buildSeries, resolveBucket, type Bucket } from "@/lib/admin-stats";
-import { isSuccessfulConnection } from "@/lib/connection-temperature";
+import { isConnected, parseAdminOverride, type EngagementData } from "@/lib/connection-engagement";
 
 /**
  * GET /api/admin/connections/pulse — hero KPI for the connections tracker.
  *
- * The canonical KPI: SUCCESSFUL connections = the provider replied OR the
- * connection was accepted (see lib/connection-temperature). Counted by the
- * connection's `created_at` in the selected range, so it answers "how many
- * connections created in this window have actually connected."
+ * The canonical KPI: CONNECTED connections = provider took action to reach
+ * the family. This matches the "Connected" tab count exactly.
+ *
+ * Connected means any of:
+ *   - Provider sent a message through inbox
+ *   - Provider copied phone number (phone_clicked event)
+ *   - Provider copied email address (email_link_clicked event)
+ *   - Family confirmed provider contacted them
+ *   - Admin manually marked as connected
+ *
+ * Exclusions (to match the tab count exactly):
+ *   - Archived connections (metadata.archived or metadata.lead_archived)
+ *   - Admin-hidden connections
+ *   - Admin marked "not interested"
+ *   - Connections with email delivery failures (failed/bounced)
+ *   - Connections to inactive providers (is_active === false)
+ *   - Connections to admin-archived providers (metadata.admin_archived)
+ *
+ * Counted by the connection's `created_at` in the selected range.
  *
  * Same `{ total, delta, series, bucket }` contract as /api/admin/leads/stats
  * so it drops straight into <PulseHeader />.
@@ -33,17 +48,25 @@ export async function GET(request: NextRequest) {
     const priorFrom = from ? new Date(from.getTime() - (to.getTime() - from.getTime())) : null;
     const queryStart = priorFrom ?? from ?? null;
 
-    // Pull non-archived inquiry connections in range+prior. We only
-    // need status + metadata.thread + to_profile_id to decide "successful".
+    // Pull non-archived inquiry connections in range+prior.
+    // Exclude both archived and lead_archived to match tab filtering.
+    // Include provider profile to check for admin_archived and is_active.
     // Only inquiry connections (family→provider) are tracked here.
     // Matches (provider→family) are tracked on the Outreach page.
     let q = db
       .from("connections")
-      .select("created_at, status, metadata, to_profile_id")
+      .select(`
+        id, created_at, status, metadata, to_profile_id,
+        to_profile:profiles!connections_to_profile_id_fkey (
+          is_active,
+          metadata
+        )
+      `)
       .eq("type", "inquiry")
       .order("created_at", { ascending: true })
       .limit(50000)
       .not("metadata", "cs", JSON.stringify({ archived: true }))
+      .not("metadata", "cs", JSON.stringify({ lead_archived: true }))
       .not("metadata", "cs", JSON.stringify({ admin_hidden: true }));
     if (queryStart) q = q.gte("created_at", queryStart.toISOString());
     if (dateTo) q = q.lte("created_at", dateTo);
@@ -54,16 +77,133 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to load stats" }, { status: 500 });
     }
 
-    const allRows = rows ?? [];
+    // Filter out connections where provider is archived or inactive
+    // This matches belongsToArchivedTab logic in the main connections route
+    const allRows = (rows ?? []).filter((r) => {
+      const provider = r.to_profile as { is_active?: boolean; metadata?: Record<string, unknown> } | null;
+      const isProviderInactive = provider?.is_active === false;
+      const providerMeta = (provider?.metadata as Record<string, unknown>) ?? {};
+      const isProviderArchived = providerMeta.admin_archived === true;
+      return !isProviderInactive && !isProviderArchived;
+    });
+    const connectionIds = allRows.map((r) => r.id);
+    const connectionIdSet = new Set(connectionIds);
+
+    // Fetch provider engagement events (phone_clicked, email_link_clicked)
+    const engagementMap = new Map<string, { phone_clicked: boolean; email_link_clicked: boolean }>();
+
+    if (connectionIds.length > 0) {
+      const { data: events } = await db
+        .from("provider_events")
+        .select("connection_id, event_type")
+        .in("connection_id", connectionIds)
+        .in("event_type", ["phone_clicked", "email_link_clicked"]);
+
+      for (const ev of events ?? []) {
+        const existing = engagementMap.get(ev.connection_id) ?? { phone_clicked: false, email_link_clicked: false };
+        if (ev.event_type === "phone_clicked") existing.phone_clicked = true;
+        else if (ev.event_type === "email_link_clicked") existing.email_link_clicked = true;
+        engagementMap.set(ev.connection_id, existing);
+      }
+    }
+
+    // Fetch email delivery failures to exclude connections with failed/bounced emails.
+    // This matches the "Delivery Issues" exclusion in the main connections route.
+    // We track the most recent email per connection - only exclude if the MOST RECENT failed.
+    const connectionsWithDeliveryFailure = new Set<string>();
+
+    if (connectionIds.length > 0) {
+      // Query email_log for emails sent to these connections
+      const fallbackDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+      const queryDateFrom = dateFrom || fallbackDate;
+
+      const { data: emailLogEntries } = await db
+        .from("email_log")
+        .select("metadata, status, bounced_at, created_at")
+        .eq("recipient_type", "provider")
+        .gte("created_at", queryDateFrom)
+        .order("created_at", { ascending: false })
+        .limit(10000);
+
+      // Track the most recent email per connection
+      const mostRecentEmailPerConnection = new Map<string, { isFailed: boolean; timestamp: string }>();
+
+      for (const email of emailLogEntries ?? []) {
+        const meta = email.metadata as Record<string, unknown> | null;
+        const emailTime = email.created_at as string;
+        const isFailed = email.status === "failed" || email.bounced_at != null;
+
+        // Extract connection IDs from metadata
+        const singleConnId = meta?.connection_id as string | undefined;
+        const multiConnIds = meta?.connection_ids as string[] | undefined;
+
+        const connIds: string[] = [];
+        if (singleConnId) connIds.push(singleConnId);
+        if (Array.isArray(multiConnIds)) connIds.push(...multiConnIds);
+
+        for (const connId of connIds) {
+          if (!connectionIdSet.has(connId)) continue;
+
+          const existing = mostRecentEmailPerConnection.get(connId);
+          if (!existing || emailTime > existing.timestamp) {
+            mostRecentEmailPerConnection.set(connId, { isFailed, timestamp: emailTime });
+          }
+        }
+      }
+
+      // Mark connections whose most recent email failed
+      for (const [connId, { isFailed }] of mostRecentEmailPerConnection) {
+        if (isFailed) {
+          connectionsWithDeliveryFailure.add(connId);
+        }
+      }
+    }
 
     const inRange = (t: Date) => (from ? t >= from : true) && (dateTo ? t <= to : true);
     const inPrior = (t: Date) => !!priorFrom && !!from && t >= priorFrom && t < from;
+
+    type ThreadMsg = { from_profile_id: string; text?: string; created_at?: string; is_auto_reply?: boolean; type?: string };
+
+    // Helper to check if provider messaged (real message, not auto-reply)
+    const providerMessaged = (r: (typeof allRows)[0]): boolean => {
+      const meta = (r.metadata as Record<string, unknown>) ?? {};
+      const thread = (meta.thread as ThreadMsg[]) || [];
+      return thread.some(
+        (m) =>
+          m.from_profile_id === r.to_profile_id &&
+          m.is_auto_reply !== true &&
+          m.type !== "system" &&
+          m.from_profile_id !== "system" &&
+          !!m.text?.trim()
+      );
+    };
 
     let kpiCurrent = 0;
     let kpiPrior = 0;
     const successTimestamps: Date[] = [];
     for (const r of allRows) {
-      if (!isSuccessfulConnection(r)) continue;
+      const meta = (r.metadata as Record<string, unknown>) ?? {};
+      const adminOverride = parseAdminOverride(meta.admin_override);
+
+      // Exclude: admin marked "not interested" (matches tab filtering)
+      if (adminOverride?.status === "not_interested") continue;
+
+      // Exclude: connections with delivery failures (matches "Delivery Issues" tab exclusion)
+      if (connectionsWithDeliveryFailure.has(r.id)) continue;
+
+      const eng = engagementMap.get(r.id);
+
+      // Build engagement data matching isConnected() requirements
+      const engagement: Pick<EngagementData, "adminMarkedConnected" | "providerMessaged" | "phoneClicked" | "emailLinkClicked" | "familyConfirmed"> = {
+        adminMarkedConnected: adminOverride?.status === "connected",
+        providerMessaged: providerMessaged(r),
+        phoneClicked: eng?.phone_clicked ?? false,
+        emailLinkClicked: eng?.email_link_clicked ?? false,
+        familyConfirmed: meta.family_confirmed === true,
+      };
+
+      if (!isConnected(engagement as EngagementData)) continue;
+
       const t = new Date(r.created_at);
       if (inRange(t)) {
         kpiCurrent++;
@@ -86,7 +226,6 @@ export async function GET(request: NextRequest) {
     const series = buildSeries(successTimestamps, seriesStart, to, bucket);
 
     // Calculate response metrics from all rows in range
-    type ThreadMsg = { from_profile_id: string; text?: string; created_at?: string; is_auto_reply?: boolean; type?: string };
     let respondedCount = 0;
     let awaitingCount = 0;
     const responseTimes: number[] = [];

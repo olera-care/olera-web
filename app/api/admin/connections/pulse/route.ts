@@ -21,8 +21,6 @@ import { isConnected, parseAdminOverride, type EngagementData } from "@/lib/conn
  *   - Admin-hidden connections
  *   - Admin marked "not interested"
  *   - Connections with email delivery failures (failed/bounced)
- *   - Connections to inactive providers (is_active === false)
- *   - Connections to admin-archived providers (metadata.admin_archived)
  *
  * Counted by the connection's `created_at` in the selected range.
  *
@@ -50,18 +48,11 @@ export async function GET(request: NextRequest) {
 
     // Pull non-archived inquiry connections in range+prior.
     // Exclude both archived and lead_archived to match tab filtering.
-    // Include provider profile to check for admin_archived and is_active.
     // Only inquiry connections (family→provider) are tracked here.
     // Matches (provider→family) are tracked on the Outreach page.
     let q = db
       .from("connections")
-      .select(`
-        id, created_at, status, metadata, to_profile_id,
-        to_profile:profiles!connections_to_profile_id_fkey (
-          is_active,
-          metadata
-        )
-      `)
+      .select("id, created_at, status, metadata, to_profile_id")
       .eq("type", "inquiry")
       .order("created_at", { ascending: true })
       .limit(50000)
@@ -77,15 +68,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to load stats" }, { status: 500 });
     }
 
-    // Filter out connections where provider is archived or inactive
-    // This matches belongsToArchivedTab logic in the main connections route
-    const allRows = (rows ?? []).filter((r) => {
-      const provider = r.to_profile as { is_active?: boolean; metadata?: Record<string, unknown> } | null;
-      const isProviderInactive = provider?.is_active === false;
-      const providerMeta = (provider?.metadata as Record<string, unknown>) ?? {};
-      const isProviderArchived = providerMeta.admin_archived === true;
-      return !isProviderInactive && !isProviderArchived;
-    });
+    const allRows = rows ?? [];
     const connectionIds = allRows.map((r) => r.id);
     const connectionIdSet = new Set(connectionIds);
 

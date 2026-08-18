@@ -56,8 +56,8 @@ BOLD_LEADS_SENTENCE = [  # bold from start through the end of the first sentence
     'National reach at no acquisition cost.', 'The family-facing CareNavigator MVP.',
     'A provider-paid workforce precedent.', 'The Provider Growth Suite.',
     'Investor-readiness groundwork.', 'What this record means for the CRP.',
-    'Overall design and timetable.', 'Regulatory posture.',
-    'Problems and alternatives.', 'Rationale (Figure A).',
+    'Overall design and timetable (Figure A).', 'Regulatory plan.',
+    'Problems and alternatives.',
 ]
 ITALIC_LEADS_SENTENCE = [  # italic through the end of the first sentence
     'The matching agents (live).', 'The execution loop (in development).',

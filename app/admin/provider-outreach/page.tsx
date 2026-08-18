@@ -2914,6 +2914,8 @@ function FollowUpProviderRow({
   const [savingContactFormUrl, setSavingContactFormUrl] = useState(false);
   const [findingContactForm, setFindingContactForm] = useState(false);
   const [contactFormNotFound, setContactFormNotFound] = useState(false);
+  const [claimUrl, setClaimUrl] = useState<string | null>(null);
+  const [loadingClaimUrl, setLoadingClaimUrl] = useState(false);
   // Confirmation checkbox state
   const [confirmedWithProvider, setConfirmedWithProvider] = useState(false);
   // Reset to Ready state
@@ -2952,6 +2954,8 @@ function FollowUpProviderRow({
       setContactFormOpened(false);
       setSubmittingContactForm(false);
       setSavingContactFormUrl(false);
+      setClaimUrl(null);
+      setLoadingClaimUrl(false);
       setConfirmedWithProvider(false);
       // Reset Apollo state
       setFindingDecisionMaker(false);
@@ -3720,14 +3724,49 @@ function FollowUpProviderRow({
     setContactFormOpened(true);
   };
 
-  // Generate contact form message for provider
+  // Fetch claim URL for contact form message
+  const handleFetchClaimUrl = async () => {
+    if (claimUrl || loadingClaimUrl) return;
+
+    const sessionAtStart = editingSessionRef.current;
+    setLoadingClaimUrl(true);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/generate-claim-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+
+      if (editingSessionRef.current !== sessionAtStart || !isExpandedRef.current) return;
+
+      if (res.ok) {
+        const data = await res.json();
+        setClaimUrl(data.claim_url);
+      } else {
+        console.error("[contact-form] Failed to generate claim URL");
+      }
+    } catch {
+      console.error("[contact-form] Error fetching claim URL");
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setLoadingClaimUrl(false);
+      }
+    }
+  };
+
+  // Generate contact form message for provider (personalized like Day 0 email)
   const getContactFormMessage = () => {
-    const publicPageUrl = `https://olera.care/providers/${provider.slug}`;
-    return `Hi, I'm Logan from Olera. We created a free listing for your organization.
+    const city = provider.city || provider.state || "your area";
+    const category = provider.provider_category || "care services";
+    const name = provider.provider_name;
+    const link = claimUrl || `https://olera.care/providers/${provider.slug}`;
 
-View your page: ${publicPageUrl}
+    return `Hi, I'm Logan from Olera.
 
-To claim: Click "Manage This Page" → Get Started → Enter your email.
+Families in ${city} searching for ${category} can already see the page we built for ${name}. But if one reached out today, no one would see the message.
+
+Claim your page (2 min, free): ${link}
 
 Questions? support@olera.care or (979) 243-9801`;
   };
@@ -4470,6 +4509,8 @@ Questions? support@olera.care or (979) 243-9801`;
                   setContactFormUrlInput(provider.contact_form_url || "");
                   setContactFormNotFound(provider.contact_form_status === "not_found");
                   setError(null);
+                  // Fetch the magic claim URL for the message
+                  setTimeout(() => handleFetchClaimUrl(), 0);
                   // Auto-find contact form if none exists and not already checked
                   if (!provider.contact_form_url && provider.contact_form_status !== "not_found" && provider.website) {
                     // Trigger find after state updates

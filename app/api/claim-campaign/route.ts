@@ -590,24 +590,13 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Send Slack notifications (include channel if provider was on alternative channel)
+    // Send Slack notifications
     try {
-      // Build claim source string with channel info if applicable
-      let claimSource = "cold_outreach";
-      if (reEngageChannel && ["fax", "contact_form", "direct_mail"].includes(reEngageChannel)) {
-        const channelLabels: Record<string, string> = {
-          fax: "fax",
-          contact_form: "contact form",
-          direct_mail: "direct mail",
-        };
-        claimSource = `cold_outreach (${channelLabels[reEngageChannel] || reEngageChannel})`;
-      }
-
       const alert = slackProviderClaimed({
         providerName: providerProfile.display_name || actualSlug,
         claimedByEmail: normalizedEmail,
         providerSlug: actualSlug,
-        claimSource,
+        claimSource: "cold_outreach",
       });
       await sendSlackAlert(alert.text, alert.blocks);
     } catch (slackErr) {

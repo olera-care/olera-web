@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.774Z
+ * Last updated: 2026-08-18T11:01:04.258Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2543,7 +2543,7 @@ export const drafts: PipelineStateDrafts = {
         "U.S. citizenship or immigration status documentation",
         "Health Care Certification form (SOC 873) completed by licensed healthcare provider",
         "Medical records documenting diagnosis and functional limitations",
-        "Bank statements for all accounts (last 3 months) if not on SSI/SSP",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Income documentation (Social Security award letter, pension statements, pay stubs)",
         "Asset documentation (property deeds, investment accounts, life insurance policies)",
         "Proof of any medical expenses paid out-of-pocket",
@@ -2564,6 +2564,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must have Medi-Cal eligibility before IHSS services can begin, apply for both programs simultaneously if needed",
         "Services are limited to your loved one's own home or chosen residence, nursing homes and licensed facilities don't qualify",
         "The functional assessment determines service hours from 1-283 per month, be specific about daily limitations during the home visit",
@@ -2622,7 +2623,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://www.cdss.ca.gov/in-home-supportive-services",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "caregiver-resource-centers",

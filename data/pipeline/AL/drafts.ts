@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:52:08.647Z
+ * Last updated: 2026-08-18T11:01:04.256Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1707,7 +1707,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Alabama residency (utility bill, lease agreement, or bank statement)",
         "Proof of unemployment status (termination letter, unemployment benefits letter, or signed statement)",
         "Income documentation from last 12 months (tax returns, Social Security award letters, or pension statements)",
-        "Bank statements from last 3 months",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Proof of any government benefits received (SNAP, TANF, Medicaid cards)"
       ],
       "contacts": [
@@ -1795,7 +1795,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-243-5463",
       "sourceUrl": "https://alabamaageline.gov/scsep/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "legal-services-seniors",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/DE/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.777Z
+ * Last updated: 2026-08-18T11:01:04.260Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -478,7 +478,7 @@ export const drafts: PipelineStateDrafts = {
         "Complete medical records (PACE will request via Release of Medical Records Form)",
         "List of all current medications and prescriptions",
         "Social Security award letter",
-        "Bank statements for all accounts (last 3 months) if applying as private-pay participant",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Proof of any other insurance coverage",
         "Power of attorney or guardianship documents (if someone else is applying on behalf of your loved one)",
         "Contact information for all current healthcare providers",
@@ -505,6 +505,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must be living in the community at enrollment, if your loved one is already in a nursing home, they may not qualify for PACE",
         "PACE is all-or-nothing: once enrolled, your loved one must receive all services exclusively through the PACE organization and cannot use other providers",
         "If your loved one doesn't qualify for Medicaid, they can still enroll as a private-pay participant with a flat monthly premium",
@@ -563,7 +564,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://www.law.cornell.edu/regulations/delaware/16-Del-Admin-Code-SS-20000-20775",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "qmb-slmb-medicare-help",

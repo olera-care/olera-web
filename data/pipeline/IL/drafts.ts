@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.782Z
+ * Last updated: 2026-08-18T11:01:04.265Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2114,10 +2114,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Court papers or legal documents related to your case",
-        "Proof of income for entire household (Social Security letters, pension statements, bank statements from last 3 months)",
+        "Proof of income for the household if asked (Social Security letters, pension statements). Providers generally take what you tell them.",
         "Proof of age (birth certificate, driver's license, or Social Security award letter)",
         "Proof of disability if under 65 (physician's statement or SSA disability letter)",
-        "Proof of household assets (bank statements, investment accounts)",
         "Proof of Illinois residency (utility bill, lease, or state-issued document)"
       ],
       "contacts": [
@@ -2141,6 +2140,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you.",
         "Each region has different providers with varying case priorities and resource levels, you may need to try multiple organizations",
         "Higher income seniors may still qualify under specific grants or if they own their home and face foreclosure"
       ],
@@ -2180,7 +2180,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 252-8966",
       "sourceUrl": "https://ilaging.illinois.gov/programs/legalassistance.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     }
   ],
   "stateOverview": {

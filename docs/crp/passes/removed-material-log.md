@@ -110,6 +110,33 @@ decision during the pass).
   investor evidence) — **safe**, fully stated in the Rationale paragraph above the
   figure.
 
+## Regulatory concepts rerouted to the Commercialization Plan (2026-08-19)
+
+The RS "Regulatory plan" was narrowed to what NIH actually asks there (the federal
+approval pathway question, II.3 / III.4). The operating-compliance concepts it
+previously carried now depend on the CP pass delivering them — the RS explicitly
+delegates ("laws that govern ongoing operations... are addressed in the
+Commercialization Plan"):
+
+- **Privacy/health-data sentence** (substantiated 2026-08-19): core navigation
+  requires no medical records (the intake is seven categorical questions); when
+  families volunteer sensitive health details they are protected with encryption,
+  access controls, and data minimization aligned with HIPAA standards. Upgrade the
+  CP "Regulatory position" paragraph with this.
+- **Anti-kickback/steering design facts** (codebase-verified): family referrals free
+  and consented; provider fees are flat subscriptions (Ad Boost Stripe monthly
+  plans; "No per-lead fee") and advertising budgets, never per-referral payments;
+  paid status does not alter what families see. CP regulatory position already has
+  the design-intent version; strengthen with these facts.
+- **Aggie Legal Office arrangement**: answers Environment criterion III.5
+  ("arrangements with external regulatory consultants"); home = CP Company section
+  under regulatory experience (currently a gap).
+- **IRB/human subjects**: needs no relocation — proximal in Tasks 1.2/2.2/3.1/3.2
+  and scored from the PHS Human Subjects section (III.4 HS paragraph, III.6).
+- **Counsel queue** (unchanged): FDA classification memo; state fee-splitting survey
+  before Aim 3 pricing; business-associate determination for provider tools;
+  stubbed student-side MedJobs fee (state employment-agency fee laws).
+
 ## Standing rule
 
 When the line-by-line pass reaches Aim 2, Aim 3, and Problems and alternatives,

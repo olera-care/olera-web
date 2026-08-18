@@ -29,6 +29,7 @@ p.standalone-iu { font-style: italic; text-decoration: underline; margin: 4pt 0 
 p.caption { font-size: 9pt; text-align: left; margin: 2pt 0 6pt 0; }
 div.fig { margin: 5pt 0 2pt 0; text-align: center; }
 div.fig img, div.fig svg { max-width: 100%; height: auto; }
+div.figblock { break-inside: avoid; page-break-inside: avoid; }
 """
 
 def unescape_md(t):
@@ -190,6 +191,18 @@ def main():
             first_sec = False
         in_metrics = (kind == 'metrics')
         body.append(html_p)
+
+    # keep each figure and its caption on the same page
+    joined, i = [], 0
+    while i < len(body):
+        if (body[i].startswith('<div class="fig">') and i + 1 < len(body)
+                and body[i + 1].startswith('<p class="caption">')):
+            joined.append(f'<div class="figblock">{body[i]}{body[i+1]}</div>')
+            i += 2
+        else:
+            joined.append(body[i])
+            i += 1
+    body = joined
 
     doc = ('<!doctype html><html><head><meta charset="utf-8">'
            f'<style>{CSS}</style></head><body>' + '\n'.join(body) + '</body></html>')

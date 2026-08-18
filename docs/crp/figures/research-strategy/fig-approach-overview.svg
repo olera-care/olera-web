@@ -1,79 +1,97 @@
-<svg viewBox="0 0 760 410" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif" role="img" aria-label="Overview of the Approach. Aim 1 completes, verifies, and validates the free family-facing CareNavigator and grows family demand. Aim 2 completes, verifies, and validates the three provider products and grows the provider and student base. Both feed a marketplace concentrated in selected counties where Olera is already strongest. In Aim 3, from mid-Year 2, products that proved their value carry real prices, new providers buy as ordinary customers, and the project measures whether providers buy, stay, and generate real revenue targeting the break-even needed for post-award operations, producing the evidence investors require, so private capital accelerates growth rather than sustains operations.">
+<svg viewBox="0 0 780 396" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif" role="img" aria-label="Overview of the Approach. Olera enters with broad national family and provider traction. Aim 1 verifies, validates, and builds adoption of the family-facing CareNavigator; Aim 2 does the same for the Provider Growth Suite. Their adoption work grows families, providers, and workforce together in selected local markets. Aim 3 tests real payment and revenue, targeting post-award sustainability and investor-ready evidence. After the award, revenue sustains operations and private investment replicates the model in new markets.">
   <defs>
     <marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z" fill="#5a6660"/></marker>
     <marker id="t" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M0 0L8 4L0 8z" fill="#0f9b8e"/></marker>
   </defs>
 
+  <!-- ===== TODAY: broad national traction (left column) ===== -->
+  <rect x="14" y="42" width="92" height="310" rx="8" fill="#f3f4f6" stroke="#c3cad2" stroke-width="1.2"/>
+  <text x="60" y="176" font-size="9.5" fill="#1e2a38" text-anchor="middle" font-weight="700">TODAY</text>
+  <text x="60" y="192" font-size="8.5" fill="#4b5563" text-anchor="middle">broad national</text>
+  <text x="60" y="204" font-size="8.5" fill="#4b5563" text-anchor="middle">family and</text>
+  <text x="60" y="216" font-size="8.5" fill="#4b5563" text-anchor="middle">provider</text>
+  <text x="60" y="228" font-size="8.5" fill="#4b5563" text-anchor="middle">traction</text>
+  <path d="M106 71 L114 71" stroke="#5a6660" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
+  <path d="M106 323 L114 323" stroke="#5a6660" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
+
   <!-- ===== AIM 1 pipeline (top) ===== -->
-  <text x="30" y="30" font-size="11" font-weight="700" fill="#1e2a38" letter-spacing="1">AIM 1 · FAMILIES <tspan fill="#6b7280" font-weight="400" letter-spacing="0">· always free</tspan></text>
-  <rect x="30" y="42" width="130" height="58" rx="7" fill="#1e2a38"/>
-  <text x="95" y="66" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="700">Complete + verify</text>
-  <text x="95" y="82" font-size="9" fill="#c9d2da" text-anchor="middle">the CareNavigator</text>
+  <text x="118" y="30" font-size="11" font-weight="700" fill="#1e2a38" letter-spacing="1">AIM 1 · FAMILIES <tspan fill="#6b7280" font-weight="400" letter-spacing="0">· always free</tspan></text>
 
-  <path d="M160 71 L184 71" stroke="#5a6660" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
+  <rect x="118" y="42" width="132" height="58" rx="7" fill="#1e2a38"/>
+  <text x="184" y="66" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="700">Verify the</text>
+  <text x="184" y="82" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="700">CareNavigator</text>
+  <text x="184" y="114" font-size="8" fill="#6b7280" text-anchor="middle">Task 1.1</text>
 
-  <rect x="188" y="42" width="212" height="58" rx="7" fill="#ffffff" stroke="#1e2a38" stroke-width="1.3"/>
-  <text x="294" y="61" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">Validate with family caregivers</text>
-  <text x="294" y="77" font-size="9" fill="#4b5563" text-anchor="middle">usable · trusted · aid and care</text>
-  <text x="294" y="90" font-size="9" fill="#4b5563" text-anchor="middle">actually established</text>
+  <path d="M250 71 L268 71" stroke="#5a6660" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
 
-  <path d="M400 71 L424 71" stroke="#5a6660" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
+  <rect x="272" y="42" width="132" height="58" rx="7" fill="#ffffff" stroke="#1e2a38" stroke-width="1.3"/>
+  <text x="338" y="66" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">Validate with</text>
+  <text x="338" y="82" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">family caregivers</text>
+  <text x="338" y="114" font-size="8" fill="#6b7280" text-anchor="middle">Task 1.2</text>
 
-  <rect x="428" y="42" width="150" height="58" rx="7" fill="#ffffff" stroke="#1e2a38" stroke-width="1.3"/>
-  <text x="503" y="66" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">Grow family demand</text>
-  <text x="503" y="82" font-size="9" fill="#4b5563" text-anchor="middle">acquisition runs all award</text>
+  <path d="M404 71 L422 71" stroke="#5a6660" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
 
-  <!-- ===== MARKETPLACE band (middle) ===== -->
-  <path d="M503 100 L503 138" stroke="#0f9b8e" stroke-width="1.8" fill="none" marker-end="url(#t)"/>
-  <path d="M503 310 L503 262" stroke="#0f9b8e" stroke-width="1.8" fill="none" marker-end="url(#t)"/>
+  <rect x="426" y="42" width="132" height="58" rx="7" fill="#ffffff" stroke="#1e2a38" stroke-width="1.3"/>
+  <text x="492" y="66" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">Build family</text>
+  <text x="492" y="82" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">adoption</text>
+  <text x="492" y="114" font-size="8" fill="#6b7280" text-anchor="middle">Task 1.3</text>
 
-  <rect x="30" y="142" width="548" height="116" rx="9" fill="#e6f4f2" stroke="#0f9b8e" stroke-width="1.4"/>
-  <text x="304" y="168" font-size="11.5" fill="#0b6e65" text-anchor="middle" font-weight="700">THE MARKETPLACE: selected counties</text>
-  <text x="304" y="186" font-size="9.5" fill="#155e56" text-anchor="middle">chosen where Olera's national platform is already strongest</text>
-  <text x="304" y="212" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">families seeking care · providers serving them · students staffing them</text>
-  <text x="304" y="232" font-size="9.5" fill="#155e56" text-anchor="middle">all three sides grown together, in the same counties, until there is</text>
-  <text x="304" y="245" font-size="9.5" fill="#155e56" text-anchor="middle">enough real activity for a true commercial test</text>
+  <!-- ===== LOCAL MARKET DEPTH band (middle) ===== -->
+  <path d="M534 100 L534 134" stroke="#0f9b8e" stroke-width="1.8" fill="none" marker-end="url(#t)"/>
+  <path d="M534 294 L534 248" stroke="#0f9b8e" stroke-width="1.8" fill="none" marker-end="url(#t)"/>
+
+  <rect x="118" y="138" width="440" height="106" rx="9" fill="#e6f4f2" stroke="#0f9b8e" stroke-width="1.4"/>
+  <text x="338" y="164" font-size="11.5" fill="#0b6e65" text-anchor="middle" font-weight="700">LOCAL MARKET DEPTH</text>
+  <text x="338" y="181" font-size="9.5" fill="#155e56" text-anchor="middle">in the markets where existing family traffic and providers</text>
+  <text x="338" y="194" font-size="9.5" fill="#155e56" text-anchor="middle">give the strongest starting point</text>
+  <text x="338" y="216" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">families · providers · workforce, grown together</text>
+  <text x="338" y="233" font-size="9.5" fill="#155e56" text-anchor="middle">until users receive consistent value and a real commercial test is possible</text>
 
   <!-- ===== AIM 2 pipeline (bottom) ===== -->
-  <text x="30" y="290" font-size="11" font-weight="700" fill="#1e2a38" letter-spacing="1">AIM 2 · PROVIDERS &amp; STUDENTS</text>
-  <rect x="30" y="302" width="130" height="58" rx="7" fill="#1e2a38"/>
-  <text x="95" y="322" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="700">Complete + verify</text>
-  <text x="95" y="337" font-size="9" fill="#c9d2da" text-anchor="middle">Staffing · Visibility ·</text>
-  <text x="95" y="349" font-size="9" fill="#c9d2da" text-anchor="middle">Conversion</text>
+  <text x="118" y="282" font-size="11" font-weight="700" fill="#1e2a38" letter-spacing="1">AIM 2 · PROVIDERS &amp; WORKFORCE</text>
 
-  <path d="M160 331 L184 331" stroke="#5a6660" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
+  <rect x="118" y="294" width="132" height="58" rx="7" fill="#1e2a38"/>
+  <text x="184" y="318" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="700">Verify the</text>
+  <text x="184" y="334" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="700">Growth Suite</text>
+  <text x="184" y="366" font-size="8" fill="#6b7280" text-anchor="middle">Task 2.1</text>
 
-  <rect x="188" y="302" width="212" height="58" rx="7" fill="#ffffff" stroke="#1e2a38" stroke-width="1.3"/>
-  <text x="294" y="321" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">Validate with providers + students</text>
-  <text x="294" y="337" font-size="9" fill="#4b5563" text-anchor="middle">used · hires, inquiries, admissions</text>
-  <text x="294" y="350" font-size="9" fill="#4b5563" text-anchor="middle">delivered · worth paying for</text>
+  <path d="M250 323 L268 323" stroke="#5a6660" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
 
-  <path d="M400 331 L424 331" stroke="#5a6660" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
+  <rect x="272" y="294" width="132" height="58" rx="7" fill="#ffffff" stroke="#1e2a38" stroke-width="1.3"/>
+  <text x="338" y="318" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">Validate with</text>
+  <text x="338" y="334" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">providers</text>
+  <text x="338" y="366" font-size="8" fill="#6b7280" text-anchor="middle">Task 2.2</text>
 
-  <rect x="428" y="302" width="150" height="58" rx="7" fill="#ffffff" stroke="#1e2a38" stroke-width="1.3"/>
-  <text x="503" y="322" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">Grow provider +</text>
-  <text x="503" y="336" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">student base</text>
-  <text x="503" y="351" font-size="9" fill="#4b5563" text-anchor="middle">acquisition runs all award</text>
+  <path d="M404 323 L422 323" stroke="#5a6660" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
+
+  <rect x="426" y="294" width="132" height="58" rx="7" fill="#ffffff" stroke="#1e2a38" stroke-width="1.3"/>
+  <text x="492" y="318" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">Build provider</text>
+  <text x="492" y="334" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">adoption</text>
+  <text x="492" y="366" font-size="8" fill="#6b7280" text-anchor="middle">Task 2.3</text>
 
   <!-- ===== AIM 3 (right) ===== -->
-  <path d="M578 200 L614 200" stroke="#0f9b8e" stroke-width="2.2" fill="none" marker-end="url(#t)"/>
+  <path d="M558 191 L598 191" stroke="#0f9b8e" stroke-width="2.2" fill="none" marker-end="url(#t)"/>
 
-  <rect x="618" y="96" width="122" height="216" rx="9" fill="#1e2a38"/>
-  <text x="679" y="122" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="700">AIM 3</text>
-  <text x="679" y="138" font-size="9.5" fill="#8fd6cf" text-anchor="middle">real prices,</text>
-  <text x="679" y="151" font-size="9.5" fill="#8fd6cf" text-anchor="middle">from mid-Year 2</text>
-  <text x="679" y="176" font-size="9" fill="#e5eaef" text-anchor="middle">products that proved</text>
-  <text x="679" y="189" font-size="9" fill="#e5eaef" text-anchor="middle">their value are priced</text>
-  <text x="679" y="208" font-size="9" fill="#e5eaef" text-anchor="middle">new providers buy as</text>
-  <text x="679" y="221" font-size="9" fill="#e5eaef" text-anchor="middle">ordinary customers</text>
-  <text x="679" y="240" font-size="9" fill="#e5eaef" text-anchor="middle">who buys · who stays ·</text>
-  <text x="679" y="253" font-size="9" fill="#e5eaef" text-anchor="middle">revenue vs. all costs</text>
-  <rect x="622" y="262" width="114" height="44" rx="6" fill="#0f9b8e"/>
-  <text x="679" y="275" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="700">real revenue · targeting</text>
-  <text x="679" y="287" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="700">post-award break-even ·</text>
-  <text x="679" y="299" font-size="9" fill="#ffffff" text-anchor="middle" font-weight="700">investor-ready evidence</text>
+  <rect x="604" y="96" width="160" height="192" rx="9" fill="#1e2a38"/>
+  <text x="684" y="122" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="700">AIM 3</text>
+  <text x="684" y="138" font-size="9" fill="#8fd6cf" text-anchor="middle">real payment, real revenue</text>
+  <text x="684" y="162" font-size="9" fill="#e5eaef" text-anchor="middle">validated products</text>
+  <text x="684" y="175" font-size="9" fill="#e5eaef" text-anchor="middle">carry real prices</text>
+  <text x="684" y="194" font-size="9" fill="#e5eaef" text-anchor="middle">who buys · who stays ·</text>
+  <text x="684" y="207" font-size="9" fill="#e5eaef" text-anchor="middle">revenue vs. all costs</text>
+  <rect x="610" y="220" width="148" height="38" rx="6" fill="#0f9b8e"/>
+  <text x="684" y="236" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="700">post-award sustainability ·</text>
+  <text x="684" y="249" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="700">investor-ready evidence</text>
+  <text x="684" y="277" font-size="8" fill="#9fb0bd" text-anchor="middle">Tasks 3.1–3.3</text>
+
+  <!-- ===== AFTER THE AWARD (bottom right) ===== -->
+  <path d="M684 288 L684 304" stroke="#0f9b8e" stroke-width="1.8" fill="none" marker-end="url(#t)"/>
+  <rect x="604" y="308" width="160" height="64" rx="8" fill="#ffffff" stroke="#0f9b8e" stroke-width="1.4"/>
+  <text x="684" y="328" font-size="9" fill="#0b6e65" text-anchor="middle" font-weight="700">AFTER THE AWARD</text>
+  <text x="684" y="343" font-size="8.5" fill="#4b5563" text-anchor="middle">revenue sustains operations;</text>
+  <text x="684" y="355" font-size="8.5" fill="#4b5563" text-anchor="middle">private investment replicates</text>
+  <text x="684" y="367" font-size="8.5" fill="#4b5563" text-anchor="middle">the model in new markets</text>
 
   <!-- ===== bottom note ===== -->
-  <text x="30" y="386" font-size="9" fill="#6b7280">Verify → validate → grow is the order of evidence for each product; the three streams run in parallel from Year 1. Families never pay; the provider side funds the platform.</text>
-  <text x="30" y="399" font-size="9" fill="#6b7280">If Aim 3 succeeds, revenue supports operations after the award, and private capital becomes a way to expand faster rather than a requirement to operate.</text>
+  <text x="14" y="390" font-size="8.5" fill="#6b7280">Families never pay; the provider side funds the platform.</text>
 </svg>

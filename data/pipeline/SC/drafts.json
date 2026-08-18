@@ -457,7 +457,7 @@
       "id": "snap-food-benefits",
       "name": "SNAP (Food Assistance)",
       "shortName": "SNAP Food Benefits",
-      "tagline": "If your loved one is 60+ and on a fixed income, they may qualify for $100–400/month toward groceries",
+      "tagline": "If your loved one is 60+ and on a fixed income, they may qualify for monthly help with groceries",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -470,9 +470,9 @@
           }
         ]
       },
-      "intro": "If your loved one struggles to afford groceries on Social Security or a pension, SNAP provides monthly food assistance loaded onto an EBT card. A typical elderly couple might receive $415/month, while a single person could get $200-300/month depending on their income and medical expenses.\n\nSouth Carolina offers streamlined application options for seniors. The Elderly Simplified Application Project (ESAP) requires no interview and provides 36-month certification periods for households where everyone is 60+ with no earned income. Because South Carolina has expanded income limits beyond federal minimums, your loved one may qualify even if their income seems too high for other programs.\n\nSNAP benefits work like a debit card at grocery stores, farmers markets, and many online retailers. Medical expenses over $35/month can be deducted from income calculations, potentially increasing the benefit amount.",
-      "savingsRange": "$200 – $400/month in 2026",
-      "savingsSource": "Based on South Carolina SNAP benefit calculations for elderly households",
+      "intro": "If your loved one struggles to afford groceries on Social Security or a pension, SNAP provides monthly food assistance loaded onto an EBT card. The amount depends on income, household size, and deductible expenses. For FY2026 the most a one-person household can receive is $298/month and the most a two-person household can receive is $546/month.\n\nSouth Carolina offers streamlined application options for seniors. The Elderly Simplified Application Project (ESAP) requires no interview and provides 36-month certification periods for households where everyone is 60+ with no earned income. Because South Carolina has expanded income limits beyond federal minimums, your loved one may qualify even if their income seems too high for other programs.\n\nSNAP benefits work like a debit card at grocery stores, farmers markets, and many online retailers. Medical expenses over $35/month can be deducted from income calculations, potentially increasing the benefit amount.",
+      "savingsRange": "",
+      "savingsSource": "No state publishes a typical or average senior benefit. FY2026 federal maximums are $298/month for one person and $546/month for two (USDA FNS). Nationally, SNAP households including someone 60 or older averaged $192/month in FY2024 (USDA FNS, Characteristics of SNAP Households).",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
@@ -577,8 +577,8 @@
         },
         {
           "label": "SC DSS General SNAP Line",
-          "phone": "Contact local DSS office",
-          "description": "General SNAP application assistance",
+          "phone": null,
+          "description": "Apply at your county DSS office. General SNAP application assistance",
           "hours": "Varies by county office"
         },
         {
@@ -639,13 +639,14 @@
       "phone": "(888) 898-0055",
       "sourceUrl": "https://dss.sc.gov/assistance-programs/snap/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP",
-      "tagline": "Up to $1,500/year toward your loved one's heating and cooling bills, plus crisis help when utilities face disconnection",
+      "tagline": "Up to $850 toward heating and $775 toward cooling, plus up to $1,000 in crisis help when utilities face disconnection",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -658,9 +659,9 @@
           }
         ]
       },
-      "intro": "If your loved one struggles with high electric or heating bills, LIHEAP provides direct payments to utility companies on their behalf. The program pays up to $850 for heating assistance, $775 for cooling, and up to $1,500 for energy crises like disconnection notices. Your loved one can receive up to two services per year, meaning a maximum of $1,500 in annual assistance.\n\nLIHEAP prioritizes vulnerable households, those with someone age 60 or older, disabled family members, or young children get preference and may qualify for additional benefits. Because funds are limited and distributed first-come, first-served within priority groups, applying early in the season matters. The program also offers weatherization services and energy-related home repairs beyond just bill payment.",
-      "savingsRange": "$200 – $1,500/year in 2026",
-      "savingsSource": "Maximum benefit amounts from South Carolina Office of Economic Opportunity",
+      "intro": "If your loved one struggles with high electric or heating bills, LIHEAP provides direct payments to utility companies on their behalf. The program pays up to $850 for heating assistance, $775 for cooling, and up to $1,000 for energy crises like disconnection notices. Every approved household receives at least $200. Your loved one can receive up to two services per year.\n\nLIHEAP prioritizes vulnerable households, those with someone age 60 or older, disabled family members, or young children get preference and may qualify for additional benefits. Because funds are limited and distributed first-come, first-served within priority groups, applying early in the season matters. The program also offers weatherization services and energy-related home repairs beyond just bill payment.",
+      "savingsRange": "Up to $850 heating, $775 cooling, $1,000 crisis (FY2026 maximums)",
+      "savingsSource": "FY2026 South Carolina LIHEAP Benefit Matrix and state plan filed with HHS/ACF. $200 is the guaranteed minimum non-emergency benefit; the figures above are maximums, not typical awards.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -716,8 +717,8 @@
           },
           {
             "step": 2,
-            "title": "Call your local agency or the statewide toll-free line",
-            "description": "Call 866-674-6327 for statewide assistance, or contact your specific county agency directly. Cayce residents can call 803-794-6778."
+            "title": "Call the county agency that serves you",
+            "description": "Each county has its own Community Action Agency and you have to apply through yours. The state office at 803-734-0662 will tell you which one that is. Lexington County residents can call the Cayce office at 803-794-6778."
           },
           {
             "step": 3,
@@ -762,29 +763,30 @@
       ],
       "contacts": [
         {
-          "label": "Statewide LIHEAP Hotline",
-          "phone": "(866) 674-6327",
-          "description": "General LIHEAP assistance and county referrals",
-          "hours": "Business hours"
-        },
-        {
-          "label": "SC Office of Economic Opportunity",
+          "label": "Find your county Community Action Agency (start here)",
           "phone": "(803) 734-0662",
-          "description": "Find your local Community Action Agency",
-          "hours": "Mon-Fri 8am-5pm"
+          "description": "SC Office of Economic Opportunity. OEO says plainly that it does not take LIHEAP applications. Call and they point you to the Community Action Agency for your county, which does. The county list is at oeo.sc.gov/managedsites/prd/oeo/help.html.",
+          "hours": "Mon-Fri 8:30am-5pm ET",
+          "url": "https://oeo.sc.gov/managedsites/prd/oeo/help.html"
         },
         {
-          "label": "Cayce Area Office",
+          "label": "Aiken/Barnwell Counties CAA, Cayce office",
           "phone": "(803) 794-6778",
-          "description": "LIHEAP services for Cayce residents",
+          "description": "Serves Lexington County.",
           "hours": "Business hours"
+        },
+        {
+          "label": "National Energy Assistance Referral (NEAR)",
+          "phone": "(866) 674-6327",
+          "description": "Federal referral line, not South Carolina's program. It can look up an agency by ZIP code if you cannot reach the state office.",
+          "hours": "Mon-Fri 9am-7pm ET"
         }
       ],
       "applicationNotes": [
-        "Heating assistance typically runs fall through winter, cooling assistance during summer months, crisis assistance is available year-round",
+        "Heating assistance runs October 1 through April 30 and cooling assistance runs May 1 through September 30. Crisis assistance is available year-round.",
         "Priority households (elderly 60+, disabled, young children) may receive additional benefit amounts beyond the standard maximums",
         "Energy bills must be in a household member's name, if utilities are included in rent, you need an itemized breakdown from your landlord",
-        "You can receive up to two different services per calendar year but total assistance cannot exceed $1,500 per service type"
+        "You can receive up to two different services per calendar year. Each has its own maximum: $850 heating, $775 cooling, $1,000 crisis."
       ],
       "relatedPrograms": [
         "Weatherization Assistance Program",
@@ -807,7 +809,7 @@
             },
             {
               "label": "Crisis assistance maximum",
-              "value": "$1,500"
+              "value": "$1,000"
             },
             {
               "label": "Services per year",
@@ -841,7 +843,7 @@
       "faqs": [
         {
           "question": "Can my loved one get both heating and cooling assistance in the same year?",
-          "answer": "Yes, your loved one can receive up to two services per calendar year, one for heating (up to $850) and one for cooling (up to $775). However, the total for any single service cannot exceed $1,500, and crisis assistance counts as one of the two services."
+          "answer": "Yes, your loved one can receive up to two services per calendar year, one for heating (up to $850) and one for cooling (up to $775). However, crisis assistance can go up to $1,000 and counts as one of the two services."
         },
         {
           "question": "What if my loved one rents and utilities are included in the rent?",
@@ -849,7 +851,7 @@
         },
         {
           "question": "How quickly can LIHEAP help if my loved one receives a disconnection notice?",
-          "answer": "Crisis assistance is available year-round and may be processed faster than regular seasonal assistance. Contact your local Community Action Agency immediately when you receive a disconnection notice, crisis assistance can provide up to $1,500 and counts as one of your two annual services."
+          "answer": "Crisis assistance is available year-round and may be processed faster than regular seasonal assistance. Contact your local Community Action Agency immediately when you receive a disconnection notice, crisis assistance can provide up to $1,000 and counts as one of your two annual services."
         },
         {
           "question": "Does my loved one's house value or savings account affect LIHEAP eligibility?",
@@ -881,10 +883,11 @@
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "(866) 674-6327",
+      "phone": "(803) 734-0662",
       "sourceUrl": "https://oeo.sc.gov/managedsites/prd/oeo/liheap.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "weatherization-assistance",

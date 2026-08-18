@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TX/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T09:02:41.405Z
+ * Last updated: 2026-08-18T08:44:34.788Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1139,7 +1139,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Find your regional agency",
-            "description": "Texas divides weatherization by region. Examples: TCOG serves North Texas (800-677-8264 ext. 3530), Austin Energy serves Austin area (512-482-5346), CCSCT serves Uvalde region counties. Check the full subrecipient list at TDHCA's website."
+            "description": "Texas divides weatherization by region, and only your county's provider can take the application. Look yours up at tdhca.texas.gov/help-for-texans, or call TDHCA at (800) 525-0657 and they will tell you which agency serves you."
           },
           {
             "step": 2,
@@ -1170,9 +1170,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Proof of income for all household members 18+ from last 30 days (pay stubs, Social Security award letters, unemployment documents, pension letters, workers comp, TANF)",
         "Notarized Declaration of Income Statement if anyone had no income in the last 30 days",
-        "Birth certificates for all household members",
-        "Naturalization or citizenship certificates for non-U.S. born members",
-        "U.S. passports or other proof of citizenship/qualified alien status",
+        "Proof of U.S. citizenship, U.S. national status, or qualified alien status for every household member. Any one of these works: a birth certificate or birth record, a certificate of naturalization or citizenship, or a U.S. passport.",
         "Driver's license or state ID for all household members 18+",
         "Current electric bill with 12-month usage history",
         "Current gas or propane bill with 12-month usage history",
@@ -1182,22 +1180,35 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "TCOG (North Texas)",
-          "phone": "(800) 677-8264 ext. 3530",
-          "description": "Weatherization services for North Texas region",
-          "hours": "Monday–Friday, 8:00 AM–5:00 PM CT"
-        },
-        {
-          "label": "Austin Energy",
-          "phone": "(512) 482-5346",
-          "description": "Austin area weatherization program",
-          "hours": "Mon-Fri business hours"
+          "label": "TDHCA, Texas Weatherization Assistance Program (start here)",
+          "phone": "(800) 525-0657",
+          "description": "The state agency that runs Texas WAP. They do not take applications, but they will tell you which weatherization provider serves your county. You can also look it up at tdhca.texas.gov/help-for-texans.",
+          "hours": "Mon-Fri 8am-5pm CT",
+          "url": "https://www.tdhca.texas.gov/help-for-texans"
         },
         {
           "label": "Texas 2-1-1",
-          "phone": "2-1-1",
-          "description": "Free helpline to find your regional weatherization agency",
+          "phone": "2-1-1 or (877) 541-7905",
+          "description": "Texas Information and Referral Network. Use the 877 number if 2-1-1 does not connect from your phone.",
           "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "WAP county routing line (landline only)",
+          "phone": "(888) 606-8889",
+          "description": "Connects you straight to the weatherization provider in your county. It has to be dialed from a home landline. It will not work from a cell phone.",
+          "hours": "Mon-Fri 8am-5pm CT"
+        },
+        {
+          "label": "TCOG, Texoma and Northeast Texas region",
+          "phone": "(903) 893-2161",
+          "description": "Serves Bowie, Camp, Cass, Collin, Cooke, Delta, Denton, Fannin, Franklin, Grayson, Hopkins, Hunt, Lamar, Marion, Morris, Rains, Red River, Rockwall, and Titus counties only.",
+          "hours": "Mon-Fri 8am-5pm CT"
+        },
+        {
+          "label": "Austin Energy (City of Austin)",
+          "phone": "(512) 482-5346",
+          "description": "Weatherization for Austin Energy customers.",
+          "hours": "Mon-Fri, business hours"
         }
       ],
       "applicationNotes": [
@@ -1255,12 +1266,12 @@ export const drafts: PipelineStateDrafts = {
         "hasDocumentChecklist": true,
         "visualTone": "editorial"
       },
-      "phone": "2-1-1",
+      "phone": "(800) 525-0657",
       "sourceUrl": "https://www.tdhca.texas.gov/weatherization-assistance-program",
       "contentStatus": "approved",
       "draftedAt": "2026-04-10",
       "reviewedBy": "Cess",
-      "lastVerifiedDate": "2026-05-05"
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "ship-medicare-counseling",

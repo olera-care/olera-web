@@ -1649,38 +1649,38 @@
         ]
       },
       "documentsNeeded": [
-        "Social Security card for applicant",
-        "Birth certificate or other proof of age",
-        "Proof of Iowa residency (utility bill, lease, or state-issued document)",
         "Social Security award letter if receiving SSI",
-        "Most recent bank statements for all accounts (last 3 months)",
-        "Income documentation (pension statements, Social Security statements)",
-        "Life insurance policies showing face values",
-        "Vehicle titles and registration documents",
-        "Property deeds or tax statements if applicable",
-        "Proof of U.S. citizenship or immigration status",
+        "Income documentation for the last 30 days (pension statements, Social Security statements, pay stubs)",
+        "Bank statements for all accounts for the last 90 days, for anyone 19 or older",
+        "Proof of immigration status if not a U.S. citizen",
+        "Self-employment tax returns if applicable",
+        "Property, burial contracts, life insurance, and other resource documentation",
+        "Unmet medical expenses",
         "Physician certification form (for residential care categories only)",
-        "Documentation of other benefits received or applied for",
-        "Investment account statements (stocks, bonds, annuities)"
+        "Social Security card for applicant",
+        "Proof of Iowa residency (utility bill, lease, or state-issued document)",
+        "Birth certificate or other proof of age"
       ],
       "contacts": [
         {
-          "label": "Iowa HHS Benefits Line",
-          "phone": "1-800-972-2017",
-          "description": "For residential care, in-home health care, and Medicare/Medicaid eligible categories",
-          "hours": "Business hours"
+          "label": "Iowa HHS Income Maintenance Customer Service Center (start here)",
+          "phone": "1-877-347-5678",
+          "description": "Handles cash assistance and how to apply. This is the line Iowa HHS publishes for benefit questions.",
+          "hours": "Mon-Fri 8am-4:30pm CT",
+          "url": "https://hhs.iowa.gov/medicaid/member-services"
+        },
+        {
+          "label": "Iowa Aging and Disability Resource Center (Iowa Compass)",
+          "phone": "1-800-779-2001",
+          "description": "System navigators who can screen the whole picture, including the Elderly Waiver, if SSA turns out to be the wrong fit.",
+          "hours": "Mon-Fri 8am-4:30pm CT",
+          "url": "https://hhs.iowa.gov/family-community/aging-disability-resource-center"
         },
         {
           "label": "Social Security Administration",
           "phone": "1-800-772-1213",
-          "description": "For SSI recipients and basic SSA payment applications",
-          "hours": "Mon-Fri 8am-7pm"
-        },
-        {
-          "label": "Local SSA Office Finder",
-          "phone": null,
-          "description": "Find your county's Social Security field office at ssa.gov/locator",
-          "hours": "Varies by office"
+          "description": "For the SSI side of eligibility.",
+          "hours": "Mon-Fri 8am-7pm local time"
         }
       ],
       "applicationNotes": [
@@ -1770,10 +1770,11 @@
         "visualTone": "editorial"
       },
       "icon": "Coins",
-      "phone": "1-800-972-2017",
+      "phone": "1-877-347-5678",
       "sourceUrl": "https://hhs.iowa.gov/media/3987/download",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     }
   ],
   "stateOverview": {

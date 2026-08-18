@@ -1118,33 +1118,35 @@
         ]
       },
       "documentsNeeded": [
-        "Proof of household income for last 30 days (pay stubs, Social Security award letter, pension statements)",
+        "Proof of income for the last 30 days for everyone in the household (Social Security or pension award letter dated this year, or recent pay stubs: 4 if paid weekly, 2 if biweekly, 1 if monthly)",
         "Social Security cards for all household members",
+        "Photo ID for the applicant (driver license, state ID, or passport). Georgia law requires it for benefit programs, and the application has to be notarized.",
+        "Written landlord permission if renting. Georgia requires the owner to agree in writing before the energy audit, so start this early.",
         "Proof of residency (utility bill, lease agreement, or mortgage statement)",
-        "Written landlord permission letter (renters only)",
-        "Birth certificates or other proof of age for household members",
-        "SSI award letter if qualifying through SSI receipt",
         "Most recent electric and gas utility bills",
+        "SSI award letter if qualifying through SSI receipt",
         "Property deed or lease agreement showing home type eligibility"
       ],
       "contacts": [
         {
-          "label": "Georgia Weatherization Directory",
-          "phone": null,
-          "description": "County-by-county listing of local agencies",
-          "hours": "Visit https://gefa.georgia.gov/weatherization"
+          "label": "Georgia Weatherization Assistance Program, GEFA (start here)",
+          "phone": "(404) 584-1000",
+          "description": "State program office. GEFA does not take applications. Call to find out which community action agency serves your county, then apply with that agency.",
+          "hours": "Mon-Fri 8am-5pm ET",
+          "url": "https://gefa.georgia.gov/weatherization-assistance-program"
         },
         {
-          "label": "CSRA Economic Opportunity Authority",
-          "phone": "(706) 945-1616",
-          "description": "Serves Richmond, Columbia, and surrounding CSRA counties",
-          "hours": "Contact for hours"
+          "label": "Find your county's weatherization agency",
+          "phone": null,
+          "description": "Official state list of the 14 community action agencies and the counties each one serves. Find your county, then open that agency page for its phone number.",
+          "hours": null,
+          "url": "https://gefa.georgia.gov/locations/community-action-agency"
         },
         {
           "label": "Georgia 2-1-1",
           "phone": "2-1-1",
-          "description": "Help finding local services and programs",
-          "hours": "24 hours, 7 days a week"
+          "description": "Free referral helpline that can help you find your local agency.",
+          "hours": "Availability varies by region"
         }
       ],
       "applicationNotes": [
@@ -1203,10 +1205,11 @@
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": null,
+      "phone": "(404) 584-1000",
       "sourceUrl": "https://gefa.georgia.gov/weatherization",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "ship-medicare-counseling",

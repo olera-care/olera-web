@@ -1288,26 +1288,33 @@
         ]
       },
       "documentsNeeded": [
+        "Photo identification (driver license, state ID, or similar)",
+        "Proof of income for all household members, covering the 12 months before you apply",
         "Social Security cards for all household members",
-        "Valid photo ID for all household members",
-        "Verification of ALL household income from last 12 months (last 4 pay stubs, unemployment benefits, retirement/pension statements, VA benefits, Social Security/SSI letters, TANF documentation, rental/business income)",
-        "Proof of disability documentation if claiming disabled household member",
-        "Proof of home ownership (property tax statements, warranty deed, or certificate of title) OR landlord written consent for renters",
-        "Most recent complete electric bill (all pages, not payment stubs or shut-off notices)",
-        "Proof of citizenship or legal residency for Miami-Dade County applicants"
+        "A recent utility bill (electric, gas, propane)",
+        "Proof of home ownership, or written landlord authorization if renting",
+        "Documentation of disability, being 60 or older, or a child in the home"
       ],
       "contacts": [
         {
-          "label": "WAP Manager (statewide)",
-          "phone": "(850) 717-8523",
-          "description": "Coreine Rainford, Florida Department of Commerce, general statewide questions. Alt: (850) 717-8467. Email wxadmin@cfcaa.org.",
-          "hours": "Business hours"
+          "label": "Florida Department of Commerce (start here)",
+          "phone": "(850) 245-7105",
+          "description": "Applications only happen through the weatherization office for your county, never online and never at the state. Call to be pointed to yours, or look it up at floridajobs.org/WAPHelp.",
+          "hours": "Mon-Fri, business hours",
+          "url": "https://www.floridajobs.org/WAPHelp"
         },
         {
-          "label": "Central Florida Community Action",
+          "label": "Find your county's weatherization office",
           "phone": null,
-          "description": "Email wxadmin@cfcaa.org. Serves central Florida counties.",
-          "hours": "Business hours"
+          "description": "State directory covering all 67 counties, with a phone number for each.",
+          "hours": null,
+          "url": "https://www.floridajobs.org/WAPHelp"
+        },
+        {
+          "label": "FloridaCommerce Bureau of Economic Self-Sufficiency, public inquiries",
+          "phone": "(850) 717-8450",
+          "description": "State-level questions about energy and weatherization assistance.",
+          "hours": "Mon-Fri, business hours"
         }
       ],
       "applicationNotes": [
@@ -1418,13 +1425,13 @@
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "(850) 717-8523",
+      "phone": "(850) 245-7105",
       "sourceUrl": "https://www.floridajobs.org/business-growth-and-partnerships/business-development/weatherization-assistance-program",
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
       "reviewedBy": "TJ",
       "reviewedAt": "2026-04-20",
-      "lastVerifiedDate": "2026-04-20"
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "shine-medicare-counseling",

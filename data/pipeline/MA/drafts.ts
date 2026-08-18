@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.516Z
+ * Last updated: 2026-08-18T08:44:34.776Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -598,7 +598,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "snap-food-benefits",
       "name": "SNAP (Food Stamps)",
       "shortName": "SNAP",
-      "tagline": "Monthly grocery assistance for Massachusetts seniors on fixed incomes, typically $100-$300 per month.",
+      "tagline": "Monthly grocery assistance for Massachusetts seniors on fixed incomes.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -611,10 +611,10 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card for food purchases. Massachusetts seniors receive an average of $147 per month, though benefits can reach up to $546 monthly for two-person households depending on income and expenses. The program has special simplified rules for seniors, easier income limits, higher deductions for medical expenses, and streamlined applications.\n\nBecause seniors 60+ get enhanced deductions for medical costs and shelter expenses, your loved one may qualify even if their Social Security or pension seems too high at first glance. Massachusetts also offers a simplified application process (EDSAP) for seniors with no earned income, which requires less paperwork and allows 36-month benefit periods instead of frequent renewals.\n\nThe application can be completed online through Mass.gov, by phone, or with help from your local senior center. Processing typically takes 30 days, though expedited approval within 7 days is available for seniors facing immediate food insecurity.",
-      "savingsRange": "$1,764 – $6,552/year in 2026",
-      "savingsSource": "Based on average MA senior benefit of $147/month to maximum two-person household benefit of $546/month",
-      "savingsVerified": true,
+      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card for food purchases. Nationally, households including someone 60 or older averaged $192 per month in 2024, and benefits can reach up to $546 monthly for two-person households depending on income and expenses. The program has special simplified rules for seniors, easier income limits, higher deductions for medical expenses, and streamlined applications.\n\nBecause seniors 60+ get enhanced deductions for medical costs and shelter expenses, your loved one may qualify even if their Social Security or pension seems too high at first glance. Massachusetts also offers a simplified application process (EDSAP) for seniors with no earned income, which requires less paperwork and allows 36-month benefit periods instead of frequent renewals.\n\nThe application can be completed online through Mass.gov, by phone, or with help from your local senior center. Processing typically takes 30 days, though expedited approval within 7 days is available for seniors facing immediate food insecurity.",
+      "savingsRange": "",
+      "savingsSource": "No state publishes a typical or average senior benefit. FY2026 federal maximums are $298/month for one person and $546/month for two (USDA FNS). Nationally, SNAP households including someone 60 or older averaged $192/month in FY2024 (USDA FNS, Characteristics of SNAP Households).",
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 60+",
@@ -732,15 +732,21 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "DTA Customer Service (start here)",
+          "label": "DTA Assistance Line (start here)",
           "phone": "(877) 382-2363",
-          "description": "Massachusetts Department of Transitional Assistance general line",
-          "hours": "Mon-Fri 8:15am-4:45pm EST"
+          "description": "Massachusetts Department of Transitional Assistance. Press 7 to apply by phone. Automated prompts run around the clock; a worker is on during the hours listed.",
+          "hours": "Mon-Fri 8:15am-4:45pm ET"
+        },
+        {
+          "label": "SNAP Senior Assistance Office",
+          "phone": "(833) 712-8027",
+          "description": "For people 60 and older who already have SNAP or applied on the seniors form. They help with an existing case rather than taking a new application.",
+          "hours": "Mon-Fri, business hours"
         },
         {
           "label": "Massachusetts 2-1-1",
           "phone": "2-1-1",
-          "description": "Free 24/7 helpline for SNAP and all social services",
+          "description": "General referral line.",
           "hours": "24 hours, 7 days a week"
         }
       ],
@@ -772,7 +778,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How much will my loved one actually receive each month?",
-          "answer": "Benefits depend on net income after deductions. Massachusetts seniors average $147 monthly, but a two-person household could receive up to $546 monthly. The formula is maximum allotment minus 30% of net income, with higher medical and shelter deductions for seniors."
+          "answer": "Benefits depend on net income after deductions. Nationally, households with someone 60 or older averaged $192 monthly in 2024. A two-person household could receive up to $546 monthly. The formula is maximum allotment minus 30% of net income, with higher medical and shelter deductions for seniors."
         },
         {
           "question": "Does my loved one's pension count as income for SNAP?",
@@ -803,7 +809,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(877) 382-2363",
       "sourceUrl": "https://www.mass.gov/lists/snap-application-for-seniors",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "weatherization-assistance",

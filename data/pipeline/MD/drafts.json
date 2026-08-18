@@ -1271,34 +1271,34 @@
         ]
       },
       "documentsNeeded": [
-        "Valid government-issued photo ID for all household members",
-        "Proof of Maryland residency (utility bill, lease agreement, or state-issued document)",
-        "Proof of household income from last 30 days (Social Security letters, pay stubs, pension statements)",
-        "Most recent electric and gas utility bills",
-        "Property deed or mortgage statement (homeowners only)",
+        "Photo ID for the applicant",
+        "Social Security cards for all household members",
+        "Proof of the last 30 days of gross household income (pay stubs, Social Security or pension letters). Maryland does not accept bank statements for this.",
+        "Most recent electric utility bill",
         "Signed landlord permission form (renters only)",
-        "SNAP, TANF, SSI, or utility assistance award letters if receiving these benefits",
-        "Bank statements for all accounts (last 3 months)",
-        "Proof of any other household members' income or benefits"
+        "Title or bill of sale (mobile homes only)",
+        "Zero Income Form for any adult 18 or older claiming no income",
+        "SNAP, TANF, SSI, or OHEP award letters if receiving these benefits"
       ],
       "contacts": [
         {
-          "label": "Maryland Weatherization Program",
-          "phone": "(844) 400-3423",
-          "description": "Main application line for weatherization services",
-          "hours": "Monday-Friday, business hours"
-        },
-        {
-          "label": "DHCD Energy Efficiency Office",
-          "phone": "(800) 756-0119",
-          "description": "Alternative number for weatherization and energy programs",
-          "hours": "Monday-Friday, business hours"
-        },
-        {
-          "label": "OHEP Energy Assistance",
+          "label": "Maryland DHCD Weatherization Intake (start here)",
           "phone": "(855) 583-8976",
-          "description": "General energy assistance questions and utility help",
-          "hours": "Monday-Friday, business hours"
+          "description": "DHCD call center for weatherization. They send the application, screen income eligibility, and assign the local weatherization agency.",
+          "hours": "Mon-Fri, business hours"
+        },
+        {
+          "label": "Find your Local Weatherization Agency",
+          "phone": null,
+          "description": "DHCD list of the 10 local weatherization agencies and the areas each covers, if you would rather start locally.",
+          "hours": null,
+          "url": "https://dhcd.maryland.gov/Energy-Home-Repair/Documents/WAP/LocalWeatherizationAgenciesContacts.pdf"
+        },
+        {
+          "label": "DHCD main switchboard",
+          "phone": "(800) 756-0119",
+          "description": "General Maryland DHCD line, not a weatherization desk.",
+          "hours": "Mon-Fri, business hours"
         }
       ],
       "applicationNotes": [
@@ -1362,10 +1362,11 @@
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "(844) 400-3423",
+      "phone": "(855) 583-8976",
       "sourceUrl": "https://dhcd.maryland.gov/Energy-Home-Repair/pages/homeowner-grants/wap.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "ship-medicare-counseling",

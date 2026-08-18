@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WV/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:19:50.958Z
+ * Last updated: 2026-08-18T08:44:34.791Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2306,7 +2306,7 @@ export const drafts: PipelineStateDrafts = {
     },
     {
       "id": "home-modification-accessibility-grant",
-      "name": "WV Bureau of Senior Services Home Modification and Accessibility Grant Program (Aging Well, Safe at Home Initiative)",
+      "name": "WV Bureau of Senior Services Home Modification and Accessibility Program",
       "shortName": "Home Modification Grant",
       "tagline": "Up to $3,000 grants help West Virginia seniors afford wheelchair ramps, bathroom modifications, and assistive devices to stay safely at home.",
       "programType": "benefit",
@@ -2326,8 +2326,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one is 60+ and needs home modifications to stay safely in their house, West Virginia provides grants up to $3,000 for wheelchair ramps, bathroom grab bars, stair lifts, and assistive technology. Because the program covers both home modifications and durable medical equipment, your loved one can use one application for multiple safety improvements, from a walk-in shower conversion to voice-activated emergency devices.\n\nThe grant requires pre-approval with detailed contractor estimates and photos before and after completion. Because there are no income or asset limits mentioned in the program guidelines, eligibility focuses on demonstrating the need for modifications to age in place safely. The program operates statewide through West Virginia's Aging & Disability Resource Center, which coordinates applications and payments directly to approved contractors.\n\nMost applications involve licensed contractors for structural changes like ramps or bathroom modifications, but the program also covers assistive devices and technology that don't require installation. Your loved one must be a West Virginia resident and show how the requested modifications will help them live more independently at home.",
-      "savingsRange": "Up to $3,000 in 2026",
-      "savingsSource": "Maximum grant amount per WV ADRC program guidelines",
+      "savingsRange": "Up to $3,000 per person per state fiscal year (July 1 to June 30)",
+      "savingsSource": "WV Bureau of Senior Services Home Modification and Accessibility Program application instructions. A maximum, subject to available funding.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -2368,7 +2368,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Submit complete application",
-            "description": "Mail completed application with all supporting documents to WV Aging & Disability Resource Center, 824 Cross Lanes Drive, Charleston, WV 25313 or email to adrcinfo@wvadrc.com."
+            "description": "Mail completed application with all supporting documents to WV Aging & Disability Resource Center, 824 Cross Lanes Drive, Charleston, WV 25313 or email to adrc@metroaaa.com."
           },
           {
             "step": 5,
@@ -2392,28 +2392,27 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Completed WV Bureau of Senior Services Home Modification application",
-        "Detailed written estimate from licensed contractor (excluding sales tax)",
-        "Copy of contractor's business license",
-        "Copy of contractor's insurance policy",
-        "Contractor's completed W-9 tax form",
-        "Clear photos of area needing modification (before work begins)",
-        "Cost estimates for durable medical equipment or assistive devices (if applicable)",
-        "Proof of West Virginia residency (utility bill, lease, or state-issued document)",
-        "Documentation showing how modifications will support independent living"
+        "Your loved one's date of birth. The program serves West Virginians 60 and older. Their county too.",
+        "Whether they own the home, live with family, or rent. Renters need written landlord approval before the request can be reviewed.",
+        "What modification or device is needed and why it helps them stay home safely, plus whether Medicaid or Medicare already covers it",
+        "Which daily activities they struggle with (bathing, transferring, stairs, toileting)",
+        "A rough estimated cost, if you have one. Not required to make the call.",
+        "For home modification projects only, and only after the ADRC approves: a detailed estimate from a licensed contractor excluding sales tax, a copy of the contractor business license, proof of contractor insurance, and a W-9",
+        "For home modification projects only: photos of the area before work begins and after it is finished. Payment is not issued without them."
       ],
       "contacts": [
         {
-          "label": "WV Aging & Disability Resource Center",
+          "label": "WV Aging and Disability Resource Center (start here)",
           "phone": "866-981-2372",
-          "description": "Primary contact for applications and program information",
-          "hours": "Business hours (specific hours not listed)"
+          "description": "The ADRC takes the application and will help you fill it out. Call before you line up a contractor, because work already bought or built is not eligible.",
+          "hours": "Business hours, Mon-Fri (the ADRC does not publish exact times)",
+          "url": "https://www.wvadrc.com/assistance-programs.html"
         },
         {
-          "label": "WV ADRC Local Line",
+          "label": "WV ADRC State Office, Region II (Dunbar), local line",
           "phone": "304-720-6861",
-          "description": "Alternative contact number for program questions",
-          "hours": "Business hours (specific hours not listed)"
+          "description": "Same office as the toll-free number.",
+          "hours": "Business hours, Mon-Fri"
         }
       ],
       "applicationNotes": [
@@ -2467,7 +2466,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "866-981-2372",
       "sourceUrl": "https://www.wvadrc.com/assistance-programs.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     }
   ],
   "stateOverview": {

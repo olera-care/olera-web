@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T09:02:41.377Z
+ * Last updated: 2026-08-18T08:44:34.766Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -112,32 +112,38 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Social Security award letter or other income verification",
-        "Bank statements for all accounts (last 3 months)",
-        "Investment account statements and property deeds",
-        "Life insurance policies with cash values",
-        "Vehicle titles and registration",
-        "Medicaid eligibility verification or current Medicaid card",
+        "Proof of their gross (before taxes) monthly income, such as a Social Security award letter or benefit statement",
+        "Their Social Security card",
+        "Their Medicare card, if they have Medicare",
+        "Account details for any checking, savings, CD, or IRA accounts: the bank name, account number, and current balance. Statements may be requested later.",
         "Physician statement confirming nursing facility level of care",
         "Valid government-issued photo ID",
         "Proof of Alabama residency (utility bill, lease, or state-issued document)",
+        "Investment account statements and property deeds",
+        "Life insurance policies with cash values",
+        "Vehicle titles and registration",
         "Documentation of any asset transfers in the last 60 months",
         "Pre-need burial contracts or irrevocable burial trusts",
-        "Medicare card",
         "Property tax statements for all real estate owned"
       ],
       "contacts": [
         {
-          "label": "Alabama Medicaid General Line",
-          "phone": "(800) 362-1504",
-          "description": "General Medicaid questions and referrals to local offices",
-          "hours": "Business hours"
+          "label": "Alabama Department of Senior Services / AgeLine (start here)",
+          "phone": "(800) 243-5463",
+          "description": "ADSS operates the Elderly and Disabled Waiver. They screen the care need and start the application through your Area Agency on Aging.",
+          "hours": "Business hours, Mon-Fri"
         },
         {
-          "label": "Alabama Department of Senior Services",
-          "phone": null,
-          "description": "Find your local Area Agency on Aging contact information",
-          "hours": "Visit alabamaageline.gov for regional contacts"
+          "label": "Alabama Medicaid Recipient Call Center",
+          "phone": "(800) 362-1504",
+          "description": "Handles the financial eligibility side after ADSS starts the application.",
+          "hours": "Mon-Fri 8am-4:30pm CT"
+        },
+        {
+          "label": "Alabama Department of Senior Services, Montgomery office",
+          "phone": "(334) 242-5743",
+          "description": "Direct line to the state agency.",
+          "hours": "Business hours, Mon-Fri"
         }
       ],
       "applicationNotes": [
@@ -196,10 +202,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "(800) 362-1504",
+      "phone": "(800) 243-5463",
       "sourceUrl": "https://medicaid.alabama.gov/content/6.0_LTC_waivers/6.1_HCBS_waivers.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "pace-comprehensive-care",
@@ -619,7 +626,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "aesap-elderly-food-assistance",
       "name": "Alabama Elderly Simplified Application Project (AESAP)",
       "shortName": "AESAP",
-      "tagline": "If your loved one is 60+ with no job income, they can apply for food assistance with a simplified 2-page form and no interview.",
+      "tagline": "If everyone in your loved one's home is 65 or older and no one has job income, they can apply for food assistance with a simplified 2-page form and no interview.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -632,49 +639,49 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60 or older and lives in a household where everyone is 60+, they may qualify for monthly food assistance through Alabama's simplified elderly application process. Because AESAP streamlines the regular SNAP application, your loved one gets the same monthly benefits (up to $291 for a single person) but with a shorter 2-page form, no interview required, and benefits certified for 3 years instead of 1.\n\nThe key requirement: no one in the household can have earned income (wages or self-employment) in the month they apply. Social Security, pensions, and other unearned income are allowed. Income limits are the same as regular SNAP, $1,580 gross monthly income for a single person as of October 2022, with limits updated annually.\n\nBecause this is still the same SNAP program underneath, your loved one gets an EBT debit card that works at grocery stores, farmers markets, and online retailers like Amazon and Walmart for eligible food purchases.",
-      "savingsRange": "$100 – $291/month",
-      "savingsSource": "Monthly SNAP benefits based on household size and income, with maximum allotments up to $291 for single person",
+      "intro": "If your loved one is 65 or older and lives in a household where everyone is 65 or older, they may qualify for monthly food assistance through Alabama's simplified elderly application process. Because AESAP streamlines the regular SNAP application, your loved one gets the same monthly benefits (up to $298 for a single person in 2026) but with a shorter 2-page form, no interview required, and benefits certified for 3 years instead of 1.\n\nThe key requirement: no one in the household can have earned income (wages or self-employment) in the month they apply. Social Security, pensions, and other unearned income are allowed. Income limits are the same as regular SNAP, $1,696 gross monthly income for a single person for the federal fiscal year running October 2025 through September 2026, with limits updated annually.\n\nBecause this is still the same SNAP program underneath, your loved one gets an EBT debit card that works at grocery stores, farmers markets, and online retailers like Amazon and Walmart for eligible food purchases.",
+      "savingsRange": "",
+      "savingsSource": "No official figure. Alabama DHR calculates AESAP benefits under regular SNAP rules. The federal maximum for a one-person household is $298/month for FY2026 (USDA FNS); most households receive less.",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
-          "Age 60+",
-          "All household members 60+",
+          "Age 65+",
+          "All household members 65+",
           "No earned income",
-          "Income below $1,580/month (single)",
+          "Income below $1,696/month (single)",
           "Same asset limits as SNAP"
         ],
-        "ageRequirement": "60+",
+        "ageRequirement": "65+",
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 1580
+            "monthlyLimit": 1696
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 2137
+            "monthlyLimit": 2292
           },
           {
             "householdSize": 3,
-            "monthlyLimit": 2694
+            "monthlyLimit": 2888
           },
           {
             "householdSize": 4,
-            "monthlyLimit": 3250
+            "monthlyLimit": 3483
           },
           {
             "householdSize": 5,
-            "monthlyLimit": 3807
+            "monthlyLimit": 4079
           },
           {
             "householdSize": 6,
-            "monthlyLimit": 4363
+            "monthlyLimit": 4675
           }
         ],
         "assetLimits": null,
         "functionalRequirement": null,
         "otherRequirements": [
-          "All household members must be age 60+ on application date",
+          "All household members must be age 65+ on application date",
           "No earned income (wages or self-employment) in month of application",
           "U.S. citizen or qualified non-citizen",
           "Alabama resident"
@@ -717,31 +724,28 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Proof of medical expenses if claiming deduction (receipts, bills, insurance statements)",
-        "Proof of non-citizen status if applicable (permanent resident card, naturalization certificate)",
-        "Social Security cards for all household members",
-        "Proof of Alabama residency (utility bill, lease agreement, or state-issued document)",
-        "Most recent Social Security award letters",
-        "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)"
+        "Proof of medical expenses if claiming the deduction (pharmacy printouts, doctor or hospital bills, the Medicare premium statement from Social Security, insurance statements)",
+        "Proof of shelter expenses (rent or mortgage statement)",
+        "Proof of utility expenses (utility bills)",
+        "Proof of non-citizen status if applicable (permanent resident card, naturalization certificate)"
       ],
       "contacts": [
         {
-          "label": "AESAP Hotline",
-          "phone": "(334) 242-1700 ext 3",
-          "description": "Specific questions about the elderly simplified application",
-          "hours": "Monday-Friday business hours"
+          "label": "AESAP Customer Service (start here)",
+          "phone": "1-800-438-2958",
+          "description": "Alabama DHR. They send the 2-page AESAP form, answer questions on it, and take it back by phone.",
+          "hours": "Mon-Fri 8am-5pm CT"
         },
         {
-          "label": "DHR Customer Service",
-          "phone": "1-800-438-2958",
-          "description": "General food assistance applications and questions",
-          "hours": "Monday-Friday 8am-5pm CT"
+          "label": "Find your county DHR office",
+          "phone": "(833) 822-2202",
+          "description": "Alabama DHR locator for the county Food Assistance office.",
+          "hours": "Mon-Fri 8am-5pm CT"
         },
         {
           "label": "Alabama 2-1-1",
           "phone": "2-1-1",
-          "description": "Information about all social services and benefit programs",
+          "description": "General referral line.",
           "hours": "24 hours, 7 days a week"
         }
       ],
@@ -759,8 +763,8 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my 59-year-old loved one apply if they live with their 62-year-old spouse?",
-          "answer": "No, all household members must be 60 or older on the application date. Your loved one would need to apply through the regular SNAP program until they turn 60, or the couple would need to purchase and prepare food separately to be considered separate households."
+          "question": "Can my 64-year-old loved one apply if they live with their 67-year-old spouse?",
+          "answer": "No, all household members must be 65 or older on the application date. Your loved one would need to apply through the regular SNAP program until they turn 65, or the couple would need to purchase and prepare food separately to be considered separate households."
         },
         {
           "question": "What counts as 'earned income' that would disqualify them?",
@@ -768,7 +772,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How much in food benefits will my loved one actually receive?",
-          "answer": "The amount depends on household size and income after deductions. A single person with no income gets the maximum $291/month, but most people receive less based on their Social Security or other income. Medical expenses over $35/month can be deducted to increase benefits."
+          "answer": "The amount depends on household size and income after deductions. A single person with no income gets the maximum $298/month, but most people receive less based on their Social Security or other income. Medical expenses over $35/month can be deducted to increase benefits."
         },
         {
           "question": "What happens after the 3-year certification period ends?",
@@ -795,7 +799,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-438-2958",
       "sourceUrl": "https://dhr.alabama.gov/food-assistance/alabama-elderly-simplified-application-project-aesap/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "liheap-energy-assistance",
@@ -1358,35 +1363,35 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Emergency contact information",
-        "List of dietary restrictions or food allergies",
-        "Current medications (for meal planning)",
-        "Doctor's contact information",
-        "Proof of address within service area"
+        "Their date of birth or age. The program serves anyone 60 or older.",
+        "The home address and county where meals would go, so staff can confirm it is in the local service area.",
+        "Whether they can leave home on their own. Home delivery is only for seniors who are homebound.",
+        "A list of any food allergies or dietary restrictions",
+        "Emergency contact information"
       ],
       "contacts": [
         {
-          "label": "Alabama Aging Line",
+          "label": "Alabama AgeLine, the ADSS Aging and Disability Resource Center (start here)",
           "phone": "(800) 243-5463",
-          "description": "Statewide referral to local meal providers",
-          "hours": "Business hours"
+          "description": "Statewide first call for aging services. They route you to the Area Agency on Aging that covers the address where meals would go.",
+          "hours": "Business hours, Mon-Fri"
         },
         {
-          "label": "SARCOA (Southern Alabama)",
-          "phone": "Contact through www.sarcoa.org",
-          "description": "Area Agency serving southern Alabama counties",
+          "label": "Alabama Department of Senior Services, Montgomery office",
+          "phone": "(334) 242-5743",
+          "description": "Direct line to the state agency that runs the Elderly Nutrition Program.",
+          "hours": "Business hours, Mon-Fri"
+        },
+        {
+          "label": "SARCOA, Area Agency on Aging for southeast Alabama",
+          "phone": "(800) 239-3507",
+          "description": "Regional agency, southeast Alabama only.",
           "hours": "Mon-Fri 8am-4:30pm"
-        },
-        {
-          "label": "East Alabama Aging",
-          "phone": "(800) 239-6741",
-          "description": "Area Agency serving east Alabama region",
-          "hours": "Business hours"
         }
       ],
       "applicationNotes": [
         "Mobile seniors who can drive or have family help may be directed to congregate meals at senior centers instead of home delivery",
-        "Each of Alabama's 11 Area Agencies on Aging operates differently, delivery schedules, menu options, and volunteer availability vary significantly by county",
+        "Each of Alabama's 13 Area Agencies on Aging operates differently, delivery schedules, menu options, and volunteer availability vary significantly by county",
         "Voluntary donations are suggested but never required, the program cannot deny meals based on inability to contribute"
       ],
       "relatedPrograms": [
@@ -1433,7 +1438,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 243-5463",
       "sourceUrl": "https://alabamaageline.gov/elderly-nutrition-program/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "alabama-lifespan-respite-program",
@@ -2331,10 +2337,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Alabama Department of Senior Services",
-          "phone": "1-877-425-2243",
+          "label": "Alabama Department of Senior Services / AgeLine (start here)",
+          "phone": "1-800-243-5463",
           "description": "Main number for waiver information and local AAA referrals",
-          "hours": "Mon-Fri 8am-5pm CT"
+          "hours": "Business hours, Mon-Fri"
         },
         {
           "label": "Alabama Medicaid Customer Service",
@@ -2399,10 +2405,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "1-877-425-2243",
+      "phone": "1-800-243-5463",
       "sourceUrl": "https://medicaid.alabama.gov/content/6.0_LTC_waivers/6.1_HCBS_Waivers/6.1.2_Elderly_Disabled_Waiver.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "senior-aides-program",

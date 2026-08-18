@@ -2911,6 +2911,8 @@ function FollowUpProviderRow({
   const [contactFormOpened, setContactFormOpened] = useState(false);
   const [submittingContactForm, setSubmittingContactForm] = useState(false);
   const [savingContactFormUrl, setSavingContactFormUrl] = useState(false);
+  const [findingContactForm, setFindingContactForm] = useState(false);
+  const [contactFormNotFound, setContactFormNotFound] = useState(false);
   // Confirmation checkbox state
   const [confirmedWithProvider, setConfirmedWithProvider] = useState(false);
   // Reset to Ready state
@@ -3538,6 +3540,62 @@ function FollowUpProviderRow({
     } finally {
       if (editingSessionRef.current === sessionAtStart) {
         setSendingDirectMail(false);
+      }
+    }
+  };
+
+  // Handle auto-finding contact form URL from provider website
+  const handleFindContactForm = async () => {
+    if (!provider.website) {
+      setContactFormNotFound(true);
+      return;
+    }
+
+    const sessionAtStart = editingSessionRef.current;
+    setFindingContactForm(true);
+    setContactFormNotFound(false);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-contact-form", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          website: provider.website,
+        }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (!res.ok) {
+        const errData = await res.json();
+        if (stillValid) {
+          setError(errData.error || "Failed to find contact form");
+          setContactFormNotFound(true);
+        }
+        return;
+      }
+
+      const data = await res.json();
+
+      if (stillValid) {
+        if (data.found && data.url) {
+          setContactFormUrlInput(data.url);
+          onProviderUpdated({ contact_form_url: data.url, contact_form_status: "found" });
+        } else {
+          setContactFormNotFound(true);
+          onProviderUpdated({ contact_form_status: "not_found" });
+        }
+      }
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error finding contact form");
+        setContactFormNotFound(true);
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setFindingContactForm(false);
       }
     }
   };
@@ -4409,21 +4467,38 @@ Have questions? support@olera.care`;
                   setContactFormMessageCopied(false);
                   setContactFormOpened(false);
                   setContactFormUrlInput(provider.contact_form_url || "");
+                  setContactFormNotFound(provider.contact_form_status === "not_found");
                   setError(null);
+                  // Auto-find contact form if none exists and not already checked
+                  if (!provider.contact_form_url && provider.contact_form_status !== "not_found" && provider.website) {
+                    // Trigger find after state updates
+                    setTimeout(() => handleFindContactForm(), 0);
+                  }
                 }}
-                disabled={submitting !== null || editingContactForm || submittingContactForm || !provider.slug}
+                disabled={submitting !== null || editingContactForm || submittingContactForm || findingContactForm || !provider.slug}
                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 ${
                   provider.contact_form_url
                     ? "text-orange-800 bg-orange-100 border border-orange-300 hover:border-orange-400 hover:bg-orange-150"
-                    : "text-orange-700 bg-orange-50 border border-orange-200 hover:border-orange-300 hover:bg-orange-100"
+                    : provider.contact_form_status === "not_found"
+                      ? "text-gray-500 bg-gray-50 border border-gray-200 hover:border-gray-300 hover:bg-gray-100"
+                      : "text-orange-700 bg-orange-50 border border-orange-200 hover:border-orange-300 hover:bg-orange-100"
                 }`}
-                title={!provider.slug ? "No public page available" : provider.contact_form_url ? "Contact form URL saved" : undefined}
+                title={
+                  !provider.slug ? "No public page available" :
+                  provider.contact_form_url ? "Contact form URL saved" :
+                  provider.contact_form_status === "not_found" ? "No contact form found" :
+                  undefined
+                }
               >
-                {provider.contact_form_url && (
+                {provider.contact_form_url ? (
                   <svg className="w-3.5 h-3.5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                )}
+                ) : provider.contact_form_status === "not_found" ? (
+                  <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : null}
                 Contact Form
               </button>
             </div>
@@ -4563,6 +4638,7 @@ Have questions? support@olera.care`;
                       setContactFormMessageCopied(false);
                       setContactFormOpened(false);
                       setContactFormUrlInput("");
+                      setContactFormNotFound(false);
                       setError(null);
                     }}
                     className="text-xs text-orange-600 hover:text-orange-800"
@@ -4571,35 +4647,79 @@ Have questions? support@olera.care`;
                   </button>
                 </div>
 
-                {/* Contact Form URL Input */}
-                <div className="mb-3">
-                  <div className="flex gap-2">
-                    <input
-                      type="url"
-                      value={contactFormUrlInput}
-                      onChange={(e) => setContactFormUrlInput(e.target.value)}
-                      placeholder="https://example.com/contact"
-                      className="flex-1 px-3 py-2 text-sm border border-orange-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
-                      onClick={(e) => e.stopPropagation()}
-                    />
-                    {provider.website && !contactFormUrlInput && (
-                      <a
-                        href={provider.website.startsWith("http") ? provider.website : `https://${provider.website}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-2 text-sm font-medium text-orange-700 bg-white border border-orange-200 rounded-lg hover:bg-orange-100 whitespace-nowrap"
+                {/* Loading state while finding */}
+                {findingContactForm && (
+                  <div className="flex items-center gap-2 text-sm text-orange-600 py-4 justify-center">
+                    <span className="w-4 h-4 border-2 border-orange-300 border-t-orange-600 rounded-full animate-spin" />
+                    Finding contact form...
+                  </div>
+                )}
+
+                {/* Not found state */}
+                {!findingContactForm && contactFormNotFound && !contactFormUrlInput && (
+                  <div className="mb-3">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 bg-gray-100 px-3 py-2 rounded-lg mb-2">
+                      <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      No contact form found on their website
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={contactFormUrlInput}
+                        onChange={(e) => {
+                          setContactFormUrlInput(e.target.value);
+                          setContactFormNotFound(false);
+                        }}
+                        placeholder="Enter URL manually..."
+                        className="flex-1 px-3 py-2 text-sm border border-orange-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
                         onClick={(e) => e.stopPropagation()}
-                      >
-                        Find Form
-                      </a>
+                      />
+                      {provider.website && (
+                        <a
+                          href={provider.website.startsWith("http") ? provider.website : `https://${provider.website}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-2 text-sm font-medium text-orange-700 bg-white border border-orange-200 rounded-lg hover:bg-orange-100 whitespace-nowrap"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Visit Site
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Contact Form URL Input - shown when not loading and not in "not found" state, or when user has typed something */}
+                {!findingContactForm && (!contactFormNotFound || contactFormUrlInput) && (
+                  <div className="mb-3">
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={contactFormUrlInput}
+                        onChange={(e) => setContactFormUrlInput(e.target.value)}
+                        placeholder="https://example.com/contact"
+                        className="flex-1 px-3 py-2 text-sm border border-orange-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
+                        onClick={(e) => e.stopPropagation()}
+                        disabled={findingContactForm}
+                      />
+                      {provider.website && !contactFormUrlInput && !findingContactForm && (
+                        <button
+                          onClick={handleFindContactForm}
+                          className="px-3 py-2 text-sm font-medium text-orange-700 bg-white border border-orange-200 rounded-lg hover:bg-orange-100 whitespace-nowrap"
+                        >
+                          Find
+                        </button>
+                      )}
+                    </div>
+                    {!contactFormUrlInput && !findingContactForm && (
+                      <p className="mt-1.5 text-xs text-orange-600">
+                        {provider.contact_form_url ? "URL auto-filled from previous search" : "URL will be auto-found from their website"}
+                      </p>
                     )}
                   </div>
-                  {!contactFormUrlInput && (
-                    <p className="mt-1.5 text-xs text-orange-600">
-                      Enter the URL of their contact form page
-                    </p>
-                  )}
-                </div>
+                )}
 
                 {/* Show workflow when URL exists in input */}
                 {contactFormUrlInput && (

@@ -13,11 +13,12 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  *
  * Allowed update fields:
  *   - contact_form_url: string | null
+ *   - contact_form_status: "found" | "not_found" | null
  *   - mail_address: string | null
  *   - notes: string | null
  */
 
-const ALLOWED_FIELDS = ["contact_form_url", "mail_address", "notes"] as const;
+const ALLOWED_FIELDS = ["contact_form_url", "contact_form_status", "mail_address", "notes"] as const;
 type AllowedField = (typeof ALLOWED_FIELDS)[number];
 
 export async function POST(request: NextRequest) {

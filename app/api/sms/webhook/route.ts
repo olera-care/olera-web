@@ -255,12 +255,18 @@ async function pageCrisis(
 }
 
 /**
- * True when this number already got a "we're looking into it" text recently.
+ * True when this number already got, or is already owed, a "we're looking into
+ * it" text. On 18 Aug a family sent two near-identical messages 44 seconds
+ * apart; without this they would receive two identical acknowledgements, which
+ * reads as broken rather than attentive.
  *
- * Reads email_log rather than keeping separate state, because every ack is
- * logged there by sendSMS anyway. On 18 Aug a family sent two near-identical
- * messages 44 seconds apart; without this they would have received two
- * identical acknowledgements, which reads as broken rather than attentive.
+ * TWO sources, and the second is not optional. An ack that lands outside the
+ * recipient's quiet-hours window is parked in sms_queue and writes NO email_log
+ * row until the flush cron delivers it. That is exactly the 18 Aug case: the
+ * text arrived at 6:43am ET, which is before the 8am window opens, so an
+ * email_log-only check would find nothing, queue a second ack, and deliver both
+ * in a burst at 8am. Checking only the sent-log would have failed in precisely
+ * the scenario this dedupe exists for.
  *
  * Fails OPEN (returns false) on a query error: a duplicate ack is a much
  * smaller harm than silence.
@@ -270,16 +276,29 @@ const ACK_DEDUPE_WINDOW_MS = 6 * 60 * 60 * 1000;
 async function ackedRecently(phone: string): Promise<boolean> {
   const db = getServiceDb();
   if (!db) return false;
+
+  // Already delivered (or attempted) inside the window.
   const since = new Date(Date.now() - ACK_DEDUPE_WINDOW_MS).toISOString();
-  const { count, error } = await db
+  const { count: sent, error: sentError } = await db
     .from("email_log")
     .select("id", { count: "exact", head: true })
     .eq("channel", "sms")
     .eq("email_type", "care_seeker_ack")
     .eq("recipient", phone)
     .gte("created_at", since);
-  if (error) return false;
-  return typeof count === "number" && count > 0;
+  if (!sentError && typeof sent === "number" && sent > 0) return true;
+
+  // Or still waiting on quiet hours. No time bound here: a pending row is by
+  // definition an ack this number has not received yet.
+  const { count: queued, error: queuedError } = await db
+    .from("sms_queue")
+    .select("id", { count: "exact", head: true })
+    .eq("email_type", "care_seeker_ack")
+    .eq("to_phone", phone)
+    .eq("status", "pending");
+  if (!queuedError && typeof queued === "number" && queued > 0) return true;
+
+  return false;
 }
 
 /**
@@ -328,17 +347,24 @@ async function triageFamilyQuestion(args: {
   // messages in a row has asked one question, not three, and the Phase 2
   // worker reads the whole recent thread from sms_inbound rather than only
   // this row's body.
-  if (!db) return;
+  //
+  // The thread key is computed once. family_answer_jobs.phone_last10 is NOT
+  // NULL, so a number we cannot key (a short code, a malformed From) must be
+  // dropped here rather than sent to the insert. Unreachable in practice —
+  // reaching this function at all required a family profile to match on the
+  // same last-10 — but the column contract should not depend on that.
+  const key = last10(phone);
+  if (!db || !key) return;
   try {
     const { count } = await db
       .from("family_answer_jobs")
       .select("id", { count: "exact", head: true })
-      .eq("phone_last10", last10(phone) ?? phone)
+      .eq("phone_last10", key)
       .in("status", ["pending", "running"]);
     if (typeof count === "number" && count > 0) return;
 
     const { error } = await db.from("family_answer_jobs").insert({
-      phone_last10: last10(phone),
+      phone_last10: key,
       profile_id: profile?.id ?? null,
       twilio_sid: twilioSid,
       body: body.slice(0, 2_000),

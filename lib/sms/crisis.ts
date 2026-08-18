@@ -97,21 +97,62 @@ const TERMS: Record<CrisisCategory, string[]> = {
   ],
   // Abuse, violence, and immediate danger, including the elder-abuse phrasings
   // a family is most likely to use with us.
+  //
+  // Physical-harm verbs are NOT here. "hit me" as a bare term fires on "this
+  // heat hit me hard" and "my power bill hit me with a huge charge", both of
+  // which are ordinary messages in a queue whose dominant topic is broken air
+  // conditioning in a Florida summer. Those live in PATTERNS below, anchored to
+  // a person doing the hitting.
   safety: [
     "elder abuse",
     "being abused", "is abused", "abusing her", "abusing him", "abusing me",
-    "hit me", "hits me", "hitting me",
-    "hit her", "hits her", "hitting her",
-    "hit him", "hits him", "hitting him",
-    "beating me", "beating her", "beating him",
     "threatening me", "threatened me", "threatens me", "threatening to",
     "afraid for my life", "fear for my life", "scared for my life",
     "afraid of him", "afraid of her",
     "not safe here", "im not safe", "i am not safe", "shes not safe", "hes not safe",
     "in danger",
-    "being hurt", "hurting her", "hurting him",
+    "being hurt",
   ],
 };
+
+/**
+ * Phrase patterns for cases where a bare term is too loose to be useful.
+ *
+ * The bar for moving something here is: the term has a common, entirely
+ * innocent usage in OUR queue. Page fatigue is a real failure mode. A detector
+ * that fires on every heat complaint gets skimmed, and then the one message
+ * that mattered gets skimmed too.
+ *
+ * Anchoring on a person as the subject keeps the recall that matters ("my son
+ * hit me", "the aide has been hitting her") while dropping the weather and the
+ * utility bill.
+ */
+const SUBJECT =
+  "he|she|they|hes|shes|theyre|someone|somebody|husband|wife|son|daughter|aide|nurse|" +
+  "caregiver|caretaker|mother|father|mom|dad|brother|sister|neighbor|landlord|roommate|" +
+  "boyfriend|girlfriend|partner|staff|worker|driver|grandson|granddaughter|nephew|niece";
+// Present, continuous AND past for every verb. "grabbed" slipped past a list
+// that had grab/grabs/grabbing, the same way "ending it all" slipped past the
+// term "end it all". Inflections do not stem themselves; spell them out.
+const HARM_VERB =
+  "hit|hits|hitting|beat|beats|beating|beaten|hurt|hurts|hurting|" +
+  "slap|slaps|slapping|slapped|push|pushes|pushing|pushed|" +
+  "shove|shoves|shoving|shoved|grab|grabs|grabbing|grabbed|" +
+  "choke|chokes|choking|choked|attack|attacks|attacking|attacked";
+const OBJECT =
+  "me|her|him|us|my (?:mother|mom|father|dad|husband|wife|son|daughter|parent|grandmother|grandfather)";
+
+const PATTERNS: { category: CrisisCategory; label: string; re: RegExp }[] = [
+  {
+    category: "safety",
+    label: "person striking someone",
+    // e.g. "he keeps hitting me", "the aide has been hurting her",
+    //      "my son hit my mother". Optional auxiliary between subject and verb.
+    re: new RegExp(
+      `\\b(?:${SUBJECT})\\s+(?:is\\s+|was\\s+|keeps\\s+|kept\\s+|has\\s+been\\s+|had\\s+been\\s+|been\\s+)?(?:${HARM_VERB})\\s+(?:${OBJECT})\\b`,
+    ),
+  },
+];
 
 /** Severity order. The page should name the worst thing it found. */
 const SEVERITY: CrisisCategory[] = ["self_harm", "medical", "safety"];
@@ -166,6 +207,13 @@ export function detectCrisis(body: string | null | undefined): CrisisResult {
         // page can show everything that fired.
         category ||= cat;
       }
+    }
+  }
+
+  for (const pattern of PATTERNS) {
+    if (pattern.re.test(text)) {
+      matched.push(pattern.label);
+      category ||= pattern.category;
     }
   }
 

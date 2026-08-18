@@ -48,12 +48,17 @@ const MUST_FLAG: string[] = [
   "she won't wake up",
   "he collapsed in the kitchen",
 
-  // Abuse and danger
+  // Abuse and danger. These run through the person-subject PATTERNS rather
+  // than bare terms, so they double as the recall guard for that change.
   "he keeps hitting me and I'm scared",
   "This is elder abuse, please help",
   "my dad's aide has been hitting him",
   "she's not safe living alone",
   "my brother is threatening to throw her out",
+  "my son hit my mother",
+  "the caregiver grabbed her arm",
+  "someone is hurting her while I'm at work",
+  "her husband shoves her",
 ];
 
 /** Ordinary messages, including our own program vocabulary. Must stay quiet. */
@@ -79,6 +84,16 @@ const MUST_NOT_FLAG: string[] = [
   "My mother needs help with bathing and meals",
   "How long does the application take?",
   "Can my daughter apply on my behalf?",
+
+  // Heat and money idioms. Every one of these flagged before physical-harm
+  // verbs were moved behind a person subject. In a queue about broken air
+  // conditioning in a Florida summer they are ordinary sentences, and paging
+  // a human on each one is how the pages stop being read.
+  "this heat hit me hard yesterday",
+  "the heat really hit me",
+  "my power bill hit me with a huge charge",
+  "the heat is hitting me hard",
+  "the summer heat is hurting her",
 ];
 
 function main(): void {

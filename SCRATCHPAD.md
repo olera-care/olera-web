@@ -7,6 +7,30 @@
 
 ## Current Focus
 
+### 2026-08-18 — GA4 inflation traced to AWS bots; img2dataset scraper blocked (operations, no code)
+
+**Zero code changes.** One firewall rule published; the rest is diagnosis. Follow-on from the ground-truth audit below.
+
+**The "delete the old GA4 stream" follow-up was already done, and it was never the cause anyway.** Admin → Data streams lists exactly one stream (`olera.care web v2`, id `15064657515`, receiving traffic). `G-ZLP95NWSZW` no longer exists. The stale open item in memory has been corrected.
+
+**What actually inflates GA4: AWS-hosted bot traffic.** Demographic details → City, July 2026 (38,561 active users): **Boardman 16,304 (42.3%) at 7s average engagement, 98.9% "new users"**; then (not set) 2,888 / 18s, Houston 556 / 42s, New York 513 / 25s, Dallas 346 / 58s. **Boardman OR is AWS `us-west-2`.** Real US cities run 25–58s. Traffic acquisition for the same month: Direct **22,401 sessions (54.5%) at 17s / 42.4% engaged** vs Organic Search **17,474 (42.5%) at 48s / 60.9% engaged**.
+
+**This is NOT ghost spam — it hits the server.** Ghost spam posts straight to Google's collect endpoint. Server-side counters confirm real hits: distinct sessions on provider pages 26,383 (Jun) → 40,654 (Jul), **+54%**, while questions went 2,644 → 2,710 (+2.5%) and inquiries 354 → 322 (**−9%**). Real requests, zero humans. **Therefore the lever is the Vercel Firewall, not anything in GA4** — GA4's bot exclusion only covers the IAB list, is not configurable, and misses JS-rendering cloud scrapers.
+
+**Two distinct actors, found in Firewall → Traffic (past hour, ~7.1k requests to olera.care):**
+1. **`ImageBot/1.0 (compatible; research crawler; +https://github.com/rom1504/img2dataset; opt-out: abuse.notification.dcomp12b@gmail.com)`** — 317 req/hr. img2dataset builds large-scale image-text AI training sets. `/_next/image` was **1.4k of 7.1k requests**, the site's busiest path, and it is billed. Does not run JS, so it is not the GA4 problem — it is a cost and image-harvesting problem.
+2. **Headless Chrome** — `Mozilla/5.0 (X11; Linux x86_64) … Chrome/150.0.0.0 Safari/537.36`, **2.1k req/hr**, top UA on the site. The `150.0.0.0` reduced version string plus X11/Linux is the Puppeteer/Playwright signature. Amazon is AS #1 and #3 (1.1k + 745 req/hr). **This one runs JS and is the GA4 Boardman traffic.** Operator unidentified.
+
+**SHIPPED: custom rule `Block img2dataset image scraper`** (`rule_block_img2dataset_image_scraper_54c2G0`) — `User Agent Contains "img2dataset"` → **Deny**. Published to production. Sits below `Allow verified search bots`, so Googlebot/bingbot are untouched. Matched on `img2dataset` not `ImageBot` because the tool URL is the distinctive token. **Vercel's managed "AI Bots" ruleset was already set to Deny and did not catch this crawler** — do not assume the managed list covers a named bot.
+
+**Deliberately NOT done: the AWS/headless-Chrome half.** TJ deferred it the week of an investor call, which is right. Two reasons beyond timing: (a) the dominant JA4 digest `t13d1516h2_8daaf6152771_…` (3.7k) is ordinary Chrome's TLS fingerprint, shared with real users, so it is not a safe discriminator; (b) the existing `Twilio webhooks` bypass rule exists precisely because Twilio posts from datacenter IPs and bot_protection was 429ing them — the canonical warning about ASN-level blocks. If it is ever taken on, use Challenge not Deny, and audit which of our own services egress from AWS first.
+
+**Vercel team slug is `olera`, not `olera-pro`** — the latter 404s. Prod project `olera-web`. Firewall edits stage and require **Review Changes → Publish**; saving alone does nothing.
+
+**Nothing here changes the Friday numbers.** GSC is flat at ~3,300 clicks/wk; organic stands at ~15,000/mo.
+
+**Next:** (1) Firewall → Traffic, past 24h, tomorrow — `ImageBot/1.0` should vanish from Top User Agents and `/_next/image` should fall well below 1.4k/hr; if not, they changed their UA. (2) Decide after Friday whether to Challenge AWS-origin traffic. (3) Standing rule: quote GSC clicks or GA4 Organic Search users, never GA4 `total_users`.
+
 ### 2026-08-18 — Ground-truth audit for the David Qu call (analysis only, zero code)
 
 **Zero code changes.** Read-only queries against live Supabase, GA4/GSC snapshots, and Stripe. Output is the artifact `Olera Ground Truth` (https://claude.ai/code/artifact/25c5b172-98bc-4bc3-9dd1-6cb70ff968d5), the pre-read for Friday 21 Aug 9:00 CT.

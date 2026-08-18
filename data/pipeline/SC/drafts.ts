@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/SC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.802Z
+ * Last updated: 2026-08-18T09:52:08.689Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -767,8 +767,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Find your county Community Action Agency (start here)",
           "phone": "(803) 734-0662",
           "description": "SC Office of Economic Opportunity. OEO says plainly that it does not take LIHEAP applications. Call and they point you to the Community Action Agency for your county, which does. The county list is at oeo.sc.gov/managedsites/prd/oeo/help.html.",
-          "hours": "Mon-Fri 8:30am-5pm ET",
-          "url": "https://oeo.sc.gov/managedsites/prd/oeo/help.html"
+          "hours": "Mon-Fri 8:30am-5pm ET"
         },
         {
           "label": "Aiken/Barnwell Counties CAA, Cayce office",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.778Z
+ * Last updated: 2026-08-18T09:52:08.659Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1306,16 +1306,14 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Florida Department of Commerce (start here)",
           "phone": "(850) 245-7105",
-          "description": "Applications only happen through the weatherization office for your county, never online and never at the state. Call to be pointed to yours, or look it up at floridajobs.org/WAPHelp.",
-          "hours": "Mon-Fri, business hours",
-          "url": "https://www.floridajobs.org/WAPHelp"
+          "description": "Applications only happen through the weatherization office for your county, never online and never at the state. Call to be pointed to yours, or look it up at floridajobs.org/WAPHelp. Details at www.floridajobs.org/WAPHelp.",
+          "hours": "Mon-Fri, business hours"
         },
         {
           "label": "Find your county's weatherization office",
           "phone": null,
-          "description": "State directory covering all 67 counties, with a phone number for each.",
-          "hours": null,
-          "url": "https://www.floridajobs.org/WAPHelp"
+          "description": "State directory covering all 67 counties, with a phone number for each. Details at www.floridajobs.org/WAPHelp.",
+          "hours": null
         },
         {
           "label": "FloridaCommerce Bureau of Economic Self-Sufficiency, public inquiries",

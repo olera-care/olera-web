@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/ND/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.793Z
+ * Last updated: 2026-08-18T09:52:08.680Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -424,9 +424,8 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "ND Assistive, Senior Safety Program (start here)",
           "phone": "(800) 895-4728",
-          "description": "Ask about eligibility, which devices are covered, and how to get an application.",
-          "hours": "Mon-Thu 8:30am-5pm, Fri 8:30am-noon CT",
-          "url": "https://ndassistive.org/senior-safety-program/"
+          "description": "Ask about eligibility, which devices are covered, and how to get an application. Details at ndassistive.org/senior-safety-program.",
+          "hours": "Mon-Thu 8:30am-5pm, Fri 8:30am-noon CT"
         },
         {
           "label": "ND Assistive, Bismarck office",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.772Z
+ * Last updated: 2026-08-18T09:52:08.647Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -918,16 +918,14 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Alabama LIHEAP information line, ADECA (start here)",
           "phone": "1-800-392-8098",
-          "description": "Alabama's state energy office. They will tell you which Community Action Agency serves your county. They do not take applications or book appointments.",
-          "hours": "Mon-Fri 8am-5pm CT",
-          "url": "https://adeca.alabama.gov/liheap/"
+          "description": "Alabama's state energy office. They will tell you which Community Action Agency serves your county. They do not take applications or book appointments. Details at adeca.alabama.gov/liheap.",
+          "hours": "Mon-Fri 8am-5pm CT"
         },
         {
           "label": "Your county Community Action Agency (this is where you apply)",
           "phone": null,
-          "description": "Eighteen regional agencies cover every Alabama county, each with its own call centre.",
-          "hours": "Varies; most offices Mon-Fri, business hours",
-          "url": "https://adeca.alabama.gov/wp-content/uploads/LIHEAPRegionsMap.pdf"
+          "description": "Eighteen regional agencies cover every Alabama county, each with its own call centre. Details at adeca.alabama.gov/wp-content/uploads/LIHEAPRegionsMap.pdf.",
+          "hours": "Varies; most offices Mon-Fri, business hours"
         },
         {
           "label": "2-1-1 Connects Alabama (referral line, not the program)",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MD/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.787Z
+ * Last updated: 2026-08-18T09:52:08.671Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1301,9 +1301,8 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Find your Local Weatherization Agency",
           "phone": null,
-          "description": "DHCD list of the 10 local weatherization agencies and the areas each covers, if you would rather start locally.",
-          "hours": null,
-          "url": "https://dhcd.maryland.gov/Energy-Home-Repair/Documents/WAP/LocalWeatherizationAgenciesContacts.pdf"
+          "description": "DHCD list of the 10 local weatherization agencies and the areas each covers, if you would rather start locally. Details at dhcd.maryland.gov/Energy-Home-Repair/Documents/WAP/LocalWeatherizationAgenciesContacts.pdf.",
+          "hours": null
         },
         {
           "label": "DHCD main switchboard",

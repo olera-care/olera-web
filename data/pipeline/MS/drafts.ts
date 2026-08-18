@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.790Z
+ * Last updated: 2026-08-18T09:52:08.676Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -869,16 +869,14 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "MDHS Division of Community Services, statewide LIHEAP help line (start here)",
           "phone": "(800) 421-0762",
-          "description": "They route you to the Community Action Agency for your county, which schedules the appointment and takes the application. You can also start a pre-application at access.ms.gov, but you will not be denied for skipping it.",
-          "hours": "Mon-Fri, business hours (Central time)",
-          "url": "https://www.mdhs.ms.gov/community/liheap/"
+          "description": "They route you to the Community Action Agency for your county, which schedules the appointment and takes the application. You can also start a pre-application at access.ms.gov, but you will not be denied for skipping it. Details at www.mdhs.ms.gov/community/liheap.",
+          "hours": "Mon-Fri, business hours (Central time)"
         },
         {
           "label": "Find your county's Community Action Agency",
           "phone": null,
-          "description": "MDHS county selector covering all 82 counties. The agency schedules and completes the application.",
-          "hours": null,
-          "url": "https://www.mdhs.ms.gov/community/"
+          "description": "MDHS county selector covering all 82 counties. The agency schedules and completes the application. Details at www.mdhs.ms.gov/community.",
+          "hours": null
         },
         {
           "label": "Mississippi 2-1-1",
@@ -1487,9 +1485,8 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Mississippi Access to Care (MAC) Center (start here)",
           "phone": "844-822-4622",
-          "description": "One number for both programs. If the person you care for has Alzheimer's, another dementia, or cognitive impairment, say so, because that routes you to the Mississippi Dementia Care Program instead.",
-          "hours": "Mon-Fri, business hours",
-          "url": "https://www.mdhs.ms.gov/aging/caregivers/"
+          "description": "One number for both programs. If the person you care for has Alzheimer's, another dementia, or cognitive impairment, say so, because that routes you to the Mississippi Dementia Care Program instead. Details at www.mdhs.ms.gov/aging/caregivers.",
+          "hours": "Mon-Fri, business hours"
         },
         {
           "label": "MDHS Division of Aging and Adult Services",

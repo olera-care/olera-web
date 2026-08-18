@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/GA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.779Z
+ * Last updated: 2026-08-18T09:52:08.660Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1132,16 +1132,14 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Georgia Weatherization Assistance Program, GEFA (start here)",
           "phone": "(404) 584-1000",
-          "description": "State program office. GEFA does not take applications. Call to find out which community action agency serves your county, then apply with that agency.",
-          "hours": "Mon-Fri 8am-5pm ET",
-          "url": "https://gefa.georgia.gov/weatherization-assistance-program"
+          "description": "State program office. GEFA does not take applications. Call to find out which community action agency serves your county, then apply with that agency. Details at gefa.georgia.gov/weatherization-assistance-program.",
+          "hours": "Mon-Fri 8am-5pm ET"
         },
         {
           "label": "Find your county's weatherization agency",
           "phone": null,
-          "description": "Official state list of the 14 community action agencies and the counties each one serves. Find your county, then open that agency page for its phone number.",
-          "hours": null,
-          "url": "https://gefa.georgia.gov/locations/community-action-agency"
+          "description": "Official state list of the 14 community action agencies and the counties each one serves. Find your county, then open that agency page for its phone number. Details at gefa.georgia.gov/locations/community-action-agency.",
+          "hours": null
         },
         {
           "label": "Georgia 2-1-1",

@@ -1296,9 +1296,8 @@
         {
           "label": "Find your Local Weatherization Agency",
           "phone": null,
-          "description": "DHCD list of the 10 local weatherization agencies and the areas each covers, if you would rather start locally.",
-          "hours": null,
-          "url": "https://dhcd.maryland.gov/Energy-Home-Repair/Documents/WAP/LocalWeatherizationAgenciesContacts.pdf"
+          "description": "DHCD list of the 10 local weatherization agencies and the areas each covers, if you would rather start locally. Details at dhcd.maryland.gov/Energy-Home-Repair/Documents/WAP/LocalWeatherizationAgenciesContacts.pdf.",
+          "hours": null
         },
         {
           "label": "DHCD main switchboard",

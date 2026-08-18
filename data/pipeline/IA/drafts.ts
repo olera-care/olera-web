@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.781Z
+ * Last updated: 2026-08-18T09:52:08.663Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1676,16 +1676,14 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Iowa HHS Income Maintenance Customer Service Center (start here)",
           "phone": "1-877-347-5678",
-          "description": "Handles cash assistance and how to apply. This is the line Iowa HHS publishes for benefit questions.",
-          "hours": "Mon-Fri 8am-4:30pm CT",
-          "url": "https://hhs.iowa.gov/medicaid/member-services"
+          "description": "Handles cash assistance and how to apply. This is the line Iowa HHS publishes for benefit questions. Details at hhs.iowa.gov/medicaid/member-services.",
+          "hours": "Mon-Fri 8am-4:30pm CT"
         },
         {
           "label": "Iowa Aging and Disability Resource Center (Iowa Compass)",
           "phone": "1-800-779-2001",
-          "description": "System navigators who can screen the whole picture, including the Elderly Waiver, if SSA turns out to be the wrong fit.",
-          "hours": "Mon-Fri 8am-4:30pm CT",
-          "url": "https://hhs.iowa.gov/family-community/aging-disability-resource-center"
+          "description": "System navigators who can screen the whole picture, including the Elderly Waiver, if SSA turns out to be the wrong fit. Details at hhs.iowa.gov/family-community/aging-disability-resource-center.",
+          "hours": "Mon-Fri 8am-4:30pm CT"
         },
         {
           "label": "Social Security Administration",

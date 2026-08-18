@@ -1301,16 +1301,14 @@
         {
           "label": "Florida Department of Commerce (start here)",
           "phone": "(850) 245-7105",
-          "description": "Applications only happen through the weatherization office for your county, never online and never at the state. Call to be pointed to yours, or look it up at floridajobs.org/WAPHelp.",
-          "hours": "Mon-Fri, business hours",
-          "url": "https://www.floridajobs.org/WAPHelp"
+          "description": "Applications only happen through the weatherization office for your county, never online and never at the state. Call to be pointed to yours, or look it up at floridajobs.org/WAPHelp. Details at www.floridajobs.org/WAPHelp.",
+          "hours": "Mon-Fri, business hours"
         },
         {
           "label": "Find your county's weatherization office",
           "phone": null,
-          "description": "State directory covering all 67 counties, with a phone number for each.",
-          "hours": null,
-          "url": "https://www.floridajobs.org/WAPHelp"
+          "description": "State directory covering all 67 counties, with a phone number for each. Details at www.floridajobs.org/WAPHelp.",
+          "hours": null
         },
         {
           "label": "FloridaCommerce Bureau of Economic Self-Sufficiency, public inquiries",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WV/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.808Z
+ * Last updated: 2026-08-18T09:52:08.696Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2408,9 +2408,8 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "WV Aging and Disability Resource Center (start here)",
           "phone": "866-981-2372",
-          "description": "The ADRC takes the application and will help you fill it out. Call before you line up a contractor, because work already bought or built is not eligible.",
-          "hours": "Business hours, Mon-Fri (the ADRC does not publish exact times)",
-          "url": "https://www.wvadrc.com/assistance-programs.html"
+          "description": "The ADRC takes the application and will help you fill it out. Call before you line up a contractor, because work already bought or built is not eligible. Details at www.wvadrc.com/assistance-programs.html.",
+          "hours": "Business hours, Mon-Fri (the ADRC does not publish exact times)"
         },
         {
           "label": "WV ADRC State Office, Region II (Dunbar), local line",

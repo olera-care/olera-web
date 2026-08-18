@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TX/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.804Z
+ * Last updated: 2026-08-18T09:52:08.693Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1184,9 +1184,8 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "TDHCA, Texas Weatherization Assistance Program (start here)",
           "phone": "(800) 525-0657",
-          "description": "The state agency that runs Texas WAP. They do not take applications, but they will tell you which weatherization provider serves your county. You can also look it up at tdhca.texas.gov/help-for-texans.",
-          "hours": "Mon-Fri 8am-5pm CT",
-          "url": "https://www.tdhca.texas.gov/help-for-texans"
+          "description": "The state agency that runs Texas WAP. They do not take applications, but they will tell you which weatherization provider serves your county. You can also look it up at tdhca.texas.gov/help-for-texans. Details at www.tdhca.texas.gov/help-for-texans.",
+          "hours": "Mon-Fri 8am-5pm CT"
         },
         {
           "label": "Texas 2-1-1",

@@ -824,6 +824,7 @@ interface OutreachProvider {
   linkedin_url: string | null;
   mail_address: string | null;
   contact_form_url: string | null;
+  contact_form_status: "found" | "not_found" | null;
   // Assignment
   assigned_to: string | null;
   // Sequence progress (for in_sequence stage)

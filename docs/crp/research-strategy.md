@@ -85,11 +85,15 @@ Specific Aim 1: Verify, validate, and drive adoption of the CareNavigator for fa
 
 The CareNavigator Platform.
 
-The matching agents (live). Three agents run over Olera's curated, versioned database using retrieval-augmented generation: needs assessment, eligibility matching across twelve program and service categories, and guidance. They read only from that database, never the open web, and cannot assert what the records do not support. Records enter only through the ingestion pipeline, where an eldercare-benefits expert confirms every change before it goes live.
+The intervention is a closed navigation loop: understand a family's needs, identify the aid and services they qualify for, help them act, and follow each case to a decision, recording the outcome so the next family's navigation reflects what programs actually decide.
 
-The execution loop (in development). Families currently complete every application step themselves. The loop assembles required documents against a per-program checklist, fills the application from the family's stored profile and flags what is missing, drafts communications for family approval, books assessments, and tracks each case to decision, escalating anything unresolved to a human navigator. Document preparation is the default because it works everywhere; the platform never submits an application and never holds a portal credential, and VA claims are screened and referred because federal law reserves claim preparation to accredited representatives.
+Matching technology (live). The loop's front half is live nationally today: structured screening, eligibility matching over the expert-curated program database, guidance built from expert-approved responses, and provider matching. A conversational agent architecture that will carry these functions is in development.
 
-The follow-up loop (yet to be developed). Once a family files, no one follows the case. The loop will watch every open case and re-engage the family by text or email when a step stalls, so an application that would otherwise lapse reaches a decision. Every approval, denial, and pending decision the family reports is then captured and returned to the database, and the next family's answer reflects what programs actually decided.
+The execution loop (in development). This loop helps families act on their matches: it prepares applications and documents for the family's review, books assessments, and tracks each case to decision, escalating anything unresolved to a human navigator. The family submits everything; the platform holds no portal credentials, and VA claims are referred to accredited representatives.
+
+The follow-up loop (yet to be developed). This loop re-engages the family when a step stalls and returns every reported outcome to the database.
+
+Each component is verified against pre-specified criteria in Task 1.1.
 
 Task 1.1 Verify the CareNavigator against expert review. The developed CareNavigator will be verified by an expert panel of licensed clinical social workers, independent of the engineering team and holding no equity. This is internal product verification, not human-subjects research. For each audited household the panel determines eligibility blinded to the platform's answer, and for a sample of cases it prepares the applications by hand. Both are compared against what the platform produced, category by category for eligibility and field by field for applications. Agreement is reported as percent agreement with a 95 percent confidence interval and as Cohen's kappa, with disagreements fed to the error analysis. Audited households are held out of tuning data.
 

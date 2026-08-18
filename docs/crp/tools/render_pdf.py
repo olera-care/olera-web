@@ -60,7 +60,7 @@ BOLD_LEADS_SENTENCE = [  # bold from start through the end of the first sentence
     'Problems and alternatives.',
 ]
 ITALIC_LEADS_SENTENCE = [  # italic through the end of the first sentence
-    'The matching agents (live).', 'The execution loop (in development).',
+    'Matching technology (live).', 'The execution loop (in development).',
     'The follow-up loop (yet to be developed).', 'Staffing.', 'Clients.',
     'Design, participants, and recruitment.', 'Data collection procedures.',
     'Data management and analysis.',

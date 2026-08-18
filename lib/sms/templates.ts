@@ -85,3 +85,22 @@ export function verificationCodeSms(code: string): string {
 export function smsHelpReply(): string {
   return "Olera: We text care-search updates and provider replies. Reply STOP to opt out. Help: olera.care/contact";
 }
+
+/**
+ * Acknowledgement for a free-form question from a family. The ONLY message in
+ * the Family Answers flow that goes out without a human reading it first, which
+ * is why it makes no claims of any kind: it promises attention, not an answer.
+ *
+ * It also carries the disclaimer for the whole conversation. A per-message
+ * legal line would eat the 480-char reply budget every time, but this text is
+ * always the first thing a family hears back, so the caveat rides along once
+ * and every later reply stays clean. Full terms live on the /m/{token} plan
+ * page, which has no length limit.
+ *
+ * No "Reply STOP" line: this is transactional, sent in direct response to a
+ * message the family just sent us, and STOP is already handled at the carrier
+ * and in the webhook.
+ */
+export function familyAnswerAckSms(): string {
+  return "Thanks for reaching out. We're looking into this and will get back to you with what we find. We share free resources and can get things wrong, so please confirm anything important with the agency.";
+}

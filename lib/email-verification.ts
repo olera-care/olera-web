@@ -54,6 +54,52 @@ const ROLE_BASED_SUBSTATUS = "role_based";
 const ROLE_BASED_CATCH_ALL_SUBSTATUS = "role_based_catch_all";
 
 /**
+ * Verdicts a human "send anyway" must NOT be able to override.
+ *
+ * The trust allowlist (email_overrides) exists because ZeroBounce is
+ * over-aggressive about ROLE addresses — info@, admissions@ — which are
+ * deliverable and are exactly what a provider publishes. Overriding a
+ * *prediction* is legitimate. These sub-statuses are not predictions:
+ *
+ *   mailbox_not_found      the inbox does not exist
+ *   no_dns_entries         the domain has no mail server at all
+ *   does_not_accept_mail   the server refuses mail outright
+ *   failed_syntax_check    not a valid address
+ *   unroutable_ip_address  nowhere to deliver to
+ *   abuse / possible_trap  sending actively damages sending reputation
+ *
+ * Overriding one of these can only ever produce a bounce. On 2026-08-18 they
+ * accounted for 203 of the previous week's 260 bounces (202 of them carrying a
+ * trust override), pushing the account to 4.77% against Resend's 4% ceiling —
+ * a ceiling shared with family mail, student outreach and login links.
+ *
+ * Deliberately NOT here, because they are recoverable or genuinely arguable:
+ * role_based, role_based_catch_all, catch-all (the whole point of the
+ * override), mailbox_quota_exceeded (a full inbox is transient), disposable,
+ * possible_typo, mx_forward.
+ */
+export const UNOVERRIDABLE_SUBSTATUSES = new Set<string>([
+  "mailbox_not_found",
+  "no_dns_entries",
+  "does_not_accept_mail",
+  "failed_syntax_check",
+  "unroutable_ip_address",
+  "abuse",
+  "possible_trap",
+]);
+
+/**
+ * True when a verdict is a hard fact about the mailbox rather than a
+ * prediction, so no human "send anyway" should be able to clear it.
+ */
+export function isUnoverridableVerdict(
+  status: VerificationStatus,
+  subStatus: string | null,
+): boolean {
+  return status === "invalid" && !!subStatus && UNOVERRIDABLE_SUBSTATUSES.has(subStatus);
+}
+
+/**
  * Reinterpret a raw (provider-reported) verdict into the EFFECTIVE verdict we
  * act on at send time. This is policy, deliberately kept OUT of the cache and
  * the normalizer: the cache stores what ZeroBounce said; callers decide what to

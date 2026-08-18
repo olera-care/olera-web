@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     // Get current tracking record to verify provider exists in outreach
     const { data: tracking, error: trackingError } = await db
       .from("provider_outreach_tracking")
-      .select("id, provider_id, stage, sequence_started_at")
+      .select("id, provider_id, stage, sequence_started_at, email_source")
       .eq("provider_id", provider_id)
       .single();
 
@@ -154,11 +154,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Set sequence_started_at if not already set, so this provider counts in Sequence Conv.
+    // Also set sequenced_with_source for accurate org vs decision-maker conversion tracking.
     // This ensures providers who receive manual claim links are tracked for conversion.
     if (!tracking.sequence_started_at) {
       const { error: updateError } = await db
         .from("provider_outreach_tracking")
-        .update({ sequence_started_at: nowIso })
+        .update({
+          sequence_started_at: nowIso,
+          sequenced_with_source: tracking.email_source || "organization",
+        })
         .eq("id", tracking.id);
 
       if (updateError) {

@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
     // Get current tracking record
     const { data: tracking, error: trackingError } = await db
       .from("provider_outreach_tracking")
-      .select("id, provider_id, stage, resend_count, due_date, city, state, sequence_started_at")
+      .select("id, provider_id, stage, resend_count, due_date, city, state, sequence_started_at, email_source")
       .eq("provider_id", provider_id)
       .single();
 
@@ -184,8 +184,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Set sequence_started_at for resend_link so provider counts in Sequence Conv.
+    // Also set sequenced_with_source for accurate org vs decision-maker conversion tracking.
     if (shouldSetSequenceStartedAt) {
       updateData.sequence_started_at = nowIso;
+      updateData.sequenced_with_source = tracking.email_source || "organization";
     }
 
     if (newStage) {

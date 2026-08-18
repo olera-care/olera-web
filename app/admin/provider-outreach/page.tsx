@@ -4479,13 +4479,14 @@ Have questions? support@olera.care`;
                 className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 ${
                   provider.contact_form_url
                     ? "text-orange-800 bg-orange-100 border border-orange-300 hover:border-orange-400 hover:bg-orange-150"
-                    : provider.contact_form_status === "not_found"
+                    : provider.contact_form_status === "not_found" || !provider.website
                       ? "text-gray-500 bg-gray-50 border border-gray-200 hover:border-gray-300 hover:bg-gray-100"
                       : "text-orange-700 bg-orange-50 border border-orange-200 hover:border-orange-300 hover:bg-orange-100"
                 }`}
                 title={
                   !provider.slug ? "No public page available" :
                   provider.contact_form_url ? "Contact form URL saved" :
+                  !provider.website ? "No website on record (manual entry only)" :
                   provider.contact_form_status === "not_found" ? "No contact form found" :
                   undefined
                 }
@@ -4494,7 +4495,7 @@ Have questions? support@olera.care`;
                   <svg className="w-3.5 h-3.5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                ) : provider.contact_form_status === "not_found" ? (
+                ) : provider.contact_form_status === "not_found" || !provider.website ? (
                   <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -4639,6 +4640,7 @@ Have questions? support@olera.care`;
                       setContactFormOpened(false);
                       setContactFormUrlInput("");
                       setContactFormNotFound(false);
+                      setFindingContactForm(false);
                       setError(null);
                     }}
                     className="text-xs text-orange-600 hover:text-orange-800"
@@ -4715,7 +4717,11 @@ Have questions? support@olera.care`;
                     </div>
                     {!contactFormUrlInput && !findingContactForm && (
                       <p className="mt-1.5 text-xs text-orange-600">
-                        {provider.contact_form_url ? "URL auto-filled from previous search" : "URL will be auto-found from their website"}
+                        {provider.contact_form_url
+                          ? "URL auto-filled from previous search"
+                          : provider.website
+                            ? "URL will be auto-found from their website"
+                            : "No website on record. Enter contact form URL manually."}
                       </p>
                     )}
                   </div>

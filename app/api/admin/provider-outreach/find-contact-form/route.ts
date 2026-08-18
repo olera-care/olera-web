@@ -149,6 +149,8 @@ function extractContactLinks(html: string, baseUrl: string): string[] {
 async function findContactForm(website: string): Promise<{ found: boolean; url?: string; checkedUrls: string[] }> {
   const baseUrl = normalizeUrl(website);
   const checkedUrls: string[] = [];
+  // Track URLs that exist but don't have forms (fallback candidates)
+  const existingUrlsWithoutForms: string[] = [];
 
   // First, check common contact page patterns
   for (const pattern of CONTACT_PAGE_PATTERNS) {
@@ -165,8 +167,8 @@ async function findContactForm(website: string): Promise<{ found: boolean; url?:
           if (containsForm(html)) {
             return { found: true, url, checkedUrls };
           }
-          // Even without a form, a contact page is useful (might have email/phone)
-          // But prefer pages with forms
+          // Track as existing URL without form (might use as fallback)
+          existingUrlsWithoutForms.push(url);
         }
       }
     } catch {
@@ -193,6 +195,8 @@ async function findContactForm(website: string): Promise<{ found: boolean; url?:
             if (containsForm(html)) {
               return { found: true, url: link, checkedUrls };
             }
+            // Track as existing URL without form
+            existingUrlsWithoutForms.push(link);
           }
         } catch {
           // Continue to next link
@@ -209,15 +213,10 @@ async function findContactForm(website: string): Promise<{ found: boolean; url?:
     // Homepage fetch failed
   }
 
-  // Last resort: check if any of the common URLs exist (even without forms)
-  for (const pattern of CONTACT_PAGE_PATTERNS.slice(0, 3)) {
-    const url = `${baseUrl}${pattern}`;
-    if (!checkedUrls.includes(url)) {
-      checkedUrls.push(url);
-    }
-    if (await urlExists(url)) {
-      return { found: true, url, checkedUrls };
-    }
+  // Last resort: return any existing contact page URL (even without forms)
+  // These were already fetched above, so no need to re-fetch
+  if (existingUrlsWithoutForms.length > 0) {
+    return { found: true, url: existingUrlsWithoutForms[0], checkedUrls };
   }
 
   return { found: false, checkedUrls };

@@ -74,7 +74,7 @@ Rationale (Figure A). Olera already has broad family and provider traction natio
 
 ![](figures/research-strategy/fig-approach-overview.svg)
 
-<span style="font-size:8.5pt;color:#3d3d3d;line-height:1.3;display:block"><b>Figure A:</b> Aims 1 and 2 verify, validate, and build adoption in the same local markets; Aim 3 tests whether provider revenue sustains Olera after the award and produces the commercial evidence investors have asked for.</span>
+<span style="font-size:8.5pt;color:#3d3d3d;line-height:1.3;display:block"><b>Figure A:</b> Overview of the specific aims and tasks.</span>
 <!-- Figure lettering ("Figure A") is finalized against the numbered figures in the consistency sweep. -->
 
 </div>

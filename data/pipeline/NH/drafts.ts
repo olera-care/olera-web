@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NH/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.524Z
+ * Last updated: 2026-08-18T09:44:15.795Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -105,7 +105,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of New Hampshire residency (utility bill, lease, or driver's license)",
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter or disability determination",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property deeds and current tax assessments",
         "Vehicle titles and registration documents",
@@ -131,6 +131,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Each ABD program (Aid to the Needy Blind, APTD, MOAD, Choices for Independence) has different income limits and benefits, make sure you're applying for the right one",
         "For long-term care ABD, your loved one will pay all monthly income except $93 Personal Needs Allowance toward care costs, this is called Patient Liability",
         "Home equity protection is NOT automatic, it only applies if a spouse, child under 21, or permanently disabled child lives in the home",
@@ -276,7 +277,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Medicare card (if applicable)",
         "Most recent Social Security or pension award letters",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -307,6 +308,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Financial eligibility follows Medicaid long-term care guidelines, which may be stricter than standard Medicaid, confirm current income and asset limits with DHHS",
         "You can request assignment to a specific case management agency after approval, ask about agencies serving your area",
         "If your loved one doesn't qualify, ADRC counselors will help identify alternative services and supports",
@@ -364,7 +366,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-866-634-9412",
       "sourceUrl": "https://www.dhhs.nh.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "pace-comprehensive-care",
@@ -599,7 +602,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security award letter or pension statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, retirement accounts)",
         "Real estate documents (property deeds, tax assessments)",
         "Medicare card",
@@ -624,6 +627,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "New Hampshire's $13 unearned income disregard is often overlooked, this can make the difference between tiers and save thousands annually",
         "QI tier (SLMB-135) may have limited funding, so apply as early in the year as possible if your loved one's income is in the 120-135% FPL range",
         "Providers cannot bill QMB beneficiaries for Medicare cost-sharing, but ensure your loved one's providers know about their QMB status to avoid billing errors",
@@ -818,7 +822,7 @@ export const drafts: PipelineStateDrafts = {
         "Valid government-issued photo ID",
         "Social Security cards for all household members",
         "Most recent Social Security award letter or pension statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Proof of monthly expenses (rent/mortgage statement, utility bills)",
         "Medical expense receipts over $35/month (prescriptions, insurance premiums, medical bills)",
         "Proof of New Hampshire residency (utility bill, lease, or mail)",
@@ -908,7 +912,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(877) 347-7627",
       "sourceUrl": "https://www.dhhs.nh.gov/programs-services/food-stamps",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -1846,7 +1851,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security award letter or pension statements showing current income",
         "Pay stubs from last 30 days (if recently employed)",
         "Unemployment benefits documentation or termination letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Proof of New Hampshire residency (utility bill, lease agreement, or state-issued document)",
         "Social Security card or work authorization documents",
         "Income verification for all household members",
@@ -1924,7 +1929,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(877) 872-5627",
       "sourceUrl": "https://www.dol.gov/agencies/eta/seniors",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "legal-assistance-seniors",
@@ -2273,7 +2279,6 @@ export const drafts: PipelineStateDrafts = {
         "U.S. citizenship or immigration status documentation",
         "Social Security card",
         "Income documentation for Medicaid (pay stubs, Social Security award letter, pension statements)",
-        "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -2306,6 +2311,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you. Some intakes ask you to self-declare whether income is above or below the poverty line; that is for the agency’s own reporting and you can decline without losing the service.",
         "You must be approved for Medicaid before you can access adult day services - this is not a standalone program",
         "The physician exam and referral must be completed within 60 days of requesting services, so timing matters",
         "Providers can deny admission if your loved one's needs exceed their capacity or pose safety risks to others",
@@ -2363,7 +2369,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(866) 634-9412",
       "sourceUrl": "https://www.dhhs.nh.gov/programs-services/medicaid",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "easterseals-in-home-care",

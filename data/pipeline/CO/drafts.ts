@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T09:02:41.380Z
+ * Last updated: 2026-08-18T09:44:15.775Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -113,7 +113,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card (showing Part A and Part B coverage)",
         "Social Security award letter or most recent statement",
         "Proof of all income sources from last 30 days (pay stubs, pension statements, rental income)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, mutual funds)",
         "Life insurance policies showing cash value",
         "Property deeds or tax assessments for real estate beyond primary home",
@@ -145,6 +145,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI tier has limited federal funding and often maintains waitlists, QMB and SLMB typically have no waiting periods",
         "Asset limits exclude your primary home and one vehicle, but count all bank accounts and investments",
         "You can apply for Medicare Savings Programs even if you've been denied other Medicaid programs, different eligibility rules apply",
@@ -322,7 +323,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Photo ID or signed Affidavit of Identity (passport, driver's license, or state ID)",
         "Social Security award letter or other proof of income",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property documents (deeds, tax statements) if applicable",
         "Vehicle titles and registration",
         "Life insurance policies with face values",
@@ -347,6 +348,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "The 60-month Look-Back Rule applies, assets given away or sold below fair market value within 5 years can create a penalty period of ineligibility",
         "Income test uses only your loved one's individual income, not household income, this can make elderly loved ones on fixed incomes eligible even in higher-income households",
         "Multiple HCBS waivers exist in Colorado, make sure you're applying for the EBD (Elderly, Blind, and Disabled) waiver, not developmental disabilities or other specialized waivers",
@@ -405,7 +407,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 264-2683",
       "sourceUrl": "https://www.healthfirstcolorado.com",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "pace-comprehensive-elderly-care",
@@ -507,7 +510,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if you have one",
         "Medicaid card or documentation if already enrolled",
         "Social Security award letter or pension income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements for non-primary residence)",
         "Life insurance policies with cash values",
@@ -531,6 +534,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Medicare-only participants have no income or asset limits, but must still meet age and nursing home level of care requirements",
         "Exceeding standard Medicaid financial limits ($2,901/month income, $2,000 assets) does not automatically disqualify, Medicaid planning strategies may help establish eligibility",
         "Assessment includes evaluation of safety to live in community, your loved one must demonstrate ability to remain at home with PACE support rather than requiring immediate institutional care",
@@ -589,7 +593,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "snap-food-benefits",
@@ -717,7 +722,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security award letters for all household members",
         "Medical bills and receipts showing out-of-pocket expenses over $35/month",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Rent or mortgage statement showing monthly housing costs",
         "Recent utility bills (electricity, gas, water, trash)",
         "Social Security cards or proof of application for all household members",
@@ -1205,7 +1210,6 @@ export const drafts: PipelineStateDrafts = {
         "Current psychological evaluation (within last 3 years)",
         "Adaptive behavior testing results",
         "Social Security award letters for all household members",
-        "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -1236,6 +1240,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you. Some intakes ask you to self-declare whether income is above or below the poverty line; that is for the agency’s own reporting and you can decline without losing the service.",
         "Not all services are available in rural areas, Southwest Colorado has limited provider networks",
         "You must qualify for both financial eligibility (through county Human Services) and functional eligibility (through the Case Management Agency)",
         "Natural supports and family resources are considered first before waiver services can be approved",
@@ -1294,7 +1299,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "2-1-1",
       "sourceUrl": "https://hcpf.colorado.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "senior-community-service-employment-program",
@@ -1396,7 +1402,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Proof of unemployment status (termination letter, unemployment benefits statement, or self-attestation)",
         "Income documentation for all household members (Social Security award letters, pension statements, pay stubs from last 30 days)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Proof of Colorado residency in served area (utility bill, lease agreement, or mail from last 30 days)",
         "Work authorization documents for I-9 completion (U.S. passport, driver's license plus Social Security card, or other I-9 acceptable combinations)",
         "Bank account information for direct deposit setup",
@@ -1489,7 +1495,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "2-1-1",
       "sourceUrl": "https://www.dol.gov/agencies/eta/seniors",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "legal-aid-seniors",
@@ -2035,7 +2042,7 @@ export const drafts: PipelineStateDrafts = {
         "Most recent Social Security award letter",
         "Pay stubs from last 30 days (if working)",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment account statements (stocks, bonds, annuities)",
         "Property deeds and tax statements",
         "Vehicle titles and registration",
@@ -2066,6 +2073,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "The requirement to be evaluated for Medicaid home services first can add 2-3 months to your timeline, start early",
         "Skilled personal care (like wound care or medication administration) is explicitly not covered, only unskilled daily living assistance qualifies",
         "Asset limits are strict at $2,000, spend down excess assets before applying or consider exempt assets like prepaid burial plans",
@@ -2124,7 +2132,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "855-855-4626",
       "sourceUrl": "https://www.colorado.gov/peak",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     }
   ],
   "stateOverview": {

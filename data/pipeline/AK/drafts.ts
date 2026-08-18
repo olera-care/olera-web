@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.502Z
+ * Last updated: 2026-08-18T09:44:15.770Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -119,7 +119,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Alaska residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter or disability determination",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements, mineral rights)",
         "Vehicle titles and registration for all vehicles",
@@ -144,6 +144,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Multiple Medicaid pathways exist with different income, asset, and functional requirements, use the pre-screening tool to identify the right program before applying",
         "Asset limits are very low ($2,000 individual), consider Medicaid planning strategies if your loved one has excess resources",
         "The family home is exempt from asset limits but subject to estate recovery after death, consult an elder law attorney about protections",
@@ -234,7 +235,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/apply-for-medicaid/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "hcbs-waiver",
@@ -317,7 +319,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Social Security award letters or disability determination letters",
         "Medicare card",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, property tax statements)",
         "Vehicle titles and registration",
@@ -355,6 +357,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Multiple waivers available, ALI serves adults 65+ or those 21-64 with physical disabilities, while other waivers focus on developmental disabilities or complex medical needs",
         "Must meet both Medicaid financial eligibility AND nursing facility level of care, failing either requirement results in denial",
         "Services depend on local provider availability and may be limited in rural areas",
@@ -413,7 +416,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(907) 269-3463",
       "sourceUrl": "https://health.alaska.gov/en/services/hcbs-waivers/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "pace-elderly-care",
@@ -678,7 +682,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security award letter or benefit statement",
         "Recent pay stubs or employment income documentation",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment statements (stocks, bonds, annuities)",
         "Life insurance policies with cash surrender values",
         "Vehicle titles and registration documents",
@@ -703,6 +707,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI program funding runs out annually, apply in January or February for best chance of acceptance",
         "Alaska income limits are significantly higher than the lower 48 states, so don't use national eligibility calculators",
         "All three programs automatically include Extra Help for prescription drug costs, this benefit is often overlooked",
@@ -786,7 +791,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(877) 486-2048",
       "sourceUrl": "https://www.medicare.gov/basics/costs/help/medicare-savings-programs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "snap-food-benefits",
@@ -921,7 +927,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Alaska residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter or pension statements",
         "Pay stubs from last 30 days (if working)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Rent receipt or mortgage statement",
         "Recent utility bills (electric, gas, water, phone)",
         "Medical bills and receipts over $35/month (for 60+ or disabled)",
@@ -1004,7 +1010,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 478-7778",
       "sourceUrl": "https://health.alaska.gov/en/services/division-of-public-assistance-dpa-services/snap-nutrition-assistance/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -1350,7 +1357,6 @@ export const drafts: PipelineStateDrafts = {
         "Photo ID for all adults 18 and older",
         "Proof of income for all household members from last 30 days (pay stubs, tax returns, W-2s)",
         "Social Security award letters (SSI, SSDI, or SSA statements)",
-        "Bank statements for all accounts",
         "Native dividend documentation if applicable",
         "Disability income letters",
         "Proof of homeownership (deed, mortgage statement, or property tax bill)",
@@ -1421,7 +1427,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://www.ahfc.us/efficiency/weatherization",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "ship-medicare-counseling",

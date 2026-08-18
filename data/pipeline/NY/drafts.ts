@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.527Z
+ * Last updated: 2026-08-18T09:44:15.797Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -114,7 +114,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property deeds and real estate tax statements",
         "Vehicle titles and registration",
@@ -145,6 +145,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Income over the limit may still qualify through a Pooled Income Trust, ask about this option during screening",
         "For Community Medicaid, there is currently no federal or state look-back period or penalty for transferring assets (gifting) to qualify for care. This rule applies only to Community Medicaid; strict look-back rules (often 60 months) still apply if your loved one needs to transition to Nursing Home (Institutional) Medicaid.",
         "Spousal protections allow the community spouse to keep more assets and income if your loved one is married",

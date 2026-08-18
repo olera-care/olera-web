@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.512Z
+ * Last updated: 2026-08-18T09:52:08.663Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -116,7 +116,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security award letter or other proof of monthly income",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment account statements and property documents",
         "Proof of Iowa residency (utility bill, lease, or state ID)",
         "Proof of U.S. citizenship or qualified legal status",
@@ -143,6 +143,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Your loved one can have income over $2,901/month and still qualify under certain conditions, Medicaid planning may be needed",
         "Home equity limits apply following nursing home Medicaid rules, the home must be under specific equity caps",
         "Service availability depends on having approved providers in your area, ask about provider availability when applying",
@@ -200,7 +201,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 889-7985",
       "sourceUrl": "https://hhs.iowa.gov/medicaid/services-care/home-and-community-based-services/waiver-programs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "hcbs-waiver-services",
@@ -297,7 +299,7 @@ export const drafts: PipelineStateDrafts = {
         "Birth certificate or other proof of age",
         "Most recent Social Security award letter",
         "Medicare card if they have one (Medicare is not required for this program)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property deeds and tax statements",
         "Vehicle titles and registration",
@@ -323,6 +325,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Iowa has 7 different HCBS waivers, make sure to specify the Elderly Waiver for applicants 65+ when calling",
         "The 60-month look-back period examines all asset transfers, so gather documentation of any gifts or property sales from the last 5 years",
         "A dementia diagnosis alone won't qualify your loved one, the assessment focuses on actual daily functioning, not medical conditions",
@@ -483,7 +486,7 @@ export const drafts: PipelineStateDrafts = {
         "Complete medical records documenting functional limitations",
         "List of current medications and dosages",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -506,6 +509,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "PACE is not available statewide, verify your county has a PACE provider before beginning the application process",
         "If your loved one is enrolled in Medicare Advantage (Part C), they must disenroll first, which can only happen during specific enrollment periods",
         "Financial eligibility is complex and varies, not meeting standard Medicaid income limits doesn't automatically disqualify your loved one, as there are multiple pathways to eligibility",
@@ -564,7 +568,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 972-2017",
       "sourceUrl": "https://hhs.iowa.gov/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "snap-food-benefits",
@@ -692,7 +697,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Rent receipt or mortgage statement",
         "Utility bills (electric, gas, water, phone)",
         "Medical expense receipts from last 3 months (including Medicare premiums)",
@@ -782,7 +787,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 889-7985",
       "sourceUrl": "https://hhs.iowa.gov/assistance-programs/food-assistance/snap",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -1654,38 +1660,36 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Social Security card for applicant",
-        "Birth certificate or other proof of age",
-        "Proof of Iowa residency (utility bill, lease, or state-issued document)",
         "Social Security award letter if receiving SSI",
-        "Most recent bank statements for all accounts (last 3 months)",
-        "Income documentation (pension statements, Social Security statements)",
-        "Life insurance policies showing face values",
-        "Vehicle titles and registration documents",
-        "Property deeds or tax statements if applicable",
-        "Proof of U.S. citizenship or immigration status",
+        "Income documentation for the last 30 days (pension statements, Social Security statements, pay stubs)",
+        "Bank statements for all accounts for the last 90 days, for anyone 19 or older",
+        "Proof of immigration status if not a U.S. citizen",
+        "Self-employment tax returns if applicable",
+        "Property, burial contracts, life insurance, and other resource documentation",
+        "Unmet medical expenses",
         "Physician certification form (for residential care categories only)",
-        "Documentation of other benefits received or applied for",
-        "Investment account statements (stocks, bonds, annuities)"
+        "Social Security card for applicant",
+        "Proof of Iowa residency (utility bill, lease, or state-issued document)",
+        "Birth certificate or other proof of age"
       ],
       "contacts": [
         {
-          "label": "Iowa HHS Benefits Line",
-          "phone": "1-800-972-2017",
-          "description": "For residential care, in-home health care, and Medicare/Medicaid eligible categories",
-          "hours": "Business hours"
+          "label": "Iowa HHS Income Maintenance Customer Service Center (start here)",
+          "phone": "1-877-347-5678",
+          "description": "Handles cash assistance and how to apply. This is the line Iowa HHS publishes for benefit questions. Details at hhs.iowa.gov/medicaid/member-services.",
+          "hours": "Mon-Fri 8am-4:30pm CT"
+        },
+        {
+          "label": "Iowa Aging and Disability Resource Center (Iowa Compass)",
+          "phone": "1-800-779-2001",
+          "description": "System navigators who can screen the whole picture, including the Elderly Waiver, if SSA turns out to be the wrong fit. Details at hhs.iowa.gov/family-community/aging-disability-resource-center.",
+          "hours": "Mon-Fri 8am-4:30pm CT"
         },
         {
           "label": "Social Security Administration",
           "phone": "1-800-772-1213",
-          "description": "For SSI recipients and basic SSA payment applications",
-          "hours": "Mon-Fri 8am-7pm"
-        },
-        {
-          "label": "Local SSA Office Finder",
-          "phone": null,
-          "description": "Find your county's Social Security field office at ssa.gov/locator",
-          "hours": "Varies by office"
+          "description": "For the SSI side of eligibility.",
+          "hours": "Mon-Fri 8am-7pm local time"
         }
       ],
       "applicationNotes": [
@@ -1775,10 +1779,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Coins",
-      "phone": "1-800-972-2017",
+      "phone": "1-877-347-5678",
       "sourceUrl": "https://hhs.iowa.gov/media/3987/download",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     }
   ],
   "stateOverview": {

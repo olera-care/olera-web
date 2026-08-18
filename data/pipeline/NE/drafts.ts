@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NE/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.523Z
+ * Last updated: 2026-08-18T09:44:15.794Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -115,7 +115,7 @@ export const drafts: PipelineStateDrafts = {
         "Medical records documenting need for assistance with Activities of Daily Living",
         "Physician documentation of current health conditions",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property documents if you own your home (deed, tax statement)",
         "Vehicle titles and registration",
         "Life insurance policies with face values",
@@ -149,6 +149,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You cannot apply for the AD Waiver until you are already enrolled in Nebraska Medicaid, this is a strict prerequisite, not something that happens automatically",
         "The Nursing Facility Level of Care assessment uses specific clinical criteria, having a disability or being elderly alone does not guarantee qualification",
         "Home equity limit of $752,000 is for 2026 and may change annually, verify current limits when applying",
@@ -199,7 +200,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(877) 667-6266",
       "sourceUrl": "https://dhhs.ne.gov/Pages/Medicaid-Aged-and-Disabled-Waiver.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "pace-elder-care",
@@ -296,7 +298,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Proof of Nebraska residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Life insurance policies with face values",
         "Medical records documenting current health conditions and care needs",
@@ -320,6 +322,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You cannot be enrolled in Medicare Advantage (Part C) and PACE at the same time, disenrollment from Medicare Advantage required first",
         "PACE becomes your loved one's sole source of Medicare and Medicaid services, they cannot use other providers outside the PACE network",
         "Private pay costs typically exceed $7,000 per month if your loved one doesn't qualify for Medicaid coverage",
@@ -508,7 +511,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Medicare card",
         "Social Security award letter or most recent Social Security statement",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, CDs)",
         "Birth certificate or other proof of age and citizenship",
         "Social Security card",
@@ -535,6 +538,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI program funding is limited, apply early in the calendar year for best chance of approval",
         "You can apply for Medicare Savings Program even if you've been denied regular Medicaid due to higher asset limits",
         "Approval is retroactive to the month of application for QMB, potentially saving money on Medicare costs you've already paid",
@@ -727,7 +731,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Social Security award letters or benefit statements",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Proof of rent or mortgage payments",
         "Recent utility bills (electric, gas, water, phone)",
         "Medical expense receipts over $35/month (unreimbursed)",
@@ -801,7 +805,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 383-4278",
       "sourceUrl": "https://dhhs.ne.gov/pages/snap.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -2197,7 +2202,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter or benefit statement",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements, mortgage statements)",
         "Life insurance policies showing face values",
@@ -2228,6 +2233,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must apply for Nebraska Medicaid and the AD Waiver at the same time, the waiver cannot be approved without active Medicaid coverage",
         "The interRAI-HC functional assessment is required and determines whether you meet nursing facility level of care, prepare to demonstrate specific limitations in daily activities",
         "Service availability varies by region, western Nebraska uses different coordinators (like Aging Office of Western Nebraska) than other areas",
@@ -2677,7 +2683,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Nebraska residency (utility bill, lease, or state ID)",
         "Social Security Administration disability determination or denial letter",
         "Federal SSI denial letter (for disability component)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Income documentation (Social Security award letters, pension statements)",
         "Asset documentation (property deeds, vehicle titles, investment accounts)",
         "Medical records supporting disability claim",
@@ -2705,6 +2711,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "This program is specifically for people denied federal SSI because their disability is expected to last less than 12 months, it's not for long-term SSI-eligible individuals",
         "You must have a disability determination from Social Security Administration or Nebraska's State Review Team before applying",
         "For the disability component, your loved one must be ineligible for Medicaid through other pathways"
@@ -2753,7 +2760,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(402) 471-3121",
       "sourceUrl": "https://dhhs.ne.gov/Pages/Aged-Blind-or-Disabled.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "ssad-aged-disabled-services",
@@ -2835,7 +2843,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security award letter or other proof of income for all household members",
-        "Bank statements for the last 3 months",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Birth certificate or other proof of age",
         "Medical documentation of blindness or disability status",
         "Medical or functional assessment showing need for requested services",
@@ -2859,6 +2867,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "SSAD is separate from the Medicaid Aged and Disabled (AD) Waiver, don't confuse the two programs",
         "You may need to prove ineligibility for other programs before SSAD approval",
         "Services are authorized based on individual assessment rather than fixed hours or dollar amounts",
@@ -2917,7 +2926,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://dhhs.ne.gov/Pages/Social-Services-Aged-and-Disabled-Adults.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     }
   ],
   "stateOverview": {

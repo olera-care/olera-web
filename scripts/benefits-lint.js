@@ -14,6 +14,8 @@
  *   self-contradiction     CT's savingsRange disagreed with its own tagline/FAQ
  *   null-lead-phone        WV VISIONS fell through to 2-1-1 silently
  *   generic-anchor         CO SNAP pointed at the EBT lost-card line
+ *   non-dialable-phone     AL Meals had phone="Contact through www.sarcoa.org"
+ *   empty-documents        TX caregiver support could never be picked at all
  *   unsourced-savings      AZ/CO presented a ceiling as a typical range
  *   stale                  never verified, or verified long ago
  *
@@ -376,12 +378,73 @@ function checkMedicareCardParts(st, p) {
   });
 }
 
+// A phone field holding prose ("Contact local DSS office", an email address, a
+// website) renders in a letter as "Call X at Contact through www.sarcoa.org".
+// Found 2026-08-18 across 69 records; the AL Meals on Wheels and SC SNAP
+// instances were both in programs with live pending drafts.
+const SHORT_CODE = /^[2-9]-?1-?1$/;
+const PLACEHOLDER = /X{3,}/;
+
+/** True for real numbers and for vanity ones like 1-800-96-ELDER / 1-844-HELP4TN. */
+function isDialable(raw) {
+  const phone = String(raw).trim();
+  if (SHORT_CODE.test(phone)) return true;
+  if (PLACEHOLDER.test(phone)) return false;
+  // drop a trailing extension, then strip separators; a keypad number is
+  // digits followed by digits-or-uppercase letters (1-800-96-ELDER counts)
+  const bare = phone.replace(/\s*(ext\.?|x)\s*\d+\s*$/i, '').replace(/[\s().+-]/g, '');
+  return /^1?\d{3}[\dA-Z]{7,}$/.test(bare);
+}
+
+function checkNonDialablePhone(st, p) {
+  (p.contacts || []).forEach((c, i) => {
+    if (c.phone == null) return;
+    const phone = String(c.phone).trim();
+    if (isDialable(phone)) return;
+    const digits = (phone.match(/\d/g) || []).length;
+    const isEmail = /@/.test(phone);
+    const isUrl = /https?:|www\.|\.(org|gov|com|net)\b/i.test(phone);
+    const what = isEmail ? 'an email address'
+      : isUrl ? 'a website'
+      : /X{3,}/.test(phone) ? 'a placeholder'
+      : digits >= 7 ? 'missing an area code'
+      : 'prose';
+    report({
+      state: st, programId: p.id, program: p.name, check: 'non-dialable-phone',
+      severity: i === 0 ? 'high' : 'medium',
+      detail: i === 0
+        ? `contacts[0].phone is ${what}, so the composer skips this contact and the letter names whichever one comes next.`
+        : `contacts[${i}].phone is ${what} rather than a dialable number. It renders as "Call ${c.label} at ${phone}".`,
+      value: `contacts[${i}] "${c.label}" phone=${JSON.stringify(phone)}`,
+      fix: 'Set phone to null and move the text into description. A null phone is honest; prose in a phone field is not.',
+    });
+  });
+}
+
+// toPick() returns null when documentsNeeded is empty, so the program silently
+// vanishes from every letter. Found 2026-08-18 on TX/community-caregiver-support,
+// which meant Texas caregivers were never offered it. A blank list is not
+// "no documents required" to the composer, it is "skip this program".
+function checkEmptyDocuments(st, p) {
+  if (!Array.isArray(p.documentsNeeded) || p.documentsNeeded.length > 0) return;
+  const contacts = p.contacts || [];
+  if (!contacts.some((c) => c.phone)) return; // already unusable for other reasons
+  report({
+    state: st, programId: p.id, program: p.name, check: 'empty-documents', severity: 'high',
+    detail: 'documentsNeeded is empty, so toPick() returns null and this program can never be picked for a letter, however well it fits the family.',
+    value: 'documentsNeeded: []',
+    fix: 'Write what the phone screen actually asks for. "Nothing to bring" is a fine first entry, but the array must not be empty.',
+  });
+}
+
 const CHECKS = [
   checkMedicareNotRequired,
   checkMedicareCardParts,
   checkSelfContradiction,
   checkNullLeadPhone,
   checkGenericAnchor,
+  checkNonDialablePhone,
+  checkEmptyDocuments,
   checkUnsourcedSavings,
   checkSpouseCaveatMissing,
   checkNoTimeline,

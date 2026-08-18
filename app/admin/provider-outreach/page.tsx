@@ -3766,7 +3766,8 @@ function FollowUpProviderRow({
 
 Families in ${city} searching for ${category} can already see the page we built for ${name}. But if one reached out today, no one would see the message.
 
-Claim your page (2 min, free): ${link}
+Activate your page (2 min, free) to fully manage it:
+${link}
 
 Questions? support@olera.care or (979) 243-9801`;
   };

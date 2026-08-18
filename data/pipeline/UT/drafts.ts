@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/UT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.534Z
+ * Last updated: 2026-08-18T09:44:15.805Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -114,7 +114,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Utah residency (utility bill, lease agreement, or state-issued document)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -145,6 +145,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Multiple program types exist with different income limits, nursing home Medicaid has no strict income limit but most income pays toward care, while home waiver programs have specific monthly caps",
         "Your loved one's home is exempt from asset limits but subject to estate recovery after death, the state may seek repayment from the home's value",
         "If your loved one's income exceeds the limits, they may still qualify through Medically Needy by spending down excess income on medical expenses",
@@ -241,7 +242,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-866-435-7414",
       "sourceUrl": "https://medicaid.utah.gov/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "pace-elder-care",
@@ -474,7 +476,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card",
         "Social Security award letter or most recent statement",
         "Pay stubs from last 30 days (if working)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, annuities)",
         "Life insurance policies with cash values",
         "Vehicle titles and registration",
@@ -506,6 +508,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Income limits update every April based on federal poverty guidelines, verify current limits when applying",
         "QMB recipients must show their Medicaid card to prevent provider billing for Medicare costs",
         "SLMB and QI recipients won't receive a card because Utah pays Medicare directly for premiums",
@@ -707,7 +710,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Social Security award letters or benefit statements",
         "Pension or retirement income documentation",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Proof of medical expenses over $35/month (receipts, bills, insurance statements)",
         "Rent receipt or mortgage statement",
         "Utility bills (electric, gas, water, phone)",
@@ -790,7 +793,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-866-526-3663",
       "sourceUrl": "https://jobs.utah.gov/customereducation/services/foodstamps/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-heat-energy-assistance",
@@ -1987,7 +1991,6 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Proof of age (driver's license, birth certificate, or state ID)",
         "Social Security award letters for all household members",
-        "Bank statements for all accounts (last 3 months)",
         "Documentation of any hardship expenses (medical bills, disability-related costs)",
         "Details about your legal issue (benefit denial letters, court papers, housing notices)",
         "Proof of household size and composition"
@@ -2013,6 +2016,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you. Some intakes ask you to self-declare whether income is above or below the poverty line; that is for the agency’s own reporting and you can decline without losing the service.",
         "Income exceptions up to 200% FPL require Executive Director approval and documented hardship, don't assume automatic approval",
         "Some services are provided through county contracts or volunteer attorneys, so availability may vary by region"
       ],
@@ -2052,7 +2056,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(801) 328-8849",
       "sourceUrl": "https://www.utahlegalservices.org/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "long-term-care-ombudsman",
@@ -2271,7 +2276,7 @@ export const drafts: PipelineStateDrafts = {
         "U.S. citizenship or immigration status documentation",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Life insurance policies with face values",
         "Vehicle titles and registration",
@@ -2296,6 +2301,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Income limits update annually in March (not January like federal programs), current limit is $1,305/month through February 2026, then increases to $1,330/month in March 2026",
         "Spousal income is exempt even if living together, but each spouse has separate asset limits if both are applying",
         "60-month look-back rule applies, transfers of assets below fair market value in the past 5 years may result in a penalty period",
@@ -2354,7 +2360,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://medicaid.utah.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     }
   ],
   "stateOverview": {

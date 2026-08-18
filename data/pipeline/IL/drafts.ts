@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.513Z
+ * Last updated: 2026-08-18T11:01:04.265Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -126,7 +126,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Illinois residency (utility bill, lease, or state-issued ID)",
         "Most recent Social Security or SSI award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Vehicle titles and registration for all vehicles",
         "Property deeds or tax statements for real estate",
         "Life insurance policies with cash values",
@@ -158,6 +158,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Multiple pathways exist with different rules, ACA Adults (19-64) have no asset limits but can't have Medicare; AABD pathway (65+) has asset limits but allows Medicare",
         "Estate recovery may apply after death for long-term care costs, but your loved one's home is protected while they live there",
         "Working disabled adults may qualify for HBWD pathway with higher income limits ($3,541/month) but must pay monthly premiums",
@@ -216,7 +217,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 843-6154",
       "sourceUrl": "https://www.illinois.gov/hfs/MedicalClients/Pages/medicalprograms.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "hsp-waiver-home-services",
@@ -320,7 +322,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of U.S. citizenship or legal residency (birth certificate, passport, or naturalization papers)",
         "Proof of Illinois residency (utility bill, lease agreement, or state-issued document)",
         "Social Security card and award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Vehicle titles and registration for all vehicles owned",
         "Property documents (deeds, tax statements) for any real estate",
@@ -347,6 +349,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Age exceptions exist for HIV/AIDS and traumatic brain injury waivers, these allow applications at any age with different eligibility criteria",
         "You must score exactly 29 or higher on the DON assessment, this is done in person with a HSP counselor and cannot be estimated beforehand",
         "Asset limits are strict on non-exempt assets, work with a counselor to understand what counts toward the $17,500 limit",
@@ -405,7 +408,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 843-6154",
       "sourceUrl": "https://www.dhs.state.il.us/page.aspx?item=29738",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "pace-comprehensive-care",
@@ -672,7 +676,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Social Security award letters or benefit statements",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment documents (stocks, bonds, annuities)",
         "Property tax statements or property deeds",
         "Life insurance policies with cash values",
@@ -694,6 +698,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Income limits change every April, families must verify eligibility annually to maintain benefits",
         "QI-1 has limited funding and fills up early each year, apply as soon as possible if income is too high for SLMB",
         "Benefits start the month after approval for QMB, but SLMB can be backdated up to 3 months if eligible",
@@ -773,7 +778,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-843-6154",
       "sourceUrl": "https://hfs.illinois.gov/info/brochures-and-forms/brochures/hfs3352.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "snap-food-benefits",
@@ -892,7 +898,7 @@ export const drafts: PipelineStateDrafts = {
         "Valid government-issued photo ID (driver's license or state ID)",
         "Social Security cards for all household members",
         "Proof of income from last 30 days (Social Security award letters, pension statements, pay stubs)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Proof of Illinois residency (utility bill, lease agreement, or state-issued document)",
         "Medical expense receipts and bills (last 3 months) if over $35/month",
         "Rent or mortgage statements",
@@ -975,7 +981,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 843-6154",
       "sourceUrl": "https://www.dhs.state.il.us/page.aspx?item=30357",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "home-weatherization-assistance",
@@ -1428,7 +1435,6 @@ export const drafts: PipelineStateDrafts = {
         "U.S. citizenship or immigration documents (passport, naturalization certificate, or green card)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities, CDs)",
         "Vehicle titles and registration",
         "Property deeds or tax statements",
@@ -1471,6 +1477,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you. Some intakes ask you to self-declare whether income is above or below the poverty line; that is for the agency’s own reporting and you can decline without losing the service.",
         "The Determination of Need assessment is comprehensive, expect the visit to take 1-2 hours as they evaluate your loved one's physical abilities, cognitive status, and home safety",
         "You cannot apply directly to meal providers, all referrals must go through your local Care Coordination Unit first",
         "If your loved one's income is above the federal poverty level, you'll pay fees based on a sliding scale, but exact amounts aren't published, ask your CCU for cost estimates",
@@ -1535,7 +1542,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 252-8966",
       "sourceUrl": "https://ilaging.illinois.gov/programs/ccp.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "community-care-program",
@@ -1793,7 +1801,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Proof of current unemployment status",
         "Income documentation for last 3 months (Social Security award letter, unemployment benefits, pension statements)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Proof of Illinois residency (utility bill, lease agreement, or state-issued document)",
         "Documentation of job search activities",
         "Veteran status documentation (if applicable for priority placement)",
@@ -1872,7 +1880,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-252-8966",
       "sourceUrl": "https://ilaging.illinois.gov/programs/employ.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "long-term-care-ombudsman",
@@ -2105,10 +2114,9 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Court papers or legal documents related to your case",
-        "Proof of income for entire household (Social Security letters, pension statements, bank statements from last 3 months)",
+        "Proof of income for the household if asked (Social Security letters, pension statements). Providers generally take what you tell them.",
         "Proof of age (birth certificate, driver's license, or Social Security award letter)",
         "Proof of disability if under 65 (physician's statement or SSA disability letter)",
-        "Proof of household assets (bank statements, investment accounts)",
         "Proof of Illinois residency (utility bill, lease, or state-issued document)"
       ],
       "contacts": [
@@ -2132,6 +2140,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you.",
         "Each region has different providers with varying case priorities and resource levels, you may need to try multiple organizations",
         "Higher income seniors may still qualify under specific grants or if they own their home and face foreclosure"
       ],
@@ -2171,7 +2180,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 252-8966",
       "sourceUrl": "https://ilaging.illinois.gov/programs/legalassistance.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     }
   ],
   "stateOverview": {

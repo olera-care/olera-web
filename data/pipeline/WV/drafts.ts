@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WV/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:19:50.958Z
+ * Last updated: 2026-08-18T09:52:08.696Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -120,7 +120,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Social Security award letters for all household members",
         "Medicare card showing Part A and Part B coverage",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Pay stubs or pension statements (last 30 days if working)",
         "Investment documents (stocks, bonds, annuities statements)",
         "Birth certificate or proof of age",
@@ -147,6 +147,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI program has limited federal funding, apply early in the year for best chance of approval before funds run out",
         "Income disregards apply ($20 general exclusion plus other specific exclusions) which may help you qualify even if income appears slightly over limits",
         "Lump sum payments count as income only in the month received, not ongoing months",
@@ -314,7 +315,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card (if applicable)",
         "Medicaid card (if already enrolled)",
         "Most recent Social Security award letter or pension statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property documents if home equity exceeds $730,000",
         "Documentation of spouse or dependent relative living in home (if applicable for asset exemption)",
         "Medical records supporting need for nursing facility level of care",
@@ -341,6 +342,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Your loved one's physician must initiate the process, self-referrals are not accepted",
         "Home safety is assessed, unsafe conditions for caregivers could delay or disqualify services",
         "Even if your loved one exceeds income limits, they may qualify through the Medically Needy Program if medical expenses consume most monthly income",
@@ -399,7 +401,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(866) 767-1575",
       "sourceUrl": "http://www.wvseniorservices.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "pace-comprehensive-care",
@@ -688,7 +691,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of West Virginia residency (utility bill, lease, or mail)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Rent receipt or mortgage statement for shelter deduction",
         "Medical expense receipts if over age 60 (helps increase benefits)",
         "Utility bills for heating and cooling costs",
@@ -770,7 +773,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(304) 558-7980",
       "sourceUrl": "https://dhhr.wv.gov/bcf/programs/snap/Pages/default.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -2306,7 +2310,7 @@ export const drafts: PipelineStateDrafts = {
     },
     {
       "id": "home-modification-accessibility-grant",
-      "name": "WV Bureau of Senior Services Home Modification and Accessibility Grant Program (Aging Well, Safe at Home Initiative)",
+      "name": "WV Bureau of Senior Services Home Modification and Accessibility Program",
       "shortName": "Home Modification Grant",
       "tagline": "Up to $3,000 grants help West Virginia seniors afford wheelchair ramps, bathroom modifications, and assistive devices to stay safely at home.",
       "programType": "benefit",
@@ -2326,8 +2330,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one is 60+ and needs home modifications to stay safely in their house, West Virginia provides grants up to $3,000 for wheelchair ramps, bathroom grab bars, stair lifts, and assistive technology. Because the program covers both home modifications and durable medical equipment, your loved one can use one application for multiple safety improvements, from a walk-in shower conversion to voice-activated emergency devices.\n\nThe grant requires pre-approval with detailed contractor estimates and photos before and after completion. Because there are no income or asset limits mentioned in the program guidelines, eligibility focuses on demonstrating the need for modifications to age in place safely. The program operates statewide through West Virginia's Aging & Disability Resource Center, which coordinates applications and payments directly to approved contractors.\n\nMost applications involve licensed contractors for structural changes like ramps or bathroom modifications, but the program also covers assistive devices and technology that don't require installation. Your loved one must be a West Virginia resident and show how the requested modifications will help them live more independently at home.",
-      "savingsRange": "Up to $3,000 in 2026",
-      "savingsSource": "Maximum grant amount per WV ADRC program guidelines",
+      "savingsRange": "Up to $3,000 per person per state fiscal year (July 1 to June 30)",
+      "savingsSource": "WV Bureau of Senior Services Home Modification and Accessibility Program application instructions. A maximum, subject to available funding.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -2368,7 +2372,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Submit complete application",
-            "description": "Mail completed application with all supporting documents to WV Aging & Disability Resource Center, 824 Cross Lanes Drive, Charleston, WV 25313 or email to adrcinfo@wvadrc.com."
+            "description": "Mail completed application with all supporting documents to WV Aging & Disability Resource Center, 824 Cross Lanes Drive, Charleston, WV 25313 or email to adrc@metroaaa.com."
           },
           {
             "step": 5,
@@ -2392,28 +2396,26 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Completed WV Bureau of Senior Services Home Modification application",
-        "Detailed written estimate from licensed contractor (excluding sales tax)",
-        "Copy of contractor's business license",
-        "Copy of contractor's insurance policy",
-        "Contractor's completed W-9 tax form",
-        "Clear photos of area needing modification (before work begins)",
-        "Cost estimates for durable medical equipment or assistive devices (if applicable)",
-        "Proof of West Virginia residency (utility bill, lease, or state-issued document)",
-        "Documentation showing how modifications will support independent living"
+        "Your loved one's date of birth. The program serves West Virginians 60 and older. Their county too.",
+        "Whether they own the home, live with family, or rent. Renters need written landlord approval before the request can be reviewed.",
+        "What modification or device is needed and why it helps them stay home safely, plus whether Medicaid or Medicare already covers it",
+        "Which daily activities they struggle with (bathing, transferring, stairs, toileting)",
+        "A rough estimated cost, if you have one. Not required to make the call.",
+        "For home modification projects only, and only after the ADRC approves: a detailed estimate from a licensed contractor excluding sales tax, a copy of the contractor business license, proof of contractor insurance, and a W-9",
+        "For home modification projects only: photos of the area before work begins and after it is finished. Payment is not issued without them."
       ],
       "contacts": [
         {
-          "label": "WV Aging & Disability Resource Center",
+          "label": "WV Aging and Disability Resource Center (start here)",
           "phone": "866-981-2372",
-          "description": "Primary contact for applications and program information",
-          "hours": "Business hours (specific hours not listed)"
+          "description": "The ADRC takes the application and will help you fill it out. Call before you line up a contractor, because work already bought or built is not eligible. Details at www.wvadrc.com/assistance-programs.html.",
+          "hours": "Business hours, Mon-Fri (the ADRC does not publish exact times)"
         },
         {
-          "label": "WV ADRC Local Line",
+          "label": "WV ADRC State Office, Region II (Dunbar), local line",
           "phone": "304-720-6861",
-          "description": "Alternative contact number for program questions",
-          "hours": "Business hours (specific hours not listed)"
+          "description": "Same office as the toll-free number.",
+          "hours": "Business hours, Mon-Fri"
         }
       ],
       "applicationNotes": [
@@ -2467,7 +2469,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "866-981-2372",
       "sourceUrl": "https://www.wvadrc.com/assistance-programs.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     }
   ],
   "stateOverview": {

@@ -577,6 +577,23 @@ export const CRON_REGISTRY: CronJob[] = [
 
   // ── Data & maintenance ─────────────────────────────────────────────
   {
+    id: "enrich-question-providers",
+    name: "Provider email top-up (unanswered questions)",
+    description:
+      "Finds a contact email for providers holding an unanswered question that Olera cannot email, then flushes the questions that were held BECAUSE the address was missing. Scrapes the provider's site first and only falls back to Perplexity on a miss; writes only addresses that pass verification, judged on effectiveStatus so deliverable role inboxes (info@, admissions@) are not discarded. Targets are ordered newest-question-first and capped per run, so each week works the roughly ten pages a day that newly enter the cohort rather than retrying the long tail that has no findable address. About 15% of attempts yield a usable email.",
+    recipientCohort:
+      "Providers whose address this run discovers — each gets up to 2 held question notifications, deduped by question text.",
+    audience: "Providers",
+    fn: "outreach",
+    schedule: "10 15 * * 2",
+    humanSchedule: "Weekly, Tuesdays 15:10 UTC (~11:10 AM ET)",
+    path: "/api/cron/enrich-question-providers",
+    emailTypes: ["question_received"],
+    successSignal:
+      "The War Room provider_contactability count stops drifting back up; a written address is followed by the provider claiming their page.",
+    relatedAdminPath: "/admin/questions",
+  },
+  {
     id: "war-room-discovery",
     name: "War Room autonomous discovery",
     description:

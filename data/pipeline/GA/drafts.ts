@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/GA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T09:02:41.383Z
+ * Last updated: 2026-08-18T09:52:08.660Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -295,7 +295,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -326,6 +326,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You cannot apply directly for HCBS - you must first qualify for Georgia Medicaid",
         "The MDS-HC assessment must be conducted in person at your loved one's home by a registered nurse",
         "Don't confuse this with non-Medicaid HCBS programs for seniors 60+ that use sliding scale fees",
@@ -519,7 +520,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card",
         "Social Security award letter or SSI award letter",
         "Pay stubs from last 3 months (if working)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, annuities)",
         "Birth certificate or proof of age",
         "Social Security card",
@@ -552,6 +553,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI funding is limited by federal block grant, eligible applicants may be denied if funds are exhausted for the year",
         "Income and asset limits update every April 1, confirm current figures at medicaid.georgia.gov before applying",
         "QMB protects your loved one from provider billing for Medicare cost-sharing, but providers can still bill for non-Medicare covered services",
@@ -1117,33 +1119,33 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Proof of household income for last 30 days (pay stubs, Social Security award letter, pension statements)",
+        "Proof of income for the last 30 days for everyone in the household (Social Security or pension award letter dated this year, or recent pay stubs: 4 if paid weekly, 2 if biweekly, 1 if monthly)",
         "Social Security cards for all household members",
+        "Photo ID for the applicant (driver license, state ID, or passport). Georgia law requires it for benefit programs, and the application has to be notarized.",
+        "Written landlord permission if renting. Georgia requires the owner to agree in writing before the energy audit, so start this early.",
         "Proof of residency (utility bill, lease agreement, or mortgage statement)",
-        "Written landlord permission letter (renters only)",
-        "Birth certificates or other proof of age for household members",
-        "SSI award letter if qualifying through SSI receipt",
         "Most recent electric and gas utility bills",
+        "SSI award letter if qualifying through SSI receipt",
         "Property deed or lease agreement showing home type eligibility"
       ],
       "contacts": [
         {
-          "label": "Georgia Weatherization Directory",
-          "phone": null,
-          "description": "County-by-county listing of local agencies",
-          "hours": "Visit https://gefa.georgia.gov/weatherization"
+          "label": "Georgia Weatherization Assistance Program, GEFA (start here)",
+          "phone": "(404) 584-1000",
+          "description": "State program office. GEFA does not take applications. Call to find out which community action agency serves your county, then apply with that agency. Details at gefa.georgia.gov/weatherization-assistance-program.",
+          "hours": "Mon-Fri 8am-5pm ET"
         },
         {
-          "label": "CSRA Economic Opportunity Authority",
-          "phone": "(706) 945-1616",
-          "description": "Serves Richmond, Columbia, and surrounding CSRA counties",
-          "hours": "Contact for hours"
+          "label": "Find your county's weatherization agency",
+          "phone": null,
+          "description": "Official state list of the 14 community action agencies and the counties each one serves. Find your county, then open that agency page for its phone number. Details at gefa.georgia.gov/locations/community-action-agency.",
+          "hours": null
         },
         {
           "label": "Georgia 2-1-1",
           "phone": "2-1-1",
-          "description": "Help finding local services and programs",
-          "hours": "24 hours, 7 days a week"
+          "description": "Free referral helpline that can help you find your local agency.",
+          "hours": "Availability varies by region"
         }
       ],
       "applicationNotes": [
@@ -1202,10 +1204,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": null,
+      "phone": "(404) 584-1000",
       "sourceUrl": "https://gefa.georgia.gov/weatherization",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "ship-medicare-counseling",
@@ -1773,7 +1776,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of age (birth certificate or passport)",
         "Proof of residence (utility bill or lease agreement)",
         "Income documentation for all household members (Social Security award letters, pay stubs, tax returns)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Veteran status documentation (DD-214 discharge papers if applicable)",
         "Disability documentation if claiming priority status"
       ],
@@ -1847,7 +1850,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 850-2525",
       "sourceUrl": "https://aging.georgia.gov/programs-and-services/senior-community-service-employment-program-scsep",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "elderly-legal-assistance-elap",

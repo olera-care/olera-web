@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AZ/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-10T10:39:40.152Z
+ * Last updated: 2026-08-18T09:44:15.774Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -115,7 +115,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of U.S. citizenship or qualified immigrant status",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property deeds and tax statements",
         "Vehicle titles and registration",
@@ -140,6 +140,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "If only one spouse applies, both spouses' combined assets are counted, but community spouse protections may allow keeping $32,532-$162,660",
         "Transfer penalties vary by region: $8,666.72/month in Maricopa, Pima, Pinal Counties vs $8,132.22/month elsewhere",
         "Medical diagnosis alone doesn't qualify, you must pass functional assessment proving need for nursing facility level care",
@@ -198,7 +199,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(888) 621-6880",
       "sourceUrl": "https://www.azahcccs.gov/Members/GetCovered/Categories/nursinghome.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "altcs-home-community-services",
@@ -304,7 +306,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Arizona residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -330,6 +332,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Both spouses must apply together if married, income and assets are combined for eligibility determination",
         "The 60-month Look-Back Rule applies, any asset transfers below fair market value in the past 5 years create penalty periods",
         "Family caregivers can be paid, but must be hired by the approved provider, not directly by you. A spouse is paid only under the Spouse as Paid Caregiver option: the care must qualify as extraordinary care, the spouse must be employed through a direct care worker agency, and personal care beyond 40 hours in a seven-day period will not be authorized",
@@ -388,7 +391,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-855-432-7587",
       "sourceUrl": "https://www.azahcccs.gov/Members/GetCovered/Categories/nursinghome.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "medicare-savings-programs",
@@ -505,7 +509,6 @@ export const drafts: PipelineStateDrafts = {
         "Valid government-issued photo ID (driver's license or state ID)",
         "Birth certificate or passport for proof of age",
         "Pension or retirement income statements for the last month",
-        "Bank statements for all accounts (last 3 months)",
         "Proof of citizenship or legal residency status",
         "Documentation of any other benefits received (SSI, SNAP, etc.)",
         "Proof of application for other benefits if required to apply"
@@ -531,6 +534,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Arizona has no asset limits, but you must still apply for other benefits like SSI first if potentially eligible",
         "QMB provides the strongest protection, providers cannot bill you for covered Medicare services beyond what Medicare allows",
         "QI requires annual renewal and has federal funding caps, so apply early in the calendar year for best chances",
@@ -740,7 +744,7 @@ export const drafts: PipelineStateDrafts = {
         "Child care or dependent care cost receipts",
         "Proof of Arizona residency (utility bill, lease agreement, state ID)",
         "Proof of citizenship or lawful immigration status",
-        "Bank statements for all accounts",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Medical expense receipts and bills"
       ],
       "contacts": [
@@ -1153,7 +1157,6 @@ export const drafts: PipelineStateDrafts = {
         "Most recent electric and gas utility bills",
         "Social Security award letters for all recipients",
         "Proof of all household income from last 30 days (pay stubs, pension statements, benefits letters)",
-        "Bank statements for all accounts (last 3 months)",
         "Proof of residence (utility bill, lease, or state-issued document)",
         "Birth certificates or other proof of age for priority consideration"
       ],
@@ -1241,7 +1244,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(520) 485-4985",
       "sourceUrl": "https://azdes.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "ship-medicare-counseling",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/ME/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.518Z
+ * Last updated: 2026-08-18T09:44:15.788Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -107,7 +107,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Maine residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements)",
         "Life insurance policies with face values",
@@ -132,6 +132,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Multiple distinct waivers exist (Elderly/Adults with Disabilities, Intellectual Disabilities/Autism, Brain Injury), you can only enroll in one at a time",
         "Relatives and spouses can provide paid services but must complete required training and certification by deadline",
         "Home equity limit of $1,130,000 in 2026 may disqualify applicants unless exemptions apply (spouse or disabled child living there)",
@@ -182,7 +183,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://www.maine.gov/dhhs/oads/about-us/initiatives/hcbs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "snap-food-benefits",
@@ -314,7 +316,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Maine residency (utility bill, lease, or bank statement)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Pay stubs if still working (last 30 days)",
         "Rent or mortgage payment receipts",
         "Utility bills (electric, gas, water, phone)",
@@ -404,7 +406,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 442-6003",
       "sourceUrl": "https://www.maine.gov/dhhs/ofi/programs-services/food-supplement",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",

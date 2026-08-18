@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TX/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T09:02:41.405Z
+ * Last updated: 2026-08-18T11:01:04.283Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -147,7 +147,7 @@ export const drafts: PipelineStateDrafts = {
         "Citizenship or immigration documents for all household members",
         "Pay stubs from last 30 days or most recent tax return",
         "Social Security award letters for all recipients",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, annuities)",
         "Life insurance policies showing cash values",
         "Vehicle titles and registration documents",
@@ -177,6 +177,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "MBIC applications require proof of SSI-level disability, having a diagnosis alone isn't sufficient, the child must meet functional limitation criteria",
         "QI program funding is limited and allocated first-come, first-served each year, apply early in the calendar year for best chances",
         "If your elderly loved one has QMB coverage, healthcare providers cannot bill them for Medicare co-pays or deductibles, keep your approval letter handy",
@@ -380,7 +381,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Proof of Texas residency (utility bill, lease, or bank statement)",
         "Social Security award letter or other income proof",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property deeds or tax statements",
         "Vehicle titles and registration",
         "Life insurance policies with face values",
@@ -406,6 +407,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Each spouse applies individually with the same $2,982 income limit, no household scaling",
         "You can remain on other program interest lists while enrolled in STAR+PLUS",
         "MCO selection matters, extras like Weight Watchers subscriptions vary by plan and county",
@@ -596,7 +598,7 @@ export const drafts: PipelineStateDrafts = {
         "Documentation of current home care or adult day services",
         "Assessment reports from physical therapy, occupational therapy, or speech therapy",
         "Social Security award letter or other income documentation",
-        "Bank statements for all accounts (last 3 months) if applying for Medicaid",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Life insurance policies with cash values",
         "Property deeds or mortgage statements",
         "Vehicle titles and registration"
@@ -628,6 +630,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Most participants are dually eligible for Medicare and Medicaid, the PACE provider can help determine Medicaid eligibility if your loved one doesn't already have it",
         "Your loved one must disenroll from Medicare Advantage or Medicare prescription drug plans before starting PACE, the provider will guide you through this process",
         "PACE providers conduct the nursing home level of care assessment as part of enrollment, you don't need to get this done separately",
@@ -686,7 +689,7 @@ export const drafts: PipelineStateDrafts = {
       "contentStatus": "approved",
       "draftedAt": "2026-04-10",
       "reviewedBy": "Cess",
-      "lastVerifiedDate": "2026-08-04"
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "snap-food-benefits",
@@ -810,7 +813,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Social Security award letter or benefits statement",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Rent receipt or mortgage statement",
         "Utility bills (electric, gas, water)",
         "Medical expense receipts over $35/month (prescriptions, Medicare premiums, medical bills)",
@@ -1139,7 +1142,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Find your regional agency",
-            "description": "Texas divides weatherization by region. Examples: TCOG serves North Texas (800-677-8264 ext. 3530), Austin Energy serves Austin area (512-482-5346), CCSCT serves Uvalde region counties. Check the full subrecipient list at TDHCA's website."
+            "description": "Texas divides weatherization by region, and only your county's provider can take the application. Look yours up at tdhca.texas.gov/help-for-texans, or call TDHCA at (800) 525-0657 and they will tell you which agency serves you."
           },
           {
             "step": 2,
@@ -1170,9 +1173,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Proof of income for all household members 18+ from last 30 days (pay stubs, Social Security award letters, unemployment documents, pension letters, workers comp, TANF)",
         "Notarized Declaration of Income Statement if anyone had no income in the last 30 days",
-        "Birth certificates for all household members",
-        "Naturalization or citizenship certificates for non-U.S. born members",
-        "U.S. passports or other proof of citizenship/qualified alien status",
+        "Proof of U.S. citizenship, U.S. national status, or qualified alien status for every household member. Any one of these works: a birth certificate or birth record, a certificate of naturalization or citizenship, or a U.S. passport.",
         "Driver's license or state ID for all household members 18+",
         "Current electric bill with 12-month usage history",
         "Current gas or propane bill with 12-month usage history",
@@ -1182,22 +1183,34 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "TCOG (North Texas)",
-          "phone": "(800) 677-8264 ext. 3530",
-          "description": "Weatherization services for North Texas region",
-          "hours": "Monday–Friday, 8:00 AM–5:00 PM CT"
-        },
-        {
-          "label": "Austin Energy",
-          "phone": "(512) 482-5346",
-          "description": "Austin area weatherization program",
-          "hours": "Mon-Fri business hours"
+          "label": "TDHCA, Texas Weatherization Assistance Program (start here)",
+          "phone": "(800) 525-0657",
+          "description": "The state agency that runs Texas WAP. They do not take applications, but they will tell you which weatherization provider serves your county. You can also look it up at tdhca.texas.gov/help-for-texans. Details at www.tdhca.texas.gov/help-for-texans.",
+          "hours": "Mon-Fri 8am-5pm CT"
         },
         {
           "label": "Texas 2-1-1",
-          "phone": "2-1-1",
-          "description": "Free helpline to find your regional weatherization agency",
+          "phone": "2-1-1 or (877) 541-7905",
+          "description": "Texas Information and Referral Network. Use the 877 number if 2-1-1 does not connect from your phone.",
           "hours": "24 hours, 7 days a week"
+        },
+        {
+          "label": "WAP county routing line (landline only)",
+          "phone": "(888) 606-8889",
+          "description": "Connects you straight to the weatherization provider in your county. It has to be dialed from a home landline. It will not work from a cell phone.",
+          "hours": "Mon-Fri 8am-5pm CT"
+        },
+        {
+          "label": "TCOG, Texoma and Northeast Texas region",
+          "phone": "(903) 893-2161",
+          "description": "Serves Bowie, Camp, Cass, Collin, Cooke, Delta, Denton, Fannin, Franklin, Grayson, Hopkins, Hunt, Lamar, Marion, Morris, Rains, Red River, Rockwall, and Titus counties only.",
+          "hours": "Mon-Fri 8am-5pm CT"
+        },
+        {
+          "label": "Austin Energy (City of Austin)",
+          "phone": "(512) 482-5346",
+          "description": "Weatherization for Austin Energy customers.",
+          "hours": "Mon-Fri, business hours"
         }
       ],
       "applicationNotes": [
@@ -1255,12 +1268,12 @@ export const drafts: PipelineStateDrafts = {
         "hasDocumentChecklist": true,
         "visualTone": "editorial"
       },
-      "phone": "2-1-1",
+      "phone": "(800) 525-0657",
       "sourceUrl": "https://www.tdhca.texas.gov/weatherization-assistance-program",
       "contentStatus": "approved",
       "draftedAt": "2026-04-10",
       "reviewedBy": "Cess",
-      "lastVerifiedDate": "2026-05-05"
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "ship-medicare-counseling",
@@ -1665,7 +1678,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (deeds, tax statements)",
         "Life insurance policies with face values",
@@ -1690,6 +1703,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You can apply for Medicaid and request waiver interest list placement simultaneously, don't wait for Medicaid approval to get on the waitlist",
         "Wait times vary significantly by region, urban areas like Houston and Dallas typically have longer waits than rural areas",
         "Priority is given to those at highest risk of nursing home placement, emergency situations may receive expedited consideration",
@@ -1868,7 +1882,12 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "documentsNeeded": [],
+      "documentsNeeded": [
+        "Nothing to bring. This is a phone intake. Have ready your relationship to the person you care for, and that you are not paid for the care.",
+        "The care recipient's age and condition. 60 or older is the main door, and any age with Alzheimer's, another dementia, or cognitive impairment also qualifies.",
+        "The county where the care recipient lives, so they can route you to your Area Agency on Aging.",
+        "What help you need: respite hours, counseling or a support group, caregiver training, or supplemental items."
+      ],
       "contacts": [
         {
           "label": "Aging and Disability Resource Centers",
@@ -1884,6 +1903,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you.",
         "Program names can be confusing, when you call, ask specifically about 'Community Care for Aged and Disabled' or 'CCAD' services",
         "Some Texas counties have immediate openings, while others maintain a \"priority-based\" waitlist. When you call, ask: \"What is the current wait time for services in my specific ZIP code?\"",
         "Income and asset limits are adjusted annually, so 2025 limits may be slightly higher than current figures"

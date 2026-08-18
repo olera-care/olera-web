@@ -108,7 +108,7 @@
         "Social Security cards for applicant and spouse",
         "Proof of Oregon residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter or pension statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -135,6 +135,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You cannot apply directly for OPI-M, you must first be assessed and approved for services through your local ADRC",
         "If your loved one receives other Medicaid long-term care services like SPPC or APD Waiver, they cannot also receive OPI-M, you must choose one program",
         "For couples, only the applicant's income counts toward the $5,217 limit, but there's no spousal income allowance to protect the spouse's finances",
@@ -192,7 +193,8 @@
       "phone": "1-855-673-2525",
       "sourceUrl": "https://www.oregon.gov/odhs/providers-partners/seniors-disabilities",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "pace-elderly-care",
@@ -279,7 +281,7 @@
         "Recent hospital discharge summaries if applicable",
         "Documentation of current care needs and functional limitations",
         "Social Security award letter",
-        "Bank statements if paying privately (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Insurance policies and premium information",
         "Contact information for current doctors and care providers"
       ],
@@ -298,6 +300,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must live within the specific service area of a PACE organization, relocation may be required if moving from outside the service area",
         "PACE requires exclusive use of their providers, your loved one cannot see outside doctors or use other medical services while enrolled",
         "Even if your loved one can live independently now, they must qualify for nursing home-level care to be eligible",
@@ -348,7 +351,8 @@
       "phone": "1-855-673-2372",
       "sourceUrl": "https://www.oregon.gov/odhs/providers-partners/seniors-disabilities/Documents/pace-fact-sheet.pdf",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "medicare-savings-programs",
@@ -445,7 +449,6 @@
         "Medicare card showing Part A coverage",
         "Social Security award letter or statement",
         "Most recent pay stubs if still working",
-        "Bank statements for all accounts (last 3 months)",
         "Pension or retirement income statements",
         "Oregon driver's license or state ID",
         "Utility bill or lease showing Oregon address",
@@ -471,6 +474,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "If you're interested in the QI/SMF tier (income $1,596-$1,796), apply early in the calendar year, this program has federal enrollment caps and may close mid-year",
         "Oregon's income calculation starts with gross income and subtracts $20, plus additional deductions for earned income, you may qualify even if your income appears too high",
         "Multnomah County residents can also contact Oregon Medicare Savings Connect, which operates under the same eligibility rules",
@@ -680,7 +684,7 @@
       },
       "documentsNeeded": [
         "Social Security award letter or pension statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Proof of Oregon residency (utility bill, lease, or state-issued document)",
         "Valid government-issued photo ID",
         "Citizenship documents (birth certificate, passport, or naturalization papers)",
@@ -772,7 +776,8 @@
       "phone": "(800) 723-3638",
       "sourceUrl": "https://www.oregon.gov/odhs/food/pages/snap.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -1593,7 +1598,6 @@
         "Valid photo ID for care recipient",
         "Proof of Oregon residency (utility bills, lease, or mortgage statements for 3+ months)",
         "Social Security award letters for all household members",
-        "Most recent bank statements for all accounts (last 3 months)",
         "Income statements from last 30 days (pay stubs, pension statements, or benefit letters)",
         "Medicare and insurance cards",
         "Property ownership documents if applicable",
@@ -1616,6 +1620,7 @@
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you. Some intakes ask you to self-declare whether income is above or below the poverty line; that is for the agency’s own reporting and you can decline without losing the service.",
         "FCAP and FCSP are separate programs with different funding sources, you may qualify for one but not the other",
         "Services and availability vary significantly by county since programs are administered by local Area Agencies on Aging",
         "If your loved one is currently receiving other Medicaid long-term services, they cannot enroll in FCAP",
@@ -1674,7 +1679,8 @@
       "phone": "(855) 673-2372",
       "sourceUrl": "https://www.oregon.gov/odhs/providers-partners/community-services-supports/pages/family-caregiver-program.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "scsep-senior-employment",
@@ -1766,7 +1772,7 @@
         "Social Security card",
         "Proof of current unemployment status",
         "Most recent tax return or proof of all household income sources",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Proof of Oregon residency (utility bill, lease agreement, or state-issued document)",
         "Veteran discharge papers (DD-214) if applicable for priority enrollment",
         "Disability documentation if applicable for priority enrollment",
@@ -1844,7 +1850,8 @@
       "phone": "(503) 228-5100",
       "sourceUrl": "https://www.oregon.gov/odhs/providers-partners/community-services-supports/pages/senior-employment.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "legal-aid-services-laso",
@@ -2522,7 +2529,7 @@
         "Valid government-issued photo ID",
         "Lease agreement or written landlord agreement (for housing benefits)",
         "Income verification showing household income 30% or less of Area Median Income (for housing benefits)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Medical documentation of clinical risk factors (provided by healthcare provider)",
         "Food security assessment (for nutrition benefits)",
         "Utility bills if requesting assistance with rent and utilities",
@@ -2551,6 +2558,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Don't submit applications to multiple CCOs for the same benefits, work with the CCO your loved one is already enrolled with",
         "This is not for emergency situations, contact Community Action Agencies for immediate crisis assistance instead",
         "Housing benefits require your loved one to already have housing (with a lease) and lack resources to maintain it, this doesn't help find housing for unhoused individuals without a housing path",
@@ -2609,7 +2617,8 @@
       "phone": "(800) 273-0557",
       "sourceUrl": "https://www.oregon.gov/oha/hsd/medicaid-policy/pages/hrsn.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     }
   ],
   "stateOverview": {

@@ -33,14 +33,14 @@ import { NOT_INTERESTED_REASON_VALUES, type NotInterestedReason } from "@/lib/pr
  * | wrong_contact    | clears email                   | → not_contacted | -               |
  * | not_interested   | -                              | → not_interested| -               |
  * | try_fax          | -                              | → re_engage     | fax             |
- * | try_linkedin     | -                              | → re_engage     | linkedin        |
+ * | try_contact_form | -                              | → re_engage     | contact_form    |
  * | try_direct_mail  | -                              | → re_engage     | direct_mail     |
  *
  * Note: "not_interested" is a soft terminal - stops outreach but questions/connections still flow.
  * Use the Archive action (via action modal) for hard terminal with system-wide block.
  *
- * The try_fax/try_linkedin/try_direct_mail outcomes move providers to the Alternative Channels
- * tab where they can be followed up via fax, LinkedIn, or direct mail.
+ * The try_fax/try_contact_form/try_direct_mail outcomes move providers to the Alternative Channels
+ * tab where they can be followed up via fax, contact form, or direct mail.
  */
 
 const VALID_OUTCOMES = [
@@ -48,7 +48,7 @@ const VALID_OUTCOMES = [
   "wrong_contact",
   "not_interested",
   "try_fax",
-  "try_linkedin",
+  "try_contact_form",
   "try_direct_mail",
 ] as const;
 
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
     // Get current tracking record
     const { data: tracking, error: trackingError } = await db
       .from("provider_outreach_tracking")
-      .select("id, provider_id, stage, resend_count, due_date, city, state")
+      .select("id, provider_id, stage, resend_count, due_date, city, state, sequence_started_at, email_source")
       .eq("provider_id", provider_id)
       .single();
 
@@ -125,6 +125,7 @@ export async function POST(request: NextRequest) {
     let clearEmail = false;
     let shouldSendNudgeEmail = false;
     let newReEngageChannel: string | null = null;
+    let shouldSetSequenceStartedAt = false;
 
     switch (outcome as FollowUpOutcome) {
       case "resend_link":
@@ -138,6 +139,8 @@ export async function POST(request: NextRequest) {
         newResendCount = currentResendCount + 1;
         newStage = "re_engage"; // Move to re-engage after sending email
         shouldSendNudgeEmail = true;
+        // Set sequence_started_at if not already set, so this provider counts in Sequence Conv.
+        shouldSetSequenceStartedAt = !tracking.sequence_started_at;
         break;
 
       case "wrong_contact":
@@ -155,18 +158,24 @@ export async function POST(request: NextRequest) {
         // Move to re-engage with fax channel for follow-up via fax
         newStage = "re_engage";
         newReEngageChannel = "fax";
+        // Set sequence_started_at so this provider counts in Sequence Conv. if they claim
+        shouldSetSequenceStartedAt = !tracking.sequence_started_at;
         break;
 
-      case "try_linkedin":
-        // Move to re-engage with linkedin channel for LinkedIn outreach
+      case "try_contact_form":
+        // Move to re-engage with contact_form channel for website contact form outreach
         newStage = "re_engage";
-        newReEngageChannel = "linkedin";
+        newReEngageChannel = "contact_form";
+        // Set sequence_started_at so this provider counts in Sequence Conv. if they claim
+        shouldSetSequenceStartedAt = !tracking.sequence_started_at;
         break;
 
       case "try_direct_mail":
         // Move to re-engage with direct_mail channel for postcard/mail outreach
         newStage = "re_engage";
         newReEngageChannel = "direct_mail";
+        // Set sequence_started_at so this provider counts in Sequence Conv. if they claim
+        shouldSetSequenceStartedAt = !tracking.sequence_started_at;
         break;
     }
 
@@ -178,6 +187,17 @@ export async function POST(request: NextRequest) {
 
     if (newResendCount !== currentResendCount) {
       updateData.resend_count = newResendCount;
+    }
+
+    // Set sequence_started_at so provider counts in Sequence Conv. if they claim.
+    // Also set sequenced_with_source for accurate conversion tracking by channel.
+    if (shouldSetSequenceStartedAt) {
+      updateData.sequence_started_at = nowIso;
+      // For alternative channels, track the channel as source. Otherwise use email source.
+      const alternativeChannels = ["fax", "contact_form", "direct_mail"];
+      updateData.sequenced_with_source = newReEngageChannel && alternativeChannels.includes(newReEngageChannel)
+        ? newReEngageChannel
+        : (tracking.email_source || "organization");
     }
 
     if (newStage) {

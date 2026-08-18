@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { isUnoverridableVerdict } from "@/lib/email-verification";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import {
   getConnectionTemperature,
@@ -431,6 +432,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to load connections" }, { status: 500 });
     }
 
+
     // CRITICAL FIX: Fetch missing provider emails from olera-providers table
     // This ensures email display matches email sending logic (which checks both tables)
     const providerEmailFallback = new Map<string, string>();
@@ -843,6 +845,7 @@ export async function GET(request: NextRequest) {
       searched.map((c) => c.provider.activityKey).filter(Boolean) as string[]
     )].slice(0, 1000);
 
+
     // Per-provider engagement tracking
     // CONNECTION-SPECIFIC engagement tracking (not provider-level)
     // Each connection has its own engagement data based on events with matching connection_id
@@ -875,17 +878,36 @@ export async function GET(request: NextRequest) {
 
     // Fetch engagement events filtered by CONNECTION_ID in metadata
     // This ensures each connection shows only its own engagement, not provider-wide
+    // NOTE: Supabase .in() has a limit (~300 items), so we batch the query
 
     if (allProviderKeys.length > 0) {
-      const { data: actEvents } = await db
-        .from("provider_activity")
-        .select("provider_id, event_type, created_at, metadata")
-        .in("provider_id", allProviderKeys)
-        .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"])
-        .order("created_at", { ascending: false })
-        .limit(10000);
+      // Batch provider keys to avoid Supabase .in() limit (Bad Request error)
+      const BATCH_SIZE = 200;
+      const allActEvents: Array<{
+        provider_id: string;
+        event_type: string;
+        created_at: string;
+        metadata: unknown;
+      }> = [];
 
-      for (const ev of actEvents ?? []) {
+      for (let i = 0; i < allProviderKeys.length; i += BATCH_SIZE) {
+        const batch = allProviderKeys.slice(i, i + BATCH_SIZE);
+        const { data: batchEvents, error: batchError } = await db
+          .from("provider_activity")
+          .select("provider_id, event_type, created_at, metadata")
+          .in("provider_id", batch)
+          .in("event_type", ["email_click", "lead_opened", "contact_revealed", "phone_clicked", "email_link_clicked", "continue_in_inbox"])
+          .order("created_at", { ascending: false })
+          .limit(10000);
+
+        if (batchError) {
+          console.error(`[connections] activity batch ${i / BATCH_SIZE} error:`, batchError.message);
+        } else if (batchEvents) {
+          allActEvents.push(...batchEvents);
+        }
+      }
+
+      for (const ev of allActEvents) {
         const meta = ev.metadata as Record<string, unknown> | null;
         // Support both connection_id (from claim-lead flow) and lead_id (from provider portal)
         const connectionId = (meta?.connection_id || meta?.lead_id) as string | undefined;
@@ -1042,18 +1064,28 @@ export async function GET(request: NextRequest) {
     const providerEmailAddresses = new Set(providerEmailsInView);
 
     const invalidEmailSet = new Set<string>();
+    // Addresses whose verdict is a hard fact about the mailbox rather than a
+    // prediction. The send gate refuses these even when an admin has trusted
+    // them (lib/email.ts), so the trust branch below must not whitelist them —
+    // otherwise this view reports a provider as reachable while nothing we send
+    // will ever arrive.
+    const hardDeadEmailSet = new Set<string>();
     if (providerEmailAddresses.size > 0) {
       const emailArray = Array.from(providerEmailAddresses);
       // Batch query in chunks of 500 (Supabase IN clause limit)
       for (let i = 0; i < emailArray.length; i += 500) {
         const { data: verifs } = await db
           .from("email_verifications")
-          .select("email, status")
+          .select("email, status, sub_status")
           .in("email", emailArray.slice(i, i + 500))
           .eq("status", "invalid");
         for (const v of verifs ?? []) {
           // Normalize to lowercase for case-insensitive matching
-          invalidEmailSet.add((v.email as string).toLowerCase());
+          const addr = (v.email as string).toLowerCase();
+          invalidEmailSet.add(addr);
+          if (isUnoverridableVerdict("invalid", (v.sub_status as string | null) ?? null)) {
+            hardDeadEmailSet.add(addr);
+          }
         }
       }
     }
@@ -1236,11 +1268,19 @@ export async function GET(request: NextRequest) {
 
         if (!providerEmail) {
           emailIssueType = "no_email";
-        } else if (trustedEmailSet.has(providerEmail.toLowerCase())) {
+        } else if (
+          trustedEmailSet.has(providerEmail.toLowerCase()) &&
+          !hardDeadEmailSet.has(providerEmail.toLowerCase())
+        ) {
           // Admin-trusted override (email_overrides). Mirror send-side semantics:
           // bypass BOTH the verification verdict and the delivery-failure
           // heuristics so the provider stays out of needs_email/delivery_issues
           // after a manual override. Leave emailIssueType null.
+          //
+          // A hard verdict is excluded above, because the send gate stopped
+          // honouring trust for those: showing the provider as healthy here
+          // while no mail can reach them is the exact blindspot this view
+          // exists to surface.
           emailIssueType = null;
         } else if (connectionsWithDeliveryFailure.has(c.id)) {
           // Connection-specific email failed
@@ -1351,14 +1391,15 @@ export async function GET(request: NextRequest) {
         }
 
         // Funnel stats (based on provider engagement)
+        // Exclude declined/archived providers - they're no longer active connections
         // Viewed = opened lead drawer
-        if (eng?.lead_opened) providerViewedCount++;
+        if (eng?.lead_opened && !isProviderDeclined && !belongsToArchivedTab) providerViewedCount++;
         // Count as responded if provider sent a message
-        if (c.responded) respondedCount++;
-        if (c.familyRepliedAfterProvider) connectedCount++;
+        if (c.responded && !isProviderDeclined && !belongsToArchivedTab) respondedCount++;
+        if (c.familyRepliedAfterProvider && !isProviderDeclined && !belongsToArchivedTab) connectedCount++;
         // Provider action counts (per-connection)
-        if (eng?.phone_copied || eng?.phone_clicked) copiedPhoneCount++;
-        if (eng?.email_copied || eng?.email_link_clicked) copiedEmailCount++;
+        if ((eng?.phone_copied || eng?.phone_clicked) && !isProviderDeclined && !belongsToArchivedTab) copiedPhoneCount++;
+        if ((eng?.email_copied || eng?.email_link_clicked) && !isProviderDeclined && !belongsToArchivedTab) copiedEmailCount++;
         // Declined = provider explicitly declined (has archive reason, not admin-archived)
         if (isProviderDeclined && !isAdminArchived) declinedCount++;
       }

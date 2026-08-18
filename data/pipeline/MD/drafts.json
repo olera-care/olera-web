@@ -259,7 +259,7 @@
       "documentsNeeded": [
         "Medicaid card (red and white card showing full coverage)",
         "Social Security award letter or SSI documentation",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Income documentation (pension statements, Social Security, wages)",
         "Medical records showing need for daily care assistance",
         "Property deeds or mortgage statements for owned homes",
@@ -291,6 +291,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "If only one spouse applies, the non-applicant spouse's income doesn't count, but a Monthly Maintenance Needs Allowance may apply to protect spouse income",
         "SSI recipients automatically qualify for Medicaid regardless of income, bypassing the $350/month limit",
         "Persons in the Community Options Medicaid Waiver may qualify for CFC with higher income limits than standard Medicaid",
@@ -349,7 +350,8 @@
       "phone": "1-844-627-5465",
       "sourceUrl": "https://health.maryland.gov/mmcp/ltss/Pages/community-first-choice.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "pace-comprehensive-care",
@@ -455,7 +457,7 @@
         "Complete medical records from all current providers",
         "Current medication list with dosages",
         "Social Security award letter or other income verification",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Insurance policies and benefit statements",
         "Property deeds or mortgage statements",
         "Vehicle titles and registration",
@@ -478,6 +480,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Private pay option available if your loved one doesn't qualify for Medicaid, costs typically $7,000+ per month based on national PACE averages",
         "Your loved one cannot use outside Medicare or Medicaid providers once enrolled, all care must go through the PACE team",
         "If your loved one moves outside the PACE service area, they must disenroll and find new care arrangements",
@@ -535,7 +538,8 @@
       "phone": "(800) 243-3425",
       "sourceUrl": "https://regs.maryland.gov/us/md/exec/comar/10.09.44.05",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "medicare-savings-program",
@@ -666,7 +670,7 @@
         "Medicare card",
         "Social Security award letter or SSI determination letter",
         "Most recent pay stubs if still working",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, retirement accounts)",
         "Proof of Maryland residency (utility bill, lease agreement, or state ID)",
         "Birth certificate or other proof of age",
@@ -699,6 +703,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "MSP eligibility is automatically reviewed during any Medical Assistance application, you don't need to apply separately",
         "Income limits are updated each April based on Federal Poverty Level changes, check current limits before applying",
         "Working income receives larger deductions ($65 earned vs $20 unearned), so employed seniors may qualify at higher income levels",
@@ -897,7 +902,7 @@
       "documentsNeeded": [
         "Social Security award letters for all household members receiving benefits",
         "Pension or retirement income statements",
-        "Most recent bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Proof of medical expenses paid out-of-pocket (receipts, bills, statements)",
         "Medicare or health insurance premium statements",
         "Valid government-issued photo ID for applicant",
@@ -982,7 +987,8 @@
       "phone": "1-800-332-6347",
       "sourceUrl": "https://dhs.maryland.gov/supplemental-nutrition-assistance-program/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -1271,34 +1277,33 @@
         ]
       },
       "documentsNeeded": [
-        "Valid government-issued photo ID for all household members",
-        "Proof of Maryland residency (utility bill, lease agreement, or state-issued document)",
-        "Proof of household income from last 30 days (Social Security letters, pay stubs, pension statements)",
-        "Most recent electric and gas utility bills",
-        "Property deed or mortgage statement (homeowners only)",
+        "Photo ID for the applicant",
+        "Social Security cards for all household members",
+        "Proof of the last 30 days of gross household income (pay stubs, Social Security or pension letters). Maryland does not accept bank statements for this.",
+        "Most recent electric utility bill",
         "Signed landlord permission form (renters only)",
-        "SNAP, TANF, SSI, or utility assistance award letters if receiving these benefits",
-        "Bank statements for all accounts (last 3 months)",
-        "Proof of any other household members' income or benefits"
+        "Title or bill of sale (mobile homes only)",
+        "Zero Income Form for any adult 18 or older claiming no income",
+        "SNAP, TANF, SSI, or OHEP award letters if receiving these benefits"
       ],
       "contacts": [
         {
-          "label": "Maryland Weatherization Program",
-          "phone": "(844) 400-3423",
-          "description": "Main application line for weatherization services",
-          "hours": "Monday-Friday, business hours"
-        },
-        {
-          "label": "DHCD Energy Efficiency Office",
-          "phone": "(800) 756-0119",
-          "description": "Alternative number for weatherization and energy programs",
-          "hours": "Monday-Friday, business hours"
-        },
-        {
-          "label": "OHEP Energy Assistance",
+          "label": "Maryland DHCD Weatherization Intake (start here)",
           "phone": "(855) 583-8976",
-          "description": "General energy assistance questions and utility help",
-          "hours": "Monday-Friday, business hours"
+          "description": "DHCD call center for weatherization. They send the application, screen income eligibility, and assign the local weatherization agency.",
+          "hours": "Mon-Fri, business hours"
+        },
+        {
+          "label": "Find your Local Weatherization Agency",
+          "phone": null,
+          "description": "DHCD list of the 10 local weatherization agencies and the areas each covers, if you would rather start locally. Details at dhcd.maryland.gov/Energy-Home-Repair/Documents/WAP/LocalWeatherizationAgenciesContacts.pdf.",
+          "hours": null
+        },
+        {
+          "label": "DHCD main switchboard",
+          "phone": "(800) 756-0119",
+          "description": "General Maryland DHCD line, not a weatherization desk.",
+          "hours": "Mon-Fri, business hours"
         }
       ],
       "applicationNotes": [
@@ -1362,10 +1367,11 @@
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "(844) 400-3423",
+      "phone": "(855) 583-8976",
       "sourceUrl": "https://dhcd.maryland.gov/Energy-Home-Repair/pages/homeowner-grants/wap.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "ship-medicare-counseling",
@@ -1929,7 +1935,7 @@
         "Social Security award letter or benefit statement",
         "SSDI award letter if receiving disability benefits",
         "SSI benefit statement if receiving Supplemental Security Income",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Pension or retirement income statements",
         "Documentation of all other income sources for household members",
         "Proof of current unemployment status or employment history",
@@ -2014,7 +2020,8 @@
       "phone": "(410) 767-2160",
       "sourceUrl": "https://labor.maryland.gov/employment/scsep.shtml",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "senior-legal-assistance-program",
@@ -2143,7 +2150,6 @@
         "Proof of age (birth certificate, driver's license, or passport)",
         "Proof of Maryland residency (utility bill, lease, or state-issued document)",
         "Proof of income from last 30 days (Social Security letter, pension statements, or pay stubs)",
-        "Bank statements for all accounts (last 3 months)",
         "Legal documents related to your case (benefit denial letters, eviction notices, utility shutoff notices)",
         "Medicare and Medicaid cards if applicable"
       ],
@@ -2173,7 +2179,9 @@
           "hours": "Business hours"
         }
       ],
-      "applicationNotes": null,
+      "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you. Some intakes ask you to self-declare whether income is above or below the poverty line; that is for the agency’s own reporting and you can decline without losing the service."
+      ],
       "relatedPrograms": [
         "Maryland Energy Assistance Program (MEAP)",
         "Supplemental Nutrition Assistance Program (SNAP)",
@@ -2211,7 +2219,8 @@
       "phone": "(800) 896-4213",
       "sourceUrl": "https://aging.maryland.gov/pages/senior-legal-assistance.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "long-term-care-ombudsman",

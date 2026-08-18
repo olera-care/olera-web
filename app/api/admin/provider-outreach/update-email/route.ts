@@ -98,7 +98,7 @@ export async function PATCH(request: NextRequest) {
     // Fetch tracking record for confirmation reset and SmartLead sync
     const { data: tracking } = await db
       .from("provider_outreach_tracking")
-      .select("id, stage, smartlead_data")
+      .select("id, stage, smartlead_data, email_source")
       .eq("provider_id", provider_id)
       .maybeSingle();
 
@@ -255,6 +255,28 @@ export async function PATCH(request: NextRequest) {
       }
     } catch (flagErr) {
       console.error("[provider-outreach/update-email] Flag clearing error:", flagErr);
+    }
+
+    // Log touchpoint for email change (enables UI history view)
+    // Non-fatal: don't fail the request if touchpoint logging fails
+    if (existing.email !== trimmedEmail) {
+      try {
+        await db.from("provider_outreach_touchpoints").insert({
+          provider_id,
+          touchpoint_type: "email_changed",
+          admin_user_id: adminUser.id,
+          details: {
+            old_email: existing.email,
+            new_email: trimmedEmail,
+            source: confirm_apollo ? "apollo_confirm" : "manual_edit",
+            old_source: tracking?.email_source || "organization",
+            new_source: confirm_apollo ? "decision_maker" : (tracking?.email_source || "organization"),
+          },
+        });
+      } catch (touchpointErr) {
+        console.error("[provider-outreach/update-email] Touchpoint logging failed:", touchpointErr);
+        // Continue - main operation succeeded
+      }
     }
 
     // Log audit action

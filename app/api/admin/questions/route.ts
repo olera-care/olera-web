@@ -3,6 +3,60 @@ import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/l
 import { sendEmail } from "@/lib/email";
 import { questionAnsweredEmail } from "@/lib/email-templates";
 import { generateProviderSlug } from "@/lib/slugify";
+import { US_STATES } from "@/lib/us-states";
+
+/**
+ * Humanize a provider_id that looks like a slug into a readable name.
+ * Examples:
+ *   "springfield-tn-0022" -> "Springfield, TN (0022)"
+ *   "lake-wales-fl-0019" -> "Lake Wales, FL (0019)"
+ *   "sW2jaHF" -> "Unknown Provider (sW2jaHF)"
+ *   "sure-care-at-home" -> "Sure Care At Home"
+ */
+function humanizeProviderId(providerId: string): string | null {
+  if (!providerId) return null;
+
+  // Pattern 1: city-state-NNNN (auto-generated location-based slugs)
+  // e.g., "springfield-tn-0022", "lake-wales-fl-0019"
+  const locationPattern = /^([a-z-]+)-([a-z]{2})-(\d{4})$/i;
+  const locationMatch = providerId.match(locationPattern);
+  if (locationMatch) {
+    const [, citySlug, stateCode, num] = locationMatch;
+    const cityName = citySlug
+      .split("-")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+    const stateUpper = stateCode.toUpperCase();
+    // Verify it's a valid US state
+    if (US_STATES.some((s) => s.value === stateUpper)) {
+      return `${cityName}, ${stateUpper} (${num})`;
+    }
+  }
+
+  // Pattern 2: Regular slug with letters/numbers/hyphens (business name slugs)
+  // e.g., "sure-care-at-home" -> "Sure Care At Home"
+  // e.g., "care-4-seniors" -> "Care 4 Seniors"
+  // Must have at least one hyphen (multiple words) and look like a readable slug
+  const nameSlugPattern = /^[a-z0-9]+(-[a-z0-9]+)+$/i;
+  if (nameSlugPattern.test(providerId)) {
+    const words = providerId.split("-");
+    // Require at least 2 words, each at least 1 char (allow single digits like "4")
+    if (words.length >= 2 && words.every((w) => w.length >= 1)) {
+      return words
+        .map((word) => {
+          // Keep numbers as-is, title-case letters
+          if (/^\d+$/.test(word)) return word;
+          return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+        })
+        .join(" ");
+    }
+  }
+
+  // Pattern 3: Random alphanumeric strings (legacy IDs)
+  // e.g., "sW2jaHF", "z79aLLA"
+  // Return a labeled fallback so it's clear this is an unknown provider
+  return `Unknown Provider (${providerId})`;
+}
 
 /**
  * GET /api/admin/questions
@@ -655,14 +709,60 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      // Fetch apollo_contact from provider_outreach_tracking for Apollo decision-maker lookup
+      // This is keyed by provider_id (olera-providers.provider_id), so we need to map via providerEditorIds
+      const apolloContactLookup: Record<string, {
+        email: string;
+        first_name: string | null;
+        last_name: string | null;
+        title: string | null;
+        linkedin_url: string | null;
+        found_at: string;
+      }> = {};
+      const apolloEmailSourceLookup: Record<string, string> = {};
+
+      const providerIdsForApollo = [...new Set(
+        Object.values(providerEditorIds).filter(Boolean)
+      )];
+
+      if (providerIdsForApollo.length > 0) {
+        const { data: outreachData } = await db
+          .from("provider_outreach_tracking")
+          .select("provider_id, apollo_contact, email_source")
+          .in("provider_id", providerIdsForApollo);
+
+        // Build lookup map from provider_id to outreach data
+        const outreachByProviderId = new Map<string, { apollo_contact: unknown; email_source: string | null }>();
+        for (const d of outreachData ?? []) {
+          if (d.provider_id) {
+            outreachByProviderId.set(d.provider_id, { apollo_contact: d.apollo_contact, email_source: d.email_source });
+          }
+        }
+
+        // Populate lookup for ALL slug variants that map to each provider_id
+        for (const [slug, editorId] of Object.entries(providerEditorIds)) {
+          if (editorId) {
+            const outreach = outreachByProviderId.get(editorId);
+            if (outreach?.apollo_contact) {
+              apolloContactLookup[slug] = outreach.apollo_contact as typeof apolloContactLookup[string];
+            }
+            if (outreach?.email_source) {
+              apolloEmailSourceLookup[slug] = outreach.email_source;
+            }
+          }
+        }
+      }
+
       const enriched = questions.map((q) => ({
         ...q,
-        provider_name: providerNames[q.provider_id] || null,
+        provider_name: providerNames[q.provider_id] || humanizeProviderId(q.provider_id),
         provider_editor_id: providerEditorIds[q.provider_id] || null,
         provider_email: providerEmails[q.provider_id] || null,
         provider_phone: providerPhones[q.provider_id] || null,
         is_account_claimed: providerClaimStatus[q.provider_id] ?? false,
         verification_state: providerVerificationState[q.provider_id] || null,
+        apollo_contact: apolloContactLookup[q.provider_id] || null,
+        email_source: apolloEmailSourceLookup[q.provider_id] || null,
       }));
 
       return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts(dateFrom, dateTo) });
@@ -868,15 +968,60 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      // Fetch apollo_contact from provider_outreach_tracking for Apollo decision-maker lookup
+      const apolloContactLookup: Record<string, {
+        email: string;
+        first_name: string | null;
+        last_name: string | null;
+        title: string | null;
+        linkedin_url: string | null;
+        found_at: string;
+      }> = {};
+      const apolloEmailSourceLookup: Record<string, string> = {};
+
+      const providerIdsForApollo = [...new Set(
+        Object.values(providerEditorIds).filter(Boolean)
+      )];
+
+      if (providerIdsForApollo.length > 0) {
+        const { data: outreachData } = await db
+          .from("provider_outreach_tracking")
+          .select("provider_id, apollo_contact, email_source")
+          .in("provider_id", providerIdsForApollo);
+
+        // Build lookup map from provider_id to outreach data
+        const outreachByProviderId = new Map<string, { apollo_contact: unknown; email_source: string | null }>();
+        for (const d of outreachData ?? []) {
+          if (d.provider_id) {
+            outreachByProviderId.set(d.provider_id, { apollo_contact: d.apollo_contact, email_source: d.email_source });
+          }
+        }
+
+        // Populate lookup for ALL slug variants that map to each provider_id
+        for (const [slug, editorId] of Object.entries(providerEditorIds)) {
+          if (editorId) {
+            const outreach = outreachByProviderId.get(editorId);
+            if (outreach?.apollo_contact) {
+              apolloContactLookup[slug] = outreach.apollo_contact as typeof apolloContactLookup[string];
+            }
+            if (outreach?.email_source) {
+              apolloEmailSourceLookup[slug] = outreach.email_source;
+            }
+          }
+        }
+      }
+
       const enriched = questions.map((q) => ({
         ...q,
-        provider_name: providerNames[q.provider_id] || null,
+        provider_name: providerNames[q.provider_id] || humanizeProviderId(q.provider_id),
         provider_editor_id: providerEditorIds[q.provider_id] || null,
         provider_email: providerEmails[q.provider_id] || null,
         provider_phone: providerPhones[q.provider_id] || null,
         is_account_claimed: providerClaimStatus[q.provider_id] ?? false,
         verification_state: providerVerificationState[q.provider_id] || null,
         provider_email_history: providerEmailHistory[q.provider_id] || [],
+        apollo_contact: apolloContactLookup[q.provider_id] || null,
+        email_source: apolloEmailSourceLookup[q.provider_id] || null,
       }));
 
       return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts(dateFrom, dateTo) });
@@ -1082,7 +1227,7 @@ export async function GET(request: NextRequest) {
 
       const enriched = questions.map((q) => ({
         ...q,
-        provider_name: providerNames[q.provider_id] || null,
+        provider_name: providerNames[q.provider_id] || humanizeProviderId(q.provider_id),
         provider_editor_id: providerEditorIds[q.provider_id] || null,
         provider_email: providerEmails[q.provider_id] || null,
         provider_phone: providerPhones[q.provider_id] || null,
@@ -1175,7 +1320,7 @@ export async function GET(request: NextRequest) {
 
       const enriched = questions.map((q) => ({
         ...q,
-        provider_name: providerNames[q.provider_id] || null,
+        provider_name: providerNames[q.provider_id] || humanizeProviderId(q.provider_id),
         provider_editor_id: providerEditorIds[q.provider_id] || null,
         provider_email: providerEmails[q.provider_id] || null,
         provider_phone: providerPhones[q.provider_id] || null,
@@ -1397,7 +1542,7 @@ export async function GET(request: NextRequest) {
 
       const enriched = questions.map((q) => ({
         ...q,
-        provider_name: providerNames[q.provider_id] || null,
+        provider_name: providerNames[q.provider_id] || humanizeProviderId(q.provider_id),
         provider_editor_id: providerEditorIds[q.provider_id] || null,
         provider_email: providerEmails[q.provider_id] || null,
         provider_phone: providerPhones[q.provider_id] || null,
@@ -1803,7 +1948,7 @@ export async function GET(request: NextRequest) {
 
     const enriched = (questions ?? []).map((q) => ({
       ...q,
-      provider_name: providerNames[q.provider_id] || null,
+      provider_name: providerNames[q.provider_id] || humanizeProviderId(q.provider_id),
       provider_editor_id: providerEditorIds[q.provider_id] || null,
       provider_email: providerEmails[q.provider_id] || null,
       provider_phone: providerPhones[q.provider_id] || null,

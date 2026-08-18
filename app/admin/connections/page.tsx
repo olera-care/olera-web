@@ -1053,7 +1053,7 @@ export default function ConnectionsTrackerPage() {
       {/* Header with KPI + trend chart */}
       <PulseHeader
         title="Connections"
-        kpiSuffix="successful"
+        kpiSuffix="connected"
         statsPath="/api/admin/connections/pulse"
         range={range}
         onRangeChange={setRange}

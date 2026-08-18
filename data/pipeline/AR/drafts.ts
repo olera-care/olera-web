@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AR/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T09:02:41.378Z
+ * Last updated: 2026-08-18T09:44:15.773Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -104,7 +104,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements, royalty statements)",
         "Life insurance policies with face values",
@@ -129,6 +129,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must apply at your county DHS office first, you cannot apply directly to the ARChoices program",
         "The ARIA assessment is very specific, scoring Tier 1 or Tier 3 will disqualify your loved one, only Tier 2 qualifies",
         "Financial eligibility follows standard Medicaid rules, spend-down planning may be needed if income is too high",
@@ -293,7 +294,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Proof of Arkansas residency (utility bill, lease, or driver's license)",
         "Social Security award letter or pension statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Life insurance policies with face values",
         "Property documents (deed, tax assessment)",
@@ -324,6 +325,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "PACE is not available statewide, verify your loved one lives in a participating county before applying",
         "Income Trusts are available for those exceeding Medicaid income limits of approximately $2,901/month, contact DHS caseworkers for details",
         "Your loved one must disenroll from Medicare Advantage, prescription drug plans, or hospice before PACE enrollment",
@@ -482,7 +484,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security award letter or SSDI award letter",
         "Pay stubs from last 30 days (if working)",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment documents (stocks, bonds, annuities)",
         "Birth certificate or Social Security card",
         "Proof of Arkansas residency (utility bill or lease)",
@@ -505,6 +507,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Income and asset limits update every April, verify current figures with DHS before applying",
         "QI program excludes people eligible for full Medicaid, but you can have QMB or SLMB with Medicaid",
         "Working disabled individuals may qualify with higher income under special earnings rules",
@@ -590,7 +593,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 482-8988",
       "sourceUrl": "https://humanservices.arkansas.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "snap-food-benefits",
@@ -716,7 +720,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Most recent Social Security award letter or benefits statement",
         "Pension, VA benefits, or other retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Proof of medical expenses over $35/month (Medicare premium statements, prescription receipts, medical bills)",
         "Rent receipt, mortgage statement, or property tax bill",
         "Utility bills (electric, gas, water, phone) from last month",
@@ -805,7 +809,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-482-8988",
       "sourceUrl": "https://humanservices.arkansas.gov/services-worth-knowing/snap/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -1771,7 +1776,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Arkansas residency (utility bill, lease agreement, or state-issued document)",
         "Social Security award letter or most recent statement",
         "Proof of unemployment status (termination letter, unemployment benefits statement, or sworn affidavit)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Any pension or retirement income statements",
         "Proof of any other household income sources",
         "Documentation for all household members if income limits apply to household size"
@@ -1839,7 +1844,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(501) 320-6586",
       "sourceUrl": "https://humanservices.arkansas.gov/divisions-shared-services/aging-adult-behavioral-health-services/find-home-community-based-services-for-adults-seniors/senior-community-service-employment-program/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "legal-aid-seniors-multiple",

@@ -9,6 +9,7 @@ import { AdminChip } from "@/components/admin/provider-outreach/AdminChip";
 import { AdminFilterChips, type AdminCounts } from "@/components/admin/provider-outreach/AdminFilterChips";
 import { AdminAutocomplete } from "@/components/admin/provider-outreach/AdminAutocomplete";
 import { NotesModal } from "@/components/admin/provider-outreach/NotesModal";
+import { EmailHistoryPopover } from "@/components/admin/provider-outreach/EmailHistoryPopover";
 import { NOT_INTERESTED_REASONS } from "@/lib/provider-outreach/constants";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -822,6 +823,8 @@ interface OutreachProvider {
   fax_source_url: string | null;
   linkedin_url: string | null;
   mail_address: string | null;
+  contact_form_url: string | null;
+  contact_form_status: "found" | "not_found" | null;
   // Assignment
   assigned_to: string | null;
   // Sequence progress (for in_sequence stage)
@@ -1516,6 +1519,8 @@ function ProviderContactEditor({
           // Display mode: show email + verification badge + Edit button
           <>
             <span className="text-sm text-gray-700">{email}</span>
+            {/* Email history popover */}
+            <EmailHistoryPopover providerId={providerId} currentEmail={email} />
             {/* Email verification status and override */}
             {isOverridden ? (
               <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
@@ -1709,18 +1714,24 @@ function ApolloContactRow({
   onUseEmail,
   onContactFound,
   onEmailSourceChanged,
+  onResetToReady,
+  stage,
 }: {
   provider: OutreachProvider;
   onUseEmail: (email: string, emailSource?: "decision_maker") => void;
   onContactFound: (contact: OutreachProvider["apollo_contact"]) => void;
   onEmailSourceChanged?: (emailSource: "organization" | "decision_maker") => void;
+  onResetToReady?: (providerId: string) => Promise<boolean>;
+  stage?: string;
 }) {
   const [finding, setFinding] = useState(false);
   const [using, setUsing] = useState(false);
   const [switching, setSwitching] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const apolloContact = provider.apollo_contact;
+  const isInSequence = stage === "in_sequence";
 
   // Check if Apollo email matches provider's current email
   const emailsMatch = apolloContact?.email?.toLowerCase() === provider.email?.toLowerCase();
@@ -1766,26 +1777,45 @@ function ApolloContactRow({
   }
 
   // "Confirm" or "Use This" - set email_source to decision_maker (and update email if different)
+  // For In Sequence: show confirmation first, then reset to ready
   async function handleConfirm() {
     if (!apolloContact?.email || using) return;
+
+    // For In Sequence, show confirmation dialog first
+    if (isInSequence && !showResetConfirm) {
+      setShowResetConfirm(true);
+      return;
+    }
+
     setUsing(true);
     setError(null);
+    setShowResetConfirm(false);
+
     try {
-      const res = await fetch("/api/admin/provider-outreach/update-email", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          email: apolloContact.email,
-          confirm_apollo: true, // This sets email_source = 'decision_maker'
-        }),
-      });
-      if (res.ok) {
-        // Update local state with email and email_source
-        onUseEmail(apolloContact.email, "decision_maker");
+      if (isInSequence && onResetToReady) {
+        // In Sequence: call reset-to-ready which cancels sequence and moves to Ready
+        const success = await onResetToReady(provider.provider_id);
+        if (!success) {
+          setError("Failed to reset");
+        }
       } else {
-        const data = await res.json();
-        setError(data.error || "Failed to confirm");
+        // Normal flow: just update email
+        const res = await fetch("/api/admin/provider-outreach/update-email", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            provider_id: provider.provider_id,
+            email: apolloContact.email,
+            confirm_apollo: true, // This sets email_source = 'decision_maker'
+          }),
+        });
+        if (res.ok) {
+          // Update local state with email and email_source
+          onUseEmail(apolloContact.email, "decision_maker");
+        } else {
+          const data = await res.json();
+          setError(data.error || "Failed to confirm");
+        }
       }
     } catch (err) {
       setError("Failed to confirm");
@@ -1896,6 +1926,40 @@ function ApolloContactRow({
             </button>
           )}
         </>
+      ) : showResetConfirm ? (
+        // Confirmation dialog for In Sequence reset
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-amber-600">Cancel sequence & move to Ready?</span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleConfirm();
+            }}
+            disabled={using}
+            className="px-2 py-0.5 text-xs font-medium text-white bg-purple-600 hover:bg-purple-700 rounded transition disabled:opacity-50"
+          >
+            {using ? "..." : "Yes, Reset"}
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowResetConfirm(false);
+            }}
+            className="px-2 py-0.5 text-xs text-gray-500 hover:text-gray-700 rounded transition"
+          >
+            Cancel
+          </button>
+        </div>
+      ) : isInSequence && emailsMatch ? (
+        // In sequence + emails already match: no action needed, just show passive indicator
+        <span className="inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-purple-700 bg-purple-50 rounded">
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+          </svg>
+          Using
+        </span>
       ) : (
         <button
           type="button"
@@ -1904,9 +1968,13 @@ function ApolloContactRow({
             handleConfirm();
           }}
           disabled={using}
-          className="px-2 py-0.5 text-xs font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded transition disabled:opacity-50"
+          className={`px-2 py-0.5 text-xs font-medium rounded transition disabled:opacity-50 ${
+            isInSequence
+              ? "text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+              : "text-purple-600 hover:text-purple-700 hover:bg-purple-50"
+          }`}
         >
-          {using ? "..." : emailsMatch ? "Confirm" : "Use This"}
+          {using ? "..." : isInSequence ? "Reset & Use" : emailsMatch ? "Confirm" : "Use This"}
         </button>
       )}
       {error && <span className="text-xs text-amber-600">{error}</span>}
@@ -1937,6 +2005,8 @@ interface CityRowProps {
   onRemoveProvider: (provider: OutreachProvider) => void;
   // Move to Ready (for Not Interested tab)
   onMoveToReady?: (providerId: string) => void;
+  // Reset to Ready with Apollo email (for In Sequence tab)
+  onResetToReadyWithApollo?: (providerId: string) => Promise<boolean>;
   // City assignment
   cityOwnerId: string | null;
   cityOwnerName: string | null;
@@ -1966,6 +2036,7 @@ function CityRow({
   onOpenNotesModal,
   onRemoveProvider,
   onMoveToReady,
+  onResetToReadyWithApollo,
   cityOwnerId,
   cityOwnerName,
   isEditingAssignment,
@@ -1989,6 +2060,10 @@ function CityRow({
   const [confirmedProviders, setConfirmedProviders] = useState<Set<string>>(new Set());
   const [confirmingProvider, setConfirmingProvider] = useState<string | null>(null);
   const [confirmError, setConfirmError] = useState<string | null>(null);
+  // Track providers being unconfirmed
+  const [unconfirmingProvider, setUnconfirmingProvider] = useState<string | null>(null);
+  // Track providers that admin has unconfirmed this session (to override confirmed_at from DB)
+  const [unconfirmedProviders, setUnconfirmedProviders] = useState<Set<string>>(new Set());
   // Move to Ready state (for Not Interested tab)
   const [showMoveToReadyConfirmId, setShowMoveToReadyConfirmId] = useState<string | null>(null);
   const [movingToReadyId, setMovingToReadyId] = useState<string | null>(null);
@@ -1998,6 +2073,7 @@ function CityRow({
     () => providers.filter((p) => (p.city || "(No City)") === city.city),
     [providers, city.city]
   );
+
 
   // Auto email lookup when city is expanded
   useEffect(() => {
@@ -2254,33 +2330,76 @@ function CityRow({
                             </Link>
                             {/* Sequence progress badge - only show in In Sequence tab */}
                             {activeTab === "in_sequence" && typeof provider.emails_sent === "number" && (
-                              <div className="flex flex-col items-start">
-                                <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded ${
-                                  provider.sequence_status?.failed_step !== undefined
-                                    ? "bg-red-100 text-red-700"
-                                    : "bg-blue-100 text-blue-700"
-                                }`}>
-                                  {provider.emails_sent}/4
-                                </span>
-                                {/* Sequence sublabel (recency or failure) */}
-                                {(() => {
-                                  const sublabel = getSequenceSublabel(provider);
-                                  return (
-                                    <span className={`text-[9px] ${sublabel.isFailed ? "text-red-500 font-medium" : "text-gray-400"}`}>
-                                      {sublabel.text}
-                                    </span>
-                                  );
-                                })()}
+                              <div className="flex items-center gap-2">
+                                <div className="flex flex-col items-start">
+                                  <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                                    provider.sequence_status?.failed_step !== undefined
+                                      ? "bg-red-100 text-red-700"
+                                      : "bg-blue-100 text-blue-700"
+                                  }`}>
+                                    {provider.emails_sent}/4
+                                  </span>
+                                  {/* Sequence sublabel (recency or failure) */}
+                                  {(() => {
+                                    const sublabel = getSequenceSublabel(provider);
+                                    return (
+                                      <span className={`text-[9px] ${sublabel.isFailed ? "text-red-500 font-medium" : "text-gray-400"}`}>
+                                        {sublabel.text}
+                                      </span>
+                                    );
+                                  })()}
+                                </div>
+                                {/* Engagement indicator - show if provider opened emails */}
+                                {provider.engagement && provider.engagement.opens > 0 && (
+                                  <span className="inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-100 text-amber-700">
+                                    Opened {provider.engagement.opens}x
+                                  </span>
+                                )}
                               </div>
                             )}
                             {/* Confirm button - only show in Ready tab */}
                             {activeTab === "ready" && (
-                              provider.confirmed_at || confirmedProviders.has(provider.provider_id) ? (
-                                <span className="text-blue-500" title="Confirmed">
-                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                                  </svg>
-                                </span>
+                              // Check if confirmed: has confirmed_at OR in confirmedProviders, AND NOT in unconfirmedProviders
+                              ((provider.confirmed_at || confirmedProviders.has(provider.provider_id)) && !unconfirmedProviders.has(provider.provider_id)) ? (
+                                <button
+                                  type="button"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    e.preventDefault();
+                                    setUnconfirmingProvider(provider.provider_id);
+                                    try {
+                                      const res = await fetch("/api/admin/provider-outreach/confirm", {
+                                        method: "DELETE",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ provider_id: provider.provider_id }),
+                                      });
+                                      if (res.ok) {
+                                        // Remove from confirmed sets, add to unconfirmed set
+                                        setConfirmedProviders(prev => {
+                                          const next = new Set(prev);
+                                          next.delete(provider.provider_id);
+                                          return next;
+                                        });
+                                        setUnconfirmedProviders(prev => new Set([...prev, provider.provider_id]));
+                                      }
+                                    } catch {
+                                      // Silent fail - user can retry
+                                    } finally {
+                                      setUnconfirmingProvider(null);
+                                    }
+                                  }}
+                                  disabled={unconfirmingProvider === provider.provider_id}
+                                  className="text-blue-500 hover:text-blue-400 transition-colors disabled:opacity-50"
+                                  title="Click to unconfirm"
+                                >
+                                  {unconfirmingProvider === provider.provider_id ? (
+                                    <span className="w-4 h-4 border-2 border-blue-300 border-t-blue-500 rounded-full animate-spin inline-block" />
+                                  ) : (
+                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                </button>
                               ) : (
                                 <>
                                   <button
@@ -2298,6 +2417,12 @@ function CityRow({
                                         });
                                         if (res.ok) {
                                           setConfirmedProviders(prev => new Set([...prev, provider.provider_id]));
+                                          // Clear from unconfirmed set if re-confirming
+                                          setUnconfirmedProviders(prev => {
+                                            const next = new Set(prev);
+                                            next.delete(provider.provider_id);
+                                            return next;
+                                          });
                                         } else {
                                           setConfirmError(provider.provider_id);
                                         }
@@ -2333,17 +2458,17 @@ function CityRow({
                           </div>
                           {/* Hover actions */}
                           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                            {/* Notes button */}
+                            {/* Notes button - filled when provider has notes */}
                             <button
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
                                 onOpenNotesModal(provider);
                               }}
-                              className="p-1 text-gray-300 hover:text-amber-500"
+                              className={`p-1 ${provider.notes ? "text-gray-700" : "text-gray-300 hover:text-amber-500"}`}
                               title="Notes"
                             >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                              <svg className="w-4 h-4" fill={provider.notes ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                               </svg>
                             </button>
@@ -2393,7 +2518,12 @@ function CityRow({
                           {provider.stage === "claimed" ? (
                             <>
                               {(provider.provider_category || provider.city) && provider.email && <span>·</span>}
-                              {provider.email && <span>{provider.email}</span>}
+                              {provider.email && (
+                                <>
+                                  <span>{provider.email}</span>
+                                  <EmailHistoryPopover providerId={provider.provider_id} currentEmail={provider.email} />
+                                </>
+                              )}
                               {provider.email && provider.phone && <span>·</span>}
                               {provider.phone && (
                                 <a
@@ -2456,12 +2586,14 @@ function CityRow({
                                 </span>
                               )}
                               {/* Apollo decision-maker contact row */}
-                              {/* Show on Ready tab (when has email) OR on Needs Email tab (always available) */}
+                              {/* Show on Ready tab (when has email), Needs Email tab, or In Sequence tab */}
                               {(
                                 // Ready tab: show when provider has email (find decision-maker as upgrade)
                                 ((provider.email || foundEmails.has(provider.provider_id)) && activeTab === "ready") ||
                                 // Needs Email tab: always show Apollo option alongside scraping
-                                activeTab === "needs_email"
+                                activeTab === "needs_email" ||
+                                // In Sequence tab: allow finding decision maker and resetting with new email
+                                activeTab === "in_sequence"
                               ) && (
                                 <ApolloContactRow
                                   provider={{
@@ -2472,6 +2604,8 @@ function CityRow({
                                   onUseEmail={(email, emailSource) => onEmailSaved(provider.provider_id, email, emailSource)}
                                   onContactFound={(contact) => onApolloContactFound(provider.provider_id, contact)}
                                   onEmailSourceChanged={activeTab === "ready" ? (emailSource) => onEmailSourceChanged(provider.provider_id, emailSource) : undefined}
+                                  stage={activeTab === "in_sequence" ? "in_sequence" : undefined}
+                                  onResetToReady={activeTab === "in_sequence" ? onResetToReadyWithApollo : undefined}
                                 />
                               )}
                             </>
@@ -2771,6 +2905,18 @@ function FollowUpProviderRow({
   const [pendingDirectMailSend, setPendingDirectMailSend] = useState(false);
   const [findingAddress, setFindingAddress] = useState(false);
   const [addressNotFound, setAddressNotFound] = useState(false);
+  // Inline contact form state
+  const [editingContactForm, setEditingContactForm] = useState(false);
+  const [contactFormUrlInput, setContactFormUrlInput] = useState("");
+  const [contactFormMessageCopied, setContactFormMessageCopied] = useState(false);
+  const [contactFormOpened, setContactFormOpened] = useState(false);
+  const [submittingContactForm, setSubmittingContactForm] = useState(false);
+  const [savingContactFormUrl, setSavingContactFormUrl] = useState(false);
+  const [findingContactForm, setFindingContactForm] = useState(false);
+  const [contactFormNotFound, setContactFormNotFound] = useState(false);
+  const [claimUrl, setClaimUrl] = useState<string | null>(null);
+  const [loadingClaimUrl, setLoadingClaimUrl] = useState(false);
+  const [claimUrlError, setClaimUrlError] = useState<string | null>(null);
   // Confirmation checkbox state
   const [confirmedWithProvider, setConfirmedWithProvider] = useState(false);
   // Reset to Ready state
@@ -2803,6 +2949,15 @@ function FollowUpProviderRow({
       setPendingDirectMailSend(false);
       setFindingAddress(false);
       setAddressNotFound(false);
+      setEditingContactForm(false);
+      setContactFormUrlInput("");
+      setContactFormMessageCopied(false);
+      setContactFormOpened(false);
+      setSubmittingContactForm(false);
+      setSavingContactFormUrl(false);
+      setClaimUrl(null);
+      setLoadingClaimUrl(false);
+      setClaimUrlError(null);
       setConfirmedWithProvider(false);
       // Reset Apollo state
       setFindingDecisionMaker(false);
@@ -3002,6 +3157,48 @@ function FollowUpProviderRow({
         } else {
           onOutcomeRecorded(true);
         }
+      } else if (stillValid) {
+        const data = await res.json();
+        setError(data.error || "Failed to reset provider");
+      }
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error");
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setResettingToReady(false);
+        setShowResetConfirm(false);
+      }
+    }
+  };
+
+  // Handle reset to Ready with current email (non-Apollo flow)
+  // Used when user manually edited email and wants to restart sequence
+  const handleResetToReadyWithCurrentEmail = async () => {
+    const sessionAtStart = editingSessionRef.current;
+    setResettingToReady(true);
+    setError(null);
+
+    // Use provider's current email_source, default to "organization"
+    const emailSource = provider.email_source || "organization";
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          email_source: emailSource,
+          use_apollo_email: false, // Keep current email
+        }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (res.ok) {
+        // Provider was moved to Ready - trigger refresh
+        onOutcomeRecorded(true);
       } else if (stillValid) {
         const data = await res.json();
         setError(data.error || "Failed to reset provider");
@@ -3354,6 +3551,234 @@ function FollowUpProviderRow({
     }
   };
 
+  // Handle auto-finding contact form URL from provider website
+  const handleFindContactForm = async () => {
+    if (!provider.website) {
+      setContactFormNotFound(true);
+      return;
+    }
+
+    const sessionAtStart = editingSessionRef.current;
+    setFindingContactForm(true);
+    setContactFormNotFound(false);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-contact-form", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          website: provider.website,
+        }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (!res.ok) {
+        const errData = await res.json();
+        if (stillValid) {
+          setError(errData.error || "Failed to find contact form");
+          setContactFormNotFound(true);
+        }
+        return;
+      }
+
+      const data = await res.json();
+
+      if (stillValid) {
+        if (data.found && data.url) {
+          setContactFormUrlInput(data.url);
+          onProviderUpdated({ contact_form_url: data.url, contact_form_status: "found" });
+        } else {
+          setContactFormNotFound(true);
+          onProviderUpdated({ contact_form_status: "not_found" });
+        }
+      }
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error finding contact form");
+        setContactFormNotFound(true);
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setFindingContactForm(false);
+      }
+    }
+  };
+
+  // Handle saving contact form URL - returns true on success, false on failure
+  const handleSaveContactFormUrl = async (url: string): Promise<boolean> => {
+    const sessionAtStart = editingSessionRef.current;
+    setSavingContactFormUrl(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-tracking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          updates: { contact_form_url: url },
+        }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (!res.ok) {
+        const errData = await res.json();
+        if (stillValid) {
+          setError(errData.error || "Failed to save contact form URL");
+        }
+        return false;
+      }
+
+      // Update local state
+      if (stillValid) {
+        onProviderUpdated({ contact_form_url: url });
+        setContactFormUrlInput("");
+      }
+      return true;
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error saving contact form URL");
+      }
+      return false;
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setSavingContactFormUrl(false);
+      }
+    }
+  };
+
+  // Handle contact form submission - marks provider as contacted via website form
+  const handleContactFormSubmit = async () => {
+    if (!contactFormUrlInput) {
+      setError("Please enter a contact form URL first");
+      return;
+    }
+
+    const sessionAtStart = editingSessionRef.current;
+    setSubmittingContactForm(true);
+    setError(null);
+
+    try {
+      // If we have a new URL, save it first
+      if (contactFormUrlInput && contactFormUrlInput !== provider.contact_form_url) {
+        const saved = await handleSaveContactFormUrl(contactFormUrlInput);
+        if (!saved) {
+          // Don't proceed if URL save failed
+          return;
+        }
+      }
+
+      const res = await fetch("/api/admin/provider-outreach/record-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          outcome: "try_contact_form",
+          notes: `Contact form submitted: ${contactFormUrlInput}`,
+        }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (!res.ok) {
+        const errData = await res.json();
+        if (stillValid) {
+          setError(errData.error || "Failed to record contact form submission");
+        }
+        return;
+      }
+
+      // Success - close inline editing and refresh
+      if (stillValid) {
+        setEditingContactForm(false);
+        setContactFormMessageCopied(false);
+        setContactFormOpened(false);
+        setContactFormUrlInput("");
+      }
+      onOutcomeRecorded(true); // Stage changed, trigger refresh
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error recording contact form");
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setSubmittingContactForm(false);
+      }
+    }
+  };
+
+  // Handle copy message and open contact form
+  const handleCopyAndOpenContactForm = () => {
+    if (!contactFormUrlInput) return;
+
+    // Copy message to clipboard
+    navigator.clipboard.writeText(getContactFormMessage());
+    setContactFormMessageCopied(true);
+    setTimeout(() => setContactFormMessageCopied(false), 2000);
+
+    // Open contact form URL
+    const url = contactFormUrlInput.startsWith("http") ? contactFormUrlInput : `https://${contactFormUrlInput}`;
+    window.open(url, "_blank");
+    setContactFormOpened(true);
+  };
+
+  // Fetch claim URL for contact form message
+  const handleFetchClaimUrl = async () => {
+    if (claimUrl || loadingClaimUrl) return;
+
+    const sessionAtStart = editingSessionRef.current;
+    setLoadingClaimUrl(true);
+    setClaimUrlError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/generate-claim-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+
+      if (editingSessionRef.current !== sessionAtStart || !isExpandedRef.current) return;
+
+      if (res.ok) {
+        const data = await res.json();
+        setClaimUrl(data.claim_url);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        const errMsg = errData.error || "Failed to generate tracking link";
+        console.error("[contact-form] Failed to generate claim URL:", errMsg);
+        setClaimUrlError(errMsg);
+      }
+    } catch {
+      console.error("[contact-form] Error fetching claim URL");
+      setClaimUrlError("Network error generating tracking link");
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setLoadingClaimUrl(false);
+      }
+    }
+  };
+
+  // Generate contact form message for provider (personalized like Day 0 email)
+  const getContactFormMessage = () => {
+    const city = provider.city || provider.state || "your area";
+    const category = provider.provider_category || "care services";
+    const name = provider.provider_name;
+    const link = claimUrl || `https://olera.care/providers/${provider.slug}`;
+
+    return `Hi, I'm Logan from Olera.
+
+Families in ${city} searching for ${category} can already see the page we built for ${name}. But if one reached out today, no one would see the message.
+
+Activate your page (2 min, free) to fully manage it:
+${link}
+
+Questions? support@olera.care or (979) 243-9801`;
+  };
+
   // Confirmation modal content for each outcome
   const getConfirmationContent = (outcome: string) => {
     switch (outcome) {
@@ -3557,17 +3982,17 @@ function FollowUpProviderRow({
 
               {/* Hover actions (notes + three dots + trash) */}
               <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                {/* Notes button */}
+                {/* Notes button - filled when provider has notes */}
                 <button
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     onOpenNotesModal();
                   }}
-                  className="p-1 text-gray-300 hover:text-amber-500"
+                  className={`p-1 ${provider.notes ? "text-gray-700" : "text-gray-300 hover:text-amber-500"}`}
                   title="Notes"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <svg className="w-4 h-4" fill={provider.notes ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                   </svg>
                 </button>
@@ -3734,13 +4159,16 @@ function FollowUpProviderRow({
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                       </svg>
                       {provider.email ? (
-                        <a
-                          href={`mailto:${provider.email}`}
-                          className="text-sm text-primary-600 hover:underline truncate"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {provider.email}
-                        </a>
+                        <>
+                          <a
+                            href={`mailto:${provider.email}`}
+                            className="text-sm text-primary-600 hover:underline truncate"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {provider.email}
+                          </a>
+                          <EmailHistoryPopover providerId={provider.provider_id} currentEmail={provider.email} />
+                        </>
                       ) : (
                         <span className="text-sm text-gray-400 italic">No email</span>
                       )}
@@ -3986,6 +4414,52 @@ function FollowUpProviderRow({
               </div>
             )}
 
+            {/* Reset to Ready option - when no Apollo or user wants to restart sequence */}
+            {!localApolloContact && (
+              <div className="flex items-center gap-2 mb-3">
+                {showResetConfirm ? (
+                  <div className="flex items-center gap-2 p-2 bg-gray-50 border border-gray-200 rounded-md">
+                    <span className="text-xs text-gray-700">
+                      Reset to Ready tab with current email?
+                    </span>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleResetToReadyWithCurrentEmail();
+                      }}
+                      disabled={resettingToReady}
+                      className="px-2 py-1 text-xs font-medium text-white bg-gray-700 rounded hover:bg-gray-800 disabled:opacity-50"
+                    >
+                      {resettingToReady ? "Resetting..." : "Yes, Reset"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowResetConfirm(false);
+                      }}
+                      disabled={resettingToReady}
+                      className="text-xs text-gray-500 hover:text-gray-700"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setShowResetConfirm(true);
+                    }}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    Reset to Ready
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Action buttons */}
             <div className="flex flex-wrap gap-2">
               <button
@@ -4033,6 +4507,50 @@ function FollowUpProviderRow({
                 className="px-4 py-2 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:border-teal-300 hover:bg-teal-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Send Postcard
+              </button>
+
+              <button
+                onClick={() => {
+                  setEditingContactForm(true);
+                  setContactFormMessageCopied(false);
+                  setContactFormOpened(false);
+                  setContactFormUrlInput(provider.contact_form_url || "");
+                  setContactFormNotFound(provider.contact_form_status === "not_found");
+                  setError(null);
+                  // Fetch the magic claim URL for the message
+                  setTimeout(() => handleFetchClaimUrl(), 0);
+                  // Auto-find contact form if none exists and not already checked
+                  if (!provider.contact_form_url && provider.contact_form_status !== "not_found" && provider.website) {
+                    // Trigger find after state updates
+                    setTimeout(() => handleFindContactForm(), 0);
+                  }
+                }}
+                disabled={submitting !== null || editingContactForm || submittingContactForm || findingContactForm || !provider.slug}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 ${
+                  provider.contact_form_url
+                    ? "text-orange-800 bg-orange-100 border border-orange-300 hover:border-orange-400 hover:bg-orange-150"
+                    : provider.contact_form_status === "not_found" || !provider.website
+                      ? "text-gray-500 bg-gray-50 border border-gray-200 hover:border-gray-300 hover:bg-gray-100"
+                      : "text-orange-700 bg-orange-50 border border-orange-200 hover:border-orange-300 hover:bg-orange-100"
+                }`}
+                title={
+                  !provider.slug ? "No public page available" :
+                  provider.contact_form_url ? "Contact form URL saved" :
+                  !provider.website ? "No website on record (manual entry only)" :
+                  provider.contact_form_status === "not_found" ? "No contact form found" :
+                  undefined
+                }
+              >
+                {provider.contact_form_url ? (
+                  <svg className="w-3.5 h-3.5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : provider.contact_form_status === "not_found" || !provider.website ? (
+                  <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : null}
+                Contact Form
               </button>
             </div>
 
@@ -4158,9 +4676,187 @@ function FollowUpProviderRow({
               </div>
             )}
 
+            {/* Inline Contact Form */}
+            {editingContactForm && (
+              <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-xs font-medium text-gray-700 uppercase tracking-wide">
+                    Website Contact Form
+                  </label>
+                  <button
+                    onClick={() => {
+                      setEditingContactForm(false);
+                      setContactFormMessageCopied(false);
+                      setContactFormOpened(false);
+                      setContactFormUrlInput("");
+                      setContactFormNotFound(false);
+                      setFindingContactForm(false);
+                      setError(null);
+                    }}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
+
+                {/* Loading state while finding */}
+                {findingContactForm && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600 py-4 justify-center">
+                    <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                    Finding contact form...
+                  </div>
+                )}
+
+                {/* Not found state */}
+                {!findingContactForm && contactFormNotFound && !contactFormUrlInput && (
+                  <div className="mb-3">
+                    <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-lg mb-2">
+                      <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      No contact form found on their website
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={contactFormUrlInput}
+                        onChange={(e) => {
+                          setContactFormUrlInput(e.target.value);
+                          setContactFormNotFound(false);
+                        }}
+                        placeholder="Enter URL manually..."
+                        className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent bg-white"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      {provider.website && (
+                        <a
+                          href={provider.website.startsWith("http") ? provider.website : `https://${provider.website}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 whitespace-nowrap"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Visit Site
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Contact Form URL Input - shown when not loading and not in "not found" state, or when user has typed something */}
+                {!findingContactForm && (!contactFormNotFound || contactFormUrlInput) && (
+                  <div className="mb-3">
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={contactFormUrlInput}
+                        onChange={(e) => setContactFormUrlInput(e.target.value)}
+                        placeholder="https://example.com/contact"
+                        className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent bg-white"
+                        onClick={(e) => e.stopPropagation()}
+                        disabled={findingContactForm}
+                      />
+                      {provider.website && !contactFormUrlInput && !findingContactForm && (
+                        <button
+                          onClick={handleFindContactForm}
+                          className="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 whitespace-nowrap"
+                        >
+                          Find
+                        </button>
+                      )}
+                    </div>
+                    {!contactFormUrlInput && !findingContactForm && (
+                      <p className="mt-1.5 text-xs text-gray-500">
+                        {provider.contact_form_url
+                          ? "URL auto-filled from previous search"
+                          : provider.website
+                            ? "URL will be auto-found from their website"
+                            : "No website on record. Enter contact form URL manually."}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Show workflow when URL exists in input */}
+                {contactFormUrlInput && (
+                  <>
+                    {/* Message preview */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-3 mb-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-gray-500">Message:</span>
+                      </div>
+                      <pre className="text-xs text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
+                        {getContactFormMessage()}
+                      </pre>
+                    </div>
+
+                    {/* Form field hints */}
+                    <div className="text-xs text-gray-600 mb-3 grid grid-cols-2 gap-x-4 gap-y-0.5">
+                      <p><span className="font-medium">First:</span> Logan</p>
+                      <p><span className="font-medium">Last:</span> DuBose</p>
+                      <p><span className="font-medium">Email:</span> support@olera.care</p>
+                      <p><span className="font-medium">Phone:</span> (979) 243-9801</p>
+                    </div>
+
+                    {/* Error message if claim URL generation failed */}
+                    {claimUrlError && (
+                      <div className="mb-3 p-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg">
+                        <span className="font-medium">Cannot generate tracking link:</span> {claimUrlError}
+                        {claimUrlError.includes("no email") && (
+                          <span className="block mt-1 text-red-600">Add an email address to enable one-click claim tracking.</span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Copy & Open Button */}
+                    {!contactFormOpened ? (
+                      <button
+                        onClick={handleCopyAndOpenContactForm}
+                        disabled={loadingClaimUrl || !claimUrl}
+                        className="w-full px-4 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {loadingClaimUrl ? (
+                          <>
+                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            Generating link...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            Copy Message & Open Form
+                          </>
+                        )}
+                      </button>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 px-3 py-2 rounded-lg">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Message copied & form opened
+                        </div>
+                        <button
+                          onClick={handleContactFormSubmit}
+                          disabled={submittingContactForm}
+                          className="w-full px-4 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          {submittingContactForm ? "Recording..." : "Mark as Submitted"}
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
             {/* Cost note */}
             <p className="mt-4 text-xs text-gray-400">
-              Fax and postcard have per-send costs.
+              Fax and postcard have per-send costs. Contact form is free.
             </p>
           </div>
         </div>
@@ -5142,12 +5838,12 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
                 {provider.re_engage_channel && provider.re_engage_channel !== "re_engage" && (
                   <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
                     provider.re_engage_channel === "fax" ? "bg-purple-50 text-purple-700" :
-                    provider.re_engage_channel === "linkedin" ? "bg-blue-50 text-blue-700" :
+                    provider.re_engage_channel === "contact_form" ? "bg-orange-50 text-orange-700" :
                     provider.re_engage_channel === "direct_mail" ? "bg-teal-50 text-teal-700" :
                     "bg-gray-50 text-gray-600"
                   }`}>
                     {provider.re_engage_channel === "fax" ? "Fax" :
-                     provider.re_engage_channel === "linkedin" ? "LinkedIn" :
+                     provider.re_engage_channel === "contact_form" ? "Contact Form" :
                      provider.re_engage_channel === "direct_mail" ? "Direct Mail" :
                      provider.re_engage_channel}
                   </span>
@@ -5217,7 +5913,10 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
                 ) : (
                   <div className="flex items-center gap-2 flex-1">
                     {provider.email ? (
-                      <span className="text-sm">{provider.email}</span>
+                      <>
+                        <span className="text-sm">{provider.email}</span>
+                        <EmailHistoryPopover providerId={provider.provider_id} currentEmail={provider.email} />
+                      </>
                     ) : (
                       <span className="text-sm text-gray-400 italic">No email</span>
                     )}
@@ -5399,7 +6098,7 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
                 className="px-3 py-1.5 text-sm font-medium text-amber-600 bg-white border border-amber-300 rounded-lg hover:bg-amber-50 hover:border-amber-400 transition-colors"
                 title="Notes"
               >
-                <svg className="w-4 h-4 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="w-4 h-4 inline-block" fill={provider.notes ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                 </svg>
               </button>
@@ -5635,7 +6334,7 @@ export default function ProviderOutreachPage() {
   const [selectedAdminFilter, setSelectedAdminFilter] = useState<string | null>(null);
 
   // Channel filter state (for Alternative Channels tab)
-  type ChannelFilter = "all" | "email" | "fax" | "direct_mail";
+  type ChannelFilter = "all" | "email" | "fax" | "contact_form" | "direct_mail";
   const [selectedChannelFilter, setSelectedChannelFilter] = useState<ChannelFilter>("all");
 
   // Ready tab filter state (Organization vs Decision Maker)
@@ -5785,9 +6484,16 @@ export default function ProviderOutreachPage() {
       claimed: number;
       rate: number;
     };
+    by_email_source?: {
+      organization: { in_sequence: number; claimed: number; rate: number };
+      decision_maker: { in_sequence: number; claimed: number; rate: number };
+    };
   } | null>(null);
   const [conversionLoading, setConversionLoading] = useState(false);
   const [conversionError, setConversionError] = useState(false);
+
+  // Email source comparison (org vs Apollo decision-maker)
+  const [emailSourceExpanded, setEmailSourceExpanded] = useState(false);
 
   // Email template preview
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
@@ -6429,9 +7135,11 @@ export default function ProviderOutreachPage() {
     fetchClaimsDashboard();
   }, [emailStatsExpanded, claimsDashboard]);
 
-  // Effect: fetch sequence conversion stats when section is expanded
+  // Effect: fetch sequence conversion stats when any analytics section is expanded
+  // (Outreach Funnel, Sequence Conv., and Email Source all use the same API data)
   useEffect(() => {
-    if (!conversionExpanded || conversionStats || !selectedState) return;
+    const needsData = statsExpanded || conversionExpanded || emailSourceExpanded;
+    if (!needsData || conversionStats || !selectedState) return;
 
     const fetchConversionStats = async () => {
       setConversionLoading(true);
@@ -6452,7 +7160,7 @@ export default function ProviderOutreachPage() {
       }
     };
     fetchConversionStats();
-  }, [conversionExpanded, conversionStats, selectedState]);
+  }, [statsExpanded, conversionExpanded, emailSourceExpanded, conversionStats, selectedState]);
 
   // Reset conversion stats when state changes
   useEffect(() => {
@@ -7300,87 +8008,142 @@ export default function ProviderOutreachPage() {
         />
       )}
 
-      {/* Collapsible Funnel Stats - only show when a state is selected */}
+      {/* Analytics Sections - Horizontal Row of Toggles */}
       {selectedState && (
         <div className="mb-6">
-          <button
-            type="button"
-            onClick={() => setStatsExpanded(!statsExpanded)}
-            className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-          >
-            <svg
-              className={`w-4 h-4 transform transition-transform ${statsExpanded ? "rotate-90" : ""}`}
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          {/* Horizontal row of toggle buttons */}
+          <div className="flex items-center gap-4 flex-wrap">
+            {/* Outreach Funnel toggle */}
+            <button
+              type="button"
+              onClick={() => setStatsExpanded(!statsExpanded)}
+              className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                statsExpanded ? "text-gray-900" : "text-gray-500 hover:text-gray-700"
+              }`}
             >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-            </svg>
-            <span>Outreach Funnel</span>
-          </button>
+              <svg
+                className={`w-3.5 h-3.5 transform transition-transform ${statsExpanded ? "rotate-90" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span>Outreach Funnel</span>
+            </button>
 
+            <span className="text-gray-300">|</span>
+
+            {/* Email Performance toggle */}
+            <button
+              type="button"
+              onClick={() => setEmailStatsExpanded(!emailStatsExpanded)}
+              className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                emailStatsExpanded ? "text-gray-900" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <svg
+                className={`w-3.5 h-3.5 transform transition-transform ${emailStatsExpanded ? "rotate-90" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span>Email Performance</span>
+              {claimsDashboard && (
+                <span className="text-xs text-gray-400">
+                  ({claimsDashboard.totals.claimed} claims)
+                </span>
+              )}
+            </button>
+
+            <span className="text-gray-300">|</span>
+
+            {/* Sequence Conversion toggle */}
+            <button
+              type="button"
+              onClick={() => setConversionExpanded(!conversionExpanded)}
+              className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                conversionExpanded ? "text-gray-900" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <svg
+                className={`w-3.5 h-3.5 transform transition-transform ${conversionExpanded ? "rotate-90" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span>Sequence Conv.</span>
+              {conversionStats && conversionStats.totals.in_sequence > 0 && (
+                <span className="text-xs text-gray-400">
+                  ({conversionStats.totals.rate}%)
+                </span>
+              )}
+            </button>
+
+            <span className="text-gray-300">|</span>
+
+            {/* Email Source toggle (Apollo vs Org) */}
+            <button
+              type="button"
+              onClick={() => setEmailSourceExpanded(!emailSourceExpanded)}
+              className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                emailSourceExpanded ? "text-gray-900" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <svg
+                className={`w-3.5 h-3.5 transform transition-transform ${emailSourceExpanded ? "rotate-90" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span>Email Source</span>
+              {conversionStats?.by_email_source && (
+                <span className="text-xs text-gray-400">
+                  (Apollo {conversionStats.by_email_source.decision_maker.rate}%)
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Outreach Funnel expanded content */}
           {statsExpanded && (
-            <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <FunnelStat
-                label="In Sequence"
-                value={stageCounts.in_sequence}
-                subtitle="actively receiving emails"
-              />
-              <FunnelStat
-                label="Follow Up"
-                value={stageCounts.needs_call}
-                subtitle="sequence complete"
-              />
-              <FunnelStat
-                label="Claimed"
-                value={stageCounts.claimed}
-                highlight
-                subtitle="success"
-              />
-              <FunnelStat
-                label="Claim Rate"
-                value={
-                  stageCounts.in_sequence + stageCounts.needs_call + stageCounts.claimed > 0
-                    ? Math.round(
-                        (stageCounts.claimed /
-                          (stageCounts.in_sequence + stageCounts.needs_call + stageCounts.claimed)) *
-                          100
-                      )
-                    : 0
-                }
-                format="percent"
-                subtitle="of providers who entered sequence"
-              />
+            <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <FunnelStat
+                  label="In Sequence"
+                  value={stageCounts.in_sequence}
+                  subtitle="actively receiving emails"
+                />
+                <FunnelStat
+                  label="Follow Up"
+                  value={stageCounts.needs_call}
+                  subtitle="sequence complete"
+                />
+                <FunnelStat
+                  label="Claimed"
+                  value={conversionStats?.totals.claimed ?? 0}
+                  highlight
+                  subtitle="from sequence"
+                />
+                <FunnelStat
+                  label="Claim Rate"
+                  value={conversionStats?.totals.rate ?? 0}
+                  format="percent"
+                  subtitle="of providers who entered sequence"
+                />
+              </div>
             </div>
           )}
-        </div>
-      )}
 
-      {/* Email Performance Section */}
-      <div className="mb-6">
-        <button
-          type="button"
-          onClick={() => setEmailStatsExpanded(!emailStatsExpanded)}
-          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <svg
-            className={`w-4 h-4 transform transition-transform ${emailStatsExpanded ? "rotate-90" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-          <span>Email Performance</span>
-          {claimsDashboard && (
-            <span className="text-xs text-gray-400">
-              ({claimsDashboard.totals.claimed} claims · {claimsDashboard.totals.conversion_rate}% rate)
-            </span>
-          )}
-        </button>
-
-        {emailStatsExpanded && (
-          <div className="mt-4 space-y-6">
+          {/* Email Performance expanded content */}
+          {emailStatsExpanded && (
+            <div className="mt-3 p-3 bg-gray-50 rounded-lg space-y-6">
             {/* Claims Dashboard */}
             {claimsDashboardLoading ? (
               <div className="text-sm text-gray-500">Loading claims data...</div>
@@ -7511,84 +8274,169 @@ export default function ProviderOutreachPage() {
             </div>
           </div>
         )}
-      </div>
 
-      {/* Sequence Conversion Section */}
-      <div className="mb-6">
-        <button
-          type="button"
-          onClick={() => setConversionExpanded(!conversionExpanded)}
-          className="flex items-center gap-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
-        >
-          <svg
-            className={`w-4 h-4 transform transition-transform ${conversionExpanded ? "rotate-90" : ""}`}
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-          <span>Sequence Conversion</span>
-          {conversionStats && conversionStats.totals.in_sequence > 0 && (
-            <span className="text-xs text-gray-400">
-              ({conversionStats.totals.claimed}/{conversionStats.totals.in_sequence} claimed · {conversionStats.totals.rate}%)
-            </span>
-          )}
-        </button>
-
-        {conversionExpanded && (
-          <div className="mt-4">
-            {conversionLoading ? (
-              <div className="text-sm text-gray-500">Loading conversion stats...</div>
-            ) : conversionError ? (
-              <div className="flex items-center gap-3 text-sm">
-                <span className="text-red-600">Failed to load conversion stats</span>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setConversionStats(null);
-                    setConversionError(false);
-                  }}
-                  className="text-teal-700 hover:underline"
-                >
-                  Retry
-                </button>
-              </div>
-            ) : conversionStats && conversionStats.cities.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-gray-200">
-                      <th className="text-left py-2 pr-4 font-medium text-gray-600">City</th>
-                      <th className="text-right py-2 px-3 font-medium text-gray-600">Sequenced</th>
-                      <th className="text-right py-2 px-3 font-medium text-gray-600">Claimed</th>
-                      <th className="text-right py-2 pl-3 font-medium text-gray-600">Rate</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {conversionStats.cities.map((c) => (
-                      <tr key={c.city} className="border-b border-gray-100">
-                        <td className="py-2 pr-4 text-gray-900">{c.city}</td>
-                        <td className="py-2 px-3 text-right text-gray-700 tabular-nums">{c.in_sequence}</td>
-                        <td className="py-2 px-3 text-right text-emerald-600 font-medium tabular-nums">{c.claimed}</td>
-                        <td className="py-2 pl-3 text-right text-gray-700 tabular-nums">{c.rate}%</td>
+          {/* Sequence Conversion expanded content */}
+          {conversionExpanded && (
+            <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+              {conversionLoading ? (
+                <div className="text-sm text-gray-500">Loading conversion stats...</div>
+              ) : conversionError ? (
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="text-red-600">Failed to load conversion stats</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConversionStats(null);
+                      setConversionError(false);
+                    }}
+                    className="text-teal-700 hover:underline"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : conversionStats && conversionStats.cities.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-2 pr-4 font-medium text-gray-600">City</th>
+                        <th className="text-right py-2 px-3 font-medium text-gray-600">Sequenced</th>
+                        <th className="text-right py-2 px-3 font-medium text-gray-600">Claimed</th>
+                        <th className="text-right py-2 pl-3 font-medium text-gray-600">Rate</th>
                       </tr>
-                    ))}
-                    <tr className="font-medium bg-gray-50">
-                      <td className="py-2 pr-4 text-gray-900">Total</td>
-                      <td className="py-2 px-3 text-right text-gray-900 tabular-nums">{conversionStats.totals.in_sequence}</td>
-                      <td className="py-2 px-3 text-right text-emerald-700 tabular-nums">{conversionStats.totals.claimed}</td>
-                      <td className="py-2 pl-3 text-right text-gray-900 tabular-nums">{conversionStats.totals.rate}%</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <div className="text-sm text-gray-500">No sequence data yet. Start a sequence to see conversion stats.</div>
-            )}
-          </div>
-        )}
-      </div>
+                    </thead>
+                    <tbody>
+                      {conversionStats.cities.map((c) => (
+                        <tr key={c.city} className="border-b border-gray-100">
+                          <td className="py-2 pr-4 text-gray-900">{c.city}</td>
+                          <td className="py-2 px-3 text-right text-gray-700 tabular-nums">{c.in_sequence}</td>
+                          <td className="py-2 px-3 text-right text-emerald-600 font-medium tabular-nums">{c.claimed}</td>
+                          <td className="py-2 pl-3 text-right text-gray-700 tabular-nums">{c.rate}%</td>
+                        </tr>
+                      ))}
+                      <tr className="font-medium bg-gray-50">
+                        <td className="py-2 pr-4 text-gray-900">Total</td>
+                        <td className="py-2 px-3 text-right text-gray-900 tabular-nums">{conversionStats.totals.in_sequence}</td>
+                        <td className="py-2 px-3 text-right text-emerald-700 tabular-nums">{conversionStats.totals.claimed}</td>
+                        <td className="py-2 pl-3 text-right text-gray-900 tabular-nums">{conversionStats.totals.rate}%</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500">No sequence data yet. Start a sequence to see conversion stats.</div>
+              )}
+            </div>
+          )}
+
+          {/* Email Source expanded content (Apollo vs Org comparison) */}
+          {emailSourceExpanded && (
+            <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+              {conversionLoading ? (
+                <div className="text-sm text-gray-500">Loading email source data...</div>
+              ) : conversionError ? (
+                <div className="flex items-center gap-3 text-sm">
+                  <span className="text-red-600">Failed to load data</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setConversionStats(null);
+                      setConversionError(false);
+                    }}
+                    className="text-teal-700 hover:underline"
+                  >
+                    Retry
+                  </button>
+                </div>
+              ) : conversionStats?.by_email_source ? (
+                <div className="space-y-4">
+                  <div className="text-sm font-medium text-gray-700">Which email type converts better?</div>
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Organization Email Stats */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">Organization Emails</div>
+                          <div className="text-xs text-gray-500">info@, contact@, etc.</div>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Sequenced</span>
+                          <span className="font-medium text-gray-900 tabular-nums">{conversionStats.by_email_source.organization.in_sequence}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Claimed</span>
+                          <span className="font-medium text-emerald-600 tabular-nums">{conversionStats.by_email_source.organization.claimed}</span>
+                        </div>
+                        <div className="flex justify-between text-sm border-t border-gray-100 pt-2 mt-2">
+                          <span className="text-gray-700 font-medium">Conversion</span>
+                          <span className="font-semibold text-gray-900 tabular-nums text-lg">{conversionStats.by_email_source.organization.rate}%</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Decision-Maker (Apollo) Email Stats */}
+                    <div className="bg-white border border-purple-200 rounded-lg p-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                          <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                        </div>
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">Apollo Decision-Makers</div>
+                          <div className="text-xs text-gray-500">Personal emails, addressed by name</div>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Sequenced</span>
+                          <span className="font-medium text-gray-900 tabular-nums">{conversionStats.by_email_source.decision_maker.in_sequence}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-600">Claimed</span>
+                          <span className="font-medium text-emerald-600 tabular-nums">{conversionStats.by_email_source.decision_maker.claimed}</span>
+                        </div>
+                        <div className="flex justify-between text-sm border-t border-gray-100 pt-2 mt-2">
+                          <span className="text-gray-700 font-medium">Conversion</span>
+                          <span className="font-semibold text-purple-700 tabular-nums text-lg">{conversionStats.by_email_source.decision_maker.rate}%</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Insight line */}
+                  {conversionStats.by_email_source.organization.in_sequence > 0 && conversionStats.by_email_source.decision_maker.in_sequence > 0 && (
+                    <div className="text-sm text-gray-600 bg-white border border-gray-200 rounded-lg p-3">
+                      {conversionStats.by_email_source.decision_maker.rate > conversionStats.by_email_source.organization.rate ? (
+                        <span>
+                          <span className="font-medium text-purple-700">Apollo decision-makers convert {conversionStats.by_email_source.decision_maker.rate - conversionStats.by_email_source.organization.rate}% better</span>
+                          {" "}than organization emails. Personalized outreach pays off.
+                        </span>
+                      ) : conversionStats.by_email_source.organization.rate > conversionStats.by_email_source.decision_maker.rate ? (
+                        <span>
+                          <span className="font-medium text-blue-700">Organization emails convert {conversionStats.by_email_source.organization.rate - conversionStats.by_email_source.decision_maker.rate}% better</span>
+                          {" "}than Apollo decision-makers.
+                        </span>
+                      ) : (
+                        <span>Both email types have the same conversion rate.</span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500">No email source data yet. Start sequences to compare org vs Apollo performance.</div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Action Bar (when items selected) - hidden during search since providers may be from different stages */}
       {selectedProviders.size > 0 && !isSearchResult && (
@@ -7753,7 +8601,7 @@ export default function ProviderOutreachPage() {
                             </div>
                             {/* Hover actions */}
                             <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              {/* Notes button */}
+                              {/* Notes button - filled when provider has notes */}
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -7763,10 +8611,10 @@ export default function ProviderOutreachPage() {
                                     name: provider.provider_name,
                                   });
                                 }}
-                                className="p-1 text-gray-300 hover:text-amber-500"
+                                className={`p-1 ${provider.notes ? "text-gray-700" : "text-gray-300 hover:text-amber-500"}`}
                                 title="Notes"
                               >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                <svg className="w-4 h-4" fill={provider.notes ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                                 </svg>
                               </button>
@@ -7814,7 +8662,12 @@ export default function ProviderOutreachPage() {
                           {provider.provider_category && provider.city && <span>·</span>}
                           {provider.city && <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>}
                           {(provider.provider_category || provider.city) && provider.email && <span>·</span>}
-                          {provider.email && <span>{provider.email}</span>}
+                          {provider.email && (
+                            <>
+                              <span>{provider.email}</span>
+                              <EmailHistoryPopover providerId={provider.provider_id} currentEmail={provider.email} />
+                            </>
+                          )}
                           {/* Questions and leads context pills */}
                           {(provider.provider_category || provider.city || provider.email) && <span>·</span>}
                           <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
@@ -7927,7 +8780,7 @@ export default function ProviderOutreachPage() {
             {/* Channel filter chips */}
             <div className="px-5 py-3 border-b border-gray-200 flex items-center gap-2">
               <span className="text-xs text-gray-500 mr-1">Channel:</span>
-              {(["all", "email", "fax", "direct_mail"] as const).map((channel) => {
+              {(["all", "email", "fax", "contact_form", "direct_mail"] as const).map((channel) => {
                 const count = channel === "all"
                   ? providers.length
                   : providers.filter((p) =>
@@ -7937,7 +8790,8 @@ export default function ProviderOutreachPage() {
                     ).length;
                 const label = channel === "all" ? "All" :
                   channel === "email" ? "Email" :
-                  channel === "fax" ? "Fax" : "Direct Mail";
+                  channel === "fax" ? "Fax" :
+                  channel === "contact_form" ? "Contact Form" : "Direct Mail";
                 const isSelected = selectedChannelFilter === channel;
                 return (
                   <button
@@ -8238,6 +9092,47 @@ export default function ProviderOutreachPage() {
                           }
                         } catch {
                           showToast("Network error", "error");
+                        }
+                      } : undefined}
+                      onResetToReadyWithApollo={activeTab === "in_sequence" ? async (providerId) => {
+                        // Find provider to get Apollo contact
+                        const provider = providers.find(p => p.provider_id === providerId);
+                        const apolloContact = provider?.apollo_contact;
+                        if (!apolloContact?.email) {
+                          showToast("No Apollo email found", "error");
+                          return false;
+                        }
+                        try {
+                          const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              provider_id: providerId,
+                              email_source: "decision_maker",
+                              use_apollo_email: true,
+                            }),
+                          });
+                          if (res.ok) {
+                            // Mark as recently moved to filter from stale API responses
+                            markAsRecentlyMoved(providerId);
+                            // Remove from In Sequence list
+                            setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+                            // Update stage counts
+                            setStageCounts((prev) => ({
+                              ...prev,
+                              in_sequence: Math.max(0, prev.in_sequence - 1),
+                              ready: prev.ready + 1,
+                            }));
+                            showToast("Reset to Ready with Apollo email", "success");
+                            return true;
+                          } else {
+                            const err = await res.json();
+                            showToast(err.error || "Failed to reset provider", "error");
+                            return false;
+                          }
+                        } catch {
+                          showToast("Network error", "error");
+                          return false;
                         }
                       } : undefined}
                       cityOwnerId={cityOwners.get(city.city)?.owner_id || null}

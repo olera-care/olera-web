@@ -100,7 +100,7 @@
         "Proof of North Dakota residency (utility bill, lease, or state-issued document)",
         "Proof of disability documentation (if under age 65)",
         "Financial information for Medicaid eligibility determination",
-        "Bank statements for all accounts",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Income documentation (Social Security award letters, pension statements)",
         "Asset documentation (property deeds, vehicle titles, investment accounts)",
         "Health insurance information",
@@ -128,6 +128,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "If your loved one already receives North Dakota Medicaid, BCAP eligibility may be processed through redetermination rather than a new application",
         "Some applicants may need to have resided in a nursing facility for at least 6 months before qualifying for BCAP if they don't meet nursing facility level of care",
         "The functional assessment must show need for help with activities of daily living - personal care assessment alone may not be sufficient",
@@ -186,7 +187,8 @@
       "phone": "(866) 614-6005",
       "sourceUrl": "https://www.hhs.nd.gov/adults-and-aging/services/basic-care-assistance-program-bcap",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "aging-in-community-project",
@@ -332,7 +334,7 @@
       "id": "assistive-senior-safety-program",
       "name": "ND Assistive Senior Safety Program",
       "shortName": "Senior Safety Program",
-      "tagline": "Free safety devices and professional setup to help your loved one stay safely at home",
+      "tagline": "Free safety devices shipped to your loved one at home, to help them stay there safely",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -345,25 +347,25 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ and needs safety devices to remain at home, North Dakota provides free assistive equipment with professional installation. The program covers alerting devices for hearing loss, anti-elopement devices for dementia care, and other home safety equipment, plus setup assistance to ensure everything works properly.\n\nThis is a last-resort program, your loved one must first be denied coverage through insurance, Medicare, or Medicaid. Because the program prioritizes requests, you'll rank devices in order of importance on your application. Income guidelines apply, but specific limits are detailed in the current year's application form.",
+      "intro": "If your loved one is 60 or older and needs safety devices to remain at home, ND Assistive can send equipment at no cost. The program covers alerting devices for hearing loss, anti-elopement devices for dementia care, and other home safety equipment. Devices are shipped to the home. If they also want help choosing or setting equipment up, ND Assistive offers a separate home safety evaluation you can ask about on the same call.\n\nThere is no income limit and you do not need to be turned down by insurance, Medicare, or Medicaid first. Funding is limited and this is not an entitlement, so requests are prioritized: preference goes to people living outside Bismarck, Grand Forks, and Fargo, people at risk of moving into a nursing facility, and households with income below the federal poverty level. You will rank the devices you need in order of importance on the application.",
       "savingsRange": "",
-      "savingsSource": "Free service",
+      "savingsSource": "Free service. Funding is limited and this is not an entitlement program.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
           "Age 60+",
           "North Dakota resident",
-          "Income guidelines apply",
-          "Need safety devices to remain at home",
-          "Not covered by insurance/Medicare/Medicaid"
+          "Does not live in a nursing facility",
+          "Needs a safety device to stay safely at home",
+          "No income limit"
         ],
         "ageRequirement": "60+",
         "incomeTable": null,
         "assetLimits": null,
         "functionalRequirement": "Must need assistive safety devices to remain safely in home",
         "otherRequirements": [
-          "North Dakota resident",
-          "Does not qualify for devices through insurance, Medicare, Medicaid, or other programs"
+          "North Dakota resident who does not reside in a nursing facility",
+          "No income limit. Income below the federal poverty level is one of three priority factors, along with living outside Bismarck/Grand Forks/Fargo and being at risk of nursing facility placement."
         ],
         "povertyLevelReference": null
       },
@@ -402,29 +404,35 @@
           },
           {
             "label": "Download PDF Form",
-            "url": "https://ndassistive.org/wp-content/uploads/2025/03/2025-Senior-Safety-Application-Standard-Print.pdf"
+            "url": "https://ndassistive.org/wp-content/uploads/2026/02/2026-SeniorSafety_LargePrintAccessible_Request.pdf"
           }
         ]
       },
       "documentsNeeded": [
-        "Completed Senior Safety Application with devices ranked in order of importance",
-        "Proof of income to meet program guidelines",
-        "Documentation of residency in North Dakota",
-        "Documentation showing need for assistive safety devices",
-        "Proof of denial or non-qualification from insurance, Medicare, Medicaid, or other funding sources"
+        "A list of the safety devices needed, ranked in order of importance (up to 4), and the health condition or disability that makes each one necessary",
+        "Measurements for any bath or toilet equipment: height and weight, the inside measurement of the tub or shower, toilet shape (round or elongated), and grab bar lengths",
+        "Date of birth, North Dakota street address and county, and whether they are enrolled in Medicare, Medicaid, or Northland PACE",
+        "Answers to three priority questions: do they live outside Bismarck, Grand Forks, and Fargo; are they at risk of nursing facility placement; is household income below the federal poverty guideline",
+        "If they live in assisted living, confirmation from the facility that the device is allowed. For an emergency alerting device, whether the home has a landline."
       ],
       "contacts": [
         {
-          "label": "Senior Safety Program",
-          "phone": "(800) 735-5400",
-          "description": "Questions about applications and device availability",
-          "hours": "Business hours"
+          "label": "ND Assistive, Senior Safety Program (start here)",
+          "phone": "(800) 895-4728",
+          "description": "Ask about eligibility, which devices are covered, and how to get an application. Details at ndassistive.org/senior-safety-program.",
+          "hours": "Mon-Thu 8:30am-5pm, Fri 8:30am-noon CT"
         },
         {
-          "label": "Program Email",
-          "phone": null,
-          "description": "Email questions to seniorsafety@ndassistive.org",
-          "hours": null
+          "label": "ND Assistive, Bismarck office",
+          "phone": "(701) 258-4728",
+          "description": "Local line. The Fargo office is (701) 365-4728. Email seniorsafety@ndassistive.org.",
+          "hours": "Mon-Thu 8:30am-5pm, Fri 8:30am-noon CT"
+        },
+        {
+          "label": "ND Aging and Disability Resource Link (ADRL)",
+          "phone": "(855) 462-5465",
+          "description": "State aging services line, for other options if Senior Safety funding runs out.",
+          "hours": "State business hours, Central"
         }
       ],
       "applicationNotes": null,
@@ -440,8 +448,8 @@
           "answer": "Yes, the program is available to seniors in assisted living facilities if they need additional safety devices beyond what the facility provides. The application process is the same."
         },
         {
-          "question": "Can I apply if my loved one was denied by Medicare but we haven't tried Medicaid yet?",
-          "answer": "No, you must exhaust all other funding sources first, including Medicaid. The Senior Safety Program only serves as a last resort when insurance, Medicare, Medicaid, and other programs won't cover the devices."
+          "question": "Does my loved one have to be turned down by Medicare or Medicaid first?",
+          "answer": "No. There is no requirement to be denied by insurance, Medicare, or Medicaid before applying. The application does ask whether they are enrolled in Medicare, Medicaid, or Northland PACE, but that is so ND Assistive can coordinate, not a hurdle. Apply directly."
         },
         {
           "question": "How many devices can my loved one receive through this program?",
@@ -457,10 +465,11 @@
         "visualTone": "minimal"
       },
       "icon": "House",
-      "phone": "(800) 735-5400",
+      "phone": "(800) 895-4728",
       "sourceUrl": "https://ndassistive.org/senior-safety-program/asdds-application/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     }
   ],
   "stateOverview": {

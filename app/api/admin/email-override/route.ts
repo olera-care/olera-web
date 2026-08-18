@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { markEmailTrusted } from "@/lib/email";
+import { getCachedVerification, isUnoverridableVerdict } from "@/lib/email-verification";
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 
 /**
@@ -27,10 +28,24 @@ import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-
 type OverrideReason = "phone_verified" | "official_website" | "claimed_account" | "admin";
 const VALID_REASONS = new Set<string>(["phone_verified", "official_website", "claimed_account", "admin"]);
 
+// Plain-English reason shown to the admin when a trust request is refused, so
+// the answer is actionable instead of a verdict code they have to decode.
+const HARD_VERDICT_COPY: Record<string, string> = {
+  mailbox_not_found: "the mailbox does not exist",
+  no_dns_entries: "the domain has no mail server at all",
+  does_not_accept_mail: "the mail server refuses all mail",
+  failed_syntax_check: "it is not a valid email address",
+  unroutable_ip_address: "there is nowhere to route mail to",
+  abuse: "it is a known abuse/complaint address",
+  possible_trap: "it looks like a spam trap",
+};
+
 // Default question batch size when flushing via this endpoint, so a large
 // backlog (e.g. The Grove's ~24) doesn't blast the provider all at once.
 // Override with ?limit=N; pass a large N to flush everything.
-const DEFAULT_FLUSH_LIMIT = 5;
+// Matches DEFAULT_QUESTION_FLUSH_CAP. Five at once still reads as a blast to a
+// provider hearing from Olera for the first time; ?limit=N raises it per call.
+const DEFAULT_FLUSH_LIMIT = 2;
 
 async function handle(params: {
   email?: string | null;
@@ -123,6 +138,25 @@ async function handle(params: {
   }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
+  }
+
+  // Refuse to trust an address whose verdict is a hard fact rather than a
+  // prediction. The send gate ignores such an override anyway (lib/email.ts), so
+  // recording it would just leave the admin believing the provider is now
+  // reachable when nothing will ever be delivered. Fail loudly here instead.
+  const existingVerdict = await getCachedVerification(email);
+  if (existingVerdict && isUnoverridableVerdict(existingVerdict.status, existingVerdict.subStatus)) {
+    return NextResponse.json(
+      {
+        error: "unoverridable_address",
+        sub_status: existingVerdict.subStatus,
+        message:
+          `This address can't be trusted: ${HARD_VERDICT_COPY[existingVerdict.subStatus ?? ""] ?? "the mailbox is confirmed undeliverable"}. ` +
+          `That's a fact from the receiving mail server, not a prediction, so sending would only bounce. ` +
+          `Find a different address for this provider.`,
+      },
+      { status: 422 },
+    );
   }
 
   const trusted = await markEmailTrusted(email, { reason, note: note ?? undefined, createdBy: adminEmail });

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/VT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T09:02:41.407Z
+ * Last updated: 2026-08-18T11:01:04.285Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -299,7 +299,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Social Security award letter or benefit verification",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment account statements (stocks, bonds, annuities)",
         "Property deeds or tax assessments for any real estate",
         "Vehicle titles and registration",
@@ -327,6 +327,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "This is completely separate from regular Medicaid and Vermont Health Connect, using the wrong application system will delay your case",
         "Income limits vary by location: $1,375/month outside Chittenden County vs. $1,441/month inside Chittenden County",
         "Spousal impoverishment protections apply if your loved one is married, the healthy spouse can keep more assets and income",
@@ -377,7 +378,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 250-8427",
       "sourceUrl": "https://mabdapply.vermont.gov/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "pace-comprehensive-care",
@@ -658,7 +660,6 @@ export const drafts: PipelineStateDrafts = {
         "Pay stubs if still working (last 4 weeks)",
         "Proof of Vermont residency (utility bill, lease agreement, or state-issued document)",
         "Birth certificate or other proof of age and citizenship",
-        "Bank statements (last 3 months) if requested",
         "Documentation of any other income sources",
         "Health insurance premium statements if paying for supplemental coverage"
       ],
@@ -683,6 +684,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Vermont does not count savings or other resources for the Medicare Savings Programs. Only income matters.",
         "Income disregards apply: Vermont excludes the first $20 of any income, plus the first $65 of earned income and 50% of remaining earnings, this can help borderline cases qualify",
         "Vermont's no-asset-test policy is unusual, many people who wouldn't qualify in other states can get coverage here",
         "If your loved one has full Medicaid, they can't get QI but may qualify for QMB or SLMB which provide additional Medicare cost coverage",
@@ -753,7 +755,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://dvha.vermont.gov/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-07"
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "3squaresvt-older-vermonters",
@@ -850,7 +852,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Proof of Vermont residency (utility bill, lease, or mail from government agency)",
         "Social Security award letters or benefit statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Pension or retirement income statements",
         "Investment account statements if applicable",
         "Disability award letters if applicable",
@@ -927,7 +929,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 479-6151",
       "sourceUrl": "https://dcf.vermont.gov/benefits/3SquaresVT/SNAP",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "fuel-assistance-heating-help",
@@ -1013,7 +1016,6 @@ export const drafts: PipelineStateDrafts = {
         "Most recent heating bills (oil, propane, electric, wood, pellet delivery receipts)",
         "Lease agreement if renter (showing heat included or separate heating arrangement)",
         "Property deed or mortgage statement if homeowner",
-        "Bank statements for all accounts (last 3 months)",
         "Documentation of other household income (unemployment, disability, retirement)",
         "Utility account numbers for electric and gas accounts",
         "Names and dates of birth for everyone living in the household"
@@ -1103,7 +1105,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 479-6151",
       "sourceUrl": "https://dcf.vermont.gov/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "weatherization-assistance",
@@ -1888,7 +1891,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card or other proof of identity",
         "Proof of household income for all sources (Social Security statements, pension letters, pay stubs from last 4 weeks)",
         "Proof of unemployment status (unemployment benefits letter or statement from last employer)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Veteran discharge papers (DD-214) if claiming veteran priority",
         "Disability documentation if claiming priority based on disability status",
         "Proof of Vermont residency (utility bill, lease agreement, or state-issued document)"
@@ -1957,7 +1960,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(877) 872-5627",
       "sourceUrl": "https://a4td.org/scs-employment-program/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "legal-assistance-seniors",

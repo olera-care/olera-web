@@ -3588,8 +3588,7 @@ function FollowUpProviderRow({
 
   // Handle contact form submission - marks provider as contacted via website form
   const handleContactFormSubmit = async () => {
-    const contactFormUrl = provider.contact_form_url || contactFormUrlInput;
-    if (!contactFormUrl) {
+    if (!contactFormUrlInput) {
       setError("Please enter a contact form URL first");
       return;
     }
@@ -3614,7 +3613,7 @@ function FollowUpProviderRow({
         body: JSON.stringify({
           provider_id: provider.provider_id,
           outcome: "try_contact_form",
-          notes: `Contact form submitted: ${contactFormUrl}`,
+          notes: `Contact form submitted: ${contactFormUrlInput}`,
         }),
       });
 
@@ -3649,8 +3648,7 @@ function FollowUpProviderRow({
 
   // Handle copy message and open contact form
   const handleCopyAndOpenContactForm = () => {
-    const contactFormUrl = provider.contact_form_url || contactFormUrlInput;
-    if (!contactFormUrl) return;
+    if (!contactFormUrlInput) return;
 
     // Copy message to clipboard
     navigator.clipboard.writeText(getContactFormMessage());
@@ -3658,7 +3656,7 @@ function FollowUpProviderRow({
     setTimeout(() => setContactFormMessageCopied(false), 2000);
 
     // Open contact form URL
-    const url = contactFormUrl.startsWith("http") ? contactFormUrl : `https://${contactFormUrl}`;
+    const url = contactFormUrlInput.startsWith("http") ? contactFormUrlInput : `https://${contactFormUrlInput}`;
     window.open(url, "_blank");
     setContactFormOpened(true);
   };
@@ -4584,7 +4582,7 @@ Have questions? support@olera.care`;
                       className="flex-1 px-3 py-2 text-sm border border-orange-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent bg-white"
                       onClick={(e) => e.stopPropagation()}
                     />
-                    {provider.website && !provider.contact_form_url && !contactFormUrlInput && (
+                    {provider.website && !contactFormUrlInput && (
                       <a
                         href={provider.website.startsWith("http") ? provider.website : `https://${provider.website}`}
                         target="_blank"
@@ -4596,15 +4594,15 @@ Have questions? support@olera.care`;
                       </a>
                     )}
                   </div>
-                  {!provider.contact_form_url && !contactFormUrlInput && (
+                  {!contactFormUrlInput && (
                     <p className="mt-1.5 text-xs text-orange-600">
                       Enter the URL of their contact form page
                     </p>
                   )}
                 </div>
 
-                {/* Show workflow when URL exists */}
-                {(provider.contact_form_url || contactFormUrlInput) && (
+                {/* Show workflow when URL exists in input */}
+                {contactFormUrlInput && (
                   <>
                     {/* Message preview */}
                     <div className="bg-white border border-orange-200 rounded-lg p-3 mb-3">
@@ -6135,7 +6133,7 @@ export default function ProviderOutreachPage() {
   const [selectedAdminFilter, setSelectedAdminFilter] = useState<string | null>(null);
 
   // Channel filter state (for Alternative Channels tab)
-  type ChannelFilter = "all" | "email" | "fax" | "direct_mail";
+  type ChannelFilter = "all" | "email" | "fax" | "contact_form" | "direct_mail";
   const [selectedChannelFilter, setSelectedChannelFilter] = useState<ChannelFilter>("all");
 
   // Ready tab filter state (Organization vs Decision Maker)

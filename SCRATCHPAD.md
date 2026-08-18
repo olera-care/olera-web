@@ -27,7 +27,7 @@
 **Built into the machinery** (so each round is safer than the last, per TJ: "we have to build and fix as we go")
 - `scripts/benefits-lint.js`: `non-dialable-phone` (64 contacts hold prose/email/`316-XXX-XXXX` in the phone field, 9 in the lead slot) and `empty-documents`
 - `scripts/benefits-pipeline.js`: killed the bad exemplar, added rails against inventing documentation periods and against asset asks on no-asset-test programs
-- `scripts/benefits-phone-provenance.js` (PR #1629): fetches each program's own `sourceUrl` and asks whether our number is on it. Verified it flags `8007355400` and confirms `8008954728`. **It would have caught ND in April.**
+- `scripts/benefits-phone-provenance.js` (PR #1629, **left in draft**): fetches each program's own `sourceUrl` and asks whether our number is on it. It flags `8007355400` and confirms `8008954728`, so it would have caught ND in April. **But a full run over 547 numbers flagged 45% as missing, and calibration against 14 programs verified by hand this session showed 7 false positives.** One URL is the wrong unit: the correct number usually lives somewhere on the operator's *domain* (a contact page, a sibling page, a PDF), not necessarily on the single `sourceUrl` the record cites. ND worked only because ND Assistive is a small single-site org with its number in every page header. Needs a v2 that resolves the registrable domain, does a site-restricted search, extracts PDF text, and treats a dead `sourceUrl` as its own finding.
 
 **Letters:** 20 pending drafts patched (body + SMS + `pick` snapshot together), Nevada PACE draft dismissed, 10 SMS `{link}.` punctuation fixes. `benefits-draft-lint` ended at **0 high / 0 medium**. TJ scheduled 33 of 35 for send.
 
@@ -3734,7 +3734,7 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 **Benefits fact-check follow-ups (2026-08-18)**
 - **2 drafts never got a schedule marker**: `b32bb6fd` north-dakota/assistive-senior-safety-program and `acfe50b7` kentucky/hcbs-waivers. Both patched and correct; both had the heaviest letter rewrites. Check whether that was deliberate.
-- **Provenance sweep** over 547 numbers was still running at session end (`node scripts/benefits-phone-provenance.js --only-missing`). Re-run and work the `NOT_ON_OPERATOR_PAGE` list — that is the ND signature.
+- **Provenance checker needs a v2 before its output is usable.** The full sweep finished at 547 checked: 247 `NOT_ON_OPERATOR_PAGE` (45%), 199 `CONFIRMED`, 96 `UNREACHABLE`. Calibrating against the 14 programs verified by hand this session found 7 false positives, so the miss list is mostly noise. Diagnosis and the v2 requirements are in PR #1629's description. Do not work the current list.
 - **101 April `factcheck.json` disagreements**, 78 never verified since. Free ranked queue; leads not truth.
 - **124 programs `toPick()` can never select** (phone present, `documentsNeeded: null`) — almost all SHIP, ombudsman, legal aid, caregiver support, i.e. the free no-paperwork services. Filed on the Web App board, P3. One-line fix at the guard, but it is a product call.
 - **Composer rail** `benefits-navigator.server.ts:125` still manufactures "families often save $X" from any savings figure.

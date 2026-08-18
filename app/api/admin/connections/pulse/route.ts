@@ -50,9 +50,15 @@ export async function GET(request: NextRequest) {
     // Exclude both archived and lead_archived to match tab filtering.
     // Only inquiry connections (family→provider) are tracked here.
     // Matches (provider→family) are tracked on the Outreach page.
+    // Join to business_profiles to get provider keys for activity lookup.
     let q = db
       .from("connections")
-      .select("id, created_at, status, metadata, to_profile_id")
+      .select(`
+        id, created_at, status, metadata, to_profile_id,
+        to_profile:business_profiles!connections_to_profile_id_fkey(
+          id, slug, source_provider_id
+        )
+      `)
       .eq("type", "inquiry")
       .order("created_at", { ascending: true })
       .limit(50000)
@@ -72,21 +78,66 @@ export async function GET(request: NextRequest) {
     const connectionIds = allRows.map((r) => r.id);
     const connectionIdSet = new Set(connectionIds);
 
-    // Fetch provider engagement events (phone_clicked, email_link_clicked)
+    // Helper to extract provider from join result
+    type ProviderProfile = { id?: string; slug?: string; source_provider_id?: string };
+    type ProfileJoin<T> = T[] | T | null;
+    function one<T>(p: ProfileJoin<T>): T | undefined {
+      return Array.isArray(p) ? p[0] : p ?? undefined;
+    }
+
+    // Build provider keys for activity lookup (matches main connections route)
+    // Use slug > source_provider_id > id (same priority as main route)
+    const allProviderKeys = new Set<string>();
+    for (const r of allRows) {
+      const provider = one(r.to_profile as ProfileJoin<ProviderProfile>);
+      const key = provider?.slug || provider?.source_provider_id || provider?.id || null;
+      if (key) {
+        allProviderKeys.add(key);
+      }
+    }
+
+    // Fetch provider engagement events from provider_activity (same table as main route)
+    // This ensures we see the same events that determine the Connected tab count
     const engagementMap = new Map<string, { phone_clicked: boolean; email_link_clicked: boolean }>();
 
-    if (connectionIds.length > 0) {
-      const { data: events } = await db
-        .from("provider_events")
-        .select("connection_id, event_type")
-        .in("connection_id", connectionIds)
-        .in("event_type", ["phone_clicked", "email_link_clicked"]);
+    if (allProviderKeys.size > 0) {
+      // Batch provider keys to avoid Supabase .in() limit
+      const BATCH_SIZE = 200;
+      const providerKeyArray = Array.from(allProviderKeys);
+      const allActivityEvents: Array<{
+        provider_id: string;
+        event_type: string;
+        metadata: unknown;
+      }> = [];
 
-      for (const ev of events ?? []) {
-        const existing = engagementMap.get(ev.connection_id) ?? { phone_clicked: false, email_link_clicked: false };
-        if (ev.event_type === "phone_clicked") existing.phone_clicked = true;
-        else if (ev.event_type === "email_link_clicked") existing.email_link_clicked = true;
-        engagementMap.set(ev.connection_id, existing);
+      for (let i = 0; i < providerKeyArray.length; i += BATCH_SIZE) {
+        const batch = providerKeyArray.slice(i, i + BATCH_SIZE);
+        const { data: batchEvents, error: batchError } = await db
+          .from("provider_activity")
+          .select("provider_id, event_type, metadata")
+          .in("provider_id", batch)
+          .in("event_type", ["phone_clicked", "email_link_clicked"])
+          .limit(10000);
+
+        if (batchError) {
+          console.error(`[connections/pulse] activity batch ${i / BATCH_SIZE} error:`, batchError.message);
+        } else if (batchEvents) {
+          allActivityEvents.push(...batchEvents);
+        }
+      }
+
+      // Match events to connections via connection_id or lead_id in metadata
+      for (const ev of allActivityEvents) {
+        const meta = ev.metadata as Record<string, unknown> | null;
+        // Support both connection_id (from claim-lead flow) and lead_id (from provider portal)
+        const connectionId = (meta?.connection_id || meta?.lead_id) as string | undefined;
+
+        if (connectionId && connectionIdSet.has(connectionId)) {
+          const existing = engagementMap.get(connectionId) ?? { phone_clicked: false, email_link_clicked: false };
+          if (ev.event_type === "phone_clicked") existing.phone_clicked = true;
+          else if (ev.event_type === "email_link_clicked") existing.email_link_clicked = true;
+          engagementMap.set(connectionId, existing);
+        }
       }
     }
 

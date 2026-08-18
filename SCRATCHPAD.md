@@ -7,6 +7,30 @@
 
 ## Current Focus
 
+### 2026-08-18 — Ground-truth audit for the David Qu call (analysis only, zero code)
+
+**Zero code changes.** Read-only queries against live Supabase, GA4/GSC snapshots, and Stripe. Output is the artifact `Olera Ground Truth` (https://claude.ai/code/artifact/25c5b172-98bc-4bc3-9dd1-6cb70ff968d5), the pre-read for Friday 21 Aug 9:00 CT.
+
+**The traffic number in the deck is wrong and the error is load-bearing.** GSC has been **flat at ~3,300 clicks/week for nine months** (2,851 → 3,518 → 3,238, Nov 2025 → Aug 2026) ≈ **14,300 organic/month**. GA4 Organic Search users agree independently (~3,500/wk). The **Research Plan's 15,500 is the correct number; the deck's 25,000 and the Abstract's 25–30K are not.** GA4 *total* users doubled 4,275→9,066/wk in early July — but **every bit of it is "Direct" (770→5,166/wk) while session duration halved (217s→79s) and engagement fell 0.587→0.468.** That is ghost traffic or a duplicate stream, consistent with the GA4 stream rotation where the old property was never deleted. **Do not quote GA4 totals.** Also: "effectively all organic" is not supportable — organic is ~40% of current GA4 totals, ~78% excluding the suspect Direct.
+
+**The synergy thesis is dead in the data, and cleanly so.** Of 1,627 family profiles, **exactly six** have ever both saved a benefits program and sent a provider inquiry; four of the six did both inside eight minutes (one session). Segmented by acquisition source to kill the confound that a family profile is *created by* inquiring (`source='guest_connection'`): of **321** families arriving via `benefits_intake`, **2 (0.6%) ever inquired and 0 did so in a later session**. Reverse direction is 42/1,101 (3.8%). Benefits and the marketplace are two products sharing a database and a logo.
+
+**Large demand-side traction exists and was never counted.** `connections` type=`inquiry` = **1,133** (Mar 3 · Apr 91 · May 238 · Jun 379 · Jul 343 · Aug 175), reaching **845 distinct providers across 662 cities**. `provider_questions` = **11,129 asked on the web since Apr 2026** at ~82/day — verified real by a textbook US diurnal curve (trough 06–10 UTC, peak 18–21 UTC) across 138 distinct days, no bulk-insert spikes. Benefits: **3,222 programs saved by 348 users, 337 (97%) saving more than one**, ~11x growth Apr→Jul. **402 distinct providers have answered a family question** unprompted.
+
+**Two counts in the pre-read are wrong in our own disfavor.** The directory is **74,140 live** (115,608 rows, 41,468 deleted) — the "39,000" is close to the *deleted* count. And "725 onboarded" = `claim_state='claimed'` → **804** today (`claim_completed` = 727 distinct), but "onboarded" oversells it: only **317 (21%)** of 1,496 acting providers ever returned on a second day.
+
+**The eligibility DB is not versioned and not verified, and the columns prove it.** `sbf_state_programs` (1,629 rows, 528 active) / `sbf_federal_programs` (76) have **no version column, no history table, no snapshot**. Worse, the provenance scaffolding is entirely unpopulated: `last_verified_date` **0/1,629 and 0/76**, `verified_by` **0/1,629**, `savings_verified` **false on all 1,629**. Do not say "curated, versioned" on the call. Corollary: **do not quote the $9.57M "aid identified"** figure (sum of `savings_range` midpoints over 2,022 priced saves) — it double-counts overlapping programs and rests on ranges our own schema says nobody verified.
+
+**Zero revenue infrastructure, confirmed.** 258 `memberships` all `plan='free'`/`status='free'`, **0 `stripe_customer_id`, 0 `trial_ends_at`** — no Growth Suite trial mechanism is wired at all. `STRIPE_SECRET_KEY` in `.env.local` is a placeholder test key. Ad Boost is the only willingness-to-pay signal: 15 requests, **13 named a $50–$150 monthly budget**, 7 live, $297.67 total (Olera-funded), **0 subscriptions**.
+
+**Could not verify from this repo (genuinely, not softly):** the 900+ students / 20+ placements (on-platform MedJobs is 106 student profiles, 8 interviews, 1 unpaid `offered` placement; `student_outreach` is a campus-stakeholder CRM, not a student roster); the $275/month × 3 franchisees (`$275` appears nowhere in code, docs, or git history); the $5.3M NIA awards (no financial records here); iOS installs/actives (no App Store data); and unique users behind the 11,129 questions (96% anonymous, no session id on the row).
+
+**Landmine for Friday:** `docs/staffing-outreach-pilot-agreement.md` — the *current* canonical provider agreement — says "This pilot is free for the Provider… no payment information is required at any point." Different, later pilot than the Texas A&M one, but "three franchisees paid $275/month" alongside it reads as a contradiction. Have the one-sentence reconciliation ready.
+
+**The biggest unused asset:** GSC shows **~2M impressions/month at average position 23 with 0.6% CTR**. Median CTR at position 8–10 is ~3%, so the same content moved to page one is a 4–5x on organic with zero new pages. Reframes flat traffic from "SEO is maturing" to "SEO hasn't started."
+
+**Next:** (1) fix or delete the stale GA4 stream so totals stop lying; (2) correct 25,000 → 15,000 and 39,000 → 74,140 in the deck, Research Plan and Abstract; (3) the 90-day synergy test — put 3 nearest matching providers with one-tap inquiry at the end of a completed benefits screening, randomized 50/50, and treat failure to move 0.6% into double digits as falsification; (4) apply the one-click pattern to inquiries, since 1,228 of 1,229 sit `pending` and every traction number currently terminates in a dead end.
+
 ### 2026-08-17 — LumiWell Ad Boost published; the blocker was one keyword, not the firewall (operations, no code)
 
 **Zero code changes.** The only file touched is this log. The real artifacts live in Google Ads and Supabase.

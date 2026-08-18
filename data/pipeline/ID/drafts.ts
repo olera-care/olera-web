@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/ID/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.513Z
+ * Last updated: 2026-08-18T09:44:15.782Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -104,7 +104,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of age (birth certificate or passport)",
         "Idaho residency documentation (utility bill, lease, or state ID)",
         "U.S. citizenship or eligible non-citizen status verification",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Income statements from all sources (pension, retirement, wages)",
         "Property documents if owned (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -123,6 +123,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Don't confuse AABD cash assistance (requires SSI) with ABD Medicaid (separate eligibility), they're related but different programs",
         "Medical eligibility for long-term care requires formal Nursing Facility Level of Care assessment, a dementia diagnosis alone isn't sufficient",
         "Home equity limit of $752,000 applies only if your loved one lives in the home or intends to return, with exemptions for spouse or disabled children",
@@ -173,7 +174,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/financial-assistance/about-aabd-cash-assistance",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "aged-disabled-waiver",
@@ -272,7 +274,7 @@ export const drafts: PipelineStateDrafts = {
         "Birth certificate or other proof of age",
         "Social Security card",
         "Disability determination letter (if under 65)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property documents (deeds, tax statements, mortgage information)",
         "Vehicle titles and registration",
         "Life insurance policies with face values",
@@ -303,6 +305,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must be eligible for regular Medicaid before you can be considered for waiver services",
         "The functional assessment can be conducted in-person or by telephone depending on your loved one's situation",
         "Your loved one can choose nursing facility care instead of waiver services at any time",
@@ -361,7 +364,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(877) 456-1233",
       "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/about-medicaid-elderly-or-adults-disabilities",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "pace-comprehensive-care",
@@ -466,7 +470,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Medical records documenting current health conditions and care needs",
         "List of current medications and prescriptions",
         "Proof of Idaho residency (utility bill, lease, or driver's license)",
@@ -489,6 +493,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "PACE is only available in specific service areas, confirm your loved one's address qualifies before starting the application process",
         "Enrollment requires giving up all other Medicare and Medicaid providers, your loved one cannot see doctors outside the PACE network except in emergencies",
         "Waitlists vary significantly by location, some PACE centers have immediate openings while others have months-long waits",
@@ -669,7 +674,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card",
         "Social Security award letter or pension statements",
         "Pay stubs from last 3 months (if still working)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, CDs)",
         "Driver's license or state-issued ID",
         "Proof of Idaho residency (utility bill or lease)",
@@ -694,6 +699,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Income and asset limits change every April 1st, check current limits when applying",
         "QI funding runs out during the year, so apply early (January-March) for best chance of approval",
         "If one spouse needs nursing home care, the community spouse may qualify using different income calculation methods",
@@ -758,7 +764,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(208) 334-5500",
       "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/medicare-savings-program",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "snap-food-benefits",
@@ -868,7 +875,7 @@ export const drafts: PipelineStateDrafts = {
         "Valid government-issued photo ID card",
         "Social Security cards for all household members",
         "Social Security award letters or pension statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Proof of Idaho residency (utility bill, lease, or state-issued document)",
         "Housing cost documentation (rent receipt, mortgage statement, property tax)",
         "Utility bills (electric, gas, water, phone)",
@@ -963,7 +970,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(877) 456-1233",
       "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/food-assistance",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "energy-assistance-liheap",
@@ -2205,7 +2213,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Idaho residency (utility bill, lease, or state-issued document)",
         "Social Security cards for all household members",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property documents if applicable (deeds, tax statements)",
         "Income verification (pension statements, retirement income)",
         "Discharge planning documentation from current facility",
@@ -2227,6 +2235,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Program contact information is typically provided directly to eligible residents by facility staff rather than requiring independent application",
         "Pre-discharge planning is critical, eligibility must be confirmed while still in the institutional setting",
         "Standard Medicaid income and asset limits apply, which change annually, verify current thresholds during application",
@@ -2277,7 +2286,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(877) 456-1233",
       "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/idaho-home-choice",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     }
   ],
   "stateOverview": {

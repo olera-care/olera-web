@@ -105,7 +105,7 @@
         "Proof of South Dakota residency (utility bill, lease, or state-issued document)",
         "Social Security award letter or other income statements",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -131,6 +131,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "SSI recipients automatically qualify for basic Medicaid but still need the clinical assessment for long-term care services",
         "If your loved one's income is slightly over the limit, they may still qualify through medical spend-down, DSS will calculate this",
         "Spousal impoverishment rules protect the community spouse's income and assets, married couples should ask about these protections",
@@ -189,7 +190,8 @@
       "phone": "(855) 256-6742",
       "sourceUrl": "https://dss.sd.gov/economicassistance/medical_eligibility.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "hope-waiver",
@@ -286,7 +288,7 @@
         "Most recent Social Security award letter",
         "Medicare card if they have one (Medicare is not required for this program)",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property deeds and tax statements",
         "Vehicle titles and registration",
@@ -311,6 +313,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You cannot apply if your loved one currently lives in a nursing home, hospital, or ICF/MR facility, this is only for community-based care",
         "Income limits adjust annually in January, verify current year limits before applying to avoid automatic denial",
         "The $730,000 home equity limit applies even if the home is otherwise exempt, high-value homes may disqualify applicants",
@@ -615,7 +618,7 @@
         "Social Security card",
         "Medicare card",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Pay stubs or other proof of income (last 30 days)",
         "Proof of South Dakota residency (utility bill or lease)",
         "Birth certificate or proof of age",
@@ -648,6 +651,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI program funding is limited, apply early in the calendar year for best chance of approval",
         "Income limits use 'countable income' after standard disregards like the first $20 of monthly income",
         "Previous QI recipients get priority for the following year, but must still reapply annually",
@@ -1666,7 +1670,7 @@
         "Social Security cards for your loved one and spouse",
         "Medicare card",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Proof of South Dakota residency (utility bill or lease)",
         "Medical records documenting need for daily assistance",
         "Current medication list",
@@ -1693,6 +1697,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "The program has strict slot limits, apply as soon as your loved one meets eligibility to join any waitlist early",
         "You must use at least one waiver service monthly or risk losing eligibility, even during waitlist periods",
         "Income and asset limits update annually based on Federal Benefit Rate changes, verify current limits before applying",
@@ -1751,7 +1756,8 @@
       "phone": "(833) 663-9673",
       "sourceUrl": "https://dss.sd.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "scsep-employment",
@@ -1853,7 +1859,7 @@
         "Work authorization documents (if not US citizen)",
         "Pay stubs from last 30 days (if any recent work)",
         "Most recent tax return or tax transcript",
-        "Bank statements (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Social Security award letter (if receiving benefits)",
         "Pension or retirement income statements",
         "Any other income documentation for all household members"
@@ -1917,7 +1923,8 @@
       "phone": null,
       "sourceUrl": "https://dlr.sd.gov/workforce_services/individuals/scsep/participants.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "legal-aid-seniors",

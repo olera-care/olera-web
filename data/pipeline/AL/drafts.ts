@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:21:52.979Z
+ * Last updated: 2026-08-18T09:44:15.772Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -305,7 +305,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicaid card (if applicable)",
         "Social Security award letter",
         "Medicare card if they have one (Medicare is not required for this program)",
-        "Most recent bank statements (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Current medication list with prescribing physicians",
         "Medical records documenting need for assistance with daily activities",
         "Proof of residence in Mobile or Baldwin counties",
@@ -326,6 +326,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Geographic limitation is critical, PACE is only available in Mobile and Baldwin counties, regardless of other eligibility factors",
         "Enrollment caps mean availability may be limited even if you meet all requirements",
         "You can leave the program at any time, but re-enrollment depends on availability",
@@ -510,7 +511,6 @@ export const drafts: PipelineStateDrafts = {
         "Social Security award letter or SSI statement",
         "Pay stubs from last 30 days (if working)",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
         "Investment account statements (stocks, bonds, annuities)",
         "Birth certificate or driver's license",
         "Proof of Alabama residency (utility bill or lease)",
@@ -534,6 +534,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI program funding is limited, apply early in the calendar year before funds are exhausted",
         "SLMB and QI recipients don't get Medicaid cards but still receive premium assistance",
         "QMB automatically qualifies your loved one for Medicare Part D Extra Help prescription assistance",
@@ -2326,7 +2327,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Medicaid card or proof of Medicaid application",
         "Social Security award letter or SSI documentation",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Medical records confirming need for nursing home level care",
         "Physician statement or hospital discharge summary",
         "Proof of Alabama residency (utility bill, lease, or state ID)",
@@ -2354,6 +2355,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "People already on Medicaid or SSI get priority for waiver slots, apply for Medicaid first if your loved one isn't enrolled",
         "The 60-month Look-Back Rule applies, any asset transfers below fair market value in the last 5 years can trigger penalty periods",
         "Respond promptly to annual renewal letters from both Medicaid and your Area Agency on Aging or your loved one will lose eligibility",
@@ -2526,7 +2528,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Alabama residency (utility bill, lease, or state ID)",
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Any pension or retirement income statements",
         "Current medication list and medical records",
         "Insurance policies and documentation",

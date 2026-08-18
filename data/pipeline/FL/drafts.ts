@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T08:44:34.770Z
+ * Last updated: 2026-08-18T09:44:15.778Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -399,7 +399,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Proof of Florida residency in PACE service area (utility bill, lease, or driver's license)",
         "Social Security award letter or pension statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "List of current medications with dosages",
         "Names and contact information for current doctors",
         "Recent medical records or hospital discharge summaries",
@@ -428,6 +428,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "PACE is voluntary enrollment, your loved one can disenroll at any time and return to regular Medicare",
         "The program works best for people with complex medical needs who want to avoid nursing home placement",
         "If your loved one doesn't qualify for Medicaid initially, they may still enroll and pay privately while PACE assists with Medicaid planning",
@@ -618,7 +619,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Medicare card showing Part A (and Part B for SLMB/QI applications)",
         "Social Security award letter or most recent Social Security statement",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment statements (stocks, bonds, annuities, retirement accounts)",
         "Proof of Florida residency (utility bill, lease agreement, or state-issued document)",
         "Birth certificate or passport for age verification",
@@ -651,6 +652,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Florida SHINE (the state Medicare counseling program, via the Department of Elder Affairs) can screen for the right MSP category and help with the DCF application for free.",
         "QI program funding is finite, even if you meet all requirements, you may be denied if annual funds are exhausted, so apply early in the calendar year",
         "Income limits include a $20 general exclusion for unearned income, meaning your loved one can have $20 more in unearned income and still qualify",
@@ -838,7 +840,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card for applicant and all household members",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Proof of Florida residency (utility bill, lease, or voter registration)",
         "Medical bills and receipts for out-of-pocket expenses (last 3 months)",
         "Medicare card and premium statements",
@@ -2010,7 +2012,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Proof of unemployment status (unemployment benefits letter, termination notice, or signed statement)",
         "Income verification for all household members (Social Security award letters, pension statements, or tax returns)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Proof of residence (utility bill, lease agreement, or mortgage statement)",
         "Veterans DD-214 form (if claiming veteran priority)",
         "Disability documentation (if claiming disability priority)",
@@ -2372,7 +2374,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of age (birth certificate or passport)",
         "Florida residency documents (utility bill, lease, or state-issued ID)",
         "Social Security award letter or pension statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property deeds or tax statements if applicable",
         "Vehicle titles and registration",
@@ -2399,6 +2401,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "SSI, QMB, or SLMB recipients automatically meet financial eligibility, bring award letters to speed processing",
         "The caregiver assessment is required even for adult children, they must demonstrate ability and commitment to provide ongoing support",
         "Priority is given based on greatest need and risk factors, having no other support systems may increase priority",
@@ -2457,7 +2460,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-963-5337",
       "sourceUrl": "https://elderaffairs.org/programs-services/home-care-for-the-elderly/",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "cce-community-care-elderly",
@@ -2731,7 +2735,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicaid card if already enrolled",
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Proof of any other income (pensions, retirement, wages)",
         "Property deeds or mortgage statements",
         "Vehicle titles and registration",
@@ -2763,6 +2767,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Elder Options serves 16 specific counties in North Central Florida (Alachua, Bradford, Citrus, Columbia, Dixie, Gilchrist, Hamilton, Hernando, Lafayette, Lake, Levy, Marion, Putnam, Sumter, Suwannee, Union); other Florida counties have different ADRC providers with separate applications",
         "Financial eligibility through DCF and medical eligibility through CARES are separate processes, both must be completed for approval",
         "Services are not guaranteed even if eligible, depends on funding availability and current waitlists in your area",

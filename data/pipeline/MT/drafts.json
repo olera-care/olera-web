@@ -106,7 +106,7 @@
         "Birth certificate or other proof of age",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property deeds and tax statements",
         "Vehicle titles and registration",
@@ -137,6 +137,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "For married couples, if only one spouse applies for the waiver, both spouses' assets are still counted as jointly owned, Medicaid planning may be needed",
         "The primary home is exempt from asset limits regardless of value, but other property may need to be addressed",
         "Priority for services is given to people at immediate risk of nursing home placement or safety concerns",
@@ -195,7 +196,8 @@
       "phone": "(800) 219-7035",
       "sourceUrl": "https://dphhs.mt.gov/sltc/csb/BSW/BigSkyWaiverProgram",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "cfcs-personal-care-services",
@@ -302,7 +304,7 @@
         "Medicare card",
         "Proof of Montana residency (utility bill or state-issued document)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents if applicable",
         "Property deeds and tax statements",
         "Vehicle titles and registration",
@@ -334,6 +336,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Spouses, parents, and legal guardians cannot be paid caregivers, only other family members like adult children or ex-spouses",
         "Self-directed option allows you to hire and manage your loved one's caregivers, including family members, through participating agencies",
         "Provider agencies cover specific counties and reservations, onsite visits required for enrollment in your area",
@@ -398,7 +401,8 @@
       "phone": "(800) 219-7035",
       "sourceUrl": "https://medicaidprovider.mt.gov/12",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "pace-comprehensive-care",
@@ -660,7 +664,7 @@
         "Social Security award letter if receiving SSI or SSDI",
         "Proof of Montana residency (utility bill, lease, or state-issued document)",
         "U.S. citizenship documentation or immigration papers",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Pay stubs or other income statements (last 30 days)",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Vehicle titles and registration for all vehicles",
@@ -692,6 +696,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "SSI recipients automatically qualify, bring your award letter to speed up enrollment",
         "If income exceeds limits, ask about medically needy spenddown which allows qualification by deducting medical expenses",
         "Home equity up to $752,000 is protected if your spouse, disabled child, or child under 21 lives there",
@@ -750,7 +755,8 @@
       "phone": "(888) 706-1535",
       "sourceUrl": "https://dphhs.mt.gov/SLTC/eligible",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "medicare-savings-programs",
@@ -870,7 +876,7 @@
         "Medicare card showing Part A eligibility or enrollment",
         "Social Security award letter or most recent statement",
         "Pay stubs from last 30 days (if still working)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Retirement account statements (401k, IRA, pensions)",
         "Investment documents (stocks, bonds, annuities)",
         "Property deeds or tax statements for any real estate",
@@ -897,6 +903,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QMB has no retroactive coverage, apply before the month you need coverage to start",
         "SLMB and QI can provide up to 3 months of retroactive coverage if you were eligible during that time",
         "QI funding is limited federally and may close enrollment if exhausted, apply early in the year",
@@ -1122,7 +1129,7 @@
         "Social Security award letters or benefit statements",
         "Pay stubs from the last 30 days (if working)",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Rent receipts or mortgage statements",
         "Utility bills (electric, gas, water, phone)",
         "Medical bills and receipts over $35/month (for seniors 60+)",
@@ -1210,7 +1217,8 @@
       "phone": "1-855-642-8650",
       "sourceUrl": "https://dphhs.mt.gov/HCSD/SNAP",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -1969,7 +1977,7 @@
         "Proof of Montana residency (utility bill, lease, or state-issued document)",
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Medical records documenting functional limitations and care needs",
         "Current medication list and prescribing physician information",
         "Documentation of any other income sources (pensions, retirement accounts)",
@@ -2000,6 +2008,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must be approved for Medicaid before you can even apply for waiver services, start that process immediately",
         "The clinical assessment is thorough and looks at your loved one's ability to safely live at home without institutional care",
         "Waiver slots are limited statewide, so even if your loved one qualifies, they may face a waitlist",
@@ -2148,7 +2157,7 @@
         "Valid government-issued photo ID showing age 55 or older",
         "Proof of U.S. work authorization (Social Security card, passport, or employment authorization document)",
         "Income verification for last 30 days (pay stubs, Social Security award letter, unemployment benefits statement)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Proof of any other income (pension statements, retirement benefits, disability payments)",
         "Veteran discharge papers (DD-214) if claiming veteran priority",
         "Disability documentation if claiming disability priority",
@@ -2233,7 +2242,8 @@
       "phone": "1-877-872-5627",
       "sourceUrl": "https://wsd.dli.mt.gov/_docs/wsd-policy/scsep-policy.pdf",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "legal-services-seniors",

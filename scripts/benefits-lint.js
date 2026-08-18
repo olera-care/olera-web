@@ -15,6 +15,7 @@
  *   null-lead-phone        WV VISIONS fell through to 2-1-1 silently
  *   generic-anchor         CO SNAP pointed at the EBT lost-card line
  *   non-dialable-phone     AL Meals had phone="Contact through www.sarcoa.org"
+ *   empty-documents        TX caregiver support could never be picked at all
  *   unsourced-savings      AZ/CO presented a ceiling as a typical range
  *   stale                  never verified, or verified long ago
  *
@@ -420,6 +421,22 @@ function checkNonDialablePhone(st, p) {
   });
 }
 
+// toPick() returns null when documentsNeeded is empty, so the program silently
+// vanishes from every letter. Found 2026-08-18 on TX/community-caregiver-support,
+// which meant Texas caregivers were never offered it. A blank list is not
+// "no documents required" to the composer, it is "skip this program".
+function checkEmptyDocuments(st, p) {
+  if (!Array.isArray(p.documentsNeeded) || p.documentsNeeded.length > 0) return;
+  const contacts = p.contacts || [];
+  if (!contacts.some((c) => c.phone)) return; // already unusable for other reasons
+  report({
+    state: st, programId: p.id, program: p.name, check: 'empty-documents', severity: 'high',
+    detail: 'documentsNeeded is empty, so toPick() returns null and this program can never be picked for a letter, however well it fits the family.',
+    value: 'documentsNeeded: []',
+    fix: 'Write what the phone screen actually asks for. "Nothing to bring" is a fine first entry, but the array must not be empty.',
+  });
+}
+
 const CHECKS = [
   checkMedicareNotRequired,
   checkMedicareCardParts,
@@ -427,6 +444,7 @@ const CHECKS = [
   checkNullLeadPhone,
   checkGenericAnchor,
   checkNonDialablePhone,
+  checkEmptyDocuments,
   checkUnsourcedSavings,
   checkSpouseCaveatMissing,
   checkNoTimeline,

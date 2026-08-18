@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:38:50.884Z
+ * Last updated: 2026-08-18T09:44:15.798Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -109,7 +109,7 @@ export const drafts: PipelineStateDrafts = {
         "Something that shows Oklahoma residency, like a utility bill or a lease",
         "Income and account information, since the interviewer will ask about both",
         "Social Security award letter or SSI determination",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property deeds or tax statements",
         "Vehicle titles and registration",
         "Life insurance policies with cash values",
@@ -135,6 +135,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Incomplete applications cause major delays, submit all required documentation at once to avoid processing holds",
         "Different SoonerCare categories have different rules: ABD allows higher assets but basic coverage only, while Nursing Home Medicaid has stricter asset limits but covers long-term care",
         "Spousal impoverishment rules protect the community spouse's assets and income if your loved one needs nursing home care",
@@ -297,7 +298,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Oklahoma residency (utility bill, lease, or driver's license)",
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements)",
         "Life insurance policies with cash values",
@@ -322,6 +323,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Limited waiver slots mean even eligible applicants may wait months or years for services to begin",
         "Annual income and asset limits update each year, 2025 limits are $2,901/month income and $730,000 home equity",
         "Participants aged 19-64 with physical disabilities cannot have intellectual disabilities or developmental cognitive impairments",
@@ -713,7 +715,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Most recent Social Security award letter or pension statements",
         "Pay stubs from the last 30 days (if still working)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment documents (stocks, bonds, annuities)",
         "Life insurance policies with cash values",
         "Vehicle titles and registration",
@@ -737,6 +739,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Income limits update every April 1, verify current amounts with OKDHS when applying",
         "Oklahoma uses stricter income limits than federal baselines, so you may not qualify even if eligible in other states",
         "QI requires annual reapplication and excludes those eligible for other Medicaid programs",
@@ -828,7 +831,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(405) 521-3646",
       "sourceUrl": "https://oklahoma.gov/okdhs/services/health/help.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "snap-food-benefits",
@@ -952,7 +956,7 @@ export const drafts: PipelineStateDrafts = {
         "Valid government-issued photo ID",
         "Most recent Social Security award letter",
         "Pension or retirement income statements (last 30 days)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Proof of Oklahoma residency (utility bill, lease, or state-issued document)",
         "Medical expense receipts and bills (last 3 months if over $35/month)",
         "Proof of rent or mortgage payments",
@@ -1041,7 +1045,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(877) 760-0114",
       "sourceUrl": "https://oklahoma.gov/okdhs/services/snap.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -1659,7 +1664,7 @@ export const drafts: PipelineStateDrafts = {
         "Most recent Social Security award letter if receiving benefits",
         "Pay stubs from last 30 days if recently employed",
         "Unemployment benefits documentation if applicable",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Documentation of any other household income (pension, disability, etc.)",
         "Proof of veteran status (DD-214) if applicable for priority enrollment",
         "Medical documentation if claiming disability status for priority"
@@ -1743,7 +1748,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(405) 521-2281",
       "sourceUrl": "oklahoma.gov/okdhs/services/cap/scsep.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "legal-assistance-seniors",
@@ -1988,7 +1994,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property deeds and current property tax statements",
         "Vehicle titles and registration",
         "Life insurance policies with cash values",
@@ -2013,6 +2019,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "If your loved one has intellectual disability or cognitive impairment, they may not qualify for ADvantage, ask about other waiver programs that serve those conditions",
         "Home equity over $730,000 can disqualify your loved one unless a spouse, minor child, or disabled adult child lives in the home",
         "Annual redetermination is required, financial and medical eligibility must be renewed each year",

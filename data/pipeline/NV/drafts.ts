@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NV/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T08:44:34.783Z
+ * Last updated: 2026-08-18T09:44:15.796Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -115,7 +115,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Nevada residency (utility bill, lease, or state-issued document)",
         "Social Security award letters for all income sources",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment account statements (stocks, bonds, annuities)",
         "Vehicle titles and registration",
         "Property deeds or tax statements",
@@ -147,6 +147,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Coverage can be retroactive up to 3 months before approval, so apply as soon as you think your loved one might qualify",
         "Home and Community-Based Services waivers have limited slots, ask about current waitlist length for your region when applying",
         "Your loved one's primary home is exempt from asset limits but subject to estate recovery after death",
@@ -205,7 +206,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(775) 684-3600",
       "sourceUrl": "https://www.dss.nv.gov/programs/medical/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "hcbs-waiver",
@@ -307,7 +309,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Nevada residency (utility bill, lease, or state-issued document)",
         "Social Security card and Medicare card",
         "Medical diagnosis documentation showing physical disability or frail elderly condition",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Social Security award letter or pension statements",
         "Property documents if homeowner (deed, tax assessment showing home equity)",
         "Vehicle titles and registration",
@@ -333,6 +335,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Multiple HCBS waivers exist, confirm you're applying for the correct one (PD Waiver for physical disabilities, FE Waiver for frail elderly)",
         "Must meet both financial eligibility (Medicaid) AND functional eligibility (nursing home level of care), both assessments required",
         "Home equity limit is $752,000 in 2026, exemptions apply if spouse or disabled child lives there",
@@ -391,7 +394,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(775) 687-4210",
       "sourceUrl": "https://adsd.nv.gov/Programs/Seniors/PD_Waiver/Waiver_for_Person's_with_Physical_Disabilities_(PD)/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "medicare-savings-programs",
@@ -515,7 +519,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security award letter or SSI award letter",
         "Pay stubs from last 30 days (if still working)",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment documents (stocks, bonds, certificates of deposit)",
         "Life insurance policies with face values",
         "Birth certificate or valid government-issued photo ID",
@@ -539,6 +543,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI has limited federal funding and applications may be put on hold if the allocation is exhausted during the fiscal year",
         "Income limits change every April 1 based on updated Federal Poverty Level guidelines",
         "QMB protects your loved one from provider billing on Medicare-covered services, but small Medicaid copays may apply for some services",
@@ -719,7 +724,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security award letter or pension statement",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Medicare card and Medicare premium statements",
         "Prescription receipts and medical bills from last 3 months",
         "Rent receipt or mortgage statement",
@@ -817,7 +822,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 992-0900",
       "sourceUrl": "https://www.dss.nv.gov/programs/snap/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "energy-assistance-eap-liheap",
@@ -1752,7 +1758,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Proof of unemployment status (unemployment benefits letter, layoff notice, or signed statement)",
         "Income documentation for all household members from past 12 months (Social Security letters, pension statements, or tax returns)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Proof of Nevada residency (utility bill, lease agreement, or state-issued document)",
         "Veterans discharge papers (DD-214) if applicable for priority status",
         "Disability documentation if applicable for priority status"
@@ -1836,7 +1842,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(775) 323-2243",
       "sourceUrl": "https://adsd.nv.gov/About/Reports/SrCommSvcEmplyProg/Home/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "advocates-for-seniors",
@@ -2370,7 +2377,7 @@ export const drafts: PipelineStateDrafts = {
         "Birth certificate or other proof of age",
         "Proof of Nevada residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements) if home equity exceeds $752,000",
         "Vehicle titles and registration for all vehicles",
@@ -2396,6 +2403,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Home ownership doesn't disqualify you, but home equity over $752,000 does, and your home may be subject to Medicaid estate recovery after death",
         "A dementia diagnosis alone doesn't automatically qualify, you still must score 3+ functional deficits on the formal assessment",
         "If married and only one spouse applies, both spouses' assets are counted jointly against the $2,000 individual limit",
@@ -2454,7 +2462,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://adsd.nv.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "personal-care-services-program",
@@ -2562,7 +2571,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Medicare card (if applicable)",
         "CBC-423 Medical Diagnosis form (completed by doctor)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Life insurance policies with face values",
         "Property deeds or mortgage statements",
         "Pre-need burial contracts or irrevocable burial trusts",
@@ -2593,6 +2602,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Having Nevada Medicaid does not automatically enroll your loved one in PCS, a separate assessment and application are required",
         "Documentation delays are common if medical forms are missing, ensure the CBC-423 is completed before submitting",
         "Regional ADSD offices may have different providers and intake processes, call your local office for area-specific details",
@@ -2651,7 +2661,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 525-2395",
       "sourceUrl": "https://adsd.nv.gov/programs/seniors/persasstsvcs/pas_prog/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "cope-community-options-elderly",
@@ -2741,7 +2752,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of U.S. citizenship or legal permanent residency",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (deeds, tax statements)",
         "Life insurance policies with face values",
@@ -2765,6 +2776,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "This is a non-Medicaid program, you can apply even if your loved one doesn't qualify for Medicaid yet",
         "Some regions have waitlists while others can start services immediately, ask about current availability in your area",
         "Family members (excluding spouses and guardians) may be paid to provide some care services, but confirm eligibility rules",
@@ -2823,7 +2835,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(775) 687-4210",
       "sourceUrl": "https://adsd.nv.gov/Programs/Seniors/COPE/COPE_Prog/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "tap-taxi-assistance",

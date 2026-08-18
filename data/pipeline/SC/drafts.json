@@ -116,7 +116,7 @@
         "Social Security card",
         "Medicare card (if applicable)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -148,6 +148,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must already qualify for or be applying for South Carolina Medicaid, the waiver doesn't provide Medicaid eligibility itself",
         "NFLOC assessment is not automatic with age or dementia diagnosis, specific functional limitations must be documented",
         "Home equity over $730,000 may disqualify unless spouse, disabled child, or child under 21 lives there",
@@ -338,7 +339,7 @@
       "documentsNeeded": [
         "Medicare card if you have one",
         "Social Security award letter or most recent statement",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Pay stubs or pension statements (last 2-3 months)",
         "Investment account statements (stocks, bonds, annuities)",
         "Life insurance policies showing face value",
@@ -365,6 +366,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI funding is limited nationally, apply early in the calendar year before funds run out",
         "Income limits include a $20 general disregard monthly, so your net countable income may be lower than your gross income",
         "In South Carolina, QMB provides full Medicaid benefits, meaning no copays for any covered services and providers cannot bill you",
@@ -561,7 +563,7 @@
         "Proof of age (birth certificate, driver's license, or state ID)",
         "Proof of South Carolina residency (utility bill, lease, or bank statement)",
         "Social Security cards for all household members",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Medical expense receipts (prescriptions, Medicare premiums, doctor visits)",
         "Proof of citizenship or legal residency status",
         "Medicare card if applicable",

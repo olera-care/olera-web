@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TX/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T08:44:34.788Z
+ * Last updated: 2026-08-18T09:44:15.804Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -147,7 +147,7 @@ export const drafts: PipelineStateDrafts = {
         "Citizenship or immigration documents for all household members",
         "Pay stubs from last 30 days or most recent tax return",
         "Social Security award letters for all recipients",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, annuities)",
         "Life insurance policies showing cash values",
         "Vehicle titles and registration documents",
@@ -177,6 +177,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "MBIC applications require proof of SSI-level disability, having a diagnosis alone isn't sufficient, the child must meet functional limitation criteria",
         "QI program funding is limited and allocated first-come, first-served each year, apply early in the calendar year for best chances",
         "If your elderly loved one has QMB coverage, healthcare providers cannot bill them for Medicare co-pays or deductibles, keep your approval letter handy",
@@ -380,7 +381,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Proof of Texas residency (utility bill, lease, or bank statement)",
         "Social Security award letter or other income proof",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property deeds or tax statements",
         "Vehicle titles and registration",
         "Life insurance policies with face values",
@@ -406,6 +407,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Each spouse applies individually with the same $2,982 income limit, no household scaling",
         "You can remain on other program interest lists while enrolled in STAR+PLUS",
         "MCO selection matters, extras like Weight Watchers subscriptions vary by plan and county",
@@ -810,7 +812,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Social Security award letter or benefits statement",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Rent receipt or mortgage statement",
         "Utility bills (electric, gas, water)",
         "Medical expense receipts over $35/month (prescriptions, Medicare premiums, medical bills)",
@@ -1676,7 +1678,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (deeds, tax statements)",
         "Life insurance policies with face values",
@@ -1701,6 +1703,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You can apply for Medicaid and request waiver interest list placement simultaneously, don't wait for Medicaid approval to get on the waitlist",
         "Wait times vary significantly by region, urban areas like Houston and Dallas typically have longer waits than rural areas",
         "Priority is given to those at highest risk of nursing home placement, emergency situations may receive expedited consideration",
@@ -1879,7 +1882,12 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "documentsNeeded": [],
+      "documentsNeeded": [
+        "Nothing to bring. This is a phone intake. Have ready your relationship to the person you care for, and that you are not paid for the care.",
+        "The care recipient's age and condition. 60 or older is the main door, and any age with Alzheimer's, another dementia, or cognitive impairment also qualifies.",
+        "The county where the care recipient lives, so they can route you to your Area Agency on Aging.",
+        "What help you need: respite hours, counseling or a support group, caregiver training, or supplemental items."
+      ],
       "contacts": [
         {
           "label": "Aging and Disability Resource Centers",
@@ -1895,6 +1903,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you.",
         "Program names can be confusing, when you call, ask specifically about 'Community Care for Aged and Disabled' or 'CCAD' services",
         "Some Texas counties have immediate openings, while others maintain a \"priority-based\" waitlist. When you call, ask: \"What is the current wait time for services in my specific ZIP code?\"",
         "Income and asset limits are adjusted annually, so 2025 limits may be slightly higher than current figures"

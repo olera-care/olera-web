@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T08:44:34.779Z
+ * Last updated: 2026-08-18T09:44:15.790Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -114,7 +114,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security or SSI award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements)",
         "Life insurance policies with face values",
@@ -139,6 +139,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "If your loved one receives SSI, they automatically qualify for Medicaid income limits, no separate income verification needed",
         "The 60-month look-back rule creates penalty periods for any assets transferred below fair market value, consult an elder law attorney before transferring property",
         "Dementia diagnosis alone is not sufficient, your loved one must have functional limitations in 2+ activities of daily living verified through assessment",
@@ -294,7 +295,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of age (birth certificate or state-issued ID)",
         "Proof of Mississippi residency (utility bill, lease agreement, or state-issued document)",
         "Social Security award letter or other income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property documents if homeowner (deed, tax statements)",
         "Vehicle titles and registration",
         "Life insurance policies with cash values",
@@ -330,6 +331,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must be assessed in person, remote or phone assessments are not accepted for nursing facility level of care determination",
         "Having dementia or other diagnoses alone doesn't automatically qualify, you must demonstrate need for daily assistance with activities of daily living",
         "If income exceeds 300% of SSI rate, the excess must be paid monthly to Medicaid through a qualified income trust before approval",
@@ -388,7 +390,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 421-2408",
       "sourceUrl": "https://medicaid.ms.gov/programs/elderly-and-disabled-waiver/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "medicare-savings-programs",
@@ -481,7 +484,6 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card",
         "Social Security award letter or most recent statement",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
         "Pay stubs if still working (last 4 weeks)",
         "Proof of Mississippi residency (utility bill, lease, or state ID)",
         "Birth certificate or passport for age verification",
@@ -511,6 +513,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "SLMB provides up to 3 months retroactive coverage, but QMB only starts the month after approval, apply as soon as you think your loved one qualifies",
         "QI tier has federal funding caps and may close to new applicants even if income-eligible, consider applying for SLMB as backup",
         "Income disregards apply: first $20/month from any source, plus $65 in wages and half of remaining wages don't count toward limits",
@@ -692,7 +695,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of age (birth certificate, driver's license, or state ID)",
         "Proof of Mississippi residency (utility bill, lease, or mail)",
         "Social Security award letter or pension statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Rent or mortgage payment receipts",
         "Medical expenses receipts if claiming medical deductions",
         "Vehicle registration and titles",
@@ -770,7 +773,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 948-3050",
       "sourceUrl": "https://www.mdhs.ms.gov/help/snap/special/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",

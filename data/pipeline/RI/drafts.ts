@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/RI/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.531Z
+ * Last updated: 2026-08-18T09:44:15.801Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -109,7 +109,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Social Security award letters for all household members",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property deeds and tax assessments",
         "Vehicle titles and registration",
@@ -137,6 +137,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "NFLOC assessment is required for all long-term services, basic Medicaid for seniors doesn't require this clinical evaluation",
         "Selling your loved one's exempt home makes the proceeds countable assets, potentially disqualifying them until money is spent down",
         "Asset transfers to spouse, disabled child, sibling, or caregiver child may be allowed without penalty",
@@ -195,7 +196,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://dhs.ri.gov/programs-and-services/long-term-services-and-supports/eligibility-how-apply",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "class-waiver",
@@ -280,7 +282,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Rhode Island residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property deeds and tax statements",
         "Life insurance policies with cash values",
@@ -305,6 +307,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must be approved for Medicaid long-term care services before CLASS Waiver enrollment can begin",
         "The functional assessment (NFLOC) is more stringent than basic ADL assessments, your loved one must need institutional-level care",
         "Provider availability varies by region, ask about service coverage in your specific area during the application process",
@@ -363,7 +366,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 697-4347",
       "sourceUrl": "https://eohhs.ri.gov/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "pace-elderly-care",
@@ -472,7 +476,7 @@ export const drafts: PipelineStateDrafts = {
         "Medical records from primary care doctor and specialists",
         "Hospital discharge summaries from recent stays",
         "Documentation of current home care services",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Social Security award letter or pension statements",
         "Insurance policies and benefit statements",
         "Legal documents if someone has power of attorney"
@@ -498,6 +502,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "If your loved one currently has Medicare Advantage, they must disenroll before joining PACE, this can only happen during specific enrollment periods",
         "Private pay costs average $4,000–$5,000/month if your loved one doesn't qualify for Medicaid but still needs the service",
         "Re-enrollment is treated as new application unless your loved one lost Medicaid within the last 2 months",
@@ -556,7 +561,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(401) 434-1400",
       "sourceUrl": "https://eohhs.ri.gov/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "medicare-savings-programs",
@@ -658,7 +664,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Medicare card if you have one",
         "Social Security award letter or statement",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment statements (stocks, bonds, annuities)",
         "Proof of U.S. citizenship (birth certificate, passport, or naturalization papers)",
         "Immigration documents if not a U.S. citizen (green card, refugee documentation, asylum papers)",
@@ -684,6 +690,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI funding is limited and distributed first-come, first-served - apply early in the year for the best chance of approval",
         "Rhode Island automatically moved SLMB recipients to QMB in February 2026, providing more comprehensive coverage",
         "If approved, you'll automatically qualify for Extra Help with prescription drug costs",
@@ -864,7 +871,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Rent receipt or mortgage statement",
         "Utility bills (electric, gas, water)",
         "Medical expense receipts over $35/month (prescriptions, insurance premiums, doctor visits)",
@@ -951,7 +958,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(401) 462-5300",
       "sourceUrl": "https://dhs.ri.gov/programs-and-services/supplemental-nutrition-assistance-program-snap",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -2508,7 +2516,7 @@ export const drafts: PipelineStateDrafts = {
         "Birth certificate or other proof of age",
         "Social Security award letter or SSI statement",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Most recent tax return or tax transcript",
         "Documentation of any other income sources",
         "Proof of dementia diagnosis (if applying under age 65)",
@@ -2531,6 +2539,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must be determined ineligible for Medicaid before qualifying, apply for Medicaid first if your loved one might qualify",
         "Income limits and cost-share rates adjust annually with Federal Poverty Level changes, verify current amounts when applying",
         "The needs assessment focuses on functional ability, not medical diagnosis, daily living assistance needs qualify",
@@ -2613,7 +2622,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "401-462-4444",
       "sourceUrl": "https://oha.ri.gov/resources/home-care/home-cost-share",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "hcc-senior-companion-program",
@@ -2842,7 +2852,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Rhode Island residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property documents (deeds, tax statements)",
         "Life insurance policies with face values",
         "Vehicle titles and registration",
@@ -2867,6 +2877,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "The POINT is the assessment gateway, actual home care services come through separate Medicaid LTSS programs with potential waitlists",
         "Both financial eligibility (Medicaid LTSS) and functional eligibility (Nursing Facility Level of Care) must be met",
         "Spousal impoverishment rules apply if your loved one is married, the spouse's assets and income are also evaluated",
@@ -2925,7 +2936,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(401) 462-4444",
       "sourceUrl": "https://dhs.ri.gov/programs-and-services/long-term-services-and-supports/eligibility-how-apply",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     }
   ],
   "stateOverview": null

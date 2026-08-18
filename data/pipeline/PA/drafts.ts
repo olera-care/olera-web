@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/PA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.721Z
+ * Last updated: 2026-08-18T09:44:15.800Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -118,7 +118,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Pennsylvania residency (utility bill, lease, or state-issued document)",
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property deeds and tax statements for real estate owned",
         "Retirement account statements (401k, IRA, pension)",
         "Life insurance policies with cash values",
@@ -143,6 +143,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "CHC is mandatory managed care, it replaces prior waiver programs like Aging and Attendant Care waivers",
         "Even if your loved one is dual eligible, they still need to meet functional eligibility requirements through the FED assessment",
         "LIFE program is an alternative for ages 55+ in served areas, you can opt out of CHC to choose LIFE instead",
@@ -594,7 +595,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card or proof of Part A entitlement",
         "Pay stubs for last 3 months (if working)",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, annuities)",
         "Birth certificate or other proof of age",
         "Social Security card",
@@ -621,6 +622,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Automatic Screening: Your County Assistance Office (CAO) will screen you for all tiers of Healthy Horizons. If you do not qualify for QMB, they will automatically check your eligibility for SLMB and QI.",
         "Spousal Income & Assets: If you are married, your spouse's income and resources are included in the calculation, even if they are not applying themselves. This is a common factor that can impact eligibility.",
         "QI Exclusivity: If you qualify for the QI program, you cannot receive full-scope Medicaid coverage at the same time. QI only provides assistance with your Medicare Part B premium.",
@@ -817,7 +819,7 @@ export const drafts: PipelineStateDrafts = {
         "Dates of birth for all household members",
         "Social Security award letters or benefit statements",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Current rent receipt or mortgage statement",
         "Utility bills (electric, gas, water, phone)",
         "Medical expense receipts and bills (last 3 months)",
@@ -914,7 +916,8 @@ export const drafts: PipelineStateDrafts = {
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
       "reviewedBy": "Cecille Chavez",
-      "reviewedAt": "2026-06-17"
+      "reviewedAt": "2026-06-17",
+      "lastVerifiedDate": null
     },
     {
       "id": "ship-medicare-counseling",

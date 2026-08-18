@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/HI/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.511Z
+ * Last updated: 2026-08-18T09:44:15.780Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -282,7 +282,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of U.S. citizenship or legal alien status (birth certificate, passport, naturalization certificate, or green card)",
         "Hawaii residency documentation (utility bill, lease agreement, or state-issued document)",
         "Current income documentation (Social Security award letter, pension statements, or pay stubs)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Medicare card and any other health insurance cards",
         "List of current medications and medical conditions",
         "Contact information for primary care physician",
@@ -311,6 +311,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Medicaid eligibility is the primary disqualifier, if your loved one qualifies for Medicaid long-term care services, they cannot receive Kūpuna Care",
         "The program welcomes voluntary contributions to help sustain services for others in the community",
         "Employed caregivers working 30+ hours per week should ask about the separate Kūpuna Caregivers Program which provides up to $70/day in services",
@@ -369,7 +370,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(808) 643-2372",
       "sourceUrl": "https://health.hawaii.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "sage-plus-medicare-counseling",
@@ -647,7 +649,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security award letter or SSI statement",
         "Pay stubs from last 30 days (if working)",
         "Most recent tax return",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, annuities)",
         "Medicare card",
         "Birth certificate or passport",
@@ -681,6 +683,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI tier funding is limited annually, apply early in the calendar year if your loved one's income is in the $1,860-2,095 range",
         "If approved for QMB, providers cannot balance bill your loved one for Medicare costs, keep approval letter as proof of protection",
         "Automatic Extra Help for prescription drugs is triggered by approval, no separate application needed",
@@ -854,7 +857,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Hawaii residency (utility bill, lease agreement, or mail)",
         "Social Security award letters or benefit statements",
         "Pay stubs from the last 30 days (if working)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Rent receipt or mortgage statement",
         "Utility bills (electric, gas, water, phone)",
         "Medical bills and receipts over $35/month",
@@ -943,7 +946,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 643-1643",
       "sourceUrl": "https://humanservices.hawaii.gov/bessd/snap/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -2854,7 +2858,7 @@ export const drafts: PipelineStateDrafts = {
         "Hawaii residency documentation (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -2880,6 +2884,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Income over $1,530/month doesn't disqualify you, excess income must go toward care costs but you can still receive services",
         "SSI recipients in community care foster family homes contribute all monthly income except $75 personal needs allowance",
         "Some managed care organizations may have immediate openings while others maintain waitlists, ask about availability when choosing plans",
@@ -2938,7 +2943,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://medquest.hawaii.gov/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "transportation-friends-kupuna",
@@ -3313,7 +3319,6 @@ export const drafts: PipelineStateDrafts = {
         "Valid government-issued photo ID showing age 55 or older",
         "Social Security card",
         "Income documentation for all household members (Social Security award letters, pension statements, pay stubs)",
-        "Bank statements for all accounts (last 3 months)",
         "Physical exam report from licensed physician",
         "Proof of Hawaii residency (utility bill, lease, or state-issued document)",
         "Employment history documentation",
@@ -3336,6 +3341,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you. Some intakes ask you to self-declare whether income is above or below the poverty line; that is for the agency’s own reporting and you can decline without losing the service.",
         "Income guidelines are revised annually, you must verify current levels and note that eligibility continues if income doesn't exceed guidelines by more than 20%",
         "This program serves children with special needs, not elderly adults, it's employment for your loved one, not services for them",
         "Background checks include criminal history, employment history, and any record that could pose risk to children",
@@ -3385,7 +3391,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(808) 832-5169",
       "sourceUrl": "https://humanservices.hawaii.gov/foster-grandparent-program/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "memory-mentor-program",

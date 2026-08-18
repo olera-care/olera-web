@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WI/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:19:50.958Z
+ * Last updated: 2026-08-18T09:44:15.807Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -429,7 +429,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Most recent tax return or tax transcript",
         "Unemployment insurance documents if receiving benefits",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Documentation of all household income sources",
         "Proof of job search activities (applications, rejection letters)",
         "Military discharge papers (DD-214) if veteran or military spouse",
@@ -512,7 +512,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(920) 229-5557",
       "sourceUrl": "https://www.dhs.wisconsin.gov/publications/p00409-2024-2027.pdf",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "family-care",
@@ -612,7 +613,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card (if applicable)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (deeds, tax statements)",
         "Life insurance policies with cash values",
@@ -642,6 +643,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Family Care is not available statewide, you must live in a participating county where managed care organizations offer the program",
         "Both financial Medicaid eligibility AND functional screening are required, meeting income limits alone is not sufficient for enrollment",
         "If your loved one is already on Medicaid but hasn't had a functional assessment, they still need the Long Term Care Functional Screen",
@@ -699,7 +701,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(844) 947-2372",
       "sourceUrl": "https://www.dhs.wisconsin.gov/familycare/apply.htm",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "iris-self-directed-care",
@@ -800,7 +803,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Wisconsin residency (utility bill, lease, or state-issued document)",
         "Proof of citizenship or immigration status",
         "Most recent Social Security award letter or disability determination",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property documents including home deed and tax statements",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Life insurance policies with cash values",
@@ -825,6 +828,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must live in an eligible community setting, not in a nursing facility or certain residential care facilities",
         "Self-direction means your loved one manages their budget, hires and fires providers, and follows program rules, the FEA handles payroll but not service decisions",
         "All hired providers must enroll with Wisconsin's ForwardHealth Portal before they can be paid. If the paid caregiver is the participant's spouse, check the service first: a spouse can be paid for supportive home care, self-directed personal care, respite and nursing, but is excluded from several other IRIS services",
@@ -883,7 +887,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-855-677-2372",
       "sourceUrl": "https://www.dhs.wisconsin.gov/iris/index.htm",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     }
   ],
   "stateOverview": {

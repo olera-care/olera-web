@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/KY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:21:52.992Z
+ * Last updated: 2026-08-18T09:44:15.785Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -104,7 +104,7 @@ export const drafts: PipelineStateDrafts = {
         "Birth certificate or passport for proof of age and citizenship",
         "Proof of Kentucky residency (utility bill, lease, or state-issued document)",
         "Social Security award letters for all income sources",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment account statements (stocks, bonds, annuities, trusts)",
         "Property deeds and current tax assessments",
         "Vehicle titles and current market value assessments",
@@ -130,6 +130,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "The 60-month look-back period means any gifts or asset transfers in the past 5 years may create penalty periods, gather records of all transfers",
         "Community spouse asset protection varies from $31,584 to $162,660, higher amounts require a fair hearing but are often approved",
         "Home-based waiver services are assessed one-at-a-time based on need, unlike nursing home care which provides comprehensive services immediately",
@@ -180,7 +181,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 306-8959",
       "sourceUrl": "https://kynect.ky.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "hcbs-waivers",
@@ -600,7 +602,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if you have one",
         "Social Security award letter or most recent statement",
         "Pay stubs from last 30 days (if still working)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment statements (stocks, bonds, CDs, savings bonds)",
         "Property tax statements for any real estate owned",
         "Vehicle titles and registration",
@@ -623,6 +625,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI program funding comes from a finite federal block grant, once exhausted, even eligible applicants cannot receive benefits until the next funding cycle",
         "QMB automatically qualifies your loved one for Medicare Part D Extra Help prescription drug assistance",
         "Income limits include a $20 disregard that's already factored into the stated amounts",
@@ -679,7 +682,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://chfs.ky.gov/agencies/dms/dpo/epb/Pages/msp.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "snap-food-benefits",
@@ -803,7 +807,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Social Security award letter or benefit statement",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Proof of Kentucky residency (utility bill or lease)",
         "Medicare card and premium statements",
         "Prescription drug plan documents and costs",
@@ -1753,7 +1757,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card or work authorization documents",
         "Proof of Kentucky residency (utility bill, lease agreement, or state-issued document)",
         "Income verification for all household members (Social Security award letters, pay stubs, or tax returns)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "DD-214 or military discharge papers (if claiming veteran priority)",
         "Disability documentation from Social Security or medical provider (if claiming disability priority)",
         "Birth certificates for all household members"
@@ -1835,7 +1839,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(833) 439-7759",
       "sourceUrl": "https://chfs.ky.gov/agencies/dail/Pages/scsep.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "legal-aid-seniors",
@@ -2369,7 +2374,7 @@ export const drafts: PipelineStateDrafts = {
         "Documentation showing 60+ consecutive days in nursing home or intermediate care facility",
         "The name of the nursing facility, the date your loved one moved in, and their Medicaid ID number",
         "Income verification for Medicaid (Social Security award letter, pension statements)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Asset documentation (property deeds, vehicle titles, investment statements)",
         "Transition housing plan (lease agreement, homeownership documents, or family housing arrangement)",
         "List of needed support services and equipment for community living"
@@ -2395,6 +2400,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "The program is officially called 'Kentucky Transitions', not generic Money Follows the Person, when speaking with state agencies",
         "Enhanced federal funding lasts exactly 365 days from transition date, then services continue through standard Kentucky Medicaid waivers like ABI or HCBW",
         "Services after transition depend on available waiver slots, so waiver availability in your area may limit service options",

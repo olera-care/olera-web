@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/ND/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:21:53.001Z
+ * Last updated: 2026-08-18T09:44:15.793Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -105,7 +105,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of North Dakota residency (utility bill, lease, or state-issued document)",
         "Proof of disability documentation (if under age 65)",
         "Financial information for Medicaid eligibility determination",
-        "Bank statements for all accounts",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Income documentation (Social Security award letters, pension statements)",
         "Asset documentation (property deeds, vehicle titles, investment accounts)",
         "Health insurance information",
@@ -133,6 +133,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "If your loved one already receives North Dakota Medicaid, BCAP eligibility may be processed through redetermination rather than a new application",
         "Some applicants may need to have resided in a nursing facility for at least 6 months before qualifying for BCAP if they don't meet nursing facility level of care",
         "The functional assessment must show need for help with activities of daily living - personal care assessment alone may not be sufficient",
@@ -191,7 +192,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(866) 614-6005",
       "sourceUrl": "https://www.hhs.nd.gov/adults-and-aging/services/basic-care-assistance-program-bcap",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "aging-in-community-project",

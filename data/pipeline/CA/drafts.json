@@ -118,7 +118,7 @@
       "documentsNeeded": [
         "Medicare card",
         "Social Security award letter or most recent statement",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, retirement accounts)",
         "Proof of any pension or retirement income",
         "Property tax statements for real estate owned",
@@ -144,6 +144,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Applications go through your county Medi-Cal office (form MC 14A by mail, by phone, online, or in person). HICAP counselors help with the paperwork for free.",
         "California became a Part A Buy-In state in January 2025, QMB recipients are now automatically enrolled in Medicare Part A if eligible",
         "Providers cannot legally bill QMB recipients for Medicare deductibles or copays, but choose providers who accept Medi-Cal to avoid billing confusion",
@@ -323,7 +324,7 @@
         "Medicare card if you have one",
         "Current medication list and dosages",
         "Recent medical records documenting functional limitations",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Vehicle titles and registration",
         "Life insurance policies with cash values",
@@ -347,6 +348,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Applications go through your county's local MSSP site. Find it via aging.ca.gov -> Find Services in My County.",
         "Not all California counties have MSSP providers, Alpine, Colusa, El Dorado, Placer, Sacramento, Sutter, Yolo, and Yuba are served by California Health Collaborative, while Los Angeles and Ventura have different arrangements",
         "The nurse assessment is comprehensive and may take 2-3 hours, prepare a quiet space and have your loved one's medications and medical records readily available",
@@ -704,7 +706,7 @@
       },
       "documentsNeeded": [
         "Social Security award letter or other proof of income",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Medical expense receipts over $35 (prescriptions, insurance premiums, medical transport)",
         "Rent receipt or mortgage statement",
         "Utility bills (electric, gas, water, phone)",
@@ -789,7 +791,8 @@
       "phone": "(877) 847-3663",
       "sourceUrl": "https://www.cdss.ca.gov/calfresh",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -1733,7 +1736,7 @@
         "Proof of current income from all sources (last 3 months)",
         "Documentation of unemployment status (unemployment benefits letter or statement)",
         "Proof of residency in service area (utility bill, lease, or mail within last 30 days)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Tax return from most recent year",
         "Veterans discharge papers (DD-214) if applicable",
         "Documentation of disability status if applicable",
@@ -1819,7 +1822,8 @@
       "phone": "1-800-510-2020",
       "sourceUrl": "https://aging.ca.gov/Programs_and_Services/Senior_Employment_and_Training/",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "senior-legal-services",
@@ -2853,7 +2857,7 @@
         "Current medication record signed by physician or nursing medication sheet",
         "Medical documentation of qualifying diagnosis (dementia, brain injury, chronic mental illness, or developmental disability)",
         "Evidence of confirmed chronic mental illness diagnosis from Diagnostic and Statistical Manual (if applicable)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements for non-primary residence)",
         "Vehicle titles and registration",
@@ -2885,6 +2889,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "CBAS is only available in 28 of California's 58 counties, verify there's a certified center within one hour of your loved one's home before applying",
         "Asset limits changed January 1, 2026, families previously eligible under unlimited asset rules may now be disqualified",
         "Your Medi-Cal Managed Care Plan controls the approval process, and different plans may have varying approval rates and timelines",
@@ -2943,7 +2948,8 @@
       "phone": "(800) 430-4263",
       "sourceUrl": "https://aging.ca.gov/Programs_and_Services/Community-Based_Adult_Services/",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     }
   ],
   "stateOverview": {

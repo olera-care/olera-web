@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/KS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.703Z
+ * Last updated: 2026-08-18T09:44:15.784Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -111,7 +111,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Kansas residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter",
         "Medicare card if they have one (Medicare is not required for this program)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -143,6 +143,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Waiver denial is automatic if your loved one doesn't qualify for KanCare Medicaid first, complete that application before requesting functional assessment",
         "Wait times vary regionally due to limited slots and local provider availability, ask about current waitlist length in your area",
         "The 60-month Look-Back Rule can create penalty periods if your loved one transferred assets below fair market value, consult elder law attorney if transfers occurred",
@@ -307,7 +308,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of age (birth certificate or passport)",
         "Medicare card if they have one (Medicare is not required for this program)",
         "Proof of Kansas residency (utility bill or lease agreement)",
-        "Most recent bank statements (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Income statements (Social Security, pension, retirement accounts)",
         "Current medication list from all doctors",
         "Recent medical records from primary care physician",
@@ -345,6 +346,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You cannot be enrolled in Medicare Advantage plans while in PACE, this is the most common enrollment barrier for seniors already in MA plans",
         "Private pay is possible but costs $7,000+ per month, most families pursue Medicaid eligibility even if initial income seems too high",
         "Ages 55-64 face an additional hurdle requiring Social Security disability determination beyond just needing nursing home care",
@@ -533,7 +535,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Medicare card showing Part A enrollment",
         "Social Security award letters for all household members",
-        "Most recent bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment documents (stocks, bonds, annuities statements)",
         "Pay stubs or pension statements if still working",
         "Valid government-issued photo ID",
@@ -565,6 +567,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI program requires annual reapplication and may reach funding caps, apply early in the year and ask about waitlist status",
         "All MSP programs automatically qualify you for Extra Help with prescription drug costs, but you must report income changes promptly",
         "QMB protects from provider billing for Medicare-covered services, but small Medicaid copays may still apply for some services",
@@ -634,7 +637,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-792-4884",
       "sourceUrl": "https://khap.kdhe.ks.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "snap-food-assistance",
@@ -741,7 +745,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Proof of Kansas residency (utility bill, lease, or state-issued document)",
         "Rent receipts or mortgage statements",
         "Utility bills (electric, gas, water, phone)",
@@ -831,7 +835,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-888-369-4777",
       "sourceUrl": "https://www.dcf.ks.gov/services/ees/Pages/Food/FoodAssistance.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",

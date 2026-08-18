@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.519Z
+ * Last updated: 2026-08-18T09:44:15.789Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -120,7 +120,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Missouri residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter or other income statements",
         "Pension or retirement income documentation",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements) for non-exempt property",
         "Life insurance policies with face and cash values",
@@ -151,6 +151,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Asset limits apply strictly to seniors, many miss exemptions like primary home equity limits and burial fund exclusions",
         "Spend-down allows qualification even with higher income if medical expenses are substantial, keep all medical receipts",
         "Different MO HealthNet programs have different rules, Medicare Savings Programs have higher asset limits ($7,560 single) but require separate applications",
@@ -215,7 +216,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 373-9994",
       "sourceUrl": "https://mydss.mo.gov/healthcare/apply",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "structured-family-caregiving-waiver",
@@ -314,7 +316,7 @@ export const drafts: PipelineStateDrafts = {
         "Licensed healthcare professional's diagnosis of Alzheimer's disease or related dementia disorder",
         "Documentation proving full-time shared household residence with primary caregiver",
         "Most recent Social Security award letter or benefits statement",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property documents if homeowner (deeds, tax statements showing equity value)",
         "Vehicle titles and registration documents",
         "Life insurance policies with cash values",
@@ -340,6 +342,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must already have a live-in caregiving arrangement, this program pays existing caregivers, not new placements",
         "Blind Pension Medicaid recipients are specifically excluded from this waiver program",
         "Cannot combine with other Missouri HCBS waiver services, choosing this waiver means giving up other waiver options",
@@ -508,7 +511,7 @@ export const drafts: PipelineStateDrafts = {
         "Hospital discharge summaries if applicable",
         "Current medication list and prescription bottles",
         "Social Security award letter or benefits statement",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment account statements",
         "Property deeds or tax assessments",
         "Vehicle titles and registration",
@@ -543,6 +546,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Only three PACE organizations serve Missouri, you must live in their specific service areas to enroll",
         "Most participants need both Medicare and Medicaid for full coverage, private pay costs approximately $7,000+ per month",
         "Cannot be enrolled in Medicare Advantage, Medicare prescription drug plans, or hospice while in PACE",
@@ -725,7 +729,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card showing Part A enrollment",
         "Social Security award letters for all household members",
         "Most recent pay stubs (if working)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment statements (stocks, bonds, retirement accounts)",
         "Property tax statements or deed for real estate owned",
         "Vehicle titles and registration",
@@ -750,6 +754,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI program has limited funding and is awarded first-come, first-served, apply early in the year for best chances",
         "SLMB2 cannot be active at the same time as MO HealthNet insurance, unlike other MSP tiers",
         "Income limits change every April when federal poverty levels are announced, recheck eligibility annually",
@@ -939,7 +944,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Most recent Social Security award letter or benefit statement",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Proof of Missouri residency (utility bill, lease agreement, or state ID)",
         "Valid photo identification",
         "Rent or mortgage payment receipts",
@@ -1018,7 +1023,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 373-4636",
       "sourceUrl": "https://mydss.mo.gov/food-assistance/apply-for-snap",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -1147,7 +1153,6 @@ export const drafts: PipelineStateDrafts = {
         "Pay stubs or income statements from the month prior to application",
         "Most recent electric bill",
         "Most recent gas or heating fuel bill",
-        "Bank statements for all accounts (last 3 months)",
         "Investment account statements",
         "Retirement account statements",
         "Social Security award letters for all recipients",
@@ -1218,7 +1223,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(573) 200-6655",
       "sourceUrl": "https://dss.mo.gov/fsd/energy-assistance",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "weatherization-assistance-program",
@@ -1960,7 +1966,7 @@ export const drafts: PipelineStateDrafts = {
         "Most recent Social Security award letter",
         "Pay stubs from last 30 days (if any recent employment)",
         "Unemployment benefits statement (if receiving)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "SNAP benefits award letter (if receiving)",
         "Housing assistance documentation (if receiving)",
         "Veterans benefits statements (if applicable)",
@@ -2040,7 +2046,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(573) 526-4542",
       "sourceUrl": "https://health.mo.gov/seniors/senioremployment/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "legal-services-eastern-missouri-older-adults",
@@ -2395,7 +2402,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card",
         "Medicare Part D plan enrollment card",
         "Social Security award letters for all household members",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Pay stubs or employment income statements",
         "Pension or retirement income statements",
         "Tax returns from most recent year",
@@ -2419,6 +2426,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Major change in 2017: You can no longer qualify for MoRx with Medicare Part D alone, you must also be eligible for MO HealthNet",
         "If your loved one has MO HealthNet with a spenddown, they must meet the spenddown at least once per year to activate MoRx prescription assistance",
         "Automatic enrollment happens if your loved one is already receiving both Medicare and MO HealthNet, no separate MoRx application needed"
@@ -2467,7 +2475,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 373-4636",
       "sourceUrl": "https://mydss.mo.gov/mhd/morx-general-faqs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "property-tax-credit-circuit-breaker",
@@ -2740,7 +2749,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of U.S. citizenship or qualified alien status",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -2770,6 +2779,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must be enrolled in Missouri Medicaid (MO HealthNet) before applying for ADW - apply for both simultaneously if needed",
         "The 60-month look-back period means any asset transfers below fair market value in the past 5 years will result in penalty periods",
         "Your home is only exempt if your spouse, minor child, or disabled adult child lives there - otherwise it counts toward asset limits",
@@ -2828,7 +2838,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(866) 835-3505",
       "sourceUrl": "https://dss.mo.gov/mhd/waivers/1915c-home-and-community-waivers/aged-and-disabled.htm",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "silp-senior-independent-living",

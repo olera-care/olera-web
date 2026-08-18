@@ -110,7 +110,7 @@
         "U.S. citizenship or immigration status documentation",
         "Social Security award letters or statements",
         "Pension or retirement income documentation",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property deeds and current tax assessments",
         "Vehicle titles and registration",
         "Life insurance policies with cash values",
@@ -141,6 +141,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Louisiana is an income cap state, if your loved one's monthly income exceeds $2,982, they cannot simply spend down to qualify, though a Medically Needy program exists for high medical expenses",
         "The 5-year look-back period means any gifts or below-market asset sales within 5 years will trigger penalty periods that delay coverage",
         "For Long-Term Personal Care Services, your loved one must be able to direct their own care or have a representative, this is a significant functional requirement beyond just needing assistance",
@@ -308,7 +309,7 @@
         "Medical records documenting need for daily care assistance",
         "Social Security cards for your loved one and spouse",
         "Medicare card if they have one (Medicare is not required for this program)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Pension or retirement income statements",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (home deed, tax statements)",
@@ -341,6 +342,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Priority 1 cases (APS/EPS referrals at risk of institutionalization) may get immediate placement while others wait years",
         "If your loved one has ALS, they qualify for Priority 2 status, mention this when calling to request registry placement",
         "The 60-month look-back rule applies to all asset transfers, penalties can delay eligibility if your loved one gifted money or sold assets below market value",
@@ -517,7 +519,7 @@
         "Medicare card",
         "Medicaid card (if applicable)",
         "Social Security award letters for all income sources",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Insurance cards for all current coverage",
         "Complete list of current medications with dosages",
         "Medical records from primary care doctor and specialists",
@@ -554,6 +556,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must live within specific zip codes in the four service areas, PACE is not available statewide regardless of eligibility",
         "The program requires you to switch from all current medical providers to the PACE team, you cannot keep your existing doctors",
         "If you have Medicare Advantage (Part C) or prescription drug plans, you must disenroll before joining PACE",
@@ -612,7 +615,8 @@
       "phone": "(225) 490-0604",
       "sourceUrl": "https://ldh.la.gov/office-of-aging-and-adult-services/pace",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "medicare-savings-programs",
@@ -952,7 +956,7 @@
         "Proof of citizenship or lawful presence status",
         "Social Security award letter or benefits statement",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Investment account statements if applicable",
         "Life insurance policy documents",
         "Property tax statements if you own real estate",
@@ -1034,7 +1038,8 @@
       "phone": "(888) 524-3578",
       "sourceUrl": "https://dcfs.louisiana.gov/page/524",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "csfp-senior-food-boxes",
@@ -1477,7 +1482,7 @@
         "Social Security cards for your loved one and spouse (if married)",
         "Most recent Social Security award letter",
         "Medicare card if they have one (Medicare is not required for this program)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Pension or retirement income statements",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (deeds, tax statements)",
@@ -1509,6 +1514,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Hospital discharge within 30 days gets priority placement, work with discharge planners to initiate the waiver request before your loved one leaves the hospital",
         "Income over $2,163/month doesn't disqualify your loved one if medical expenses exceed the excess amount, keep detailed records of Medicare premiums, prescription costs, and other healthcare spending",
         "The waiver is approved through June 30, 2027, renewals are expected but not guaranteed, so have backup care plans",
@@ -1684,7 +1690,7 @@
         "Being paid as a family caregiver comes later, after the waiver is approved and a provider is chosen.",
         "Most recent Social Security award letter",
         "Pay stubs from last 30 days or pension statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements for real estate)",
         "Vehicle titles and registration",
@@ -1715,6 +1721,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "The parish Council on Aging caregiver voucher is a separate, locally run program with no Medicaid requirement, and its rules vary by parish",
         "Priority groups (ALS diagnosis, abuse/neglect referrals, nursing home residents) get served first, others wait on first-come, first-served basis",
         "Not all family members can be paid caregivers. A spouse can be paid only under the Extraordinary Care standard with written OAAS approval, and any paid family caregiver must live with the care recipient",

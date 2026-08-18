@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.519Z
+ * Last updated: 2026-08-18T09:44:15.789Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -118,7 +118,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Minnesota residency (utility bill, lease agreement, or bank statement)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property deeds and property tax statements",
         "Vehicle titles and registration",
@@ -149,6 +149,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "If your loved one is already receiving SSI, they may be automatically eligible for Medical Assistance without the standard asset test",
         "Married couples have spousal impoverishment protections, the community spouse can keep more assets and income than the standard limits",
         "If income is slightly over the limit, ask about spend-down options or Medical Assistance for Employed Persons with Disabilities (MA-EPD)",
@@ -207,7 +208,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 366-7873",
       "sourceUrl": "https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/seniors.jsp",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "elderly-waiver",
@@ -311,7 +313,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements)",
         "Life insurance policies with face values",
@@ -336,6 +338,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "People with income above Medical Assistance limits may still qualify through monthly spenddown or waiver obligation payments, don't assume high income disqualifies",
         "If your loved one has income at or below 120% of federal poverty guidelines and assets under $3,000, they may need to apply for Alternative Care instead of Elderly Waiver",
         "The cost of your loved one's community services must be less than nursing home costs, or they won't qualify, this is determined during the assessment",
@@ -486,7 +489,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Minnesota residency (utility bill, lease, or bank statement)",
         "Most recent Social Security award letter",
         "Pay stubs from last 30 days if working",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Tax returns (most recent year)",
         "Pension or retirement income statements",
         "Investment account statements (stocks, bonds, retirement accounts)",
@@ -516,6 +519,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You cannot apply directly for MSHO, you must first qualify for Medical Assistance through your county",
         "MSHO is only available in counties where participating health plans operate, check which plans serve your county before applying",
         "If you're already in a nursing facility when you enroll, MSHO will not cover your nursing facility costs (only covers 180 days for people entering facilities after enrollment)",
@@ -701,7 +705,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card",
         "Social Security award letter or SSI statement",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, CDs)",
         "Proof of Minnesota residency (utility bill or lease)",
         "Birth certificate or other proof of age",
@@ -733,6 +737,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI program funding is limited and awarded first-come, first-served, apply as early in the fiscal year as possible to avoid waitlists",
         "Income limits change annually (typically July 1) and Minnesota often exceeds federal minimums, so recheck eligibility if previously denied",
         "Standard income disregards ($20 plus half of earned income) are applied before determining eligibility, this can make you eligible even if gross income appears too high",
@@ -797,7 +802,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(651) 431-2670",
       "sourceUrl": "https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/help-with-medicare-costs.jsp",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "snap-food-benefits",
@@ -940,7 +946,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Minnesota residency (utility bill, lease, or state-issued document)",
         "Social Security award letter or most recent statement",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Medical expense receipts over $35/month (prescriptions, Medicare premiums, doctor visits)",
         "Rent receipt or mortgage statement",
         "Utility bills (electric, gas, water, phone)",
@@ -1023,7 +1029,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 657-3739",
       "sourceUrl": "https://mn.gov/dhs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "ship-medicare-counseling",
@@ -1387,7 +1394,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Proof of Minnesota residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Pension or retirement income statements",
         "Medicare card",
         "Current medication list from doctor or pharmacy",
@@ -1414,6 +1421,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Each county sets its own income and asset limits, what disqualifies your loved one in one county may be acceptable in another",
         "Some counties have immediate openings while others maintain multi-month waitlists, ask about current availability when calling",
         "If your loved one is being discharged from a hospital, contact the county office immediately as crisis situations may receive expedited processing",
@@ -1472,7 +1480,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://mn.gov/dhs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "scsep-employment",
@@ -1581,7 +1590,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Proof of U.S. citizenship or work authorization",
         "Income statements for all household members from last 30 days (pay stubs, unemployment benefits, Social Security)",
-        "Most recent bank statements for all accounts",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Documentation of unemployment status",
         "Veteran's discharge papers (DD-214) if applicable",
         "Proof of disability status if applicable",
@@ -1666,7 +1675,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "832-599-0872",
       "sourceUrl": "https://mn.gov/deed/programs-services/dislocated-worker/scsep/index.jsp",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "legal-assistance-seniors",
@@ -2046,7 +2056,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Proof of Minnesota residency (utility bill, lease agreement, or state-issued document)",
         "Proof of income from last 30 days (Social Security award letter, pension statements, or pay stubs)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Medicare card"
       ],
       "contacts": [
@@ -2070,6 +2080,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "MSC+ is mandatory enrollment, if you're eligible and live in a CBP county, you'll be automatically enrolled unless you choose MSHO",
         "Different managed care organizations have different provider networks, make sure your loved one's current doctors accept the MCO you choose"
       ],
@@ -2101,7 +2112,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 203-7225",
       "sourceUrl": "https://www.ucare.org/health-plans/medicaid/ages-65-plus/msc-plus",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "aging-pathways",

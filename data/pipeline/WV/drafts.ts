@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WV/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T08:44:34.791Z
+ * Last updated: 2026-08-18T09:44:15.808Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -120,7 +120,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Social Security award letters for all household members",
         "Medicare card showing Part A and Part B coverage",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Pay stubs or pension statements (last 30 days if working)",
         "Investment documents (stocks, bonds, annuities statements)",
         "Birth certificate or proof of age",
@@ -147,6 +147,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI program has limited federal funding, apply early in the year for best chance of approval before funds run out",
         "Income disregards apply ($20 general exclusion plus other specific exclusions) which may help you qualify even if income appears slightly over limits",
         "Lump sum payments count as income only in the month received, not ongoing months",
@@ -314,7 +315,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card (if applicable)",
         "Medicaid card (if already enrolled)",
         "Most recent Social Security award letter or pension statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property documents if home equity exceeds $730,000",
         "Documentation of spouse or dependent relative living in home (if applicable for asset exemption)",
         "Medical records supporting need for nursing facility level of care",
@@ -341,6 +342,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Your loved one's physician must initiate the process, self-referrals are not accepted",
         "Home safety is assessed, unsafe conditions for caregivers could delay or disqualify services",
         "Even if your loved one exceeds income limits, they may qualify through the Medically Needy Program if medical expenses consume most monthly income",
@@ -399,7 +401,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(866) 767-1575",
       "sourceUrl": "http://www.wvseniorservices.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "pace-comprehensive-care",
@@ -688,7 +691,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of West Virginia residency (utility bill, lease, or mail)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
         "Rent receipt or mortgage statement for shelter deduction",
         "Medical expense receipts if over age 60 (helps increase benefits)",
         "Utility bills for heating and cooling costs",
@@ -770,7 +773,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(304) 558-7980",
       "sourceUrl": "https://dhhr.wv.gov/bcf/programs/snap/Pages/default.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",

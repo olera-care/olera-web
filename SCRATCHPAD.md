@@ -7,6 +7,54 @@
 
 ## Current Focus
 
+### 2026-08-18 — GA4 inflation traced to AWS bots; img2dataset scraper blocked (operations, no code)
+
+**Zero code changes.** One firewall rule published; the rest is diagnosis. Follow-on from the ground-truth audit below.
+
+**The "delete the old GA4 stream" follow-up was already done, and it was never the cause anyway.** Admin → Data streams lists exactly one stream (`olera.care web v2`, id `15064657515`, receiving traffic). `G-ZLP95NWSZW` no longer exists. The stale open item in memory has been corrected.
+
+**What actually inflates GA4: AWS-hosted bot traffic.** Demographic details → City, July 2026 (38,561 active users): **Boardman 16,304 (42.3%) at 7s average engagement, 98.9% "new users"**; then (not set) 2,888 / 18s, Houston 556 / 42s, New York 513 / 25s, Dallas 346 / 58s. **Boardman OR is AWS `us-west-2`.** Real US cities run 25–58s. Traffic acquisition for the same month: Direct **22,401 sessions (54.5%) at 17s / 42.4% engaged** vs Organic Search **17,474 (42.5%) at 48s / 60.9% engaged**.
+
+**This is NOT ghost spam — it hits the server.** Ghost spam posts straight to Google's collect endpoint. Server-side counters confirm real hits: distinct sessions on provider pages 26,383 (Jun) → 40,654 (Jul), **+54%**, while questions went 2,644 → 2,710 (+2.5%) and inquiries 354 → 322 (**−9%**). Real requests, zero humans. **Therefore the lever is the Vercel Firewall, not anything in GA4** — GA4's bot exclusion only covers the IAB list, is not configurable, and misses JS-rendering cloud scrapers.
+
+**Two distinct actors, found in Firewall → Traffic (past hour, ~7.1k requests to olera.care):**
+1. **`ImageBot/1.0 (compatible; research crawler; +https://github.com/rom1504/img2dataset; opt-out: abuse.notification.dcomp12b@gmail.com)`** — 317 req/hr. img2dataset builds large-scale image-text AI training sets. `/_next/image` was **1.4k of 7.1k requests**, the site's busiest path, and it is billed. Does not run JS, so it is not the GA4 problem — it is a cost and image-harvesting problem.
+2. **Headless Chrome** — `Mozilla/5.0 (X11; Linux x86_64) … Chrome/150.0.0.0 Safari/537.36`, **2.1k req/hr**, top UA on the site. The `150.0.0.0` reduced version string plus X11/Linux is the Puppeteer/Playwright signature. Amazon is AS #1 and #3 (1.1k + 745 req/hr). **This one runs JS and is the GA4 Boardman traffic.** Operator unidentified.
+
+**SHIPPED: custom rule `Block img2dataset image scraper`** (`rule_block_img2dataset_image_scraper_54c2G0`) — `User Agent Contains "img2dataset"` → **Deny**. Published to production. Sits below `Allow verified search bots`, so Googlebot/bingbot are untouched. Matched on `img2dataset` not `ImageBot` because the tool URL is the distinctive token. **Vercel's managed "AI Bots" ruleset was already set to Deny and did not catch this crawler** — do not assume the managed list covers a named bot.
+
+**Deliberately NOT done: the AWS/headless-Chrome half.** TJ deferred it the week of an investor call, which is right. Two reasons beyond timing: (a) the dominant JA4 digest `t13d1516h2_8daaf6152771_…` (3.7k) is ordinary Chrome's TLS fingerprint, shared with real users, so it is not a safe discriminator; (b) the existing `Twilio webhooks` bypass rule exists precisely because Twilio posts from datacenter IPs and bot_protection was 429ing them — the canonical warning about ASN-level blocks. If it is ever taken on, use Challenge not Deny, and audit which of our own services egress from AWS first.
+
+**Vercel team slug is `olera`, not `olera-pro`** — the latter 404s. Prod project `olera-web`. Firewall edits stage and require **Review Changes → Publish**; saving alone does nothing.
+
+**Nothing here changes the Friday numbers.** GSC is flat at ~3,300 clicks/wk; organic stands at ~15,000/mo.
+
+**Next:** (1) Firewall → Traffic, past 24h, tomorrow — `ImageBot/1.0` should vanish from Top User Agents and `/_next/image` should fall well below 1.4k/hr; if not, they changed their UA. (2) Decide after Friday whether to Challenge AWS-origin traffic. (3) Standing rule: quote GSC clicks or GA4 Organic Search users, never GA4 `total_users`.
+
+### 2026-08-18 — Ground-truth audit for the David Qu call (analysis only, zero code)
+
+**Zero code changes.** Read-only queries against live Supabase, GA4/GSC snapshots, and Stripe. Output is the artifact `Olera Ground Truth` (https://claude.ai/code/artifact/25c5b172-98bc-4bc3-9dd1-6cb70ff968d5), the pre-read for Friday 21 Aug 9:00 CT.
+
+**The traffic number in the deck is wrong and the error is load-bearing.** GSC has been **flat at ~3,300 clicks/week for nine months** (2,851 → 3,518 → 3,238, Nov 2025 → Aug 2026) ≈ **14,300 organic/month**. GA4 Organic Search users agree independently (~3,500/wk). The **Research Plan's 15,500 is the correct number; the deck's 25,000 and the Abstract's 25–30K are not.** GA4 *total* users doubled 4,275→9,066/wk in early July — but **every bit of it is "Direct" (770→5,166/wk) while session duration halved (217s→79s) and engagement fell 0.587→0.468.** That is ghost traffic or a duplicate stream, consistent with the GA4 stream rotation where the old property was never deleted. **Do not quote GA4 totals.** Also: "effectively all organic" is not supportable — organic is ~40% of current GA4 totals, ~78% excluding the suspect Direct.
+
+**The synergy thesis is dead in the data, and cleanly so.** Of 1,627 family profiles, **exactly six** have ever both saved a benefits program and sent a provider inquiry; four of the six did both inside eight minutes (one session). Segmented by acquisition source to kill the confound that a family profile is *created by* inquiring (`source='guest_connection'`): of **321** families arriving via `benefits_intake`, **2 (0.6%) ever inquired and 0 did so in a later session**. Reverse direction is 42/1,101 (3.8%). Benefits and the marketplace are two products sharing a database and a logo.
+
+**Large demand-side traction exists and was never counted.** `connections` type=`inquiry` = **1,133** (Mar 3 · Apr 91 · May 238 · Jun 379 · Jul 343 · Aug 175), reaching **845 distinct providers across 662 cities**. `provider_questions` = **11,129 asked on the web since Apr 2026** at ~82/day — verified real by a textbook US diurnal curve (trough 06–10 UTC, peak 18–21 UTC) across 138 distinct days, no bulk-insert spikes. Benefits: **3,222 programs saved by 348 users, 337 (97%) saving more than one**, ~11x growth Apr→Jul. **402 distinct providers have answered a family question** unprompted.
+
+**Two counts in the pre-read are wrong in our own disfavor.** The directory is **74,140 live** (115,608 rows, 41,468 deleted) — the "39,000" is close to the *deleted* count. And "725 onboarded" = `claim_state='claimed'` → **804** today (`claim_completed` = 727 distinct), but "onboarded" oversells it: only **317 (21%)** of 1,496 acting providers ever returned on a second day.
+
+**The eligibility DB is not versioned and not verified, and the columns prove it.** `sbf_state_programs` (1,629 rows, 528 active) / `sbf_federal_programs` (76) have **no version column, no history table, no snapshot**. Worse, the provenance scaffolding is entirely unpopulated: `last_verified_date` **0/1,629 and 0/76**, `verified_by` **0/1,629**, `savings_verified` **false on all 1,629**. Do not say "curated, versioned" on the call. Corollary: **do not quote the $9.57M "aid identified"** figure (sum of `savings_range` midpoints over 2,022 priced saves) — it double-counts overlapping programs and rests on ranges our own schema says nobody verified.
+
+**Zero revenue infrastructure, confirmed.** 258 `memberships` all `plan='free'`/`status='free'`, **0 `stripe_customer_id`, 0 `trial_ends_at`** — no Growth Suite trial mechanism is wired at all. `STRIPE_SECRET_KEY` in `.env.local` is a placeholder test key. Ad Boost is the only willingness-to-pay signal: 15 requests, **13 named a $50–$150 monthly budget**, 7 live, $297.67 total (Olera-funded), **0 subscriptions**.
+
+**Could not verify from this repo (genuinely, not softly):** the 900+ students / 20+ placements (on-platform MedJobs is 106 student profiles, 8 interviews, 1 unpaid `offered` placement; `student_outreach` is a campus-stakeholder CRM, not a student roster); the $275/month × 3 franchisees (`$275` appears nowhere in code, docs, or git history); the $5.3M NIA awards (no financial records here); iOS installs/actives (no App Store data); and unique users behind the 11,129 questions (96% anonymous, no session id on the row).
+
+**Landmine for Friday:** `docs/staffing-outreach-pilot-agreement.md` — the *current* canonical provider agreement — says "This pilot is free for the Provider… no payment information is required at any point." Different, later pilot than the Texas A&M one, but "three franchisees paid $275/month" alongside it reads as a contradiction. Have the one-sentence reconciliation ready.
+
+**The biggest unused asset:** GSC shows **~2M impressions/month at average position 23 with 0.6% CTR**. Median CTR at position 8–10 is ~3%, so the same content moved to page one is a 4–5x on organic with zero new pages. Reframes flat traffic from "SEO is maturing" to "SEO hasn't started."
+
+**Next:** (1) fix or delete the stale GA4 stream so totals stop lying; (2) correct 25,000 → 15,000 and 39,000 → 74,140 in the deck, Research Plan and Abstract; (3) the 90-day synergy test — put 3 nearest matching providers with one-tap inquiry at the end of a completed benefits screening, randomized 50/50, and treat failure to move 0.6% into double digits as falsification; (4) apply the one-click pattern to inquiries, since 1,228 of 1,229 sit `pending` and every traction number currently terminates in a dead end.
+
 ### 2026-08-17 — LumiWell Ad Boost published; the blocker was one keyword, not the firewall (operations, no code)
 
 **Zero code changes.** The only file touched is this log. The real artifacts live in Google Ads and Supabase.

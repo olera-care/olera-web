@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:21:53.008Z
+ * Last updated: 2026-08-18T09:38:50.884Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -494,7 +494,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Proof of income for your loved one and their spouse: Social Security award letter, pension statements, pay stubs",
         "Social Security number and Medicare card",
-        "Bank statements for all accounts. Oklahoma asks for the last 60 months, not the last few, because of the five-year transfer lookback.",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property deeds, tax statements, and property values",
         "Life insurance policies with cash values, and burial fund or pre-need funeral contracts",
         "Vehicle titles and registration",
@@ -530,6 +530,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "PACE is not statewide. Four centres cover about 25 counties around Oklahoma City, Shawnee, Tulsa, and Tahlequah. If you live outside those areas PACE is not an option, and the ADvantage Waiver is the closer fit.",
         "Your loved one cannot keep other Medicare Advantage plans, traditional Medicare providers, or Medicaid services, PACE becomes the sole provider",
         "If your loved one needs emergency care outside the PACE network, PACE will coordinate and cover it, but routine care must go through PACE",

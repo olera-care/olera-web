@@ -83,17 +83,13 @@ Regulatory plan. CareNavigator is navigational and administrative software: it m
 
 Specific Aim 1: Verify, validate, and drive adoption of the CareNavigator for families. Rationale: Financial aid is one of the main reasons families come to Olera. However, families can be lost to follow-up while completing the steps required to apply and again after an application is filed (Preliminary Work). The execution and follow-up loops are designed to close these two points of falloff.
 
-The CareNavigator Platform.
-
-The intervention is a closed navigation loop: understand a family's needs, identify the aid and services they qualify for, and help them act.
+The CareNavigator Platform. The intervention is a closed navigation loop: understand a family's needs, identify the aid and services they qualify for, and help them act.
 
 Matching (live). Structured screening establishes the family's needs, and eligibility matching over the expert-curated program database identifies the aid and services they qualify for and the providers who can deliver them. These functions run nationally today.
 
-Execution loop (in development). This loop helps the family act on their matches. It prepares applications and documents for the family's review, books assessments, and escalates anything unresolved to a human navigator. The family submits everything.
+Execution loop (in development). This loop helps the family act on their matches. It prepares applications and documents for the family's review, books assessments, and escalates anything unresolved to a human navigator. The family submits everything that is prepared for them with one-click approval.
 
 Follow-up loop (yet to be developed). This loop re-engages the family when a step stalls and follows each case through to a decision.
-
-Each component is verified against pre-specified criteria in Task 1.1.
 
 Task 1.1 Verify the CareNavigator against expert review. The developed CareNavigator will be verified by an expert panel of licensed clinical social workers, independent of the engineering team and holding no equity. This is internal product verification, not human-subjects research. For each audited household the panel determines eligibility blinded to the platform's answer, and for a sample of cases it prepares the applications by hand. Both are compared against what the platform produced, category by category for eligibility and field by field for applications. Agreement is reported as percent agreement with a 95 percent confidence interval and as Cohen's kappa, with disagreements fed to the error analysis. Audited households are held out of tuning data.
 

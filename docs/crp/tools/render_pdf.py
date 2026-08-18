@@ -65,9 +65,9 @@ ITALIC_LEADS_SENTENCE = [  # italic through the end of the first sentence
     'Design, participants, and recruitment.', 'Data collection procedures.',
     'Data management and analysis.',
 ]
-IU_COLON_LEADS = [  # italic + underlined through the colon
+IU_COLON_LEADS = [  # italic + underlined run-in leads
     'Family-side navigation:', 'Referral marketplaces:', 'Caregiver marketplaces:',
-    'Existing alternatives for providers:',
+    'Existing alternatives for providers:', 'The CareNavigator Platform.',
 ]
 STANDALONE_IU = ['The CareNavigator Platform.', 'The Provider Growth Suite.']
 

@@ -7,6 +7,36 @@
 
 ## Current Focus
 
+### 2026-08-18 — Benefits fact-check: 30 programs corrected, one invented phone number found, shipped to production
+
+**Shipped:** PR #1624 + #1626 → staging, promoted to main via #1627 (`07b603f2`). Production deploy green.
+
+**What triggered it.** TJ ran the navigator queue's "Copy AI review prompt" export through an external AI. It returned 19 corrections across 16 programs. Every one was re-verified against a primary source before applying, one program per subagent, in parallel. **All 19 survived** — but re-deriving them turned up roughly a dozen defects the reviewer missed, and a second self-directed pass on four programs it never looked at found all four wrong too. **Twenty programs opened, twenty with material defects.**
+
+**The finding that matters most.** The ND Assistive Senior Safety Program published `(800) 735-5400`. That number appears on `ndassistive.org` nowhere and `hhs.nd.gov` nowhere. The only page on the open web attributing it to that program was **olera.care**. We invented it, published it, and it ranks — so checking it looked like confirmation. The same record also told families they must be **denied by Medicaid first** and that **income limits apply**; neither exists. A family reading that letter would reasonably conclude they were ineligible and never call.
+
+**Second-order finding:** `data/pipeline/<ST>/factcheck.json` exists for all 51 states, dated 2026-04-14, and **already recorded the correct ND number in April**. It was never applied — probably because it keys programs as `nd-assistive-senior-safety-program` while `drafts.json` uses `assistive-senior-safety-program`. 323 of 328 entries only match after loosening the id. It holds **101 disagreements, 78 never verified since**. Treat as leads, not truth: it asserted a *retired* Alabama number this morning, and several of its own "verified" sources are aggregators.
+
+**The systematic one.** `"Bank statements for all accounts (last 3 months)"` sat in 242 records. Origin found: `scripts/benefits-pipeline.js` handed the model that exact string as a worked example. The figure is the state's own **Asset Verification System query window** — under 42 U.S.C. 1396w the state pulls those records itself *at no cost to the applicant*, and Texas MEPD B-6200 tells its own caseworkers to check AVS *before* asking the person for anything. For Older Americans Act services the inquiry is outright **prohibited** (45 CFR 1321.9(c)(2)(x)(E); 1321.93(f)(2)(xi)(A) bars legal aid from even asking). Replaced across 236 records per cohort; 13 with genuine asset tests deliberately left alone.
+
+**Decisions made**
+- **Removed Nevada PACE entirely** rather than correcting it. Nevada Medicaid told the Silver Haired Legislative Forum (2026-06-25) that no operator is selected and the RFP is expected early 2027. NPA lists 33 states + DC without Nevada. That URL now 404s.
+- **Did not blanket-remove unverified phone numbers.** 468 of 612 published numbers have never been confirmed against an operator page, but `toPick()` requires a phone — deleting them would make those programs unpickable, a self-inflicted version of the bug below.
+- **Left the composer rail alone.** `lib/family-comms/benefits-navigator.server.ts:125` instructs the model to render any `savingsRange` as "Families that qualify often save $X a year" — the root cause of the false savings claims. Emptied the four bad figures; the rail is TJ's call.
+
+**Built into the machinery** (so each round is safer than the last, per TJ: "we have to build and fix as we go")
+- `scripts/benefits-lint.js`: `non-dialable-phone` (64 contacts hold prose/email/`316-XXX-XXXX` in the phone field, 9 in the lead slot) and `empty-documents`
+- `scripts/benefits-pipeline.js`: killed the bad exemplar, added rails against inventing documentation periods and against asset asks on no-asset-test programs
+- `scripts/benefits-phone-provenance.js` (PR #1629): fetches each program's own `sourceUrl` and asks whether our number is on it. Verified it flags `8007355400` and confirms `8008954728`. **It would have caught ND in April.**
+
+**Letters:** 20 pending drafts patched (body + SMS + `pick` snapshot together), Nevada PACE draft dismissed, 10 SMS `{link}.` punctuation fixes. `benefits-draft-lint` ended at **0 high / 0 medium**. TJ scheduled 33 of 35 for send.
+
+**Mistakes worth remembering**
+- I skipped `tsc` calling this "data-only, shape unchanged". Adding a `url` field to contacts **is** a shape change; it broke the Vercel build on #1624.
+- I put Oklahoma's published "60 months" into a PACE pre-call list. 60 months is the *institutional* parameter; PACE is a community program. NY and WA both split community (3–4 months) from institutional (60) explicitly.
+- I recommended pausing the reactive loop to go build infrastructure. TJ corrected it: the loop is demand-weighted and already running — fix inside it, don't stop it.
+
+
 ### 2026-08-18 — GA4 inflation traced to AWS bots; img2dataset scraper blocked (operations, no code)
 
 **Zero code changes.** One firewall rule published; the rest is diagnosis. Follow-on from the ground-truth audit below.
@@ -3701,6 +3731,17 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Next Up
+
+**Benefits fact-check follow-ups (2026-08-18)**
+- **2 drafts never got a schedule marker**: `b32bb6fd` north-dakota/assistive-senior-safety-program and `acfe50b7` kentucky/hcbs-waivers. Both patched and correct; both had the heaviest letter rewrites. Check whether that was deliberate.
+- **Provenance sweep** over 547 numbers was still running at session end (`node scripts/benefits-phone-provenance.js --only-missing`). Re-run and work the `NOT_ON_OPERATOR_PAGE` list — that is the ND signature.
+- **101 April `factcheck.json` disagreements**, 78 never verified since. Free ranked queue; leads not truth.
+- **124 programs `toPick()` can never select** (phone present, `documentsNeeded: null`) — almost all SHIP, ombudsman, legal aid, caregiver support, i.e. the free no-paperwork services. Filed on the Web App board, P3. One-line fix at the guard, but it is a product call.
+- **Composer rail** `benefits-navigator.server.ts:125` still manufactures "families often save $X" from any savings figure.
+- **3 duplicate program pairs**: AL waiver (`medicaid-elderly-disabled-waiver` / `ed-medicaid-waiver`), KY waiver (`hcbs-waivers` / `hcb-waiver`), and the two AL Medicare Savings letters. Merging removes a live URL.
+- **Pre-existing lint highs** not in scope today: `CA/ihss` and `DE/pace-comprehensive-care` null lead phones, `OR/pace-elderly-care` non-dialable phone.
+- **MA Frail Elder Waiver dispute moved**: NY and WA both split community vs institutional lookback, and PA's 60-month guide is titled "Long-Term Care *Facility*". FEW is a community waiver, so the burden has shifted to the FEW-specific sources. Still not settled.
+
 
 **Benefits household-income guard — added 2026-08-14 (PR #1599):**
 - 🔴 **Kill or rewrite the pending Navigator draft on profile `a86383a6`** before any send sweep runs. Status is `pending` and manual-send only, so nothing has gone out, but as written it tells an 83-year-old *"an income under $1,500 a month is in the range they look at"* and quotes $2,435/yr. It would send him to a hotline for a denial.

@@ -158,6 +158,8 @@ export async function POST(request: NextRequest) {
         // Move to re-engage with fax channel for follow-up via fax
         newStage = "re_engage";
         newReEngageChannel = "fax";
+        // Set sequence_started_at so this provider counts in Sequence Conv. if they claim
+        shouldSetSequenceStartedAt = !tracking.sequence_started_at;
         break;
 
       case "try_contact_form":
@@ -172,6 +174,8 @@ export async function POST(request: NextRequest) {
         // Move to re-engage with direct_mail channel for postcard/mail outreach
         newStage = "re_engage";
         newReEngageChannel = "direct_mail";
+        // Set sequence_started_at so this provider counts in Sequence Conv. if they claim
+        shouldSetSequenceStartedAt = !tracking.sequence_started_at;
         break;
     }
 
@@ -189,9 +193,10 @@ export async function POST(request: NextRequest) {
     // Also set sequenced_with_source for accurate conversion tracking by channel.
     if (shouldSetSequenceStartedAt) {
       updateData.sequence_started_at = nowIso;
-      // For contact form, track as "contact_form" source. Otherwise use email source.
-      updateData.sequenced_with_source = newReEngageChannel === "contact_form"
-        ? "contact_form"
+      // For alternative channels, track the channel as source. Otherwise use email source.
+      const alternativeChannels = ["fax", "contact_form", "direct_mail"];
+      updateData.sequenced_with_source = newReEngageChannel && alternativeChannels.includes(newReEngageChannel)
+        ? newReEngageChannel
         : (tracking.email_source || "organization");
     }
 

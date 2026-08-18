@@ -164,6 +164,8 @@ export async function POST(request: NextRequest) {
         // Move to re-engage with contact_form channel for website contact form outreach
         newStage = "re_engage";
         newReEngageChannel = "contact_form";
+        // Set sequence_started_at so this provider counts in Sequence Conv. if they claim
+        shouldSetSequenceStartedAt = !tracking.sequence_started_at;
         break;
 
       case "try_direct_mail":
@@ -183,11 +185,14 @@ export async function POST(request: NextRequest) {
       updateData.resend_count = newResendCount;
     }
 
-    // Set sequence_started_at for resend_link so provider counts in Sequence Conv.
-    // Also set sequenced_with_source for accurate org vs decision-maker conversion tracking.
+    // Set sequence_started_at so provider counts in Sequence Conv. if they claim.
+    // Also set sequenced_with_source for accurate conversion tracking by channel.
     if (shouldSetSequenceStartedAt) {
       updateData.sequence_started_at = nowIso;
-      updateData.sequenced_with_source = tracking.email_source || "organization";
+      // For contact form, track as "contact_form" source. Otherwise use email source.
+      updateData.sequenced_with_source = newReEngageChannel === "contact_form"
+        ? "contact_form"
+        : (tracking.email_source || "organization");
     }
 
     if (newStage) {

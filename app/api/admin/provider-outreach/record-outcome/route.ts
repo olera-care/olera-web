@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
     // Get current tracking record
     const { data: tracking, error: trackingError } = await db
       .from("provider_outreach_tracking")
-      .select("id, provider_id, stage, resend_count, due_date, city, state")
+      .select("id, provider_id, stage, resend_count, due_date, city, state, sequence_started_at")
       .eq("provider_id", provider_id)
       .single();
 
@@ -125,6 +125,7 @@ export async function POST(request: NextRequest) {
     let clearEmail = false;
     let shouldSendNudgeEmail = false;
     let newReEngageChannel: string | null = null;
+    let shouldSetSequenceStartedAt = false;
 
     switch (outcome as FollowUpOutcome) {
       case "resend_link":
@@ -138,6 +139,8 @@ export async function POST(request: NextRequest) {
         newResendCount = currentResendCount + 1;
         newStage = "re_engage"; // Move to re-engage after sending email
         shouldSendNudgeEmail = true;
+        // Set sequence_started_at if not already set, so this provider counts in Sequence Conv.
+        shouldSetSequenceStartedAt = !tracking.sequence_started_at;
         break;
 
       case "wrong_contact":
@@ -178,6 +181,11 @@ export async function POST(request: NextRequest) {
 
     if (newResendCount !== currentResendCount) {
       updateData.resend_count = newResendCount;
+    }
+
+    // Set sequence_started_at for resend_link so provider counts in Sequence Conv.
+    if (shouldSetSequenceStartedAt) {
+      updateData.sequence_started_at = nowIso;
     }
 
     if (newStage) {

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T08:22:00.770Z
+ * Last updated: 2026-08-18T09:21:53.008Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -395,23 +395,31 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Valir PACE: Oklahoma City Adult Day Center, Shawnee Adult Day Center",
+            "name": "Valir PACE (Oklahoma City): Oklahoma, Cleveland, McClain, Canadian, Grady counties",
             "type": "service-area"
           },
           {
-            "name": "LIFE PACE: Defined service area",
+            "name": "Valir PACE (Shawnee): Cleveland, Garvin, Hughes, Johnston, Lincoln, McClain, McIntosh, Okfuskee, Pontotoc, Pottawatomie, Seminole counties",
+            "type": "service-area"
+          },
+          {
+            "name": "LIFE PACE (Tulsa): Tulsa metro plus Broken Arrow, Sapulpa, Bixby, Owasso, Claremore, Pryor, Wagoner",
+            "type": "service-area"
+          },
+          {
+            "name": "Cherokee Elder Care (Tahlequah): Adair, Cherokee, Delaware, Mayes, Muskogee, Sequoyah, Wagoner counties",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your loved one needs nursing home-level care but wants to stay home, PACE provides all their medical care, transportation, meals, and personal care through one coordinated team. Because PACE covers everything from doctor visits to prescription drugs to adult day care with hot meals, your loved one won't need to coordinate between separate Medicare and Medicaid providers, one interdisciplinary team manages all their care.\n\nYour loved one must be 55+ and meet nursing facility level of care requirements (needing daily help with bathing, dressing, or medication management). Income limit: $2,901/month for a single person in 2025. Assets must be $2,000 or less (excluding primary home and one vehicle).\n\nPACE is only available in specific service areas around Oklahoma City and Shawnee, not statewide. Your loved one must use PACE as their sole provider and cannot keep other Medicare or Medicaid services.",
+      "intro": "If your loved one needs nursing home-level care but wants to stay home, PACE provides all their medical care, transportation, meals, and personal care through one coordinated team. Because PACE covers everything from doctor visits to prescription drugs to adult day care with hot meals, your loved one won't need to coordinate between separate Medicare and Medicaid providers, one interdisciplinary team manages all their care.\n\nYour loved one must be 55+ and meet nursing facility level of care requirements (needing daily help with bathing, dressing, or medication management). Income limit: $2,982/month for a single person in 2026. Assets must be $2,000 or less (excluding primary home and one vehicle).\n\nPACE is not available everywhere in Oklahoma. Four centres cover about 25 counties: the Oklahoma City area and Shawnee (Valir PACE), the Tulsa area (LIFE PACE), and seven northeastern counties around Tahlequah (Cherokee Elder Care). Call the centre nearest you with the zip code and they will tell you in one call whether the address is covered. Your loved one must use PACE as their sole provider and cannot keep other Medicare or Medicaid services.",
       "savingsRange": "",
       "savingsSource": "Comprehensive service covered by Medicare/Medicaid",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 55+",
-          "Income below $2,901/month",
+          "Income below $2,982/month",
           "Assets under $2,000",
           "Needs nursing home-level care",
           "Lives in PACE service area"
@@ -432,11 +440,11 @@ export const drafts: PipelineStateDrafts = {
             "Personal belongings",
             "Burial plots"
           ],
-          "homeEquityCap": null
+          "homeEquityCap": 752000
         },
         "functionalRequirement": "Must need nursing facility level of care (daily help with bathing, dressing, medication management, or other activities of daily living) as determined by state UCAT assessment",
         "otherRequirements": [
-          "Live in a PACE service area (Oklahoma City/Shawnee regions only)",
+          "Live in a PACE service area. Four centres cover about 25 counties around Oklahoma City, Shawnee, Tulsa, and Tahlequah.",
           "Agree to use PACE as sole medical provider",
           "Assessed as safe to live in community with PACE support",
           "Cannot be enrolled in Medicare Advantage or hospice"
@@ -449,8 +457,8 @@ export const drafts: PipelineStateDrafts = {
         "steps": [
           {
             "step": 1,
-            "title": "Call the PACE inquiry line",
-            "description": "Call 405-522-7044 or email PACEInquiry@okhca.org to determine if your loved one lives in a PACE service area and get connected to local PACE providers like Valir PACE or LIFE PACE."
+            "title": "Call the PACE centre nearest you",
+            "description": "Call Valir PACE at 888-722-3440 (Oklahoma City and Shawnee), LIFE PACE at 918-938-7653 (Tulsa), or Cherokee Elder Care at 918-453-5554 (Tahlequah). Give them the zip code and they will confirm whether the address is in their service area. The centre, not the state, handles enrollment."
           },
           {
             "step": 2,
@@ -465,7 +473,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Financial eligibility review",
-            "description": "OKDHS processes Medicaid financial eligibility based on the 300% SSI income limit ($2,901/month) and $2,000 asset limit."
+            "description": "OKDHS processes Medicaid financial eligibility based on the 300% SSI income limit ($2,982/month) and $2,000 asset limit."
           },
           {
             "step": 5,
@@ -484,44 +492,45 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Birth certificate or other proof of age",
-        "Proof of Oklahoma residency in PACE service area",
-        "Social Security cards for participant and spouse",
-        "Medicare card",
-        "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
-        "Investment documents (stocks, bonds, annuities)",
-        "Property deeds and tax statements",
+        "Proof of income for your loved one and their spouse: Social Security award letter, pension statements, pay stubs",
+        "Social Security number and Medicare card",
+        "Bank statements for all accounts. Oklahoma asks for the last 60 months, not the last few, because of the five-year transfer lookback.",
+        "Property deeds, tax statements, and property values",
+        "Life insurance policies with cash values, and burial fund or pre-need funeral contracts",
         "Vehicle titles and registration",
-        "Life insurance policies with cash values",
-        "Burial fund or pre-need funeral contracts",
-        "Medical records documenting need for nursing facility level care",
-        "Current medication list and prescriptions",
-        "Documentation of any other income sources",
-        "Legal documents if someone has power of attorney"
+        "Investment documents (stocks, bonds, annuities)",
+        "Medical records documenting the need for nursing facility level care, and a current medication list",
+        "Legal documents if someone has power of attorney or guardianship",
+        "The PACE centre helps you gather all of this. You do not have to arrive with it complete."
       ],
       "contacts": [
         {
-          "label": "Oklahoma PACE Inquiry",
-          "phone": "405-522-7044",
-          "description": "General PACE information and service area verification",
-          "hours": "Business hours"
-        },
-        {
-          "label": "PACE Email Inquiry",
-          "phone": "PACEInquiry@okhca.org",
-          "description": "Email for PACE program questions",
-          "hours": "Business hours"
-        },
-        {
-          "label": "Oklahoma Human Services",
-          "phone": "405-521-3646",
-          "description": "Medicaid financial eligibility questions",
+          "label": "Valir PACE, Oklahoma City and Shawnee area (start here)",
+          "phone": "888-722-3440",
+          "description": "Serves the OKC and Shawnee regions. They handle enrollment and help you apply for SoonerCare. Direct lines: OKC 405-609-3688, Shawnee 405-553-1111.",
           "hours": "Mon-Fri 8am-5pm CT"
+        },
+        {
+          "label": "LIFE PACE, Tulsa area",
+          "phone": "918-938-7653",
+          "description": "Serves the Tulsa metro and surrounding towns. Spanish: 918-938-7660.",
+          "hours": "Mon-Fri, business hours CT"
+        },
+        {
+          "label": "Cherokee Elder Care PACE, Tahlequah area",
+          "phone": "918-453-5554",
+          "description": "Serves seven northeastern counties. Open to everyone, not only Cherokee Nation citizens.",
+          "hours": "Mon-Fri 8am-5pm CT"
+        },
+        {
+          "label": "OHCA PACE Unit",
+          "phone": "405-522-7044",
+          "description": "General program information and service-area questions. This office does not take enrollments; the PACE centre nearest you does.",
+          "hours": "Mon-Fri, business hours CT"
         }
       ],
       "applicationNotes": [
-        "You must live in a specific PACE service area, the program is not available statewide, only around Oklahoma City and Shawnee",
+        "PACE is not statewide. Four centres cover about 25 counties around Oklahoma City, Shawnee, Tulsa, and Tahlequah. If you live outside those areas PACE is not an option, and the ADvantage Waiver is the closer fit.",
         "Your loved one cannot keep other Medicare Advantage plans, traditional Medicare providers, or Medicaid services, PACE becomes the sole provider",
         "If your loved one needs emergency care outside the PACE network, PACE will coordinate and cover it, but routine care must go through PACE",
         "The interdisciplinary team can deny enrollment if they determine your loved one cannot live safely in the community even with PACE services"
@@ -575,11 +584,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Hospital",
-      "phone": "405-522-7044",
+      "phone": "888-722-3440",
       "sourceUrl": "https://oklahoma.gov/ohca/individuals/programs-of-all-inclusive-care-for-the-elderly-pace.html",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-01"
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "medicare-savings-programs",

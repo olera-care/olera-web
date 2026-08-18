@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T08:44:34.766Z
+ * Last updated: 2026-08-18T09:21:52.979Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -819,9 +819,9 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles to pay heating or cooling bills on a fixed income, Alabama LIHEAP provides direct payments to utility companies. The program pays up to $580 toward heating costs and $520 toward cooling costs annually, you get one heating payment and one cooling payment per year, with emergency crisis assistance up to $1,100 for heating emergencies.\n\nBecause LIHEAP operates through local Community Action Agencies rather than a central state office, you must apply through your county's specific agency. Priority goes to households with seniors 60+, disabled members, young children, or those facing disconnection. Income limits are set at 150% of the federal poverty level, $2,152/month for a single person in 2026.\n\nFunds are limited and distributed first-come, first-served. Applications typically open in late December or early January, with high demand during winter months when heating assistance applications surge.",
-      "savingsRange": "$280-$580 per benefit (FY2026)",
-      "savingsSource": "ADECA FY2026 LIHEAP State Plan: regular benefit $280-$580, plus a $50 high-energy benefit and funding-contingent $100 supplement where applicable",
+      "intro": "If your loved one struggles to pay heating or cooling bills on a fixed income, Alabama LIHEAP provides direct payments to utility companies. The program pays up to $580 toward heating costs and $520 toward cooling costs annually, you get one heating payment and one cooling payment per year, with emergency crisis assistance up to $1,100 for heating emergencies.\n\nBecause LIHEAP operates through local Community Action Agencies rather than a central state office, you must apply through your county's specific agency. Priority goes to households with seniors 60+, disabled members, young children, or those facing disconnection. Income limits are set at 150% of the federal poverty level, about $1,956/month for a single person in 2026. Your agency checks last month’s income.\n\nFunds are limited and distributed first-come, first-served. Cooling assistance runs May 1 through September 30 and heating assistance runs October 1 through April 30. Alabama does not operate year-round crisis help, so crisis assistance follows those same seasons.",
+      "savingsRange": "Cooling up to $520, heating up to $580 per benefit (FY2026 maximums)",
+      "savingsSource": "ADECA FY2026 LIHEAP State Plan sections 2.6 and 3.6 (heating $280-$580, cooling $320-$520), confirmed against the LIHEAP Clearinghouse Alabama profile. Crisis maximums are $1,100 winter and $990 summer. Households with high energy need may receive an extra $50, and a $100 IIJA supplement accompanies each benefit when funding allows. All figures are maximums, not typical awards.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -835,23 +835,23 @@ export const drafts: PipelineStateDrafts = {
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 2152
+            "monthlyLimit": 1956
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 2908
+            "monthlyLimit": 2643
           },
           {
             "householdSize": 3,
-            "monthlyLimit": 3664
+            "monthlyLimit": 3331
           },
           {
             "householdSize": 4,
-            "monthlyLimit": 4419
+            "monthlyLimit": 4018
           },
           {
             "householdSize": 5,
-            "monthlyLimit": 5175
+            "monthlyLimit": 4706
           }
         ],
         "assetLimits": null,
@@ -876,7 +876,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Schedule an appointment",
-            "description": "Call your local agency to schedule. Some offer online scheduling portals (like West Alabama at https://littliteal.azurewebsites.net), while others require phone calls. Applications typically open in late December or early January."
+            "description": "Call your local agency to schedule. Some offer online scheduling portals (like West Alabama at https://littliteal.azurewebsites.net), while others require phone calls. Cooling appointments run May 1 through September 30, heating October 1 through April 30."
           },
           {
             "step": 3,
@@ -904,36 +904,40 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Valid government-issued photo ID of applicant",
-        "Social Security cards for all household members",
-        "Proof of income from prior month for all adults 18+ (pay stubs, Social Security award letters)",
-        "Recent heating bill in applicant's name",
-        "Recent cooling/electric bill in applicant's name",
-        "Lease agreement if living in government housing where utilities aren't in your name",
-        "Proof of Alabama residency",
+        "Valid government-issued photo ID of the applicant (expired up to 1 year is accepted)",
+        "Original Social Security cards for everyone in the household. Copies are not accepted.",
+        "A recent heating or cooling bill showing the account name and number, in your name or your spouse’s. Bring your lease if it is in the landlord’s name.",
+        "Proof of last month’s income for everyone in the household (pay stubs, Social Security award letters). Bank statements are not accepted as proof of earned income.",
         "Declaration of Household Income form if anyone has zero income",
-        "Doctor's statement if applying for medical cooling or heating needs",
+        "Doctor’s statement if applying for medical cooling or heating needs",
         "Disconnection notice if applying for crisis assistance",
-        "Signed statement if someone else is applying on behalf of the household member",
-        "Most recent heating or cooling bill"
+        "Signed statement if someone else is applying on behalf of the household member"
       ],
       "contacts": [
         {
-          "label": "2-1-1 Alabama (agency locator)",
-          "phone": "2-1-1",
-          "description": "Ask for your county Community Action Agency. That local office takes LIHEAP applications.",
-          "hours": "24 hours, 7 days a week"
+          "label": "Alabama LIHEAP information line, ADECA (start here)",
+          "phone": "1-800-392-8098",
+          "description": "Alabama's state energy office. They will tell you which Community Action Agency serves your county. They do not take applications or book appointments.",
+          "hours": "Mon-Fri 8am-5pm CT",
+          "url": "https://adeca.alabama.gov/liheap/"
         },
         {
-          "label": "ADECA (program information only)",
-          "phone": "(334) 242-5100",
-          "description": "State administrator. ADECA does not schedule appointments or accept applications; apply through your county Community Action Agency.",
-          "hours": "Mon-Fri 8am-5pm CT"
+          "label": "Your county Community Action Agency (this is where you apply)",
+          "phone": null,
+          "description": "Eighteen regional agencies cover every Alabama county, each with its own call centre.",
+          "hours": "Varies; most offices Mon-Fri, business hours",
+          "url": "https://adeca.alabama.gov/wp-content/uploads/LIHEAPRegionsMap.pdf"
+        },
+        {
+          "label": "2-1-1 Connects Alabama (referral line, not the program)",
+          "phone": "2-1-1",
+          "description": "A statewide referral service. They can look up your county Community Action Agency but cannot take a LIHEAP application. Toll-free alternate: 888-421-1266.",
+          "hours": "24 hours, 7 days a week"
         }
       ],
       "applicationNotes": [
-        "Each county's Community Action Agency opens applications on different dates, priority households (seniors, disabled, families with young children) often get earlier access in late December",
-        "Crisis assistance requires proof of emergency like a disconnection notice or out-of-fuel situation, but can provide up to $1,100 for heating or $990 for cooling",
+        "Cooling assistance runs May 1 through September 30; heating runs October 1 through April 30. Each county Community Action Agency sets its own appointment dates within those windows.",
+        "Crisis assistance requires proof of an emergency such as a disconnection notice, and can provide up to $1,100 for heating or $990 for cooling. Alabama does not operate crisis help year-round, it follows the same seasons.",
         "Income verification must be from the prior month specifically, Social Security recipients can use award letters, but working adults need recent pay stubs",
         "You cannot apply through the state office directly, all applications go through county-level Community Action Agencies with their own procedures and funding levels"
       ],
@@ -987,11 +991,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "(334) 242-5100",
+      "phone": "1-800-392-8098",
       "sourceUrl": "https://adeca.alabama.gov/liheap/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-01"
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "weatherization-assistance-program",

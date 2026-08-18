@@ -122,6 +122,7 @@ interface TrackingRow {
   fax_confidence: string | null;
   fax_source_url: string | null;
   mail_address: string | null;
+  contact_form_url: string | null;
   // Assignment
   assigned_to: string | null;
   // Generic email warning state (persisted for page refresh)
@@ -164,6 +165,7 @@ export interface OutreachProvider {
   fax_confidence: string | null;
   fax_source_url: string | null;
   mail_address: string | null;
+  contact_form_url: string | null;
   // Assignment
   assigned_to: string | null;
   // Sequence progress (for in_sequence stage)
@@ -682,6 +684,7 @@ export async function GET(request: NextRequest) {
           fax_confidence: t.fax_confidence ?? null,
           fax_source_url: t.fax_source_url ?? null,
           mail_address: t.mail_address ?? null,
+          contact_form_url: t.contact_form_url ?? null,
           // Assignment
           assigned_to: t.assigned_to ?? null,
           // Sequence progress (for in_sequence)
@@ -741,7 +744,7 @@ async function getNotContactedProviders(
   // Include admin_hidden to filter out hidden providers
   const { data: trackedInState, error: trackingError } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, assigned_to, state, admin_hidden, generic_email_called_at, generic_email_skipped_at, confirmed_at, confirmed_by, apollo_contact, email_source")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, contact_form_url, assigned_to, state, admin_hidden, generic_email_called_at, generic_email_skipped_at, confirmed_at, confirmed_by, apollo_contact, email_source")
     .eq("state", state);
 
   if (trackingError) {
@@ -846,6 +849,7 @@ async function getNotContactedProviders(
         fax_confidence: null,
         fax_source_url: null,
         mail_address: null,
+        contact_form_url: null,
         // Assignment: use tracking assignment, or fall back to city owner
         assigned_to: tracking?.assigned_to ?? (p.city ? cityOwnerMap.get(p.city) : null) ?? null,
         // Generic email warning state (from tracking if exists)
@@ -982,6 +986,7 @@ async function getClaimedProviders(
         fax_confidence: null,
         fax_source_url: null,
         mail_address: null,
+        contact_form_url: null,
         // Assignment (not applicable for claimed)
         assigned_to: null,
         verification_state: claimInfo?.verification_state || null,
@@ -1088,6 +1093,7 @@ async function getHiddenProviders(
         fax_confidence: t.fax_confidence ?? null,
         fax_source_url: t.fax_source_url ?? null,
         mail_address: t.mail_address ?? null,
+        contact_form_url: t.contact_form_url ?? null,
         assigned_to: t.assigned_to ?? null,
         // Generic email warning state (persisted for page refresh)
         generic_email_called_at: t.generic_email_called_at ?? null,
@@ -1184,6 +1190,7 @@ async function getArchivedProviders(
         fax_confidence: t.fax_confidence ?? null,
         fax_source_url: t.fax_source_url ?? null,
         mail_address: t.mail_address ?? null,
+        contact_form_url: t.contact_form_url ?? null,
         // Assignment
         assigned_to: t.assigned_to ?? null,
         // Generic email warning state
@@ -1285,6 +1292,7 @@ async function getArchivedProviders(
           fax_confidence: null,
           fax_source_url: null,
           mail_address: null,
+          contact_form_url: null,
           // Assignment (not applicable for system-archived)
           assigned_to: null,
           // Generic email warning state (not applicable for system-archived)
@@ -1351,7 +1359,7 @@ async function searchProviders(
   // Get tracking data for all matched providers (include admin_hidden to filter)
   const { data: trackingRows } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, assigned_to, admin_hidden, generic_email_called_at, generic_email_skipped_at, confirmed_at, confirmed_by, apollo_contact, email_source")
+    .select("provider_id, id, stage, stage_changed_at, notes, due_date, resend_count, no_answer_count, needs_call_reason, cycle_number, re_engage_entered_at, re_engage_channel, fax_number, fax_confidence, fax_source_url, mail_address, contact_form_url, assigned_to, admin_hidden, generic_email_called_at, generic_email_skipped_at, confirmed_at, confirmed_by, apollo_contact, email_source")
     .in("provider_id", providerIds);
 
   // Collect hidden provider IDs to exclude from results
@@ -1510,6 +1518,7 @@ async function searchProviders(
       fax_confidence: tracking?.fax_confidence ?? null,
       fax_source_url: tracking?.fax_source_url ?? null,
       mail_address: tracking?.mail_address ?? null,
+      contact_form_url: tracking?.contact_form_url ?? null,
       // Assignment
       assigned_to: tracking?.assigned_to ?? null,
       // Sequence progress (for in_sequence)

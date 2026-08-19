@@ -241,7 +241,9 @@ const DRAFT_RULES = `Drafting rules, all of them hard:
 - No em dashes. Use periods or commas.
 - If an eligibility claim depends on a fact we have NOT verified, either ask about it or phrase it conditionally. "EHEAP is for households with someone 60 or older, if that's you" costs eight characters and survives our record being wrong.
 - Tell them the specific words to say when they call. A person with limited energy should not have to work out how to describe their own situation to an intake worker.
-- Warm, direct, no over-apologising. Never call their situation tragic or their problem unfortunate.`;
+- Warm, direct, no over-apologising. Never call their situation tragic or their problem unfortunate.
+- If the message states NO need at all, a bare link or a photo or a fragment, ask ONE open orientation question and stop. Do not offer a menu of guesses. People pick from the options they are handed, especially when they are being polite to someone helping them, so a menu can manufacture a wrong answer that then gets confidently solved. Say what you received, give any fact that is true regardless of why they wrote, and ask what is going on.
+- Do not promise outcomes, and do not imply we will handle it for them. Olera finds things and points at them. It is not a personal assistant and cannot act on anyone's behalf. "We will see what we can find" is honest. "We will take it from there", "leave it with us", and "we will sort this out" are not.`;
 
 interface DraftOut {
   draft: string;

@@ -10,11 +10,9 @@ import { isPhoneDoNotContact } from "@/lib/do-not-contact";
  * POST /api/admin/sms-inbox/[phone]  — { action: "reply", body } | { action: "mark_handled" }
  *                                    | { action: "save_draft", body } | { action: "discard_draft" }
  *
- * The thread is read from TWILIO, not our database, because Twilio holds the
- * complete permanent history of both directions and our own outbound logging is
- * partial (logSms only fires when a caller passes emailType — roughly 94% of
- * sends never reach email_log). Reading Twilio avoids a backfill and a
- * dual-write, and it can't silently show half a conversation.
+ * Twilio remains the complete history when available. Durable sms_inbound and
+ * email_log rows form the fallback so an outage cannot hide logged outbound
+ * messages or make an outbound-only conversation open to a blank pane.
  *
  * `phone` in the path is the last 10 digits (the thread key used everywhere:
  * sms_inbound.phone_last10 and do_not_contact.phone).
@@ -92,7 +90,7 @@ export async function GET(
     const db = getServiceClient();
     const e164 = toE164(last10);
 
-    const [inboundRes, dncRes, draftRes, packetRes] = await Promise.all([
+    const [inboundRes, dncRes, draftRes, packetRes, outboundLogRes] = await Promise.all([
       db
         .from("sms_inbound")
         .select("id, from_phone, body, keyword, profile_id, profile_type, display_name, handled_at, created_at")
@@ -111,15 +109,71 @@ export async function GET(
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
+      // Durable fallback for outbound-only conversations and for the moments
+      // when Twilio history is unavailable. Benefits, navigator, acknowledgments,
+      // and human admin replies all pass an emailType and therefore land here.
+      db
+        .from("email_log")
+        .select(
+          "id, resend_id, html_body, status, error_message, created_at, delivered_at, bounced_at, provider_id, recipient_type",
+        )
+        .eq("channel", "sms")
+        .eq("recipient", e164)
+        .order("created_at", { ascending: true })
+        .limit(MAX_THREAD),
     ]);
     if (inboundRes.error) {
       console.error("[admin/sms-inbox/phone] inbound load failed:", inboundRes.error);
       return NextResponse.json({ error: inboundRes.error.message }, { status: 500 });
     }
     const inboundRows = inboundRes.data ?? [];
+    const outboundLogRows = outboundLogRes.error ? [] : (outboundLogRes.data ?? []);
+    if (outboundLogRes.error) {
+      console.error("[admin/sms-inbox/phone] outbound log load failed:", outboundLogRes.error);
+    }
 
     // Identity: take the most recent non-null resolution we have on file.
     const identified = [...inboundRows].reverse().find((r) => r.display_name || r.profile_type);
+    const latestOutbound = outboundLogRows.at(-1);
+    const resolvedProfileId = identified?.profile_id ?? latestOutbound?.provider_id ?? null;
+    let resolvedDisplayName = identified?.display_name ?? null;
+    let resolvedProfileType = identified?.profile_type ?? latestOutbound?.recipient_type ?? null;
+    if (!resolvedDisplayName && resolvedProfileId) {
+      const { data: profile, error: profileError } = await db
+        .from("business_profiles")
+        .select("display_name, type")
+        .eq("id", resolvedProfileId)
+        .maybeSingle();
+      if (profileError) {
+        console.error("[admin/sms-inbox/phone] profile identity load failed:", profileError);
+      } else if (profile) {
+        resolvedDisplayName = profile.display_name ?? null;
+        resolvedProfileType ||= profile.type ?? null;
+      }
+    }
+
+    const storedMessages = [
+      ...inboundRows.map((row) => ({
+        sid: `inbound:${row.id}`,
+        direction: "in" as const,
+        body: row.body,
+        at: row.created_at,
+        status: "received",
+        errorCode: null,
+      })),
+      ...outboundLogRows.map((row) => ({
+        sid: row.resend_id || `outbound:${row.id}`,
+        direction: "out" as const,
+        body: row.html_body || "SMS sent",
+        at: row.created_at,
+        status: row.delivered_at
+          ? "delivered"
+          : row.bounced_at || row.status === "failed"
+            ? "failed"
+            : row.status,
+        errorCode: null,
+      })),
+    ].sort((a, b) => (a.at ?? "").localeCompare(b.at ?? ""));
 
     const client = createTwilioClient();
     let messages: {
@@ -157,22 +211,27 @@ export async function GET(
             errorCode: m.errorCode ?? null,
           })),
         ].sort((a, b) => (a.at ?? "").localeCompare(b.at ?? ""));
+        // A logged send can briefly precede Twilio's history visibility. Never
+        // turn that propagation delay into an empty outbound-only thread.
+        if (messages.length === 0 && storedMessages.length > 0) messages = storedMessages;
       } catch (err) {
         // A Twilio outage must not blank the page — we still have our own
         // inbound rows to show.
         console.error("[admin/sms-inbox/phone] Twilio history failed:", err);
         twilioError = "Twilio history is unavailable right now.";
+        messages = storedMessages;
       }
     } else {
       twilioError = "Twilio is not configured.";
+      messages = storedMessages;
     }
 
     return NextResponse.json({
       phone_last10: last10,
       e164,
-      display_name: identified?.display_name ?? null,
-      profile_type: identified?.profile_type ?? null,
-      profile_id: identified?.profile_id ?? null,
+      display_name: resolvedDisplayName,
+      profile_type: resolvedProfileType,
+      profile_id: resolvedProfileId,
       suppressed: Boolean(dncRes.data),
       suppression: dncRes.data ? { reason: dncRes.data.reason, note: dncRes.data.note } : null,
       unhandled: inboundRows.filter((r) => !r.handled_at).length,
@@ -310,12 +369,32 @@ export async function POST(
         );
       }
 
+      // Carry the thread identity into email_log. Older admin replies omitted
+      // both fields, which made the outbound ledger unable to say that Olera,
+      // not the family, spoke last.
+      const { data: recipientIdentity } = await db
+        .from("sms_inbound")
+        .select("profile_id, profile_type")
+        .eq("phone_last10", last10)
+        .not("profile_type", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const loggedRecipientType =
+        recipientIdentity?.profile_type === "family" ||
+        recipientIdentity?.profile_type === "provider" ||
+        recipientIdentity?.profile_type === "caregiver"
+          ? recipientIdentity.profile_type
+          : undefined;
+
       const result = await sendSMS({
         to: toE164(last10),
         body: text,
         // Logged to email_log so a human reply appears alongside automated
         // sends in /admin/family-comms and counts toward the frequency cap.
         emailType: "admin_reply",
+        recipientType: loggedRecipientType,
+        recipientLogProfileId: recipientIdentity?.profile_id ?? undefined,
       });
 
       if (!result.success) {

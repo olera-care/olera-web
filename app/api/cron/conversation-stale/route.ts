@@ -4,7 +4,7 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { staleConversationProviderEmail, staleConversationFamilyEmail, careUnsubscribeUrl } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
-import { generateFamilyInboxUrl } from "@/lib/claim-tokens";
+import { generateFamilyInboxUrl, generateProviderConnectionStatusUrls } from "@/lib/claim-tokens";
 
 /**
  * GET /api/cron/conversation-stale
@@ -59,6 +59,7 @@ export async function GET(request: NextRequest) {
         no_thread: 0,
         not_stale: 0,
         recently_nudged: 0,
+        provider_self_reported: 0,
         no_email: 0,
         send_failed: 0,
       },
@@ -75,8 +76,8 @@ export async function GET(request: NextRequest) {
         from_profile_id,
         to_profile_id,
         metadata,
-        from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, email, account_id, type, claim_token, slug),
-        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, email, account_id, type, claim_token, slug)
+        from_profile:business_profiles!connections_from_profile_id_fkey(id, display_name, email, account_id, type, claim_token, slug, verification_state),
+        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, email, account_id, type, claim_token, slug, verification_state)
       `
       )
       .in("type", ["inquiry", "request"])
@@ -139,6 +140,15 @@ export async function GET(request: NextRequest) {
           counts.skipReasons.recently_nudged++;
           continue;
         }
+      }
+
+      // Check if provider already self-reported their connection status
+      // (e.g., clicked "Yes I connected" or "Not a good fit" in a follow-up email)
+      const providerConnectionStatus = meta.provider_connection_status as { self_reported?: boolean } | undefined;
+      if (providerConnectionStatus?.self_reported) {
+        counts.skipped++;
+        counts.skipReasons.provider_self_reported++;
+        continue;
       }
 
       const daysSinceLastMessage = Math.floor(timeSinceLastMessage / (1000 * 60 * 60 * 24));
@@ -235,6 +245,14 @@ export async function GET(request: NextRequest) {
           }
         }
 
+        // Generate self-report URLs for verified providers
+        // Unverified providers see redacted PII, so asking "did you connect?" makes no sense
+        const providerVerificationState = providerProfile?.verification_state as string | undefined;
+        const isProviderVerified = providerVerificationState === "verified" || providerVerificationState === "not_required";
+        const connectionStatusUrls = isProviderVerified
+          ? generateProviderConnectionStatusUrls(conn.id, siteUrl)
+          : undefined;
+
         const { success: providerSuccess } = await sendEmail({
           to: providerEmail,
           subject: `Continue your conversation with ${familyName}?`,
@@ -244,6 +262,7 @@ export async function GET(request: NextRequest) {
             familyName,
             daysSinceLastMessage,
             viewUrl: providerViewUrl,
+            connectionStatusUrls,
           }),
           emailType: "stale_conversation",
           recipientType: "provider",

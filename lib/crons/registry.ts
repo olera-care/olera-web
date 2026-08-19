@@ -337,6 +337,25 @@ export const CRON_REGISTRY: CronJob[] = [
       "A packet a human can check: sourced claims, the drafter-vs-checker disagreements, and the unverified person-facts the draft leans on.",
     relatedAdminPath: "/admin/inbox",
   },
+  {
+    id: "family-answer-followup",
+    name: "Family answer outcome check",
+    description:
+      "Seven days after we send a researched benefits answer, asks whether it got the family anywhere. HELPED or NOTYET, so the answer is machine-readable rather than another message needing a human. Skips families who already replied, threads with a question still in flight, and anyone opted out.",
+    recipientCohort:
+      "Families who received a researched answer 7+ days ago and have not replied since.",
+    audience: "Care seekers",
+    fn: "nudge",
+    schedule: "0 14 * * *",
+    humanSchedule: "Daily, 14:00 UTC (~10 AM ET)",
+    path: "/api/cron/family-answer-followup",
+    emailTypes: [],
+    channels: ["sms"],
+    smsTypes: ["family_answer_followup"],
+    successSignal:
+      "A recorded outcome. Without it the engine is outcome-blind and every quality judgement rests on how good the drafts look.",
+    relatedAdminPath: "/admin/inbox",
+  },
 
   // ── Care seekers ───────────────────────────────────────────────────
   {

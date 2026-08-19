@@ -2,21 +2,20 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import {
-  verificationReminder7DayEmail,
   verificationReminder21DayEmail,
 } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
+import { generateProviderPortalUrl } from "@/lib/claim-tokens";
 
 /**
  * GET /api/cron/verification-reminders
  *
- * Runs daily. Sends reminder emails to providers who claimed their listing
- * but haven't completed verification:
- *
- * 1. 7-day reminder — "Complete verification to unlock family inquiries..."
- * 2. 21-day final reminder — "Final reminder — your claim will be revoked in 9 days..."
+ * Runs daily. Sends a 21-day verification reminder to providers who claimed
+ * but haven't completed verification. The onboarding sequence handles the
+ * early nudge at +24h; this is the safety-net follow-up.
  *
  * Each email sent at most ONCE per provider (metadata flag guard).
+ * Defers if the provider already received a weekly digest today.
  */
 export const maxDuration = 60;
 
@@ -38,15 +37,12 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
     const now = Date.now();
-    const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000).toISOString();
     const twentyOneDaysAgo = new Date(now - 21 * 24 * 60 * 60 * 1000).toISOString();
-    // Don't send reminders to very old claims (30+ days) - they'll be handled separately
-    const thirtyDaysAgo = new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString();
 
     const counts = {
-      reminder7Day: 0,
       reminder21Day: 0,
       skipped: 0,
+      deferredDigestCollision: 0,
       errors: 0,
     };
 
@@ -55,11 +51,10 @@ export async function GET(request: NextRequest) {
     const { data: providers, error: fetchError } = await db
       .from("business_profiles")
       .select("id, slug, display_name, email, metadata, created_at, account_id")
-      .eq("type", "provider")
+      .in("type", ["organization", "caregiver"])
       .eq("verification_state", "unverified")
       .not("account_id", "is", null) // Only claimed providers
-      .gte("created_at", thirtyDaysAgo) // Don't remind 30+ day old claims
-      .lte("created_at", sevenDaysAgo) // At least 7 days old
+      .lte("created_at", twentyOneDaysAgo) // At least 21 days old
       .limit(200);
 
     if (fetchError) {
@@ -110,6 +105,26 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Check which providers already received a digest today so we don't
+    // stack two emails on the same day. Defer to next run instead.
+    const todayStart = new Date(now);
+    todayStart.setUTCHours(0, 0, 0, 0);
+    const providerIds = providers.map((p) => p.id);
+    const digestSentToday = new Set<string>();
+
+    if (providerIds.length > 0) {
+      const { data: digestRows } = await db
+        .from("email_log")
+        .select("provider_id")
+        .eq("email_type", "weekly_analytics_digest")
+        .in("provider_id", providerIds)
+        .gte("created_at", todayStart.toISOString());
+
+      for (const row of digestRows || []) {
+        if (row.provider_id) digestSentToday.add(row.provider_id);
+      }
+    }
+
     // Process each provider
     for (const provider of providers) {
       const meta = (provider.metadata || {}) as Record<string, unknown>;
@@ -131,18 +146,24 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
+      // Skip if this provider already got a digest today — defer to next run
+      if (digestSentToday.has(provider.id)) {
+        counts.deferredDigestCollision++;
+        continue;
+      }
+
       const providerName = provider.display_name || "your organization";
-      const verifyUrl = `${siteUrl}/provider/${provider.slug}/onboard`;
+      const verifyUrl = generateProviderPortalUrl(provider.slug, email, "verify", siteUrl);
       const claimDate = new Date(provider.created_at).getTime();
       const daysSinceClaim = Math.floor((now - claimDate) / (24 * 60 * 60 * 1000));
 
       try {
-        // Priority 1: 21-day final reminder (if not sent)
+        // 21-day verification reminder (if not sent)
         if (daysSinceClaim >= 21 && !meta.verification_reminder_21d_sent) {
           if (!dryRun) {
             await sendEmail({
               to: email,
-              subject: `Final reminder: Verify ${providerName}`,
+              subject: `Verify ${providerName} to unlock your full dashboard`,
               html: verificationReminder21DayEmail({
                 providerName,
                 recipientName,
@@ -171,39 +192,6 @@ export async function GET(request: NextRequest) {
           continue;
         }
 
-        // Priority 2: 7-day reminder (if not sent)
-        if (daysSinceClaim >= 7 && !meta.verification_reminder_7d_sent) {
-          if (!dryRun) {
-            await sendEmail({
-              to: email,
-              subject: `Families are looking for ${providerName}`,
-              html: verificationReminder7DayEmail({
-                providerName,
-                recipientName,
-                verifyUrl,
-              }),
-              emailType: "verification_reminder_7d",
-              recipientType: "provider",
-              providerId: provider.slug,
-            });
-
-            await db
-              .from("business_profiles")
-              .update({
-                metadata: {
-                  ...meta,
-                  verification_reminder_7d_sent: true,
-                  verification_reminder_7d_sent_at: new Date().toISOString(),
-                },
-                updated_at: new Date().toISOString(),
-              })
-              .eq("id", provider.id);
-          }
-
-          console.log(`[cron/verification-reminders] 7-day reminder: ${providerName} (${email})`);
-          counts.reminder7Day++;
-          continue;
-        }
       } catch (err) {
         console.error(`[cron/verification-reminders] Error for ${provider.id}:`, err);
         counts.errors++;

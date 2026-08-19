@@ -207,6 +207,28 @@ function JobRow({ job, busy, onTogglePause }: {
   );
 }
 
+function SubgroupSection({ label, jobs, busy, onTogglePause }: {
+  label: string;
+  jobs: Job[];
+  busy: string | null;
+  onTogglePause: (job: Job) => void;
+}) {
+  const [open, setOpen] = useState(true);
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between bg-gray-50/60 px-5 py-2.5 text-left transition-colors hover:bg-gray-100/60 sm:px-6"
+      >
+        <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-teal-700">{label}</span>
+        <svg viewBox="0 0 20 20" className={`h-3.5 w-3.5 text-gray-400 transition-transform ${open ? "rotate-180" : ""}`} fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="m5 7.5 5 5 5-5" /></svg>
+      </button>
+      {open && jobs.map((job) => <JobRow key={job.id} job={job} busy={busy} onTogglePause={onTogglePause} />)}
+    </div>
+  );
+}
+
 function SystemSection({ system, jobs, collapsed, onToggle, busy, onTogglePause, reorderable = false }: {
   system: AutomationSystem;
   jobs: Job[];
@@ -254,7 +276,23 @@ function SystemSection({ system, jobs, collapsed, onToggle, busy, onTogglePause,
           </Link>
         )}
       </div>
-      {!collapsed && <div className="divide-y divide-gray-100 border-t border-gray-100">{jobs.map((job) => <JobRow key={job.id} job={job} busy={busy} onTogglePause={onTogglePause} />)}</div>}
+      {!collapsed && (
+        <div className="divide-y divide-gray-100 border-t border-gray-100">
+          {system.subgroups?.length ? (() => {
+            const subgroupJobIds = new Set(system.subgroups.flatMap((sg) => sg.jobIds));
+            return (
+              <>
+                {system.subgroups.map((sg) => {
+                  const sgJobs = sg.jobIds.map((id) => jobs.find((j) => j.id === id)).filter(Boolean) as Job[];
+                  if (sgJobs.length === 0) return null;
+                  return <SubgroupSection key={sg.label} label={sg.label} jobs={sgJobs} busy={busy} onTogglePause={onTogglePause} />;
+                })}
+                {jobs.filter((j) => !subgroupJobIds.has(j.id)).map((job) => <JobRow key={job.id} job={job} busy={busy} onTogglePause={onTogglePause} />)}
+              </>
+            );
+          })() : jobs.map((job) => <JobRow key={job.id} job={job} busy={busy} onTogglePause={onTogglePause} />)}
+        </div>
+      )}
     </section>
   );
 }

@@ -56,6 +56,12 @@ import {
   monthlyProviderRecommendationsEmail,
   inactivityReengagementEmail,
   type EmailProviderCard,
+  // provider · onboarding
+  providerWelcomeEmail,
+  onboardingVerificationEmail,
+  onboardingNotificationsEmail,
+  onboardingProfilePreviewEmail,
+  verificationReminder21DayEmail,
   // provider
   providerWeeklyDigestEmail,
   providerProfileCompletionEmail,
@@ -698,6 +704,68 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       nearbyCount: 3, nearestTown: "Round Rock", careNeed: "home care", timeline: "immediate",
     }),
   },
+  // ─────────────── Provider · Onboarding (Phase 1 lifecycle) ───────────────
+  {
+    id: "provider_welcome", audience: "provider", group: "Provider · Onboarding",
+    label: "Email 0 · Welcome", subject: "Welcome to Olera 🎉",
+    emailType: "provider_welcome", cron: "provider-welcome",
+    timing: "Day 0 · on claim",
+    situation: "First email after a provider claims their page. Congratulates them and points to their dashboard.",
+    who: "Any provider who just claimed their page (account_id set, welcome_email_sent not set).",
+    why: "Set the tone, confirm ownership, and give them one clear next step: visit the dashboard.",
+    render: () => providerWelcomeEmail({
+      providerName: "Evergreen Home Care", dashboardUrl: `${SAMPLE_LINK}?action=manage`, providerSlug: "evergreen-home-care",
+    }),
+  },
+  {
+    id: "onboarding_verification_nudge", audience: "provider", group: "Provider · Onboarding",
+    label: "Email 1 · Verification nudge", subject: "Earn your Olera trust badge",
+    emailType: "onboarding_verification_nudge", cron: "onboarding-verification-nudge",
+    timing: "Day 1 · 24h after welcome",
+    situation: "Nudges unverified providers to earn a trust badge via LinkedIn or work email verification.",
+    who: "Claimed, received welcome, not yet verified, 24h+ since welcome.",
+    why: "Verification builds family trust and unlocks the full dashboard. Early nudge while momentum is fresh.",
+    render: () => onboardingVerificationEmail({
+      providerName: "Evergreen Home Care", recipientName: "Sarah", verifyUrl: `${SAMPLE_LINK}?action=verify`, providerSlug: "evergreen-home-care",
+    }),
+  },
+  {
+    id: "onboarding_notification_setup", audience: "provider", group: "Provider · Onboarding",
+    label: "Email 2 · Notification setup", subject: "Never miss a family inquiry",
+    emailType: "notification_setup_nudge", cron: "onboarding-notification-setup",
+    timing: "Day 3 · 48h after verification nudge",
+    situation: "Encourages providers to turn on SMS notifications so they respond to families faster.",
+    who: "Claimed, received welcome + verification nudge, SMS not enabled, 48h+ since verification nudge.",
+    why: "Speed-to-lead matters. Providers who respond first are 3x more likely to connect.",
+    render: () => onboardingNotificationsEmail({
+      recipientName: "Sarah", providerName: "Evergreen Home Care", notificationsUrl: `${SAMPLE_LINK}?action=notifications`, providerSlug: "evergreen-home-care",
+    }),
+  },
+  {
+    id: "onboarding_profile_preview", audience: "provider", group: "Provider · Onboarding",
+    label: "Email 3 · Profile preview", subject: "How does Evergreen Home Care look to families?",
+    emailType: "profile_preview_nudge", cron: "onboarding-profile-preview",
+    timing: "Day 6 · 72h after notification setup",
+    situation: "Shows providers what families see on their page and encourages adding missing details.",
+    who: "Claimed, received all prior onboarding emails, 72h+ since notification nudge.",
+    why: "Complete profiles get more inquiries. This is the last onboarding touch before the weekly digest takes over.",
+    render: () => onboardingProfilePreviewEmail({
+      providerName: "Evergreen Home Care", profileUrl: `${SAMPLE_LINK}?action=profile`, providerSlug: "evergreen-home-care",
+    }),
+  },
+  {
+    id: "verification_reminder_21d", audience: "provider", group: "Provider · Onboarding",
+    label: "21-day verification reminder", subject: "Verify Evergreen Home Care to unlock your full dashboard",
+    emailType: "verification_reminder_21d", cron: "verification-reminders",
+    timing: "Day 21 · safety net",
+    situation: "Follow-up for providers who claimed but never verified. Defers if the weekly digest already sent today.",
+    who: "Claimed 21+ days ago, still unverified, not already sent.",
+    why: "Last warm nudge before the provider is considered potentially dormant on verification.",
+    render: () => verificationReminder21DayEmail({
+      providerName: "Evergreen Home Care", recipientName: "Sarah", verifyUrl: `${SAMPLE_LINK}?action=verify`, providerSlug: "evergreen-home-care",
+    }),
+  },
+
   {
     id: "provider_completion", audience: "provider", group: "Provider · Lifecycle",
     label: "Profile completion", subject: "See what families see on Evergreen Home Care",

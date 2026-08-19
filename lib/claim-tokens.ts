@@ -189,7 +189,7 @@ export function generateNotificationUrl(
 export function generateProviderPortalUrl(
   providerSlug: string,
   email: string,
-  destination: "manage" | "settings" | "market" | "leads" | "ads" | "matches",
+  destination: "manage" | "settings" | "market" | "leads" | "ads" | "matches" | "verify" | "notifications" | "profile",
   baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"
 ): string {
   const token = generateClaimToken(providerSlug, email);

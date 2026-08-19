@@ -69,6 +69,18 @@
       "schedule": "0 * * * *"
     },
     {
+      "path": "/api/cron/onboarding-verification-nudge",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/notification-setup-nudge",
+      "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/profile-preview-nudge",
+      "schedule": "0 * * * *"
+    },
+    {
       "path": "/api/cron/provider-dormant",
       "schedule": "0 15 * * *"
     },

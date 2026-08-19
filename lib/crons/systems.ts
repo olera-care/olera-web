@@ -1,8 +1,15 @@
+export interface AutomationSubgroup {
+  label: string;
+  jobIds: string[];
+}
+
 export interface AutomationSystem {
   key: string;
   label: string;
   description: string;
   jobIds: string[];
+  /** Named sub-groups rendered as labeled sections within the system card. */
+  subgroups?: AutomationSubgroup[];
   operational?: boolean;
 }
 
@@ -16,11 +23,25 @@ export const AUTOMATION_SYSTEMS: AutomationSystem[] = [
     label: "Provider lifecycle",
     description: "Activate, guide, and re-engage providers after they join Olera.",
     jobIds: [
+      "provider-welcome",
+      "onboarding-verification-nudge",
+      "onboarding-notification-setup",
+      "onboarding-profile-preview",
       "weekly-provider-digest",
       "verification-reminders",
-      "provider-welcome",
       "provider-dormant",
       "provider-anniversary",
+    ],
+    subgroups: [
+      {
+        label: "Onboarding",
+        jobIds: [
+          "provider-welcome",
+          "onboarding-verification-nudge",
+          "onboarding-notification-setup",
+          "onboarding-profile-preview",
+        ],
+      },
     ],
   },
   {

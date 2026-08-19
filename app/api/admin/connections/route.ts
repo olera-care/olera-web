@@ -575,6 +575,9 @@ export async function GET(request: NextRequest) {
       // Family self-reported that provider got back to them (ground-truth connection signal)
       const familyConfirmed = meta.family_confirmed === true;
 
+      // Provider self-reported that they connected (via email button click)
+      const providerConfirmed = meta.provider_confirmed === true;
+
       // Check if family has replied AFTER provider's response
       // This determines if we need to nudge the family
       // Only counts REAL replies (non-auto, non-system, with actual text)
@@ -767,6 +770,8 @@ export async function GET(request: NextRequest) {
         adminOverride,
         // Family self-reported provider got back to them
         familyConfirmed,
+        // Provider self-reported they connected (via email button)
+        providerConfirmed,
         // For engagement-based "Needs Call" tab
         needsCall: meta.followup_stopped_reason === "needs_call" || meta.needs_call === true,
         // When Day 0 email was sent (for staleness calculation)
@@ -1168,6 +1173,7 @@ export async function GET(request: NextRequest) {
       email_link_clicked: boolean;
       continue_in_inbox: boolean;
       family_confirmed: boolean;
+      provider_confirmed: boolean;
     }>();
 
     for (const c of searched) {
@@ -1206,6 +1212,7 @@ export async function GET(request: NextRequest) {
         continueInInbox: eng?.continue_in_inbox ?? false,
         providerMessaged: c.responded,
         familyConfirmed: c.familyConfirmed,
+        providerConfirmed: c.providerConfirmed,
         adminMarkedViewed,
         adminMarkedConnected,
         lastActivityAt: combinedLastActivity,
@@ -1233,6 +1240,7 @@ export async function GET(request: NextRequest) {
         email_link_clicked: eng?.email_link_clicked ?? false,
         continue_in_inbox: eng?.continue_in_inbox ?? false,
         family_confirmed: c.familyConfirmed,
+        provider_confirmed: c.providerConfirmed,
       });
 
       // Calculate family engagement level for this connection
@@ -1608,7 +1616,7 @@ export async function GET(request: NextRequest) {
     // Per-CONNECTION engagement data for UI badges (keyed by connection_id)
     // Use pre-computed values from connectionBadgeData (computed during engagement level calculation)
     // This ensures badge data matches tab placement - both use the same computed values
-    const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_copied: boolean; email_copied: boolean; phone_clicked: boolean; email_link_clicked: boolean; continue_in_inbox: boolean; family_confirmed: boolean }> = {};
+    const engagement: Record<string, { email_clicked: boolean; lead_opened: boolean; contact_revealed: boolean; phone_copied: boolean; email_copied: boolean; phone_clicked: boolean; email_link_clicked: boolean; continue_in_inbox: boolean; family_confirmed: boolean; provider_confirmed: boolean }> = {};
     for (const c of pageRaw) {
       const badge = connectionBadgeData.get(c.id);
       if (badge) {

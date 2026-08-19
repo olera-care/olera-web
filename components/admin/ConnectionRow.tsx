@@ -125,6 +125,7 @@ interface Engagement {
   email_link_clicked: boolean;
   continue_in_inbox?: boolean;
   family_confirmed?: boolean;
+  provider_confirmed?: boolean;
   // Note: "messaged" is passed separately since it's per-connection, not per-provider
 }
 
@@ -335,6 +336,7 @@ function EngagementBadges({
     { icon: "📨", label: "Continued in Inbox", active: engagement?.continue_in_inbox ?? false },
     { icon: "💬", label: "Messaged", active: isMessaged ?? false },
     { icon: "✓", label: "Family confirmed", active: engagement?.family_confirmed ?? false },
+    { icon: "✓", label: "Provider confirmed", active: engagement?.provider_confirmed ?? false },
     { icon: "✓", label: "Marked Replied", active: markedReplied },
     { icon: "🤝", label: "Already Connected", active: alreadyConnected },
     { icon: "✓", label: adminVerifiedLabel, active: !!adminOverride, highlight: true },

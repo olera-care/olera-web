@@ -5573,7 +5573,7 @@ export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
 }
 
 /**
- * Day 3 Follow-up: "Still waiting, replying is effortless"
+ * Day 3 Follow-up: Short and direct.
  * Light signature. Sent 3 days after initial email.
  */
 export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
@@ -5588,59 +5588,40 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
 
   const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
 
-  // Build pronoun contraction ("She's", "He's", "They're" - NOT "They's")
-  const pronounContraction = pronouns.pronoun === "They"
-    ? "They're"
-    : `${pronouns.pronoun}'s`;
-
   // Build preheader
-  const preheader = "A quick reply is all it takes.";
+  const preheader = hasName ? `${safeFamilyName} is still hoping to hear back.` : "Still hoping to hear back.";
 
-  // Build greeting - use full provider name (not firstName) since most are businesses
+  // Build greeting
   const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
 
   let bodyHtml: string;
   if (isMultiple) {
     const leadsListHtml = opts.leads.map((l) => {
       const name = firstName(l.familyName, "A family");
-      const daysText = l.daysSinceInquiry === 1 ? "1 day ago" : `${l.daysSinceInquiry} days ago`;
-      return `<li style="margin:0 0 8px;padding:0;"><strong>${escapeHtml(name)}</strong> <span style="color:#9ca3af;">· reached out ${daysText}</span></li>`;
+      return `<li style="margin:0 0 6px;padding:0;">${escapeHtml(name)}</li>`;
     }).join("");
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        A few days ago, these families reached out looking for care. They haven't heard back yet:
+        These families reached out a few days ago and are still hoping to hear back:
       </p>
       <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:14px;line-height:1.6;">
         ${leadsListHtml}
-      </ul>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Getting in touch is quick — open their requests and you can message them directly from your dashboard in under a minute. No forms, no fees. They're real families hoping someone gets back to them.
-      </p>`;
+      </ul>`;
   } else {
-    // Single lead - new copy
+    // Single lead - very short
     const familyRef = hasName ? safeFamilyName : "A family";
     const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
     const recipientRef = lead.careRecipient ? ` for ${escapeHtml(lead.careRecipient)}` : "";
     const cityRef = hasCity ? ` in ${escapeHtml(lead.city!)}` : "";
 
-    // Line 2: Simple, consistent copy for everyone (no complex detection needed)
-    const familyRefLower = hasName ? escapeHtml(familyRef) : escapeHtml(familyRef.toLowerCase());
-    const line2 = `That's really all this is — ${familyRefLower} trying to find the right care, hoping the people ${pronouns.pronounLower} contacted will get back to ${pronouns.object}. No middleman, no fee, just ${pronouns.object} and you.`;
-
     bodyHtml = `
-      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        A few days ago, ${escapeHtml(familyRef)} reached out about ${careTypeRef}${recipientRef}${cityRef}, and out of everyone nearby, ${pronouns.pronounLower} chose you.
-      </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-        ${line2}
-      </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Whenever you have a moment: if it feels like a fit, send ${pronouns.object} a message. And if it's not, a quick decline lets ${pronouns.object} know, so ${pronouns.pronounLower} can keep looking without wondering. Either one is a real help to ${pronouns.object}.
+      <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+        ${escapeHtml(familyRef)} reached out a few days ago about ${careTypeRef}${recipientRef}${cityRef}. ${pronouns.pronoun}'s still hoping to hear back.
       </p>`;
   }
 
-  // Build buttons - both route to same URL (auto-login magic link)
+  // Build buttons
   const messageButtonText = isMultiple
     ? "Message families →"
     : (hasName ? `Message ${escapeHtml(safeFamilyName)} →` : "Message the family →");
@@ -5649,7 +5630,7 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
     ? "Decline leads →"
     : "Decline lead →";
 
-  // Build CTA section - consolidated for single leads with self-report URLs
+  // Build CTA section
   const ctaSection = buildFollowupCtaSection({
     viewUrl: opts.viewUrl,
     messageButtonText,
@@ -5667,7 +5648,7 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
 }
 
 /**
- * Day 5 Follow-up (formerly Day 6): "One last note" - Final outreach
+ * Day 5 Follow-up (formerly Day 6): Final outreach - short and direct.
  * HEAVY signature with photo. Last chance before sequence ends.
  */
 export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
@@ -5677,73 +5658,51 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
 
   const safeFamilyName = firstName(lead.familyName, "");
   const hasName = safeFamilyName.length > 0;
-  const hasCity = !!lead.city;
   const hasCareType = !!lead.careType;
 
   const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
 
-  // Build pronoun contraction ("she's", "he's", "they're" - NOT "they's")
-  const pronounContractionLower = pronouns.pronounLower === "they"
-    ? "they're"
-    : `${pronouns.pronounLower}'s`;
-
-  // Build preheader - dynamic pronoun
-  const preheader = `Message ${pronouns.object} if it's a fit, or decline if it's not.`;
+  // Build preheader
+  const preheader = hasName
+    ? `Last note about ${safeFamilyName}.`
+    : "Last note about this request.";
 
   // Build greeting
   const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
 
-  // Reference for family name (used multiple times)
-  const familyRef = hasName ? safeFamilyName : "the family";
+  // Reference for family name
+  const familyRef = hasName ? safeFamilyName : "this family";
 
   let bodyHtml: string;
   if (isMultiple) {
-    // Multiple leads - keep simpler copy
     const leadsListHtml = opts.leads.map((l) => {
       const name = firstName(l.familyName, "A family");
-      const careInfo = l.careType ? escapeHtml(l.careType.toLowerCase()) : "care";
-      const cityInfo = l.city ? ` in ${escapeHtml(l.city)}` : "";
-      return `<li style="margin:0 0 8px;padding:0;"><strong>${escapeHtml(name)}</strong> — ${careInfo}${cityInfo}</li>`;
+      const careInfo = l.careType ? ` — ${escapeHtml(l.careType.toLowerCase())}` : "";
+      return `<li style="margin:0 0 6px;padding:0;">${escapeHtml(name)}${careInfo}</li>`;
     }).join("");
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        We'll keep this short — it's the last time we'll reach out about these requests.
+        Last note about these requests:
       </p>
       <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:14px;line-height:1.6;">
         ${leadsListHtml}
-      </ul>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-        They reached out about a week ago and haven't heard back yet. If you've been meaning to get to it, there's still time. A quick message from you could be just what they're hoping for.
-      </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-        And if it's not a fit, no problem at all. Just decline the leads and let us know why — we'll share that with them so they can keep looking.
-      </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Either way, thanks for taking a look.
-      </p>`;
+      </ul>`;
   } else {
-    // Single lead - new copy
+    // Single lead - very short
     const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
     const recipientRef = lead.careRecipient ? ` for ${escapeHtml(lead.careRecipient)}` : "";
-    const cityRef = hasCity ? ` in ${escapeHtml(lead.city!)}` : "";
 
     bodyHtml = `
-      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        We'll keep this short — it's the last time we'll reach out about ${escapeHtml(familyRef)}.
+      <p style="font-size:15px;color:#374151;margin:0 0 12px;line-height:1.5;">
+        Last note about ${escapeHtml(familyRef)}.
       </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-        ${pronouns.pronoun} reached out about a week ago, looking for ${careTypeRef}${recipientRef}${cityRef}, and hasn't heard back yet. If you've been meaning to get to it, there's still time. A quick message from you could be just what ${pronounContractionLower} hoping for.
-      </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-        And if it's not a fit, no problem at all. Just decline the lead and let us know why — we'll share that with ${escapeHtml(familyRef)} so ${pronouns.pronounLower} can keep looking.
-      </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Either way, thanks for taking a look.
+      <p style="font-size:14px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+        ${pronouns.pronoun} reached out about a week ago looking for ${careTypeRef}${recipientRef}.
       </p>`;
   }
 
-  // Build buttons - both route to same URL (auto-login magic link)
+  // Build buttons
   const messageButtonText = isMultiple
     ? "Message families →"
     : (hasName ? `Message ${escapeHtml(safeFamilyName)} →` : "Message the family →");
@@ -5752,7 +5711,7 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
     ? "Decline leads →"
     : "Decline lead →";
 
-  // Build CTA section - consolidated for single leads with self-report URLs
+  // Build CTA section
   const ctaSection = buildFollowupCtaSection({
     viewUrl: opts.viewUrl,
     messageButtonText,

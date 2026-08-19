@@ -172,3 +172,34 @@ paeaStudent2025:
   url: https://e1.nmcdn.io/assets/paea/wp-content/uploads/2025/01/FINAL_student-report-6-2025-01-13.pdf
   supports: "Scale of the patient-care-hours expectation: the median matriculating PA student had accumulated roughly 100 weeks of direct patient contact at about 36 hours per week, and the 75th percentile about three years of such experience."
   verified: 2026-08-19
+
+fan2023:
+  ref: "Fan Q, DuBose L, Ory MG, Lee S, Hoang MN, Vennatt J, Kew CL, Doyle D, Falohun T. Financial, Legal, and Functional Challenges of Providing Care for People Living With Dementia and Needs for a Digital Platform: Interview Study Among Family Caregivers. JMIR Aging. 2023;6:e47577."
+  doi: 10.2196/47577
+  url: https://aging.jmir.org/2023/1/e47577
+  supports: "Olera's own caregiver-needs research that preceded platform design: semistructured interviews with 30 family caregivers (of 150 screened), January to May 2022, thematic analysis in a framework approach. Established that caregiving challenges cluster into functional care needs and financial and legal challenges, and that caregivers identified the need for an integrative digital platform. Source document: reference/publications/aging_v6i1e47577.pdf."
+  verified: 2026-08-19
+
+fan2024:
+  ref: "Fan Q, Hoang MN, DuBose L, Ory MG, Vennatt J, Salha D, Lee S, Falohun T. The Olera.care Digital Caregiving Assistance Platform for Dementia Caregivers: Preliminary Evaluation Study. JMIR Aging. 2024;7:e55132."
+  url: https://aging.jmir.org/2024/1/e55132
+  supports: "Usability and quality of the first-generation platform: overall Mobile Application Rating Scale score 4.57 (SD 0.57) of 5 among 30 adult caregivers in Texas, with engagement 4.10, functionality 4.46, aesthetics 4.58, information quality 4.76. All participants would recommend the platform; 90% rated it positively overall. Note this supersedes the n=25 and 4.6 figures quoted in earlier Olera documents. Source document: reference/publications/aging_v7i1e55132.pdf."
+  verified: 2026-08-19
+
+dubose2024:
+  ref: "DuBose L, Fan Q, Fisher L, Hoang MN, Salha D, Lee S, Ory MG, Falohun T. Development and Evaluation of a Web-Based Platform for Personalized Educational and Professional Assistance for Dementia Caregivers: Proposal for a Mixed Methods Study. JMIR Research Protocols. 2024;13:e64127."
+  url: https://www.researchprotocols.org/2024/1/e64127
+  supports: "The registered, peer-reviewed evaluation protocol: iterative Design Thinking and Build-Measure-Learn development with a caregiver feedback panel and adapted MARS in phase I, then a usability study of 300 dementia caregivers stratified as 100 African American, 100 Hispanic or Latinx, and 100 non-Hispanic White using the Technology Acceptance Survey in phase II. Documents the Dementia Care Personalization Algorithm and the IRB and funding timeline. Substantiates that the user-centered method was pre-registered rather than assembled retrospectively. Source document: reference/publications/resprot_v13i1e64127.pdf."
+  verified: 2026-08-19
+
+hoang2026:
+  ref: "Hoang MN, Kim L, Fisher L, DuBose L, Ory MG, Lee S, Falohun T, Fan Q. Exploring Informal Caregivers' Perception of the Olera Digital Caregiving Assistance Platform for Dementia Care: Mixed Methods Evaluation Study. JMIR Formative Research. 2026;10:e92967."
+  url: https://formative.jmir.org/2026/1/e92967
+  supports: "Technology acceptance of the second-generation platform after four weeks of independent use: overall adapted Technology Acceptance Survey score 5.83 (SD 0.85) of 7 among 65 US caregivers, every item above 5.0, with higher use frequency associated with higher acceptance (F3,61=7.88, P<.001). Also captured caregiver attitudes toward integrating AI into caregiver services. Note this supersedes the 'approximately 5.6 of 7' figure quoted in earlier Olera drafts, which also misattributed the result to the AI agents rather than the platform. Source document: reference/publications/formative-v10-e92967.pdf."
+  verified: 2026-08-19
+
+careNavTAS2026:
+  ref: "Olera, Inc. and Clemson University. Technology Acceptance of a Digital Care-Navigation Platform for Dementia Family Caregivers: A Preliminary Evaluation of CARE-NAV. Manuscript in preparation, 2026. Unpublished data."
+  url: internal (Drive, CARE-NAV Manuscript 2 Quantitative TAS)
+  supports: "Evaluation of the integrated multi-agent eldercare-AI system with its voice-enabled caregiver interface: total modified Technology Acceptance Survey score 5.73 (SD 1.02) of 7 (median 5.89, IQR 5.21-6.52) among a final analyzed sample of 31 unpaid dementia family caregivers, in moderated sessions with hands-on platform use, January to April 2026. Sample was 87% female, 52% White, 19% Black, 19% Hispanic, 10% other, with 39% below $50,000 household income. Content quality scored highest (6.03), ease of use lowest (5.39). Cite as unpublished data, manuscript in preparation. Note the Year 2 RPPR reports the Aim 2 pilot as n=25 (protocol target) and states the team is intentionally withholding quantitative benchmarks pending publication; Logan confirms n=31 is the final analyzed sample and can substantiate result and manuscript status."
+  verified: 2026-08-19

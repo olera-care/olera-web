@@ -38,6 +38,8 @@ div.refs p.refnote { color: #555; font-style: italic; margin-bottom: 8pt; }
 div.fig { margin: 5pt 0 2pt 0; text-align: center; }
 div.fig img, div.fig svg { max-width: 100%; height: auto; }
 div.figblock { break-inside: avoid; page-break-inside: avoid; }
+ul.accomp { margin: 2pt 0 3pt 0; padding-left: 15pt; }
+ul.accomp li { text-align: justify; margin: 0 0 2pt 0; padding-left: 2pt; }
 /* Comparison matrix: horizontal rules only, own-product column blocked in, marks
    not sentences (house style section 6, ratified 2026-08-19 from the Phase IIB
    competitive matrix). */
@@ -85,7 +87,7 @@ def img_tag(relpath):
 
 # ---- run-in convention tables (from README §6 / measured docx) ----
 BOLD_LEADS_SENTENCE = [  # bold from start through the end of the first sentence
-    'The unmet need.', 'The product and the business model.', 'The market.',
+    'The unmet need.', 'The product and the business model.', 'The two-sided market.',
     'Competitive environment and our advantage.', 'Hurdles to adoption.',
     'National reach at no acquisition cost.', 'The family-facing CareNavigator MVP.',
     'A provider-paid workforce precedent.', 'The Provider Growth Suite.',
@@ -249,6 +251,16 @@ def main():
                 note = f' <i>{esc(nm.group(1))}</i>'
                 main_txt = main_txt.replace(nm.group(1), '').strip()
             body.append(f'<p class="caption"><b>Figure A:</b> {esc(main_txt)}{note}</p>')
+            continue
+        # markdown bullet list: consecutive lines starting with '- '
+        if line.startswith('- '):
+            items = [line[2:].strip()]
+            while i < len(lines) and lines[i].strip().startswith('- '):
+                items.append(lines[i].strip()[2:].strip())
+                i += 1
+            lis = ''.join(f'<li>{esc(it)}</li>' for it in items)
+            body.append(f'<ul class="accomp">{lis}</ul>')
+            in_metrics = False
             continue
         # markdown table: consecutive lines starting with '|'
         if line.startswith('|'):

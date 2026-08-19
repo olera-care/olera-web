@@ -172,7 +172,33 @@ revision is judged by "does this materially reduce a likely reviewer concern," a
 section must be: clear for a tired reviewer · rigorous for a scientist · concrete for an
 investor · true to what Olera has built · connected to commercial readiness.
 
-## 9. Current priority
+## 9. The paragraph loop (ratified 2026-08-19 — the working method)
+
+One paragraph at a time, in document order. For each paragraph:
+
+1. **Job first**: state what it must accomplish, what it receives from the previous
+   paragraph, and where it hands the reader next. The document is one continuous
+   argument, not polished fragments.
+2. **Argument before prose**: Logan supplies intent (often rough); Claude extracts
+   the underlying logic and pressure-tests it — preserving the intent without
+   deference to the proposed wording, evidence, or even conclusion.
+3. **Verify before writing**: substantiate load-bearing claims — own workspace and
+   codebase first (reconciliation beats invention), then primary/federal/
+   authoritative sources. No writing around placeholders; no stretched citations.
+   When evidence forces a weaker claim, the weaker claim is usually the stronger
+   sentence.
+4. **Simplify after the hard thinking**: fewest words for the conclusion; the rigor
+   moves underneath (citations, market-denominator-style workspace notes, ledger),
+   never disappears. Plain language; no jargon, semicolon chains, or ornament.
+5. **Iterate on reader reaction**: Logan reads as a reader and names exactly where
+   he loses the thread; refine the thought, not just the words. Expect the best
+   sentences to arrive late.
+6. **Lock and move on**: incorporate with citations, render, look at the actual
+   page, commit. Revisit locked text only when downstream work reveals real
+   inconsistency, missing setup, or semantic drift — log removals with future
+   homes so cutting stays safe.
+
+## 10. Current priority
 
 **72-hour goal (from 2026-08-17): Research Strategy Marcia-ready.** Pass order:
 **Aim 2 (active)** → Aim 3 → Preliminary Work → Aim 1 → Significance/Innovation →

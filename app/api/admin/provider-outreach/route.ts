@@ -809,17 +809,23 @@ async function getNotContactedProviders(
   }
 
   // Collect hidden provider IDs (these should be excluded regardless of stage)
+  // Use truthy check (not strict ===) to handle any DB type variations
   const hiddenProviderIds = new Set(
     (trackedInState || [])
-      .filter((t) => t.admin_hidden === true)
+      .filter((t) => t.admin_hidden)
       .map((t) => t.provider_id)
   );
 
-  // Log tracking records with non-not_contacted stages (these should be excluded)
-  // Exclude hidden providers from this set since they're already excluded
+  // Collect providers with non-not_contacted stages (these should also be excluded from Ready)
+  // These are providers actively being worked in other stages
   const nonNotContactedTracking = (trackedInState || []).filter(
-    (t) => t.stage !== "not_contacted" && t.admin_hidden !== true
+    (t) => t.stage !== "not_contacted" && !t.admin_hidden
   );
+
+  // Log exclusion counts for debugging
+  if (hiddenProviderIds.size > 0 || nonNotContactedTracking.length > 0) {
+    console.log(`[getNotContactedProviders] Exclusions for state=${state}: hidden=${hiddenProviderIds.size}, other_stages=${nonNotContactedTracking.length}`);
+  }
   if (nonNotContactedTracking.length > 0) {
     console.log(`[getNotContactedProviders] Found ${nonNotContactedTracking.length} tracked providers with non-not_contacted stage for state=${state}:`,
       nonNotContactedTracking.slice(0, 10).map(t => ({ provider_id: t.provider_id, stage: t.stage, tracking_state: t.state }))
@@ -834,7 +840,7 @@ async function getNotContactedProviders(
   // Exclude hidden providers - they shouldn't appear in the list at all
   const notContactedMap = new Map(
     (trackedInState || [])
-      .filter((t) => t.stage === "not_contacted" && t.admin_hidden !== true)
+      .filter((t) => t.stage === "not_contacted" && !t.admin_hidden)
       .map((t) => [t.provider_id, t])
   );
 
@@ -1425,9 +1431,10 @@ async function searchProviders(
     .in("provider_id", providerIds);
 
   // Collect hidden provider IDs to exclude from results
+  // Use truthy check to handle any DB type variations
   const hiddenProviderIds = new Set(
     (trackingRows || [])
-      .filter((t) => t.admin_hidden === true)
+      .filter((t) => t.admin_hidden)
       .map((t) => t.provider_id)
   );
 
@@ -1705,7 +1712,8 @@ async function getStageCounts(
   if (trackingRows) {
     for (const row of trackingRows) {
       const stage = row.stage as string;
-      const isHidden = row.admin_hidden === true;
+      // Use truthy check to handle any DB type variations
+      const isHidden = !!row.admin_hidden;
 
       // Track hidden providers (regardless of stage) for exclusion from not_contacted counts
       if (isHidden) {

@@ -36,13 +36,21 @@ export function pendingInquirySms(p: { fromName: string; url: string }): string 
 /** Stable labels written to email_log.metadata.copy_version. They let us
  * compare this full-cohort rollout with later copy without inferring versions
  * from message text. */
-export const BENEFITS_RESULTS_SMS_COPY_VERSION = "question_led_v1_2026_08_19";
+export const BENEFITS_RESULTS_SMS_COPY_VERSION = "continuity_question_v1_2026_08_19";
 export const BENEFITS_RESULTS_ZERO_MATCH_SMS_COPY_VERSION = "zero_match_v1";
+export const BENEFITS_HELP_REQUEST_SMS_COPY_VERSION = "help_request_v1_2026_08_19";
 
 /** Benefits results text — match/no-match branch lives here, next to the copy. */
-export function benefitsResultsSms(p: { matchCount: number; url: string }): string {
+export function benefitsResultsSms(p: {
+  matchCount: number;
+  url: string;
+  context?: "results" | "help_requested";
+}): string {
+  if (p.context === "help_requested") {
+    return `Olera care team: We got your request. What should we help with first? Plan: ${p.url} We'll reply within 48h. STOP to opt out.`;
+  }
   return p.matchCount > 0
-    ? `Olera care team: Need help choosing, qualifying, or applying? Reply. Plan: ${p.url} We'll reply within 48h. STOP to opt out.`
+    ? `Olera care team: We got your answers. Any questions about next steps? Plan: ${p.url} We'll reply within 48h. STOP to opt out.`
     : `Olera: We created your private Olera plan. No strong match yet; we'll keep checking. See it here: ${p.url} Reply STOP to opt out.`;
 }
 

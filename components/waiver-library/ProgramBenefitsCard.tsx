@@ -730,8 +730,8 @@ export default function ProgramBenefitsCard({
             {/* Set the same care-team identity, conditional 48h reply promise,
                 and reply affordance that the Day-0 text carries. */}
             <p className="text-[13px] text-gray-500 mb-4">
-              We&apos;ll text your plan now. Reply if you want help choosing, qualifying, or
-              applying; Olera&apos;s care team replies within 48 hours.
+              We&apos;ll text your plan now. You can reply with any questions about next
+              steps; Olera&apos;s care team replies within 48 hours.
             </p>
             <input
               type="tel"

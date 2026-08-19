@@ -2,24 +2,30 @@
 
 ## Decision
 
-Roll out one question-led hybrid message to the full eligible cohort. Do not run an A/B test yet. Keep the private-plan link available for families who prefer to self-serve, but make a bounded human question the first action.
+Roll out one continuity-led hybrid message to the full eligible results cohort. Do not run an A/B test yet. Keep the private-plan link available for families who prefer to self-serve, acknowledge the answers they just submitted, and invite questions without assuming they are stuck.
 
 Copy version written to `email_log.metadata.copy_version`:
 
-`question_led_v1_2026_08_19`
+`continuity_question_v1_2026_08_19`
 
 Approved positive-match message:
 
-> Olera care team: Need help choosing, qualifying, or applying? Reply. Plan: {link} We'll reply within 48h. STOP to opt out.
+> Olera care team: We got your answers. Any questions about next steps? Plan: {link} We'll reply within 48h. STOP to opt out.
 
-With the production-length tagged URL used during review, the message is 157 GSM-7 characters and one SMS segment.
+With the production-length tagged URL used during review, the message is 158 GSM-7 characters and one SMS segment.
 
 The zero-match message is unchanged and records `zero_match_v1`.
+
+The later `wants_help` phone-capture path records `help_request_v1_2026_08_19`
+and acknowledges the action the family just took instead of asking whether they want help:
+
+> Olera care team: We got your request. What should we help with first? Plan: {link} We'll reply within 48h. STOP to opt out.
 
 ## Why this version
 
 - Leads with Olera's care team rather than introducing a new individual identity later.
-- Offers three bounded places where a family may need help instead of asking an open-ended “Where are you stuck?” question.
+- Acknowledges the action the family just completed, preserving continuity from the benefits questions into the text conversation.
+- Invites questions without presuming that the family is confused, blocked, or already needs help.
 - Keeps the plan link in the first message. The baseline shows a meaningful silent self-service cohort, so access is not gated on replying.
 - Makes the operational promise explicit and conditional: when a family replies, Olera's care team replies within 48 hours.
 - Avoids promising a second proactive message to silent self-serve families or people who add a phone after earlier navigator guidance.

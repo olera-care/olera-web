@@ -29,6 +29,7 @@ import {
 import { findPipelineDraftFor, getStateAbbrev, getStateSlug } from "@/lib/program-data";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
 import {
+  BENEFITS_HELP_REQUEST_SMS_COPY_VERSION,
   BENEFITS_RESULTS_SMS_COPY_VERSION,
   BENEFITS_RESULTS_ZERO_MATCH_SMS_COPY_VERSION,
   benefitsResultsSms,
@@ -669,11 +670,20 @@ export async function captureFamilyPhoneAndTextResults(
     return { stored: true, smsSent: false };
   }
 
+  const smsContext = opts.source === "benefits_outcome_help" ? "help_requested" : "results";
+  const copyVersion =
+    smsContext === "help_requested"
+      ? BENEFITS_HELP_REQUEST_SMS_COPY_VERSION
+      : (tokenRow.match_count || 0) > 0
+        ? BENEFITS_RESULTS_SMS_COPY_VERSION
+        : BENEFITS_RESULTS_ZERO_MATCH_SMS_COPY_VERSION;
+
   const result = await sendSMS({
     to: normalized,
     body: benefitsResultsSms({
       matchCount: tokenRow.match_count || 0,
       url: withSmsSource(`${getSiteUrl()}/m/${tokenRow.token}`, "benefits_results_sms"),
+      context: smsContext,
     }),
     // Ledger entry (channel='sms') so the send shows on /admin/family-comms.
     // benefits_results_sms is transactional — deliberately NOT a governed type.
@@ -681,10 +691,7 @@ export async function captureFamilyPhoneAndTextResults(
     recipientType: "family",
     recipientLogProfileId: opts.profileId,
     metadata: {
-      copy_version:
-        (tokenRow.match_count || 0) > 0
-          ? BENEFITS_RESULTS_SMS_COPY_VERSION
-          : BENEFITS_RESULTS_ZERO_MATCH_SMS_COPY_VERSION,
+      copy_version: copyVersion,
       entry_source: opts.source,
       match_count: tokenRow.match_count || 0,
     },

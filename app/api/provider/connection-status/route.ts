@@ -34,10 +34,10 @@ export async function POST(request: NextRequest) {
     const db = getServiceClient();
     const now = new Date().toISOString();
 
-    // Fetch the connection to get existing metadata and provider info
+    // Fetch the connection to get existing metadata, type, and profile IDs
     const { data: connection, error: fetchError } = await db
       .from("connections")
-      .select("id, to_profile_id, metadata")
+      .select("id, type, from_profile_id, to_profile_id, metadata")
       .eq("id", connectionId)
       .single();
 
@@ -45,6 +45,13 @@ export async function POST(request: NextRequest) {
       console.error("[api/provider/connection-status] Connection not found:", fetchError);
       return NextResponse.json({ ok: false, error: "Connection not found" }, { status: 404 });
     }
+
+    // Determine provider based on connection type:
+    // - inquiry: from=family, to=provider
+    // - request: from=provider, to=family
+    const providerId = connection.type === "inquiry"
+      ? connection.to_profile_id
+      : connection.from_profile_id;
 
     const existingMeta = (connection.metadata as Record<string, unknown>) ?? {};
 
@@ -91,7 +98,7 @@ export async function POST(request: NextRequest) {
 
     // Log provider_activity event
     const { error: activityError } = await db.from("provider_activity").insert({
-      provider_id: connection.to_profile_id,
+      provider_id: providerId,
       event_type: "provider_connection_status_reported",
       metadata: {
         connection_id: connectionId,

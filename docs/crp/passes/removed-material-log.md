@@ -334,3 +334,44 @@ than around a list of student attributes. What came out:
 "a second pilot is now scaling the model" is stronger than Preliminary Work's "prepared
 for a fall pilot in Indiana"; and the one million enrolled figure is derived from the
 annual degree flow rather than published enrollment, as recorded in `references.yaml`.
+
+## Key Innovation 2 rebuild (2026-08-19)
+
+TJ's original Innovation 2 was one 283-word paragraph titled "Longitudinal AI navigation
+that does the work and stays with the family." It is replaced by two paragraphs under
+"Eldercare-specific AI agents that make hands-on navigation scalable and convert family
+demand into established care," with Figure 4 wrapped top-right.
+
+Removed, with future homes:
+
+- **"AI agents grounded in Olera's proprietary elder-care database, automation for forms,
+  documents, and scheduling, structured communication over text, email, and phone."**
+  A feature list. The capabilities belong in the Approach tasks that build them, where
+  they can carry milestones. Innovation states the architecture instead.
+- **"It opens with one question, builds its picture at the pace the family can carry."**
+  Good product writing, but it describes interaction design rather than innovation.
+  **Future home: Preliminary Work or the CP product section.**
+- **"Re-planning as conditions progress, savings draw down, and benefits come up for
+  renewal."** True of the design and worth keeping somewhere; it is longitudinal
+  behavior, not the innovation claim. **Future home: Aim 2 tasks.**
+- **"Families already take their elder-care questions to AI assistants; through an open
+  interoperability standard the CareNavigator can meet them there."** Removed because
+  the interoperability work is not built and the sentence reads as a distribution
+  claim we cannot evidence. **Reinstate only with a named standard and a task that
+  builds it.**
+- **`fig-llm-architecture.svg`** (committed 27d7fcc, never referenced) is retired as a
+  candidate for Figure 4. It reproduced the Phase IIB architecture and attached new
+  concepts to it; Figure 4 states the current architecture instead. File left in place
+  as a record of the attempt.
+
+Rejected phrasing, now a house-style rule: **"National tools reach far more families and
+stop earlier."** Recorded in README §6 as the canonical negative example of a compressed
+contrastive construction.
+
+**Open obligations from this pass:** the acquisition claim in the first sentence
+("families reach Olera by searching") is supported by the ~15,500 monthly organic
+visitors but we do not yet have the channel breakdown showing how much of that arrives
+through benefits and affordability search specifically. Get it from analytics before
+anyone strengthens the sentence. We also have no measured cost per acquired family and
+no measured conversion rate from benefits-finder start to provider contact; Aim 1 tests
+the first and Aim 2 the second, and neither may be presented as already shown.

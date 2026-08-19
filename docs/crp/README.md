@@ -74,6 +74,13 @@ written; rendering rules govern the docx/PDF surfaces.
   readable paragraphs.
 - **No em dashes, ever.** Use commas, colons, semicolons, parentheses, or separate
   sentences. En dashes only in numeric ranges ("Years 4–5").
+- **No compressed contrastive constructions** (ratified 2026-08-19, Logan). Negative
+  example, rejected from Key Innovation 2: *"National tools reach far more families
+  and stop earlier."* It packs several ideas into a clever-sounding contrast, but it
+  is vague and forces the reviewer to work out what we mean. Prefer a direct
+  statement that names the actor, the action, and the consequence: "BenefitsCheckUp
+  returns a list of programs a household may qualify for." If a sentence gets its
+  force from a rhythm or a parallel rather than from what it says, rewrite it.
 - Captions (figures and tables alike, ratified 2026-08-19): **one line maximum** —
   the shortest clear description of what the figure shows, in terminology that
   matches the surrounding prose and its in-text reference, so the reader never

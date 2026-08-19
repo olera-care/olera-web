@@ -6,13 +6,16 @@ import { ArrowLeft } from "lucide-react";
 import AdminWorkspace from "@/components/admin/AdminWorkspace";
 import AnswerPacketPanel from "@/components/admin/AnswerPacketPanel";
 import { packetNeedsAttention, type AnswerPacket } from "@/lib/family-answers/types";
+import type { SmsThreadState } from "@/lib/sms/inbox-threads";
 
 /**
- * SMS inbox — every inbound text, and the ability to answer it.
+ * SMS conversation directory — every inbound text plus logged family texts
+ * Olera sent before a reply, and the ability to answer them.
  *
  * Two panes: threads on the left, conversation + reply box on the right.
- * The thread body comes from Twilio (complete, both directions); our own
- * sms_inbound rows supply identity and the handled/unhandled state.
+ * Twilio supplies the complete thread when available; sms_inbound and the
+ * outbound email_log ledger supply identity, silent-recipient visibility, and
+ * a durable bidirectional fallback.
  *
  * Replies autosave as drafts (sms_drafts, one row per thread). The reply box
  * used to be pure component state, wiped on every thread switch and lost on
@@ -34,13 +37,54 @@ interface Thread {
   last_body: string;
   last_keyword: string | null;
   last_at: string;
+  last_direction: "in" | "out";
+  last_email_type: string | null;
+  last_outbound_status: string | null;
+  last_outbound_delivered_at: string | null;
+  last_outbound_clicked_at: string | null;
   unhandled: number;
   /** Oldest qualifying family reply still waiting for a human. */
   oldest_promised_reply_at: string | null;
   total: number;
+  inbound_count: number;
+  outbound_count: number;
   suppressed: boolean;
   has_draft: boolean;
+  state: SmsThreadState;
 }
+
+type InboxMode = "needs_reply" | "awaiting_family" | "all";
+
+const THREAD_STATE_PRESENTATION: Record<
+  SmsThreadState,
+  { label: string; className: string; title?: string }
+> = {
+  needs_reply: {
+    label: "needs Olera reply",
+    className: "bg-emerald-50 text-emerald-700",
+  },
+  awaiting_family: {
+    label: "awaiting family",
+    className: "bg-blue-50 text-blue-700",
+  },
+  self_served: {
+    label: "clicked plan",
+    className: "bg-teal-50 text-teal-700",
+    title: "The latest outbound text's plan link was opened",
+  },
+  opted_out: {
+    label: "opted out",
+    className: "bg-amber-50 text-amber-700",
+  },
+  delivery_failed: {
+    label: "delivery failed",
+    className: "bg-red-50 text-red-700",
+  },
+  handled: {
+    label: "handled",
+    className: "bg-gray-100 text-gray-500",
+  },
+};
 
 interface ThreadMessage {
   sid: string;
@@ -128,7 +172,7 @@ export default function AdminSmsInboxPage() {
   const [threads, setThreads] = useState<Thread[] | null>(null);
   const [truncated, setTruncated] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
-  const [unhandledOnly, setUnhandledOnly] = useState(true);
+  const [inboxMode, setInboxMode] = useState<InboxMode>("needs_reply");
   const [selected, setSelected] = useState<string | null>(null);
   const [detail, setDetail] = useState<ThreadDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
@@ -357,16 +401,27 @@ export default function AdminSmsInboxPage() {
     setDetailLoading(false);
   }, [cancelPendingDraftSave, loadThreads, reply, saveDraft, selected]);
 
-  // Desktop inboxes are work surfaces, not landing pages. Open the first
-  // actionable row so the flexible pane is useful immediately; mobile keeps
-  // the familiar list-first navigation.
+  // Desktop inboxes are work surfaces, not landing pages. Keep the detail pane
+  // aligned with the active filter: retaining a Needs-reply conversation after
+  // switching to Awaiting makes the tab lie about what is on screen. Mobile
+  // keeps the familiar list-first navigation.
   useEffect(() => {
-    if (selected || !threads?.length || window.innerWidth < 1024) return;
-    const candidate = unhandledOnly
-      ? threads.find((thread) => thread.unhandled > 0 || thread.has_draft)
-      : threads[0];
-    if (candidate) openThread(candidate.phone_last10);
-  }, [openThread, selected, threads, unhandledOnly]);
+    if (!threads?.length || window.innerWidth < 1024) return;
+
+    const belongsToMode = (thread: Thread) =>
+      inboxMode === "all" || thread.state === inboxMode;
+    const activeThread = selected
+      ? threads.find((thread) => thread.phone_last10 === selected)
+      : null;
+    if (activeThread && belongsToMode(activeThread)) return;
+
+    const candidate = threads.find(belongsToMode);
+    if (candidate) {
+      openThread(candidate.phone_last10);
+    } else if (selected) {
+      closeThread();
+    }
+  }, [closeThread, inboxMode, openThread, selected, threads]);
 
   async function discardDraft() {
     if (!selected) return;
@@ -490,19 +545,34 @@ export default function AdminSmsInboxPage() {
     Boolean(t.oldest_promised_reply_at) &&
     Date.now() - new Date(t.oldest_promised_reply_at as string).getTime() > responseDeadlineMs;
   const visible = (threads ?? [])
-    .filter((t) => (unhandledOnly ? t.unhandled > 0 || t.has_draft : true))
+    .filter((thread) =>
+      inboxMode === "all"
+        ? true
+        : inboxMode === "needs_reply"
+          ? thread.state === "needs_reply"
+          : thread.state === "awaiting_family",
+    )
     .sort((a, b) => {
       // A promised response that is already late must not sit below a newer
       // conversation. Within each group, preserve newest-thread ordering.
-      const overdueDelta = Number(isResponseOverdue(b)) - Number(isResponseOverdue(a));
+      const overdueDelta =
+        inboxMode === "needs_reply"
+          ? Number(isResponseOverdue(b)) - Number(isResponseOverdue(a))
+          : 0;
       return overdueDelta || new Date(b.last_at).getTime() - new Date(a.last_at).getTime();
     });
-  const totalUnhandled = (threads ?? []).reduce((s, t) => s + t.unhandled, 0);
+  const needsReplyCount = (threads ?? []).filter((thread) => thread.state === "needs_reply").length;
+  const awaitingFamilyCount = (threads ?? []).filter(
+    (thread) => thread.state === "awaiting_family",
+  ).length;
   const overdueThreadCount = (threads ?? []).filter(isResponseOverdue).length;
   // The packet the rail will actually render. Derived once so the header can
   // never claim "Drafted answer" over a panel that was suppressed away.
   const railPacket =
     detail?.answerPacket && !detail.suppressed ? detail.answerPacket.packet : null;
+  const selectedThread = (threads ?? []).find(
+    (thread) => thread.phone_last10 === selected,
+  );
   // GSM-7 single segment is 160 chars; longer bodies split and bill per segment.
   const segments = reply.length === 0 ? 0 : Math.ceil(reply.length / 160);
   const recordHref = detail?.profile_id
@@ -522,32 +592,36 @@ export default function AdminSmsInboxPage() {
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h1 className="text-xl font-semibold tracking-tight text-gray-950">Messages</h1>
-                <p className="mt-1 text-xs leading-5 text-gray-500">Texts sent to Olera&rsquo;s number.</p>
+                <p className="mt-1 text-xs leading-5 text-gray-500">Texts to and from Olera.</p>
               </div>
-              <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${totalUnhandled > 0 ? "bg-amber-500" : "bg-emerald-500"}`} aria-hidden="true" />
+              <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${needsReplyCount > 0 ? "bg-amber-500" : "bg-emerald-500"}`} aria-hidden="true" />
             </div>
             <div className="mt-4 flex items-center gap-2">
-            {(["unhandled", "all"] as const).map((mode) => {
-              const on = (mode === "unhandled") === unhandledOnly;
-              return (
-                <button
-                  key={mode}
-                  onClick={() => setUnhandledOnly(mode === "unhandled")}
-                  className={[
-                    "rounded-full px-3 py-1.5 text-xs transition-colors",
-                    on ? "bg-gray-900 font-medium text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900",
-                  ].join(" ")}
-                >
-                  {mode === "unhandled" ? "Needs reply" : "All"}
-                </button>
-              );
-            })}
+              {(["needs_reply", "awaiting_family", "all"] as const).map((mode) => {
+                const on = mode === inboxMode;
+                return (
+                  <button
+                    key={mode}
+                    onClick={() => setInboxMode(mode)}
+                    className={[
+                      "rounded-full px-3 py-1.5 text-xs transition-colors",
+                      on ? "bg-gray-900 font-medium text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+                    ].join(" ")}
+                  >
+                    {mode === "needs_reply" ? "Needs reply" : mode === "awaiting_family" ? "Awaiting" : "All"}
+                  </button>
+                );
+              })}
               <span className="ml-auto text-[11px] text-gray-400">
-                {overdueThreadCount > 0
-                  ? `${overdueThreadCount} past 48h`
-                  : totalUnhandled > 0
-                    ? `${totalUnhandled} awaiting reply`
-                    : "All caught up"}
+                {inboxMode === "needs_reply"
+                  ? overdueThreadCount > 0
+                    ? `${overdueThreadCount} past 48h`
+                    : needsReplyCount > 0
+                      ? `${needsReplyCount} need reply`
+                      : "All caught up"
+                  : inboxMode === "awaiting_family"
+                    ? `${awaitingFamilyCount} waiting`
+                    : `${threads?.length ?? 0} conversations`}
               </span>
             </div>
           </header>
@@ -570,7 +644,11 @@ export default function AdminSmsInboxPage() {
           )}
           {threads !== null && visible.length === 0 && !listError && (
             <p className="px-3 py-6 text-[13px] text-gray-500">
-              {unhandledOnly ? "Nothing waiting on you." : "No messages yet."}
+              {inboxMode === "needs_reply"
+                ? "Nothing waiting on you."
+                : inboxMode === "awaiting_family"
+                  ? "No conversations are awaiting a family response."
+                  : "No messages yet."}
             </p>
           )}
 
@@ -598,23 +676,25 @@ export default function AdminSmsInboxPage() {
                     </span>
                     <span className="text-[11px] text-gray-400 shrink-0">{relative(t.last_at)}</span>
                   </div>
-                  <p className="text-[12px] text-gray-500 truncate mt-0.5">{t.last_body}</p>
+                  <p className="text-[12px] text-gray-500 truncate mt-0.5">
+                    {t.last_direction === "out" && (
+                      <span className="font-medium text-gray-400">Sent: </span>
+                    )}
+                    {t.last_body}
+                  </p>
                   <div className="flex items-center gap-1.5 mt-1">
                     {t.profile_type && (
                       <span className="text-[10px] uppercase tracking-wide text-gray-500 bg-gray-100 rounded px-1 py-px">
                         {t.profile_type}
                       </span>
                     )}
-                    {t.suppressed && (
-                      <span className="text-[10px] uppercase tracking-wide text-amber-700 bg-amber-50 rounded px-1 py-px">
-                        opted out
-                      </span>
-                    )}
-                    {t.unhandled > 0 && (
-                      <span className="text-[10px] text-emerald-700 bg-emerald-50 rounded px-1 py-px">
-                        {t.unhandled} new
-                      </span>
-                    )}
+                    <span
+                      className={`rounded px-1 py-px text-[10px] ${THREAD_STATE_PRESENTATION[t.state].className}`}
+                      title={THREAD_STATE_PRESENTATION[t.state].title}
+                    >
+                      {THREAD_STATE_PRESENTATION[t.state].label}
+                      {t.state === "needs_reply" && t.unhandled > 1 ? ` · ${t.unhandled} new` : ""}
+                    </span>
                     {isResponseOverdue(t) && (
                       <span
                         className="rounded bg-red-50 px-1 py-px text-[10px] font-medium text-red-700"
@@ -693,6 +773,14 @@ export default function AdminSmsInboxPage() {
                     {formatPhone(detail.phone_last10)}
                     {detail.profile_type ? ` · ${detail.profile_type}` : " · not in our records"}
                   </p>
+                  {selectedThread && (
+                    <span
+                      className={`mt-1 inline-block rounded px-1.5 py-0.5 text-[10px] ${THREAD_STATE_PRESENTATION[selectedThread.state].className}`}
+                      title={THREAD_STATE_PRESENTATION[selectedThread.state].title}
+                    >
+                      {THREAD_STATE_PRESENTATION[selectedThread.state].label}
+                    </span>
+                  )}
                   </div>
                 </div>
                 {detail.unhandled > 0 && (

@@ -127,7 +127,7 @@ interface NavigatorDetail {
   status?: "pending" | "sent" | "dismissed";
   subject?: string;
   body?: string;
-  /** TJ-voiced companion text; {link} placeholder is replaced at send. */
+  /** Care-team companion text; {link} placeholder is replaced at send. */
   sms?: string | null;
   /** Saved in-drawer edits — preferred over the AI originals everywhere. */
   edited_subject?: string;

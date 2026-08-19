@@ -7,6 +7,10 @@
 
 ## Current Focus
 
+### 2026-08-19 — Continuity-led benefits first SMS (`codex/question-led-benefits-sms`)
+
+Replaced the positive-match opener with the approved one-segment message: **“Olera care team: We got your answers. Any questions about next steps?”** while preserving the private-plan link, conditional 48-hour reply promise, and STOP language. Pre-test caught that the shared renderer also serves the later `wants_help` phone-capture path; that path now records its own `help_request_v1_2026_08_19` version and says **“We got your request. What should we help with first?”** instead of forgetting the action the family just took. Both production-length variants are 158 GSM-7 characters. Updated the two phone-capture surfaces, source-aware rendering/ledger metadata, regression check, and rollout record; zero-match copy is unchanged. **Files:** `lib/sms/templates.ts`, `lib/family-comms/benefits-cascade.server.ts`, `components/waiver-library/ProgramBenefitsCard.tsx`, `app/benefits-outcome/page.tsx`, `scripts/check-benefits-results-sms.ts`, `docs/benefits/first-sms-rollout-2026-08-19.md`. **Validation:** TypeScript, `check:benefits-sms`, 36-cron registry, and diff checks pass. **PR:** #1642 → `staging`. **Next:** preview both phone-capture contexts; enable the VPN before any real Twilio test or account access.
+
 ### 2026-08-19 — Family Answers shipped to production, then the review panel was rebuilt because nobody could read it
 
 **Phases 2-4 promoted to main** (PR #1636, `ce629edef`). Production deploy green. The gap flagged at the gate was that the cron routes had never executed in a deployed environment, since Vercel schedules crons on production only and staging cannot exercise them. So it was watched rather than assumed: fired 02:15:20 UTC, claimed the waiting job, packet written by 02:18, summary `{considered:1, drafted:1, failed:0}`.

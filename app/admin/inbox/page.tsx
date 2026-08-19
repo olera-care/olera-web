@@ -35,6 +35,8 @@ interface Thread {
   last_keyword: string | null;
   last_at: string;
   unhandled: number;
+  /** Oldest qualifying family reply still waiting for a human. */
+  oldest_promised_reply_at: string | null;
   total: number;
   suppressed: boolean;
   has_draft: boolean;
@@ -481,10 +483,22 @@ export default function AdminSmsInboxPage() {
   // otherwise a draft written on an already-handled thread is invisible in the
   // default view, which is most of the inbox. The `draft` chip says why the row
   // is here when `N new` doesn't.
-  const visible = (threads ?? []).filter((t) =>
-    unhandledOnly ? t.unhandled > 0 || t.has_draft : true,
-  );
+  const responseDeadlineMs = 48 * 60 * 60 * 1000;
+  const isResponseOverdue = (t: Thread) =>
+    t.unhandled > 0 &&
+    !t.suppressed &&
+    Boolean(t.oldest_promised_reply_at) &&
+    Date.now() - new Date(t.oldest_promised_reply_at as string).getTime() > responseDeadlineMs;
+  const visible = (threads ?? [])
+    .filter((t) => (unhandledOnly ? t.unhandled > 0 || t.has_draft : true))
+    .sort((a, b) => {
+      // A promised response that is already late must not sit below a newer
+      // conversation. Within each group, preserve newest-thread ordering.
+      const overdueDelta = Number(isResponseOverdue(b)) - Number(isResponseOverdue(a));
+      return overdueDelta || new Date(b.last_at).getTime() - new Date(a.last_at).getTime();
+    });
   const totalUnhandled = (threads ?? []).reduce((s, t) => s + t.unhandled, 0);
+  const overdueThreadCount = (threads ?? []).filter(isResponseOverdue).length;
   // The packet the rail will actually render. Derived once so the header can
   // never claim "Drafted answer" over a panel that was suppressed away.
   const railPacket =
@@ -529,7 +543,11 @@ export default function AdminSmsInboxPage() {
               );
             })}
               <span className="ml-auto text-[11px] text-gray-400">
-                {totalUnhandled > 0 ? `${totalUnhandled} awaiting reply` : "All caught up"}
+                {overdueThreadCount > 0
+                  ? `${overdueThreadCount} past 48h`
+                  : totalUnhandled > 0
+                    ? `${totalUnhandled} awaiting reply`
+                    : "All caught up"}
               </span>
             </div>
           </header>
@@ -595,6 +613,14 @@ export default function AdminSmsInboxPage() {
                     {t.unhandled > 0 && (
                       <span className="text-[10px] text-emerald-700 bg-emerald-50 rounded px-1 py-px">
                         {t.unhandled} new
+                      </span>
+                    )}
+                    {isResponseOverdue(t) && (
+                      <span
+                        className="rounded bg-red-50 px-1 py-px text-[10px] font-medium text-red-700"
+                        title={`Olera promised a reply within 48 hours; oldest unanswered family message arrived ${formatEt(t.oldest_promised_reply_at)}`}
+                      >
+                        48h overdue
                       </span>
                     )}
                     {t.has_draft && (

@@ -826,25 +826,6 @@ async function getNotContactedProviders(
     nonNotContactedTracking.map((t) => t.provider_id)
   );
 
-  // DIAGNOSTIC: Log tracking data for debugging
-  console.log(`[getNotContactedProviders] state=${state}, trackedInState=${(trackedInState || []).length}, hidden=${hiddenProviderIds.size}, other_stages=${trackedProviderIds.size}`);
-
-  // DIAGNOSTIC: Check specific known problematic provider_ids
-  const debugIds = ['T31UQUQ', 'tyler-tx-0021'];
-  const debugTracking = (trackedInState || []).filter(t => debugIds.includes(t.provider_id));
-  if (debugTracking.length > 0) {
-    console.log(`[getNotContactedProviders] DEBUG tracking for known IDs:`,
-      debugTracking.map(t => ({
-        provider_id: t.provider_id,
-        stage: t.stage,
-        admin_hidden: t.admin_hidden,
-        type: typeof t.admin_hidden,
-        in_hidden: hiddenProviderIds.has(t.provider_id),
-        in_tracked: trackedProviderIds.has(t.provider_id)
-      }))
-    );
-  }
-
   // Build map for not_contacted tracking records (for tracking_id)
   // Exclude hidden providers - they shouldn't appear in the list at all
   const notContactedMap = new Map(
@@ -887,21 +868,6 @@ async function getNotContactedProviders(
 
   if (!providers || providers.length === 0) {
     return [];
-  }
-
-  // DIAGNOSTIC: Check if debug providers exist in olera-providers
-  const debugProviders = (providers as ProviderRow[]).filter(p => debugIds.includes(p.provider_id));
-  if (debugProviders.length > 0) {
-    console.log(`[getNotContactedProviders] DEBUG olera-providers found:`,
-      debugProviders.map(p => ({
-        provider_id: p.provider_id,
-        name: p.provider_name,
-        would_pass_filter: !claimedProviderIds.has(p.provider_id) && !trackedProviderIds.has(p.provider_id) && !hiddenProviderIds.has(p.provider_id),
-        claimed: claimedProviderIds.has(p.provider_id),
-        tracked: trackedProviderIds.has(p.provider_id),
-        hidden: hiddenProviderIds.has(p.provider_id)
-      }))
-    );
   }
 
   // Step 5: Filter in JavaScript (no large IN clause needed)

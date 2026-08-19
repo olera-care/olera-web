@@ -5237,8 +5237,11 @@ function followupFooterBlock(opts: FollowupEmailOpts): string {
  * Build the CTA section for follow-up emails.
  *
  * For single leads with verified providers (connectionStatusUrls provided):
- * - Primary "Message [Name]" button
- * - Text links below: "Already connected" · "Not a good fit" · "No capacity"
+ * 4 stacked buttons:
+ * 1. Message [Name] (primary)
+ * 2. Already connected (secondary)
+ * 3. Not a good fit (secondary)
+ * 4. No capacity (secondary)
  *
  * For multiple leads or unverified providers:
  * - Two buttons: "Message [families/Name]" + "Decline [leads/lead]"
@@ -5249,24 +5252,44 @@ function buildFollowupCtaSection(opts: {
   declineButtonText: string;
   connectionStatusUrls?: FollowupEmailOpts["connectionStatusUrls"];
 }): string {
-  // If we have self-report URLs, show consolidated layout
+  // If we have self-report URLs, show 4 stacked buttons
   if (opts.connectionStatusUrls) {
     const urls = opts.connectionStatusUrls;
     return `
-      <div style="margin:0 0 24px;">
-        ${button(opts.messageButtonText, opts.viewUrl)}
-      </div>
-      <p style="font-size:13px;color:#6b7280;margin:0 0 24px;line-height:1.6;">
-        <a href="${urls.connected}" style="color:#6b7280;text-decoration:underline;">Already connected</a>
-        &nbsp;·&nbsp;
-        <a href="${urls.notAFit}" style="color:#6b7280;text-decoration:underline;">Not a good fit</a>
-        &nbsp;·&nbsp;
-        <a href="${urls.noCapacity}" style="color:#6b7280;text-decoration:underline;">No capacity</a>
-      </p>
+      <table cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 24px;">
+        <tr>
+          <td style="padding-bottom:10px;">
+            <a href="${opts.viewUrl}" style="display:block;text-align:center;padding:14px 24px;background:${BRAND_COLOR};color:#fff;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;">
+              ${opts.messageButtonText}
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-bottom:10px;">
+            <a href="${urls.connected}" style="display:block;text-align:center;padding:12px 24px;background:#fff;border:1px solid #d1d5db;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
+              Already connected
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-bottom:10px;">
+            <a href="${urls.notAFit}" style="display:block;text-align:center;padding:12px 24px;background:#fff;border:1px solid #d1d5db;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
+              Not a good fit
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <a href="${urls.noCapacity}" style="display:block;text-align:center;padding:12px 24px;background:#fff;border:1px solid #d1d5db;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
+              No capacity
+            </a>
+          </td>
+        </tr>
+      </table>
     `;
   }
 
-  // Default: two-button layout
+  // Default: two-button layout (multiple leads or unverified)
   return `
     <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
       <tr>
@@ -6431,16 +6454,39 @@ export function staleConversationProviderEmail(opts: {
   const safeFamilyName = firstName(opts.familyName, "a family");
   const daysText = opts.daysSinceLastMessage === 1 ? "1 day" : `${opts.daysSinceLastMessage} days`;
 
-  // Self-report text links when URLs provided (verified providers only)
-  const selfReportLinks = opts.connectionStatusUrls
-    ? `<p style="font-size:13px;color:#6b7280;margin:0 0 24px;line-height:1.6;">
-        <a href="${opts.connectionStatusUrls.connected}" style="color:#6b7280;text-decoration:underline;">Already connected</a>
-        &nbsp;·&nbsp;
-        <a href="${opts.connectionStatusUrls.notAFit}" style="color:#6b7280;text-decoration:underline;">Not a good fit</a>
-        &nbsp;·&nbsp;
-        <a href="${opts.connectionStatusUrls.noCapacity}" style="color:#6b7280;text-decoration:underline;">No capacity</a>
-      </p>`
-    : "";
+  // Build button section - 4 stacked buttons if self-report URLs provided
+  const buttonSection = opts.connectionStatusUrls
+    ? `<table cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 24px;">
+        <tr>
+          <td style="padding-bottom:10px;">
+            <a href="${opts.viewUrl}" style="display:block;text-align:center;padding:14px 24px;background:${BRAND_COLOR};color:#fff;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;">
+              Send a follow-up
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-bottom:10px;">
+            <a href="${opts.connectionStatusUrls.connected}" style="display:block;text-align:center;padding:12px 24px;background:#fff;border:1px solid #d1d5db;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
+              Already connected
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-bottom:10px;">
+            <a href="${opts.connectionStatusUrls.notAFit}" style="display:block;text-align:center;padding:12px 24px;background:#fff;border:1px solid #d1d5db;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
+              Not a good fit
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <a href="${opts.connectionStatusUrls.noCapacity}" style="display:block;text-align:center;padding:12px 24px;background:#fff;border:1px solid #d1d5db;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
+              No capacity
+            </a>
+          </td>
+        </tr>
+      </table>`
+    : `<div style="margin:0 0 24px;">${button("Send a Follow-up", opts.viewUrl)}</div>`;
 
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Continue your conversation?</h1>
@@ -6450,8 +6496,7 @@ export function staleConversationProviderEmail(opts: {
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
       A quick follow-up can restart the conversation. Even a simple "Any updates on your care search?" shows you're still interested in helping.
     </p>
-    <div style="margin:0 0 24px;">${button("Send a Follow-up", opts.viewUrl)}</div>
-    ${selfReportLinks}
+    ${buttonSection}
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>

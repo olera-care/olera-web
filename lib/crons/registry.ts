@@ -264,7 +264,7 @@ export const CRON_REGISTRY: CronJob[] = [
   {
     id: "provider-outreach-send",
     name: "Provider outreach — scheduled sends",
-    description: "Every 15 minutes: scans for due provider outreach email tasks (Day 0/3/7/14 cadence) and sends them via Resend through oleracare.com.",
+    description: "Every 15 minutes: scans for due provider outreach email tasks (Day 0/3/5/7 cadence) and sends them via Resend through oleracare.com.",
     recipientCohort: "Unclaimed providers in the outreach sequence with a due email task.",
     audience: "Providers",
     fn: "outreach",

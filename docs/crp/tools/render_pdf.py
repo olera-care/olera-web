@@ -38,6 +38,13 @@ div.refs p.refnote { color: #555; font-style: italic; margin-bottom: 8pt; }
 div.fig { margin: 5pt 0 2pt 0; text-align: center; }
 div.fig img, div.fig svg { max-width: 100%; height: auto; }
 div.figblock { break-inside: avoid; page-break-inside: avoid; }
+table.matrix { width: 100%; border-collapse: collapse; font-size: 9pt; line-height: 1.15;
+               margin: 5pt 0 2pt 0; }
+table.matrix th, table.matrix td { border: 0.5pt solid #000; padding: 1.5pt 3pt;
+                                   text-align: left; vertical-align: top; }
+table.matrix th:first-child, table.matrix td.rowlab { width: 17%; }
+table.matrix th { font-weight: bold; }
+table.matrix td.rowlab { font-style: italic; }
 """
 
 def unescape_md(t):
@@ -74,8 +81,7 @@ ITALIC_LEADS_SENTENCE = [  # italic through the end of the first sentence
     'Data management and analysis.',
 ]
 IU_COLON_LEADS = [  # italic + underlined run-in leads
-    'Family-side navigation:', 'Referral marketplaces:', 'Caregiver marketplaces:',
-    'Existing alternatives for providers:', 'The CareNavigator Platform.',
+    'The CareNavigator Platform.',
 ]
 STANDALONE_IU = ['The CareNavigator Platform.', 'The Provider Growth Suite.']
 
@@ -139,6 +145,25 @@ def render_metric_item(t):
         return f'<p><b>{esc(m.group(1))}</b>{esc(m.group(2))}</p>'
     return f'<p>{esc(t)}</p>'
 
+def split_row(r):
+    return [c.strip() for c in r.strip().strip('|').split('|')]
+
+def render_table(rows):
+    """Markdown pipe table -> house-style 9pt table (first row is the header)."""
+    rows = [r for r in rows if not re.fullmatch(r'[|\s:-]+', r)]   # drop the --- rule
+    if not rows:
+        return ''
+    head, body_rows = split_row(rows[0]), [split_row(r) for r in rows[1:]]
+    th = ''.join(f'<th>{esc(c)}</th>' for c in head)
+    trs = ''
+    for r in body_rows:
+        tds = ''.join(
+            f'<td class="rowlab">{esc(c)}</td>' if j == 0 else f'<td>{esc(c)}</td>'
+            for j, c in enumerate(r))
+        trs += f'<tr>{tds}</tr>'
+    return (f'<table class="matrix"><thead><tr>{th}</tr></thead>'
+            f'<tbody>{trs}</tbody></table>')
+
 def render_caption(t):
     # t like "Figure 1: caption text" or "Table 1: ..."
     m = re.match(r'((?:Figure|Table) [A-Z0-9]+[:.])\s*(.*)', t, re.S)
@@ -181,6 +206,15 @@ def main():
                 note = f' <i>{esc(nm.group(1))}</i>'
                 main_txt = main_txt.replace(nm.group(1), '').strip()
             body.append(f'<p class="caption"><b>Figure A:</b> {esc(main_txt)}{note}</p>')
+            continue
+        # markdown table: consecutive lines starting with '|'
+        if line.startswith('|'):
+            rows = [line]
+            while i < len(lines) and lines[i].strip().startswith('|'):
+                rows.append(lines[i].strip())
+                i += 1
+            body.append(render_table(rows))
+            in_metrics = False
             continue
         # markdown caption line *Figure N: ...*
         m = re.match(r'\*((?:Figure|Table) .+)\*$', line)
@@ -248,7 +282,8 @@ def main():
     # keep each figure and its caption on the same page
     joined, i = [], 0
     while i < len(body):
-        if (body[i].startswith('<div class="fig">') and i + 1 < len(body)
+        if (body[i].startswith(('<div class="fig">', '<table class="matrix">'))
+                and i + 1 < len(body)
                 and body[i + 1].startswith('<p class="caption">')):
             joined.append(f'<div class="figblock">{body[i]}{body[i+1]}</div>')
             i += 2

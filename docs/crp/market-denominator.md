@@ -73,3 +73,18 @@ Benchmarking Report (team has access; the evidence ledger already uses its
 turnover figure) to replace the 1.1% single-study input and the word-of-mouth
 CAC median with fuller per-channel data, and trace `seniorLivingRev2023` to
 AHCA/NCAL primary data at the citation-integrity pass.
+
+## Referral placement fee, sized (added 2026-08-19, competitive pass)
+
+The competitive paragraph says referral marketplaces "charge roughly a month's
+rent per placement," which is what the Washington Post's 2024 investigation
+established (a fee equal to about one month's fees for a successful placement;
+`wapoAPFM2024`). The dollar magnitude follows from the CareScout/Genworth Cost
+of Care Survey 2024: assisted living ran a national median of $5,900 a month
+($70,800 a year), up 10% year over year
+(https://assets.carescout.com/55da049c1f/282102.pdf, verified 2026-08-19). That
+brackets the CP's $3,000-$6,000 per-placement range without needing the
+secondary industry sources the range currently rests on. No sentence in the
+Research Strategy states the dollar figure, so the CareScout entry was kept out
+of `references.yaml` rather than left as an uncited orphan; reinstate it if the
+CP pass decides to state the range in prose.

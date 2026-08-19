@@ -156,6 +156,74 @@ Commercialization Plan"):
   program decisions): dropped from the loop definition; the concept remains in
   KI-2/KI-3 and can be stated in Task 1.3B if needed.
 
+## Removed and relocated in the competitive-section rebuild (2026-08-19, Logan-approved)
+
+The four category blocks ("Family-side navigation:", "Referral marketplaces:",
+"Caregiver marketplaces:", "Existing alternatives for providers:") and the
+section's old opening sentence were replaced by the provider-first sequence:
+opening paragraph, Table 2, workforce-capacity paragraph, family-side signpost.
+Each fragment's disposition:
+
+**Merges into Key Innovation 2 at the Innovation pass** (KI-2 already carries the
+family-side competitive argument; these sharpen it):
+- Naming of the public tools: "NCOA's BenefitsCheckUp, the Eldercare Locator, and
+  Area Agencies on Aging produce a list of programs to apply to and agencies to
+  call, then leave the family to work through it alone, one application at a
+  time." KI-2 currently says only "directories, benefits websites"; naming them
+  is a strict improvement.
+- "that expertise is scarce, expensive, inconsistently available, and impossible
+  to scale nationally." KI-2 has "scarce human navigators" but not the
+  scale argument, which is the sharper half of the contrast.
+
+**Merges into Key Innovation 1 at the Innovation pass** (revised from the earlier
+plan to absorb this into the Staffing column: Care.com, Papa, and CareYaYa sell
+to families, not providers, so they do not belong in a table about who receives
+provider spending; their real competitive relevance is to KI-1's safety model):
+- "Care.com and Papa are the two best-funded companies placing a worker directly
+  with the household, and CareYaYa does the same with health-professions
+  students. That leaves supervision thin, puts liability on the family, and puts
+  the work outside licensed care, where public benefits cannot pay for it."
+  Anchor it to KI-1's existing "students are never sent directly to families"
+  passage, where the CareYaYa contrast (same population, no licensed employer) is
+  strongest.
+- The keeper line survives now, compressed, in the workforce paragraph: "keeping
+  the work inside licensed care where the aid CareNavigator identifies can be
+  spent."
+
+**Merges into Preliminary Work at its pass** (real evidence, wrong paragraph):
+- "specified by 200+ NIH and NSF I-Corps provider interviews and shaped by
+  Build-Measure-Learn cycles against the barriers providers actually face, on a
+  platform 725 providers have onboarded to." Provider-side customer discovery and
+  onboarding counts belong with the other preliminary evidence.
+
+**Goes to the CP pass** (no home in the RS now that the opening paragraph is
+locked verbatim):
+- "which excludes the households the unclaimed aid is meant to reach." The
+  strongest form of the referral-marketplace criticism; it belongs in CP Table 7's
+  referral row, where it can carry `caseyAPFM2024` (company guidance to ensure no
+  federally funded family is referred). Table 2's "partial, private-pay skew"
+  cell keeps the trace in the RS.
+- "Olera charges a flat subscription, so its revenue does not change with where a
+  family goes." Pricing structure is in Table 2 ("no per-placement fee"); the
+  neutrality-of-recommendation claim belongs with the CP revenue model and the
+  Aim 3 framing.
+
+**Retired as redundant** (logged, not lost):
+- "CareNavigator digitizes and scales the specific navigation functions AI agents,
+  structured data, and automation can now support: screen, match, execute, follow
+  up, confirm, and record" and "No existing digital competitor provides that full
+  longitudinal workflow over a comprehensive elder-care resource database." KI-2
+  already states both nearly verbatim, and the "AI agents" phrasing carried the
+  maturity drift the README flags.
+- "review platforms" as a named vendor category: folded into Table 2's
+  advertising channels column.
+- "families who arrive with aid already secured": replaced by the verified
+  formulation "needs and likely funding already identified." The identical CP
+  phrase stays on the CP-pass fix list ("secured or in progress").
+
+**Kept at Logan's direction**: the cross-reference "A tool-by-tool competitive
+table appears in the Commercialization Plan."
+
 ## Standing rule
 
 When the line-by-line pass reaches Aim 2, Aim 3, and Problems and alternatives,

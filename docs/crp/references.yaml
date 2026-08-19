@@ -142,3 +142,33 @@ caregiverCAC2025:
   url: https://activatedinsights.com/articles/5-metrics-every-home-care-agency-should-be-tracking/
   supports: "The $520-per-hire input to the recruiting-spend estimate; word-of-mouth median is the cheapest channel, biasing the estimate downward."
   verified: 2026-08-19
+
+activatedInsights2024:
+  ref: "Activated Insights (formerly Home Care Pulse). 2024 Home Care Benchmarking Report. Reporting 2023 operating data."
+  url: https://members.homecarefla.org/provider-updates/Details/report-home-care-industry-faces-rising-caregiver-turnover-and-referral-rejections-226408
+  supports: "63.3% of home-care providers had to turn down cases in 2023 because of insufficient staffing. This is the only claim cited to this entry. Verified through the Home Care Association of Florida and Home Health Care News summaries of the report; the report itself is subscription-access. Re-verify the page/table number against the report PDF at the citation-integrity pass. Note a turnover discrepancy to resolve there: these summaries report home-based-care turnover of 79.2%, while the evidence ledger records 75.0% as previously verified from the same report, so the two figures are probably different measures. Neither is cited in the Research Strategy today."
+  verified: 2026-08-19
+
+wapoAPFM2024:
+  ref: "Whoriskey P. Popular assisted living referral 'A Place for Mom' glosses over neglect. The Washington Post. May 16, 2024."
+  url: https://www.washingtonpost.com/business/2024/05/16/place-for-mom-assisted-living-referral/
+  supports: "Senior living providers pay A Place for Mom a fee equal to about one month's fees (rent) for a successful placement; the company does not independently assess facility records; more than one third of facilities it recognized as award-winning across 28 states from 2023 to 2024 had been cited by states for serious violations affecting resident care."
+  verified: 2026-08-19
+
+caseyAPFM2024:
+  ref: "U.S. Senate Special Committee on Aging, Chairman Robert P. Casey Jr. Letter to A Place for Mom regarding potentially deceptive marketing practices. June 18, 2024."
+  url: https://www.casey.senate.gov/news/releases/casey-demands-major-assisted-living-facility-referral-service-a-place-for-mom-address-concerns-about-deceptive-marketing-practices
+  supports: "Senate Aging Committee investigation alleging that the listings families are shown are limited to facilities from which the company receives a commission (roughly 14,000 establishments, less than half the market), that company guidance works to ensure no federally funded family is referred to communities (excluding Medicaid-funded households), and that per the company's own FAQ nearly 40% of families who moved to senior living paid roughly $1,000 more per month than they had budgeted. Primary release verified through NBC News and Forbes reporting quoting the letter directly; casey.senate.gov was unreachable from this environment. Re-verify against the primary letter at the citation-integrity pass."
+  verified: 2026-08-19
+
+paProgramPCE:
+  ref: "University of Iowa Carver College of Medicine, Department of Physician Assistant Studies and Services. Admission Requirements."
+  url: https://pa.medicine.uiowa.edu/admissions/admission-requirements
+  supports: "Exemplar of a health-professions program requiring documented direct patient care hours for admission: a minimum of 1,000 hours of direct patient health care experience, with hours weighted by experience type. Substantiates that programs expect documented patient-care hours, which is what makes caregiving career-valuable to pre-health students."
+  verified: 2026-08-19
+
+paeaStudent2025:
+  ref: "Physician Assistant Education Association. By the Numbers: Student Report 6, data from the 2022 matriculating student cohort. January 2025."
+  url: https://e1.nmcdn.io/assets/paea/wp-content/uploads/2025/01/FINAL_student-report-6-2025-01-13.pdf
+  supports: "Scale of the patient-care-hours expectation: the median matriculating PA student had accumulated roughly 100 weeks of direct patient contact at about 36 hours per week, and the 75th percentile about three years of such experience."
+  verified: 2026-08-19

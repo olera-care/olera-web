@@ -30,7 +30,7 @@ records; consolidation needed) · **unsupported** (no source located yet) ·
 | $58B unclaimed aid annually | [cite] in Aims/RS | unsupported (citation missing) | Aims, RS Significance | Yes — pin source |
 | Direct-care: 9.7M openings 2024–2034 | PHI 2025 (verified in CP bibliography) | verified | Aims, RS, CP §2 | No |
 | Caregiver turnover ≈75% (CP) vs "approaches 80%" (RS) | Activated Insights 2024: 75.0% (verified) | verified (RS overstated) | CP §2 vs RS Significance | Fix RS to 75% |
-| 63.3% of home-care providers turned down cases (2023) | CP ref 25 | unverified here | CP §2 | Yes — pin citation |
+| 63.3% of home-care providers turned down cases (2023) | Activated Insights 2024 Benchmarking Report (`activatedInsights2024`) | verified 2026-08-19 | RS Significance (unmet need), CP §2 | No — resolved; confirm page/table against the report PDF at the citation-integrity pass |
 | ≈100K non-medical home care agencies; ≈165K organizations total | state-licensing estimates (canon since CP v0.2x) | verified-method (estimate) | CP §5 | Keep "estimates vary" framing |
 | Award-end targets (300 payers / $0.5M / $0.7M run rate vs $0.87M model vs 430) | three inconsistent sources | provisional | CP §9 vs §11 vs RS Aim 3 | Locked only after Aim 3 redesign |
 | 200+ I-Corps provider interviews | I-Corps program records | verified | RS, CP | No |

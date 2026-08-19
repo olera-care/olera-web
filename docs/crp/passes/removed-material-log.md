@@ -255,3 +255,46 @@ where that content now lives:
   full. The matrix keeps the bare contrast in its last row.
 - The "n/a" cells are gone: rows were rewritten so every column has a real yes or
   no, which is now a house-style rule.
+
+## Hurdles to adoption, rebuilt (2026-08-19, Logan-approved)
+
+The old paragraph answered "what work remains" rather than the question the
+solicitation asks here ("hurdles that may delay or prevent acceptance of the
+product," II.1, scored at III.1). Rebuilt around one hurdle: assembling families,
+providers, and caregivers in the same local market at a cost that market's own
+revenue can sustain. Disposition of what it used to carry:
+
+- "The core technology and family and provider facing MVP offerings are validated
+  through multiple peer reviewed studies and are used by families and providers
+  today." **Removed as overstated**, on two counts: Conversion is not yet a
+  product under our own maturity labels, so the Suite is not "validated," and the
+  peer-reviewed backing in Preliminary Work still sits behind `\[cite\]`
+  placeholders. The defensible core (the platform runs nationally today) survives
+  in the new first sentence.
+- "Repeatable family and provider acquisition playbooks," "Enough usage sufficient
+  to accelerate Build-Measure-Learn," "Hardening each offering to measurable
+  commercial value at its commercial-readiness endpoint," "Converting validated
+  free pilots into sustainable paid offerings without early-adopter bias."
+  **Removed as aim activities, not adoption hurdles.** All four are already stated
+  as deliverables in the Approach and in the Specific Aims; they described our work
+  plan rather than anything that could delay customer acceptance.
+- "Benefit rules differ in every state, so each new market carries eligibility work
+  the last one did not need." **Homeless.** This was the strongest and most
+  differentiating line in the old paragraph, and the shorter replacement has no
+  room for it. Candidate homes: Key Innovation 3, whose whole argument is that
+  published program rules are neither accurate nor current and that Olera learns
+  the real ones from completed cases, and Task 1.3 market entry. Place it during
+  the Innovation pass.
+- "Preserving neutrality, safety, and regulatory compliance while scaling
+  (Regulatory plan below; detail in the Commercialization Plan)." **Removed with
+  Logan's agreement**; compliance is not really an adoption hurdle, the Regulatory
+  plan paragraph stands on its own in the Approach, and CP section 5 carries the
+  concrete acceptance hurdles (provider wariness after per-lead vendors, student
+  caregiver safety, family trust in AI navigation, campus-by-campus dependence).
+  Note the RS no longer signals compliance anywhere in Significance.
+- **Aim mapping deliberately not included.** Checked and rejected: the three Aims
+  do not map one-to-one onto the three Key Innovations (Aim 3 has no innovation
+  counterpart, KI-3 spans Aims 1 and 2, and Aim 2 covers Visibility and Conversion
+  which are not Key Innovations). The Approach's "Overall design and timetable
+  (Figure A)" paragraph does aim-mapping properly; this paragraph hands off to
+  Innovation instead.

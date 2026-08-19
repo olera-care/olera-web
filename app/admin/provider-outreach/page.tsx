@@ -806,6 +806,8 @@ interface OutreachProvider {
   stage: OutreachStage;
   stage_changed_at: string | null;
   notes: string | null;
+  // Count of notes in provider_outreach_notes table (for icon fill state)
+  notes_count?: number;
   // Confirmation state (Ready tab)
   confirmed_at: string | null;
   confirmed_by: string | null;
@@ -2465,10 +2467,10 @@ function CityRow({
                                 e.stopPropagation();
                                 onOpenNotesModal(provider);
                               }}
-                              className={`p-1 ${provider.notes ? "text-gray-700" : "text-gray-300 hover:text-amber-500"}`}
+                              className={`p-1 ${(provider.notes_count ?? 0) > 0 ? "text-gray-700" : "text-gray-300 hover:text-amber-500"}`}
                               title="Notes"
                             >
-                              <svg className="w-4 h-4" fill={provider.notes ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                              <svg className="w-4 h-4" fill={(provider.notes_count ?? 0) > 0 ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                               </svg>
                             </button>
@@ -3989,10 +3991,10 @@ Questions? support@olera.care or (979) 243-9801`;
                     e.stopPropagation();
                     onOpenNotesModal();
                   }}
-                  className={`p-1 ${provider.notes ? "text-gray-700" : "text-gray-300 hover:text-amber-500"}`}
+                  className={`p-1 ${(provider.notes_count ?? 0) > 0 ? "text-gray-700" : "text-gray-300 hover:text-amber-500"}`}
                   title="Notes"
                 >
-                  <svg className="w-4 h-4" fill={provider.notes ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <svg className="w-4 h-4" fill={(provider.notes_count ?? 0) > 0 ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                   </svg>
                 </button>
@@ -6098,7 +6100,7 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
                 className="px-3 py-1.5 text-sm font-medium text-amber-600 bg-white border border-amber-300 rounded-lg hover:bg-amber-50 hover:border-amber-400 transition-colors"
                 title="Notes"
               >
-                <svg className="w-4 h-4 inline-block" fill={provider.notes ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="w-4 h-4 inline-block" fill={(provider.notes_count ?? 0) > 0 ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                 </svg>
               </button>
@@ -8611,10 +8613,10 @@ export default function ProviderOutreachPage() {
                                     name: provider.provider_name,
                                   });
                                 }}
-                                className={`p-1 ${provider.notes ? "text-gray-700" : "text-gray-300 hover:text-amber-500"}`}
+                                className={`p-1 ${(provider.notes_count ?? 0) > 0 ? "text-gray-700" : "text-gray-300 hover:text-amber-500"}`}
                                 title="Notes"
                               >
-                                <svg className="w-4 h-4" fill={provider.notes ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                <svg className="w-4 h-4" fill={(provider.notes_count ?? 0) > 0 ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                                 </svg>
                               </button>
@@ -10703,6 +10705,16 @@ export default function ProviderOutreachPage() {
           providerId={notesModalProvider.id}
           providerName={notesModalProvider.name}
           onClose={() => setNotesModalProvider(null)}
+          onNoteAdded={() => {
+            // Update the provider's notes_count to reflect the new note
+            setProviders((prev) =>
+              prev.map((p) =>
+                p.provider_id === notesModalProvider.id
+                  ? { ...p, notes_count: (p.notes_count ?? 0) + 1 }
+                  : p
+              )
+            );
+          }}
         />
       )}
     </div>

@@ -136,3 +136,124 @@ structure wins a share of the spending is what the CRP measures.
   placements (38%/55%), paying-partner limitation.
 - One-month's-rent referral commission convention (corroborates CP's $3-6K).
 - [todo] staffing agency markup benchmark.
+
+---
+
+# Deep External Research Pass (2026-08-19, round 2)
+
+Fresh outside-in sweep per Logan: follow the money, respect the incumbents,
+find what breaks, ground our advantage. Key outcomes: two overlooked incumbent
+categories, one strawman corrected in our own materials, one reframing of the
+advertising category, and a sharper integration thesis.
+
+## Corrections to our existing materials
+
+1. **CP Table 7's Conversion row is a strawman.** It compares against "generic
+   CRM tools... not built for eldercare intake." The real incumbent is Aline
+   (2022 merger of Enquire + Sherpa + Glennis; 5,700+ communities; purpose-built
+   senior-living CRM, marketing automation, and contact center) plus WellSky/
+   AxisCare intake modules in home care. These ARE built for eldercare intake
+   and are good at it. The honest Conversion positioning: even the best eldercare
+   CRMs process demand they do not generate, and none carries the family's
+   funding context. Fix Table 7 at the CP pass.
+2. **Gig staffing marketplaces are missing entirely** from CP Table 7 and the
+   RS: ShiftKey, IntelyCare, ShiftMed, Clipboard Health — VC-backed, major in
+   SNF/AL shift-filling (per-diem credentialed staff; W-2 options; claims like
+   "save up to $300/shift"). Strengths: speed, credential verification, fill
+   rates. Limits: premium per-shift economics, temporary coverage rather than
+   permanent staff, facility-skewed (thin in non-medical home care), and they
+   redistribute the same licensed pool. Belongs in the staffing column.
+3. **"Ad agencies" as a competitor mis-frames Visibility.** Managed Ads runs ON
+   Google/Meta; the channels are suppliers, not competitors. The competition is
+   the agency/DIY burden and the structural gap that follows the click: LSA/paid
+   search delivers home-services leads at roughly $30-80 each (avg ~$53), and
+   Caring.com sells home care leads at ~$50, but the provider still qualifies
+   and converts every inquiry, with no payment qualification anywhere in the
+   chain. Useful anchors: these per-lead prices concretize "they already spend."
+
+## What each category does well (the respect list)
+
+- Referral marketplaces: genuinely aggregate huge family demand with human
+  advisors; providers pay thousands per placement because placements happen.
+  Proof of willingness to pay for demand.
+- Ads/LSA: real reach, measurable CPL, scalable. We use them, not fight them.
+- Gig platforms: fast credentialed coverage; marketplace mechanics worth
+  learning from (our verified student experience records echo their
+  credentialing).
+- Aline-class CRMs: deep workflow fit, sales analytics, contact centers.
+- Job boards: applicant volume at low unit cost.
+
+## What breaks down (evidence, not convenient criticism)
+
+- Referral marketplaces: per-placement toll (~one month's rent, $3-6K);
+  paying-partner steering (WaPo 2024; Senate Aging probe; Casey: 38%/55%
+  over-budget placements); private-pay skew that excludes aid-funded families
+  (ties directly to the $58B thesis).
+- Ads and purchased leads: attention is not a qualified inquiry; conversion
+  burden stays with the provider; zero funding qualification; shared-lead
+  resale common [todo: verify shared-lead practice citation].
+- Staffing intermediaries (agencies, boards, gig): all redistribute a pool that
+  is 9.7M openings short; agencies/gig at premium unit economics; boards send
+  volume without qualification.
+- Eldercare CRMs: workflow without demand; no eligibility/funding context;
+  enterprise pricing skews large operators.
+
+## The integration thesis (what one brand alone would not get)
+
+The shared asset is the marketplace and what it knows, not the bundle:
+
+1. **Payment-qualified demand.** CareNavigator knows what aid a family
+   qualifies for before a provider sees the inquiry. No incumbent has this:
+   referral marketplaces skew private-pay, ads carry no qualification, CRMs
+   hold no funding context. It also reaches the aid-funded families incumbents
+   exclude.
+2. **Demand-capacity coupling.** A converted client creates a staffing need
+   the same platform can fill; staffing capacity lets providers accept
+   referrals they currently decline (63.3% turned down cases for staffing,
+   2023, per CP). Only visible when clients and workforce live on one
+   marketplace.
+3. **Supply creation.** Students earning documented patient-care hours are
+   net-new caregivers, employed by the provider. Every other staffing model
+   bids for existing workers.
+4. **The outcome loop.** Conversions and outcomes return to the database and
+   sharpen future matching (KI-3); point solutions never see the family side.
+
+Flat pricing is downstream of this: organic family demand at near-zero
+acquisition cost is what lets Olera sell tools flat instead of tolling
+placements.
+
+## Matrix rows (most defensible 5)
+
+1. What providers pay: flat subscription vs per placement vs markup/per-shift
+   premium vs per lead/seat.
+2. Family demand included: payment-qualified inquiries vs tolled placements vs
+   none.
+3. Reaches aid-funded families (not only private-pay).
+4. Adds new caregivers vs redistributes existing pool.
+5. Recommendations independent of payment (externally documented contrast).
+
+Columns: CareNavigator Provider Tools | Referral marketplaces | Staffing
+intermediaries (agencies, gig platforms, job boards) | Ad channels and
+purchased leads | Eldercare CRMs.
+
+## Revised three-sentence argument (post-research)
+
+Providers already spend more than $5 billion a year with a mature vendor
+market: referral marketplaces that aggregate family demand but charge roughly a
+month's rent per placement and favor private-pay clients, staffing agencies,
+job boards, and gig platforms that compete over a caregiver pool that is 9.7
+million openings short, and advertising channels and eldercare CRMs that
+deliver attention and workflow but leave every inquiry for the provider to
+qualify and convert. Each does one job well, and none can see what
+CareNavigator's marketplace sees: which families are seeking care, what they
+need, and what aid can pay for it. The Provider Tools use that visibility to
+deliver payment-qualified inquiries at flat prices, convert them with funding
+context no CRM holds, and add student caregivers instead of bidding for
+existing ones, and the CRP tests whether providers will pay for the difference.
+
+## New sources for the bibliography (at Prose step)
+
+Aline merger (Businesswire/Senior Housing News); gig-platform landscape
+(ShiftMed, IntelyCare pricing, Clipboard Health long-term-care focus); LSA CPL
+benchmarks (~$53 avg, $30-80 range); Caring.com ~$50/lead; plus round-1
+sources (WaPo, Senate probe, Casey data).

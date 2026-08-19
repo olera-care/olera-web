@@ -108,6 +108,38 @@ written; rendering rules govern the docx/PDF surfaces.
   text must be legible in print. RS captions are separate 9pt paragraphs below the
   figure; CP figure captions are drawn inside the artwork; CP table captions are
   centered paragraphs.
+- Comparison matrices (ratified 2026-08-19, measured from the Phase IIB
+  competitive matrix and rebuilt as RS Table 2). These are read at a glance or
+  not at all, so the design is a set of constraints, not preferences:
+  1. **Marks, not sentences.** Cells carry ✓ or ✗ and nothing else. If a cell
+     seems to need a qualifier, the row is wrong: split it into two rows whose
+     answers are genuinely binary ("care needs known first" and "likely funding
+     known first" replaced one "needs and funding" row that could only be
+     answered "partial"). Never use a mark where the honest answer is "not
+     applicable"; choose rows where every column has a real yes or no.
+  2. **Rows are the attributes we win on**, phrased so our own column is ✓ down
+     the whole list, three to five words each, in the same vocabulary as the
+     surrounding prose. The last row carries the strongest claim.
+  3. **Columns are categories, not companies**, with two or three example firms
+     as a small italic second line in the header so the reader knows what the
+     category means. Our own product is column one of the comparison.
+  4. **Respect the incumbents.** Every competitor column should show at least one
+     ✓; a matrix where only we check anything reads as marketing, not analysis.
+     Distinct columns should end up with distinct patterns of marks, which is
+     also a check that the categories are real.
+  5. **Visual treatment**: horizontal rules only, no vertical lines or cell
+     boxes; our column blocked in solid dark teal (#14453f) with white marks;
+     other marks dark teal for ✓ and dark red (#9b1c1c) for ✗; row labels bold,
+     left-aligned, in the same teal; headers bold and centered; marks set two
+     points larger than the 9pt table body so they carry at a glance.
+  6. **Page economy.** A matrix earns its space only by replacing more prose than
+     it costs. Keep it under about two inches; a matrix and its caption stay on
+     one page (the renderer enforces this), so check where the block lands before
+     accepting it.
+  Captions follow the caption rules above with no exceptions: one line, bold
+  label only, body size. The renderer builds all of this from an ordinary
+  markdown pipe table, where column one is the row label, column two is our
+  product, and a header cell may read "Category // example, example".
 - Known normalizations to apply on next touch: "Task 1.1" is missing its colon;
   "Family-side navigation:" lacks the italic+underline its three sibling categories
   have; two em dashes remain in the CP; two stray non-Arial runs remain in the RS.

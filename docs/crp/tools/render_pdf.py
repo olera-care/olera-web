@@ -38,13 +38,32 @@ div.refs p.refnote { color: #555; font-style: italic; margin-bottom: 8pt; }
 div.fig { margin: 5pt 0 2pt 0; text-align: center; }
 div.fig img, div.fig svg { max-width: 100%; height: auto; }
 div.figblock { break-inside: avoid; page-break-inside: avoid; }
-table.matrix { width: 100%; border-collapse: collapse; font-size: 9pt; line-height: 1.15;
-               margin: 5pt 0 2pt 0; }
-table.matrix th, table.matrix td { border: 0.5pt solid #000; padding: 1.5pt 3pt;
-                                   text-align: left; vertical-align: top; }
-table.matrix th:first-child, table.matrix td.rowlab { width: 17%; }
-table.matrix th { font-weight: bold; }
-table.matrix td.rowlab { font-style: italic; }
+/* Comparison matrix: horizontal rules only, own-product column blocked in, marks
+   not sentences (house style section 6, ratified 2026-08-19 from the Phase IIB
+   competitive matrix). */
+table.matrix { width: 100%; border-collapse: separate; border-spacing: 0;
+               font-size: 9pt; line-height: 1.15; margin: 6pt 0 3pt 0;
+               -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+table.matrix th, table.matrix td { padding: 2.5pt 4pt; vertical-align: middle;
+                                   text-align: center; }
+table.matrix thead th { font-weight: bold; vertical-align: bottom; color: #14453f;
+                        border-bottom: 1pt solid #14453f; padding-bottom: 3pt; }
+table.matrix thead th.rowlab { border-bottom: 1pt solid #14453f; }
+table.matrix span.eg { display: block; font-weight: normal; font-style: italic;
+                       font-size: 7.5pt; line-height: 1.1; }
+table.matrix tbody td { border-bottom: 0.5pt solid #14453f;
+                        font-family: Arial, "DejaVu Sans", sans-serif; }
+table.matrix tbody tr:last-child td { border-bottom: 1pt solid #14453f; }
+table.matrix td.rowlab, table.matrix th.rowlab { text-align: left; font-weight: bold;
+                                                 color: #14453f; width: 26%; }
+table.matrix .yes, table.matrix .no { font-size: 11pt; line-height: 1; }
+table.matrix .yes { color: #14453f; font-weight: bold; }
+table.matrix .no { color: #9b1c1c; font-weight: bold; }
+table.matrix .own { background: #14453f; color: #fff; }
+table.matrix .own .yes, table.matrix .own .no { color: #fff; }
+table.matrix thead th.own { border-bottom: 1pt solid #14453f;
+                            border-radius: 5pt 5pt 0 0; padding-top: 3pt; }
+table.matrix tbody tr:last-child td.own { border-radius: 0 0 5pt 5pt; }
 """
 
 def unescape_md(t):
@@ -148,17 +167,41 @@ def render_metric_item(t):
 def split_row(r):
     return [c.strip() for c in r.strip().strip('|').split('|')]
 
+def mark_cell(c):
+    """✓/✗ become styled marks; anything else renders as short label text."""
+    t = c.strip()
+    if t in ('✓', '✔'):
+        return '<span class="yes">&#10003;</span>'
+    if t in ('✗', '✕', 'x', 'X'):
+        return '<span class="no">&#10007;</span>'
+    return esc(t)
+
+def head_cell(c):
+    """'Label // examples' renders the examples as a small italic second line."""
+    if '//' in c:
+        lab, eg = c.split('//', 1)
+        return f'{esc(lab.strip())}<span class="eg">{esc(eg.strip())}</span>'
+    return esc(c)
+
 def render_table(rows):
-    """Markdown pipe table -> house-style 9pt table (first row is the header)."""
+    """Markdown pipe table -> house-style comparison matrix.
+
+    Column 1 is the row-label column; column 2 is our own product and is blocked
+    in so the comparison reads at a glance.
+    """
     rows = [r for r in rows if not re.fullmatch(r'[|\s:-]+', r)]   # drop the --- rule
     if not rows:
         return ''
     head, body_rows = split_row(rows[0]), [split_row(r) for r in rows[1:]]
-    th = ''.join(f'<th>{esc(c)}</th>' for c in head)
+    th = ''.join(
+        f'<th class="{"rowlab" if j == 0 else "own" if j == 1 else ""}">{head_cell(c)}</th>'
+        for j, c in enumerate(head))
     trs = ''
     for r in body_rows:
         tds = ''.join(
-            f'<td class="rowlab">{esc(c)}</td>' if j == 0 else f'<td>{esc(c)}</td>'
+            f'<td class="rowlab">{esc(c)}</td>' if j == 0 else
+            f'<td class="own">{mark_cell(c)}</td>' if j == 1 else
+            f'<td>{mark_cell(c)}</td>'
             for j, c in enumerate(r))
         trs += f'<tr>{tds}</tr>'
     return (f'<table class="matrix"><thead><tr>{th}</tr></thead>'

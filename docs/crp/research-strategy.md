@@ -22,15 +22,16 @@ The market. Americans spend roughly half a trillion dollars each year on profess
 
 Competitive environment and our advantage. Providers already spend more than $5 billion a year with a mature vendor market: referral marketplaces that aggregate family demand but charge roughly a month's rent per placement and favor private-pay clients,[@wapoAPFM2024; @caseyAPFM2024] staffing agencies, job boards, and gig platforms that compete over a caregiver pool already 9.7 million openings short,[@phi2025] and advertising channels and eldercare CRMs that deliver attention and workflow but leave every inquiry for the provider to qualify and convert. Each does one job well, and none can see what CareNavigator's marketplace sees: which families are seeking care, what they need, and what aid may help pay for it. The Provider Tools use that visibility to deliver inquiries that arrive with needs and likely funding already identified, to carry that context through the provider's intake and follow-up, and to add caregiver capacity rather than simply compete for the existing workforce (Table 2).
 
-| | CareNavigator Provider Tools | Referral marketplaces (A Place for Mom, Caring.com) | Staffing intermediaries (agencies, job boards, gig platforms) | Advertising channels and agencies | Eldercare CRMs (Aline, WellSky) |
+| | CareNavigator Provider Tools | Referral marketplaces // A Place for Mom, Caring.com | Staffing intermediaries // agencies, job boards, gig platforms | Advertising channels // search, social, agencies | Eldercare CRMs // Aline, WellSky |
 |---|---|---|---|---|---|
-| Brings family demand | Yes, no per-placement fee | Yes, at about one month's rent | n/a | Paid clicks and leads, unqualified | No |
-| Needs and likely funding identified first | Yes | Partial, private-pay skew | n/a | No | No |
-| Supports conversion after the inquiry | Yes, carries the family's context | No, hands off the lead | n/a | No | Yes, workflow without demand or aid context |
-| Recruits staff | Yes | No | Yes | No | No |
-| Adds new caregiver capacity | Yes, recruits new entrants | No | No, redistributes the existing pool | No | No |
+| Brings family demand | ✓ | ✓ | ✗ | ✓ | ✗ |
+| Care needs known first | ✓ | ✓ | ✗ | ✗ | ✗ |
+| Likely funding known first | ✓ | ✗ | ✗ | ✗ | ✗ |
+| Carries context into intake | ✓ | ✗ | ✗ | ✗ | ✓ |
+| Recruits staff | ✓ | ✗ | ✓ | ✗ | ✗ |
+| Adds new caregiver capacity | ✓ | ✗ | ✗ | ✗ | ✗ |
 
-*Table 2. What providers get from each category of vendor they already pay.*
+*Table 2. What each category of vendor does for the providers already paying it.*
 
 The last row of Table 2 marks the sharpest competitive distinction: every existing staffing channel helps providers compete for workers from the same overextended pool, so one provider's hire is another's vacancy and the shortage itself is never reduced. CareNavigator's Staffing tool is designed to expand the pool instead. New capacity can only come from people outside today's direct-care workforce, and among the groups that could supply it (retirees, career changers, college students), students preparing for health careers are the evidence-supported first population: caregiving provides something their careers already require, documented patient-care hours, so the work carries career value beyond the wage.[@paProgramPCE; @paeaStudent2025] The tool recruits these students and places them with licensed providers who hire, train, and supervise them as employees, keeping the work inside licensed care where the aid CareNavigator identifies can be spent. Providers hired students as caregivers and paid Olera for the placements in our Texas A&M student caregiver pilot, demonstrating the model's initial feasibility and providers' willingness to pay (Preliminary Work). The population, safety model, and economics are developed further as Key Innovation 1.
 

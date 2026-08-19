@@ -230,3 +230,28 @@ When the line-by-line pass reaches Aim 2, Aim 3, and Problems and alternatives,
 check this log and either reinstate each homeless item in its new home or record
 the decision to retire it. Nothing here is deleted history; Table 1's artwork
 remains at `figures/research-strategy/table-1.png`.
+
+## Table 2 simplification (2026-08-19, Logan's direction, design reference: the Phase IIB competitive matrix)
+
+The first build of Table 2 carried prose in its cells. Rebuilt as a marks-only
+matrix in the earlier proposal's visual style. What the cells used to say and
+where that content now lives:
+
+- "at about one month's rent" (referral fee): already in the opening paragraph
+  with `wapoAPFM2024`, so the cell was redundant. The dollar sizing stays in
+  `market-denominator.md`.
+- "Partial, private-pay skew": the row it qualified was split into two binary
+  rows, "Care needs known first" (referral ✓, which is what they genuinely do
+  well) and "Likely funding known first" (referral ✗). The private-pay finding
+  itself is in the opening paragraph with `caseyAPFM2024`, and the aid-exclusion
+  criticism remains queued for CP Table 7.
+- "Paid clicks and leads, unqualified": the qualification point is the opening
+  paragraph's "leave every inquiry for the provider to qualify and convert"; the
+  matrix now shows it structurally as ✓ on demand and ✗ on both context rows.
+- "No, hands off the lead" and "workflow without demand or aid context": carried
+  by the "Carries context into intake" row, where referral is ✗ and CRMs are ✓.
+- "redistributes the existing pool" and "recruits new entrants": carried by the
+  workforce paragraph, which states the redistribute-versus-expand argument in
+  full. The matrix keeps the bare contrast in its last row.
+- The "n/a" cells are gone: rows were rewritten so every column has a real yes or
+  no, which is now a house-style rule.

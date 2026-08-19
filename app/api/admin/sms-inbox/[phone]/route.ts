@@ -52,7 +52,7 @@ export async function GET(
     const db = getServiceClient();
     const e164 = toE164(last10);
 
-    const [inboundRes, dncRes, draftRes] = await Promise.all([
+    const [inboundRes, dncRes, draftRes, packetRes] = await Promise.all([
       db
         .from("sms_inbound")
         .select("id, from_phone, body, keyword, profile_id, profile_type, display_name, handled_at, created_at")
@@ -60,6 +60,17 @@ export async function GET(
         .order("created_at", { ascending: true }),
       db.from("do_not_contact").select("id, reason, note").eq("phone", last10).limit(1).maybeSingle(),
       db.from("sms_drafts").select("body, updated_by, updated_at").eq("phone_last10", last10).maybeSingle(),
+      // The most recent researched answer waiting on a human. Only `ready`
+      // rows are surfaced: `pending`/`running` have nothing to show yet, and
+      // `sent` is already answered.
+      db
+        .from("family_answer_jobs")
+        .select("id, packet, created_at")
+        .eq("phone_last10", last10)
+        .eq("status", "ready")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
     if (inboundRes.error) {
       console.error("[admin/sms-inbox/phone] inbound load failed:", inboundRes.error);
@@ -140,6 +151,12 @@ export async function GET(
               updated_at: draftRes.data.updated_at,
             }
           : null,
+      // Same rule as the draft: a packet read failure must not blank the
+      // conversation. The researched answer is an aid, not the page.
+      answerPacket:
+        packetRes.error || !packetRes.data?.packet
+          ? null
+          : { jobId: packetRes.data.id, packet: packetRes.data.packet },
     });
   } catch (err) {
     console.error("[admin/sms-inbox/phone] Unexpected error:", err);
@@ -285,6 +302,22 @@ export async function POST(
           .eq("phone_last10", last10)
           .is("handled_at", null),
         db.from("sms_drafts").delete().eq("phone_last10", last10),
+        // Close out the researched answer this reply came from, and record what
+        // was ACTUALLY sent alongside what the engine proposed. The difference
+        // between packet.draft and sent_body is the cheapest honest signal of
+        // whether the engine is any good, and it needs no extra instrumentation.
+        // Scoped to `ready` so a second reply on the same thread cannot
+        // overwrite the first reply's record.
+        db
+          .from("family_answer_jobs")
+          .update({
+            status: "sent",
+            sent_body: text,
+            sent_at: new Date().toISOString(),
+            sent_by: user.email ?? admin.id,
+          })
+          .eq("phone_last10", last10)
+          .eq("status", "ready"),
       ]);
 
       await logAuditAction({

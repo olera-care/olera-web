@@ -4860,25 +4860,21 @@ export function verificationReminder21DayEmail(opts: {
   verifyUrl: string;
   providerSlug?: string;
 }): string {
+  const name = escapeHtml(opts.providerName);
+  const recipientFirst = escapeHtml(firstName(opts.recipientName, "there"));
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Final reminder: Verify ${escapeHtml(opts.providerName)}</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Hi ${escapeHtml(firstName(opts.recipientName, "there"))}, this is a final reminder to complete verification for ${escapeHtml(opts.providerName)}.
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Hi ${recipientFirst}, you're one step away from unlocking everything on your ${name} dashboard.
     </p>
-    <div style="background:#fef2f2;border-left:3px solid #ef4444;padding:12px 16px;margin:0 0 24px;border-radius:0 8px 8px 0;">
-      <p style="font-size:14px;color:#991b1b;margin:0;line-height:1.5;">
-        <strong>Action required:</strong> Unverified claims may be released after 30 days so others can claim the listing.
-      </p>
-    </div>
-    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      Complete verification now to keep your claim and unlock full access to your provider dashboard.
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      Once verified, you can: respond to family inquiries, access full analytics, and stand out with a verified badge on your profile.
     </p>
-    <div style="text-align:center;margin:0 0 24px;">${button("Verify Now", opts.verifyUrl)}</div>
-    <p style="font-size:13px;color:#9ca3af;margin:0 0 16px;line-height:1.5;text-align:center;">
-      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
+    <div style="margin:0 0 24px;">${button("Verify Now", opts.verifyUrl)}</div>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      It takes about a minute using your LinkedIn or work email.
     </p>
     ${offRampBlock(opts.providerSlug)}
-  `, "Final reminder — verify before your claim expires");
+  `, "Verified providers get more inquiries");
 }
 
 /** Email sent when verification is rejected with reason (admin rejection) */
@@ -6018,42 +6014,101 @@ export function familyNudgeEmail(opts: {
  */
 export function providerWelcomeEmail(opts: {
   providerName: string;
-  recipientName: string;
-  slug: string;
-  profileCompleteness: number;
   dashboardUrl: string;
-  profileUrl: string;
+  providerSlug?: string;
 }): string {
-  const completenessLine = opts.profileCompleteness < 100
-    ? `<p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-        Your profile is ${opts.profileCompleteness}% complete. Providers with complete profiles get more inquiries from families.
-      </p>`
-    : "";
-
-  const completeProfileCta = opts.profileCompleteness < 100
-    ? `<p style="font-size:14px;color:#6b7280;margin:16px 0 0;line-height:1.5;">
-        Want to stand out? ${ctaLink("Complete your profile", opts.profileUrl)} to attract more families.
-      </p>`
-    : "";
-
+  const name = escapeHtml(opts.providerName);
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome to Olera</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${escapeHtml(firstName(opts.recipientName, "there"))}, you're all set up and ready to connect with families looking for care from <strong>${escapeHtml(opts.providerName)}</strong>.
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Hi there,
     </p>
-    <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;font-weight:600;">Here's what happens next:</p>
-    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
-      <li>Families browsing Olera will find your listing and can reach out directly</li>
-      <li>You'll get an email notification for each new inquiry</li>
-      <li>Respond promptly — families appreciate timely replies</li>
-    </ul>
-    ${completenessLine}
-    <div style="margin:0 0 24px;">${button("View Your Dashboard", opts.dashboardUrl)}</div>
-    ${completeProfileCta}
-    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a> — we're here to help you succeed.
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Your ${name} page is officially yours to manage. 🎉
     </p>
-  `, "You're verified and ready to connect with families");
+    <div style="margin:0 0 24px;">${button("View your page", opts.dashboardUrl)}</div>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      You can now update your page, connect directly with families, and help more families discover ${name}.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      We'll help you along the way with a few quick steps to get your page ready for families and make the most of Olera.
+    </p>
+    ${offRampBlock(opts.providerSlug)}
+  `, "Your page is officially yours to manage.");
+}
+
+/** Onboarding Email 1: Verification nudge -- 24h after welcome */
+export function onboardingVerificationEmail(opts: {
+  providerName: string;
+  recipientName: string;
+  verifyUrl: string;
+  providerSlug?: string;
+}): string {
+  const name = escapeHtml(opts.providerName);
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Hi there,
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Authenticate your page and earn an Olera trust badge.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      It takes about a minute using your LinkedIn or work email.
+    </p>
+    <div style="margin:0 0 24px;">${button("Verify your page", opts.verifyUrl)}</div>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      The Olera badge lets families know ${name} has been verified, adding an extra layer of protection and trust to your profile.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      If you need help verifying, just reply to this email or call +1 (979) 243-9801. A real person answers both.
+    </p>
+    ${offRampBlock(opts.providerSlug)}
+  `, "A verified badge makes your profile stand out to families");
+}
+
+/** Onboarding Email 2: Notification setup -- 72h after verification nudge */
+export function onboardingNotificationsEmail(opts: {
+  recipientName: string;
+  providerName: string;
+  notificationsUrl: string;
+  providerSlug?: string;
+}): string {
+  const recipientFirst = escapeHtml(firstName(opts.recipientName, "there"));
+  const name = escapeHtml(opts.providerName);
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Hi ${recipientFirst},
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      Families are discovering ${name} on Olera. Turn on notifications so you never miss a family inquiry.
+    </p>
+    <div style="margin:0 0 24px;"><a href="${opts.notificationsUrl}" style="display:inline-block;padding:12px 24px;background:${BRAND_COLOR};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9'/%3E%3Cpath d='M13.73 21a2 2 0 0 1-3.46 0'/%3E%3C/svg%3E" alt="" width="14" height="14" style="vertical-align:middle;margin-right:6px;display:inline-block;" />Turn on notifications</a></div>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      Set up text alerts so no family is left waiting for a response.
+    </p>
+    ${offRampBlock(opts.providerSlug)}
+  `, "Most families go with the first provider who responds");
+}
+
+/** Onboarding Email 3: Profile preview -- 72h after notification setup */
+export function onboardingProfilePreviewEmail(opts: {
+  providerName: string;
+  profileUrl: string;
+  providerSlug?: string;
+}): string {
+  const name = escapeHtml(opts.providerName);
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Hi there,
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      <strong>Here's what families see when they find ${name} on Olera.</strong>
+    </p>
+    <div style="margin:0 0 24px;">${button("Preview your page →", opts.profileUrl)}</div>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      Adding details like pricing, photos, and services helps families feel confident reaching out and gives your page more opportunities to appear in search.
+    </p>
+    ${offRampBlock(opts.providerSlug)}
+  `, "A few updates could mean more inquiries");
 }
 
 /**

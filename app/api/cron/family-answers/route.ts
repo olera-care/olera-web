@@ -59,19 +59,40 @@ export async function GET(request: NextRequest) {
 
   return withCronRun("family-answers", async () => {
     const db = getServiceClient();
-    const result = { considered: 0, drafted: 0, crisis: 0, failed: 0, requeued: 0 };
+    const result = { considered: 0, drafted: 0, crisis: 0, failed: 0, requeued: 0, abandoned: 0 };
 
     // Release anything a previous invocation claimed and never finished. Vercel
     // kills a function at its maxDuration, which leaves the row in `running`
     // with nobody working it.
     const stuckBefore = new Date(Date.now() - STUCK_MS).toISOString();
-    const { data: stuck } = await db
+
+    // Two branches, and the second one matters. Releasing every stuck job back
+    // to `pending` regardless of attempts creates a silent stall: the fetch
+    // below filters on attempts < MAX_ATTEMPTS, so a job killed three times
+    // sits in `pending` forever, never picked up again and never surfaced as
+    // failed. It disappears from both the work queue and the failure list,
+    // which for a family means their question quietly never gets an answer.
+    const { data: retryable } = await db
       .from("family_answer_jobs")
       .update({ status: "pending" })
       .eq("status", "running")
       .lt("started_at", stuckBefore)
+      .lt("attempts", MAX_ATTEMPTS)
       .select("id");
-    result.requeued = stuck?.length ?? 0;
+    result.requeued = retryable?.length ?? 0;
+
+    const { data: exhausted } = await db
+      .from("family_answer_jobs")
+      .update({
+        status: "failed",
+        last_error: `killed mid-run ${MAX_ATTEMPTS} times (likely maxDuration)`,
+        completed_at: new Date().toISOString(),
+      })
+      .eq("status", "running")
+      .lt("started_at", stuckBefore)
+      .gte("attempts", MAX_ATTEMPTS)
+      .select("id");
+    result.abandoned = exhausted?.length ?? 0;
 
     const { data: jobs, error } = await db
       .from("family_answer_jobs")

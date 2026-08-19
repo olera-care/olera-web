@@ -30,6 +30,46 @@ function toE164(last10: string): string {
   return `+1${last10}`;
 }
 
+/**
+ * Close out the researched answer a reply came from, recording what was
+ * actually sent next to what the engine proposed.
+ *
+ * Deliberately scoped to the NEWEST ready job rather than every ready row for
+ * the number. More than one can exist: the webhook only suppresses a duplicate
+ * job while an earlier one is `pending` or `running`, so a family who texts
+ * again while a draft is awaiting review gets a second job, and the cron will
+ * happily draft that one too. A blanket update would then stamp one reply's
+ * text onto both, marking a question answered that was never answered and
+ * corrupting the draft-vs-sent comparison for the older one.
+ */
+async function stampAnswerJobSent(
+  db: ReturnType<typeof getServiceClient>,
+  last10: string,
+  sentBody: string,
+  actor: string,
+): Promise<void> {
+  const { data: job } = await db
+    .from("family_answer_jobs")
+    .select("id")
+    .eq("phone_last10", last10)
+    .eq("status", "ready")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!job) return;
+
+  const { error } = await db
+    .from("family_answer_jobs")
+    .update({
+      status: "sent",
+      sent_body: sentBody,
+      sent_at: new Date().toISOString(),
+      sent_by: actor,
+    })
+    .eq("id", job.id);
+  if (error) console.error("[admin/sms-inbox/phone] answer job stamp failed:", error);
+}
+
 function normalizeLast10(raw: string): string | null {
   const digits = (raw || "").replace(/\D/g, "");
   return digits.length >= 10 ? digits.slice(-10) : null;
@@ -306,18 +346,7 @@ export async function POST(
         // was ACTUALLY sent alongside what the engine proposed. The difference
         // between packet.draft and sent_body is the cheapest honest signal of
         // whether the engine is any good, and it needs no extra instrumentation.
-        // Scoped to `ready` so a second reply on the same thread cannot
-        // overwrite the first reply's record.
-        db
-          .from("family_answer_jobs")
-          .update({
-            status: "sent",
-            sent_body: text,
-            sent_at: new Date().toISOString(),
-            sent_by: user.email ?? admin.id,
-          })
-          .eq("phone_last10", last10)
-          .eq("status", "ready"),
+        stampAnswerJobSent(db, last10, text, user.email ?? admin.id),
       ]);
 
       await logAuditAction({

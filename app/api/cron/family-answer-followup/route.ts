@@ -34,6 +34,9 @@ export const maxDuration = 120;
 
 const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
+/** Stop chasing a follow-up this long after the answer went out. Bounds retries. */
+const GIVE_UP_MS = 30 * 24 * 60 * 60 * 1000;
+
 interface DueJob {
   id: string;
   phone_last10: string;
@@ -70,12 +73,19 @@ export async function GET(request: NextRequest) {
     result.expired_no_response = await expireUnansweredFollowups();
 
     const cutoff = new Date(Date.now() - SEVEN_DAYS_MS).toISOString();
+    // A send that fails is not stamped, so it is reconsidered tomorrow. That is
+    // right for a transient blip and wrong forever: a number Twilio will never
+    // accept would otherwise be retried daily for the life of the table. The
+    // floor bounds it, and asking "did that help?" about something from six
+    // weeks ago is not worth the message anyway.
+    const giveUpBefore = new Date(Date.now() - GIVE_UP_MS).toISOString();
     const { data: jobs, error } = await db
       .from("family_answer_jobs")
       .select("id, phone_last10, profile_id, sent_at")
       .eq("status", "sent")
       .is("followup_sent_at", null)
       .lte("sent_at", cutoff)
+      .gte("sent_at", giveUpBefore)
       .order("sent_at", { ascending: true })
       .limit(limit);
 

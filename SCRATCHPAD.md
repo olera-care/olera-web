@@ -7,6 +7,36 @@
 
 ## Current Focus
 
+### 2026-08-18 — Benefits fact-check: 30 programs corrected, one invented phone number found, shipped to production
+
+**Shipped:** PR #1624 + #1626 → staging, promoted to main via #1627 (`07b603f2`). Production deploy green.
+
+**What triggered it.** TJ ran the navigator queue's "Copy AI review prompt" export through an external AI. It returned 19 corrections across 16 programs. Every one was re-verified against a primary source before applying, one program per subagent, in parallel. **All 19 survived** — but re-deriving them turned up roughly a dozen defects the reviewer missed, and a second self-directed pass on four programs it never looked at found all four wrong too. **Twenty programs opened, twenty with material defects.**
+
+**The finding that matters most.** The ND Assistive Senior Safety Program published `(800) 735-5400`. That number appears on `ndassistive.org` nowhere and `hhs.nd.gov` nowhere. The only page on the open web attributing it to that program was **olera.care**. We invented it, published it, and it ranks — so checking it looked like confirmation. The same record also told families they must be **denied by Medicaid first** and that **income limits apply**; neither exists. A family reading that letter would reasonably conclude they were ineligible and never call.
+
+**Second-order finding:** `data/pipeline/<ST>/factcheck.json` exists for all 51 states, dated 2026-04-14, and **already recorded the correct ND number in April**. It was never applied — probably because it keys programs as `nd-assistive-senior-safety-program` while `drafts.json` uses `assistive-senior-safety-program`. 323 of 328 entries only match after loosening the id. It holds **101 disagreements, 78 never verified since**. Treat as leads, not truth: it asserted a *retired* Alabama number this morning, and several of its own "verified" sources are aggregators.
+
+**The systematic one.** `"Bank statements for all accounts (last 3 months)"` sat in 242 records. Origin found: `scripts/benefits-pipeline.js` handed the model that exact string as a worked example. The figure is the state's own **Asset Verification System query window** — under 42 U.S.C. 1396w the state pulls those records itself *at no cost to the applicant*, and Texas MEPD B-6200 tells its own caseworkers to check AVS *before* asking the person for anything. For Older Americans Act services the inquiry is outright **prohibited** (45 CFR 1321.9(c)(2)(x)(E); 1321.93(f)(2)(xi)(A) bars legal aid from even asking). Replaced across 236 records per cohort; 13 with genuine asset tests deliberately left alone.
+
+**Decisions made**
+- **Removed Nevada PACE entirely** rather than correcting it. Nevada Medicaid told the Silver Haired Legislative Forum (2026-06-25) that no operator is selected and the RFP is expected early 2027. NPA lists 33 states + DC without Nevada. That URL now 404s.
+- **Did not blanket-remove unverified phone numbers.** 468 of 612 published numbers have never been confirmed against an operator page, but `toPick()` requires a phone — deleting them would make those programs unpickable, a self-inflicted version of the bug below.
+- **Left the composer rail alone.** `lib/family-comms/benefits-navigator.server.ts:125` instructs the model to render any `savingsRange` as "Families that qualify often save $X a year" — the root cause of the false savings claims. Emptied the four bad figures; the rail is TJ's call.
+
+**Built into the machinery** (so each round is safer than the last, per TJ: "we have to build and fix as we go")
+- `scripts/benefits-lint.js`: `non-dialable-phone` (64 contacts hold prose/email/`316-XXX-XXXX` in the phone field, 9 in the lead slot) and `empty-documents`
+- `scripts/benefits-pipeline.js`: killed the bad exemplar, added rails against inventing documentation periods and against asset asks on no-asset-test programs
+- `scripts/benefits-phone-provenance.js` (PR #1629, **left in draft**): fetches each program's own `sourceUrl` and asks whether our number is on it. It flags `8007355400` and confirms `8008954728`, so it would have caught ND in April. **But a full run over 547 numbers flagged 45% as missing, and calibration against 14 programs verified by hand this session showed 7 false positives.** One URL is the wrong unit: the correct number usually lives somewhere on the operator's *domain* (a contact page, a sibling page, a PDF), not necessarily on the single `sourceUrl` the record cites. ND worked only because ND Assistive is a small single-site org with its number in every page header. Needs a v2 that resolves the registrable domain, does a site-restricted search, extracts PDF text, and treats a dead `sourceUrl` as its own finding.
+
+**Letters:** 20 pending drafts patched (body + SMS + `pick` snapshot together), Nevada PACE draft dismissed, 10 SMS `{link}.` punctuation fixes. `benefits-draft-lint` ended at **0 high / 0 medium**. TJ scheduled 33 of 35 for send.
+
+**Mistakes worth remembering**
+- I skipped `tsc` calling this "data-only, shape unchanged". Adding a `url` field to contacts **is** a shape change; it broke the Vercel build on #1624.
+- I put Oklahoma's published "60 months" into a PACE pre-call list. 60 months is the *institutional* parameter; PACE is a community program. NY and WA both split community (3–4 months) from institutional (60) explicitly.
+- I recommended pausing the reactive loop to go build infrastructure. TJ corrected it: the loop is demand-weighted and already running — fix inside it, don't stop it.
+
+
 ### 2026-08-18 — GA4 inflation traced to AWS bots; img2dataset scraper blocked (operations, no code)
 
 **Zero code changes.** One firewall rule published; the rest is diagnosis. Follow-on from the ground-truth audit below.
@@ -54,6 +84,20 @@
 **The biggest unused asset:** GSC shows **~2M impressions/month at average position 23 with 0.6% CTR**. Median CTR at position 8–10 is ~3%, so the same content moved to page one is a 4–5x on organic with zero new pages. Reframes flat traffic from "SEO is maturing" to "SEO hasn't started."
 
 **Next:** (1) fix or delete the stale GA4 stream so totals stop lying; (2) correct 25,000 → 15,000 and 39,000 → 74,140 in the deck, Research Plan and Abstract; (3) the 90-day synergy test — put 3 nearest matching providers with one-tap inquiry at the end of a completed benefits screening, randomized 50/50, and treat failure to move 0.6% into double digits as falsification; (4) apply the one-click pattern to inquiries, since 1,228 of 1,229 sit `pending` and every traction number currently terminates in a dead end.
+
+### 2026-08-17 — Provider reachability: War Room's 333 closed to 285, and question emails stopped blasting
+
+**War Room probe moved 333/1408 → 285/1394 unreachable.** 43 providers newly reachable, 58 held questions delivered, $4.61 spend, 0 bounces. PRs #1614, #1615, #1616 (`vibrant-kepler`).
+
+**/benefits-pipeline was the wrong tool and its contact finder does not transfer.** It finds benefit-*program* application doors (phone, apply URL) via Perplexity prompts written for government programs. The provider-side finder already existed — `lib/medjobs/outreach-enrichment.ts` `findEmail()` (scrape → Perplexity → ZeroBounce) with a batch driver at `scripts/enrich-outreach-emails.ts`. It just could not be aimed at this cohort and threw away most of what it found.
+
+**Three bugs in the existing enricher.** (1) It gated on ZeroBounce's RAW verdict, dropping `invalid`/`role_based` — a marketing-policy verdict on `info@`/`admin@`, not a dead mailbox, and exactly what provider sites publish. `effectiveStatus()` existed for this and the send path already applied it (`lib/email.ts:514`); the enricher never called it. In a 30-provider sample, **5 of 7 finds would have been discarded**. This also explains the old College Station log ("6 found → 3 written"). (2) Targeting required a website on file, skipping **137 of 282** — `resolveWebsite()` already resolves a `place_id` through Places. (3) A written email was inert: it never flushed the questions held *because* the column was empty.
+
+**The repeats are a demand tally, not junk — do not delete them.** `app/provider/[slug]/page.tsx:391` reads every question ever asked on a provider, any status, to build `suggestionStats`, which renders **"N people asked this"** (`components/providers/QASectionV2.tsx:681`) and ranks the suggested chips. `willow-bend-villas` holds 55 pending questions carrying **14 distinct texts**. Deleting the repeats turns "16 people asked this" into "1". Suppression (`metadata.email_suppressed_at`) stops the mail, keeps the tally, and reverses cleanly. **845 swept** across 202 providers; deliberately spared: 877 already emailed (live one-click links point at those row ids), 181 not pending, 72 answered, 65 with an asker email.
+
+**Claim conversion was unmeasurable, now instrumented.** `business_profiles.claimed_at` was null on all 3,734 rows and `provider_activity` has no claim event, so 789 claimed orgs could not be attributed to anything. Migration `181_business_profile_claimed_at.sql` adds a trigger (10+ call sites set `claim_state='claimed'`; a trigger cannot be forgotten) and backfills the 159 real dates from `provider_outreach_tracking`. **Applied to prod 2026-08-17, verified.**
+
+**Answer rate is 7.4% and that is the wrong metric.** 5,331 questions were emailed to a provider; 395 answered. Median time-to-answer 33 hours, p90 **782 hours**. TJ's correction: questions are a provider-onboarding tool, not a Q&A service — families do not leave emails (440 of 12,514 = 3.5%) and do not come back. So claim conversion is the KPI, which is why the timestamp had to exist first.
 
 ### 2026-08-17 — LumiWell Ad Boost published; the blocker was one keyword, not the firewall (operations, no code)
 
@@ -3702,6 +3746,24 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Next Up
 
+**Benefits fact-check follow-ups (2026-08-18)**
+- **2 drafts never got a schedule marker**: `b32bb6fd` north-dakota/assistive-senior-safety-program and `acfe50b7` kentucky/hcbs-waivers. Both patched and correct; both had the heaviest letter rewrites. Check whether that was deliberate.
+- **Provenance checker needs a v2 before its output is usable.** The full sweep finished at 547 checked: 247 `NOT_ON_OPERATOR_PAGE` (45%), 199 `CONFIRMED`, 96 `UNREACHABLE`. Calibrating against the 14 programs verified by hand this session found 7 false positives, so the miss list is mostly noise. Diagnosis and the v2 requirements are in PR #1629's description. Do not work the current list.
+- **101 April `factcheck.json` disagreements**, 78 never verified since. Free ranked queue; leads not truth.
+- **124 programs `toPick()` can never select** (phone present, `documentsNeeded: null`) — almost all SHIP, ombudsman, legal aid, caregiver support, i.e. the free no-paperwork services. Filed on the Web App board, P3. One-line fix at the guard, but it is a product call.
+- **Composer rail** `benefits-navigator.server.ts:125` still manufactures "families often save $X" from any savings figure.
+- **3 duplicate program pairs**: AL waiver (`medicaid-elderly-disabled-waiver` / `ed-medicaid-waiver`), KY waiver (`hcbs-waivers` / `hcb-waiver`), and the two AL Medicare Savings letters. Merging removes a live URL.
+- **Pre-existing lint highs** not in scope today: `CA/ihss` and `DE/pace-comprehensive-care` null lead phones, `OR/pace-elderly-care` non-dialable phone.
+- **MA Frail Elder Waiver dispute moved**: NY and WA both split community vs institutional lookback, and PA's 60-month guide is titled "Long-Term Care *Facility*". FEW is a community waiver, so the burden has shifted to the FEW-specific sources. Still not settled.
+
+**Provider reachability / question flush — added 2026-08-17 (PRs #1614, #1615 merged; #1616 open):**
+- 🔴 **Merge #1616.** It carries the claimed_at migration (already applied to prod), the flush cap at 2, and three pre-test fixes. Two of those fixes correct defects introduced by #1615, which is already live — nothing has fired through that path yet because the admin session predates it, but the next flush would hit them.
+- 🟡 **Check bounces on the 58 enrichment sends.** 0 so far but the run finished 2026-08-17; bounces take hours. First real test of role addresses at volume. `email_log` where `email_type='question_received'`.
+- 🟡 **Let `claimed_at` accumulate for a week before analysing.** Today's 43 newly-reachable providers are a clean cohort. Do not read the 8 same-day claims as causal: all 8 are outreach-program providers taking fax/mail/LinkedIn touches too, `provider_outreach_tracking.claimed_at` may be detection rather than click time, and only 2 fall inside the enrichment run's window.
+- ⏳ **Do not invest further in reachability breadth.** 225 of the 278 attempted providers have no findable email at all, and the remaining 285 are the hardest. Hit rate came in at **15.5%**, below the 23% the n=30 sample suggested — the sample was optimistic, budget off the 15.5%.
+- ⏳ **2 addresses were written as catch-all "risky".** The probe counts them reachable; the cold lane will always suppress them. Matches the probe's own caveat that a present address is not proof of deliverability. Inflates the improvement by 2.
+- ⏳ **Wire `findEmail()` into the city pipeline** so new cities ship with emails instead of being backfilled forever. `scripts/enrich-city.js` still has no email finder — that gap is what `scripts/enrich-outreach-emails.ts` was built to paper over.
+
 **Benefits household-income guard — added 2026-08-14 (PR #1599):**
 - 🔴 **Kill or rewrite the pending Navigator draft on profile `a86383a6`** before any send sweep runs. Status is `pending` and manual-send only, so nothing has gone out, but as written it tells an 83-year-old *"an income under $1,500 a month is in the range they look at"* and quotes $2,435/yr. It would send him to a hotline for a denial.
 - 🔴 **Merge #1599 only after review.** Contains the pre-test fix to `getProgramsForFamily`, which is the one that actually moves the family-facing quiz payoff screen.
@@ -3924,6 +3986,26 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-08-17 — Reached the providers holding unanswered questions; found the flush was blasting them
+
+Started from the War Room card: *333 of 1408 provider pages holding unanswered questions have no usable email*. TJ asked whether `/benefits-pipeline` or its contact finder could close it.
+
+**It could not, and the right tool already existed.** The benefits pipeline finds government-program application doors, not business emails. `lib/medjobs/outreach-enrichment.ts` already had the provider finder. Fixed three things in `scripts/enrich-outreach-emails.ts`: judge on `effectiveStatus()` not the raw ZeroBounce verdict (role addresses are the whole unlock — 5 of 7 sampled finds were being discarded), drop the website requirement (137 of 282 providers have only a `place_id`), and call `sendDeferredNotificationsForProvider()` on write so the held questions actually go. PR #1614.
+
+**TJ's steer changed the design: dedupe the repeats.** Families pick from the same suggested chips, so providers accumulate identical texts — `willow-bend-villas` 55 questions / 14 texts, `briarwood` 52 / 8. Every caller sent all of them. Dedupe landed in the shared function so all ~16 callers benefit, including `/api/admin/flush-deferred-backlog` whose `perProvider` default of 100 was the only thing between those backlogs and the inbox.
+
+**Suppress, not delete.** TJ asked to purge the repeats ("families don't leave their email anyway" — true, 3.5%). But `app/provider/[slug]/page.tsx:391` counts every row sharing a text to render "N people asked this" and rank the chips. Deleting would zero that on exactly the questions families care most about. Swept 845 with `metadata.email_suppressed_at`, sparing already-emailed / answered / asker-email / non-pending rows. Tally verified intact afterwards.
+
+**Ran it: 278 targets → 43 emails written, 58 questions delivered, $4.61, 0 bounces.** Probe moved to 285/1394. Hit rate 15.5%, below the 23% the n=30 sample implied — small-sample optimism, worth remembering. Skipped the 25-provider pilot I had proposed after TJ questioned it: every address is ZeroBounce-verified at write and re-verified at send, and 130 emails cannot move a 4% account-wide threshold. Replaced it with a 3-provider smoke test of the untested write→notify path, which is the part you cannot unsend.
+
+**Then TJ corrected the strategy.** I recommended answering the questions ourselves (7.4% answer rate, 33h median, 782h p90). Wrong frame: questions are a provider-onboarding instrument, not a Q&A service. So the KPI is claim conversion — which turned out to be **unmeasurable**: `claimed_at` null on all 3,734 rows, no claim event in `provider_activity`. Migration `181` adds a trigger and backfills the 159 real dates from `provider_outreach_tracking`. TJ applied it; verified end to end.
+
+**Found the flush blasting providers.** Investigating a same-day claim signal surfaced 583 question emails after my run — a person working the admin Questions tab (372 actions, 12:30–14:00 UTC). Shape: 6 emails to one inbox **inside one second**, 9 to another, 55 providers with 4+. Cause: `maxQuestions: undefined` meant "send all", and only 2 of ~16 call sites passed a cap. `DEFAULT_QUESTION_FLUSH_CAP = 2` now lives in the shared function; `email-override` 5→2 and `flush-deferred-backlog` 100→2.
+
+**`/pre-test` earned its place — three real bugs.** (1) The asker-email carve-out never registered its text, so an anonymous copy elected itself and sent the same question twice, spending the whole cap on one question. (2) Several reachable families asking the same text each got their own email; now one copy per call, siblings left unnotified rather than suppressed so nobody is dropped. (3) **My own regression**: dropping `perProvider` 100→2 broke the invariant `flush-deferred-backlog`'s no-cursor design rests on — served providers no longer fall out of the alphabetically-sorted list, so every re-run would re-serve the same prefix and starve the tail. Providers now sit out 24h after being served.
+
+**Verification habits that paid.** `dryRunQuestions` (added for this) previews a flush without sending. The first dedupe test passed only because the cap truncated the list before duplicates collided — re-running it uncapped exposed bug (2). And an early "0% claim conversion" result was an artifact of `claimed_at` being unpopulated, not a finding.
 
 ### 2026-08-17 — LumiWell published; the Aug 15 blocker was one keyword, and the firewall theory was wrong
 

@@ -823,6 +823,8 @@ interface OutreachProvider {
   fax_source_url: string | null;
   linkedin_url: string | null;
   mail_address: string | null;
+  contact_form_url: string | null;
+  contact_form_status: "found" | "not_found" | null;
   // Assignment
   assigned_to: string | null;
   // Sequence progress (for in_sequence stage)
@@ -2903,6 +2905,18 @@ function FollowUpProviderRow({
   const [pendingDirectMailSend, setPendingDirectMailSend] = useState(false);
   const [findingAddress, setFindingAddress] = useState(false);
   const [addressNotFound, setAddressNotFound] = useState(false);
+  // Inline contact form state
+  const [editingContactForm, setEditingContactForm] = useState(false);
+  const [contactFormUrlInput, setContactFormUrlInput] = useState("");
+  const [contactFormMessageCopied, setContactFormMessageCopied] = useState(false);
+  const [contactFormOpened, setContactFormOpened] = useState(false);
+  const [submittingContactForm, setSubmittingContactForm] = useState(false);
+  const [savingContactFormUrl, setSavingContactFormUrl] = useState(false);
+  const [findingContactForm, setFindingContactForm] = useState(false);
+  const [contactFormNotFound, setContactFormNotFound] = useState(false);
+  const [claimUrl, setClaimUrl] = useState<string | null>(null);
+  const [loadingClaimUrl, setLoadingClaimUrl] = useState(false);
+  const [claimUrlError, setClaimUrlError] = useState<string | null>(null);
   // Confirmation checkbox state
   const [confirmedWithProvider, setConfirmedWithProvider] = useState(false);
   // Reset to Ready state
@@ -2935,6 +2949,15 @@ function FollowUpProviderRow({
       setPendingDirectMailSend(false);
       setFindingAddress(false);
       setAddressNotFound(false);
+      setEditingContactForm(false);
+      setContactFormUrlInput("");
+      setContactFormMessageCopied(false);
+      setContactFormOpened(false);
+      setSubmittingContactForm(false);
+      setSavingContactFormUrl(false);
+      setClaimUrl(null);
+      setLoadingClaimUrl(false);
+      setClaimUrlError(null);
       setConfirmedWithProvider(false);
       // Reset Apollo state
       setFindingDecisionMaker(false);
@@ -3526,6 +3549,234 @@ function FollowUpProviderRow({
         setSendingDirectMail(false);
       }
     }
+  };
+
+  // Handle auto-finding contact form URL from provider website
+  const handleFindContactForm = async () => {
+    if (!provider.website) {
+      setContactFormNotFound(true);
+      return;
+    }
+
+    const sessionAtStart = editingSessionRef.current;
+    setFindingContactForm(true);
+    setContactFormNotFound(false);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-contact-form", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          website: provider.website,
+        }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (!res.ok) {
+        const errData = await res.json();
+        if (stillValid) {
+          setError(errData.error || "Failed to find contact form");
+          setContactFormNotFound(true);
+        }
+        return;
+      }
+
+      const data = await res.json();
+
+      if (stillValid) {
+        if (data.found && data.url) {
+          setContactFormUrlInput(data.url);
+          onProviderUpdated({ contact_form_url: data.url, contact_form_status: "found" });
+        } else {
+          setContactFormNotFound(true);
+          onProviderUpdated({ contact_form_status: "not_found" });
+        }
+      }
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error finding contact form");
+        setContactFormNotFound(true);
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setFindingContactForm(false);
+      }
+    }
+  };
+
+  // Handle saving contact form URL - returns true on success, false on failure
+  const handleSaveContactFormUrl = async (url: string): Promise<boolean> => {
+    const sessionAtStart = editingSessionRef.current;
+    setSavingContactFormUrl(true);
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-tracking", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          updates: { contact_form_url: url },
+        }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (!res.ok) {
+        const errData = await res.json();
+        if (stillValid) {
+          setError(errData.error || "Failed to save contact form URL");
+        }
+        return false;
+      }
+
+      // Update local state
+      if (stillValid) {
+        onProviderUpdated({ contact_form_url: url });
+        setContactFormUrlInput("");
+      }
+      return true;
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error saving contact form URL");
+      }
+      return false;
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setSavingContactFormUrl(false);
+      }
+    }
+  };
+
+  // Handle contact form submission - marks provider as contacted via website form
+  const handleContactFormSubmit = async () => {
+    if (!contactFormUrlInput) {
+      setError("Please enter a contact form URL first");
+      return;
+    }
+
+    const sessionAtStart = editingSessionRef.current;
+    setSubmittingContactForm(true);
+    setError(null);
+
+    try {
+      // If we have a new URL, save it first
+      if (contactFormUrlInput && contactFormUrlInput !== provider.contact_form_url) {
+        const saved = await handleSaveContactFormUrl(contactFormUrlInput);
+        if (!saved) {
+          // Don't proceed if URL save failed
+          return;
+        }
+      }
+
+      const res = await fetch("/api/admin/provider-outreach/record-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          outcome: "try_contact_form",
+          notes: `Contact form submitted: ${contactFormUrlInput}`,
+        }),
+      });
+
+      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
+
+      if (!res.ok) {
+        const errData = await res.json();
+        if (stillValid) {
+          setError(errData.error || "Failed to record contact form submission");
+        }
+        return;
+      }
+
+      // Success - close inline editing and refresh
+      if (stillValid) {
+        setEditingContactForm(false);
+        setContactFormMessageCopied(false);
+        setContactFormOpened(false);
+        setContactFormUrlInput("");
+      }
+      onOutcomeRecorded(true); // Stage changed, trigger refresh
+    } catch {
+      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
+        setError("Network error recording contact form");
+      }
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setSubmittingContactForm(false);
+      }
+    }
+  };
+
+  // Handle copy message and open contact form
+  const handleCopyAndOpenContactForm = () => {
+    if (!contactFormUrlInput) return;
+
+    // Copy message to clipboard
+    navigator.clipboard.writeText(getContactFormMessage());
+    setContactFormMessageCopied(true);
+    setTimeout(() => setContactFormMessageCopied(false), 2000);
+
+    // Open contact form URL
+    const url = contactFormUrlInput.startsWith("http") ? contactFormUrlInput : `https://${contactFormUrlInput}`;
+    window.open(url, "_blank");
+    setContactFormOpened(true);
+  };
+
+  // Fetch claim URL for contact form message
+  const handleFetchClaimUrl = async () => {
+    if (claimUrl || loadingClaimUrl) return;
+
+    const sessionAtStart = editingSessionRef.current;
+    setLoadingClaimUrl(true);
+    setClaimUrlError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/generate-claim-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+
+      if (editingSessionRef.current !== sessionAtStart || !isExpandedRef.current) return;
+
+      if (res.ok) {
+        const data = await res.json();
+        setClaimUrl(data.claim_url);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        const errMsg = errData.error || "Failed to generate tracking link";
+        console.error("[contact-form] Failed to generate claim URL:", errMsg);
+        setClaimUrlError(errMsg);
+      }
+    } catch {
+      console.error("[contact-form] Error fetching claim URL");
+      setClaimUrlError("Network error generating tracking link");
+    } finally {
+      if (editingSessionRef.current === sessionAtStart) {
+        setLoadingClaimUrl(false);
+      }
+    }
+  };
+
+  // Generate contact form message for provider (personalized like Day 0 email)
+  const getContactFormMessage = () => {
+    const city = provider.city || provider.state || "your area";
+    const category = provider.provider_category || "care services";
+    const name = provider.provider_name;
+    const link = claimUrl || `https://olera.care/providers/${provider.slug}`;
+
+    return `Hi, I'm Logan from Olera.
+
+Families in ${city} searching for ${category} can already see the page we built for ${name}. But if one reached out today, no one would see the message.
+
+Activate your page (2 min, free) to fully manage it:
+${link}
+
+Questions? support@olera.care or (979) 243-9801`;
   };
 
   // Confirmation modal content for each outcome
@@ -4257,6 +4508,50 @@ function FollowUpProviderRow({
               >
                 Send Postcard
               </button>
+
+              <button
+                onClick={() => {
+                  setEditingContactForm(true);
+                  setContactFormMessageCopied(false);
+                  setContactFormOpened(false);
+                  setContactFormUrlInput(provider.contact_form_url || "");
+                  setContactFormNotFound(provider.contact_form_status === "not_found");
+                  setError(null);
+                  // Fetch the magic claim URL for the message
+                  setTimeout(() => handleFetchClaimUrl(), 0);
+                  // Auto-find contact form if none exists and not already checked
+                  if (!provider.contact_form_url && provider.contact_form_status !== "not_found" && provider.website) {
+                    // Trigger find after state updates
+                    setTimeout(() => handleFindContactForm(), 0);
+                  }
+                }}
+                disabled={submitting !== null || editingContactForm || submittingContactForm || findingContactForm || !provider.slug}
+                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 ${
+                  provider.contact_form_url
+                    ? "text-orange-800 bg-orange-100 border border-orange-300 hover:border-orange-400 hover:bg-orange-150"
+                    : provider.contact_form_status === "not_found" || !provider.website
+                      ? "text-gray-500 bg-gray-50 border border-gray-200 hover:border-gray-300 hover:bg-gray-100"
+                      : "text-orange-700 bg-orange-50 border border-orange-200 hover:border-orange-300 hover:bg-orange-100"
+                }`}
+                title={
+                  !provider.slug ? "No public page available" :
+                  provider.contact_form_url ? "Contact form URL saved" :
+                  !provider.website ? "No website on record (manual entry only)" :
+                  provider.contact_form_status === "not_found" ? "No contact form found" :
+                  undefined
+                }
+              >
+                {provider.contact_form_url ? (
+                  <svg className="w-3.5 h-3.5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                ) : provider.contact_form_status === "not_found" || !provider.website ? (
+                  <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                ) : null}
+                Contact Form
+              </button>
             </div>
 
             {/* Inline Fax editing */}
@@ -4381,9 +4676,187 @@ function FollowUpProviderRow({
               </div>
             )}
 
+            {/* Inline Contact Form */}
+            {editingContactForm && (
+              <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                <div className="flex items-center justify-between mb-3">
+                  <label className="text-xs font-medium text-gray-700 uppercase tracking-wide">
+                    Website Contact Form
+                  </label>
+                  <button
+                    onClick={() => {
+                      setEditingContactForm(false);
+                      setContactFormMessageCopied(false);
+                      setContactFormOpened(false);
+                      setContactFormUrlInput("");
+                      setContactFormNotFound(false);
+                      setFindingContactForm(false);
+                      setError(null);
+                    }}
+                    className="text-xs text-gray-500 hover:text-gray-700"
+                  >
+                    Cancel
+                  </button>
+                </div>
+
+                {/* Loading state while finding */}
+                {findingContactForm && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600 py-4 justify-center">
+                    <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
+                    Finding contact form...
+                  </div>
+                )}
+
+                {/* Not found state */}
+                {!findingContactForm && contactFormNotFound && !contactFormUrlInput && (
+                  <div className="mb-3">
+                    <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-lg mb-2">
+                      <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      No contact form found on their website
+                    </div>
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={contactFormUrlInput}
+                        onChange={(e) => {
+                          setContactFormUrlInput(e.target.value);
+                          setContactFormNotFound(false);
+                        }}
+                        placeholder="Enter URL manually..."
+                        className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent bg-white"
+                        onClick={(e) => e.stopPropagation()}
+                      />
+                      {provider.website && (
+                        <a
+                          href={provider.website.startsWith("http") ? provider.website : `https://${provider.website}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 whitespace-nowrap"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Visit Site
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Contact Form URL Input - shown when not loading and not in "not found" state, or when user has typed something */}
+                {!findingContactForm && (!contactFormNotFound || contactFormUrlInput) && (
+                  <div className="mb-3">
+                    <div className="flex gap-2">
+                      <input
+                        type="url"
+                        value={contactFormUrlInput}
+                        onChange={(e) => setContactFormUrlInput(e.target.value)}
+                        placeholder="https://example.com/contact"
+                        className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent bg-white"
+                        onClick={(e) => e.stopPropagation()}
+                        disabled={findingContactForm}
+                      />
+                      {provider.website && !contactFormUrlInput && !findingContactForm && (
+                        <button
+                          onClick={handleFindContactForm}
+                          className="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 whitespace-nowrap"
+                        >
+                          Find
+                        </button>
+                      )}
+                    </div>
+                    {!contactFormUrlInput && !findingContactForm && (
+                      <p className="mt-1.5 text-xs text-gray-500">
+                        {provider.contact_form_url
+                          ? "URL auto-filled from previous search"
+                          : provider.website
+                            ? "URL will be auto-found from their website"
+                            : "No website on record. Enter contact form URL manually."}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Show workflow when URL exists in input */}
+                {contactFormUrlInput && (
+                  <>
+                    {/* Message preview */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-3 mb-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs font-medium text-gray-500">Message:</span>
+                      </div>
+                      <pre className="text-xs text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
+                        {getContactFormMessage()}
+                      </pre>
+                    </div>
+
+                    {/* Form field hints */}
+                    <div className="text-xs text-gray-600 mb-3 grid grid-cols-2 gap-x-4 gap-y-0.5">
+                      <p><span className="font-medium">First:</span> Logan</p>
+                      <p><span className="font-medium">Last:</span> DuBose</p>
+                      <p><span className="font-medium">Email:</span> support@olera.care</p>
+                      <p><span className="font-medium">Phone:</span> (979) 243-9801</p>
+                    </div>
+
+                    {/* Error message if claim URL generation failed */}
+                    {claimUrlError && (
+                      <div className="mb-3 p-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg">
+                        <span className="font-medium">Cannot generate tracking link:</span> {claimUrlError}
+                        {claimUrlError.includes("no email") && (
+                          <span className="block mt-1 text-red-600">Add an email address to enable one-click claim tracking.</span>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Copy & Open Button */}
+                    {!contactFormOpened ? (
+                      <button
+                        onClick={handleCopyAndOpenContactForm}
+                        disabled={loadingClaimUrl || !claimUrl}
+                        className="w-full px-4 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {loadingClaimUrl ? (
+                          <>
+                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                            </svg>
+                            Generating link...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                            </svg>
+                            Copy Message & Open Form
+                          </>
+                        )}
+                      </button>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 px-3 py-2 rounded-lg">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                          </svg>
+                          Message copied & form opened
+                        </div>
+                        <button
+                          onClick={handleContactFormSubmit}
+                          disabled={submittingContactForm}
+                          className="w-full px-4 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors disabled:opacity-50"
+                        >
+                          {submittingContactForm ? "Recording..." : "Mark as Submitted"}
+                        </button>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
+            )}
+
             {/* Cost note */}
             <p className="mt-4 text-xs text-gray-400">
-              Fax and postcard have per-send costs.
+              Fax and postcard have per-send costs. Contact form is free.
             </p>
           </div>
         </div>
@@ -5365,12 +5838,12 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
                 {provider.re_engage_channel && provider.re_engage_channel !== "re_engage" && (
                   <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
                     provider.re_engage_channel === "fax" ? "bg-purple-50 text-purple-700" :
-                    provider.re_engage_channel === "linkedin" ? "bg-blue-50 text-blue-700" :
+                    provider.re_engage_channel === "contact_form" ? "bg-orange-50 text-orange-700" :
                     provider.re_engage_channel === "direct_mail" ? "bg-teal-50 text-teal-700" :
                     "bg-gray-50 text-gray-600"
                   }`}>
                     {provider.re_engage_channel === "fax" ? "Fax" :
-                     provider.re_engage_channel === "linkedin" ? "LinkedIn" :
+                     provider.re_engage_channel === "contact_form" ? "Contact Form" :
                      provider.re_engage_channel === "direct_mail" ? "Direct Mail" :
                      provider.re_engage_channel}
                   </span>
@@ -5861,7 +6334,7 @@ export default function ProviderOutreachPage() {
   const [selectedAdminFilter, setSelectedAdminFilter] = useState<string | null>(null);
 
   // Channel filter state (for Alternative Channels tab)
-  type ChannelFilter = "all" | "email" | "fax" | "direct_mail";
+  type ChannelFilter = "all" | "email" | "fax" | "contact_form" | "direct_mail";
   const [selectedChannelFilter, setSelectedChannelFilter] = useState<ChannelFilter>("all");
 
   // Ready tab filter state (Organization vs Decision Maker)
@@ -8307,7 +8780,7 @@ export default function ProviderOutreachPage() {
             {/* Channel filter chips */}
             <div className="px-5 py-3 border-b border-gray-200 flex items-center gap-2">
               <span className="text-xs text-gray-500 mr-1">Channel:</span>
-              {(["all", "email", "fax", "direct_mail"] as const).map((channel) => {
+              {(["all", "email", "fax", "contact_form", "direct_mail"] as const).map((channel) => {
                 const count = channel === "all"
                   ? providers.length
                   : providers.filter((p) =>
@@ -8317,7 +8790,8 @@ export default function ProviderOutreachPage() {
                     ).length;
                 const label = channel === "all" ? "All" :
                   channel === "email" ? "Email" :
-                  channel === "fax" ? "Fax" : "Direct Mail";
+                  channel === "fax" ? "Fax" :
+                  channel === "contact_form" ? "Contact Form" : "Direct Mail";
                 const isSelected = selectedChannelFilter === channel;
                 return (
                   <button

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:52:08.659Z
+ * Last updated: 2026-08-18T11:33:52.357Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1165,6 +1165,159 @@ export const drafts: PipelineStateDrafts = {
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
       "lastVerifiedDate": "2026-07-31"
+    },
+    {
+      "id": "eheap-emergency-home-energy-elderly",
+      "name": "EHEAP (Emergency Home Energy Assistance for the Elderly Program)",
+      "shortName": "EHEAP Energy Emergencies",
+      "tagline": "Emergency help for households with someone 60 or older when heating or cooling fails, including repair or replacement of the equipment.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": true
+      },
+      "intro": "If your loved one is 60 or older and their home has become dangerously hot or cold, EHEAP is the program built for that moment. It helps low-income Florida households with at least one person age 60 or older who are facing a home energy emergency, and it is administered through Area Agencies on Aging and local Aging and Disability Resource Centers rather than the county agency that handles regular utility assistance.\n\nThe important difference from LIHEAP is what the money can do. LIHEAP pays down a utility bill. EHEAP responds to the emergency itself, and its described uses include repairs or replacement of existing heating and cooling equipment, not only the bill. Some regions also provide fans, portable units, blankets, or space heaters. A household can qualify for a benefit in each season, and the cooling season runs April 1 through September 30 while the heating season runs October 1 through March 31.\n\nEligibility rests on three things: someone in the home is 60 or older, the household income is at or below 60 percent of Florida's State Median Income, and there is a documented home energy emergency. Most program descriptions frame that emergency around a past due bill, a shut off notice, or being out of fuel, so a household whose equipment has failed should describe the situation and any health impact clearly when they call. The local agency makes the determination.\n\nBenefit amounts, and how many benefits a household can receive per season, are set by FloridaCommerce and vary by region and by available funding. Ask the local agency what applies in your loved one's county rather than planning around a figure you read elsewhere.",
+      "savingsRange": "",
+      "savingsSource": "Amounts are set by FloridaCommerce and vary by region and funding",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "At least one household member age 60 or older",
+          "Household income at or below 60 percent of Florida's State Median Income",
+          "A documented home energy emergency, such as a past due bill, a shut off notice, no fuel, or failed heating or cooling equipment",
+          "Florida resident",
+          "Responsible for the home's heating or cooling costs"
+        ],
+        "ageRequirement": "60 or older for at least one member of the household",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "The cooling season runs April 1 through September 30 and the heating season runs October 1 through March 31",
+          "Applications are handled by the Area Agency on Aging or Aging and Disability Resource Center for the county, not by the county LIHEAP office",
+          "HVAC repair and replacement can be limited by the availability of participating vendors in the area"
+        ],
+        "povertyLevelReference": "60 percent of State Median Income"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the statewide Elder Helpline, which routes to the Aging and Disability Resource Center for your loved one's county. That agency screens for EHEAP and takes the application.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Elder Helpline",
+            "description": "Call 1-800-96-ELDER (1-800-963-5337). This is the Florida Department of Elder Affairs statewide line and it connects to the Aging and Disability Resource Center serving your loved one's county."
+          },
+          {
+            "step": 2,
+            "title": "Describe the emergency plainly",
+            "description": "Say what has failed and what it means for the household. If the heat or cooling is not working, say so directly, and mention any medical condition that the temperature is affecting. Ask them to screen the household for EHEAP by name."
+          },
+          {
+            "step": 3,
+            "title": "Gather documents",
+            "description": "Have proof of income for everyone in the home, photo ID, Social Security numbers, the most recent utility bill, and any shut off or past due notice ready before the appointment."
+          },
+          {
+            "step": 4,
+            "title": "Complete the application with the local agency",
+            "description": "The local provider verifies eligibility and arranges the benefit. Payments go to the utility or the vendor rather than to the household."
+          }
+        ],
+        "processingTime": "EHEAP is an emergency program and local agencies aim to act quickly, but timing depends on the agency, the season, and available funding.",
+        "waitlist": "Funding is limited and allocated by region. If a local agency has exhausted its funds, ask when the next cycle opens and whether LIHEAP crisis assistance or weatherization can help in the meantime.",
+        "tip": "EHEAP and LIHEAP are separate programs with separate applications. A household turned down for one, or already helped by one, should still ask about the other.",
+        "urls": [
+          {
+            "label": "Florida Department of Elder Affairs, EHEAP",
+            "url": "https://elderaffairs.org/programs-and-services/emergency-home-energy-assistance-for-the-elderly-program/"
+          },
+          {
+            "label": "Find your Aging and Disability Resource Center",
+            "url": "https://elderaffairs.org/resources/aging-and-disability-resource-centers-adrcs/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Proof of income for all household members",
+        "Photo ID for the applicant",
+        "Social Security numbers for all household members",
+        "The most recent home energy bill",
+        "Any past due notice, shut off notice, or documentation of the equipment failure",
+        "Proof of age for the household member who is 60 or older"
+      ],
+      "contacts": [
+        {
+          "label": "Florida Elder Helpline (start here)",
+          "phone": "1-800-963-5337",
+          "description": "Statewide Department of Elder Affairs line, 1-800-96-ELDER. Routes to the Aging and Disability Resource Center for your county, which screens for EHEAP and takes the application.",
+          "hours": null
+        },
+        {
+          "label": "2-1-1",
+          "phone": "2-1-1",
+          "description": "Backup routing if the Elder Helpline cannot be reached, and a source for other local emergency cooling and utility help",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "EHEAP runs through the aging network, so the entry point is the Elder Helpline or the local Aging and Disability Resource Center rather than the county LIHEAP provider.",
+        "Described uses include repair or replacement of existing heating and cooling equipment, which is what separates EHEAP from bill-only assistance. Availability of participating HVAC vendors can still limit what a region can deliver.",
+        "Some regions also supply fans, portable cooling units, blankets, or space heaters.",
+        "Benefit maximums and the number of benefits per season are set by FloridaCommerce and differ by region. Confirm with the local agency rather than quoting a figure.",
+        "A household can be eligible for both EHEAP and LIHEAP. They are separate applications through different agencies."
+      ],
+      "relatedPrograms": [
+        "LIHEAP (Low-Income Home Energy Assistance Program)",
+        "Weatherization Assistance Program (WAP)",
+        "Elder Options"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "My loved one's air conditioner is running but not cooling. Is that an emergency for EHEAP?",
+          "answer": "It may be. The program's described uses include repairs and replacement of existing cooling equipment, so failed equipment is within what EHEAP can address. Most official descriptions frame the qualifying emergency around a past due bill or a shut off notice, so the local agency makes the call. When you phone, state plainly that the cooling is not working and describe any medical condition the heat is affecting, so the health impact is on the record."
+        },
+        {
+          "question": "How is EHEAP different from LIHEAP?",
+          "answer": "LIHEAP is the broader energy assistance program open to low-income households of any age, and it pays toward the utility bill. EHEAP is for households with someone 60 or older who are in an energy emergency, and it can go beyond the bill to repair or replace heating and cooling equipment. They are separate applications and run through different agencies, so a household may be able to use both."
+        },
+        {
+          "question": "Who actually takes the application?",
+          "answer": "The Area Agency on Aging or the Aging and Disability Resource Center serving the county, sometimes through a local senior services partner. Calling the statewide Elder Helpline at 1-800-963-5337 is the reliable way to reach the right one, because the provider differs by county."
+        },
+        {
+          "question": "When can my loved one apply for cooling help?",
+          "answer": "The cooling season runs April 1 through September 30, and the heating season runs October 1 through March 31. A household may receive a benefit in each season, subject to the limits and funding set for the region."
+        },
+        {
+          "question": "How much will EHEAP pay?",
+          "answer": "The maximum is set by FloridaCommerce and varies by region and by the funding a local agency has left. Published figures differ from county to county, so ask the local agency what applies rather than planning around a number found online."
+        },
+        {
+          "question": "Does my loved one need to own their home?",
+          "answer": "No. The requirement is that the household is responsible for the home's heating or cooling costs. Renters can qualify, though work on equipment owned by a landlord may need the landlord's cooperation."
+        },
+        {
+          "question": "Can I apply on behalf of my parent?",
+          "answer": "Yes, family members routinely help with the call and the paperwork. Bring the household's income documentation and identification, and expect the agency to want to verify details with the person who is 60 or older."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "Lightning",
+      "phone": "1-800-963-5337",
+      "sourceUrl": "https://elderaffairs.org/programs-and-services/emergency-home-energy-assistance-for-the-elderly-program/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-08-18",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "weatherization-assistance-program",
@@ -3388,9 +3541,10 @@ export const drafts: PipelineStateDrafts = {
         "need": "Utility bills and home costs",
         "programs": [
           "LIHEAP (Low-Income Home Energy Assistance Program)",
-          "Weatherization Assistance Program (WAP)"
+          "Weatherization Assistance Program (WAP)",
+          "EHEAP (Emergency Home Energy Assistance for the Elderly Program)"
         ],
-        "description": "Financial assistance and free home improvements to reduce energy costs."
+        "description": "Financial assistance and free home improvements to reduce energy costs, plus emergency help for households with someone 60 or older when heating or cooling fails."
       },
       {
         "need": "Food and daily support",

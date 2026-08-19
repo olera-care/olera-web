@@ -2,7 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import twilio from "twilio";
 import { createClient } from "@supabase/supabase-js";
 import { normalizeUSPhone } from "@/lib/twilio";
-import { smsHelpReply } from "@/lib/sms/templates";
+import { smsHelpReply, familyAnswerAckSms } from "@/lib/sms/templates";
+import { detectCrisis, crisisLabel, type CrisisResult } from "@/lib/sms/crisis";
+import { sendReactiveFamilyAlert } from "@/lib/sms/reactive-alerts";
 import { interpretBenefitsSmsReply } from "@/lib/family-comms/benefits-sms-replies.server";
 import { readBenefitsCascade } from "@/lib/family-comms/benefits-cascade.server";
 import {
@@ -86,14 +88,26 @@ function last10(phone: string): string | null {
 /** Family profiles whose phone matches, format-agnostic. */
 async function matchFamilyProfiles(
   phone: string,
-): Promise<{ id: string; display_name: string | null; email: string | null; metadata: Record<string, unknown> }[]> {
+): Promise<
+  {
+    id: string;
+    display_name: string | null;
+    email: string | null;
+    metadata: Record<string, unknown>;
+    // state + phone_validity feed the acknowledgement send: quiet hours are
+    // evaluated in the RECIPIENT's timezone, and an opted-out number must
+    // never be texted back even though they just texted us.
+    state: string | null;
+    phone_validity: string | null;
+  }[]
+> {
   const db = getServiceDb();
   if (!db) return [];
   const target = last10(phone);
   if (!target) return [];
   const { data: rows } = await db
     .from("business_profiles")
-    .select("id, phone, display_name, email, metadata")
+    .select("id, phone, display_name, email, metadata, state, phone_validity")
     .eq("type", "family")
     .not("phone", "is", null);
   return (rows ?? []).filter((r) => last10(String(r.phone ?? "")) === target) as never;
@@ -109,7 +123,12 @@ async function recordInbound(
   body: string,
   keyword: string | null,
   alertUnstructured = false,
-): Promise<{ response?: string; structured: boolean }> {
+): Promise<{
+  response?: string;
+  structured: boolean;
+  /** First matched family profile, so callers can act without re-querying. */
+  profile?: Awaited<ReturnType<typeof matchFamilyProfiles>>[number];
+}> {
   const db = getServiceDb();
   if (!db) return { structured: false };
   const profiles = await matchFamilyProfiles(phone);
@@ -162,7 +181,7 @@ async function recordInbound(
       console.error("[sms-webhook] Slack ping failed:", err);
     }
   }
-  return { response, structured };
+  return { response, structured, profile: profiles[0] };
 }
 
 /** Set phone_validity for every family profile whose phone matches `phone`. */
@@ -208,6 +227,151 @@ async function alertUnmatchedInbound(
     );
   } catch (err) {
     console.error("[sms-webhook] Unmatched-inbound Slack ping failed:", err);
+  }
+}
+
+/**
+ * Page a human immediately for a message with crisis language. No automated
+ * reply goes out: there is no safe canned response to "I want to die" from a
+ * benefits directory, and sending one risks implying we are a crisis service.
+ */
+async function pageCrisis(
+  phone: string,
+  body: string,
+  who: string | null,
+  crisis: CrisisResult,
+): Promise<void> {
+  try {
+    const { sendSlackAlert } = await import("@/lib/slack");
+    const label = crisis.category ? crisisLabel(crisis.category) : "possible crisis";
+    const name = who ? `${who} (${phone})` : phone;
+    await sendSlackAlert(
+      `🚨 URGENT — ${label} in a text from ${name}: "${body.slice(0, 300)}" ` +
+        `(matched: ${crisis.matched.join(", ")}). No auto-reply was sent. Respond from /admin/inbox.`,
+    );
+  } catch (err) {
+    console.error("[sms-webhook] Crisis page failed:", err);
+  }
+}
+
+/**
+ * True when this number already got, or is already owed, a "we're looking into
+ * it" text. On 18 Aug a family sent two near-identical messages 44 seconds
+ * apart; without this they would receive two identical acknowledgements, which
+ * reads as broken rather than attentive.
+ *
+ * TWO sources, and the second is not optional. An ack that lands outside the
+ * recipient's quiet-hours window is parked in sms_queue and writes NO email_log
+ * row until the flush cron delivers it. That is exactly the 18 Aug case: the
+ * text arrived at 6:43am ET, which is before the 8am window opens, so an
+ * email_log-only check would find nothing, queue a second ack, and deliver both
+ * in a burst at 8am. Checking only the sent-log would have failed in precisely
+ * the scenario this dedupe exists for.
+ *
+ * Fails OPEN (returns false) on a query error: a duplicate ack is a much
+ * smaller harm than silence.
+ */
+const ACK_DEDUPE_WINDOW_MS = 6 * 60 * 60 * 1000;
+
+async function ackedRecently(phone: string): Promise<boolean> {
+  const db = getServiceDb();
+  if (!db) return false;
+
+  // Already delivered (or attempted) inside the window.
+  const since = new Date(Date.now() - ACK_DEDUPE_WINDOW_MS).toISOString();
+  const { count: sent, error: sentError } = await db
+    .from("email_log")
+    .select("id", { count: "exact", head: true })
+    .eq("channel", "sms")
+    .eq("email_type", "care_seeker_ack")
+    .eq("recipient", phone)
+    .gte("created_at", since);
+  if (!sentError && typeof sent === "number" && sent > 0) return true;
+
+  // Or still waiting on quiet hours. No time bound here: a pending row is by
+  // definition an ack this number has not received yet.
+  const { count: queued, error: queuedError } = await db
+    .from("sms_queue")
+    .select("id", { count: "exact", head: true })
+    .eq("email_type", "care_seeker_ack")
+    .eq("to_phone", phone)
+    .eq("status", "pending");
+  if (!queuedError && typeof queued === "number" && queued > 0) return true;
+
+  return false;
+}
+
+/**
+ * A family sent us a free-form question. Acknowledge it and queue the research.
+ *
+ * Everything here is best-effort and swallows its own errors: none of it may
+ * break the webhook's 200, because failing to answer Twilio causes retries and
+ * duplicate inbound rows.
+ */
+async function triageFamilyQuestion(args: {
+  phone: string;
+  body: string;
+  twilioSid: string | null;
+  profile: Awaited<ReturnType<typeof matchFamilyProfiles>>[number] | undefined;
+  who: string | null;
+}): Promise<void> {
+  const { phone, body, twilioSid, profile, who } = args;
+
+  // Crisis first, always. A crisis message gets a human and nothing else.
+  const crisis = detectCrisis(body);
+  if (crisis.isCrisis) {
+    await pageCrisis(phone, body, who, crisis);
+    return;
+  }
+
+  const db = getServiceDb();
+
+  // Acknowledge. sendReactiveFamilyAlert owns quiet hours, the opted-out
+  // check, the daily safety cap, and the deferred-send queue, so this call
+  // stays honest about all four without repeating any of them here.
+  if (profile && !(await ackedRecently(phone))) {
+    const result = await sendReactiveFamilyAlert({
+      familyProfileId: profile.id,
+      phone,
+      state: profile.state,
+      phoneValidity: profile.phone_validity,
+      emailType: "care_seeker_ack",
+      body: familyAnswerAckSms(),
+    });
+    if (result.status === "skipped") {
+      console.log(`[sms-webhook] Ack skipped for ${phone}: ${result.reason}`);
+    }
+  }
+
+  // Queue the research. One open job per phone: a family who sends three
+  // messages in a row has asked one question, not three, and the Phase 2
+  // worker reads the whole recent thread from sms_inbound rather than only
+  // this row's body.
+  //
+  // The thread key is computed once. family_answer_jobs.phone_last10 is NOT
+  // NULL, so a number we cannot key (a short code, a malformed From) must be
+  // dropped here rather than sent to the insert. Unreachable in practice —
+  // reaching this function at all required a family profile to match on the
+  // same last-10 — but the column contract should not depend on that.
+  const key = last10(phone);
+  if (!db || !key) return;
+  try {
+    const { count } = await db
+      .from("family_answer_jobs")
+      .select("id", { count: "exact", head: true })
+      .eq("phone_last10", key)
+      .in("status", ["pending", "running"]);
+    if (typeof count === "number" && count > 0) return;
+
+    const { error } = await db.from("family_answer_jobs").insert({
+      phone_last10: key,
+      profile_id: profile?.id ?? null,
+      twilio_sid: twilioSid,
+      body: body.slice(0, 2_000),
+    });
+    if (error) console.error("[sms-webhook] Job enqueue failed:", error);
+  } catch (err) {
+    console.error("[sms-webhook] Job enqueue threw:", err);
   }
 }
 
@@ -292,6 +456,17 @@ export async function POST(request: NextRequest) {
       // providers, unknown numbers — needs a human told about them here.
       if (senderType !== "family") {
         await alertUnmatchedInbound(normalizedFrom, messageBody, senderName);
+      } else {
+        // A family asked something free-form. Acknowledge it and queue the
+        // research, unless the message reads as a crisis, in which case a
+        // human is paged and nothing is sent.
+        await triageFamilyQuestion({
+          phone: normalizedFrom,
+          body: messageBody,
+          twilioSid: params.MessageSid || null,
+          profile: recorded.profile,
+          who: senderName,
+        });
       }
     }
   } catch (err) {

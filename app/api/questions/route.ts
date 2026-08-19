@@ -6,6 +6,11 @@ import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email"
 import { questionConfirmationEmail, questionReceivedEmail, questionReceivedInbox, assignQuestionVariant } from "@/lib/email-templates";
 import { generateProviderSlug } from "@/lib/slugify";
 import { getCategoryDisplayName, PROFILE_CAT_TO_SUPABASE_CAT } from "@/lib/types/provider";
+import { managedUtmMetadata, readManagedUtmFromRequest } from "@/lib/ad-boost/managed-utm";
+import { normalizeQuestion } from "@/lib/qa-utils";
+import { isValidSuggestedQuestion } from "@/lib/provider-utils";
+import { notifyQuestionAskers } from "@/lib/notifications/question-answer-notifications.server";
+import { resolveProviderIdVariants } from "@/lib/provider-id-variants";
 
 /**
  * GET /api/questions?provider_id=xxx
@@ -23,11 +28,13 @@ export async function GET(request: NextRequest) {
 
   try {
     const db = getServiceClient();
+    const { allVariants } = await resolveProviderIdVariants(db, providerId);
     // Fetch both pending and answered questions that are public
     const { data: questions, error } = await db
       .from("provider_questions")
-      .select("id, question, answer, asker_name, asker_user_id, status, answered_at, created_at")
-      .eq("provider_id", providerId)
+      .select("id, question, answer, asker_name, asker_user_id, status, answered_at, created_at, asked_count, suggestion_key")
+      .in("provider_id", allVariants)
+      .is("canonical_question_id", null)
       .eq("is_public", true)
       .in("status", ["pending", "approved", "answered"])
       .order("created_at", { ascending: false })
@@ -59,7 +66,16 @@ export async function POST(request: NextRequest) {
     const { data: { user } } = await supabase.auth.getUser();
 
     const body = await request.json();
-    const { provider_id, question, asker_name: guestName, asker_email: guestEmail, honeypot } = body;
+    const {
+      provider_id,
+      question,
+      asker_name: guestName,
+      asker_email: guestEmail,
+      honeypot,
+      suggestion_key: submittedSuggestionKey,
+      session_id: sessionId,
+      visit_id: visitId,
+    } = body;
 
     // Honeypot — bots fill this hidden field; silently succeed without creating anything
     if (honeypot) {
@@ -73,6 +89,18 @@ export async function POST(request: NextRequest) {
     if (question.length > 1000) {
       return NextResponse.json({ error: "Question must be under 1000 characters" }, { status: 400 });
     }
+
+    const trimmedQuestion = question.trim();
+    const normalizedQuestion = normalizeQuestion(trimmedQuestion);
+    if (!normalizedQuestion) {
+      return NextResponse.json({ error: "Please enter a question" }, { status: 400 });
+    }
+    const managedUtm = readManagedUtmFromRequest(request);
+    const suggestionKey =
+      typeof submittedSuggestionKey === "string" &&
+      isValidSuggestedQuestion(submittedSuggestionKey, trimmedQuestion)
+        ? submittedSuggestionKey
+        : null;
 
     // Determine asker identity: authenticated user or anonymous guest
     const db = getServiceClient();
@@ -108,7 +136,7 @@ export async function POST(request: NextRequest) {
         // Rate limiting: 5 questions per email per hour
         const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
         const { data: recentQuestions } = await db
-          .from("provider_questions")
+          .from("provider_question_asks")
           .select("id")
           .eq("asker_email", normalizedEmail)
           .gte("created_at", oneHourAgo);
@@ -151,6 +179,7 @@ export async function POST(request: NextRequest) {
     // Resolve business_profile_id BEFORE inserting the question
     // This ensures we have a proper foreign key reference for direct lookups
     let businessProfileId: string | null = null;
+    let directoryProviderId: string | null = null;
     try {
       // Strategy 1: Direct slug match on business_profiles
       const { data: bpBySlug } = await db
@@ -162,7 +191,6 @@ export async function POST(request: NextRequest) {
         businessProfileId = bpBySlug.id;
       } else {
         // Strategy 2a: Via olera-providers.slug linkage (safe parameterized query)
-        let iosProviderId: string | null = null;
         const { data: iosBySlug } = await db
           .from("olera-providers")
           .select("provider_id")
@@ -170,7 +198,7 @@ export async function POST(request: NextRequest) {
           .not("deleted", "is", true)
           .maybeSingle();
         if (iosBySlug?.provider_id) {
-          iosProviderId = iosBySlug.provider_id;
+          directoryProviderId = iosBySlug.provider_id;
         } else {
           // Strategy 2b: Via olera-providers.provider_id (legacy alphanumeric IDs)
           const { data: iosByProviderId } = await db
@@ -180,14 +208,14 @@ export async function POST(request: NextRequest) {
             .not("deleted", "is", true)
             .maybeSingle();
           if (iosByProviderId?.provider_id) {
-            iosProviderId = iosByProviderId.provider_id;
+            directoryProviderId = iosByProviderId.provider_id;
           }
         }
 
         // Strategy 3: Reverse-match auto-generated slugs
         // For iOS providers with slug=NULL, the page generates a slug on-the-fly
         // via generateProviderSlug(name, state). We need to find those matches.
-        if (!iosProviderId) {
+        if (!directoryProviderId) {
           const slugParts = provider_id.split("-");
           const namePrefix = slugParts.slice(0, 3).join("-");
           const { data: candidates } = await db
@@ -200,7 +228,7 @@ export async function POST(request: NextRequest) {
           if (candidates) {
             for (const c of candidates) {
               if (generateProviderSlug(c.provider_name, c.state) === provider_id) {
-                iosProviderId = c.provider_id;
+                directoryProviderId = c.provider_id;
                 break;
               }
             }
@@ -208,11 +236,11 @@ export async function POST(request: NextRequest) {
         }
 
         // Look up linked business_profile via source_provider_id
-        if (iosProviderId) {
+        if (directoryProviderId) {
           const { data: linkedBp } = await db
             .from("business_profiles")
             .select("id")
-            .eq("source_provider_id", iosProviderId)
+            .eq("source_provider_id", directoryProviderId)
             .maybeSingle();
           if (linkedBp?.id) {
             businessProfileId = linkedBp.id;
@@ -223,58 +251,113 @@ export async function POST(request: NextRequest) {
       console.error("business_profile_id lookup failed (non-fatal):", bpLookupErr);
     }
 
-    const { data: newQuestion, error } = await db
-      .from("provider_questions")
-      .insert({
-        provider_id,
-        business_profile_id: businessProfileId,
-        question: question.trim(),
-        asker_name: askerName,
-        asker_email: askerEmail,
-        asker_user_id: askerUserId,
-        status: providerQuestionsArchived ? "archived" : "pending",
-        is_public: !providerQuestionsArchived,
-        metadata: providerNotInterested ? { provider_not_interested: true } : null,
-      })
-      .select("id, question, asker_name, status, created_at")
-      .single();
+    const providerIdentityKey = businessProfileId
+      ? `bp:${businessProfileId}`
+      : directoryProviderId
+        ? `directory:${directoryProviderId}`
+        : `provider:${provider_id}`;
+    const questionMetadata = providerNotInterested
+      ? { provider_not_interested: true }
+      : {};
+    const askMetadata = {
+      is_guest: !user,
+      ...managedUtmMetadata(managedUtm),
+    };
 
-    if (error) {
-      console.error("Failed to create question:", error);
+    const { data: recordedRows, error: recordError } = await db.rpc(
+      "record_provider_question_ask",
+      {
+        p_provider_id: provider_id,
+        p_provider_identity_key: providerIdentityKey,
+        p_business_profile_id: businessProfileId,
+        p_question: trimmedQuestion,
+        p_normalized_question: normalizedQuestion,
+        p_suggestion_key: suggestionKey,
+        p_asker_name: askerName,
+        p_asker_email: askerEmail,
+        p_asker_user_id: askerUserId,
+        p_status: providerQuestionsArchived ? "archived" : "pending",
+        p_is_public: !providerQuestionsArchived,
+        p_question_metadata: questionMetadata,
+        p_session_id: typeof sessionId === "string" && sessionId ? sessionId : null,
+        p_visit_id: typeof visitId === "string" && visitId ? visitId : null,
+        p_utm_source: managedUtm.utmSource || null,
+        p_utm_campaign: managedUtm.utmCampaign || null,
+        p_ask_metadata: askMetadata,
+      },
+    );
+    if (recordError) {
+      console.error("Failed to record question ask:", recordError);
       return NextResponse.json({ error: "Failed to submit question" }, { status: 500 });
     }
+    const recorded = (recordedRows as Array<{
+      question_id: string;
+      ask_id: string;
+      is_new_topic: boolean;
+      question: string;
+      answer: string | null;
+      asker_name: string;
+      status: string;
+      created_at: string;
+      normalized_question: string;
+      suggestion_key: string | null;
+      asked_count: number;
+      answer_status: string | null;
+      is_public: boolean;
+    }> | null)?.[0];
+    if (!recorded) {
+      return NextResponse.json({ error: "Failed to submit question" }, { status: 500 });
+    }
+    const newQuestion = {
+      id: recorded.question_id,
+      question: recorded.question,
+      answer: recorded.answer,
+      asker_name: recorded.asker_name,
+      status: recorded.status,
+      created_at: recorded.created_at,
+      normalized_question: recorded.normalized_question,
+      suggestion_key: recorded.suggestion_key,
+      asked_count: recorded.asked_count,
+    };
+    const isNewTopic = recorded.is_new_topic;
+    const deduplicated = !isNewTopic;
 
-    // Log family engagement event (fire-and-forget, ALL questions including
-    // guests). Guests have no profile yet, so profile_id is null — same pattern
+    // Log every raw tap, including coalesced repeats. Guests have no profile
+    // yet, so profile_id is null — same pattern
     // as other guest seeker_activity events (save_nudge_*, qa_email_capture_*).
-    // Gating this on askerProfileId previously dropped ~96% of asks (the vast
-    // majority are guests), making the admin "Asking questions" metric read ~0.
-    db.from("seeker_activity").insert({
-      profile_id: askerProfileId,
-      event_type: "question_asked",
-      related_provider_id: provider_id,
-      metadata: {
-        question_id: newQuestion.id,
-        question_preview: question.trim().substring(0, 100),
-        is_guest: !user,
-      },
-    }).then(({ error: actErr }: { error: { message: string } | null }) => {
-      if (actErr) console.error("[seeker_activity] question_asked insert failed:", actErr);
-    });
-
-    // Log provider-side activity (fire-and-forget, ALL questions including guests)
-    db.from("provider_activity").insert({
-      provider_id,
-      event_type: "question_received",
-      metadata: {
-        question_id: newQuestion.id,
-        question_preview: question.trim().substring(0, 100),
-        asker_name: askerName,
-        is_guest: !user,
-      },
-    }).then(({ error: actErr }: { error: { message: string } | null }) => {
-      if (actErr) console.error("[provider_activity] question_received insert failed:", actErr);
-    });
+    // Await both writes: these rows are the raw-tap + campaign-attribution
+    // ledger, so a serverless teardown must not be allowed to drop them.
+    const activityMetadata = {
+      question_id: newQuestion.id,
+      ask_id: recorded.ask_id,
+      question_preview: trimmedQuestion.substring(0, 100),
+      normalized_question: normalizedQuestion,
+      is_guest: !user,
+      deduplicated,
+      ...(typeof sessionId === "string" && sessionId ? { session_id: sessionId } : {}),
+      ...(typeof visitId === "string" && visitId ? { visit_id: visitId } : {}),
+      ...managedUtmMetadata(managedUtm),
+    };
+    const [seekerActivity, providerActivity] = await Promise.all([
+      db.from("seeker_activity").insert({
+        profile_id: askerProfileId,
+        event_type: "question_asked",
+        related_provider_id: provider_id,
+        metadata: activityMetadata,
+      }),
+      db.from("provider_activity").insert({
+        provider_id,
+        profile_id: businessProfileId,
+        event_type: "question_received",
+        metadata: { ...activityMetadata, asker_name: askerName },
+      }),
+    ]);
+    if (seekerActivity.error) {
+      console.error("[seeker_activity] question_asked insert failed:", seekerActivity.error);
+    }
+    if (providerActivity.error) {
+      console.error("[provider_activity] question_received insert failed:", providerActivity.error);
+    }
 
     // ── Multi-strategy provider lookup (shared by Slack + email below) ──
     // Mirrors the 4-strategy lookup from admin add-email endpoint.
@@ -351,6 +434,11 @@ export async function POST(request: NextRequest) {
 
     const providerDisplayName = resolvedProvider?.display_name || resolvedIos?.provider_name || provider_id;
     const providerIdForLogs = resolvedProvider?.id || resolvedIos?.provider_id || provider_id;
+    const hasExistingPublishedAnswer =
+      deduplicated &&
+      !!newQuestion.answer?.trim() &&
+      recorded.answer_status === "published" &&
+      recorded.is_public;
 
     // Resolve email: business_profiles first, then olera-providers fallback
     let pEmail = resolvedProvider?.email || null;
@@ -370,8 +458,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Slack notifications — must await in serverless to prevent early termination
-    try {
+    // The provider hears about a topic once. Repeat asks remain visible in the
+    // ask ledger and receive the eventual answer without creating notification
+    // spam for the provider or the operations team.
+    if (isNewTopic) try {
       const guestSuffix = !user ? " (guest)" : "";
       const { text, blocks } = slackQuestionAsked({
         askerName: askerName + guestSuffix,
@@ -404,7 +494,7 @@ export async function POST(request: NextRequest) {
       const isProviderArchived =
         resolvedProvider?.metadata?.admin_archived === true || providerQuestionsArchived;
       const shouldSkipEmail = isProviderArchived || providerNotInterested;
-      if (pEmail && !shouldSkipEmail) {
+      if (isNewTopic && pEmail && !shouldSkipEmail) {
         const providerSlug = resolvedProvider?.slug || provider_id;
         let providerUrl: string;
         try {
@@ -468,7 +558,7 @@ export async function POST(request: NextRequest) {
             .update({ metadata: { needs_provider_email: true, email_dead: true } })
             .eq("id", newQuestion.id);
         }
-      } else if (newQuestion?.id && !providerQuestionsArchived && !providerNotInterested) {
+      } else if (isNewTopic && newQuestion?.id && !providerQuestionsArchived && !providerNotInterested) {
         // No provider email — flag for admin "Needs Email" tab. Skipped for
         // Q&A-archived providers and not-interested providers: their questions
         // are intentionally out of the normal queue.
@@ -479,7 +569,7 @@ export async function POST(request: NextRequest) {
       }
 
       // 2. Confirmation email to the asker (if they have an email)
-      if (askerEmail) {
+      if (askerEmail && !hasExistingPublishedAnswer) {
         const qConfirmEmailLogId = await reserveEmailLogId({
           to: askerEmail,
           subject: `Your question to ${providerDisplayName} on Olera`,
@@ -505,7 +595,35 @@ export async function POST(request: NextRequest) {
       console.error("Question email notifications failed:", emailErr);
     }
 
-    return NextResponse.json({ question: newQuestion }, { status: 201 });
+    // A late repeat of an already-published topic should receive the existing
+    // answer immediately; it must not wait for an answer publication event
+    // that already happened. Guest asks are handled after email enrichment.
+    if (
+      hasExistingPublishedAnswer &&
+      askerEmail &&
+      newQuestion.answer
+    ) {
+      const notificationResult = await notifyQuestionAskers(db, {
+        questionId: newQuestion.id,
+        providerName: providerDisplayName,
+        providerSlug: resolvedProvider?.slug || provider_id,
+        question: newQuestion.question,
+        answer: newQuestion.answer,
+      });
+      if (notificationResult.errors.length > 0) {
+        console.error("Existing answer notification errors:", notificationResult.errors);
+      }
+    }
+
+    return NextResponse.json(
+      {
+        question: newQuestion,
+        deduplicated,
+        submission_id: recorded.ask_id,
+        enrichment_allowed: true,
+      },
+      { status: isNewTopic ? 201 : 200 },
+    );
   } catch (err) {
     console.error("Questions POST error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -533,8 +651,8 @@ export async function PATCH(request: NextRequest) {
     // Mode 2: Guest enrichment — add name/email to an anonymous question
     if (enrichName || enrichEmail) {
       const { data: existing, error: fetchError } = await db
-        .from("provider_questions")
-        .select("id, asker_user_id, asker_email, provider_id")
+        .from("provider_question_asks")
+        .select("id, question_id, asker_user_id, asker_email, provider_id, original_question")
         .eq("id", id)
         .single();
 
@@ -557,17 +675,60 @@ export async function PATCH(request: NextRequest) {
         updates.asker_email = enrichEmail.trim().toLowerCase();
       }
 
-      const { data: updated, error: updateError } = await db
-        .from("provider_questions")
+      const { data: updatedAsk, error: updateError } = await db
+        .from("provider_question_asks")
         .update(updates)
         .eq("id", id)
-        .select("id, question, asker_name, status, created_at")
+        .select("id, question_id, original_question, asker_name, created_at")
         .single();
 
       if (updateError) {
         console.error("Failed to enrich question:", updateError);
         return NextResponse.json({ error: "Failed to update" }, { status: 500 });
       }
+
+      let canonicalForEnrichment: {
+        question: string;
+        answer: string | null;
+        answer_status: string | null;
+        is_public: boolean;
+      } | null = null;
+
+      // Keep the canonical row's legacy display identity populated for older
+      // admin surfaces, but never overwrite the identity of an earlier asker.
+      if (updatedAsk?.question_id) {
+        const canonicalUpdates: Record<string, string> = {};
+        if (updates.asker_name) canonicalUpdates.asker_name = updates.asker_name;
+        if (updates.asker_email) canonicalUpdates.asker_email = updates.asker_email;
+        if (Object.keys(canonicalUpdates).length > 0) {
+          let canonicalUpdate = db
+            .from("provider_questions")
+            .update(canonicalUpdates)
+            .eq("id", updatedAsk.question_id)
+            .is("asker_email", null);
+          if (updates.asker_name) canonicalUpdate = canonicalUpdate.eq("asker_name", "Anonymous");
+          const { error: canonicalError } = await canonicalUpdate;
+          if (canonicalError) {
+            console.error("Failed to mirror question identity:", canonicalError);
+          }
+        }
+        const { data: canonical } = await db
+          .from("provider_questions")
+          .select("question, answer, answer_status, is_public")
+          .eq("id", updatedAsk.question_id)
+          .maybeSingle();
+        canonicalForEnrichment = canonical;
+      }
+
+      const updated = updatedAsk
+        ? {
+            id: updatedAsk.id,
+            question_id: updatedAsk.question_id,
+            question: updatedAsk.original_question,
+            asker_name: updatedAsk.asker_name,
+            created_at: updatedAsk.created_at,
+          }
+        : null;
 
       // Fire seeker_activity event for the enrichment. Always — every guest
       // who upgraded their question with email is the qa_email_capture
@@ -577,7 +738,8 @@ export async function PATCH(request: NextRequest) {
       // explicitly so CHECK-constraint rejections aren't silent.
       if (updates.asker_email && updated?.id) {
         const enrichMetadata: Record<string, string> = {
-          question_id: updated.id,
+          question_id: updated.question_id,
+          ask_id: updated.id,
           variant: "qa_email_capture",
         };
         // Carry session_id through so the admin variant-sessions drill-in
@@ -722,34 +884,51 @@ export async function PATCH(request: NextRequest) {
             // unknown — better to drop the category entirely.
             if (simplified !== "Senior Care") cleanCategory = simplified;
           }
-          const subjectNoun = cleanCategory || "providers";
-          const cityPhrase = providerCity ? `in ${providerCity}` : "nearby";
-          const emailSubject =
-            alternatives.length > 0
-              ? `Top ${alternatives.length} ${subjectNoun} ${cityPhrase}`
-              : `Your question to ${providerName || "a provider"} on Olera`;
-          const enrichEmailLogId = await reserveEmailLogId({
-            to: updates.asker_email,
-            subject: emailSubject,
-            emailType: "question_confirmation",
-            recipientType: "family",
-          });
+          const hasPublishedAnswer =
+            canonicalForEnrichment?.is_public === true &&
+            canonicalForEnrichment.answer_status === "published" &&
+            !!canonicalForEnrichment.answer?.trim();
+          if (hasPublishedAnswer) {
+            const notificationResult = await notifyQuestionAskers(db, {
+              questionId: updated.question_id,
+              providerName: providerName || "The provider",
+              providerSlug,
+              question: canonicalForEnrichment?.question || updated.question,
+              answer: canonicalForEnrichment?.answer || "",
+            });
+            if (notificationResult.errors.length > 0) {
+              console.error("Existing answer notification errors:", notificationResult.errors);
+            }
+          } else {
+            const subjectNoun = cleanCategory || "providers";
+            const cityPhrase = providerCity ? `in ${providerCity}` : "nearby";
+            const emailSubject =
+              alternatives.length > 0
+                ? `Top ${alternatives.length} ${subjectNoun} ${cityPhrase}`
+                : `Your question to ${providerName || "a provider"} on Olera`;
+            const enrichEmailLogId = await reserveEmailLogId({
+              to: updates.asker_email,
+              subject: emailSubject,
+              emailType: "question_confirmation",
+              recipientType: "family",
+            });
 
-          await sendEmail({
-            to: updates.asker_email,
-            subject: emailSubject,
-            html: questionConfirmationEmail({
-              askerName: updates.asker_name || "there",
-              providerName: providerName || "the provider",
-              question: updated.question,
-              providerUrl: appendTrackingParams(`${siteUrl}/provider/${providerSlug}`, enrichEmailLogId),
-              alternatives,
-              city: providerCity,
-            }),
-            emailType: 'question_confirmation',
-            recipientType: 'family',
-            emailLogId: enrichEmailLogId ?? undefined,
-          });
+            await sendEmail({
+              to: updates.asker_email,
+              subject: emailSubject,
+              html: questionConfirmationEmail({
+                askerName: updates.asker_name || "there",
+                providerName: providerName || "the provider",
+                question: updated.question,
+                providerUrl: appendTrackingParams(`${siteUrl}/provider/${providerSlug}`, enrichEmailLogId),
+                alternatives,
+                city: providerCity,
+              }),
+              emailType: 'question_confirmation',
+              recipientType: 'family',
+              emailLogId: enrichEmailLogId ?? undefined,
+            });
+          }
 
           // Slack alert — qa_email_capture conversion event. Awaited so it
           // survives Vercel's serverless teardown (per
@@ -777,7 +956,7 @@ export async function PATCH(request: NextRequest) {
         }
       }
 
-      return NextResponse.json({ question: updated });
+      return NextResponse.json({ question: updated, submission_id: updated?.id });
     }
 
     // Mode 1: Authenticated edit — edit question text

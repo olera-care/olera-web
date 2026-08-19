@@ -476,6 +476,8 @@ export function adBoostTractionEmail(opts: {
   spendCents?: number | null;
   questionsReceived?: number | null;
   questionsUnanswered?: number | null;
+  questionTopics?: number | null;
+  unansweredQuestionTopics?: number | null;
 }): string {
   const spend = opts.spendCents != null ? `$${(opts.spendCents / 100).toFixed(2)}` : null;
   const costPerClick =
@@ -484,9 +486,11 @@ export function adBoostTractionEmail(opts: {
       : "—";
   const questionsReceived = opts.questionsReceived ?? 0;
   const questionsUnanswered = opts.questionsUnanswered ?? 0;
-  const hasUnansweredQuestions = questionsUnanswered > 0 && Boolean(opts.questionsUrl);
+  const questionTopics = opts.questionTopics ?? questionsReceived;
+  const unansweredQuestionTopics = opts.unansweredQuestionTopics ?? questionsUnanswered;
+  const hasUnansweredQuestions = unansweredQuestionTopics > 0 && Boolean(opts.questionsUrl);
   const primaryCtaLabel = hasUnansweredQuestions
-    ? `Answer ${questionsUnanswered.toLocaleString()} ${questionsUnanswered === 1 ? "question" : "questions"}`
+    ? `Answer ${unansweredQuestionTopics.toLocaleString()} ${unansweredQuestionTopics === 1 ? "question" : "questions"}`
     : "View performance";
   const primaryCtaUrl = hasUnansweredQuestions ? opts.questionsUrl! : opts.ctaUrl;
   const visitorCount = `${opts.visitors.toLocaleString()} ${opts.visitors === 1 ? "visitor" : "visitors"}`;
@@ -508,7 +512,7 @@ export function adBoostTractionEmail(opts: {
         </td>
         <td style="padding:14px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
           <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${questionsReceived.toLocaleString()}</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Questions</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Question taps${questionTopics < questionsReceived ? ` &middot; ${questionTopics.toLocaleString()} topics` : ""}</p>
         </td>
         <td style="padding:14px;border-bottom:1px solid #e5e7eb;">
           <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.leads.toLocaleString()}</p>
@@ -531,8 +535,8 @@ export function adBoostTractionEmail(opts: {
       </tr>
     </table>
     <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">${
-      questionsUnanswered > 0
-        ? `${questionsUnanswered.toLocaleString()} ${questionsUnanswered === 1 ? "question is" : "questions are"} waiting for your response. Every answer stays on your page, builds trust, and helps future families. We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test.`
+      unansweredQuestionTopics > 0
+        ? `${unansweredQuestionTopics.toLocaleString()} ${unansweredQuestionTopics === 1 ? "question is" : "questions are"} waiting for your response. Every answer stays on your page, builds trust, and helps future families. We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test.`
         : questionsReceived > 0
           ? "Your answers stay on your page, build trust, and help future families. We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test."
         : "We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test."
@@ -573,6 +577,7 @@ export function adBoostPromoCompleteEmail(opts: {
   impressions?: number | null;
   saves?: number | null;
   questionsReceived?: number | null;
+  questionTopics?: number | null;
   clientOutcomes?: number | null;
   /**
    * One-tap campaign-outcome URLs. Present only for zero-lead flights, where
@@ -666,7 +671,7 @@ export function adBoostPromoCompleteEmail(opts: {
         </td>
         <td style="padding:14px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
           <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${(opts.questionsReceived ?? 0).toLocaleString()}</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Questions</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Question taps${(opts.questionTopics ?? opts.questionsReceived ?? 0) < (opts.questionsReceived ?? 0) ? ` &middot; ${(opts.questionTopics ?? 0).toLocaleString()} topics` : ""}</p>
         </td>
         <td style="padding:14px;border-bottom:1px solid #e5e7eb;">
           <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.leads.toLocaleString()}</p>

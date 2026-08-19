@@ -99,9 +99,10 @@ export async function buildWarRoomSnapshot(
       .not("metadata->>session_id", "is", null).neq("metadata->>session_id", ""),
     db.from("provider_activity").select("id", { count: "exact", head: true })
       .eq("event_type", "lead_received").gte("created_at", from),
-    db.from("provider_questions").select("id", { count: "exact", head: true })
+    db.from("provider_question_asks").select("id", { count: "exact", head: true })
       .gte("created_at", from),
     db.from("provider_questions").select("id", { count: "exact", head: true })
+      .is("canonical_question_id", null)
       .gte("created_at", from)
       .not("answer", "is", null).neq("answer", "")
       .not("answered_at", "is", null).lt("answered_at", generatedAt),
@@ -137,6 +138,7 @@ export async function buildWarRoomSnapshot(
       .maybeSingle(),
     db.from("provider_questions")
       .select("id, question, status, created_at")
+      .is("canonical_question_id", null)
       .gte("created_at", from)
       .order("created_at", { ascending: false })
       .limit(6),
@@ -152,6 +154,7 @@ export async function buildWarRoomSnapshot(
       .limit(8),
     db.from("provider_questions")
       .select("id, status, answer, metadata")
+      .is("canonical_question_id", null)
       .gte("created_at", from)
       .order("created_at", { ascending: false })
       .limit(50_000),
@@ -221,8 +224,8 @@ export async function buildWarRoomSnapshot(
   const priorResults = await Promise.all([
     db.from("provider_activity").select("id", { count: "exact", head: true }).eq("event_type", "page_view").gte("created_at", priorFrom).lt("created_at", from).not("metadata->>session_id", "is", null).neq("metadata->>session_id", ""),
     db.from("provider_activity").select("id", { count: "exact", head: true }).eq("event_type", "lead_received").gte("created_at", priorFrom).lt("created_at", from),
-    db.from("provider_questions").select("id", { count: "exact", head: true }).gte("created_at", priorFrom).lt("created_at", from),
-    db.from("provider_questions").select("id", { count: "exact", head: true }).gte("created_at", priorFrom).lt("created_at", from).not("answer", "is", null).neq("answer", "").not("answered_at", "is", null).lt("answered_at", from),
+    db.from("provider_question_asks").select("id", { count: "exact", head: true }).gte("created_at", priorFrom).lt("created_at", from),
+    db.from("provider_questions").select("id", { count: "exact", head: true }).is("canonical_question_id", null).gte("created_at", priorFrom).lt("created_at", from).not("answer", "is", null).neq("answer", "").not("answered_at", "is", null).lt("answered_at", from),
     db.from("seeker_activity").select("id", { count: "exact", head: true }).eq("event_type", "benefits_completed").gte("created_at", priorFrom).lt("created_at", from),
     db.from("provider_activity").select("id", { count: "exact", head: true }).eq("event_type", "claim_completed").gte("created_at", priorFrom).lt("created_at", from),
   ]);

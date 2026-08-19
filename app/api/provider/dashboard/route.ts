@@ -148,6 +148,7 @@ export async function GET(request: NextRequest) {
         .from("provider_questions")
         .select("id, question, answer, status, asker_name, created_at, answered_at")
         .in("provider_id", providerIdVariants)
+        .is("canonical_question_id", null)
         .order("created_at", { ascending: false })
         .limit(500),
 
@@ -240,11 +241,14 @@ export async function GET(request: NextRequest) {
       created_at: string;
       answered_at: string | null;
     }>;
-    const questionsInNinety = questions.filter(
+    const manageableQuestions = questions.filter(
+      (q) => q.status !== "archived" && q.status !== "rejected",
+    );
+    const questionsInNinety = manageableQuestions.filter(
       (q) => new Date(q.created_at) >= ninetyDaysAgo,
     );
     const answeredInNinety = questionsInNinety.filter((q) => !!q.answer?.trim()).length;
-    const unansweredAll = questions.filter((q) => !q.answer?.trim() && q.status !== "archived" && q.status !== "rejected");
+    const unansweredAll = manageableQuestions.filter((q) => !q.answer?.trim());
 
     // ── Reviews summary (combined Olera + Google) ──
     const oleraReviews = (oleraReviewsRes.data ?? []) as Array<{
@@ -306,9 +310,6 @@ export async function GET(request: NextRequest) {
     // can't inflate "N asked" above what the provider can actually act on, and
     // (2) so the card stays internally consistent (received = answered +
     // unanswered, since the manageable set partitions exactly on answer text).
-    const manageableQuestions = questions.filter(
-      (q) => q.status !== "archived" && q.status !== "rejected",
-    );
     const answeredManageable = manageableQuestions.filter((q) => !!q.answer?.trim()).length;
     const questionsSummary = {
       received: manageableQuestions.length,

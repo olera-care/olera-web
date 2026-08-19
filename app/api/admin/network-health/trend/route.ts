@@ -137,13 +137,14 @@ async function fetchQuestionTimestamps(
   return fetchPaged<TimestampRow>(async (pageFrom, pageTo) => {
     const timestampColumn = answered ? "answered_at" : "created_at";
     let query = db
-      .from("provider_questions")
+      .from(answered ? "provider_questions" : "provider_question_asks")
       .select(timestampColumn)
       .gte(timestampColumn, from.toISOString())
       .lt(timestampColumn, to.toISOString())
       .order(timestampColumn, { ascending: true });
     if (answered) {
       query = query
+        .is("canonical_question_id", null)
         .not("answered_at", "is", null)
         .not("answer", "is", null)
         .neq("answer", "");

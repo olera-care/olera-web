@@ -184,40 +184,84 @@ export async function getCampaignStats(
   return { visitors: sessions.size, leads };
 }
 
-/** Questions a campaign drew in, counted the SAME way visitors/leads are: since
- *  the launch anchor, no UTM needed (the tracker is a since-launch time window,
- *  not UTM attribution). `received`/`unanswered` exclude admin-removed (rejected)
- *  and dismissed (archived) questions — the same "manageable" exclusion the
- *  provider dashboard card and hero use — so a spam question can't inflate the
- *  campaign's question count. */
+/** Questions a campaign drew in. The append-only ask ledger is the source of
+ * truth for raw taps and campaign attribution; canonical topics supply answer
+ * state. Managed UTM wins when present, with the launch window as fallback for
+ * pre-attribution receipts. */
 export interface CampaignQuestions {
+  /** Raw submission taps, including repeats. */
   received: number;
+  /** Raw taps whose canonical topic still needs an answer. */
   unanswered: number;
+  uniqueReceived: number;
+  uniqueUnanswered: number;
+  attribution: "campaign_utm" | "time_window";
 }
 
 export async function getCampaignQuestions(
   db: ReturnType<typeof getServiceClient>,
-  options: { providerIdVariants: string[]; since: string },
+  options: { providerIdVariants: string[]; since: string; campaignTag?: string | null },
 ): Promise<CampaignQuestions> {
   const variants = options.providerIdVariants.filter(
     (v): v is string => typeof v === "string" && v.length > 0,
   );
-  if (variants.length === 0) return { received: 0, unanswered: 0 };
+  const empty: CampaignQuestions = {
+    received: 0,
+    unanswered: 0,
+    uniqueReceived: 0,
+    uniqueUnanswered: 0,
+    attribution: "time_window",
+  };
+  if (variants.length === 0) return empty;
 
-  const { data, error } = await db
-    .from("provider_questions")
-    .select("answer, status")
+  const { data: askData, error: askError } = await db
+    .from("provider_question_asks")
+    .select("question_id, utm_source, utm_campaign, created_at")
     .in("provider_id", variants)
     .gte("created_at", options.since)
     .limit(5000);
+  if (askError || !askData) return empty;
 
-  if (error || !data) return { received: 0, unanswered: 0 };
+  type AskRow = {
+    question_id: string;
+    utm_source: string | null;
+    utm_campaign: string | null;
+    created_at: string;
+  };
+  const activityRows = askData as AskRow[];
+  if (activityRows.length === 0) return empty;
 
-  const manageable = (data as Array<{ answer: string | null; status: string }>).filter(
-    (q) => q.status !== "archived" && q.status !== "rejected",
+  const allQuestionIds = [...new Set(activityRows.map((row) => row.question_id))];
+  const { data: topics, error: topicError } = await db
+    .from("provider_questions")
+    .select("id, answer, status")
+    .in("id", allQuestionIds);
+  if (topicError) return empty;
+  const manageableTopics = new Map(
+    (topics ?? [])
+      .filter((topic) => topic.status !== "archived" && topic.status !== "rejected")
+      .map((topic) => [topic.id, !!topic.answer?.trim()]),
   );
-  const unanswered = manageable.filter((q) => !q.answer?.trim()).length;
-  return { received: manageable.length, unanswered };
+  const manageableRows = activityRows.filter((row) => manageableTopics.has(row.question_id));
+  const taggedRows = options.campaignTag
+    ? manageableRows.filter((row) =>
+        row.utm_source === "olera_managed" && row.utm_campaign === options.campaignTag,
+      )
+    : [];
+  const attributedRows = taggedRows.length > 0 ? taggedRows : manageableRows;
+  if (attributedRows.length === 0) return empty;
+
+  const questionIds = [...new Set(attributedRows.map((row) => row.question_id))];
+  const unansweredRows = attributedRows.filter(
+    (row) => !(manageableTopics.get(row.question_id) ?? false),
+  );
+  return {
+    received: attributedRows.length,
+    unanswered: unansweredRows.length,
+    uniqueReceived: questionIds.length,
+    uniqueUnanswered: new Set(unansweredRows.map((row) => row.question_id)).size,
+    attribution: taggedRows.length > 0 ? "campaign_utm" : "time_window",
+  };
 }
 
 // UI care-need bucket → human label (mirror of CARE_NEED_LABELS in

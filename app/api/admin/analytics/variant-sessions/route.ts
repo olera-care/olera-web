@@ -218,7 +218,8 @@ export async function GET(request: NextRequest) {
         return NextResponse.json({ error: "Query failed" }, { status: 500 });
       }
 
-      const rowKeyByQuestionId = new Map<string, string>();
+      const rowKeyByAskId = new Map<string, string>();
+      const legacyRowKeyByQuestionId = new Map<string, string>();
 
       for (const row of (res.data ?? []) as Array<{
         event_type: string;
@@ -228,6 +229,7 @@ export async function GET(request: NextRequest) {
       }>) {
         const sid = typeof row.metadata?.session_id === "string" ? row.metadata.session_id : null;
         const qid = typeof row.metadata?.question_id === "string" ? row.metadata.question_id : null;
+        const askId = typeof row.metadata?.ask_id === "string" ? row.metadata.ask_id : null;
         const providerId = row.related_provider_id ?? null;
 
         if (row.event_type === "qa_email_capture_impression") {
@@ -237,12 +239,30 @@ export async function GET(request: NextRequest) {
           if (!qid) continue;
           const rowKey = sid || qid;
           upgrade(rowKey, "submitted", row.created_at, providerId, null);
-          rowKeyByQuestionId.set(qid, rowKey);
+          if (askId) rowKeyByAskId.set(askId, rowKey);
+          else legacyRowKeyByQuestionId.set(qid, rowKey);
         }
       }
 
-      if (rowKeyByQuestionId.size > 0) {
-        const qids = [...rowKeyByQuestionId.keys()];
+      if (rowKeyByAskId.size > 0) {
+        const askIds = [...rowKeyByAskId.keys()];
+        const emailRes = await db
+          .from("provider_question_asks")
+          .select("id, asker_email")
+          .in("id", askIds)
+          .limit(askIds.length);
+        if (!emailRes.error) {
+          for (const row of (emailRes.data ?? []) as Array<{ id: string; asker_email: string | null }>) {
+            if (!row.asker_email) continue;
+            const rowKey = rowKeyByAskId.get(row.id);
+            if (!rowKey) continue;
+            const session = sessions.get(rowKey);
+            if (session) session.submitter = row.asker_email;
+          }
+        }
+      }
+      if (legacyRowKeyByQuestionId.size > 0) {
+        const qids = [...legacyRowKeyByQuestionId.keys()];
         const emailRes = await db
           .from("provider_questions")
           .select("id, asker_email")
@@ -251,7 +271,7 @@ export async function GET(request: NextRequest) {
         if (!emailRes.error) {
           for (const row of (emailRes.data ?? []) as Array<{ id: string; asker_email: string | null }>) {
             if (!row.asker_email) continue;
-            const rowKey = rowKeyByQuestionId.get(row.id);
+            const rowKey = legacyRowKeyByQuestionId.get(row.id);
             if (!rowKey) continue;
             const session = sessions.get(rowKey);
             if (session) session.submitter = row.asker_email;
@@ -442,7 +462,8 @@ export async function GET(request: NextRequest) {
  *   - benefits arms: deletes accounts row (cascades to business_profiles,
  *     which cascades to connections) + seeker_activity + provider_activity
  *   - outreach: deletes agent_outreach_requests row + seeker_activity
- *   - qa_email_capture: deletes provider_questions rows + seeker_activity + provider_activity
+ *   - qa_email_capture: deletes this session's ask receipt; deletes the canonical
+ *     topic only when no other family asks remain; then deletes tracking events
  *   - multi_provider: deletes provider_activity events only
  */
 export async function DELETE(request: NextRequest) {
@@ -474,7 +495,8 @@ export async function DELETE(request: NextRequest) {
     // ── Phase 1: lookups (before any delete) ─────────────────────────────
     let accountId: string | null = null;
     let outreachRequestId: string | null = null;
-    let questionIds: string[] = [];
+    let legacyQuestionIds: string[] = [];
+    let askIds: string[] = [];
 
     if (variant === "outreach") {
       const { data: row } = await db
@@ -487,26 +509,40 @@ export async function DELETE(request: NextRequest) {
         auditEmail = (row.seeker_email as string | null) ?? null;
       }
     } else if (variant === "qa_email_capture") {
-      // Find any provider_questions linked via question_email_enriched
-      // events that carry both metadata.session_id and metadata.question_id.
+      // Modern events identify the individual ask receipt. Legacy events only
+      // carry the old one-row-per-ask provider_questions id.
       const { data: events } = await db
         .from("seeker_activity")
         .select("metadata")
         .eq("event_type", "question_email_enriched")
         .filter("metadata->>session_id", "eq", sessionId)
         .limit(50);
-      const qidSet = new Set<string>();
+      const legacyQidSet = new Set<string>();
+      const askIdSet = new Set<string>();
       for (const ev of (events ?? []) as Array<{ metadata: Record<string, unknown> | null }>) {
         const qid = ev.metadata?.question_id;
-        if (typeof qid === "string" && qid) qidSet.add(qid);
+        const askId = ev.metadata?.ask_id;
+        if (typeof askId === "string" && askId) askIdSet.add(askId);
+        else if (typeof qid === "string" && qid) legacyQidSet.add(qid);
       }
-      questionIds = [...qidSet];
-      if (questionIds.length > 0) {
+      askIds = [...askIdSet];
+      legacyQuestionIds = [...legacyQidSet];
+      if (askIds.length > 0) {
+        const { data: asks } = await db
+          .from("provider_question_asks")
+          .select("asker_email")
+          .in("id", askIds)
+          .limit(askIds.length);
+        for (const row of (asks ?? []) as Array<{ asker_email: string | null }>) {
+          if (row.asker_email) { auditEmail = row.asker_email; break; }
+        }
+      }
+      if (!auditEmail && legacyQuestionIds.length > 0) {
         const { data: q } = await db
           .from("provider_questions")
           .select("asker_email")
-          .in("id", questionIds)
-          .limit(questionIds.length);
+          .in("id", legacyQuestionIds)
+          .limit(legacyQuestionIds.length);
         for (const row of (q ?? []) as Array<{ asker_email: string | null }>) {
           if (row.asker_email) { auditEmail = row.asker_email; break; }
         }
@@ -571,16 +607,68 @@ export async function DELETE(request: NextRequest) {
         deleted.agent_outreach_requests = count ?? 0;
       }
     }
-    if (questionIds.length > 0) {
+    if (askIds.length > 0) {
+      const { data: receipts, error: receiptLookupError } = await db
+        .from("provider_question_asks")
+        .select("id, question_id")
+        .in("id", askIds);
+      if (receiptLookupError) {
+        errors.push({ table: "provider_question_asks", message: receiptLookupError.message });
+      } else {
+        const canonicalIds = [...new Set((receipts ?? []).map((receipt) => receipt.question_id))];
+        const { error, count } = await db
+          .from("provider_question_asks")
+          .delete({ count: "exact" })
+          .in("id", askIds);
+        if (error) {
+          console.error("[variant-sessions DELETE] provider_question_asks:", error);
+          errors.push({ table: "provider_question_asks", message: error.message });
+        } else {
+          deleted.provider_question_asks = count ?? 0;
+          for (const questionId of canonicalIds) {
+            const { count: remaining, error: countError } = await db
+              .from("provider_question_asks")
+              .select("id", { count: "exact", head: true })
+              .eq("question_id", questionId);
+            if (countError) {
+              errors.push({ table: "provider_question_asks", message: countError.message });
+              continue;
+            }
+            if ((remaining ?? 0) === 0) {
+              const { error: deleteTopicError, count: deletedTopicCount } = await db
+                .from("provider_questions")
+                .delete({ count: "exact" })
+                .eq("id", questionId)
+                .is("canonical_question_id", null);
+              if (deleteTopicError) {
+                errors.push({ table: "provider_questions", message: deleteTopicError.message });
+              } else {
+                deleted.provider_questions =
+                  (deleted.provider_questions ?? 0) + (deletedTopicCount ?? 0);
+              }
+            } else {
+              const { error: updateCountError } = await db
+                .from("provider_questions")
+                .update({ asked_count: remaining })
+                .eq("id", questionId);
+              if (updateCountError) {
+                errors.push({ table: "provider_questions", message: updateCountError.message });
+              }
+            }
+          }
+        }
+      }
+    }
+    if (legacyQuestionIds.length > 0) {
       const { error, count } = await db
         .from("provider_questions")
         .delete({ count: "exact" })
-        .in("id", questionIds);
+        .in("id", legacyQuestionIds);
       if (error) {
         console.error("[variant-sessions DELETE] provider_questions:", error);
         errors.push({ table: "provider_questions", message: error.message });
       } else {
-        deleted.provider_questions = count ?? 0;
+        deleted.provider_questions = (deleted.provider_questions ?? 0) + (count ?? 0);
       }
     }
 

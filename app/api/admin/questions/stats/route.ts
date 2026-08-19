@@ -37,9 +37,11 @@ export async function GET(request: NextRequest) {
     const priorFrom = from ? new Date(from.getTime() - (to.getTime() - from.getTime())) : null;
     const queryStart = priorFrom ?? from ?? null;
 
-    // Pull ALL questions for the series chart
+    // Pull append-only asks for the volume series. Canonical topics intentionally
+    // collapse repeats, so using provider_questions here would create an
+    // artificial post-migration drop in family demand.
     let allQ = db
-      .from("provider_questions")
+      .from("provider_question_asks")
       .select("created_at, provider_id")
       .order("created_at", { ascending: true })
       .limit(50000);
@@ -253,7 +255,7 @@ export async function GET(request: NextRequest) {
 
     // Providers who received new questions today (unique provider count)
     const { data: newTodayData } = await db
-      .from("provider_questions")
+      .from("provider_question_asks")
       .select("provider_id")
       .gte("created_at", todayIso);
     const newTodayCount = new Set((newTodayData ?? []).map(q => q.provider_id).filter(Boolean)).size;
@@ -262,6 +264,7 @@ export async function GET(request: NextRequest) {
     const { count: answeredTodayCount } = await db
       .from("provider_questions")
       .select("id", { count: "exact", head: true })
+      .is("canonical_question_id", null)
       .not("answered_at", "is", null)
       .gte("answered_at", todayIso);
 

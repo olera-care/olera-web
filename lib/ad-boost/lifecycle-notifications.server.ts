@@ -131,7 +131,11 @@ export async function sendAdBoostLifecycleEmail(opts: {
   const providerIdVariants = [opts.request.provider_slug || "", opts.request.provider_id];
   const [stats, questions] = await Promise.all([
     getCampaignStats(db, { providerIdVariants, since }),
-    getCampaignQuestions(db, { providerIdVariants, since }),
+    getCampaignQuestions(db, {
+      providerIdVariants,
+      since,
+      campaignTag: opts.request.campaign_tag || opts.request.id,
+    }),
   ]);
 
   // The wrap-up email carries the full demand receipt (impressions, saves,
@@ -164,6 +168,8 @@ export async function sendAdBoostLifecycleEmail(opts: {
     leads: stats.leads,
     questions_received: questions.received,
     questions_unanswered: questions.unanswered,
+    question_topics: questions.uniqueReceived,
+    unanswered_question_topics: questions.uniqueUnanswered,
     ad_spend_cents: opts.request.ad_spend_cents,
     ad_clicks: opts.request.ad_clicks,
   };
@@ -212,6 +218,8 @@ export async function sendAdBoostLifecycleEmail(opts: {
             spendCents: opts.request.ad_spend_cents,
             questionsReceived: questions.received,
             questionsUnanswered: questions.unanswered,
+            questionTopics: questions.uniqueReceived,
+            unansweredQuestionTopics: questions.uniqueUnanswered,
           })
         : adBoostPromoCompleteEmail({
             providerName: recipient.name,
@@ -224,6 +232,7 @@ export async function sendAdBoostLifecycleEmail(opts: {
             impressions: receipt?.google.impressions ?? null,
             saves: receipt?.engagement.saves ?? null,
             questionsReceived: questions.received,
+            questionTopics: questions.uniqueReceived,
             clientOutcomes: receipt?.outcomes.client ?? null,
             outcomeUrls,
           });

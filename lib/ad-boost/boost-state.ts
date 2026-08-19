@@ -94,11 +94,17 @@ export interface BoostStateResponse {
   delivered: number;
   /** Real campaign performance: visitors + leads + questions on the provider's
    *  page since launch. Null until the campaign is live. `since` is an ISO
-   *  timestamp. Questions are counted the same since-launch way (no UTM). */
+   *  timestamp. Question taps are raw; uniqueReceived is the topic count. */
   campaignStats: {
     visitors: number;
     leads: number;
-    questions: { received: number; unanswered: number };
+    questions: {
+      received: number;
+      unanswered: number;
+      uniqueReceived: number;
+      uniqueUnanswered: number;
+      attribution: "campaign_utm" | "time_window";
+    };
     since: string;
   } | null;
   /** True when the featured post-intro results/payment moment should show:
@@ -129,6 +135,7 @@ export interface CampaignReceiptData {
     visitors: number;
     saves: number;
     questionsReceived: number;
+    questionTopics: number;
   };
   outcomes: { client: number; talking: number; no: number; unanswered: number };
   /** Expected leads for the clicks bought (category benchmark ~1 per 30). */

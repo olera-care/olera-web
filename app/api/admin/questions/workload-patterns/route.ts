@@ -52,7 +52,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { data: questions, error } = await db
-      .from("provider_questions")
+      .from("provider_question_asks")
       .select("created_at, provider_id")
       .gte("created_at", startDate.toISOString())
       .lte("created_at", endDate.toISOString())

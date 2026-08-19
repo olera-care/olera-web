@@ -187,7 +187,11 @@ export async function GET(request: NextRequest) {
       const providerIdVariants = [row.provider_slug, row.provider_id];
       const [stats, questions] = await Promise.all([
         getCampaignStats(db, { providerIdVariants, since }),
-        getCampaignQuestions(db, { providerIdVariants, since }),
+        getCampaignQuestions(db, {
+          providerIdVariants,
+          since,
+          campaignTag: row.campaign_tag || row.id,
+        }),
       ]);
       campaignStats = { ...stats, questions, since };
     }
@@ -304,6 +308,7 @@ export async function GET(request: NextRequest) {
   // (per-row getCampaignQuestions would be N round-trips). Pre-launch rows
   // read 0 and the UI renders a dash.
   const questionsByRequestId: Record<string, number> = {};
+  const questionTopicsByRequestId: Record<string, Set<string>> = {};
   {
     type ListRow = {
       id: string;
@@ -325,6 +330,9 @@ export async function GET(request: NextRequest) {
           new Date(r.flight_start_date || r.requested_setup_week || r.created_at).toISOString(),
         ]),
       );
+      const tagByRequest = new Map(
+        launched.map((r) => [r.id, r.campaign_tag || r.id]),
+      );
       const variantToRequestIds = new Map<string, string[]>();
       for (const r of launched) {
         for (const v of [r.provider_slug, r.provider_id]) {
@@ -336,17 +344,32 @@ export async function GET(request: NextRequest) {
       }
       const minSince = [...sinceByRequest.values()].sort()[0];
       const { data: qRows } = await db
-        .from("provider_questions")
-        .select("provider_id, status, created_at")
+        .from("provider_question_asks")
+        .select("provider_id, question_id, utm_source, utm_campaign, created_at")
         .in("provider_id", [...variantToRequestIds.keys()])
         .gte("created_at", minSince)
         .limit(5000);
-      for (const q of (qRows ?? []) as Array<{
+      type AskRow = {
         provider_id: string | null;
-        status: string;
+        question_id: string;
+        utm_source: string | null;
+        utm_campaign: string | null;
         created_at: string;
-      }>) {
-        if (!q.provider_id || q.status === "archived" || q.status === "rejected") continue;
+      };
+      const rawAsks = (qRows ?? []) as AskRow[];
+      const questionIds = [...new Set(rawAsks.map((ask) => ask.question_id))];
+      const { data: topicRows } = questionIds.length > 0
+        ? await db.from("provider_questions").select("id, status").in("id", questionIds)
+        : { data: [] as Array<{ id: string; status: string }> };
+      const manageableQuestionIds = new Set(
+        (topicRows ?? [])
+          .filter((topic) => topic.status !== "archived" && topic.status !== "rejected")
+          .map((topic) => topic.id),
+      );
+      const asksByRequest = new Map<string, AskRow[]>();
+      for (const q of rawAsks) {
+        if (!q.provider_id) continue;
+        if (!manageableQuestionIds.has(q.question_id)) continue;
         // Compare as epochs, not strings — Postgres returns "+00:00"-suffixed
         // timestamps while `since` is Z-format, and mixed-format lexicographic
         // comparison misjudges boundary rows.
@@ -354,9 +377,23 @@ export async function GET(request: NextRequest) {
         for (const requestId of variantToRequestIds.get(q.provider_id) ?? []) {
           const since = sinceByRequest.get(requestId);
           if (since && qAt >= new Date(since).getTime()) {
-            questionsByRequestId[requestId] = (questionsByRequestId[requestId] ?? 0) + 1;
+            const asks = asksByRequest.get(requestId) ?? [];
+            asks.push(q);
+            asksByRequest.set(requestId, asks);
           }
         }
+      }
+      for (const request of launched) {
+        const asks = asksByRequest.get(request.id) ?? [];
+        const campaignTag = tagByRequest.get(request.id);
+        const tagged = asks.filter(
+          (ask) => ask.utm_source === "olera_managed" && ask.utm_campaign === campaignTag,
+        );
+        const attributed = tagged.length > 0 ? tagged : asks;
+        questionsByRequestId[request.id] = attributed.length;
+        questionTopicsByRequestId[request.id] = new Set(
+          attributed.map((ask) => ask.question_id),
+        );
       }
     }
   }
@@ -366,6 +403,7 @@ export async function GET(request: NextRequest) {
     delivered: delivered[r.campaign_tag || r.id] ?? 0,
     ad_landings: adLandings[r.campaign_tag || r.id] ?? 0,
     questions_received: questionsByRequestId[r.id] ?? 0,
+    question_topics: questionTopicsByRequestId[r.id]?.size ?? 0,
     communication_summary: communicationSummaryByRequest.get(r.id) ?? { by_type: {}, last: null },
   }));
 

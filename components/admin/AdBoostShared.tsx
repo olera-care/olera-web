@@ -88,9 +88,11 @@ export interface CampaignRequest {
   /** Families delivered so far (campaign-attributed conversions across the
    *  inquiry + benefits funnels). Attached by the list + detail API branches. */
   delivered?: number;
-  /** Questions received since launch (manageable only — archived/rejected
-   *  excluded). Attached by the list API branch; 0 pre-launch. */
+  /** Raw question taps since launch for manageable canonical topics
+   * (archived/rejected excluded). Attached by the list API; 0 pre-launch. */
   questions_received?: number;
+  /** Unique normalized topics represented by questions_received raw taps. */
+  question_topics?: number;
   /** Successful Ad Boost sends summarized by type for queue-level next-action
    *  decisions. This reconciles legacy email logs with marker columns. */
   communication_summary?: AdBoostCommunicationSummary;

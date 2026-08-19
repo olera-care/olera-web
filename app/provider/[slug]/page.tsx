@@ -52,6 +52,7 @@ import {
   getSuggestedQuestions,
 } from "@/lib/provider-utils";
 import { normalizeQuestion } from "@/lib/qa-utils";
+import { resolveProviderIdVariants } from "@/lib/provider-id-variants";
 
 // Cache provider detail pages for 1 hour (ISR) — reduces Supabase query volume
 export const revalidate = 3600;
@@ -372,11 +373,13 @@ export default async function ProviderPage({
     (async () => {
       try {
         const db = getServiceClient();
+        const { allVariants: questionProviderIds } = await resolveProviderIdVariants(db, profile.slug);
         const [qaResponse, reviewResponse, askedResponse] = await Promise.all([
           db
             .from("provider_questions")
-            .select("id, question, answer, asker_name, created_at")
-            .eq("provider_id", profile.slug)
+            .select("id, question, answer, asker_name, created_at, suggestion_key, asked_count")
+            .in("provider_id", questionProviderIds)
+            .is("canonical_question_id", null)
             .eq("is_public", true)
             .eq("answer_status", "published")  // Only show published answers (not pending verification)
             .in("status", ["approved", "answered"])
@@ -388,19 +391,19 @@ export default async function ProviderPage({
             .select("id", { count: "exact", head: true })
             .eq("provider_id", profile.id)
             .eq("status", "published"),
-          // All questions ever asked here (any status) — used to tally repeats
-          // so suggested chips can de-prioritize already-asked topics and
-          // answered threads can show "N people asked this".
+          // All topics ever asked here (any status). asked_count preserves raw
+          // taps after duplicate rows are consolidated into one thread.
           db
             .from("provider_questions")
-            .select("question")
-            .eq("provider_id", profile.slug)
+            .select("question, suggestion_key, asked_count")
+            .in("provider_id", questionProviderIds)
+            .is("canonical_question_id", null)
             .limit(2000),
         ]);
         const suggestionStats: Record<string, number> = {};
-        for (const row of (askedResponse.data || []) as { question: string }[]) {
-          const key = normalizeQuestion(row.question);
-          if (key) suggestionStats[key] = (suggestionStats[key] || 0) + 1;
+        for (const row of (askedResponse.data || []) as Array<{ question: string; suggestion_key: string | null; asked_count: number | null }>) {
+          const key = row.suggestion_key || normalizeQuestion(row.question);
+          if (key) suggestionStats[key] = (suggestionStats[key] || 0) + (row.asked_count ?? 1);
         }
         return {
           questions: (qaResponse.data || []).filter((q: { answer: string | null }) => q.answer && q.answer.trim().length > 0),
@@ -493,7 +496,15 @@ export default async function ProviderPage({
   };
   const displayClaimState = computeBadgeDisplayState();
 
-  const answeredQuestions = qaResult.questions as { id: string; question: string; answer: string; asker_name: string; created_at: string }[];
+  const answeredQuestions = qaResult.questions as Array<{
+    id: string;
+    question: string;
+    answer: string;
+    asker_name: string;
+    created_at: string;
+    suggestion_key: string | null;
+    asked_count: number | null;
+  }>;
   const realReviewCount = qaResult.reviewCount;
   const suggestionStats = (qaResult.suggestionStats ?? {}) as Record<string, number>;
 
@@ -1283,6 +1294,8 @@ export default async function ProviderPage({
                     answer: q.answer,
                     asker_name: q.asker_name,
                     created_at: q.created_at,
+                    suggestion_key: q.suggestion_key,
+                    asked_count: q.asked_count,
                   }))}
                   suggestedQuestions={getSuggestedQuestions(profile.category)}
                   suggestionStats={suggestionStats}

@@ -10,8 +10,8 @@ import { getOrCreateSessionId, getOrCreateVisitId } from "@/lib/analytics/sessio
 import { isPreviewMode } from "@/lib/analytics/preview-mode";
 import type { IntakeVariant } from "@/lib/analytics/variant";
 import { getCategoryDisplayName, type ProviderCardData } from "@/lib/types/provider";
-import type { SimilarProviderForMulti } from "@/lib/provider-utils";
-import { normalizeQuestion } from "@/lib/qa-utils";
+import type { SimilarProviderForMulti, SuggestedQuestion } from "@/lib/provider-utils";
+import { getUnaskedQuestionSuggestions, normalizeQuestion } from "@/lib/qa-utils";
 
 interface QAEntry {
   id?: string;
@@ -22,6 +22,8 @@ interface QAEntry {
   status?: "pending" | "approved" | "answered";
   created_at?: string;
   answered_at?: string;
+  suggestion_key?: string | null;
+  asked_count?: number | null;
 }
 
 interface QASectionProps {
@@ -36,7 +38,7 @@ interface QASectionProps {
   providerCity?: string;
   providerState?: string;
   questions?: QAEntry[];
-  suggestedQuestions?: string[];
+  suggestedQuestions?: SuggestedQuestion[];
   // Normalized-question → times-asked tally for this provider. Drives chip
   // de-prioritization (already-asked topics sink below fresh ones) and the
   // "N people asked this" badge on answered threads.
@@ -144,10 +146,10 @@ export default function QASectionV2({
   providerState,
   questions: initialQuestions = [],
   suggestedQuestions = [
-    "What services do you provide?",
-    "What are your rates or pricing?",
-    "How quickly can you get started?",
-    "Do you accept insurance or Medicaid?",
+    { key: "services_provided", text: "What services do you provide?" },
+    { key: "rates_pricing", text: "What are your rates or pricing?" },
+    { key: "start_time", text: "How quickly can you get started?" },
+    { key: "insurance_medicaid", text: "Do you accept insurance or Medicaid?" },
   ],
   suggestionStats = {},
   hasBenefitsSection = false,
@@ -177,6 +179,7 @@ export default function QASectionV2({
 
   // Variant expansion state (accordion-style expansion for multi_provider)
   const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null);
+  const [expandedSuggestionKey, setExpandedSuggestionKey] = useState<string | null>(null);
   const [inlineSubmitting, setInlineSubmitting] = useState(false);
   const [inlineSuccess, setInlineSuccess] = useState(false);
   const isMultiProviderVariant = variant === "multi_provider";
@@ -233,9 +236,7 @@ export default function QASectionV2({
       const res = await fetch(`/api/questions?provider_id=${encodeURIComponent(providerId)}`);
       if (res.ok) {
         const data = await res.json();
-        if (data.questions?.length > 0) {
-          setQuestions(data.questions);
-        }
+        setQuestions(data.questions ?? []);
       }
     } catch {
       // Silently fail — questions are non-critical
@@ -247,7 +248,11 @@ export default function QASectionV2({
   }, [fetchQuestions]);
 
   // Submit question — fires immediately for both auth and guest
-  const submitQuestion = useCallback(async (questionText: string, suggestionIndex?: number) => {
+  const submitQuestion = useCallback(async (
+    questionText: string,
+    suggestionIndex?: number,
+    suggestionKey?: string,
+  ) => {
     if (!questionText.trim()) return;
 
     setSubmitting(true);
@@ -261,7 +266,10 @@ export default function QASectionV2({
         body: JSON.stringify({
           provider_id: providerId,
           question: questionText.trim(),
+          suggestion_key: suggestionKey,
           honeypot: honeypot || undefined,
+          session_id: getOrCreateSessionId(),
+          visit_id: getOrCreateVisitId(),
         }),
       });
 
@@ -273,14 +281,24 @@ export default function QASectionV2({
 
       const data = await res.json();
       if (data.question) {
-        setQuestions((prev) => [data.question, ...prev]);
+        setQuestions((prev) =>
+          prev.some((entry) => entry.id === data.question.id)
+            ? prev.map((entry) => entry.id === data.question.id ? { ...entry, ...data.question } : entry)
+            : [data.question, ...prev],
+        );
 
         // For guests: show enrichment prompt after successful submit.
         // SKIP when:
         //   - Page has a benefits module (spotlight handoff owns the moment)
         //   - Multi-provider variants (MultiProviderCard handles email capture)
-        if (!user && data.question.id && !hasBenefitsSection && !isAnyMultiProviderVariant) {
-          setEnrichQuestionId(data.question.id);
+        if (
+          !user &&
+          data.question.id &&
+          data.enrichment_allowed !== false &&
+          !hasBenefitsSection &&
+          !isAnyMultiProviderVariant
+        ) {
+          setEnrichQuestionId(data.submission_id || data.question.id);
           setShowEnrichment(true);
         }
       }
@@ -379,23 +397,29 @@ export default function QASectionV2({
 
   // ─── Multi-Provider Variant Handlers ────────────────────────────────────────
 
-  const handleMultiProviderQuestionTap = useCallback(async (questionText: string, index: number) => {
+  const handleMultiProviderQuestionTap = useCallback(async (
+    suggestedQuestion: SuggestedQuestion,
+    index: number,
+  ) => {
     if (!isAnyMultiProviderVariant) return;
+    const questionText = suggestedQuestion.text;
 
     // Accordion: collapse current if tapping the same question (V1 only)
     // V2 auto-expands after submit, so this check doesn't apply
     if (isMultiProviderVariant && expandedQuestion === questionText) {
       setExpandedQuestion(null);
+      setExpandedSuggestionKey(null);
       return;
     }
 
     // Submit the question to the current provider (existing behavior)
-    submitQuestion(questionText, index);
+    submitQuestion(questionText, index, suggestedQuestion.key);
 
     // Expand the multi-provider card
     // V1: expands immediately on tap
     // V2: expands immediately after tap (same effect, different UI state)
     setExpandedQuestion(questionText);
+    setExpandedSuggestionKey(suggestedQuestion.key);
     setInlineSuccess(false);
   }, [isAnyMultiProviderVariant, isMultiProviderVariant, expandedQuestion, submitQuestion]);
 
@@ -409,13 +433,16 @@ export default function QASectionV2({
       body: JSON.stringify({
         provider_id: targetProviderId,
         question: expandedQuestion.trim(),
+        suggestion_key: expandedSuggestionKey,
+        session_id: getOrCreateSessionId(),
+        visit_id: getOrCreateVisitId(),
       }),
     });
 
     if (!res.ok) {
       throw new Error("Failed to send question");
     }
-  }, [expandedQuestion]);
+  }, [expandedQuestion, expandedSuggestionKey]);
 
   const handleMultiProviderEmailSubmit = useCallback(async (
     email: string,
@@ -518,10 +545,12 @@ export default function QASectionV2({
     }
     // Collapse the card after saving
     setExpandedQuestion(null);
+    setExpandedSuggestionKey(null);
   }, [providerId, providerSlug, providerName, providerLocation, providerCareTypes, providerImage, providerRating, similarProvidersForMulti, toggleSave, isSaved]);
 
   const handleMultiProviderCollapse = useCallback(() => {
     setExpandedQuestion(null);
+    setExpandedSuggestionKey(null);
     setInlineSuccess(false);
   }, []);
 
@@ -577,20 +606,19 @@ export default function QASectionV2({
   // never show the old post-submit enrichment UI.
   const isPostSubmit = !isAnyMultiProviderVariant && (submitStatus === "success" || showEnrichment);
 
-  // Asked-aware suggestion ordering. New visitors still lead with the proven
-  // order; but topics already answered here drop out (the answer is shown as a
-  // thread above), and topics already asked sink below the un-asked ones so a
-  // fresh question surfaces instead of the 144th duplicate. Capped at 5 so the
-  // extra reserve questions (positions 6–8) only appear once room opens up.
-  const answeredNorms = new Set(
-    questions.filter((q) => q.answer).map((q) => normalizeQuestion(q.question)),
-  );
-  const timesAsked = (q: string) => suggestionStats[normalizeQuestion(q)] ?? 0;
-  const suggestionPool = suggestedQuestions.filter((q) => !answeredNorms.has(normalizeQuestion(q)));
-  const visibleSuggestions = [
-    ...suggestionPool.filter((q) => timesAsked(q) === 0),
-    ...suggestionPool.filter((q) => timesAsked(q) > 0),
-  ].slice(0, 5);
+  // Remove every asked topic, pending or answered. The server-rendered tally
+  // handles first paint; the live GET closes stale-cache gaps after hydration.
+  // The API uniqueness guard remains authoritative during that brief race.
+  const visibleSuggestions = getUnaskedQuestionSuggestions(
+    suggestedQuestions,
+    questions,
+    suggestionStats,
+  ).slice(0, 5);
+  const timesAsked = (qa: QAEntry) =>
+    qa.asked_count ??
+    suggestionStats[qa.suggestion_key || ""] ??
+    suggestionStats[normalizeQuestion(qa.question)] ??
+    1;
 
   return (
     <div>
@@ -676,9 +704,9 @@ export default function QASectionV2({
                       {qa.question}
                     </p>
 
-                    {isAnswered && (suggestionStats[normalizeQuestion(qa.question)] ?? 0) >= 2 && (
+                    {isAnswered && timesAsked(qa) >= 2 && (
                       <p className="text-[12px] text-gray-400 mt-1">
-                        {suggestionStats[normalizeQuestion(qa.question)]} people asked this
+                        Asked {timesAsked(qa)} times
                       </p>
                     )}
 
@@ -1010,13 +1038,13 @@ export default function QASectionV2({
             <div className="space-y-2 mb-4">
               {visibleSuggestions.map((q, i) => {
                 const isTapped = tappedIndex === i;
-                const isMultiV1Expanded = isMultiProviderVariant && expandedQuestion === q;
-                const isMultiV2Expanded = isMultiProviderV2Variant && expandedQuestion === q;
+                const isMultiV1Expanded = isMultiProviderVariant && expandedQuestion === q.text;
+                const isMultiV2Expanded = isMultiProviderV2Variant && expandedQuestion === q.text;
                 const isExpanded = isMultiV1Expanded || isMultiV2Expanded;
-                const isOtherExpanded = isAnyMultiProviderVariant && expandedQuestion && expandedQuestion !== q;
+                const isOtherExpanded = isAnyMultiProviderVariant && expandedQuestion && expandedQuestion !== q.text;
 
                 return (
-                  <div key={i}>
+                  <div key={q.key}>
                     <button
                       type="button"
                       onClick={() => {
@@ -1024,7 +1052,7 @@ export default function QASectionV2({
                         if (isAnyMultiProviderVariant) {
                           handleMultiProviderQuestionTap(q, i);
                         } else {
-                          submitQuestion(q, i);
+                          submitQuestion(q.text, i, q.key);
                         }
                       }}
                       disabled={submitting}
@@ -1037,7 +1065,7 @@ export default function QASectionV2({
                       <span className={`text-[15px] leading-snug flex-1 ${
                         isTapped || isExpanded ? "text-primary-700 font-medium" : "text-gray-700 font-medium"
                       }`}>
-                        {q}
+                        {q.text}
                       </span>
                       {isTapped && submitting ? (
                         <span className="w-4 h-4 border-2 border-primary-300 border-t-primary-600 rounded-full animate-spin shrink-0" />
@@ -1049,7 +1077,7 @@ export default function QASectionV2({
                     {/* Multi-Provider Card V1 (multi_provider variant only) */}
                     {isMultiV1Expanded && (
                       <MultiProviderCard
-                        question={q}
+                        question={q.text}
                         currentProvider={{
                           id: providerId,
                           slug: providerSlug || providerId,
@@ -1075,7 +1103,7 @@ export default function QASectionV2({
                     {/* Multi-Provider Card V2 (multi_provider_v2 variant only) */}
                     {isMultiV2Expanded && (
                       <MultiProviderCardV2
-                        question={q}
+                        question={q.text}
                         currentProvider={{
                           id: providerId,
                           slug: providerSlug || providerId,
@@ -1281,9 +1309,9 @@ export default function QASectionV2({
                             {qa.question}
                           </p>
 
-                          {isAnswered && (suggestionStats[normalizeQuestion(qa.question)] ?? 0) >= 2 && (
+                          {isAnswered && timesAsked(qa) >= 2 && (
                             <p className="text-[12px] text-gray-400 mt-1">
-                              {suggestionStats[normalizeQuestion(qa.question)]} people asked this
+                              Asked {timesAsked(qa)} times
                             </p>
                           )}
 

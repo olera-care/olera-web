@@ -22,7 +22,7 @@ type PreviewKey = "live" | "wrapup" | "wrapup_one" | "weak" | "celebrate" | "ste
  *  receipt, Franchil-shaped for the outcome receipt. */
 const RECEIPT_ZERO: CampaignReceiptData = {
   google: { impressions: 268, clicks: 20, spendCents: 3735, ctr: 7.5, cpcCents: 187 },
-  engagement: { visitors: 22, saves: 6, questionsReceived: 3 },
+  engagement: { visitors: 22, saves: 6, questionsReceived: 3, questionTopics: 3 },
   outcomes: { client: 0, talking: 0, no: 0, unanswered: 0 },
   expectedLeads: 0.7,
   week: { visitors: 9, questions: 2, leads: 0 },
@@ -30,7 +30,7 @@ const RECEIPT_ZERO: CampaignReceiptData = {
 
 const RECEIPT_STRONG: CampaignReceiptData = {
   google: { impressions: 64, clicks: 16, spendCents: 3650, ctr: 14.1, cpcCents: 228 },
-  engagement: { visitors: 19, saves: 8, questionsReceived: 4 },
+  engagement: { visitors: 19, saves: 8, questionsReceived: 4, questionTopics: 4 },
   outcomes: { client: 1, talking: 1, no: 0, unanswered: 1 },
   expectedLeads: 0.5,
   week: { visitors: 7, questions: 1, leads: 1 },

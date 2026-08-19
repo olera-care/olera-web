@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendSlackAlert, slackQuestionAnswered } from "@/lib/slack";
-import { sendEmail } from "@/lib/email";
-import { questionAnsweredEmail } from "@/lib/email-templates";
+import { notifyQuestionAskers } from "@/lib/notifications/question-answer-notifications.server";
 
 /**
  * GET /api/provider/questions
@@ -74,6 +73,7 @@ export async function GET(request: NextRequest) {
       .from("provider_questions")
       .select("id, question, answer, asker_name, asker_email, status, is_public, answer_status, answered_at, created_at, updated_at, metadata")
       .in("provider_id", providerIdVariants)
+      .is("canonical_question_id", null)
       .order("created_at", { ascending: false });
 
     // Apply status filter
@@ -260,26 +260,15 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (shouldNotify) {
-
-      // Email the asker that their question was answered (fire-and-forget)
-      if (question.asker_email) {
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-        sendEmail({
-          to: question.asker_email,
-          subject: `${providerName} answered your question on Olera`,
-          html: questionAnsweredEmail({
-            askerName: question.asker_name || "there",
-            providerName,
-            question: question.question || "",
-            answer: answer.trim(),
-            providerUrl: `${siteUrl}/provider/${profile.slug}`,
-          }),
-          emailType: "question_answered",
-          recipientType: "family",
-          providerId: profile.slug,
-        }).catch((err: unknown) => {
-          console.error("Answer notification email failed:", err);
-        });
+      const notificationResult = await notifyQuestionAskers(db, {
+        questionId: question.id,
+        providerName,
+        providerSlug: profile.slug,
+        question: question.question || "",
+        answer: answer.trim(),
+      });
+      if (notificationResult.errors.length > 0) {
+        console.error("Answer notification errors:", notificationResult.errors);
       }
     }
 

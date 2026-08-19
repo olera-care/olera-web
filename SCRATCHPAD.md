@@ -7,6 +7,12 @@
 
 ## Current Focus
 
+### 2026-08-19 — Provider question deduplication + Ad Boost attribution (`codex/question-deduplication`)
+
+Replaced duplicate provider-facing question rows with one canonical topic plus append-only `provider_question_asks` receipts. Asked topics now leave the suggestion pool immediately; one answer fans out to every asker; provider notifications fire once per topic; stable suggestion keys and provider identities cover copy/slug changes. Ad Boost preserves raw attributed taps while reporting unique topics separately, and claimed profiles inherit their linked directory category. Migration **181 was applied by TJ** before the PR. Pre-test also fixed shared-topic deletion in QA session cleanup, rejected/archived Ad Boost counting, archived legacy rows leaking into provider/admin views, provider-ID variant misses, and missing “Asked N times” metadata. Added the Codex `/push` skill wrapper requested during planning.
+
+**Key files:** `supabase/migrations/181_provider_question_deduplication.sql`, `app/api/questions/route.ts`, `components/providers/QASectionV2.tsx`, `lib/notifications/question-answer-notifications.server.ts`, `lib/ad-boost/delivered.server.ts`, provider/admin question readers, reporting readers, `scripts/check-question-dedup.ts`, `.agents/skills/push/SKILL.md`. **Validation:** `npx --no-install tsc --noEmit`, `npm run check:question-dedup`, `npm run check:crons` (36), and `git diff --check` pass after rebasing onto current staging. **Notion:** [Provider question deduplication + Ad Boost attribution](https://app.notion.com/p/Provider-question-deduplication-Ad-Boost-attribution-3c15903a0ffe81a6bad6f3a0180043fe). **Next:** preview-QA concurrent duplicate submission, one provider notification, answer fan-out, chip removal, Graceful category prompts, and raw-vs-unique Ad Boost totals; do not merge without TJ approval.
+
 ### 2026-08-19 — A broken AC in Marion County turned into the Family Answers Engine, phases 1-4
 
 **Started as one care seeker.** 2026-08-18, 6:43am ET: a Florida woman texted that her AC had stopped cooling. On Medicaid, under $1,500/mo, in cancer treatment with fibromyalgia. She had finished benefits intake five minutes earlier, opened her plan of 12 programs, and texted a human anyway because none of it answered her question. She waited 46 minutes for any reply. The Slack ping fired correctly; nobody could act on it because answering meant twenty minutes of benefits research at dawn.
@@ -124,7 +130,6 @@
 **Claim conversion was unmeasurable, now instrumented.** `business_profiles.claimed_at` was null on all 3,734 rows and `provider_activity` has no claim event, so 789 claimed orgs could not be attributed to anything. Migration `181_business_profile_claimed_at.sql` adds a trigger (10+ call sites set `claim_state='claimed'`; a trigger cannot be forgotten) and backfills the 159 real dates from `provider_outreach_tracking`. **Applied to prod 2026-08-17, verified.**
 
 **Answer rate is 7.4% and that is the wrong metric.** 5,331 questions were emailed to a provider; 395 answered. Median time-to-answer 33 hours, p90 **782 hours**. TJ's correction: questions are a provider-onboarding tool, not a Q&A service — families do not leave emails (440 of 12,514 = 3.5%) and do not come back. So claim conversion is the KPI, which is why the timestamp had to exist first.
-
 ### 2026-08-17 — LumiWell Ad Boost published; the blocker was one keyword, not the firewall (operations, no code)
 
 **Zero code changes.** The only file touched is this log. The real artifacts live in Google Ads and Supabase.

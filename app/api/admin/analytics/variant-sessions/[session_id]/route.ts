@@ -148,10 +148,10 @@ export async function GET(
         };
       }
     } else if (variant === "qa_email_capture") {
-      // Find the linked provider_question. Two paths:
-      //   1. Modern: enrichment event's metadata.question_id (post-#753
-      //      session_id threading).
-      //   2. Legacy fallback: the list endpoint uses question_id as the
+      // Find the linked ask receipt. Three paths:
+      //   1. Modern: enrichment event's metadata.ask_id.
+      //   2. Previous: enrichment event's metadata.question_id.
+      //   3. Legacy fallback: the list endpoint uses question_id as the
       //      row key when the enrichment event predates session_id
       //      threading. In that case the URL's `session_id` param IS the
       //      question_id, and looking it up against provider_questions.id
@@ -159,10 +159,25 @@ export async function GET(
       const enrichEvent = events.find(
         (e) => e.event_type === "question_email_enriched" && typeof e.metadata?.question_id === "string",
       );
+      const askId = enrichEvent && typeof enrichEvent.metadata?.ask_id === "string"
+        ? (enrichEvent.metadata.ask_id as string)
+        : null;
       const qid = enrichEvent
         ? (enrichEvent.metadata?.question_id as string)
         : sessionId;
-      if (qid) {
+      if (askId) {
+        const { data: ask } = await db
+          .from("provider_question_asks")
+          .select("asker_email, original_question, asker_name")
+          .eq("id", askId)
+          .maybeSingle();
+        if (ask) {
+          submission = {
+            email: (ask.asker_email as string | null) ?? null,
+            question_text: (ask.original_question as string | null) ?? null,
+          };
+        }
+      } else if (qid) {
         const { data: q } = await db
           .from("provider_questions")
           .select("asker_email, question, asker_name")

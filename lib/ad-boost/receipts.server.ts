@@ -53,6 +53,7 @@ export interface CampaignReceipt {
     visitors: number;
     saves: number;
     questionsReceived: number;
+    questionTopics: number;
   };
   leads: CampaignLead[];
   /** Rollup of provider self-reports across attributed leads plus the optional
@@ -102,11 +103,11 @@ export async function getCampaignReceipt(
 
   const [stats, questions, leads, saves, weekStats, weekQuestions] = await Promise.all([
     getCampaignStats(db, { providerIdVariants: variants, since }),
-    getCampaignQuestions(db, { providerIdVariants: variants, since }),
+    getCampaignQuestions(db, { providerIdVariants: variants, since, campaignTag: tag }),
     listLeadsByCampaign(db, tag),
     countSaves(db, variants, since),
     getCampaignStats(db, { providerIdVariants: variants, since: weekSince }),
-    getCampaignQuestions(db, { providerIdVariants: variants, since: weekSince }),
+    getCampaignQuestions(db, { providerIdVariants: variants, since: weekSince, campaignTag: tag }),
   ]);
 
   const outcomes = { client: 0, talking: 0, no: 0, unanswered: 0 };
@@ -140,6 +141,7 @@ export async function getCampaignReceipt(
       visitors: stats.visitors,
       saves,
       questionsReceived: questions.received,
+      questionTopics: questions.uniqueReceived,
     },
     leads,
     outcomes,

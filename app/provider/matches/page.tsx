@@ -893,8 +893,13 @@ function CampaignTrackerCard({
             {questions.received.toLocaleString()}
           </p>
           <p className="mt-1.5 text-sm text-gray-500">
-            {questions.received === 1 ? "Question" : "Questions"}
+            {questions.received === 1 ? "Question tap" : "Question taps"}
           </p>
+          {questions.uniqueReceived < questions.received && (
+            <p className="mt-1 text-xs text-gray-400">
+              {questions.uniqueReceived} unique {questions.uniqueReceived === 1 ? "topic" : "topics"}
+            </p>
+          )}
           {hasUnanswered && (
             <Link
               href="/provider/qna"

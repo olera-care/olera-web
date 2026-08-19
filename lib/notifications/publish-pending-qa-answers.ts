@@ -6,8 +6,7 @@
 
 import { SupabaseClient } from "@supabase/supabase-js";
 import { sendSlackAlert, slackQuestionAnswered } from "@/lib/slack";
-import { sendEmail } from "@/lib/email";
-import { questionAnsweredEmail } from "@/lib/email-templates";
+import { notifyQuestionAskers } from "@/lib/notifications/question-answer-notifications.server";
 
 interface PublishResult {
   published: number;
@@ -20,7 +19,6 @@ interface PendingAnswer {
   question: string | null;
   answer: string | null;
   asker_name: string | null;
-  asker_email: string | null;
   provider_id: string;
 }
 
@@ -79,11 +77,14 @@ export async function publishPendingQAAnswers(
 
     result.published = pendingAnswers.length;
 
-    // Send notifications for each published answer (fire-and-forget)
+    // Notify each canonical topic. The helper fans the answer out to all ask
+    // receipts and uses database reservations to avoid duplicate sends when a
+    // verification callback races another publication path.
     const notificationPromises = pendingAnswers.map((answer) =>
-      notifyAsker(answer as PendingAnswer, providerName, providerSlug)
-        .then(() => {
-          result.notified++;
+      notifyAskers(answer as PendingAnswer, providerName, providerSlug, db)
+        .then((notificationResult) => {
+          result.notified += notificationResult.notified;
+          result.errors.push(...notificationResult.errors);
         })
         .catch((err) => {
           result.errors.push(`Notification failed for ${answer.id}: ${err.message}`);
@@ -107,12 +108,12 @@ export async function publishPendingQAAnswers(
 /**
  * Send notifications to the person who asked the question.
  */
-async function notifyAsker(
+async function notifyAskers(
   answer: PendingAnswer,
   providerName: string,
-  providerSlug?: string
-): Promise<void> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+  providerSlug: string | undefined,
+  db: SupabaseClient,
+) {
   const askerName = answer.asker_name || "Someone";
   const question = answer.question || "";
   const answerText = answer.answer || "";
@@ -120,7 +121,7 @@ async function notifyAsker(
   // Skip notification if we don't have meaningful content
   if (!question.trim() || !answerText.trim()) {
     console.warn(`[publish-pending-qa] Skipping notification for ${answer.id}: missing question or answer content`);
-    return;
+    return { notified: 0, receiptsMarked: 0, errors: [] as string[] };
   }
 
   // Use provider_id as slug fallback only if it looks like a slug (not a UUID)
@@ -147,28 +148,13 @@ async function notifyAsker(
     console.error("[publish-pending-qa] Slack notification failed:", slackErr);
   }
 
-  // Send email to the asker (only if we have a valid slug for the URL)
-  if (answer.asker_email && effectiveSlug) {
-    try {
-      const providerUrl = `${siteUrl}/provider/${effectiveSlug}`;
-      await sendEmail({
-        to: answer.asker_email,
-        subject: `${providerName} answered your question on Olera`,
-        html: questionAnsweredEmail({
-          askerName,
-          providerName,
-          question,
-          answer: answerText,
-          providerUrl,
-        }),
-        emailType: "question_answered",
-        recipientType: "family",
-        providerId: effectiveSlug,
-      });
-    } catch (emailErr) {
-      console.error("[publish-pending-qa] Email notification failed:", emailErr);
-    }
-  } else if (answer.asker_email && !effectiveSlug) {
-    console.warn(`[publish-pending-qa] Skipping email for ${answer.id}: no valid provider slug for URL`);
-  }
+  if (!effectiveSlug) return { notified: 0, receiptsMarked: 0, errors: [] as string[] };
+
+  return notifyQuestionAskers(db, {
+    questionId: answer.id,
+    providerName,
+    providerSlug: effectiveSlug,
+    question,
+    answer: answerText,
+  });
 }

@@ -292,7 +292,7 @@ revenue can sustain. Disposition of what it used to carry:
   concrete acceptance hurdles (provider wariness after per-lead vendors, student
   caregiver safety, family trust in AI navigation, campus-by-campus dependence).
   Note the RS no longer signals compliance anywhere in Significance.
-- **Aim mapping deliberately not included.** Checked and rejected: the three Aims
+- **Aim-to-innovation mapping deliberately not included.** The final paragraph names the Specific Aims once, at the general level ("The Specific Aims test whether Olera can overcome this hurdle across local markets"), but maps nothing. Checked and rejected as a structure: the three Aims
   do not map one-to-one onto the three Key Innovations (Aim 3 has no innovation
   counterpart, KI-3 spans Aims 1 and 2, and Aim 2 covers Visibility and Conversion
   which are not Key Innovations). The Approach's "Overall design and timetable

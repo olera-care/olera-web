@@ -40,7 +40,7 @@ The last row of Table 2 marks the sharpest competitive distinction: every existi
 
 The family-facing CareNavigator competes in a different environment: digital tools that inform families but leave them to act alone, and human navigators (social workers, discharge planners, case managers) who act with families but cannot scale to national demand. CareNavigator is designed to combine the breadth of the digital tools with the follow-through of a human navigator, a design developed as Key Innovation 2. A tool-by-tool competitive table appears in the Commercialization Plan.
 
-Hurdles to adoption. CareNavigator operates nationally today, so the primary hurdle to a durable business is local adoption. The full value is realized when three groups come together in the same local market: families seeking care and aid to pay for it, providers able to serve them, and enough caregivers to meet that demand. The challenge is to build a healthy local marketplace repeatedly at a cost each local market's revenue can sustain by end of award. This project tests whether Olera can overcome these hurdles individually; the innovations that follow explain why we believe it can.
+Hurdles to adoption. CareNavigator operates nationally today, but the primary hurdle to a durable business is local adoption. The platform creates its full value when three groups are concentrated in the same local market: families seeking care, providers able to serve them, and enough workforce to meet that demand. The challenge is to achieve this concentration at a cost each market's revenue can sustain. The Specific Aims test whether Olera can overcome this hurdle across local markets, and the innovations that follow explain how we plan to do so.
 
 INNOVATION
 

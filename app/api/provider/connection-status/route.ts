@@ -65,9 +65,11 @@ export async function POST(request: NextRequest) {
         .eq("id", providerId)
         .single();
 
+      // Use slug if available, fall back to providerId (UUID)
       let redirectUrl = "/provider";
-      if (profile?.slug && profile?.email) {
-        redirectUrl = generateLeadClaimUrl(profile.slug, profile.email, connectionId);
+      const providerKey = profile?.slug || providerId;
+      if (profile?.email && providerKey) {
+        redirectUrl = generateLeadClaimUrl(providerKey, profile.email, connectionId);
       }
 
       return NextResponse.json({
@@ -144,9 +146,11 @@ export async function POST(request: NextRequest) {
       .single();
 
     // Generate magic link URL for authenticated redirect
+    // Use slug if available, fall back to providerId (UUID) which claim-lead also accepts
     let redirectUrl = "/provider";
-    if (profile?.slug && profile?.email) {
-      redirectUrl = generateLeadClaimUrl(profile.slug, profile.email, connectionId);
+    const providerKey = profile?.slug || providerId;
+    if (profile?.email && providerKey) {
+      redirectUrl = generateLeadClaimUrl(providerKey, profile.email, connectionId);
     }
 
     return NextResponse.json({

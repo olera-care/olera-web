@@ -50,6 +50,7 @@ export default function ConnectionStatusClient({ tok }: { tok: string }) {
 
   // Error state
   if (error) {
+    const isExpired = error === "Token has expired";
     return (
       <div className="min-h-screen bg-[#F9F6F2] flex items-center justify-center px-5 py-16">
         <div className="max-w-md w-full text-center">
@@ -62,15 +63,15 @@ export default function ConnectionStatusClient({ tok }: { tok: string }) {
           </div>
           <h1 className="font-serif text-2xl text-gray-900 mb-3">That link didn&apos;t work</h1>
           <p className="text-gray-500 mb-8 leading-relaxed">
-            {error === "Token has expired"
-              ? "This link has expired. You can still manage your connections from your dashboard."
+            {isExpired
+              ? "This link has expired. Sign in to manage your connections."
               : error}
           </p>
           <Link
-            href="/provider"
+            href="/"
             className="inline-block px-8 py-4 bg-primary-600 text-white font-medium rounded-2xl hover:bg-primary-700 transition-colors"
           >
-            Go to dashboard
+            {isExpired ? "Go to Olera" : "Go to homepage"}
           </Link>
         </div>
       </div>

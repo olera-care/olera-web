@@ -71,13 +71,20 @@ written; rendering rules govern the docx/PDF surfaces.
   readable paragraphs.
 - **No em dashes, ever.** Use commas, colons, semicolons, parentheses, or separate
   sentences. En dashes only in numeric ranges ("Years 4–5").
-- Captions: one line where possible; "Figure N:" / "Table N:" bold lead, regular text
-  after. Caption states the figure's argument, not a description of its parts.
+- Captions (figures and tables alike, ratified 2026-08-19): **one line maximum** —
+  the shortest clear description of what the figure shows, in terminology that
+  matches the surrounding prose and its in-text reference, so the reader never
+  translates between text and figure. No explanatory, interpretive, or
+  methodological detail unless absolutely necessary (that belongs in the prose or
+  the figure itself); captions are not miniature paragraphs. Same font and size as
+  body text. Only the label is bold ("**Figure 1.**"); the caption text after it is
+  not.
 
 ### Document rendering rules
 
 - Page: Letter portrait, 0.5in margins on all four sides.
-- Type: Arial throughout. Body 11pt, justified. Tables and figure captions 9pt.
+- Type: Arial throughout. Body 11pt, justified. Table body text 9pt; figure and
+  table captions at body size (11pt) per the caption rules above.
 - Spacing: single line spacing; 0–2pt after body paragraphs; ~8pt before headings;
   never blank-paragraph spacing.
 - Heading hierarchy (RS forms shown; the CP numbers its major sections):

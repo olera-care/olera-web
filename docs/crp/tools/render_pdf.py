@@ -29,7 +29,7 @@ p.metrics-head { font-style: italic; text-decoration: underline; text-align: lef
                  margin: 4pt 0 2pt 0; }
 p.standalone-iu { font-style: italic; text-decoration: underline; margin: 4pt 0 2pt 0;
                   text-align: left; }
-p.caption { font-size: 9pt; text-align: left; margin: 2pt 0 6pt 0; }
+p.caption { text-align: left; margin: 2pt 0 6pt 0; }
 sup { line-height: 0; }
 sup.todo { color: #b45309; font-weight: bold; }
 div.refs { break-before: page; page-break-before: always; }
@@ -141,7 +141,7 @@ def render_metric_item(t):
 
 def render_caption(t):
     # t like "Figure 1: caption text" or "Table 1: ..."
-    m = re.match(r'((?:Figure|Table) [A-Z0-9]+:)\s*(.*)', t, re.S)
+    m = re.match(r'((?:Figure|Table) [A-Z0-9]+[:.])\s*(.*)', t, re.S)
     if m:
         return f'<p class="caption"><b>{esc(m.group(1))}</b> {esc(m.group(2))}</p>'
     return f'<p class="caption">{esc(t)}</p>'

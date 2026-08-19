@@ -578,9 +578,10 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
       timing: "Manual · Up to 2 times",
       description:
         "Admin clicks 'Resend Claim Link' to send the nudge email with a fresh claim URL. " +
-        "Limited to 2 resends per provider. Uses the 'nudge' template via Resend (not SmartLead).",
-      emailType: "provider_outreach_nudge",
-      ownerNote: "Inline action in Follow Up tab",
+        "Limited to 2 resends per provider. Uses the 'nudge' template via Resend (not SmartLead). " +
+        "Provider moves to Alternative Channels after sending.",
+      emailType: "provider_outreach_sequence",
+      ownerNote: "Inline action in Follow Up tab; moves to Alternative Channels",
       traits: ["Manual", "Max 2 resends"],
     },
     {
@@ -670,9 +671,9 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
       key: "alternative_channels_tracking",
       phase: "Alternative Channels",
       title: "Delivery status tracking",
-      timing: "After fax/postcard/contact form sent",
+      timing: "After resend link/fax/postcard/contact form",
       description:
-        "Provider arrives here after fax, postcard, or contact form action from Follow Up. " +
+        "Provider arrives here after any action from Follow Up: resend claim link, fax, postcard, or contact form. " +
         "Shows delivery status: Fax (queued → sent → delivered → QR scanned), " +
         "Postcard (queued → sent). Admin can still Reset to Ready, mark Not Interested, or Archive.",
       ownerNote: "Tracking-only tab; awaiting provider response or delivery confirmation",

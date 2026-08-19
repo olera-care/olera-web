@@ -38,6 +38,12 @@ div.refs p.refnote { color: #555; font-style: italic; margin-bottom: 8pt; }
 div.fig { margin: 5pt 0 2pt 0; text-align: center; }
 div.fig img, div.fig svg { max-width: 100%; height: auto; }
 div.figblock { break-inside: avoid; page-break-inside: avoid; }
+/* Wrapped figure: floats right, justified body text runs beside it. */
+div.figwrap { float: right; width: 3.2in; margin: 1pt 0 4pt 11pt; break-inside: avoid;
+              page-break-inside: avoid; }
+div.figwrap svg, div.figwrap img { width: 100%; height: auto; display: block; }
+div.figwrap p.caption { margin: 3pt 0 0 0; text-align: left; }
+p.clearfix { clear: both; margin: 0; height: 0; }
 ul.accomp { margin: 2pt 0 3pt 0; padding-left: 15pt; }
 ul.accomp li { text-align: justify; margin: 0 0 2pt 0; padding-left: 2pt; }
 /* Comparison matrix: horizontal rules only, own-product column blocked in, marks
@@ -232,9 +238,10 @@ def main():
         if not line or line in ('<div style="margin:6px 0 4px">', '</div>'):
             continue
         # image line
-        m = re.match(r'!\[[^\]]*\]\(([^)]+)\)', line)
+        m = re.match(r'!\[([^\]]*)\]\(([^)]+)\)', line)
         if m:
-            body.append(f'<div class="fig">{img_tag(m.group(1))}</div>')
+            cls = 'fig wrapme' if 'wrap' in m.group(1).lower() else 'fig'
+            body.append(f'<div class="{cls}">{img_tag(m.group(2))}</div>')
             continue
         # raw Figure A caption span from the md
         if line.startswith('<span style='):
@@ -337,7 +344,13 @@ def main():
     # keep each figure and its caption on the same page
     joined, i = [], 0
     while i < len(body):
-        if (body[i].startswith(('<div class="fig">', '<table class="matrix">'))
+        if (body[i].startswith('<div class="fig wrapme">')
+                and i + 1 < len(body)
+                and body[i + 1].startswith('<p class="caption">')):
+            inner = body[i].replace('<div class="fig wrapme">', '', 1)[:-len('</div>')]
+            joined.append(f'<div class="figwrap">{inner}{body[i+1]}</div>')
+            i += 2
+        elif (body[i].startswith(('<div class="fig">', '<table class="matrix">'))
                 and i + 1 < len(body)
                 and body[i + 1].startswith('<p class="caption">')):
             joined.append(f'<div class="figblock">{body[i]}{body[i+1]}</div>')

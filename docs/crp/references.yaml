@@ -88,3 +88,57 @@ szanton2018:
   url: https://dx.doi.org/10.1111/jgs.15143
   supports: "CAPABLE implementation associated with reduced Medicaid spending driven by reduced inpatient/outpatient utilization (roughly $3K program cost vs >$20K savings per participant)."
   verified: 2026-08-19
+
+nhe2023:
+  ref: "Centers for Medicare & Medicaid Services. National Health Expenditure Accounts, 2023. CMS Office of the Actuary; 2024."
+  url: https://www.cms.gov/data-research/statistics-trends-and-reports/national-health-expenditure-data
+  supports: "Home health care spending $147.8B in 2023 (+10.8%); nursing care facilities and continuing care retirement communities $211.3B (+9.5%). Components of the ~half-trillion eldercare aggregate; both categories growing near 10%/yr."
+  verified: 2026-08-19
+
+homeCareMarketEst:
+  ref: "Industry estimates of U.S. non-medical home care revenue (analyst reports; definitions vary). Range $101-162B; conservative floor >$100B, ~7%/yr growth."
+  url: https://www.grandviewresearch.com/industry-analysis/non-medical-home-care-market-report
+  supports: "Non-medical/private-duty home care exceeds $100B annually (conservative end of analyst range; consistent with Commercialization Plan Table 6). Largely outside CMS NHE home health line."
+  verified: 2026-08-19
+
+seniorLivingRev2023:
+  ref: "Senior living industry revenue statistics: $94.2B in 2023, up from $78.2B in 2016."
+  url: https://www.seniorliving.org/companies/statistics/
+  supports: "Assisted/senior living industry revenue ~$94B/yr; largely private-pay and outside CMS NHE accounts. Trace to AHCA/NCAL primary data at the citation-integrity pass."
+  verified: 2026-08-19
+
+cdcNpals2020:
+  ref: "Centers for Disease Control and Prevention, National Center for Health Statistics. National Post-acute and Long-term Care Study, 2020. National Health Statistics Reports No. 208; 2024."
+  url: https://www.cdc.gov/nchs/data/nhsr/nhsr208.pdf
+  supports: "About 68,150 paid, regulated post-acute and long-term-care providers in 2020 (residential care communities, nursing homes, home health agencies, hospices, adult day services centers). Federal core of the provider denominator; excludes state-licensed non-medical home care agencies."
+  verified: 2026-08-19
+
+oleraProviderCount:
+  ref: "Olera estimate: approximately 165,000 U.S. eldercare provider organizations, built from CDC NPALS regulated-provider counts plus approximately 100,000 state-licensed non-medical home care agencies (industry estimates; agencies are licensed by states rather than tracked federally). Consistent with Commercialization Plan Table 6."
+  url: internal (docs/crp/market-denominator.md)
+  supports: "The ~165,000 provider denominator; overlap treatment (memory care within senior living; CCRC levels embedded) documented in the workspace note."
+  verified: 2026-08-19
+
+oleraAcqSpendEst:
+  ref: "Olera conservative bottom-up estimate: U.S. eldercare providers spend at least ~$5B/year on marketing and recruiting (senior living sales/marketing at 3% of ~$94B revenue; home care advertising at 1.1% of >$100B revenue; ~2M+ annual caregiver hires at $520 median acquisition cost). Assumptions and exclusions in docs/crp/market-denominator.md."
+  url: internal (docs/crp/market-denominator.md)
+  supports: "The estimated $5B+ annual marketing and recruiting spend; every input published, every choice at the conservative end, all omissions downward-biasing."
+  verified: 2026-08-19
+
+slSalesMarketingBench:
+  ref: "Senior living industry benchmarks: sales and marketing expense typically 3-6% of revenue (6-10% for communities in growth mode)."
+  url: https://blytheco.com/blog/posts/senior-living-industry-benchmarks-where-does-your-community-stand
+  supports: "The 3% (low-end) senior-living sales-and-marketing input to the acquisition-spend estimate."
+  verified: 2026-08-19
+
+homeCareAdSpendStudy:
+  ref: "Industry study of home care agency advertising spend: average 1.1% of revenue."
+  url: https://sagapixel.com/marketing/how-much-do-home-care-agencies-spend-on-marketing/
+  supports: "The 1.1% home-care advertising input to the acquisition-spend estimate. Single study; conservative (excludes referral fees and non-advertising marketing)."
+  verified: 2026-08-19
+
+caregiverCAC2025:
+  ref: "Activated Insights. 2025 Home Care Benchmarking Report: median caregiver acquisition cost $520 (word-of-mouth channel)."
+  url: https://activatedinsights.com/articles/5-metrics-every-home-care-agency-should-be-tracking/
+  supports: "The $520-per-hire input to the recruiting-spend estimate; word-of-mouth median is the cheapest channel, biasing the estimate downward."
+  verified: 2026-08-19

@@ -36,3 +36,11 @@ records; consolidation needed) · **unsupported** (no source located yet) ·
 | 200+ I-Corps provider interviews | I-Corps program records | verified | RS, CP | No |
 | Ziegler / Equitage diligence shaped endpoints; John Reinhart engagement | correspondence | records-exist | RS Preliminary; CP §1/§7 | Letters task (TJ) |
 | ~15 providers signed up for Growth Suite (letter pool) | 2026-08-17 meeting | records-exist | letters workstream | Yes — list from DB |
+
+## Market figures retired (2026-08-19)
+
+- "$173.6B home-care industry," "$76B senior-living industry," "$2.4B long-term-care
+  software market": removed from the RS market paragraph — unsourced analyst figures.
+  Replaced by CMS NHE components, industry estimates, and the auditable denominators
+  in market-denominator.md. Do not reintroduce; the CP inherits the same replacement
+  during its pass.

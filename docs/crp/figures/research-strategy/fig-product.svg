@@ -1,0 +1,83 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 278" style="width:7.4in;margin:0 auto;display:block" role="img" aria-label="What CareNavigator does. A family works through the CareNavigator interface, which understands the need, identifies the aid, services, and providers that fit, and helps the family act.">
+  <defs>
+    <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8f9c99"/>
+    </marker>
+  </defs>
+
+  <!-- ============ 1. FAMILY ============ -->
+  <clipPath id="famclip"><circle cx="88" cy="120" r="66"/></clipPath>
+  <circle cx="88" cy="120" r="66" fill="#f2f5f4"/>
+  <g clip-path="url(#famclip)">
+    <!-- caregiver, behind -->
+    <path d="M74 196 q0-52 34-52 q34 0 34 52 z" fill="#e79a90"/>
+    <circle cx="108" cy="112" r="23" fill="#f0c3bb"/>
+    <path d="M85 108 q4-24 23-24 q19 0 23 24 q-10-13-23-13 q-13 0-23 13z" fill="#3d5a63"/>
+    <!-- older adult, in front -->
+    <path d="M40 196 q0-46 30-46 q30 0 30 46 z" fill="#e8b4ac"/>
+    <circle cx="70" cy="128" r="22" fill="#eebfb7"/>
+    <path d="M50 120 q6-16 20-16 q14 0 20 16 q-9-8-20-8 q-11 0-20 8z" fill="#d3dad8"/>
+    <path d="M62 140 q8 4 16 0" fill="none" stroke="#c8938a" stroke-width="2.6" stroke-linecap="round"/>
+  </g>
+  <text x="88" y="252" text-anchor="middle" font-family="Arial" font-size="17" font-weight="700" fill="#14453f">Family</text>
+  <text x="88" y="270" text-anchor="middle" font-family="Arial" font-size="12" fill="#5d6f6b">needs daily help at home</text>
+
+  <!-- family <-> interface arrows -->
+  <path d="M168 88 q34-30 68-12" fill="none" stroke="#8f9c99" stroke-width="5" marker-end="url(#ah)"/>
+  <path d="M236 168 q-34 18-68-10" fill="none" stroke="#8f9c99" stroke-width="5" marker-end="url(#ah)"/>
+
+  <!-- ============ 2. CARENAVIGATOR INTERFACE ============ -->
+  <rect x="258" y="14" width="118" height="212" rx="16" fill="#fff" stroke="#c7d0ce" stroke-width="2.5"/>
+  <rect x="266" y="22" width="102" height="196" rx="10" fill="#fbfcfc"/>
+  <circle cx="278" cy="34" r="5" fill="#2e7d5b"/>
+  <text x="317" y="62" text-anchor="middle" font-family="Arial" font-size="11" font-weight="700" fill="#1d2b29">Hoping to stay at</text>
+  <text x="317" y="76" text-anchor="middle" font-family="Arial" font-size="11" font-weight="700" fill="#1d2b29">home, or exploring</text>
+  <text x="317" y="90" text-anchor="middle" font-family="Arial" font-size="11" font-weight="700" fill="#1d2b29">facilities?</text>
+  <rect x="274" y="102" width="86" height="22" rx="11" fill="#f0f3f2" stroke="#dde3e2"/>
+  <text x="317" y="117" text-anchor="middle" font-family="Arial" font-size="10" fill="#41504d">Stay at home</text>
+  <rect x="274" y="130" width="86" height="22" rx="11" fill="#f0f3f2" stroke="#dde3e2"/>
+  <text x="317" y="145" text-anchor="middle" font-family="Arial" font-size="10" fill="#41504d">Explore facilities</text>
+  <rect x="274" y="158" width="86" height="22" rx="11" fill="#f0f3f2" stroke="#dde3e2"/>
+  <text x="317" y="173" text-anchor="middle" font-family="Arial" font-size="10" fill="#41504d">Not sure</text>
+  <text x="317" y="252" text-anchor="middle" font-family="Arial" font-size="17" font-weight="700" fill="#14453f">CareNavigator</text>
+  <text x="317" y="270" text-anchor="middle" font-family="Arial" font-size="12" fill="#5d6f6b">free to families</text>
+
+  <!-- interface <-> navigation arrows -->
+  <path d="M392 120 h44" fill="none" stroke="#8f9c99" stroke-width="5" marker-start="url(#ah)" marker-end="url(#ah)"/>
+
+  <!-- ============ 3. WHAT IT DOES ============ -->
+  <!-- understand -->
+  <rect x="452" y="6" width="540" height="66" rx="9" fill="#14453f"/>
+  <text x="470" y="31" font-family="Arial" font-size="15" font-weight="700" fill="#ffffff">Understand the need</text>
+  <text x="470" y="52" font-family="Arial" font-size="12" fill="#cfe0dc">Structured screening establishes what the household needs</text>
+  <g stroke="#ffffff" stroke-width="2.2" fill="none">
+    <rect x="936" y="20" width="34" height="38" rx="4"/>
+    <path d="M944 32 h8 M944 42 h8 M944 52 h8"/>
+    <path d="M958 30 l4 4 l7-8" stroke-width="2.6"/>
+  </g>
+
+  <!-- identify -->
+  <rect x="452" y="80" width="540" height="66" rx="9" fill="#f2f5f4" stroke="#d5dedc"/>
+  <text x="470" y="105" font-family="Arial" font-size="15" font-weight="700" fill="#14453f">Identify what fits</text>
+  <text x="470" y="126" font-family="Arial" font-size="12" fill="#43534f">Aid programs, services, and providers from Olera's curated national database</text>
+  <g stroke="#14453f" stroke-width="2.2" fill="none">
+    <rect x="936" y="92" width="24" height="30" rx="3"/>
+    <path d="M942 100 h12 M942 108 h12"/>
+    <path d="M964 96 v30 M964 126 h6"/>
+    <path d="M932 130 h42" stroke-width="2.6"/>
+  </g>
+
+  <!-- act -->
+  <rect x="452" y="154" width="540" height="72" rx="9" fill="#e2edea" stroke="#c3d7d2"/>
+  <text x="470" y="179" font-family="Arial" font-size="15" font-weight="700" fill="#14453f">Help the family act</text>
+  <text x="470" y="200" font-family="Arial" font-size="12" fill="#43534f">Prepare each step, connect the family to providers, and follow through</text>
+  <text x="470" y="217" font-family="Arial" font-size="11" font-style="italic" fill="#5d6f6b">preparation and follow-through are completed under this award</text>
+  <g stroke="#14453f" stroke-width="2.2" fill="none">
+    <rect x="932" y="170" width="42" height="28" rx="4"/>
+    <path d="M932 180 h42"/>
+    <path d="M940 190 h10"/>
+    <path d="M958 204 l6 5 l9-11" stroke-width="2.8"/>
+  </g>
+
+  <text x="722" y="252" text-anchor="middle" font-family="Arial" font-size="17" font-weight="700" fill="#14453f">AI-assisted navigation</text>
+</svg>

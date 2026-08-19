@@ -340,10 +340,14 @@ def main():
     open(OUT_HTML, 'w', encoding='utf-8').write(doc)
     print('wrote', OUT_HTML)
 
+    # Remove the previous PDF first: if Chromium fails (or is killed early), an
+    # existing file would otherwise be mistaken for a fresh render.
+    if os.path.exists(OUT_PDF):
+        os.remove(OUT_PDF)
     r = subprocess.run(['/opt/pw-browsers/chromium', '--headless', '--disable-gpu',
                         '--no-sandbox', '--no-pdf-header-footer',
                         f'--print-to-pdf={OUT_PDF}', f'file://{OUT_HTML}'],
-                       capture_output=True, text=True, timeout=120)
+                       capture_output=True, text=True, timeout=180)
     if not os.path.exists(OUT_PDF):
         print(r.stderr[-2000:]); sys.exit(1)
     print('wrote', OUT_PDF)

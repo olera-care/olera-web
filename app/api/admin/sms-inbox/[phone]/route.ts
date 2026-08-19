@@ -30,6 +30,46 @@ function toE164(last10: string): string {
   return `+1${last10}`;
 }
 
+/**
+ * Close out the researched answer a reply came from, recording what was
+ * actually sent next to what the engine proposed.
+ *
+ * Deliberately scoped to the NEWEST ready job rather than every ready row for
+ * the number. More than one can exist: the webhook only suppresses a duplicate
+ * job while an earlier one is `pending` or `running`, so a family who texts
+ * again while a draft is awaiting review gets a second job, and the cron will
+ * happily draft that one too. A blanket update would then stamp one reply's
+ * text onto both, marking a question answered that was never answered and
+ * corrupting the draft-vs-sent comparison for the older one.
+ */
+async function stampAnswerJobSent(
+  db: ReturnType<typeof getServiceClient>,
+  last10: string,
+  sentBody: string,
+  actor: string,
+): Promise<void> {
+  const { data: job } = await db
+    .from("family_answer_jobs")
+    .select("id")
+    .eq("phone_last10", last10)
+    .eq("status", "ready")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (!job) return;
+
+  const { error } = await db
+    .from("family_answer_jobs")
+    .update({
+      status: "sent",
+      sent_body: sentBody,
+      sent_at: new Date().toISOString(),
+      sent_by: actor,
+    })
+    .eq("id", job.id);
+  if (error) console.error("[admin/sms-inbox/phone] answer job stamp failed:", error);
+}
+
 function normalizeLast10(raw: string): string | null {
   const digits = (raw || "").replace(/\D/g, "");
   return digits.length >= 10 ? digits.slice(-10) : null;
@@ -52,7 +92,7 @@ export async function GET(
     const db = getServiceClient();
     const e164 = toE164(last10);
 
-    const [inboundRes, dncRes, draftRes] = await Promise.all([
+    const [inboundRes, dncRes, draftRes, packetRes] = await Promise.all([
       db
         .from("sms_inbound")
         .select("id, from_phone, body, keyword, profile_id, profile_type, display_name, handled_at, created_at")
@@ -60,6 +100,17 @@ export async function GET(
         .order("created_at", { ascending: true }),
       db.from("do_not_contact").select("id, reason, note").eq("phone", last10).limit(1).maybeSingle(),
       db.from("sms_drafts").select("body, updated_by, updated_at").eq("phone_last10", last10).maybeSingle(),
+      // The most recent researched answer waiting on a human. Only `ready`
+      // rows are surfaced: `pending`/`running` have nothing to show yet, and
+      // `sent` is already answered.
+      db
+        .from("family_answer_jobs")
+        .select("id, packet, created_at")
+        .eq("phone_last10", last10)
+        .eq("status", "ready")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
     ]);
     if (inboundRes.error) {
       console.error("[admin/sms-inbox/phone] inbound load failed:", inboundRes.error);
@@ -140,6 +191,12 @@ export async function GET(
               updated_at: draftRes.data.updated_at,
             }
           : null,
+      // Same rule as the draft: a packet read failure must not blank the
+      // conversation. The researched answer is an aid, not the page.
+      answerPacket:
+        packetRes.error || !packetRes.data?.packet
+          ? null
+          : { jobId: packetRes.data.id, packet: packetRes.data.packet },
     });
   } catch (err) {
     console.error("[admin/sms-inbox/phone] Unexpected error:", err);
@@ -285,6 +342,11 @@ export async function POST(
           .eq("phone_last10", last10)
           .is("handled_at", null),
         db.from("sms_drafts").delete().eq("phone_last10", last10),
+        // Close out the researched answer this reply came from, and record what
+        // was ACTUALLY sent alongside what the engine proposed. The difference
+        // between packet.draft and sent_body is the cheapest honest signal of
+        // whether the engine is any good, and it needs no extra instrumentation.
+        stampAnswerJobSent(db, last10, text, user.email ?? admin.id),
       ]);
 
       await logAuditAction({

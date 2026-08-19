@@ -512,3 +512,31 @@ federal, state, and local benefit programs in the database is unknown and would 
 strongest number in this section; the data lives in Supabase (`sbf_federal_programs`,
 `sbf_state_programs`). (3) "15,500 families a month" here and in Figure 6's caption
 versus "15,500 visitors per month" in the accomplishments bullet. Pick one.
+
+### Key Innovation 3 reverted (2026-08-19)
+
+Logan reverted Key Innovation 3 to TJ's original 264-word paragraph. The six-move
+rebuild logged immediately above is withdrawn from the document; the analysis behind
+it stands and the material remains available here if it is wanted later.
+
+What the revert restores and what it costs:
+
+- **Restored:** TJ's opener ("A general-purpose AI can fill out a form"), the sourcing
+  sentence including the two unverified items ("structured field work," "versioned"),
+  the public-health surveillance sentence (which is the application's only claim on the
+  "novel to the field of research" half of II.2 and III.3, so this is a scoring gain),
+  and the empty-database closing.
+- **Lost:** the concentration mechanism. TJ's paragraph does not explain how the
+  database concentrates families or providers in a local market, which was the question
+  Logan asked when the rebuild was commissioned. The city expansion pipeline
+  (`scripts/enrich-city.js`, `.claude/commands/city-pipeline.md`), verified as real and
+  operational, is no longer cited anywhere in the Innovation section. **Future home:
+  Preliminary Work or Task 1.3 market entry.**
+- **Reintroduced defect, flagged not fixed:** TJ's text says "Because Olera executes
+  applications and follows each case, it learns what programs actually decide" and
+  "sharpens with every family served," both present tense. The execution loop is not
+  built. Key Innovation 2, three sentences earlier, says "Under the CRP, we will build
+  the execution and follow-up capabilities." The two paragraphs now contradict each
+  other on the same page. Left as TJ wrote it per the revert instruction.
+- The orphaned Hurdles line ("Benefit rules differ in every state, so each new market
+  carries eligibility work the last one did not need") is homeless again.

@@ -230,7 +230,23 @@ and hands off; verify against drift, gaps, and skeptical review before locking.
 Full method, authority hierarchy, and grounded lessons: **`DRAFTING.md`**. This is
 the default whenever Logan says "next paragraph."
 
-## 10. Current priority
+## 10. Locked sections (do not reopen without cause)
+
+Significance is complete and locked as of 2026-08-19: **The unmet need** (+ Figure 1),
+**The product and the business model** (+ Figure 2 + the accomplishments block +
+synthesis), **The two-sided market**, **Competitive environment and our advantage**
+(+ Table 2 + the workforce paragraph + the family-side signpost), and **Hurdles to
+adoption**. Reopen only when downstream work reveals a real inconsistency, and flag
+rather than silently edit.
+
+Open obligations these sections created, all recorded in
+`passes/removed-material-log.md`: Preliminary Work says the pilot "placed about 100"
+against the locked "more than 20" (**required** correction); the 150-providers-per-month
+figure needs verification against live data; Peach Creek's payment and the 20+
+placements need to reach the consolidated pilot record; the state-by-state eligibility
+line needs a home in Key Innovation 3.
+
+## 11. Current priority
 
 **72-hour goal (from 2026-08-17): Research Strategy Marcia-ready.** Pass order:
 **Aim 2 (active)** → Aim 3 → Preliminary Work → Aim 1 → Significance/Innovation →

@@ -83,6 +83,8 @@ export async function GET(request: NextRequest) {
         last_keyword: string | null;
         last_at: string;
         unhandled: number;
+        /** Oldest unanswered, non-control message from a matched family. */
+        oldest_promised_reply_at: string | null;
         total: number;
       }
     >();
@@ -99,12 +101,24 @@ export async function GET(request: NextRequest) {
           last_keyword: row.keyword,
           last_at: row.created_at,
           unhandled: row.handled_at ? 0 : 1,
+          oldest_promised_reply_at:
+            !row.handled_at && row.profile_type === "family" && !row.keyword
+              ? row.created_at
+              : null,
           total: 1,
         });
         continue;
       }
       existing.total += 1;
-      if (!row.handled_at) existing.unhandled += 1;
+      if (!row.handled_at) {
+        existing.unhandled += 1;
+        // Control keywords (STOP/START/HELP) are handled by the carrier or
+        // webhook and do not start the care-team response promise. Rows arrive
+        // newest-first, so every later qualifying row is older.
+        if (row.profile_type === "family" && !row.keyword) {
+          existing.oldest_promised_reply_at = row.created_at;
+        }
+      }
       // An older row may carry identity a newer one lacks (resolution improves
       // as accounts are created), so keep the first non-null we find.
       existing.display_name ||= row.display_name;

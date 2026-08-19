@@ -298,3 +298,39 @@ revenue can sustain. Disposition of what it used to carry:
   which are not Key Innovations). The Approach's "Overall design and timetable
   (Figure A)" paragraph does aim-mapping properly; this paragraph hands off to
   Innovation instead.
+
+## Key Innovation 1, rebuild and trim (2026-08-19, Logan-approved)
+
+TJ's title preserved. The paragraph was rebuilt around the paradigm contrast
+(existing channels move capacity between providers; CareNavigator adds it) rather
+than around a list of student attributes. What came out:
+
+- **"A projected 9.2 million worker shortfall by 2030, turnover near 80 percent."**
+  Both contradicted verified figures. The document now uses 9.7 million through 2034
+  (`phi2025`) everywhere; the 9.2M figure is retired outright. Turnover was dropped
+  rather than corrected: our sources disagree (75.0% in the evidence ledger, 79.2% in
+  the same report family) and it was not load-bearing for this argument. **Resolve the
+  turnover conflict before it is used anywhere else.**
+- **"Intrinsically aligned with care, educated and trainable"** and **"intergenerational
+  contact itself benefits both sides."** Removed as unevidenced. The intergenerational
+  claim likely has literature behind it; if someone wants it back, it needs a source
+  read against the specific claim first.
+- **Shift-fit detail** (evenings, weekends, nights, summers, winter breaks, gap years).
+  Removed for want of evidence that student availability concentrates there or that
+  those are the shifts providers most need. **Reinstate if evidence appears**; it is a
+  genuine provider-side advantage and was TJ's.
+- **"The model is already validated."** Replaced by the calibrated pilot claim agreed
+  in the competitive pass.
+- **"If it scales, providers gain a source of caregivers that renews with each entering
+  class rather than one they must win from a competitor. It also joins two systems that
+  run separately today: eldercare, which cannot staff the care families need, and
+  health-professions training, whose students must find patient-care experience wherever
+  they can."** Cut at Logan's direction after drafting. The ideas survive: renewal is in
+  Figure 3's structure, and the two-systems point is compressed into the closing
+  sentence and shown by the figure's two returns.
+
+**Open obligations from this pass:** the pilot funnel (900 applicants / 50 accepted /
+20+ placed) contradicts the CP (900/100/25) and Preliminary Work ("about 100 placed");
+"a second pilot is now scaling the model" is stronger than Preliminary Work's "prepared
+for a fall pilot in Indiana"; and the one million enrolled figure is derived from the
+annual degree flow rather than published enrollment, as recorded in `references.yaml`.

@@ -232,6 +232,8 @@ the default whenever Logan says "next paragraph."
 
 ## 10. Locked sections (do not reopen without cause)
 
+**Key Innovation 1** is locked as of 2026-08-19, with Figure 3 wrapped top-right.
+
 Significance is complete and locked as of 2026-08-19: **The unmet need** (+ Figure 1),
 **The product and the business model** (+ Figure 2 + the accomplishments block +
 synthesis), **The two-sided market**, **Competitive environment and our advantage**

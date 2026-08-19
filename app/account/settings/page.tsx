@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/client";
 import Modal from "@/components/ui/Modal";
@@ -79,8 +79,9 @@ type NotificationKey =
   | (typeof ORGANIZATION_NOTIFICATIONS)[number]["key"]
   | (typeof CAREGIVER_NOTIFICATIONS)[number]["key"];
 
-export default function AccountSettingsPage() {
+function AccountSettingsInner() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { user, activeProfile, profiles, refreshAccountData } = useAuth();
 
   // Determine account type for notifications
@@ -114,8 +115,10 @@ export default function AccountSettingsPage() {
     },
   });
 
-  // Tab state
-  const [activeTab, setActiveTab] = useState<SettingsTab>("account");
+  // Tab state — ?tab=notifications deep-links to the Notifications tab
+  const tabParam = searchParams.get("tab");
+  const initialTab: SettingsTab = tabParam === "notifications" ? "notifications" : tabParam === "help" ? "help" : "account";
+  const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
 
   // Notification prefs — optimistic overrides for instant toggle response
   const meta = (activeProfile?.metadata || {}) as Record<string, unknown>;
@@ -129,6 +132,14 @@ export default function AccountSettingsPage() {
     const timer = setTimeout(() => setNotifError(null), 4000);
     return () => clearTimeout(timer);
   }, [notifError]);
+
+  // ?verify=true deep-link — auto-open verification modal on mount
+  useEffect(() => {
+    if (searchParams.get("verify") === "true" && isProvider && !isVerified) {
+      openVerificationModal();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /** Returns the display value for a notification toggle (optimistic → server → default) */
   const getNotifOn = useCallback(
@@ -979,6 +990,14 @@ export default function AccountSettingsPage() {
       {/* Bottom tabs are rendered by the Navbar for /account when user is organization */}
       {/* MoreBottomSheet is also handled by Navbar, no need to duplicate here */}
     </div>
+  );
+}
+
+export default function AccountSettingsPage() {
+  return (
+    <Suspense>
+      <AccountSettingsInner />
+    </Suspense>
   );
 }
 

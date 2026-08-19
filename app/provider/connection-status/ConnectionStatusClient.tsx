@@ -12,6 +12,7 @@ import Link from "next/link";
 interface StatusResponse {
   ok: boolean;
   error?: string;
+  redirect_url?: string;
 }
 
 export default function ConnectionStatusClient({ tok }: { tok: string }) {
@@ -36,7 +37,8 @@ export default function ConnectionStatusClient({ tok }: { tok: string }) {
       .then((res) => res.json().catch(() => ({ ok: false })))
       .then((json: StatusResponse) => {
         if (json.ok) {
-          window.location.href = "/provider";
+          // Use magic link URL from API (includes auth token)
+          window.location.href = json.redirect_url || "/provider";
         } else {
           setError(json.error || "Something went wrong");
         }

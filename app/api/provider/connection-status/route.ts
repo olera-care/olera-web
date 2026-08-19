@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
-import { validateConnectionStatusToken, type ConnectionStatusValue } from "@/lib/claim-tokens";
+import { validateConnectionStatusToken, generateLeadClaimUrl, type ConnectionStatusValue } from "@/lib/claim-tokens";
 
 /**
  * POST /api/provider/connection-status
@@ -58,10 +58,23 @@ export async function POST(request: NextRequest) {
     // Check if already reported (idempotent — don't error, just acknowledge)
     const existingStatus = existingMeta.provider_connection_status as Record<string, unknown> | undefined;
     if (existingStatus?.self_reported) {
+      // Still generate magic link for redirect
+      const { data: profile } = await db
+        .from("business_profiles")
+        .select("slug, email")
+        .eq("id", providerId)
+        .single();
+
+      let redirectUrl = "/provider";
+      if (profile?.slug && profile?.email) {
+        redirectUrl = generateLeadClaimUrl(profile.slug, profile.email, connectionId);
+      }
+
       return NextResponse.json({
         ok: true,
         already_reported: true,
         value: existingStatus.value,
+        redirect_url: redirectUrl,
       });
     }
 
@@ -123,10 +136,24 @@ export async function POST(request: NextRequest) {
       console.error("[api/provider/connection-status] Activity log error:", activityError);
     }
 
+    // Fetch provider profile to generate magic link for redirect
+    const { data: profile } = await db
+      .from("business_profiles")
+      .select("slug, email")
+      .eq("id", providerId)
+      .single();
+
+    // Generate magic link URL for authenticated redirect
+    let redirectUrl = "/provider";
+    if (profile?.slug && profile?.email) {
+      redirectUrl = generateLeadClaimUrl(profile.slug, profile.email, connectionId);
+    }
+
     return NextResponse.json({
       ok: true,
       value,
       connection_id: connectionId,
+      redirect_url: redirectUrl,
     });
   } catch (err) {
     console.error("[api/provider/connection-status] Unexpected error:", err);

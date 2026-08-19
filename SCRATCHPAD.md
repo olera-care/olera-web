@@ -7,6 +7,32 @@
 
 ## Current Focus
 
+### 2026-08-19 — A broken AC in Marion County turned into the Family Answers Engine, phases 1-4
+
+**Started as one care seeker.** 2026-08-18, 6:43am ET: a Florida woman texted that her AC had stopped cooling. On Medicaid, under $1,500/mo, in cancer treatment with fibromyalgia. She had finished benefits intake five minutes earlier, opened her plan of 12 programs, and texted a human anyway because none of it answered her question. She waited 46 minutes for any reply. The Slack ping fired correctly; nobody could act on it because answering meant twenty minutes of benefits research at dawn.
+
+**The first answer I sent was confidently wrong.** I recommended EHEAP, which requires someone 60+ in the household, because `metadata.age` said 60. It was false — it came from an enrichment quiz answer. She corrected us herself: *"I am disabled but not 60."* An external fact-checker reviewed that message twice and never flagged it. **It cannot** — it has no access to whether our record about a person is true. Only she caught it, at the cost of a wasted phone call while sick. That single failure shaped the entire architecture that followed.
+
+**Shipped to production (PR #1633, main at `0c3afc4bc`):** EHEAP added to the FL library (#1628 — it was absent entirely, and it is the one FL program whose described uses include repairing failed cooling equipment); Family Answers Phase 1 (#1631); plus #1613 and two session logs. Also merged Efuanyamekye's contact-form channel (#1632), which arrived on staging four hours before the promotion with an entirely unchecked test plan — the pre-flight scan for un-QA'd work is the phase that earned its keep.
+
+**Family Answers Engine — `lib/family-answers/`, PR #1634 open (phases 2-4).**
+- **Phase 1 (LIVE in prod):** crisis regex → unreviewed acknowledgement, deduped 6h → `family_answer_jobs` row. First thing Olera sends a family with no human in the loop.
+- **Phase 2:** five stages. Haiku triage, Opus 5 research over our library then web search, Opus 5 draft, **Perplexity adversarial check, Opus 5 rebuttal.**
+- **Phase 3:** `AnswerPacketPanel` in `/admin/inbox`, above the reply box. Flags are non-collapsible and gate the "Use this draft" button.
+- **Phase 4:** 7-day outcome check, HELPED/NOTYET, `outcome` column. Migrations 183 + 184 applied and verified.
+
+**The design target is not "write a good draft".** The sole reviewer is TJ at self-described sophomore-level benefits knowledge. So the system's job is to **make him a good reviewer**: hand him disagreements and provenance, never polished prose. At one message a day with a fluent draft, the realistic failure is not a bad generation — it is approving one.
+
+**The rebuttal round is the load-bearing part and looks like polish.** A fact-checker optimises for defensibility; a family in crisis needs to know whether a phone call is worth their limited energy. With no counter-party the checker ratchets every message toward "contact your local agency for more information", which is safe and worthless. Hedging has a cost the checker never pays. On the real test run it **contested 3 of 5 objections**, including refusing to soften a sourced weatherization claim.
+
+**Verified end to end against the real case.** 196s, 443/480 chars, ending: *"EHEAP is for households with someone 60 or older, if that's you."* That conditional clause is the whole fix — it states who the program is for and lets our record be wrong. The engine also flagged a risk I had missed (`housing_status` relied_upon: weatherization needs landlord consent on a rental, never asked), and surfaced 10 library gaps led by CFCAA being absent as Marion County's LIHEAP administrator — which is exactly why its draft routed through 2-1-1 instead of the direct number I found by hand.
+
+**Three silent bugs caught in pre-test**, none of which would have errored: a job killed 3x stalled invisibly in `pending` (released regardless of attempts while the fetch filters on attempts); one reply stamped `sent` onto every `ready` job for a number, marking unanswered questions answered; the follow-up retried a failing send forever. Earlier, the same review caught the ack dedupe reading only `email_log` while a quiet-hours-held ack lives in `sms_queue` — it would have failed in precisely the 6:43am scenario that motivated it.
+
+**Keyword space is more constrained than it looks.** YES is a TCPA opt-in keyword; STUCK belongs to the benefits cascade. Outcome capture uses HELPED/NOTYET, verified against all 13 existing control and cascade keywords.
+
+**Next:** merge #1634 → staging → main. **Manual follow-up with the Marion County care seeker on 2026-08-25** — her answer predates the engine so Phase 4 will not catch it, and she still has no working AC. Then bring the email responder up to parity: `classify.server.ts` calls `buildAnswerPacket` on `category: care_seeker` (the engine is already channel-agnostic for this), reuse `AnswerPacketPanel`, drop its eligibility guardrail now that sourcing is enforced. The real design question there is the triage gate — 899 threads at five Opus stages is a different cost conversation than one text a day.
+
 ### 2026-08-18 — Benefits fact-check: 30 programs corrected, one invented phone number found, shipped to production
 
 **Shipped:** PR #1624 + #1626 → staging, promoted to main via #1627 (`07b603f2`). Production deploy green.
@@ -3745,6 +3771,16 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Next Up
+
+**Family Answers Engine (2026-08-19)**
+- 🔴 **Follow up with the Marion County care seeker on 2026-08-25, by hand.** Her answer predates the engine, so Phase 4's 7-day check will not catch it. She is disabled, under 60, in cancer treatment, and as of the last message had no working AC. This is the only item on the board with a real person waiting on it.
+- 🔴 **Merge PR #1634** (phases 2-4) → staging → main. Migrations 183 and 184 are already applied and verified. Manual QA checklist was produced this session; note that Vercel crons do not fire on staging, so both crons must be triggered by hand via `?secret=<CRON_SECRET>` in a browser.
+- 🟡 **Bring the email responder to parity.** `lib/support-email/classify.server.ts` is a single Haiku call with no research, sources, adversarial check, or provenance, and its prompt explicitly forbids benefits-eligibility claims — so it is structurally incapable of what SMS now does. The engine was scoped channel-agnostic for this: have it call `buildAnswerPacket` on `category: care_seeker`, reuse `AnswerPacketPanel`, and relax the eligibility guardrail now that sourcing is enforced. **The real design question is the triage gate**, not the wiring: 899 threads at five Opus stages each is a different cost conversation than one text a day.
+- 🟡 **Close the CFCAA library gap** and the other 9 the engine surfaced. Its draft routed through 2-1-1 rather than CFCAA's direct number purely because the agency is not in our FL data. Closing a gap measurably improves the next answer — that is the treadmill argument with evidence.
+- 🟡 **EHEAP needs benefits QA from Cess.** It is live in production carrying the Auto-researched badge; `contentStatus` stays `pipeline-draft` until she passes it.
+- ⏳ **Do not try to perfect the crisis regex.** Three phrasings were missed across two sittings, each caught by running the cases rather than reading them. The durable fix already shipped in Phase 2: the triage model reads crisis independently and a disagreement pages a human.
+- ⏳ **Health-data retention is undecided.** Cancer and fibromyalgia disclosures sit in `metadata.sms_inbound`, an unstructured JSONB blob on `business_profiles`. Phase 1 accelerates the accumulation. Worth deciding where these live and how long we keep them before there are hundreds.
+- ⏳ **Vercel firewall `tj-home-bypass` is pinned to a stale IP** (current egress 1.2.239.180). Browser-driven admin work stays blocked until it is republished; this is why the SMS replies this session went via script rather than the admin UI.
 
 **Benefits fact-check follow-ups (2026-08-18)**
 - **2 drafts never got a schedule marker**: `b32bb6fd` north-dakota/assistive-senior-safety-program and `acfe50b7` kentucky/hcbs-waivers. Both patched and correct; both had the heaviest letter rewrites. Check whether that was deliberate.

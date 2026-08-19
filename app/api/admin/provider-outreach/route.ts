@@ -339,6 +339,7 @@ async function enrichWithQuestionsAndLeads(
 /**
  * Enrich providers with notes count from provider_outreach_notes table.
  * This is used for the notes icon fill state in the UI.
+ * Uses batching to avoid URL length limits with large provider lists.
  */
 async function enrichWithNotesCount(
   db: ReturnType<typeof getServiceClient>,
@@ -350,23 +351,28 @@ async function enrichWithNotesCount(
 
   if (providerIds.length === 0) return providers;
 
-  // Query notes counts per provider
-  const { data: notesRows, error } = await db
-    .from("provider_outreach_notes")
-    .select("provider_id")
-    .in("provider_id", providerIds);
-
-  if (error) {
-    console.error("[enrichWithNotesCount] Query error:", error);
-    // Return providers unchanged if query fails
-    return providers;
-  }
-
-  // Count notes per provider
+  // Query notes in batches to avoid URL length limits
   const notesCounts = new Map<string, number>();
-  for (const row of notesRows || []) {
-    const count = notesCounts.get(row.provider_id) || 0;
-    notesCounts.set(row.provider_id, count + 1);
+
+  for (let i = 0; i < providerIds.length; i += IN_CLAUSE_BATCH_SIZE) {
+    const batch = providerIds.slice(i, i + IN_CLAUSE_BATCH_SIZE);
+
+    const { data: notesRows, error } = await db
+      .from("provider_outreach_notes")
+      .select("provider_id")
+      .in("provider_id", batch);
+
+    if (error) {
+      console.error("[enrichWithNotesCount] Query error:", error);
+      // Continue with other batches, don't fail entirely
+      continue;
+    }
+
+    // Count notes per provider
+    for (const row of notesRows || []) {
+      const count = notesCounts.get(row.provider_id) || 0;
+      notesCounts.set(row.provider_id, count + 1);
+    }
   }
 
   // Enrich providers

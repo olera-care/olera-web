@@ -320,6 +320,23 @@ export const CRON_REGISTRY: CronJob[] = [
     successSignal: "One or both parties resume the conversation.",
     relatedAdminPath: "/admin/connections",
   },
+  {
+    id: "family-answers",
+    name: "Family answers engine",
+    description:
+      "Researches the benefits questions families text us and writes a review packet for a human to approve. Five stages: triage, research over Olera's library then the web, draft, an adversarial check by an independent model, and a rebuttal round. Sends nothing — the only automated message in this flow is the acknowledgement the Twilio webhook already sent.",
+    recipientCohort:
+      "(no recipients — writes drafts for human review; families who texted a free-form question)",
+    audience: "Care seekers",
+    fn: "maintenance",
+    schedule: "*/5 * * * *",
+    humanSchedule: "Every 5 minutes",
+    path: "/api/cron/family-answers",
+    emailTypes: [],
+    successSignal:
+      "A packet a human can check: sourced claims, the drafter-vs-checker disagreements, and the unverified person-facts the draft leans on.",
+    relatedAdminPath: "/admin/inbox",
+  },
 
   // ── Care seekers ───────────────────────────────────────────────────
   {

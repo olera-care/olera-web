@@ -135,6 +135,10 @@
     {
       "path": "/api/cron/enrich-question-providers",
       "schedule": "10 15 * * 2"
+    },
+    {
+      "path": "/api/cron/family-answers",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

@@ -1,0 +1,164 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getServiceClient } from "@/lib/admin";
+import { withCronRun } from "@/lib/crons/run";
+import { buildAnswerPacket } from "@/lib/family-answers/engine.server";
+import { packetNeedsAttention } from "@/lib/family-answers/types";
+
+/**
+ * GET /api/cron/family-answers
+ *
+ * Drains pending rows in `family_answer_jobs` — the questions families texted
+ * us — and writes a review packet for each. Runs every 5 minutes.
+ *
+ * This route NEVER SENDS ANYTHING. It researches, drafts, attacks its own
+ * draft with an independent model, answers the objections, and stores the
+ * result for a human to approve. The only automated message in this subsystem
+ * is the acknowledgement, which the Twilio webhook already sent seconds after
+ * the family texted.
+ *
+ * Why a cron rather than doing this in the webhook: the pipeline makes five
+ * model calls including web search and takes minutes. Twilio wants a response
+ * in well under a second.
+ *
+ * Volume is roughly one question a day, so the batch size is small on purpose.
+ * If the queue ever backs up that is a signal worth looking at, not a throughput
+ * problem to solve by raising the limit.
+ */
+
+export const maxDuration = 300;
+
+/** Jobs per run. Low by design — see the note above. */
+const DEFAULT_BATCH = 3;
+
+/** A job stuck in `running` longer than this was almost certainly killed mid-flight. */
+const STUCK_MS = 20 * 60 * 1000;
+
+interface JobRow {
+  id: string;
+  phone_last10: string;
+  profile_id: string | null;
+  body: string;
+  attempts: number;
+}
+
+/** Three strikes, then it waits for a human rather than burning tokens forever. */
+const MAX_ATTEMPTS = 3;
+
+export async function GET(request: NextRequest) {
+  const authHeader = request.headers.get("authorization");
+  const { searchParams } = new URL(request.url);
+  const querySecret = searchParams.get("secret");
+  const dryRun = searchParams.get("dry_run") === "true";
+  const limit = Math.min(10, parseInt(searchParams.get("limit") || String(DEFAULT_BATCH), 10));
+
+  const isAuthed =
+    authHeader === `Bearer ${process.env.CRON_SECRET}` || querySecret === process.env.CRON_SECRET;
+  if (!isAuthed) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  return withCronRun("family-answers", async () => {
+    const db = getServiceClient();
+    const result = { considered: 0, drafted: 0, crisis: 0, failed: 0, requeued: 0 };
+
+    // Release anything a previous invocation claimed and never finished. Vercel
+    // kills a function at its maxDuration, which leaves the row in `running`
+    // with nobody working it.
+    const stuckBefore = new Date(Date.now() - STUCK_MS).toISOString();
+    const { data: stuck } = await db
+      .from("family_answer_jobs")
+      .update({ status: "pending" })
+      .eq("status", "running")
+      .lt("started_at", stuckBefore)
+      .select("id");
+    result.requeued = stuck?.length ?? 0;
+
+    const { data: jobs, error } = await db
+      .from("family_answer_jobs")
+      .select("id, phone_last10, profile_id, body, attempts")
+      .eq("status", "pending")
+      .lt("attempts", MAX_ATTEMPTS)
+      .order("created_at", { ascending: true })
+      .limit(limit);
+
+    if (error) {
+      console.error("[family-answers] Job fetch failed:", error);
+      return { ...result, error: error.message };
+    }
+    result.considered = jobs?.length ?? 0;
+    if (!jobs?.length) return result;
+    if (dryRun) return { ...result, dryRun: true, ids: jobs.map((j) => j.id) };
+
+    for (const job of jobs as JobRow[]) {
+      // Claim it first. Two overlapping cron invocations must not research the
+      // same question twice.
+      const { data: claimed } = await db
+        .from("family_answer_jobs")
+        .update({
+          status: "running",
+          started_at: new Date().toISOString(),
+          attempts: (job.attempts ?? 0) + 1,
+        })
+        .eq("id", job.id)
+        .eq("status", "pending")
+        .select("id");
+      if (!claimed?.length) continue;
+
+      try {
+        const packet = await buildAnswerPacket({
+          inbound: job.body,
+          profileId: job.profile_id,
+        });
+
+        if (packet.triage.isCrisis) {
+          result.crisis++;
+          try {
+            const { sendSlackAlert } = await import("@/lib/slack");
+            await sendSlackAlert(
+              `🚨 URGENT — the answer engine read a crisis in a text from ${job.phone_last10}: ` +
+                `"${job.body.slice(0, 240)}" (${packet.triage.crisisReason ?? "no reason given"})` +
+                `${packet.triage.disagreedWithRegex ? " [the keyword check DISAGREED — one of the two layers has a gap]" : ""}. ` +
+                `No draft was written. Respond from /admin/inbox.`,
+            );
+          } catch (err) {
+            console.error("[family-answers] Crisis page failed:", err);
+          }
+        } else {
+          result.drafted++;
+        }
+
+        await db
+          .from("family_answer_jobs")
+          .update({
+            status: "ready",
+            packet,
+            completed_at: new Date().toISOString(),
+            last_error: packet.errors?.join("; ") ?? null,
+          })
+          .eq("id", job.id);
+
+        if (packetNeedsAttention(packet) && !packet.triage.isCrisis) {
+          console.log(`[family-answers] Job ${job.id} needs attention before sending.`);
+        }
+      } catch (err) {
+        result.failed++;
+        const message = err instanceof Error ? err.message : "unknown error";
+        console.error(`[family-answers] Job ${job.id} threw:`, message);
+        const attempts = (job.attempts ?? 0) + 1;
+        await db
+          .from("family_answer_jobs")
+          .update({
+            // Give it back to the queue unless it has already burned its
+            // attempts, in which case a human should look rather than us
+            // paying for the same failure a fourth time.
+            status: attempts >= MAX_ATTEMPTS ? "failed" : "pending",
+            last_error: message,
+            completed_at: attempts >= MAX_ATTEMPTS ? new Date().toISOString() : null,
+          })
+          .eq("id", job.id);
+      }
+    }
+
+    return result;
+  });
+}

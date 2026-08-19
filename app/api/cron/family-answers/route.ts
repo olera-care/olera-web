@@ -3,6 +3,10 @@ import { getServiceClient } from "@/lib/admin";
 import { withCronRun } from "@/lib/crons/run";
 import { buildAnswerPacket } from "@/lib/family-answers/engine.server";
 import { packetNeedsAttention } from "@/lib/family-answers/types";
+import {
+  familyAnswerCategoryAutoCloses,
+  familyAnswerCategoryNeedsDraft,
+} from "@/lib/sms/inbound-intent";
 
 /**
  * GET /api/cron/family-answers
@@ -38,6 +42,7 @@ interface JobRow {
   phone_last10: string;
   profile_id: string | null;
   body: string;
+  twilio_sid: string | null;
   attempts: number;
 }
 
@@ -59,7 +64,7 @@ export async function GET(request: NextRequest) {
 
   return withCronRun("family-answers", async () => {
     const db = getServiceClient();
-    const result = { considered: 0, drafted: 0, crisis: 0, failed: 0, requeued: 0, abandoned: 0 };
+    const result = { considered: 0, drafted: 0, skipped: 0, crisis: 0, failed: 0, requeued: 0, abandoned: 0 };
 
     // Release anything a previous invocation claimed and never finished. Vercel
     // kills a function at its maxDuration, which leaves the row in `running`
@@ -96,7 +101,7 @@ export async function GET(request: NextRequest) {
 
     const { data: jobs, error } = await db
       .from("family_answer_jobs")
-      .select("id, phone_last10, profile_id, body, attempts")
+      .select("id, phone_last10, profile_id, body, twilio_sid, attempts")
       .eq("status", "pending")
       .lt("attempts", MAX_ATTEMPTS)
       .order("created_at", { ascending: true })
@@ -131,6 +136,7 @@ export async function GET(request: NextRequest) {
           profileId: job.profile_id,
         });
 
+        const needsDraft = familyAnswerCategoryNeedsDraft(packet.triage.category);
         if (packet.triage.isCrisis) {
           result.crisis++;
           try {
@@ -144,21 +150,52 @@ export async function GET(request: NextRequest) {
           } catch (err) {
             console.error("[family-answers] Crisis page failed:", err);
           }
-        } else {
+        } else if (needsDraft) {
           result.drafted++;
+        } else {
+          result.skipped++;
         }
 
-        await db
+        const { data: finalizedJobs, error: finalizeError } = await db
           .from("family_answer_jobs")
           .update({
-            status: "ready",
+            status: packet.triage.isCrisis || needsDraft ? "ready" : "skipped",
             packet,
             completed_at: new Date().toISOString(),
             last_error: packet.errors?.join("; ") ?? null,
           })
-          .eq("id", job.id);
+          // An admin can dismiss a running job. Do not resurrect it as ready
+          // when this model call finishes a moment later.
+          .eq("id", job.id)
+          .eq("status", "running")
+          .select("id");
 
-        if (packetNeedsAttention(packet) && !packet.triage.isCrisis) {
+        if (finalizeError) {
+          throw finalizeError;
+        }
+
+        // An admin may have handled the thread while the model was working.
+        // In that case the job is already skipped; do not perform follow-up
+        // work from this now-stale packet.
+        if (!finalizedJobs?.length) {
+          continue;
+        }
+
+        // Only a true conversational close may leave the human queue
+        // automatically. "Unrelated" is too broad to hide: it may be a model
+        // miss or a non-benefits need that still deserves a person.
+        if (familyAnswerCategoryAutoCloses(packet.triage.category) && job.twilio_sid) {
+          await db
+            .from("sms_inbound")
+            .update({
+              handled_at: new Date().toISOString(),
+              handled_by: `family-answers:${packet.triage.category}`,
+            })
+            .eq("twilio_sid", job.twilio_sid)
+            .is("handled_at", null);
+        }
+
+        if (needsDraft && packetNeedsAttention(packet) && !packet.triage.isCrisis) {
           console.log(`[family-answers] Job ${job.id} needs attention before sending.`);
         }
       } catch (err) {
@@ -176,7 +213,8 @@ export async function GET(request: NextRequest) {
             last_error: message,
             completed_at: attempts >= MAX_ATTEMPTS ? new Date().toISOString() : null,
           })
-          .eq("id", job.id);
+          .eq("id", job.id)
+          .eq("status", "running");
       }
     }
 

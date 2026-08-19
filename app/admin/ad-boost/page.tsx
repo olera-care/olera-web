@@ -346,6 +346,11 @@ function RequestRow({
           request={request}
           value={request.questions_received ?? 0}
           label="Questions"
+          detail={
+            (request.question_topics ?? 0) < (request.questions_received ?? 0)
+              ? `${request.question_topics ?? 0} topics`
+              : undefined
+          }
         />
         <MetricCell
           request={request}
@@ -476,11 +481,13 @@ function MetricCell({
   value,
   label,
   emphasize,
+  detail,
 }: {
   request: CampaignRequest;
   value: number;
   label: string;
   emphasize?: boolean;
+  detail?: string;
 }) {
   const preLaunch = PRE_LAUNCH_STATUSES.has(request.status);
   const tone = preLaunch || value === 0
@@ -492,6 +499,11 @@ function MetricCell({
     <div className={`text-sm tabular-nums ${tone}`}>
       <span className="lg:hidden font-normal text-gray-400">{label}: </span>
       {preLaunch ? "—" : value.toLocaleString()}
+      {!preLaunch && detail && (
+        <span className="block text-[10px] font-normal leading-tight text-gray-400">
+          {detail}
+        </span>
+      )}
     </div>
   );
 }

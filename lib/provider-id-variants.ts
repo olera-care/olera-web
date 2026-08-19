@@ -102,6 +102,18 @@ export async function resolveProviderIdVariants(
         }
       }
     }
+
+    // (d) Add the directory slug for the resolved provider_id. Question rows
+    // historically used either form, so readers need both even when the input
+    // was a claimed business-profile slug.
+    {
+      const { data, error } = await db
+        .from("olera-providers")
+        .select("slug")
+        .eq("provider_id", canonical)
+        .maybeSingle();
+      if (!error && data?.slug) variants.add(data.slug);
+    }
   } catch (err) {
     // Best-effort — fall back to whatever we accumulated. Worst case is the
     // raw input only, which is the same failure mode as the pre-helper baseline.

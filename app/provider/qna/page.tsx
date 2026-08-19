@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "@/components/auth/AuthProvider";
@@ -686,7 +686,17 @@ function QnASkeleton() {
 // ── Main Page ──
 
 export default function ProviderQnAPage() {
+  return (
+    <Suspense fallback={<QnASkeleton />}>
+      <ProviderQnAContent />
+    </Suspense>
+  );
+}
+
+function ProviderQnAContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const requestedQuestionId = searchParams.get("id");
   const { refreshAccountData } = useAuth();
   const providerProfile = useProviderProfile();
   const [activeFilter, setActiveFilter] = useState<TabFilter>("pending");
@@ -746,7 +756,10 @@ export default function ProviderQnAPage() {
     }
 
     try {
-      const res = await fetch("/api/provider/questions");
+      const query = requestedQuestionId
+        ? `?id=${encodeURIComponent(requestedQuestionId)}`
+        : "";
+      const res = await fetch(`/api/provider/questions${query}`);
       if (!res.ok) {
         throw new Error("Failed to fetch questions");
       }
@@ -787,6 +800,19 @@ export default function ProviderQnAPage() {
 
       setQuestions(questionsWithReadState);
 
+      const resolvedQuestionId = data.requestedQuestionId as string | null | undefined;
+      const requestedQuestion = resolvedQuestionId
+        ? questionsWithReadState.find((q: Question) => q.id === resolvedQuestionId)
+        : null;
+      if (requestedQuestion) {
+        setActiveFilter(
+          requestedQuestion.status === "pending" ? "pending" : "published"
+        );
+        setSelectedQuestion(requestedQuestion);
+        setSheetMode(requestedQuestion.status === "pending" ? "reply" : "edit");
+        setIsSheetOpen(true);
+      }
+
       // Count unread questions and sync navbar badge
       const unreadCount = questionsWithReadState.filter((q: Question) => q.isNew).length;
       window.dispatchEvent(new CustomEvent("olera:qna-sync", {
@@ -798,7 +824,7 @@ export default function ProviderQnAPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [providerProfile?.slug]);
+  }, [providerProfile?.slug, requestedQuestionId]);
 
   useEffect(() => {
     fetchQuestions();

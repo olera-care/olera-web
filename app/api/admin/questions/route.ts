@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
-import { sendEmail } from "@/lib/email";
-import { questionAnsweredEmail } from "@/lib/email-templates";
 import { generateProviderSlug } from "@/lib/slugify";
 import { US_STATES } from "@/lib/us-states";
+import { notifyQuestionAskers } from "@/lib/notifications/question-answer-notifications.server";
 
 /**
  * Humanize a provider_id that looks like a slug into a readable name.
@@ -57,7 +56,6 @@ function humanizeProviderId(providerId: string): string | null {
   // Return a labeled fallback so it's clear this is an unknown provider
   return `Unknown Provider (${providerId})`;
 }
-
 /**
  * GET /api/admin/questions
  *
@@ -102,14 +100,14 @@ export async function GET(request: NextRequest) {
       };
 
       const [pendingQuestions, needsEmailQuestions, deliveryIssuesQuestions, noContactQuestions, notInterestedQuestions, archivedQuestions, answeredQuestions, allQuestions] = await Promise.all([
-        applyDateFilters(db.from("provider_questions").select("provider_id, metadata").eq("status", "pending")).limit(50000),
-        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { needs_provider_email: true }).not("metadata", "cs", '{"email_dead":true}').not("metadata", "cs", '{"provider_not_interested":true}').not("metadata", "cs", '{"provider_no_contact":true}').neq("status", "archived").neq("status", "rejected")).limit(50000),
-        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { email_dead: true }).not("metadata", "cs", '{"provider_not_interested":true}').not("metadata", "cs", '{"provider_no_contact":true}').neq("status", "archived").neq("status", "rejected")).limit(50000),
-        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { provider_no_contact: true }).neq("status", "archived").neq("status", "rejected")).limit(50000),
-        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { provider_not_interested: true }).neq("status", "archived").neq("status", "rejected")).limit(50000),
-        applyDateFilters(db.from("provider_questions").select("provider_id").eq("status", "archived")).limit(50000),
-        applyDateFilters(db.from("provider_questions").select("provider_id").in("status", ["answered", "approved"])).limit(50000),
-        applyDateFilters(db.from("provider_questions").select("provider_id")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id, metadata").is("canonical_question_id", null).eq("status", "pending")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").is("canonical_question_id", null).contains("metadata", { needs_provider_email: true }).not("metadata", "cs", '{"email_dead":true}').not("metadata", "cs", '{"provider_not_interested":true}').not("metadata", "cs", '{"provider_no_contact":true}').neq("status", "archived").neq("status", "rejected")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").is("canonical_question_id", null).contains("metadata", { email_dead: true }).not("metadata", "cs", '{"provider_not_interested":true}').not("metadata", "cs", '{"provider_no_contact":true}').neq("status", "archived").neq("status", "rejected")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").is("canonical_question_id", null).contains("metadata", { provider_no_contact: true }).neq("status", "archived").neq("status", "rejected")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").is("canonical_question_id", null).contains("metadata", { provider_not_interested: true }).neq("status", "archived").neq("status", "rejected")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").is("canonical_question_id", null).eq("status", "archived")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").is("canonical_question_id", null).in("status", ["answered", "approved"])).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").is("canonical_question_id", null)).limit(50000),
       ]);
 
       // Helper to count unique providers
@@ -293,6 +291,7 @@ export async function GET(request: NextRequest) {
         let countQuery = db
           .from("provider_questions")
           .select("provider_id, metadata")
+          .is("canonical_question_id", null)
           .contains("metadata", { needs_provider_email: true })
           .not("metadata", "cs", '{"email_dead":true}')
           .not("metadata", "cs", '{"provider_not_interested":true}')
@@ -420,7 +419,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Standard count query for non-needs_email filters
-      let countQuery = db.from("provider_questions").select("*", { count: "exact", head: true });
+      let countQuery = db.from("provider_questions").select("*", { count: "exact", head: true }).is("canonical_question_id", null);
       if (status) countQuery = (countQuery as any).eq("status", status);
       if (providerId) countQuery = (countQuery as any).eq("provider_id", providerId);
       if (searchSlugs) {
@@ -444,6 +443,7 @@ export async function GET(request: NextRequest) {
       let needsEmailQuery = db
         .from("provider_questions")
         .select("*")
+        .is("canonical_question_id", null)
         .contains("metadata", { needs_provider_email: true })
         .not("metadata", "cs", '{"email_dead":true}')
         .not("metadata", "cs", '{"provider_not_interested":true}')
@@ -774,6 +774,7 @@ export async function GET(request: NextRequest) {
       let deliveryIssuesQuery = db
         .from("provider_questions")
         .select("*")
+        .is("canonical_question_id", null)
         .contains("metadata", { email_dead: true })
         .not("metadata", "cs", '{"provider_not_interested":true}')
         .neq("status", "archived")
@@ -1032,6 +1033,7 @@ export async function GET(request: NextRequest) {
       let notInterestedQuery = db
         .from("provider_questions")
         .select("*")
+        .is("canonical_question_id", null)
         .contains("metadata", { provider_not_interested: true })
         .neq("status", "archived")
         .neq("status", "rejected")
@@ -1245,6 +1247,7 @@ export async function GET(request: NextRequest) {
       let noContactQuery = db
         .from("provider_questions")
         .select("*")
+        .is("canonical_question_id", null)
         .contains("metadata", { provider_no_contact: true })
         .neq("status", "archived")
         .neq("status", "rejected")
@@ -1338,6 +1341,7 @@ export async function GET(request: NextRequest) {
       let unansweredQuery = db
         .from("provider_questions")
         .select("*")
+        .is("canonical_question_id", null)
         .eq("status", "pending")
         .order("created_at", { ascending: false })
         .limit(10000);
@@ -1559,6 +1563,7 @@ export async function GET(request: NextRequest) {
     let query = db
       .from("provider_questions")
       .select("*")
+      .is("canonical_question_id", null)
       .order("created_at", { ascending: false })
       .limit(50000);
 
@@ -2091,8 +2096,10 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Failed to update question" }, { status: 500 });
     }
 
-    // Email the asker when their question is answered (fire-and-forget)
-    if (answer && data?.asker_email) {
+    // Fan a published answer out to every family who asked this canonical
+    // topic. Database reservations make retries and competing publication
+    // paths idempotent.
+    if (answer && data?.id) {
       try {
         const providerSlug = data.provider_id || "";
         const { data: provider } = await db
@@ -2101,29 +2108,25 @@ export async function PATCH(request: NextRequest) {
           .eq("slug", providerSlug)
           .single();
 
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-        await sendEmail({
-          to: data.asker_email,
-          subject: `${provider?.display_name || "A provider"} answered your question on Olera`,
-          html: questionAnsweredEmail({
-            askerName: data.asker_name || "there",
-            providerName: provider?.display_name || "The provider",
-            question: data.question,
-            answer,
-            providerUrl: `${siteUrl}/provider/${providerSlug}`,
-          }),
-          emailType: "question_answered",
-          recipientType: "family",
-          providerId: providerSlug,
+        const notificationResult = await notifyQuestionAskers(db, {
+          questionId: data.id,
+          providerName: provider?.display_name || "The provider",
+          providerSlug,
+          question: data.question || "",
+          answer,
         });
+        if (notificationResult.errors.length > 0) {
+          console.error("Answer notification errors:", notificationResult.errors);
+        }
       } catch (emailErr) {
         console.error("Answer notification email failed:", emailErr);
       }
     }
 
-    // Log provider-side activity when admin answers (fire-and-forget)
+    // Log provider-side activity when admin answers. Await the insert so the
+    // event is not dropped when the serverless response finishes.
     if (answer && data?.provider_id) {
-      db.from("provider_activity").insert({
+      const { error: actErr } = await db.from("provider_activity").insert({
         provider_id: data.provider_id,
         event_type: "question_responded",
         metadata: {
@@ -2133,9 +2136,8 @@ export async function PATCH(request: NextRequest) {
           asker_name: data.asker_name,
           answered_by_admin: true,
         },
-      }).then(({ error: actErr }: { error: { message: string } | null }) => {
-        if (actErr) console.error("[provider_activity] question_responded insert failed:", actErr);
       });
+      if (actErr) console.error("[provider_activity] question_responded insert failed:", actErr);
     }
 
     return NextResponse.json({ question: data });

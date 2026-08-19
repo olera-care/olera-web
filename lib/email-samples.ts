@@ -888,6 +888,8 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       spendCents: 3566,
       questionsReceived: 7,
       questionsUnanswered: 6,
+      questionTopics: 3,
+      unansweredQuestionTopics: 2,
     }),
   },
   {

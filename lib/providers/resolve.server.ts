@@ -56,7 +56,10 @@ export async function resolveProvider(
           claimedProfile.verification_state === "not_required" ||
           badgeApproved;
         if (isVerifiedClaim) {
-          return { kind: "active", provider: accountRowToProvider(claimedProfile) };
+          return {
+            kind: "active",
+            provider: accountRowToProvider(claimedProfile, bySlug.provider_category),
+          };
         }
       }
       return { kind: "active", provider: directoryRowToProvider(bySlug) };
@@ -89,7 +92,10 @@ export async function resolveProvider(
           claimedProfile.verification_state === "not_required" ||
           badgeApproved;
         if (isVerifiedClaim) {
-          return { kind: "active", provider: accountRowToProvider(claimedProfile) };
+          return {
+            kind: "active",
+            provider: accountRowToProvider(claimedProfile, byId.provider_category),
+          };
         }
       }
       return { kind: "active", provider: directoryRowToProvider(byId) };
@@ -113,6 +119,7 @@ export async function resolveProvider(
       // Unverified providers' edits should not be publicly visible — fall back
       // to the original directory data until they complete verification.
       // badge_approved is an admin override that grants verified status.
+      let linkedDirectoryRow: IOSProvider | null = null;
       if (data.source_provider_id) {
         const metadata = data.metadata as Record<string, unknown> | null;
         const badgeApproved = metadata?.badge_approved === true;
@@ -122,16 +129,19 @@ export async function resolveProvider(
            data.verification_state === "not_required" ||
            badgeApproved);
 
-        if (!isVerifiedClaim) {
-          // Fetch original directory data
+        if (!isVerifiedClaim || !data.category) {
+          // Fetch original directory data for the verification fallback and,
+          // on verified claims, for category inheritance when the editable
+          // account row predates category syncing.
           const { data: dirRow } = await db
             .from("olera-providers")
             .select("*")
             .eq("provider_id", data.source_provider_id)
             .not("deleted", "is", true)
             .single<IOSProvider>();
+          linkedDirectoryRow = dirRow;
 
-          if (dirRow) {
+          if (!isVerifiedClaim && dirRow) {
             return { kind: "active", provider: directoryRowToProvider(dirRow) };
           }
           // If directory row is deleted/missing, fall through to show profile
@@ -139,7 +149,10 @@ export async function resolveProvider(
         }
       }
       // Native profiles (no source_provider_id) or verified claims: show as-is
-      return { kind: "active", provider: accountRowToProvider(data) };
+      return {
+        kind: "active",
+        provider: accountRowToProvider(data, linkedDirectoryRow?.provider_category ?? null),
+      };
     }
   } catch {
     // fall through

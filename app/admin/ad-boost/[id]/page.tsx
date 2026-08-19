@@ -35,7 +35,13 @@ import {
 type ProviderViewStats = {
   visitors: number;
   leads: number;
-  questions?: { received: number; unanswered: number };
+  questions?: {
+    received: number;
+    unanswered: number;
+    uniqueReceived: number;
+    uniqueUnanswered: number;
+    attribution: "campaign_utm" | "time_window";
+  };
   since: string;
 };
 
@@ -48,7 +54,12 @@ type ReceiptRollup = {
     ctr: number | null;
     cpcCents: number | null;
   };
-  engagement: { visitors: number; saves: number; questionsReceived: number };
+  engagement: {
+    visitors: number;
+    saves: number;
+    questionsReceived: number;
+    questionTopics: number;
+  };
   outcomes: { client: number; talking: number; no: number; unanswered: number };
   expectedLeads: number | null;
 };
@@ -964,7 +975,12 @@ function Detail({
               <Stat value={campaignStats.visitors.toLocaleString()} label="Visitors" />
               <Stat
                 value={(campaignStats.questions?.received ?? 0).toLocaleString()}
-                label="Questions"
+                label={
+                  campaignStats.questions &&
+                  campaignStats.questions.uniqueReceived < campaignStats.questions.received
+                    ? `Question taps (${campaignStats.questions.uniqueReceived} topics)`
+                    : "Question taps"
+                }
               />
               <Stat value={campaignStats.leads.toLocaleString()} label="Leads" accent />
             </div>
@@ -972,6 +988,7 @@ function Detail({
               <p className="mt-3 text-xs text-gray-500">
                 Receipt rollup: {receipt.google.impressions != null ? `${receipt.google.impressions.toLocaleString()} ad views · ` : ""}
                 {receipt.engagement.saves} save{receipt.engagement.saves === 1 ? "" : "s"} ·{" "}
+                {receipt.engagement.questionsReceived} question taps across {receipt.engagement.questionTopics} topics ·{" "}
                 {receipt.outcomes.client} client{receipt.outcomes.client === 1 ? "" : "s"} reported ·{" "}
                 {receipt.outcomes.talking} still talking ·{" "}
                 {receipt.outcomes.unanswered} unanswered

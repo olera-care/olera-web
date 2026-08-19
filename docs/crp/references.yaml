@@ -1,0 +1,90 @@
+# CRP Research Strategy — live bibliography.
+#
+# Source of truth for every citation in research-strategy.md. In-text markers use
+# pandoc-citeproc syntax with these stable keys: [@key] or [@key1; @key2], placed
+# immediately after the claim (and its punctuation) they support. Rendered
+# numbering is generated from first appearance by tools/render_pdf.py — never
+# hard-code reference numbers in prose. [@todo: description] marks a claim whose
+# source is not yet verified; the renderer counts these and the document is not
+# submission-ready while any remain.
+#
+# Every entry must record enough metadata to re-verify the claim (doi / pmid /
+# url), a `supports` note stating exactly what was verified, and the date.
+# Do not add an entry until the source has actually been checked against the
+# claim it will support.
+
+censusVintage2024:
+  ref: "U.S. Census Bureau. Vintage 2024 Population Estimates: the 65-and-older population reached 61 million in 2024."
+  url: https://www.census.gov/programs-surveys/popest.html
+  supports: "Population 65+ reached 61 million in 2024."
+  verified: 2026-08-19
+
+censusProj2023:
+  ref: "U.S. Census Bureau. 2023 National Population Projections. 2023."
+  url: https://www.census.gov/newsroom/press-releases/2023/population-projections.html
+  supports: "65+ population projected to reach 82 million by 2050 (23% of the population by 2060). Supersedes the older 88.8M-by-2060 vintage."
+  verified: 2026-08-19
+
+phi2025:
+  ref: "PHI. Direct Care Workers in the United States: Key Facts 2025. PHI National; 2025."
+  url: https://www.phinational.org/resource/direct-care-workers-in-the-united-states-key-facts-2025/
+  supports: "9.7 million total direct-care job openings projected 2024-2034 (new jobs plus transfers and labor-force exits)."
+  verified: 2026-08-19
+
+aarpCareGap2013:
+  ref: "Redfoot D, Feinberg L, Houser A. The Aging of the Baby Boom and the Growing Care Gap. AARP Public Policy Institute; 2013."
+  url: https://www.aarp.org/content/dam/aarp/research/public_policy_institute/ltc/2013/baby-boom-and-the-growing-care-gap-insight-AARP-ppi-ltc.pdf
+  supports: "Caregiver support ratio (potential family caregivers per adult 80+) more than 7:1 in 2010, projected to fall to 4:1 by 2030."
+  verified: 2026-08-19
+
+aarpCaregiving2025:
+  ref: "AARP and National Alliance for Caregiving. Caregiving in the US 2025. AARP; 2025."
+  url: https://www.aarp.org/pri/topics/ltss/family-caregiving/caregiving-in-the-us-2025/
+  supports: "About 70 percent of working-age (18-64) family caregivers are employed."
+  verified: 2026-08-19
+
+ncoa2025:
+  ref: "National Council on Aging. Over 9 Million Eligible Older Adults Are Missing Out on $58 Billion in Benefits. NCOA; 2025."
+  url: https://www.ncoa.org/article/over-9-million-eligible-older-adults-are-missing-out-on-58-billion-in-benefits-that-can-help-them-afford-basic-necessities/
+  supports: "An estimated 9.1 million adults 65+ eligible but not enrolled; $58 billion/year unclaimed across SNAP, SSI, and Medicare Savings Programs."
+  verified: 2026-08-19
+
+freedmanSpillman2014:
+  ref: "Freedman VA, Spillman BC. Disability and care needs among older Americans. Milbank Q. 2014;92(3):509-541."
+  doi: 10.1111/1468-0009.12076
+  url: https://onlinelibrary.wiley.com/doi/abs/10.1111/1468-0009.12076
+  supports: "NHATS: 31.8% of older adults with ADL/IADL difficulty or receiving help reported an adverse consequence of unmet need in the past month (going without bathing, meals, medications, and similar)."
+  verified: 2026-08-19
+
+hass2017:
+  ref: "Hass Z, DePalma G, Craig BA, Xu H, Sands LP. Unmet need for help with activities of daily living disabilities and emergency department admissions among older Medicare recipients. Gerontologist. 2017;57(2):206-213."
+  url: https://academic.oup.com/gerontologist/article/57/2/206/2632059
+  supports: "Self-reported unmet ADL need predicts subsequent emergency department admissions (prospective survey-Medicare linkage)."
+  verified: 2026-08-19
+
+depalma2013:
+  ref: "DePalma G, Xu H, Covinsky KE, et al. Hospital readmission among older adults who return home with unmet need for ADL disability. Gerontologist. 2013;53(3):454-461."
+  pmid: 22859438
+  url: https://pubmed.ncbi.nlm.nih.gov/22859438/
+  supports: "Unmet ADL need after hospital discharge associated with increased readmission risk."
+  verified: 2026-08-19
+
+unmetNeedsSR2024:
+  ref: "Unmet needs and healthcare service utilization among older adults: a systematic review. 2024."
+  url: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11692472/
+  supports: "Systematic review: unmet ADL/IADL needs associated with hospitalization, emergency visits, nursing home placement, and mortality. [Complete author list at citation-integrity pass.]"
+  verified: 2026-08-19
+
+szanton2021:
+  ref: "Szanton SL, Clemson L, Liu M, et al. CAPABLE program improves disability in multiple randomized trials. J Am Geriatr Soc. 2021;69(12):3631-3640."
+  doi: 10.1111/jgs.17383
+  url: https://agsjournals.onlinelibrary.wiley.com/doi/10.1111/jgs.17383
+  supports: "Home-based function-focused support (CAPABLE) reduced disability across multiple randomized trials."
+  verified: 2026-08-19
+
+szanton2018:
+  ref: "Szanton SL, Alfonso YN, Leff B, et al. Medicaid cost savings of a preventive home visit program for disabled older adults. J Am Geriatr Soc. 2018;66(3):614-620."
+  doi: 10.1111/jgs.15143
+  url: https://dx.doi.org/10.1111/jgs.15143
+  supports: "CAPABLE implementation associated with reduced Medicaid spending driven by reduced inpatient/outpatient utilization (roughly $3K program cost vs >$20K savings per participant)."
+  verified: 2026-08-19

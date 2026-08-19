@@ -105,6 +105,32 @@ written; rendering rules govern the docx/PDF surfaces.
   "Family-side navigation:" lacks the italic+underline its three sibling categories
   have; two em dashes remain in the CP; two stray non-Arial runs remain in the RS.
 
+### Citations (part of house style from 2026-08-19)
+
+- **System**: stable citation keys in the markdown using pandoc-citeproc syntax,
+  `[@key]` or `[@key1; @key2]`, placed immediately after the specific claim (and
+  its punctuation) they support. Multiple references per claim are allowed and
+  encouraged where warranted. Never hard-code reference numbers in prose.
+- **Bibliography**: `references.yaml` is the live bibliography and single source
+  of truth. Every entry records the full reference, doi/pmid/url, a `supports`
+  note stating exactly what was verified, and the verification date. **No entry
+  and no citation is added until the source has actually been checked against the
+  specific claim** — prefer primary literature, federal data, and authoritative
+  sources; never stretch a related source to fit.
+- **Rendering**: `tools/render_pdf.py` resolves keys to numbered superscripts by
+  first appearance (renumbering is automatic when citations are added or moved)
+  and appends a numbered REFERENCES page (review-only; in the application,
+  references go in the Bibliography & References Cited attachment and do not
+  count against the 12-page limit). The renderer errors on unknown keys, reports
+  bibliography entries no longer cited (orphan check in both directions), and
+  counts `[@todo: description]` markers for claims whose source is still
+  unverified.
+- **Submission gate**: a document is not submission-ready until a final
+  citation-integrity pass shows zero `[@todo:]` markers, zero legacy `\[cite\]`
+  placeholders, zero unknown keys, and every cited entry re-verified against its
+  claim. The pandoc-compatible syntax means the Google Docs export can carry real
+  citations without manual reconstruction.
+
 ### Page discipline
 
 - NIH page limits (confirmed 2026-08-19 against the NIH page-limits table for

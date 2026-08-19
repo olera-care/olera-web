@@ -7,8 +7,11 @@ script reapplies it by the documented conventions.
 """
 import base64, html, os, re, subprocess, sys
 
+import yaml
+
 CRP = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))  # docs/crp
 MD = os.path.join(CRP, 'research-strategy.md')
+REFS = os.path.join(CRP, 'references.yaml')
 FIGDIR = CRP
 OUT_DIR = sys.argv[1] if len(sys.argv) > 1 else '/tmp'
 OUT_HTML = os.path.join(OUT_DIR, 'rs_housestyle.html')
@@ -27,6 +30,11 @@ p.metrics-head { font-style: italic; text-decoration: underline; text-align: lef
 p.standalone-iu { font-style: italic; text-decoration: underline; margin: 4pt 0 2pt 0;
                   text-align: left; }
 p.caption { font-size: 9pt; text-align: left; margin: 2pt 0 6pt 0; }
+sup { line-height: 0; }
+sup.todo { color: #b45309; font-weight: bold; }
+div.refs { break-before: page; page-break-before: always; }
+div.refs p { font-size: 9pt; text-align: left; margin: 0 0 3pt 0; }
+div.refs p.refnote { color: #555; font-style: italic; margin-bottom: 8pt; }
 div.fig { margin: 5pt 0 2pt 0; text-align: center; }
 div.fig img, div.fig svg { max-width: 100%; height: auto; }
 div.figblock { break-inside: avoid; page-break-inside: avoid; }
@@ -191,6 +199,51 @@ def main():
             first_sec = False
         in_metrics = (kind == 'metrics')
         body.append(html_p)
+
+    # ---- citations: [@key] / [@k1; @k2] -> superscript numbers by first appearance
+    refs = yaml.safe_load(open(REFS, encoding='utf-8'))
+    cite_order, missing, todo_count = [], set(), 0
+    cite_re = re.compile(r'\[@([^\]]+)\]')
+
+    def cite_repl(m):
+        nonlocal todo_count
+        content = m.group(1).strip()
+        if content.startswith('todo:'):
+            todo_count += 1
+            return '<sup class="todo">[cite]</sup>'
+        nums = []
+        for key in [k.strip().lstrip('@') for k in content.split(';')]:
+            if key not in refs:
+                missing.add(key)
+                continue
+            if key not in cite_order:
+                cite_order.append(key)
+            nums.append(str(cite_order.index(key) + 1))
+        return '<sup>' + ','.join(nums) + '</sup>' if nums else ''
+
+    body = [cite_re.sub(cite_repl, b) for b in body]
+
+    if missing:
+        sys.exit(f'ERROR: citation keys not in references.yaml: {sorted(missing)}')
+    unused = [k for k in refs if k not in cite_order]
+    legacy = len(re.findall(r'\\\[cite\\\]', src))
+    print(f'citations: {len(cite_order)} sources cited, {todo_count} [@todo:] pending, '
+          f'{legacy} legacy [cite] placeholders, {len(unused)} bibliography entries not yet cited')
+    if unused:
+        print('  not yet cited:', ', '.join(unused))
+
+    if cite_order:
+        items = ''.join(
+            f'<p>{i+1}. {html.escape(refs[k]["ref"])}'
+            + (f' doi:{refs[k]["doi"]}' if refs[k].get('doi') else '')
+            + (f' PMID:{refs[k]["pmid"]}' if refs[k].get('pmid') else '')
+            + '</p>'
+            for i, k in enumerate(cite_order))
+        body.append(
+            '<div class="refs"><p class="sec">REFERENCES</p>'
+            '<p class="refnote">Rendered for review only. In the application, references are '
+            'submitted in the Bibliography &amp; References Cited attachment and do not count '
+            'against the 12-page Research Strategy limit.</p>' + items + '</div>')
 
     # keep each figure and its caption on the same page
     joined, i = [], 0

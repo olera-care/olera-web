@@ -1,11 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import {
+  buildSmsThreadSummaries,
+  classifySmsThread,
+  type SmsInboxInboundRow,
+  type SmsInboxOutboundRow,
+} from "@/lib/sms/inbox-threads";
 
 /**
  * GET /api/admin/sms-inbox
  *
- * Thread list for the SMS inbox. One entry per phone number that has texted us,
- * newest first, with the count still awaiting a human.
+ * Thread list for the SMS inbox. One entry per phone number with either an
+ * inbound text OR a logged outbound family SMS, newest first. That second
+ * source is what makes silent recipients visible before they ever text back.
  *
  * Threads are keyed on phone_last10 rather than a profile id because most
  * senders map to no account at all — the phone IS the identity for SMS.
@@ -14,20 +21,10 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  *           ?count_only=true for the nav badge.
  */
 
-const MAX_ROWS = 1000;
-
-interface InboundRow {
-  id: number;
-  from_phone: string;
-  phone_last10: string;
-  body: string;
-  keyword: string | null;
-  profile_id: string | null;
-  profile_type: string | null;
-  display_name: string | null;
-  handled_at: string | null;
-  created_at: string;
-}
+const MAX_INBOUND_ROWS = 1000;
+const MAX_OUTBOUND_ROWS = 1000;
+const MAX_THREADS = 1000;
+const PROFILE_BATCH_SIZE = 200;
 
 export async function GET(request: NextRequest) {
   try {
@@ -55,79 +52,83 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ unhandled: count ?? 0 });
     }
 
-    const { data, error } = await db
-      .from("sms_inbound")
-      .select(
-        "id, from_phone, phone_last10, body, keyword, profile_id, profile_type, display_name, handled_at, created_at",
-      )
-      .order("created_at", { ascending: false })
-      .limit(MAX_ROWS);
-    if (error) {
+    const [inboundRes, outboundRes] = await Promise.all([
+      db
+        .from("sms_inbound")
+        .select(
+          "id, from_phone, phone_last10, body, keyword, profile_id, profile_type, display_name, handled_at, created_at",
+        )
+        .order("created_at", { ascending: false })
+        .limit(MAX_INBOUND_ROWS),
+      // Keep proactive sends family-scoped. Provider alerts and internal
+      // self-checks also use the SMS ledger, but adding them here would turn
+      // the family inbox into an outbound-operations firehose. Historical
+      // admin_reply rows predate recipient_type logging, so include that one
+      // type explicitly to preserve the real latest direction of known threads.
+      db
+        .from("email_log")
+        .select(
+          "id, recipient, html_body, email_type, provider_id, recipient_type, status, delivered_at, first_clicked_at, bounced_at, created_at",
+        )
+        .eq("channel", "sms")
+        .or("recipient_type.eq.family,email_type.eq.admin_reply")
+        .order("created_at", { ascending: false })
+        .limit(MAX_OUTBOUND_ROWS),
+    ]);
+    if (inboundRes.error || outboundRes.error) {
+      const error = inboundRes.error ?? outboundRes.error;
       console.error("[admin/sms-inbox] list failed:", error);
-      return NextResponse.json({ error: error.message }, { status: 500 });
+      return NextResponse.json({ error: error?.message || "Failed to load SMS history" }, { status: 500 });
     }
 
-    const rows = (data ?? []) as InboundRow[];
+    const inboundRows = (inboundRes.data ?? []) as SmsInboxInboundRow[];
+    const outboundRows = (outboundRes.data ?? []) as SmsInboxOutboundRow[];
+    const allThreads = buildSmsThreadSummaries(inboundRows, outboundRows);
+    let list = allThreads.slice(0, MAX_THREADS);
 
-    // Group into threads. Rows arrive newest-first, so the first row seen for a
-    // number is that thread's latest message.
-    const threads = new Map<
-      string,
-      {
-        phone_last10: string;
-        from_phone: string;
-        display_name: string | null;
-        profile_type: string | null;
-        profile_id: string | null;
-        last_body: string;
-        last_keyword: string | null;
-        last_at: string;
-        unhandled: number;
-        /** Oldest unanswered, non-control message from a matched family. */
-        oldest_promised_reply_at: string | null;
-        total: number;
-      }
-    >();
-    for (const row of rows) {
-      const existing = threads.get(row.phone_last10);
-      if (!existing) {
-        threads.set(row.phone_last10, {
-          phone_last10: row.phone_last10,
-          from_phone: row.from_phone,
-          display_name: row.display_name,
-          profile_type: row.profile_type,
-          profile_id: row.profile_id,
-          last_body: row.body,
-          last_keyword: row.keyword,
-          last_at: row.created_at,
-          unhandled: row.handled_at ? 0 : 1,
-          oldest_promised_reply_at:
-            !row.handled_at && row.profile_type === "family" && !row.keyword
-              ? row.created_at
-              : null,
-          total: 1,
-        });
+    // Outbound-only rows know the profile id through email_log.provider_id but
+    // do not have the denormalized display name stored by the inbound webhook.
+    // Fill those identities in bounded batches so a large cohort does not
+    // create an oversized PostgREST URL.
+    const missingIdentityIds = [
+      ...new Set(
+        list
+          .filter((thread) => !thread.display_name && thread.profile_id)
+          .map((thread) => thread.profile_id as string),
+      ),
+    ];
+    const profileById = new Map<string, { display_name: string | null; type: string | null }>();
+    const profileQueries = [];
+    for (let i = 0; i < missingIdentityIds.length; i += PROFILE_BATCH_SIZE) {
+      profileQueries.push(
+        db
+          .from("business_profiles")
+          .select("id, display_name, type")
+          .in("id", missingIdentityIds.slice(i, i + PROFILE_BATCH_SIZE)),
+      );
+    }
+    for (const result of await Promise.all(profileQueries)) {
+      if (result.error) {
+        console.error("[admin/sms-inbox] profile identity load failed:", result.error);
         continue;
       }
-      existing.total += 1;
-      if (!row.handled_at) {
-        existing.unhandled += 1;
-        // Control keywords (STOP/START/HELP) are handled by the carrier or
-        // webhook and do not start the care-team response promise. Rows arrive
-        // newest-first, so every later qualifying row is older.
-        if (row.profile_type === "family" && !row.keyword) {
-          existing.oldest_promised_reply_at = row.created_at;
-        }
+      for (const profile of result.data ?? []) {
+        profileById.set(String(profile.id), {
+          display_name: profile.display_name ? String(profile.display_name) : null,
+          type: profile.type ? String(profile.type) : null,
+        });
       }
-      // An older row may carry identity a newer one lacks (resolution improves
-      // as accounts are created), so keep the first non-null we find.
-      existing.display_name ||= row.display_name;
-      existing.profile_type ||= row.profile_type;
-      existing.profile_id ||= row.profile_id;
     }
-
-    let list = [...threads.values()];
-    if (unhandledOnly) list = list.filter((t) => t.unhandled > 0);
+    list = list.map((thread) => {
+      const profile = thread.profile_id ? profileById.get(thread.profile_id) : null;
+      return profile
+        ? {
+            ...thread,
+            display_name: thread.display_name || profile.display_name,
+            profile_type: thread.profile_type || profile.type,
+          }
+        : thread;
+    });
 
     // Which of these numbers are suppressed? The reply box must refuse to text
     // someone who opted out, so the UI needs this up front.
@@ -146,14 +147,32 @@ export async function GET(request: NextRequest) {
       for (const row of draftRes.data ?? []) if (row.phone_last10) drafted.add(String(row.phone_last10));
     }
 
+    const enriched = list.map((thread) => {
+      const isSuppressed = suppressed.has(thread.phone_last10);
+      const hasDraft = drafted.has(thread.phone_last10);
+      return {
+        ...thread,
+        suppressed: isSuppressed,
+        has_draft: hasDraft,
+        state: classifySmsThread({
+          suppressed: isSuppressed,
+          unhandled: thread.unhandled,
+          hasDraft,
+          lastDirection: thread.last_direction,
+          lastOutboundStatus: thread.last_outbound_status,
+          lastOutboundClickedAt: thread.last_outbound_clicked_at,
+        }),
+      };
+    });
+    if (unhandledOnly) list = enriched.filter((thread) => thread.state === "needs_reply");
+
     return NextResponse.json({
-      threads: list.map((t) => ({
-        ...t,
-        suppressed: suppressed.has(t.phone_last10),
-        has_draft: drafted.has(t.phone_last10),
-      })),
-      unhandled: list.reduce((sum, t) => sum + t.unhandled, 0),
-      truncated: rows.length >= MAX_ROWS,
+      threads: unhandledOnly ? list : enriched,
+      unhandled: enriched.reduce((sum, thread) => sum + thread.unhandled, 0),
+      truncated:
+        inboundRows.length >= MAX_INBOUND_ROWS ||
+        outboundRows.length >= MAX_OUTBOUND_ROWS ||
+        allThreads.length > MAX_THREADS,
     });
   } catch (err) {
     console.error("[admin/sms-inbox] Unexpected error:", err);

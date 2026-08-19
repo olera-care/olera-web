@@ -33,11 +33,16 @@ export function pendingInquirySms(p: { fromName: string; url: string }): string 
   return `New inquiry on Olera from ${p.fromName}. View and respond: ${p.url}`;
 }
 
+/** Stable labels written to email_log.metadata.copy_version. They let us
+ * compare this full-cohort rollout with later copy without inferring versions
+ * from message text. */
+export const BENEFITS_RESULTS_SMS_COPY_VERSION = "question_led_v1_2026_08_19";
+export const BENEFITS_RESULTS_ZERO_MATCH_SMS_COPY_VERSION = "zero_match_v1";
+
 /** Benefits results text — match/no-match branch lives here, next to the copy. */
-export function benefitsResultsSms(p: { matchCount: number; familyPhrase: string; url: string }): string {
-  const programWord = p.matchCount === 1 ? "program" : "programs";
+export function benefitsResultsSms(p: { matchCount: number; url: string }): string {
   return p.matchCount > 0
-    ? `Olera: We found ${p.matchCount} benefit ${programWord} for ${p.familyPhrase}. They're in your private Olera plan. Start here: ${p.url} Reply STOP to opt out.`
+    ? `Olera care team: Need help choosing, qualifying, or applying? Reply. Plan: ${p.url} Next step within 48h. STOP to opt out.`
     : `Olera: We created your private Olera plan. No strong match yet; we'll keep checking. See it here: ${p.url} Reply STOP to opt out.`;
 }
 

@@ -5,7 +5,12 @@ import { createClient } from "@supabase/supabase-js";
 import { createServerClient as createSSRServerClient } from "@supabase/ssr";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
-import { benefitsResultsSms } from "@/lib/sms/templates";
+import {
+  BENEFITS_RESULTS_SMS_COPY_VERSION,
+  BENEFITS_RESULTS_ZERO_MATCH_SMS_COPY_VERSION,
+  benefitsResultsSms,
+} from "@/lib/sms/templates";
+import { withSmsSource } from "@/lib/sms/click-source";
 import { benefitsResultsSavedEmail, benefitsResultsSavedSubject } from "@/lib/email-templates";
 import { getSiteUrl } from "@/lib/site-url";
 import { generateUniqueSlugFromName } from "@/lib/slug";
@@ -884,8 +889,7 @@ export async function POST(req: Request) {
     welcomeTasks.push((async () => {
       const body = benefitsResultsSms({
         matchCount,
-        familyPhrase: relationshipFamilyPhrase(relationship),
-        url: `${siteUrl}/m/${benefitsToken}`,
+        url: withSmsSource(`${siteUrl}/m/${benefitsToken}`, "benefits_results_sms"),
       });
       const result = await sendSMS({
         to: normalizedPhone,
@@ -895,6 +899,14 @@ export async function POST(req: Request) {
         emailType: "benefits_results_sms",
         recipientType: "family",
         recipientLogProfileId: familyProfileId,
+        metadata: {
+          copy_version:
+            matchCount > 0
+              ? BENEFITS_RESULTS_SMS_COPY_VERSION
+              : BENEFITS_RESULTS_ZERO_MATCH_SMS_COPY_VERSION,
+          entry_source: entrySource || "benefits_intake",
+          match_count: matchCount,
+        },
       });
       if (!result.success) {
         console.error("[save-results] SMS send failed:", result.error);

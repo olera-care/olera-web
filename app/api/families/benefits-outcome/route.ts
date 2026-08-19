@@ -4,7 +4,6 @@ import { validateBenefitsOutcomeToken, generateFamilyInboxUrl } from "@/lib/clai
 import {
   readBenefitsCascade,
   captureFamilyPhoneAndTextResults,
-  familyPhraseFromRelationship,
   type BenefitsCascadeMeta,
 } from "@/lib/family-comms/benefits-cascade.server";
 import { sendSlackAlert, slackBenefitsWantsHelp } from "@/lib/slack";
@@ -79,13 +78,10 @@ export async function POST(request: NextRequest) {
 
     // Phone capture from the wants_help landing path.
     if (phone) {
-      const rel =
-        (meta.relationship as string) || (meta.relationship_to_recipient as string) || null;
       const captured = await captureFamilyPhoneAndTextResults(db, {
         profileId: profile.id,
         rawPhone: phone,
         source: "benefits_outcome_help",
-        familyPhrase: familyPhraseFromRelationship(rel),
       });
       return NextResponse.json({
         success: true,

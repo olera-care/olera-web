@@ -92,6 +92,7 @@ interface FamilyRow {
   navigator: {
     status: "pending" | "sent" | "dismissed";
     composedAt: string | null;
+    dueAt: string | null;
     scheduledAt: string | null;
     scheduleFailed: boolean;
     firstStep: string | null;
@@ -127,7 +128,7 @@ interface NavigatorDetail {
   status?: "pending" | "sent" | "dismissed";
   subject?: string;
   body?: string;
-  /** TJ-voiced companion text; {link} placeholder is replaced at send. */
+  /** Care-team companion text; {link} placeholder is replaced at send. */
   sms?: string | null;
   /** Saved in-drawer edits — preferred over the AI originals everywhere. */
   edited_subject?: string;
@@ -139,6 +140,8 @@ interface NavigatorDetail {
   schedule_failed_at?: string;
   schedule_failed_reason?: string;
   composed_at?: string;
+  /** Day-0 intake +48h guidance deadline. */
+  due_at?: string;
   sent_at?: string;
   /** Full pickSnapshot from metadata — the letter's verifiable claims. */
   pick?: ReviewPick;
@@ -470,6 +473,12 @@ export default function BenefitsFamiliesView() {
     (f) => f.navigator?.status === "pending" && f.navigator.scheduledAt,
   ).length;
   const draftReadyCount = pendingDraftCount - scheduledCount;
+  const overdueDraftCount = families.filter(
+    (f) =>
+      f.navigator?.status === "pending" &&
+      Boolean(f.navigator.dueAt) &&
+      new Date(f.navigator.dueAt as string).getTime() < Date.now(),
+  ).length;
 
   /** Redacted review context for the AI fact-check prompt — never carries
    *  the family's name or email (the name is passed only so the builder can
@@ -717,6 +726,11 @@ export default function BenefitsFamiliesView() {
         })}
         {pendingDraftCount > 0 && (
           <span className="ml-auto flex items-center gap-2">
+            {overdueDraftCount > 0 && (
+              <span className="rounded-full bg-red-100 px-2.5 py-1 text-[11px] font-semibold text-red-700">
+                {overdueDraftCount} past 48h
+              </span>
+            )}
             {typeof exportState === "object" && (
               <span className="text-[11px] font-medium text-emerald-700">
                 {exportState.downloaded ? "Downloaded" : "Copied"} {exportState.copied} draft
@@ -992,10 +1006,17 @@ export default function BenefitsFamiliesView() {
                             >
                               ⏱ Scheduled
                             </span>
+                          ) : f.navigator.dueAt && new Date(f.navigator.dueAt).getTime() < Date.now() ? (
+                            <span
+                              className="rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700"
+                              title={`The promised next step was due by ${formatEt(f.navigator.dueAt)}`}
+                            >
+                              ⚠ 48h overdue
+                            </span>
                           ) : (
                             <span
                               className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800"
-                              title="Navigator guidance is drafted and waiting for your review"
+                              title={`Navigator guidance is waiting for review${f.navigator.dueAt ? `; due by ${formatEt(f.navigator.dueAt)}` : ""}`}
                             >
                               ✍ Draft ready
                             </span>

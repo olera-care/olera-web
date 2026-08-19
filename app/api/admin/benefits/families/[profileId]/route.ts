@@ -493,6 +493,7 @@ export async function POST(
       const navStamp = {
         status: "pending",
         composed_at: new Date().toISOString(),
+        ...(navigator.due_at ? { due_at: navigator.due_at } : {}),
         subject: draft.subject,
         body: draft.body,
         sms: draft.sms,

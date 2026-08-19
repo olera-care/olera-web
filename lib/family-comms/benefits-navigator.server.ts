@@ -38,9 +38,12 @@ export interface BenefitsNavigatorMeta {
   /** pending = waiting for TJ; sent/dismissed are terminal for this draft. */
   status?: "pending" | "sent" | "dismissed";
   composed_at?: string;
+  /** Intake +48h. The Day-0 SMS promises a reviewed next step by this time;
+   *  the admin queue and Slack reminder surface it for human follow-through. */
+  due_at?: string;
   subject?: string;
   body?: string;
-  /** TJ-voiced companion text ({link} placeholder; STOP suffix added at send). */
+  /** Care-team companion text ({link} placeholder; STOP suffix added at send). */
   sms?: string | null;
   model?: string;
   /** Snapshot of the verified first-step pick so the send path never re-runs
@@ -150,7 +153,7 @@ STRUCTURE (90-130 words total)
 COMPANION TEXT MESSAGE
 Also draft one short text message. It goes only to families who asked for texts, alongside the email, from the same number that texted their results. Texts get seen when email does not, so this is often the first thing they read.
 - Two or three short sentences, under 240 characters total. It must sound like a person texting, not a notification. Same voice rules as the letter.
-- Say who you are (TJ from Olera) and point at the step you prepared in one clause. End exactly with "Reply CALLED, NO ANSWER, or STUCK." This gives the family a clear way to move their plan forward without opening a link. Same no-name rule: if the first name is unknown, open "Hi, it's TJ from Olera" with no name.
+- Continue the identity established in the Day-0 thread: say this is Olera's care team following up, then point at the step the team prepared in one clause. Do not switch the text thread to "TJ from Olera" even when the companion email is TJ-signed. End exactly with "Reply CALLED, NO ANSWER, or STUCK." This gives the family a clear way to move their plan forward without opening a link.
 - Include the literal placeholder {link} exactly once where the plan link belongs. Write no other links, no phone numbers, and no opt-out language (both are added automatically).
 
 FORMAT
@@ -185,7 +188,7 @@ export interface NavigatorComposeInput {
 export interface NavigatorDraft {
   subject: string;
   body: string;
-  /** TJ-voiced companion text (one {link} placeholder; STOP suffix added at
+  /** Care-team companion text (one {link} placeholder; STOP suffix added at
    *  send). Null when the model omitted it — send falls back to the template. */
   sms: string | null;
   pick: FirstStepPick;

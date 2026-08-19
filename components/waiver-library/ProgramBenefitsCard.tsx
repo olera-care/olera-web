@@ -727,13 +727,11 @@ export default function ProgramBenefitsCard({
             <h3 className="text-lg font-semibold text-gray-900 mb-1.5">
               Want this by text?
             </h3>
-            {/* Orientation lives HERE, not in a separate intro text: name the
-                person, the number continuity, and the reply affordance so the
-                navigator's day-2 text arrives pre-introduced (TJ, 2026-07-29). */}
+            {/* Set the same care-team identity, 48h promise, number continuity,
+                and reply affordance that the Day-0 text carries. */}
             <p className="text-[13px] text-gray-500 mb-4">
-              We&apos;ll text your results link right now. Then TJ from Olera will text you your
-              first step from this same number. You can text back anytime and a real person
-              will answer.
+              We&apos;ll text your plan now. Olera&apos;s care team will review what you shared and
+              text one next step within 48 hours from this same number. You can reply anytime.
             </p>
             <input
               type="tel"

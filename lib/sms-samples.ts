@@ -179,9 +179,9 @@ export const SMS_VARIANTS: SmsVariant[] = [
     situation: "Sent when the quiz finds at least one match and the family supplied a phone. It delivers the private Olera plan while their request is still fresh.",
     trigger: "A new family completes the benefits quiz with ≥1 program match and supplies a phone under the SMS disclosure",
     who: "A new family who finished the benefits quiz, matched at least one program, and gave a phone number (phone-as-optional V3 flow).",
-    why: "The results link is the payoff of the quiz they just took. Olera leads with what it found, names the private plan where it now lives, and carries Reply STOP because this is the first text.",
+    why: "The care team leads with a bounded human question while keeping the plan available for families who prefer to self-serve. It promises one reviewed next step within 48 hours and carries Reply STOP because this is the first text.",
     render: () =>
-      benefitsResultsSms({ matchCount: 4, familyPhrase: "your mom", url: "https://olera.care/m/sample" }),
+      benefitsResultsSms({ matchCount: 4, url: "https://olera.care/m/sample" }),
   },
   {
     id: "sms_benefits_saved",
@@ -196,7 +196,7 @@ export const SMS_VARIANTS: SmsVariant[] = [
     who: "Same moment as the match text, for families whose answers matched no program yet.",
     why: "An honest zero-state: Olera created a private plan and will keep checking, rather than leading with the awkward claim that a search was 'saved.'",
     render: () =>
-      benefitsResultsSms({ matchCount: 0, familyPhrase: "your mom", url: "https://olera.care/m/sample" }),
+      benefitsResultsSms({ matchCount: 0, url: "https://olera.care/m/sample" }),
   },
 
   // ─────────────── Family · Benefits cascade (coordinator B1/B2 mirrors) ───────────────
@@ -210,11 +210,11 @@ export const SMS_VARIANTS: SmsVariant[] = [
     group: "Family · Benefits cascade",
     label: "First step — navigator text (fallback sample)",
     emailType: "benefits_first_step_sms",
-    timing: "B1 · after TJ approves the first step",
-    situation: "Usually drafted 2–10 days after intake, then sent only when TJ approves it or at the scheduled hour. It accompanies email or becomes the primary delivery for a text-only family.",
-    trigger: "TJ approves and sends (or schedules) a navigator draft and the family has stored sms_consent. It accompanies email when available and becomes the primary B1 delivery for text-only families.",
+    timing: "B1 · reviewed and sent within 48h of intake",
+    situation: "Drafted on the first daily coordinator run after intake, then sent only when the care team approves it or at the scheduled hour. It accompanies email or becomes the primary delivery for a text-only family.",
+    trigger: "The care team approves and sends (or schedules) a navigator draft and the family has stored sms_consent. It accompanies email when available and becomes the primary B1 delivery for text-only families.",
     who: "A benefits-intake family who supplied a phone under the SMS disclosure during intake or a later benefits phone-capture step.",
-    why: "The reviewed first step in the channel families actually open. Most sends use the TJ-voiced per-family draft; this preview is explicitly the fallback used when no custom companion text exists.",
+    why: "The reviewed first step in the channel families actually open. Most sends use the care-team per-family draft; this preview is explicitly the fallback used when no custom companion text exists.",
     gates: [
       "Requires stored phone + explicit sms_consent (10DLC posture) — never phone presence alone",
       "Skipped when phone_validity = opted_out (family texted STOP)",

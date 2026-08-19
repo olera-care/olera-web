@@ -28,7 +28,11 @@ import {
 } from "@/lib/benefits/eligibility.server";
 import { findPipelineDraftFor, getStateAbbrev, getStateSlug } from "@/lib/program-data";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
-import { benefitsResultsSms } from "@/lib/sms/templates";
+import {
+  BENEFITS_RESULTS_SMS_COPY_VERSION,
+  BENEFITS_RESULTS_ZERO_MATCH_SMS_COPY_VERSION,
+  benefitsResultsSms,
+} from "@/lib/sms/templates";
 import { withSmsSource } from "@/lib/sms/click-source";
 import { getSiteUrl } from "@/lib/site-url";
 import { sendSlackAlert } from "@/lib/slack";
@@ -598,7 +602,6 @@ export async function captureFamilyPhoneAndTextResults(
     rawPhone: string;
     /** Consent provenance, e.g. "benefits_enrichment" | "benefits_outcome_help". */
     source: string;
-    familyPhrase?: string;
   },
 ): Promise<{ stored: boolean; smsSent: boolean }> {
   const normalized = normalizeUSPhone(opts.rawPhone);
@@ -670,7 +673,6 @@ export async function captureFamilyPhoneAndTextResults(
     to: normalized,
     body: benefitsResultsSms({
       matchCount: tokenRow.match_count || 0,
-      familyPhrase: opts.familyPhrase || "your family",
       url: withSmsSource(`${getSiteUrl()}/m/${tokenRow.token}`, "benefits_results_sms"),
     }),
     // Ledger entry (channel='sms') so the send shows on /admin/family-comms.
@@ -678,6 +680,14 @@ export async function captureFamilyPhoneAndTextResults(
     emailType: "benefits_results_sms",
     recipientType: "family",
     recipientLogProfileId: opts.profileId,
+    metadata: {
+      copy_version:
+        (tokenRow.match_count || 0) > 0
+          ? BENEFITS_RESULTS_SMS_COPY_VERSION
+          : BENEFITS_RESULTS_ZERO_MATCH_SMS_COPY_VERSION,
+      entry_source: opts.source,
+      match_count: tokenRow.match_count || 0,
+    },
   });
   if (!result.success) {
     console.error("[captureFamilyPhone] results SMS failed:", result.error);

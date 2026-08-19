@@ -421,3 +421,41 @@ demand") now states the same comparison as Key Innovation 2's opening, one page 
 and less accurately. It is a locked paragraph, so it was left alone, but a reviewer
 reading top to bottom meets the argument twice. Recommend trimming it to the signpost
 function only.
+
+## Key Innovation 2, locked version (2026-08-19)
+
+Logan authored the final prose directly and it is locked. Two paragraphs, 288 words,
+down from TJ's 283 and from the 478-word intermediate version. Title changed to
+"AI-assisted navigation that carries families from need to established care," which
+matches the "AI-assisted navigation" wording already used in the Significance section.
+
+Removed from the intermediate version, with future homes:
+
+- **The three-category comparator sentence** naming BenefitsCheckUp, the Eldercare
+  Locator, and AI navigation tools with their functional descriptions. The two national
+  tools survive as citations on "Digital tools can identify benefits and resources"; the
+  functional detail is preserved in the `ncoaBCU` and `eldercareLocator` reference
+  entries, which carry explicit warnings against describing either as information-only.
+  **Future home: the Commercialization Plan's tool-by-tool competitive table.**
+- **TJ's workflow enumeration** ("screens eligibility, matches aid and services, executes
+  the required administrative steps, follows stalled tasks, confirms care was
+  established, records the outcome, and learns from it"). **Future home: Aim 1 tasks**,
+  where each item can carry a milestone.
+- **The MARS and TAS results** (4.57/5 n=30, 5.83/7 n=65, 5.73/7 n=31). Still cited in
+  the Significance accomplishments bullets, so no reference is orphaned. Innovation now
+  argues from the architecture rather than from user ratings.
+- **"No existing approach and none in development does this at scale."** Cut at Logan's
+  direction. III.3 and II.2 both ask about approaches in development, and nothing in the
+  section now answers that clause directly.
+- **"The advantage over our own earlier generations is substantial in kind rather than
+  degree: the Phase IIB system ended at a recommendation, and this one ends at an agency
+  decision."** Cut at Logan's direction. III.3's early-generations clause is now answered
+  only implicitly, by "Eligibility, guidance, and matching operate today."
+- **The cost-to-serve framing** of the closing sentence ("without requiring proportional
+  growth in navigation staff, keeping a market's cost to serve within what that market's
+  revenue can sustain"). Rejected: Olera does not employ navigation staff today, so the
+  claim reads as a saving against a cost we do not carry. The closing now makes the
+  conversion claim instead, and names the local adoption hurdle explicitly.
+
+Retired figures, both left in place unreferenced as a record: `fig-navigation.svg`
+(model vs. rules engine, case runtime, maturity gutter) and `fig-llm-architecture.svg`.

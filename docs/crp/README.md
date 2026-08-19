@@ -24,6 +24,7 @@ and prove a provider-funded revenue model that keeps navigation free for familie
 | `tools/` | md→docx export (Drive round-trip), print/page check | this repo | stable |
 | `reference/phase-iib/` | Phase IIB application (1R44AG074116) as historical source: prior framing, technical descriptions, accomplishments, figures | uploaded 2026-08-19 | reference only, never current truth |
 | `reference/rppr/` | Phase IIB Year 1 and Year 2 progress reports: the authoritative record of what was actually built and tested (PEFT, RLHF, RAG, multi-agent integration, Aim 2 pilot) | Drive, extracted 2026-08-19 | reference; authoritative for technical history |
+| `reference/publications/` | The research record: four peer-reviewed papers plus the unpublished CARE-NAV TAS study, with sample, methods, findings, and which CRP claim each can support | Drive, 2026-08-19 | reference; authoritative for study results |
 
 **Sync rule:** each document has exactly one active surface at a time, recorded in its
 provenance header. GitHub-active → Drive copy is comment-only. Export for review flips

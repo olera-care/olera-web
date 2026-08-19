@@ -39,8 +39,6 @@ interface FamilyRow {
   navigator: {
     status: "pending" | "sent" | "dismissed";
     composedAt: string | null;
-    /** Day-0 intake +48h: the promised deadline for reviewed guidance. */
-    dueAt: string | null;
     /** Set while a scheduled send is pending — the chip shows ⏱ instead of ✍. */
     scheduledAt: string | null;
     /** A scheduled fire was blocked (reason rides the per-family GET). */
@@ -350,9 +348,6 @@ export async function GET(request: NextRequest) {
           ? {
               status: navMeta.status,
               composedAt: navMeta.composed_at ?? null,
-              // Legacy drafts predate the 48h promise and intentionally have
-              // no due_at; never relabel that historical queue as overdue.
-              dueAt: navMeta.due_at ?? null,
               scheduledAt: navMeta.scheduled_at ?? null,
               scheduleFailed: Boolean(navMeta.schedule_failed_reason),
               firstStep: navMeta.pick?.shortName ?? null,

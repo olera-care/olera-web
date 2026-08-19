@@ -10,9 +10,9 @@ Copy version written to `email_log.metadata.copy_version`:
 
 Approved positive-match message:
 
-> Olera care team: Need help choosing, qualifying, or applying? Reply. Plan: {link} Next step within 48h. STOP to opt out.
+> Olera care team: Need help choosing, qualifying, or applying? Reply. Plan: {link} We'll reply within 48h. STOP to opt out.
 
-With the production-length tagged URL used during review, the message is 155 GSM-7 characters and one SMS segment.
+With the production-length tagged URL used during review, the message is 157 GSM-7 characters and one SMS segment.
 
 The zero-match message is unchanged and records `zero_match_v1`.
 
@@ -21,7 +21,8 @@ The zero-match message is unchanged and records `zero_match_v1`.
 - Leads with Olera's care team rather than introducing a new individual identity later.
 - Offers three bounded places where a family may need help instead of asking an open-ended “Where are you stuck?” question.
 - Keeps the plan link in the first message. The baseline shows a meaningful silent self-service cohort, so access is not gated on replying.
-- Makes the operational promise explicit: one reviewed next step within 48 hours.
+- Makes the operational promise explicit and conditional: when a family replies, Olera's care team replies within 48 hours.
+- Avoids promising a second proactive message to silent self-serve families or people who add a phone after earlier navigator guidance.
 - Uses a stable copy version and entry source so later comparisons do not depend on reconstructing message text.
 
 ## Read-only baseline captured before rollout
@@ -54,18 +55,17 @@ Guardrails and diagnostics:
 - inbound STOP within seven days, attributed to the immediately preceding outbound SMS;
 - plan click rate among tagged, delivered sends;
 - non-STOP reply rate and time to first reply;
-- first reviewed guidance delivered by intake +48 hours;
+- care-team response sent within 48 hours of the first qualifying inbound reply;
 - delivery failures and messages without a terminal carrier receipt.
 
 Do not treat a plan click alone as verified progress. Do not attribute a STOP to Day 0 merely because it occurred within seven days; join it to the most recent outbound message first.
 
-## Operational changes paired with the promise
+## Operational support for the promise
 
-- The coordinator prepares the navigator draft on its first daily run after intake instead of waiting until hour 48.
-- The draft stores `due_at = intake +48h`.
-- `/admin/benefits` identifies drafts that pass the deadline.
-- The new-draft Slack reminder includes the earliest 48-hour deadline.
-- Guidance remains human-reviewed; there is no automatic send of unreviewed program advice.
+- The inbound webhook stores the reply, immediately acknowledges it, and queues free-form questions for research.
+- The family-answer worker prepares a review packet every five minutes; it never auto-sends unreviewed advice.
+- `/admin/inbox` calculates the deadline from the oldest unanswered inbound, places overdue conversations first, and labels any thread that passes 48 hours.
+- The existing navigator remains a separate proactive follow-up; it is not the mechanism behind this conditional response promise.
 
 ## Deferred experiment
 

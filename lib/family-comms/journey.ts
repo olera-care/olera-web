@@ -22,7 +22,7 @@ export interface JourneyStep {
   key: string;
   /** Step name, e.g. "B1 · Letter sent (+ companion text)". */
   title: string;
-  /** When it fires relative to the journey anchor, e.g. "Intake +48h". */
+  /** When it fires relative to the journey anchor, e.g. "Intake +2–10d". */
   timing: string;
   /** What happens, in plain terms. */
   description: string;
@@ -80,7 +80,7 @@ const BENEFITS_CASCADE: CommsJourney = {
       title: "Care-team question + plan texted (optional)",
       timing: "Day 0 · When a phone is provided",
       description:
-        "A new family who enters a phone under the SMS disclosure receives a bounded question from Olera's care team plus the same living /m plan link. The message promises one reviewed next step within 48 hours and stores sms_consent for the later navigator and check-in.",
+        "A new family who enters a phone under the SMS disclosure receives a bounded question from Olera's care team plus the same living /m plan link. The care team promises to reply within 48 hours when the family responds, and stores sms_consent for the later navigator and check-in.",
       smsType: "benefits_results_sms",
       smsSampleId: "sms_benefits_match",
       ownedBy: "benefits-results-texts",
@@ -89,16 +89,16 @@ const BENEFITS_CASCADE: CommsJourney = {
     {
       key: "b1_draft",
       title: "B1 · Navigator guidance drafted",
-      timing: "First daily run after intake · due by +48h",
+      timing: "Intake +2–10d",
       description:
-        "The coordinator composes personal first-step guidance on its first daily run after intake: an email when available and a reply-enabled text for consented families. It parks the draft in /admin/benefits with the 48-hour deadline visible for review.",
+        "The coordinator composes personal first-step guidance: an email when available and a reply-enabled text for consented families. It parks the draft in /admin/benefits for review.",
       ownedBy: "family-comms-coordinator",
       gate: "Draft only — nothing reaches the family until the care team approves it in the queue",
     },
     {
       key: "b1_send",
       title: "B1 · First step sent (email and/or text)",
-      timing: "By intake +48h, after care-team review",
+      timing: "When the care team sends, or at the scheduled hour",
       description:
         "The care team's send button and the hourly scheduler run one shared send path. Email families receive the reviewed letter; consented text families receive the first step in the same thread. Text-only families keep moving without being forced into email.",
       emailType: "benefits_first_step",
@@ -190,7 +190,7 @@ const HELP_CASCADE_LADDER: CommsJourney = {
     {
       key: "b1_draft",
       title: "B1 · Navigator draft (benefits cascade)",
-      timing: "First daily run after benefits intake · due by +48h",
+      timing: "Benefits intake +2–10d",
       description: "Composes the reviewed first-step letter into the /admin/benefits queue — see the Benefits cascade sequence below for the full journey.",
       ownedBy: "family-comms-coordinator",
       gate: "Composes a draft; the send is care-team-gated and fired by the navigator scheduler",

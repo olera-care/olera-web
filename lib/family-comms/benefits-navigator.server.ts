@@ -38,9 +38,6 @@ export interface BenefitsNavigatorMeta {
   /** pending = waiting for TJ; sent/dismissed are terminal for this draft. */
   status?: "pending" | "sent" | "dismissed";
   composed_at?: string;
-  /** Intake +48h. The Day-0 SMS promises a reviewed next step by this time;
-   *  the admin queue and Slack reminder surface it for human follow-through. */
-  due_at?: string;
   subject?: string;
   body?: string;
   /** Care-team companion text ({link} placeholder; STOP suffix added at send). */

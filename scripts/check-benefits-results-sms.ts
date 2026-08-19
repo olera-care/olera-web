@@ -7,7 +7,7 @@ const productionLengthUrl = "https://olera.care/m/-_8KcFV3s3stX6S-?s=r";
 const body = benefitsResultsSms({ matchCount: 5, url: productionLengthUrl });
 const expected =
   `Olera care team: Need help choosing, qualifying, or applying? Reply. ` +
-  `Plan: ${productionLengthUrl} Next step within 48h. STOP to opt out.`;
+  `Plan: ${productionLengthUrl} We'll reply within 48h. STOP to opt out.`;
 const gsm7 = /^[ -~\n\r€£¥èéùìòÇØøÅåÆæßÉÄÖÑÜäöñüà]*$/;
 
 const problems: string[] = [];

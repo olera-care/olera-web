@@ -90,7 +90,7 @@ import type { NudgeSequence } from "@/lib/types";
  *   3. never-engaged → compare cards (guide fallback)      → family_never_engaged
  *   4. provider-responded → compare + how-to-choose        → day_10_awaiting
  *   5. pending reach-out      → family_reach_out_nudge
- *   B1. benefits first step (drafted <24h, sent by intake +48h) → benefits_first_step
+ *   B1. benefits first step (intake 48h-10d) → benefits_first_step
  *   B2. benefits check-in (first step +3d)  → benefits_check_in
  *      (the Benefits Cascade — see lib/family-comms/benefits-cascade.server.ts.
  *      While the cascade is in flight, rung 6 stays quiet for benefits families.)
@@ -113,7 +113,6 @@ export const maxDuration = 300;
 
 const HOUR = 60 * 60 * 1000;
 const DAY = 24 * HOUR;
-const BENEFITS_NEXT_STEP_SLA = 48 * HOUR;
 
 interface ThreadMsg {
   from_profile_id: string;
@@ -262,7 +261,6 @@ export async function GET(request: NextRequest) {
     // instead of blowing the route's maxDuration in one run.
     const NAVIGATOR_COMPOSES_PER_RUN = 12;
     let navigatorComposeCount = 0;
-    let navigatorEarliestDueAt: string | null = null;
 
     // 1. Gather candidates broadly. Inquiry connections drive rungs 1-4 & 6; request
     //    connections drive rung 5. day-10 (rung 4) keys off provider-response age, not
@@ -1024,10 +1022,9 @@ export async function GET(request: NextRequest) {
         //    /admin/benefits for care-team approval. Nothing reaches the family
         //    until the team sends it; first_step_sent_at is stamped by the admin
         //    send route, so B2 stays correctly downstream of the REAL send.
-        //    Draft on the first coordinator run after intake (the cron runs
-        //    daily), leaving the care team at least ~24h to review and send
-        //    before the Day-0 text's 48h promise. Keep the 10-day recovery
-        //    window so a missed run never silently drops a family.
+        //    Band: opens at 48h and stays open to 10 days — a letter approved
+        //    on day 6 is still useful, and the old one-shot 96h window silently
+        //    dropped families whenever a run was missed.
         //    One-shot per family on successful composition; a failed compose
         //    logs and retries next run. Dry runs skip composition entirely
         //    (it writes metadata and spends tokens). ──
@@ -1047,7 +1044,7 @@ export async function GET(request: NextRequest) {
           const composeBudgetLeft = navigatorComposeCount < NAVIGATOR_COMPOSES_PER_RUN;
           const composeTimeLeft = Date.now() - now < 180_000;
           if (
-            intakeAge >= 0 &&
+            intakeAge >= 48 * HOUR &&
             intakeAge <= 10 * DAY &&
             !dryRun &&
             composeBudgetLeft &&
@@ -1070,9 +1067,6 @@ export async function GET(request: NextRequest) {
                 const navStamp = {
                   status: "pending",
                   composed_at: new Date().toISOString(),
-                  due_at: new Date(
-                    new Date(benefitsDoneAt).getTime() + BENEFITS_NEXT_STEP_SLA,
-                  ).toISOString(),
                   subject: draft.subject,
                   body: draft.body,
                   sms: draft.sms,
@@ -1098,10 +1092,6 @@ export async function GET(request: NextRequest) {
                   .from("business_profiles")
                   .update({ metadata: { ...freshMeta } })
                   .eq("id", fam.familyId);
-                navigatorEarliestDueAt =
-                  !navigatorEarliestDueAt || navStamp.due_at < navigatorEarliestDueAt
-                    ? navStamp.due_at
-                    : navigatorEarliestDueAt;
                 bump("benefits_navigator_draft");
               }
             } catch (err) {
@@ -1444,17 +1434,8 @@ export async function GET(request: NextRequest) {
     const draftCount = counts.byRung["benefits_navigator_draft"] || 0;
     if (draftCount > 0) {
       try {
-        const dueNote = navigatorEarliestDueAt
-          ? ` First 48h deadline: ${new Date(navigatorEarliestDueAt).toLocaleString("en-US", {
-              timeZone: "America/New_York",
-              month: "short",
-              day: "numeric",
-              hour: "numeric",
-              minute: "2-digit",
-            })} ET.`
-          : "";
         await sendSlackAlert(
-          `📝 ${draftCount} navigator draft${draftCount === 1 ? "" : "s"} ready for review.${dueNote} → ${siteUrl}/admin/benefits`,
+          `📝 ${draftCount} navigator draft${draftCount === 1 ? "" : "s"} ready for review → ${siteUrl}/admin/benefits`,
         );
       } catch (err) {
         console.error("[family-comms-coordinator] draft Slack ping failed:", err);

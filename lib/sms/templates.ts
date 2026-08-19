@@ -101,6 +101,22 @@ export function smsHelpReply(): string {
  * message the family just sent us, and STOP is already handled at the carrier
  * and in the webhook.
  */
+/**
+ * The 7-day outcome check for a researched answer we sent.
+ *
+ * Proactive, so it carries the STOP line. It names two keywords because the
+ * answer has to be machine-readable: prose would create another message needing
+ * a human, which is the cost this system exists to reduce. HELPED and NOTYET
+ * are used rather than YES/NO because YES is a TCPA opt-in keyword handled
+ * earlier in the webhook and STUCK belongs to the benefits cascade.
+ *
+ * It says why we are asking. People answer a question that has a visible point
+ * more often than one that looks like a survey, and it happens to be true.
+ */
+export function familyAnswerFollowupSms(): string {
+  return "Olera: Following up on the benefits help we sent last week. Did it get you anywhere? Reply HELPED if you got assistance, or NOTYET if you're still stuck. Either answer helps us do better for the next family. Reply STOP to opt out.";
+}
+
 export function familyAnswerAckSms(): string {
   return "Thanks for reaching out. We're looking into this and will get back to you with what we find. We share free resources and can get things wrong, so please confirm anything important with the agency.";
 }

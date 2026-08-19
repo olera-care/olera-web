@@ -109,6 +109,8 @@ export const FAMILY_NUDGE_EMAIL_TYPES = new Set<string>([
   "benefits_first_step",
   "benefits_check_in",
   "day_10_awaiting",
+  // 7-day outcome check on a researched answer (family-answers cron)
+  "family_answer_followup",
   "family_reach_out_nudge",
   "family_nudge",
   // go_live_reminder RETIRED 2026-07-04 (publish-funnel kill, TJ) — historical

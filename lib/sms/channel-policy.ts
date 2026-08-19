@@ -53,6 +53,11 @@ const SMS_ELIGIBLE: Record<string, PolicyEntry> = {
 
   // ── Tier 2: proactive, opt-in, governed (Phase 2 — listed for completeness) ──
   family_outcome_check: { policy: "sms_proactive", transactional: false },
+  // Did the researched answer we sent actually help? Proactive: we are
+  // initiating seven days after the fact, so it is opt-in and cap-governed
+  // like every other family nudge.
+  family_answer_followup: { policy: "sms_proactive", transactional: false },
+
   family_provider_silent: { policy: "sms_proactive", transactional: false },
   family_reach_out_nudge: { policy: "sms_proactive", transactional: false },
   benefits_first_step_sms: { policy: "sms_proactive", transactional: false },

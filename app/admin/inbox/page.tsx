@@ -4,6 +4,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import AdminWorkspace from "@/components/admin/AdminWorkspace";
+import AnswerPacketPanel from "@/components/admin/AnswerPacketPanel";
+import type { AnswerPacket } from "@/lib/family-answers/types";
 
 /**
  * SMS inbox — every inbound text, and the ability to answer it.
@@ -60,6 +62,8 @@ interface ThreadDetail {
   inbound: { id: number; body: string; created_at: string; handled_at: string | null }[];
   twilioError: string | null;
   draft: { body: string; updated_by: string | null; updated_at: string } | null;
+  /** The most recent researched answer waiting on a human, if the engine has produced one. */
+  answerPacket: { jobId: string; packet: AnswerPacket } | null;
 }
 
 /** What the draft indicator is currently saying. */
@@ -697,6 +701,21 @@ export default function AdminSmsInboxPage() {
               {/* ── Reply ───────────────────────────────────────────── */}
               <div className="shrink-0 border-t border-gray-200 bg-white px-5 py-3.5">
                 <div className="mx-auto w-full max-w-3xl">
+                {/* The researched answer sits ABOVE the reply box on purpose:
+                    it is what you check before you write, not a suggestion
+                    tucked beside the thing you were already going to send. */}
+                {detail.answerPacket && !detail.suppressed && (
+                  <div className="mb-3">
+                    <AnswerPacketPanel
+                      packet={detail.answerPacket.packet}
+                      disabled={sending}
+                      onUseDraft={(text) => {
+                        setReply(text);
+                        setDraftState({ kind: "dirty" });
+                      }}
+                    />
+                  </div>
+                )}
                 {detail.suppressed ? (
                   <p className="text-[13px] text-amber-800 bg-amber-50 border border-amber-100 rounded-md px-3 py-2.5">
                     This number opted out

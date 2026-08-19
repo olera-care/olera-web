@@ -5,6 +5,7 @@ import { normalizeUSPhone } from "@/lib/twilio";
 import { smsHelpReply, familyAnswerAckSms } from "@/lib/sms/templates";
 import { detectCrisis, crisisLabel, type CrisisResult } from "@/lib/sms/crisis";
 import { sendReactiveFamilyAlert } from "@/lib/sms/reactive-alerts";
+import { captureOutcome, outcomeFromKeyword } from "@/lib/family-answers/outcome.server";
 import { interpretBenefitsSmsReply } from "@/lib/family-comms/benefits-sms-replies.server";
 import { readBenefitsCascade } from "@/lib/family-comms/benefits-cascade.server";
 import {
@@ -449,6 +450,32 @@ export async function POST(request: NextRequest) {
     }
     // Benefits progress replies update the living plan and receive an
     // immediate receipt. Unrecognized replies remain human-routed below.
+    // An outcome reply to the 7-day follow-up. Checked before the free-form
+    // path because HELPED / NOTYET are answers to a question we asked, not new
+    // questions — routing them to the research engine would queue a job for a
+    // message that is already complete.
+    //
+    // Deliberately AFTER the opt-out/opt-in branches above: "YES" is a TCPA
+    // opt-in keyword and must never be read as an outcome instead.
+    if (messageBody && outcomeFromKeyword(keyword)) {
+      const captured = await captureOutcome(last10(normalizedFrom) ?? "", keyword, messageBody);
+      if (captured.recorded) {
+        await recordInbound(normalizedFrom, messageBody, keyword);
+        if (captured.needsHuman) {
+          try {
+            const { sendSlackAlert } = await import("@/lib/slack");
+            await sendSlackAlert(
+              `Family says our benefits answer did NOT help: ${normalizedFrom} replied "${messageBody.slice(0, 200)}". Worth a second look from /admin/inbox.`,
+            );
+          } catch (err) {
+            console.error("[sms-webhook] Outcome Slack ping failed:", err);
+          }
+        }
+        return twiml(captured.response);
+      }
+      // Nothing was awaiting an outcome — fall through to normal handling.
+    }
+
     if (messageBody) {
       const recorded = await recordInbound(normalizedFrom, messageBody, keyword, true);
       if (recorded.structured) return twiml(recorded.response);

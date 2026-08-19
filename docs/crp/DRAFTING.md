@@ -84,6 +84,29 @@ overrides a governing instruction or the evidence.
   coverage; code is searched when it can contribute; market numbers appear where
   the reader needs them and nowhere else.
 
+## Who we are writing for (ratified 2026-08-19)
+
+Four reviewer behaviors, all present on a real panel, all served at once:
+
+1. **Top-down.** Reads the Research Strategy straight through and expects one
+   continuous argument from Significance to Innovation to Preliminary Work to
+   Approach. Served by continuity: what each paragraph receives and hands off.
+2. **Section-by-section.** Scores one criterion, reading that section largely in
+   isolation. Served by each major section carrying enough context to stand alone,
+   even when that repeats something established earlier.
+3. **Scanning.** Reads headings, first sentences, figures, captions, bold run-ins,
+   and closing sentences. Served by making the whole argument recoverable from
+   those elements alone. Every run-in heading and caption is load-bearing.
+4. **Copy-and-paste.** Lifts sentences straight into the written critique. Served
+   by deliberately supplying concise, defensible sentences that state why something
+   is significant, innovative, feasible, or commercially important, in language a
+   reviewer can quote without editing.
+
+**Consequence: some repetition, signposting, and cross-referencing is good
+grantmanship, not redundancy.** The test is whether a given repetition serves one
+of these four readers. Restating a point because a section must stand alone is
+earned; restating it because we forgot we said it is not.
+
 ## Evolving this file
 
 Append dated lessons below as they are learned; do not rewrite the method's

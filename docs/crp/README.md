@@ -22,6 +22,7 @@ and prove a provider-funded revenue model that keeps navigation free for familie
 | `evidence-ledger.md` | Claim → source → strength → verify? | maintained live | live |
 | `figures/` + `MANIFEST.md` | Figure files, captions, placement, argument, status | RS: extracted from Drive docx; CP: SVGs from staging v0.24 | live |
 | `tools/` | md→docx export (Drive round-trip), print/page check | this repo | stable |
+| `reference/phase-iib/` | Phase IIB application (1R44AG074116) as historical source: prior framing, technical descriptions, accomplishments, figures | uploaded 2026-08-19 | reference only, never current truth |
 
 **Sync rule:** each document has exactly one active surface at a time, recorded in its
 provenance header. GitHub-active → Drive copy is comment-only. Export for review flips
@@ -203,6 +204,17 @@ otherwise seriously consider postponing — sunk effort is not a reason to submi
 revision is judged by "does this materially reduce a likely reviewer concern," and every
 section must be: clear for a tired reviewer · rigorous for a scientist · concrete for an
 investor · true to what Olera has built · connected to commercial readiness.
+
+## 8b. Who we are writing for (ratified 2026-08-19)
+
+Four reviewer behaviors, served simultaneously: **top-down** (one continuous
+argument across sections), **section-by-section** (each section stands alone while
+a single criterion is scored), **scanning** (headings, first sentences, figures,
+captions, and closings must carry the argument by themselves), and
+**copy-and-paste** (supply quotable sentences stating why something is significant,
+innovative, feasible, or commercially important). Deliberate repetition,
+signposting, and cross-referencing are good grantmanship when they serve one of
+these four readers. Full statement: `DRAFTING.md`.
 
 ## 9. The paragraph loop (ratified 2026-08-19 — the working method)
 

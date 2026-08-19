@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 /**
  * Client component for /provider/connection-status.
  * POSTs the signed token on mount (scanner-safe — link-scanners that fetch
- * every href via GET never write). Displays appropriate confirmation based
- * on the reported status value.
+ * every href via GET never write). On success, shows a brief confirmation
+ * then auto-redirects to the provider dashboard.
  */
 
 type StatusValue = "connected" | "not_a_fit" | "no_capacity";
@@ -19,60 +20,26 @@ interface StatusResponse {
   error?: string;
 }
 
-const fadeStyles = `
-@keyframes csFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-.cs-fade { opacity: 0; animation: csFadeUp 0.5s ease-out forwards; }
-@media (prefers-reduced-motion: reduce) { .cs-fade { animation: none; opacity: 1; } }
-`;
-
-function getConfirmation(value: StatusValue, alreadyReported: boolean): {
-  icon: "check" | "info";
-  headline: string;
-  subline: string;
-  note?: string;
-} {
+function getSuccessMessage(value: StatusValue, alreadyReported: boolean): string {
   if (alreadyReported) {
-    return {
-      icon: "info",
-      headline: "Already recorded",
-      subline: "We got your response earlier. No further action needed.",
-    };
+    return "Already recorded";
   }
-
   switch (value) {
     case "connected":
-      return {
-        icon: "check",
-        headline: "Great news!",
-        subline: "We've marked this as connected. You won't receive further follow-ups about this family.",
-        note: "Connections like this help families find the right care. Thank you for responding.",
-      };
+      return "Marked as connected";
     case "not_a_fit":
-      return {
-        icon: "check",
-        headline: "Got it",
-        subline: "We've noted this wasn't a good fit. You won't receive further follow-ups about this family.",
-        note: "Your feedback helps us improve which families we connect you with.",
-      };
+      return "Noted — not a good fit";
     case "no_capacity":
-      return {
-        icon: "check",
-        headline: "Understood",
-        subline: "We've noted you don't have capacity right now. You won't receive further follow-ups about this family.",
-        note: "When you have availability again, new families will still be able to reach out.",
-      };
+      return "Noted — no capacity";
     default:
-      return {
-        icon: "check",
-        headline: "Response recorded",
-        subline: "Thank you for letting us know.",
-      };
+      return "Response recorded";
   }
 }
 
 export default function ConnectionStatusClient({ tok }: { tok: string }) {
-  const [state, setState] = useState<"loading" | "error" | "success">("loading");
-  const [data, setData] = useState<StatusResponse | null>(null);
+  const router = useRouter();
+  const [state, setState] = useState<"loading" | "error" | "redirecting">("loading");
+  const [successMessage, setSuccessMessage] = useState<string>("");
   const [errorMsg, setErrorMsg] = useState<string>("");
   const submitted = useRef(false);
 
@@ -91,13 +58,20 @@ export default function ConnectionStatusClient({ tok }: { tok: string }) {
         return;
       }
 
-      setData(json);
-      setState("success");
+      // Show brief success message then redirect
+      const message = getSuccessMessage(json.value || "connected", json.already_reported || false);
+      setSuccessMessage(message);
+      setState("redirecting");
+
+      // Redirect to provider dashboard after brief delay
+      setTimeout(() => {
+        router.push("/provider");
+      }, 1200);
     } catch {
       setErrorMsg("Failed to record your response. Please try again.");
       setState("error");
     }
-  }, [tok]);
+  }, [tok, router]);
 
   useEffect(() => {
     if (submitted.current) return; // strict-mode double-mount guard
@@ -140,66 +114,32 @@ export default function ConnectionStatusClient({ tok }: { tok: string }) {
     );
   }
 
-  if (state === "loading") {
-    return (
-      <div className="min-h-screen bg-[#F9F6F2] flex items-center justify-center px-5 py-16">
-        <div className="max-w-md w-full text-center">
-          <div className="flex items-center justify-center mb-6">
-            <span className="flex h-12 w-12 items-center justify-center rounded-full bg-gray-100 animate-pulse">
-              <svg className="h-6 w-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-            </span>
-          </div>
-          <div className="h-7 w-48 bg-[#F1E5D6]/70 rounded-xl animate-pulse mx-auto mb-4" />
-          <div className="h-5 w-64 bg-[#F1E5D6]/50 rounded-lg animate-pulse mx-auto" />
-        </div>
-      </div>
-    );
-  }
-
-  // Success state
-  const value = data?.value || "connected";
-  const conf = getConfirmation(value, data?.already_reported || false);
-
+  // Loading or redirecting state - show spinner with message
   return (
     <div className="min-h-screen bg-[#F9F6F2] flex items-center justify-center px-5 py-16">
-      {/* eslint-disable-next-line react/no-danger */}
-      <style dangerouslySetInnerHTML={{ __html: fadeStyles }} />
       <div className="max-w-md w-full text-center">
-        <div className="cs-fade flex items-center justify-center mb-6">
+        <div className="flex items-center justify-center mb-6">
           <span className={`flex h-12 w-12 items-center justify-center rounded-full ${
-            conf.icon === "check" ? "bg-green-100" : "bg-blue-100"
+            state === "redirecting" ? "bg-green-100" : "bg-gray-100"
           }`}>
-            {conf.icon === "check" ? (
+            {state === "redirecting" ? (
               <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
               </svg>
             ) : (
-              <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              <svg className="h-6 w-6 text-gray-400 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
               </svg>
             )}
           </span>
         </div>
-        <h1 className="cs-fade font-serif text-2xl text-gray-900 mb-3" style={{ animationDelay: "0.1s" }}>
-          {conf.headline}
+        <h1 className="font-serif text-2xl text-gray-900 mb-3">
+          {state === "redirecting" ? successMessage : "Recording..."}
         </h1>
-        <p className="cs-fade text-gray-600 mb-4 leading-relaxed" style={{ animationDelay: "0.2s" }}>
-          {conf.subline}
+        <p className="text-gray-500">
+          {state === "redirecting" ? "Taking you to your dashboard..." : "Please wait"}
         </p>
-        {conf.note && (
-          <p className="cs-fade text-sm text-gray-400 mb-8 leading-relaxed" style={{ animationDelay: "0.3s" }}>
-            {conf.note}
-          </p>
-        )}
-        <Link
-          href="/provider"
-          className="cs-fade inline-block px-8 py-4 bg-primary-600 text-white font-medium rounded-2xl hover:bg-primary-700 transition-colors"
-          style={{ animationDelay: "0.4s" }}
-        >
-          Go to dashboard
-        </Link>
       </div>
     </div>
   );

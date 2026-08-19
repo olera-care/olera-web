@@ -5234,38 +5234,44 @@ function followupFooterBlock(opts: FollowupEmailOpts): string {
 }
 
 /**
- * Helper to build the connection status self-report section for follow-up emails.
- * Only shown for single leads with verified providers (connectionStatusUrls provided).
- * Three buttons: "Yes, I connected" (primary), "Not a good fit", "No capacity right now"
+ * Build the CTA section for follow-up emails.
+ *
+ * For single leads with verified providers (connectionStatusUrls provided):
+ * - Primary "Message [Name]" button
+ * - Text links below: "Already connected" · "Not a good fit" · "No capacity"
+ *
+ * For multiple leads or unverified providers:
+ * - Two buttons: "Message [families/Name]" + "Decline [leads/lead]"
  */
-function connectionStatusSelfReportBlock(urls: FollowupEmailOpts["connectionStatusUrls"]): string {
-  if (!urls) return "";
+function buildFollowupCtaSection(opts: {
+  viewUrl: string;
+  messageButtonText: string;
+  declineButtonText: string;
+  connectionStatusUrls?: FollowupEmailOpts["connectionStatusUrls"];
+}): string {
+  // If we have self-report URLs, show consolidated layout
+  if (opts.connectionStatusUrls) {
+    const urls = opts.connectionStatusUrls;
+    return `
+      <div style="margin:0 0 24px;">
+        ${button(opts.messageButtonText, opts.viewUrl)}
+      </div>
+      <p style="font-size:13px;color:#6b7280;margin:0 0 24px;line-height:1.6;">
+        <a href="${urls.connected}" style="color:#6b7280;text-decoration:underline;">Already connected</a>
+        &nbsp;·&nbsp;
+        <a href="${urls.notAFit}" style="color:#6b7280;text-decoration:underline;">Not a good fit</a>
+        &nbsp;·&nbsp;
+        <a href="${urls.noCapacity}" style="color:#6b7280;text-decoration:underline;">No capacity</a>
+      </p>
+    `;
+  }
 
+  // Default: two-button layout
   return `
-    <p style="font-size:14px;font-weight:600;color:#374151;margin:24px 0 12px;line-height:1.4;">
-      Already reached out?
-    </p>
-    <table cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 24px;">
+    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
       <tr>
-        <td style="padding-bottom:8px;">
-          <a href="${urls.connected}" style="display:block;text-align:center;padding:12px 16px;background:${BRAND_COLOR};color:#fff;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;">
-            Yes, I connected
-          </a>
-        </td>
-      </tr>
-      <tr>
-        <td style="padding-bottom:8px;">
-          <a href="${urls.notAFit}" style="display:block;text-align:center;padding:12px 16px;background:#fff;border:1px solid #e5e7eb;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
-            Not a good fit
-          </a>
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <a href="${urls.noCapacity}" style="display:block;text-align:center;padding:12px 16px;background:#fff;border:1px solid #e5e7eb;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
-            No capacity right now
-          </a>
-        </td>
+        <td style="padding-right:12px;">${button(opts.messageButtonText, opts.viewUrl)}</td>
+        <td>${button(opts.declineButtonText, opts.viewUrl)}</td>
       </tr>
     </table>
   `;
@@ -5620,21 +5626,18 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
     ? "Decline leads →"
     : "Decline lead →";
 
-  // Self-report block only for single leads (when URLs provided)
-  const selfReportBlock = !isMultiple && opts.connectionStatusUrls
-    ? connectionStatusSelfReportBlock(opts.connectionStatusUrls)
-    : "";
+  // Build CTA section - consolidated for single leads with self-report URLs
+  const ctaSection = buildFollowupCtaSection({
+    viewUrl: opts.viewUrl,
+    messageButtonText,
+    declineButtonText,
+    connectionStatusUrls: !isMultiple ? opts.connectionStatusUrls : undefined,
+  });
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
     ${bodyHtml}
-    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
-      <tr>
-        <td style="padding-right:12px;">${button(messageButtonText, opts.viewUrl)}</td>
-        <td>${button(declineButtonText, opts.viewUrl)}</td>
-      </tr>
-    </table>
-    ${selfReportBlock}
+    ${ctaSection}
     ${loganLightSignature()}
     ${followupFooterBlock(opts)}
   `, preheader);
@@ -5726,21 +5729,18 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
     ? "Decline leads →"
     : "Decline lead →";
 
-  // Self-report block only for single leads (when URLs provided)
-  const selfReportBlock = !isMultiple && opts.connectionStatusUrls
-    ? connectionStatusSelfReportBlock(opts.connectionStatusUrls)
-    : "";
+  // Build CTA section - consolidated for single leads with self-report URLs
+  const ctaSection = buildFollowupCtaSection({
+    viewUrl: opts.viewUrl,
+    messageButtonText,
+    declineButtonText,
+    connectionStatusUrls: !isMultiple ? opts.connectionStatusUrls : undefined,
+  });
 
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
     ${bodyHtml}
-    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
-      <tr>
-        <td style="padding-right:12px;">${button(messageButtonText, opts.viewUrl)}</td>
-        <td>${button(declineButtonText, opts.viewUrl)}</td>
-      </tr>
-    </table>
-    ${selfReportBlock}
+    ${ctaSection}
     ${loganHeavySignature()}
     ${followupFooterBlock(opts)}
   `, preheader);
@@ -6431,9 +6431,15 @@ export function staleConversationProviderEmail(opts: {
   const safeFamilyName = firstName(opts.familyName, "a family");
   const daysText = opts.daysSinceLastMessage === 1 ? "1 day" : `${opts.daysSinceLastMessage} days`;
 
-  // Self-report block when URLs provided (verified providers only)
-  const selfReportBlock = opts.connectionStatusUrls
-    ? connectionStatusSelfReportBlock(opts.connectionStatusUrls)
+  // Self-report text links when URLs provided (verified providers only)
+  const selfReportLinks = opts.connectionStatusUrls
+    ? `<p style="font-size:13px;color:#6b7280;margin:0 0 24px;line-height:1.6;">
+        <a href="${opts.connectionStatusUrls.connected}" style="color:#6b7280;text-decoration:underline;">Already connected</a>
+        &nbsp;·&nbsp;
+        <a href="${opts.connectionStatusUrls.notAFit}" style="color:#6b7280;text-decoration:underline;">Not a good fit</a>
+        &nbsp;·&nbsp;
+        <a href="${opts.connectionStatusUrls.noCapacity}" style="color:#6b7280;text-decoration:underline;">No capacity</a>
+      </p>`
     : "";
 
   return layout(`
@@ -6445,7 +6451,7 @@ export function staleConversationProviderEmail(opts: {
       A quick follow-up can restart the conversation. Even a simple "Any updates on your care search?" shows you're still interested in helping.
     </p>
     <div style="margin:0 0 24px;">${button("Send a Follow-up", opts.viewUrl)}</div>
-    ${selfReportBlock}
+    ${selfReportLinks}
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>

@@ -375,3 +375,49 @@ through benefits and affordability search specifically. Get it from analytics be
 anyone strengthens the sentence. We also have no measured cost per acquired family and
 no measured conversion rate from benefits-finder start to provider contact; Aim 1 tests
 the first and Aim 2 the second, and neither may be presented as already shown.
+
+## Key Innovation 2, second pass (2026-08-19)
+
+Reverted to TJ's original paragraph as the base after three rebuild attempts drifted
+away from it. Roughly three quarters of paragraph 1 is TJ's wording verbatim. Five
+edits were made, each for a stated reason:
+
+- **"Today's leading alternatives are fragmented single-visit tools and scarce human
+  navigators: directories, benefits websites, discharge planners, clinic social workers,
+  and case managers."** Replaced. Verification showed the characterization is inaccurate:
+  BenefitsCheckUp screens 2,000+ programs nationally and NCOA runs Benefits Enrollment
+  Centers whose specialists obtain, complete, and submit applications; the Eldercare
+  Locator is staffed by Certified Information Specialists referring to 600+ AAAs and ~300
+  Title VI programs. Neither is a single-visit tool. The sentence also grouped directories
+  with clinic social workers and then faulted the group for not being nationally scalable,
+  which is not a fair charge against a social worker. The replacement names three
+  categories and locates the real limit (staff time and funding). See `ncoaBCU` and
+  `eldercareLocator` in references.yaml, including the explicit warning not to describe
+  either as information-only.
+- **"That workflow is what modern language-model agents make newly possible."** The
+  clause "modern language-model agents make newly possible" was cut. What carries a case
+  through a months-long wait is a state machine with deadlines, not an agent. Attributing
+  it to language models overclaims to a technical reviewer and is less credible than the
+  truth, since state machines are reliable and models are not.
+- **"Families already take their elder-care questions to AI assistants; through an open
+  interoperability standard the CareNavigator can meet them there and stay with them
+  through care establishment rather than simply answering the question."** Cut. No named
+  standard, no task funds it, and it reads as a distribution claim we cannot evidence.
+  **Reinstate only with a named standard and an Approach task that builds it.**
+- **"in the same session"** (of "The family reviews and submits in the same session")
+  cut as a product-timing claim we cannot substantiate; application preparation is not
+  built yet.
+- Added: a third alternative category for AI navigation tools (III.3 and II.2 both ask
+  about approaches "in development"); a clause tying completion to the unmet-need
+  consequence already established in Significance (III.3's clinical-practice clause); the
+  Phase IIB opener in paragraph 2 (III.3's early-generations clause); and the
+  cross-reference to Key Innovation 3, which delivers the "learns from it" that TJ's
+  second sentence promises.
+
+**Open obligation:** the family-side signpost paragraph in Significance ("digital tools
+that inform families but leave them to act alone, and human navigators (social workers,
+discharge planners, case managers) who act with families but cannot scale to national
+demand") now states the same comparison as Key Innovation 2's opening, one page earlier
+and less accurately. It is a locked paragraph, so it was left alone, but a reviewer
+reading top to bottom meets the argument twice. Recommend trimming it to the signpost
+function only.

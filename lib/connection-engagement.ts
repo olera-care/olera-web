@@ -96,6 +96,8 @@ export interface EngagementData {
   providerMessaged: boolean;
   /** Family self-reported that the provider got back to them */
   familyConfirmed: boolean;
+  /** Provider self-reported that they connected (via email button click) */
+  providerConfirmed: boolean;
   /** Admin manually marked this connection as "viewed" (verified off-platform activity) */
   adminMarkedViewed: boolean;
   /** Admin manually marked this connection as "connected" (verified off-platform activity) */
@@ -321,9 +323,10 @@ export function getEngagementLevel(
     engagement.providerMessaged ||
     engagement.phoneClicked ||
     engagement.emailLinkClicked ||
-    engagement.familyConfirmed
+    engagement.familyConfirmed ||
+    engagement.providerConfirmed
   ) {
-    // Provider reached out (or family confirmed they did) - this is success
+    // Provider reached out (or family/provider confirmed they did) - this is success
     // This OVERRIDES adminMarkedViewed because actual connection > "just viewed"
     level = "connected";
   } else if (engagement.adminMarkedViewed) {
@@ -356,6 +359,7 @@ export function getEngagementLevel(
  *   - Copied phone number
  *   - Copied email address
  *   - Admin manually verified connection
+ *   - Family or provider self-reported connection
  */
 export function isConnected(engagement: EngagementData): boolean {
   return (
@@ -363,7 +367,8 @@ export function isConnected(engagement: EngagementData): boolean {
     engagement.providerMessaged ||
     engagement.phoneClicked ||
     engagement.emailLinkClicked ||
-    engagement.familyConfirmed
+    engagement.familyConfirmed ||
+    engagement.providerConfirmed
   );
 }
 

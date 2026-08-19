@@ -85,6 +85,17 @@ export async function POST(request: NextRequest) {
       updatedMeta.provider_confirmed_source = "self_report";
     }
 
+    // For "not_a_fit" or "no_capacity", set admin_override to move to "Not Interested" tab
+    if (value === "not_a_fit" || value === "no_capacity") {
+      updatedMeta.admin_override = {
+        status: "not_interested",
+        marked_at: now,
+        marked_by: "provider_self_report",
+        reason: value === "not_a_fit" ? "Not a good fit" : "No capacity",
+        notes: `Provider self-reported via email button: ${value}`,
+      };
+    }
+
     // Update the connection
     const { error: updateError } = await db
       .from("connections")

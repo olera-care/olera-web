@@ -5242,37 +5242,32 @@ function connectionStatusSelfReportBlock(urls: FollowupEmailOpts["connectionStat
   if (!urls) return "";
 
   return `
-    <div style="background:#f9fafb;border-radius:12px;padding:16px 20px;margin:0 0 24px;">
-      <p style="font-size:14px;font-weight:600;color:#374151;margin:0 0 12px;line-height:1.4;">
-        Already reached out?
-      </p>
-      <p style="font-size:13px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-        Let us know how it went — we'll stop the follow-ups once we have your answer.
-      </p>
-      <table cellpadding="0" cellspacing="0" style="width:100%;">
-        <tr>
-          <td style="padding-bottom:8px;">
-            <a href="${urls.connected}" style="display:block;text-align:center;padding:12px 16px;background:${BRAND_COLOR};color:#fff;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;">
-              Yes, I connected
-            </a>
-          </td>
-        </tr>
-        <tr>
-          <td style="padding-bottom:8px;">
-            <a href="${urls.notAFit}" style="display:block;text-align:center;padding:12px 16px;background:#fff;border:1px solid #e5e7eb;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
-              Not a good fit
-            </a>
-          </td>
-        </tr>
-        <tr>
-          <td>
-            <a href="${urls.noCapacity}" style="display:block;text-align:center;padding:12px 16px;background:#fff;border:1px solid #e5e7eb;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
-              No capacity right now
-            </a>
-          </td>
-        </tr>
-      </table>
-    </div>
+    <p style="font-size:14px;font-weight:600;color:#374151;margin:24px 0 12px;line-height:1.4;">
+      Already reached out?
+    </p>
+    <table cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 24px;">
+      <tr>
+        <td style="padding-bottom:8px;">
+          <a href="${urls.connected}" style="display:block;text-align:center;padding:12px 16px;background:${BRAND_COLOR};color:#fff;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;">
+            Yes, I connected
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding-bottom:8px;">
+          <a href="${urls.notAFit}" style="display:block;text-align:center;padding:12px 16px;background:#fff;border:1px solid #e5e7eb;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
+            Not a good fit
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <a href="${urls.noCapacity}" style="display:block;text-align:center;padding:12px 16px;background:#fff;border:1px solid #e5e7eb;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
+            No capacity right now
+          </a>
+        </td>
+      </tr>
+    </table>
   `;
 }
 

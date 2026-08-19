@@ -5212,6 +5212,15 @@ interface FollowupEmailOpts {
   manageListingUrl?: string;
   /** Magic link URL to provider settings/lead preferences */
   settingsUrl?: string;
+  /**
+   * Self-report URLs for connection status buttons (single leads only).
+   * When provided, adds a section asking providers to report their connection status.
+   */
+  connectionStatusUrls?: {
+    connected: string;
+    notAFit: string;
+    noCapacity: string;
+  };
 }
 
 /**
@@ -5222,6 +5231,49 @@ function followupFooterBlock(opts: FollowupEmailOpts): string {
   return opts.manageListingUrl && opts.settingsUrl
     ? providerOffRampBlock(opts.manageListingUrl, opts.settingsUrl)
     : offRampBlock(opts.providerSlug);
+}
+
+/**
+ * Helper to build the connection status self-report section for follow-up emails.
+ * Only shown for single leads with verified providers (connectionStatusUrls provided).
+ * Three buttons: "Yes, I connected" (primary), "Not a good fit", "No capacity right now"
+ */
+function connectionStatusSelfReportBlock(urls: FollowupEmailOpts["connectionStatusUrls"]): string {
+  if (!urls) return "";
+
+  return `
+    <div style="background:#f9fafb;border-radius:12px;padding:16px 20px;margin:0 0 24px;">
+      <p style="font-size:14px;font-weight:600;color:#374151;margin:0 0 12px;line-height:1.4;">
+        Already reached out?
+      </p>
+      <p style="font-size:13px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
+        Let us know how it went — we'll stop the follow-ups once we have your answer.
+      </p>
+      <table cellpadding="0" cellspacing="0" style="width:100%;">
+        <tr>
+          <td style="padding-bottom:8px;">
+            <a href="${urls.connected}" style="display:block;text-align:center;padding:12px 16px;background:${BRAND_COLOR};color:#fff;border-radius:8px;font-size:14px;font-weight:600;text-decoration:none;">
+              Yes, I connected
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-bottom:8px;">
+            <a href="${urls.notAFit}" style="display:block;text-align:center;padding:12px 16px;background:#fff;border:1px solid #e5e7eb;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
+              Not a good fit
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <a href="${urls.noCapacity}" style="display:block;text-align:center;padding:12px 16px;background:#fff;border:1px solid #e5e7eb;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
+              No capacity right now
+            </a>
+          </td>
+        </tr>
+      </table>
+    </div>
+  `;
 }
 
 /**
@@ -5573,6 +5625,11 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
     ? "Decline leads →"
     : "Decline lead →";
 
+  // Self-report block only for single leads (when URLs provided)
+  const selfReportBlock = !isMultiple && opts.connectionStatusUrls
+    ? connectionStatusSelfReportBlock(opts.connectionStatusUrls)
+    : "";
+
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
     ${bodyHtml}
@@ -5582,6 +5639,7 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
         <td>${button(declineButtonText, opts.viewUrl)}</td>
       </tr>
     </table>
+    ${selfReportBlock}
     ${loganLightSignature()}
     ${followupFooterBlock(opts)}
   `, preheader);
@@ -5673,6 +5731,11 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
     ? "Decline leads →"
     : "Decline lead →";
 
+  // Self-report block only for single leads (when URLs provided)
+  const selfReportBlock = !isMultiple && opts.connectionStatusUrls
+    ? connectionStatusSelfReportBlock(opts.connectionStatusUrls)
+    : "";
+
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
     ${bodyHtml}
@@ -5682,6 +5745,7 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
         <td>${button(declineButtonText, opts.viewUrl)}</td>
       </tr>
     </table>
+    ${selfReportBlock}
     ${loganHeavySignature()}
     ${followupFooterBlock(opts)}
   `, preheader);
@@ -6359,9 +6423,23 @@ export function staleConversationProviderEmail(opts: {
   familyName: string;
   daysSinceLastMessage: number;
   viewUrl: string;
+  /**
+   * Self-report URLs for connection status buttons (verified providers only).
+   * When provided, adds a section asking providers to report their connection status.
+   */
+  connectionStatusUrls?: {
+    connected: string;
+    notAFit: string;
+    noCapacity: string;
+  };
 }): string {
   const safeFamilyName = firstName(opts.familyName, "a family");
   const daysText = opts.daysSinceLastMessage === 1 ? "1 day" : `${opts.daysSinceLastMessage} days`;
+
+  // Self-report block when URLs provided (verified providers only)
+  const selfReportBlock = opts.connectionStatusUrls
+    ? connectionStatusSelfReportBlock(opts.connectionStatusUrls)
+    : "";
 
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Continue your conversation?</h1>
@@ -6372,6 +6450,7 @@ export function staleConversationProviderEmail(opts: {
       A quick follow-up can restart the conversation. Even a simple "Any updates on your care search?" shows you're still interested in helping.
     </p>
     <div style="margin:0 0 24px;">${button("Send a Follow-up", opts.viewUrl)}</div>
+    ${selfReportBlock}
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>

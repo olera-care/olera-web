@@ -7,6 +7,31 @@
 
 ## Current Focus
 
+### 2026-08-19 — A-1 Home Care: the reviews really were the wrong location's (investigation only, zero code)
+
+**Finding:** https://claude.ai/code/artifact/f8bad2c8-399e-4494-803b-7320a562e1db — read-only, nothing changed.
+
+**Jackie Brown was right, and the July memory was wrong about why.** The parked note (`project_a1_homecare_review_dispute`, 2026-07-09) concluded this was "not a sampling bug, Google itself is 1.0★/3" and treated her Pasadena-vs-Whittier diagnosis as beside the point. It was the point. The defect is real, and it is one layer above where the July pass looked.
+
+**All twelve directory rows are bound correctly.** Every `place_id` in `olera-providers` was resolved against the live Places API; each returns a business whose name and street address match the record holding it. There is no text-matching or proximity-matching bug — `scripts/process-city.js` creates rows *from* Places results, so the binding is authoritative by construction, and step 7.5 rewrites city/state from the Place ID afterward.
+
+**The mismatch is in `business_profiles`.** Their claimed profile carries `address: 15111 Whittier Blvd Ste 360, Whittier` and `metadata.google_metadata.place_id: ChIJiS8Zj…`, which is the **Pasadena** branch. Cached under it: 1.0★/3, Maisie Lai and Eric Chan — the exact two names she reported. The page rendered a Whittier headquarters with Pasadena's one-star reviews underneath.
+
+**Mechanism:** `app/api/claim/finalize/route.ts:307` copies the directory row's `place_id` into profile metadata at claim time. Editing the address afterward never touches it, and settings renders the field read-only as "Contact support to change". So A-1 diagnosed their own bug correctly and had no way to act on it. Emailing support was the only path available to them, and then it lapsed.
+
+**Blast radius is 3, not thousands.** Of 377 claimed profiles holding a Place ID, 15 disagree with their own city label; 12 of those are the same street address under a neighbouring city name (cosmetic). Three are genuine street-address mismatches, **two live in production right now**:
+- **Therapy Partners of Texas** (live) — profile says Sherman TX, Place ID resolves to **"Therapy At Home"**, a *different company* in McAllen. Worse than A-1's case. Nobody has complained.
+- **A Rainbow of Care** (live) — Upland profile, Ontario CA Place. Same shape as A-1, but the wrong branch is flattering (5.0★/7), which is why it went unreported.
+- **A-1 Home Care Agency** (hidden).
+
+The 13,113 records sharing a normalized name across cities are mostly legitimate chains (Home Instead ×335), correctly bound — that number is not the exposure. Separately, 1,400 Place IDs sit on records in more than one city; that is a dedupe problem, including A-1 Domestic's own two rows.
+
+**Owner responses are unavailable, not unrendered.** Pulled the raw payload: author, rating, text, publish time, flag link, Maps link. No owner-reply field. Google exposes responses only through the Business Profile API, to the verified owner. **Not a UI fix.** The "See all on Google" link has existed in the reviews header since March — but it pointed at Pasadena, so it sent readers to the wrong location's reviews and their replies were nowhere in sight. Fixing the binding fixes the link.
+
+**Their page has 404'd for 42 days.** `deletion_reason = 'provider_request'` returns `{kind:"gone"}` in `lib/providers/resolve.server.ts` → `notFound()` (other reasons redirect to a power page; this one does not), and `business_profiles.is_active = false` closes the second door. They are the **only** provider-request deletion in the table, so restoring is contained. Separately, **11 claimed providers have no public page** because a data sweep deleted the directory row underneath them — A-1 is not an isolated case of that.
+
+**Open decision before replying.** Rebinding them to the A-1 Domestic corporate listing moves their page from 1.0★/3 to 4.4★/15. Defensible if the profile represents the Whittier entity, which their own address entry claims; not defensible as a way to bury the Pasadena reviews, and Pasadena would then have no page. Their belief that Google removed the three reviews is incorrect — all three are live today. Ask them which listing the profile represents rather than picking for them.
+
 ### 2026-08-19 — A broken AC in Marion County turned into the Family Answers Engine, phases 1-4
 
 **Started as one care seeker.** 2026-08-18, 6:43am ET: a Florida woman texted that her AC had stopped cooling. On Medicaid, under $1,500/mo, in cancer treatment with fibromyalgia. She had finished benefits intake five minutes earlier, opened her plan of 12 programs, and texted a human anyway because none of it answered her question. She waited 46 minutes for any reply. The Slack ping fired correctly; nobody could act on it because answering meant twenty minutes of benefits research at dawn.
@@ -3771,6 +3796,17 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Next Up
+
+**A-1 Home Care / provider Place-ID binding (2026-08-19)**
+- 🔴 **Two providers are misrepresented in production right now.** `Therapy Partners of Texas` shows a different company's reviews ("Therapy At Home", McAllen) under their name; `A Rainbow of Care` shows its Ontario branch on an Upland profile. Neither has complained. Fix these before A-1, because A-1's page is hidden and these two are live.
+- 🔴 **Ask A-1 which listing their profile represents** before rebinding: the A-1 Domestic corporate listing (4.4★/15) or the Pasadena branch (1.0★/3) their claimed record actually is. **Do not pick for them** — a wrong rebind moves the misrepresentation onto a different provider, and the swing here is 1.0 → 4.4. Same question individually for the other two.
+- 🔴 **Restore their page after the binding is settled, not before.** Bringing it back still carrying Pasadena's reviews reopens the complaint. Admin restore is fully reversible (`app/api/admin/directory/[providerId]/route.ts:365`) and they are the only provider-request deletion in the table.
+- 🟡 **Re-verify the Place ID when the address changes.** At `app/api/claim/finalize/route.ts:307` the directory row's `place_id` is copied into profile metadata and never re-checked. Compare against the Place's `formattedAddress`; on a street-level disagreement clear it and prompt for the right listing. Same check on address edits in settings.
+- 🟡 **Let providers change their own Place ID.** Settings renders it read-only with "Contact support to change" — that is what turned A-1's correct self-diagnosis into a support ticket that then lapsed for six weeks.
+- 🟡 **`MAX_REVIEWS = 2`** (`lib/google-places.ts:18`) stores 2 of the 5 Google returns in the same billed call, and the mapper at line 85 drops `googleMapsUri` though the type declares it at line 32. A per-review link-out is the only mechanism a provider has to point at their own reply, since the API never returns replies.
+- 🟡 **11 claimed providers have no public page** because a data sweep deleted the directory row underneath them. A business claiming its listing and silently losing its page is its own defect; A-1 is just the one that emailed.
+- ⏳ **1,400 Place IDs sit on records in more than one city** (2,828 records), including A-1 Domestic's two rows at one address. Dedupe sweep, not part of this fix.
+- ⏳ **`tKhal27` city column says Compton**; its address, zip and Place ID are all Newport Beach. Cosmetic, unrelated to the review bug, but it is the public A-1 record families see.
 
 **Family Answers Engine (2026-08-19)**
 - 🔴 **Follow up with the Marion County care seeker on 2026-08-25, by hand.** Her answer predates the engine, so Phase 4's 7-day check will not catch it. She is disabled, under 60, in cancer treatment, and as of the last message had no working AC. This is the only item on the board with a real person waiting on it.

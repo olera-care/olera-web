@@ -107,6 +107,39 @@ grantmanship, not redundancy.** The test is whether a given repetition serves on
 of these four readers. Restating a point because a section must stand alone is
 earned; restating it because we forgot we said it is not.
 
+## What made Key Innovation 1 work (2026-08-19)
+
+The rebuild that finally landed did not come from reconciling sentences. It came
+from refusing to write until we could state the single claim the section had to
+prove. The sequence that produced it, and that should be reused for any section
+scored against a criterion:
+
+1. **Extract the criterion verbatim** and build a private mapping table:
+   reviewer question, what the current text says, what our strongest answer
+   actually is, what evidence supports it, what is missing. Never write into
+   a criterion from memory.
+2. **Name the incumbent paradigm in the first sentence.** "Staffing agencies,
+   job boards, and gig platforms compete for workers already in that constrained
+   market" gave the reviewer the contrast in one line. A section that opens by
+   describing our thing has already lost the comparison.
+3. **State the departure, then support it.** Everything after the paradigm
+   sentence either explains why the approach can work, how we reach it, or what
+   evidence exists. Anything that does none of those comes out.
+4. **Split prose and figure by job, not by volume.** The figure took the
+   conceptual claim, which is what the criterion scores and what prose says
+   badly; the prose kept the concrete mechanism and the evidence. The wrapped
+   figure at the top right means the reviewer meets claim and picture together.
+5. **Evidence establishes credibility, then stops.** Enough to answer "is there
+   any reason to believe this?" and not one number more; Preliminary Work carries
+   the rest. Innovation is not a second Preliminary Work section.
+6. **Verify every attribute before it earns a sentence.** Three of ten candidate
+   attributes did not survive checking, and cutting them made the argument
+   stronger, not weaker, because what remained was all defensible.
+7. **Watch for the strongest counterargument and answer it or log it.** Adding
+   short-tenure workers to a high-turnover field is the obvious attack on Key
+   Innovation 1; naming it early meant we could decide deliberately rather than
+   be surprised by it.
+
 ## Evolving this file
 
 Append dated lessons below as they are learned; do not rewrite the method's

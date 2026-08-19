@@ -410,8 +410,16 @@ export default function AdminSmsInboxPage() {
    * act that outranks a suggestion.
    */
   const autoFillDraftText = useCallback((text: string) => {
-    // Read the current value through the ref rather than a functional update:
-    // a state updater must stay pure, and React can invoke it twice.
+    // Two guards, and the first one is the load-bearing one.
+    //
+    // draftBaselineRef holds the draft loaded from the server, and it is a
+    // SYNCHRONOUS ref write inside loadDetail. latestReplyRef is updated in an
+    // effect, and child effects run before parent effects — so on the render
+    // where a thread opens, the panel's auto-fill fires while latestReplyRef
+    // still holds the previous thread's value. Reading only that ref would let
+    // a clean packet silently overwrite a reply someone had parked, which is
+    // the one thing drafts exist to prevent.
+    if (draftBaselineRef.current.trim()) return;
     if (latestReplyRef.current.trim()) return;
     setReply(text);
     setDraftState({ kind: "dirty" });
@@ -477,6 +485,10 @@ export default function AdminSmsInboxPage() {
     unhandledOnly ? t.unhandled > 0 || t.has_draft : true,
   );
   const totalUnhandled = (threads ?? []).reduce((s, t) => s + t.unhandled, 0);
+  // The packet the rail will actually render. Derived once so the header can
+  // never claim "Drafted answer" over a panel that was suppressed away.
+  const railPacket =
+    detail?.answerPacket && !detail.suppressed ? detail.answerPacket.packet : null;
   // GSM-7 single segment is 160 chars; longer bodies split and bill per segment.
   const segments = reply.length === 0 ? 0 : Math.ceil(reply.length / 160);
   const recordHref = detail?.profile_id
@@ -738,7 +750,11 @@ export default function AdminSmsInboxPage() {
                       className={`h-1.5 w-1.5 shrink-0 rounded-full ${packetNeedsAttention(detail.answerPacket.packet) ? "bg-amber-500" : "bg-teal-500"}`}
                       aria-hidden="true"
                     />
-                    <span className="text-[13px] text-gray-900">Drafted answer ready</span>
+                    <span className="text-[13px] text-gray-900">
+                      {detail.answerPacket.packet.triage.isCrisis
+                        ? "Flagged as a crisis"
+                        : "Drafted answer ready"}
+                    </span>
                     <span className="ml-auto text-[11px] text-gray-400">Review</span>
                   </button>
                 )}
@@ -801,16 +817,20 @@ export default function AdminSmsInboxPage() {
           <aside className="hidden min-h-0 flex-col border-l border-gray-200 bg-white 2xl:flex">
             <header className="border-b border-gray-200 px-5 py-4">
               <h2 className="text-base font-semibold text-gray-900">
-                {detail.answerPacket ? "Drafted answer" : "Contact"}
+                {railPacket
+                  ? railPacket.triage.isCrisis
+                    ? "Flagged message"
+                    : "Drafted answer"
+                  : "Contact"}
               </h2>
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
               {/* The answer sits beside the conversation, so the question it is
                   answering stays on screen while you judge it. */}
-              {detail.answerPacket && !detail.suppressed && (
+              {railPacket && (
                 <div className="mb-6 border-b border-gray-100 pb-6">
                   <AnswerPacketPanel
-                    packet={detail.answerPacket.packet}
+                    packet={railPacket}
                     disabled={sending}
                     onUseDraft={adoptDraftText}
                     onAutoFill={autoFillDraftText}
@@ -855,7 +875,7 @@ export default function AdminSmsInboxPage() {
       {/* Narrow-window packet. A sheet rather than a swapped view, so the
           conversation stays behind it — losing the question is the exact
           failure this redesign exists to fix. */}
-      {detail?.answerPacket && sheetOpen && (
+      {railPacket && sheetOpen && (
         <div className="fixed inset-0 z-40 flex flex-col justify-end 2xl:hidden">
           <button
             aria-label="Close"
@@ -874,7 +894,7 @@ export default function AdminSmsInboxPage() {
               </button>
             </div>
             <AnswerPacketPanel
-              packet={detail.answerPacket.packet}
+              packet={railPacket}
               disabled={sending}
               onUseDraft={(t) => {
                 adoptDraftText(t);

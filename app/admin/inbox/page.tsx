@@ -5,7 +5,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import AdminWorkspace from "@/components/admin/AdminWorkspace";
 import AnswerPacketPanel from "@/components/admin/AnswerPacketPanel";
-import type { AnswerPacket } from "@/lib/family-answers/types";
+import { packetNeedsAttention, type AnswerPacket } from "@/lib/family-answers/types";
 
 /**
  * SMS inbox — every inbound text, and the ability to answer it.
@@ -135,6 +135,8 @@ export default function AdminSmsInboxPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [draftState, setDraftState] = useState<DraftState>({ kind: "none" });
+  /** Narrow-window home for the packet. The rail only exists at 2xl. */
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   // The reply text last known to be on the server for the OPEN thread. Edits are
   // measured against this, so adopting a loaded draft into the box doesn't
@@ -393,6 +395,28 @@ export default function AdminSmsInboxPage() {
     }
   }
 
+  /** Explicit "use this draft" — always wins, overwrites whatever is in the box. */
+  const adoptDraftText = useCallback((text: string) => {
+    setReply(text);
+    setDraftState({ kind: "dirty" });
+  }, []);
+
+  /**
+   * Silent pre-fill for a packet with nothing flagged, so the common case is
+   * edit-a-word-and-send rather than click-then-edit-then-send.
+   *
+   * Guarded on the box being empty: a pre-fill must never overwrite something
+   * a human was in the middle of typing, and a parked draft is a deliberate
+   * act that outranks a suggestion.
+   */
+  const autoFillDraftText = useCallback((text: string) => {
+    // Read the current value through the ref rather than a functional update:
+    // a state updater must stay pure, and React can invoke it twice.
+    if (latestReplyRef.current.trim()) return;
+    setReply(text);
+    setDraftState({ kind: "dirty" });
+  }, []);
+
   async function sendReply() {
     if (!selected || !reply.trim() || sending) return;
     // Claim the send synchronously — the drain below awaits, and without the
@@ -465,7 +489,7 @@ export default function AdminSmsInboxPage() {
 
   return (
     <AdminWorkspace>
-      <div className={`grid min-h-0 flex-1 lg:grid-cols-[340px_minmax(0,1fr)] ${detail ? "2xl:grid-cols-[340px_minmax(0,1fr)_320px]" : ""}`}>
+      <div className={`grid min-h-0 flex-1 lg:grid-cols-[340px_minmax(0,1fr)] ${detail ? (detail.answerPacket ? "2xl:grid-cols-[340px_minmax(0,1fr)_400px]" : "2xl:grid-cols-[340px_minmax(0,1fr)_320px]") : ""}`}>
         {/* ── Thread list ─────────────────────────────────────────────── */}
         <aside className={`${selected ? "hidden lg:flex" : "flex"} min-h-0 flex-col border-r border-gray-200 bg-white`}>
           <header className="border-b border-gray-200 px-4 pb-3 pt-5">
@@ -701,20 +725,22 @@ export default function AdminSmsInboxPage() {
               {/* ── Reply ───────────────────────────────────────────── */}
               <div className="shrink-0 border-t border-gray-200 bg-white px-5 py-3.5">
                 <div className="mx-auto w-full max-w-3xl">
-                {/* The researched answer sits ABOVE the reply box on purpose:
-                    it is what you check before you write, not a suggestion
-                    tucked beside the thing you were already going to send. */}
+                {/* On narrow windows the rail does not exist, so the packet
+                    becomes a sheet reached from here. It must never sit inline
+                    above the reply box again: at ~700px it evicted the very
+                    conversation it is meant to be judged against. */}
                 {detail.answerPacket && !detail.suppressed && (
-                  <div className="mb-3">
-                    <AnswerPacketPanel
-                      packet={detail.answerPacket.packet}
-                      disabled={sending}
-                      onUseDraft={(text) => {
-                        setReply(text);
-                        setDraftState({ kind: "dirty" });
-                      }}
+                  <button
+                    onClick={() => setSheetOpen(true)}
+                    className="mb-2.5 flex w-full items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-left transition-colors hover:bg-gray-50 2xl:hidden"
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 shrink-0 rounded-full ${packetNeedsAttention(detail.answerPacket.packet) ? "bg-amber-500" : "bg-teal-500"}`}
+                      aria-hidden="true"
                     />
-                  </div>
+                    <span className="text-[13px] text-gray-900">Drafted answer ready</span>
+                    <span className="ml-auto text-[11px] text-gray-400">Review</span>
+                  </button>
                 )}
                 {detail.suppressed ? (
                   <p className="text-[13px] text-amber-800 bg-amber-50 border border-amber-100 rounded-md px-3 py-2.5">
@@ -774,9 +800,23 @@ export default function AdminSmsInboxPage() {
         {detail && (
           <aside className="hidden min-h-0 flex-col border-l border-gray-200 bg-white 2xl:flex">
             <header className="border-b border-gray-200 px-5 py-4">
-              <h2 className="text-base font-semibold text-gray-900">Contact</h2>
+              <h2 className="text-base font-semibold text-gray-900">
+                {detail.answerPacket ? "Drafted answer" : "Contact"}
+              </h2>
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+              {/* The answer sits beside the conversation, so the question it is
+                  answering stays on screen while you judge it. */}
+              {detail.answerPacket && !detail.suppressed && (
+                <div className="mb-6 border-b border-gray-100 pb-6">
+                  <AnswerPacketPanel
+                    packet={detail.answerPacket.packet}
+                    disabled={sending}
+                    onUseDraft={adoptDraftText}
+                    onAutoFill={autoFillDraftText}
+                  />
+                </div>
+              )}
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-teal-50 text-sm font-semibold text-teal-700">
                 {(detail.display_name || formatPhone(detail.phone_last10)).slice(0, 1).toUpperCase()}
               </div>
@@ -811,6 +851,41 @@ export default function AdminSmsInboxPage() {
           </aside>
         )}
       </div>
+
+      {/* Narrow-window packet. A sheet rather than a swapped view, so the
+          conversation stays behind it — losing the question is the exact
+          failure this redesign exists to fix. */}
+      {detail?.answerPacket && sheetOpen && (
+        <div className="fixed inset-0 z-40 flex flex-col justify-end 2xl:hidden">
+          <button
+            aria-label="Close"
+            onClick={() => setSheetOpen(false)}
+            className="absolute inset-0 bg-gray-900/20 motion-safe:animate-[fadeIn_.2s_ease-out]"
+          />
+          <div className="relative max-h-[80vh] overflow-y-auto rounded-t-2xl bg-white px-5 pb-6 pt-3 shadow-2xl motion-safe:animate-[sheetUp_.24s_cubic-bezier(.32,.72,0,1)]">
+            <div className="mx-auto mb-4 h-1 w-9 rounded-full bg-gray-200" aria-hidden="true" />
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-base font-semibold text-gray-900">Drafted answer</h2>
+              <button
+                onClick={() => setSheetOpen(false)}
+                className="text-[12px] text-gray-400 transition-colors hover:text-gray-700"
+              >
+                Close
+              </button>
+            </div>
+            <AnswerPacketPanel
+              packet={detail.answerPacket.packet}
+              disabled={sending}
+              onUseDraft={(t) => {
+                adoptDraftText(t);
+                setSheetOpen(false);
+              }}
+              onAutoFill={autoFillDraftText}
+            />
+          </div>
+          <style>{`@keyframes sheetUp{from{transform:translateY(12px);opacity:.6}to{transform:none;opacity:1}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}`}</style>
+        </div>
+      )}
     </AdminWorkspace>
   );
 }

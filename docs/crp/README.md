@@ -21,7 +21,7 @@ and prove a provider-funded revenue model that keeps navigation free for familie
 | `solicitation-reviewer-reference.md` | Verbatim NOFO/review criteria | solicitation capture | stable |
 | `evidence-ledger.md` | Claim → source → strength → verify? | maintained live | live |
 | `figures/` + `MANIFEST.md` | Figure files, captions, placement, argument, status | RS: extracted from Drive docx; CP: SVGs from staging v0.24 | live |
-| `tools/` | md→docx export (Drive round-trip), print/page check | this repo | stable |
+| `tools/` | `render_pdf.py` (house-style HTML/PDF, the layout artifact), `export_docx.py` (house-style .docx for the Drive round-trip; shares the formatter with the renderer), `make_reference_docx.py` + `house-reference.docx` (Word style template: Letter, 0.5in margins, Arial 11pt justified, 9pt references) | this repo | stable |
 | `reference/phase-iib/` | Phase IIB application (1R44AG074116) as historical source: prior framing, technical descriptions, accomplishments, figures | uploaded 2026-08-19 | reference only, never current truth |
 | `reference/rppr/` | Phase IIB Year 1 and Year 2 progress reports: the authoritative record of what was actually built and tested (PEFT, RLHF, RAG, multi-agent integration, Aim 2 pilot) | Drive, extracted 2026-08-19 | reference; authoritative for technical history |
 | `reference/publications/` | The research record: four peer-reviewed papers plus the unpublished CARE-NAV TAS study, with sample, methods, findings, and which CRP claim each can support | Drive, 2026-08-19 | reference; authoritative for study results |

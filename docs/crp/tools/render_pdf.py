@@ -222,8 +222,13 @@ def render_caption(t):
         return f'<p class="caption"><b>{esc(m.group(1))}</b> {esc(m.group(2))}</p>'
     return f'<p class="caption">{esc(t)}</p>'
 
-def main():
-    src = open(MD, encoding='utf-8').read()
+def build_body(src, img_fn=img_tag):
+    """Markdown source -> list of house-style HTML blocks.
+
+    Shared with tools/export_docx.py so the docx and the PDF apply the same run-in,
+    caption, table, and bullet conventions. img_fn turns a figure path into markup:
+    the PDF inlines SVG and base64-encodes PNGs; the docx writes files and links them.
+    """
     src = re.sub(r'<!--.*?-->', '', src, flags=re.S)          # provenance comment
     src = re.sub(r'^# .*$', '', src, count=1, flags=re.M)      # working-snapshot H1
 
@@ -241,7 +246,7 @@ def main():
         m = re.match(r'!\[([^\]]*)\]\(([^)]+)\)', line)
         if m:
             cls = 'fig wrapme' if 'wrap' in m.group(1).lower() else 'fig'
-            body.append(f'<div class="{cls}">{img_tag(m.group(2))}</div>')
+            body.append(f'<div class="{cls}">{img_fn(m.group(2))}</div>')
             continue
         # raw Figure A caption span from the md
         if line.startswith('<span style='):
@@ -295,8 +300,16 @@ def main():
             first_sec = False
         in_metrics = (kind == 'metrics')
         body.append(html_p)
+    return body
 
-    # ---- citations: [@key] / [@k1; @k2] -> superscript numbers by first appearance
+
+def resolve_citations(body, src, todo_markup='<sup class="todo">[cite]</sup>',
+                      sup=lambda n: f'<sup>{n}</sup>'):
+    """Replace [@key] markers with numbers in first-appearance order.
+
+    Returns (body, cite_order, refs). Exits if a key is missing from
+    references.yaml, so neither pipeline can ship an unresolvable citation.
+    """
     refs = yaml.safe_load(open(REFS, encoding='utf-8'))
     cite_order, missing, todo_count = [], set(), 0
     cite_re = re.compile(r'\[@([^\]]+)\]')
@@ -327,19 +340,38 @@ def main():
           f'{legacy} legacy [cite] placeholders, {len(unused)} bibliography entries not yet cited')
     if unused:
         print('  not yet cited:', ', '.join(unused))
+    return body, cite_order, refs
+
+
+def reference_lines(cite_order, refs):
+    """Numbered reference strings in citation order, shared by both pipelines."""
+    out = []
+    for i, k in enumerate(cite_order):
+        line = f'{i + 1}. {refs[k]["ref"]}'
+        if refs[k].get('doi'):
+            line += f' doi:{refs[k]["doi"]}'
+        if refs[k].get('pmid'):
+            line += f' PMID:{refs[k]["pmid"]}'
+        out.append(line)
+    return out
+
+
+REFNOTE = ('Rendered for review only. In the application, references are submitted in '
+           'the Bibliography & References Cited attachment and do not count against the '
+           '12-page Research Strategy limit.')
+
+
+def main():
+    src = open(MD, encoding='utf-8').read()
+    body = build_body(src)
+    body, cite_order, refs = resolve_citations(body, src)
 
     if cite_order:
-        items = ''.join(
-            f'<p>{i+1}. {html.escape(refs[k]["ref"])}'
-            + (f' doi:{refs[k]["doi"]}' if refs[k].get('doi') else '')
-            + (f' PMID:{refs[k]["pmid"]}' if refs[k].get('pmid') else '')
-            + '</p>'
-            for i, k in enumerate(cite_order))
+        items = ''.join(f'<p>{html.escape(l)}</p>'
+                        for l in reference_lines(cite_order, refs))
         body.append(
             '<div class="refs"><p class="sec">REFERENCES</p>'
-            '<p class="refnote">Rendered for review only. In the application, references are '
-            'submitted in the Bibliography &amp; References Cited attachment and do not count '
-            'against the 12-page Research Strategy limit.</p>' + items + '</div>')
+            f'<p class="refnote">{html.escape(REFNOTE)}</p>' + items + '</div>')
 
     # keep each figure and its caption on the same page
     joined, i = [], 0

@@ -362,13 +362,15 @@ export default function ProviderOnboardPage() {
             // Fetch question data
             const { data: question } = await supabase
               .from("provider_questions")
-              .select("id, question, asker_name, created_at")
+              .select("id, question, asker_name, created_at, canonical_question_id")
               .eq("id", actionIdParam)
               .single();
             if (question) {
               fetchedNotificationData = {
                 type: "question",
-                id: question.id,
+                // Historical notification emails point at duplicate rows that
+                // migration 185 archives. Answer the surviving topic instead.
+                id: question.canonical_question_id || question.id,
                 created_at: question.created_at,
                 question: question.question,
                 asker_name: question.asker_name,

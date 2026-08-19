@@ -114,24 +114,38 @@ CREATE INDEX IF NOT EXISTS idx_provider_question_asks_answer_notification
   ON provider_question_asks(question_id, answer_notified_at)
   WHERE asker_email IS NOT NULL;
 
+-- A legacy provider_questions row must produce at most one historical receipt.
+-- This expression index keeps the migration safe when it was applied manually
+-- before Supabase migration history learned about it.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_provider_question_asks_legacy_question
+  ON provider_question_asks ((metadata->>'legacy_question_id'))
+  WHERE metadata ? 'legacy_question_id';
+
 ALTER TABLE provider_question_asks ENABLE ROW LEVEL SECURITY;
 
 -- Build one deterministic mapping before mutating any legacy rows. Preserve an
 -- answered thread first; otherwise keep the earliest provider-facing thread.
+-- On replay, archived aliases keep pointing at the one surviving canonical row.
 CREATE TEMP TABLE question_dedup_map ON COMMIT DROP AS
 SELECT
-  id AS legacy_question_id,
-  first_value(id) OVER (
-    PARTITION BY provider_identity_key, normalized_question
-    ORDER BY
-      CASE WHEN NULLIF(trim(answer), '') IS NOT NULL THEN 0 ELSE 1 END,
-      created_at ASC,
-      id ASC
-  ) AS canonical_question_id,
+  legacy.id AS legacy_question_id,
+  canonical.id AS canonical_question_id,
   count(*) OVER (
-    PARTITION BY provider_identity_key, normalized_question
+    PARTITION BY legacy.provider_identity_key, legacy.normalized_question
   ) AS topic_ask_count
-FROM provider_questions;
+FROM provider_questions legacy
+JOIN LATERAL (
+  SELECT candidate.id
+  FROM provider_questions candidate
+  WHERE candidate.canonical_question_id IS NULL
+    AND candidate.provider_identity_key = legacy.provider_identity_key
+    AND candidate.normalized_question = legacy.normalized_question
+  ORDER BY
+    CASE WHEN NULLIF(trim(candidate.answer), '') IS NOT NULL THEN 0 ELSE 1 END,
+    candidate.created_at ASC,
+    candidate.id ASC
+  LIMIT 1
+) canonical ON true;
 
 -- Every historical row becomes one immutable ask receipt before duplicate
 -- threads are archived. Published historical answers are marked notified to
@@ -187,11 +201,15 @@ SELECT
   legacy.updated_at
 FROM provider_questions legacy
 JOIN question_dedup_map map ON map.legacy_question_id = legacy.id
-JOIN provider_questions canonical ON canonical.id = map.canonical_question_id;
+JOIN provider_questions canonical ON canonical.id = map.canonical_question_id
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM provider_question_asks existing
+  WHERE existing.metadata->>'legacy_question_id' = legacy.id::text
+);
 
 UPDATE provider_questions canonical
 SET
-  asked_count = grouped.topic_ask_count,
   metadata = COALESCE(canonical.metadata, '{}'::jsonb) ||
     CASE WHEN grouped.topic_ask_count > 1 THEN jsonb_build_object(
       'duplicate_rows_consolidated', grouped.topic_ask_count - 1,
@@ -207,6 +225,18 @@ FROM (
   GROUP BY canonical_question_id
 ) grouped
 WHERE canonical.id = grouped.canonical_question_id;
+
+-- Receipts, rather than legacy row count, are the source of truth. Recomputing
+-- after the guarded backfill preserves asks recorded since a manual first run.
+UPDATE provider_questions canonical
+SET asked_count = grouped.ask_count
+FROM (
+  SELECT question_id, count(*)::integer AS ask_count
+  FROM provider_question_asks
+  GROUP BY question_id
+) grouped
+WHERE canonical.id = grouped.question_id
+  AND canonical.canonical_question_id IS NULL;
 
 UPDATE provider_questions duplicate
 SET

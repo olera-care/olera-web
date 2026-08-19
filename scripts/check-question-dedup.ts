@@ -99,7 +99,7 @@ assert.deepEqual(
 );
 
 const migration = readFileSync(
-  join(process.cwd(), "supabase/migrations/181_provider_question_deduplication.sql"),
+  join(process.cwd(), "supabase/migrations/185_provider_question_deduplication.sql"),
   "utf8",
 );
 assert.match(
@@ -129,8 +129,38 @@ assert.match(
 );
 assert.match(
   migration,
-  /CASE WHEN NULLIF\(trim\(answer\), ''\) IS NOT NULL THEN 0 ELSE 1 END/,
+  /CASE WHEN NULLIF\(trim\(candidate\.answer\), ''\) IS NOT NULL THEN 0 ELSE 1 END/,
   "duplicate cleanup must preserve an answered canonical thread",
+);
+assert.match(
+  migration,
+  /idx_provider_question_asks_legacy_question[\s\S]+metadata->>'legacy_question_id'[\s\S]+WHERE NOT EXISTS[\s\S]+existing\.metadata->>'legacy_question_id'/,
+  "a manually applied migration must not duplicate historical ask receipts when replayed",
+);
+assert.match(
+  migration,
+  /SELECT question_id, count\(\*\)::integer AS ask_count[\s\S]+canonical\.canonical_question_id IS NULL/,
+  "canonical demand counts must be recomputed from receipts without discarding newer asks",
+);
+
+const providerQuestionsRoute = readFileSync(
+  join(process.cwd(), "app/api/provider/questions/route.ts"),
+  "utf8",
+);
+assert.match(
+  providerQuestionsRoute,
+  /requestedQuestion\.canonical_question_id \|\| requestedQuestion\.id[\s\S]+question = canonicalQuestion[\s\S]+eq\("id", question\.id\)/,
+  "legacy emailed IDs must resolve to the canonical topic for Q&A selection and answers",
+);
+
+const providerOnboardPage = readFileSync(
+  join(process.cwd(), "app/provider/[slug]/onboard/page.tsx"),
+  "utf8",
+);
+assert.match(
+  providerOnboardPage,
+  /canonical_question_id[\s\S]+id: question\.canonical_question_id \|\| question\.id/,
+  "one-click question cards must answer the canonical topic behind a legacy email ID",
 );
 
 const variantSessionsRoute = readFileSync(

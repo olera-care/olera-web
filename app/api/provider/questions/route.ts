@@ -48,6 +48,7 @@ export async function GET(request: NextRequest) {
     // Parse status filter
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") || "all";
+    const requestedQuestionId = searchParams.get("id");
 
     // Use service client to bypass RLS for question lookups
     const db = getServiceClient();
@@ -64,6 +65,21 @@ export async function GET(request: NextRequest) {
         .single();
       if (iosProvider?.slug && !providerIdVariants.includes(iosProvider.slug)) {
         providerIdVariants.push(iosProvider.slug);
+      }
+    }
+
+    // Notification emails sent before topic deduplication contain a legacy row
+    // ID. Resolve it for the Q&A page, but only when it belongs to this provider.
+    let resolvedQuestionId: string | null = null;
+    if (requestedQuestionId) {
+      const { data: requestedQuestion } = await db
+        .from("provider_questions")
+        .select("id, provider_id, canonical_question_id")
+        .eq("id", requestedQuestionId)
+        .maybeSingle();
+
+      if (requestedQuestion && providerIdVariants.includes(requestedQuestion.provider_id)) {
+        resolvedQuestionId = requestedQuestion.canonical_question_id || requestedQuestion.id;
       }
     }
 
@@ -96,6 +112,7 @@ export async function GET(request: NextRequest) {
       questions: questions ?? [],
       providerSlug: profile.slug,
       profileId: profile.id,
+      requestedQuestionId: resolvedQuestionId,
     });
   } catch (err) {
     console.error("Provider questions GET error:", err);
@@ -161,15 +178,30 @@ export async function PATCH(request: NextRequest) {
     const db = getServiceClient();
 
     // Verify the question belongs to this provider
-    const { data: question, error: questionError } = await db
+    const { data: requestedQuestion, error: questionError } = await db
       .from("provider_questions")
-      .select("id, provider_id, question, answer, asker_name, asker_email")
+      .select("id, provider_id, question, answer, asker_name, asker_email, canonical_question_id")
       .eq("id", id)
       .single();
 
-    if (questionError || !question) {
+    if (questionError || !requestedQuestion) {
       console.error("Question lookup error:", questionError);
       return NextResponse.json({ error: "Question not found" }, { status: 404 });
+    }
+
+    let question = requestedQuestion;
+    if (requestedQuestion.canonical_question_id) {
+      const { data: canonicalQuestion, error: canonicalError } = await db
+        .from("provider_questions")
+        .select("id, provider_id, question, answer, asker_name, asker_email, canonical_question_id")
+        .eq("id", requestedQuestion.canonical_question_id)
+        .single();
+
+      if (canonicalError || !canonicalQuestion) {
+        console.error("Canonical question lookup error:", canonicalError);
+        return NextResponse.json({ error: "Question not found" }, { status: 404 });
+      }
+      question = canonicalQuestion;
     }
 
     // Check if question's provider_id matches any of our possible identifiers (slug, UUID, source_provider_id, or iOS slug)
@@ -186,8 +218,15 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    if (!providerIdVariants.includes(question.provider_id)) {
-      console.error("Provider mismatch:", { questionProviderId: question.provider_id, providerIdVariants });
+    if (
+      !providerIdVariants.includes(requestedQuestion.provider_id) ||
+      !providerIdVariants.includes(question.provider_id)
+    ) {
+      console.error("Provider mismatch:", {
+        requestedQuestionProviderId: requestedQuestion.provider_id,
+        questionProviderId: question.provider_id,
+        providerIdVariants,
+      });
       return NextResponse.json({ error: "Not authorized to answer this question" }, { status: 403 });
     }
 
@@ -210,7 +249,7 @@ export async function PATCH(request: NextRequest) {
         answer_status: answerStatus,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", id)
+      .eq("id", question.id)
       .select("id, question, answer, asker_name, status, is_public, answer_status, answered_at, created_at")
       .single();
 
@@ -244,7 +283,7 @@ export async function PATCH(request: NextRequest) {
         profile_id: profile.id,
         event_type: "question_responded",
         metadata: {
-          question_id: id,
+          question_id: question.id,
           question_preview: question.question?.substring(0, 100),
           answer_preview: answer.trim().substring(0, 100),
           asker_name: question.asker_name,

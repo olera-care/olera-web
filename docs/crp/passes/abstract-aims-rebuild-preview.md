@@ -1,8 +1,10 @@
 # Abstract and Specific Aims Rebuild: Preview 1 (2026-08-21)
 
-Built from `SPINE.md` (locked) plus `passes/aims-spine-audit.md`. Status: preview for
-Logan's review; not canonical until ratified, then it replaces the Drive abstract and
-`specific-aims.md`. Citation keys are live (`references.yaml`); [PROVISIONAL] tags
+Built from `SPINE.md` (locked) plus `passes/aims-spine-audit.md`. Status: the
+SPECIFIC AIMS section was ratified by Logan and promoted to canonical
+`specific-aims.md` on 2026-08-21 (that file is now the single source; this pass keeps
+the history and trim log). The ABSTRACT section remains a preview pending its own
+ratification. Citation keys are live (`references.yaml`); [PROVISIONAL] tags
 mark values pending the Approach redesign. The "Growth Suite" umbrella name is
 deliberately absent pending TJ's naming decision; the preview uses the two product
 names directly.

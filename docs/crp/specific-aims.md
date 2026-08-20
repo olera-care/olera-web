@@ -1,19 +1,80 @@
 <!--
-PROVENANCE: Full text of "1. Specific Aims" (Google Drive, Live Grant Documents folder,
-file 18HLcTa0sGYLx8oULiQmsbmgydnl-TuiXJTAF-wZY9yk), snapshot 2026-08-17
-(last Drive modification 2026-08-14 20:47 UTC). One page in the application.
+PROVENANCE: Rebuilt 2026-08-21 from SPINE.md (the locked CRP strategic spine) and
+passes/aims-spine-audit.md, replacing the 2026-08-17 Drive snapshot ("1. Specific
+Aims", 18HLcTa0..., last Drive mod 2026-08-14). GitHub-active; the Drive copy is
+superseded and comment-only until export.
+
+STATUS: LOCKED with Logan 2026-08-21 after two rendered previews (see
+passes/abstract-aims-rebuild-preview.md, flags and trim log). Sent to TJ and Qiping
+for directional review the same day; their feedback routes through Logan and is the
+only path to reopening. Flag, never silently edit.
+
+RENDER: verified one page at house format (Letter, 0.5in margins, Arial 11pt
+justified, 1pt after paragraphs, SPECIFIC AIMS heading per the Phase IIB page-4
+precedent) on 2026-08-21. Citations resolve by first appearance: ncoa2025,
+activatedInsights2024.
+
+NOTES CARRIED FROM THE AUDIT: "twelve local markets" is final text on the page at
+Logan's direction but the count remains reconciled against the Approach redesign
+(README section 7 register). The Growth Suite umbrella name is retired here in favor
+of the two product names; TJ's terminology ratification is pending. phi2025 (9.7M
+openings) left this page with the statistics-led opening; the RS Significance
+carries the workforce evidence, and Aim 2's Staff Recruitment sentence is the
+restoration point if reviewers need it here.
 -->
 
-# Specific Aims (working snapshot, 2026-08-17)
+# Specific Aims (canonical, locked 2026-08-21)
 
-**Background.** America's senior care system is failing because the need for care is growing faster than our capacity to provide and pay for it. Longer lives, more chronic illness, rising costs, limited retirement savings, and reduced family caregiving capacity leave Americans fearful they cannot obtain the support they need to age well. Even the support that already exists goes unused: an estimated $58 billion in financial assistance goes unclaimed each year because families cannot identify, navigate, or access complex eligibility programs. At the same time, the providers that do exist cannot secure enough caregivers to meet demand. The direct-care workforce must fill an estimated 9.7 million job openings between 2024 and 2034,[cite] and turnover approaches 80 percent [cite], so a provider must replace most of its workforce every year simply to keep serving current clients. Together, these failures drive preventable hospitalization, premature institutionalization, and avoidable Medicare and Medicaid spending. *This elder-care public-health crisis can only be solved by using existing resources more effectively and expanding caregiver capacity.* Developed across NIA SBIR Phases I-IIB, CareNavigator addresses both through novel elder-care AI agents operating over a comprehensive two-sided marketplace: the agents screen families for eligibility and need, match them to financial aid and services, and carry out the administrative steps that establish care, while the provider side supplies growth tools and a new caregiver workforce drawn from healthcare students. Through SBIR we established technical feasibility and early demand: CareNavigator draws 15,500+ visitors monthly through organic search at near-zero acquisition cost across nearly every U.S. county, 725+ providers have onboarded to the platform, and our workforce pilot demonstrated that healthcare students can expand a provider's local caregiver capacity, with providers paying for the service. The remaining challenge is commercial. Provider revenue must exceed what it costs to bring each family in and serve them so Olera achieves sustainable growth.
+**Background.** Older adults increasingly need help with the ordinary tasks of daily living: bathing, meals, medications, moving safely through the home. The workforce that could provide that help, the family capacity that once absorbed it, and the means to pay for it are all shrinking, and when support is not established the consequences compound: preventable emergency care and hospitalization, caregiver breakdown, and premature institutionalization, each deepening the needs that went unmet.
+Families on this path do not fail for lack of information. They fail between
+identifying appropriate care and establishing it: recognizing a need, confirming what
+care fits, determining what aid or insurance can pay (an estimated $58 billion in
+assistance goes unclaimed each year[@ncoa2025]), reaching a provider with capacity,
+and starting the arrangement. Clinicians, social workers, information tools, and
+referral services each support part of this pathway, but none is accountable for whether care is established. Nor can
+families complete the pathway alone: care is established only when a provider can
+say yes, and 63.3 percent of home-care providers declined cases in 2023 for lack of staff.[@activatedInsights2024] Developed across NIA SBIR
+Phases I-IIB, CareNavigator addresses the identification half of this pathway today,
+screening a household's needs and matching it to aid, services, and providers over an expert-curated national database; the AI agent system evaluated under Phase IIB enters production in the remaining award year. SBIR established technical feasibility and early demand: 15,500+ monthly visitors through organic search at near-zero cost, 725+ onboarded providers, and a staffing pilot in which providers paid
+for caregivers recruited from health-professions students. What remains unproven is
+establishment: whether the system can reliably carry families to established care,
+whether responsive provider capacity can be concentrated on the other side, and
+whether provider revenue can sustain the platform.
 
-**CRP Objective.** We will bring Olera to full commercial operation in twelve local markets. In each one we will secure the aid and care families qualify for, grow the caregiver capacity and client base of the providers who serve them, and find the price at which those providers fund the platform. A market is self-funding when recurring provider revenue covers what it costs to acquire and serve that market's families and providers. Once that condition holds, Olera can open the thirteenth market and every one after it on its own earnings.
+**CRP Objective.** We will bring Olera to full commercial operation in twelve local markets. In each, we will carry
+families from recognized need to established aid and care, grow the caregiver
+capacity and client base of the providers who serve them, and find the price at
+which those providers fund the platform. Families use CareNavigator free, and
+family-provider connections carry no fee; revenue comes from optional provider
+products. A market is self-funding when recurring provider revenue covers what it
+costs to acquire and serve that market's families and providers. Once that condition holds, each subsequent market opens on Olera's own earnings.
 
-**Specific Aim 1 (Years 1-2). Verify, validate, and drive adoption of the CareNavigator for families.** Financial aid is one of the main reasons families come to Olera and the hardest one to act on. We will (1) verify AI eligibility matching against blinded expert review, (2) build the execution loop and follow-up loop that carry each application to a decision and confirm care was established, and (3) integrate the system and accelerate Build-Measure-Learn in twelve beachhead markets through active family acquisition, measuring family acquisition cost (spend per family entering screening) and cost to serve (agent operation, staff escalation, and follow-up labor per family reaching the aid or care established). Result: CareNavigator hardened to its commercial-readiness endpoint defined as aid or care established, a documented family acquisition cost and cost to serve in each market, and a repeatable family market-entry playbook.
+**Specific Aim 1 (Years 1-2). Verify, validate, and drive adoption of
+CareNavigator's care-establishment loop for families.** Families identify aid and care on the platform today; they are lost while executing applications and again
+after filing (Preliminary Work). We will (1) build the execution and follow-up loops
+that carry each case to a decision and confirm care was established, verified against blinded expert review, (2) validate the integrated system with family
+caregivers under IRB approval, and (3) accelerate Build-Measure-Learn through active
+family acquisition in the twelve markets, measuring family acquisition cost and cost
+to serve. Result: CareNavigator hardened to its commercial-readiness endpoint, aid
+or care established, at documented cost, with a repeatable family market-entry
+playbook.
 
-**Specific Aim 2 (Years 1-2). Verify, validate, and drive adoption of the Growth Suite to Senior Care Providers.** Providers' highest unmet needs include: staffing, client acquisition, and marketing. We will (1) optimize and instrument the Provider Growth Suite offerings that address these three unmet needs end to end, and (2) accelerate Build-Measure-Learn through active provider acquisition in the same twelve markets in Aim 1, measuring provider acquisition cost (spend per activated provider) and delivered value per provider (caregiver applicants and hires, client inquiries and admissions attributable to the Suite). Result: each provider tool advanced to its value-add commercial-readiness endpoint at a documented provider acquisition cost, and a repeatable provider market-entry playbook.
+**Specific Aim 2 (Years 1-2). Establish responsive provider capacity and validate
+the provider products in the same markets.** We will (1) verify, validate, and
+instrument the two provider products that address providers' binding constraints,
+Managed Ads (client acquisition) and Staff Recruitment (caregiver recruiting from health-professions students), (2) measure whether consented family-provider
+connections complete reliably: provider response rate, response time, and care established, and (3) accelerate Build-Measure-Learn through active
+provider and student acquisition, measuring provider acquisition cost and delivered
+value per provider. Result: both products advanced to their value endpoints at
+documented cost, measured connection completion, and a repeatable provider
+market-entry playbook.
 
-**Specific Aim 3 (Years 2-3). Validate the provider-funded revenue model that sustains the business and keeps the platform free for families.** Aims 1 and 2 run in parallel, hardening the products and building marketplace liquidity, and each offering graduates into Aim 3 when it reaches its commercial-readiness endpoint. Aim 3 then converts validated value into revenue: it introduces paywalls and tiered pricing under real billing, converts selected free-pilot providers to paid plans, and acquires new providers in new markets under paid terms. We will (1) set price and packaging through pre-registered experiments across both cohorts, (2) measure realized economics (conversion, revenue per provider account, cost to serve, and retention), and (3) validate the model and build the investor evidence package. Result: a validated revenue model, active recurring revenue, and an investor-ready evidence package to pitch for private capital.
+**Specific Aim 3 (Years 2-3). Validate the provider-funded revenue model that
+sustains the business and keeps the platform free for families.** Each offering graduates into Aim 3 at its commercial-readiness endpoint. We will (1) set price and packaging
+through pre-registered experiments under real billing across conversion and paid-entry cohorts, (2) measure realized economics: conversion, revenue per
+account, cost to serve, retention, and churn, and (3) validate the model through an
+independent financial rebuild and assemble the investor evidence package. Result: a
+validated revenue model, active recurring revenue, and an investor-ready evidence
+package.
 
-**Vision.** This CRP positions the Olera CareNavigator as a sustainable business that can continue post-award to scale nationwide to combat the eldercare crisis by creating a more resource-connected population that has better access to basic life-saving services and fewer preventable hospitalizations and institutionalizations.
+**Vision.** An independently verified model at award end will show whether each market's provider revenue covers the cost of serving its families: the evidence needed to raise private capital and scale nationwide a system that carries families from recognized need to established care and remains free for the families it serves.

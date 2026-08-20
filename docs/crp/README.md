@@ -15,7 +15,7 @@ and prove a provider-funded revenue model that keeps navigation free for familie
 
 | File | Role | Source (imported 2026-08-17) | Sync status |
 |---|---|---|---|
-| `specific-aims.md` | Canonical Aims | Drive "1. Specific Aims" (`18HLcTa0…`, mod 08-14) | GitHub-active |
+| `specific-aims.md` | Canonical Aims — **rebuilt on SPINE.md, locked 2026-08-21** | SPINE.md + aims-spine-audit (supersedes Drive `18HLcTa0…`) | GitHub-active; Drive copy comment-only |
 | `research-strategy.md` | Canonical RS | Drive "2. Research Plan" (`1dWDYwyS…`, mod 08-17 14:04) | GitHub-active — 72h revision target |
 | `commercialization-plan.md` | Canonical CP | Drive "3. Commercialization Plan" (`1Vutumdd…`, mod 08-17 11:20) | GitHub-active |
 | `solicitation-reviewer-reference.md` | Verbatim NOFO/review criteria | solicitation capture | stable |
@@ -242,6 +242,12 @@ the default whenever Logan says "next paragraph."
 ## 10. Locked sections (do not reopen without cause)
 
 **Key Innovation 1** is locked as of 2026-08-19, with Figure 3 wrapped top-right.
+
+**The Specific Aims page is locked as of 2026-08-21**, rebuilt on `SPINE.md` and the
+aims-spine-audit and render-verified at one house-style page. Logan sent it to TJ and
+Qiping for directional review the same day; their feedback routes through Logan and is
+the only path to reopening. Note the KI lock above predates the Innovation reorder
+(strategic-context §5); the numbering reference is stale.
 
 Significance is complete and locked as of 2026-08-19: **The unmet need** (+ Figure 1),
 **The product and the business model** (+ Figure 2 + the accomplishments block +

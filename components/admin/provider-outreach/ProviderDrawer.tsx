@@ -1028,6 +1028,7 @@ function ActionsSection({
       if (res.ok) {
         setActionSuccess("claim_link");
         setConfirmAction(null);
+        setTimeout(() => onClose?.(), 1200);
       } else {
         const data = await res.json().catch(() => ({}));
         setActionError(data.error || "Failed to send");
@@ -1119,13 +1120,25 @@ function ActionsSection({
           <div className="flex items-center gap-2">
             <button
               onClick={() => {
-                if (confirmAction === "launch") onLaunchSequence?.(provider.provider_id);
-                else if (confirmAction === "claim_link") handleSendClaimLink();
-                else if (confirmAction === "move_to_ready") handleMoveToReady();
-                else if (confirmAction === "not_interested") onMarkNotInterested?.(provider.provider_id);
-                else if (confirmAction === "archive") onArchive?.(provider.provider_id);
-                else if (confirmAction === "remove") onRemove?.(provider.provider_id, provider.provider_name);
-                else handleRecordOutcome(confirmAction);
+                if (confirmAction === "launch") {
+                  onLaunchSequence?.(provider.provider_id);
+                  onClose?.(); // Close drawer after triggering
+                } else if (confirmAction === "claim_link") {
+                  handleSendClaimLink();
+                } else if (confirmAction === "move_to_ready") {
+                  handleMoveToReady();
+                } else if (confirmAction === "not_interested") {
+                  onMarkNotInterested?.(provider.provider_id);
+                  onClose?.();
+                } else if (confirmAction === "archive") {
+                  onArchive?.(provider.provider_id);
+                  onClose?.();
+                } else if (confirmAction === "remove") {
+                  onRemove?.(provider.provider_id, provider.provider_name);
+                  onClose?.();
+                } else {
+                  handleRecordOutcome(confirmAction);
+                }
               }}
               disabled={actionLoading || (config.requiresCall && !confirmedCall)}
               className={confirmAction === "remove" ? `${outlineBtn} text-red-600 border-red-300 hover:bg-red-50` : primaryBtn}

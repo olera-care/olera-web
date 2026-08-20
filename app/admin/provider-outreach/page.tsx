@@ -7084,6 +7084,31 @@ export default function ProviderOutreachPage() {
           provider={drawerProvider}
           onClose={() => setDrawerProvider(null)}
           activeTab={activeTab}
+          onOutcomeRecorded={(providerId, stageChanged) => {
+            if (stageChanged) {
+              // Provider moved to a different stage - remove from current list
+              markAsRecentlyMoved(providerId);
+              const movedProvider = providers.find((p) => p.provider_id === providerId);
+              setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+              // Update stage counts based on where the provider was
+              if (movedProvider?.stage === "needs_call") {
+                // Was in Follow Up - could move to re_engage (resend) or not_contacted (reset)
+                // Only decrement source; don't increment destination as we can't distinguish
+                // which action was taken. Counts self-correct on next data fetch.
+                setStageCounts((prev) => ({
+                  ...prev,
+                  needs_call: Math.max(0, prev.needs_call - 1),
+                }));
+              } else if (movedProvider?.stage === "re_engage") {
+                // Was in Alt Channels, moved to not_contacted (Ready)
+                setStageCounts((prev) => ({
+                  ...prev,
+                  re_engage: Math.max(0, prev.re_engage - 1),
+                  call_confirm: prev.call_confirm + 1,
+                }));
+              }
+            }
+          }}
           onEmailUpdate={(providerId, email, emailSource) => {
             setProviders((prev) =>
               prev.map((p) =>

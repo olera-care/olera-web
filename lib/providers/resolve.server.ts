@@ -58,7 +58,7 @@ export async function resolveProvider(
         if (isVerifiedClaim) {
           return {
             kind: "active",
-            provider: accountRowToProvider(claimedProfile, bySlug.provider_category),
+            provider: accountRowToProvider(claimedProfile, bySlug),
           };
         }
       }
@@ -94,7 +94,7 @@ export async function resolveProvider(
         if (isVerifiedClaim) {
           return {
             kind: "active",
-            provider: accountRowToProvider(claimedProfile, byId.provider_category),
+            provider: accountRowToProvider(claimedProfile, byId),
           };
         }
       }
@@ -129,29 +129,30 @@ export async function resolveProvider(
            data.verification_state === "not_required" ||
            badgeApproved);
 
-        if (!isVerifiedClaim || !data.category) {
-          // Fetch original directory data for the verification fallback and,
-          // on verified claims, for category inheritance when the editable
-          // account row predates category syncing.
-          const { data: dirRow } = await db
-            .from("olera-providers")
-            .select("*")
-            .eq("provider_id", data.source_provider_id)
-            .not("deleted", "is", true)
-            .single<IOSProvider>();
-          linkedDirectoryRow = dirRow;
+        // Always fetch the linked directory row. It serves three jobs: the
+        // verification fallback below, category inheritance for account rows
+        // that predate category syncing, and — on verified claims — the
+        // side-channel data (Google reviews, place ID, CMS quality, trust
+        // signals) that only ever lives on the directory side. Fetching it
+        // only for the first two is what blanked claimed providers' ratings.
+        const { data: dirRow } = await db
+          .from("olera-providers")
+          .select("*")
+          .eq("provider_id", data.source_provider_id)
+          .not("deleted", "is", true)
+          .single<IOSProvider>();
+        linkedDirectoryRow = dirRow;
 
-          if (!isVerifiedClaim && dirRow) {
-            return { kind: "active", provider: directoryRowToProvider(dirRow) };
-          }
-          // If directory row is deleted/missing, fall through to show profile
-          // (edge case: provider claimed then directory was purged)
+        if (!isVerifiedClaim && dirRow) {
+          return { kind: "active", provider: directoryRowToProvider(dirRow) };
         }
+        // If directory row is deleted/missing, fall through to show profile
+        // (edge case: provider claimed then directory was purged)
       }
       // Native profiles (no source_provider_id) or verified claims: show as-is
       return {
         kind: "active",
-        provider: accountRowToProvider(data, linkedDirectoryRow?.provider_category ?? null),
+        provider: accountRowToProvider(data, linkedDirectoryRow),
       };
     }
   } catch {

@@ -30,6 +30,8 @@ interface DrawerShellProps {
   /** Extra controls rendered before the close button. Useful for
    *  drawer-level overflow menus (e.g., Mark as unread). */
   headerExtras?: ReactNode;
+  /** Sticky footer content rendered below the scroll area. */
+  footer?: ReactNode;
   children: ReactNode;
 }
 
@@ -37,6 +39,7 @@ export function DrawerShell({
   onClose,
   header,
   headerExtras,
+  footer,
   children,
 }: DrawerShellProps) {
   useEffect(() => {
@@ -69,6 +72,11 @@ export function DrawerShell({
           </div>
         </header>
         <div className="flex-1 overflow-y-auto px-6 py-4">{children}</div>
+        {footer && (
+          <div className="shrink-0 border-t border-gray-100 bg-white px-6 py-4">
+            {footer}
+          </div>
+        )}
       </aside>
     </>
   );

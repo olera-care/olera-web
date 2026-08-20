@@ -7172,6 +7172,22 @@ export default function ProviderOutreachPage() {
               }
             }
           }}
+          onClaimLinkSent={(providerId, newResendCount) => {
+            // Update resend_count in local state after claim link is sent
+            setProviders((prev) =>
+              prev.map((p) =>
+                p.provider_id === providerId
+                  ? { ...p, resend_count: newResendCount }
+                  : p
+              )
+            );
+            // Update drawer provider too
+            setDrawerProvider((prev) =>
+              prev && prev.provider_id === providerId
+                ? { ...prev, resend_count: newResendCount }
+                : prev
+            );
+          }}
           onEmailUpdate={(providerId, email, emailSource) => {
             setProviders((prev) =>
               prev.map((p) =>

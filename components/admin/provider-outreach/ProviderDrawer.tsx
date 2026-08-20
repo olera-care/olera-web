@@ -106,6 +106,8 @@ interface ProviderDrawerProps {
   onContactFound?: (providerId: string, contact: ApolloContact) => void;
   // Outcome callback (for Follow Up and Alt Channels actions)
   onOutcomeRecorded?: (providerId: string, stageChanged: boolean) => void;
+  // Claim link sent callback (updates resend_count in local state)
+  onClaimLinkSent?: (providerId: string, newResendCount: number) => void;
   // Current UI context
   activeTab?: string;
 }
@@ -1014,6 +1016,7 @@ function ActionsSection({
   onRemove,
   onMoveToReady,
   onOutcomeRecorded,
+  onClaimLinkSent,
   onClose,
   activeTab,
 }: {
@@ -1024,6 +1027,7 @@ function ActionsSection({
   onRemove?: (providerId: string, providerName: string) => void;
   onMoveToReady?: (providerId: string) => void;
   onOutcomeRecorded?: (providerId: string, stageChanged: boolean) => void;
+  onClaimLinkSent?: (providerId: string, newResendCount: number) => void;
   onClose?: () => void;
   activeTab?: string;
 }) {
@@ -1082,12 +1086,16 @@ function ActionsSection({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider_id: provider.provider_id }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setActionSuccess({ outcome: "claim_link" });
         setConfirmAction(null);
+        // Update local state with new resend_count
+        if (typeof data.resend_count === "number") {
+          onClaimLinkSent?.(provider.provider_id, data.resend_count);
+        }
         setTimeout(() => onClose?.(), 1200);
       } else {
-        const data = await res.json().catch(() => ({}));
         setActionError(data.error || "Failed to send");
       }
     } catch {
@@ -1320,6 +1328,7 @@ export function ProviderDrawer({
   onResetToReadyWithApollo,
   onContactFound,
   onOutcomeRecorded,
+  onClaimLinkSent,
   activeTab,
 }: ProviderDrawerProps) {
   // Determine if we should show Follow Up section
@@ -1364,6 +1373,7 @@ export function ProviderDrawer({
       onRemove={onRemove}
       onMoveToReady={onMoveToReady}
       onOutcomeRecorded={onOutcomeRecorded}
+      onClaimLinkSent={onClaimLinkSent}
       onClose={onClose}
       activeTab={activeTab}
     />

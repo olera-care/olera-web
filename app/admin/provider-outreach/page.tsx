@@ -24,6 +24,7 @@ const OUTREACH_STAGES = [
   "in_sequence",
   "needs_call",
   "re_engage",
+  "call_exhausted",  // Final call state: providers here need manual resolution
   "not_interested",  // Soft terminal: no outreach, but questions/connections flow
   "claimed",
   "archived",  // Hard terminal: system-wide block
@@ -33,7 +34,7 @@ type OutreachStage = (typeof OUTREACH_STAGES)[number];
 
 // UI tabs - "call_confirm" is the combined view of "not_contacted" (both needs email and has email)
 // "done" is the combined view of terminal states (claimed, not_interested, archived) with sub-tabs
-type UITab = "call_confirm" | "in_sequence" | "needs_call" | "re_engage" | "done";
+type UITab = "call_confirm" | "in_sequence" | "needs_call" | "re_engage" | "call_exhausted" | "done";
 
 // Sub-tabs within the "Done" tab (includes hidden for recovery)
 type DoneSubTab = "claimed" | "not_interested" | "archived" | "hidden";
@@ -52,6 +53,7 @@ const UI_TABS: UITab[] = [
   "in_sequence",
   "needs_call",  // Displayed as "Follow Up"
   "re_engage",
+  "call_exhausted",  // Final call state
   "done",  // Terminal states + hidden, with sub-tabs
 ];
 
@@ -60,6 +62,7 @@ const UI_TAB_LABELS: Record<UITab, string> = {
   in_sequence: "In Sequence",
   needs_call: "Follow Up",
   re_engage: "Alternative Channels",
+  call_exhausted: "Call",
   done: "Done",
 };
 
@@ -69,6 +72,7 @@ const STAGE_LABELS: Record<OutreachStage, string> = {
   in_sequence: "In Sequence",
   needs_call: "Follow Up",
   re_engage: "Alternative Channels",
+  call_exhausted: "Call",
   not_interested: "Not Interested",
   claimed: "Claimed",
   archived: "Archived",
@@ -196,9 +200,6 @@ function TierSelector({
     </div>
   );
 }
-
-// Follow Up queue limits (must match backend config)
-const MAX_RESEND_COUNT = 2;
 
 interface CityStats {
   city: string;
@@ -2485,6 +2486,7 @@ export default function ProviderOutreachPage() {
     in_sequence: 0,
     needs_call: 0,
     re_engage: 0,
+    call_exhausted: 0,
     not_interested: 0,
     claimed: 0,
     archived: 0,
@@ -4232,6 +4234,7 @@ export default function ProviderOutreachPage() {
             activeTab === "in_sequence" ? stageCounts.in_sequence :
             activeTab === "needs_call" ? stageCounts.needs_call :
             activeTab === "re_engage" ? stageCounts.re_engage :
+            activeTab === "call_exhausted" ? stageCounts.call_exhausted :
             0
           }
           selectedAdminId={selectedAdminFilter}
@@ -4982,6 +4985,32 @@ export default function ProviderOutreachPage() {
                     ? providers.filter((p) => !p.re_engage_channel || p.re_engage_channel === "re_engage")
                     : providers.filter((p) => p.re_engage_channel === selectedChannelFilter)
               }
+              loading={loadingProviders}
+              onOpenDrawer={setDrawerProvider}
+            />
+          </>
+        ) : activeTab === "call_exhausted" ? (
+          // Call tab: providers needing manual resolution
+          <>
+            {/* Call Script */}
+            <details className="mx-5 mt-2 mb-4" open>
+              <summary className="py-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-900 select-none">
+                Call Script
+              </summary>
+              <div className="pl-4 pt-2 pb-3 text-sm text-gray-600 space-y-3 border-l-2 border-orange-200 ml-1 bg-orange-50 rounded-r-lg">
+                <p className="font-medium text-orange-800">
+                  These providers have been through all outreach channels without claiming. Call them directly:
+                </p>
+                <p>
+                  &quot;Hi, this is <span className="font-medium text-gray-800">[Your Name]</span> from Olera, following up on the referral service listing we sent over.&quot;
+                </p>
+                <p>
+                  &quot;I wanted to make sure you received our emails. Can I verify your email address and resend the activation link while we&apos;re on the phone?&quot;
+                </p>
+              </div>
+            </details>
+            <ReEngageQueue
+              providers={providers}
               loading={loadingProviders}
               onOpenDrawer={setDrawerProvider}
             />

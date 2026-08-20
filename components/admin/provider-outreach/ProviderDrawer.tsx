@@ -151,8 +151,6 @@ function formatDate(dateString: string): string {
 // Follow Up Helper Functions
 // ─────────────────────────────────────────────────────────────────────────────
 
-const MAX_RESEND_COUNT = 2;
-
 const NEEDS_CALL_REASON_LABELS: Record<string, string> = {
   sequence_exhausted: "Sequence done",
   sequence_completed: "Sequence done",
@@ -782,11 +780,16 @@ function NotesSection({ provider }: { provider: OutreachProvider }) {
 function ActivitySection({ provider }: { provider: OutreachProvider }) {
   const questionsCount = provider.questions_count ?? 0;
   const leadsCount = provider.leads_count ?? 0;
+  const emailsSent = provider.resend_count ?? 0;
 
   return (
     <div>
       <SectionHeader>Activity</SectionHeader>
       <div className="flex items-center gap-6">
+        <div>
+          <span className="text-2xl font-semibold text-gray-900">{emailsSent}</span>
+          <span className="ml-1.5 text-sm text-gray-500">Emails Sent</span>
+        </div>
         <div>
           <span className="text-2xl font-semibold text-gray-900">{questionsCount}</span>
           <span className="ml-1.5 text-sm text-gray-500">Questions</span>
@@ -849,8 +852,8 @@ function FollowUpSection({
           <span className="font-medium text-gray-900">{engagement.clicks}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <span className="text-gray-500">Resends:</span>
-          <span className="font-medium text-gray-900">{resendCount}/{MAX_RESEND_COUNT}</span>
+          <span className="text-gray-500">Emails Sent:</span>
+          <span className="font-medium text-gray-900">{resendCount}</span>
         </div>
       </div>
     </div>
@@ -950,6 +953,53 @@ function ReEngageSection({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Call Exhausted Section (for call_exhausted stage - final call state)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function CallExhaustedSection({
+  provider,
+}: {
+  provider: OutreachProvider;
+}) {
+  const emailsSent = provider.resend_count ?? 0;
+  const daysSinceStageChange = provider.stage_changed_at
+    ? Math.floor((Date.now() - new Date(provider.stage_changed_at).getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+
+  return (
+    <div>
+      <SectionHeader>Call Status</SectionHeader>
+
+      {/* Status badges */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <span className="inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-700">
+          Requires Call
+        </span>
+        <span className="text-sm text-gray-500">
+          {daysSinceStageChange === 0 ? "Added today" : `${daysSinceStageChange} day${daysSinceStageChange === 1 ? "" : "s"} in stage`}
+        </span>
+      </div>
+
+      {/* Instructions */}
+      <div className="p-3 bg-orange-50 rounded-lg mb-4">
+        <p className="text-sm text-orange-800">
+          This provider needs a phone call to verify email and send claim link.
+          Call them, confirm contact info, then send the claim link while on the phone.
+        </p>
+      </div>
+
+      {/* Stats */}
+      <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-1.5">
+          <span className="text-gray-500">Emails Sent:</span>
+          <span className="font-medium text-gray-900">{emailsSent}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Actions Section
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -986,8 +1036,7 @@ function ActionsSection({
   const isTerminal = ["claimed", "archived"].includes(provider.stage);
   const canLaunch = provider.stage === "not_contacted" && provider.email;
   const isFollowUp = provider.stage === "needs_call";
-  const resendCount = provider.resend_count ?? 0;
-  const resendDisabled = resendCount >= MAX_RESEND_COUNT;
+  const isCallExhausted = provider.stage === "call_exhausted";
 
   // Generic outcome handler for Follow Up actions
   async function handleRecordOutcome(outcome: string) {
@@ -1113,6 +1162,7 @@ function ActionsSection({
     const configs: Record<string, { title: string; requiresCall?: boolean; confirmText: string }> = {
       launch: { title: "Launch email sequence for this provider?", confirmText: "Launch" },
       claim_link: { title: "Send claim link email?", confirmText: "Send" },
+      send_claim_link: { title: "Send claim link email?", requiresCall: true, confirmText: "Send" },
       resend_link: { title: "Resend claim link and move to Alt Channels?", requiresCall: true, confirmText: "Resend" },
       try_fax: { title: "Move to Alternative Channels (Fax)?", requiresCall: true, confirmText: "Move to Fax" },
       try_contact_form: { title: "Move to Alternative Channels (Contact Form)?", requiresCall: true, confirmText: "Move to Contact Form" },
@@ -1145,7 +1195,7 @@ function ActionsSection({
                 if (confirmAction === "launch") {
                   onLaunchSequence?.(provider.provider_id);
                   onClose?.();
-                } else if (confirmAction === "claim_link") {
+                } else if (confirmAction === "claim_link" || confirmAction === "send_claim_link") {
                   handleSendClaimLink();
                 } else if (confirmAction === "move_to_ready") {
                   handleMoveToReady();
@@ -1188,20 +1238,14 @@ function ActionsSection({
         )}
 
         {/* Follow Up specific actions - move to alternative channels */}
+        {/* Follow Up: Resend + Alternative Channels */}
         {isFollowUp && (
           <>
-            {/* Resend Claim Link */}
             {provider.email && (
-              <button
-                onClick={() => setConfirmAction("resend_link")}
-                disabled={resendDisabled}
-                title={resendDisabled ? `Limit reached (${MAX_RESEND_COUNT} max)` : undefined}
-                className={outlineBtn}
-              >
-                Resend Link{resendDisabled ? " (max)" : ""}
+              <button onClick={() => setConfirmAction("resend_link")} className={outlineBtn}>
+                Resend Link
               </button>
             )}
-            {/* Alternative channel buttons */}
             <button onClick={() => setConfirmAction("try_fax")} className={outlineBtn}>
               Fax
             </button>
@@ -1214,8 +1258,15 @@ function ActionsSection({
           </>
         )}
 
-        {/* Move to Ready - for needs_call, re_engage, or not_interested */}
-        {["needs_call", "re_engage", "not_interested"].includes(provider.stage) && provider.email && onMoveToReady && (
+        {/* Call Exhausted: Resend Claim Link (no stage change) */}
+        {isCallExhausted && provider.email && (
+          <button onClick={() => setConfirmAction("send_claim_link")} className={primaryBtn}>
+            Send Claim Link
+          </button>
+        )}
+
+        {/* Move to Ready - for needs_call, re_engage, call_exhausted, or not_interested */}
+        {["needs_call", "re_engage", "call_exhausted", "not_interested"].includes(provider.stage) && provider.email && onMoveToReady && (
           <button onClick={() => setConfirmAction("move_to_ready")} className={outlineBtn}>
             Move to Ready
           </button>
@@ -1272,6 +1323,8 @@ export function ProviderDrawer({
   const showFollowUpSection = provider.stage === "needs_call" || activeTab === "follow_up";
   // Determine if we should show Alternative Channels section
   const showReEngageSection = provider.stage === "re_engage" || activeTab === "re_engage";
+  // Determine if we should show Call Exhausted section
+  const showCallExhaustedSection = provider.stage === "call_exhausted" || activeTab === "call_exhausted";
   // Header content with link to provider admin page
   const header = (
     <div>
@@ -1351,6 +1404,14 @@ export function ProviderDrawer({
         {showReEngageSection && (
           <>
             <ReEngageSection provider={provider} />
+            <SectionDivider />
+          </>
+        )}
+
+        {/* Call Exhausted Section - only for call_exhausted stage */}
+        {showCallExhaustedSection && (
+          <>
+            <CallExhaustedSection provider={provider} />
             <SectionDivider />
           </>
         )}

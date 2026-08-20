@@ -11,6 +11,7 @@ import {
   channelLabel,
   fmtDateOnly,
   fmtTimestamp,
+  fmtMetricsAge,
 } from "@/components/admin/AdBoostShared";
 import {
   type AdBoostNextAction,
@@ -201,11 +202,11 @@ export default function AdminAdBoostPage() {
       {/* Table — fixed-width columns (only Provider flexes) so every value lines
           up exactly under its header. */}
       <div className="rounded-xl border border-gray-200 overflow-hidden">
-        <div className="hidden lg:grid grid-cols-[minmax(160px,1fr)_125px_155px_55px_70px_50px_105px_60px] items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-400">
+        <div className="hidden lg:grid grid-cols-[minmax(160px,1fr)_125px_155px_78px_70px_50px_105px_60px] items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200 text-xs font-medium uppercase tracking-wide text-gray-400">
           <span>Provider</span>
           <span>Status</span>
           <span>Next move</span>
-          <span>Clicks</span>
+          <span>Landed</span>
           <span>Questions</span>
           <span>Leads</span>
           <span>Flight</span>
@@ -253,6 +254,7 @@ function RequestRow({
   const [error, setError] = useState<string | null>(null);
 
   const isArchived = !!request.deleted_at;
+  const metricsAge = fmtMetricsAge(request.metrics_updated_at);
   const name = request.display_name || request.provider_slug || request.provider_id;
   const channel = channelLabel(request.channel);
   const configuredBudget = adBudgetLabel(request.ad_budget_cents, request.ad_budget_type);
@@ -305,7 +307,7 @@ function RequestRow({
 
   return (
     <div className={`border-b border-gray-100 last:border-b-0 ${isArchived ? "bg-gray-50/60" : ""}`}>
-      <div className="grid grid-cols-1 lg:grid-cols-[minmax(160px,1fr)_125px_155px_55px_70px_50px_105px_60px] lg:items-center gap-2 lg:gap-3 px-4 py-3">
+      <div className="grid grid-cols-1 lg:grid-cols-[minmax(160px,1fr)_125px_155px_78px_70px_50px_105px_60px] lg:items-center gap-2 lg:gap-3 px-4 py-3">
         {/* Provider — links into the campaign detail view */}
         <div className="min-w-0">
           <Link
@@ -337,10 +339,35 @@ function RequestRow({
 
         <NextMoveCell action={nextAction} />
 
+        {/* Two different measurements, never one standing in for the other.
+            The big number is OURS: session-deduped managed-UTM landings,
+            internal traffic stripped, always current. The small line is the
+            operator-entered ad-platform figure, which is only as fresh as the
+            last time someone typed it in.
+
+            They are close but not interchangeable — a platform click that
+            bounces before our JS runs is a click with no landing, and one
+            click can spawn two sessions. The old code chained them with `??`,
+            so a typed 0 (a real value, not null) permanently masked live
+            landings: Rosemonte read "0 clicks" against 10 real ones.
+
+            Campaigns that flew before the managed-UTM instrumentation
+            (2026-07-22) legitimately land on 0 here; their platform line is
+            the only history there is. */}
         <MetricCell
           request={request}
-          value={request.ad_clicks ?? request.ad_landings ?? 0}
-          label="Clicks"
+          value={request.ad_landings ?? 0}
+          label="Landed"
+          detail={
+            request.ad_clicks != null ? `${request.ad_clicks} platform` : undefined
+          }
+          title={
+            request.ad_clicks != null
+              ? `${request.ad_landings ?? 0} managed-UTM landings measured on the page (internal traffic excluded) · ${request.ad_clicks} clicks reported by the ad platform, entered by hand ${
+                  metricsAge ? `on ${metricsAge.label}` : "(no entry date recorded)"
+                }`
+              : "Managed-UTM landings measured on the page (internal traffic excluded). No ad-platform metrics entered yet."
+          }
         />
         <MetricCell
           request={request}
@@ -482,12 +509,16 @@ function MetricCell({
   label,
   emphasize,
   detail,
+  title,
 }: {
   request: CampaignRequest;
   value: number;
   label: string;
   emphasize?: boolean;
   detail?: string;
+  /** Long-hover explanation — used where a cell carries two measurements and
+   *  the difference between them matters. */
+  title?: string;
 }) {
   const preLaunch = PRE_LAUNCH_STATUSES.has(request.status);
   const tone = preLaunch || value === 0
@@ -496,7 +527,7 @@ function MetricCell({
       ? "font-semibold text-primary-700"
       : "text-gray-700";
   return (
-    <div className={`text-sm tabular-nums ${tone}`}>
+    <div className={`text-sm tabular-nums ${tone}`} title={title}>
       <span className="lg:hidden font-normal text-gray-400">{label}: </span>
       {preLaunch ? "—" : value.toLocaleString()}
       {!preLaunch && detail && (

@@ -1057,50 +1057,58 @@ function ActionsSection({
     }
   }
 
+  // Compact button styles
+  const primaryBtn = "px-3 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 transition";
+  const outlineBtn = "px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition";
+  const plainBtn = "px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition";
+
   return (
     <div>
       <SectionHeader>Actions</SectionHeader>
-      <div className="flex flex-wrap gap-3">
-        {/* Launch Sequence - only for not_contacted with email */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Launch Sequence - primary, only for not_contacted with email */}
         {canLaunch && onLaunchSequence && (
-          <button
-            onClick={() => onLaunchSequence(provider.provider_id)}
-            className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition"
-          >
+          <button onClick={() => onLaunchSequence(provider.provider_id)} className={primaryBtn}>
             Launch Sequence
           </button>
+        )}
+
+        {/* Send Claim Link - primary when no Launch Sequence, for non-follow-up active stages */}
+        {!isTerminal && !isFollowUp && provider.email && (
+          <>
+            <button
+              onClick={handleSendClaimLink}
+              disabled={sendingClaimLink || claimLinkSent}
+              className={claimLinkSent ? `${outlineBtn} text-emerald-600 border-emerald-300` : canLaunch ? outlineBtn : primaryBtn}
+            >
+              {sendingClaimLink ? "Sending..." : claimLinkSent ? "Sent ✓" : "Send Claim Link"}
+            </button>
+            {claimLinkError && <span className="text-xs text-red-500">{claimLinkError}</span>}
+          </>
         )}
 
         {/* Resend Claim Link - Follow Up specific with confirmation */}
         {isFollowUp && provider.email && !resendSuccess && (
           showResendConfirm ? (
-            <div className="w-full p-3 bg-amber-50 border border-amber-200 rounded-lg">
-              <label className="flex items-start gap-3 cursor-pointer mb-3">
+            <div className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md">
+              <label className="flex items-start gap-2 cursor-pointer mb-2">
                 <input
                   type="checkbox"
                   checked={confirmedCall}
                   onChange={(e) => setConfirmedCall(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                  className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                 />
-                <span className="text-sm text-gray-700">
-                  I called and confirmed they prefer email
-                </span>
+                <span className="text-sm text-gray-700">I called and confirmed they prefer email</span>
               </label>
               <div className="flex items-center gap-2">
                 <button
                   onClick={handleResendClaimLink}
                   disabled={!confirmedCall || resending || resendDisabled}
-                  className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className={`${primaryBtn} disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {resending ? "Sending..." : "Resend & Move to Alt Channels"}
                 </button>
-                <button
-                  onClick={() => {
-                    setShowResendConfirm(false);
-                    setConfirmedCall(false);
-                  }}
-                  className="text-sm text-gray-500 hover:text-gray-700"
-                >
+                <button onClick={() => { setShowResendConfirm(false); setConfirmedCall(false); }} className={plainBtn}>
                   Cancel
                 </button>
                 {resendError && <span className="text-xs text-red-500">{resendError}</span>}
@@ -1111,11 +1119,7 @@ function ActionsSection({
               onClick={() => setShowResendConfirm(true)}
               disabled={resendDisabled}
               title={resendDisabled ? `Limit reached (${MAX_RESEND_COUNT} max)` : undefined}
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition ${
-                resendDisabled
-                  ? "text-gray-400 bg-gray-100 cursor-not-allowed"
-                  : "text-blue-700 bg-blue-50 border border-blue-200 hover:bg-blue-100"
-              }`}
+              className={resendDisabled ? `${outlineBtn} opacity-50 cursor-not-allowed` : outlineBtn}
             >
               Resend Claim Link{resendDisabled ? " (max)" : ""}
             </button>
@@ -1124,58 +1128,21 @@ function ActionsSection({
 
         {/* Resend success message */}
         {isFollowUp && resendSuccess && (
-          <div className="flex items-center gap-2 text-sm text-emerald-600">
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-            </svg>
-            Claim link sent, moving to Alternative Channels
-          </div>
-        )}
-
-        {/* Send Claim Link - for non-follow-up active stages with email */}
-        {!isTerminal && !isFollowUp && provider.email && (
-          <>
-            <button
-              onClick={handleSendClaimLink}
-              disabled={sendingClaimLink || claimLinkSent}
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition disabled:opacity-50 ${
-                claimLinkSent
-                  ? "text-emerald-700 bg-emerald-50"
-                  : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
-              }`}
-            >
-              {sendingClaimLink ? "Sending..." : claimLinkSent ? "Link Sent" : "Send Claim Link"}
-            </button>
-            {claimLinkError && (
-              <span className="text-sm text-red-500">{claimLinkError}</span>
-            )}
-          </>
+          <span className="text-sm text-emerald-600">✓ Sent, moving to Alt Channels</span>
         )}
 
         {/* Move to Ready - for needs_call, re_engage, or not_interested */}
         {["needs_call", "re_engage", "not_interested"].includes(provider.stage) && provider.email && onMoveToReady && (
           confirmMoveToReady ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md">
               <span className="text-sm text-gray-700">Move to Ready?</span>
-              <button
-                onClick={handleMoveToReady}
-                disabled={movingToReady}
-                className="px-2 py-0.5 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
-              >
+              <button onClick={handleMoveToReady} disabled={movingToReady} className="px-2 py-0.5 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50">
                 {movingToReady ? "..." : "Yes"}
               </button>
-              <button
-                onClick={() => setConfirmMoveToReady(false)}
-                className="text-xs text-gray-500 hover:text-gray-700"
-              >
-                No
-              </button>
+              <button onClick={() => setConfirmMoveToReady(false)} className="text-xs text-gray-500 hover:text-gray-700">No</button>
             </div>
           ) : (
-            <button
-              onClick={() => setConfirmMoveToReady(true)}
-              className="px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition"
-            >
+            <button onClick={() => setConfirmMoveToReady(true)} className={outlineBtn}>
               Move to Ready
             </button>
           )
@@ -1183,30 +1150,24 @@ function ActionsSection({
 
         {/* Mark Not Interested - for active stages */}
         {!isTerminal && provider.stage !== "not_interested" && onMarkNotInterested && (
-          <button
-            onClick={() => onMarkNotInterested(provider.provider_id)}
-            className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
-          >
+          <button onClick={() => onMarkNotInterested(provider.provider_id)} className={outlineBtn}>
             Not Interested
           </button>
         )}
 
         {/* Archive - for non-archived */}
         {provider.stage !== "archived" && onArchive && (
-          <button
-            onClick={() => onArchive(provider.provider_id)}
-            className="px-4 py-2 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition"
-          >
+          <button onClick={() => onArchive(provider.provider_id)} className={outlineBtn}>
             Archive
           </button>
         )}
 
-        {/* Remove - always available except for hidden */}
+        {/* Spacer to push Remove to right */}
+        <div className="flex-1" />
+
+        {/* Remove - plain style, right-aligned */}
         {activeTab !== "hidden" && onRemove && (
-          <button
-            onClick={() => onRemove(provider.provider_id, provider.provider_name)}
-            className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
-          >
+          <button onClick={() => onRemove(provider.provider_id, provider.provider_name)} className={`${plainBtn} text-red-500 hover:text-red-600`}>
             Remove
           </button>
         )}

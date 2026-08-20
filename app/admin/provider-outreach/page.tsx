@@ -30,17 +30,27 @@ const OUTREACH_STAGES = [
 type OutreachStage = (typeof OUTREACH_STAGES)[number];
 
 // UI tabs - "call_confirm" is the combined view of "not_contacted" (both needs email and has email)
+// "done" is the combined view of terminal states (claimed, not_interested, archived) with sub-tabs
 // "hidden" is a special tab for viewing admin-hidden providers
-type UITab = "call_confirm" | "hidden" | Exclude<OutreachStage, "not_contacted">;
+type UITab = "call_confirm" | "in_sequence" | "needs_call" | "re_engage" | "done" | "hidden";
+
+// Sub-tabs within the "Done" tab
+type DoneSubTab = "claimed" | "not_interested" | "archived";
+
+const DONE_SUB_TABS: DoneSubTab[] = ["claimed", "not_interested", "archived"];
+
+const DONE_SUB_TAB_LABELS: Record<DoneSubTab, string> = {
+  claimed: "Claimed",
+  not_interested: "Not Interested",
+  archived: "Archived",
+};
 
 const UI_TABS: UITab[] = [
   "call_confirm",
   "in_sequence",
   "needs_call",  // Displayed as "Follow Up"
   "re_engage",
-  "not_interested",  // Soft terminal
-  "claimed",
-  "archived",  // Hard terminal
+  "done",  // Terminal states with sub-tabs
   "hidden",  // Admin-hidden providers (for recovery)
 ];
 
@@ -49,9 +59,7 @@ const UI_TAB_LABELS: Record<UITab, string> = {
   in_sequence: "In Sequence",
   needs_call: "Follow Up",
   re_engage: "Alternative Channels",
-  not_interested: "Not Interested",
-  claimed: "Claimed",
-  archived: "Archived",
+  done: "Done",
   hidden: "Hidden",
 };
 
@@ -886,10 +894,14 @@ interface ActiveState {
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Map UI tab to API parameters (stage + optional email_filter)
-function getApiParamsForTab(tab: UITab): { stage: OutreachStage | "hidden"; emailFilter?: "needs_email" | "has_email" } {
+function getApiParamsForTab(tab: UITab, doneSubTab?: DoneSubTab): { stage: OutreachStage | "hidden"; emailFilter?: "needs_email" | "has_email" } {
   if (tab === "call_confirm") {
     // Fetch all not_contacted providers (both with and without email)
     return { stage: "not_contacted" };
+  }
+  if (tab === "done") {
+    // Use the sub-tab to determine which terminal stage to fetch
+    return { stage: doneSubTab || "claimed" };
   }
   if (tab === "hidden") {
     return { stage: "hidden" };
@@ -1985,6 +1997,7 @@ function ApolloContactRow({
 interface CityRowProps {
   city: CityStats;
   activeTab: UITab;
+  activeDoneSubTab: DoneSubTab;
   isExpanded: boolean;
   onToggle: () => void;
   providers: OutreachProvider[];
@@ -2017,6 +2030,7 @@ interface CityRowProps {
 function CityRow({
   city,
   activeTab,
+  activeDoneSubTab,
   isExpanded,
   onToggle,
   providers,
@@ -2467,7 +2481,7 @@ function CityRow({
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                               </svg>
                             </button>
-                            {activeTab !== "claimed" && (
+                            {!(activeTab === "done" && activeDoneSubTab === "claimed") && (
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -6316,6 +6330,9 @@ export default function ProviderOutreachPage() {
   // Active UI tab (call_confirm represents the not_contacted stage)
   const [activeTab, setActiveTab] = useState<UITab>("call_confirm");
 
+  // Active sub-tab within the "Done" tab
+  const [activeDoneSubTab, setActiveDoneSubTab] = useState<DoneSubTab>("claimed");
+
   // Search
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -6382,9 +6399,10 @@ export default function ProviderOutreachPage() {
     recentlyMovedTimersRef.current.set(providerId, timer);
   }, []);
 
-  // Stage counts (includes call_confirm, hidden for UI tabs)
+  // Stage counts (includes call_confirm, done, hidden for UI tabs)
   interface TabCounts extends Record<OutreachStage, number> {
     call_confirm: number;  // Combined needs_email + ready
+    done: number;  // Combined claimed + not_interested + archived
     hidden: number;
   }
   const [stageCounts, setStageCounts] = useState<TabCounts>({
@@ -6396,6 +6414,7 @@ export default function ProviderOutreachPage() {
     claimed: 0,
     archived: 0,
     call_confirm: 0,
+    done: 0,
     hidden: 0,
   });
 
@@ -6947,7 +6966,7 @@ export default function ProviderOutreachPage() {
     if (!selectedState) return;
 
     // Some tabs may not need provider fetching
-    const apiParams = getApiParamsForTab(activeTab);
+    const apiParams = getApiParamsForTab(activeTab, activeDoneSubTab);
     if (!apiParams) {
       setLoadingProviders(false);
       return;
@@ -6997,11 +7016,12 @@ export default function ProviderOutreachPage() {
         setProviders(filteredProviders);
         setIsSearchResult(!!data.is_search);
         if (data.stage_counts) {
-          // Transform API counts: combine needs_email + ready into call_confirm
+          // Transform API counts: combine into UI tab counts
           const apiCounts = data.stage_counts;
           setStageCounts({
             ...apiCounts,
             call_confirm: (apiCounts.needs_email ?? 0) + (apiCounts.ready ?? 0),
+            done: (apiCounts.claimed ?? 0) + (apiCounts.not_interested ?? 0) + (apiCounts.archived ?? 0),
           });
         }
         // Use API admin_counts if provided, otherwise compute from provider list
@@ -7029,7 +7049,7 @@ export default function ProviderOutreachPage() {
     } finally {
       setLoadingProviders(false);
     }
-  }, [selectedState, activeTab, selectedAdminFilter]);
+  }, [selectedState, activeTab, activeDoneSubTab, selectedAdminFilter]);
 
   // Debounce search input by 300ms
   useEffect(() => {
@@ -7282,6 +7302,7 @@ export default function ProviderOutreachPage() {
         claimed: 0,
         archived: 0,
         call_confirm: 0,
+        done: 0,
         hidden: 0,
       });
       prevStateRef.current = selectedState;
@@ -7301,7 +7322,8 @@ export default function ProviderOutreachPage() {
     try {
       const params = new URLSearchParams();
       params.set("state", selectedState);
-      params.set("tab", activeTab);
+      // For "done" tab, send the actual sub-tab stage to export
+      params.set("tab", activeTab === "done" ? activeDoneSubTab : activeTab);
       params.set("type", type);
       // Handle "unassigned" specially - pass as a flag, not as assigned_to value
       if (selectedAdminFilter === "unassigned") {
@@ -7620,11 +7642,14 @@ export default function ProviderOutreachPage() {
         return [
           { stage: "not_contacted", label: "Reset to Not Contacted", color: "bg-gray-500 hover:bg-gray-600" },
         ];
-      default:
-        // Terminal stages (archived, claimed) - allow moving back to not_contacted
+      case "done":
+        // Done tab (terminal stages) - allow moving back to not_contacted
         return [
-          { stage: "not_contacted", label: "Reset to Not Contacted", color: "bg-gray-600 hover:bg-gray-700" },
+          { stage: "not_contacted", label: "Reset to Call & Confirm", color: "bg-gray-600 hover:bg-gray-700" },
         ];
+      default:
+        // Hidden tab
+        return [];
     }
   };
 
@@ -7633,7 +7658,7 @@ export default function ProviderOutreachPage() {
     value: tab,
     label: UI_TAB_LABELS[tab],
     count: stageCounts[tab] ?? 0,
-    isTerminal: TERMINAL_STAGES.includes(tab as OutreachStage),
+    isTerminal: tab === "done",  // "done" tab contains all terminal stages
   }));
 
   return (
@@ -7973,8 +7998,40 @@ export default function ProviderOutreachPage() {
         </div>
       )}
 
+      {/* Done Tab Sub-tabs - show when Done tab is active */}
+      {selectedState && activeTab === "done" && (
+        <div className="flex items-center gap-2 px-1 mb-4">
+          {DONE_SUB_TABS.map((subTab) => {
+            const count = stageCounts[subTab] ?? 0;
+            const isActive = activeDoneSubTab === subTab;
+            return (
+              <button
+                key={subTab}
+                onClick={() => setActiveDoneSubTab(subTab)}
+                className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
+                  isActive
+                    ? subTab === "claimed"
+                      ? "bg-emerald-600 text-white"
+                      : subTab === "not_interested"
+                        ? "bg-amber-600 text-white"
+                        : "bg-gray-600 text-white"
+                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                }`}
+              >
+                {DONE_SUB_TAB_LABELS[subTab]}
+                {count > 0 && (
+                  <span className={`ml-1.5 text-xs tabular-nums ${isActive ? "text-white/80" : "text-gray-400"}`}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Admin Filter Chips - show on tabs where assignment applies */}
-      {selectedState && ["call_confirm", "in_sequence", "needs_call", "re_engage", "not_interested"].includes(activeTab) && (
+      {selectedState && ["call_confirm", "in_sequence", "needs_call", "re_engage"].includes(activeTab) && (
         <AdminFilterChips
           adminCounts={adminCounts}
           totalCount={
@@ -7982,7 +8039,6 @@ export default function ProviderOutreachPage() {
             activeTab === "in_sequence" ? stageCounts.in_sequence :
             activeTab === "needs_call" ? stageCounts.needs_call :
             activeTab === "re_engage" ? stageCounts.re_engage :
-            activeTab === "not_interested" ? stageCounts.not_interested :
             0
           }
           selectedAdminId={selectedAdminFilter}
@@ -8898,6 +8954,7 @@ export default function ProviderOutreachPage() {
                       key={city.city}
                       city={city}
                       activeTab={activeTab}
+                      activeDoneSubTab={activeDoneSubTab}
                       isExpanded={expandedCities.has(city.city)}
                       onToggle={() => toggleCity(city.city)}
                       providers={filteredProviders}
@@ -8979,7 +9036,7 @@ export default function ProviderOutreachPage() {
                           stage: provider.stage,
                         });
                       }}
-                      onMoveToReady={activeTab === "not_interested" ? async (providerId) => {
+                      onMoveToReady={(activeTab === "done" && activeDoneSubTab === "not_interested") ? async (providerId) => {
                         try {
                           const res = await fetch("/api/admin/provider-outreach/update-stage", {
                             method: "POST",
@@ -8997,6 +9054,7 @@ export default function ProviderOutreachPage() {
                             setStageCounts((prev) => ({
                               ...prev,
                               not_interested: Math.max(0, prev.not_interested - 1),
+                              done: Math.max(0, prev.done - 1),
                               call_confirm: prev.call_confirm + 1,
                             }));
                             showToast("Moved to Call & Confirm", "success");

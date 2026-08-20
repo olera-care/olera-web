@@ -1057,9 +1057,9 @@ function ActionsSection({
     }
   }
 
-  // Compact button styles
-  const primaryBtn = "px-3 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 transition";
-  const outlineBtn = "px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition";
+  // Compact button styles (with disabled states)
+  const primaryBtn = "px-3 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed";
+  const outlineBtn = "px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed";
   const plainBtn = "px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition";
 
   return (

@@ -221,6 +221,73 @@ export async function isSuppressedRecipient(email: string): Promise<boolean> {
 }
 
 /**
+ * The trust-refusal rule, isolated so it can be asserted without a database.
+ *
+ * True only when the receiving server has rejected mail and never once accepted
+ * it. One successful delivery, ever, on any email type, means the inbox works and
+ * a human override is legitimate — bounces after that are the mailbox's problem,
+ * not evidence the address is wrong.
+ */
+export function isNeverDeliveredMailbox(history: { bounced: number; everDelivered: boolean }): boolean {
+  return history.bounced > 0 && !history.everDelivered;
+}
+
+/**
+ * Delivery history for one address, across every email type.
+ *
+ * This is the strongest evidence we hold about a mailbox: not a prediction from
+ * a verification vendor, but what the receiving server actually did with mail we
+ * already sent. `everDelivered === false` alongside `bounced > 0` means every
+ * attempt was rejected and none ever landed.
+ *
+ * Read by the admin trust action (app/api/admin/email-override) so a human
+ * cannot "send anyway" to a mailbox that has never once accepted mail. Deliberately
+ * NOT filtered by email_type: a provider who takes the weekly digest but bounces
+ * question_received has a working inbox, and we should not suppress them.
+ *
+ * Fails OPEN (zeroes) on any error, so a transient DB issue can never block a
+ * trust action that would otherwise be legitimate.
+ */
+export async function getRecipientDeliveryHistory(email: string): Promise<{
+  sends: number;
+  delivered: number;
+  bounced: number;
+  everDelivered: boolean;
+  lastBounceAt: string | null;
+}> {
+  const empty = { sends: 0, delivered: 0, bounced: 0, everDelivered: false, lastBounceAt: null };
+  try {
+    const db = getServiceDb();
+    if (!db) return empty;
+    // Case-insensitive: email_log.recipient is stored as-supplied, so the same
+    // mailbox appears under several casings (Info@x.com and info@x.com). An
+    // exact .eq() silently misses those rows and under-reports the history.
+    // % and _ are LIKE wildcards, so escape them before matching.
+    const pattern = email.trim().replace(/([%_\\])/g, "\\$1");
+    const { data, error } = await db
+      .from("email_log")
+      .select("delivered_at, bounced_at")
+      .ilike("recipient", pattern)
+      .limit(500);
+    if (error || !data) return empty;
+    let delivered = 0;
+    let bounced = 0;
+    let lastBounceAt: string | null = null;
+    for (const row of data) {
+      if (row.delivered_at) delivered += 1;
+      if (row.bounced_at) {
+        bounced += 1;
+        if (!lastBounceAt || row.bounced_at > lastBounceAt) lastBounceAt = row.bounced_at;
+      }
+    }
+    return { sends: data.length, delivered, bounced, everDelivered: delivered > 0, lastBounceAt };
+  } catch (err) {
+    console.error("[email] Delivery-history lookup failed (treating as unknown):", err);
+    return empty;
+  }
+}
+
+/**
  * Returns true if an address is on the human-trust allowlist (email_overrides).
  * Such an address is "send anyway": it bypasses BOTH suppression signals — the
  * reactive bounce/complaint check above AND the proactive verification verdict

@@ -6539,6 +6539,13 @@ export default function ProviderOutreachPage() {
   const [loadingStateCounts, setLoadingStateCounts] = useState(false);
   const [stateCountsError, setStateCountsError] = useState(false);
 
+  // Assign Cities modal state
+  const [showAssignCitiesModal, setShowAssignCitiesModal] = useState(false);
+  const [assignCitiesSearch, setAssignCitiesSearch] = useState("");
+  const [assignCitiesForState, setAssignCitiesForState] = useState<string | null>(null);
+  const [allCitiesForAssignment, setAllCitiesForAssignment] = useState<CityStats[]>([]);
+  const [loadingAllCities, setLoadingAllCities] = useState(false);
+
   // State actions menu (for refresh, status change, delete)
   const [stateActionsMenu, setStateActionsMenu] = useState<string | null>(null);
   const [stateActionLoading, setStateActionLoading] = useState<string | null>(null);
@@ -6927,16 +6934,45 @@ export default function ProviderOutreachPage() {
     }
   }, [selectedState]);
 
+  // Fetch all cities for Assign Cities modal (includes all cities, not just filtered ones)
+  const fetchAllCitiesForAssignment = useCallback(async (stateCode: string) => {
+    setLoadingAllCities(true);
+    try {
+      // Fetch cities
+      const citiesRes = await fetch(`/api/admin/provider-outreach/cities?state=${stateCode}`);
+      if (citiesRes.ok) {
+        const citiesData = await citiesRes.json();
+        setAllCitiesForAssignment(citiesData.cities || []);
+      }
+      // Also fetch city owners if not already loaded for this state
+      const ownersRes = await fetch(`/api/admin/provider-outreach/assign-city?state=${stateCode}`);
+      if (ownersRes.ok) {
+        const ownersData = await ownersRes.json();
+        const ownerMap = new Map<string, CityOwner>();
+        for (const owner of ownersData.city_owners || []) {
+          ownerMap.set(owner.city, owner);
+        }
+        setCityOwners(ownerMap);
+      }
+    } catch (err) {
+      console.error("Failed to fetch cities for assignment:", err);
+    } finally {
+      setLoadingAllCities(false);
+    }
+  }, []);
+
   // Assign city to an admin
-  const assignCity = async (city: string, ownerId: string | null, ownerName: string | null) => {
-    if (!selectedState) return;
+  // stateCode is optional - defaults to selectedState for inline edits, but can be passed for modal usage
+  const assignCity = async (city: string, ownerId: string | null, ownerName: string | null, stateCode?: string) => {
+    const targetState = stateCode || selectedState;
+    if (!targetState) return;
 
     try {
       const res = await fetch("/api/admin/provider-outreach/assign-city", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          state: selectedState,
+          state: targetState,
           city,
           owner_id: ownerId,
           owner_name: ownerName,
@@ -6953,7 +6989,10 @@ export default function ProviderOutreachPage() {
         setEditingCityAssignment(null);
         showToast(ownerId ? `Assigned ${city} to ${ownerName}` : `Unassigned ${city}`, "success");
         // Refresh providers to update assigned_to on individual rows and filter chip counts
-        fetchProviders();
+        // Only if we're modifying the currently selected state
+        if (targetState === selectedState) {
+          fetchProviders();
+        }
       } else {
         const err = await res.json();
         showToast(err.error || "Failed to assign city", "error");
@@ -7238,6 +7277,12 @@ export default function ProviderOutreachPage() {
 
     fetchStateCounts();
   }, [showAddStateModal]);
+
+  // Effect: fetch cities when Assign Cities modal opens
+  useEffect(() => {
+    if (!showAssignCitiesModal || !assignCitiesForState) return;
+    fetchAllCitiesForAssignment(assignCitiesForState);
+  }, [showAssignCitiesModal, assignCitiesForState, fetchAllCitiesForAssignment]);
 
   // Effect: fetch all admins on mount (for name lookup)
   useEffect(() => {
@@ -7849,32 +7894,52 @@ export default function ProviderOutreachPage() {
                         {activeStates.map((state) => {
                           const isSelected = selectedState === state.state_code;
                           return (
-                            <button
-                              key={state.state_code}
-                              onClick={() => {
-                                setSelectedState(state.state_code);
-                                setShowStateSelector(false);
-                              }}
-                              className={`w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center justify-between ${isSelected ? "bg-primary-50" : ""}`}
-                            >
-                              <div className="flex items-center gap-2">
-                                {isSelected && (
-                                  <svg className="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                  </svg>
-                                )}
-                                {state.status === "completed" ? (
-                                  <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                  </svg>
-                                ) : (
-                                  <span className={`w-2 h-2 rounded-full ${state.status === "paused" ? "bg-amber-500" : "bg-green-500"}`} />
-                                )}
-                                <span className={`text-sm font-medium ${isSelected ? "text-primary-700" : "text-gray-900"}`}>{state.state_name}</span>
-                                <span className="text-xs text-gray-400">({state.state_code})</span>
-                              </div>
-                              <span className="text-xs text-gray-400">{state.total_providers.toLocaleString()}</span>
-                            </button>
+                            <div key={state.state_code}>
+                              <button
+                                onClick={() => {
+                                  setSelectedState(state.state_code);
+                                  setShowStateSelector(false);
+                                }}
+                                className={`w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center justify-between ${isSelected ? "bg-primary-50" : ""}`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {isSelected && (
+                                    <svg className="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                  {state.status === "completed" ? (
+                                    <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                  ) : (
+                                    <span className={`w-2 h-2 rounded-full ${state.status === "paused" ? "bg-amber-500" : "bg-green-500"}`} />
+                                  )}
+                                  <span className={`text-sm font-medium ${isSelected ? "text-primary-700" : "text-gray-900"}`}>{state.state_name}</span>
+                                  <span className="text-xs text-gray-400">({state.state_code})</span>
+                                </div>
+                                <span className="text-xs text-gray-400">{state.total_providers.toLocaleString()}</span>
+                              </button>
+                              {/* Assign Cities sub-button */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setAssignCitiesForState(state.state_code);
+                                  setShowAssignCitiesModal(true);
+                                  setShowStateSelector(false);
+                                }}
+                                className="w-full pl-9 pr-3 py-1.5 text-left text-xs text-gray-500 hover:text-primary-600 hover:bg-gray-50 flex items-center gap-1.5"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                Assign Cities
+                                <svg className="w-3 h-3 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              </button>
+                            </div>
                           );
                         })}
                       </div>
@@ -8949,11 +9014,16 @@ export default function ProviderOutreachPage() {
               const filteredProviders = providers;
 
               const useApiCities = isNotContactedTab(activeTab) && !selectedAdminFilter;
-              const displayCities = useApiCities ? cities : computeCityStatsFromProviders(filteredProviders);
+              const allCities = useApiCities ? cities : computeCityStatsFromProviders(filteredProviders);
+
+              // Filter to only show cities with an owner assigned - BUT only for the Call & Confirm tab
+              // Other tabs (in_sequence, needs_call, re_engage, done) should show all cities with providers
+              // regardless of assignment status, since those providers are already being worked on
+              const displayCities = isNotContactedTab(activeTab)
+                ? allCities.filter(city => cityOwners.has(city.city) && cityOwners.get(city.city)?.owner_id)
+                : allCities;
+
               const isLoading = useApiCities ? loadingCities : loadingProviders;
-              const emptyMessage = isNotContactedTab(activeTab)
-                ? `No providers to call in ${selectedState}`
-                : `No providers in ${UI_TAB_LABELS[activeTab]}`;
 
               if (isLoading) {
                 return (
@@ -8964,9 +9034,40 @@ export default function ProviderOutreachPage() {
               }
 
               if (displayCities.length === 0) {
+                // Show empty state - with "Assign Cities" prompt only on Call & Confirm tab
+                const hasUnassignedCities = allCities.length > 0 && isNotContactedTab(activeTab);
                 return (
                   <div className="p-12 text-center">
-                    <p className="text-gray-500">{emptyMessage}</p>
+                    {hasUnassignedCities ? (
+                      <>
+                        <svg className="w-12 h-12 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <p className="text-gray-600 font-medium mb-1">No cities assigned yet</p>
+                        <p className="text-gray-400 text-sm mb-4">
+                          Assign cities to team members to start working on providers
+                        </p>
+                        <button
+                          onClick={() => {
+                            setAssignCitiesForState(selectedState);
+                            setShowAssignCitiesModal(true);
+                          }}
+                          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                          Assign Cities
+                        </button>
+                      </>
+                    ) : (
+                      <p className="text-gray-500">
+                        {isNotContactedTab(activeTab)
+                          ? `No providers to call in ${selectedState}`
+                          : `No providers in ${UI_TAB_LABELS[activeTab]}`}
+                      </p>
+                    )}
                   </div>
                 );
               }
@@ -10558,6 +10659,153 @@ export default function ProviderOutreachPage() {
                 className="w-full px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
               >
                 Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Cities Modal */}
+      {showAssignCitiesModal && assignCitiesForState && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          onClick={() => {
+            setShowAssignCitiesModal(false);
+            setAssignCitiesSearch("");
+            setAssignCitiesForState(null);
+            setEditingCityAssignment(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden max-h-[80vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-100 shrink-0">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Assign Cities - {US_STATES.find(s => s.value === assignCitiesForState)?.label || assignCitiesForState}
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Assign team members to manage provider outreach in each city
+              </p>
+            </div>
+
+            {/* Search */}
+            <div className="px-6 py-3 border-b border-gray-100 shrink-0">
+              <div className="relative">
+                <svg
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  value={assignCitiesSearch}
+                  onChange={(e) => setAssignCitiesSearch(e.target.value)}
+                  placeholder="Search cities..."
+                  className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* City List */}
+            <div className="flex-1 overflow-y-auto">
+              {loadingAllCities ? (
+                <div className="flex items-center justify-center py-8">
+                  <svg className="animate-spin h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                </div>
+              ) : (() => {
+                const filteredCities = allCitiesForAssignment.filter(city =>
+                  city.city.toLowerCase().includes(assignCitiesSearch.toLowerCase())
+                );
+
+                if (filteredCities.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-gray-500 text-sm">
+                      {assignCitiesSearch ? "No matching cities found" : "No cities available"}
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="divide-y divide-gray-100">
+                    {filteredCities.map((city) => {
+                      const cityOwner = cityOwners.get(city.city);
+                      const isEditing = editingCityAssignment === `modal-${city.city}`;
+                      return (
+                        <div key={city.city} className="px-6 py-3 hover:bg-gray-50">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <span className="font-medium text-gray-900">{city.city}</span>
+                              <span className="ml-2 text-xs text-gray-400">
+                                {city.total_count.toLocaleString()} provider{city.total_count !== 1 ? "s" : ""}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="mt-1.5 flex items-center gap-2">
+                            <span className="text-xs text-gray-500">Owner:</span>
+                            {isEditing ? (
+                              <div className="flex-1 max-w-xs" onClick={(e) => e.stopPropagation()}>
+                                <AdminAutocomplete
+                                  selectedAdminId={cityOwner?.owner_id || null}
+                                  selectedAdminName={cityOwner?.owner_name || null}
+                                  onSelect={(id, name) => {
+                                    assignCity(city.city, id, name, assignCitiesForState);
+                                    setEditingCityAssignment(null);
+                                  }}
+                                  onClose={() => setEditingCityAssignment(null)}
+                                  placeholder="Select admin..."
+                                />
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => setEditingCityAssignment(`modal-${city.city}`)}
+                                className={`text-xs px-2 py-1 rounded ${
+                                  cityOwner?.owner_id
+                                    ? "text-gray-700 bg-gray-100 hover:bg-gray-200"
+                                    : "text-gray-400 border border-dashed border-gray-300 hover:border-gray-400 hover:text-gray-500"
+                                }`}
+                              >
+                                {cityOwner?.owner_name || "Unassigned"}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 shrink-0 bg-gray-50">
+              <button
+                onClick={() => {
+                  setShowAssignCitiesModal(false);
+                  setAssignCitiesSearch("");
+                  setAssignCitiesForState(null);
+                  setEditingCityAssignment(null);
+                  // Refresh main view if we modified the currently selected state
+                  if (assignCitiesForState === selectedState) {
+                    fetchCities();
+                    fetchProviders();
+                  }
+                }}
+                className="w-full px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                Done
               </button>
             </div>
           </div>

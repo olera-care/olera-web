@@ -484,6 +484,20 @@ export function adBoostTractionEmail(opts: {
     opts.spendCents != null && opts.spendCents > 0 && opts.clicks != null && opts.clicks > 0
       ? `$${(opts.spendCents / 100 / opts.clicks).toFixed(2)}`
       : "—";
+  // The ad-platform row is hand-copied from the Google/Meta/Nextdoor dashboard
+  // and only appears when there is something real in it. This email can now be
+  // triggered by measured landings alone, so a campaign that is demonstrably
+  // delivering may still carry 0 typed clicks and $0 typed spend — printing
+  // "0 Ad clicks / $0.00 Ad spend" under a headline that says the campaign is
+  // getting activity reads as broken, and to the provider it looks like we are
+  // reporting failure while calling it traction. Same rule the provider's own
+  // boost view already applies (BoostCampaignViews: render clicks only when
+  // > 0). The visitors/questions/leads row carries the message on its own.
+  const hasPlatformFigures =
+    (opts.clicks ?? 0) > 0 || (opts.spendCents ?? 0) > 0;
+  // Only rule between the two rows when there IS a second row, otherwise the
+  // line doubles up against the table's own bottom border.
+  const rowRule = hasPlatformFigures ? "border-bottom:1px solid #e5e7eb;" : "";
   const questionsReceived = opts.questionsReceived ?? 0;
   const questionsUnanswered = opts.questionsUnanswered ?? 0;
   const questionTopics = opts.questionTopics ?? questionsReceived;
@@ -506,20 +520,22 @@ export function adBoostTractionEmail(opts: {
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Here&rsquo;s the early signal from the Find Families campaign for ${escapeHtml(opts.providerName)}.</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:10px;margin:0 0 20px;">
       <tr>
-        <td style="padding:14px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+        <td style="padding:14px;${rowRule}border-right:1px solid #e5e7eb;">
           <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.visitors.toLocaleString()}</p>
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Visitors</p>
         </td>
-        <td style="padding:14px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+        <td style="padding:14px;${rowRule}border-right:1px solid #e5e7eb;">
           <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${questionsReceived.toLocaleString()}</p>
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Question taps${questionTopics < questionsReceived ? ` &middot; ${questionTopics.toLocaleString()} topics` : ""}</p>
         </td>
-        <td style="padding:14px;border-bottom:1px solid #e5e7eb;">
+        <td style="padding:14px;${rowRule}">
           <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.leads.toLocaleString()}</p>
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Leads</p>
         </td>
       </tr>
-      <tr>
+      ${
+        hasPlatformFigures
+          ? `<tr>
         <td style="padding:14px;border-right:1px solid #e5e7eb;">
           <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">${opts.clicks != null ? opts.clicks.toLocaleString() : "—"}</p>
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Ad clicks</p>
@@ -532,7 +548,9 @@ export function adBoostTractionEmail(opts: {
           <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">${costPerClick}</p>
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Cost / click</p>
         </td>
-      </tr>
+      </tr>`
+          : ""
+      }
     </table>
     <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">${
       unansweredQuestionTopics > 0

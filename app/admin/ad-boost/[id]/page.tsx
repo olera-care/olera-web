@@ -17,6 +17,7 @@ import {
   utmUrl,
   fmtTimestamp,
   fmtDateOnly,
+  fmtMetricsAge,
 } from "@/components/admin/AdBoostShared";
 import { etInputToUtcIso, toEtInputValue, formatEt } from "@/lib/eastern-time";
 import {
@@ -223,6 +224,7 @@ function Detail({
   const successfulCommunicationCount = getAdBoostRecordedSendCount(request, communications);
 
   const delivered = request.delivered ?? 0;
+  const metricsAge = fmtMetricsAge(request.metrics_updated_at);
   const spendNum = spend.trim() === "" ? null : Number(spend);
   const clicksNum = clicks.trim() === "" ? null : Number(clicks);
   const impressionsNum = impressions.trim() === "" ? null : Number(impressions);
@@ -1002,7 +1004,22 @@ function Detail({
 
       {/* Performance (admin-only: manual spend + cost-per analysis) */}
       <section className="rounded-xl border border-gray-200 p-5 mb-5">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">Performance</h2>
+        <h2 className="text-sm font-semibold text-gray-900 mb-1">Performance</h2>
+        {/* These four tiles are computed from numbers a human typed in, so they
+            are only ever as current as the last save. Saying when that was is
+            the difference between "this campaign is dead" and "nobody has
+            looked since Thursday" — Rosemonte and Edmonds spent six days
+            reading as the former while they were the latter. */}
+        <p
+          className={`text-xs mb-4 ${
+            (metricsAge?.days ?? 0) >= 7 ? "text-amber-600" : "text-gray-500"
+          }`}
+        >
+          {metricsAge
+            ? `Ad-platform figures last entered ${metricsAge.label}.`
+            : "Ad-platform figures have no recorded entry date."}
+          {(metricsAge?.days ?? 0) >= 7 && " Re-check the dashboard before acting on them."}
+        </p>
 
         {/* Cross-channel read: spend and CPC make the Nextdoor pilot directly
             comparable with the existing Google flights. */}

@@ -877,9 +877,9 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
     label: "Early traction", subject: "Your Find Families campaign is getting activity",
     emailType: "ad_boost_traction",
     cron: "ad-boost-emails",
-    timing: "At the first meaningful live clicks or spend · once",
-    situation: "A proof-of-motion update before the starter campaign closes. When questions are waiting, it consolidates the signal into one actionable summary instead of adding another generic reminder. Zero-value metric saves do not trigger it, and later metric edits do not send it again.",
-    who: "Concierge team enters spend/click metrics for a live campaign.",
+    timing: "At the first real activity — measured ad landings, or entered clicks or spend · once",
+    situation: "A proof-of-motion update before the starter campaign closes. When questions are waiting, it consolidates the signal into one actionable summary instead of adding another generic reminder. It fires on measured managed-UTM landings as well as typed metrics, so a campaign that is delivering still qualifies when the ad dashboard has not been copied over yet; in that case the ad clicks/spend/cost row is omitted rather than printed as zeros. A metric save with no activity of any kind does not trigger it, and later metric edits do not send it again.",
+    who: "Concierge team saves metrics for a live campaign that has activity.",
     why: "Give the provider a concrete progress update before the starter promo wraps.",
     render: () => adBoostTractionEmail({
       providerName: "Graceful Homecare",

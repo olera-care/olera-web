@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { US_STATES } from "@/lib/us-states";
 import EmailVerificationBadge, { type VerificationStatus } from "@/components/admin/EmailVerificationBadge";
@@ -6319,6 +6320,10 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function ProviderOutreachPage() {
+  // URL state for sub-tab persistence
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   // Active states (new "Add State" workflow)
   const [activeStates, setActiveStates] = useState<ActiveState[]>([]);
   const [loadingActiveStates, setLoadingActiveStates] = useState(true);
@@ -6330,8 +6335,11 @@ export default function ProviderOutreachPage() {
   // Active UI tab (call_confirm represents the not_contacted stage)
   const [activeTab, setActiveTab] = useState<UITab>("call_confirm");
 
-  // Active sub-tab within the "Done" tab
-  const [activeDoneSubTab, setActiveDoneSubTab] = useState<DoneSubTab>("claimed");
+  // Active sub-tab within the "Done" tab - initialize from URL if present
+  const initialDoneSubTab = (searchParams.get("doneTab") as DoneSubTab) || "claimed";
+  const [activeDoneSubTab, setActiveDoneSubTab] = useState<DoneSubTab>(
+    DONE_SUB_TABS.includes(initialDoneSubTab) ? initialDoneSubTab : "claimed"
+  );
 
   // Search
   const [search, setSearch] = useState("");
@@ -7289,6 +7297,28 @@ export default function ProviderOutreachPage() {
     // Stage counts are state-level, so changing tab within same state keeps counts
   }, [activeTab, selectedState, debouncedSearch]);
 
+  // Update URL when Done sub-tab changes (for refresh persistence)
+  useEffect(() => {
+    if (activeTab === "done") {
+      const params = new URLSearchParams(searchParams.toString());
+      if (activeDoneSubTab !== "claimed") {
+        params.set("doneTab", activeDoneSubTab);
+      } else {
+        params.delete("doneTab"); // Don't clutter URL with default value
+      }
+      const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+      router.replace(newUrl, { scroll: false });
+    } else {
+      // Clear doneTab from URL when not on Done tab
+      const params = new URLSearchParams(searchParams.toString());
+      if (params.has("doneTab")) {
+        params.delete("doneTab");
+        const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+        router.replace(newUrl, { scroll: false });
+      }
+    }
+  }, [activeTab, activeDoneSubTab, searchParams, router]);
+
   // Separate effect to clear stage counts only when state changes
   const prevStateRef = useRef(selectedState);
   useEffect(() => {
@@ -7533,8 +7563,8 @@ export default function ProviderOutreachPage() {
 
       if (res.ok) {
         const data = await res.json();
-        // Use UI_TAB_LABELS for the target stage display
-        const stageLabel = UI_TAB_LABELS[newStage as UITab] || newStage;
+        // Use UI_TAB_LABELS first, then STAGE_LABELS as fallback for readable names
+        const stageLabel = UI_TAB_LABELS[newStage as UITab] || STAGE_LABELS[newStage] || newStage;
         showToast(`Moved ${data.updated + data.created} provider(s) to ${stageLabel}`, "success");
         // Mark as recently moved to filter from stale API responses
         idsToUpdate.forEach((id) => markAsRecentlyMoved(id));

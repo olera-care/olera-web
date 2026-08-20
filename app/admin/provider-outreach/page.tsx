@@ -10749,7 +10749,7 @@ export default function ProviderOutreachPage() {
                             <div>
                               <span className="font-medium text-gray-900">{city.city}</span>
                               <span className="ml-2 text-xs text-gray-400">
-                                {city.total_count.toLocaleString()} provider{city.total_count !== 1 ? "s" : ""}
+                                {city.total.toLocaleString()} provider{city.total !== 1 ? "s" : ""}
                               </span>
                             </div>
                           </div>

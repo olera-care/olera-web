@@ -12,6 +12,7 @@
     "check:war-room:replay": "npx tsx scripts/check-war-room-replay.ts",
     "check:war-room:contract": "npx tsx scripts/check-war-room-tool-contract.ts",
     "check:question-dedup": "npx tsx scripts/check-question-dedup.ts",
+    "check:provider-inheritance": "npx tsx scripts/check-provider-inheritance.ts",
     "check:benefits-sms": "npx tsx scripts/check-benefits-results-sms.ts",
     "check:sms-inbox": "npx tsx scripts/check-sms-inbox-threads.ts",
     "check:sms-intent": "npx tsx scripts/check-sms-inbound-intent.ts",

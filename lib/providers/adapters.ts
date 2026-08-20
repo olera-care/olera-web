@@ -26,13 +26,25 @@ export function directoryRowToProvider(row: IOSProvider): ProviderView {
 
 /**
  * Normalize a claimed `business_profiles` (account) row into a `ProviderView`.
- * Google data lives in `metadata` for account rows; CMS/trust signals do not
- * exist on the account side (they're directory-only), so they stay null.
+ *
+ * Provider-authored fields come from the account row — that's the point of a
+ * claim. The side-channel fields do NOT: Google reviews, the Place ID, CMS
+ * quality, trust signals and franchise parentage are all external data the
+ * provider never types, and they live on the linked directory row. So the
+ * account row wins where it has its own value and the directory row supplies
+ * the rest.
+ *
+ * Passing `directoryRow` is what makes that inheritance possible. Before
+ * `e8bce717a` the detail page rendered the directory row outright for a claimed
+ * provider, so these fields were always present; that commit introduced
+ * "prefer the claimed record" and the side-channel data silently went null with
+ * it. Claiming a listing should not blank a provider's star rating.
  */
 export function accountRowToProvider(
   row: Profile,
-  directoryCategory: string | null = null,
+  directoryRow: IOSProvider | null = null,
 ): ProviderView {
+  const directoryCategory = directoryRow?.provider_category ?? null;
   const inheritedCategory = directoryCategory
     ? SUPABASE_CAT_TO_PROFILE_CATEGORY[directoryCategory]
     : undefined;
@@ -46,10 +58,10 @@ export function accountRowToProvider(
     profile,
     source: "account",
     rawProviderId: row.id,
-    placeId: gm?.place_id ?? null,
-    googleReviewsData: bpGoogleReviews ?? null,
-    cmsData: null,
-    aiTrustSignals: null,
-    parentOrganization: null,
+    placeId: gm?.place_id ?? directoryRow?.place_id ?? null,
+    googleReviewsData: bpGoogleReviews ?? directoryRow?.google_reviews_data ?? null,
+    cmsData: directoryRow?.cms_data ?? null,
+    aiTrustSignals: directoryRow?.ai_trust_signals ?? null,
+    parentOrganization: directoryRow?.parent_organization ?? null,
   };
 }

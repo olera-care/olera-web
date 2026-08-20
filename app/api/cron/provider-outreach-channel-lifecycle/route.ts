@@ -55,10 +55,12 @@ async function runCron(req: NextRequest) {
 
     // Find providers in re_engage stage where they entered 7+ days ago
     // Use stage_changed_at as the entry time (when they moved to re_engage)
+    // Filter out null stage_changed_at to avoid edge cases with old/migrated data
     const { data: reEngageProviders, error: queryError } = await db
       .from("provider_outreach_tracking")
       .select("id, provider_id, stage_changed_at")
       .eq("stage", "re_engage")
+      .not("stage_changed_at", "is", null)
       .lte("stage_changed_at", cutoffIso)
       .limit(100);
 

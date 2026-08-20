@@ -2381,6 +2381,149 @@ function ReEngageQueue({
   );
 }
 
+// Simplified provider row for Call tab - click to open drawer
+function CallProviderRow({
+  provider,
+  onOpenDrawer,
+}: {
+  provider: OutreachProvider;
+  onOpenDrawer: () => void;
+}) {
+  const daysSinceEntry = provider.stage_changed_at
+    ? daysSince(provider.stage_changed_at)
+    : 0;
+  const emailsSent = provider.resend_count ?? 0;
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      className="group px-5 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
+      onClick={onOpenDrawer}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpenDrawer();
+        }
+      }}
+    >
+      <div className="flex items-center gap-3">
+        {/* Main content area */}
+        <div className="flex-1 min-w-0">
+          {/* Row 1: Provider name + badges */}
+          <div className="flex items-center justify-between gap-4 mb-0.5">
+            <Link
+              href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
+              className="font-medium text-gray-900 hover:text-primary-600 transition-colors text-sm"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {provider.provider_name}
+            </Link>
+            <div className="flex items-center gap-2 shrink-0">
+              {emailsSent > 0 && (
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600">
+                  {emailsSent} sent
+                </span>
+              )}
+              <span className="text-xs text-gray-500">{daysSinceEntry}d</span>
+            </div>
+          </div>
+
+          {/* Row 2: Category, location, phone */}
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            {provider.provider_category && (
+              <span className="truncate max-w-[200px]">{provider.provider_category}</span>
+            )}
+            {provider.provider_category && provider.city && <span>·</span>}
+            {provider.city && (
+              <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>
+            )}
+            {provider.phone && (
+              <>
+                <span>·</span>
+                <a
+                  href={`tel:${provider.phone}`}
+                  className="text-primary-600 hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {provider.phone}
+                </a>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* Chevron indicator for drawer */}
+        <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+function CallQueue({
+  providers,
+  loading,
+  onOpenDrawer,
+}: {
+  providers: OutreachProvider[];
+  loading: boolean;
+  onOpenDrawer: (provider: OutreachProvider) => void;
+}) {
+  // Filter to only show providers in call_exhausted stage
+  const callProviders = providers.filter((p) => p.stage === "call_exhausted");
+
+  if (loading) {
+    return (
+      <div className="p-8 text-center">
+        <div className="inline-block w-5 h-5 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (callProviders.length === 0) {
+    return (
+      <div className="p-12 text-center">
+        <p className="text-gray-500">No providers need calling</p>
+      </div>
+    );
+  }
+
+  // Sort by stage_changed_at (oldest first - most urgent)
+  const sorted = [...callProviders].sort((a, b) => {
+    if (!a.stage_changed_at && !b.stage_changed_at) return 0;
+    if (!a.stage_changed_at) return 1;
+    if (!b.stage_changed_at) return -1;
+    return a.stage_changed_at.localeCompare(b.stage_changed_at);
+  });
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
+        <div className="flex-1">Provider</div>
+        <div className="w-20 text-center">Emails</div>
+        <div className="w-20 text-right">Days</div>
+      </div>
+
+      {/* Provider rows - click opens drawer */}
+      {sorted.map((provider) => (
+        <CallProviderRow
+          key={provider.provider_id}
+          provider={provider}
+          onOpenDrawer={() => onOpenDrawer(provider)}
+        />
+      ))}
+
+      {/* Summary footer */}
+      <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 text-sm text-gray-500">
+        {callProviders.length} provider{callProviders.length !== 1 ? "s" : ""} need calling
+      </div>
+    </div>
+  );
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Page
 // ─────────────────────────────────────────────────────────────────────────────
@@ -5009,7 +5152,7 @@ export default function ProviderOutreachPage() {
                 </p>
               </div>
             </details>
-            <ReEngageQueue
+            <CallQueue
               providers={providers}
               loading={loadingProviders}
               onOpenDrawer={setDrawerProvider}
@@ -7018,6 +7161,13 @@ export default function ProviderOutreachPage() {
                   re_engage: Math.max(0, prev.re_engage - 1),
                   call_confirm: prev.call_confirm + 1,
                 }));
+              } else if (movedProvider?.stage === "call_exhausted") {
+                // Was in Call tab, moved to not_contacted (Ready)
+                setStageCounts((prev) => ({
+                  ...prev,
+                  call_exhausted: Math.max(0, prev.call_exhausted - 1),
+                  call_confirm: prev.call_confirm + 1,
+                }));
               }
             }
           }}
@@ -7115,6 +7265,8 @@ export default function ProviderOutreachPage() {
                     updated.needs_call = Math.max(0, prev.needs_call - 1);
                   } else if (fromStage === "re_engage") {
                     updated.re_engage = Math.max(0, prev.re_engage - 1);
+                  } else if (fromStage === "call_exhausted") {
+                    updated.call_exhausted = Math.max(0, prev.call_exhausted - 1);
                   }
                   return updated;
                 });

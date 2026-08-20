@@ -8,7 +8,7 @@ import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/l
  *
  * Query params:
  *   - state (required): State code
- *   - tab: UI tab (needs_email, ready, in_sequence, needs_call, re_engage, not_interested, claimed, archived, hidden)
+ *   - tab: UI tab (call_confirm, in_sequence, needs_call, re_engage, not_interested, claimed, archived, hidden)
  *   - assigned_to: Optional admin ID filter
  *   - search: Optional search filter
  *   - type: "providers" (default) or "city_assignments"
@@ -21,11 +21,11 @@ import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/l
  */
 
 // UI tabs - same as frontend
-type UITab = "needs_email" | "ready" | "hidden" | "in_sequence" | "needs_call" | "re_engage" | "not_interested" | "claimed" | "archived";
+type UITab = "call_confirm" | "hidden" | "in_sequence" | "needs_call" | "re_engage" | "not_interested" | "claimed" | "archived";
 
 // Map UI tab to database stage
 function getStageForTab(tab: UITab): string {
-  if (tab === "needs_email" || tab === "ready") return "not_contacted";
+  if (tab === "call_confirm") return "not_contacted";
   return tab;
 }
 
@@ -112,7 +112,7 @@ export async function GET(request: NextRequest) {
 
     const { searchParams } = new URL(request.url);
     const state = searchParams.get("state");
-    const tab = (searchParams.get("tab") || "needs_email") as UITab;
+    const tab = (searchParams.get("tab") || "call_confirm") as UITab;
     const assignedTo = searchParams.get("assigned_to");
     const unassignedOnly = searchParams.get("unassigned") === "true";
     const search = (searchParams.get("search") || "").trim().toLowerCase();
@@ -412,10 +412,8 @@ async function getNotContactedProvidersForExport(
     if (hiddenProviderIds.has(p.provider_id)) return false;
     if (nonNotContactedIds.has(p.provider_id)) return false;
 
-    // Filter by email presence based on tab
-    const hasEmail = p.email && p.email.trim().length > 0;
-    if (tab === "needs_email" && hasEmail) return false;
-    if (tab === "ready" && !hasEmail) return false;
+    // call_confirm tab shows all providers regardless of email presence
+    // (no email filtering needed)
 
     // Apply search
     if (search && !p.provider_name?.toLowerCase().includes(search)) return false;

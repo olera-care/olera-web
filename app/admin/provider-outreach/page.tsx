@@ -29,13 +29,12 @@ const OUTREACH_STAGES = [
 
 type OutreachStage = (typeof OUTREACH_STAGES)[number];
 
-// UI tabs - "needs_email" and "ready" are filtered views of "not_contacted"
+// UI tabs - "call_confirm" is the combined view of "not_contacted" (both needs email and has email)
 // "hidden" is a special tab for viewing admin-hidden providers
-type UITab = "needs_email" | "ready" | "hidden" | Exclude<OutreachStage, "not_contacted">;
+type UITab = "call_confirm" | "hidden" | Exclude<OutreachStage, "not_contacted">;
 
 const UI_TABS: UITab[] = [
-  "needs_email",
-  "ready",
+  "call_confirm",
   "in_sequence",
   "needs_call",  // Displayed as "Follow Up"
   "re_engage",
@@ -46,8 +45,7 @@ const UI_TABS: UITab[] = [
 ];
 
 const UI_TAB_LABELS: Record<UITab, string> = {
-  needs_email: "Needs Email",
-  ready: "Ready",
+  call_confirm: "Call & Confirm",
   in_sequence: "In Sequence",
   needs_call: "Follow Up",
   re_engage: "Alternative Channels",
@@ -889,11 +887,9 @@ interface ActiveState {
 
 // Map UI tab to API parameters (stage + optional email_filter)
 function getApiParamsForTab(tab: UITab): { stage: OutreachStage | "hidden"; emailFilter?: "needs_email" | "has_email" } {
-  if (tab === "needs_email") {
-    return { stage: "not_contacted", emailFilter: "needs_email" };
-  }
-  if (tab === "ready") {
-    return { stage: "not_contacted", emailFilter: "has_email" };
+  if (tab === "call_confirm") {
+    // Fetch all not_contacted providers (both with and without email)
+    return { stage: "not_contacted" };
   }
   if (tab === "hidden") {
     return { stage: "hidden" };
@@ -901,9 +897,9 @@ function getApiParamsForTab(tab: UITab): { stage: OutreachStage | "hidden"; emai
   return { stage: tab as OutreachStage };
 }
 
-// Check if a UI tab represents the "not_contacted" stage (needs_email or ready)
+// Check if a UI tab represents the "not_contacted" stage
 function isNotContactedTab(tab: UITab): boolean {
-  return tab === "needs_email" || tab === "ready";
+  return tab === "call_confirm";
 }
 
 function timeAgo(isoDate: string | undefined | null): string {
@@ -2245,15 +2241,14 @@ function CityRow({
 
         {/* Stats - show count relevant to the active tab */}
         <div className="flex items-center gap-6 text-sm">
-          {activeTab === "needs_email" ? (
-            <div className="text-center">
-              <span className="font-semibold text-amber-600 tabular-nums">{city.needs_email}</span>
-              <span className="text-gray-400 ml-1">{city.needs_email === 1 ? "provider" : "providers"}</span>
-            </div>
-          ) : activeTab === "ready" ? (
-            <div className="text-center">
-              <span className="font-semibold text-emerald-600 tabular-nums">{city.has_email}</span>
-              <span className="text-gray-400 ml-1">{city.has_email === 1 ? "provider" : "providers"}</span>
+          {activeTab === "call_confirm" ? (
+            // Call & Confirm tab: show total with breakdown
+            <div className="text-center flex items-center gap-2">
+              <span className="font-semibold text-gray-900 tabular-nums">{city.total}</span>
+              <span className="text-gray-400">{city.total === 1 ? "provider" : "providers"}</span>
+              {city.needs_email > 0 && (
+                <span className="text-xs text-amber-600">({city.needs_email} need email)</span>
+              )}
             </div>
           ) : (
             // Other stages: show total count
@@ -2357,8 +2352,8 @@ function CityRow({
                                 )}
                               </div>
                             )}
-                            {/* Confirm button - only show in Ready tab */}
-                            {activeTab === "ready" && (
+                            {/* Confirm button - show in Call & Confirm tab */}
+                            {activeTab === "call_confirm" && (
                               // Check if confirmed: has confirmed_at OR in confirmedProviders, AND NOT in unconfirmedProviders
                               ((provider.confirmed_at || confirmedProviders.has(provider.provider_id)) && !unconfirmedProviders.has(provider.provider_id)) ? (
                                 <button
@@ -2586,12 +2581,10 @@ function CityRow({
                                 </span>
                               )}
                               {/* Apollo decision-maker contact row */}
-                              {/* Show on Ready tab (when has email), Needs Email tab, or In Sequence tab */}
+                              {/* Show on Call & Confirm tab or In Sequence tab */}
                               {(
-                                // Ready tab: show when provider has email (find decision-maker as upgrade)
-                                ((provider.email || foundEmails.has(provider.provider_id)) && activeTab === "ready") ||
-                                // Needs Email tab: always show Apollo option alongside scraping
-                                activeTab === "needs_email" ||
+                                // Call & Confirm tab: always show Apollo option
+                                activeTab === "call_confirm" ||
                                 // In Sequence tab: allow finding decision maker and resetting with new email
                                 activeTab === "in_sequence"
                               ) && (
@@ -2603,7 +2596,7 @@ function CityRow({
                                   }}
                                   onUseEmail={(email, emailSource) => onEmailSaved(provider.provider_id, email, emailSource)}
                                   onContactFound={(contact) => onApolloContactFound(provider.provider_id, contact)}
-                                  onEmailSourceChanged={activeTab === "ready" ? (emailSource) => onEmailSourceChanged(provider.provider_id, emailSource) : undefined}
+                                  onEmailSourceChanged={activeTab === "call_confirm" ? (emailSource) => onEmailSourceChanged(provider.provider_id, emailSource) : undefined}
                                   stage={activeTab === "in_sequence" ? "in_sequence" : undefined}
                                   onResetToReady={activeTab === "in_sequence" ? onResetToReadyWithApollo : undefined}
                                 />
@@ -6320,8 +6313,8 @@ export default function ProviderOutreachPage() {
   // Selected state (from active states or fallback)
   const [selectedState, setSelectedState] = useState<string>("");
 
-  // Active UI tab (needs_email and ready are filtered views of not_contacted)
-  const [activeTab, setActiveTab] = useState<UITab>("needs_email");
+  // Active UI tab (call_confirm represents the not_contacted stage)
+  const [activeTab, setActiveTab] = useState<UITab>("call_confirm");
 
   // Search
   const [search, setSearch] = useState("");
@@ -6337,10 +6330,6 @@ export default function ProviderOutreachPage() {
   type ChannelFilter = "all" | "email" | "fax" | "contact_form" | "direct_mail";
   const [selectedChannelFilter, setSelectedChannelFilter] = useState<ChannelFilter>("all");
 
-  // Ready tab filter state (Organization vs Decision Maker)
-  type ReadyFilter = "all" | "organization" | "decision_maker";
-  const [selectedReadyFilter, setSelectedReadyFilter] = useState<ReadyFilter>("all");
-
   // All admins for name lookup (fetched once)
   interface AdminUser {
     id: string;
@@ -6353,7 +6342,7 @@ export default function ProviderOutreachPage() {
   // Legacy: kept for backwards compatibility with assigned_to=me URL param
   const myAssignmentsOnly = false; // No longer used, but kept for query param handling
 
-  // Cities data (for needs_email and ready tabs)
+  // Cities data (for call_confirm tab)
   const [cities, setCities] = useState<CityStats[]>([]);
   const [loadingCities, setLoadingCities] = useState(false);
   const [totalUnclaimed, setTotalUnclaimed] = useState(0);
@@ -6393,10 +6382,9 @@ export default function ProviderOutreachPage() {
     recentlyMovedTimersRef.current.set(providerId, timer);
   }, []);
 
-  // Stage counts (includes needs_email, ready, hidden for UI tabs)
+  // Stage counts (includes call_confirm, hidden for UI tabs)
   interface TabCounts extends Record<OutreachStage, number> {
-    needs_email: number;
-    ready: number;
+    call_confirm: number;  // Combined needs_email + ready
     hidden: number;
   }
   const [stageCounts, setStageCounts] = useState<TabCounts>({
@@ -6407,8 +6395,7 @@ export default function ProviderOutreachPage() {
     not_interested: 0,
     claimed: 0,
     archived: 0,
-    needs_email: 0,
-    ready: 0,
+    call_confirm: 0,
     hidden: 0,
   });
 
@@ -6737,7 +6724,7 @@ export default function ProviderOutreachPage() {
       // Update stage counts
       const oldStage = pendingRemoval.stage as OutreachStage;
       if (oldStage === "not_contacted") {
-        // Could be in needs_email or ready - refresh cities
+        // Could be in call_confirm - refresh cities
         fetchCities();
       } else {
         setStageCounts((prev) => ({
@@ -7010,7 +6997,12 @@ export default function ProviderOutreachPage() {
         setProviders(filteredProviders);
         setIsSearchResult(!!data.is_search);
         if (data.stage_counts) {
-          setStageCounts(data.stage_counts);
+          // Transform API counts: combine needs_email + ready into call_confirm
+          const apiCounts = data.stage_counts;
+          setStageCounts({
+            ...apiCounts,
+            call_confirm: (apiCounts.needs_email ?? 0) + (apiCounts.ready ?? 0),
+          });
         }
         // Use API admin_counts if provided, otherwise compute from provider list
         if (data.admin_counts && Object.keys(data.admin_counts).length > 0) {
@@ -7240,7 +7232,7 @@ export default function ProviderOutreachPage() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [stateActionsMenu, showStateSelector]);
 
-  // Effect: fetch cities when state changes (for needs_email/ready tabs, when not searching)
+  // Effect: fetch cities when state changes (for call_confirm tab, when not searching)
   useEffect(() => {
     if (isNotContactedTab(activeTab) && !debouncedSearch) {
       fetchCities();
@@ -7289,8 +7281,7 @@ export default function ProviderOutreachPage() {
         not_interested: 0,
         claimed: 0,
         archived: 0,
-        needs_email: 0,
-        ready: 0,
+        call_confirm: 0,
         hidden: 0,
       });
       prevStateRef.current = selectedState;
@@ -7612,13 +7603,10 @@ export default function ProviderOutreachPage() {
   // Note: Archive removed from bulk actions - use individual provider modal instead
   const getAvailableActions = (): { stage: OutreachStage; label: string; color: string; requiresEmail?: boolean }[] => {
     switch (activeTab) {
-      case "needs_email":
-        // Providers without email - can only add email (no bulk actions)
-        return [];
-      case "ready":
-        // Providers with email - can move to sequence
+      case "call_confirm":
+        // Providers with email can move to sequence (requiresEmail filters out those without)
         return [
-          { stage: "in_sequence", label: "Move to In Sequence", color: "bg-primary-600 hover:bg-primary-700", requiresEmail: true },
+          { stage: "in_sequence", label: "Launch Sequence", color: "bg-primary-600 hover:bg-primary-700", requiresEmail: true },
         ];
       case "in_sequence":
         return [
@@ -7724,7 +7712,7 @@ export default function ProviderOutreachPage() {
                   onClick={() => handleExport("providers")}
                   disabled={exporting || loadingProviders}
                   className={`flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:border-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                    activeTab === "needs_email" || activeTab === "ready"
+                    activeTab === "call_confirm"
                       ? "rounded-l-lg border-r-0"
                       : "rounded-lg"
                   }`}
@@ -7734,8 +7722,8 @@ export default function ProviderOutreachPage() {
                   </svg>
                   <span className="whitespace-nowrap">{exporting ? "Exporting..." : "Export CSV"}</span>
                 </button>
-                {/* City assignments export - only show on needs_email/ready tabs */}
-                {(activeTab === "needs_email" || activeTab === "ready") && (
+                {/* City assignments export - only show on Call & Confirm tab */}
+                {activeTab === "call_confirm" && (
                   <button
                     onClick={() => handleExport("city_assignments")}
                     disabled={exporting || loadingCities}
@@ -7966,10 +7954,6 @@ export default function ProviderOutreachPage() {
                   if (tab.value !== "re_engage") {
                     setSelectedChannelFilter("all");
                   }
-                  // Reset ready filter when leaving Ready tab
-                  if (tab.value !== "ready") {
-                    setSelectedReadyFilter("all");
-                  }
                 }}
                 className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === tab.value
@@ -7990,12 +7974,11 @@ export default function ProviderOutreachPage() {
       )}
 
       {/* Admin Filter Chips - show on tabs where assignment applies */}
-      {selectedState && ["needs_email", "ready", "in_sequence", "needs_call", "re_engage", "not_interested"].includes(activeTab) && (
+      {selectedState && ["call_confirm", "in_sequence", "needs_call", "re_engage", "not_interested"].includes(activeTab) && (
         <AdminFilterChips
           adminCounts={adminCounts}
           totalCount={
-            activeTab === "needs_email" ? stageCounts.needs_email :
-            activeTab === "ready" ? stageCounts.ready :
+            activeTab === "call_confirm" ? stageCounts.call_confirm :
             activeTab === "in_sequence" ? stageCounts.in_sequence :
             activeTab === "needs_call" ? stageCounts.needs_call :
             activeTab === "re_engage" ? stageCounts.re_engage :
@@ -8837,13 +8820,13 @@ export default function ProviderOutreachPage() {
                 );
               }}
               onResetToReady={(providerId) => {
-                // Optimistically remove provider from list (they moved to Ready tab)
+                // Optimistically remove provider from list (they moved to Call & Confirm tab)
                 setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
                 // Also update stage counts
                 setStageCounts((prev) => ({
                   ...prev,
                   re_engage: Math.max(0, prev.re_engage - 1),
-                  ready: prev.ready + 1,
+                  call_confirm: prev.call_confirm + 1,
                 }));
               }}
               adminNameLookup={adminNameLookup}
@@ -8852,8 +8835,8 @@ export default function ProviderOutreachPage() {
         ) : (
           // Normal city-grouped view
           <>
-            {/* Call Script - only show on Ready tab */}
-            {activeTab === "ready" && (
+            {/* Call Script - show on Call & Confirm tab */}
+            {activeTab === "call_confirm" && (
               <details className="mx-5 mt-2 mb-4">
                 <summary className="py-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-900 select-none">
                   Call Script
@@ -8872,38 +8855,6 @@ export default function ProviderOutreachPage() {
               </details>
             )}
 
-            {/* Ready tab sub-tabs: Organization vs Decision Maker */}
-            {activeTab === "ready" && (
-              <div className="px-5 py-3 border-b border-gray-200 flex items-center gap-2">
-                <span className="text-xs text-gray-500 mr-1">Email Source:</span>
-                {(["all", "organization", "decision_maker"] as const).map((filter) => {
-                  const count = filter === "all"
-                    ? providers.length
-                    : providers.filter((p) => (p.email_source || "organization") === filter).length;
-                  const label = filter === "all" ? "All" :
-                    filter === "organization" ? "Organization" : "Decision Maker";
-                  const isSelected = selectedReadyFilter === filter;
-                  return (
-                    <button
-                      key={filter}
-                      onClick={() => setSelectedReadyFilter(filter)}
-                      className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                        isSelected
-                          ? filter === "decision_maker"
-                            ? "bg-purple-600 text-white"
-                            : "bg-gray-800 text-white"
-                          : filter === "decision_maker"
-                            ? "bg-purple-50 text-purple-700 hover:bg-purple-100"
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      }`}
-                    >
-                      {label} ({count})
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
             {/* Header */}
             <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
               <div className="w-5" />
@@ -8912,27 +8863,16 @@ export default function ProviderOutreachPage() {
             </div>
 
             {(() => {
-              // For needs_email/ready tabs: use cities API data when no admin filter,
+              // For call_confirm tab: use cities API data when no admin filter,
               // otherwise compute from providers (which are already filtered by assigned_to)
-              // but merge in sequence stats from API for conversion tracking
               // For other stages: always compute from providers
-              // Filter providers by email_source when Ready tab sub-filter is active
-              const filteredProviders = activeTab === "ready" && selectedReadyFilter !== "all"
-                ? providers.filter((p) => (p.email_source || "organization") === selectedReadyFilter)
-                : providers;
+              const filteredProviders = providers;
 
               const useApiCities = isNotContactedTab(activeTab) && !selectedAdminFilter;
-              // When Ready filter is active, recompute city stats from filtered providers
-              const shouldRecomputeCities = activeTab === "ready" && selectedReadyFilter !== "all";
-              let displayCities = (useApiCities && !shouldRecomputeCities) ? cities : computeCityStatsFromProviders(filteredProviders);
-              if (activeTab === "needs_email") {
-                displayCities = displayCities.filter((c) => c.needs_email > 0);
-              } else if (activeTab === "ready") {
-                displayCities = displayCities.filter((c) => c.has_email > 0);
-              }
+              const displayCities = useApiCities ? cities : computeCityStatsFromProviders(filteredProviders);
               const isLoading = useApiCities ? loadingCities : loadingProviders;
               const emptyMessage = isNotContactedTab(activeTab)
-                ? `No ${activeTab === "needs_email" ? "providers needing email" : "ready providers"} in ${selectedState}`
+                ? `No providers to call in ${selectedState}`
                 : `No providers in ${UI_TAB_LABELS[activeTab]}`;
 
               if (isLoading) {
@@ -8966,35 +8906,23 @@ export default function ProviderOutreachPage() {
                       onToggleProvider={toggleProvider}
                       onSelectAllInCity={selectAllInCity}
                       onEmailSaved={(providerId, newEmail, emailSource) => {
-                        // Update local providers state
-                        // On "Needs Email" tab, remove the provider (it now has email, belongs in "Ready")
-                        // On other tabs, just update the email field
-                        if (activeTab === "needs_email") {
-                          setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
-                          // Optimistically update tab counts: needs_email -1, ready +1
-                          setStageCounts((prev) => ({
-                            ...prev,
-                            needs_email: Math.max(0, prev.needs_email - 1),
-                            ready: prev.ready + 1,
-                          }));
-                        } else {
-                          // Reset confirmed_at since contact info changed (API also resets it)
-                          // Also update email_source if provided (for Apollo confirmation)
-                          setProviders((prev) =>
-                            prev.map((p) =>
-                              p.provider_id === providerId
-                                ? {
-                                    ...p,
-                                    email: newEmail,
-                                    confirmed_at: null,
-                                    confirmed_by: null,
-                                    ...(emailSource && { email_source: emailSource }),
-                                  }
-                                : p
-                            )
-                          );
-                        }
-                        // Refresh cities to update counts (for needs_email/ready tabs)
+                        // Update local providers state with new email
+                        // Reset confirmed_at since contact info changed (API also resets it)
+                        // Also update email_source if provided (for Apollo confirmation)
+                        setProviders((prev) =>
+                          prev.map((p) =>
+                            p.provider_id === providerId
+                              ? {
+                                  ...p,
+                                  email: newEmail,
+                                  confirmed_at: null,
+                                  confirmed_by: null,
+                                  ...(emailSource && { email_source: emailSource }),
+                                }
+                              : p
+                          )
+                        );
+                        // Refresh cities to update counts
                         if (isNotContactedTab(activeTab)) {
                           fetchCities();
                         }
@@ -9009,33 +8937,19 @@ export default function ProviderOutreachPage() {
                         );
                       }}
                       onApolloContactFound={(providerId, apolloContact) => {
-                        // On Needs Email tab: Apollo found email, provider moves to Ready tab
+                        // Save apollo_contact for review
                         // Backend auto-confirms (sets email_source, updates email) when provider has no email
-                        if (activeTab === "needs_email") {
-                          // Remove provider from Needs Email list (they now belong in Ready → Decision Maker)
-                          setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
-                          // Optimistically update tab counts
-                          setStageCounts((prev) => ({
-                            ...prev,
-                            needs_email: Math.max(0, prev.needs_email - 1),
-                            ready: prev.ready + 1,
-                          }));
-                        } else {
-                          // On Ready tab: just save apollo_contact for review
-                          // User must click "Confirm" to set email_source and move to Decision Maker tab
-                          // Backend no longer auto-confirms when provider already has email
-                          setProviders((prev) =>
-                            prev.map((p) =>
-                              p.provider_id === providerId
-                                ? {
-                                    ...p,
-                                    apollo_contact: apolloContact,
-                                    // Don't set email_source here - wait for user confirmation
-                                  }
-                                : p
-                            )
-                          );
-                        }
+                        // Otherwise user must click "Confirm" to use the decision-maker email
+                        setProviders((prev) =>
+                          prev.map((p) =>
+                            p.provider_id === providerId
+                              ? {
+                                  ...p,
+                                  apollo_contact: apolloContact,
+                                }
+                              : p
+                          )
+                        );
                         // Refresh cities to update counts
                         if (isNotContactedTab(activeTab)) {
                           fetchCities();
@@ -9083,9 +8997,9 @@ export default function ProviderOutreachPage() {
                             setStageCounts((prev) => ({
                               ...prev,
                               not_interested: Math.max(0, prev.not_interested - 1),
-                              ready: prev.ready + 1,
+                              call_confirm: prev.call_confirm + 1,
                             }));
-                            showToast("Moved to Ready", "success");
+                            showToast("Moved to Call & Confirm", "success");
                           } else {
                             const err = await res.json();
                             showToast(err.error || "Failed to move provider", "error");
@@ -9121,9 +9035,9 @@ export default function ProviderOutreachPage() {
                             setStageCounts((prev) => ({
                               ...prev,
                               in_sequence: Math.max(0, prev.in_sequence - 1),
-                              ready: prev.ready + 1,
+                              call_confirm: prev.call_confirm + 1,
                             }));
-                            showToast("Reset to Ready with Apollo email", "success");
+                            showToast("Reset to Call & Confirm with Apollo email", "success");
                             return true;
                           } else {
                             const err = await res.json();
@@ -9684,19 +9598,15 @@ export default function ProviderOutreachPage() {
                             const updates: Partial<typeof prev> = {};
                             // Decrement old stage count
                             if (oldStage === "not_contacted") {
-                              // not_contacted is split into needs_email/ready sub-tabs
-                              if (actionModalProvider.email) {
-                                updates.ready = Math.max(0, prev.ready - 1);
-                              } else {
-                                updates.needs_email = Math.max(0, prev.needs_email - 1);
-                              }
+                              // not_contacted is the call_confirm tab
+                              updates.call_confirm = Math.max(0, prev.call_confirm - 1);
                             } else if (oldStage && oldStage in prev) {
                               updates[oldStage as keyof typeof prev] = Math.max(0, (prev[oldStage as keyof typeof prev] || 0) - 1);
                             }
                             // Increment new stage count
                             if (pendingStageMove === "not_contacted") {
-                              // Moving to not_contacted means they have email, so increment ready
-                              updates.ready = (updates.ready ?? prev.ready) + 1;
+                              // Moving to not_contacted increments call_confirm
+                              updates.call_confirm = (updates.call_confirm ?? prev.call_confirm) + 1;
                             } else if (pendingStageMove && pendingStageMove in prev) {
                               updates[pendingStageMove as keyof typeof prev] = (prev[pendingStageMove as keyof typeof prev] || 0) + 1;
                             }

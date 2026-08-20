@@ -13,6 +13,7 @@ import { formatAge } from "@/lib/connection-temperature";
 
 interface EmailLogEntry {
   id: string;
+  recipient?: string | null;
   created_at: string;
   subject: string;
   delivered_at: string | null;
@@ -209,19 +210,33 @@ function ProviderStatusBadge({ question }: { question: Question }) {
  * Trust bypasses delivery checks, so the decision needs the evidence in view. A
  * row that has bounced once and a row that has bounced seventeen times and never
  * delivered used to look identical here, which is how dead addresses ended up
- * trusted in bulk. "Never delivered" is the case the server now refuses outright.
+ * trusted in bulk.
+ *
+ * Two deliberate narrowings, both to avoid over-claiming:
+ *  - History is fetched for question_received only, so the copy says "question
+ *    emails" rather than implying the mailbox is dead everywhere. A provider can
+ *    take the weekly digest and bounce these, and the server (which checks every
+ *    email type) will correctly still allow that override.
+ *  - Rows are keyed by provider, not address, so a provider whose email was
+ *    replaced carries the old address's bounces. Filter to the address actually
+ *    being trusted; entries predating the `recipient` column are left in rather
+ *    than dropped, since some history beats none.
  */
-function DeliverySummary({ emails }: { emails: EmailLogEntry[] }) {
+function DeliverySummary({ emails, email }: { emails: EmailLogEntry[]; email: string | null }) {
   if (!emails || emails.length === 0) return null;
-  const bounced = emails.filter((e) => e.bounced_at).length;
-  const delivered = emails.filter((e) => e.delivered_at).length;
+  const target = (email || "").trim().toLowerCase();
+  const mine = target
+    ? emails.filter((e) => !e.recipient || e.recipient.trim().toLowerCase() === target)
+    : emails;
+  const bounced = mine.filter((e) => e.bounced_at).length;
+  const delivered = mine.filter((e) => e.delivered_at).length;
   if (bounced === 0) return null;
   const neverDelivered = delivered === 0;
   return (
     <p className={`text-xs mt-1 ${neverDelivered ? "text-red-700 font-medium" : "text-gray-500"}`}>
       {neverDelivered
-        ? `Bounced ${bounced}x, never delivered`
-        : `Bounced ${bounced}x, delivered ${delivered}x`}
+        ? `Question emails: bounced ${bounced}x, never delivered`
+        : `Question emails: bounced ${bounced}x, delivered ${delivered}x`}
     </p>
   );
 }
@@ -1707,7 +1722,7 @@ export default function AdminQuestionsPage() {
                                 </div>
                               </div>
                               <p className="text-xs text-gray-500 mt-1">{firstQ.provider_email}</p>
-                              <DeliverySummary emails={firstQ.provider_email_history || []} />
+                              <DeliverySummary emails={firstQ.provider_email_history || []} email={firstQ.provider_email} />
                             </div>
                           )
                         ) : groupNeedsEmail ? (

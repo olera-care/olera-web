@@ -75,11 +75,11 @@ interface ProviderDrawerProps {
   // Inline editing callbacks
   onEmailUpdate?: (providerId: string, email: string, emailSource?: "decision_maker") => void;
   onPhoneUpdate?: (providerId: string, phone: string | null) => void;
-  // Action callbacks
-  onLaunchSequence?: (provider: OutreachProvider) => void;
-  onMarkNotInterested?: (provider: OutreachProvider) => void;
-  onArchive?: (provider: OutreachProvider) => void;
-  onRemove?: (provider: OutreachProvider) => void;
+  // Action callbacks (use providerId to avoid type mismatches with page's full OutreachProvider)
+  onLaunchSequence?: (providerId: string) => void;
+  onMarkNotInterested?: (providerId: string) => void;
+  onArchive?: (providerId: string) => void;
+  onRemove?: (providerId: string, providerName: string) => void;
   onMoveToReady?: (providerId: string) => void;
   // Reset to Ready with Apollo email (for in_sequence providers)
   onResetToReadyWithApollo?: (providerId: string) => Promise<boolean>;
@@ -680,10 +680,10 @@ function ActionsSection({
   activeTab,
 }: {
   provider: OutreachProvider;
-  onLaunchSequence?: (provider: OutreachProvider) => void;
-  onMarkNotInterested?: (provider: OutreachProvider) => void;
-  onArchive?: (provider: OutreachProvider) => void;
-  onRemove?: (provider: OutreachProvider) => void;
+  onLaunchSequence?: (providerId: string) => void;
+  onMarkNotInterested?: (providerId: string) => void;
+  onArchive?: (providerId: string) => void;
+  onRemove?: (providerId: string, providerName: string) => void;
   onMoveToReady?: (providerId: string) => void;
   activeTab?: string;
 }) {
@@ -730,7 +730,7 @@ function ActionsSection({
         {/* Launch Sequence - only for not_contacted with email */}
         {canLaunch && onLaunchSequence && (
           <button
-            onClick={() => onLaunchSequence(provider)}
+            onClick={() => onLaunchSequence(provider.provider_id)}
             className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition"
           >
             Launch Sequence
@@ -784,7 +784,7 @@ function ActionsSection({
         {/* Mark Not Interested - for active stages */}
         {!isTerminal && provider.stage !== "not_interested" && onMarkNotInterested && (
           <button
-            onClick={() => onMarkNotInterested(provider)}
+            onClick={() => onMarkNotInterested(provider.provider_id)}
             className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition"
           >
             Not Interested
@@ -794,7 +794,7 @@ function ActionsSection({
         {/* Archive - for non-archived */}
         {provider.stage !== "archived" && onArchive && (
           <button
-            onClick={() => onArchive(provider)}
+            onClick={() => onArchive(provider.provider_id)}
             className="px-4 py-2 text-sm font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 transition"
           >
             Archive
@@ -804,7 +804,7 @@ function ActionsSection({
         {/* Remove - always available except for hidden */}
         {activeTab !== "hidden" && onRemove && (
           <button
-            onClick={() => onRemove(provider)}
+            onClick={() => onRemove(provider.provider_id, provider.provider_name)}
             className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
           >
             Remove

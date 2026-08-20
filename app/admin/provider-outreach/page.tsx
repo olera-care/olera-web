@@ -10804,25 +10804,35 @@ export default function ProviderOutreachPage() {
               prev && prev.provider_id === providerId ? { ...prev, phone } : prev
             );
           }}
-          onLaunchSequence={(provider) => {
-            // Open sequence confirmation modal
-            setSequenceConfirmProviders([provider]);
-            setShowSequenceConfirm(true);
-            setDrawerProvider(null);
+          onLaunchSequence={(providerId) => {
+            // Look up provider from state and open sequence confirmation modal
+            const provider = providers.find((p) => p.provider_id === providerId);
+            if (provider) {
+              setSequenceConfirmProviders([provider]);
+              setShowSequenceConfirm(true);
+              setDrawerProvider(null);
+            }
           }}
-          onMarkNotInterested={(provider) => {
-            setActionModalProvider(provider);
-            setDrawerProvider(null);
+          onMarkNotInterested={(providerId) => {
+            const provider = providers.find((p) => p.provider_id === providerId);
+            if (provider) {
+              setActionModalProvider(provider);
+              setDrawerProvider(null);
+            }
           }}
-          onArchive={(provider) => {
-            setActionModalProvider(provider);
-            setDrawerProvider(null);
+          onArchive={(providerId) => {
+            const provider = providers.find((p) => p.provider_id === providerId);
+            if (provider) {
+              setActionModalProvider(provider);
+              setDrawerProvider(null);
+            }
           }}
-          onRemove={(provider) => {
+          onRemove={(providerId, providerName) => {
+            const provider = providers.find((p) => p.provider_id === providerId);
             setPendingRemoval({
-              providerId: provider.provider_id,
-              providerName: provider.provider_name,
-              stage: provider.stage,
+              providerId,
+              providerName,
+              stage: provider?.stage || "not_contacted",
             });
             setDrawerProvider(null);
           }}

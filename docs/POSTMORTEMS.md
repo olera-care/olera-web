@@ -449,3 +449,28 @@ A secondary self-inflicted wound: I diagnosed "94 zombie tsc processes" from `pg
 **Lesson**: A verification screen that derives its output from the thing you are verifying cannot detect that the thing is missing. When state can silently vanish, check for presence before you check for problems — absence of errors and absence of content look identical from the outside.
 
 ---
+
+### 2026-08-20: "Has photos" passed four providers whose landing pages were all wasting the clicks
+
+**Symptom**: Built and published two 90-day Ad Boost campaigns, then looked at the provider pages the ads point at. All four providers in the batch satisfied the SOP's Phase 1 pre-flight (`has photos (metadata.images)`), and all four had a landing-page defect serious enough to undermine the traffic being bought. The check that passed them counted images. Nobody had looked at one.
+
+**Root Cause**: The pre-flight tested for the *presence* of an array, not the *content* of it. Presence and suitability are different properties, and only one of them was being measured — the same class of error as the near-miss earlier the same day, where a clean Review screen was clean because it was empty. Both times the check answered a question adjacent to the one that mattered.
+
+What looking actually found:
+
+- **Miracle-Lightstar** — 5 of 13 images were photographs of printed tri-fold marketing flyers, complete with QR codes and his phone number burnt into the pixels. 7 were stock models in scrubs. 1 was the logo. **His hero image was a picture of a brochure.** Not one real photograph of his business, his staff, or his clients.
+- **Graceful** — every image real, well shot, full resolution, and of *a facility*: a thirty-table dining hall, a twenty-chair activity lounge, a multi-storey atrium. She sells non-medical care in the client's own home. This is the dangerous case, because "authentic and off-message" survives every automated check that "stock" would fail.
+- **Pacesetter** — her two genuine professional headshots, one against a branded wall, were her two smallest files (271×312 and 284×308) and last in the gallery, behind a parking-lot exterior and two clinical stock images (hospital bed, stethoscope) for a business that is explicitly non-medical.
+- **Edmonds Villa** — all fourteen genuinely hers, and the running order buried the good one: hero was an empty room of banquet tables, second image was a crock pot, and the single photo of residents eating with caregivers sat fourth. Four of fourteen were bathrooms; one was propane tanks.
+
+A second, systematic defect surfaced in the same pass: **the hero chip renders `care_types[0]` verbatim.** All four were wrong, including `"home-care"` (the raw lowercase slug, which reads to a family as a broken page) and `"Memory Care"` on the one provider whose ads legally cannot mention it.
+
+**Fix**: Phase 1 of `.claude/commands/ad-boost-setup.md` gains steps 1a, 1b and 1c — view the images as a contact sheet rather than counting them, check `image[0]` specifically because it is the entire first impression, verify the subject matches what the provider sells, read `care_types[0]` as the hero chip, and check whether trust signals exist. The four cases above are recorded as the worked examples.
+
+**Prevention**: The reusable rule is in the SOP as a heading: **a count is not a check.** Any pre-flight that asserts a field is non-empty should say what it is *not* verifying, so the gap is visible rather than implied. Downloading and viewing a whole gallery costs one image read via a PIL contact sheet, which is cheaper than one wasted flight.
+
+Also worth keeping: **PIL ignores EXIF orientation and browsers honour it.** A contact sheet made one hero look rotated 90°; the file carried `Orientation=6` and renders correctly in a browser. Check the EXIF tag before reporting a rotation bug — this is the second time an image has been misdiagnosed from a non-browser rendering, after the 2026-07-26 "blank hero" that was only slow optimization.
+
+**Lesson**: A pre-flight that asks "is there something here?" will pass every case where there is something wrong here. If the thing being checked is what the customer sees, the check has to be looking at it.
+
+---

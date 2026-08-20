@@ -595,66 +595,57 @@ function DecisionMakerSection({
           {error && <span className="text-sm text-amber-600">{error}</span>}
         </div>
       ) : (
-        <div className="space-y-3">
-          {/* Name and title - clean typography */}
+        <div className="space-y-1">
+          {/* Name - bold */}
           <p className="font-medium text-gray-900">
             {[contact.first_name, contact.last_name].filter(Boolean).join(" ") || "Unknown"}
           </p>
-          {contact.title && (
-            <p className="text-sm text-gray-500">{contact.title}</p>
+
+          {/* Title · Email · LinkedIn - all inline */}
+          {(contact.title || contact.email || contact.linkedin_url) && (
+            <p className="text-sm text-gray-500">
+              {contact.title}
+              {contact.title && contact.email && <span className="mx-1.5">·</span>}
+              {contact.email}
+              {(contact.title || contact.email) && contact.linkedin_url && <span className="mx-1.5">·</span>}
+              {contact.linkedin_url && (
+                <a
+                  href={contact.linkedin_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  LinkedIn
+                </a>
+              )}
+            </p>
           )}
 
-          {/* Contact details inline */}
-          <div className="flex items-center gap-4 text-sm">
-            {!emailsMatch && contact.email && (
-              <span className="text-gray-600">{contact.email}</span>
-            )}
-            {contact.linkedin_url && (
-              <a
-                href={contact.linkedin_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 hover:underline"
-              >
-                LinkedIn
-              </a>
-            )}
-          </div>
-
-          {/* Action buttons */}
-          <div className="pt-2 flex flex-wrap items-center gap-2">
-            {isActive ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-emerald-700 bg-emerald-50 rounded-lg">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Active
-              </span>
-            ) : emailsMatch ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm text-gray-500 bg-gray-100 rounded-lg">
-                Email matches
-              </span>
-            ) : (
-              <button
-                onClick={handleUseEmail}
-                disabled={using}
-                className="px-4 py-2 text-sm font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition disabled:opacity-50"
-              >
-                {using ? "Updating..." : "Use This Email"}
-              </button>
-            )}
-            {/* Reset to Ready with Apollo - for in_sequence providers with Apollo email */}
-            {isInSequence && contact?.email && !emailsMatch && onResetToReadyWithApollo && (
-              <button
-                onClick={handleResetToReady}
-                disabled={resetting}
-                className="px-4 py-2 text-sm font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition disabled:opacity-50"
-              >
-                {resetting ? "Resetting..." : "Reset to Ready with This Email"}
-              </button>
-            )}
-            {error && <span className="text-sm text-amber-600">{error}</span>}
-          </div>
+          {/* Action buttons - only show when needed */}
+          {(!isActive && !emailsMatch && contact.email) || (isInSequence && contact?.email && !emailsMatch && onResetToReadyWithApollo) ? (
+            <div className="pt-2 flex flex-wrap items-center gap-2">
+              {!isActive && !emailsMatch && contact.email && (
+                <button
+                  onClick={handleUseEmail}
+                  disabled={using}
+                  className="px-3 py-1.5 text-sm font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition disabled:opacity-50"
+                >
+                  {using ? "Updating..." : "Use This Email"}
+                </button>
+              )}
+              {isInSequence && contact?.email && !emailsMatch && onResetToReadyWithApollo && (
+                <button
+                  onClick={handleResetToReady}
+                  disabled={resetting}
+                  className="px-3 py-1.5 text-sm font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition disabled:opacity-50"
+                >
+                  {resetting ? "Resetting..." : "Reset to Ready with This Email"}
+                </button>
+              )}
+              {error && <span className="text-sm text-amber-600">{error}</span>}
+            </div>
+          ) : null}
         </div>
       )}
     </div>

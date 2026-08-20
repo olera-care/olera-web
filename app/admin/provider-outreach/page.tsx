@@ -1774,205 +1774,157 @@ function CityRow({
                 </label>
               </div>
 
-              {/* Provider Cards - Simplified rows with drawer pattern */}
+              {/* Provider Cards - Two-line layout matching Follow Up / Alt Channels */}
               <div className="divide-y divide-gray-100">
                 {cityProviders.map((provider) => (
                   <div
                     key={provider.provider_id}
-                    className="group px-5 py-2.5 pl-10 hover:bg-white transition-colors cursor-pointer"
+                    className="group px-5 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
                     onClick={() => onOpenDrawer(provider)}
                   >
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-start gap-3">
                       {/* Checkbox - stops propagation */}
                       <input
                         type="checkbox"
                         checked={selectedProviders.has(provider.provider_id)}
                         onChange={() => onToggleProvider(provider.provider_id)}
                         onClick={(e) => e.stopPropagation()}
-                        className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 shrink-0"
+                        className="w-4 h-4 mt-0.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 shrink-0"
                       />
 
-                      {/* Provider name + badges */}
-                      <div className="flex items-center gap-2 min-w-0 flex-1">
-                        <span className="font-medium text-gray-900 text-sm truncate">
-                          {provider.provider_name}
-                        </span>
-
-                        {/* Sequence progress badge - only show in In Sequence tab */}
-                        {activeTab === "in_sequence" && typeof provider.emails_sent === "number" && (
-                          <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded shrink-0 ${
-                            provider.sequence_status?.failed_step !== undefined
-                              ? "bg-red-100 text-red-700"
-                              : "bg-blue-100 text-blue-700"
-                          }`}>
-                            {provider.emails_sent}/4
+                      {/* Main content - two lines */}
+                      <div className="flex-1 min-w-0">
+                        {/* Row 1: Provider name + badges */}
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-medium text-gray-900 text-sm truncate">
+                            {provider.provider_name}
                           </span>
-                        )}
 
-                        {/* Confirm button - show in Call & Confirm tab */}
-                        {activeTab === "call_confirm" && (
-                          ((provider.confirmed_at || confirmedProviders.has(provider.provider_id)) && !unconfirmedProviders.has(provider.provider_id)) ? (
-                            <button
-                              type="button"
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                setUnconfirmingProvider(provider.provider_id);
-                                try {
-                                  const res = await fetch("/api/admin/provider-outreach/confirm", {
-                                    method: "DELETE",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ provider_id: provider.provider_id }),
-                                  });
-                                  if (res.ok) {
-                                    setConfirmedProviders(prev => {
-                                      const next = new Set(prev);
-                                      next.delete(provider.provider_id);
-                                      return next;
+                          {/* Confirm button - show in Call & Confirm tab */}
+                          {activeTab === "call_confirm" && (
+                            ((provider.confirmed_at || confirmedProviders.has(provider.provider_id)) && !unconfirmedProviders.has(provider.provider_id)) ? (
+                              <button
+                                type="button"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  setUnconfirmingProvider(provider.provider_id);
+                                  try {
+                                    const res = await fetch("/api/admin/provider-outreach/confirm", {
+                                      method: "DELETE",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ provider_id: provider.provider_id }),
                                     });
-                                    setUnconfirmedProviders(prev => new Set([...prev, provider.provider_id]));
+                                    if (res.ok) {
+                                      setConfirmedProviders(prev => {
+                                        const next = new Set(prev);
+                                        next.delete(provider.provider_id);
+                                        return next;
+                                      });
+                                      setUnconfirmedProviders(prev => new Set([...prev, provider.provider_id]));
+                                    }
+                                  } catch {
+                                    // Silent fail
+                                  } finally {
+                                    setUnconfirmingProvider(null);
                                   }
-                                } catch {
-                                  // Silent fail
-                                } finally {
-                                  setUnconfirmingProvider(null);
-                                }
-                              }}
-                              disabled={unconfirmingProvider === provider.provider_id}
-                              className="text-blue-500 hover:text-blue-400 shrink-0"
-                              title="Click to unconfirm"
-                            >
-                              {unconfirmingProvider === provider.provider_id ? (
-                                <span className="w-4 h-4 border-2 border-blue-300 border-t-blue-500 rounded-full animate-spin inline-block" />
-                              ) : (
-                                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                                </svg>
-                              )}
-                            </button>
-                          ) : (
-                            <button
-                              type="button"
-                              onClick={async (e) => {
-                                e.stopPropagation();
-                                setConfirmingProvider(provider.provider_id);
-                                setConfirmError(null);
-                                try {
-                                  const res = await fetch("/api/admin/provider-outreach/confirm", {
-                                    method: "POST",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ provider_id: provider.provider_id }),
-                                  });
-                                  if (res.ok) {
-                                    setConfirmedProviders(prev => new Set([...prev, provider.provider_id]));
-                                    setUnconfirmedProviders(prev => {
-                                      const next = new Set(prev);
-                                      next.delete(provider.provider_id);
-                                      return next;
+                                }}
+                                disabled={unconfirmingProvider === provider.provider_id}
+                                className="text-blue-500 hover:text-blue-400 shrink-0"
+                                title="Click to unconfirm"
+                              >
+                                {unconfirmingProvider === provider.provider_id ? (
+                                  <span className="w-4 h-4 border-2 border-blue-300 border-t-blue-500 rounded-full animate-spin inline-block" />
+                                ) : (
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                                  </svg>
+                                )}
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  setConfirmingProvider(provider.provider_id);
+                                  setConfirmError(null);
+                                  try {
+                                    const res = await fetch("/api/admin/provider-outreach/confirm", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ provider_id: provider.provider_id }),
                                     });
-                                  } else {
+                                    if (res.ok) {
+                                      setConfirmedProviders(prev => new Set([...prev, provider.provider_id]));
+                                      setUnconfirmedProviders(prev => {
+                                        const next = new Set(prev);
+                                        next.delete(provider.provider_id);
+                                        return next;
+                                      });
+                                    } else {
+                                      setConfirmError(provider.provider_id);
+                                    }
+                                  } catch {
                                     setConfirmError(provider.provider_id);
+                                  } finally {
+                                    setConfirmingProvider(null);
                                   }
-                                } catch {
-                                  setConfirmError(provider.provider_id);
-                                } finally {
-                                  setConfirmingProvider(null);
-                                }
-                              }}
-                              disabled={confirmingProvider === provider.provider_id}
-                              className={`shrink-0 ${
-                                confirmError === provider.provider_id
-                                  ? "text-red-500 hover:text-red-600"
-                                  : "text-gray-400 hover:text-blue-500"
-                              }`}
-                              title={confirmError === provider.provider_id ? "Failed - click to retry" : "Click to confirm"}
+                                }}
+                                disabled={confirmingProvider === provider.provider_id}
+                                className={`shrink-0 ${
+                                  confirmError === provider.provider_id
+                                    ? "text-red-500 hover:text-red-600"
+                                    : "text-gray-400 hover:text-blue-500"
+                                }`}
+                                title={confirmError === provider.provider_id ? "Failed - click to retry" : "Click to confirm"}
+                              >
+                                {confirmingProvider === provider.provider_id ? (
+                                  <span className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin inline-block" />
+                                ) : (
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth={1.5}>
+                                    <circle cx="10" cy="10" r="7.5" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.5 10l2 2 4-4" />
+                                  </svg>
+                                )}
+                              </button>
+                            )
+                          )}
+
+                          {/* Sequence progress badge - only show in In Sequence tab */}
+                          {activeTab === "in_sequence" && typeof provider.emails_sent === "number" && (
+                            <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded shrink-0 ${
+                              provider.sequence_status?.failed_step !== undefined
+                                ? "bg-red-100 text-red-700"
+                                : "bg-blue-100 text-blue-700"
+                            }`}>
+                              {provider.emails_sent}/4
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Row 2: Category · City, State · Phone */}
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
+                          {provider.provider_category && (
+                            <span className="truncate max-w-[200px]">{provider.provider_category}</span>
+                          )}
+                          {provider.provider_category && provider.city && <span>·</span>}
+                          {provider.city && (
+                            <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>
+                          )}
+                          {(provider.provider_category || provider.city) && provider.phone && <span>·</span>}
+                          {provider.phone && (
+                            <a
+                              href={`tel:${provider.phone.replace(/\D/g, "")}`}
+                              className="text-primary-600 hover:text-primary-700 hover:underline"
+                              onClick={(e) => e.stopPropagation()}
                             >
-                              {confirmingProvider === provider.provider_id ? (
-                                <span className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin inline-block" />
-                              ) : (
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth={1.5}>
-                                  <circle cx="10" cy="10" r="7.5" />
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.5 10l2 2 4-4" />
-                                </svg>
-                              )}
-                            </button>
-                          )
-                        )}
+                              {formatPhone(provider.phone)}
+                            </a>
+                          )}
+                        </div>
                       </div>
-
-                      {/* Category · City */}
-                      <div className="text-xs text-gray-500 shrink-0 hidden sm:block">
-                        {[provider.provider_category, provider.city].filter(Boolean).join(" · ")}
-                      </div>
-
-                      {/* Contact info - inline edit preserved */}
-                      <div className="flex items-center gap-3 shrink-0" onClick={(e) => e.stopPropagation()}>
-                        {lookingUpEmails.has(provider.provider_id) ? (
-                          <span className="inline-flex items-center gap-1 text-xs text-gray-400">
-                            <span className="w-3 h-3 border-2 border-gray-300 border-t-teal-500 rounded-full animate-spin" />
-                            Finding...
-                          </span>
-                        ) : (
-                          <ProviderContactEditor
-                            providerId={provider.provider_id}
-                            providerSlug={provider.slug}
-                            email={provider.email}
-                            suggestedEmail={foundEmails.get(provider.provider_id)?.email}
-                            emailSource={foundEmails.get(provider.provider_id)?.source}
-                            emailFoundUrl={foundEmails.get(provider.provider_id)?.foundUrl}
-                            phone={provider.phone}
-                            onEmailUpdate={(newEmail) => {
-                              setConfirmedProviders(prev => {
-                                const next = new Set(prev);
-                                next.delete(provider.provider_id);
-                                return next;
-                              });
-                              onEmailSaved(provider.provider_id, newEmail);
-                            }}
-                            onPhoneUpdate={(newPhone) => {
-                              setConfirmedProviders(prev => {
-                                const next = new Set(prev);
-                                next.delete(provider.provider_id);
-                                return next;
-                              });
-                              onPhoneSaved(provider.provider_id, newPhone);
-                            }}
-                            emailVerificationStatus={provider.email_verification_status}
-                            isEmailOverridden={provider.is_email_overridden}
-                            isCallRecorded={!!provider.generic_email_called_at || calledProviders.has(provider.provider_id)}
-                            onCallRecorded={() => setCalledProviders(prev => new Set([...prev, provider.provider_id]))}
-                            isWarningSkipped={!!provider.generic_email_skipped_at || skippedWarnings.has(provider.provider_id)}
-                            onWarningSkipped={() => setSkippedWarnings(prev => new Set([...prev, provider.provider_id]))}
-                            stage={provider.stage}
-                          />
-                        )}
-                      </div>
-
-                      {/* Apollo indicator - small icon when data exists */}
-                      {provider.apollo_contact && (
-                        <span
-                          className="w-5 h-5 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center shrink-0"
-                          title={`Apollo: ${[provider.apollo_contact.first_name, provider.apollo_contact.last_name].filter(Boolean).join(" ")}`}
-                        >
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-                          </svg>
-                        </span>
-                      )}
-
-                      {/* Notes indicator - only show if has notes */}
-                      {provider.notes && (
-                        <span
-                          className="w-5 h-5 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center shrink-0"
-                          title="Has notes"
-                        >
-                          <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M18 13V5a2 2 0 00-2-2H4a2 2 0 00-2 2v8a2 2 0 002 2h3l3 3 3-3h3a2 2 0 002-2zM5 7a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1zm1 3a1 1 0 100 2h3a1 1 0 100-2H6z" clipRule="evenodd" />
-                          </svg>
-                        </span>
-                      )}
 
                       {/* Chevron to indicate clickable */}
-                      <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
                       </svg>
                     </div>
@@ -2069,7 +2021,6 @@ function FollowUpProviderRow({
 }) {
   const dueBadge = formatDueDateBadge(provider.due_date);
   const reasonChip = getNeedsCallReasonChip(provider.needs_call_reason);
-  const hasApollo = !!provider.apollo_contact;
   // Note: provider.notes is from tracking table, not the actual notes shown in modal
   // Always show "no notes" state - users can click to check/add notes
   const hasNotes = false;
@@ -2134,17 +2085,8 @@ function FollowUpProviderRow({
             </div>
           </div>
 
-          {/* Right side: indicators */}
+          {/* Right side: Notes button */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Apollo indicator */}
-            {hasApollo && (
-              <span className="text-purple-500" title="Has Apollo contact">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-                </svg>
-              </span>
-            )}
-            {/* Notes button */}
             <button
               type="button"
               onClick={(e) => {
@@ -2335,7 +2277,6 @@ function ReEngageProviderRow({
 }) {
   const waitDays = daysSince(provider.re_engage_entered_at);
   const channelInfo = getChannelLabel(provider.re_engage_channel || null);
-  const hasApollo = !!provider.apollo_contact;
   // Note: provider.notes is from tracking table, not the actual notes shown in modal
   // Always show "no notes" state - users can click to check/add notes
   const hasNotes = false;
@@ -2397,17 +2338,8 @@ function ReEngageProviderRow({
             </div>
           </div>
 
-          {/* Right side: indicators */}
+          {/* Right side: Notes button */}
           <div className="flex items-center gap-2 shrink-0">
-            {/* Apollo indicator */}
-            {hasApollo && (
-              <span className="text-purple-500" title="Has Apollo contact">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" />
-                </svg>
-              </span>
-            )}
-            {/* Notes button */}
             <button
               type="button"
               onClick={(e) => {

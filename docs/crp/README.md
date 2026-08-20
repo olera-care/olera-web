@@ -20,6 +20,7 @@ and prove a provider-funded revenue model that keeps navigation free for familie
 | `commercialization-plan.md` | Canonical CP | Drive "3. Commercialization Plan" (`1Vutumdd…`, mod 08-17 11:20) | GitHub-active |
 | `solicitation-reviewer-reference.md` | Verbatim NOFO/review criteria | solicitation capture | stable |
 | `evidence-ledger.md` | Claim → source → strength → verify? | maintained live | live |
+| `strategic-context-2026-08-20.md` | Why the current strategy: business diagnosis → free-core + two-product framing, temporal frame, story spine, unresolved questions | strategy session 2026-08-20 | stable; supersedes README §5's three-product terminology pending TJ ratification |
 | `figures/` + `MANIFEST.md` | Figure files, captions, placement, argument, status | RS: extracted from Drive docx; CP: SVGs from staging v0.24 | live |
 | `tools/` | `render_pdf.py` (house-style HTML/PDF, the layout artifact), `export_docx.py` (house-style .docx for the Drive round-trip; shares the formatter with the renderer), `make_reference_docx.py` + `house-reference.docx` (Word style template: Letter, 0.5in margins, Arial 11pt justified, 9pt references) | this repo | stable |
 | `reference/phase-iib/` | Phase IIB application (1R44AG074116) as historical source: prior framing, technical descriptions, accomplishments, figures | uploaded 2026-08-19 | reference only, never current truth |

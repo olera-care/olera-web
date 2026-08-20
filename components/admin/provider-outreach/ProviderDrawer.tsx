@@ -135,14 +135,14 @@ function formatDate(dateString: string): string {
 
 function SectionHeader({ children }: { children: React.ReactNode }) {
   return (
-    <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+    <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4">
       {children}
     </h3>
   );
 }
 
 function SectionDivider() {
-  return <div className="border-t border-gray-100 my-5" />;
+  return <div className="border-t border-gray-200 my-8" />;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -201,12 +201,13 @@ function ContactSection({
   }
 
   return (
-    <div className="space-y-3">
+    <div>
       <SectionHeader>Contact</SectionHeader>
 
-      {/* Email */}
-      <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-500 w-16">Email</span>
+      <div className="space-y-4">
+        {/* Email */}
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-500 w-16">Email</span>
         {editingEmail ? (
           <div className="flex items-center gap-2 flex-1 ml-3">
             <input
@@ -328,6 +329,7 @@ function ContactSection({
             </button>
           </div>
         )}
+        </div>
       </div>
     </div>
   );
@@ -461,7 +463,7 @@ function DecisionMakerSection({
           {error && <span className="text-sm text-amber-600">{error}</span>}
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-3">
           {/* Name and title - clean typography */}
           <p className="font-medium text-gray-900">
             {[contact.first_name, contact.last_name].filter(Boolean).join(" ") || "Unknown"}
@@ -582,7 +584,7 @@ function NotesSection({ provider }: { provider: OutreachProvider }) {
       <SectionHeader>Notes</SectionHeader>
 
       {/* Add note input */}
-      <div className="mb-4">
+      <div className="mb-5">
         <textarea
           ref={textareaRef}
           value={newNote}
@@ -726,7 +728,7 @@ function ActionsSection({
   return (
     <div>
       <SectionHeader>Actions</SectionHeader>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-3">
         {/* Launch Sequence - only for not_contacted with email */}
         {canLaunch && onLaunchSequence && (
           <button
@@ -861,7 +863,7 @@ export function ProviderDrawer({
 
   return (
     <DrawerShell onClose={onClose} header={header}>
-      <div className="space-y-0">
+      <div className="py-2">
         {/* Contact Section */}
         <ContactSection
           provider={provider}

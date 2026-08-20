@@ -305,42 +305,17 @@ building more AI (the IIB year does that); not national growth; not information 
 qualify for; this grant tests whether it can actually get them that care, and whether
 providers will fund the machine that does it."
 
-## 9. The story spine (rebuilt on the organizing frame, supersedes the 2026-08-20 morning version)
+## 9. The story spine
 
-The one-paragraph conceptual test for the Research Strategy. Every paragraph,
-experiment, milestone, and claim in the RS should advance this sequence; anything that
-does not should justify its presence. The working test question: **does this move a
-family from knowing to having, or prove that someone will pay for the machine that
-does?**
-
-> Older adults increasingly need help with daily living while the workforce that could
-> provide it, the family capacity that once absorbed it, and the means to pay for it
-> all shrink, and the consequences of unmet need are clinical. Families in this
-> position do not fail for lack of information: they fail in the gap between knowing
-> and having, because every existing form of help exits before care is established.
-> Information tools stop at lists, human navigators run out of staffed hours, referral
-> marketplaces stop at the lead they sold. Closing that gap means carrying a family
-> through execution to established care, and, because a care connection has two ends,
-> ensuring a responsive, adequately staffed provider on the other side. Across SBIR
-> Phases I to IIB, Olera built and validated the knowing half: an acceptance-validated
-> eldercare AI navigation system over an expert-curated national database, national
-> organic family reach, and an onboarded provider base, with the remaining Phase IIB
-> year completing that layer (production agent integration, an n=200 evaluation, a
-> database beyond 100,000 records). The CRP funds the having half, which no private
-> investor will yet fund: execution and follow-up loops that carry families to
-> established aid and care, concentration of families, providers, and a student
-> caregiver workforce in twelve local markets until connections reliably complete, and
-> a test of whether two provider products (Managed Ads and Staff Recruitment), sold
-> into the two spending lines providers already fund at more than $5 billion a year,
-> generate the recurring revenue that sustains the platform while families pay nothing
-> and connections stay free. The award succeeds when an independently verified model
-> shows each market's provider revenue covering the cost of serving its families: the
-> evidence that makes Olera investable, scalable, and permanently free for the families
-> it serves.
+**The spine is now maintained in `SPINE.md` (locked 2026-08-20; architecture fixed,
+language refinable).** The version that previously lived here, and the morning version
+before it, are superseded; do not quote spine text from this file. The working test
+question travels with it: does this move a family from identifying care to
+establishing it, or prove that someone will pay for the machine that does?
 
 ---
 
-*Next steps recorded at close of 2026-08-20: discuss and refine the spine; then merge
-the externally drafted Research Strategy into `research-strategy.md` (adjudicated
-change by change against this document, never mechanically); then resume the top-down
-drafting pass. The Research Strategy `.md` has deliberately NOT been modified.*
+*Next steps recorded at close of 2026-08-20: act on the spine per the agreed sequence
+(Aims-page audit against the spine, then abstract and Aims rebuild, then the RS triage
+map, then the deferred Research Strategy merge, then the pathway/cycle figure). The
+Research Strategy `.md` has deliberately NOT been modified.*

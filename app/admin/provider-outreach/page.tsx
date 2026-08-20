@@ -7198,6 +7198,8 @@ export default function ProviderOutreachPage() {
         done: 0,
         hidden: 0,
       });
+      // Also reset the stored call_confirm assigned count
+      setCallConfirmAssignedCount(null);
       prevStateRef.current = selectedState;
     }
   }, [selectedState]);
@@ -9086,6 +9088,9 @@ export default function ProviderOutreachPage() {
           providers.filter(p => p.assigned_to && p.assigned_to !== "unassigned")
         ).length;
 
+        // Don't render empty div when no content
+        if (!selectedAdminFilter && totalAssigned === 0) return null;
+
         return (
           <div className="mt-4 text-sm text-gray-500">
             {selectedAdminFilter ? (
@@ -9096,11 +9101,11 @@ export default function ProviderOutreachPage() {
                     : (adminNameLookup.get(selectedAdminFilter) || selectedAdminFilter)
                 } across {computeCityStatsFromProviders(providers).length} cities
               </>
-            ) : totalAssigned > 0 ? (
+            ) : (
               <>
                 {totalAssigned.toLocaleString()} providers assigned across {assignedCityCount} cities
               </>
-            ) : null}
+            )}
           </div>
         );
       })()}

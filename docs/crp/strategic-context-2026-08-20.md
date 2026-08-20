@@ -248,39 +248,99 @@ Assumptions and notes: the ≥$5B floor is deliberately conservative (exclusions
 onto the two spend components (client acquisition ≈$3.9B, caregiver recruiting ≈$1.1B),
 which is the coherence argument worth keeping when the section is drafted.
 
-## 8. The story spine
+## 8. The organizing frame (ratified with Logan, 2026-08-20, end of session)
+
+Reached after repeated failed attempts at an RS opening, diagnosed together rather than
+patched again. This section is the conceptual architecture every opening, aim, and
+experiment is tested against.
+
+**Why the Unmet Need section works.** One protagonist held constant (the older adult who
+needs help with daily living); each sentence answers the question the previous one
+raises; the conclusion is derived from the evidence rather than asserted. Providers
+appear only as a fact about the family's world, never as businesses with marketing
+problems.
+
+**Where the Phase IIB baggage enters.** Not the $58B citation itself but the Unmet Need
+section's closing sentence, which defines the solution as "increases utilization of
+existing aid and adds caregiving capacity": the two levers of the previous grant
+installed as the definition of the next one. Openings built on that sentence keep
+reverting to benefits-first framing. The closing sentence should be journey-shaped, not
+lever-shaped.
+
+**What the CRP is about, in one sentence.** Making the care connection complete
+reliably, carrying families from recognized need to appropriate, affordable, established
+care, and proving that the entity that does this can sustain itself commercially without
+ever charging the family.
+
+**The insight underneath it.** Families do not fail for lack of information; they fail
+in the gap between knowing and having. Care exists only when a specific provider with
+actual capacity agrees to serve a specific family that can pay (a completed care
+connection). Every existing form of help exits before that point: information tools stop
+at lists, human navigators run out of staffed hours, referral marketplaces stop at the
+lead they sold. Olera's own data states the same fact operationally (1,228 of 1,229
+inquiries pending is the knowing-having gap, measured).
+
+**Everything else is subordinate.** Benefits are one instrument inside "affordable."
+The student workforce is one instrument inside "a provider able to say yes." The
+provider products are how the connection infrastructure gets paid for. Local
+concentration is the condition under which connections can complete at all.
+
+**The natural sequence (six moves).** (1) The human problem: the existing Unmet Need
+section, minus its two-lever closing sentence. (2) The specific failure: the
+knowing-having gap; every existing form of help exits early; $58B appears here, demoted
+to one clause inside affordability. (3) What a real solution requires, derived: carry
+the family the whole way, and, because a connection has two ends, ensure a responsive,
+staffed provider on the other side. This is where providers enter: as the other end of
+the family's connection, a structural necessity, not a customer. (4) What exists:
+Phase I to IIB built and validated the knowing half; the remaining IIB year completes
+it. (5) What remains unproven: the having half (execution to established care, local
+density, sustained provider participation, and the revenue model that funds it while
+families pay nothing). (6) The CRP: three years, twelve markets, connections completing
+reliably at self-funding economics.
+
+**What the CRP is not about** (drift guards): not benefits navigation part two; not
+building more AI (the IIB year does that); not national growth; not information quality.
+
+**The stranger test.** "They built a system that can tell families what care they
+qualify for; this grant tests whether it can actually get them that care, and whether
+providers will fund the machine that does it."
+
+## 9. The story spine (rebuilt on the organizing frame, supersedes the 2026-08-20 morning version)
 
 The one-paragraph conceptual test for the Research Strategy. Every paragraph,
 experiment, milestone, and claim in the RS should advance this sequence; anything that
-does not should justify its presence.
+does not should justify its presence. The working test question: **does this move a
+family from knowing to having, or prove that someone will pay for the machine that
+does?**
 
-> America's eldercare system fails twice: $58 billion in aid goes unclaimed because
-> navigation is too complex, and the providers who could deliver care cannot find
-> clients or staff. Across SBIR Phases I to IIB, Olera built the foundation to attack
-> both failures: a national expert-curated database of programs and providers, an
-> eldercare-specific AI navigation system validated for acceptance with family
-> caregivers, national organic family reach, an onboarded provider base, and one
-> provider product with demonstrated willingness to pay. What remains unproven is the
-> transaction: navigation today ends at information rather than established care,
-> demand and supply are spread too thin nationally for either side to reliably find the
-> other locally, and no revenue model has been validated under real billing. The
-> remaining Phase IIB year completes the navigation product itself: production
-> integration of the AI-agent system, evaluated at scale (n=200), over a database
-> exceeding 100,000 records. The CRP then funds what no private investor will yet fund:
-> building the execution and follow-up loops that carry families from eligibility to
-> established care, concentrating families, providers, and a student caregiver
-> workforce in twelve local markets until connections reliably complete, and testing
-> whether two provider products (Managed Ads and Staff Recruitment), sold against
-> providers' two largest documented spending lines while the core marketplace stays
-> free for families and providers alike, generate the recurring revenue, retention, and
-> unit economics that make each market self-funding. The award succeeds when an
-> independently verified model shows provider revenue covering the cost of serving each
-> market's families: the evidence that makes Olera investable, scalable, and
-> permanently free for the families it serves.
+> Older adults increasingly need help with daily living while the workforce that could
+> provide it, the family capacity that once absorbed it, and the means to pay for it
+> all shrink, and the consequences of unmet need are clinical. Families in this
+> position do not fail for lack of information: they fail in the gap between knowing
+> and having, because every existing form of help exits before care is established.
+> Information tools stop at lists, human navigators run out of staffed hours, referral
+> marketplaces stop at the lead they sold. Closing that gap means carrying a family
+> through execution to established care, and, because a care connection has two ends,
+> ensuring a responsive, adequately staffed provider on the other side. Across SBIR
+> Phases I to IIB, Olera built and validated the knowing half: an acceptance-validated
+> eldercare AI navigation system over an expert-curated national database, national
+> organic family reach, and an onboarded provider base, with the remaining Phase IIB
+> year completing that layer (production agent integration, an n=200 evaluation, a
+> database beyond 100,000 records). The CRP funds the having half, which no private
+> investor will yet fund: execution and follow-up loops that carry families to
+> established aid and care, concentration of families, providers, and a student
+> caregiver workforce in twelve local markets until connections reliably complete, and
+> a test of whether two provider products (Managed Ads and Staff Recruitment), sold
+> into the two spending lines providers already fund at more than $5 billion a year,
+> generate the recurring revenue that sustains the platform while families pay nothing
+> and connections stay free. The award succeeds when an independently verified model
+> shows each market's provider revenue covering the cost of serving its families: the
+> evidence that makes Olera investable, scalable, and permanently free for the families
+> it serves.
 
 ---
 
-*Created 2026-08-20 in the CRP strategy session, from the business diagnosis run the
-same day. Companions: `evidence-ledger.md` (claim status), `market-denominator.md`
-(sizing arithmetic), `passes/marketplace-liquidity.md` (operational liquidity layer),
-`solicitation-reviewer-reference.md` (what reviewers score).*
+*Next steps recorded at close of 2026-08-20: discuss and refine the spine; then merge
+the externally drafted Research Strategy into `research-strategy.md` (adjudicated
+change by change against this document, never mechanically); then resume the top-down
+drafting pass. The Research Strategy `.md` has deliberately NOT been modified.*

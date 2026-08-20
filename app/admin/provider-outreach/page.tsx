@@ -7077,9 +7077,16 @@ export default function ProviderOutreachPage() {
                 });
                 showToast("Moved to Call & Confirm", "success");
                 setDrawerProvider(null);
+              } else {
+                const data = await res.json().catch(() => ({}));
+                showToast(data.error || "Failed to move", "error");
+                throw new Error("API error"); // Signal failure to child
               }
-            } catch {
-              showToast("Network error", "error");
+            } catch (err) {
+              if (!(err instanceof Error && err.message === "API error")) {
+                showToast("Network error", "error");
+              }
+              throw err; // Re-throw so child knows it failed
             }
           }}
           onResetToReadyWithApollo={async (providerId) => {

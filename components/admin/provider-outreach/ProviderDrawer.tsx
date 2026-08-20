@@ -1043,9 +1043,14 @@ function ActionsSection({
   async function handleMoveToReady() {
     if (!onMoveToReady) return;
     setActionLoading(true);
+    setActionError(null);
     try {
       await onMoveToReady(provider.provider_id);
+      // Parent handles success feedback and closes drawer
       setConfirmAction(null);
+    } catch {
+      // Parent threw - show error in modal, don't close
+      setActionError("Failed to move");
     } finally {
       setActionLoading(false);
     }
@@ -1094,8 +1099,6 @@ function ActionsSection({
       try_contact_form: { title: "Move to Alternative Channels (Contact Form)?", requiresCall: true, confirmText: "Move to Contact Form" },
       try_direct_mail: { title: "Move to Alternative Channels (Direct Mail)?", requiresCall: true, confirmText: "Move to Direct Mail" },
       move_to_ready: { title: "Move back to Call & Confirm?", confirmText: "Move" },
-      not_interested: { title: "Mark as Not Interested?", confirmText: "Confirm" },
-      archive: { title: "Archive this provider?", confirmText: "Archive" },
       remove: { title: `Remove ${provider.provider_name} from outreach?`, confirmText: "Remove" },
     };
     const config = configs[confirmAction];
@@ -1122,17 +1125,11 @@ function ActionsSection({
               onClick={() => {
                 if (confirmAction === "launch") {
                   onLaunchSequence?.(provider.provider_id);
-                  onClose?.(); // Close drawer after triggering
+                  onClose?.();
                 } else if (confirmAction === "claim_link") {
                   handleSendClaimLink();
                 } else if (confirmAction === "move_to_ready") {
                   handleMoveToReady();
-                } else if (confirmAction === "not_interested") {
-                  onMarkNotInterested?.(provider.provider_id);
-                  onClose?.();
-                } else if (confirmAction === "archive") {
-                  onArchive?.(provider.provider_id);
-                  onClose?.();
                 } else if (confirmAction === "remove") {
                   onRemove?.(provider.provider_id, provider.provider_name);
                   onClose?.();
@@ -1205,16 +1202,16 @@ function ActionsSection({
           </button>
         )}
 
-        {/* Mark Not Interested */}
+        {/* Mark Not Interested - opens ActionModal which has its own confirmation */}
         {!isTerminal && provider.stage !== "not_interested" && onMarkNotInterested && (
-          <button onClick={() => setConfirmAction("not_interested")} className={outlineBtn}>
+          <button onClick={() => { onMarkNotInterested(provider.provider_id); onClose?.(); }} className={outlineBtn}>
             Not Interested
           </button>
         )}
 
-        {/* Archive */}
+        {/* Archive - opens ActionModal which has its own confirmation */}
         {provider.stage !== "archived" && onArchive && (
-          <button onClick={() => setConfirmAction("archive")} className={outlineBtn}>
+          <button onClick={() => { onArchive(provider.provider_id); onClose?.(); }} className={outlineBtn}>
             Archive
           </button>
         )}

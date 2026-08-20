@@ -213,26 +213,32 @@ export async function POST(request: NextRequest) {
 
     // Update the metadata with the new Google Place ID.
     //
-    // On a rebind the cached review payload must go with it. It is a snapshot
-    // of the OLD Place, and the detail page renders whatever is cached without
-    // re-checking which listing produced it, so leaving it would keep showing
-    // the previous business's stars under the new connection. Dropping it lets
-    // the on-demand backfill refill from the Place now connected.
-    const { google_reviews_data: _staleReviews, ...metadataWithoutReviews } = existingMetadata;
-    const baseMetadata = isRebind ? metadataWithoutReviews : existingMetadata;
+    // Everything cached under the old binding describes a DIFFERENT business,
+    // so writing a place_id invalidates all of it — on a first connection as
+    // much as on a rebind. A profile can hold a cached review payload without
+    // ever having owned a place_id: the detail page inherits the linked
+    // directory row's place_id, and the on-demand backfill then writes that
+    // Place's reviews onto the profile. Keeping them across a connect would
+    // pin the directory listing's stars under the provider's own listing, and
+    // the backfill never re-fires once the cache is non-empty.
+    //
+    // google_metadata is rebuilt rather than spread for the same reason: its
+    // `rating` and `place_name` describe the place being replaced.
+    const { google_reviews_data: _staleReviewCache, ...metadataWithoutReviews } = existingMetadata;
+    const boundAt = new Date().toISOString();
 
     const updatedMetadata = {
-      ...baseMetadata,
+      ...metadataWithoutReviews,
       google_metadata: {
-        ...existingGoogleMetadata,
         place_id: placeId,
-        last_synced: new Date().toISOString(),
+        place_name: validation.name,
+        last_synced: boundAt,
         // What the binding was checked against, so a later address change can
         // be spotted without re-querying Google.
         bound_address: profile.address ?? null,
-        bound_at: new Date().toISOString(),
+        bound_at: boundAt,
         ...(isRebind
-          ? { previous_place_id: existingGoogleMetadata.place_id, rebound_at: new Date().toISOString() }
+          ? { previous_place_id: existingGoogleMetadata.place_id, rebound_at: boundAt }
           : {}),
       },
     };

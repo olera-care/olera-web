@@ -203,6 +203,29 @@ function ProviderStatusBadge({ question }: { question: Question }) {
 }
 
 // Email history section with collapsible toggle and expandable rows
+/**
+ * One-line delivery verdict shown next to the Trust button.
+ *
+ * Trust bypasses delivery checks, so the decision needs the evidence in view. A
+ * row that has bounced once and a row that has bounced seventeen times and never
+ * delivered used to look identical here, which is how dead addresses ended up
+ * trusted in bulk. "Never delivered" is the case the server now refuses outright.
+ */
+function DeliverySummary({ emails }: { emails: EmailLogEntry[] }) {
+  if (!emails || emails.length === 0) return null;
+  const bounced = emails.filter((e) => e.bounced_at).length;
+  const delivered = emails.filter((e) => e.delivered_at).length;
+  if (bounced === 0) return null;
+  const neverDelivered = delivered === 0;
+  return (
+    <p className={`text-xs mt-1 ${neverDelivered ? "text-red-700 font-medium" : "text-gray-500"}`}>
+      {neverDelivered
+        ? `Bounced ${bounced}x, never delivered`
+        : `Bounced ${bounced}x, delivered ${delivered}x`}
+    </p>
+  );
+}
+
 function EmailHistorySection({ emails }: { emails: EmailLogEntry[] }) {
   const [showEmails, setShowEmails] = useState(false);
   const [expandedEmailId, setExpandedEmailId] = useState<string | null>(null);
@@ -532,7 +555,7 @@ function InlineEmailInput({
             body: JSON.stringify({
               providerSlug,
               reason: "claimed_account",
-              note: "Trusted via Questions tab - admin confirmed email works",
+              note: "Trusted via Questions tab - claimed provider, same address re-submitted",
             }),
           })
         : await fetch("/api/admin/questions/add-email", {
@@ -1147,9 +1170,13 @@ export default function AdminQuestionsPage() {
           email: email || undefined, // Pass directly to avoid lookup failures for unclaimed providers
           providerSlug: providerId,
           reason: isClaimed ? "claimed_account" : "admin",
+          // Note records what actually happened: an admin clicked Trust on a
+          // delivery-failed row. It must NOT claim the address was confirmed —
+          // nothing in this flow verifies that, and the old wording made the
+          // allowlist look like a verification record when auditing it.
           note: isClaimed
             ? "Trusted via Questions tab - claimed provider with failing email"
-            : "Trusted via Questions tab - admin confirmed email works",
+            : "Trusted via Questions tab",
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -1680,6 +1707,7 @@ export default function AdminQuestionsPage() {
                                 </div>
                               </div>
                               <p className="text-xs text-gray-500 mt-1">{firstQ.provider_email}</p>
+                              <DeliverySummary emails={firstQ.provider_email_history || []} />
                             </div>
                           )
                         ) : groupNeedsEmail ? (

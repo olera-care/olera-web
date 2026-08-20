@@ -6154,6 +6154,8 @@ export default function ProviderOutreachPage() {
   // Admin filter state (replaces My Assignments checkbox)
   const [adminCounts, setAdminCounts] = useState<AdminCounts>({});
   const [selectedAdminFilter, setSelectedAdminFilter] = useState<string | null>(null);
+  // Store call_confirm admin counts separately so tab label stays accurate across tab switches
+  const [callConfirmAssignedCount, setCallConfirmAssignedCount] = useState<number | null>(null);
 
   // Channel filter state (for Alternative Channels tab)
   type ChannelFilter = "all" | "email" | "fax" | "contact_form" | "direct_mail";
@@ -6879,19 +6881,28 @@ export default function ProviderOutreachPage() {
           });
         }
         // Use API admin_counts if provided, otherwise compute from provider list
-        if (data.admin_counts && Object.keys(data.admin_counts).length > 0) {
-          setAdminCounts(data.admin_counts);
-        } else {
-          // Compute admin counts from provider list (fallback for stages without API counts)
-          const computed: AdminCounts = {};
-          for (const p of data.providers || []) {
-            const key = p.assigned_to || "unassigned";
-            if (!computed[key]) {
-              computed[key] = { count: 0 };
-            }
-            computed[key].count++;
-          }
-          setAdminCounts(computed);
+        const counts = data.admin_counts && Object.keys(data.admin_counts).length > 0
+          ? data.admin_counts
+          : (() => {
+              // Compute admin counts from provider list (fallback for stages without API counts)
+              const computed: AdminCounts = {};
+              for (const p of data.providers || []) {
+                const key = p.assigned_to || "unassigned";
+                if (!computed[key]) {
+                  computed[key] = { count: 0 };
+                }
+                computed[key].count++;
+              }
+              return computed;
+            })();
+        setAdminCounts(counts);
+
+        // Store call_confirm assigned count for stable tab label
+        if (activeTab === "call_confirm") {
+          const assignedSum = Object.entries(counts)
+            .filter(([key]) => key !== "unassigned")
+            .reduce((sum, [, countData]) => sum + countData.count, 0);
+          setCallConfirmAssignedCount(assignedSum > 0 ? assignedSum : null);
         }
       } else {
         const err = await res.json().catch(() => ({}));
@@ -7539,10 +7550,14 @@ export default function ProviderOutreachPage() {
   };
 
   // Build tabs from UI_TABS with correct counts
+  // For call_confirm: use stored assigned count (from when we last viewed that tab),
+  // otherwise use the global stage count. This ensures the tab count matches what's displayed.
   const tabs = UI_TABS.map((tab) => ({
     value: tab,
     label: UI_TAB_LABELS[tab],
-    count: stageCounts[tab] ?? 0,
+    count: tab === "call_confirm" && callConfirmAssignedCount !== null
+      ? callConfirmAssignedCount
+      : (stageCounts[tab] ?? 0),
     isTerminal: tab === "done",  // "done" tab contains all terminal stages
   }));
 

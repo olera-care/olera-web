@@ -1,6 +1,6 @@
 # The CRP Strategic Spine
 
-**Status: LOCKED (architecture) — ratified with Logan, 2026-08-20.**
+**Status: LOCKED (architecture). Ratified with Logan, 2026-08-20.**
 The conceptual architecture below is fixed. Individual sentences may be refined as the
 proposal develops, but the sequence of claims, the identification/establishment
 dichotomy, where providers enter the story, and what the award must demonstrate are

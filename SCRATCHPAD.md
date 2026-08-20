@@ -7,6 +7,34 @@
 
 ## Current Focus
 
+### 2026-08-20 — Claiming your listing was deleting your star rating (`gentle-mahavira` → merged, `provider-place-id-unlock` open)
+
+**Shipped: [#1657](https://github.com/olera-care/olera-web/pull/1657), merged to staging at `3f3f5714e`.** Open: [#1659](https://github.com/olera-care/olera-web/pull/1659), retargeted to staging.
+
+**The session began on the A-1 place-ID plan below and that plan did not survive its own first verification step.** Step 0 was "confirm the directory fallback is safe before clearing anything." It killed steps 1 and 2. The profile `place_id` and the linked directory row's `place_id` are **identical** on all three cases, so clearing the profile copy falls back to the same wrong ID. And the claim-time address-agreement check is dead code by construction: `claim/finalize/route.ts:327` copies `address` and `place_id` from the same directory row in one insert, so they can never disagree at the moment of copying. Therapy Partners of Texas is not holding a stale copy, it is linked to a directory row that *is* a different company.
+
+**The A-1-shaped defect is worth 8 providers, not 32.** Six of those show a sister branch of the same company, which for a multi-location agency is arguably correct. Two are bound to a genuinely different company. Neither had complained. An earlier framing in this session said "32 live, 7 different-company" and that was wrong by about 4x, because it counted profiles the resolver never serves as account data and leaned on an address normalizer with false positives.
+
+**The real defect was the inverse, and it was found only by checking that plan's assumptions.**
+
+| | Before | After |
+|---|---|---|
+| Claimed providers showing a Google rating | 299 | 552 |
+| Showing AI trust signals | 0 | 354 |
+| Showing CMS quality | 0 | 42 |
+
+**253 providers lost their star rating by claiming their listing.** The directory page shows 4.7★/21; they claim it, verify, and the page goes blank. Cause is `e8bce717a` (2026-06-17), labelled "parity-first, behavior-preserving", which introduced *prefer the claimed `business_profiles` record*. Before it a claimed provider's page rendered the directory row outright. Preferring the account row is correct for fields the provider authors. Google reviews, place ID, CMS quality, trust signals and franchise parentage are not; they are external data the provider never types, and they went null with everything else. **Trust signals are the Tier 1 input to the provider-highlights waterfall**, so every claimed provider had been running on the degraded "fewer honest highlights" path for 64 days without anyone noticing.
+
+**Fix:** `accountRowToProvider` takes the linked directory row instead of just its category and falls back per field; the account row still wins wherever it has its own value. `resolve.server.ts` fetches that row whenever `source_provider_id` is set. Guard: `npm run check:provider-inheritance`, 6 assertion groups. Verified by running the real adapter both ways over all 684 served claimed profiles rather than re-reasoning.
+
+**#1659 unlocks the Place ID field, behind a gate.** It was write-once: a mailto in settings and a server-side refusal in `google-business/route.ts:180`. Both doors shut, which is exactly why A-1's correct self-diagnosis became a six-week dead end. The lock was guarding something real, since connecting a listing auto-verifies and a free rebind is a way to adopt a competitor's rating. So a change is now allowed only when the new Place's `formattedAddress` is at the profile's own street address. First connection is deliberately **not** gated, because it is the ownership proof and the profile address at that point is still whatever the directory seeded.
+
+**Pre-test on #1659 caught a bug #1657 had just created.** A profile can hold a cached review payload without ever owning a `place_id`: since #1657 the page inherits the directory row's place_id, and the on-demand backfill then writes *that* Place's reviews onto the profile. A first connection therefore hit `isRebind === false`, kept the directory listing's stars, and the backfill never re-fired because the cache was non-empty. Writing a place_id now invalidates everything cached under the previous binding regardless of path.
+
+**Two process notes worth keeping.** The `/pr-merge` critical-file watchlist reported all 12 files clean, and it was right and useless: `app/provider/[slug]/page.tsx` is untouched, yet this PR is the biggest change to what that page *renders* in months, because the behavior arrives through `lib/providers/adapters.ts`. Separately, the watchlist loop in the command file **silently passes on every file under zsh**, which does not word-split unquoted variables, so the loop runs once with the whole list as one filename. Caught and re-run by hand; the command file still has it.
+
+**Not built, deliberately:** the invalidation trigger, the claim-time agreement check, and the bulk unbind from the plan below. Two were falsified, the third is a data decision.
+
 ### 2026-08-20 — Ad Boost metrics were lying in three places (`funny-payne`, PR #1653)
 
 TJ spotted a provider row showing **5 visitors and 1 question tap on the detail page, but 0 clicks on the summary** and said he was suspicious of the data. He was right, and the real answer was not the one I gave first.
@@ -88,6 +116,25 @@ The 13,113 records sharing a normalized name across cities are mostly legitimate
 **Their page has 404'd for 42 days.** `deletion_reason = 'provider_request'` returns `{kind:"gone"}` in `lib/providers/resolve.server.ts` → `notFound()` (other reasons redirect to a power page; this one does not), and `business_profiles.is_active = false` closes the second door. They are the **only** provider-request deletion in the table, so restoring is contained. Separately, **11 claimed providers have no public page** because a data sweep deleted the directory row underneath them — A-1 is not an isolated case of that.
 
 **Open decision before replying.** Rebinding them to the A-1 Domestic corporate listing moves their page from 1.0★/3 to 4.4★/15. Defensible if the profile represents the Whittier entity, which their own address entry claims; not defensible as a way to bury the Pasadena reviews, and Pasadena would then have no page. Their belief that Google removed the three reviews is incorrect — all three are live today. Ask them which listing the profile represents rather than picking for them.
+
+### 2026-08-19 (later) — A-1 rebind: the letter and the code plan behind it (`gentle-mahavira`, still zero code)
+
+**Artifact:** https://claude.ai/code/artifact/2f0db461-f430-4c61-9eb4-b3393db9a6a2 — the corrected reply to Jackie Brown and Sue Dagdagan with its drafting rules in the margin, plus the dependency-ordered build plan. **Handoff:** [A-1 place-ID rebind — Handoff (2026-08-19)](https://app.notion.com/p/3c15903a0ffe817896b2d8bcb2224cff). Both linked from the P1 ticket, which was appended to rather than duplicated.
+
+**Found the chokepoint the morning's investigation had not named.** `components/provider-dashboard/edit-modals/save-profile.ts:39` is the single provider-facing write to `business_profiles`. That is where the invalidation hook goes, and it is the one place a check would have caught A-1 on the day they typed their Whittier address — six weeks before anyone emailed us. Identified by elimination (settings only edits phone/email/password), so confirm it before assuming it is the sole path.
+
+**The plan, ordered by dependency, every path read not inferred.** (1) store `bound_address` + `bound_at` in the existing `metadata.google_metadata` JSONB — no migration, no CHECK constraint to negotiate; (2) only copy the place ID at `claim/finalize:307` when directory address and profile address agree, failing closed because `app/api/provider/[slug]/info/route.ts:114` already falls back to the correctly-bound directory row; (3) invalidate on address edit; (4) unlock the field; (5) make the sweep standing; (6) restore A-1; (7) contact the other two.
+
+**Step 4 is the real failure, and it is only visible once the plan is drawn.** Steps 2 and 3 stop the bug recurring. Step 4 is why it lasted 42 days. `app/account/settings/page.tsx:677` renders a mailto and `app/api/provider/google-business/route.ts:182` refuses the change server-side — **both doors shut**, so a provider who had correctly diagnosed their own problem had exactly one route open, which was emailing support and waiting. The one-way lock was guarding against something far smaller than what it caused.
+
+**The letter is the fix's dependent, not its sibling.** Three separate code changes exist to make one sentence honest: "the check that should have caught this is being built now." Right now that sentence has nothing under it.
+
+**Four drafting rules the letter obeys because the July reply broke them:** named human not `support@`; concede the Pasadena diagnosis plainly and early (they were right, we said otherwise); never say "location matching" (that diagnosis is false and they are technically literate enough to check); **never confirm Google removed anything** — all three disputed reviews are live today, and the existing drafted reply quietly accepts that they aren't, which becomes a liability on their next refresh. No second date either; the commitment is an action gated on their reply, since we already spent the credibility of a deadline.
+
+**Do not send the draft on the ticket.** It predates the investigation and two of its load-bearing claims are now known false. Anyone reading that page top-to-bottom hits it first.
+
+**Blank slots left visibly blank:** TJ's direct line in the letter, the call window, the ticket's Timeline date, and who takes Therapy Partners of Texas — which is live right now attributing a different company's identity to a provider who has not noticed, and is arguably more urgent than A-1.
+
 ### 2026-08-19 — A broken AC in Marion County turned into the Family Answers Engine, phases 1-4
 
 **Started as one care seeker.** 2026-08-18, 6:43am ET: a Florida woman texted that her AC had stopped cooling. On Medicaid, under $1,500/mo, in cancer treatment with fibromyalgia. She had finished benefits intake five minutes earlier, opened her plan of 12 programs, and texted a human anyway because none of it answered her question. She waited 46 minutes for any reply. The Slack ping fired correctly; nobody could act on it because answering meant twenty minutes of benefits research at dawn.
@@ -3859,16 +3906,17 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 - ⏳ **Pre-instrumentation ended campaigns read low in `Landed`** (Franchil 0, Abode 1) because managed-UTM tracking started 2026-07-22. Their typed figure is preserved on the sub-line and is the only history that exists.
 
 
-**A-1 Home Care / provider Place-ID binding (2026-08-19)**
-- 🔴 **Two providers are misrepresented in production right now.** `Therapy Partners of Texas` shows a different company's reviews ("Therapy At Home", McAllen) under their name; `A Rainbow of Care` shows its Ontario branch on an Upland profile. Neither has complained. Fix these before A-1, because A-1's page is hidden and these two are live.
-- 🔴 **Ask A-1 which listing their profile represents** before rebinding: the A-1 Domestic corporate listing (4.4★/15) or the Pasadena branch (1.0★/3) their claimed record actually is. **Do not pick for them** — a wrong rebind moves the misrepresentation onto a different provider, and the swing here is 1.0 → 4.4. Same question individually for the other two.
-- 🔴 **Restore their page after the binding is settled, not before.** Bringing it back still carrying Pasadena's reviews reopens the complaint. Admin restore is fully reversible (`app/api/admin/directory/[providerId]/route.ts:365`) and they are the only provider-request deletion in the table.
-- 🟡 **Re-verify the Place ID when the address changes.** At `app/api/claim/finalize/route.ts:307` the directory row's `place_id` is copied into profile metadata and never re-checked. Compare against the Place's `formattedAddress`; on a street-level disagreement clear it and prompt for the right listing. Same check on address edits in settings.
-- 🟡 **Let providers change their own Place ID.** Settings renders it read-only with "Contact support to change" — that is what turned A-1's correct self-diagnosis into a support ticket that then lapsed for six weeks.
-- 🟡 **`MAX_REVIEWS = 2`** (`lib/google-places.ts:18`) stores 2 of the 5 Google returns in the same billed call, and the mapper at line 85 drops `googleMapsUri` though the type declares it at line 32. A per-review link-out is the only mechanism a provider has to point at their own reply, since the API never returns replies.
-- 🟡 **11 claimed providers have no public page** because a data sweep deleted the directory row underneath them. A business claiming its listing and silently losing its page is its own defect; A-1 is just the one that emailed.
-- ⏳ **1,400 Place IDs sit on records in more than one city** (2,828 records), including A-1 Domestic's two rows at one address. Dedupe sweep, not part of this fix.
-- ⏳ **`tKhal27` city column says Compton**; its address, zip and Place ID are all Newport Beach. Cosmetic, unrelated to the review bug, but it is the public A-1 record families see.
+**Provider Place-ID binding / claimed-provider data (2026-08-20)**
+- ✅ **#1657 merged** — 253 providers regained their star rating, 354 their trust signals. Verify on staging with a provider who has their **own** Google Business Profile connected: the account row must still win.
+- 🔴 **[#1659](https://github.com/olera-care/olera-web/pull/1659) open, targets staging.** Test the Change flow on a provider with an existing connection: their old reviews must disappear, not persist under the new listing. Both pre-test bugs lived on that path.
+- 🔴 **Two data decisions, blocked on TJ.** `Therapy Partners of Texas` has **no correct directory row** (searched every TX row named "Therapy" and all 52 Sherman rows), so the only fix is severing `source_provider_id`; its page also still lives at `/provider/therapy-at-home`, so fixing identity properly means a slug change and a 301. `Encore Memory Care` has a correct row that matches its address exactly (`euless-tx-0012`, 2928 Blue Quail Ln, 5★) but it is **soft-deleted**, so fixing it reverses a data-sweep decision.
+- 🟡 **Review refresh never reaches claimed profiles.** `getProvidersForReviewRefresh` (`lib/providers/reviews.server.ts:48`) reads and writes `olera-providers` only. #1657 shrank this to the ~318 profiles holding their own cached payload — median 50 days stale, max 138 — and those are disproportionately the providers engaged enough to connect their own listing.
+- 🟡 **A-1 itself is still 404 and still wrongly bound.** Restore plus a reply, not engineering. The letter's load-bearing sentence ("you can fix this yourself now") only becomes true once #1659 ships. **Do not send the older reply draft on the [ticket](https://app.notion.com/p/3c15903a0ffe81619698c1a26290bffb)** — it blames location matching (no such bug) and implicitly accepts that Google removed the disputed reviews (all three are live).
+- 🟡 **Nothing asserts what a claimed provider's page renders.** Two root causes this session were refactors labelled parity-preserving that were not, and the second was mine. The adapter-level guard added in #1657 covers this failure, not the class.
+- 🟡 **23 claimed profiles have no directory row at all**, so their fallback is dead. A business claiming its listing and silently losing its page is its own defect.
+- 🟡 **`MAX_REVIEWS = 2`** (`lib/google-places.ts:18`) stores 2 of the 5 Google returns in the same billed call, and the mapper drops `googleMapsUri` though the type declares it. A per-review link-out is the only way a provider can point at their own reply, since the API never returns replies.
+- ⏳ **1,400 Place IDs sit on records in more than one city** (2,828 records). Dedupe sweep, not part of this fix.
+- ⏳ **`tKhal27` city column says Compton**; its address, zip and Place ID are all Newport Beach. Cosmetic.
 
 **Family Answers Engine (2026-08-19, updated)**
 - 🔴 **Send the Cincinnati reply.** Drafted and ready: https://claude.ai/code/artifact/db8c723b-5d37-452a-a074-00a7f75039e5 . She texted a bare SSA link at 8:43pm 08-18 and the acknowledgement was held to 8am by quiet hours, so she has had almost nothing back. This is also the last unexercised path in the system: review surface → send → `sent_body` stamp has never been walked.

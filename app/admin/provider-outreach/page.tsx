@@ -2732,6 +2732,20 @@ export default function ProviderOutreachPage() {
   // Provider drawer state (for detail view)
   const [drawerProvider, setDrawerProvider] = useState<OutreachProvider | null>(null);
 
+  // Sync drawer provider with list when providers update (prevents stale data)
+  useEffect(() => {
+    if (drawerProvider) {
+      const updated = providers.find((p) => p.provider_id === drawerProvider.provider_id);
+      if (updated) {
+        // Provider still exists - sync all fields
+        setDrawerProvider(updated);
+      } else {
+        // Provider was removed from list - close drawer
+        setDrawerProvider(null);
+      }
+    }
+  }, [providers]); // eslint-disable-line react-hooks/exhaustive-deps -- only sync when providers change
+
   // Standardized archive reasons (same codes as Questions/Connections)
   // Archive = Stop all outreach. Provider is invalid, out of business, or explicitly declined.
   const ARCHIVE_REASONS = [

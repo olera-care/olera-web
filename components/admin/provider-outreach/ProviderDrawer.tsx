@@ -978,7 +978,7 @@ function ActionsSection({
   const [confirmAction, setConfirmAction] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<{ outcome: string; emailSent?: boolean; emailError?: string } | null>(null);
 
   // Resend requires call confirmation checkbox
   const [confirmedCall, setConfirmedCall] = useState(false);
@@ -999,14 +999,19 @@ function ActionsSection({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ provider_id: provider.provider_id, outcome }),
       });
+      const data = await res.json().catch(() => ({}));
       if (res.ok) {
-        setActionSuccess(outcome);
+        // Include email status for resend_link outcome
+        setActionSuccess({
+          outcome,
+          emailSent: data.email_sent,
+          emailError: data.email_error,
+        });
         setConfirmAction(null);
         setConfirmedCall(false);
         onOutcomeRecorded?.(provider.provider_id, true);
-        setTimeout(() => onClose?.(), 1200);
+        setTimeout(() => onClose?.(), 1500);
       } else {
-        const data = await res.json().catch(() => ({}));
         setActionError(data.error || "Failed");
       }
     } catch {
@@ -1026,7 +1031,7 @@ function ActionsSection({
         body: JSON.stringify({ provider_id: provider.provider_id }),
       });
       if (res.ok) {
-        setActionSuccess("claim_link");
+        setActionSuccess({ outcome: "claim_link" });
         setConfirmAction(null);
         setTimeout(() => onClose?.(), 1200);
       } else {
@@ -1069,21 +1074,35 @@ function ActionsSection({
 
   // Show success message
   if (actionSuccess) {
-    const messages: Record<string, string> = {
-      claim_link: "Claim link sent",
-      resend_link: "Resent, moving to Alt Channels",
-      try_fax: "Moved to Alt Channels (Fax)",
-      try_contact_form: "Moved to Alt Channels (Contact Form)",
-      try_direct_mail: "Moved to Alt Channels (Direct Mail)",
-    };
+    // Build message based on outcome and email status
+    let message: string;
+    let isWarning = false;
+
+    if (actionSuccess.outcome === "resend_link") {
+      if (actionSuccess.emailSent) {
+        message = "Email resent, moved to Alt Channels";
+      } else {
+        message = `Moved to Alt Channels (email not sent: ${actionSuccess.emailError || "unknown error"})`;
+        isWarning = true;
+      }
+    } else {
+      const messages: Record<string, string> = {
+        claim_link: "Claim link sent",
+        try_fax: "Moved to Alt Channels (Fax)",
+        try_contact_form: "Moved to Alt Channels (Contact Form)",
+        try_direct_mail: "Moved to Alt Channels (Direct Mail)",
+      };
+      message = messages[actionSuccess.outcome] || "Done";
+    }
+
     return (
       <div>
         <SectionHeader>Actions</SectionHeader>
-        <div className="flex items-center gap-2 text-sm text-emerald-600">
+        <div className={`flex items-center gap-2 text-sm ${isWarning ? "text-amber-600" : "text-emerald-600"}`}>
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isWarning ? "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" : "M5 13l4 4L19 7"} />
           </svg>
-          {messages[actionSuccess] || "Done"}
+          {message}
         </div>
       </div>
     );

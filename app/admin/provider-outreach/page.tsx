@@ -1468,7 +1468,6 @@ interface CityRowProps {
   onApolloContactFound: (providerId: string, apolloContact: OutreachProvider["apollo_contact"]) => void;
   onEmailSourceChanged: (providerId: string, emailSource: "organization" | "decision_maker") => void;
   onOpenActionModal: (provider: OutreachProvider) => void;
-  onOpenNotesModal: (provider: OutreachProvider) => void;
   onRemoveProvider: (provider: OutreachProvider) => void;
   onOpenDrawer: (provider: OutreachProvider) => void;
   // Move to Ready (for Not Interested tab)
@@ -1502,7 +1501,6 @@ function CityRow({
   onApolloContactFound,
   onEmailSourceChanged,
   onOpenActionModal,
-  onOpenNotesModal,
   onRemoveProvider,
   onOpenDrawer,
   onMoveToReady,
@@ -2013,17 +2011,12 @@ function getFollowUpReasonExplanation(provider: OutreachProvider): string {
 function FollowUpProviderRow({
   provider,
   onOpenDrawer,
-  onOpenNotesModal,
 }: {
   provider: OutreachProvider;
   onOpenDrawer: () => void;
-  onOpenNotesModal: () => void;
 }) {
   const dueBadge = formatDueDateBadge(provider.due_date);
   const reasonChip = getNeedsCallReasonChip(provider.needs_call_reason);
-  // Note: provider.notes is from tracking table, not the actual notes shown in modal
-  // Always show "no notes" state - users can click to check/add notes
-  const hasNotes = false;
 
   return (
     <div className="border-b border-gray-100 last:border-b-0">
@@ -2085,26 +2078,10 @@ function FollowUpProviderRow({
             </div>
           </div>
 
-          {/* Right side: Notes button */}
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpenNotesModal();
-              }}
-              className={`p-1 transition-colors ${hasNotes ? "text-gray-700" : "text-gray-300 hover:text-gray-500 opacity-0 group-hover:opacity-100"}`}
-              title="Notes"
-            >
-              <svg className="w-4 h-4" fill={hasNotes ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-              </svg>
-            </button>
-            {/* Chevron indicator for drawer */}
-            <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-            </svg>
-          </div>
+          {/* Chevron indicator for drawer */}
+          <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
         </div>
       </div>
     </div>
@@ -2112,10 +2089,9 @@ function FollowUpProviderRow({
 }
 
 
-function FollowUpQueue({ providers, loading, onOpenNotesModal, onOpenDrawer }: {
+function FollowUpQueue({ providers, loading, onOpenDrawer }: {
   providers: OutreachProvider[];
   loading: boolean;
-  onOpenNotesModal: (provider: OutreachProvider) => void;
   onOpenDrawer: (provider: OutreachProvider) => void;
 }) {
   // Filter to only show providers actually in needs_call stage
@@ -2191,7 +2167,6 @@ function FollowUpQueue({ providers, loading, onOpenNotesModal, onOpenDrawer }: {
             key={provider.provider_id}
             provider={provider}
             onOpenDrawer={() => onOpenDrawer(provider)}
-            onOpenNotesModal={() => onOpenNotesModal(provider)}
           />
         ))}
       </div>
@@ -2269,17 +2244,12 @@ function getChannelLabel(channel: string | null): { label: string; className: st
 function ReEngageProviderRow({
   provider,
   onOpenDrawer,
-  onOpenNotesModal,
 }: {
   provider: OutreachProvider;
   onOpenDrawer: () => void;
-  onOpenNotesModal: () => void;
 }) {
   const waitDays = daysSince(provider.re_engage_entered_at);
   const channelInfo = getChannelLabel(provider.re_engage_channel || null);
-  // Note: provider.notes is from tracking table, not the actual notes shown in modal
-  // Always show "no notes" state - users can click to check/add notes
-  const hasNotes = false;
   const isExpired = waitDays >= DIRECT_MAIL_EXPIRY_DAYS;
 
   return (
@@ -2338,26 +2308,10 @@ function ReEngageProviderRow({
             </div>
           </div>
 
-          {/* Right side: Notes button */}
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                onOpenNotesModal();
-              }}
-              className={`p-1 transition-colors ${hasNotes ? "text-gray-700" : "text-gray-300 hover:text-gray-500 opacity-0 group-hover:opacity-100"}`}
-              title="Notes"
-            >
-              <svg className="w-4 h-4" fill={hasNotes ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-              </svg>
-            </button>
-            {/* Chevron indicator for drawer */}
-            <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-            </svg>
-          </div>
+          {/* Chevron indicator for drawer */}
+          <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
         </div>
       </div>
     </div>
@@ -2367,12 +2321,10 @@ function ReEngageProviderRow({
 function ReEngageQueue({
   providers,
   loading,
-  onOpenNotesModal,
   onOpenDrawer,
 }: {
   providers: OutreachProvider[];
   loading: boolean;
-  onOpenNotesModal: (provider: OutreachProvider) => void;
   onOpenDrawer: (provider: OutreachProvider) => void;
 }) {
   // Filter to only show providers actually in re_engage stage
@@ -2417,7 +2369,6 @@ function ReEngageQueue({
           key={provider.provider_id}
           provider={provider}
           onOpenDrawer={() => onOpenDrawer(provider)}
-          onOpenNotesModal={() => onOpenNotesModal(provider)}
         />
       ))}
 
@@ -4973,12 +4924,6 @@ export default function ProviderOutreachPage() {
           <FollowUpQueue
             providers={providers}
             loading={loadingProviders}
-            onOpenNotesModal={(provider) => {
-              setNotesModalProvider({
-                id: provider.provider_id,
-                name: provider.provider_name,
-              });
-            }}
             onOpenDrawer={setDrawerProvider}
           />
         ) : activeTab === "re_engage" ? (
@@ -5024,12 +4969,6 @@ export default function ProviderOutreachPage() {
                     : providers.filter((p) => p.re_engage_channel === selectedChannelFilter)
               }
               loading={loadingProviders}
-              onOpenNotesModal={(provider) => {
-                setNotesModalProvider({
-                  id: provider.provider_id,
-                  name: provider.provider_name,
-                });
-              }}
               onOpenDrawer={setDrawerProvider}
             />
           </>
@@ -5202,12 +5141,6 @@ export default function ProviderOutreachPage() {
                         );
                       }}
                       onOpenActionModal={setActionModalProvider}
-                      onOpenNotesModal={(provider) => {
-                        setNotesModalProvider({
-                          id: provider.provider_id,
-                          name: provider.provider_name,
-                        });
-                      }}
                       onOpenDrawer={setDrawerProvider}
                       onRemoveProvider={(provider) => {
                         setPendingRemoval({

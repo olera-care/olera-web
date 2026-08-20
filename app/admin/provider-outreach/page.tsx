@@ -9062,23 +9062,28 @@ export default function ProviderOutreachPage() {
       </div>
 
       {/* Summary */}
-      {isNotContactedTab(activeTab) && !loadingCities && !loadingProviders && !isSearchResult && (
-        <div className="mt-4 text-sm text-gray-500">
-          {selectedAdminFilter ? (
-            <>
-              {providers.length.toLocaleString()} providers assigned to {
-                selectedAdminFilter === "unassigned"
-                  ? "no one"
-                  : (adminNameLookup.get(selectedAdminFilter) || selectedAdminFilter)
-              } across {computeCityStatsFromProviders(providers).length} cities
-            </>
-          ) : (
-            <>
-              {totalUnclaimed.toLocaleString()} unclaimed providers in {selectedState} across {cities.length} cities
-            </>
-          )}
-        </div>
-      )}
+      {isNotContactedTab(activeTab) && !loadingProviders && !isSearchResult && (() => {
+        // Compute assigned providers (those in cities with owners)
+        const assignedProviders = providers.filter(p => p.city && cityOwners.has(p.city));
+        const assignedCities = computeCityStatsFromProviders(assignedProviders);
+        return (
+          <div className="mt-4 text-sm text-gray-500">
+            {selectedAdminFilter ? (
+              <>
+                {providers.length.toLocaleString()} providers assigned to {
+                  selectedAdminFilter === "unassigned"
+                    ? "no one"
+                    : (adminNameLookup.get(selectedAdminFilter) || selectedAdminFilter)
+                } across {computeCityStatsFromProviders(providers).length} cities
+              </>
+            ) : (
+              <>
+                {assignedProviders.length.toLocaleString()} providers assigned across {assignedCities.length} cities
+              </>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Provider Action Modal */}
       {actionModalProvider && (

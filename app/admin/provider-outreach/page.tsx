@@ -8822,13 +8822,11 @@ export default function ProviderOutreachPage() {
             </div>
 
             {(() => {
-              // For call_confirm tab: use cities API data when no admin filter,
-              // otherwise compute from providers (which are already filtered by assigned_to)
-              // For other stages: always compute from providers
+              // Always compute city stats from the provider list.
+              // The cities API counts ALL unclaimed providers (includes hidden, ignores assignment),
+              // but we need counts that match what's actually displayed (filtered by assignment, excludes hidden).
               const filteredProviders = providers;
-
-              const useApiCities = isNotContactedTab(activeTab) && !selectedAdminFilter;
-              const allCities = useApiCities ? cities : computeCityStatsFromProviders(filteredProviders);
+              const allCities = computeCityStatsFromProviders(filteredProviders);
 
               // Filter to only show cities with an owner assigned - BUT only for the Call & Confirm tab
               // Other tabs (in_sequence, needs_call, re_engage, done) should show all cities with providers
@@ -8837,7 +8835,7 @@ export default function ProviderOutreachPage() {
                 ? allCities.filter(city => cityOwners.has(city.city) && cityOwners.get(city.city)?.owner_id)
                 : allCities;
 
-              const isLoading = useApiCities ? loadingCities : loadingProviders;
+              const isLoading = loadingProviders;
 
               if (isLoading) {
                 return (

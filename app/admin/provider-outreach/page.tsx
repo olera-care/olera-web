@@ -7183,6 +7183,8 @@ export default function ProviderOutreachPage() {
             setDrawerProvider(null);
           }}
           onMoveToReady={async (providerId) => {
+            const provider = providers.find((p) => p.provider_id === providerId);
+            const fromStage = provider?.stage;
             try {
               const res = await fetch("/api/admin/provider-outreach/update-stage", {
                 method: "POST",
@@ -7195,12 +7197,19 @@ export default function ProviderOutreachPage() {
               if (res.ok) {
                 markAsRecentlyMoved(providerId);
                 setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
-                setStageCounts((prev) => ({
-                  ...prev,
-                  not_interested: Math.max(0, prev.not_interested - 1),
-                  done: Math.max(0, prev.done - 1),
-                  call_confirm: prev.call_confirm + 1,
-                }));
+                // Update stage counts based on where provider came from
+                setStageCounts((prev) => {
+                  const updated = { ...prev, call_confirm: prev.call_confirm + 1 };
+                  if (fromStage === "not_interested") {
+                    updated.not_interested = Math.max(0, prev.not_interested - 1);
+                    updated.done = Math.max(0, prev.done - 1);
+                  } else if (fromStage === "needs_call") {
+                    updated.needs_call = Math.max(0, prev.needs_call - 1);
+                  } else if (fromStage === "re_engage") {
+                    updated.re_engage = Math.max(0, prev.re_engage - 1);
+                  }
+                  return updated;
+                });
                 showToast("Moved to Call & Confirm", "success");
                 setDrawerProvider(null);
               }

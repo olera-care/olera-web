@@ -6901,7 +6901,7 @@ export default function ProviderOutreachPage() {
         if (activeTab === "call_confirm") {
           const assignedSum = Object.entries(counts)
             .filter(([key]) => key !== "unassigned")
-            .reduce((sum, [, countData]) => sum + countData.count, 0);
+            .reduce((sum, [, countData]) => sum + (countData as { count: number }).count, 0);
           setCallConfirmAssignedCount(assignedSum > 0 ? assignedSum : null);
         }
       } else {
@@ -9083,7 +9083,7 @@ export default function ProviderOutreachPage() {
         // Use admin counts sum for "All Assigned" view to match tab and filter chip counts
         const totalAssigned = Object.entries(adminCounts)
           .filter(([key]) => key !== "unassigned")
-          .reduce((sum, [, countData]) => sum + countData.count, 0);
+          .reduce((sum, [, countData]) => sum + (countData as { count: number }).count, 0);
         const assignedCityCount = computeCityStatsFromProviders(
           providers.filter(p => p.assigned_to && p.assigned_to !== "unassigned")
         ).length;

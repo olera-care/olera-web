@@ -9078,9 +9078,14 @@ export default function ProviderOutreachPage() {
 
       {/* Summary */}
       {isNotContactedTab(activeTab) && !loadingProviders && !isSearchResult && (() => {
-        // Compute assigned providers (those in cities with owners)
-        const assignedProviders = providers.filter(p => p.city && cityOwners.has(p.city));
-        const assignedCities = computeCityStatsFromProviders(assignedProviders);
+        // Use admin counts sum for "All Assigned" view to match tab and filter chip counts
+        const totalAssigned = Object.entries(adminCounts)
+          .filter(([key]) => key !== "unassigned")
+          .reduce((sum, [, countData]) => sum + countData.count, 0);
+        const assignedCityCount = computeCityStatsFromProviders(
+          providers.filter(p => p.assigned_to && p.assigned_to !== "unassigned")
+        ).length;
+
         return (
           <div className="mt-4 text-sm text-gray-500">
             {selectedAdminFilter ? (
@@ -9091,11 +9096,11 @@ export default function ProviderOutreachPage() {
                     : (adminNameLookup.get(selectedAdminFilter) || selectedAdminFilter)
                 } across {computeCityStatsFromProviders(providers).length} cities
               </>
-            ) : (
+            ) : totalAssigned > 0 ? (
               <>
-                {assignedProviders.length.toLocaleString()} providers assigned across {assignedCities.length} cities
+                {totalAssigned.toLocaleString()} providers assigned across {assignedCityCount} cities
               </>
-            )}
+            ) : null}
           </div>
         );
       })()}

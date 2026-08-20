@@ -969,6 +969,8 @@ function ActionsSection({
   onArchive,
   onRemove,
   onMoveToReady,
+  onOutcomeRecorded,
+  onClose,
   activeTab,
 }: {
   provider: OutreachProvider;
@@ -977,6 +979,8 @@ function ActionsSection({
   onArchive?: (providerId: string) => void;
   onRemove?: (providerId: string, providerName: string) => void;
   onMoveToReady?: (providerId: string) => void;
+  onOutcomeRecorded?: (providerId: string, stageChanged: boolean) => void;
+  onClose?: () => void;
   activeTab?: string;
 }) {
   const [sendingClaimLink, setSendingClaimLink] = useState(false);
@@ -984,9 +988,18 @@ function ActionsSection({
   const [claimLinkError, setClaimLinkError] = useState<string | null>(null);
   const [confirmMoveToReady, setConfirmMoveToReady] = useState(false);
   const [movingToReady, setMovingToReady] = useState(false);
+  // Follow Up specific: Resend with confirmation
+  const [showResendConfirm, setShowResendConfirm] = useState(false);
+  const [confirmedCall, setConfirmedCall] = useState(false);
+  const [resending, setResending] = useState(false);
+  const [resendError, setResendError] = useState<string | null>(null);
+  const [resendSuccess, setResendSuccess] = useState(false);
 
   const isTerminal = ["claimed", "archived"].includes(provider.stage);
   const canLaunch = provider.stage === "not_contacted" && provider.email;
+  const isFollowUp = provider.stage === "needs_call";
+  const resendCount = provider.resend_count ?? 0;
+  const resendDisabled = resendCount >= MAX_RESEND_COUNT;
 
   async function handleSendClaimLink() {
     if (sendingClaimLink || claimLinkSent) return;
@@ -1008,6 +1021,37 @@ function ActionsSection({
       setClaimLinkError("Network error");
     } finally {
       setSendingClaimLink(false);
+    }
+  }
+
+  // Follow Up specific: Resend claim link (moves to Alt Channels)
+  async function handleResendClaimLink() {
+    if (resending || !provider.email) return;
+    setResending(true);
+    setResendError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/record-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          outcome: "resend_link",
+        }),
+      });
+      if (res.ok) {
+        setResendSuccess(true);
+        setShowResendConfirm(false);
+        setConfirmedCall(false);
+        onOutcomeRecorded?.(provider.provider_id, true);
+        setTimeout(() => onClose?.(), 1500);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setResendError(data.error || "Failed to resend");
+      }
+    } catch {
+      setResendError("Network error");
+    } finally {
+      setResending(false);
     }
   }
 
@@ -1036,8 +1080,69 @@ function ActionsSection({
           </button>
         )}
 
-        {/* Send Claim Link - for active stages with email */}
-        {!isTerminal && provider.email && (
+        {/* Resend Claim Link - Follow Up specific with confirmation */}
+        {isFollowUp && provider.email && !resendSuccess && (
+          showResendConfirm ? (
+            <div className="w-full p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <label className="flex items-start gap-3 cursor-pointer mb-3">
+                <input
+                  type="checkbox"
+                  checked={confirmedCall}
+                  onChange={(e) => setConfirmedCall(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                />
+                <span className="text-sm text-gray-700">
+                  I called and confirmed they prefer email
+                </span>
+              </label>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleResendClaimLink}
+                  disabled={!confirmedCall || resending || resendDisabled}
+                  className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {resending ? "Sending..." : "Resend & Move to Alt Channels"}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowResendConfirm(false);
+                    setConfirmedCall(false);
+                  }}
+                  className="text-sm text-gray-500 hover:text-gray-700"
+                >
+                  Cancel
+                </button>
+                {resendError && <span className="text-xs text-red-500">{resendError}</span>}
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowResendConfirm(true)}
+              disabled={resendDisabled}
+              title={resendDisabled ? `Limit reached (${MAX_RESEND_COUNT} max)` : undefined}
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition ${
+                resendDisabled
+                  ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                  : "text-blue-700 bg-blue-50 border border-blue-200 hover:bg-blue-100"
+              }`}
+            >
+              Resend Claim Link{resendDisabled ? " (max)" : ""}
+            </button>
+          )
+        )}
+
+        {/* Resend success message */}
+        {isFollowUp && resendSuccess && (
+          <div className="flex items-center gap-2 text-sm text-emerald-600">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            Claim link sent, moving to Alternative Channels
+          </div>
+        )}
+
+        {/* Send Claim Link - for non-follow-up active stages with email */}
+        {!isTerminal && !isFollowUp && provider.email && (
           <>
             <button
               onClick={handleSendClaimLink}
@@ -1056,8 +1161,8 @@ function ActionsSection({
           </>
         )}
 
-        {/* Move to Ready - for not_interested (with confirmation) */}
-        {provider.stage === "not_interested" && provider.email && onMoveToReady && (
+        {/* Move to Ready - for needs_call, re_engage, or not_interested */}
+        {["needs_call", "re_engage", "not_interested"].includes(provider.stage) && provider.email && onMoveToReady && (
           confirmMoveToReady ? (
             <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 rounded-lg">
               <span className="text-sm text-gray-700">Move to Ready?</span>
@@ -1177,6 +1282,8 @@ export function ProviderDrawer({
       onArchive={onArchive}
       onRemove={onRemove}
       onMoveToReady={onMoveToReady}
+      onOutcomeRecorded={onOutcomeRecorded}
+      onClose={onClose}
       activeTab={activeTab}
     />
   );

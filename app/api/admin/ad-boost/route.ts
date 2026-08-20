@@ -50,7 +50,7 @@ const AD_BOOST_EMAIL_TYPES = [
 ];
 
 const ROW_SELECT =
-  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ended_at, ended_reason, ad_budget_cents, ad_budget_type, ad_spend_cents, ad_clicks, ad_impressions, flight_start_date, flight_end_date, queued_email_sent_at, requested_email_sent_at, profile_reminder_email_sent_at, promotion_email_sent_at, launched_email_sent_at, launched_email_scheduled_at, traction_email_sent_at, promo_complete_email_sent_at, promo_complete_email_scheduled_at, provider_reported_outcome, provider_reported_outcome_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at, photo_readiness_status, photo_review_note, photo_reviewed_at, photo_reviewed_by, photo_update_requested_at, photo_update_submitted_at, photo_nudge_email_sent_at, photo_reminder_email_sent_at, photo_ready_email_sent_at";
+  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ended_at, ended_reason, ad_budget_cents, ad_budget_type, ad_spend_cents, ad_clicks, ad_impressions, metrics_updated_at, flight_start_date, flight_end_date, queued_email_sent_at, requested_email_sent_at, profile_reminder_email_sent_at, promotion_email_sent_at, launched_email_sent_at, launched_email_scheduled_at, traction_email_sent_at, promo_complete_email_sent_at, promo_complete_email_scheduled_at, provider_reported_outcome, provider_reported_outcome_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at, photo_readiness_status, photo_review_note, photo_reviewed_at, photo_reviewed_by, photo_update_requested_at, photo_update_submitted_at, photo_nudge_email_sent_at, photo_reminder_email_sent_at, photo_ready_email_sent_at";
 
 export async function GET(request: NextRequest) {
   const user = await getAuthUser();
@@ -116,8 +116,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
     const tag = row.campaign_tag || row.id;
-    const [delivered, leads, receipt, communicationResult, profileResult] = await Promise.all([
+    const [delivered, adLandings, leads, receipt, communicationResult, profileResult] = await Promise.all([
       countDeliveredByCampaign(db, [tag]),
+      countAdLandingsByCampaign(db, [tag]),
       listLeadsByCampaign(db, tag),
       getCampaignReceipt(db, row),
       db
@@ -197,7 +198,11 @@ export async function GET(request: NextRequest) {
     }
 
     return NextResponse.json({
-      request: { ...row, delivered: delivered[tag] ?? 0 },
+      request: {
+        ...row,
+        delivered: delivered[tag] ?? 0,
+        ad_landings: adLandings[tag] ?? 0,
+      },
       leads,
       communications: communicationResult.data ?? [],
       campaignStats,
@@ -638,6 +643,16 @@ export async function POST(request: NextRequest) {
       }
     }
   }
+  // Any metric touched — including cleared back to null — is a fresh reading of
+  // the ad dashboard, so it re-dates all three. Without this the figures have
+  // no age and a week-old snapshot is indistinguishable from this morning's.
+  if (
+    body.ad_spend_cents !== undefined ||
+    body.ad_clicks !== undefined ||
+    body.ad_impressions !== undefined
+  ) {
+    update.metrics_updated_at = new Date().toISOString();
+  }
 
   // Launch-email schedule (UTC ISO; the admin UI collects it as US Eastern).
   // A set time makes the live flip store the schedule instead of emailing the
@@ -898,8 +913,24 @@ export async function POST(request: NextRequest) {
   // "Getting activity" should mean observable campaign activity, not merely
   // that an operator opened the metrics form and saved zero/partial values.
   // Impressions alone are not shown in the traction email; spend or clicks are.
-  const hasMeaningfulTraction =
-    (data.ad_spend_cents ?? 0) > 0 || (data.ad_clicks ?? 0) > 0;
+  //
+  // Measured landings count too, and they are the signal that does not go
+  // stale. Operator-entered figures are a snapshot of whenever someone last
+  // opened the ad dashboard: Rosemonte and Edmonds both had 0 typed on Aug 14
+  // and then took 10 and 3 real ad-driven landings over the following days,
+  // which under a typed-only gate is indistinguishable from a dead campaign.
+  //
+  // Evaluated lazily — countAdLandingsByCampaign scans the managed-traffic
+  // slice of provider_activity, and this PATCH also serves status flips, notes
+  // and photo review, none of which need it.
+  const typedTraction = (data.ad_spend_cents ?? 0) > 0 || (data.ad_clicks ?? 0) > 0;
+  const tractionEmailDue =
+    data.status === "live" &&
+    metricsWereSaved &&
+    (typedTraction ||
+      ((await countAdLandingsByCampaign(db, [data.campaign_tag || data.id]))[
+        data.campaign_tag || data.id
+      ] ?? 0) > 0);
   const lifecycleSends: Array<Promise<unknown>> = [];
 
   if (
@@ -926,7 +957,7 @@ export async function POST(request: NextRequest) {
     lifecycleSends.push(sendAdBoostLifecycleEmail({ request: data, kind: "launched" }));
   }
 
-  if (data.status === "live" && metricsWereSaved && hasMeaningfulTraction) {
+  if (tractionEmailDue) {
     lifecycleSends.push(sendAdBoostLifecycleEmail({ request: data, kind: "traction" }));
   }
 

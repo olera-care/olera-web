@@ -2070,7 +2070,9 @@ function FollowUpProviderRow({
   const dueBadge = formatDueDateBadge(provider.due_date);
   const reasonChip = getNeedsCallReasonChip(provider.needs_call_reason);
   const hasApollo = !!provider.apollo_contact;
-  const hasNotes = !!provider.notes;
+  // Note: provider.notes is from tracking table, not the actual notes shown in modal
+  // Always show "no notes" state - users can click to check/add notes
+  const hasNotes = false;
 
   return (
     <div className="border-b border-gray-100 last:border-b-0">
@@ -2334,7 +2336,9 @@ function ReEngageProviderRow({
   const waitDays = daysSince(provider.re_engage_entered_at);
   const channelInfo = getChannelLabel(provider.re_engage_channel || null);
   const hasApollo = !!provider.apollo_contact;
-  const hasNotes = !!provider.notes;
+  // Note: provider.notes is from tracking table, not the actual notes shown in modal
+  // Always show "no notes" state - users can click to check/add notes
+  const hasNotes = false;
   const isExpired = waitDays >= DIRECT_MAIL_EXPIRY_DAYS;
 
   return (

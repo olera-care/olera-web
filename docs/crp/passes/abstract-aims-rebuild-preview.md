@@ -60,10 +60,7 @@ free for the families it serves.
 
 ## SPECIFIC AIMS (one page)
 
-**Background.** America's need for eldercare is growing faster than its capacity to
-provide and pay for it: more older adults need help with daily living, while the direct-care workforce must fill an estimated
-9.7 million job openings between 2024 and 2034,[@phi2025] annual caregiver turnover runs 75 percent.[@activatedInsights2024] When support is not established, the result is preventable hospitalization,
-premature institutionalization, and avoidable Medicare and Medicaid spending.
+**Background.** Older adults increasingly need help with the ordinary tasks of daily living: bathing, meals, medications, moving safely through the home. The workforce that could provide that help, the family capacity that once absorbed it, and the means to pay for it are all shrinking, and when support is not established the consequences compound: preventable emergency care and hospitalization, caregiver breakdown, and premature institutionalization, each deepening the needs that went unmet.
 Families on this path do not fail for lack of information. They fail between
 identifying appropriate care and establishing it: recognizing a need, confirming what
 care fits, determining what aid or insurance can pay (an estimated $58 billion in
@@ -73,14 +70,13 @@ referral services each support part of this pathway, but none is accountable for
 families complete the pathway alone: care is established only when a provider can
 say yes, and 63.3 percent of home-care providers declined cases in 2023 for lack of staff.[@activatedInsights2024] Developed across NIA SBIR
 Phases I-IIB, CareNavigator addresses the identification half of this pathway today,
-screening a household's needs and matching it to aid, services, and providers over an expert-curated national database; the AI agent system evaluated under Phase IIB enters production in the remaining award year, with an n=200 evaluation and a database beyond 100,000 records. SBIR established technical feasibility and early demand: 15,500+ monthly visitors through organic search at near-zero acquisition cost, 725+ onboarded providers, and a staffing pilot in which providers paid
+screening a household's needs and matching it to aid, services, and providers over an expert-curated national database; the AI agent system evaluated under Phase IIB enters production in the remaining award year. SBIR established technical feasibility and early demand: 15,500+ monthly visitors through organic search at near-zero cost, 725+ onboarded providers, and a staffing pilot in which providers paid
 for caregivers recruited from health-professions students. What remains unproven is
 establishment: whether the system can reliably carry families to established care,
 whether responsive provider capacity can be concentrated on the other side, and
 whether provider revenue can sustain the platform.
 
-**CRP Objective.** We will bring Olera to full commercial operation in twelve local
-markets [PROVISIONAL]. In each, we will carry
+**CRP Objective.** We will bring Olera to full commercial operation in twelve local markets. In each, we will carry
 families from recognized need to established aid and care, grow the caregiver
 capacity and client base of the providers who serve them, and find the price at
 which those providers fund the platform. Families use CareNavigator free, and

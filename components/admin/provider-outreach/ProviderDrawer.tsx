@@ -974,17 +974,14 @@ function ActionsSection({
   onClose?: () => void;
   activeTab?: string;
 }) {
-  const [sendingClaimLink, setSendingClaimLink] = useState(false);
-  const [claimLinkSent, setClaimLinkSent] = useState(false);
-  const [claimLinkError, setClaimLinkError] = useState<string | null>(null);
-  const [confirmMoveToReady, setConfirmMoveToReady] = useState(false);
-  const [movingToReady, setMovingToReady] = useState(false);
-  // Follow Up specific: Resend with confirmation
-  const [showResendConfirm, setShowResendConfirm] = useState(false);
+  // Confirmation states for each action
+  const [confirmAction, setConfirmAction] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<string | null>(null);
+
+  // Resend requires call confirmation checkbox
   const [confirmedCall, setConfirmedCall] = useState(false);
-  const [resending, setResending] = useState(false);
-  const [resendError, setResendError] = useState<string | null>(null);
-  const [resendSuccess, setResendSuccess] = useState(false);
 
   const isTerminal = ["claimed", "archived"].includes(provider.stage);
   const canLaunch = provider.stage === "not_contacted" && provider.email;
@@ -992,10 +989,36 @@ function ActionsSection({
   const resendCount = provider.resend_count ?? 0;
   const resendDisabled = resendCount >= MAX_RESEND_COUNT;
 
+  // Generic outcome handler for Follow Up actions
+  async function handleRecordOutcome(outcome: string) {
+    setActionLoading(true);
+    setActionError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/record-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, outcome }),
+      });
+      if (res.ok) {
+        setActionSuccess(outcome);
+        setConfirmAction(null);
+        setConfirmedCall(false);
+        onOutcomeRecorded?.(provider.provider_id, true);
+        setTimeout(() => onClose?.(), 1200);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setActionError(data.error || "Failed");
+      }
+    } catch {
+      setActionError("Network error");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
   async function handleSendClaimLink() {
-    if (sendingClaimLink || claimLinkSent) return;
-    setSendingClaimLink(true);
-    setClaimLinkError(null);
+    setActionLoading(true);
+    setActionError(null);
     try {
       const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
         method: "POST",
@@ -1003,64 +1026,119 @@ function ActionsSection({
         body: JSON.stringify({ provider_id: provider.provider_id }),
       });
       if (res.ok) {
-        setClaimLinkSent(true);
+        setActionSuccess("claim_link");
+        setConfirmAction(null);
       } else {
         const data = await res.json().catch(() => ({}));
-        setClaimLinkError(data.error || "Failed to send");
+        setActionError(data.error || "Failed to send");
       }
     } catch {
-      setClaimLinkError("Network error");
+      setActionError("Network error");
     } finally {
-      setSendingClaimLink(false);
-    }
-  }
-
-  // Follow Up specific: Resend claim link (moves to Alt Channels)
-  async function handleResendClaimLink() {
-    if (resending || !provider.email) return;
-    setResending(true);
-    setResendError(null);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/record-outcome", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          outcome: "resend_link",
-        }),
-      });
-      if (res.ok) {
-        setResendSuccess(true);
-        setShowResendConfirm(false);
-        setConfirmedCall(false);
-        onOutcomeRecorded?.(provider.provider_id, true);
-        setTimeout(() => onClose?.(), 1500);
-      } else {
-        const data = await res.json().catch(() => ({}));
-        setResendError(data.error || "Failed to resend");
-      }
-    } catch {
-      setResendError("Network error");
-    } finally {
-      setResending(false);
+      setActionLoading(false);
     }
   }
 
   async function handleMoveToReady() {
-    if (!onMoveToReady || movingToReady) return;
-    setMovingToReady(true);
+    if (!onMoveToReady) return;
+    setActionLoading(true);
     try {
       await onMoveToReady(provider.provider_id);
+      setConfirmAction(null);
     } finally {
-      setMovingToReady(false);
-      setConfirmMoveToReady(false);
+      setActionLoading(false);
     }
   }
 
-  // Compact button styles (with disabled states)
+  function cancelConfirm() {
+    setConfirmAction(null);
+    setConfirmedCall(false);
+    setActionError(null);
+  }
+
+  // Compact button styles
   const primaryBtn = "px-3 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed";
   const outlineBtn = "px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed";
   const plainBtn = "px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition";
+
+  // Show success message
+  if (actionSuccess) {
+    const messages: Record<string, string> = {
+      claim_link: "Claim link sent",
+      resend_link: "Resent, moving to Alt Channels",
+      try_fax: "Moved to Alt Channels (Fax)",
+      try_contact_form: "Moved to Alt Channels (Contact Form)",
+      try_direct_mail: "Moved to Alt Channels (Direct Mail)",
+    };
+    return (
+      <div>
+        <SectionHeader>Actions</SectionHeader>
+        <div className="flex items-center gap-2 text-sm text-emerald-600">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          {messages[actionSuccess] || "Done"}
+        </div>
+      </div>
+    );
+  }
+
+  // Show confirmation dialog
+  if (confirmAction) {
+    const configs: Record<string, { title: string; requiresCall?: boolean; confirmText: string }> = {
+      launch: { title: "Launch email sequence for this provider?", confirmText: "Launch" },
+      claim_link: { title: "Send claim link email?", confirmText: "Send" },
+      resend_link: { title: "Resend claim link and move to Alt Channels?", requiresCall: true, confirmText: "Resend" },
+      try_fax: { title: "Move to Alternative Channels (Fax)?", requiresCall: true, confirmText: "Move to Fax" },
+      try_contact_form: { title: "Move to Alternative Channels (Contact Form)?", requiresCall: true, confirmText: "Move to Contact Form" },
+      try_direct_mail: { title: "Move to Alternative Channels (Direct Mail)?", requiresCall: true, confirmText: "Move to Direct Mail" },
+      move_to_ready: { title: "Move back to Call & Confirm?", confirmText: "Move" },
+      not_interested: { title: "Mark as Not Interested?", confirmText: "Confirm" },
+      archive: { title: "Archive this provider?", confirmText: "Archive" },
+      remove: { title: `Remove ${provider.provider_name} from outreach?`, confirmText: "Remove" },
+    };
+    const config = configs[confirmAction];
+    if (!config) return null;
+
+    return (
+      <div>
+        <SectionHeader>Actions</SectionHeader>
+        <div className="p-3 bg-gray-50 border border-gray-200 rounded-md space-y-3">
+          <p className="text-sm text-gray-700">{config.title}</p>
+          {config.requiresCall && (
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={confirmedCall}
+                onChange={(e) => setConfirmedCall(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span className="text-sm text-gray-600">I called and confirmed this action</span>
+            </label>
+          )}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (confirmAction === "launch") onLaunchSequence?.(provider.provider_id);
+                else if (confirmAction === "claim_link") handleSendClaimLink();
+                else if (confirmAction === "move_to_ready") handleMoveToReady();
+                else if (confirmAction === "not_interested") onMarkNotInterested?.(provider.provider_id);
+                else if (confirmAction === "archive") onArchive?.(provider.provider_id);
+                else if (confirmAction === "remove") onRemove?.(provider.provider_id, provider.provider_name);
+                else handleRecordOutcome(confirmAction);
+              }}
+              disabled={actionLoading || (config.requiresCall && !confirmedCall)}
+              className={confirmAction === "remove" ? `${outlineBtn} text-red-600 border-red-300 hover:bg-red-50` : primaryBtn}
+            >
+              {actionLoading ? "..." : config.confirmText}
+            </button>
+            <button onClick={cancelConfirm} className={plainBtn}>Cancel</button>
+            {actionError && <span className="text-xs text-red-500">{actionError}</span>}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -1068,106 +1146,72 @@ function ActionsSection({
       <div className="flex flex-wrap items-center gap-2">
         {/* Launch Sequence - primary, only for not_contacted with email */}
         {canLaunch && onLaunchSequence && (
-          <button onClick={() => onLaunchSequence(provider.provider_id)} className={primaryBtn}>
+          <button onClick={() => setConfirmAction("launch")} className={primaryBtn}>
             Launch Sequence
           </button>
         )}
 
-        {/* Send Claim Link - primary when no Launch Sequence, for non-follow-up active stages */}
+        {/* Send Claim Link - for non-follow-up active stages */}
         {!isTerminal && !isFollowUp && provider.email && (
+          <button onClick={() => setConfirmAction("claim_link")} className={canLaunch ? outlineBtn : primaryBtn}>
+            Send Claim Link
+          </button>
+        )}
+
+        {/* Follow Up specific actions - move to alternative channels */}
+        {isFollowUp && (
           <>
-            <button
-              onClick={handleSendClaimLink}
-              disabled={sendingClaimLink || claimLinkSent}
-              className={claimLinkSent ? `${outlineBtn} text-emerald-600 border-emerald-300` : canLaunch ? outlineBtn : primaryBtn}
-            >
-              {sendingClaimLink ? "Sending..." : claimLinkSent ? "Sent ✓" : "Send Claim Link"}
+            {/* Resend Claim Link */}
+            {provider.email && (
+              <button
+                onClick={() => setConfirmAction("resend_link")}
+                disabled={resendDisabled}
+                title={resendDisabled ? `Limit reached (${MAX_RESEND_COUNT} max)` : undefined}
+                className={outlineBtn}
+              >
+                Resend Link{resendDisabled ? " (max)" : ""}
+              </button>
+            )}
+            {/* Alternative channel buttons */}
+            <button onClick={() => setConfirmAction("try_fax")} className={outlineBtn}>
+              Fax
             </button>
-            {claimLinkError && <span className="text-xs text-red-500">{claimLinkError}</span>}
+            <button onClick={() => setConfirmAction("try_contact_form")} className={outlineBtn}>
+              Contact Form
+            </button>
+            <button onClick={() => setConfirmAction("try_direct_mail")} className={outlineBtn}>
+              Direct Mail
+            </button>
           </>
-        )}
-
-        {/* Resend Claim Link - Follow Up specific with confirmation */}
-        {isFollowUp && provider.email && !resendSuccess && (
-          showResendConfirm ? (
-            <div className="w-full p-3 bg-gray-50 border border-gray-200 rounded-md">
-              <label className="flex items-start gap-2 cursor-pointer mb-2">
-                <input
-                  type="checkbox"
-                  checked={confirmedCall}
-                  onChange={(e) => setConfirmedCall(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
-                />
-                <span className="text-sm text-gray-700">I called and confirmed they prefer email</span>
-              </label>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleResendClaimLink}
-                  disabled={!confirmedCall || resending || resendDisabled}
-                  className={`${primaryBtn} disabled:opacity-50 disabled:cursor-not-allowed`}
-                >
-                  {resending ? "Sending..." : "Resend & Move to Alt Channels"}
-                </button>
-                <button onClick={() => { setShowResendConfirm(false); setConfirmedCall(false); }} className={plainBtn}>
-                  Cancel
-                </button>
-                {resendError && <span className="text-xs text-red-500">{resendError}</span>}
-              </div>
-            </div>
-          ) : (
-            <button
-              onClick={() => setShowResendConfirm(true)}
-              disabled={resendDisabled}
-              title={resendDisabled ? `Limit reached (${MAX_RESEND_COUNT} max)` : undefined}
-              className={resendDisabled ? `${outlineBtn} opacity-50 cursor-not-allowed` : outlineBtn}
-            >
-              Resend Claim Link{resendDisabled ? " (max)" : ""}
-            </button>
-          )
-        )}
-
-        {/* Resend success message */}
-        {isFollowUp && resendSuccess && (
-          <span className="text-sm text-emerald-600">✓ Sent, moving to Alt Channels</span>
         )}
 
         {/* Move to Ready - for needs_call, re_engage, or not_interested */}
         {["needs_call", "re_engage", "not_interested"].includes(provider.stage) && provider.email && onMoveToReady && (
-          confirmMoveToReady ? (
-            <div className="flex items-center gap-2 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-md">
-              <span className="text-sm text-gray-700">Move to Ready?</span>
-              <button onClick={handleMoveToReady} disabled={movingToReady} className="px-2 py-0.5 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50">
-                {movingToReady ? "..." : "Yes"}
-              </button>
-              <button onClick={() => setConfirmMoveToReady(false)} className="text-xs text-gray-500 hover:text-gray-700">No</button>
-            </div>
-          ) : (
-            <button onClick={() => setConfirmMoveToReady(true)} className={outlineBtn}>
-              Move to Ready
-            </button>
-          )
+          <button onClick={() => setConfirmAction("move_to_ready")} className={outlineBtn}>
+            Move to Ready
+          </button>
         )}
 
-        {/* Mark Not Interested - for active stages */}
+        {/* Mark Not Interested */}
         {!isTerminal && provider.stage !== "not_interested" && onMarkNotInterested && (
-          <button onClick={() => onMarkNotInterested(provider.provider_id)} className={outlineBtn}>
+          <button onClick={() => setConfirmAction("not_interested")} className={outlineBtn}>
             Not Interested
           </button>
         )}
 
-        {/* Archive - for non-archived */}
+        {/* Archive */}
         {provider.stage !== "archived" && onArchive && (
-          <button onClick={() => onArchive(provider.provider_id)} className={outlineBtn}>
+          <button onClick={() => setConfirmAction("archive")} className={outlineBtn}>
             Archive
           </button>
         )}
 
-        {/* Spacer to push Remove to right */}
+        {/* Spacer */}
         <div className="flex-1" />
 
-        {/* Remove - plain style, right-aligned */}
+        {/* Remove */}
         {activeTab !== "hidden" && onRemove && (
-          <button onClick={() => onRemove(provider.provider_id, provider.provider_name)} className={`${plainBtn} text-red-500 hover:text-red-600`}>
+          <button onClick={() => setConfirmAction("remove")} className={`${plainBtn} text-red-500 hover:text-red-600`}>
             Remove
           </button>
         )}

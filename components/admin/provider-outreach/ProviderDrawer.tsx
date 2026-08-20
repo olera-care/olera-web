@@ -164,10 +164,13 @@ function ContactSection({
   const [phoneValue, setPhoneValue] = useState(provider.phone || "");
   const [savingEmail, setSavingEmail] = useState(false);
   const [savingPhone, setSavingPhone] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
 
   async function handleSaveEmail() {
     if (!emailValue.trim()) return;
     setSavingEmail(true);
+    setEmailError(null);
     try {
       const res = await fetch("/api/admin/provider-outreach/update-email", {
         method: "PATCH",
@@ -177,7 +180,12 @@ function ContactSection({
       if (res.ok) {
         onEmailUpdate?.(emailValue.trim());
         setEditingEmail(false);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setEmailError(data.error || "Failed to save");
       }
+    } catch {
+      setEmailError("Network error");
     } finally {
       setSavingEmail(false);
     }
@@ -185,6 +193,7 @@ function ContactSection({
 
   async function handleSavePhone() {
     setSavingPhone(true);
+    setPhoneError(null);
     try {
       const res = await fetch("/api/admin/provider-outreach/update-phone", {
         method: "PATCH",
@@ -194,7 +203,12 @@ function ContactSection({
       if (res.ok) {
         onPhoneUpdate?.(phoneValue.trim() || null);
         setEditingPhone(false);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setPhoneError(data.error || "Failed to save");
       }
+    } catch {
+      setPhoneError("Network error");
     } finally {
       setSavingPhone(false);
     }
@@ -218,6 +232,7 @@ function ContactSection({
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSaveEmail();
                 if (e.key === "Escape") {
+                  e.stopPropagation(); // Prevent drawer from closing
                   setEditingEmail(false);
                   setEmailValue(provider.email || "");
                 }
@@ -235,11 +250,13 @@ function ContactSection({
               onClick={() => {
                 setEditingEmail(false);
                 setEmailValue(provider.email || "");
+                setEmailError(null);
               }}
               className="text-sm text-gray-400 hover:text-gray-600"
             >
               Cancel
             </button>
+            {emailError && <span className="text-xs text-red-500">{emailError}</span>}
           </div>
         ) : (
           <div className="flex items-center gap-3 flex-1 ml-3">
@@ -283,6 +300,7 @@ function ContactSection({
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleSavePhone();
                 if (e.key === "Escape") {
+                  e.stopPropagation(); // Prevent drawer from closing
                   setEditingPhone(false);
                   setPhoneValue(provider.phone || "");
                 }
@@ -300,11 +318,13 @@ function ContactSection({
               onClick={() => {
                 setEditingPhone(false);
                 setPhoneValue(provider.phone || "");
+                setPhoneError(null);
               }}
               className="text-sm text-gray-400 hover:text-gray-600"
             >
               Cancel
             </button>
+            {phoneError && <span className="text-xs text-red-500">{phoneError}</span>}
           </div>
         ) : (
           <div className="flex items-center gap-3 flex-1 ml-3">
@@ -538,6 +558,7 @@ function NotesSection({ provider }: { provider: OutreachProvider }) {
   const [loading, setLoading] = useState(true);
   const [newNote, setNewNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -560,6 +581,7 @@ function NotesSection({ provider }: { provider: OutreachProvider }) {
   const handleSubmit = useCallback(async () => {
     if (!newNote.trim() || submitting) return;
     setSubmitting(true);
+    setSubmitError(null);
     try {
       const res = await fetch("/api/admin/provider-outreach/notes", {
         method: "POST",
@@ -573,7 +595,11 @@ function NotesSection({ provider }: { provider: OutreachProvider }) {
         const data = await res.json();
         setNotes((prev) => [data.note, ...prev]);
         setNewNote("");
+      } else {
+        setSubmitError("Failed to add note");
       }
+    } catch {
+      setSubmitError("Network error");
     } finally {
       setSubmitting(false);
     }
@@ -608,7 +634,10 @@ function NotesSection({ provider }: { provider: OutreachProvider }) {
           }}
         />
         <div className="mt-2 flex items-center justify-between">
-          <span className="text-xs text-gray-400">Ctrl+Enter to submit</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-400">Ctrl+Enter to submit</span>
+            {submitError && <span className="text-xs text-red-500">{submitError}</span>}
+          </div>
           <button
             onClick={handleSubmit}
             disabled={!newNote.trim() || submitting}
@@ -691,6 +720,7 @@ function ActionsSection({
 }) {
   const [sendingClaimLink, setSendingClaimLink] = useState(false);
   const [claimLinkSent, setClaimLinkSent] = useState(false);
+  const [claimLinkError, setClaimLinkError] = useState<string | null>(null);
   const [confirmMoveToReady, setConfirmMoveToReady] = useState(false);
   const [movingToReady, setMovingToReady] = useState(false);
 
@@ -700,6 +730,7 @@ function ActionsSection({
   async function handleSendClaimLink() {
     if (sendingClaimLink || claimLinkSent) return;
     setSendingClaimLink(true);
+    setClaimLinkError(null);
     try {
       const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
         method: "POST",
@@ -708,7 +739,12 @@ function ActionsSection({
       });
       if (res.ok) {
         setClaimLinkSent(true);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setClaimLinkError(data.error || "Failed to send");
       }
+    } catch {
+      setClaimLinkError("Network error");
     } finally {
       setSendingClaimLink(false);
     }
@@ -741,17 +777,22 @@ function ActionsSection({
 
         {/* Send Claim Link - for active stages with email */}
         {!isTerminal && provider.email && (
-          <button
-            onClick={handleSendClaimLink}
-            disabled={sendingClaimLink || claimLinkSent}
-            className={`px-4 py-2 text-sm font-medium rounded-lg transition disabled:opacity-50 ${
-              claimLinkSent
-                ? "text-emerald-700 bg-emerald-50"
-                : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
-            }`}
-          >
-            {sendingClaimLink ? "Sending..." : claimLinkSent ? "Link Sent" : "Send Claim Link"}
-          </button>
+          <>
+            <button
+              onClick={handleSendClaimLink}
+              disabled={sendingClaimLink || claimLinkSent}
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition disabled:opacity-50 ${
+                claimLinkSent
+                  ? "text-emerald-700 bg-emerald-50"
+                  : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+              }`}
+            >
+              {sendingClaimLink ? "Sending..." : claimLinkSent ? "Link Sent" : "Send Claim Link"}
+            </button>
+            {claimLinkError && (
+              <span className="text-sm text-red-500">{claimLinkError}</span>
+            )}
+          </>
         )}
 
         {/* Move to Ready - for not_interested (with confirmation) */}

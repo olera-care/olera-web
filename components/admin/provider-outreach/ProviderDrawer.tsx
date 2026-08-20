@@ -58,6 +58,22 @@ interface OutreachProvider {
     failed_step?: number;
     failed_reason?: string;
   };
+  // Follow Up queue fields
+  due_date?: string | null;
+  resend_count?: number;
+  needs_call_reason?: string | null;
+  engagement?: {
+    emails_sent: number;
+    opens: number;
+    clicks: number;
+    resends: number;
+  };
+  // Alternative Channels (re_engage) fields
+  re_engage_channel?: string | null;
+  re_engage_entered_at?: string | null;
+  fax_number?: string | null;
+  mail_address?: string | null;
+  contact_form_url?: string | null;
 }
 
 interface Note {
@@ -77,7 +93,7 @@ interface ProviderDrawerProps {
   onPhoneUpdate?: (providerId: string, phone: string | null) => void;
   // Action callbacks (use providerId to avoid type mismatches with page's full OutreachProvider)
   onLaunchSequence?: (providerId: string) => void;
-  onMarkNotInterested?: (providerId: string) => void;
+  onMarkNotInterested?: (providerId: string, reason?: string) => void;
   onArchive?: (providerId: string) => void;
   onRemove?: (providerId: string, providerName: string) => void;
   onMoveToReady?: (providerId: string) => void;
@@ -85,6 +101,8 @@ interface ProviderDrawerProps {
   onResetToReadyWithApollo?: (providerId: string) => Promise<boolean>;
   // Apollo callbacks
   onContactFound?: (providerId: string, contact: ApolloContact) => void;
+  // Outcome callback (for Follow Up and Alt Channels actions)
+  onOutcomeRecorded?: (providerId: string, stageChanged: boolean) => void;
   // Current UI context
   activeTab?: string;
 }
@@ -126,6 +144,100 @@ function formatDate(dateString: string): string {
       day: "numeric",
       year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
     });
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Follow Up Helper Functions
+// ─────────────────────────────────────────────────────────────────────────────
+
+const MAX_RESEND_COUNT = 2;
+
+const NEEDS_CALL_REASON_LABELS: Record<string, string> = {
+  sequence_exhausted: "Sequence done",
+  sequence_completed: "Sequence done",
+  clicked_not_claimed: "Clicked",
+  replied: "Replied",
+  email_bounced: "Bounced",
+  manual: "Manual",
+};
+
+function getTodayISO(): string {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+}
+
+// Days until a future date (positive = future, negative = overdue)
+function daysUntil(dateStr: string | null): number {
+  if (!dateStr) return 0;
+  const today = new Date(getTodayISO());
+  const targetDate = new Date(dateStr);
+  const diffTime = targetDate.getTime() - today.getTime();
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+function formatDueDateBadge(dateStr: string | null): { text: string; className: string } {
+  if (!dateStr) {
+    return { text: "Due today", className: "bg-amber-100 text-amber-700" };
+  }
+
+  const daysDiff = daysUntil(dateStr);
+
+  if (daysDiff < 0) {
+    const daysOverdue = Math.abs(daysDiff);
+    return {
+      text: daysOverdue === 1 ? "1 day overdue" : `${daysOverdue} days overdue`,
+      className: "bg-red-100 text-red-700",
+    };
+  } else if (daysDiff === 0) {
+    return { text: "Due today", className: "bg-amber-100 text-amber-700" };
+  } else if (daysDiff === 1) {
+    return { text: "Tomorrow", className: "bg-blue-100 text-blue-700" };
+  } else {
+    return { text: `In ${daysDiff} days`, className: "bg-gray-100 text-gray-600" };
+  }
+}
+
+function getNeedsCallReasonChip(reason: string | null): { label: string; className: string } | null {
+  if (!reason) return null;
+  const label = NEEDS_CALL_REASON_LABELS[reason] || reason;
+  switch (reason) {
+    case "sequence_exhausted":
+    case "sequence_completed":
+      return { label, className: "bg-blue-50 text-blue-700" };
+    case "clicked_not_claimed":
+      return { label, className: "bg-emerald-50 text-emerald-700" };
+    case "replied":
+      return { label, className: "bg-purple-50 text-purple-700" };
+    case "email_bounced":
+      return { label, className: "bg-red-50 text-red-700" };
+    case "manual":
+    default:
+      return { label, className: "bg-gray-100 text-gray-600" };
+  }
+}
+
+function getFollowUpReasonExplanation(provider: OutreachProvider): string {
+  const reason = provider.needs_call_reason;
+  const engagement = provider.engagement || { emails_sent: 0, opens: 0, clicks: 0, resends: 0 };
+
+  switch (reason) {
+    case "replied":
+      return "Provider replied to an email — this is a hot lead.";
+    case "clicked_not_claimed":
+      return `Provider clicked ${engagement.clicks} time${engagement.clicks !== 1 ? "s" : ""} but didn't claim.`;
+    case "sequence_exhausted":
+    case "sequence_completed":
+      if (engagement.opens > 0) {
+        return `Provider opened ${engagement.opens} email${engagement.opens !== 1 ? "s" : ""} but didn't click.`;
+      } else {
+        return "No email engagement detected.";
+      }
+    case "email_bounced":
+      return "Email bounced — contact info needs to be updated.";
+    case "manual":
+      return "Manually added to follow-up queue.";
+    default:
+      return "Ready for follow-up.";
   }
 }
 
@@ -698,6 +810,468 @@ function ActivitySection({ provider }: { provider: OutreachProvider }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Follow Up Section (for needs_call stage)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function FollowUpSection({
+  provider,
+  onOutcomeRecorded,
+  onClose,
+}: {
+  provider: OutreachProvider;
+  onOutcomeRecorded?: (providerId: string, stageChanged: boolean) => void;
+  onClose?: () => void;
+}) {
+  const [resending, setResending] = useState(false);
+  const [resendError, setResendError] = useState<string | null>(null);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [showResendConfirm, setShowResendConfirm] = useState(false);
+  const [confirmedCall, setConfirmedCall] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+
+  // Reset state when provider changes
+  useEffect(() => {
+    setResending(false);
+    setResendError(null);
+    setResendSuccess(false);
+    setShowResendConfirm(false);
+    setConfirmedCall(false);
+    setShowResetConfirm(false);
+    setResetting(false);
+    setResetError(null);
+  }, [provider.provider_id]);
+
+  const dueBadge = formatDueDateBadge(provider.due_date || null);
+  const reasonChip = getNeedsCallReasonChip(provider.needs_call_reason || null);
+  const explanation = getFollowUpReasonExplanation(provider);
+  const engagement = provider.engagement || { emails_sent: 0, opens: 0, clicks: 0, resends: 0 };
+  const resendCount = provider.resend_count ?? 0;
+  const resendDisabled = resendCount >= MAX_RESEND_COUNT;
+
+  async function handleResendClaimLink() {
+    if (resending || !provider.email) return;
+    setResending(true);
+    setResendError(null);
+    try {
+      // Use the record-outcome API with resend_link outcome
+      const res = await fetch("/api/admin/provider-outreach/record-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          outcome: "resend_link",
+        }),
+      });
+      if (res.ok) {
+        setResendSuccess(true);
+        setShowResendConfirm(false);
+        setConfirmedCall(false);
+        onOutcomeRecorded?.(provider.provider_id, true);
+        // Close drawer after brief delay to show success message
+        setTimeout(() => onClose?.(), 1500);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setResendError(data.error || "Failed to resend");
+      }
+    } catch {
+      setResendError("Network error");
+    } finally {
+      setResending(false);
+    }
+  }
+
+  async function handleResetToReady() {
+    if (resetting) return;
+    setResetting(true);
+    setResetError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          email_source: provider.email_source || "organization",
+          use_apollo_email: false,
+        }),
+      });
+      if (res.ok) {
+        setShowResetConfirm(false);
+        onOutcomeRecorded?.(provider.provider_id, true);
+        // Close drawer - provider moved to different tab
+        onClose?.();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setResetError(data.error || "Failed to reset");
+      }
+    } catch {
+      setResetError("Network error");
+    } finally {
+      setResetting(false);
+    }
+  }
+
+  return (
+    <div>
+      <SectionHeader>Follow Up Status</SectionHeader>
+
+      {/* Due date and reason badges */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${dueBadge.className}`}>
+          {dueBadge.text}
+        </span>
+        {reasonChip && (
+          <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${reasonChip.className}`}>
+            {reasonChip.label}
+          </span>
+        )}
+      </div>
+
+      {/* Explanation */}
+      <p className="text-sm text-gray-700 mb-4">{explanation}</p>
+
+      {/* Engagement stats */}
+      <div className="flex items-center gap-4 mb-5 text-sm">
+        <div className="flex items-center gap-1.5">
+          <span className="text-gray-500">Emails:</span>
+          <span className="font-medium text-gray-900">{engagement.emails_sent}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-gray-500">Opens:</span>
+          <span className="font-medium text-gray-900">{engagement.opens}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-gray-500">Clicks:</span>
+          <span className="font-medium text-gray-900">{engagement.clicks}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-gray-500">Resends:</span>
+          <span className="font-medium text-gray-900">{resendCount}/{MAX_RESEND_COUNT}</span>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="space-y-3">
+        {/* Resend Claim Link */}
+        {!resendSuccess ? (
+          showResendConfirm ? (
+            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+              <label className="flex items-start gap-3 cursor-pointer mb-3">
+                <input
+                  type="checkbox"
+                  checked={confirmedCall}
+                  onChange={(e) => setConfirmedCall(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                />
+                <span className="text-sm text-gray-700">
+                  I called and confirmed they prefer email communication
+                </span>
+              </label>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleResendClaimLink}
+                  disabled={!confirmedCall || resending || resendDisabled}
+                  className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {resending ? "Sending..." : "Send & Move to Alt Channels"}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowResendConfirm(false);
+                    setConfirmedCall(false);
+                  }}
+                  className="text-sm text-gray-500 hover:text-gray-700"
+                >
+                  Cancel
+                </button>
+                {resendError && <span className="text-xs text-red-500">{resendError}</span>}
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowResendConfirm(true)}
+              disabled={resendDisabled || !provider.email}
+              title={resendDisabled ? `Limit reached (${MAX_RESEND_COUNT} max)` : !provider.email ? "No email" : undefined}
+              className={`px-4 py-2 text-sm font-medium rounded-lg transition ${
+                resendDisabled || !provider.email
+                  ? "text-gray-400 bg-gray-100 cursor-not-allowed"
+                  : "text-blue-700 bg-blue-50 border border-blue-200 hover:bg-blue-100"
+              }`}
+            >
+              Resend Claim Link{resendDisabled ? " (max)" : ""}
+            </button>
+          )
+        ) : (
+          <div className="flex items-center gap-2 text-sm text-emerald-600">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            Claim link sent, moved to Alternative Channels
+          </div>
+        )}
+
+        {/* Reset to Ready */}
+        {showResetConfirm ? (
+          <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+            <p className="text-sm text-gray-700 mb-3">
+              Move back to Ready tab? This will allow launching a new email sequence.
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={handleResetToReady}
+                disabled={resetting}
+                className="px-3 py-1.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+              >
+                {resetting ? "Moving..." : "Yes, Move to Ready"}
+              </button>
+              <button
+                onClick={() => setShowResetConfirm(false)}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                Cancel
+              </button>
+              {resetError && <span className="text-xs text-red-500">{resetError}</span>}
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={() => setShowResetConfirm(true)}
+            className="px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition"
+          >
+            Move to Ready
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Alternative Channels Section (for re_engage stage)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CHANNEL_LABELS: Record<string, { label: string; className: string }> = {
+  fax: { label: "Fax", className: "bg-purple-50 text-purple-700" },
+  direct_mail: { label: "Direct Mail", className: "bg-teal-50 text-teal-700" },
+  contact_form: { label: "Contact Form", className: "bg-orange-50 text-orange-700" },
+  linkedin: { label: "LinkedIn", className: "bg-blue-50 text-blue-700" },
+  re_engage: { label: "Email Resend", className: "bg-gray-100 text-gray-700" },
+};
+
+function daysSince(dateString: string | null): number {
+  if (!dateString) return 0;
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}
+
+function ReEngageSection({
+  provider,
+  onOutcomeRecorded,
+  onClose,
+}: {
+  provider: OutreachProvider;
+  onOutcomeRecorded?: (providerId: string, stageChanged: boolean) => void;
+  onClose?: () => void;
+}) {
+  const [sendingClaimLink, setSendingClaimLink] = useState(false);
+  const [claimLinkSent, setClaimLinkSent] = useState(false);
+  const [claimLinkError, setClaimLinkError] = useState<string | null>(null);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [resetError, setResetError] = useState<string | null>(null);
+
+  // Reset state when provider changes
+  useEffect(() => {
+    setSendingClaimLink(false);
+    setClaimLinkSent(false);
+    setClaimLinkError(null);
+    setShowResetConfirm(false);
+    setResetting(false);
+    setResetError(null);
+  }, [provider.provider_id]);
+
+  const channel = provider.re_engage_channel;
+  const channelInfo = channel ? CHANNEL_LABELS[channel] || { label: channel, className: "bg-gray-100 text-gray-600" } : null;
+  const waitDays = daysSince(provider.re_engage_entered_at || null);
+
+  async function handleSendClaimLink() {
+    if (sendingClaimLink || !provider.email) return;
+    setSendingClaimLink(true);
+    setClaimLinkError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+      if (res.ok) {
+        setClaimLinkSent(true);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setClaimLinkError(data.error || "Failed to send");
+      }
+    } catch {
+      setClaimLinkError("Network error");
+    } finally {
+      setSendingClaimLink(false);
+    }
+  }
+
+  async function handleResetToReady() {
+    if (resetting) return;
+    setResetting(true);
+    setResetError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          email_source: provider.email_source || "organization",
+          use_apollo_email: false,
+        }),
+      });
+      if (res.ok) {
+        setShowResetConfirm(false);
+        onOutcomeRecorded?.(provider.provider_id, true);
+        // Close drawer - provider moved to different tab
+        onClose?.();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setResetError(data.error || "Failed to reset");
+      }
+    } catch {
+      setResetError("Network error");
+    } finally {
+      setResetting(false);
+    }
+  }
+
+  return (
+    <div>
+      <SectionHeader>Alternative Channel Status</SectionHeader>
+
+      {/* Channel and wait time */}
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        {channelInfo && (
+          <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${channelInfo.className}`}>
+            {channelInfo.label}
+          </span>
+        )}
+        <span className="text-sm text-gray-600">
+          {waitDays === 0 ? "Added today" : waitDays === 1 ? "1 day in stage" : `${waitDays} days in stage`}
+        </span>
+      </div>
+
+      {/* Channel-specific details */}
+      {channel === "fax" && provider.fax_number && (
+        <div className="mb-4 p-3 bg-purple-50 rounded-lg">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-gray-500">Fax sent to:</span>
+            <span className="font-medium text-gray-900">{provider.fax_number}</span>
+          </div>
+        </div>
+      )}
+
+      {channel === "direct_mail" && provider.mail_address && (
+        <div className="mb-4 p-3 bg-teal-50 rounded-lg">
+          <div className="text-sm">
+            <span className="text-gray-500">Postcard sent to:</span>
+            <p className="font-medium text-gray-900 mt-1 whitespace-pre-line">{provider.mail_address}</p>
+          </div>
+        </div>
+      )}
+
+      {channel === "contact_form" && provider.contact_form_url && (
+        <div className="mb-4 p-3 bg-orange-50 rounded-lg">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-gray-500">Form submitted:</span>
+            <a
+              href={provider.contact_form_url.startsWith("http") ? provider.contact_form_url : `https://${provider.contact_form_url}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-orange-600 hover:underline truncate max-w-[200px]"
+            >
+              {provider.contact_form_url}
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* Warning if waiting too long */}
+      {waitDays >= 30 && (
+        <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <p className="text-sm text-amber-800">
+            No response after {waitDays} days. Consider marking as Not Interested or trying a different approach.
+          </p>
+        </div>
+      )}
+
+      {/* Actions */}
+      <div className="space-y-3">
+        {/* Send Claim Link */}
+        {provider.email && !claimLinkSent ? (
+          <div>
+            <button
+              onClick={handleSendClaimLink}
+              disabled={sendingClaimLink}
+              className="px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition disabled:opacity-50"
+            >
+              {sendingClaimLink ? "Sending..." : "Send Claim Link Email"}
+            </button>
+            {claimLinkError && <span className="ml-2 text-xs text-red-500">{claimLinkError}</span>}
+          </div>
+        ) : claimLinkSent ? (
+          <div className="flex items-center gap-2 text-sm text-emerald-600">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            Claim link sent
+          </div>
+        ) : null}
+
+        {/* Reset to Ready */}
+        {provider.email && (
+          showResetConfirm ? (
+            <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+              <p className="text-sm text-gray-700 mb-3">
+                Move back to Ready tab? This will allow launching a new email sequence.
+              </p>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleResetToReady}
+                  disabled={resetting}
+                  className="px-3 py-1.5 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  {resetting ? "Moving..." : "Yes, Move to Ready"}
+                </button>
+                <button
+                  onClick={() => setShowResetConfirm(false)}
+                  className="text-sm text-gray-500 hover:text-gray-700"
+                >
+                  Cancel
+                </button>
+                {resetError && <span className="text-xs text-red-500">{resetError}</span>}
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowResetConfirm(true)}
+              className="px-4 py-2 text-sm font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-lg hover:bg-emerald-100 transition"
+            >
+              Move to Ready
+            </button>
+          )
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Actions Section
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -874,8 +1448,13 @@ export function ProviderDrawer({
   onMoveToReady,
   onResetToReadyWithApollo,
   onContactFound,
+  onOutcomeRecorded,
   activeTab,
 }: ProviderDrawerProps) {
+  // Determine if we should show Follow Up section
+  const showFollowUpSection = provider.stage === "needs_call" || activeTab === "follow_up";
+  // Determine if we should show Alternative Channels section
+  const showReEngageSection = provider.stage === "re_engage" || activeTab === "re_engage";
   // Header content with link to provider admin page
   const header = (
     <div>
@@ -927,6 +1506,30 @@ export function ProviderDrawer({
         />
 
         <SectionDivider />
+
+        {/* Follow Up Section - only for needs_call stage */}
+        {showFollowUpSection && (
+          <>
+            <FollowUpSection
+              provider={provider}
+              onOutcomeRecorded={onOutcomeRecorded}
+              onClose={onClose}
+            />
+            <SectionDivider />
+          </>
+        )}
+
+        {/* Alternative Channels Section - only for re_engage stage */}
+        {showReEngageSection && (
+          <>
+            <ReEngageSection
+              provider={provider}
+              onOutcomeRecorded={onOutcomeRecorded}
+              onClose={onClose}
+            />
+            <SectionDivider />
+          </>
+        )}
 
         {/* Notes Section */}
         <NotesSection provider={provider} />

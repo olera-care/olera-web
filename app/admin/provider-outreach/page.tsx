@@ -32,18 +32,18 @@ type OutreachStage = (typeof OUTREACH_STAGES)[number];
 
 // UI tabs - "call_confirm" is the combined view of "not_contacted" (both needs email and has email)
 // "done" is the combined view of terminal states (claimed, not_interested, archived) with sub-tabs
-// "hidden" is a special tab for viewing admin-hidden providers
-type UITab = "call_confirm" | "in_sequence" | "needs_call" | "re_engage" | "done" | "hidden";
+type UITab = "call_confirm" | "in_sequence" | "needs_call" | "re_engage" | "done";
 
-// Sub-tabs within the "Done" tab
-type DoneSubTab = "claimed" | "not_interested" | "archived";
+// Sub-tabs within the "Done" tab (includes hidden for recovery)
+type DoneSubTab = "claimed" | "not_interested" | "archived" | "hidden";
 
-const DONE_SUB_TABS: DoneSubTab[] = ["claimed", "not_interested", "archived"];
+const DONE_SUB_TABS: DoneSubTab[] = ["claimed", "not_interested", "archived", "hidden"];
 
 const DONE_SUB_TAB_LABELS: Record<DoneSubTab, string> = {
   claimed: "Claimed",
   not_interested: "Not Interested",
   archived: "Archived",
+  hidden: "Hidden",
 };
 
 const UI_TABS: UITab[] = [
@@ -51,8 +51,7 @@ const UI_TABS: UITab[] = [
   "in_sequence",
   "needs_call",  // Displayed as "Follow Up"
   "re_engage",
-  "done",  // Terminal states with sub-tabs
-  "hidden",  // Admin-hidden providers (for recovery)
+  "done",  // Terminal states + hidden, with sub-tabs
 ];
 
 const UI_TAB_LABELS: Record<UITab, string> = {
@@ -61,7 +60,6 @@ const UI_TAB_LABELS: Record<UITab, string> = {
   needs_call: "Follow Up",
   re_engage: "Alternative Channels",
   done: "Done",
-  hidden: "Hidden",
 };
 
 // Database stage labels (for search results showing provider's actual stage)
@@ -901,11 +899,8 @@ function getApiParamsForTab(tab: UITab, doneSubTab?: DoneSubTab): { stage: Outre
     return { stage: "not_contacted" };
   }
   if (tab === "done") {
-    // Use the sub-tab to determine which terminal stage to fetch
+    // Use the sub-tab to determine which stage to fetch (includes hidden)
     return { stage: doneSubTab || "claimed" };
-  }
-  if (tab === "hidden") {
-    return { stage: "hidden" };
   }
   return { stage: tab as OutreachStage };
 }
@@ -2497,7 +2492,7 @@ function CityRow({
                                 </svg>
                               </button>
                             )}
-                            {activeTab !== "hidden" && (
+                            {!(activeTab === "done" && activeDoneSubTab === "hidden") && (
                               <button
                                 type="button"
                                 onClick={(e) => {
@@ -6407,11 +6402,11 @@ export default function ProviderOutreachPage() {
     recentlyMovedTimersRef.current.set(providerId, timer);
   }, []);
 
-  // Stage counts (includes call_confirm, done, hidden for UI tabs)
+  // Stage counts (includes call_confirm and done for UI tabs)
   interface TabCounts extends Record<OutreachStage, number> {
     call_confirm: number;  // Combined needs_email + ready
-    done: number;  // Combined claimed + not_interested + archived
-    hidden: number;
+    done: number;  // Combined claimed + not_interested + archived + hidden
+    hidden: number;  // Hidden count (for Done sub-tab)
   }
   const [stageCounts, setStageCounts] = useState<TabCounts>({
     not_contacted: 0,
@@ -7029,7 +7024,7 @@ export default function ProviderOutreachPage() {
           setStageCounts({
             ...apiCounts,
             call_confirm: (apiCounts.needs_email ?? 0) + (apiCounts.ready ?? 0),
-            done: (apiCounts.claimed ?? 0) + (apiCounts.not_interested ?? 0) + (apiCounts.archived ?? 0),
+            done: (apiCounts.claimed ?? 0) + (apiCounts.not_interested ?? 0) + (apiCounts.archived ?? 0) + (apiCounts.hidden ?? 0),
           });
         }
         // Use API admin_counts if provided, otherwise compute from provider list
@@ -7673,12 +7668,15 @@ export default function ProviderOutreachPage() {
           { stage: "not_contacted", label: "Reset to Not Contacted", color: "bg-gray-500 hover:bg-gray-600" },
         ];
       case "done":
-        // Done tab (terminal stages) - allow moving back to not_contacted
+        // Done tab - hidden sub-tab has no bulk actions (use individual unhide)
+        if (activeDoneSubTab === "hidden") {
+          return [];
+        }
+        // Other terminal stages - allow moving back to not_contacted
         return [
           { stage: "not_contacted", label: "Reset to Call & Confirm", color: "bg-gray-600 hover:bg-gray-700" },
         ];
       default:
-        // Hidden tab
         return [];
     }
   };
@@ -8040,17 +8038,13 @@ export default function ProviderOutreachPage() {
                 onClick={() => setActiveDoneSubTab(subTab)}
                 className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
                   isActive
-                    ? subTab === "claimed"
-                      ? "bg-emerald-600 text-white"
-                      : subTab === "not_interested"
-                        ? "bg-amber-600 text-white"
-                        : "bg-gray-600 text-white"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    ? "bg-gray-900 text-white"
+                    : "bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700"
                 }`}
               >
                 {DONE_SUB_TAB_LABELS[subTab]}
                 {count > 0 && (
-                  <span className={`ml-1.5 text-xs tabular-nums ${isActive ? "text-white/80" : "text-gray-400"}`}>
+                  <span className={`ml-1.5 text-xs tabular-nums ${isActive ? "text-white/70" : "text-gray-400"}`}>
                     {count}
                   </span>
                 )}
@@ -9269,8 +9263,8 @@ export default function ProviderOutreachPage() {
                   </button>
                 )}
 
-                {/* Archive - only show if NOT already archived */}
-                {actionModalProvider.stage !== "archived" && activeTab !== "hidden" && (
+                {/* Archive - only show if NOT already archived and not viewing hidden sub-tab */}
+                {actionModalProvider.stage !== "archived" && !(activeTab === "done" && activeDoneSubTab === "hidden") && (
                   <button
                     onClick={() => setSelectedAction("archived")}
                     className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-colors"
@@ -9289,8 +9283,8 @@ export default function ProviderOutreachPage() {
                   </button>
                 )}
 
-                {/* Unhide - only show when viewing Hidden tab */}
-                {activeTab === "hidden" && (
+                {/* Unhide - only show when viewing Hidden sub-tab */}
+                {activeTab === "done" && activeDoneSubTab === "hidden" && (
                   <button
                     onClick={() => {
                       setPendingUnhide({
@@ -9472,8 +9466,8 @@ export default function ProviderOutreachPage() {
                   </div>
                 )}
 
-                {/* Move to Stage Section - hide for claimed, archived, and when viewing hidden tab */}
-                {!["claimed", "archived"].includes(actionModalProvider.stage) && activeTab !== "hidden" && (
+                {/* Move to Stage Section - hide for claimed, archived, and when viewing hidden sub-tab */}
+                {!["claimed", "archived"].includes(actionModalProvider.stage) && !(activeTab === "done" && activeDoneSubTab === "hidden") && (
                   <>
                     <div className="border-t border-gray-100 my-3" />
                     <p className="text-xs font-medium text-gray-400 uppercase tracking-wide px-1 mb-2">Move to Stage</p>

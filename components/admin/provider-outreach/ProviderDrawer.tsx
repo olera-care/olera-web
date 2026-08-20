@@ -22,6 +22,7 @@ type OutreachStage =
   | "in_sequence"
   | "needs_call"
   | "re_engage"
+  | "call_exhausted"
   | "not_interested"
   | "claimed"
   | "archived";
@@ -74,6 +75,8 @@ interface OutreachProvider {
   fax_number?: string | null;
   mail_address?: string | null;
   contact_form_url?: string | null;
+  // Call tab (call_exhausted) fields
+  stage_changed_at?: string | null;
 }
 
 interface Note {

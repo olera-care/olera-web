@@ -3611,6 +3611,7 @@ export default function ProviderOutreachPage() {
         in_sequence: 0,
         needs_call: 0,
         re_engage: 0,
+        call_exhausted: 0,
         not_interested: 0,
         claimed: 0,
         archived: 0,

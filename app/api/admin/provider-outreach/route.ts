@@ -82,6 +82,8 @@ interface ProviderRow {
   provider_category: string | null;
   city: string | null;
   state: string | null;
+  address: string | null;
+  zipcode: number | null;
   email: string | null;
   phone: string | null;
   website: string | null;
@@ -545,7 +547,7 @@ export async function GET(request: NextRequest) {
     const providerIds = trackingRows.map((t) => t.provider_id);
     const { data: providerRows, error: provError } = await db
       .from("olera-providers")
-      .select("provider_id, provider_name, provider_category, city, state, email, phone, website, slug")
+      .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug")
       .in("provider_id", providerIds)
       .or("deleted.is.null,deleted.eq.false");
 
@@ -719,6 +721,8 @@ export async function GET(request: NextRequest) {
           provider_category: p.provider_category,
           city: p.city,
           state: p.state,
+          address: p.address,
+          zipcode: p.zipcode,
           email: p.email,
           phone: p.phone,
           website: p.website,
@@ -852,7 +856,7 @@ async function getNotContactedProviders(
   // Step 4: Get all providers in this state (we need to display them anyway)
   let providerQuery = db
     .from("olera-providers")
-    .select("provider_id, provider_name, provider_category, city, state, email, phone, website, slug")
+    .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug")
     .eq("state", state)
     .or("deleted.is.null,deleted.eq.false");
 
@@ -883,6 +887,8 @@ async function getNotContactedProviders(
         provider_category: p.provider_category,
         city: p.city,
         state: p.state,
+        address: p.address,
+        zipcode: p.zipcode,
         email: p.email,
         phone: p.phone,
         website: p.website,
@@ -971,7 +977,7 @@ async function getClaimedProviders(
   const providers = await batchedInQuery<ProviderRow>(
     db,
     "olera-providers",
-    "provider_id, provider_name, provider_category, city, state, email, phone, website, slug",
+    "provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug",
     "provider_id",
     claimedProviderIds,
     { state, city: city || undefined, notDeleted: true }
@@ -1021,6 +1027,8 @@ async function getClaimedProviders(
         provider_category: p.provider_category,
         city: p.city,
         state: p.state,
+        address: p.address,
+        zipcode: p.zipcode,
         email: claimInfo?.email || p.email,
         phone: p.phone,
         website: p.website,
@@ -1094,7 +1102,7 @@ async function getHiddenProviders(
   const providerIds = trackingRows.map((t) => t.provider_id);
   const { data: providerRows, error: provError } = await db
     .from("olera-providers")
-    .select("provider_id, provider_name, provider_category, city, state, email, phone, website, slug")
+    .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug")
     .in("provider_id", providerIds)
     .or("deleted.is.null,deleted.eq.false");
 
@@ -1131,6 +1139,8 @@ async function getHiddenProviders(
         provider_category: p.provider_category,
         city: p.city,
         state: p.state,
+        address: p.address,
+        zipcode: p.zipcode,
         email: p.email,
         phone: p.phone,
         website: p.website,
@@ -1202,7 +1212,7 @@ async function getArchivedProviders(
     // Get provider details
     const { data: providerRows } = await db
       .from("olera-providers")
-      .select("provider_id, provider_name, provider_category, city, state, email, phone, website, slug")
+      .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug")
       .in("provider_id", trackingProviderIds);
 
     const providerMap = new Map((providerRows || []).map((p) => [p.provider_id, p as ProviderRow]));
@@ -1227,6 +1237,8 @@ async function getArchivedProviders(
         provider_category: p.provider_category,
         city: p.city,
         state: p.state,
+        address: p.address,
+        zipcode: p.zipcode,
         email: p.email,
         phone: p.phone,
         website: p.website,
@@ -1275,7 +1287,7 @@ async function getArchivedProviders(
     // Get provider details from olera-providers, filtered by state
     let providerQuery = db
       .from("olera-providers")
-      .select("provider_id, provider_name, provider_category, city, state, email, phone, website, slug")
+      .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug")
       .in("provider_id", adminArchivedSourceIds)
       .eq("state", state)
       .or("deleted.is.null,deleted.eq.false");
@@ -1330,6 +1342,8 @@ async function getArchivedProviders(
           provider_category: p.provider_category,
           city: p.city,
           state: p.state,
+          address: p.address,
+          zipcode: p.zipcode,
           email: p.email,
           phone: p.phone,
           website: p.website,
@@ -1380,7 +1394,7 @@ async function searchProviders(
   // Get all providers in this state matching the search term
   const { data: providers, error: provError } = await db
     .from("olera-providers")
-    .select("provider_id, provider_name, provider_category, city, state, email, phone, website, slug")
+    .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug")
     .eq("state", state)
     .or("deleted.is.null,deleted.eq.false")
     .ilike("provider_name", `%${search}%`)
@@ -1558,6 +1572,8 @@ async function searchProviders(
       provider_category: p.provider_category,
       city: p.city,
       state: p.state,
+      address: p.address,
+      zipcode: p.zipcode,
       email: claimInfo?.email || p.email,
       phone: p.phone,
       website: p.website,

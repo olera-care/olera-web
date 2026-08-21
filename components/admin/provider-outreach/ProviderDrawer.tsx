@@ -42,6 +42,8 @@ interface OutreachProvider {
   provider_category: string | null;
   city: string | null;
   state: string | null;
+  address: string | null;
+  zipcode: number | null;
   email: string | null;
   phone: string | null;
   website: string | null;
@@ -1060,6 +1062,21 @@ function ActionsSection({
   const [sendingFax, setSendingFax] = useState(false);
   const [faxSent, setFaxSent] = useState(false);
 
+  // Direct Mail workflow state
+  const formatProviderAddress = () => {
+    const parts = [provider.address, provider.city, provider.state].filter(Boolean);
+    if (parts.length === 0) return "";
+    const zipStr = provider.zipcode ? ` ${provider.zipcode}` : "";
+    // Format: "123 Main St, City, ST 12345"
+    if (provider.address && provider.city && provider.state) {
+      return `${provider.address}, ${provider.city}, ${provider.state}${zipStr}`;
+    }
+    return parts.join(", ") + zipStr;
+  };
+  const [mailAddress, setMailAddress] = useState<string>(provider.mail_address || formatProviderAddress());
+  const [sendingMail, setSendingMail] = useState(false);
+  const [mailSent, setMailSent] = useState(false);
+
   // Reset contact form state when provider changes
   useEffect(() => {
     setContactFormUrl(provider.contact_form_url || provider.website || "");
@@ -1077,6 +1094,14 @@ function ActionsSection({
     setSendingFax(false);
     setFaxSent(false);
   }, [provider.provider_id, provider.fax_number, provider.fax_confidence]);
+
+  // Reset mail state when provider changes
+  useEffect(() => {
+    setMailAddress(provider.mail_address || formatProviderAddress());
+    setSendingMail(false);
+    setMailSent(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [provider.provider_id, provider.mail_address, provider.address, provider.city, provider.state, provider.zipcode]);
 
   // Auto-generate claim URL when entering contact form workflow
   useEffect(() => {
@@ -1334,6 +1359,7 @@ Questions? support@olera.care or (979) 243-9801`;
         try_fax: "Moved to Alt Channels (Fax)",
         try_contact_form: "Moved to Alt Channels (Contact Form)",
         try_direct_mail: "Moved to Alt Channels (Direct Mail)",
+        direct_mail: "Postcard sent",
       };
       message = messages[actionSuccess.outcome] || "Done";
     }
@@ -1624,6 +1650,107 @@ Questions? support@olera.care or (979) 243-9801`;
     );
   }
 
+  // Show Direct Mail workflow (enter address, send postcard)
+  if (confirmAction === "direct_mail") {
+    return (
+      <div>
+        <SectionHeader>Send Postcard</SectionHeader>
+        <div className="space-y-3">
+          {/* Address input */}
+          <div className="space-y-1">
+            <label className="text-xs text-gray-500">Mailing address</label>
+            <textarea
+              value={mailAddress}
+              onChange={(e) => setMailAddress(e.target.value)}
+              placeholder="123 Main St, City, ST 12345"
+              rows={3}
+              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+            />
+            {!mailAddress && !provider.address && (
+              <p className="text-xs text-gray-400">No address on file - enter address manually</p>
+            )}
+            {provider.address && (
+              <p className="text-xs text-gray-400">Pre-filled from provider data</p>
+            )}
+          </div>
+
+          {/* Mail sent success message */}
+          {mailSent && (
+            <div className="p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700 flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Postcard sent! Provider moved to Alternative Channels.
+            </div>
+          )}
+
+          {/* Send Postcard button */}
+          {!mailSent && (
+            <button
+              onClick={async () => {
+                if (!mailAddress.trim()) {
+                  setActionError("Please enter a mailing address");
+                  return;
+                }
+                setSendingMail(true);
+                setActionError(null);
+                try {
+                  // Send the postcard
+                  const res = await fetch("/api/admin/provider-outreach/send-mailer", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      provider_id: provider.provider_id,
+                      provider_name: provider.provider_name,
+                      address: mailAddress.trim(),
+                    }),
+                  });
+                  const data = await res.json();
+                  if (res.ok && data.success) {
+                    // Record the outcome to move to re_engage
+                    const outcomeRes = await fetch("/api/admin/provider-outreach/record-outcome", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ provider_id: provider.provider_id, outcome: "try_direct_mail" }),
+                    });
+                    if (!outcomeRes.ok) {
+                      setActionError("Postcard sent, but failed to update stage. Refresh and check provider status.");
+                      onOutcomeRecorded?.(provider.provider_id, false);
+                      return;
+                    }
+                    setMailSent(true);
+                    onOutcomeRecorded?.(provider.provider_id, true);
+                    setTimeout(() => onClose?.(), 1500);
+                  } else {
+                    if (data.missing_config) {
+                      setActionError("PostGrid not configured. Contact admin.");
+                    } else {
+                      setActionError(data.error || "Failed to send postcard");
+                    }
+                  }
+                } catch {
+                  setActionError("Network error");
+                } finally {
+                  setSendingMail(false);
+                }
+              }}
+              disabled={sendingMail || !mailAddress.trim()}
+              className={`${primaryBtn} w-full`}
+            >
+              {sendingMail ? "Sending..." : "Send Postcard"}
+            </button>
+          )}
+
+          {actionError && <p className="text-sm text-red-600">{actionError}</p>}
+
+          <button onClick={cancelConfirm} className={`${plainBtn} w-full text-center`}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Show confirmation dialog
   if (confirmAction) {
     const configs: Record<string, { title: string; requiresCall?: boolean; confirmText: string }> = {
@@ -1717,7 +1844,7 @@ Questions? support@olera.care or (979) 243-9801`;
             <button onClick={() => setConfirmAction("contact_form")} className={outlineBtn}>
               Contact Form
             </button>
-            <button onClick={() => setConfirmAction("try_direct_mail")} className={outlineBtn}>
+            <button onClick={() => setConfirmAction("direct_mail")} className={outlineBtn}>
               Direct Mail
             </button>
           </>

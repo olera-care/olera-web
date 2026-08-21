@@ -266,6 +266,8 @@ interface OutreachProvider {
   provider_category: string | null;
   city: string | null;
   state: string | null;
+  address: string | null;
+  zipcode: number | null;
   email: string | null;
   phone: string | null;
   website: string | null;

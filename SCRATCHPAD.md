@@ -7,6 +7,27 @@
 
 ## Current Focus
 
+### 2026-08-21 — Pruned 129 dead allowlist entries; the shipped guard was the small half
+
+**The correction that mattered.** PR #1658 (merged to staging 08-20) only refuses **new** trusts. It does not touch the send path: `lib/email.ts:620` still lets `isTrustedRecipient` clear the suppression reason, so every address already on the allowlist keeps bypassing bounce suppression. The **2.28% → 1.62%** figure quoted in the PR body, the Notion page and the Slack note to Esther and Logan came from a simulation of a *send-time* rule that was recommended and never built. It does not describe what shipped.
+
+Honest impact on 90 days of live data:
+
+| action | 90d account rate | bounces removed |
+| --- | --- | --- |
+| baseline | 2.28% | — |
+| PR #1658 as shipped | **2.21%** | 27 (26 trusts refused) |
+| prune the dead entries | **1.53%** | 282 |
+| both | ~1.46% | — |
+
+**Done 08-21: pruned 129 of 676 allowlist entries** (676 → 547). Criterion: bounced at least once and delivered zero times across 90 days, derived from a fresh live pull rather than cached data. All 129 were `reason: admin`, **zero claimed accounts**, so no real customer lost a channel. They were receiving nothing already. Backup of all 129 full rows at `~/Desktop/email-overrides-prune-backup-2026-08-21.json`, written before any delete; restore is a re-POST. Verified after: sampled 20 pruned addresses all absent, and `info@flintridgehc.com` (bounces but delivers) correctly survived.
+
+**Finding worth keeping: 45% of sends to those 129 resolved to neither delivered nor bounced** (228 of 509), against a ~2% account baseline. One address had 79 sends, 1 bounce, 0 deliveries. That is not a webhook gap targeting 129 specific addresses; it reads as accept-then-discard. It strengthens the case for removal rather than weakening it, but note the evidence class differs: for ~29 of them the argument is "zero deliveries ever", not "repeated hard bounces".
+
+**Effect is immediate and needs no deploy.** Removing trust restores the suppression that already existed, since all 129 have a recorded bounce.
+
+**Still true after this:** the send path remains unchanged, so if the allowlist refills with dead addresses the bleed returns. That is what promoting #1658 prevents. Also note `isSuppressedRecipient` still uses an exact `.eq("recipient", …)`; the case-insensitive fix landed only in `getRecipientDeliveryHistory`, so a handful of mixed-case addresses can still evade send-time suppression.
+
 ### 2026-08-20 — The Trust button: a 10.4% bounce rate caused by a screen that showed nothing to confirm (`fix/trust-button-delivery-history`, PR #1658)
 
 **Started from "oleracare.com is at 5.48% bounce" in the Next Up list. Almost every number in that framing was wrong, and it took two `/push` passes to find out.**

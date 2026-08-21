@@ -12,6 +12,8 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { EmailHistoryPopover } from "@/components/admin/provider-outreach/EmailHistoryPopover";
+import EmailVerificationBadge, { type VerificationStatus } from "@/components/admin/EmailVerificationBadge";
+import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/TrustScoreBadge";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types (copied from page.tsx for standalone use)
@@ -292,6 +294,85 @@ function ContactSection({
   const [findError, setFindError] = useState<string | null>(null);
   const findAttemptedRef = useRef(false);
 
+  // Email verification and trust score state
+  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>("idle");
+  const [trustScoreStatus, setTrustScoreStatus] = useState<TrustScoreStatus>("idle");
+  const [trustScoreReason, setTrustScoreReason] = useState("");
+  const verifyRequestIdRef = useRef(0);
+
+  // Verify email address
+  const verifyEmail = useCallback(async (emailToVerify: string): Promise<VerificationStatus> => {
+    if (!emailToVerify || !emailToVerify.includes("@")) return "idle";
+
+    try {
+      const res = await fetch("/api/admin/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailToVerify }),
+      });
+
+      if (!res.ok) return "unknown";
+
+      const data = await res.json();
+      const result = data.results?.[0];
+      if (!result) return "unknown";
+
+      return result.status as VerificationStatus;
+    } catch {
+      return "unknown";
+    }
+  }, []);
+
+  // Fetch trust score for email
+  // Note: Trust score API requires provider slug (business_profiles.id), not provider_id
+  const fetchTrustScore = useCallback(async (emailToCheck: string): Promise<{ level: TrustScoreStatus; reason: string }> => {
+    if (!emailToCheck || !emailToCheck.includes("@") || !provider.slug) {
+      return { level: "idle", reason: "" };
+    }
+
+    try {
+      const res = await fetch("/api/admin/connections/preview-trust-score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailToCheck, providerId: provider.slug }),
+      });
+
+      if (!res.ok) return { level: "idle", reason: "" };
+
+      const data = await res.json();
+      return { level: data.level as TrustScoreStatus, reason: data.reason || "" };
+    } catch {
+      return { level: "idle", reason: "" };
+    }
+  }, [provider.slug]);
+
+  // Run verification and trust scoring in parallel
+  const verifyAndScore = useCallback(async (emailToCheck: string) => {
+    if (!emailToCheck || !emailToCheck.includes("@")) {
+      setVerificationStatus("idle");
+      setTrustScoreStatus("idle");
+      setTrustScoreReason("");
+      return;
+    }
+
+    const requestId = ++verifyRequestIdRef.current;
+
+    setVerificationStatus("verifying");
+    setTrustScoreStatus("scoring");
+
+    const [verifyStatus, trustResult] = await Promise.all([
+      verifyEmail(emailToCheck),
+      fetchTrustScore(emailToCheck),
+    ]);
+
+    // Only update if this is still the latest request
+    if (verifyRequestIdRef.current === requestId) {
+      setVerificationStatus(verifyStatus);
+      setTrustScoreStatus(trustResult.level);
+      setTrustScoreReason(trustResult.reason);
+    }
+  }, [verifyEmail, fetchTrustScore]);
+
   // Reset state when provider changes
   const lastProviderIdRef = useRef<string | null>(null);
   useEffect(() => {
@@ -301,8 +382,23 @@ function ContactSection({
       setFoundEmail(null);
       setFindError(null);
       setFindingEmail(false);
+      // Reset verification state
+      setVerificationStatus("idle");
+      setTrustScoreStatus("idle");
+      setTrustScoreReason("");
     }
   }, [provider.provider_id]);
+
+  // Trigger verification when found email changes
+  useEffect(() => {
+    if (foundEmail?.email) {
+      verifyAndScore(foundEmail.email);
+    } else {
+      setVerificationStatus("idle");
+      setTrustScoreStatus("idle");
+      setTrustScoreReason("");
+    }
+  }, [foundEmail?.email, verifyAndScore]);
 
   // Auto-find email when drawer opens for provider without email
   useEffect(() => {
@@ -500,19 +596,56 @@ function ContactSection({
                 Finding email...
               </span>
             ) : foundEmail ? (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-emerald-600">{foundEmail.email}</span>
-                <span className="text-xs text-gray-400">
-                  ({foundEmail.source === "scrape" ? "scraped" : foundEmail.source || "found"})
-                </span>
-                <button
-                  onClick={handleSaveFoundEmail}
-                  disabled={savingEmail}
-                  className="px-2 py-0.5 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
-                >
-                  {savingEmail ? "..." : "Save"}
-                </button>
-                {emailError && <span className="text-xs text-red-500">{emailError}</span>}
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-medium ${
+                    verificationStatus === "invalid" ? "text-red-600" :
+                    verificationStatus === "risky" ? "text-amber-600" :
+                    "text-emerald-600"
+                  }`}>{foundEmail.email}</span>
+                  {/* Save button - changes style based on verification status */}
+                  {verificationStatus === "invalid" || verificationStatus === "risky" ? (
+                    <button
+                      onClick={handleSaveFoundEmail}
+                      disabled={savingEmail || verificationStatus === "verifying"}
+                      className="px-2 py-0.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded hover:bg-amber-100 disabled:opacity-50"
+                    >
+                      {savingEmail ? "..." : "Save anyway"}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleSaveFoundEmail}
+                      disabled={savingEmail || verificationStatus === "verifying"}
+                      className="px-2 py-0.5 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                      {savingEmail ? "..." : "Save"}
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Found via {foundEmail.source === "scrape" ? "web scraping" : foundEmail.source === "perplexity" ? "AI analysis" : "search"}
+                  {foundEmail.foundUrl && (
+                    <>
+                      {" · "}
+                      <a
+                        href={foundEmail.foundUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary-600 hover:underline"
+                      >
+                        View source
+                      </a>
+                    </>
+                  )}
+                </p>
+                {/* Verification and trust score badges */}
+                {(verificationStatus !== "idle" || trustScoreStatus !== "idle") && (
+                  <div className="flex items-center gap-3 mt-2">
+                    <EmailVerificationBadge status={verificationStatus} showHelperText />
+                    <TrustScoreBadge status={trustScoreStatus} reason={trustScoreReason} />
+                  </div>
+                )}
+                {emailError && <p className="text-xs text-red-500 mt-1">{emailError}</p>}
               </div>
             ) : (
               <span className="text-sm text-gray-400 italic">

@@ -11,7 +11,7 @@ const FAQS: FAQItem[] = [
   {
     question: "Can a spouse get paid to be a caregiver in Texas?",
     answer:
-      "In most cases, spouses are <strong>not eligible</strong> to be paid caregivers under STAR+PLUS Consumer Directed Services. However, other family members,including adult children, siblings, and close friends,can qualify.",
+      "Under Texas STAR+PLUS Consumer Directed Services (CDS), spouses can be approved as paid caregivers under specific hardship or exceptional circumstances based on state and Managed Care Organization (MCO) guidelines, rather than being broadly excluded.",
   },
   {
     question: "Can an adult child get paid to care for a parent in Texas?",

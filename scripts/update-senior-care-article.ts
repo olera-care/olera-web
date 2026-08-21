@@ -36,11 +36,9 @@ const ARTICLE_HTML = `
 <div class="not-prose my-8 rounded-2xl bg-primary-25 border border-primary-100 p-6 sm:p-8">
   <h2 class="text-xl font-bold text-gray-900" style="margin-top:0;margin-bottom:12px;">Quick Summary</h2>
   <ul style="list-style:none;padding:0;margin:0;font-size:15px;line-height:1.5;color:#374151;">
-    <li style="padding:3px 0;"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#d1fae5;color:#059669;font-size:12px;flex-shrink:0;margin-right:6px;">&#10003;</span> Texas has significant help available &mdash; most families never find it</li>
     <li style="padding:3px 0;"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#d1fae5;color:#059669;font-size:12px;flex-shrink:0;margin-right:6px;">&#10003;</span> STAR+PLUS covers home care and personal assistance, income limit <b>$2,982/month</b></li>
     <li style="padding:3px 0;"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#d1fae5;color:#059669;font-size:12px;flex-shrink:0;margin-right:6px;">&#10003;</span> Medicare stops covering nursing home care after <b>100 days</b></li>
-    <li style="padding:3px 0;"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#d1fae5;color:#059669;font-size:12px;flex-shrink:0;margin-right:6px;">&#10003;</span> Over the limit? Spend-down and Miller Trusts are options</li>
-    <li style="padding:3px 0;"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#d1fae5;color:#059669;font-size:12px;flex-shrink:0;margin-right:6px;">&#10003;</span> Average nursing home cost in Texas: <b>$6,600/month</b></li>
+    <li style="padding:3px 0;"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#d1fae5;color:#059669;font-size:12px;flex-shrink:0;margin-right:6px;">&#10003;</span> Average nursing home cost in Texas: <b>~$5,800 to $7,500+/month</b> (depending on room type and region)</li>
   </ul>
 </div>
 
@@ -61,16 +59,16 @@ const ARTICLE_HTML = `
 <p>To qualify for STAR+PLUS in 2026, your loved one must meet all of the following:</p>
 
 <ul style="list-style:none;padding-left:0;" class="space-y-3">
-  <li class="flex items-start gap-3"><span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex-shrink-0 mt-0.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span><span>Be <strong>21 or older</strong></span></li>
+  <li class="flex items-start gap-3"><span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex-shrink-0 mt-0.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span><span>Be <strong>65 or older</strong> (or age 21+ with a verified physical disability)</span></li>
   <li class="flex items-start gap-3"><span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex-shrink-0 mt-0.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span><span>Have a monthly income below <strong>$2,982</strong></span></li>
   <li class="flex items-start gap-3"><span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex-shrink-0 mt-0.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span><span>Have countable assets below <strong>$2,000</strong></span></li>
   <li class="flex items-start gap-3"><span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex-shrink-0 mt-0.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span><span>Require <strong>nursing facility level of care</strong></span></li>
-  <li class="flex items-start gap-3"><span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex-shrink-0 mt-0.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span><span>Your home <strong>does not count</strong> as an asset</span></li>
+  <li class="flex items-start gap-3"><span class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-primary-100 text-primary-600 flex-shrink-0 mt-0.5"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span><span>Your home <strong>does not count</strong> as an asset (up to the $752,000 home equity limit)</span></li>
 </ul>
 
 <p>If your income or assets are above the limit, you may still qualify through a spend-down strategy. We cover that in detail below.</p>
 
-<p class="my-6"><a href="/texas/benefits/star-plus" class="inline-flex items-center gap-2 text-primary-600 font-semibold hover:text-primary-700 transition-colors">Read the full STAR+PLUS guide, including how to apply <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a></p>
+<p class="my-6"><a href="/benefits/texas/star-plus-medicaid-hcbs" class="inline-flex items-center gap-2 text-primary-600 font-semibold hover:text-primary-700 transition-colors">Read the full STAR+PLUS guide, including how to apply <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></a></p>
 
 <h2>What Medicare Covers (and What It Does Not)</h2>
 
@@ -97,15 +95,15 @@ const ARTICLE_HTML = `
   </div>
 </div>
 
-<p>This is the gap that catches most families off guard. Your loved one leaves the hospital, Medicare covers the first 20 days of rehab in a skilled nursing facility, and then the bills start. After 100 days, Medicare stops paying entirely.</p>
+<p>This is the gap that catches many families off guard. After a qualifying hospital stay, Medicare can cover short-term rehab in a skilled nursing facility. The first 20 days are fully covered, days 21 through 100 require daily coinsurance, and coverage ends after 100 days. At that point, the full cost of care shifts to the individual or family.</p>
 
-<p>This is exactly where Medicaid, spend-down strategies, and other programs become critical.</p>
+<p>This is where Medicaid, spend-down strategies, and other financial assistance programs can become critical.</p>
 
 <h2>Paying Out of Pocket: How Long Will Your Money Last</h2>
 
-<p>Many families start by paying for care out of pocket while they figure out their other options. Understanding how long your savings will realistically last is one of the most important things you can do early in the process.</p>
+<p>The reality is that care can be expensive, and most families don't have an unlimited amount of money to spend on it. If you're paying out of pocket, understanding how far your savings can go can help you plan for what comes next and explore other options before the money runs out.</p>
 
-<p>Care costs in Texas vary significantly by city and type of care. Here is what families are paying in 2026:</p>
+<p>Here's what different types of care cost in Texas in 2026:</p>
 
 <div class="my-6 not-prose overflow-hidden rounded-xl border border-gray-200 shadow-sm">
   <table class="w-full text-sm" style="border-collapse:collapse;">
@@ -118,35 +116,35 @@ const ARTICLE_HTML = `
     </thead>
     <tbody>
       <tr class="border-b border-gray-100">
-        <td class="px-4 py-3 text-gray-800 font-medium">Nursing Home (semi-private)</td>
-        <td class="px-4 py-3 text-right text-gray-900 font-semibold">$6,600</td>
-        <td class="px-4 py-3 text-right text-gray-900 font-semibold">$79,200</td>
+        <td class="px-4 py-3 text-gray-800 font-medium">Nursing Home (Semi-Private)</td>
+        <td class="px-4 py-3 text-right text-gray-900 font-semibold">~$5,627 – $5,808</td>
+        <td class="px-4 py-3 text-right text-gray-900 font-semibold">~$67,524 – $69,696</td>
       </tr>
       <tr class="border-b border-gray-100 bg-gray-50/50">
         <td class="px-4 py-3 text-gray-800 font-medium">Assisted Living</td>
-        <td class="px-4 py-3 text-right text-gray-900 font-semibold">$4,500</td>
-        <td class="px-4 py-3 text-right text-gray-900 font-semibold">$54,000</td>
+        <td class="px-4 py-3 text-right text-gray-900 font-semibold">~$5,666</td>
+        <td class="px-4 py-3 text-right text-gray-900 font-semibold">~$67,992</td>
       </tr>
       <tr class="border-b border-gray-100">
         <td class="px-4 py-3 text-gray-800 font-medium">Home Care (40 hrs/wk)</td>
-        <td class="px-4 py-3 text-right text-gray-900 font-semibold">$5,720</td>
-        <td class="px-4 py-3 text-right text-gray-900 font-semibold">$68,640</td>
+        <td class="px-4 py-3 text-right text-gray-900 font-semibold">~$5,720</td>
+        <td class="px-4 py-3 text-right text-gray-900 font-semibold">~$68,640</td>
       </tr>
       <tr>
         <td class="px-4 py-3 text-gray-800 font-medium">Adult Day Care</td>
-        <td class="px-4 py-3 text-right text-gray-900 font-semibold">$1,690</td>
-        <td class="px-4 py-3 text-right text-gray-900 font-semibold">$20,280</td>
+        <td class="px-4 py-3 text-right text-gray-900 font-semibold">~$1,950</td>
+        <td class="px-4 py-3 text-right text-gray-900 font-semibold">~$23,400</td>
       </tr>
     </tbody>
   </table>
   <div class="px-4 py-2.5 bg-gray-50 border-t border-gray-200">
-    <p class="text-xs text-gray-400 italic">Source: Genworth Cost of Care Survey, 2024. Texas state averages.</p>
+    <p class="text-xs text-gray-400 italic">Note: These are estimates. Please contact your care provider for a full quote.</p>
   </div>
 </div>
 
-<p>Most families are shocked when they see these numbers laid out clearly. At average nursing home rates, $100,000 in savings lasts just over a year.</p>
+<p>Seeing these costs laid out can be overwhelming. Even significant savings can be used up quickly when care costs thousands of dollars each month.</p>
 
-<p>The earlier you start exploring Medicaid and other options, the better positioned your family will be. STAR+PLUS has a waitlist that can be <strong>6 to 12 months</strong>, which means applying now, even if your loved one does not need care immediately, is one of the most important things you can do.</p>
+<p>That's why it can help to explore Medicaid and other options early. STAR+PLUS can have a <strong>6 to 12 month</strong> waitlist, so applying before care is urgently needed can give your family more options when the time comes.</p>
 
 <h2>Spend-Down Strategies: How to Qualify for Medicaid Even If You Are Over the Limit</h2>
 
@@ -190,17 +188,17 @@ const ARTICLE_HTML = `
 <p>Beyond Medicaid, Texas has assistance programs that can help your family cover care costs and daily needs. Most families never hear about them. Here are a few to start.</p>
 
 <div class="space-y-2 my-6 not-prose">
-  <a href="/texas/benefits/meals-on-wheels" class="block rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 hover:bg-gray-100 hover:border-gray-300 transition-all no-underline group">
+  <a href="/benefits/texas/meals-on-wheels" class="block rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 hover:bg-gray-100 hover:border-gray-300 transition-all no-underline group">
     <p class="text-base font-semibold text-gray-900 mb-1 group-hover:text-primary-700 transition-colors">Meals on Wheels Texas</p>
     <p class="text-base text-gray-600 mb-2">Free or low-cost home-delivered meals for seniors 60 and older regardless of income. Available across Houston, Dallas, Austin, San Antonio, and most Texas counties.</p>
     <span class="text-sm font-medium text-primary-600 inline-flex items-center gap-1">Learn more <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></span>
   </a>
-  <a href="/texas/benefits/medicare-savings" class="block rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 hover:bg-gray-100 hover:border-gray-300 transition-all no-underline group">
+  <a href="/benefits/texas/medicaid-buy-in-qmb-slmb-qi" class="block rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 hover:bg-gray-100 hover:border-gray-300 transition-all no-underline group">
     <p class="text-base font-semibold text-gray-900 mb-1 group-hover:text-primary-700 transition-colors">Texas Medicare Savings Programs</p>
     <p class="text-base text-gray-600 mb-2">State-administered programs that pay Medicare Part A and Part B premiums, deductibles, and copays for low-income seniors. Eligible seniors save between <strong>$2,000 and $8,000 per year</strong>. Income must be below $1,781 per month to qualify.</p>
     <span class="text-sm font-medium text-primary-600 inline-flex items-center gap-1">Learn more <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></span>
   </a>
-  <a href="/texas/benefits/legal-services" class="block rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 hover:bg-gray-100 hover:border-gray-300 transition-all no-underline group">
+  <a href="/benefits/texas/legal-aid-seniors-aaa" class="block rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 hover:bg-gray-100 hover:border-gray-300 transition-all no-underline group">
     <p class="text-base font-semibold text-gray-900 mb-1 group-hover:text-primary-700 transition-colors">Texas Legal Services for Seniors</p>
     <p class="text-base text-gray-600 mb-2">Free legal help for seniors 60 and older on issues including benefits denials, housing disputes, and elder abuse. No income requirement.</p>
     <span class="text-sm font-medium text-primary-600 inline-flex items-center gap-1">Learn more <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg></span>
@@ -266,6 +264,10 @@ async function main() {
       reading_time: "10 min read",
       tags: ["texas", "medicaid", "senior-care", "star-plus"],
       focus_keyword: "how to pay for senior care in texas",
+      meta_title: "How to Pay for Senior Care in Texas: 2026 Costs and Options",
+      og_title: "How to Pay for Senior Care in Texas: 2026 Costs and Options",
+      og_description: "Learn every way to pay for senior care in Texas in 2026: Medicaid waivers, Medicare, spend-down strategies, and free programs most families miss.",
+      og_image_url: "https://ocaabzfiiikjcgqwhbwr.supabase.co/storage/v1/object/public/content-images/covers/how-to-pay-for-senior-care-in-texas-1774519457693.png",
       structured_data_type: "Article",
       updated_at: new Date().toISOString(),
     })

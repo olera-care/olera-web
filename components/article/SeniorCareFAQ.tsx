@@ -16,7 +16,7 @@ const FAQS: FAQItem[] = [
   {
     question: "Can I pay for nursing home care with just Social Security in Texas?",
     answer:
-      "Social Security alone typically does not cover nursing home costs in Texas. The average nursing home runs <strong>$8,500 a month</strong>, while the average Social Security benefit is around <strong>$1,900</strong>. Most families use Social Security as a contribution toward care costs and rely on Medicaid to cover the rest once they qualify.",
+      "Social Security alone typically isn't enough to cover nursing home care in Texas. Nursing homes can cost <strong>$5,800 to $7,500+ per month</strong>, while the average Social Security benefit is around <strong>$1,900 per month</strong>. Many families put Social Security toward the cost of care and rely on Medicaid for additional support once eligible.",
   },
   {
     question: "How much does Medicaid pay for assisted living in Texas?",
@@ -40,6 +40,23 @@ const FAQS: FAQItem[] = [
   },
 ];
 
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, "");
+}
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: FAQS.map((faq) => ({
+    "@type": "Question",
+    name: faq.question,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: stripHtml(faq.answer),
+    },
+  })),
+};
+
 export default function SeniorCareFAQ() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
 
@@ -49,6 +66,10 @@ export default function SeniorCareFAQ() {
 
   return (
     <div className="my-8 not-prose">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+      />
       <div className="flex items-center gap-2 mb-4">
         <svg
           width="20"

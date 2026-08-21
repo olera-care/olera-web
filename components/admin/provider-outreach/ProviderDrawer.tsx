@@ -108,6 +108,8 @@ interface ProviderDrawerProps {
   onOutcomeRecorded?: (providerId: string, stageChanged: boolean) => void;
   // Claim link sent callback (updates resend_count in local state)
   onClaimLinkSent?: (providerId: string, newResendCount: number) => void;
+  // Contact form found callback (updates contact_form_url in local state)
+  onContactFormFound?: (providerId: string, url: string) => void;
   // Current UI context
   activeTab?: string;
 }
@@ -815,9 +817,11 @@ function ActivitySection({ provider }: { provider: OutreachProvider }) {
 function FollowUpSection({
   provider,
   onOutcomeRecorded,
+  onContactFormFound,
 }: {
   provider: OutreachProvider;
   onOutcomeRecorded?: () => void;
+  onContactFormFound?: (providerId: string, url: string) => void;
 }) {
   const dueBadge = formatDueDateBadge(provider.due_date || null);
   const reasonChip = getNeedsCallReasonChip(provider.needs_call_reason || null);
@@ -864,6 +868,8 @@ function FollowUpSection({
 
       if (data.found && data.url) {
         setContactFormUrl(data.url);
+        // Notify parent to update provider state
+        onContactFormFound?.(provider.provider_id, data.url);
       } else {
         setContactFormError("No contact form found on website");
       }
@@ -1504,6 +1510,7 @@ export function ProviderDrawer({
   onContactFound,
   onOutcomeRecorded,
   onClaimLinkSent,
+  onContactFormFound,
   activeTab,
 }: ProviderDrawerProps) {
   // Determine if we should show Follow Up section
@@ -1586,6 +1593,7 @@ export function ProviderDrawer({
             <FollowUpSection
               provider={provider}
               onOutcomeRecorded={() => onOutcomeRecorded?.(provider.provider_id, true)}
+              onContactFormFound={onContactFormFound}
             />
             <SectionDivider />
           </>

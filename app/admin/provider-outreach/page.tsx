@@ -2247,9 +2247,13 @@ function getChannelLabel(channel: string | null): { label: string; className: st
 function ReEngageProviderRow({
   provider,
   onOpenDrawer,
+  isSelected,
+  onToggle,
 }: {
   provider: OutreachProvider;
   onOpenDrawer: () => void;
+  isSelected: boolean;
+  onToggle: () => void;
 }) {
   const waitDays = daysSince(provider.re_engage_entered_at);
   const channelInfo = getChannelLabel(provider.re_engage_channel || null);
@@ -2278,6 +2282,17 @@ function ReEngageProviderRow({
         }}
       >
         <div className="flex items-center gap-3">
+          {/* Checkbox */}
+          <input
+            type="checkbox"
+            checked={isSelected}
+            onChange={(e) => {
+              e.stopPropagation();
+              onToggle();
+            }}
+            onClick={(e) => e.stopPropagation()}
+            className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+          />
           {/* Main content area */}
           <div className="flex-1 min-w-0">
             {/* Row 1: Provider name + wait time + channel */}
@@ -2325,10 +2340,16 @@ function ReEngageQueue({
   providers,
   loading,
   onOpenDrawer,
+  selectedProviders,
+  onToggleProvider,
+  onSelectAll,
 }: {
   providers: OutreachProvider[];
   loading: boolean;
   onOpenDrawer: (provider: OutreachProvider) => void;
+  selectedProviders: Set<string>;
+  onToggleProvider: (providerId: string) => void;
+  onSelectAll: (providerIds: string[]) => void;
 }) {
   // Filter to only show providers actually in re_engage stage
   const reEngageProviders = providers.filter((p) => p.stage === "re_engage");
@@ -2357,10 +2378,31 @@ function ReEngageQueue({
     return a.re_engage_entered_at.localeCompare(b.re_engage_entered_at);
   });
 
+  // Selection state
+  const allSelected = reEngageProviders.length > 0 && reEngageProviders.every((p) => selectedProviders.has(p.provider_id));
+  const someSelected = reEngageProviders.some((p) => selectedProviders.has(p.provider_id)) && !allSelected;
+
   return (
     <div>
       {/* Header */}
       <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
+        <input
+          type="checkbox"
+          checked={allSelected}
+          ref={(el) => {
+            if (el) el.indeterminate = someSelected;
+          }}
+          onChange={() => {
+            if (allSelected) {
+              // Deselect all
+              onSelectAll([]);
+            } else {
+              // Select all
+              onSelectAll(reEngageProviders.map((p) => p.provider_id));
+            }
+          }}
+          className="w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500 cursor-pointer"
+        />
         <div className="flex-1">Provider</div>
         <div className="w-20 text-center">Channel</div>
         <div className="w-20 text-right">Waiting</div>
@@ -2372,6 +2414,8 @@ function ReEngageQueue({
           key={provider.provider_id}
           provider={provider}
           onOpenDrawer={() => onOpenDrawer(provider)}
+          isSelected={selectedProviders.has(provider.provider_id)}
+          onToggle={() => onToggleProvider(provider.provider_id)}
         />
       ))}
 
@@ -5134,6 +5178,30 @@ export default function ProviderOutreachPage() {
               }
               loading={loadingProviders}
               onOpenDrawer={setDrawerProvider}
+              selectedProviders={selectedProviders}
+              onToggleProvider={(providerId) => {
+                setSelectedProviders((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(providerId)) {
+                    next.delete(providerId);
+                  } else {
+                    next.add(providerId);
+                  }
+                  return next;
+                });
+              }}
+              onSelectAll={(providerIds) => {
+                setSelectedProviders((prev) => {
+                  const next = new Set(prev);
+                  // If providerIds is empty, deselect all re_engage providers
+                  if (providerIds.length === 0) {
+                    providers.filter((p) => p.stage === "re_engage").forEach((p) => next.delete(p.provider_id));
+                  } else {
+                    providerIds.forEach((id) => next.add(id));
+                  }
+                  return next;
+                });
+              }}
             />
           </>
         ) : activeTab === "call_exhausted" ? (

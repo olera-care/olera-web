@@ -12,6 +12,8 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import { EmailHistoryPopover } from "@/components/admin/provider-outreach/EmailHistoryPopover";
+import EmailVerificationBadge, { type VerificationStatus } from "@/components/admin/EmailVerificationBadge";
+import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/TrustScoreBadge";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types (copied from page.tsx for standalone use)
@@ -286,6 +288,213 @@ function ContactSection({
   const [emailError, setEmailError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
 
+  // Auto email finding state
+  const [findingEmail, setFindingEmail] = useState(false);
+  const [foundEmail, setFoundEmail] = useState<{ email: string; source: string | null; foundUrl: string | null } | null>(null);
+  const [findError, setFindError] = useState<string | null>(null);
+  const findAttemptedRef = useRef(false);
+
+  // Email verification and trust score state
+  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>("idle");
+  const [trustScoreStatus, setTrustScoreStatus] = useState<TrustScoreStatus>("idle");
+  const [trustScoreReason, setTrustScoreReason] = useState("");
+  const verifyRequestIdRef = useRef(0);
+
+  // Verify email address
+  const verifyEmail = useCallback(async (emailToVerify: string): Promise<VerificationStatus> => {
+    if (!emailToVerify || !emailToVerify.includes("@")) return "idle";
+
+    try {
+      const res = await fetch("/api/admin/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailToVerify }),
+      });
+
+      if (!res.ok) return "unknown";
+
+      const data = await res.json();
+      const result = data.results?.[0];
+      if (!result) return "unknown";
+
+      return result.status as VerificationStatus;
+    } catch {
+      return "unknown";
+    }
+  }, []);
+
+  // Fetch trust score for email
+  // Note: Trust score API requires provider slug (business_profiles.id), not provider_id
+  const fetchTrustScore = useCallback(async (emailToCheck: string): Promise<{ level: TrustScoreStatus; reason: string }> => {
+    if (!emailToCheck || !emailToCheck.includes("@") || !provider.slug) {
+      return { level: "idle", reason: "" };
+    }
+
+    try {
+      const res = await fetch("/api/admin/connections/preview-trust-score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailToCheck, providerId: provider.slug }),
+      });
+
+      if (!res.ok) return { level: "idle", reason: "" };
+
+      const data = await res.json();
+      return { level: data.level as TrustScoreStatus, reason: data.reason || "" };
+    } catch {
+      return { level: "idle", reason: "" };
+    }
+  }, [provider.slug]);
+
+  // Run verification and trust scoring in parallel
+  const verifyAndScore = useCallback(async (emailToCheck: string) => {
+    if (!emailToCheck || !emailToCheck.includes("@")) {
+      setVerificationStatus("idle");
+      setTrustScoreStatus("idle");
+      setTrustScoreReason("");
+      return;
+    }
+
+    const requestId = ++verifyRequestIdRef.current;
+
+    setVerificationStatus("verifying");
+    setTrustScoreStatus("scoring");
+
+    const [verifyStatus, trustResult] = await Promise.all([
+      verifyEmail(emailToCheck),
+      fetchTrustScore(emailToCheck),
+    ]);
+
+    // Only update if this is still the latest request
+    if (verifyRequestIdRef.current === requestId) {
+      setVerificationStatus(verifyStatus);
+      setTrustScoreStatus(trustResult.level);
+      setTrustScoreReason(trustResult.reason);
+    }
+  }, [verifyEmail, fetchTrustScore]);
+
+  // Reset state when provider changes
+  const lastProviderIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (lastProviderIdRef.current !== provider.provider_id) {
+      lastProviderIdRef.current = provider.provider_id;
+      findAttemptedRef.current = false;
+      setFoundEmail(null);
+      setFindError(null);
+      setFindingEmail(false);
+      // Reset verification state
+      setVerificationStatus("idle");
+      setTrustScoreStatus("idle");
+      setTrustScoreReason("");
+      // Reset editing state to prevent stale data if switching providers while editing
+      setEditingEmail(false);
+      setEditingPhone(false);
+      setEmailValue(provider.email || "");
+      setPhoneValue(provider.phone || "");
+      setEmailError(null);
+      setPhoneError(null);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Only reset on provider_id change; email/phone values are read at that moment
+  }, [provider.provider_id]);
+
+  // Trigger verification when found email changes
+  useEffect(() => {
+    if (foundEmail?.email) {
+      verifyAndScore(foundEmail.email);
+    } else {
+      setVerificationStatus("idle");
+      setTrustScoreStatus("idle");
+      setTrustScoreReason("");
+    }
+  }, [foundEmail?.email, verifyAndScore]);
+
+  // Auto-find email when drawer opens for provider without email
+  useEffect(() => {
+    // Reset state when provider changes
+    if (provider.email) {
+      // Provider has email, nothing to find
+      setFoundEmail(null);
+      setFindError(null);
+      return;
+    }
+
+    // Already attempted for this provider
+    if (findAttemptedRef.current) return;
+    findAttemptedRef.current = true;
+
+    // Track which provider this fetch is for (race condition guard)
+    const fetchForProviderId = provider.provider_id;
+    let cancelled = false;
+
+    // Start finding email
+    setFindingEmail(true);
+    setFindError(null);
+    setFoundEmail(null);
+
+    fetch("/api/admin/provider-outreach/find-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider_id: provider.provider_id }),
+    })
+      .then(async (res) => {
+        if (cancelled) return;
+        const data = await res.json();
+        // Double-check we're still on the same provider
+        if (lastProviderIdRef.current !== fetchForProviderId) return;
+
+        if (data.email && data.source !== "existing") {
+          setFoundEmail({
+            email: data.email,
+            source: data.source || null,
+            foundUrl: data.foundUrl || null,
+          });
+        } else if (data.source === "existing") {
+          // Email was found in DB (sync issue) - update parent
+          onEmailUpdate?.(data.email);
+        } else if (!data.email) {
+          setFindError(data.error || "No email found");
+        }
+      })
+      .catch(() => {
+        if (cancelled || lastProviderIdRef.current !== fetchForProviderId) return;
+        setFindError("Lookup failed");
+      })
+      .finally(() => {
+        if (cancelled || lastProviderIdRef.current !== fetchForProviderId) return;
+        setFindingEmail(false);
+      });
+
+    // Cleanup: mark as cancelled if provider changes before fetch completes
+    return () => {
+      cancelled = true;
+    };
+  }, [provider.provider_id, provider.email, onEmailUpdate]);
+
+  // Save the found email
+  async function handleSaveFoundEmail() {
+    if (!foundEmail) return;
+    setSavingEmail(true);
+    setEmailError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, email: foundEmail.email }),
+      });
+      if (res.ok) {
+        onEmailUpdate?.(foundEmail.email);
+        setFoundEmail(null);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setEmailError(data.error || "Failed to save");
+      }
+    } catch {
+      setEmailError("Network error");
+    } finally {
+      setSavingEmail(false);
+    }
+  }
+
   async function handleSaveEmail() {
     if (!emailValue.trim()) return;
     setSavingEmail(true);
@@ -389,13 +598,72 @@ function ContactSection({
                 </a>
                 <EmailHistoryPopover providerId={provider.provider_id} currentEmail={provider.email} />
               </>
+            ) : findingEmail ? (
+              <span className="flex items-center gap-2 text-sm text-gray-500">
+                <span className="w-3 h-3 border-2 border-gray-300 border-t-primary-500 rounded-full animate-spin" />
+                Finding email...
+              </span>
+            ) : foundEmail ? (
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-medium ${
+                    verificationStatus === "invalid" ? "text-red-600" :
+                    verificationStatus === "risky" ? "text-amber-600" :
+                    "text-emerald-600"
+                  }`}>{foundEmail.email}</span>
+                  {/* Save button - changes style based on verification status */}
+                  {verificationStatus === "invalid" || verificationStatus === "risky" ? (
+                    <button
+                      onClick={handleSaveFoundEmail}
+                      disabled={savingEmail}
+                      className="px-2 py-0.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded hover:bg-amber-100 disabled:opacity-50"
+                    >
+                      {savingEmail ? "..." : "Save anyway"}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleSaveFoundEmail}
+                      disabled={savingEmail || verificationStatus === "verifying"}
+                      className="px-2 py-0.5 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                      {savingEmail ? "..." : "Save"}
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Found via {foundEmail.source === "scrape" ? "web scraping" : foundEmail.source === "perplexity" ? "AI analysis" : "search"}
+                  {foundEmail.foundUrl && (
+                    <>
+                      {" · "}
+                      <a
+                        href={foundEmail.foundUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary-600 hover:underline"
+                      >
+                        View source
+                      </a>
+                    </>
+                  )}
+                </p>
+                {/* Verification and trust score badges */}
+                {(verificationStatus !== "idle" || trustScoreStatus !== "idle") && (
+                  <div className="flex items-center gap-3 mt-2">
+                    <EmailVerificationBadge status={verificationStatus} showHelperText />
+                    <TrustScoreBadge status={trustScoreStatus} reason={trustScoreReason} />
+                  </div>
+                )}
+                {emailError && <p className="text-xs text-red-500 mt-1">{emailError}</p>}
+              </div>
             ) : (
-              <span className="text-sm text-gray-400 italic">No email</span>
+              <span className="text-sm text-gray-400 italic">
+                {findError || "No email"}
+              </span>
             )}
             <button
               onClick={() => {
                 setEditingEmail(true);
-                setEmailValue(provider.email || "");
+                setEmailValue(provider.email || foundEmail?.email || "");
               }}
               className="ml-auto text-xs text-gray-400 hover:text-gray-600"
             >

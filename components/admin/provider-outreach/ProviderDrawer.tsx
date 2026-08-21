@@ -1596,6 +1596,7 @@ function ActionsSection({
 
         {/* Follow Up specific actions - move to alternative channels */}
         {/* Follow Up: Resend + Alternative Channels */}
+        {/* Note: Contact Form is handled via the dedicated workflow in FollowUpSection above */}
         {isFollowUp && (
           <>
             {provider.email && (
@@ -1605,9 +1606,6 @@ function ActionsSection({
             )}
             <button onClick={() => setConfirmAction("try_fax")} className={outlineBtn}>
               Fax
-            </button>
-            <button onClick={() => setConfirmAction("try_contact_form")} className={outlineBtn}>
-              Contact Form
             </button>
             <button onClick={() => setConfirmAction("try_direct_mail")} className={outlineBtn}>
               Direct Mail

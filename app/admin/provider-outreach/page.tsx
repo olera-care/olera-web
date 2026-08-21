@@ -1902,7 +1902,7 @@ function CityRow({
                           )}
                         </div>
 
-                        {/* Row 2: Category · City, State · Phone */}
+                        {/* Row 2: Category · City, State · Phone · Email */}
                         <div className="flex items-center gap-1 text-xs text-gray-500">
                           {provider.provider_category && (
                             <span className="truncate max-w-[200px]">{provider.provider_category}</span>
@@ -1911,8 +1911,8 @@ function CityRow({
                           {provider.city && (
                             <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>
                           )}
-                          {(provider.provider_category || provider.city) && provider.phone && <span>·</span>}
-                          {provider.phone && (
+                          {(provider.provider_category || provider.city) && <span>·</span>}
+                          {provider.phone ? (
                             <a
                               href={`tel:${provider.phone.replace(/\D/g, "")}`}
                               className="text-primary-600 hover:text-primary-700 hover:underline"
@@ -1920,6 +1920,20 @@ function CityRow({
                             >
                               {formatPhone(provider.phone)}
                             </a>
+                          ) : (
+                            <span className="text-gray-400 italic">No phone</span>
+                          )}
+                          <span>·</span>
+                          {provider.email ? (
+                            <a
+                              href={`mailto:${provider.email}`}
+                              className="text-primary-600 hover:text-primary-700 hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {provider.email}
+                            </a>
+                          ) : (
+                            <span className="text-gray-400 italic">No email</span>
                           )}
                         </div>
                       </div>

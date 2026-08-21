@@ -286,6 +286,111 @@ function ContactSection({
   const [emailError, setEmailError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
 
+  // Auto email finding state
+  const [findingEmail, setFindingEmail] = useState(false);
+  const [foundEmail, setFoundEmail] = useState<{ email: string; source: string | null; foundUrl: string | null } | null>(null);
+  const [findError, setFindError] = useState<string | null>(null);
+  const findAttemptedRef = useRef(false);
+
+  // Reset state when provider changes
+  const lastProviderIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (lastProviderIdRef.current !== provider.provider_id) {
+      lastProviderIdRef.current = provider.provider_id;
+      findAttemptedRef.current = false;
+      setFoundEmail(null);
+      setFindError(null);
+      setFindingEmail(false);
+    }
+  }, [provider.provider_id]);
+
+  // Auto-find email when drawer opens for provider without email
+  useEffect(() => {
+    // Reset state when provider changes
+    if (provider.email) {
+      // Provider has email, nothing to find
+      setFoundEmail(null);
+      setFindError(null);
+      return;
+    }
+
+    // Already attempted for this provider
+    if (findAttemptedRef.current) return;
+    findAttemptedRef.current = true;
+
+    // Track which provider this fetch is for (race condition guard)
+    const fetchForProviderId = provider.provider_id;
+    let cancelled = false;
+
+    // Start finding email
+    setFindingEmail(true);
+    setFindError(null);
+    setFoundEmail(null);
+
+    fetch("/api/admin/provider-outreach/find-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider_id: provider.provider_id }),
+    })
+      .then(async (res) => {
+        if (cancelled) return;
+        const data = await res.json();
+        // Double-check we're still on the same provider
+        if (lastProviderIdRef.current !== fetchForProviderId) return;
+
+        if (data.email && data.source !== "existing") {
+          setFoundEmail({
+            email: data.email,
+            source: data.source || null,
+            foundUrl: data.foundUrl || null,
+          });
+        } else if (data.source === "existing") {
+          // Email was found in DB (sync issue) - update parent
+          onEmailUpdate?.(data.email);
+        } else if (!data.email) {
+          setFindError(data.error || "No email found");
+        }
+      })
+      .catch(() => {
+        if (cancelled || lastProviderIdRef.current !== fetchForProviderId) return;
+        setFindError("Lookup failed");
+      })
+      .finally(() => {
+        if (cancelled || lastProviderIdRef.current !== fetchForProviderId) return;
+        setFindingEmail(false);
+      });
+
+    // Cleanup: mark as cancelled if provider changes before fetch completes
+    return () => {
+      cancelled = true;
+    };
+  }, [provider.provider_id, provider.email, onEmailUpdate]);
+
+  // Save the found email
+  async function handleSaveFoundEmail() {
+    if (!foundEmail) return;
+    setSavingEmail(true);
+    setEmailError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, email: foundEmail.email }),
+      });
+      if (res.ok) {
+        onEmailUpdate?.(foundEmail.email);
+        setFoundEmail(null);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setEmailError(data.error || "Failed to save");
+      }
+    } catch {
+      setEmailError("Network error");
+    } finally {
+      setSavingEmail(false);
+    }
+  }
+
   async function handleSaveEmail() {
     if (!emailValue.trim()) return;
     setSavingEmail(true);
@@ -389,13 +494,35 @@ function ContactSection({
                 </a>
                 <EmailHistoryPopover providerId={provider.provider_id} currentEmail={provider.email} />
               </>
+            ) : findingEmail ? (
+              <span className="flex items-center gap-2 text-sm text-gray-500">
+                <span className="w-3 h-3 border-2 border-gray-300 border-t-primary-500 rounded-full animate-spin" />
+                Finding email...
+              </span>
+            ) : foundEmail ? (
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-emerald-600">{foundEmail.email}</span>
+                <span className="text-xs text-gray-400">
+                  ({foundEmail.source === "scrape" ? "scraped" : foundEmail.source || "found"})
+                </span>
+                <button
+                  onClick={handleSaveFoundEmail}
+                  disabled={savingEmail}
+                  className="px-2 py-0.5 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  {savingEmail ? "..." : "Save"}
+                </button>
+                {emailError && <span className="text-xs text-red-500">{emailError}</span>}
+              </div>
             ) : (
-              <span className="text-sm text-gray-400 italic">No email</span>
+              <span className="text-sm text-gray-400 italic">
+                {findError || "No email"}
+              </span>
             )}
             <button
               onClick={() => {
                 setEditingEmail(true);
-                setEmailValue(provider.email || "");
+                setEmailValue(provider.email || foundEmail?.email || "");
               }}
               className="ml-auto text-xs text-gray-400 hover:text-gray-600"
             >

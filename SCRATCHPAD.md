@@ -3876,15 +3876,20 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Next Up
 
-**Trust button / bounce rate — picking up 2026-08-20 (PR #1658 MERGED to staging, `e909a636f`)**
-- 🔴 **Promote staging → main.** TJ deferred it; nothing blocking, staging green.
+**Trust button / bounce rate — updated 2026-08-21 (prune DONE; #1658 still on staging only)**
+- ✅ **DONE 08-21: pruned 129 dead allowlist entries** (676 → 547). Expected 2.28% → ~1.53%. Backup at `~/Desktop/email-overrides-prune-backup-2026-08-21.json`. This was the big win; #1658 alone is only 2.28% → 2.21%.
+- 🟡 **Promote staging → main** (deferred 08-20 and 08-21). Small direct impact, but it is what stops the allowlist refilling and makes the prune a one-time job rather than a recurring chore. **QA on staging first.**
+- 🟡 **Verify the prune landed** in a day or two: account bounce rate should sit near 1.5% instead of 2.3%. If it does not move, the removed entries are being re-added by the Questions tab, which is the argument for promoting #1657... #1658.
+- 🟡 **`isSuppressedRecipient` still uses exact `.eq("recipient", …)`.** The case-insensitive fix landed only in `getRecipientDeliveryHistory`, so a handful of mixed-case addresses can still evade send-time suppression. Small, unfixed.
+- 🟡 **`hello@seniorlistings.net` from_name** still has no "Olera" in it. One field, free trust win on Esther's original complaint, needs TJ's call because providers see it.
+- 🔴 **Reset `logan@joinolera.care` password** in Google Admin. Logan confirmed 08-20 he does not have it. Then the SmartLead connect takes minutes and gives capacity parity.
 - 🔴 **QA on staging before promoting.** `/admin/questions` → Delivery Issues. Exact targets: **`the-manor`** (`info@themanorflorence.com`, bounced 1x, never delivered, not trusted) should show a red "Question emails: bounced 1x, never delivered" line and **refuse** the Trust click. **`bayberry-retirement-inn`** (already trusted) should also refuse, proving the guard reads delivery history not trust state. Replace-with-force on a known-dead address (e.g. `woodbirch@snet.net`) should refuse too.
 - ⚠️ **Safe to test: the refusal. Dangerous: the success.** A successful trust calls `sendDeferredNotificationsForProvider` immediately and emails the provider their queued questions. The guard returns before that, so a refused trust has zero side effects. Staging and prod share one Supabase, so trusts written on staging are real.
 - ⚠️ **Coverage gap:** no provider currently in Delivery Issues has an address that has ever delivered, so the "allow" path cannot be exercised from that tab without mailing a healthy provider. Covered in logic by `npm run check:trust-guard`.
 - 🟡 **CORRECTION worth keeping:** `info@flintridgehc.com` was cited all session as "17 bounces, never delivered." That was the 30-day `question_received` slice. Over 90 days across all email types it is **33 bounced / 32 delivered**, so the guard correctly **allows** it. It is the boundary case the "Question emails:" copy scoping exists for, not an example of a dead mailbox.
 - 🟡 **The unmeasured question, if bounce rate stays a concern:** ~a third of the worst day's bounces were addresses with no history at all — flagged by predictive verification, force-trusted, then bounced. Nobody has measured how often that verifier is *wrong*, which is the fair objection to tightening it further.
 - 🟡 **78 allowlist entries are claimed providers** whose own note says "claimed provider with failing email." They now silently receive nothing. Correct for the account; they need a non-email channel. Product call.
-- 🟡 **PR #1657** adds an npm script one line from ours in `package.json` and will likely hit a trivial one-line conflict now that #1658 merged first.
+- ✅ PR #1657 merged overnight 08-20 without hitting the `package.json` conflict.
 
 **Olera-branded cold sending domain — joinolera.care (2026-08-19)**
 - ✅ **DONE 08-20: `partnerships@joinolera.care` connected.** Fix was Admin → Security → API Controls → App Access Control → Configure new app → search by **client ID** `1021517043376-ipe8289dof3t2v9apjpae8hs2q9abetp.apps.googleusercontent.com` → access **Trusted**. SMTP and DWD both unnecessary.

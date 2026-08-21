@@ -1077,6 +1077,7 @@ function ActionsSection({
       !findingContactForm
     ) {
       setFindingContactForm(true);
+      const initialUrl = provider.website;
       fetch("/api/admin/provider-outreach/find-contact-form", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1085,7 +1086,10 @@ function ActionsSection({
         .then((res) => res.json())
         .then((data) => {
           if (data.found && data.url) {
-            setContactFormUrl(data.url);
+            // Only update if user hasn't edited the URL (still matches initial website)
+            setContactFormUrl((current) =>
+              current === initialUrl ? data.url : current
+            );
           }
         })
         .catch(() => {

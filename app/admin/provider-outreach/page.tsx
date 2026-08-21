@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { US_STATES } from "@/lib/us-states";
 import EmailVerificationBadge, { type VerificationStatus } from "@/components/admin/EmailVerificationBadge";
@@ -10,6 +11,7 @@ import { AdminFilterChips, type AdminCounts } from "@/components/admin/provider-
 import { AdminAutocomplete } from "@/components/admin/provider-outreach/AdminAutocomplete";
 import { NotesModal } from "@/components/admin/provider-outreach/NotesModal";
 import { EmailHistoryPopover } from "@/components/admin/provider-outreach/EmailHistoryPopover";
+import { ProviderDrawer } from "@/components/admin/provider-outreach/ProviderDrawer";
 import { NOT_INTERESTED_REASONS } from "@/lib/provider-outreach/constants";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -22,6 +24,7 @@ const OUTREACH_STAGES = [
   "in_sequence",
   "needs_call",
   "re_engage",
+  "call_exhausted",  // Final call state: providers here need manual resolution
   "not_interested",  // Soft terminal: no outreach, but questions/connections flow
   "claimed",
   "archived",  // Hard terminal: system-wide block
@@ -29,32 +32,38 @@ const OUTREACH_STAGES = [
 
 type OutreachStage = (typeof OUTREACH_STAGES)[number];
 
-// UI tabs - "needs_email" and "ready" are filtered views of "not_contacted"
-// "hidden" is a special tab for viewing admin-hidden providers
-type UITab = "needs_email" | "ready" | "hidden" | Exclude<OutreachStage, "not_contacted">;
+// UI tabs - "call_confirm" is the combined view of "not_contacted" (both needs email and has email)
+// "done" is the combined view of terminal states (claimed, not_interested, archived) with sub-tabs
+type UITab = "call_confirm" | "in_sequence" | "needs_call" | "re_engage" | "call_exhausted" | "done";
+
+// Sub-tabs within the "Done" tab (includes hidden for recovery)
+type DoneSubTab = "claimed" | "not_interested" | "archived" | "hidden";
+
+const DONE_SUB_TABS: DoneSubTab[] = ["claimed", "not_interested", "archived", "hidden"];
+
+const DONE_SUB_TAB_LABELS: Record<DoneSubTab, string> = {
+  claimed: "Claimed",
+  not_interested: "Not Interested",
+  archived: "Archived",
+  hidden: "Hidden",
+};
 
 const UI_TABS: UITab[] = [
-  "needs_email",
-  "ready",
+  "call_confirm",
   "in_sequence",
   "needs_call",  // Displayed as "Follow Up"
   "re_engage",
-  "not_interested",  // Soft terminal
-  "claimed",
-  "archived",  // Hard terminal
-  "hidden",  // Admin-hidden providers (for recovery)
+  "call_exhausted",  // Final call state
+  "done",  // Terminal states + hidden, with sub-tabs
 ];
 
 const UI_TAB_LABELS: Record<UITab, string> = {
-  needs_email: "Needs Email",
-  ready: "Ready",
+  call_confirm: "Call & Confirm",
   in_sequence: "In Sequence",
   needs_call: "Follow Up",
   re_engage: "Alternative Channels",
-  not_interested: "Not Interested",
-  claimed: "Claimed",
-  archived: "Archived",
-  hidden: "Hidden",
+  call_exhausted: "Call",
+  done: "Done",
 };
 
 // Database stage labels (for search results showing provider's actual stage)
@@ -63,6 +72,7 @@ const STAGE_LABELS: Record<OutreachStage, string> = {
   in_sequence: "In Sequence",
   needs_call: "Follow Up",
   re_engage: "Alternative Channels",
+  call_exhausted: "Call",
   not_interested: "Not Interested",
   claimed: "Claimed",
   archived: "Archived",
@@ -93,545 +103,6 @@ const TIER_CONFIG: Record<ProviderTier, { label: string; className: string }> = 
     className: "text-gray-600 bg-gray-50 border-gray-200",
   },
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
-// LinkedIn Contact Tracking
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface LinkedInContact {
-  id: string;
-  name: string;
-  title: string;
-  linkedin_url: string;
-  messaged: boolean;
-  messaged_at?: string;
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Fax/Mail Analytics
-// ─────────────────────────────────────────────────────────────────────────────
-
-interface FaxAnalytics {
-  sent_at?: string;
-  delivered: boolean;
-  delivered_at?: string;
-  qr_scanned: boolean;
-  qr_scanned_at?: string;
-  claimed: boolean;
-  claimed_at?: string;
-}
-
-interface MailAnalytics {
-  sent_at: string;
-  status: "draft" | "ready" | "printed" | "in_transit" | "delivered" | "returned" | "cancelled";
-  estimated_delivery?: string;
-  qr_scanned?: boolean;
-  qr_scanned_at?: string;
-  claimed?: boolean;
-  claimed_at?: string;
-}
-
-function getLinkedInMessage(): string {
-  return `Hi! I'm Dr. Logan DuBose, co-founder of Olera. We help families find senior care and connect providers with free referrals. Open to a quick 15-minute call?`;
-}
-
-function LinkedInSection({
-  provider,
-  linkedInUrl,
-  contacts,
-  onUrlChange,
-  onContactsChange,
-}: {
-  provider: OutreachProvider;
-  linkedInUrl: string | null;
-  contacts: LinkedInContact[];
-  onUrlChange: (url: string) => void;
-  onContactsChange: (contacts: LinkedInContact[]) => void;
-}) {
-  const [urlInput, setUrlInput] = useState(linkedInUrl || "");
-  const [finding, setFinding] = useState(false);
-  const [newName, setNewName] = useState("");
-  const [newTitle, setNewTitle] = useState("");
-  const [newUrl, setNewUrl] = useState("");
-  const [copiedId, setCopiedId] = useState<string | null>(null);
-
-  async function handleFind() {
-    setFinding(true);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/find-linkedin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: provider.provider_id }),
-      });
-      const data = await res.json();
-      if (data.linkedin_url) {
-        setUrlInput(data.linkedin_url);
-        onUrlChange(data.linkedin_url);
-      }
-    } catch {
-      // Ignore errors
-    } finally {
-      setFinding(false);
-    }
-  }
-
-  async function handleSaveUrl() {
-    if (!urlInput.trim()) return;
-    try {
-      await fetch("/api/admin/provider-outreach/find-linkedin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          manual_url: urlInput.trim(),
-        }),
-      });
-    } catch {
-      // Non-critical
-    }
-    onUrlChange(urlInput.trim());
-  }
-
-  function addContact() {
-    if (!newName.trim()) return;
-    const contact: LinkedInContact = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-      name: newName.trim(),
-      title: newTitle.trim(),
-      linkedin_url: newUrl.trim(),
-      messaged: false,
-    };
-    onContactsChange([...contacts, contact]);
-    setNewName("");
-    setNewTitle("");
-    setNewUrl("");
-  }
-
-  function removeContact(contactId: string) {
-    onContactsChange(contacts.filter((c) => c.id !== contactId));
-  }
-
-  function toggleMessaged(contactId: string) {
-    onContactsChange(
-      contacts.map((c) =>
-        c.id === contactId
-          ? { ...c, messaged: !c.messaged, messaged_at: !c.messaged ? new Date().toISOString() : undefined }
-          : c
-      )
-    );
-  }
-
-  function copyMessage(contactId: string) {
-    navigator.clipboard.writeText(getLinkedInMessage());
-    setCopiedId(contactId);
-    setTimeout(() => setCopiedId(null), 2000);
-  }
-
-  return (
-    <div className="px-5 py-4 bg-blue-50/50 border-t border-blue-100">
-      {/* Company LinkedIn URL */}
-      <div className="mb-4">
-        <label className="block text-xs font-medium text-gray-700 mb-1.5">Company LinkedIn Page</label>
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={urlInput}
-            onChange={(e) => setUrlInput(e.target.value)}
-            placeholder="https://linkedin.com/company/..."
-            className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          {!linkedInUrl && (
-            <button
-              type="button"
-              onClick={handleFind}
-              disabled={finding}
-              className="px-3 py-1.5 text-xs font-medium text-blue-600 bg-white border border-blue-300 rounded-lg hover:bg-blue-50 disabled:opacity-50"
-            >
-              {finding ? "Finding..." : "Find"}
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={handleSaveUrl}
-            disabled={!urlInput.trim() || urlInput === linkedInUrl}
-            className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          >
-            Save
-          </button>
-        </div>
-      </div>
-
-      {/* Contacts List */}
-      <div className="mb-4">
-        <label className="block text-xs font-medium text-gray-700 mb-1.5">
-          Contacts ({contacts.length})
-        </label>
-        {contacts.length > 0 ? (
-          <div className="space-y-2 mb-3">
-            {contacts.map((contact) => (
-              <div
-                key={contact.id}
-                className={`flex items-center gap-3 p-2 rounded-lg border ${
-                  contact.messaged ? "bg-green-50 border-green-200" : "bg-white border-gray-200"
-                }`}
-              >
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-gray-900">{contact.name}</div>
-                  {contact.title && <div className="text-xs text-gray-500">{contact.title}</div>}
-                  {contact.linkedin_url && (
-                    <a
-                      href={contact.linkedin_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:underline"
-                    >
-                      LinkedIn Profile
-                    </a>
-                  )}
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => copyMessage(contact.id)}
-                    className="px-2 py-1 text-xs text-gray-600 hover:bg-gray-100 rounded"
-                  >
-                    {copiedId === contact.id ? "Copied!" : "Copy Msg"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => toggleMessaged(contact.id)}
-                    className={`px-2 py-1 text-xs rounded ${
-                      contact.messaged
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
-                  >
-                    {contact.messaged ? "Messaged ✓" : "Mark Sent"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => removeContact(contact.id)}
-                    className="px-2 py-1 text-xs text-red-600 hover:bg-red-50 rounded"
-                  >
-                    Remove
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-xs text-gray-500 mb-3">No contacts added yet</p>
-        )}
-
-        {/* Add Contact Form */}
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={newName}
-            onChange={(e) => setNewName(e.target.value)}
-            placeholder="Name"
-            className="w-32 px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-          <input
-            type="text"
-            value={newTitle}
-            onChange={(e) => setNewTitle(e.target.value)}
-            placeholder="Title"
-            className="w-32 px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-          <input
-            type="text"
-            value={newUrl}
-            onChange={(e) => setNewUrl(e.target.value)}
-            placeholder="LinkedIn URL"
-            className="flex-1 px-2 py-1.5 text-xs border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-          <button
-            type="button"
-            onClick={addContact}
-            disabled={!newName.trim()}
-            className="px-3 py-1.5 text-xs font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
-          >
-            Add
-          </button>
-        </div>
-      </div>
-
-      {/* Message Template */}
-      <details className="text-xs">
-        <summary className="font-medium text-gray-600 cursor-pointer hover:text-gray-800">
-          Message Template
-        </summary>
-        <div className="mt-2 p-3 bg-white border border-gray-200 rounded-lg text-gray-700 whitespace-pre-line">
-          {getLinkedInMessage()}
-        </div>
-      </details>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Channel Tracking — compact status pills for fax/mail/linkedin with expandable details
-// ─────────────────────────────────────────────────────────────────────────────
-
-function ChannelTracking({
-  faxSent,
-  faxAnalytics,
-  faxNumber,
-  linkedinMessaged,
-  linkedinMessagedAt,
-  linkedinUrl,
-  providerLinkedinUrl,
-  mailSent,
-  mailAnalytics,
-  claimed: claimedProp,
-  claimedAt: claimedAtProp,
-}: {
-  faxSent?: boolean;
-  faxAnalytics?: FaxAnalytics;
-  faxNumber?: string | null;
-  linkedinMessaged?: boolean;
-  linkedinMessagedAt?: string | null;
-  linkedinUrl?: string | null;
-  providerLinkedinUrl?: string | null;
-  mailSent?: boolean;
-  mailAnalytics?: MailAnalytics;
-  claimed?: boolean;
-  claimedAt?: string | null;
-}) {
-  const [openSection, setOpenSection] = useState<string | null>(null);
-
-  // Resolve LinkedIn URL (session state takes priority, then provider data)
-  const resolvedLinkedinUrl = linkedinUrl || providerLinkedinUrl;
-
-  // Channels with hasDetails flag to determine if clickable
-  const channels: { key: string; label: string; color: string; summary: string; hasDetails: boolean }[] = [];
-
-  // Fax channel
-  if (faxSent) {
-    const delivered = faxAnalytics?.delivered;
-    channels.push({
-      key: "fax",
-      label: "Fax",
-      color: delivered ? "bg-emerald-500" : "bg-amber-400",
-      summary: delivered
-        ? `Delivered${faxAnalytics?.delivered_at ? ` ${new Date(faxAnalytics.delivered_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}` : ""}`
-        : "Sent",
-      hasDetails: !!faxAnalytics,
-    });
-  }
-
-  // LinkedIn channel
-  if (linkedinMessaged) {
-    channels.push({
-      key: "linkedin",
-      label: "LinkedIn",
-      color: "bg-blue-500",
-      summary: linkedinMessagedAt
-        ? `Messaged ${new Date(linkedinMessagedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}`
-        : "Messaged",
-      hasDetails: true,
-    });
-  }
-
-  // Mail channel
-  if (mailSent) {
-    if (mailAnalytics) {
-      const delivered = mailAnalytics.status === "delivered";
-      channels.push({
-        key: "mail",
-        label: "Postcard",
-        color: delivered ? "bg-emerald-500" : "bg-amber-400",
-        summary: delivered ? "Delivered" : mailAnalytics.status === "in_transit" ? "In Transit" : mailAnalytics.status === "printed" ? "Printed" : "Sent",
-        hasDetails: true,
-      });
-    } else {
-      // Session-only sent state (before API refresh)
-      channels.push({
-        key: "mail",
-        label: "Postcard",
-        color: "bg-amber-400",
-        summary: "Sent",
-        hasDetails: false,
-      });
-    }
-  }
-
-  // Claimed indicator (check prop first, then analytics as fallback)
-  const isClaimed = claimedProp || faxAnalytics?.claimed || mailAnalytics?.claimed;
-  if (isClaimed) {
-    const claimedAt = claimedAtProp || faxAnalytics?.claimed_at || mailAnalytics?.claimed_at;
-    channels.push({
-      key: "claimed",
-      label: "Claimed",
-      color: "bg-emerald-500",
-      summary: claimedAt
-        ? new Date(claimedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-        : "Yes",
-      hasDetails: false, // Claimed is just a status indicator
-    });
-  }
-
-  if (channels.length === 0) return null;
-
-  return (
-    <div className="mt-0.5">
-      {/* Inline status pills */}
-      <div className="flex items-center gap-1 flex-wrap">
-        {channels.map((ch) =>
-          ch.hasDetails ? (
-            <button
-              key={ch.key}
-              type="button"
-              onClick={(e) => {
-                e.stopPropagation();
-                setOpenSection(openSection === ch.key ? null : ch.key);
-              }}
-              className="inline-flex items-center gap-0.5 text-[9px] text-gray-400 hover:text-gray-600 transition cursor-pointer"
-            >
-              <span className={`w-1 h-1 rounded-full ${ch.color}`} />
-              {ch.summary}
-            </button>
-          ) : (
-            <span
-              key={ch.key}
-              className="inline-flex items-center gap-0.5 text-[9px] text-gray-400"
-            >
-              <span className={`w-1 h-1 rounded-full ${ch.color}`} />
-              {ch.summary}
-            </span>
-          )
-        )}
-      </div>
-
-      {/* Expandable fax details */}
-      {openSection === "fax" && faxAnalytics && (
-        <div className="ml-0 mt-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5">
-          <div className="divide-y divide-gray-200">
-            <div className="flex items-center justify-between py-1.5">
-              <div className="flex items-center gap-2">
-                <span className={`w-1.5 h-1.5 rounded-full ${faxAnalytics.delivered ? "bg-emerald-500" : "bg-gray-300"}`} />
-                <span className="text-xs text-gray-700">Delivered to machine</span>
-              </div>
-              <span className="text-xs text-gray-500">
-                {faxAnalytics.delivered
-                  ? faxAnalytics.delivered_at ? new Date(faxAnalytics.delivered_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Confirmed"
-                  : "Not yet"}
-              </span>
-            </div>
-            <div className="flex items-center justify-between py-1.5">
-              <div className="flex items-center gap-2">
-                <span className={`w-1.5 h-1.5 rounded-full ${faxAnalytics.qr_scanned ? "bg-emerald-500" : "bg-gray-300"}`} />
-                <span className="text-xs text-gray-700">QR code scanned</span>
-              </div>
-              <span className="text-xs text-gray-500">
-                {faxAnalytics.qr_scanned
-                  ? faxAnalytics.qr_scanned_at ? new Date(faxAnalytics.qr_scanned_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Yes"
-                  : "Not yet"}
-              </span>
-            </div>
-            <div className="flex items-center justify-between py-1.5">
-              <div className="flex items-center gap-2">
-                <span className={`w-1.5 h-1.5 rounded-full ${faxAnalytics.claimed ? "bg-emerald-500" : "bg-gray-300"}`} />
-                <span className="text-xs text-gray-700">Claimed profile</span>
-              </div>
-              <span className="text-xs text-gray-500">
-                {faxAnalytics.claimed
-                  ? faxAnalytics.claimed_at ? new Date(faxAnalytics.claimed_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Claimed"
-                  : "Not yet"}
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Expandable LinkedIn details */}
-      {openSection === "linkedin" && (
-        <div className="ml-0 mt-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5">
-          <div className="divide-y divide-gray-200">
-            <div className="flex items-center justify-between py-1.5">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                <span className="text-xs text-gray-700">Message sent</span>
-              </div>
-              <span className="text-xs text-gray-500">
-                {linkedinMessagedAt ? new Date(linkedinMessagedAt).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : linkedinMessaged ? "Yes" : "Not yet"}
-              </span>
-            </div>
-            {resolvedLinkedinUrl && (
-              <div className="flex items-center justify-between py-1.5">
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-                  <span className="text-xs text-gray-700">Profile</span>
-                </div>
-                <a
-                  href={resolvedLinkedinUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-xs text-blue-600 hover:underline"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  View on LinkedIn
-                </a>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Expandable mail details */}
-      {openSection === "mail" && mailAnalytics && (
-        <div className="ml-0 mt-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5">
-          <div className="divide-y divide-gray-200">
-            <div className="flex items-center justify-between py-1.5">
-              <div className="flex items-center gap-2">
-                <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
-                <span className="text-xs text-gray-700">Mailer sent</span>
-              </div>
-              <span className="text-xs text-gray-500">{new Date(mailAnalytics.sent_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}</span>
-            </div>
-            <div className="flex items-center justify-between py-1.5">
-              <div className="flex items-center gap-2">
-                <span className={`w-1.5 h-1.5 rounded-full ${mailAnalytics.status === "in_transit" || mailAnalytics.status === "delivered" || mailAnalytics.status === "printed" ? "bg-emerald-500" : "bg-amber-400"}`} />
-                <span className="text-xs text-gray-700">Print status</span>
-              </div>
-              <span className="text-xs text-gray-500 capitalize">{mailAnalytics.status}</span>
-            </div>
-            <div className="flex items-center justify-between py-1.5">
-              <div className="flex items-center gap-2">
-                <span className={`w-1.5 h-1.5 rounded-full ${mailAnalytics.status === "delivered" ? "bg-emerald-500" : "bg-gray-300"}`} />
-                <span className="text-xs text-gray-700">Est. delivery</span>
-              </div>
-              <span className="text-xs text-gray-500">{mailAnalytics.status === "delivered" ? "Delivered" : "3-5 business days"}</span>
-            </div>
-            <div className="flex items-center justify-between py-1.5">
-              <div className="flex items-center gap-2">
-                <span className={`w-1.5 h-1.5 rounded-full ${mailAnalytics.qr_scanned ? "bg-emerald-500" : "bg-gray-300"}`} />
-                <span className="text-xs text-gray-700">QR scanned</span>
-              </div>
-              <span className="text-xs text-gray-500">
-                {mailAnalytics.qr_scanned
-                  ? mailAnalytics.qr_scanned_at ? new Date(mailAnalytics.qr_scanned_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Yes"
-                  : "Not yet"}
-              </span>
-            </div>
-            <div className="flex items-center justify-between py-1.5">
-              <div className="flex items-center gap-2">
-                <span className={`w-1.5 h-1.5 rounded-full ${mailAnalytics.claimed ? "bg-emerald-500" : "bg-gray-300"}`} />
-                <span className="text-xs text-gray-700">Claimed profile</span>
-              </div>
-              <span className="text-xs text-gray-500">
-                {mailAnalytics.claimed
-                  ? mailAnalytics.claimed_at ? new Date(mailAnalytics.claimed_at).toLocaleDateString("en-US", { month: "short", day: "numeric" }) : "Claimed"
-                  : "Not yet"}
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
 
 
 function TierSelector({
@@ -730,9 +201,6 @@ function TierSelector({
   );
 }
 
-// Follow Up queue limits (must match backend config)
-const MAX_RESEND_COUNT = 2;
-
 interface CityStats {
   city: string;
   total: number;
@@ -806,8 +274,6 @@ interface OutreachProvider {
   stage: OutreachStage;
   stage_changed_at: string | null;
   notes: string | null;
-  // Count of notes in provider_outreach_notes table (for icon fill state)
-  notes_count?: number;
   // Confirmation state (Ready tab)
   confirmed_at: string | null;
   confirmed_by: string | null;
@@ -890,22 +356,21 @@ interface ActiveState {
 // ─────────────────────────────────────────────────────────────────────────────
 
 // Map UI tab to API parameters (stage + optional email_filter)
-function getApiParamsForTab(tab: UITab): { stage: OutreachStage | "hidden"; emailFilter?: "needs_email" | "has_email" } {
-  if (tab === "needs_email") {
-    return { stage: "not_contacted", emailFilter: "needs_email" };
+function getApiParamsForTab(tab: UITab, doneSubTab?: DoneSubTab): { stage: OutreachStage | "hidden"; emailFilter?: "needs_email" | "has_email" } {
+  if (tab === "call_confirm") {
+    // Fetch all not_contacted providers (both with and without email)
+    return { stage: "not_contacted" };
   }
-  if (tab === "ready") {
-    return { stage: "not_contacted", emailFilter: "has_email" };
-  }
-  if (tab === "hidden") {
-    return { stage: "hidden" };
+  if (tab === "done") {
+    // Use the sub-tab to determine which stage to fetch (includes hidden)
+    return { stage: doneSubTab || "claimed" };
   }
   return { stage: tab as OutreachStage };
 }
 
-// Check if a UI tab represents the "not_contacted" stage (needs_email or ready)
+// Check if a UI tab represents the "not_contacted" stage
 function isNotContactedTab(tab: UITab): boolean {
-  return tab === "needs_email" || tab === "ready";
+  return tab === "call_confirm";
 }
 
 function timeAgo(isoDate: string | undefined | null): string {
@@ -1991,6 +1456,7 @@ function ApolloContactRow({
 interface CityRowProps {
   city: CityStats;
   activeTab: UITab;
+  activeDoneSubTab: DoneSubTab;
   isExpanded: boolean;
   onToggle: () => void;
   providers: OutreachProvider[];
@@ -2003,8 +1469,8 @@ interface CityRowProps {
   onApolloContactFound: (providerId: string, apolloContact: OutreachProvider["apollo_contact"]) => void;
   onEmailSourceChanged: (providerId: string, emailSource: "organization" | "decision_maker") => void;
   onOpenActionModal: (provider: OutreachProvider) => void;
-  onOpenNotesModal: (provider: OutreachProvider) => void;
   onRemoveProvider: (provider: OutreachProvider) => void;
+  onOpenDrawer: (provider: OutreachProvider) => void;
   // Move to Ready (for Not Interested tab)
   onMoveToReady?: (providerId: string) => void;
   // Reset to Ready with Apollo email (for In Sequence tab)
@@ -2023,6 +1489,7 @@ interface CityRowProps {
 function CityRow({
   city,
   activeTab,
+  activeDoneSubTab,
   isExpanded,
   onToggle,
   providers,
@@ -2035,8 +1502,8 @@ function CityRow({
   onApolloContactFound,
   onEmailSourceChanged,
   onOpenActionModal,
-  onOpenNotesModal,
   onRemoveProvider,
+  onOpenDrawer,
   onMoveToReady,
   onResetToReadyWithApollo,
   cityOwnerId,
@@ -2247,15 +1714,14 @@ function CityRow({
 
         {/* Stats - show count relevant to the active tab */}
         <div className="flex items-center gap-6 text-sm">
-          {activeTab === "needs_email" ? (
-            <div className="text-center">
-              <span className="font-semibold text-amber-600 tabular-nums">{city.needs_email}</span>
-              <span className="text-gray-400 ml-1">{city.needs_email === 1 ? "provider" : "providers"}</span>
-            </div>
-          ) : activeTab === "ready" ? (
-            <div className="text-center">
-              <span className="font-semibold text-emerald-600 tabular-nums">{city.has_email}</span>
-              <span className="text-gray-400 ml-1">{city.has_email === 1 ? "provider" : "providers"}</span>
+          {activeTab === "call_confirm" ? (
+            // Call & Confirm tab: show total with breakdown
+            <div className="text-center flex items-center gap-2">
+              <span className="font-semibold text-gray-900 tabular-nums">{city.total}</span>
+              <span className="text-gray-400">{city.total === 1 ? "provider" : "providers"}</span>
+              {city.needs_email > 0 && (
+                <span className="text-xs text-amber-600">({city.needs_email} need email)</span>
+              )}
             </div>
           ) : (
             // Other stages: show total count
@@ -2307,208 +1773,135 @@ function CityRow({
                 </label>
               </div>
 
-              {/* Provider Cards */}
+              {/* Provider Cards - Two-line layout matching Follow Up / Alt Channels */}
               <div className="divide-y divide-gray-100">
                 {cityProviders.map((provider) => (
-                  <div key={provider.provider_id} className="group px-5 py-3 pl-10 hover:bg-white transition-colors">
+                  <div
+                    key={provider.provider_id}
+                    className="group px-5 py-3 hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={() => onOpenDrawer(provider)}
+                  >
                     <div className="flex items-start gap-3">
+                      {/* Checkbox - stops propagation */}
                       <input
                         type="checkbox"
                         checked={selectedProviders.has(provider.provider_id)}
                         onChange={() => onToggleProvider(provider.provider_id)}
+                        onClick={(e) => e.stopPropagation()}
                         className="w-4 h-4 mt-0.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500 shrink-0"
                       />
 
-                      {/* Main content area */}
+                      {/* Main content - two lines */}
                       <div className="flex-1 min-w-0">
-                        {/* Row 1: Provider name (full width) + Stage badge + hover actions */}
-                        <div className="flex items-center justify-between gap-4 mb-0.5">
-                          <div className="flex items-center gap-2">
-                            <Link
-                              href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
-                              className="font-medium text-gray-900 hover:text-primary-600 transition-colors text-sm"
-                            >
-                              {provider.provider_name}
-                            </Link>
-                            {/* Sequence progress badge - only show in In Sequence tab */}
-                            {activeTab === "in_sequence" && typeof provider.emails_sent === "number" && (
-                              <div className="flex items-center gap-2">
-                                <div className="flex flex-col items-start">
-                                  <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded ${
-                                    provider.sequence_status?.failed_step !== undefined
-                                      ? "bg-red-100 text-red-700"
-                                      : "bg-blue-100 text-blue-700"
-                                  }`}>
-                                    {provider.emails_sent}/4
-                                  </span>
-                                  {/* Sequence sublabel (recency or failure) */}
-                                  {(() => {
-                                    const sublabel = getSequenceSublabel(provider);
-                                    return (
-                                      <span className={`text-[9px] ${sublabel.isFailed ? "text-red-500 font-medium" : "text-gray-400"}`}>
-                                        {sublabel.text}
-                                      </span>
-                                    );
-                                  })()}
-                                </div>
-                                {/* Engagement indicator - show if provider opened emails */}
-                                {provider.engagement && provider.engagement.opens > 0 && (
-                                  <span className="inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded bg-amber-100 text-amber-700">
-                                    Opened {provider.engagement.opens}x
-                                  </span>
-                                )}
-                              </div>
-                            )}
-                            {/* Confirm button - only show in Ready tab */}
-                            {activeTab === "ready" && (
-                              // Check if confirmed: has confirmed_at OR in confirmedProviders, AND NOT in unconfirmedProviders
-                              ((provider.confirmed_at || confirmedProviders.has(provider.provider_id)) && !unconfirmedProviders.has(provider.provider_id)) ? (
-                                <button
-                                  type="button"
-                                  onClick={async (e) => {
-                                    e.stopPropagation();
-                                    e.preventDefault();
-                                    setUnconfirmingProvider(provider.provider_id);
-                                    try {
-                                      const res = await fetch("/api/admin/provider-outreach/confirm", {
-                                        method: "DELETE",
-                                        headers: { "Content-Type": "application/json" },
-                                        body: JSON.stringify({ provider_id: provider.provider_id }),
+                        {/* Row 1: Provider name + badges */}
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <span className="font-medium text-gray-900 text-sm truncate">
+                            {provider.provider_name}
+                          </span>
+
+                          {/* Confirm button - show in Call & Confirm tab */}
+                          {activeTab === "call_confirm" && (
+                            ((provider.confirmed_at || confirmedProviders.has(provider.provider_id)) && !unconfirmedProviders.has(provider.provider_id)) ? (
+                              <button
+                                type="button"
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  setUnconfirmingProvider(provider.provider_id);
+                                  try {
+                                    const res = await fetch("/api/admin/provider-outreach/confirm", {
+                                      method: "DELETE",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ provider_id: provider.provider_id }),
+                                    });
+                                    if (res.ok) {
+                                      setConfirmedProviders(prev => {
+                                        const next = new Set(prev);
+                                        next.delete(provider.provider_id);
+                                        return next;
                                       });
-                                      if (res.ok) {
-                                        // Remove from confirmed sets, add to unconfirmed set
-                                        setConfirmedProviders(prev => {
-                                          const next = new Set(prev);
-                                          next.delete(provider.provider_id);
-                                          return next;
-                                        });
-                                        setUnconfirmedProviders(prev => new Set([...prev, provider.provider_id]));
-                                      }
-                                    } catch {
-                                      // Silent fail - user can retry
-                                    } finally {
-                                      setUnconfirmingProvider(null);
+                                      setUnconfirmedProviders(prev => new Set([...prev, provider.provider_id]));
                                     }
-                                  }}
-                                  disabled={unconfirmingProvider === provider.provider_id}
-                                  className="text-blue-500 hover:text-blue-400 transition-colors disabled:opacity-50"
-                                  title="Click to unconfirm"
-                                >
-                                  {unconfirmingProvider === provider.provider_id ? (
-                                    <span className="w-4 h-4 border-2 border-blue-300 border-t-blue-500 rounded-full animate-spin inline-block" />
-                                  ) : (
-                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                                    </svg>
-                                  )}
-                                </button>
-                              ) : (
-                                <>
-                                  <button
-                                    type="button"
-                                    onClick={async (e) => {
-                                      e.stopPropagation();
-                                      e.preventDefault();
-                                      setConfirmingProvider(provider.provider_id);
-                                      setConfirmError(null);
-                                      try {
-                                        const res = await fetch("/api/admin/provider-outreach/confirm", {
-                                          method: "POST",
-                                          headers: { "Content-Type": "application/json" },
-                                          body: JSON.stringify({ provider_id: provider.provider_id }),
-                                        });
-                                        if (res.ok) {
-                                          setConfirmedProviders(prev => new Set([...prev, provider.provider_id]));
-                                          // Clear from unconfirmed set if re-confirming
-                                          setUnconfirmedProviders(prev => {
-                                            const next = new Set(prev);
-                                            next.delete(provider.provider_id);
-                                            return next;
-                                          });
-                                        } else {
-                                          setConfirmError(provider.provider_id);
-                                        }
-                                      } catch {
-                                        setConfirmError(provider.provider_id);
-                                      } finally {
-                                        setConfirmingProvider(null);
-                                      }
-                                    }}
-                                    disabled={confirmingProvider === provider.provider_id}
-                                    className={`transition-colors disabled:opacity-50 ${
-                                      confirmError === provider.provider_id
-                                        ? "text-red-500 hover:text-red-600"
-                                        : "text-gray-400 hover:text-blue-500"
-                                    }`}
-                                    title={confirmError === provider.provider_id ? "Failed - click to retry" : "Click to confirm"}
-                                  >
-                                    {confirmingProvider === provider.provider_id ? (
-                                      <span className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin inline-block" />
-                                    ) : (
-                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth={1.5}>
-                                        <circle cx="10" cy="10" r="7.5" />
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M6.5 10l2 2 4-4" />
-                                      </svg>
-                                    )}
-                                  </button>
-                                  {confirmError === provider.provider_id && (
-                                    <span className="text-xs text-red-500">Failed</span>
-                                  )}
-                                </>
-                              )
-                            )}
-                          </div>
-                          {/* Hover actions */}
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                            {/* Notes button - filled when provider has notes */}
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                onOpenNotesModal(provider);
-                              }}
-                              className={`p-1 ${(provider.notes_count ?? 0) > 0 ? "text-gray-700" : "text-gray-300 hover:text-amber-500"}`}
-                              title="Notes"
-                            >
-                              <svg className="w-4 h-4" fill={(provider.notes_count ?? 0) > 0 ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                              </svg>
-                            </button>
-                            {activeTab !== "claimed" && (
+                                  } catch {
+                                    // Silent fail
+                                  } finally {
+                                    setUnconfirmingProvider(null);
+                                  }
+                                }}
+                                disabled={unconfirmingProvider === provider.provider_id}
+                                className="text-blue-500 hover:text-blue-400 shrink-0"
+                                title="Click to unconfirm"
+                              >
+                                {unconfirmingProvider === provider.provider_id ? (
+                                  <span className="w-4 h-4 border-2 border-blue-300 border-t-blue-500 rounded-full animate-spin inline-block" />
+                                ) : (
+                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                                  </svg>
+                                )}
+                              </button>
+                            ) : (
                               <button
                                 type="button"
-                                onClick={(e) => {
+                                onClick={async (e) => {
                                   e.stopPropagation();
-                                  onOpenActionModal(provider);
+                                  setConfirmingProvider(provider.provider_id);
+                                  setConfirmError(null);
+                                  try {
+                                    const res = await fetch("/api/admin/provider-outreach/confirm", {
+                                      method: "POST",
+                                      headers: { "Content-Type": "application/json" },
+                                      body: JSON.stringify({ provider_id: provider.provider_id }),
+                                    });
+                                    if (res.ok) {
+                                      setConfirmedProviders(prev => new Set([...prev, provider.provider_id]));
+                                      setUnconfirmedProviders(prev => {
+                                        const next = new Set(prev);
+                                        next.delete(provider.provider_id);
+                                        return next;
+                                      });
+                                    } else {
+                                      setConfirmError(provider.provider_id);
+                                    }
+                                  } catch {
+                                    setConfirmError(provider.provider_id);
+                                  } finally {
+                                    setConfirmingProvider(null);
+                                  }
                                 }}
-                                className="p-1 text-gray-300 hover:text-gray-600"
-                                title="Actions"
+                                disabled={confirmingProvider === provider.provider_id}
+                                className={`shrink-0 ${
+                                  confirmError === provider.provider_id
+                                    ? "text-red-500 hover:text-red-600"
+                                    : "text-gray-400 hover:text-blue-500"
+                                }`}
+                                title={confirmError === provider.provider_id ? "Failed - click to retry" : "Click to confirm"}
                               >
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
-                                </svg>
+                                {confirmingProvider === provider.provider_id ? (
+                                  <span className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin inline-block" />
+                                ) : (
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth={1.5}>
+                                    <circle cx="10" cy="10" r="7.5" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.5 10l2 2 4-4" />
+                                  </svg>
+                                )}
                               </button>
-                            )}
-                            {activeTab !== "hidden" && (
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onRemoveProvider(provider);
-                                }}
-                                className="p-1 text-gray-300 hover:text-red-500"
-                                title="Remove from outreach"
-                              >
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                              </button>
-                            )}
-                          </div>
+                            )
+                          )}
+
+                          {/* Sequence progress badge - only show in In Sequence tab */}
+                          {activeTab === "in_sequence" && typeof provider.emails_sent === "number" && (
+                            <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded shrink-0 ${
+                              provider.sequence_status?.failed_step !== undefined
+                                ? "bg-red-100 text-red-700"
+                                : "bg-blue-100 text-blue-700"
+                            }`}>
+                              {provider.emails_sent}/4
+                            </span>
+                          )}
                         </div>
 
-                        {/* Row 2: Category, location, contact info */}
-                        <div className="flex items-center gap-2 text-xs text-gray-500 mb-0.5 flex-wrap">
+                        {/* Row 2: Category · City, State · Phone */}
+                        <div className="flex items-center gap-1 text-xs text-gray-500">
                           {provider.provider_category && (
                             <span className="truncate max-w-[200px]">{provider.provider_category}</span>
                           )}
@@ -2516,229 +1909,23 @@ function CityRow({
                           {provider.city && (
                             <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>
                           )}
-                          {/* Claimed providers: show email/phone inline */}
-                          {provider.stage === "claimed" ? (
-                            <>
-                              {(provider.provider_category || provider.city) && provider.email && <span>·</span>}
-                              {provider.email && (
-                                <>
-                                  <span>{provider.email}</span>
-                                  <EmailHistoryPopover providerId={provider.provider_id} currentEmail={provider.email} />
-                                </>
-                              )}
-                              {provider.email && provider.phone && <span>·</span>}
-                              {provider.phone && (
-                                <a
-                                  href={`tel:${provider.phone.replace(/\D/g, "")}`}
-                                  className="text-primary-600 hover:text-primary-700 hover:underline"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  {formatPhone(provider.phone)}
-                                </a>
-                              )}
-                            </>
-                          ) : lookingUpEmails.has(provider.provider_id) ? (
-                            <>
-                              {(provider.provider_category || provider.city) && <span>·</span>}
-                              <span className="inline-flex items-center gap-1 text-gray-400">
-                                <span className="w-3 h-3 border-2 border-gray-300 border-t-teal-500 rounded-full animate-spin" />
-                                Finding email...
-                              </span>
-                            </>
-                          ) : (
-                            <>
-                              {(provider.provider_category || provider.city) && <span>·</span>}
-                              <ProviderContactEditor
-                                providerId={provider.provider_id}
-                                providerSlug={provider.slug}
-                                email={provider.email}
-                                suggestedEmail={foundEmails.get(provider.provider_id)?.email}
-                                emailSource={foundEmails.get(provider.provider_id)?.source}
-                                emailFoundUrl={foundEmails.get(provider.provider_id)?.foundUrl}
-                                phone={provider.phone}
-                                onEmailUpdate={(newEmail) => {
-                                  // Clear local confirmation state since contact info changed
-                                  setConfirmedProviders(prev => {
-                                    const next = new Set(prev);
-                                    next.delete(provider.provider_id);
-                                    return next;
-                                  });
-                                  onEmailSaved(provider.provider_id, newEmail);
-                                }}
-                                onPhoneUpdate={(newPhone) => {
-                                  // Clear local confirmation state since contact info changed
-                                  setConfirmedProviders(prev => {
-                                    const next = new Set(prev);
-                                    next.delete(provider.provider_id);
-                                    return next;
-                                  });
-                                  onPhoneSaved(provider.provider_id, newPhone);
-                                }}
-                                emailVerificationStatus={provider.email_verification_status}
-                                isEmailOverridden={provider.is_email_overridden}
-                                isCallRecorded={!!provider.generic_email_called_at || calledProviders.has(provider.provider_id)}
-                                onCallRecorded={() => setCalledProviders(prev => new Set([...prev, provider.provider_id]))}
-                                isWarningSkipped={!!provider.generic_email_skipped_at || skippedWarnings.has(provider.provider_id)}
-                                onWarningSkipped={() => setSkippedWarnings(prev => new Set([...prev, provider.provider_id]))}
-                                stage={provider.stage}
-                              />
-                              {!provider.email && !foundEmails.has(provider.provider_id) && lookupErrors.has(provider.provider_id) && (
-                                <span className="text-amber-600">
-                                  {lookupErrors.get(provider.provider_id)}
-                                </span>
-                              )}
-                              {/* Apollo decision-maker contact row */}
-                              {/* Show on Ready tab (when has email), Needs Email tab, or In Sequence tab */}
-                              {(
-                                // Ready tab: show when provider has email (find decision-maker as upgrade)
-                                ((provider.email || foundEmails.has(provider.provider_id)) && activeTab === "ready") ||
-                                // Needs Email tab: always show Apollo option alongside scraping
-                                activeTab === "needs_email" ||
-                                // In Sequence tab: allow finding decision maker and resetting with new email
-                                activeTab === "in_sequence"
-                              ) && (
-                                <ApolloContactRow
-                                  provider={{
-                                    ...provider,
-                                    // Use session-found email if available
-                                    email: provider.email || foundEmails.get(provider.provider_id)?.email || null,
-                                  }}
-                                  onUseEmail={(email, emailSource) => onEmailSaved(provider.provider_id, email, emailSource)}
-                                  onContactFound={(contact) => onApolloContactFound(provider.provider_id, contact)}
-                                  onEmailSourceChanged={activeTab === "ready" ? (emailSource) => onEmailSourceChanged(provider.provider_id, emailSource) : undefined}
-                                  stage={activeTab === "in_sequence" ? "in_sequence" : undefined}
-                                  onResetToReady={activeTab === "in_sequence" ? onResetToReadyWithApollo : undefined}
-                                />
-                              )}
-                            </>
-                          )}
-                          {/* Questions and leads context pills */}
-                          {(provider.provider_category || provider.city || provider.email) && <span>·</span>}
-                          <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
-                            {provider.questions_count ?? 0} Q
-                          </span>
-                          <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
-                            {provider.leads_count ?? 0} Leads
-                          </span>
-                        </div>
-
-                        {/* Row 3: Assignment + Claimed-specific badges */}
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2 text-xs text-gray-400">
-                            <span>Assigned:</span>
-                            <AdminChip
-                              adminId={provider.assigned_to}
-                              adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
-                              size="sm"
-                              showUnassigned={true}
-                            />
-                          </div>
-                          {/* Claimed providers: verification badge and profile completeness */}
-                          {provider.stage === "claimed" && (
-                            <div className="flex items-center gap-2">
-                              {provider.verification_state === "verified" || provider.verification_state === "not_required" ? (
-                                <span className="inline-flex items-center gap-1 text-primary-600" title="Verified">
-                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                                  </svg>
-                                  <span className="text-xs font-medium">Verified</span>
-                                </span>
-                              ) : provider.verification_state === "pending" ? (
-                                <a
-                                  href={`/admin/verification?search=${encodeURIComponent(provider.provider_name || "")}`}
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 rounded hover:bg-yellow-200 transition-colors"
-                                  title="Click to review verification"
-                                >
-                                  Pending Verification
-                                </a>
-                              ) : provider.verification_state === "unverified" ? (
-                                <a
-                                  href={`/admin/verification?search=${encodeURIComponent(provider.provider_name || "")}`}
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="px-2 py-0.5 text-xs font-medium bg-orange-100 text-orange-700 rounded hover:bg-orange-200 transition-colors"
-                                  title="Click to verify this provider"
-                                >
-                                  Unverified
-                                </a>
-                              ) : provider.verification_state === "rejected" ? (
-                                <span className="px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 rounded">
-                                  Rejected
-                                </span>
-                              ) : (
-                                <a
-                                  href={`/admin/verification?search=${encodeURIComponent(provider.provider_name || "")}`}
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
-                                  title="Click to verify this provider"
-                                >
-                                  Needs Review
-                                </a>
-                              )}
-                              {typeof provider.profile_completeness === "number" && (
-                                <span
-                                  className={`text-xs font-medium ${
-                                    provider.profile_completeness === 100
-                                      ? "text-emerald-600"
-                                      : "text-gray-500"
-                                  }`}
-                                  title="Profile completeness"
-                                >
-                                  {provider.profile_completeness}% complete
-                                </span>
-                              )}
-                            </div>
-                          )}
-                          {/* Not Interested providers: Move to Ready button */}
-                          {provider.stage === "not_interested" && provider.email && onMoveToReady && (
-                            <div className="flex items-center gap-2">
-                              {showMoveToReadyConfirmId === provider.provider_id ? (
-                                <div className="flex items-center gap-2 px-2 py-1 bg-emerald-50 border border-emerald-200 rounded">
-                                  <span className="text-xs text-gray-700">Move to Ready?</span>
-                                  <button
-                                    type="button"
-                                    onClick={async (e) => {
-                                      e.stopPropagation();
-                                      setMovingToReadyId(provider.provider_id);
-                                      try {
-                                        await onMoveToReady(provider.provider_id);
-                                      } finally {
-                                        setMovingToReadyId(null);
-                                        setShowMoveToReadyConfirmId(null);
-                                      }
-                                    }}
-                                    disabled={movingToReadyId === provider.provider_id}
-                                    className="px-2 py-0.5 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
-                                  >
-                                    {movingToReadyId === provider.provider_id ? "..." : "Yes"}
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setShowMoveToReadyConfirmId(null);
-                                    }}
-                                    className="text-xs text-gray-500 hover:text-gray-700"
-                                  >
-                                    No
-                                  </button>
-                                </div>
-                              ) : (
-                                <button
-                                  type="button"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setShowMoveToReadyConfirmId(provider.provider_id);
-                                  }}
-                                  className="px-2 py-1 text-xs font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded transition"
-                                >
-                                  Move to Ready
-                                </button>
-                              )}
-                            </div>
+                          {(provider.provider_category || provider.city) && provider.phone && <span>·</span>}
+                          {provider.phone && (
+                            <a
+                              href={`tel:${provider.phone.replace(/\D/g, "")}`}
+                              className="text-primary-600 hover:text-primary-700 hover:underline"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {formatPhone(provider.phone)}
+                            </a>
                           )}
                         </div>
                       </div>
+
+                      {/* Chevron to indicate clickable */}
+                      <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 shrink-0 mt-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5l7 7-7 7" />
+                      </svg>
                     </div>
                   </div>
                 ))}
@@ -2754,18 +1941,6 @@ function CityRow({
 // ─────────────────────────────────────────────────────────────────────────────
 // Follow Up Queue Component (Due Date Grouped)
 // ─────────────────────────────────────────────────────────────────────────────
-
-interface FollowUpQueueProps {
-  providers: OutreachProvider[];
-  loading: boolean;
-  onOutcomeRecorded: (providerId: string, stageChanged: boolean) => void;
-  onProviderUpdated: (providerId: string, updates: Partial<OutreachProvider>) => void;
-  onStageChange: (providerId: string, newStage: OutreachStage) => Promise<void>;
-  onRemoveProvider: (provider: OutreachProvider) => void;
-  onArchive: (provider: OutreachProvider) => void;
-  onOpenNotesModal: (provider: OutreachProvider) => void;
-  adminNameLookup: Map<string, string>;
-}
 
 // Helper: get today's date as ISO string (YYYY-MM-DD) in UTC
 // Uses UTC to match server/database which also use UTC, ensuring consistent comparisons
@@ -2833,1089 +2008,35 @@ function getFollowUpReasonExplanation(provider: OutreachProvider): string {
   }
 }
 
-// Expandable provider row for Follow Up queue - Redesigned card-based layout
+// Simplified provider row for Follow Up queue - click to open drawer
 function FollowUpProviderRow({
   provider,
-  isExpanded,
-  onToggle,
-  onOutcomeRecorded,
-  onProviderUpdated,
-  onStageChange,
-  onRemoveProvider,
-  onArchive,
-  onOpenNotesModal,
-  adminNameLookup,
+  onOpenDrawer,
 }: {
   provider: OutreachProvider;
-  isExpanded: boolean;
-  onToggle: () => void;
-  onOutcomeRecorded: (stageChanged: boolean) => void;
-  onProviderUpdated: (updates: Partial<OutreachProvider>) => void;
-  onStageChange: (newStage: OutreachStage) => Promise<void>;
-  onRemoveProvider: () => void;
-  onArchive: () => void;
-  onOpenNotesModal: () => void;
-  adminNameLookup: Map<string, string>;
+  onOpenDrawer: () => void;
 }) {
-  const [submitting, setSubmitting] = useState<string | null>(null);
-  const [notes, setNotes] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [pendingOutcome, setPendingOutcome] = useState<string | null>(null);
-  const [pendingStageMove, setPendingStageMove] = useState<OutreachStage | null>(null);
-  const [showActionMenu, setShowActionMenu] = useState(false);
-  const [stageChangeLoading, setStageChangeLoading] = useState(false);
-  const actionMenuRef = useRef<HTMLDivElement>(null);
-  // Track expansion state for async operation guards
-  const isExpandedRef = useRef(isExpanded);
-  isExpandedRef.current = isExpanded;
-  // Fax finder state
-  const [findingFax, setFindingFax] = useState(false);
-  const [faxResult, setFaxResult] = useState<{ fax: string | null; confidence: string | null; source_url: string | null } | null>(null);
-  // LinkedIn finder state
-  const [findingLinkedIn, setFindingLinkedIn] = useState(false);
-  const [linkedInResult, setLinkedInResult] = useState<{ linkedin_url: string | null; source_url: string | null } | null>(null);
-  // Apollo decision-maker finder state
-  const [findingDecisionMaker, setFindingDecisionMaker] = useState(false);
-  const [apolloError, setApolloError] = useState<string | null>(null);
-  const [localApolloContact, setLocalApolloContact] = useState<OutreachProvider["apollo_contact"]>(provider.apollo_contact);
-  // Sync localApolloContact with props when provider data changes
-  useEffect(() => {
-    setLocalApolloContact(provider.apollo_contact);
-  }, [provider.apollo_contact]);
-  // Inline email editing state (for "Wrong Contact" flow)
-  const [editingEmail, setEditingEmail] = useState(false);
-  const [newEmail, setNewEmail] = useState("");
-  const [savingEmail, setSavingEmail] = useState(false);
-  const [emailJustSaved, setEmailJustSaved] = useState(false);
-  const [sendingClaimLink, setSendingClaimLink] = useState(false);
-  // Inline phone editing state
-  const [editingPhone, setEditingPhone] = useState(false);
-  const [newPhone, setNewPhone] = useState("");
-  const [savingPhone, setSavingPhone] = useState(false);
-  // Not interested reason state
-  const [notInterestedReason, setNotInterestedReason] = useState<string>("");
-  // Inline fax editing state
-  const [editingFax, setEditingFax] = useState(false);
-  const [faxNumberInput, setFaxNumberInput] = useState("");
-  const [sendingFax, setSendingFax] = useState(false);
-  const [pendingFaxSend, setPendingFaxSend] = useState(false);
-  const [faxNotFound, setFaxNotFound] = useState(false);
-  // Inline direct mail editing state
-  const [editingDirectMail, setEditingDirectMail] = useState(false);
-  const [addressInput, setAddressInput] = useState("");
-  const [sendingDirectMail, setSendingDirectMail] = useState(false);
-  const [pendingDirectMailSend, setPendingDirectMailSend] = useState(false);
-  const [findingAddress, setFindingAddress] = useState(false);
-  const [addressNotFound, setAddressNotFound] = useState(false);
-  // Inline contact form state
-  const [editingContactForm, setEditingContactForm] = useState(false);
-  const [contactFormUrlInput, setContactFormUrlInput] = useState("");
-  const [contactFormMessageCopied, setContactFormMessageCopied] = useState(false);
-  const [contactFormOpened, setContactFormOpened] = useState(false);
-  const [submittingContactForm, setSubmittingContactForm] = useState(false);
-  const [savingContactFormUrl, setSavingContactFormUrl] = useState(false);
-  const [findingContactForm, setFindingContactForm] = useState(false);
-  const [contactFormNotFound, setContactFormNotFound] = useState(false);
-  const [claimUrl, setClaimUrl] = useState<string | null>(null);
-  const [loadingClaimUrl, setLoadingClaimUrl] = useState(false);
-  const [claimUrlError, setClaimUrlError] = useState<string | null>(null);
-  // Confirmation checkbox state
-  const [confirmedWithProvider, setConfirmedWithProvider] = useState(false);
-  // Reset to Ready state
-  const [showResetConfirm, setShowResetConfirm] = useState(false);
-  const [resettingToReady, setResettingToReady] = useState(false);
-  // Use Apollo Email (without moving to Ready) state
-  const [savingApolloEmail, setSavingApolloEmail] = useState(false);
-  // Session ID to track editing sessions and invalidate stale async operations
-  const editingSessionRef = useRef(0);
-
-  // Reset editing state when row is collapsed
-  useEffect(() => {
-    if (!isExpanded) {
-      editingSessionRef.current += 1; // Invalidate any in-flight operations
-      setEditingEmail(false);
-      setNewEmail("");
-      setEmailJustSaved(false);
-      setEditingPhone(false);
-      setNewPhone("");
-      setError(null);
-      setNotInterestedReason("");
-      setEditingFax(false);
-      setFaxNumberInput("");
-      setSendingFax(false);
-      setPendingFaxSend(false);
-      setFaxNotFound(false);
-      setEditingDirectMail(false);
-      setAddressInput("");
-      setSendingDirectMail(false);
-      setPendingDirectMailSend(false);
-      setFindingAddress(false);
-      setAddressNotFound(false);
-      setEditingContactForm(false);
-      setContactFormUrlInput("");
-      setContactFormMessageCopied(false);
-      setContactFormOpened(false);
-      setSubmittingContactForm(false);
-      setSavingContactFormUrl(false);
-      setClaimUrl(null);
-      setLoadingClaimUrl(false);
-      setClaimUrlError(null);
-      setConfirmedWithProvider(false);
-      // Reset Apollo state
-      setFindingDecisionMaker(false);
-      setApolloError(null);
-      // Reset "Reset to Ready" state
-      setShowResetConfirm(false);
-      setResettingToReady(false);
-      // Reset "Use Apollo Email" state
-      setSavingApolloEmail(false);
-    }
-  }, [isExpanded]);
-
   const dueBadge = formatDueDateBadge(provider.due_date);
-  const resendDisabled = provider.resend_count >= MAX_RESEND_COUNT;
-
-  // LinkedIn URL (filter out "not_found" sentinel value)
-  const linkedInUrl = (provider.linkedin_url && provider.linkedin_url !== "not_found")
-    ? provider.linkedin_url
-    : linkedInResult?.linkedin_url;
-
-  // Find fax number for this provider
-  const handleFindFax = async () => {
-    setFindingFax(true);
-    setFaxNotFound(false);
-    setError(null);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/find-fax", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: provider.provider_id }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setFaxResult({ fax: data.fax, confidence: data.confidence, source_url: data.source_url });
-        if (data.fax) {
-          setFaxNumberInput(data.fax); // Populate input so Send button appears
-          onProviderUpdated({ fax_number: data.fax, fax_confidence: data.confidence });
-        } else if (isExpandedRef.current) {
-          setFaxNotFound(true); // Show "not found" message
-        }
-      } else if (isExpandedRef.current) {
-        setError(data.error || "Failed to find fax");
-      }
-    } catch {
-      if (isExpandedRef.current) {
-        setError("Network error finding fax");
-      }
-    } finally {
-      setFindingFax(false);
-    }
-  };
-
-  // Find LinkedIn URL for this provider
-  const handleFindLinkedIn = async () => {
-    setFindingLinkedIn(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/find-linkedin", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: provider.provider_id }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setLinkedInResult({ linkedin_url: data.linkedin_url, source_url: data.source_url });
-        if (data.linkedin_url) {
-          onProviderUpdated({ linkedin_url: data.linkedin_url });
-        }
-      } else if (isExpandedRef.current) {
-        setError(data.error || "Failed to find LinkedIn");
-      }
-    } catch {
-      if (isExpandedRef.current) {
-        setError("Network error finding LinkedIn");
-      }
-    } finally {
-      setFindingLinkedIn(false);
-    }
-  };
-
-  // Find decision-maker via Apollo
-  const handleFindDecisionMaker = async () => {
-    setFindingDecisionMaker(true);
-    setApolloError(null);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/find-decision-maker", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: provider.provider_id }),
-      });
-      const data = await res.json();
-      if (!isExpandedRef.current) return; // Row collapsed, ignore result
-
-      if (data.error) {
-        setApolloError(data.error);
-      } else if (data.contact?.email) {
-        const contact = {
-          email: data.contact.email,
-          first_name: data.contact.first_name,
-          last_name: data.contact.last_name,
-          title: data.contact.title,
-          linkedin_url: data.contact.linkedin_url,
-          found_at: new Date().toISOString(),
-        };
-        setLocalApolloContact(contact);
-        // Only save apollo_contact to parent state for display
-        // Do NOT update email or email_source here - user must click
-        // "Reset to Ready with this email" to confirm
-        onProviderUpdated({
-          apollo_contact: contact,
-        });
-      } else {
-        setApolloError("No decision-maker found");
-      }
-    } catch {
-      if (isExpandedRef.current) {
-        setApolloError("Lookup failed");
-      }
-    } finally {
-      setFindingDecisionMaker(false);
-    }
-  };
-
-  // Use Apollo email without moving to Ready (stay in Follow Up)
-  const handleUseApolloEmail = async () => {
-    if (!localApolloContact?.email) return;
-
-    const sessionAtStart = editingSessionRef.current;
-    setSavingApolloEmail(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/admin/provider-outreach/update-email", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          email: localApolloContact.email,
-          confirm_apollo: true, // Sets email_source = 'decision_maker'
-        }),
-      });
-
-      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
-
-      if (res.ok) {
-        // Update local state with new email
-        // The UI will show "Email saved" because emails now match
-        onProviderUpdated({
-          email: localApolloContact.email,
-          email_source: "decision_maker",
-        });
-      } else if (stillValid) {
-        const data = await res.json();
-        setError(data.error || "Failed to update email");
-      }
-    } catch {
-      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
-        setError("Network error");
-      }
-    } finally {
-      if (editingSessionRef.current === sessionAtStart) {
-        setSavingApolloEmail(false);
-      }
-    }
-  };
-
-  // Reset provider from Follow-Up back to Ready (when Apollo finds a new email)
-  const handleResetToReady = async () => {
-    if (!localApolloContact?.email) return;
-
-    const sessionAtStart = editingSessionRef.current;
-    setResettingToReady(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          email_source: "decision_maker",
-          use_apollo_email: true,
-        }),
-      });
-
-      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
-
-      if (res.ok) {
-        const data = await res.json();
-        // Show warning if email update failed (but stage was still changed)
-        if (data.warning && stillValid) {
-          setError(data.warning);
-        }
-        // Provider was moved to Ready - trigger refresh (delayed if showing warning)
-        if (data.warning) {
-          setTimeout(() => onOutcomeRecorded(true), 2000);
-        } else {
-          onOutcomeRecorded(true);
-        }
-      } else if (stillValid) {
-        const data = await res.json();
-        setError(data.error || "Failed to reset provider");
-      }
-    } catch {
-      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
-        setError("Network error");
-      }
-    } finally {
-      if (editingSessionRef.current === sessionAtStart) {
-        setResettingToReady(false);
-        setShowResetConfirm(false);
-      }
-    }
-  };
-
-  // Handle reset to Ready with current email (non-Apollo flow)
-  // Used when user manually edited email and wants to restart sequence
-  const handleResetToReadyWithCurrentEmail = async () => {
-    const sessionAtStart = editingSessionRef.current;
-    setResettingToReady(true);
-    setError(null);
-
-    // Use provider's current email_source, default to "organization"
-    const emailSource = provider.email_source || "organization";
-
-    try {
-      const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          email_source: emailSource,
-          use_apollo_email: false, // Keep current email
-        }),
-      });
-
-      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
-
-      if (res.ok) {
-        // Provider was moved to Ready - trigger refresh
-        onOutcomeRecorded(true);
-      } else if (stillValid) {
-        const data = await res.json();
-        setError(data.error || "Failed to reset provider");
-      }
-    } catch {
-      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
-        setError("Network error");
-      }
-    } finally {
-      if (editingSessionRef.current === sessionAtStart) {
-        setResettingToReady(false);
-        setShowResetConfirm(false);
-      }
-    }
-  };
-
-  // Handle inline email save (for "Wrong Contact" / "Fix Email" flow)
-  const handleSaveEmail = async () => {
-    const trimmedEmail = newEmail.trim();
-    if (!trimmedEmail) return;
-
-    // Basic email validation
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(trimmedEmail)) {
-      setError("Invalid email format");
-      return;
-    }
-
-    const sessionAtStart = editingSessionRef.current;
-    setSavingEmail(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/admin/provider-outreach/update-email", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: provider.provider_id, email: trimmedEmail }),
-      });
-
-      // Check if this operation is still valid (same session, still expanded)
-      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
-
-      if (res.ok) {
-        // Always update parent state (email was saved successfully)
-        onProviderUpdated({ email: trimmedEmail });
-        // Only update local UI state if operation is still valid
-        if (stillValid) {
-          setEditingEmail(false);
-          setEmailJustSaved(true);
-          // Keep newEmail populated - we use it for display in emailJustSaved state
-          // (avoids race condition where provider.email hasn't updated from parent yet)
-        }
-      } else if (stillValid) {
-        const data = await res.json();
-        setError(data.error || "Failed to save email");
-      }
-    } catch {
-      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
-        setError("Network error saving email");
-      }
-    } finally {
-      // Only reset loading state if this session is still current
-      if (editingSessionRef.current === sessionAtStart) {
-        setSavingEmail(false);
-      }
-    }
-  };
-
-  // Handle saving updated phone number
-  const handleSavePhone = async () => {
-    const trimmedPhone = newPhone.trim();
-    // Allow empty to clear phone, or validate format
-    const sessionAtStart = editingSessionRef.current;
-    setSavingPhone(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/admin/provider-outreach/update-phone", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: provider.provider_id, phone: trimmedPhone || null }),
-      });
-
-      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
-
-      if (res.ok) {
-        onProviderUpdated({ phone: trimmedPhone || null });
-        if (stillValid) {
-          setEditingPhone(false);
-          setNewPhone("");
-        }
-      } else if (stillValid) {
-        const data = await res.json();
-        setError(data.error || "Failed to save phone");
-      }
-    } catch {
-      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
-        setError("Network error saving phone");
-      }
-    } finally {
-      if (editingSessionRef.current === sessionAtStart) {
-        setSavingPhone(false);
-      }
-    }
-  };
-
-  // Handle sending claim link after email is fixed
-  const handleSendClaimLink = async () => {
-    const sessionAtStart = editingSessionRef.current;
-    setSendingClaimLink(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: provider.provider_id }),
-      });
-
-      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
-
-      if (res.ok) {
-        // Only reset local UI state if operation is still valid
-        if (stillValid) {
-          setEmailJustSaved(false);
-          setNewEmail("");
-        }
-        // Always trigger refresh (claim link was sent successfully)
-        onOutcomeRecorded(false);
-      } else if (stillValid) {
-        const data = await res.json();
-        setError(data.error || "Failed to send claim link");
-      }
-    } catch {
-      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
-        setError("Network error sending claim link");
-      }
-    } finally {
-      if (editingSessionRef.current === sessionAtStart) {
-        setSendingClaimLink(false);
-      }
-    }
-  };
-
-  // Handle inline fax send from Follow Up
-  // Sends fax via Telnyx, then moves provider to Alternative Channels
-  const handleSendFaxInline = async () => {
-    const manualInput = faxNumberInput.trim();
-    const existingFax = provider.fax_number || faxResult?.fax;
-    const faxToSend = manualInput || existingFax;
-
-    if (!faxToSend) {
-      setError("Please enter a fax number");
-      return;
-    }
-
-    // Check if this is a manually entered number (different from existing)
-    const isManualEntry = manualInput && manualInput !== existingFax;
-
-    const sessionAtStart = editingSessionRef.current;
-    setSendingFax(true);
-    setError(null);
-
-    try {
-      // Step 1: If manually entered, save fax number to provider record first
-      if (isManualEntry) {
-        const saveRes = await fetch("/api/admin/provider-outreach/find-fax", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            provider_id: provider.provider_id,
-            manual_fax: manualInput,
-          }),
-        });
-
-        if (!saveRes.ok) {
-          // Non-fatal: log but continue with send
-          console.warn("Failed to save manual fax number:", await saveRes.json());
-        } else {
-          // Update local state so UI reflects saved number
-          onProviderUpdated({ fax_number: manualInput, fax_confidence: "high" });
-        }
-      }
-
-      // Step 2: Send fax via Telnyx
-      const sendRes = await fetch("/api/admin/provider-outreach/send-fax", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          fax_number: faxToSend,
-        }),
-      });
-
-      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
-
-      if (!sendRes.ok) {
-        const errData = await sendRes.json();
-        if (stillValid) {
-          setError(errData.error || "Failed to send fax");
-        }
-        return;
-      }
-
-      // Step 3: Move provider to Alternative Channels (re_engage stage with fax channel)
-      const moveRes = await fetch("/api/admin/provider-outreach/record-outcome", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          outcome: "try_fax",
-          notes: `Fax sent to ${faxToSend}`,
-        }),
-      });
-
-      if (!moveRes.ok) {
-        // Fax was sent but stage move failed - keep modal open with error
-        console.error("Fax sent but failed to move provider:", await moveRes.json());
-        if (stillValid) {
-          setError("Fax sent successfully, but failed to move provider to Alternative Channels. Please close this modal and refresh the page.");
-        }
-        return; // Don't close modal or trigger refresh - let user handle manually
-      }
-
-      // Success - close inline editing and refresh
-      if (stillValid) {
-        setEditingFax(false);
-        setPendingFaxSend(false);
-        setFaxNumberInput("");
-        setConfirmedWithProvider(false);
-      }
-      onOutcomeRecorded(true); // Stage changed, trigger refresh
-    } catch {
-      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
-        setError("Network error sending fax");
-      }
-    } finally {
-      if (editingSessionRef.current === sessionAtStart) {
-        setSendingFax(false);
-      }
-    }
-  };
-
-  // Find address for direct mail
-  const handleFindAddress = async () => {
-    setFindingAddress(true);
-    setAddressNotFound(false);
-    setError(null);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/find-address", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          city: provider.city,
-          state: provider.state,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok && data.address) {
-        setAddressInput(data.address);
-      } else if (res.ok) {
-        // API succeeded but no address found
-        setAddressNotFound(true);
-      } else {
-        setError(data.error || "Could not find a mailing address");
-      }
-    } catch {
-      setError("Failed to search for address");
-    } finally {
-      setFindingAddress(false);
-    }
-  };
-
-  // Handle inline direct mail send from Follow Up
-  // Sends postcard via PostGrid, then moves provider to Alternative Channels
-  const handleSendDirectMailInline = async () => {
-    const addressToSend = addressInput.trim() || provider.mail_address;
-
-    if (!addressToSend) {
-      setError("Please enter a mailing address");
-      return;
-    }
-
-    const sessionAtStart = editingSessionRef.current;
-    setSendingDirectMail(true);
-    setError(null);
-
-    try {
-      // Step 1: Send postcard via PostGrid (API also saves the address)
-      const sendRes = await fetch("/api/admin/provider-outreach/send-mailer", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          provider_name: provider.provider_name,
-          address: addressToSend,
-        }),
-      });
-
-      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
-
-      if (!sendRes.ok) {
-        const errData = await sendRes.json();
-        if (stillValid) {
-          setError(errData.error || "Failed to send postcard");
-        }
-        return;
-      }
-
-      // Update local state with saved address
-      onProviderUpdated({ mail_address: addressToSend });
-
-      // Step 2: Move provider to Alternative Channels (re_engage stage with direct_mail channel)
-      const moveRes = await fetch("/api/admin/provider-outreach/record-outcome", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          outcome: "try_direct_mail",
-          notes: `Postcard sent to ${addressToSend}`,
-        }),
-      });
-
-      if (!moveRes.ok) {
-        // Postcard was sent but stage move failed - keep modal open with error
-        console.error("Postcard sent but failed to move provider:", await moveRes.json());
-        if (stillValid) {
-          setError("Postcard sent successfully, but failed to move provider to Alternative Channels. Please close this modal and refresh the page.");
-        }
-        return; // Don't close modal or trigger refresh - let user handle manually
-      }
-
-      // Success - close inline editing and refresh
-      if (stillValid) {
-        setEditingDirectMail(false);
-        setPendingDirectMailSend(false);
-        setAddressInput("");
-        setConfirmedWithProvider(false);
-      }
-      onOutcomeRecorded(true); // Stage changed, trigger refresh
-    } catch {
-      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
-        setError("Network error sending postcard");
-      }
-    } finally {
-      if (editingSessionRef.current === sessionAtStart) {
-        setSendingDirectMail(false);
-      }
-    }
-  };
-
-  // Handle auto-finding contact form URL from provider website
-  const handleFindContactForm = async () => {
-    if (!provider.website) {
-      setContactFormNotFound(true);
-      return;
-    }
-
-    const sessionAtStart = editingSessionRef.current;
-    setFindingContactForm(true);
-    setContactFormNotFound(false);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/admin/provider-outreach/find-contact-form", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          website: provider.website,
-        }),
-      });
-
-      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
-
-      if (!res.ok) {
-        const errData = await res.json();
-        if (stillValid) {
-          setError(errData.error || "Failed to find contact form");
-          setContactFormNotFound(true);
-        }
-        return;
-      }
-
-      const data = await res.json();
-
-      if (stillValid) {
-        if (data.found && data.url) {
-          setContactFormUrlInput(data.url);
-          onProviderUpdated({ contact_form_url: data.url, contact_form_status: "found" });
-        } else {
-          setContactFormNotFound(true);
-          onProviderUpdated({ contact_form_status: "not_found" });
-        }
-      }
-    } catch {
-      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
-        setError("Network error finding contact form");
-        setContactFormNotFound(true);
-      }
-    } finally {
-      if (editingSessionRef.current === sessionAtStart) {
-        setFindingContactForm(false);
-      }
-    }
-  };
-
-  // Handle saving contact form URL - returns true on success, false on failure
-  const handleSaveContactFormUrl = async (url: string): Promise<boolean> => {
-    const sessionAtStart = editingSessionRef.current;
-    setSavingContactFormUrl(true);
-    setError(null);
-
-    try {
-      const res = await fetch("/api/admin/provider-outreach/update-tracking", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          updates: { contact_form_url: url },
-        }),
-      });
-
-      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
-
-      if (!res.ok) {
-        const errData = await res.json();
-        if (stillValid) {
-          setError(errData.error || "Failed to save contact form URL");
-        }
-        return false;
-      }
-
-      // Update local state
-      if (stillValid) {
-        onProviderUpdated({ contact_form_url: url });
-        setContactFormUrlInput("");
-      }
-      return true;
-    } catch {
-      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
-        setError("Network error saving contact form URL");
-      }
-      return false;
-    } finally {
-      if (editingSessionRef.current === sessionAtStart) {
-        setSavingContactFormUrl(false);
-      }
-    }
-  };
-
-  // Handle contact form submission - marks provider as contacted via website form
-  const handleContactFormSubmit = async () => {
-    if (!contactFormUrlInput) {
-      setError("Please enter a contact form URL first");
-      return;
-    }
-
-    const sessionAtStart = editingSessionRef.current;
-    setSubmittingContactForm(true);
-    setError(null);
-
-    try {
-      // If we have a new URL, save it first
-      if (contactFormUrlInput && contactFormUrlInput !== provider.contact_form_url) {
-        const saved = await handleSaveContactFormUrl(contactFormUrlInput);
-        if (!saved) {
-          // Don't proceed if URL save failed
-          return;
-        }
-      }
-
-      const res = await fetch("/api/admin/provider-outreach/record-outcome", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          outcome: "try_contact_form",
-          notes: `Contact form submitted: ${contactFormUrlInput}`,
-        }),
-      });
-
-      const stillValid = editingSessionRef.current === sessionAtStart && isExpandedRef.current;
-
-      if (!res.ok) {
-        const errData = await res.json();
-        if (stillValid) {
-          setError(errData.error || "Failed to record contact form submission");
-        }
-        return;
-      }
-
-      // Success - close inline editing and refresh
-      if (stillValid) {
-        setEditingContactForm(false);
-        setContactFormMessageCopied(false);
-        setContactFormOpened(false);
-        setContactFormUrlInput("");
-      }
-      onOutcomeRecorded(true); // Stage changed, trigger refresh
-    } catch {
-      if (editingSessionRef.current === sessionAtStart && isExpandedRef.current) {
-        setError("Network error recording contact form");
-      }
-    } finally {
-      if (editingSessionRef.current === sessionAtStart) {
-        setSubmittingContactForm(false);
-      }
-    }
-  };
-
-  // Handle copy message and open contact form
-  const handleCopyAndOpenContactForm = () => {
-    if (!contactFormUrlInput) return;
-
-    // Copy message to clipboard
-    navigator.clipboard.writeText(getContactFormMessage());
-    setContactFormMessageCopied(true);
-    setTimeout(() => setContactFormMessageCopied(false), 2000);
-
-    // Open contact form URL
-    const url = contactFormUrlInput.startsWith("http") ? contactFormUrlInput : `https://${contactFormUrlInput}`;
-    window.open(url, "_blank");
-    setContactFormOpened(true);
-  };
-
-  // Fetch claim URL for contact form message
-  const handleFetchClaimUrl = async () => {
-    if (claimUrl || loadingClaimUrl) return;
-
-    const sessionAtStart = editingSessionRef.current;
-    setLoadingClaimUrl(true);
-    setClaimUrlError(null);
-
-    try {
-      const res = await fetch("/api/admin/provider-outreach/generate-claim-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: provider.provider_id }),
-      });
-
-      if (editingSessionRef.current !== sessionAtStart || !isExpandedRef.current) return;
-
-      if (res.ok) {
-        const data = await res.json();
-        setClaimUrl(data.claim_url);
-      } else {
-        const errData = await res.json().catch(() => ({}));
-        const errMsg = errData.error || "Failed to generate tracking link";
-        console.error("[contact-form] Failed to generate claim URL:", errMsg);
-        setClaimUrlError(errMsg);
-      }
-    } catch {
-      console.error("[contact-form] Error fetching claim URL");
-      setClaimUrlError("Network error generating tracking link");
-    } finally {
-      if (editingSessionRef.current === sessionAtStart) {
-        setLoadingClaimUrl(false);
-      }
-    }
-  };
-
-  // Generate contact form message for provider (personalized like Day 0 email)
-  const getContactFormMessage = () => {
-    const city = provider.city || provider.state || "your area";
-    const category = provider.provider_category || "care services";
-    const name = provider.provider_name;
-    const link = claimUrl || `https://olera.care/providers/${provider.slug}`;
-
-    return `Hi, I'm Logan from Olera.
-
-Families in ${city} searching for ${category} can already see the page we built for ${name}. But if one reached out today, no one would see the message.
-
-Activate your page (2 min, free) to fully manage it:
-${link}
-
-Questions? support@olera.care or (979) 243-9801`;
-  };
-
-  // Confirmation modal content for each outcome
-  const getConfirmationContent = (outcome: string) => {
-    switch (outcome) {
-      case "resend_link":
-        return {
-          title: "Resend Claim Link",
-          description: "Send a short email with just the claim link to the provider.",
-          details: [
-            "Email will be sent immediately with the claim link",
-            "Provider will be moved to Alternative Channels",
-            `This is send #${provider.resend_count + 1} of ${MAX_RESEND_COUNT} allowed`,
-          ],
-          confirmLabel: "Send & move to Alt. Channels",
-          confirmClass: "bg-blue-600 hover:bg-blue-700 text-white",
-        };
-      case "not_interested":
-        return {
-          title: "Not Interested",
-          description: "The provider explicitly declined to claim their profile.",
-          details: [
-            "Provider will be moved to Not Interested (soft terminal)",
-            "No more outreach emails, but questions/connections still flow",
-          ],
-          confirmLabel: "Mark as not interested",
-          confirmClass: "bg-gray-800 hover:bg-gray-900 text-white",
-        };
-      // Note: "try_fax" and "try_direct_mail" removed - now use dedicated send modals
-      case "move_to_not_contacted":
-        return {
-          title: "Move to Ready",
-          description: "Move this provider back to the Ready queue.",
-          details: [
-            "Provider will be moved to the Ready stage",
-            "You can launch a new sequence from the Ready tab",
-          ],
-          confirmLabel: "Move to Ready",
-          confirmClass: "bg-gray-600 hover:bg-gray-700 text-white",
-        };
-      default:
-        return null;
-    }
-  };
-
-  const handleOutcome = async (outcome: string) => {
-    setSubmitting(outcome);
-    setError(null);
-
-    try {
-      const body: Record<string, unknown> = {
-        provider_id: provider.provider_id,
-        outcome,
-      };
-      if (notes.trim()) {
-        body.notes = notes.trim();
-      }
-      // Include reason for not_interested outcome
-      if (outcome === "not_interested" && notInterestedReason) {
-        body.not_interested_reason = notInterestedReason;
-      }
-
-      const res = await fetch("/api/admin/provider-outreach/record-outcome", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        onOutcomeRecorded(true);
-        if (data.email_sent === false && data.email_error) {
-          setError(`Email failed: ${data.email_error}. Provider was still moved.`);
-        }
-        setNotes("");
-        setNotInterestedReason(""); // Reset reason
-      } else {
-        const errData = await res.json();
-        setError(errData.error || "Failed to record outcome");
-      }
-    } catch {
-      setError("Network error");
-    } finally {
-      setSubmitting(null);
-      setPendingOutcome(null);
-    }
-  };
-
-  const confirmationContent = pendingOutcome
-    ? getConfirmationContent(pendingOutcome)
-    : pendingStageMove
-    ? getConfirmationContent(`move_to_${pendingStageMove}`)
-    : null;
-
-  // Close action menu when clicking outside
-  useEffect(() => {
-    if (!showActionMenu) return;
-    const handleClickOutside = (e: MouseEvent) => {
-      if (actionMenuRef.current && !actionMenuRef.current.contains(e.target as Node)) {
-        setShowActionMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [showActionMenu]);
+  const reasonChip = getNeedsCallReasonChip(provider.needs_call_reason);
 
   return (
     <div className="border-b border-gray-100 last:border-b-0">
-      {/* Collapsed Row - New layout: provider name never truncated */}
       <div
         role="button"
         tabIndex={0}
-        aria-expanded={isExpanded}
         className="group px-5 py-3 hover:bg-gray-50 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
-        onClick={onToggle}
+        onClick={onOpenDrawer}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            onToggle();
+            onOpenDrawer();
           }
         }}
       >
-        <div className="flex items-start gap-3">
-          {/* Expand Chevron */}
-          <div className="pt-1 shrink-0">
-            <svg
-              className={`w-4 h-4 text-gray-400 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-              fill="currentColor"
-              viewBox="0 0 20 20"
-            >
-              <path d="M6.5 3.5l7 6.5-7 6.5V3.5z" />
-            </svg>
-          </div>
-
+        <div className="flex items-center gap-3">
           {/* Main content area */}
           <div className="flex-1 min-w-0">
-            {/* Row 1: Provider name (full width, never truncated) */}
+            {/* Row 1: Provider name + badges */}
             <div className="flex items-center justify-between gap-4 mb-0.5">
               <Link
                 href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
@@ -3925,16 +2046,11 @@ Questions? support@olera.care or (979) 243-9801`;
                 {provider.provider_name}
               </Link>
               <div className="flex items-center gap-2 shrink-0">
-                {/* Reason Chip */}
-                {(() => {
-                  const reasonChip = getNeedsCallReasonChip(provider.needs_call_reason);
-                  return reasonChip ? (
-                    <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${reasonChip.className}`}>
-                      {reasonChip.label}
-                    </span>
-                  ) : null;
-                })()}
-                {/* Due Date Badge */}
+                {reasonChip && (
+                  <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${reasonChip.className}`}>
+                    {reasonChip.label}
+                  </span>
+                )}
                 <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${dueBadge.className}`}>
                   {dueBadge.text}
                 </span>
@@ -3942,7 +2058,7 @@ Questions? support@olera.care or (979) 243-9801`;
             </div>
 
             {/* Row 2: Category, location, phone */}
-            <div className="flex items-center gap-2 text-xs text-gray-500 mb-0.5">
+            <div className="flex items-center gap-2 text-xs text-gray-500">
               {provider.provider_category && (
                 <span className="truncate max-w-[200px]">{provider.provider_category}</span>
               )}
@@ -3960,1247 +2076,25 @@ Questions? support@olera.care or (979) 243-9801`;
                   {formatPhone(provider.phone)}
                 </a>
               )}
-              {/* Questions and leads context pills */}
-              {(provider.provider_category || provider.city || provider.phone) && <span>·</span>}
-              <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
-                {provider.questions_count ?? 0} Q
-              </span>
-              <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
-                {provider.leads_count ?? 0} Leads
-              </span>
-            </div>
-
-            {/* Row 3: Admin assignment (subtle) */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-xs text-gray-400">
-                <span>Assigned:</span>
-                <AdminChip
-                  adminId={provider.assigned_to}
-                  adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
-                  size="sm"
-                  showUnassigned={true}
-                />
-              </div>
-
-              {/* Hover actions (notes + three dots + trash) */}
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                {/* Notes button - filled when provider has notes */}
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onOpenNotesModal();
-                  }}
-                  className={`p-1 ${(provider.notes_count ?? 0) > 0 ? "text-gray-700" : "text-gray-300 hover:text-amber-500"}`}
-                  title="Notes"
-                >
-                  <svg className="w-4 h-4" fill={(provider.notes_count ?? 0) > 0 ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                  </svg>
-                </button>
-                <div className="relative" ref={actionMenuRef}>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowActionMenu(!showActionMenu);
-                    }}
-                    disabled={stageChangeLoading}
-                    className="p-1 text-gray-300 hover:text-gray-600 disabled:opacity-50"
-                    title="More actions"
-                  >
-                    {stageChangeLoading ? (
-                      <span className="block w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                    ) : (
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 12.75a.75.75 0 110-1.5.75.75 0 010 1.5zM12 18.75a.75.75 0 110-1.5.75.75 0 010 1.5z" />
-                      </svg>
-                    )}
-                  </button>
-                  {showActionMenu && (
-                    <div className="absolute right-0 top-full mt-1 z-20 w-40 py-1 bg-white rounded-lg shadow-lg border border-gray-200">
-                      <div className="px-3 py-1 text-[10px] font-medium text-gray-400 uppercase tracking-wide">Move to</div>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowActionMenu(false);
-                          setPendingStageMove("not_contacted");
-                        }}
-                        className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        Ready
-                      </button>
-                      <div className="border-t border-gray-100 my-1" />
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowActionMenu(false);
-                          setPendingOutcome("not_interested");
-                        }}
-                        className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        Not Interested
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setShowActionMenu(false);
-                          onArchive();
-                        }}
-                        className="w-full text-left px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-                      >
-                        Archive
-                      </button>
-                    </div>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onRemoveProvider();
-                  }}
-                  className="p-1 text-gray-300 hover:text-red-500"
-                  title="Remove from outreach"
-                >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                  </svg>
-                </button>
-              </div>
             </div>
           </div>
+
+          {/* Chevron indicator for drawer */}
+          <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
         </div>
       </div>
-
-      {/* Expanded View - Card-based layout */}
-      {isExpanded && (
-        <div className="bg-gray-50/70 border-t border-gray-100 px-5 py-4">
-          {error && (
-            <div className="mb-3 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
-              {error}
-            </div>
-          )}
-
-          {/* Follow Up Action Card */}
-          <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-            {/* Reason for follow-up */}
-            <div className="mb-4">
-              <p className="text-sm text-gray-700">{getFollowUpReasonExplanation(provider)}</p>
-              <p className="text-sm text-gray-500 mt-1">Consider calling to ask which channel they prefer.</p>
-            </div>
-
-            {/* Contact boxes - Email & Phone side by side */}
-            <div className="mb-4 flex gap-3">
-              {/* Email box */}
-              <div className="flex-1 min-w-0 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                {emailJustSaved ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <span className="text-emerald-600">✓</span>
-                      <span className="text-sm text-gray-700 truncate">{newEmail || provider.email}</span>
-                      <span className="text-xs text-emerald-600 font-medium">Saved</span>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSendClaimLink();
-                      }}
-                      disabled={sendingClaimLink}
-                      className="w-full px-3 py-2 text-sm font-medium text-white bg-emerald-600 rounded-lg hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    >
-                      {sendingClaimLink ? "Sending..." : "Send Claim Link"}
-                    </button>
-                  </div>
-                ) : editingEmail ? (
-                  <div className="flex gap-2">
-                    <input
-                      type="email"
-                      value={newEmail}
-                      onChange={(e) => setNewEmail(e.target.value)}
-                      placeholder="Enter email"
-                      className="flex-1 min-w-0 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
-                      onClick={(e) => e.stopPropagation()}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleSaveEmail();
-                        } else if (e.key === "Escape") {
-                          setEditingEmail(false);
-                          setNewEmail("");
-                        }
-                      }}
-                      autoFocus
-                    />
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSaveEmail();
-                      }}
-                      disabled={savingEmail || !newEmail.trim()}
-                      className="px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {savingEmail ? "..." : "Save"}
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditingEmail(false);
-                        setNewEmail("");
-                      }}
-                      disabled={savingEmail}
-                      className="text-xs text-gray-500 hover:text-gray-700"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                      </svg>
-                      {provider.email ? (
-                        <>
-                          <a
-                            href={`mailto:${provider.email}`}
-                            className="text-sm text-primary-600 hover:underline truncate"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {provider.email}
-                          </a>
-                          <EmailHistoryPopover providerId={provider.provider_id} currentEmail={provider.email} />
-                        </>
-                      ) : (
-                        <span className="text-sm text-gray-400 italic">No email</span>
-                      )}
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditingEmail(true);
-                        setNewEmail(provider.email || "");
-                        setEmailJustSaved(false);
-                      }}
-                      className="text-xs text-gray-500 hover:text-gray-700 flex-shrink-0"
-                    >
-                      Edit
-                    </button>
-                  </div>
-                )}
-
-                {/* Apollo Decision Maker section */}
-                {localApolloContact ? (
-                  <div className="mt-2 pl-4 border-l-2 border-purple-200">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
-                        Apollo
-                      </span>
-                      {(localApolloContact.first_name || localApolloContact.last_name) && (
-                        <span className="text-sm font-medium text-gray-900">
-                          {[localApolloContact.first_name, localApolloContact.last_name].filter(Boolean).join(" ")}
-                        </span>
-                      )}
-                      {localApolloContact.title && (
-                        <span className="text-xs text-gray-500">{localApolloContact.title}</span>
-                      )}
-                      {/* Only show email if different from current */}
-                      {localApolloContact.email?.toLowerCase() !== provider.email?.toLowerCase() && (
-                        <span className="text-sm text-purple-600">{localApolloContact.email}</span>
-                      )}
-                    </div>
-
-                    {/* Action buttons */}
-                    <div className="flex items-center gap-3 mt-2">
-                      {/* Use This Email button - updates email but stays in Follow Up */}
-                      {localApolloContact.email?.toLowerCase() === provider.email?.toLowerCase() ? (
-                        <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                          </svg>
-                          Email saved
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleUseApolloEmail();
-                          }}
-                          disabled={savingApolloEmail}
-                          className="text-xs text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
-                        >
-                          {savingApolloEmail ? "Saving..." : "Use This Email"}
-                        </button>
-                      )}
-
-                      {/* Move to Ready Tab button */}
-                      {showResetConfirm ? (
-                        <div className="flex items-center gap-2 p-2 bg-emerald-50 border border-emerald-200 rounded-md">
-                          <span className="text-xs text-gray-700">
-                            Move to Ready tab?
-                          </span>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleResetToReady();
-                            }}
-                            disabled={resettingToReady}
-                            className="px-2 py-1 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
-                          >
-                            {resettingToReady ? "Moving..." : "Yes, Move"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowResetConfirm(false);
-                            }}
-                            disabled={resettingToReady}
-                            className="text-xs text-gray-500 hover:text-gray-700"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowResetConfirm(true);
-                          }}
-                          className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
-                        >
-                          Move to Ready Tab
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 mt-2">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleFindDecisionMaker();
-                      }}
-                      disabled={findingDecisionMaker}
-                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 border border-purple-200 rounded-md hover:bg-purple-100 transition disabled:opacity-50"
-                    >
-                      {findingDecisionMaker ? "Finding..." : "🎯 Find Decision Maker"}
-                    </button>
-                    {apolloError && <span className="text-xs text-amber-600">{apolloError}</span>}
-                  </div>
-                )}
-              </div>
-
-              {/* Phone box */}
-              <div className="flex-1 min-w-0 p-3 bg-gray-50 rounded-lg border border-gray-200">
-                {editingPhone ? (
-                  <div className="flex gap-2">
-                    <input
-                      type="tel"
-                      value={newPhone}
-                      onChange={(e) => setNewPhone(e.target.value)}
-                      placeholder="(555) 123-4567"
-                      className="flex-1 min-w-0 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
-                      onClick={(e) => e.stopPropagation()}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleSavePhone();
-                        } else if (e.key === "Escape") {
-                          setEditingPhone(false);
-                          setNewPhone("");
-                        }
-                      }}
-                      autoFocus
-                    />
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleSavePhone();
-                      }}
-                      disabled={savingPhone}
-                      className="px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {savingPhone ? "..." : "Save"}
-                    </button>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditingPhone(false);
-                        setNewPhone("");
-                      }}
-                      disabled={savingPhone}
-                      className="text-xs text-gray-500 hover:text-gray-700"
-                    >
-                      ✕
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="flex items-center gap-2 min-w-0">
-                      <svg className="w-4 h-4 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                      </svg>
-                      {provider.phone ? (
-                        <a
-                          href={`tel:${provider.phone.replace(/\D/g, "")}`}
-                          className="text-sm text-primary-600 hover:underline truncate"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          {formatPhone(provider.phone)}
-                        </a>
-                      ) : (
-                        <span className="text-sm text-gray-400 italic">No phone</span>
-                      )}
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setEditingPhone(true);
-                        setNewPhone(provider.phone || "");
-                      }}
-                      className="text-xs text-gray-500 hover:text-gray-700 flex-shrink-0"
-                    >
-                      Edit
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Found contact info (fax/LinkedIn) + Find LinkedIn option */}
-            {((provider.fax_number || faxResult?.fax) || linkedInUrl || (provider.website && !findingLinkedIn)) && (
-              <div className="mb-4 flex flex-wrap items-center gap-2 text-xs">
-                {(provider.fax_number || faxResult?.fax) && (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 bg-emerald-50 text-emerald-700 rounded">
-                    Fax: {provider.fax_number || faxResult?.fax}
-                  </span>
-                )}
-                {linkedInUrl ? (
-                  <a
-                    href={linkedInUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-50 text-blue-700 rounded hover:bg-blue-100"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                    </svg>
-                    LinkedIn
-                  </a>
-                ) : provider.website && !findingLinkedIn ? (
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleFindLinkedIn();
-                    }}
-                    className="inline-flex items-center gap-1 px-2 py-1 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded"
-                  >
-                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24">
-                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
-                    </svg>
-                    Find LinkedIn
-                  </button>
-                ) : null}
-                {findingLinkedIn && (
-                  <span className="inline-flex items-center gap-1 px-2 py-1 text-blue-500">
-                    <span className="w-3 h-3 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin" />
-                    Finding...
-                  </span>
-                )}
-              </div>
-            )}
-
-            {/* Reset to Ready option - when no Apollo or user wants to restart sequence */}
-            {!localApolloContact && (
-              <div className="flex items-center gap-2 mb-3">
-                {showResetConfirm ? (
-                  <div className="flex items-center gap-2 p-2 bg-gray-50 border border-gray-200 rounded-md">
-                    <span className="text-xs text-gray-700">
-                      Reset to Ready tab with current email?
-                    </span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleResetToReadyWithCurrentEmail();
-                      }}
-                      disabled={resettingToReady}
-                      className="px-2 py-1 text-xs font-medium text-white bg-gray-700 rounded hover:bg-gray-800 disabled:opacity-50"
-                    >
-                      {resettingToReady ? "Resetting..." : "Yes, Reset"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowResetConfirm(false);
-                      }}
-                      disabled={resettingToReady}
-                      className="text-xs text-gray-500 hover:text-gray-700"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setShowResetConfirm(true);
-                    }}
-                    className="text-xs text-gray-500 hover:text-gray-700"
-                  >
-                    Reset to Ready
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Action buttons */}
-            <div className="flex flex-wrap gap-2">
-              <button
-                onClick={() => setPendingOutcome("resend_link")}
-                disabled={submitting !== null || resendDisabled}
-                title={resendDisabled ? `Limit reached (${MAX_RESEND_COUNT} max)` : undefined}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:cursor-not-allowed ${
-                  resendDisabled
-                    ? "text-gray-400 bg-gray-100 cursor-not-allowed"
-                    : "text-gray-700 bg-white border border-gray-300 hover:border-gray-400 hover:bg-gray-50 disabled:opacity-50"
-                }`}
-              >
-                Resend Claim Link{resendDisabled ? " (max)" : ""}
-              </button>
-
-              <button
-                onClick={() => {
-                  setEditingFax(true);
-                  setFaxNumberInput(provider.fax_number || faxResult?.fax || "");
-                  setFaxNotFound(false);
-                  setError(null);
-                  // Auto-find fax if none exists
-                  if (!provider.fax_number && !faxResult?.fax && !findingFax) {
-                    handleFindFax();
-                  }
-                }}
-                disabled={submitting !== null || editingFax || sendingFax}
-                className="px-4 py-2 text-sm font-medium text-purple-700 bg-purple-50 border border-purple-200 rounded-lg hover:border-purple-300 hover:bg-purple-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Send Fax
-              </button>
-
-              <button
-                onClick={() => {
-                  setEditingDirectMail(true);
-                  setAddressInput(provider.mail_address || "");
-                  setAddressNotFound(false);
-                  setError(null);
-                  // Auto-find address if none exists
-                  if (!provider.mail_address && !findingAddress) {
-                    handleFindAddress();
-                  }
-                }}
-                disabled={submitting !== null || editingDirectMail || sendingDirectMail}
-                className="px-4 py-2 text-sm font-medium text-teal-700 bg-teal-50 border border-teal-200 rounded-lg hover:border-teal-300 hover:bg-teal-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Send Postcard
-              </button>
-
-              <button
-                onClick={() => {
-                  setEditingContactForm(true);
-                  setContactFormMessageCopied(false);
-                  setContactFormOpened(false);
-                  setContactFormUrlInput(provider.contact_form_url || "");
-                  setContactFormNotFound(provider.contact_form_status === "not_found");
-                  setError(null);
-                  // Fetch the magic claim URL for the message
-                  setTimeout(() => handleFetchClaimUrl(), 0);
-                  // Auto-find contact form if none exists and not already checked
-                  if (!provider.contact_form_url && provider.contact_form_status !== "not_found" && provider.website) {
-                    // Trigger find after state updates
-                    setTimeout(() => handleFindContactForm(), 0);
-                  }
-                }}
-                disabled={submitting !== null || editingContactForm || submittingContactForm || findingContactForm || !provider.slug}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 ${
-                  provider.contact_form_url
-                    ? "text-orange-800 bg-orange-100 border border-orange-300 hover:border-orange-400 hover:bg-orange-150"
-                    : provider.contact_form_status === "not_found" || !provider.website
-                      ? "text-gray-500 bg-gray-50 border border-gray-200 hover:border-gray-300 hover:bg-gray-100"
-                      : "text-orange-700 bg-orange-50 border border-orange-200 hover:border-orange-300 hover:bg-orange-100"
-                }`}
-                title={
-                  !provider.slug ? "No public page available" :
-                  provider.contact_form_url ? "Contact form URL saved" :
-                  !provider.website ? "No website on record (manual entry only)" :
-                  provider.contact_form_status === "not_found" ? "No contact form found" :
-                  undefined
-                }
-              >
-                {provider.contact_form_url ? (
-                  <svg className="w-3.5 h-3.5 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                  </svg>
-                ) : provider.contact_form_status === "not_found" || !provider.website ? (
-                  <svg className="w-3.5 h-3.5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                ) : null}
-                Contact Form
-              </button>
-            </div>
-
-            {/* Inline Fax editing */}
-            {editingFax && (
-              <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-medium text-purple-700 uppercase tracking-wide">
-                    Fax Number
-                  </label>
-                  <button
-                    onClick={() => {
-                      setEditingFax(false);
-                      setFaxNumberInput("");
-                      setError(null);
-                    }}
-                    className="text-xs text-purple-600 hover:text-purple-800"
-                  >
-                    Cancel
-                  </button>
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    value={faxNumberInput}
-                    onChange={(e) => {
-                      setFaxNumberInput(e.target.value);
-                      setFaxNotFound(false); // Clear "not found" when typing
-                    }}
-                    placeholder={findingFax ? "Finding fax number..." : "(555) 123-4567"}
-                    className="flex-1 px-3 py-2 text-sm border border-purple-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white"
-                    disabled={findingFax}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  {!faxNumberInput && !findingFax && (
-                    <button
-                      onClick={handleFindFax}
-                      className="px-3 py-2 text-sm font-medium text-purple-700 bg-white border border-purple-200 rounded-lg hover:bg-purple-100"
-                    >
-                      Find
-                    </button>
-                  )}
-                  {findingFax && (
-                    <span className="px-3 py-2 text-sm text-purple-600 flex items-center gap-1">
-                      <span className="w-3 h-3 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin" />
-                    </span>
-                  )}
-                </div>
-                {faxNotFound && !faxNumberInput && (
-                  <p className="mt-2 text-xs text-amber-600">
-                    No fax number found. Please enter manually.
-                  </p>
-                )}
-                {faxNumberInput && (
-                  <button
-                    onClick={() => setPendingFaxSend(true)}
-                    className="mt-3 w-full px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors"
-                  >
-                    Send Fax
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Inline Direct Mail editing */}
-            {editingDirectMail && (
-              <div className="mt-4 p-3 bg-teal-50 border border-teal-200 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-medium text-teal-700 uppercase tracking-wide">
-                    Mailing Address
-                  </label>
-                  <button
-                    onClick={() => {
-                      setEditingDirectMail(false);
-                      setAddressInput("");
-                      setError(null);
-                    }}
-                    className="text-xs text-teal-600 hover:text-teal-800"
-                  >
-                    Cancel
-                  </button>
-                </div>
-                <div className="flex gap-2">
-                  <textarea
-                    value={addressInput}
-                    onChange={(e) => {
-                      setAddressInput(e.target.value);
-                      setAddressNotFound(false); // Clear "not found" when typing
-                    }}
-                    placeholder={findingAddress ? "Finding address..." : "123 Main St\nCity, State ZIP"}
-                    rows={2}
-                    className="flex-1 px-3 py-2 text-sm border border-teal-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-white resize-none"
-                    disabled={findingAddress}
-                    onClick={(e) => e.stopPropagation()}
-                  />
-                  {!addressInput && !findingAddress && (
-                    <button
-                      onClick={handleFindAddress}
-                      className="px-3 py-2 text-sm font-medium text-teal-700 bg-white border border-teal-200 rounded-lg hover:bg-teal-100 self-start"
-                    >
-                      Find
-                    </button>
-                  )}
-                  {findingAddress && (
-                    <span className="px-3 py-2 text-sm text-teal-600 flex items-center gap-1 self-start">
-                      <span className="w-3 h-3 border-2 border-teal-300 border-t-teal-600 rounded-full animate-spin" />
-                    </span>
-                  )}
-                </div>
-                {addressNotFound && !addressInput && (
-                  <p className="mt-2 text-xs text-amber-600">
-                    No address found. Please enter manually.
-                  </p>
-                )}
-                {addressInput && (
-                  <button
-                    onClick={() => setPendingDirectMailSend(true)}
-                    className="mt-3 w-full px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors"
-                  >
-                    Send Postcard
-                  </button>
-                )}
-              </div>
-            )}
-
-            {/* Inline Contact Form */}
-            {editingContactForm && (
-              <div className="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                <div className="flex items-center justify-between mb-3">
-                  <label className="text-xs font-medium text-gray-700 uppercase tracking-wide">
-                    Website Contact Form
-                  </label>
-                  <button
-                    onClick={() => {
-                      setEditingContactForm(false);
-                      setContactFormMessageCopied(false);
-                      setContactFormOpened(false);
-                      setContactFormUrlInput("");
-                      setContactFormNotFound(false);
-                      setFindingContactForm(false);
-                      setError(null);
-                    }}
-                    className="text-xs text-gray-500 hover:text-gray-700"
-                  >
-                    Cancel
-                  </button>
-                </div>
-
-                {/* Loading state while finding */}
-                {findingContactForm && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600 py-4 justify-center">
-                    <span className="w-4 h-4 border-2 border-gray-300 border-t-gray-600 rounded-full animate-spin" />
-                    Finding contact form...
-                  </div>
-                )}
-
-                {/* Not found state */}
-                {!findingContactForm && contactFormNotFound && !contactFormUrlInput && (
-                  <div className="mb-3">
-                    <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 px-3 py-2 rounded-lg mb-2">
-                      <svg className="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
-                      No contact form found on their website
-                    </div>
-                    <div className="flex gap-2">
-                      <input
-                        type="url"
-                        value={contactFormUrlInput}
-                        onChange={(e) => {
-                          setContactFormUrlInput(e.target.value);
-                          setContactFormNotFound(false);
-                        }}
-                        placeholder="Enter URL manually..."
-                        className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent bg-white"
-                        onClick={(e) => e.stopPropagation()}
-                      />
-                      {provider.website && (
-                        <a
-                          href={provider.website.startsWith("http") ? provider.website : `https://${provider.website}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 whitespace-nowrap"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          Visit Site
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {/* Contact Form URL Input - shown when not loading and not in "not found" state, or when user has typed something */}
-                {!findingContactForm && (!contactFormNotFound || contactFormUrlInput) && (
-                  <div className="mb-3">
-                    <div className="flex gap-2">
-                      <input
-                        type="url"
-                        value={contactFormUrlInput}
-                        onChange={(e) => setContactFormUrlInput(e.target.value)}
-                        placeholder="https://example.com/contact"
-                        className="flex-1 px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-400 focus:border-transparent bg-white"
-                        onClick={(e) => e.stopPropagation()}
-                        disabled={findingContactForm}
-                      />
-                      {provider.website && !contactFormUrlInput && !findingContactForm && (
-                        <button
-                          onClick={handleFindContactForm}
-                          className="px-3 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 whitespace-nowrap"
-                        >
-                          Find
-                        </button>
-                      )}
-                    </div>
-                    {!contactFormUrlInput && !findingContactForm && (
-                      <p className="mt-1.5 text-xs text-gray-500">
-                        {provider.contact_form_url
-                          ? "URL auto-filled from previous search"
-                          : provider.website
-                            ? "URL will be auto-found from their website"
-                            : "No website on record. Enter contact form URL manually."}
-                      </p>
-                    )}
-                  </div>
-                )}
-
-                {/* Show workflow when URL exists in input */}
-                {contactFormUrlInput && (
-                  <>
-                    {/* Message preview */}
-                    <div className="bg-white border border-gray-200 rounded-lg p-3 mb-3">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-medium text-gray-500">Message:</span>
-                      </div>
-                      <pre className="text-xs text-gray-700 whitespace-pre-wrap font-sans leading-relaxed">
-                        {getContactFormMessage()}
-                      </pre>
-                    </div>
-
-                    {/* Form field hints */}
-                    <div className="text-xs text-gray-600 mb-3 grid grid-cols-2 gap-x-4 gap-y-0.5">
-                      <p><span className="font-medium">First:</span> Logan</p>
-                      <p><span className="font-medium">Last:</span> DuBose</p>
-                      <p><span className="font-medium">Email:</span> support@olera.care</p>
-                      <p><span className="font-medium">Phone:</span> (979) 243-9801</p>
-                    </div>
-
-                    {/* Error message if claim URL generation failed */}
-                    {claimUrlError && (
-                      <div className="mb-3 p-2 text-xs text-red-700 bg-red-50 border border-red-200 rounded-lg">
-                        <span className="font-medium">Cannot generate tracking link:</span> {claimUrlError}
-                        {claimUrlError.includes("no email") && (
-                          <span className="block mt-1 text-red-600">Add an email address to enable one-click claim tracking.</span>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Copy & Open Button */}
-                    {!contactFormOpened ? (
-                      <button
-                        onClick={handleCopyAndOpenContactForm}
-                        disabled={loadingClaimUrl || !claimUrl}
-                        className="w-full px-4 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                      >
-                        {loadingClaimUrl ? (
-                          <>
-                            <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                            </svg>
-                            Generating link...
-                          </>
-                        ) : (
-                          <>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                            </svg>
-                            Copy Message & Open Form
-                          </>
-                        )}
-                      </button>
-                    ) : (
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm text-green-700 bg-green-50 px-3 py-2 rounded-lg">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                          </svg>
-                          Message copied & form opened
-                        </div>
-                        <button
-                          onClick={handleContactFormSubmit}
-                          disabled={submittingContactForm}
-                          className="w-full px-4 py-2 text-sm font-medium text-white bg-orange-600 hover:bg-orange-700 rounded-lg transition-colors disabled:opacity-50"
-                        >
-                          {submittingContactForm ? "Recording..." : "Mark as Submitted"}
-                        </button>
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            )}
-
-            {/* Cost note */}
-            <p className="mt-4 text-xs text-gray-400">
-              Fax and postcard have per-send costs. Contact form is free.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Confirmation Modal */}
-      {(pendingOutcome || pendingStageMove) && confirmationContent && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
-          onClick={(e) => {
-            e.stopPropagation();
-            setPendingOutcome(null);
-            setPendingStageMove(null);
-            setNotInterestedReason("");
-            setConfirmedWithProvider(false);
-          }}
-        >
-          <div
-            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">{confirmationContent.title}</h3>
-              <p className="text-sm text-gray-500 mt-1">{provider.provider_name}</p>
-            </div>
-
-            <div className="px-5 py-4">
-              {error && (
-                <div className="mb-4 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
-                  {error}
-                </div>
-              )}
-
-              <p className="text-sm text-gray-700 mb-4">{confirmationContent.description}</p>
-
-              <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
-                <ul className="space-y-1.5">
-                  {confirmationContent.details.map((detail, i) => (
-                    <li key={i} className="flex items-start gap-2 text-sm text-gray-600">
-                      <span className="text-gray-400 mt-0.5">•</span>
-                      {detail}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Confirmation checkbox for resend_link */}
-              {pendingOutcome === "resend_link" && (
-                <label className="flex items-start gap-3 p-3 mb-4 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors">
-                  <input
-                    type="checkbox"
-                    checked={confirmedWithProvider}
-                    onChange={(e) => setConfirmedWithProvider(e.target.checked)}
-                    className="mt-0.5 w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
-                  />
-                  <span className="text-sm text-amber-900">
-                    I called the provider and confirmed they want to receive the claim link again
-                  </span>
-                </label>
-              )}
-
-              {/* Reason dropdown for not_interested */}
-              {pendingOutcome === "not_interested" && (
-                <div className="mb-4">
-                  <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-                    Reason <span className="text-red-500">*</span>
-                  </label>
-                  <select
-                    value={notInterestedReason}
-                    onChange={(e) => setNotInterestedReason(e.target.value)}
-                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
-                  >
-                    <option value="">Select a reason...</option>
-                    {NOT_INTERESTED_REASONS.map((r) => (
-                      <option key={r.value} value={r.value}>{r.label}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              <div className="mb-4">
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-                  Notes {pendingOutcome === "not_interested" && notInterestedReason === "other" ? <span className="text-red-500">*</span> : "(optional)"}
-                </label>
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder={pendingOutcome === "not_interested" && notInterestedReason === "other" ? "Please explain..." : "Add context or reason..."}
-                  rows={2}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
-                />
-              </div>
-            </div>
-
-            <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  setPendingOutcome(null);
-                  setPendingStageMove(null);
-                  setNotInterestedReason("");
-                  setConfirmedWithProvider(false);
-                }}
-                disabled={submitting !== null || stageChangeLoading}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={async () => {
-                  if (pendingOutcome) {
-                    await handleOutcome(pendingOutcome);
-                  } else if (pendingStageMove) {
-                    setStageChangeLoading(true);
-                    setError(null);
-                    try {
-                      await onStageChange(pendingStageMove);
-                      setPendingStageMove(null);
-                    } catch {
-                      setError("Failed to move provider. Please try again.");
-                    } finally {
-                      setStageChangeLoading(false);
-                    }
-                  }
-                }}
-                disabled={
-                  submitting !== null ||
-                  stageChangeLoading ||
-                  (pendingOutcome === "resend_link" && !confirmedWithProvider) ||
-                  (pendingOutcome === "not_interested" && !notInterestedReason) ||
-                  (pendingOutcome === "not_interested" && notInterestedReason === "other" && !notes.trim())
-                }
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${confirmationContent.confirmClass}`}
-              >
-                {submitting || stageChangeLoading ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Processing...
-                  </span>
-                ) : (
-                  confirmationContent.confirmLabel
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Fax Confirmation Modal */}
-      {pendingFaxSend && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (!sendingFax) {
-              setPendingFaxSend(false);
-              setConfirmedWithProvider(false);
-            }
-          }}
-        >
-          <div
-            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">Confirm Fax</h3>
-              <p className="text-sm text-gray-500 mt-1">{provider.provider_name}</p>
-            </div>
-
-            <div className="px-5 py-4">
-              {error && (
-                <div className="mb-4 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
-                  {error}
-                </div>
-              )}
-
-              <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
-                <p className="text-sm font-medium text-purple-900">Fax Number:</p>
-                <p className="text-sm text-purple-700">{faxNumberInput}</p>
-              </div>
-
-              <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
-                <ul className="space-y-1.5">
-                  <li className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="text-gray-400 mt-0.5">•</span>
-                    Fax with claim link sent immediately
-                  </li>
-                  <li className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="text-gray-400 mt-0.5">•</span>
-                    Provider moves to Alternative Channels
-                  </li>
-                  <li className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="text-gray-400 mt-0.5">•</span>
-                    Fax has per-page costs
-                  </li>
-                </ul>
-              </div>
-
-              <label className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors">
-                <input
-                  type="checkbox"
-                  checked={confirmedWithProvider}
-                  onChange={(e) => setConfirmedWithProvider(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
-                />
-                <span className="text-sm text-amber-900">
-                  I called the provider and confirmed they want to receive information via fax
-                </span>
-              </label>
-            </div>
-
-            <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  setPendingFaxSend(false);
-                  setConfirmedWithProvider(false);
-                }}
-                disabled={sendingFax}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSendFaxInline}
-                disabled={sendingFax || !confirmedWithProvider}
-                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {sendingFax ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Sending...
-                  </span>
-                ) : (
-                  "Send Fax"
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Direct Mail Confirmation Modal */}
-      {pendingDirectMailSend && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
-          onClick={(e) => {
-            e.stopPropagation();
-            if (!sendingDirectMail) {
-              setPendingDirectMailSend(false);
-              setConfirmedWithProvider(false);
-            }
-          }}
-        >
-          <div
-            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">Confirm Postcard</h3>
-              <p className="text-sm text-gray-500 mt-1">{provider.provider_name}</p>
-            </div>
-
-            <div className="px-5 py-4">
-              {error && (
-                <div className="mb-4 text-sm text-red-600 bg-red-50 px-3 py-2 rounded-lg">
-                  {error}
-                </div>
-              )}
-
-              <div className="mb-4 p-3 bg-teal-50 border border-teal-200 rounded-lg">
-                <p className="text-sm font-medium text-teal-900">Mailing Address:</p>
-                <p className="text-sm text-teal-700 whitespace-pre-line">{addressInput}</p>
-              </div>
-
-              <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
-                <ul className="space-y-1.5">
-                  <li className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="text-gray-400 mt-0.5">•</span>
-                    Postcard with claim link sent via PostGrid
-                  </li>
-                  <li className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="text-gray-400 mt-0.5">•</span>
-                    Provider moves to Alternative Channels
-                  </li>
-                  <li className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="text-gray-400 mt-0.5">•</span>
-                    Postcards have printing and mailing costs
-                  </li>
-                </ul>
-              </div>
-
-              <label className="flex items-start gap-3 p-3 bg-amber-50 border border-amber-200 rounded-lg cursor-pointer hover:bg-amber-100 transition-colors">
-                <input
-                  type="checkbox"
-                  checked={confirmedWithProvider}
-                  onChange={(e) => setConfirmedWithProvider(e.target.checked)}
-                  className="mt-0.5 w-4 h-4 text-amber-600 border-amber-300 rounded focus:ring-amber-500"
-                />
-                <span className="text-sm text-amber-900">
-                  I called the provider and confirmed they want to receive information via mail
-                </span>
-              </label>
-            </div>
-
-            <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  setPendingDirectMailSend(false);
-                  setConfirmedWithProvider(false);
-                }}
-                disabled={sendingDirectMail}
-                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSendDirectMailInline}
-                disabled={sendingDirectMail || !confirmedWithProvider}
-                className="px-4 py-2 text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {sendingDirectMail ? (
-                  <span className="flex items-center gap-2">
-                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Sending...
-                  </span>
-                ) : (
-                  "Send Postcard"
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
 
-function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdated, onStageChange, onRemoveProvider, onArchive, onOpenNotesModal, adminNameLookup }: FollowUpQueueProps) {
-  const [expandedProviders, setExpandedProviders] = useState<Set<string>>(new Set());
 
+function FollowUpQueue({ providers, loading, onOpenDrawer }: {
+  providers: OutreachProvider[];
+  loading: boolean;
+  onOpenDrawer: (provider: OutreachProvider) => void;
+}) {
   // Filter to only show providers actually in needs_call stage
   // This prevents ghost data from appearing during tab switches (React state sync issue)
   const followUpProviders = providers.filter(p => p.stage === "needs_call");
@@ -5242,18 +2136,6 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
   dueToday.sort(sortByEngagementThenDate);
   upcoming.sort(sortByEngagementThenDate);
 
-  const toggleProvider = (providerId: string) => {
-    setExpandedProviders((prev) => {
-      const next = new Set(prev);
-      if (next.has(providerId)) {
-        next.delete(providerId);
-      } else {
-        next.add(providerId);
-      }
-      return next;
-    });
-  };
-
   if (loading) {
     return (
       <div className="p-8 text-center">
@@ -5285,33 +2167,7 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
           <FollowUpProviderRow
             key={provider.provider_id}
             provider={provider}
-            isExpanded={expandedProviders.has(provider.provider_id)}
-            onToggle={() => toggleProvider(provider.provider_id)}
-            onOutcomeRecorded={(stageChanged) => {
-              if (stageChanged) {
-                // Remove from expanded since it's leaving the queue
-                setExpandedProviders((prev) => {
-                  const next = new Set(prev);
-                  next.delete(provider.provider_id);
-                  return next;
-                });
-              }
-              onOutcomeRecorded(provider.provider_id, stageChanged);
-            }}
-            onProviderUpdated={(updates) => onProviderUpdated(provider.provider_id, updates)}
-            onStageChange={async (newStage) => {
-              await onStageChange(provider.provider_id, newStage);
-              // Remove from expanded since provider is leaving the queue
-              setExpandedProviders((prev) => {
-                const next = new Set(prev);
-                next.delete(provider.provider_id);
-                return next;
-              });
-            }}
-            onRemoveProvider={() => onRemoveProvider(provider)}
-            onArchive={() => onArchive(provider)}
-            onOpenNotesModal={() => onOpenNotesModal(provider)}
-            adminNameLookup={adminNameLookup}
+            onOpenDrawer={() => onOpenDrawer(provider)}
           />
         ))}
       </div>
@@ -5355,17 +2211,6 @@ function FollowUpQueue({ providers, loading, onOutcomeRecorded, onProviderUpdate
 // Alternative Channels Queue Component (Tracking Only)
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface ReEngageQueueProps {
-  providers: OutreachProvider[];
-  loading: boolean;
-  onArchive: (provider: OutreachProvider) => void;
-  onNotInterested: (provider: OutreachProvider, reason: string) => void;
-  onOpenNotesModal: (provider: OutreachProvider) => void;
-  onProviderUpdated: (providerId: string, updates: Partial<OutreachProvider>) => void;
-  onResetToReady: (providerId: string) => void;
-  adminNameLookup: Map<string, string>;
-}
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Tracking Constants and Helpers
 // ─────────────────────────────────────────────────────────────────────────────
@@ -5381,378 +2226,110 @@ function daysSince(dateString: string | null): number {
   return Math.floor(diffMs / (1000 * 60 * 60 * 24));
 }
 
-function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenNotesModal, onProviderUpdated, onResetToReady, adminNameLookup }: ReEngageQueueProps) {
-  // Alternative Channels is tracking-only: fax/mail already sent from Follow Up
+// Channel label helper
+function getChannelLabel(channel: string | null): { label: string; className: string } | null {
+  if (!channel || channel === "re_engage") return null;
+  switch (channel) {
+    case "fax":
+      return { label: "Fax", className: "bg-purple-50 text-purple-700" };
+    case "contact_form":
+      return { label: "Contact Form", className: "bg-orange-50 text-orange-700" };
+    case "direct_mail":
+      return { label: "Direct Mail", className: "bg-teal-50 text-teal-700" };
+    default:
+      return { label: channel, className: "bg-gray-50 text-gray-600" };
+  }
+}
 
-  // Email editing state
-  const [editingEmailId, setEditingEmailId] = useState<string | null>(null);
-  const [emailInput, setEmailInput] = useState("");
-  const [savingEmailId, setSavingEmailId] = useState<string | null>(null);
-  const [emailSavedIds, setEmailSavedIds] = useState<Set<string>>(new Set());
+// Simplified provider row for Alternative Channels - click to open drawer
+function ReEngageProviderRow({
+  provider,
+  onOpenDrawer,
+}: {
+  provider: OutreachProvider;
+  onOpenDrawer: () => void;
+}) {
+  const waitDays = daysSince(provider.re_engage_entered_at);
+  const channelInfo = getChannelLabel(provider.re_engage_channel || null);
+  const isExpired = waitDays >= DIRECT_MAIL_EXPIRY_DAYS;
 
-  // Move to Ready state (for non-Apollo moves)
-  const [showMoveToReadyConfirmId, setShowMoveToReadyConfirmId] = useState<string | null>(null);
-  const [movingToReadyId, setMovingToReadyId] = useState<string | null>(null);
-
-  // Apollo Decision Maker state
-  const [apolloContactMap, setApolloContactMap] = useState<Map<string, OutreachProvider["apollo_contact"]>>(new Map());
-  const [findingApolloId, setFindingApolloId] = useState<string | null>(null);
-  const [apolloErrorMap, setApolloErrorMap] = useState<Map<string, string>>(new Map());
-  const [savingApolloEmailId, setSavingApolloEmailId] = useState<string | null>(null);
-  const [resettingToReadyId, setResettingToReadyId] = useState<string | null>(null);
-  const [showResetConfirmId, setShowResetConfirmId] = useState<string | null>(null);
-
-  // Initialize apolloContactMap from provider data
-  useEffect(() => {
-    const newMap = new Map<string, OutreachProvider["apollo_contact"]>();
-    for (const p of providers) {
-      if (p.apollo_contact) {
-        newMap.set(p.provider_id, p.apollo_contact);
-      }
-    }
-    setApolloContactMap(newMap);
-  }, [providers]);
-
-  // Apollo handlers
-  const handleFindDecisionMaker = useCallback(async (providerId: string) => {
-    setFindingApolloId(providerId);
-    setApolloErrorMap((prev) => {
-      const next = new Map(prev);
-      next.delete(providerId);
-      return next;
-    });
-
-    try {
-      const res = await fetch("/api/admin/provider-outreach/find-decision-maker", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: providerId }),
-      });
-      const data = await res.json();
-
-      if (data.error) {
-        setApolloErrorMap((prev) => new Map(prev).set(providerId, data.error));
-      } else if (data.contact?.email) {
-        const contact = {
-          email: data.contact.email,
-          first_name: data.contact.first_name,
-          last_name: data.contact.last_name,
-          title: data.contact.title,
-          linkedin_url: data.contact.linkedin_url,
-          found_at: new Date().toISOString(),
-        };
-        setApolloContactMap((prev) => new Map(prev).set(providerId, contact));
-        onProviderUpdated(providerId, { apollo_contact: contact });
-      } else {
-        setApolloErrorMap((prev) => new Map(prev).set(providerId, "No decision-maker found"));
-      }
-    } catch {
-      setApolloErrorMap((prev) => new Map(prev).set(providerId, "Lookup failed"));
-    } finally {
-      setFindingApolloId(null);
-    }
-  }, [onProviderUpdated]);
-
-  const handleUseApolloEmail = useCallback(async (providerId: string) => {
-    const apolloContact = apolloContactMap.get(providerId);
-    if (!apolloContact?.email) return;
-
-    setSavingApolloEmailId(providerId);
-
-    try {
-      const res = await fetch("/api/admin/provider-outreach/update-email", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: providerId,
-          email: apolloContact.email,
-          confirm_apollo: true,
-        }),
-      });
-
-      if (res.ok) {
-        onProviderUpdated(providerId, {
-          email: apolloContact.email,
-          email_source: "decision_maker",
-        });
-      } else {
-        const data = await res.json();
-        alert(data.error || "Failed to update email");
-      }
-    } catch {
-      alert("Network error updating email");
-    } finally {
-      setSavingApolloEmailId(null);
-    }
-  }, [apolloContactMap, onProviderUpdated]);
-
-  const handleResetToReady = useCallback(async (providerId: string) => {
-    const apolloContact = apolloContactMap.get(providerId);
-    if (!apolloContact?.email) return;
-
-    setResettingToReadyId(providerId);
-
-    try {
-      const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: providerId,
-          email_source: "decision_maker",
-          use_apollo_email: true,
-        }),
-      });
-
-      if (res.ok) {
-        setShowResetConfirmId(null);
-        onResetToReady(providerId);
-      } else {
-        const data = await res.json();
-        alert(data.error || "Failed to reset provider");
-      }
-    } catch {
-      alert("Network error");
-    } finally {
-      setResettingToReadyId(null);
-    }
-  }, [apolloContactMap, onResetToReady]);
-
-  // Email save handler
-  const handleSaveEmail = useCallback(async (providerId: string, newEmail: string) => {
-    if (!newEmail.trim()) return;
-    setSavingEmailId(providerId);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/update-email", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: providerId,
-          email: newEmail.trim(),
-        }),
-      });
-      if (res.ok) {
-        onProviderUpdated(providerId, { email: newEmail.trim() });
-        setEditingEmailId(null);
-        setEmailInput("");
-        setEmailSavedIds((prev) => new Set([...prev, providerId]));
-        // Clear saved indicator after 3 seconds
-        setTimeout(() => {
-          setEmailSavedIds((prev) => {
-            const next = new Set(prev);
-            next.delete(providerId);
-            return next;
-          });
-        }, 3000);
-      } else {
-        const data = await res.json();
-        alert(data.error || "Failed to save email");
-      }
-    } catch {
-      alert("Network error");
-    } finally {
-      setSavingEmailId(null);
-    }
-  }, [onProviderUpdated]);
-
-  // Move to Ready handler (without Apollo - uses current email)
-  const handleMoveToReady = useCallback(async (providerId: string) => {
-    setMovingToReadyId(providerId);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: providerId,
-          email_source: "organization",
-          use_apollo_email: false,
-        }),
-      });
-      if (res.ok) {
-        setShowMoveToReadyConfirmId(null);
-        onResetToReady(providerId);
-      } else {
-        const data = await res.json();
-        alert(data.error || "Failed to move provider");
-      }
-    } catch {
-      alert("Network error");
-    } finally {
-      setMovingToReadyId(null);
-    }
-  }, [onResetToReady]);
-
-  // Send Claim Link state
-  const [sendingClaimLinkId, setSendingClaimLinkId] = useState<string | null>(null);
-  const [claimLinkSentIds, setClaimLinkSentIds] = useState<Set<string>>(new Set());
-
-  // Confirmation modal states
-  const [confirmingNotInterested, setConfirmingNotInterested] = useState<OutreachProvider | null>(null);
-  const [confirmingSendLink, setConfirmingSendLink] = useState<OutreachProvider | null>(null);
-  const [notInterestedReason, setNotInterestedReason] = useState<string>("");
-
-  const handleSendClaimLink = useCallback(async (providerId: string) => {
-    setSendingClaimLinkId(providerId);
-    setConfirmingSendLink(null); // Close confirmation modal
-    try {
-      const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: providerId }),
-      });
-      if (res.ok) {
-        setClaimLinkSentIds((prev) => new Set([...prev, providerId]));
-      } else {
-        const err = await res.json();
-        alert(err.error || "Failed to send claim link");
-      }
-    } catch {
-      alert("Failed to send claim link");
-    } finally {
-      setSendingClaimLinkId(null);
-    }
-  }, []);
-
-  const handleConfirmNotInterested = useCallback((provider: OutreachProvider, reason: string) => {
-    setConfirmingNotInterested(null);
-    setNotInterestedReason("");
-    onNotInterested(provider, reason);
-  }, [onNotInterested]);
-
-  // Unused tier tracking removed - was session-only noise
-  const tierMap = new Map<string, ProviderTier>();
-  const setProviderTier = useCallback((_providerId: string, _tier: ProviderTier) => {
-    // No-op - tier selector removed
-  }, []);
-
-  // LinkedIn tracking (session-only, for backward compat with existing linkedin channel providers)
-  const [linkedInUrlMap, setLinkedInUrlMap] = useState<Map<string, string>>(new Map());
-  const [linkedInContactsMap, setLinkedInContactsMap] = useState<Map<string, LinkedInContact[]>>(new Map());
-  const [expandedLinkedIn, setExpandedLinkedIn] = useState<Set<string>>(new Set());
-
-  const updateLinkedInUrl = useCallback((providerId: string, url: string) => {
-    setLinkedInUrlMap((prev) => {
-      const next = new Map(prev);
-      next.set(providerId, url);
-      return next;
-    });
-  }, []);
-
-  const updateLinkedInContacts = useCallback((providerId: string, contacts: LinkedInContact[]) => {
-    setLinkedInContactsMap((prev) => {
-      const next = new Map(prev);
-      next.set(providerId, contacts);
-      return next;
-    });
-  }, []);
-
-  const toggleLinkedInExpanded = useCallback((providerId: string) => {
-    setExpandedLinkedIn((prev) => {
-      const next = new Set(prev);
-      if (next.has(providerId)) {
-        next.delete(providerId);
-      } else {
-        next.add(providerId);
-      }
-      return next;
-    });
-  }, []);
-
-  // Fax/Mail analytics tracking (fetched from re-engage-list API)
-  const [faxAnalyticsMap, setFaxAnalyticsMap] = useState<Map<string, FaxAnalytics>>(new Map());
-  const [mailAnalyticsMap, setMailAnalyticsMap] = useState<Map<string, MailAnalytics>>(new Map());
-  // Claimed status tracked independently (for LinkedIn-only claims)
-  const [claimedMap, setClaimedMap] = useState<Map<string, { claimed: boolean; claimed_at?: string }>>(new Map());
-  // Provider LinkedIn URLs from database (supplements session-only linkedInUrlMap)
-  const [providerLinkedInUrlMap, setProviderLinkedInUrlMap] = useState<Map<string, string>>(new Map());
-  // Enrichment "not found" status (persisted from database)
-  const [enrichmentNotFoundMap, setEnrichmentNotFoundMap] = useState<Map<string, { fax: boolean; linkedin: boolean }>>(new Map());
-  const [analyticsLoaded, setAnalyticsLoaded] = useState(false);
-
-  // Fetch analytics data when providers change
-  useEffect(() => {
-    if (providers.length === 0 || analyticsLoaded) return;
-
-    async function fetchAnalytics() {
-      try {
-        const res = await fetch("/api/admin/provider-outreach/re-engage-list");
-        if (!res.ok) return;
-        const data = await res.json();
-        if (!data.providers) return;
-
-        const newFaxMap = new Map<string, FaxAnalytics>();
-        const newMailMap = new Map<string, MailAnalytics>();
-        const newClaimedMap = new Map<string, { claimed: boolean; claimed_at?: string }>();
-        const newLinkedInUrlMap = new Map<string, string>();
-        const newEnrichmentNotFoundMap = new Map<string, { fax: boolean; linkedin: boolean }>();
-
-        for (const p of data.providers) {
-          // Track claimed status for ALL providers (independent of channel)
-          if (p.claimed) {
-            newClaimedMap.set(p.provider_id, {
-              claimed: true,
-              claimed_at: p.claimed_at || undefined,
-            });
+  return (
+    <div className="border-b border-gray-100 last:border-b-0">
+      {/* Expiry warning */}
+      {isExpired && (
+        <div className="mx-5 mt-3 px-3 py-2 bg-amber-50 border border-amber-200 rounded-lg">
+          <span className="text-xs text-amber-800 font-medium">
+            No response after {waitDays} days — click to review
+          </span>
+        </div>
+      )}
+      <div
+        role="button"
+        tabIndex={0}
+        className="group px-5 py-3 hover:bg-gray-50 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
+        onClick={onOpenDrawer}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onOpenDrawer();
           }
+        }}
+      >
+        <div className="flex items-center gap-3">
+          {/* Main content area */}
+          <div className="flex-1 min-w-0">
+            {/* Row 1: Provider name + wait time + channel */}
+            <div className="flex items-center justify-between gap-4 mb-0.5">
+              <Link
+                href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
+                className="font-medium text-gray-900 hover:text-primary-600 transition-colors text-sm"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {provider.provider_name}
+              </Link>
+              <div className="flex items-center gap-2 shrink-0">
+                {channelInfo && (
+                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${channelInfo.className}`}>
+                    {channelInfo.label}
+                  </span>
+                )}
+                <span className="text-xs text-gray-500">{waitDays}d</span>
+              </div>
+            </div>
 
-          // Store LinkedIn URL from database (skip "not_found" marker)
-          if (p.linkedin_url && p.linkedin_url !== "not_found") {
-            newLinkedInUrlMap.set(p.provider_id, p.linkedin_url);
-          }
+            {/* Row 2: Category, location */}
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              {provider.provider_category && (
+                <span className="truncate max-w-[200px]">{provider.provider_category}</span>
+              )}
+              {provider.provider_category && provider.city && <span>·</span>}
+              {provider.city && (
+                <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>
+              )}
+            </div>
+          </div>
 
-          // Track enrichment "not found" status
-          // Fax: searched (fax_found_at set) but no number found
-          // LinkedIn: explicitly marked as "not_found" OR searched but no URL found
-          const faxNotFound = !!p.fax_found_at && !p.fax_number;
-          const linkedinNotFound = p.linkedin_url === "not_found" || (!!p.linkedin_found_at && !p.linkedin_url);
-          if (faxNotFound || linkedinNotFound) {
-            newEnrichmentNotFoundMap.set(p.provider_id, {
-              fax: faxNotFound,
-              linkedin: linkedinNotFound,
-            });
-          }
+          {/* Chevron indicator for drawer */}
+          <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  );
+}
 
-          // Fax analytics
-          if (p.fax_sent_at) {
-            newFaxMap.set(p.provider_id, {
-              sent_at: p.fax_sent_at,
-              delivered: !!p.fax_delivered_at,
-              delivered_at: p.fax_delivered_at || undefined,
-              qr_scanned: false, // Not tracked yet
-              claimed: p.claimed || false,
-              claimed_at: p.claimed_at || undefined,
-            });
-          }
-
-          // Mail analytics
-          if (p.mail_sent_at) {
-            newMailMap.set(p.provider_id, {
-              sent_at: p.mail_sent_at,
-              status: p.mail_status || "ready",
-              estimated_delivery: p.mail_delivered_at || undefined,
-              qr_scanned: false, // Not tracked yet
-              claimed: p.claimed || false,
-              claimed_at: p.claimed_at || undefined,
-            });
-          }
-        }
-
-        setFaxAnalyticsMap(newFaxMap);
-        setMailAnalyticsMap(newMailMap);
-        setClaimedMap(newClaimedMap);
-        setProviderLinkedInUrlMap(newLinkedInUrlMap);
-        setEnrichmentNotFoundMap(newEnrichmentNotFoundMap);
-        setAnalyticsLoaded(true);
-      } catch {
-        // Non-critical - analytics just won't show
-      }
-    }
-
-    fetchAnalytics();
-  }, [providers.length, analyticsLoaded]);
-
+function ReEngageQueue({
+  providers,
+  loading,
+  onOpenDrawer,
+}: {
+  providers: OutreachProvider[];
+  loading: boolean;
+  onOpenDrawer: (provider: OutreachProvider) => void;
+}) {
   // Filter to only show providers actually in re_engage stage
-  // This prevents ghost data from appearing during tab switches (React state sync issue)
-  const reEngageProviders = providers.filter(p => p.stage === "re_engage");
+  const reEngageProviders = providers.filter((p) => p.stage === "re_engage");
 
   if (loading) {
     return (
@@ -5783,528 +2360,166 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
       {/* Header */}
       <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
         <div className="flex-1">Provider</div>
-        <div className="w-20 text-center">Cycle</div>
-        <div className="w-28 text-center">Waiting</div>
-        <div className="w-56 text-right">Actions</div>
+        <div className="w-20 text-center">Channel</div>
+        <div className="w-20 text-right">Waiting</div>
       </div>
 
-      {/* Provider rows */}
-      {sorted.map((provider) => {
-        const waitDays = daysSince(provider.re_engage_entered_at);
-
-        // Check if provider has been in Alternative Channels for 30+ days without claim
-        const isExpired = waitDays >= DIRECT_MAIL_EXPIRY_DAYS
-          && !claimedMap.get(provider.provider_id)?.claimed;
-
-        return (
-          <div key={provider.provider_id} className="border-b border-gray-100">
-            {/* 30-day expiry action bar - prompt to mark as Not Interested */}
-            {isExpired && (
-              <div className="mx-5 mt-3 flex items-center gap-3 px-4 py-2.5 bg-amber-50 border border-amber-200 rounded-lg">
-                <span className="text-xs text-amber-800 font-medium flex-1">
-                  No response after {waitDays} days.
-                </span>
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setConfirmingNotInterested(provider);
-                  }}
-                  className="px-3 py-1.5 text-xs font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 rounded-md transition"
-                >
-                  Not Interested
-                </button>
-              </div>
-            )}
-            {/* Main row - restructured for better readability */}
-            <div className="px-5 py-3 hover:bg-gray-50 transition-colors">
-              {/* Row 1: Provider name + Wait time */}
-              <div className="flex items-center justify-between gap-4 mb-1">
-                <span className="font-medium text-gray-900 text-sm">
-                  {provider.provider_name}
-                </span>
-                <span className="text-sm text-gray-600 shrink-0">
-                  {waitDays}d in stage
-                </span>
-              </div>
-
-              {/* Row 2: Category, location + channel badges */}
-              <div className="flex items-center gap-2 text-xs text-gray-500 mb-1 flex-wrap">
-                {provider.provider_category && (
-                  <span className="truncate max-w-[200px]">{provider.provider_category}</span>
-                )}
-                {provider.provider_category && provider.city && <span>·</span>}
-                {provider.city && (
-                  <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>
-                )}
-                {provider.re_engage_channel && provider.re_engage_channel !== "re_engage" && (
-                  <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                    provider.re_engage_channel === "fax" ? "bg-purple-50 text-purple-700" :
-                    provider.re_engage_channel === "contact_form" ? "bg-orange-50 text-orange-700" :
-                    provider.re_engage_channel === "direct_mail" ? "bg-teal-50 text-teal-700" :
-                    "bg-gray-50 text-gray-600"
-                  }`}>
-                    {provider.re_engage_channel === "fax" ? "Fax" :
-                     provider.re_engage_channel === "contact_form" ? "Contact Form" :
-                     provider.re_engage_channel === "direct_mail" ? "Direct Mail" :
-                     provider.re_engage_channel}
-                  </span>
-                )}
-                {enrichmentNotFoundMap.get(provider.provider_id)?.fax && !provider.fax_number && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-500 bg-gray-100 border border-gray-200 rounded px-1.5 py-0.5">
-                    No Fax
-                  </span>
-                )}
-                {enrichmentNotFoundMap.get(provider.provider_id)?.linkedin && !providerLinkedInUrlMap.get(provider.provider_id) && !linkedInUrlMap.get(provider.provider_id) && (
-                  <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-500 bg-gray-100 border border-gray-200 rounded px-1.5 py-0.5">
-                    No LinkedIn
-                  </span>
-                )}
-                {/* Questions and leads context pills */}
-                {(provider.provider_category || provider.city) && <span>·</span>}
-                <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
-                  {provider.questions_count ?? 0} Q
-                </span>
-                <span className="inline-flex items-center px-1.5 py-0.5 bg-gray-100 text-gray-500 rounded text-[10px]">
-                  {provider.leads_count ?? 0} Leads
-                </span>
-              </div>
-
-              {/* Row 2.5: Email with edit capability + Move to Ready */}
-              <div className="flex items-center gap-2 text-xs text-gray-500 mb-1">
-                <svg className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                {editingEmailId === provider.provider_id ? (
-                  <div className="flex items-center gap-2 flex-1">
-                    <input
-                      type="email"
-                      value={emailInput}
-                      onChange={(e) => setEmailInput(e.target.value)}
-                      placeholder="Enter email..."
-                      className="flex-1 max-w-xs px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-primary-500"
-                      autoFocus
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          handleSaveEmail(provider.provider_id, emailInput);
-                        } else if (e.key === "Escape") {
-                          setEditingEmailId(null);
-                          setEmailInput("");
-                        }
-                      }}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleSaveEmail(provider.provider_id, emailInput)}
-                      disabled={savingEmailId === provider.provider_id || !emailInput.trim()}
-                      className="px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50"
-                    >
-                      {savingEmailId === provider.provider_id ? "..." : "Save"}
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setEditingEmailId(null);
-                        setEmailInput("");
-                      }}
-                      className="text-xs text-gray-500 hover:text-gray-700"
-                    >
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2 flex-1">
-                    {provider.email ? (
-                      <>
-                        <span className="text-sm">{provider.email}</span>
-                        <EmailHistoryPopover providerId={provider.provider_id} currentEmail={provider.email} />
-                      </>
-                    ) : (
-                      <span className="text-sm text-gray-400 italic">No email</span>
-                    )}
-                    {emailSavedIds.has(provider.provider_id) ? (
-                      <span className="text-xs text-emerald-600 font-medium">✓ Saved</span>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingEmailId(provider.provider_id);
-                          setEmailInput(provider.email || "");
-                        }}
-                        className="text-xs text-gray-500 hover:text-gray-700"
-                      >
-                        Edit
-                      </button>
-                    )}
-                    {/* Move to Ready button - only show if provider has email */}
-                    {provider.email && (
-                      <>
-                        <span className="text-gray-300">|</span>
-                        {showMoveToReadyConfirmId === provider.provider_id ? (
-                          <div className="flex items-center gap-2 px-2 py-1 bg-emerald-50 border border-emerald-200 rounded">
-                            <span className="text-xs text-gray-700">Move to Ready?</span>
-                            <button
-                              type="button"
-                              onClick={() => handleMoveToReady(provider.provider_id)}
-                              disabled={movingToReadyId === provider.provider_id}
-                              className="px-2 py-0.5 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
-                            >
-                              {movingToReadyId === provider.provider_id ? "..." : "Yes"}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setShowMoveToReadyConfirmId(null)}
-                              className="text-xs text-gray-500 hover:text-gray-700"
-                            >
-                              No
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setShowMoveToReadyConfirmId(provider.provider_id)}
-                            className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
-                          >
-                            Move to Ready
-                          </button>
-                        )}
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-
-              {/* Row 3: Assignment */}
-              <div className="flex items-center gap-2 text-xs text-gray-400 mb-1">
-                <span>Assigned:</span>
-                <AdminChip
-                  adminId={provider.assigned_to}
-                  adminName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
-                  size="sm"
-                  showUnassigned={true}
-                />
-              </div>
-
-              {/* Row 3.5: Apollo Decision Maker */}
-              {(() => {
-                const apolloContact = apolloContactMap.get(provider.provider_id);
-                const apolloError = apolloErrorMap.get(provider.provider_id);
-                const isFinding = findingApolloId === provider.provider_id;
-                const isSavingEmail = savingApolloEmailId === provider.provider_id;
-                const isResetting = resettingToReadyId === provider.provider_id;
-                const showResetConfirm = showResetConfirmId === provider.provider_id;
-                const emailsMatch = apolloContact?.email?.toLowerCase() === provider.email?.toLowerCase();
-
-                if (apolloContact) {
-                  const fullName = [apolloContact.first_name, apolloContact.last_name].filter(Boolean).join(" ");
-                  return (
-                    <div className="mt-2 mb-2 pl-3 border-l-2 border-purple-200">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-medium text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full">
-                          Apollo
-                        </span>
-                        {fullName && <span className="text-sm font-medium text-gray-900">{fullName}</span>}
-                        {apolloContact.title && <span className="text-xs text-gray-500">{apolloContact.title}</span>}
-                        {!emailsMatch && <span className="text-sm text-purple-600">{apolloContact.email}</span>}
-                      </div>
-                      <div className="flex items-center gap-3 mt-1.5">
-                        {/* Use This Email */}
-                        {emailsMatch ? (
-                          <span className="inline-flex items-center gap-1 text-xs text-emerald-600">
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                            </svg>
-                            Email saved
-                          </span>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleUseApolloEmail(provider.provider_id)}
-                            disabled={isSavingEmail}
-                            className="text-xs text-purple-600 hover:text-purple-700 font-medium disabled:opacity-50"
-                          >
-                            {isSavingEmail ? "Saving..." : "Use This Email"}
-                          </button>
-                        )}
-                        {/* Move to Ready Tab */}
-                        {showResetConfirm ? (
-                          <div className="flex items-center gap-2 p-2 bg-emerald-50 border border-emerald-200 rounded-md">
-                            <span className="text-xs text-gray-700">Move to Ready tab?</span>
-                            <button
-                              type="button"
-                              onClick={() => handleResetToReady(provider.provider_id)}
-                              disabled={isResetting}
-                              className="px-2 py-1 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
-                            >
-                              {isResetting ? "Moving..." : "Yes, Move"}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => setShowResetConfirmId(null)}
-                              disabled={isResetting}
-                              className="text-xs text-gray-500 hover:text-gray-700"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => setShowResetConfirmId(provider.provider_id)}
-                            className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
-                          >
-                            Move to Ready Tab
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                }
-
-                // No Apollo contact yet - show Find button
-                return (
-                  <div className="flex items-center gap-2 mt-2 mb-2">
-                    <button
-                      type="button"
-                      onClick={() => handleFindDecisionMaker(provider.provider_id)}
-                      disabled={isFinding}
-                      className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-purple-600 bg-purple-50 border border-purple-200 rounded-md hover:bg-purple-100 transition disabled:opacity-50"
-                    >
-                      {isFinding ? "Finding..." : "🎯 Find Decision Maker"}
-                    </button>
-                    {apolloError && <span className="text-xs text-amber-600">{apolloError}</span>}
-                  </div>
-                );
-              })()}
-
-              {/* Row 4: Channel tracking analytics */}
-              <ChannelTracking
-                faxSent={!!faxAnalyticsMap.get(provider.provider_id)?.sent_at}
-                faxAnalytics={faxAnalyticsMap.get(provider.provider_id)}
-                faxNumber={provider.fax_number}
-                linkedinMessaged={linkedInContactsMap.get(provider.provider_id)?.some(c => c.messaged)}
-                linkedinMessagedAt={linkedInContactsMap.get(provider.provider_id)?.find(c => c.messaged)?.messaged_at}
-                linkedinUrl={linkedInUrlMap.get(provider.provider_id)}
-                providerLinkedinUrl={providerLinkedInUrlMap.get(provider.provider_id)}
-                mailSent={!!mailAnalyticsMap.get(provider.provider_id)?.sent_at}
-                mailAnalytics={mailAnalyticsMap.get(provider.provider_id)}
-                claimed={claimedMap.get(provider.provider_id)?.claimed}
-                claimedAt={claimedMap.get(provider.provider_id)?.claimed_at}
-              />
-
-              {/* Row 5: Actions - Notes, Archive, Not Interested, Send Claim Link */}
-              <div className="flex items-center justify-end gap-2 mt-2">
-              <button
-                type="button"
-                onClick={() => onOpenNotesModal(provider)}
-                className="px-3 py-1.5 text-sm font-medium text-amber-600 bg-white border border-amber-300 rounded-lg hover:bg-amber-50 hover:border-amber-400 transition-colors"
-                title="Notes"
-              >
-                <svg className="w-4 h-4 inline-block" fill={(provider.notes_count ?? 0) > 0 ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={() => setConfirmingNotInterested(provider)}
-                className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors"
-              >
-                Not Interested
-              </button>
-              <button
-                type="button"
-                onClick={() => onArchive(provider)}
-                className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors"
-              >
-                Archive
-              </button>
-
-              {/* Send Claim Link - only show if provider has email */}
-              {provider.email && (
-                <button
-                  type="button"
-                  onClick={() => setConfirmingSendLink(provider)}
-                  disabled={sendingClaimLinkId === provider.provider_id || claimLinkSentIds.has(provider.provider_id)}
-                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                    claimLinkSentIds.has(provider.provider_id)
-                      ? "bg-emerald-100 text-emerald-700 border border-emerald-200"
-                      : "text-primary-600 bg-white border border-primary-300 hover:bg-primary-50 hover:border-primary-400"
-                  }`}
-                >
-                  {sendingClaimLinkId === provider.provider_id ? (
-                    <span className="inline-flex items-center gap-1.5">
-                      <span className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                      Sending...
-                    </span>
-                  ) : claimLinkSentIds.has(provider.provider_id) ? (
-                    "Link Sent"
-                  ) : (
-                    "Send Claim Link"
-                  )}
-                </button>
-              )}
-
-              {/* LinkedIn expand toggle (for backward compat with existing linkedin channel providers) */}
-              {provider.re_engage_channel === "linkedin" && (
-                <button
-                  type="button"
-                  onClick={() => toggleLinkedInExpanded(provider.provider_id)}
-                  className="px-2 py-1.5 text-xs font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
-                >
-                  {expandedLinkedIn.has(provider.provider_id) ? "Hide" : "LinkedIn"}
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* LinkedIn Expanded Section */}
-          {provider.re_engage_channel === "linkedin" && expandedLinkedIn.has(provider.provider_id) && (
-            <LinkedInSection
-              provider={provider}
-              linkedInUrl={linkedInUrlMap.get(provider.provider_id) || null}
-              contacts={linkedInContactsMap.get(provider.provider_id) || []}
-              onUrlChange={(url) => updateLinkedInUrl(provider.provider_id, url)}
-              onContactsChange={(contacts) => updateLinkedInContacts(provider.provider_id, contacts)}
-            />
-          )}
-        </div>
-        );
-      })}
+      {/* Provider rows - click opens drawer */}
+      {sorted.map((provider) => (
+        <ReEngageProviderRow
+          key={provider.provider_id}
+          provider={provider}
+          onOpenDrawer={() => onOpenDrawer(provider)}
+        />
+      ))}
 
       {/* Summary footer */}
       <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 text-sm text-gray-500">
         {reEngageProviders.length} provider{reEngageProviders.length !== 1 ? "s" : ""} in Alternative Channels
       </div>
+    </div>
+  );
+}
 
-      {/* Not Interested Confirmation Modal */}
-      {confirmingNotInterested && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
-          onClick={() => {
-            setConfirmingNotInterested(null);
-            setNotInterestedReason("");
-          }}
-        >
-          <div
-            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">Mark as Not Interested</h3>
-              <p className="text-sm text-gray-500 mt-1">{confirmingNotInterested.provider_name}</p>
+// Simplified provider row for Call tab - click to open drawer
+function CallProviderRow({
+  provider,
+  onOpenDrawer,
+}: {
+  provider: OutreachProvider;
+  onOpenDrawer: () => void;
+}) {
+  const daysSinceEntry = provider.stage_changed_at
+    ? daysSince(provider.stage_changed_at)
+    : 0;
+  const emailsSent = provider.resend_count ?? 0;
+
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      className="group px-5 py-3 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 cursor-pointer transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary-500"
+      onClick={onOpenDrawer}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpenDrawer();
+        }
+      }}
+    >
+      <div className="flex items-center gap-3">
+        {/* Main content area */}
+        <div className="flex-1 min-w-0">
+          {/* Row 1: Provider name + badges */}
+          <div className="flex items-center justify-between gap-4 mb-0.5">
+            <Link
+              href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
+              className="font-medium text-gray-900 hover:text-primary-600 transition-colors text-sm"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {provider.provider_name}
+            </Link>
+            <div className="flex items-center gap-2 shrink-0">
+              {emailsSent > 0 && (
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600">
+                  {emailsSent} sent
+                </span>
+              )}
+              <span className="text-xs text-gray-500">{daysSinceEntry}d</span>
             </div>
+          </div>
 
-            <div className="px-5 py-4">
-              <p className="text-sm text-gray-700 mb-4">
-                Mark this provider as not interested in claiming their profile.
-              </p>
-
-              <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
-                <ul className="space-y-1.5">
-                  <li className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="text-gray-400 mt-0.5">•</span>
-                    Provider will be moved to Not Interested (soft terminal)
-                  </li>
-                  <li className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="text-gray-400 mt-0.5">•</span>
-                    No more outreach emails, but questions/connections still flow
-                  </li>
-                </ul>
-              </div>
-
-              {/* Reason dropdown */}
-              <div className="mb-4">
-                <label className="block text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
-                  Reason <span className="text-red-500">*</span>
-                </label>
-                <select
-                  value={notInterestedReason}
-                  onChange={(e) => setNotInterestedReason(e.target.value)}
-                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white"
+          {/* Row 2: Category, location, phone */}
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            {provider.provider_category && (
+              <span className="truncate max-w-[200px]">{provider.provider_category}</span>
+            )}
+            {provider.provider_category && provider.city && <span>·</span>}
+            {provider.city && (
+              <span>{provider.city}{provider.state ? `, ${provider.state}` : ""}</span>
+            )}
+            {provider.phone && (
+              <>
+                <span>·</span>
+                <a
+                  href={`tel:${provider.phone}`}
+                  className="text-primary-600 hover:underline"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <option value="">Select a reason...</option>
-                  {NOT_INTERESTED_REASONS.map((r) => (
-                    <option key={r.value} value={r.value}>{r.label}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
-              <button
-                onClick={() => {
-                  setConfirmingNotInterested(null);
-                  setNotInterestedReason("");
-                }}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleConfirmNotInterested(confirmingNotInterested, notInterestedReason)}
-                disabled={!notInterestedReason}
-                className="px-4 py-2 text-sm font-medium bg-gray-800 hover:bg-gray-900 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                Mark as Not Interested
-              </button>
-            </div>
+                  {provider.phone}
+                </a>
+              </>
+            )}
           </div>
         </div>
-      )}
 
-      {/* Send Claim Link Confirmation Modal */}
-      {confirmingSendLink && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
-          onClick={() => setConfirmingSendLink(null)}
-        >
-          <div
-            className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="px-5 py-4 border-b border-gray-100">
-              <h3 className="text-lg font-semibold text-gray-900">Send Claim Link</h3>
-              <p className="text-sm text-gray-500 mt-1">{confirmingSendLink.provider_name}</p>
-            </div>
+        {/* Chevron indicator for drawer */}
+        <svg className="w-4 h-4 text-gray-300 group-hover:text-gray-500 transition-colors shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+        </svg>
+      </div>
+    </div>
+  );
+}
 
-            <div className="px-5 py-4">
-              <p className="text-sm text-gray-700 mb-4">
-                Send a short email with just the claim link to the provider.
-              </p>
+function CallQueue({
+  providers,
+  loading,
+  onOpenDrawer,
+}: {
+  providers: OutreachProvider[];
+  loading: boolean;
+  onOpenDrawer: (provider: OutreachProvider) => void;
+}) {
+  // Filter to only show providers in call_exhausted stage
+  const callProviders = providers.filter((p) => p.stage === "call_exhausted");
 
-              <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">What will happen:</p>
-                <ul className="space-y-1.5">
-                  <li className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="text-gray-400 mt-0.5">•</span>
-                    Email will be sent immediately with the claim link
-                  </li>
-                  <li className="flex items-start gap-2 text-sm text-gray-600">
-                    <span className="text-gray-400 mt-0.5">•</span>
-                    Sent to: {confirmingSendLink.email}
-                  </li>
-                </ul>
-              </div>
-            </div>
+  if (loading) {
+    return (
+      <div className="p-8 text-center">
+        <div className="inline-block w-5 h-5 border-2 border-gray-200 border-t-gray-500 rounded-full animate-spin" />
+      </div>
+    );
+  }
 
-            <div className="px-5 py-4 border-t border-gray-100 flex justify-end gap-3">
-              <button
-                onClick={() => setConfirmingSendLink(null)}
-                className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => handleSendClaimLink(confirmingSendLink.provider_id)}
-                className="px-4 py-2 text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white rounded-lg transition-colors"
-              >
-                Send Claim Link
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+  if (callProviders.length === 0) {
+    return (
+      <div className="p-12 text-center">
+        <p className="text-gray-500">No providers need calling</p>
+      </div>
+    );
+  }
+
+  // Sort by stage_changed_at (oldest first - most urgent)
+  const sorted = [...callProviders].sort((a, b) => {
+    if (!a.stage_changed_at && !b.stage_changed_at) return 0;
+    if (!a.stage_changed_at) return 1;
+    if (!b.stage_changed_at) return -1;
+    return a.stage_changed_at.localeCompare(b.stage_changed_at);
+  });
+
+  return (
+    <div>
+      {/* Header */}
+      <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
+        <div className="flex-1">Provider</div>
+        <div className="w-20 text-center">Emails</div>
+        <div className="w-20 text-right">Days</div>
+      </div>
+
+      {/* Provider rows - click opens drawer */}
+      {sorted.map((provider) => (
+        <CallProviderRow
+          key={provider.provider_id}
+          provider={provider}
+          onOpenDrawer={() => onOpenDrawer(provider)}
+        />
+      ))}
+
+      {/* Summary footer */}
+      <div className="px-5 py-3 bg-gray-50 border-t border-gray-200 text-sm text-gray-500">
+        {callProviders.length} provider{callProviders.length !== 1 ? "s" : ""} need calling
+      </div>
     </div>
   );
 }
@@ -6314,6 +2529,10 @@ function ReEngageQueue({ providers, loading, onArchive, onNotInterested, onOpenN
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function ProviderOutreachPage() {
+  // URL state for sub-tab persistence
+  const searchParams = useSearchParams();
+  const router = useRouter();
+
   // Active states (new "Add State" workflow)
   const [activeStates, setActiveStates] = useState<ActiveState[]>([]);
   const [loadingActiveStates, setLoadingActiveStates] = useState(true);
@@ -6322,8 +2541,14 @@ export default function ProviderOutreachPage() {
   // Selected state (from active states or fallback)
   const [selectedState, setSelectedState] = useState<string>("");
 
-  // Active UI tab (needs_email and ready are filtered views of not_contacted)
-  const [activeTab, setActiveTab] = useState<UITab>("needs_email");
+  // Active UI tab (call_confirm represents the not_contacted stage)
+  const [activeTab, setActiveTab] = useState<UITab>("call_confirm");
+
+  // Active sub-tab within the "Done" tab - initialize from URL if present
+  const initialDoneSubTab = (searchParams.get("doneTab") as DoneSubTab) || "claimed";
+  const [activeDoneSubTab, setActiveDoneSubTab] = useState<DoneSubTab>(
+    DONE_SUB_TABS.includes(initialDoneSubTab) ? initialDoneSubTab : "claimed"
+  );
 
   // Search
   const [search, setSearch] = useState("");
@@ -6334,14 +2559,12 @@ export default function ProviderOutreachPage() {
   // Admin filter state (replaces My Assignments checkbox)
   const [adminCounts, setAdminCounts] = useState<AdminCounts>({});
   const [selectedAdminFilter, setSelectedAdminFilter] = useState<string | null>(null);
+  // Store call_confirm admin counts separately so tab label stays accurate across tab switches
+  const [callConfirmAssignedCount, setCallConfirmAssignedCount] = useState<number | null>(null);
 
   // Channel filter state (for Alternative Channels tab)
   type ChannelFilter = "all" | "email" | "fax" | "contact_form" | "direct_mail";
   const [selectedChannelFilter, setSelectedChannelFilter] = useState<ChannelFilter>("all");
-
-  // Ready tab filter state (Organization vs Decision Maker)
-  type ReadyFilter = "all" | "organization" | "decision_maker";
-  const [selectedReadyFilter, setSelectedReadyFilter] = useState<ReadyFilter>("all");
 
   // All admins for name lookup (fetched once)
   interface AdminUser {
@@ -6355,7 +2578,7 @@ export default function ProviderOutreachPage() {
   // Legacy: kept for backwards compatibility with assigned_to=me URL param
   const myAssignmentsOnly = false; // No longer used, but kept for query param handling
 
-  // Cities data (for needs_email and ready tabs)
+  // Cities data (for call_confirm tab)
   const [cities, setCities] = useState<CityStats[]>([]);
   const [loadingCities, setLoadingCities] = useState(false);
   const [totalUnclaimed, setTotalUnclaimed] = useState(0);
@@ -6395,22 +2618,23 @@ export default function ProviderOutreachPage() {
     recentlyMovedTimersRef.current.set(providerId, timer);
   }, []);
 
-  // Stage counts (includes needs_email, ready, hidden for UI tabs)
+  // Stage counts (includes call_confirm and done for UI tabs)
   interface TabCounts extends Record<OutreachStage, number> {
-    needs_email: number;
-    ready: number;
-    hidden: number;
+    call_confirm: number;  // Combined needs_email + ready
+    done: number;  // Combined claimed + not_interested + archived + hidden
+    hidden: number;  // Hidden count (for Done sub-tab)
   }
   const [stageCounts, setStageCounts] = useState<TabCounts>({
     not_contacted: 0,
     in_sequence: 0,
     needs_call: 0,
     re_engage: 0,
+    call_exhausted: 0,
     not_interested: 0,
     claimed: 0,
     archived: 0,
-    needs_email: 0,
-    ready: 0,
+    call_confirm: 0,
+    done: 0,
     hidden: 0,
   });
 
@@ -6532,6 +2756,13 @@ export default function ProviderOutreachPage() {
   const [loadingStateCounts, setLoadingStateCounts] = useState(false);
   const [stateCountsError, setStateCountsError] = useState(false);
 
+  // Assign Cities modal state
+  const [showAssignCitiesModal, setShowAssignCitiesModal] = useState(false);
+  const [assignCitiesSearch, setAssignCitiesSearch] = useState("");
+  const [assignCitiesForState, setAssignCitiesForState] = useState<string | null>(null);
+  const [allCitiesForAssignment, setAllCitiesForAssignment] = useState<CityStats[]>([]);
+  const [loadingAllCities, setLoadingAllCities] = useState(false);
+
   // State actions menu (for refresh, status change, delete)
   const [stateActionsMenu, setStateActionsMenu] = useState<string | null>(null);
   const [stateActionLoading, setStateActionLoading] = useState<string | null>(null);
@@ -6643,6 +2874,23 @@ export default function ProviderOutreachPage() {
   // Notes modal state
   const [notesModalProvider, setNotesModalProvider] = useState<{ id: string; name: string } | null>(null);
 
+  // Provider drawer state (for detail view)
+  const [drawerProvider, setDrawerProvider] = useState<OutreachProvider | null>(null);
+
+  // Sync drawer provider with list when providers update (prevents stale data)
+  useEffect(() => {
+    if (drawerProvider) {
+      const updated = providers.find((p) => p.provider_id === drawerProvider.provider_id);
+      if (updated) {
+        // Provider still exists - sync all fields
+        setDrawerProvider(updated);
+      } else {
+        // Provider was removed from list - close drawer
+        setDrawerProvider(null);
+      }
+    }
+  }, [providers]); // eslint-disable-line react-hooks/exhaustive-deps -- only sync when providers change
+
   // Standardized archive reasons (same codes as Questions/Connections)
   // Archive = Stop all outreach. Provider is invalid, out of business, or explicitly declined.
   const ARCHIVE_REASONS = [
@@ -6739,7 +2987,7 @@ export default function ProviderOutreachPage() {
       // Update stage counts
       const oldStage = pendingRemoval.stage as OutreachStage;
       if (oldStage === "not_contacted") {
-        // Could be in needs_email or ready - refresh cities
+        // Could be in call_confirm - refresh cities
         fetchCities();
       } else {
         setStageCounts((prev) => ({
@@ -6920,16 +3168,45 @@ export default function ProviderOutreachPage() {
     }
   }, [selectedState]);
 
+  // Fetch all cities for Assign Cities modal (includes all cities, not just filtered ones)
+  const fetchAllCitiesForAssignment = useCallback(async (stateCode: string) => {
+    setLoadingAllCities(true);
+    try {
+      // Fetch cities
+      const citiesRes = await fetch(`/api/admin/provider-outreach/cities?state=${stateCode}`);
+      if (citiesRes.ok) {
+        const citiesData = await citiesRes.json();
+        setAllCitiesForAssignment(citiesData.cities || []);
+      }
+      // Also fetch city owners if not already loaded for this state
+      const ownersRes = await fetch(`/api/admin/provider-outreach/assign-city?state=${stateCode}`);
+      if (ownersRes.ok) {
+        const ownersData = await ownersRes.json();
+        const ownerMap = new Map<string, CityOwner>();
+        for (const owner of ownersData.city_owners || []) {
+          ownerMap.set(owner.city, owner);
+        }
+        setCityOwners(ownerMap);
+      }
+    } catch (err) {
+      console.error("Failed to fetch cities for assignment:", err);
+    } finally {
+      setLoadingAllCities(false);
+    }
+  }, []);
+
   // Assign city to an admin
-  const assignCity = async (city: string, ownerId: string | null, ownerName: string | null) => {
-    if (!selectedState) return;
+  // stateCode is optional - defaults to selectedState for inline edits, but can be passed for modal usage
+  const assignCity = async (city: string, ownerId: string | null, ownerName: string | null, stateCode?: string) => {
+    const targetState = stateCode || selectedState;
+    if (!targetState) return;
 
     try {
       const res = await fetch("/api/admin/provider-outreach/assign-city", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          state: selectedState,
+          state: targetState,
           city,
           owner_id: ownerId,
           owner_name: ownerName,
@@ -6946,7 +3223,10 @@ export default function ProviderOutreachPage() {
         setEditingCityAssignment(null);
         showToast(ownerId ? `Assigned ${city} to ${ownerName}` : `Unassigned ${city}`, "success");
         // Refresh providers to update assigned_to on individual rows and filter chip counts
-        fetchProviders();
+        // Only if we're modifying the currently selected state
+        if (targetState === selectedState) {
+          fetchProviders();
+        }
       } else {
         const err = await res.json();
         showToast(err.error || "Failed to assign city", "error");
@@ -6962,7 +3242,7 @@ export default function ProviderOutreachPage() {
     if (!selectedState) return;
 
     // Some tabs may not need provider fetching
-    const apiParams = getApiParamsForTab(activeTab);
+    const apiParams = getApiParamsForTab(activeTab, activeDoneSubTab);
     if (!apiParams) {
       setLoadingProviders(false);
       return;
@@ -7012,22 +3292,37 @@ export default function ProviderOutreachPage() {
         setProviders(filteredProviders);
         setIsSearchResult(!!data.is_search);
         if (data.stage_counts) {
-          setStageCounts(data.stage_counts);
+          // Transform API counts: combine into UI tab counts
+          const apiCounts = data.stage_counts;
+          setStageCounts({
+            ...apiCounts,
+            call_confirm: (apiCounts.needs_email ?? 0) + (apiCounts.ready ?? 0),
+            done: (apiCounts.claimed ?? 0) + (apiCounts.not_interested ?? 0) + (apiCounts.archived ?? 0) + (apiCounts.hidden ?? 0),
+          });
         }
         // Use API admin_counts if provided, otherwise compute from provider list
-        if (data.admin_counts && Object.keys(data.admin_counts).length > 0) {
-          setAdminCounts(data.admin_counts);
-        } else {
-          // Compute admin counts from provider list (fallback for stages without API counts)
-          const computed: AdminCounts = {};
-          for (const p of data.providers || []) {
-            const key = p.assigned_to || "unassigned";
-            if (!computed[key]) {
-              computed[key] = { count: 0 };
-            }
-            computed[key].count++;
-          }
-          setAdminCounts(computed);
+        const counts = data.admin_counts && Object.keys(data.admin_counts).length > 0
+          ? data.admin_counts
+          : (() => {
+              // Compute admin counts from provider list (fallback for stages without API counts)
+              const computed: AdminCounts = {};
+              for (const p of data.providers || []) {
+                const key = p.assigned_to || "unassigned";
+                if (!computed[key]) {
+                  computed[key] = { count: 0 };
+                }
+                computed[key].count++;
+              }
+              return computed;
+            })();
+        setAdminCounts(counts);
+
+        // Store call_confirm assigned count for stable tab label
+        if (activeTab === "call_confirm") {
+          const assignedSum = Object.entries(counts)
+            .filter(([key]) => key !== "unassigned")
+            .reduce((sum, [, countData]) => sum + (countData as { count: number }).count, 0);
+          setCallConfirmAssignedCount(assignedSum > 0 ? assignedSum : null);
         }
       } else {
         const err = await res.json().catch(() => ({}));
@@ -7039,7 +3334,7 @@ export default function ProviderOutreachPage() {
     } finally {
       setLoadingProviders(false);
     }
-  }, [selectedState, activeTab, selectedAdminFilter]);
+  }, [selectedState, activeTab, activeDoneSubTab, selectedAdminFilter]);
 
   // Debounce search input by 300ms
   useEffect(() => {
@@ -7226,6 +3521,12 @@ export default function ProviderOutreachPage() {
     fetchStateCounts();
   }, [showAddStateModal]);
 
+  // Effect: fetch cities when Assign Cities modal opens
+  useEffect(() => {
+    if (!showAssignCitiesModal || !assignCitiesForState) return;
+    fetchAllCitiesForAssignment(assignCitiesForState);
+  }, [showAssignCitiesModal, assignCitiesForState, fetchAllCitiesForAssignment]);
+
   // Effect: fetch all admins on mount (for name lookup)
   useEffect(() => {
     fetchAllAdmins();
@@ -7242,7 +3543,7 @@ export default function ProviderOutreachPage() {
     return () => document.removeEventListener("click", handleClickOutside);
   }, [stateActionsMenu, showStateSelector]);
 
-  // Effect: fetch cities when state changes (for needs_email/ready tabs, when not searching)
+  // Effect: fetch cities when state changes (for call_confirm tab, when not searching)
   useEffect(() => {
     if (isNotContactedTab(activeTab) && !debouncedSearch) {
       fetchCities();
@@ -7279,6 +3580,28 @@ export default function ProviderOutreachPage() {
     // Stage counts are state-level, so changing tab within same state keeps counts
   }, [activeTab, selectedState, debouncedSearch]);
 
+  // Update URL when Done sub-tab changes (for refresh persistence)
+  useEffect(() => {
+    if (activeTab === "done") {
+      const params = new URLSearchParams(searchParams.toString());
+      if (activeDoneSubTab !== "claimed") {
+        params.set("doneTab", activeDoneSubTab);
+      } else {
+        params.delete("doneTab"); // Don't clutter URL with default value
+      }
+      const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+      router.replace(newUrl, { scroll: false });
+    } else {
+      // Clear doneTab from URL when not on Done tab
+      const params = new URLSearchParams(searchParams.toString());
+      if (params.has("doneTab")) {
+        params.delete("doneTab");
+        const newUrl = params.toString() ? `?${params.toString()}` : window.location.pathname;
+        router.replace(newUrl, { scroll: false });
+      }
+    }
+  }, [activeTab, activeDoneSubTab, searchParams, router]);
+
   // Separate effect to clear stage counts only when state changes
   const prevStateRef = useRef(selectedState);
   useEffect(() => {
@@ -7288,13 +3611,16 @@ export default function ProviderOutreachPage() {
         in_sequence: 0,
         needs_call: 0,
         re_engage: 0,
+        call_exhausted: 0,
         not_interested: 0,
         claimed: 0,
         archived: 0,
-        needs_email: 0,
-        ready: 0,
+        call_confirm: 0,
+        done: 0,
         hidden: 0,
       });
+      // Also reset the stored call_confirm assigned count
+      setCallConfirmAssignedCount(null);
       prevStateRef.current = selectedState;
     }
   }, [selectedState]);
@@ -7312,7 +3638,8 @@ export default function ProviderOutreachPage() {
     try {
       const params = new URLSearchParams();
       params.set("state", selectedState);
-      params.set("tab", activeTab);
+      // For "done" tab, send the actual sub-tab stage to export
+      params.set("tab", activeTab === "done" ? activeDoneSubTab : activeTab);
       params.set("type", type);
       // Handle "unassigned" specially - pass as a flag, not as assigned_to value
       if (selectedAdminFilter === "unassigned") {
@@ -7522,8 +3849,8 @@ export default function ProviderOutreachPage() {
 
       if (res.ok) {
         const data = await res.json();
-        // Use UI_TAB_LABELS for the target stage display
-        const stageLabel = UI_TAB_LABELS[newStage as UITab] || newStage;
+        // Use UI_TAB_LABELS first, then STAGE_LABELS as fallback for readable names
+        const stageLabel = UI_TAB_LABELS[newStage as UITab] || STAGE_LABELS[newStage] || newStage;
         showToast(`Moved ${data.updated + data.created} provider(s) to ${stageLabel}`, "success");
         // Mark as recently moved to filter from stale API responses
         idsToUpdate.forEach((id) => markAsRecentlyMoved(id));
@@ -7614,13 +3941,10 @@ export default function ProviderOutreachPage() {
   // Note: Archive removed from bulk actions - use individual provider modal instead
   const getAvailableActions = (): { stage: OutreachStage; label: string; color: string; requiresEmail?: boolean }[] => {
     switch (activeTab) {
-      case "needs_email":
-        // Providers without email - can only add email (no bulk actions)
-        return [];
-      case "ready":
-        // Providers with email - can move to sequence
+      case "call_confirm":
+        // Providers with email can move to sequence (requiresEmail filters out those without)
         return [
-          { stage: "in_sequence", label: "Move to In Sequence", color: "bg-primary-600 hover:bg-primary-700", requiresEmail: true },
+          { stage: "in_sequence", label: "Launch Sequence", color: "bg-primary-600 hover:bg-primary-700", requiresEmail: true },
         ];
       case "in_sequence":
         return [
@@ -7634,20 +3958,30 @@ export default function ProviderOutreachPage() {
         return [
           { stage: "not_contacted", label: "Reset to Not Contacted", color: "bg-gray-500 hover:bg-gray-600" },
         ];
-      default:
-        // Terminal stages (archived, claimed) - allow moving back to not_contacted
+      case "done":
+        // Done tab - hidden sub-tab has no bulk actions (use individual unhide)
+        if (activeDoneSubTab === "hidden") {
+          return [];
+        }
+        // Other terminal stages - allow moving back to not_contacted
         return [
-          { stage: "not_contacted", label: "Reset to Not Contacted", color: "bg-gray-600 hover:bg-gray-700" },
+          { stage: "not_contacted", label: "Reset to Call & Confirm", color: "bg-gray-600 hover:bg-gray-700" },
         ];
+      default:
+        return [];
     }
   };
 
   // Build tabs from UI_TABS with correct counts
+  // For call_confirm: use stored assigned count (from when we last viewed that tab),
+  // otherwise use the global stage count. This ensures the tab count matches what's displayed.
   const tabs = UI_TABS.map((tab) => ({
     value: tab,
     label: UI_TAB_LABELS[tab],
-    count: stageCounts[tab] ?? 0,
-    isTerminal: TERMINAL_STAGES.includes(tab as OutreachStage),
+    count: tab === "call_confirm" && callConfirmAssignedCount !== null
+      ? callConfirmAssignedCount
+      : (stageCounts[tab] ?? 0),
+    isTerminal: tab === "done",  // "done" tab contains all terminal stages
   }));
 
   return (
@@ -7726,7 +4060,7 @@ export default function ProviderOutreachPage() {
                   onClick={() => handleExport("providers")}
                   disabled={exporting || loadingProviders}
                   className={`flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-200 hover:border-gray-300 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                    activeTab === "needs_email" || activeTab === "ready"
+                    activeTab === "call_confirm"
                       ? "rounded-l-lg border-r-0"
                       : "rounded-lg"
                   }`}
@@ -7736,8 +4070,8 @@ export default function ProviderOutreachPage() {
                   </svg>
                   <span className="whitespace-nowrap">{exporting ? "Exporting..." : "Export CSV"}</span>
                 </button>
-                {/* City assignments export - only show on needs_email/ready tabs */}
-                {(activeTab === "needs_email" || activeTab === "ready") && (
+                {/* City assignments export - only show on Call & Confirm tab */}
+                {activeTab === "call_confirm" && (
                   <button
                     onClick={() => handleExport("city_assignments")}
                     disabled={exporting || loadingCities}
@@ -7810,32 +4144,52 @@ export default function ProviderOutreachPage() {
                         {activeStates.map((state) => {
                           const isSelected = selectedState === state.state_code;
                           return (
-                            <button
-                              key={state.state_code}
-                              onClick={() => {
-                                setSelectedState(state.state_code);
-                                setShowStateSelector(false);
-                              }}
-                              className={`w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center justify-between ${isSelected ? "bg-primary-50" : ""}`}
-                            >
-                              <div className="flex items-center gap-2">
-                                {isSelected && (
-                                  <svg className="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                                  </svg>
-                                )}
-                                {state.status === "completed" ? (
-                                  <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                  </svg>
-                                ) : (
-                                  <span className={`w-2 h-2 rounded-full ${state.status === "paused" ? "bg-amber-500" : "bg-green-500"}`} />
-                                )}
-                                <span className={`text-sm font-medium ${isSelected ? "text-primary-700" : "text-gray-900"}`}>{state.state_name}</span>
-                                <span className="text-xs text-gray-400">({state.state_code})</span>
-                              </div>
-                              <span className="text-xs text-gray-400">{state.total_providers.toLocaleString()}</span>
-                            </button>
+                            <div key={state.state_code}>
+                              <button
+                                onClick={() => {
+                                  setSelectedState(state.state_code);
+                                  setShowStateSelector(false);
+                                }}
+                                className={`w-full px-3 py-2 text-left hover:bg-gray-50 flex items-center justify-between ${isSelected ? "bg-primary-50" : ""}`}
+                              >
+                                <div className="flex items-center gap-2">
+                                  {isSelected && (
+                                    <svg className="w-4 h-4 text-primary-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                  {state.status === "completed" ? (
+                                    <svg className="w-4 h-4 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                    </svg>
+                                  ) : (
+                                    <span className={`w-2 h-2 rounded-full ${state.status === "paused" ? "bg-amber-500" : "bg-green-500"}`} />
+                                  )}
+                                  <span className={`text-sm font-medium ${isSelected ? "text-primary-700" : "text-gray-900"}`}>{state.state_name}</span>
+                                  <span className="text-xs text-gray-400">({state.state_code})</span>
+                                </div>
+                                <span className="text-xs text-gray-400">{state.total_providers.toLocaleString()}</span>
+                              </button>
+                              {/* Assign Cities sub-button */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setAssignCitiesForState(state.state_code);
+                                  setShowAssignCitiesModal(true);
+                                  setShowStateSelector(false);
+                                }}
+                                className="w-full pl-9 pr-3 py-1.5 text-left text-xs text-gray-500 hover:text-primary-600 hover:bg-gray-50 flex items-center gap-1.5"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                                Assign Cities
+                                <svg className="w-3 h-3 ml-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                              </button>
+                            </div>
                           );
                         })}
                       </div>
@@ -7968,10 +4322,6 @@ export default function ProviderOutreachPage() {
                   if (tab.value !== "re_engage") {
                     setSelectedChannelFilter("all");
                   }
-                  // Reset ready filter when leaving Ready tab
-                  if (tab.value !== "ready") {
-                    setSelectedReadyFilter("all");
-                  }
                 }}
                 className={`px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
                   activeTab === tab.value
@@ -7991,17 +4341,44 @@ export default function ProviderOutreachPage() {
         </div>
       )}
 
+      {/* Done Tab Sub-tabs - show when Done tab is active */}
+      {selectedState && activeTab === "done" && (
+        <div className="flex items-center gap-2 px-1 mb-4">
+          {DONE_SUB_TABS.map((subTab) => {
+            const count = stageCounts[subTab] ?? 0;
+            const isActive = activeDoneSubTab === subTab;
+            return (
+              <button
+                key={subTab}
+                onClick={() => setActiveDoneSubTab(subTab)}
+                className={`px-3 py-1.5 text-sm font-medium rounded-full transition-colors ${
+                  isActive
+                    ? "bg-gray-900 text-white"
+                    : "bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700"
+                }`}
+              >
+                {DONE_SUB_TAB_LABELS[subTab]}
+                {count > 0 && (
+                  <span className={`ml-1.5 text-xs tabular-nums ${isActive ? "text-white/70" : "text-gray-400"}`}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+      )}
+
       {/* Admin Filter Chips - show on tabs where assignment applies */}
-      {selectedState && ["needs_email", "ready", "in_sequence", "needs_call", "re_engage", "not_interested"].includes(activeTab) && (
+      {selectedState && ["call_confirm", "in_sequence", "needs_call", "re_engage"].includes(activeTab) && (
         <AdminFilterChips
           adminCounts={adminCounts}
           totalCount={
-            activeTab === "needs_email" ? stageCounts.needs_email :
-            activeTab === "ready" ? stageCounts.ready :
+            activeTab === "call_confirm" ? stageCounts.call_confirm :
             activeTab === "in_sequence" ? stageCounts.in_sequence :
             activeTab === "needs_call" ? stageCounts.needs_call :
             activeTab === "re_engage" ? stageCounts.re_engage :
-            activeTab === "not_interested" ? stageCounts.not_interested :
+            activeTab === "call_exhausted" ? stageCounts.call_exhausted :
             0
           }
           selectedAdminId={selectedAdminFilter}
@@ -8613,10 +4990,10 @@ export default function ProviderOutreachPage() {
                                     name: provider.provider_name,
                                   });
                                 }}
-                                className={`p-1 ${(provider.notes_count ?? 0) > 0 ? "text-gray-700" : "text-gray-300 hover:text-amber-500"}`}
+                                className={`p-1 ${provider.notes ? "text-gray-700" : "text-gray-300 hover:text-amber-500"}`}
                                 title="Notes"
                               >
-                                <svg className="w-4 h-4" fill={(provider.notes_count ?? 0) > 0 ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                                <svg className="w-4 h-4" fill={provider.notes ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
                                 </svg>
                               </button>
@@ -8708,73 +5085,7 @@ export default function ProviderOutreachPage() {
           <FollowUpQueue
             providers={providers}
             loading={loadingProviders}
-            onOutcomeRecorded={(providerId, stageChanged) => {
-              if (stageChanged) {
-                // Mark as recently moved to filter from stale API responses
-                markAsRecentlyMoved(providerId);
-                // Provider left the queue - remove from local state
-                setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
-                // Optimistically decrement needs_call count
-                setStageCounts((prev) => ({
-                  ...prev,
-                  needs_call: Math.max(0, prev.needs_call - 1),
-                }));
-              }
-              // Refresh to get updated counts
-              fetchProviders();
-            }}
-            onProviderUpdated={(providerId, updates) => {
-              // Update provider in place (new due_date, counters, etc.)
-              setProviders((prev) =>
-                prev.map((p) =>
-                  p.provider_id === providerId ? { ...p, ...updates } : p
-                )
-              );
-            }}
-            onStageChange={async (providerId, newStage) => {
-              // Call update-stage API directly
-              const res = await fetch("/api/admin/provider-outreach/update-stage", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  provider_ids: [providerId],
-                  stage: newStage,
-                }),
-              });
-              if (!res.ok) {
-                const err = await res.json();
-                throw new Error(err.error || "Failed to update stage");
-              }
-              // Mark as recently moved to filter from stale API responses
-              markAsRecentlyMoved(providerId);
-              // Remove from local state (provider left Follow Up)
-              setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
-              // Update stage counts
-              setStageCounts((prev) => ({
-                ...prev,
-                needs_call: Math.max(0, prev.needs_call - 1),
-                [newStage]: (prev[newStage] || 0) + 1,
-              }));
-              // Refresh to sync
-              fetchProviders();
-            }}
-            onRemoveProvider={(provider) => {
-              setPendingRemoval({
-                providerId: provider.provider_id,
-                providerName: provider.provider_name,
-                stage: provider.stage,
-              });
-            }}
-            onArchive={(provider) => {
-              setActionModalProvider(provider);
-            }}
-            onOpenNotesModal={(provider) => {
-              setNotesModalProvider({
-                id: provider.provider_id,
-                name: provider.provider_name,
-              });
-            }}
-            adminNameLookup={adminNameLookup}
+            onOpenDrawer={setDrawerProvider}
           />
         ) : activeTab === "re_engage" ? (
           // Alternative Channels tab: cycle-aware queue view with channel filter
@@ -8819,43 +5130,40 @@ export default function ProviderOutreachPage() {
                     : providers.filter((p) => p.re_engage_channel === selectedChannelFilter)
               }
               loading={loadingProviders}
-              onArchive={(provider) => {
-                setActionModalProvider(provider);
-              }}
-              onNotInterested={(provider, reason) => {
-                handleQuickAction(provider.provider_id, "not_interested", null, null, false, reason);
-              }}
-              onOpenNotesModal={(provider) => {
-                setNotesModalProvider({
-                  id: provider.provider_id,
-                  name: provider.provider_name,
-                });
-              }}
-              onProviderUpdated={(providerId, updates) => {
-                setProviders((prev) =>
-                  prev.map((p) =>
-                    p.provider_id === providerId ? { ...p, ...updates } : p
-                  )
-                );
-              }}
-              onResetToReady={(providerId) => {
-                // Optimistically remove provider from list (they moved to Ready tab)
-                setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
-                // Also update stage counts
-                setStageCounts((prev) => ({
-                  ...prev,
-                  re_engage: Math.max(0, prev.re_engage - 1),
-                  ready: prev.ready + 1,
-                }));
-              }}
-              adminNameLookup={adminNameLookup}
+              onOpenDrawer={setDrawerProvider}
+            />
+          </>
+        ) : activeTab === "call_exhausted" ? (
+          // Call tab: providers needing manual resolution
+          <>
+            {/* Call Script */}
+            <details className="mx-5 mt-2 mb-4" open>
+              <summary className="py-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-900 select-none">
+                Call Script
+              </summary>
+              <div className="pl-4 pt-2 pb-3 text-sm text-gray-600 space-y-3 border-l-2 border-orange-200 ml-1 bg-orange-50 rounded-r-lg">
+                <p className="font-medium text-orange-800">
+                  These providers have been through all outreach channels without claiming. Call them directly:
+                </p>
+                <p>
+                  &quot;Hi, this is <span className="font-medium text-gray-800">[Your Name]</span> from Olera, following up on the referral service listing we sent over.&quot;
+                </p>
+                <p>
+                  &quot;I wanted to make sure you received our emails. Can I verify your email address and resend the activation link while we&apos;re on the phone?&quot;
+                </p>
+              </div>
+            </details>
+            <CallQueue
+              providers={providers}
+              loading={loadingProviders}
+              onOpenDrawer={setDrawerProvider}
             />
           </>
         ) : (
           // Normal city-grouped view
           <>
-            {/* Call Script - only show on Ready tab */}
-            {activeTab === "ready" && (
+            {/* Call Script - show on Call & Confirm tab */}
+            {activeTab === "call_confirm" && (
               <details className="mx-5 mt-2 mb-4">
                 <summary className="py-2 text-sm font-medium text-gray-600 cursor-pointer hover:text-gray-900 select-none">
                   Call Script
@@ -8874,38 +5182,6 @@ export default function ProviderOutreachPage() {
               </details>
             )}
 
-            {/* Ready tab sub-tabs: Organization vs Decision Maker */}
-            {activeTab === "ready" && (
-              <div className="px-5 py-3 border-b border-gray-200 flex items-center gap-2">
-                <span className="text-xs text-gray-500 mr-1">Email Source:</span>
-                {(["all", "organization", "decision_maker"] as const).map((filter) => {
-                  const count = filter === "all"
-                    ? providers.length
-                    : providers.filter((p) => (p.email_source || "organization") === filter).length;
-                  const label = filter === "all" ? "All" :
-                    filter === "organization" ? "Organization" : "Decision Maker";
-                  const isSelected = selectedReadyFilter === filter;
-                  return (
-                    <button
-                      key={filter}
-                      onClick={() => setSelectedReadyFilter(filter)}
-                      className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
-                        isSelected
-                          ? filter === "decision_maker"
-                            ? "bg-purple-600 text-white"
-                            : "bg-gray-800 text-white"
-                          : filter === "decision_maker"
-                            ? "bg-purple-50 text-purple-700 hover:bg-purple-100"
-                            : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                      }`}
-                    >
-                      {label} ({count})
-                    </button>
-                  );
-                })}
-              </div>
-            )}
-
             {/* Header */}
             <div className="flex items-center gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
               <div className="w-5" />
@@ -8914,28 +5190,20 @@ export default function ProviderOutreachPage() {
             </div>
 
             {(() => {
-              // For needs_email/ready tabs: use cities API data when no admin filter,
-              // otherwise compute from providers (which are already filtered by assigned_to)
-              // but merge in sequence stats from API for conversion tracking
-              // For other stages: always compute from providers
-              // Filter providers by email_source when Ready tab sub-filter is active
-              const filteredProviders = activeTab === "ready" && selectedReadyFilter !== "all"
-                ? providers.filter((p) => (p.email_source || "organization") === selectedReadyFilter)
-                : providers;
+              // Always compute city stats from the provider list.
+              // The cities API counts ALL unclaimed providers (includes hidden, ignores assignment),
+              // but we need counts that match what's actually displayed (filtered by assignment, excludes hidden).
+              const filteredProviders = providers;
+              const allCities = computeCityStatsFromProviders(filteredProviders);
 
-              const useApiCities = isNotContactedTab(activeTab) && !selectedAdminFilter;
-              // When Ready filter is active, recompute city stats from filtered providers
-              const shouldRecomputeCities = activeTab === "ready" && selectedReadyFilter !== "all";
-              let displayCities = (useApiCities && !shouldRecomputeCities) ? cities : computeCityStatsFromProviders(filteredProviders);
-              if (activeTab === "needs_email") {
-                displayCities = displayCities.filter((c) => c.needs_email > 0);
-              } else if (activeTab === "ready") {
-                displayCities = displayCities.filter((c) => c.has_email > 0);
-              }
-              const isLoading = useApiCities ? loadingCities : loadingProviders;
-              const emptyMessage = isNotContactedTab(activeTab)
-                ? `No ${activeTab === "needs_email" ? "providers needing email" : "ready providers"} in ${selectedState}`
-                : `No providers in ${UI_TAB_LABELS[activeTab]}`;
+              // Filter to only show cities with an owner assigned - BUT only for the Call & Confirm tab
+              // Other tabs (in_sequence, needs_call, re_engage, done) should show all cities with providers
+              // regardless of assignment status, since those providers are already being worked on
+              const displayCities = isNotContactedTab(activeTab)
+                ? allCities.filter(city => cityOwners.has(city.city) && cityOwners.get(city.city)?.owner_id)
+                : allCities;
+
+              const isLoading = loadingProviders;
 
               if (isLoading) {
                 return (
@@ -8946,9 +5214,40 @@ export default function ProviderOutreachPage() {
               }
 
               if (displayCities.length === 0) {
+                // Show empty state - with "Assign Cities" prompt only on Call & Confirm tab
+                const hasUnassignedCities = allCities.length > 0 && isNotContactedTab(activeTab);
                 return (
                   <div className="p-12 text-center">
-                    <p className="text-gray-500">{emptyMessage}</p>
+                    {hasUnassignedCities ? (
+                      <>
+                        <svg className="w-12 h-12 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <p className="text-gray-600 font-medium mb-1">No cities assigned yet</p>
+                        <p className="text-gray-400 text-sm mb-4">
+                          Assign cities to team members to start working on providers
+                        </p>
+                        <button
+                          onClick={() => {
+                            setAssignCitiesForState(selectedState);
+                            setShowAssignCitiesModal(true);
+                          }}
+                          className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-primary-600 bg-primary-50 hover:bg-primary-100 rounded-lg transition-colors"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                          Assign Cities
+                        </button>
+                      </>
+                    ) : (
+                      <p className="text-gray-500">
+                        {isNotContactedTab(activeTab)
+                          ? `No providers to call in ${selectedState}`
+                          : `No providers in ${UI_TAB_LABELS[activeTab]}`}
+                      </p>
+                    )}
                   </div>
                 );
               }
@@ -8960,6 +5259,7 @@ export default function ProviderOutreachPage() {
                       key={city.city}
                       city={city}
                       activeTab={activeTab}
+                      activeDoneSubTab={activeDoneSubTab}
                       isExpanded={expandedCities.has(city.city)}
                       onToggle={() => toggleCity(city.city)}
                       providers={filteredProviders}
@@ -8968,35 +5268,23 @@ export default function ProviderOutreachPage() {
                       onToggleProvider={toggleProvider}
                       onSelectAllInCity={selectAllInCity}
                       onEmailSaved={(providerId, newEmail, emailSource) => {
-                        // Update local providers state
-                        // On "Needs Email" tab, remove the provider (it now has email, belongs in "Ready")
-                        // On other tabs, just update the email field
-                        if (activeTab === "needs_email") {
-                          setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
-                          // Optimistically update tab counts: needs_email -1, ready +1
-                          setStageCounts((prev) => ({
-                            ...prev,
-                            needs_email: Math.max(0, prev.needs_email - 1),
-                            ready: prev.ready + 1,
-                          }));
-                        } else {
-                          // Reset confirmed_at since contact info changed (API also resets it)
-                          // Also update email_source if provided (for Apollo confirmation)
-                          setProviders((prev) =>
-                            prev.map((p) =>
-                              p.provider_id === providerId
-                                ? {
-                                    ...p,
-                                    email: newEmail,
-                                    confirmed_at: null,
-                                    confirmed_by: null,
-                                    ...(emailSource && { email_source: emailSource }),
-                                  }
-                                : p
-                            )
-                          );
-                        }
-                        // Refresh cities to update counts (for needs_email/ready tabs)
+                        // Update local providers state with new email
+                        // Reset confirmed_at since contact info changed (API also resets it)
+                        // Also update email_source if provided (for Apollo confirmation)
+                        setProviders((prev) =>
+                          prev.map((p) =>
+                            p.provider_id === providerId
+                              ? {
+                                  ...p,
+                                  email: newEmail,
+                                  confirmed_at: null,
+                                  confirmed_by: null,
+                                  ...(emailSource && { email_source: emailSource }),
+                                }
+                              : p
+                          )
+                        );
+                        // Refresh cities to update counts
                         if (isNotContactedTab(activeTab)) {
                           fetchCities();
                         }
@@ -9011,33 +5299,19 @@ export default function ProviderOutreachPage() {
                         );
                       }}
                       onApolloContactFound={(providerId, apolloContact) => {
-                        // On Needs Email tab: Apollo found email, provider moves to Ready tab
+                        // Save apollo_contact for review
                         // Backend auto-confirms (sets email_source, updates email) when provider has no email
-                        if (activeTab === "needs_email") {
-                          // Remove provider from Needs Email list (they now belong in Ready → Decision Maker)
-                          setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
-                          // Optimistically update tab counts
-                          setStageCounts((prev) => ({
-                            ...prev,
-                            needs_email: Math.max(0, prev.needs_email - 1),
-                            ready: prev.ready + 1,
-                          }));
-                        } else {
-                          // On Ready tab: just save apollo_contact for review
-                          // User must click "Confirm" to set email_source and move to Decision Maker tab
-                          // Backend no longer auto-confirms when provider already has email
-                          setProviders((prev) =>
-                            prev.map((p) =>
-                              p.provider_id === providerId
-                                ? {
-                                    ...p,
-                                    apollo_contact: apolloContact,
-                                    // Don't set email_source here - wait for user confirmation
-                                  }
-                                : p
-                            )
-                          );
-                        }
+                        // Otherwise user must click "Confirm" to use the decision-maker email
+                        setProviders((prev) =>
+                          prev.map((p) =>
+                            p.provider_id === providerId
+                              ? {
+                                  ...p,
+                                  apollo_contact: apolloContact,
+                                }
+                              : p
+                          )
+                        );
                         // Refresh cities to update counts
                         if (isNotContactedTab(activeTab)) {
                           fetchCities();
@@ -9054,12 +5328,7 @@ export default function ProviderOutreachPage() {
                         );
                       }}
                       onOpenActionModal={setActionModalProvider}
-                      onOpenNotesModal={(provider) => {
-                        setNotesModalProvider({
-                          id: provider.provider_id,
-                          name: provider.provider_name,
-                        });
-                      }}
+                      onOpenDrawer={setDrawerProvider}
                       onRemoveProvider={(provider) => {
                         setPendingRemoval({
                           providerId: provider.provider_id,
@@ -9067,7 +5336,7 @@ export default function ProviderOutreachPage() {
                           stage: provider.stage,
                         });
                       }}
-                      onMoveToReady={activeTab === "not_interested" ? async (providerId) => {
+                      onMoveToReady={(activeTab === "done" && activeDoneSubTab === "not_interested") ? async (providerId) => {
                         try {
                           const res = await fetch("/api/admin/provider-outreach/update-stage", {
                             method: "POST",
@@ -9085,9 +5354,10 @@ export default function ProviderOutreachPage() {
                             setStageCounts((prev) => ({
                               ...prev,
                               not_interested: Math.max(0, prev.not_interested - 1),
-                              ready: prev.ready + 1,
+                              done: Math.max(0, prev.done - 1),
+                              call_confirm: prev.call_confirm + 1,
                             }));
-                            showToast("Moved to Ready", "success");
+                            showToast("Moved to Call & Confirm", "success");
                           } else {
                             const err = await res.json();
                             showToast(err.error || "Failed to move provider", "error");
@@ -9123,9 +5393,9 @@ export default function ProviderOutreachPage() {
                             setStageCounts((prev) => ({
                               ...prev,
                               in_sequence: Math.max(0, prev.in_sequence - 1),
-                              ready: prev.ready + 1,
+                              call_confirm: prev.call_confirm + 1,
                             }));
-                            showToast("Reset to Ready with Apollo email", "success");
+                            showToast("Reset to Call & Confirm with Apollo email", "success");
                             return true;
                           } else {
                             const err = await res.json();
@@ -9154,23 +5424,36 @@ export default function ProviderOutreachPage() {
       </div>
 
       {/* Summary */}
-      {isNotContactedTab(activeTab) && !loadingCities && !loadingProviders && !isSearchResult && (
-        <div className="mt-4 text-sm text-gray-500">
-          {selectedAdminFilter ? (
-            <>
-              {providers.length.toLocaleString()} providers assigned to {
-                selectedAdminFilter === "unassigned"
-                  ? "no one"
-                  : (adminNameLookup.get(selectedAdminFilter) || selectedAdminFilter)
-              } across {computeCityStatsFromProviders(providers).length} cities
-            </>
-          ) : (
-            <>
-              {totalUnclaimed.toLocaleString()} unclaimed providers in {selectedState} across {cities.length} cities
-            </>
-          )}
-        </div>
-      )}
+      {isNotContactedTab(activeTab) && !loadingProviders && !isSearchResult && (() => {
+        // Use admin counts sum for "All Assigned" view to match tab and filter chip counts
+        const totalAssigned = Object.entries(adminCounts)
+          .filter(([key]) => key !== "unassigned")
+          .reduce((sum, [, countData]) => sum + (countData as { count: number }).count, 0);
+        const assignedCityCount = computeCityStatsFromProviders(
+          providers.filter(p => p.assigned_to && p.assigned_to !== "unassigned")
+        ).length;
+
+        // Don't render empty div when no content
+        if (!selectedAdminFilter && totalAssigned === 0) return null;
+
+        return (
+          <div className="mt-4 text-sm text-gray-500">
+            {selectedAdminFilter ? (
+              <>
+                {providers.length.toLocaleString()} providers assigned to {
+                  selectedAdminFilter === "unassigned"
+                    ? "no one"
+                    : (adminNameLookup.get(selectedAdminFilter) || selectedAdminFilter)
+                } across {computeCityStatsFromProviders(providers).length} cities
+              </>
+            ) : (
+              <>
+                {totalAssigned.toLocaleString()} providers assigned across {assignedCityCount} cities
+              </>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Provider Action Modal */}
       {actionModalProvider && (
@@ -9269,8 +5552,8 @@ export default function ProviderOutreachPage() {
                   </button>
                 )}
 
-                {/* Archive - only show if NOT already archived */}
-                {actionModalProvider.stage !== "archived" && activeTab !== "hidden" && (
+                {/* Archive - only show if NOT already archived and not viewing hidden sub-tab */}
+                {actionModalProvider.stage !== "archived" && !(activeTab === "done" && activeDoneSubTab === "hidden") && (
                   <button
                     onClick={() => setSelectedAction("archived")}
                     className="w-full text-left px-4 py-3 rounded-lg border border-gray-200 hover:border-amber-300 hover:bg-amber-50 transition-colors"
@@ -9289,8 +5572,8 @@ export default function ProviderOutreachPage() {
                   </button>
                 )}
 
-                {/* Unhide - only show when viewing Hidden tab */}
-                {activeTab === "hidden" && (
+                {/* Unhide - only show when viewing Hidden sub-tab */}
+                {activeTab === "done" && activeDoneSubTab === "hidden" && (
                   <button
                     onClick={() => {
                       setPendingUnhide({
@@ -9472,8 +5755,8 @@ export default function ProviderOutreachPage() {
                   </div>
                 )}
 
-                {/* Move to Stage Section - hide for claimed, archived, and when viewing hidden tab */}
-                {!["claimed", "archived"].includes(actionModalProvider.stage) && activeTab !== "hidden" && (
+                {/* Move to Stage Section - hide for claimed, archived, and when viewing hidden sub-tab */}
+                {!["claimed", "archived"].includes(actionModalProvider.stage) && !(activeTab === "done" && activeDoneSubTab === "hidden") && (
                   <>
                     <div className="border-t border-gray-100 my-3" />
                     <p className="text-xs font-medium text-gray-400 uppercase tracking-wide px-1 mb-2">Move to Stage</p>
@@ -9686,19 +5969,15 @@ export default function ProviderOutreachPage() {
                             const updates: Partial<typeof prev> = {};
                             // Decrement old stage count
                             if (oldStage === "not_contacted") {
-                              // not_contacted is split into needs_email/ready sub-tabs
-                              if (actionModalProvider.email) {
-                                updates.ready = Math.max(0, prev.ready - 1);
-                              } else {
-                                updates.needs_email = Math.max(0, prev.needs_email - 1);
-                              }
+                              // not_contacted is the call_confirm tab
+                              updates.call_confirm = Math.max(0, prev.call_confirm - 1);
                             } else if (oldStage && oldStage in prev) {
                               updates[oldStage as keyof typeof prev] = Math.max(0, (prev[oldStage as keyof typeof prev] || 0) - 1);
                             }
                             // Increment new stage count
                             if (pendingStageMove === "not_contacted") {
-                              // Moving to not_contacted means they have email, so increment ready
-                              updates.ready = (updates.ready ?? prev.ready) + 1;
+                              // Moving to not_contacted increments call_confirm
+                              updates.call_confirm = (updates.call_confirm ?? prev.call_confirm) + 1;
                             } else if (pendingStageMove && pendingStageMove in prev) {
                               updates[pendingStageMove as keyof typeof prev] = (prev[pendingStageMove as keyof typeof prev] || 0) + 1;
                             }
@@ -10574,6 +6853,153 @@ export default function ProviderOutreachPage() {
         </div>
       )}
 
+      {/* Assign Cities Modal */}
+      {showAssignCitiesModal && assignCitiesForState && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          onClick={() => {
+            setShowAssignCitiesModal(false);
+            setAssignCitiesSearch("");
+            setAssignCitiesForState(null);
+            setEditingCityAssignment(null);
+          }}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-lg overflow-hidden max-h-[80vh] flex flex-col"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-6 py-4 border-b border-gray-100 shrink-0">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Assign Cities - {US_STATES.find(s => s.value === assignCitiesForState)?.label || assignCitiesForState}
+              </h3>
+              <p className="text-sm text-gray-500 mt-1">
+                Assign team members to manage provider outreach in each city
+              </p>
+            </div>
+
+            {/* Search */}
+            <div className="px-6 py-3 border-b border-gray-100 shrink-0">
+              <div className="relative">
+                <svg
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400"
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <input
+                  type="text"
+                  value={assignCitiesSearch}
+                  onChange={(e) => setAssignCitiesSearch(e.target.value)}
+                  placeholder="Search cities..."
+                  className="w-full pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* City List */}
+            <div className="flex-1 overflow-y-auto">
+              {loadingAllCities ? (
+                <div className="flex items-center justify-center py-8">
+                  <svg className="animate-spin h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                </div>
+              ) : (() => {
+                const filteredCities = allCitiesForAssignment.filter(city =>
+                  city.city.toLowerCase().includes(assignCitiesSearch.toLowerCase())
+                );
+
+                if (filteredCities.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-gray-500 text-sm">
+                      {assignCitiesSearch ? "No matching cities found" : "No cities available"}
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="divide-y divide-gray-100">
+                    {filteredCities.map((city) => {
+                      const cityOwner = cityOwners.get(city.city);
+                      const isEditing = editingCityAssignment === `modal-${city.city}`;
+                      return (
+                        <div key={city.city} className="px-6 py-3 hover:bg-gray-50">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <span className="font-medium text-gray-900">{city.city}</span>
+                              <span className="ml-2 text-xs text-gray-400">
+                                {city.total.toLocaleString()} provider{city.total !== 1 ? "s" : ""}
+                              </span>
+                            </div>
+                          </div>
+                          <div className="mt-1.5 flex items-center gap-2">
+                            <span className="text-xs text-gray-500">Owner:</span>
+                            {isEditing ? (
+                              <div className="flex-1 max-w-xs" onClick={(e) => e.stopPropagation()}>
+                                <AdminAutocomplete
+                                  selectedAdminId={cityOwner?.owner_id || null}
+                                  selectedAdminName={cityOwner?.owner_name || null}
+                                  onSelect={(id, name) => {
+                                    assignCity(city.city, id, name, assignCitiesForState);
+                                    setEditingCityAssignment(null);
+                                  }}
+                                  onClose={() => setEditingCityAssignment(null)}
+                                  placeholder="Select admin..."
+                                />
+                              </div>
+                            ) : (
+                              <button
+                                onClick={() => setEditingCityAssignment(`modal-${city.city}`)}
+                                className={`text-xs px-2 py-1 rounded ${
+                                  cityOwner?.owner_id
+                                    ? "text-gray-700 bg-gray-100 hover:bg-gray-200"
+                                    : "text-gray-400 border border-dashed border-gray-300 hover:border-gray-400 hover:text-gray-500"
+                                }`}
+                              >
+                                {cityOwner?.owner_name || "Unassigned"}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Footer */}
+            <div className="px-6 py-4 border-t border-gray-100 shrink-0 bg-gray-50">
+              <button
+                onClick={() => {
+                  setShowAssignCitiesModal(false);
+                  setAssignCitiesSearch("");
+                  setAssignCitiesForState(null);
+                  setEditingCityAssignment(null);
+                  // Refresh main view if we modified the currently selected state
+                  if (assignCitiesForState === selectedState) {
+                    fetchCities();
+                    fetchProviders();
+                  }
+                }}
+                className="w-full px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+              >
+                Done
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete State Confirmation Modal */}
       {stateToDelete && (
         <div
@@ -10705,15 +7131,233 @@ export default function ProviderOutreachPage() {
           providerId={notesModalProvider.id}
           providerName={notesModalProvider.name}
           onClose={() => setNotesModalProvider(null)}
-          onNoteAdded={() => {
-            // Update the provider's notes_count to reflect the new note
+        />
+      )}
+
+      {/* Provider Detail Drawer */}
+      {drawerProvider && (
+        <ProviderDrawer
+          provider={drawerProvider}
+          onClose={() => setDrawerProvider(null)}
+          activeTab={activeTab}
+          onOutcomeRecorded={(providerId, stageChanged) => {
+            if (stageChanged) {
+              // Provider moved to a different stage - remove from current list
+              markAsRecentlyMoved(providerId);
+              const movedProvider = providers.find((p) => p.provider_id === providerId);
+              setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+              // Update stage counts based on where the provider was
+              if (movedProvider?.stage === "needs_call") {
+                // Was in Follow Up - could move to re_engage (resend) or not_contacted (reset)
+                // Only decrement source; don't increment destination as we can't distinguish
+                // which action was taken. Counts self-correct on next data fetch.
+                setStageCounts((prev) => ({
+                  ...prev,
+                  needs_call: Math.max(0, prev.needs_call - 1),
+                }));
+              } else if (movedProvider?.stage === "re_engage") {
+                // Was in Alt Channels, moved to not_contacted (Ready)
+                setStageCounts((prev) => ({
+                  ...prev,
+                  re_engage: Math.max(0, prev.re_engage - 1),
+                  call_confirm: prev.call_confirm + 1,
+                }));
+              } else if (movedProvider?.stage === "call_exhausted") {
+                // Was in Call tab, moved to not_contacted (Ready)
+                setStageCounts((prev) => ({
+                  ...prev,
+                  call_exhausted: Math.max(0, prev.call_exhausted - 1),
+                  call_confirm: prev.call_confirm + 1,
+                }));
+              }
+            }
+          }}
+          onClaimLinkSent={(providerId, newResendCount) => {
+            // Update resend_count in local state after claim link is sent
             setProviders((prev) =>
               prev.map((p) =>
-                p.provider_id === notesModalProvider.id
-                  ? { ...p, notes_count: (p.notes_count ?? 0) + 1 }
+                p.provider_id === providerId
+                  ? { ...p, resend_count: newResendCount }
                   : p
               )
             );
+            // Update drawer provider too
+            setDrawerProvider((prev) =>
+              prev && prev.provider_id === providerId
+                ? { ...prev, resend_count: newResendCount }
+                : prev
+            );
+          }}
+          onEmailUpdate={(providerId, email, emailSource) => {
+            setProviders((prev) =>
+              prev.map((p) =>
+                p.provider_id === providerId
+                  ? {
+                      ...p,
+                      email,
+                      confirmed_at: null,
+                      confirmed_by: null,
+                      ...(emailSource && { email_source: emailSource }),
+                    }
+                  : p
+              )
+            );
+            // Update drawer provider too
+            setDrawerProvider((prev) =>
+              prev && prev.provider_id === providerId
+                ? { ...prev, email, ...(emailSource && { email_source: emailSource }) }
+                : prev
+            );
+            if (isNotContactedTab(activeTab)) {
+              fetchCities();
+            }
+          }}
+          onPhoneUpdate={(providerId, phone) => {
+            setProviders((prev) =>
+              prev.map((p) =>
+                p.provider_id === providerId
+                  ? { ...p, phone, confirmed_at: null, confirmed_by: null }
+                  : p
+              )
+            );
+            // Update drawer provider too
+            setDrawerProvider((prev) =>
+              prev && prev.provider_id === providerId ? { ...prev, phone } : prev
+            );
+          }}
+          onLaunchSequence={(providerId) => {
+            // Look up provider from state and open sequence confirmation modal
+            const provider = providers.find((p) => p.provider_id === providerId);
+            if (provider) {
+              setSequenceConfirmProviders([provider]);
+              setShowSequenceConfirm(true);
+              setDrawerProvider(null);
+            }
+          }}
+          onMarkNotInterested={(providerId) => {
+            const provider = providers.find((p) => p.provider_id === providerId);
+            if (provider) {
+              setActionModalProvider(provider);
+              setPendingStageMove("not_interested"); // Skip to reason selection
+              setDrawerProvider(null);
+            }
+          }}
+          onArchive={(providerId) => {
+            const provider = providers.find((p) => p.provider_id === providerId);
+            if (provider) {
+              setActionModalProvider(provider);
+              setSelectedAction("archived"); // Skip to archive confirmation
+              setDrawerProvider(null);
+            }
+          }}
+          onRemove={(providerId, providerName) => {
+            const provider = providers.find((p) => p.provider_id === providerId);
+            setPendingRemoval({
+              providerId,
+              providerName,
+              stage: provider?.stage || "not_contacted",
+            });
+            setDrawerProvider(null);
+          }}
+          onMoveToReady={async (providerId) => {
+            const provider = providers.find((p) => p.provider_id === providerId);
+            const fromStage = provider?.stage;
+            try {
+              const res = await fetch("/api/admin/provider-outreach/update-stage", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  provider_ids: [providerId],
+                  stage: "not_contacted",
+                }),
+              });
+              if (res.ok) {
+                markAsRecentlyMoved(providerId);
+                setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+                // Update stage counts based on where provider came from
+                setStageCounts((prev) => {
+                  const updated = { ...prev, call_confirm: prev.call_confirm + 1 };
+                  if (fromStage === "not_interested") {
+                    updated.not_interested = Math.max(0, prev.not_interested - 1);
+                    updated.done = Math.max(0, prev.done - 1);
+                  } else if (fromStage === "needs_call") {
+                    updated.needs_call = Math.max(0, prev.needs_call - 1);
+                  } else if (fromStage === "re_engage") {
+                    updated.re_engage = Math.max(0, prev.re_engage - 1);
+                  } else if (fromStage === "call_exhausted") {
+                    updated.call_exhausted = Math.max(0, prev.call_exhausted - 1);
+                  }
+                  return updated;
+                });
+                showToast("Moved to Call & Confirm", "success");
+                setDrawerProvider(null);
+              } else {
+                const data = await res.json().catch(() => ({}));
+                showToast(data.error || "Failed to move", "error");
+                throw new Error("API error"); // Signal failure to child
+              }
+            } catch (err) {
+              if (!(err instanceof Error && err.message === "API error")) {
+                showToast("Network error", "error");
+              }
+              throw err; // Re-throw so child knows it failed
+            }
+          }}
+          onResetToReadyWithApollo={async (providerId) => {
+            const provider = providers.find((p) => p.provider_id === providerId);
+            const apolloContact = provider?.apollo_contact;
+            if (!apolloContact?.email) {
+              showToast("No Apollo email found", "error");
+              return false;
+            }
+            try {
+              const res = await fetch("/api/admin/provider-outreach/reset-to-ready", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  provider_id: providerId,
+                  email_source: "decision_maker",
+                  use_apollo_email: true,
+                }),
+              });
+              if (res.ok) {
+                markAsRecentlyMoved(providerId);
+                setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
+                setStageCounts((prev) => ({
+                  ...prev,
+                  in_sequence: Math.max(0, prev.in_sequence - 1),
+                  call_confirm: prev.call_confirm + 1,
+                }));
+                showToast("Reset to Call & Confirm with Apollo email", "success");
+                setDrawerProvider(null);
+                return true;
+              } else {
+                const err = await res.json();
+                showToast(err.error || "Failed to reset provider", "error");
+                return false;
+              }
+            } catch {
+              showToast("Network error", "error");
+              return false;
+            }
+          }}
+          onContactFound={(providerId, apolloContact) => {
+            setProviders((prev) =>
+              prev.map((p) =>
+                p.provider_id === providerId
+                  ? { ...p, apollo_contact: apolloContact }
+                  : p
+              )
+            );
+            // Update drawer provider too
+            setDrawerProvider((prev) =>
+              prev && prev.provider_id === providerId
+                ? { ...prev, apollo_contact: apolloContact }
+                : prev
+            );
+            if (isNotContactedTab(activeTab)) {
+              fetchCities();
+            }
           }}
         />
       )}

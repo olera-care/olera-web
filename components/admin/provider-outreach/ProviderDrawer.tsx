@@ -1066,7 +1066,7 @@ function ActionsSection({
   const formatProviderAddress = () => {
     const parts = [provider.address, provider.city, provider.state].filter(Boolean);
     if (parts.length === 0) return "";
-    const zipStr = provider.zipcode ? ` ${provider.zipcode}` : "";
+    const zipStr = provider.zipcode ? ` ${String(provider.zipcode).padStart(5, '0')}` : "";
     // Format: "123 Main St, City, ST 12345"
     if (provider.address && provider.city && provider.state) {
       return `${provider.address}, ${provider.city}, ${provider.state}${zipStr}`;
@@ -1666,10 +1666,13 @@ Questions? support@olera.care or (979) 243-9801`;
               rows={3}
               className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
             />
-            {!mailAddress && !provider.address && (
+            {!mailAddress && !provider.mail_address && !provider.address && (
               <p className="text-xs text-gray-400">No address on file - enter address manually</p>
             )}
-            {provider.address && (
+            {provider.mail_address && (
+              <p className="text-xs text-gray-400">Using saved mailing address</p>
+            )}
+            {!provider.mail_address && provider.address && (
               <p className="text-xs text-gray-400">Pre-filled from provider data</p>
             )}
           </div>

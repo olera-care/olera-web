@@ -814,14 +814,189 @@ function ActivitySection({ provider }: { provider: OutreachProvider }) {
 
 function FollowUpSection({
   provider,
+  onOutcomeRecorded,
 }: {
   provider: OutreachProvider;
+  onOutcomeRecorded?: () => void;
 }) {
   const dueBadge = formatDueDateBadge(provider.due_date || null);
   const reasonChip = getNeedsCallReasonChip(provider.needs_call_reason || null);
   const explanation = getFollowUpReasonExplanation(provider);
   const engagement = provider.engagement || { emails_sent: 0, opens: 0, clicks: 0, resends: 0 };
   const resendCount = provider.resend_count ?? 0;
+
+  // Contact form workflow state
+  const [contactFormLoading, setContactFormLoading] = useState(false);
+  const [contactFormUrl, setContactFormUrl] = useState<string | null>(provider.contact_form_url || null);
+  const [contactFormError, setContactFormError] = useState<string | null>(null);
+  const [claimUrl, setClaimUrl] = useState<string | null>(null);
+  const [claimUrlLoading, setClaimUrlLoading] = useState(false);
+  const [claimUrlError, setClaimUrlError] = useState<string | null>(null);
+  const [messageCopied, setMessageCopied] = useState(false);
+  const [contactFormOpened, setContactFormOpened] = useState(false);
+  const [submittingConfirmation, setSubmittingConfirmation] = useState(false);
+
+  // Find contact form URL by crawling provider's website
+  const handleFindContactForm = async () => {
+    if (!provider.website) {
+      setContactFormError("Provider has no website on file");
+      return;
+    }
+
+    setContactFormLoading(true);
+    setContactFormError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-contact-form", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          website: provider.website,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to find contact form");
+      }
+
+      if (data.found && data.url) {
+        setContactFormUrl(data.url);
+      } else {
+        setContactFormError("No contact form found on website");
+      }
+    } catch (err) {
+      setContactFormError(err instanceof Error ? err.message : "Failed to find contact form");
+    } finally {
+      setContactFormLoading(false);
+    }
+  };
+
+  // Generate a short claim URL for the contact form message
+  const handleFetchClaimUrl = async () => {
+    setClaimUrlLoading(true);
+    setClaimUrlError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/generate-claim-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to generate claim URL");
+      }
+
+      setClaimUrl(data.claim_url);
+    } catch (err) {
+      setClaimUrlError(err instanceof Error ? err.message : "Failed to generate claim URL");
+    } finally {
+      setClaimUrlLoading(false);
+    }
+  };
+
+  // Generate the contact form message with claim URL
+  const getContactFormMessage = (): string => {
+    const city = provider.city || provider.state || "your area";
+    const category = provider.provider_category || "care services";
+    const name = provider.provider_name;
+    const link = claimUrl || (provider.slug ? `https://olera.care/providers/${provider.slug}` : "");
+
+    if (!link) return "";
+
+    return `Hi, I'm Logan from Olera.
+
+Families in ${city} searching for ${category} can already see the page we built for ${name}. But if one reached out today, no one would see the message.
+
+Activate your page (2 min, free) to fully manage it:
+${link}
+
+Questions? support@olera.care or (979) 243-9801`;
+  };
+
+  // Form field hints for contact forms that require name/email/phone
+  const CONTACT_FORM_HINTS = {
+    firstName: "Logan",
+    lastName: "DuBose",
+    email: "support@olera.care",
+    phone: "(979) 243-9801",
+  };
+
+  // Copy message to clipboard and open contact form in new tab
+  const handleCopyAndOpenContactForm = () => {
+    if (!contactFormUrl) return;
+
+    const message = getContactFormMessage();
+    if (message) {
+      navigator.clipboard.writeText(message);
+      setMessageCopied(true);
+      setTimeout(() => setMessageCopied(false), 2000);
+    }
+
+    const url = contactFormUrl.startsWith("http") ? contactFormUrl : `https://${contactFormUrl}`;
+    window.open(url, "_blank");
+    setContactFormOpened(true);
+  };
+
+  // Record that the contact form was submitted (moves to re_engage stage)
+  const handleConfirmSubmission = async () => {
+    // Validate URL exists before submission
+    if (!contactFormUrl) {
+      setContactFormError("Please find or enter a contact form URL first");
+      return;
+    }
+
+    setSubmittingConfirmation(true);
+    setContactFormError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/record-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          outcome: "try_contact_form",
+          notes: `Contact form submitted: ${contactFormUrl}`,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to record submission");
+      }
+
+      // Success - notify parent to refresh data
+      onOutcomeRecorded?.();
+    } catch (err) {
+      setContactFormError(err instanceof Error ? err.message : "Failed to record submission");
+    } finally {
+      setSubmittingConfirmation(false);
+    }
+  };
+
+  // Suppress unused variable warnings - these will be used in Task #14 (UI)
+  void contactFormLoading;
+  void contactFormUrl;
+  void contactFormError;
+  void claimUrlLoading;
+  void claimUrlError;
+  void messageCopied;
+  void contactFormOpened;
+  void submittingConfirmation;
+  void handleFindContactForm;
+  void handleFetchClaimUrl;
+  void getContactFormMessage;
+  void CONTACT_FORM_HINTS;
+  void handleCopyAndOpenContactForm;
+  void handleConfirmSubmission;
 
   return (
     <div>
@@ -893,81 +1068,6 @@ function ReEngageSection({
   const channel = provider.re_engage_channel;
   const channelInfo = channel ? CHANNEL_LABELS[channel] || { label: channel, className: "bg-gray-100 text-gray-600" } : null;
   const waitDays = daysSince(provider.re_engage_entered_at || null);
-
-  // Contact form workflow state
-  const [contactFormLoading, setContactFormLoading] = useState(false);
-  const [contactFormUrl, setContactFormUrl] = useState<string | null>(provider.contact_form_url || null);
-  const [contactFormError, setContactFormError] = useState<string | null>(null);
-  const [claimUrl, setClaimUrl] = useState<string | null>(null);
-  const [claimUrlLoading, setClaimUrlLoading] = useState(false);
-  const [claimUrlError, setClaimUrlError] = useState<string | null>(null);
-  const [messageCopied, setMessageCopied] = useState(false);
-
-  // Find contact form URL by crawling provider's website
-  const handleFindContactForm = async () => {
-    if (!provider.website) {
-      setContactFormError("Provider has no website on file");
-      return;
-    }
-
-    setContactFormLoading(true);
-    setContactFormError(null);
-
-    try {
-      const res = await fetch("/api/admin/provider-outreach/find-contact-form", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          website: provider.website,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to find contact form");
-      }
-
-      if (data.found && data.url) {
-        setContactFormUrl(data.url);
-      } else {
-        setContactFormError("No contact form found on website");
-      }
-    } catch (err) {
-      setContactFormError(err instanceof Error ? err.message : "Failed to find contact form");
-    } finally {
-      setContactFormLoading(false);
-    }
-  };
-
-  // Generate a short claim URL for the contact form message
-  const handleFetchClaimUrl = async () => {
-    setClaimUrlLoading(true);
-    setClaimUrlError(null);
-
-    try {
-      const res = await fetch("/api/admin/provider-outreach/generate-claim-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to generate claim URL");
-      }
-
-      setClaimUrl(data.claim_url);
-    } catch (err) {
-      setClaimUrlError(err instanceof Error ? err.message : "Failed to generate claim URL");
-    } finally {
-      setClaimUrlLoading(false);
-    }
-  };
 
   return (
     <div>
@@ -1483,7 +1583,10 @@ export function ProviderDrawer({
         {/* Follow Up Section - only for needs_call stage */}
         {showFollowUpSection && (
           <>
-            <FollowUpSection provider={provider} />
+            <FollowUpSection
+              provider={provider}
+              onOutcomeRecorded={() => onOutcomeRecorded?.(provider.provider_id, true)}
+            />
             <SectionDivider />
           </>
         )}

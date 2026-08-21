@@ -47,6 +47,10 @@ export interface AdBoostCommunicationRequest {
   delivered?: number;
   ad_clicks?: number | null;
   ad_spend_cents?: number | null;
+  /** Session-deduped managed-UTM landings measured on the provider page,
+   *  internal traffic excluded. Attached by both admin API branches. Unlike
+   *  the operator-entered figures above, this never goes stale. */
+  ad_landings?: number;
   queued_email_sent_at?: string | null;
   requested_email_sent_at?: string | null;
   profile_reminder_email_sent_at?: string | null;
@@ -355,7 +359,15 @@ export function getAdBoostStepState(
       return { label: "Not due", tone: "muted" };
     case "traction":
       if (sent) return sent;
-      if (status === "live" && ((request.ad_clicks ?? 0) > 0 || (request.ad_spend_cents ?? 0) > 0)) {
+      // Measured landings are traction even when nobody has typed the ad
+      // platform's numbers in yet — otherwise a delivering campaign sits on
+      // "Watching metrics" indefinitely (Rosemonte: 10 landings, typed 0).
+      if (
+        status === "live" &&
+        ((request.ad_clicks ?? 0) > 0 ||
+          (request.ad_spend_cents ?? 0) > 0 ||
+          (request.ad_landings ?? 0) > 0)
+      ) {
         return predatesCommunicationMonitoring(request, request.updated_at)
           ? historicalUnknownState("metrics were imported outside the email trigger")
           : {

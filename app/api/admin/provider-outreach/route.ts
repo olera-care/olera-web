@@ -211,6 +211,8 @@ export interface OutreachProvider {
   } | null;
   // Email source: 'organization' (scraped/manual) or 'decision_maker' (Apollo)
   email_source?: "organization" | "decision_maker" | null;
+  // Count of notes in provider_outreach_notes table (for icon fill state)
+  notes_count?: number;
 }
 
 /**
@@ -335,6 +337,52 @@ async function enrichWithQuestionsAndLeads(
 }
 
 /**
+ * Enrich providers with notes count from provider_outreach_notes table.
+ * This is used for the notes icon fill state in the UI.
+ * Uses batching to avoid URL length limits with large provider lists.
+ */
+async function enrichWithNotesCount(
+  db: ReturnType<typeof getServiceClient>,
+  providers: OutreachProvider[]
+): Promise<OutreachProvider[]> {
+  if (providers.length === 0) return providers;
+
+  const providerIds = providers.map((p) => p.provider_id).filter(Boolean);
+
+  if (providerIds.length === 0) return providers;
+
+  // Query notes in batches to avoid URL length limits
+  const notesCounts = new Map<string, number>();
+
+  for (let i = 0; i < providerIds.length; i += IN_CLAUSE_BATCH_SIZE) {
+    const batch = providerIds.slice(i, i + IN_CLAUSE_BATCH_SIZE);
+
+    const { data: notesRows, error } = await db
+      .from("provider_outreach_notes")
+      .select("provider_id")
+      .in("provider_id", batch);
+
+    if (error) {
+      console.error("[enrichWithNotesCount] Query error:", error);
+      // Continue with other batches, don't fail entirely
+      continue;
+    }
+
+    // Count notes per provider
+    for (const row of notesRows || []) {
+      const count = notesCounts.get(row.provider_id) || 0;
+      notesCounts.set(row.provider_id, count + 1);
+    }
+  }
+
+  // Enrich providers
+  return providers.map((p) => ({
+    ...p,
+    notes_count: notesCounts.get(p.provider_id) || 0,
+  }));
+}
+
+/**
  * GET /api/admin/provider-outreach
  *
  * List providers by stage with optional city filter.
@@ -412,7 +460,8 @@ export async function GET(request: NextRequest) {
     if (search) {
       const searchResults = await searchProviders(db, state, search);
       const withEmail = await enrichWithEmailVerification(db, searchResults);
-      const enriched = await enrichWithQuestionsAndLeads(db, withEmail);
+      const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
+      const enriched = await enrichWithNotesCount(db, withQuestions);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats, is_search: true });
     }
 
@@ -421,7 +470,8 @@ export async function GET(request: NextRequest) {
       // email_filter allows splitting into "Needs Email" and "Ready" tabs
       const providers = await getNotContactedProviders(db, state, city, emailFilter);
       const withEmail = await enrichWithEmailVerification(db, providers);
-      const enriched = await enrichWithQuestionsAndLeads(db, withEmail);
+      const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
+      const enriched = await enrichWithNotesCount(db, withQuestions);
       // Compute admin counts from the providers list (includes display_name for filter chips)
       const computedAdminCounts = await computeAdminCountsFromProviders(db, providers);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: computedAdminCounts, follow_ups_today: followUpsTodayStats });
@@ -431,7 +481,8 @@ export async function GET(request: NextRequest) {
       // Special case: "Claimed" shows ACTUAL claimed providers (from business_profiles)
       const providers = await getClaimedProviders(db, state, city);
       const withEmail = await enrichWithEmailVerification(db, providers);
-      const enriched = await enrichWithQuestionsAndLeads(db, withEmail);
+      const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
+      const enriched = await enrichWithNotesCount(db, withQuestions);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
@@ -449,7 +500,8 @@ export async function GET(request: NextRequest) {
     if (stage === "hidden") {
       const providers = await getHiddenProviders(db, state, city);
       const withEmail = await enrichWithEmailVerification(db, providers);
-      const enriched = await enrichWithQuestionsAndLeads(db, withEmail);
+      const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
+      const enriched = await enrichWithNotesCount(db, withQuestions);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
@@ -457,7 +509,8 @@ export async function GET(request: NextRequest) {
     if (stage === "archived") {
       const providers = await getArchivedProviders(db, state, city);
       const withEmail = await enrichWithEmailVerification(db, providers);
-      const enriched = await enrichWithQuestionsAndLeads(db, withEmail);
+      const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
+      const enriched = await enrichWithNotesCount(db, withQuestions);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
@@ -706,7 +759,8 @@ export async function GET(request: NextRequest) {
       .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
 
     const withEmail = await enrichWithEmailVerification(db, providers);
-    const enriched = await enrichWithQuestionsAndLeads(db, withEmail);
+    const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
+    const enriched = await enrichWithNotesCount(db, withQuestions);
     return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
   } catch (err) {
     console.error("[provider-outreach] Error:", err);
@@ -755,22 +809,18 @@ async function getNotContactedProviders(
   }
 
   // Collect hidden provider IDs (these should be excluded regardless of stage)
+  // Use truthy check (not strict ===) to handle any DB type variations
   const hiddenProviderIds = new Set(
     (trackedInState || [])
-      .filter((t) => t.admin_hidden === true)
+      .filter((t) => t.admin_hidden)
       .map((t) => t.provider_id)
   );
 
-  // Log tracking records with non-not_contacted stages (these should be excluded)
-  // Exclude hidden providers from this set since they're already excluded
+  // Collect providers with non-not_contacted stages (these should also be excluded from Ready)
+  // These are providers actively being worked in other stages
   const nonNotContactedTracking = (trackedInState || []).filter(
-    (t) => t.stage !== "not_contacted" && t.admin_hidden !== true
+    (t) => t.stage !== "not_contacted" && !t.admin_hidden
   );
-  if (nonNotContactedTracking.length > 0) {
-    console.log(`[getNotContactedProviders] Found ${nonNotContactedTracking.length} tracked providers with non-not_contacted stage for state=${state}:`,
-      nonNotContactedTracking.slice(0, 10).map(t => ({ provider_id: t.provider_id, stage: t.stage, tracking_state: t.state }))
-    );
-  }
 
   const trackedProviderIds = new Set(
     nonNotContactedTracking.map((t) => t.provider_id)
@@ -780,7 +830,7 @@ async function getNotContactedProviders(
   // Exclude hidden providers - they shouldn't appear in the list at all
   const notContactedMap = new Map(
     (trackedInState || [])
-      .filter((t) => t.stage === "not_contacted" && t.admin_hidden !== true)
+      .filter((t) => t.stage === "not_contacted" && !t.admin_hidden)
       .map((t) => [t.provider_id, t])
   );
 
@@ -1371,9 +1421,10 @@ async function searchProviders(
     .in("provider_id", providerIds);
 
   // Collect hidden provider IDs to exclude from results
+  // Use truthy check to handle any DB type variations
   const hiddenProviderIds = new Set(
     (trackingRows || [])
-      .filter((t) => t.admin_hidden === true)
+      .filter((t) => t.admin_hidden)
       .map((t) => t.provider_id)
   );
 
@@ -1651,7 +1702,8 @@ async function getStageCounts(
   if (trackingRows) {
     for (const row of trackingRows) {
       const stage = row.stage as string;
-      const isHidden = row.admin_hidden === true;
+      // Use truthy check to handle any DB type variations
+      const isHidden = !!row.admin_hidden;
 
       // Track hidden providers (regardless of stage) for exclusion from not_contacted counts
       if (isHidden) {

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
-import { markEmailTrusted } from "@/lib/email";
+import { markEmailTrusted, getRecipientDeliveryHistory, isNeverDeliveredMailbox } from "@/lib/email";
 import { getCachedVerification, isUnoverridableVerdict } from "@/lib/email-verification";
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 
@@ -154,6 +154,33 @@ async function handle(params: {
           `This address can't be trusted: ${HARD_VERDICT_COPY[existingVerdict.subStatus ?? ""] ?? "the mailbox is confirmed undeliverable"}. ` +
           `That's a fact from the receiving mail server, not a prediction, so sending would only bounce. ` +
           `Find a different address for this provider.`,
+      },
+      { status: 422 },
+    );
+  }
+
+  // Refuse to trust a mailbox that has never once accepted mail from us.
+  //
+  // Same principle as the verdict guard above, applied to stronger evidence: that
+  // one is a vendor's prediction, this is what the receiving server actually did.
+  // Trusting here would bypass suppression and re-mail a dead address indefinitely,
+  // and every attempt counts toward the account-wide bounce threshold that also
+  // carries family and auth mail.
+  //
+  // Deliberately narrow: any successful delivery, ever, on any email type means the
+  // inbox works and the override is legitimate. Only "bounced, never delivered"
+  // is refused.
+  const history = await getRecipientDeliveryHistory(email);
+  if (isNeverDeliveredMailbox(history)) {
+    return NextResponse.json(
+      {
+        error: "never_delivered",
+        bounced: history.bounced,
+        message:
+          `This address has bounced ${history.bounced} time${history.bounced === 1 ? "" : "s"} and has never ` +
+          `successfully delivered. That's what the receiving mail server did with mail we already sent, not a ` +
+          `prediction, so trusting it would only produce more bounces. Use Replace to add a different address, ` +
+          `or reach this provider by phone.`,
       },
       { status: 422 },
     );

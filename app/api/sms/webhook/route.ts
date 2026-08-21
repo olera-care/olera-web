@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { normalizeUSPhone } from "@/lib/twilio";
 import { smsHelpReply, familyAnswerAckSms } from "@/lib/sms/templates";
 import { detectCrisis, crisisLabel, type CrisisResult } from "@/lib/sms/crisis";
+import { isCourtesyOnlyReply } from "@/lib/sms/inbound-intent";
 import { sendReactiveFamilyAlert } from "@/lib/sms/reactive-alerts";
 import { captureOutcome, outcomeFromKeyword } from "@/lib/family-answers/outcome.server";
 import { interpretBenefitsSmsReply } from "@/lib/family-comms/benefits-sms-replies.server";
@@ -397,6 +398,12 @@ export async function POST(request: NextRequest) {
   const normalizedFrom = normalizeUSPhone(from) ?? from;
   const keyword = (params.Body || "").trim().toUpperCase().replace(/[^A-Z]/g, "");
   const messageBody = (params.Body || "").trim();
+  // High-confidence conversational close. Crisis wins even if a message also
+  // contains thanks ("thank you, but I want to die" must never be dismissed).
+  const courtesyOnly =
+    Boolean(messageBody) &&
+    !detectCrisis(messageBody).isCrisis &&
+    isCourtesyOnlyReply(messageBody);
   const isControlKeyword =
     OPT_OUT_KEYWORDS.has(keyword) || OPT_IN_KEYWORDS.has(keyword) || HELP_KEYWORDS.has(keyword);
 
@@ -415,6 +422,7 @@ export async function POST(request: NextRequest) {
       fromPhone: normalizedFrom,
       body: messageBody || keyword,
       keyword: isControlKeyword ? keyword : null,
+      autoHandleIfFamily: courtesyOnly,
     });
     senderType = captured.sender.profileType;
     senderName = captured.sender.displayName;
@@ -474,6 +482,16 @@ export async function POST(request: NextRequest) {
         return twiml(captured.response);
       }
       // Nothing was awaiting an outcome — fall through to normal handling.
+    }
+
+    // "Thank you" is a close, not a new research request. Keep it in both
+    // durable histories, but do not page Slack, promise a follow-up, or create
+    // a Family Answers job. Scoped to matched families so a provider or unknown
+    // sender still reaches a human even when their short reply is ambiguous.
+    if (messageBody && courtesyOnly && senderType === "family") {
+      await recordInbound(normalizedFrom, messageBody, null);
+      console.log(`[sms-webhook] Courtesy-only family reply auto-handled for ${normalizedFrom}`);
+      return twiml();
     }
 
     if (messageBody) {

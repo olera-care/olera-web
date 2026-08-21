@@ -360,21 +360,22 @@ async function getNotContactedProvidersForExport(
     .select("provider_id, id, stage, stage_changed_at, notes, assigned_to, admin_hidden")
     .eq("state", state);
 
+  // Use truthy checks to handle any DB type variations
   const hiddenProviderIds = new Set(
     (trackedInState || [])
-      .filter((t) => t.admin_hidden === true)
+      .filter((t) => t.admin_hidden)
       .map((t) => t.provider_id)
   );
 
   const nonNotContactedIds = new Set(
     (trackedInState || [])
-      .filter((t) => t.stage !== "not_contacted" && t.admin_hidden !== true)
+      .filter((t) => t.stage !== "not_contacted" && !t.admin_hidden)
       .map((t) => t.provider_id)
   );
 
   const notContactedMap = new Map(
     (trackedInState || [])
-      .filter((t) => t.stage === "not_contacted" && t.admin_hidden !== true)
+      .filter((t) => t.stage === "not_contacted" && !t.admin_hidden)
       .map((t) => [t.provider_id, t])
   );
 

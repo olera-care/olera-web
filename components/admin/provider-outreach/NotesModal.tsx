@@ -15,9 +15,10 @@ interface NotesModalProps {
   providerId: string;
   providerName: string;
   onClose: () => void;
+  onNoteAdded?: () => void;
 }
 
-export function NotesModal({ providerId, providerName, onClose }: NotesModalProps) {
+export function NotesModal({ providerId, providerName, onClose, onNoteAdded }: NotesModalProps) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -88,12 +89,14 @@ export function NotesModal({ providerId, providerName, onClose }: NotesModalProp
       // Add new note to the top of the list
       setNotes((prev) => [data.note, ...prev]);
       setNewNote("");
+      // Notify parent that a note was added (for icon update)
+      onNoteAdded?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to add note");
     } finally {
       setSubmitting(false);
     }
-  }, [newNote, providerId, submitting]);
+  }, [newNote, providerId, submitting, onNoteAdded]);
 
   // Ctrl+Enter to submit
   const handleKeyDown = useCallback(

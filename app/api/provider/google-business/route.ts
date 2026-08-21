@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { validateGooglePlaceId } from "@/lib/google-places";
+import { addressesAgree } from "@/lib/providers/address-match";
 import { deliverPendingConnections } from "@/lib/notifications/deliver-pending-connections";
 import { publishPendingQAAnswers } from "@/lib/notifications/publish-pending-qa-answers";
 import { publishPendingInterviews } from "@/lib/notifications/publish-pending-interviews";
@@ -163,7 +164,7 @@ export async function POST(request: NextRequest) {
 
     const { data: profile } = await db
       .from("business_profiles")
-      .select("id, slug, display_name, metadata")
+      .select("id, slug, display_name, address, metadata, verification_state")
       .eq("account_id", account.id)
       .in("type", ["organization", "caregiver"])
       .single();
@@ -172,32 +173,79 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "No provider profile found" }, { status: 400 });
     }
 
-    // Check if a Place ID already exists (locked - cannot change)
     const existingMetadata = (profile.metadata || {}) as Record<string, unknown>;
     const existingGoogleMetadata = (existingMetadata.google_metadata || {}) as Record<string, unknown>;
+    const isRebind = !!existingGoogleMetadata.place_id;
 
-    if (existingGoogleMetadata.place_id) {
+    if (isRebind && existingGoogleMetadata.place_id === placeId) {
       return NextResponse.json(
-        {
-          error: "Google Business Profile is already connected. Contact support to change it.",
-          already_connected: true,
-        },
+        { error: "That is already the connected Google Business Profile." },
         { status: 400 }
       );
     }
 
-    // Update the metadata with the new Google Place ID
+    // Changing an existing connection is gated on the new Place being at the
+    // same street address as the profile. A first connection is not: it is the
+    // ownership proof that grants verification, and at that point the profile
+    // address is still whatever the directory seeded, so requiring agreement
+    // would lock out exactly the providers who need to correct it.
+    //
+    // The gate exists because a rebind is otherwise a way to adopt another
+    // business's rating. It fails closed: if Google gave us no address to
+    // compare, the change is refused rather than allowed.
+    if (isRebind) {
+      const agreement = addressesAgree(profile.address, validation.formattedAddress);
+      if (!agreement.agrees) {
+        return NextResponse.json(
+          {
+            error:
+              agreement.reason === "different-street"
+                ? `"${validation.name}" is at ${validation.formattedAddress}, which does not match the address on your profile (${profile.address}). Update your profile address first if you have moved, or contact support if this listing is yours.`
+                : "We could not confirm that listing is at your profile's address. Contact support and we'll connect it for you.",
+            address_mismatch: true,
+            place_name: validation.name,
+            place_address: validation.formattedAddress,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Update the metadata with the new Google Place ID.
+    //
+    // Everything cached under the old binding describes a DIFFERENT business,
+    // so writing a place_id invalidates all of it — on a first connection as
+    // much as on a rebind. A profile can hold a cached review payload without
+    // ever having owned a place_id: the detail page inherits the linked
+    // directory row's place_id, and the on-demand backfill then writes that
+    // Place's reviews onto the profile. Keeping them across a connect would
+    // pin the directory listing's stars under the provider's own listing, and
+    // the backfill never re-fires once the cache is non-empty.
+    //
+    // google_metadata is rebuilt rather than spread for the same reason: its
+    // `rating` and `place_name` describe the place being replaced.
+    const { google_reviews_data: _staleReviewCache, ...metadataWithoutReviews } = existingMetadata;
+    const boundAt = new Date().toISOString();
+
     const updatedMetadata = {
-      ...existingMetadata,
+      ...metadataWithoutReviews,
       google_metadata: {
-        ...existingGoogleMetadata,
         place_id: placeId,
-        last_synced: new Date().toISOString(),
+        place_name: validation.name,
+        last_synced: boundAt,
+        // What the binding was checked against, so a later address change can
+        // be spotted without re-querying Google.
+        bound_address: profile.address ?? null,
+        bound_at: boundAt,
+        ...(isRebind
+          ? { previous_place_id: existingGoogleMetadata.place_id, rebound_at: boundAt }
+          : {}),
       },
     };
 
     // Update metadata AND auto-verify the provider
     // Connecting Google Business Profile proves business ownership
+    const wasVerified = profile.verification_state === "verified";
     const { error: updateError } = await db
       .from("business_profiles")
       .update({
@@ -211,25 +259,31 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to save" }, { status: 500 });
     }
 
-    // Release pending content and notify (fire-and-forget)
+    // Release pending content and notify (fire-and-forget). Only on the
+    // transition into verified — a rebind by an already-verified provider is
+    // not a verification event and must not re-fire these notifications.
     const providerName = profile.display_name || "A provider";
     const providerSlug = profile.slug;
 
-    publishPendingQAAnswers(db, profile.id, providerName, providerSlug).catch((err) => {
-      console.error("[google-business] Error publishing pending Q&A answers:", err);
-    });
+    if (!wasVerified) {
+      publishPendingQAAnswers(db, profile.id, providerName, providerSlug).catch((err) => {
+        console.error("[google-business] Error publishing pending Q&A answers:", err);
+      });
 
-    deliverPendingConnections(db, profile.id, providerName, providerSlug).catch((err) => {
-      console.error("[google-business] Error delivering pending connections:", err);
-    });
+      deliverPendingConnections(db, profile.id, providerName, providerSlug).catch((err) => {
+        console.error("[google-business] Error delivering pending connections:", err);
+      });
 
-    publishPendingInterviews(db, profile.id, providerName, providerSlug).catch((err) => {
-      console.error("[google-business] Error publishing pending interviews:", err);
-    });
+      publishPendingInterviews(db, profile.id, providerName, providerSlug).catch((err) => {
+        console.error("[google-business] Error publishing pending interviews:", err);
+      });
+    }
 
     return NextResponse.json({
       success: true,
       place_id: placeId,
+      place_name: validation.name,
+      rebound: isRebind,
       verified: true,
     });
   } catch (err) {

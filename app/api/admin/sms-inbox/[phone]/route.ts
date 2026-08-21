@@ -282,11 +282,23 @@ export async function POST(
     const db = getServiceClient();
 
     if (action === "mark_handled") {
-      const { error } = await db
-        .from("sms_inbound")
-        .update({ handled_at: new Date().toISOString(), handled_by: user.email ?? admin.id })
-        .eq("phone_last10", last10)
-        .is("handled_at", null);
+      const now = new Date().toISOString();
+      const [inboundResult, jobsResult] = await Promise.all([
+        db
+          .from("sms_inbound")
+          .update({ handled_at: now, handled_by: user.email ?? admin.id })
+          .eq("phone_last10", last10)
+          .is("handled_at", null),
+        // Mark handled means the thread needs no drafted answer. Close pending,
+        // running, and ready work together so the review card cannot survive
+        // the message it was created for.
+        db
+          .from("family_answer_jobs")
+          .update({ status: "skipped", completed_at: now })
+          .eq("phone_last10", last10)
+          .in("status", ["pending", "running", "ready"]),
+      ]);
+      const error = inboundResult.error ?? jobsResult.error;
       if (error) {
         console.error("[admin/sms-inbox/phone] mark_handled failed:", error);
         return NextResponse.json({ error: error.message }, { status: 500 });

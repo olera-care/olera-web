@@ -20,6 +20,7 @@ and prove a provider-funded revenue model that keeps navigation free for familie
 | `commercialization-plan.md` | Canonical CP | Drive "3. Commercialization Plan" (`1Vutumdd…`, mod 08-17 11:20) | GitHub-active |
 | `solicitation-reviewer-reference.md` | Verbatim NOFO/review criteria | solicitation capture | stable |
 | `evidence-ledger.md` | Claim → source → strength → verify? | maintained live | live |
+| `meetings/2026-08-21-david-qu-and-team.md` | Durable context from the David Qu call + team session: the traction-strategy reframe, letters plan, commitments, watch list | transcript, 2026-08-21 | live; newest team decisions |
 | `SPINE.md` | **The locked CRP strategic spine** and the test every claim, aim, and figure is checked against; architecture fixed 2026-08-20, language refinable | strategy session 2026-08-20 | locked; reopen only with Logan |
 | `strategic-context-2026-08-20.md` | Why the current strategy: business diagnosis → free-core + two-product framing, temporal frame, story spine, unresolved questions | strategy session 2026-08-20 | stable; supersedes README §5's three-product terminology pending TJ ratification |
 | `figures/` + `MANIFEST.md` | Figure files, captions, placement, argument, status | RS: extracted from Drive docx; CP: SVGs from staging v0.24 | live |

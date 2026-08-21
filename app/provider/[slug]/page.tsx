@@ -579,7 +579,19 @@ export default async function ProviderPage({
   const hasStaffScreening = staffScreeningItems.length > 0;
   const hasAcceptedPayments = acceptedPayments.length > 0;
 
-  const rawCareTypes = (profile.care_types ?? []).map(normalizeCareLabel);
+  // A provider's care_types can hold the same service in several shapes
+  // ("home-care" and "Home Care", "Dementia Care" and "Memory Care") which
+  // normalize to one canonical label, so dedupe after normalizing or the
+  // services list repeats itself. Same guard directoryHydrationFields uses.
+  const seenCareType = new Set<string>();
+  const rawCareTypes = (profile.care_types ?? [])
+    .map(normalizeCareLabel)
+    .filter((s) => {
+      const key = s.toLowerCase();
+      if (seenCareType.has(key)) return false;
+      seenCareType.add(key);
+      return true;
+    });
   const careServices: string[] = [...rawCareTypes];
   if (profile.category) {
     const inferred = getCategoryServices(profile.category);

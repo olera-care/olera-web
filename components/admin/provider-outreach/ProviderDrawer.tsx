@@ -1580,11 +1580,17 @@ Questions? support@olera.care or (979) 243-9801`;
                   const data = await res.json();
                   if (res.ok && data.success) {
                     // Record the outcome to move to re_engage
-                    await fetch("/api/admin/provider-outreach/record-outcome", {
+                    const outcomeRes = await fetch("/api/admin/provider-outreach/record-outcome", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({ provider_id: provider.provider_id, outcome: "try_fax" }),
                     });
+                    if (!outcomeRes.ok) {
+                      // Fax sent but tracking update failed
+                      setActionError("Fax sent, but failed to update stage. Refresh and check provider status.");
+                      onOutcomeRecorded?.(provider.provider_id, false);
+                      return;
+                    }
                     setFaxSent(true);
                     onOutcomeRecorded?.(provider.provider_id, true);
                     setTimeout(() => onClose?.(), 1500);

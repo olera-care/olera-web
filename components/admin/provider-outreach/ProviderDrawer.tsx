@@ -1049,6 +1049,7 @@ function ActionsSection({
   const [claimUrlLoading, setClaimUrlLoading] = useState(false);
   const [messageCopied, setMessageCopied] = useState(false);
   const [contactFormOpened, setContactFormOpened] = useState(false);
+  const [findingContactForm, setFindingContactForm] = useState(false);
 
   // Reset contact form state when provider changes
   useEffect(() => {
@@ -1056,12 +1057,43 @@ function ActionsSection({
     setClaimUrl(null);
     setMessageCopied(false);
     setContactFormOpened(false);
+    setFindingContactForm(false);
   }, [provider.provider_id, provider.contact_form_url, provider.website]);
 
   // Auto-generate claim URL when entering contact form workflow
   useEffect(() => {
     if (confirmAction === "contact_form" && !claimUrl && !claimUrlLoading && provider.email && provider.slug) {
       handleGenerateClaimUrl();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirmAction]);
+
+  // Auto-find contact form URL when entering workflow (if provider has website but no saved URL)
+  useEffect(() => {
+    if (
+      confirmAction === "contact_form" &&
+      provider.website &&
+      !provider.contact_form_url &&
+      !findingContactForm
+    ) {
+      setFindingContactForm(true);
+      fetch("/api/admin/provider-outreach/find-contact-form", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, website: provider.website }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.found && data.url) {
+            setContactFormUrl(data.url);
+          }
+        })
+        .catch(() => {
+          // Non-fatal - keep website as fallback
+        })
+        .finally(() => {
+          setFindingContactForm(false);
+        });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [confirmAction]);
@@ -1272,7 +1304,15 @@ Questions? support@olera.care or (979) 243-9801`;
         <div className="space-y-3">
           {/* 1. Contact form URL input (first - entry point) */}
           <div className="space-y-1">
-            <label className="text-xs text-gray-500">Contact form URL</label>
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-gray-500">Contact form URL</label>
+              {findingContactForm && (
+                <span className="text-xs text-gray-400 flex items-center gap-1">
+                  <span className="w-3 h-3 border border-gray-300 border-t-gray-500 rounded-full animate-spin" />
+                  Finding...
+                </span>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <input
                 type="text"

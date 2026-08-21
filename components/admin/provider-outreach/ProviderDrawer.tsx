@@ -1129,6 +1129,7 @@ function ActionsSection({
       !findingFax
     ) {
       setFindingFax(true);
+      const initialFaxNumber = faxNumber; // Capture initial value
       fetch("/api/admin/provider-outreach/find-fax", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1137,8 +1138,13 @@ function ActionsSection({
         .then((res) => res.json())
         .then((data) => {
           if (data.fax) {
-            setFaxNumber(data.fax);
-            setFaxConfidence(data.confidence);
+            // Only update if user hasn't edited the fax number
+            setFaxNumber((current) =>
+              current === initialFaxNumber ? data.fax : current
+            );
+            setFaxConfidence((currentConf) =>
+              currentConf === null ? data.confidence : currentConf
+            );
           }
         })
         .catch(() => {

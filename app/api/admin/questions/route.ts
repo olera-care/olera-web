@@ -933,6 +933,7 @@ export async function GET(request: NextRequest) {
       // Fetch email history for question notifications sent to these providers
       const providerEmailHistory: Record<string, Array<{
         id: string;
+        recipient: string | null;
         created_at: string;
         subject: string;
         delivered_at: string | null;
@@ -945,7 +946,7 @@ export async function GET(request: NextRequest) {
       if (uniqueProviderIdsForEmail.length > 0) {
         const { data: emailLogs } = await db
           .from("email_log")
-          .select("id, provider_id, created_at, subject, delivered_at, first_opened_at, bounced_at, complained_at")
+          .select("id, provider_id, recipient, created_at, subject, delivered_at, first_opened_at, bounced_at, complained_at")
           .in("provider_id", uniqueProviderIdsForEmail)
           .eq("email_type", "question_received")
           .eq("recipient_type", "provider")
@@ -959,6 +960,7 @@ export async function GET(request: NextRequest) {
           }
           providerEmailHistory[log.provider_id].push({
             id: log.id,
+            recipient: log.recipient,
             created_at: log.created_at,
             subject: log.subject,
             delivered_at: log.delivered_at,
@@ -1191,6 +1193,7 @@ export async function GET(request: NextRequest) {
       // Fetch email history for question notifications sent to these providers
       const providerEmailHistory: Record<string, Array<{
         id: string;
+        recipient: string | null;
         created_at: string;
         subject: string;
         delivered_at: string | null;
@@ -1203,7 +1206,7 @@ export async function GET(request: NextRequest) {
       if (uniqueProviderIdsForEmail.length > 0) {
         const { data: emailLogs } = await db
           .from("email_log")
-          .select("id, provider_id, created_at, subject, delivered_at, first_opened_at, bounced_at, complained_at")
+          .select("id, provider_id, recipient, created_at, subject, delivered_at, first_opened_at, bounced_at, complained_at")
           .in("provider_id", uniqueProviderIdsForEmail)
           .eq("email_type", "question_received")
           .eq("recipient_type", "provider")
@@ -1217,6 +1220,7 @@ export async function GET(request: NextRequest) {
           }
           providerEmailHistory[log.provider_id].push({
             id: log.id,
+            recipient: log.recipient,
             created_at: log.created_at,
             subject: log.subject,
             delivered_at: log.delivered_at,
@@ -1508,6 +1512,7 @@ export async function GET(request: NextRequest) {
       // Fetch email history for question notifications sent to these providers
       const providerEmailHistory: Record<string, Array<{
         id: string;
+        recipient: string | null;
         created_at: string;
         subject: string;
         delivered_at: string | null;
@@ -1520,7 +1525,7 @@ export async function GET(request: NextRequest) {
       if (uniqueProviderIdsForEmail.length > 0) {
         const { data: emailLogs } = await db
           .from("email_log")
-          .select("id, provider_id, created_at, subject, delivered_at, first_opened_at, bounced_at, complained_at")
+          .select("id, provider_id, recipient, created_at, subject, delivered_at, first_opened_at, bounced_at, complained_at")
           .in("provider_id", uniqueProviderIdsForEmail)
           .eq("email_type", "question_received")
           .eq("recipient_type", "provider")
@@ -1534,6 +1539,7 @@ export async function GET(request: NextRequest) {
           }
           providerEmailHistory[log.provider_id].push({
             id: log.id,
+            recipient: log.recipient,
             created_at: log.created_at,
             subject: log.subject,
             delivered_at: log.delivered_at,
@@ -1915,6 +1921,7 @@ export async function GET(request: NextRequest) {
     // Fetch email history for question notifications sent to these providers
     const providerEmailHistory: Record<string, Array<{
       id: string;
+      recipient: string | null;
       created_at: string;
       subject: string;
       delivered_at: string | null;
@@ -1927,7 +1934,7 @@ export async function GET(request: NextRequest) {
     if (uniqueProviderIds.length > 0) {
       const { data: emailLogs } = await db
         .from("email_log")
-        .select("id, provider_id, created_at, subject, delivered_at, first_opened_at, bounced_at, complained_at")
+        .select("id, provider_id, recipient, created_at, subject, delivered_at, first_opened_at, bounced_at, complained_at")
         .in("provider_id", uniqueProviderIds)
         .eq("email_type", "question_received")
         .eq("recipient_type", "provider")
@@ -1941,6 +1948,7 @@ export async function GET(request: NextRequest) {
         }
         providerEmailHistory[log.provider_id].push({
           id: log.id,
+          recipient: log.recipient,
           created_at: log.created_at,
           subject: log.subject,
           delivered_at: log.delivered_at,

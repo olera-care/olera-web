@@ -818,10 +818,12 @@ function FollowUpSection({
   provider,
   onOutcomeRecorded,
   onContactFormFound,
+  onClose,
 }: {
   provider: OutreachProvider;
   onOutcomeRecorded?: () => void;
   onContactFormFound?: (providerId: string, url: string) => void;
+  onClose?: () => void;
 }) {
   const dueBadge = formatDueDateBadge(provider.due_date || null);
   const reasonChip = getNeedsCallReasonChip(provider.needs_call_reason || null);
@@ -839,6 +841,7 @@ function FollowUpSection({
   const [messageCopied, setMessageCopied] = useState(false);
   const [contactFormOpened, setContactFormOpened] = useState(false);
   const [submittingConfirmation, setSubmittingConfirmation] = useState(false);
+  const [confirmationSuccess, setConfirmationSuccess] = useState(false);
 
   // Reset contact form state when provider changes (critical: useState doesn't reinit on prop change)
   useEffect(() => {
@@ -849,6 +852,7 @@ function FollowUpSection({
     setMessageCopied(false);
     setContactFormOpened(false);
     setSubmittingConfirmation(false);
+    setConfirmationSuccess(false);
   }, [provider.provider_id, provider.contact_form_url]);
 
   // Find contact form URL by crawling provider's website
@@ -996,8 +1000,10 @@ Questions? support@olera.care or (979) 243-9801`;
         throw new Error(data.error || "Failed to record submission");
       }
 
-      // Success - notify parent to refresh data
+      // Success - show message, notify parent, and close drawer
+      setConfirmationSuccess(true);
       onOutcomeRecorded?.();
+      setTimeout(() => onClose?.(), 1500);
     } catch (err) {
       setContactFormError(err instanceof Error ? err.message : "Failed to record submission");
     } finally {
@@ -1227,7 +1233,7 @@ Questions? support@olera.care or (979) 243-9801`;
             </button>
 
             {/* Confirm Submission (only after form opened) */}
-            {contactFormOpened && (
+            {contactFormOpened && !confirmationSuccess && (
               <button
                 onClick={handleConfirmSubmission}
                 disabled={submittingConfirmation}
@@ -1250,6 +1256,16 @@ Questions? support@olera.care or (979) 243-9801`;
                   </>
                 )}
               </button>
+            )}
+
+            {/* Success message */}
+            {confirmationSuccess && (
+              <div className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-green-700 bg-green-50 rounded-md">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                Moved to Alternative Channels
+              </div>
             )}
           </div>
         )}
@@ -1804,6 +1820,7 @@ export function ProviderDrawer({
               provider={provider}
               onOutcomeRecorded={() => onOutcomeRecorded?.(provider.provider_id, true)}
               onContactFormFound={onContactFormFound}
+              onClose={onClose}
             />
             <SectionDivider />
           </>

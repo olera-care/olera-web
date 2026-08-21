@@ -7238,6 +7238,7 @@ export default function ProviderOutreachPage() {
             const provider = providers.find((p) => p.provider_id === providerId);
             if (provider) {
               setActionModalProvider(provider);
+              setPendingStageMove("not_interested"); // Skip to reason selection
               setDrawerProvider(null);
             }
           }}
@@ -7245,6 +7246,7 @@ export default function ProviderOutreachPage() {
             const provider = providers.find((p) => p.provider_id === providerId);
             if (provider) {
               setActionModalProvider(provider);
+              setSelectedAction("archived"); // Skip to archive confirmation
               setDrawerProvider(null);
             }
           }}

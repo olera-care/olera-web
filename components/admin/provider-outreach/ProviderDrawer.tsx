@@ -1041,7 +1041,10 @@ function ActionsSection({
   const [confirmedCall, setConfirmedCall] = useState(false);
 
   // Contact form workflow state
-  const [contactFormUrl, setContactFormUrl] = useState<string>(provider.contact_form_url || "");
+  // Pre-fill with saved contact_form_url, or fall back to provider website
+  const [contactFormUrl, setContactFormUrl] = useState<string>(
+    provider.contact_form_url || provider.website || ""
+  );
   const [claimUrl, setClaimUrl] = useState<string | null>(null);
   const [claimUrlLoading, setClaimUrlLoading] = useState(false);
   const [messageCopied, setMessageCopied] = useState(false);
@@ -1049,11 +1052,11 @@ function ActionsSection({
 
   // Reset contact form state when provider changes
   useEffect(() => {
-    setContactFormUrl(provider.contact_form_url || "");
+    setContactFormUrl(provider.contact_form_url || provider.website || "");
     setClaimUrl(null);
     setMessageCopied(false);
     setContactFormOpened(false);
-  }, [provider.provider_id, provider.contact_form_url]);
+  }, [provider.provider_id, provider.contact_form_url, provider.website]);
 
   // Auto-generate claim URL when entering contact form workflow
   useEffect(() => {

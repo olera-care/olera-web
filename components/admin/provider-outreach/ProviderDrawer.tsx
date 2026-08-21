@@ -840,6 +840,17 @@ function FollowUpSection({
   const [contactFormOpened, setContactFormOpened] = useState(false);
   const [submittingConfirmation, setSubmittingConfirmation] = useState(false);
 
+  // Reset contact form state when provider changes (critical: useState doesn't reinit on prop change)
+  useEffect(() => {
+    setContactFormUrl(provider.contact_form_url || null);
+    setContactFormError(null);
+    setClaimUrl(null);
+    setClaimUrlError(null);
+    setMessageCopied(false);
+    setContactFormOpened(false);
+    setSubmittingConfirmation(false);
+  }, [provider.provider_id, provider.contact_form_url]);
+
   // Find contact form URL by crawling provider's website
   const handleFindContactForm = async () => {
     if (!provider.website) {
@@ -909,20 +920,20 @@ function FollowUpSection({
   };
 
   // Generate the contact form message with claim URL
+  // Note: This is only called when claimUrl exists (UI gate), so we can assert claimUrl is set
   const getContactFormMessage = (): string => {
+    if (!claimUrl) return "";
+
     const city = provider.city || provider.state || "your area";
     const category = provider.provider_category || "care services";
     const name = provider.provider_name;
-    const link = claimUrl || (provider.slug ? `https://olera.care/providers/${provider.slug}` : "");
-
-    if (!link) return "";
 
     return `Hi, I'm Logan from Olera.
 
 Families in ${city} searching for ${category} can already see the page we built for ${name}. But if one reached out today, no one would see the message.
 
 Activate your page (2 min, free) to fully manage it:
-${link}
+${claimUrl}
 
 Questions? support@olera.care or (979) 243-9801`;
   };
@@ -936,14 +947,20 @@ Questions? support@olera.care or (979) 243-9801`;
   };
 
   // Copy message to clipboard and open contact form in new tab
-  const handleCopyAndOpenContactForm = () => {
+  const handleCopyAndOpenContactForm = async () => {
     if (!contactFormUrl) return;
 
     const message = getContactFormMessage();
     if (message) {
-      navigator.clipboard.writeText(message);
-      setMessageCopied(true);
-      setTimeout(() => setMessageCopied(false), 2000);
+      try {
+        await navigator.clipboard.writeText(message);
+        setMessageCopied(true);
+        setTimeout(() => setMessageCopied(false), 2000);
+      } catch {
+        // Clipboard access denied - show error briefly
+        setContactFormError("Could not copy to clipboard");
+        setTimeout(() => setContactFormError(null), 2000);
+      }
     }
 
     const url = contactFormUrl.startsWith("http") ? contactFormUrl : `https://${contactFormUrl}`;
@@ -1078,10 +1095,15 @@ Questions? support@olera.care or (979) 243-9801`;
                 </a>
               </div>
               <button
-                onClick={() => setContactFormUrl(null)}
+                onClick={() => {
+                  setContactFormUrl(null);
+                  setClaimUrl(null); // Also clear claim URL since it's tied to the contact form workflow
+                  setContactFormOpened(false);
+                }}
                 className="text-xs text-gray-400 hover:text-gray-600"
+                title="Clear to try a different URL"
               >
-                Clear
+                Try different
               </button>
             </div>
           </div>

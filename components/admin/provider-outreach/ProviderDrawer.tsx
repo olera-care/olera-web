@@ -1315,29 +1315,7 @@ Questions? support@olera.care or (979) 243-9801`;
       <div>
         <SectionHeader>Contact Form</SectionHeader>
         <div className="space-y-3">
-          {/* Message preview (auto-generated) */}
-          {claimUrlLoading ? (
-            <div className="p-2 bg-gray-50 rounded text-sm text-gray-500 text-center">
-              Generating message...
-            </div>
-          ) : !canGenerateClaimUrl ? (
-            <div className="p-2 bg-amber-50 rounded text-sm text-amber-700">
-              {!provider.email ? "Provider needs an email address" : "Provider needs a public page"} to generate claim link.
-            </div>
-          ) : hasMessage ? (
-            <div className="p-2 bg-gray-50 rounded text-xs text-gray-700 max-h-28 overflow-y-auto whitespace-pre-line">
-              {getContactFormMessage()}
-            </div>
-          ) : null}
-
-          {/* Form field hints */}
-          {hasMessage && (
-            <div className="p-2 bg-amber-50 rounded text-xs text-amber-700">
-              <strong>Fill form as:</strong> Logan DuBose · support@olera.care · (979) 243-9801
-            </div>
-          )}
-
-          {/* Contact form URL input (inline, not prompt) */}
+          {/* 1. Contact form URL input (first - entry point) */}
           <div className="space-y-1">
             <label className="text-xs text-gray-500">Contact form URL</label>
             <div className="flex items-center gap-2">
@@ -1364,43 +1342,63 @@ Questions? support@olera.care or (979) 243-9801`;
             )}
           </div>
 
-          {/* Actions */}
-          {!contactFormOpened ? (
-            <div className="flex gap-2">
-              <button
-                onClick={async () => {
-                  if (!contactFormUrl.trim()) {
-                    setActionError("Please enter a contact form URL");
-                    return;
-                  }
-                  // Save URL to DB
-                  try {
-                    await fetch("/api/admin/provider-outreach/save-contact-form-url", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ provider_id: provider.provider_id, url: contactFormUrl.trim() }),
-                    });
-                  } catch { /* non-fatal */ }
-                  // Copy message
-                  const message = getContactFormMessage();
-                  if (message) {
-                    try {
-                      await navigator.clipboard.writeText(message);
-                      setMessageCopied(true);
-                      setTimeout(() => setMessageCopied(false), 2000);
-                    } catch { /* non-fatal */ }
-                  }
-                  // Open form
-                  const url = contactFormUrl.trim().startsWith("http") ? contactFormUrl.trim() : `https://${contactFormUrl.trim()}`;
-                  window.open(url, "_blank");
-                  setContactFormOpened(true);
-                }}
-                disabled={!hasMessage}
-                className={`${primaryBtn} flex-1`}
-              >
-                {messageCopied ? "Copied! Opening..." : "Copy & Open Form"}
-              </button>
+          {/* 2. Message preview (below URL, clearly visible) */}
+          {claimUrlLoading ? (
+            <div className="p-2 bg-gray-50 rounded text-sm text-gray-500 text-center">
+              Generating message...
             </div>
+          ) : !canGenerateClaimUrl ? (
+            <div className="p-2 bg-amber-50 rounded text-sm text-amber-700">
+              {!provider.email ? "Provider needs an email address" : "Provider needs a public page"} to generate claim link.
+            </div>
+          ) : hasMessage ? (
+            <div className="p-2 bg-gray-50 rounded text-xs text-gray-700 max-h-32 overflow-y-auto whitespace-pre-line">
+              {getContactFormMessage()}
+            </div>
+          ) : null}
+
+          {/* 3. Form field hints */}
+          {hasMessage && (
+            <div className="p-2 bg-amber-50 rounded text-xs text-amber-700">
+              <strong>Fill form as:</strong> Logan DuBose · support@olera.care · (979) 243-9801
+            </div>
+          )}
+
+          {/* 4. Action buttons */}
+          {!contactFormOpened ? (
+            <button
+              onClick={async () => {
+                if (!contactFormUrl.trim()) {
+                  setActionError("Please enter a contact form URL");
+                  return;
+                }
+                // Save URL to DB
+                try {
+                  await fetch("/api/admin/provider-outreach/save-contact-form-url", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ provider_id: provider.provider_id, url: contactFormUrl.trim() }),
+                  });
+                } catch { /* non-fatal */ }
+                // Copy message
+                const message = getContactFormMessage();
+                if (message) {
+                  try {
+                    await navigator.clipboard.writeText(message);
+                    setMessageCopied(true);
+                    setTimeout(() => setMessageCopied(false), 2000);
+                  } catch { /* non-fatal */ }
+                }
+                // Open form
+                const url = contactFormUrl.trim().startsWith("http") ? contactFormUrl.trim() : `https://${contactFormUrl.trim()}`;
+                window.open(url, "_blank");
+                setContactFormOpened(true);
+              }}
+              disabled={!hasMessage || !contactFormUrl.trim()}
+              className={`${primaryBtn} w-full`}
+            >
+              {messageCopied ? "Copied! Opening..." : "Copy & Open Form"}
+            </button>
           ) : (
             <button
               onClick={handleConfirmContactFormSubmission}
@@ -1413,7 +1411,7 @@ Questions? support@olera.care or (979) 243-9801`;
 
           {actionError && <p className="text-sm text-red-600">{actionError}</p>}
 
-          <button onClick={cancelConfirm} className={plainBtn}>
+          <button onClick={cancelConfirm} className={`${plainBtn} w-full text-center`}>
             Cancel
           </button>
         </div>

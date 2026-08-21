@@ -1043,7 +1043,7 @@ function ActionsSection({
   const [confirmedCall, setConfirmedCall] = useState(false);
 
   // Contact form workflow state
-  const [contactFormUrl, setContactFormUrl] = useState<string | null>(provider.contact_form_url || null);
+  const [contactFormUrl, setContactFormUrl] = useState<string>(provider.contact_form_url || "");
   const [contactFormLoading, setContactFormLoading] = useState(false);
   const [claimUrl, setClaimUrl] = useState<string | null>(null);
   const [claimUrlLoading, setClaimUrlLoading] = useState(false);
@@ -1052,11 +1052,19 @@ function ActionsSection({
 
   // Reset contact form state when provider changes
   useEffect(() => {
-    setContactFormUrl(provider.contact_form_url || null);
+    setContactFormUrl(provider.contact_form_url || "");
     setClaimUrl(null);
     setMessageCopied(false);
     setContactFormOpened(false);
   }, [provider.provider_id, provider.contact_form_url]);
+
+  // Auto-generate claim URL when entering contact form workflow
+  useEffect(() => {
+    if (confirmAction === "contact_form" && !claimUrl && !claimUrlLoading && provider.email && provider.slug) {
+      handleGenerateClaimUrl();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirmAction]);
 
   const isTerminal = ["claimed", "archived"].includes(provider.stage);
   const canLaunch = provider.stage === "not_contacted" && provider.email;
@@ -1144,7 +1152,7 @@ function ActionsSection({
     setConfirmedCall(false);
     setActionError(null);
     // Reset contact form workflow state
-    setContactFormUrl(provider.contact_form_url || null);
+    setContactFormUrl(provider.contact_form_url || "");
     setClaimUrl(null);
     setMessageCopied(false);
     setContactFormOpened(false);
@@ -1299,96 +1307,108 @@ Questions? support@olera.care or (979) 243-9801`;
 
   // Show Contact Form workflow (special case with multi-step UI)
   if (confirmAction === "contact_form") {
+    // Check preconditions
+    const canGenerateClaimUrl = provider.email && provider.slug;
+    const hasMessage = claimUrl && !claimUrlLoading;
+
     return (
       <div>
         <SectionHeader>Contact Form</SectionHeader>
         <div className="space-y-3">
-          {/* Step 1: Find or enter contact form URL */}
-          {!contactFormUrl ? (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={handleFindContactForm}
-                  disabled={contactFormLoading || !provider.website}
-                  className={`${outlineBtn} flex-1`}
+          {/* Message preview (auto-generated) */}
+          {claimUrlLoading ? (
+            <div className="p-2 bg-gray-50 rounded text-sm text-gray-500 text-center">
+              Generating message...
+            </div>
+          ) : !canGenerateClaimUrl ? (
+            <div className="p-2 bg-amber-50 rounded text-sm text-amber-700">
+              {!provider.email ? "Provider needs an email address" : "Provider needs a public page"} to generate claim link.
+            </div>
+          ) : hasMessage ? (
+            <div className="p-2 bg-gray-50 rounded text-xs text-gray-700 max-h-28 overflow-y-auto whitespace-pre-line">
+              {getContactFormMessage()}
+            </div>
+          ) : null}
+
+          {/* Form field hints */}
+          {hasMessage && (
+            <div className="p-2 bg-amber-50 rounded text-xs text-amber-700">
+              <strong>Fill form as:</strong> Logan DuBose · support@olera.care · (979) 243-9801
+            </div>
+          )}
+
+          {/* Contact form URL input (inline, not prompt) */}
+          <div className="space-y-1">
+            <label className="text-xs text-gray-500">Contact form URL</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={contactFormUrl}
+                onChange={(e) => setContactFormUrl(e.target.value)}
+                placeholder="https://example.com/contact"
+                className="flex-1 px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+              />
+              {provider.website && (
+                <a
+                  href={provider.website.startsWith("http") ? provider.website : `https://${provider.website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:underline whitespace-nowrap"
                 >
-                  {contactFormLoading ? "Finding..." : "Find Contact Form"}
-                </button>
-                {provider.website && (
-                  <a
-                    href={provider.website.startsWith("http") ? provider.website : `https://${provider.website}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-blue-600 hover:underline"
-                  >
-                    Visit site
-                  </a>
-                )}
-              </div>
+                  Visit site
+                </a>
+              )}
+            </div>
+            {!provider.website && (
+              <p className="text-xs text-gray-400">No website on file</p>
+            )}
+          </div>
+
+          {/* Actions */}
+          {!contactFormOpened ? (
+            <div className="flex gap-2">
               <button
                 onClick={async () => {
-                  const url = window.prompt("Enter contact form URL:");
-                  if (url?.trim()) {
-                    setContactFormUrl(url.trim());
+                  if (!contactFormUrl.trim()) {
+                    setActionError("Please enter a contact form URL");
+                    return;
+                  }
+                  // Save URL to DB
+                  try {
+                    await fetch("/api/admin/provider-outreach/save-contact-form-url", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ provider_id: provider.provider_id, url: contactFormUrl.trim() }),
+                    });
+                  } catch { /* non-fatal */ }
+                  // Copy message
+                  const message = getContactFormMessage();
+                  if (message) {
                     try {
-                      await fetch("/api/admin/provider-outreach/save-contact-form-url", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ provider_id: provider.provider_id, url: url.trim() }),
-                      });
+                      await navigator.clipboard.writeText(message);
+                      setMessageCopied(true);
+                      setTimeout(() => setMessageCopied(false), 2000);
                     } catch { /* non-fatal */ }
                   }
+                  // Open form
+                  const url = contactFormUrl.trim().startsWith("http") ? contactFormUrl.trim() : `https://${contactFormUrl.trim()}`;
+                  window.open(url, "_blank");
+                  setContactFormOpened(true);
                 }}
-                className="text-sm text-gray-500 hover:text-gray-700"
+                disabled={!hasMessage}
+                className={`${primaryBtn} flex-1`}
               >
-                Enter URL manually
-              </button>
-              {!provider.website && (
-                <p className="text-xs text-gray-500">No website on file</p>
-              )}
-            </div>
-          ) : !claimUrl ? (
-            /* Step 2: Generate claim link */
-            <div className="space-y-2">
-              <div className="p-2 bg-green-50 rounded text-sm text-green-700 flex items-center justify-between">
-                <span className="truncate">{contactFormUrl}</span>
-                <button onClick={() => setContactFormUrl(null)} className="text-xs text-gray-400 hover:text-gray-600 ml-2">Clear</button>
-              </div>
-              {!provider.email ? (
-                <p className="text-sm text-amber-600">Provider needs an email to generate claim link</p>
-              ) : !provider.slug ? (
-                <p className="text-sm text-amber-600">Provider needs a public page to generate claim link</p>
-              ) : (
-                <button onClick={handleGenerateClaimUrl} disabled={claimUrlLoading} className={primaryBtn}>
-                  {claimUrlLoading ? "Generating..." : "Generate Claim Link"}
-                </button>
-              )}
-            </div>
-          ) : !contactFormOpened ? (
-            /* Step 3: Copy message and open form */
-            <div className="space-y-2">
-              <div className="p-2 bg-gray-50 rounded text-xs text-gray-600 max-h-24 overflow-y-auto whitespace-pre-line">
-                {getContactFormMessage()}
-              </div>
-              <div className="p-2 bg-amber-50 rounded text-xs text-amber-700">
-                <strong>Fill form as:</strong> Logan DuBose · support@olera.care · (979) 243-9801
-              </div>
-              <button onClick={handleCopyAndOpenForm} className={`${primaryBtn} w-full`}>
-                {messageCopied ? "Copied! Opening..." : "Copy Message & Open Form"}
+                {messageCopied ? "Copied! Opening..." : "Copy & Open Form"}
               </button>
             </div>
           ) : (
-            /* Step 4: Confirm submission */
-            <div className="space-y-2">
-              <p className="text-sm text-gray-700">Did you submit the contact form?</p>
-              <button
-                onClick={handleConfirmContactFormSubmission}
-                disabled={actionLoading}
-                className={`${primaryBtn} w-full bg-green-600 hover:bg-green-700`}
-              >
-                {actionLoading ? "Confirming..." : "Yes, Form Submitted"}
-              </button>
-            </div>
+            <button
+              onClick={handleConfirmContactFormSubmission}
+              disabled={actionLoading}
+              className={`${primaryBtn} w-full bg-green-600 hover:bg-green-700`}
+            >
+              {actionLoading ? "Confirming..." : "Confirm Form Submitted"}
+            </button>
           )}
 
           {actionError && <p className="text-sm text-red-600">{actionError}</p>}

@@ -894,6 +894,52 @@ function ReEngageSection({
   const channelInfo = channel ? CHANNEL_LABELS[channel] || { label: channel, className: "bg-gray-100 text-gray-600" } : null;
   const waitDays = daysSince(provider.re_engage_entered_at || null);
 
+  // Contact form workflow state
+  const [contactFormLoading, setContactFormLoading] = useState(false);
+  const [contactFormUrl, setContactFormUrl] = useState<string | null>(provider.contact_form_url || null);
+  const [contactFormError, setContactFormError] = useState<string | null>(null);
+  const [claimUrl, setClaimUrl] = useState<string | null>(null);
+  const [claimUrlLoading, setClaimUrlLoading] = useState(false);
+  const [messageCopied, setMessageCopied] = useState(false);
+
+  // Find contact form URL by crawling provider's website
+  const handleFindContactForm = async () => {
+    if (!provider.website) {
+      setContactFormError("Provider has no website on file");
+      return;
+    }
+
+    setContactFormLoading(true);
+    setContactFormError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-contact-form", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          website: provider.website,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to find contact form");
+      }
+
+      if (data.found && data.url) {
+        setContactFormUrl(data.url);
+      } else {
+        setContactFormError("No contact form found on website");
+      }
+    } catch (err) {
+      setContactFormError(err instanceof Error ? err.message : "Failed to find contact form");
+    } finally {
+      setContactFormLoading(false);
+    }
+  };
+
   return (
     <div>
       <SectionHeader>Alternative Channel Status</SectionHeader>

@@ -4176,6 +4176,18 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Session Log
 
+### 2026-08-21 — Pruned the allowlist, connected the second sender, and found the shipped fix was the small half
+
+**Two deliverables and one correction.**
+
+**Pruned 129 dead entries from `email_overrides`** (676 → 547). Criterion: bounced at least once and delivered zero times across 90 days, derived from a fresh live pull. All `reason: admin`, zero claimed accounts, zero deliveries lost. Backup written to `~/Desktop/email-overrides-prune-backup-2026-08-21.json` **before** any delete. Expected 2.28% → ~1.53%. No deploy needed: removing trust just restores the suppression that already existed.
+
+**Connected `logan@joinolera.care` to SmartLead.** TJ reset the password in Google Admin (auto-generated, never handled by Claude, kept out of the transcript). Consent passed straight through with **no block**, which is the first confirmation that the 08-20 App Access Control fix applies to the whole `Olera, Inc.` OU rather than just the mailbox it was tested on. Set 40/day, warmup ACTIVE. **joinolera.care now carries 80/day across two senders against the 55/day outreach actually runs**, which closes the shared-cap complaint from Esther's original thread. Told her in `#product-development`.
+
+**The correction that matters most.** PR #1658 only refuses *new* trusts. It never touched the send path (`lib/email.ts:620` still lets `isTrustedRecipient` clear the suppression reason), so every address already on the allowlist kept bypassing suppression. The **2.28% → 1.62%** figure quoted in the PR body, the Notion page and the Slack note came from a simulation of a *send-time* rule that was recommended and never built. Measured honestly on 90 days: #1658 as shipped is **2.21%** (26 trusts refused, 27 bounces prevented); the prune is **1.53%** (282 bounces). The priority was backwards for a day. TJ decided the Slack number was not worth correcting publicly given how fast the team moves.
+
+**Also worth keeping:** 45% of sends to the pruned addresses resolved to neither delivered nor bounced, against a ~2% baseline. Checked whether that was a webhook gap, since if it were, "never delivered" would be an artifact and deleting would be wrong. It is not: a gap would not target 129 specific addresses, and a working mailbox with 79 sends would show ~75 deliveries. Reads as accept-then-discard.
+
 ### 2026-08-19 — Went to buy a cold-outreach domain and found we already owned a fully authenticated one
 
 Started from Esther's thread: providers flag `seniorlistings.net` as sketchy, `findmedjobs.com` breaks continuity when the team calls as "Olera", and that domain's 40/day cap is shared with MedJobs. TJ asked to hook up `oleracare.com`.

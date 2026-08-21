@@ -7188,22 +7188,6 @@ export default function ProviderOutreachPage() {
                 : prev
             );
           }}
-          onContactFormFound={(providerId, url) => {
-            // Update contact_form_url in local state after finding form
-            setProviders((prev) =>
-              prev.map((p) =>
-                p.provider_id === providerId
-                  ? { ...p, contact_form_url: url }
-                  : p
-              )
-            );
-            // Update drawer provider too
-            setDrawerProvider((prev) =>
-              prev && prev.provider_id === providerId
-                ? { ...prev, contact_form_url: url }
-                : prev
-            );
-          }}
           onEmailUpdate={(providerId, email, emailSource) => {
             setProviders((prev) =>
               prev.map((p) =>

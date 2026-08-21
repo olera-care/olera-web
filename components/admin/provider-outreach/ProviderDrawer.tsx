@@ -108,8 +108,6 @@ interface ProviderDrawerProps {
   onOutcomeRecorded?: (providerId: string, stageChanged: boolean) => void;
   // Claim link sent callback (updates resend_count in local state)
   onClaimLinkSent?: (providerId: string, newResendCount: number) => void;
-  // Contact form found callback (updates contact_form_url in local state)
-  onContactFormFound?: (providerId: string, url: string) => void;
   // Current UI context
   activeTab?: string;
 }
@@ -1044,7 +1042,6 @@ function ActionsSection({
 
   // Contact form workflow state
   const [contactFormUrl, setContactFormUrl] = useState<string>(provider.contact_form_url || "");
-  const [contactFormLoading, setContactFormLoading] = useState(false);
   const [claimUrl, setClaimUrl] = useState<string | null>(null);
   const [claimUrlLoading, setClaimUrlLoading] = useState(false);
   const [messageCopied, setMessageCopied] = useState(false);
@@ -1158,34 +1155,6 @@ function ActionsSection({
     setContactFormOpened(false);
   }
 
-  // Contact form workflow handlers
-  async function handleFindContactForm() {
-    if (!provider.website) {
-      setActionError("Provider has no website on file");
-      return;
-    }
-    setContactFormLoading(true);
-    setActionError(null);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/find-contact-form", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: provider.provider_id, website: provider.website }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to find contact form");
-      if (data.found && data.url) {
-        setContactFormUrl(data.url);
-      } else {
-        setActionError("No contact form found on website");
-      }
-    } catch (err) {
-      setActionError(err instanceof Error ? err.message : "Failed to find contact form");
-    } finally {
-      setContactFormLoading(false);
-    }
-  }
-
   async function handleGenerateClaimUrl() {
     setClaimUrlLoading(true);
     setActionError(null);
@@ -1218,23 +1187,6 @@ Activate your page (2 min, free) to fully manage it:
 ${claimUrl}
 
 Questions? support@olera.care or (979) 243-9801`;
-  }
-
-  async function handleCopyAndOpenForm() {
-    if (!contactFormUrl) return;
-    const message = getContactFormMessage();
-    if (message) {
-      try {
-        await navigator.clipboard.writeText(message);
-        setMessageCopied(true);
-        setTimeout(() => setMessageCopied(false), 2000);
-      } catch {
-        setActionError("Could not copy to clipboard");
-      }
-    }
-    const url = contactFormUrl.startsWith("http") ? contactFormUrl : `https://${contactFormUrl}`;
-    window.open(url, "_blank");
-    setContactFormOpened(true);
   }
 
   async function handleConfirmContactFormSubmission() {
@@ -1578,7 +1530,6 @@ export function ProviderDrawer({
   onContactFound,
   onOutcomeRecorded,
   onClaimLinkSent,
-  onContactFormFound,
   activeTab,
 }: ProviderDrawerProps) {
   // Determine if we should show Follow Up section

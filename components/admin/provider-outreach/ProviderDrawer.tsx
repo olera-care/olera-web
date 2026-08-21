@@ -988,22 +988,6 @@ Questions? support@olera.care or (979) 243-9801`;
     }
   };
 
-  // Suppress unused variable warnings - these will be used in Task #14 (UI)
-  void contactFormLoading;
-  void contactFormUrl;
-  void contactFormError;
-  void claimUrlLoading;
-  void claimUrlError;
-  void messageCopied;
-  void contactFormOpened;
-  void submittingConfirmation;
-  void handleFindContactForm;
-  void handleFetchClaimUrl;
-  void getContactFormMessage;
-  void CONTACT_FORM_HINTS;
-  void handleCopyAndOpenContactForm;
-  void handleConfirmSubmission;
-
   return (
     <div>
       <SectionHeader>Follow Up Status</SectionHeader>
@@ -1024,7 +1008,7 @@ Questions? support@olera.care or (979) 243-9801`;
       <p className="text-sm text-gray-700 mb-4">{explanation}</p>
 
       {/* Engagement stats */}
-      <div className="flex items-center gap-4 text-sm">
+      <div className="flex items-center gap-4 text-sm mb-6">
         <div className="flex items-center gap-1.5">
           <span className="text-gray-500">Emails:</span>
           <span className="font-medium text-gray-900">{engagement.emails_sent}</span>
@@ -1041,6 +1025,165 @@ Questions? support@olera.care or (979) 243-9801`;
           <span className="text-gray-500">Emails Sent:</span>
           <span className="font-medium text-gray-900">{resendCount}</span>
         </div>
+      </div>
+
+      {/* Contact Form Workflow */}
+      <div className="border-t pt-4">
+        <h4 className="text-sm font-medium text-gray-900 mb-3">Contact Form Option</h4>
+
+        {/* Step 1: Find or display contact form URL */}
+        {!contactFormUrl ? (
+          <div className="mb-4">
+            <button
+              onClick={handleFindContactForm}
+              disabled={contactFormLoading || !provider.website}
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {contactFormLoading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Finding contact form...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  Find Contact Form
+                </>
+              )}
+            </button>
+            {!provider.website && (
+              <p className="mt-1 text-xs text-gray-500">No website on file</p>
+            )}
+          </div>
+        ) : (
+          <div className="mb-4 p-3 bg-green-50 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm">
+                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+                <span className="text-gray-600">Contact form found:</span>
+                <a
+                  href={contactFormUrl.startsWith("http") ? contactFormUrl : `https://${contactFormUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-600 hover:underline truncate max-w-[200px]"
+                >
+                  {contactFormUrl}
+                </a>
+              </div>
+              <button
+                onClick={() => setContactFormUrl(null)}
+                className="text-xs text-gray-400 hover:text-gray-600"
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+        )}
+
+        {contactFormError && (
+          <p className="mb-3 text-sm text-red-600">{contactFormError}</p>
+        )}
+
+        {/* Step 2: Generate claim URL (only show when contact form found) */}
+        {contactFormUrl && !claimUrl && (
+          <div className="mb-4">
+            <button
+              onClick={handleFetchClaimUrl}
+              disabled={claimUrlLoading}
+              className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-50"
+            >
+              {claimUrlLoading ? (
+                <>
+                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                  Generate Claim Link
+                </>
+              )}
+            </button>
+            {claimUrlError && (
+              <p className="mt-1 text-sm text-red-600">{claimUrlError}</p>
+            )}
+          </div>
+        )}
+
+        {/* Step 3: Show message preview and copy/open button */}
+        {contactFormUrl && claimUrl && (
+          <div className="space-y-3">
+            {/* Message preview */}
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Message</span>
+                <span className="text-xs text-green-600 font-medium">
+                  {claimUrl}
+                </span>
+              </div>
+              <p className="text-sm text-gray-700 whitespace-pre-line">{getContactFormMessage()}</p>
+            </div>
+
+            {/* Form field hints */}
+            <div className="p-3 bg-amber-50 rounded-lg">
+              <p className="text-xs font-medium text-amber-800 mb-2">If form requires your info:</p>
+              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-amber-700">
+                <div><span className="text-amber-500">Name:</span> {CONTACT_FORM_HINTS.firstName} {CONTACT_FORM_HINTS.lastName}</div>
+                <div><span className="text-amber-500">Email:</span> {CONTACT_FORM_HINTS.email}</div>
+                <div><span className="text-amber-500">Phone:</span> {CONTACT_FORM_HINTS.phone}</div>
+              </div>
+            </div>
+
+            {/* Copy & Open button */}
+            <button
+              onClick={handleCopyAndOpenContactForm}
+              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+              </svg>
+              {messageCopied ? "Copied! Opening form..." : "Copy Message & Open Form"}
+            </button>
+
+            {/* Confirm Submission (only after form opened) */}
+            {contactFormOpened && (
+              <button
+                onClick={handleConfirmSubmission}
+                disabled={submittingConfirmation}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+              >
+                {submittingConfirmation ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Confirming...
+                  </>
+                ) : (
+                  <>
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Confirm Form Submitted
+                  </>
+                )}
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

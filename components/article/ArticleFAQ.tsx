@@ -7,11 +7,11 @@ interface FAQItem {
   answer: string;
 }
 
-const FAQS: FAQItem[] = [
+export const FAQS: FAQItem[] = [
   {
     question: "Can a spouse get paid to be a caregiver in Texas?",
     answer:
-      "In most cases, spouses are <strong>not eligible</strong> to be paid caregivers under STAR+PLUS Consumer Directed Services. However, other family members,including adult children, siblings, and close friends,can qualify.",
+      "In most Texas Medicaid programs, including STAR+PLUS Consumer Directed Services, spouses cannot be hired as paid caregivers. Other family members, including adult children, grandchildren, siblings, and close friends, may qualify. Spouses may only qualify through limited programs, such as CMPAS under specific conditions, or certain non-Medicaid veteran benefits.",
   },
   {
     question: "Can an adult child get paid to care for a parent in Texas?",

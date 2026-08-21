@@ -7,7 +7,7 @@ interface FAQItem {
   answer: string;
 }
 
-const FAQS: FAQItem[] = [
+export const FAQS: FAQItem[] = [
   {
     question: "What is the income limit for Medicaid in Texas for seniors in 2026?",
     answer:

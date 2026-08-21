@@ -12,10 +12,10 @@ import {
   MobileTableOfContents,
 } from "@/components/article/TableOfContents";
 import EligibilityChecker from "@/components/article/EligibilityChecker";
-import ArticleFAQ from "@/components/article/ArticleFAQ";
-import SeniorCareFAQ from "@/components/article/SeniorCareFAQ";
-import StarPlusFAQ from "@/components/article/StarPlusFAQ";
-import MedicaidEligibilityFAQ from "@/components/article/MedicaidEligibilityFAQ";
+import ArticleFAQ, { FAQS as ArticleFAQs } from "@/components/article/ArticleFAQ";
+import SeniorCareFAQ, { FAQS as SeniorCareFAQs } from "@/components/article/SeniorCareFAQ";
+import StarPlusFAQ, { FAQS as StarPlusFAQs } from "@/components/article/StarPlusFAQ";
+import MedicaidEligibilityFAQ, { FAQS as MedicaidFAQs } from "@/components/article/MedicaidEligibilityFAQ";
 import ShareButton from "@/components/article/ShareButton";
 import SpendDownWidget from "@/components/article/SpendDownWidget";
 
@@ -160,6 +160,7 @@ export default async function TexasArticlePage({
       "@type": "Person",
       name: authorName,
       ...(authorRole && { jobTitle: authorRole }),
+      ...(authorSlug && { url: `https://olera.care/author/${authorSlug}` }),
     },
     ...(verifier && {
       reviewedBy: {
@@ -178,6 +179,26 @@ export default async function TexasArticlePage({
       "@id": `https://olera.care/texas/${slug}`,
     },
   };
+
+  // Select the correct FAQ list for this article
+  const faqList =
+    slug === "how-to-pay-for-senior-care-in-texas" ? SeniorCareFAQs :
+    slug === "star-plus-waiver-texas-complete-guide" ? StarPlusFAQs :
+    slug === "texas-medicaid-eligibility-seniors-2026" ? MedicaidFAQs :
+    ArticleFAQs;
+
+  const faqJsonLd = faqList.length > 0 ? {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqList.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: faq.answer,
+      },
+    })),
+  } : null;
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -207,6 +228,12 @@ export default async function TexasArticlePage({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
+      {faqJsonLd && (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+        />
+      )}
 
       {/* ─── Unified content container ───────────────────── */}
       <div className={`max-w-[1100px] mx-auto px-5 ${showToc ? "lg:flex lg:gap-16" : ""}`}>
@@ -291,6 +318,12 @@ export default async function TexasArticlePage({
                 <>
                   <span className="text-gray-300">|</span>
                   <span className="text-gray-400">Published {formatDate(article.published_at)}</span>
+                </>
+              )}
+              {article.updated_at && (
+                <>
+                  <span className="text-gray-300">|</span>
+                  <span className="text-gray-400">Updated {formatDate(article.updated_at)}</span>
                 </>
               )}
               {article.reviewed_at && (

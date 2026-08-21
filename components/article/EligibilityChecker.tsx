@@ -5,7 +5,7 @@ import Link from "next/link";
 
 const QUESTIONS = [
   "Is your loved one enrolled in Texas Medicaid?",
-  "Are you a family member or close friend?",
+  "Are you a family member, close friend, or personal attendant (not a spouse or legal guardian)?",
   "Do you live in Texas?",
 ];
 
@@ -146,6 +146,9 @@ export default function EligibilityChecker() {
                   <p className="text-sm text-gray-600 mt-1">
                     {!answers[0] || answers[0] === "no"
                       ? "Your loved one may need to enroll in Texas Medicaid first. "
+                      : ""}
+                    {answers[1] === "no"
+                      ? "Spouses and legal guardians are generally not eligible as paid attendants under standard Texas Medicaid rules, though limited exceptions may apply. "
                       : ""}
                     The Olera Benefits Finder can show you every program your
                     family may be eligible for.

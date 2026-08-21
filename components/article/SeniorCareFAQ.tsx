@@ -7,7 +7,7 @@ interface FAQItem {
   answer: string;
 }
 
-const FAQS: FAQItem[] = [
+export const FAQS: FAQItem[] = [
   {
     question: "What happens to my house if I go on Medicaid in Texas?",
     answer:

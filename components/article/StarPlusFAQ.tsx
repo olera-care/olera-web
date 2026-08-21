@@ -7,7 +7,7 @@ interface FAQItem {
   answer: string;
 }
 
-const FAQS: FAQItem[] = [
+export const FAQS: FAQItem[] = [
   {
     question: "What does STAR+PLUS cover in Texas?",
     answer:

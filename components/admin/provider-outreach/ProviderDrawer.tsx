@@ -386,7 +386,15 @@ function ContactSection({
       setVerificationStatus("idle");
       setTrustScoreStatus("idle");
       setTrustScoreReason("");
+      // Reset editing state to prevent stale data if switching providers while editing
+      setEditingEmail(false);
+      setEditingPhone(false);
+      setEmailValue(provider.email || "");
+      setPhoneValue(provider.phone || "");
+      setEmailError(null);
+      setPhoneError(null);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Only reset on provider_id change; email/phone values are read at that moment
   }, [provider.provider_id]);
 
   // Trigger verification when found email changes
@@ -607,7 +615,7 @@ function ContactSection({
                   {verificationStatus === "invalid" || verificationStatus === "risky" ? (
                     <button
                       onClick={handleSaveFoundEmail}
-                      disabled={savingEmail || verificationStatus === "verifying"}
+                      disabled={savingEmail}
                       className="px-2 py-0.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded hover:bg-amber-100 disabled:opacity-50"
                     >
                       {savingEmail ? "..." : "Save anyway"}

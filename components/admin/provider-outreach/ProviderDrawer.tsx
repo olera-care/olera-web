@@ -900,6 +900,7 @@ function ReEngageSection({
   const [contactFormError, setContactFormError] = useState<string | null>(null);
   const [claimUrl, setClaimUrl] = useState<string | null>(null);
   const [claimUrlLoading, setClaimUrlLoading] = useState(false);
+  const [claimUrlError, setClaimUrlError] = useState<string | null>(null);
   const [messageCopied, setMessageCopied] = useState(false);
 
   // Find contact form URL by crawling provider's website
@@ -937,6 +938,34 @@ function ReEngageSection({
       setContactFormError(err instanceof Error ? err.message : "Failed to find contact form");
     } finally {
       setContactFormLoading(false);
+    }
+  };
+
+  // Generate a short claim URL for the contact form message
+  const handleFetchClaimUrl = async () => {
+    setClaimUrlLoading(true);
+    setClaimUrlError(null);
+
+    try {
+      const res = await fetch("/api/admin/provider-outreach/generate-claim-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || "Failed to generate claim URL");
+      }
+
+      setClaimUrl(data.claim_url);
+    } catch (err) {
+      setClaimUrlError(err instanceof Error ? err.message : "Failed to generate claim URL");
+    } finally {
+      setClaimUrlLoading(false);
     }
   };
 

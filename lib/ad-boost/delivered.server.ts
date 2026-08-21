@@ -1,6 +1,28 @@
 import { getServiceClient } from "@/lib/admin";
 
 /**
+ * Referrer class the analytics pipeline (`lib/analytics/referrer`) stamps on
+ * our OWN traffic: admin directory click-throughs, campaign-URL previews, QA
+ * sweeps. Never a family who arrived from an ad, so it is excluded from every
+ * campaign counter below.
+ *
+ * This is not cosmetic — it is what makes our numbers agree with the ad
+ * platform's. Measured against the operator-entered Google clicks, stripping
+ * internal traffic moved HomeWell (Jul) from 18 to 13 against 13 reported, and
+ * Legacy Haven from 20 to 15 against 16 reported. Left in, every counter runs
+ * hot by 10-30%.
+ *
+ * NULL-safe by design: rows written before the classifier shipped carry no
+ * class and are kept (they are external by default), so only a positive
+ * `olera_internal` match is dropped.
+ */
+const INTERNAL_REFERRER_CLASS = "olera_internal";
+
+function isInternalTraffic(metadata: { referrer_class?: string } | null): boolean {
+  return metadata?.referrer_class === INTERNAL_REFERRER_CLASS;
+}
+
+/**
  * Count families delivered by managed-ad campaigns — the Ad Boost ROI signal.
  *
  * A "delivered family" is a campaign-attributed CONVERSION: a family who arrived
@@ -80,14 +102,17 @@ export async function countDeliveredByCampaign(
 
 /**
  * Count managed-ad clicks that actually LANDED, per campaign: session-deduped
- * `page_view` events tagged `utm_source=olera_managed`. ViewTracker stamps the
- * landing UTM onto page_view metadata, so this is the delivery half of the
- * funnel (did the ad's clicks reach the page?) next to the conversion half
- * (`countDeliveredByCampaign`). A stalled campaign shows up here within a day
- * instead of two silent weeks of zero leads.
+ * `page_view` events tagged `utm_source=olera_managed`, EXCLUDING our own
+ * internal traffic. ViewTracker stamps the landing UTM onto page_view
+ * metadata, so this is the delivery half of the funnel (did the ad's clicks
+ * reach the page?) next to the conversion half (`countDeliveredByCampaign`).
+ * A stalled campaign shows up here within a day instead of two silent weeks
+ * of zero leads.
  *
- * Only counts events from after the instrumentation shipped — older campaigns
- * read low, which is fine: this is a live delivery signal, not history.
+ * Only counts events from after the managed-UTM instrumentation shipped
+ * (first tagged landing: 2026-07-22). Campaigns that flew before that read
+ * low or zero here and their operator-entered clicks are the only history
+ * available — do NOT read the gap as a tracking fault.
  */
 export async function countAdLandingsByCampaign(
   db: ReturnType<typeof getServiceClient>,
@@ -107,8 +132,9 @@ export async function countAdLandingsByCampaign(
     .filter("metadata->>utm_source", "eq", "olera_managed")
     .limit(50000);
   for (const row of (data ?? []) as Array<{
-    metadata: { utm_campaign?: string; session_id?: string } | null;
+    metadata: { utm_campaign?: string; session_id?: string; referrer_class?: string } | null;
   }>) {
+    if (isInternalTraffic(row.metadata)) continue;
     const tag = row.metadata?.utm_campaign;
     if (tag && wantedSet.has(tag)) {
       sessionsByTag[tag].add(row.metadata?.session_id || JSON.stringify(row.metadata));
@@ -129,14 +155,23 @@ export async function countAdLandingsByCampaign(
  * the live provider page mostly doesn't even surface, so for most campaigns it
  * reads ~0 while real inquiries arrive through the page's primary CTA. This
  * instead reads the page's actual traffic + conversion from provider_activity:
- *   visitors = session-deduped `page_view` events
+ *   visitors = session-deduped `page_view` events, internal traffic excluded
  *   leads    = `lead_received` events (the CTA inquiry — the true conversion)
  *
  * Single-provider attribution by approximation: a managed campaign points only
- * at this provider's page, and a provider's organic baseline is typically ~zero,
- * so "traffic on the page since launch" ≈ campaign performance. Clean
- * per-campaign UTM attribution (for many providers running at once) is a
- * separate, later piece; this is the honest number for a single live campaign.
+ * at this provider's page, so "external traffic on the page since launch"
+ * ≈ campaign performance. This is deliberately BROADER than
+ * `countAdLandingsByCampaign`, which requires the managed UTM on the landing
+ * view: a family who clicks the ad, leaves, and returns the next day by
+ * searching the provider's name is real campaign traffic that carries no UTM
+ * on the second visit. Visitors catches them; ad landings does not. Expect
+ * visitors >= landings, and show them as separate numbers rather than letting
+ * one stand in for the other.
+ *
+ * What it must NOT include is us. The `olera_internal` referrer class covers
+ * admin directory click-throughs and campaign-URL previews, and it is stripped
+ * here — otherwise the count we put in front of a paying provider is inflated
+ * with our own clicks. It is a provider-facing number; it has to be clean.
  *
  * `since` is an ISO timestamp (the campaign's launch anchor). provider_activity
  * keys on the URL slug, so pass the provider's slug (plus profile id as a
@@ -166,17 +201,21 @@ export async function getCampaignStats(
 
   if (error || !data) return { visitors: 0, leads: 0 };
 
-  // Visitors = distinct session_id across page_view (mirrors the dedup the
-  // analytics endpoint + nightly rollup use). Leads = lead_received count.
+  // Visitors = distinct session_id across external page_view (mirrors the
+  // dedup the analytics endpoint + nightly rollup use, minus our own traffic).
+  // Leads = lead_received count.
   const sessions = new Set<string>();
   let leads = 0;
   for (const row of data as Array<{
     event_type: string;
-    metadata: Record<string, unknown> | null;
+    metadata: (Record<string, unknown> & { referrer_class?: string }) | null;
   }>) {
     if (row.event_type === "lead_received") {
+      // An inquiry is a real conversion whatever page it was reached from, so
+      // leads are never filtered on referrer — only the traffic denominator is.
       leads += 1;
     } else if (row.event_type === "page_view") {
+      if (isInternalTraffic(row.metadata)) continue;
       const sid = row.metadata?.session_id;
       if (typeof sid === "string" && sid.length > 0) sessions.add(sid);
     }

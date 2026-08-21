@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Star } from "@phosphor-icons/react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { useSavedProviders, type SaveProviderData } from "@/hooks/use-saved-providers";
@@ -11,7 +11,12 @@ import { isPreviewMode } from "@/lib/analytics/preview-mode";
 import type { IntakeVariant } from "@/lib/analytics/variant";
 import { getCategoryDisplayName, type ProviderCardData } from "@/lib/types/provider";
 import type { SimilarProviderForMulti, SuggestedQuestion } from "@/lib/provider-utils";
-import { getUnaskedQuestionSuggestions, normalizeQuestion } from "@/lib/qa-utils";
+import {
+  getUnaskedQuestionSuggestions,
+  hasProviderAnswer,
+  normalizeQuestion,
+  sortQuestionsForDisplay,
+} from "@/lib/qa-utils";
 
 interface QAEntry {
   id?: string;
@@ -162,7 +167,9 @@ export default function QASectionV2({
   const { toggleSave, isSaved } = useSavedProviders();
   const [inputValue, setInputValue] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
-  const [questions, setQuestions] = useState<QAEntry[]>(initialQuestions);
+  const [questions, setQuestions] = useState<QAEntry[]>(() =>
+    sortQuestionsForDisplay(initialQuestions),
+  );
   const [submitting, setSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle");
 
@@ -216,6 +223,9 @@ export default function QASectionV2({
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  // A mount-time refresh must not overwrite a question that the user submits
+  // or edits while that GET is in flight.
+  const questionsMutationVersionRef = useRef(0);
 
   // Close menu on outside click
   useEffect(() => {
@@ -232,11 +242,13 @@ export default function QASectionV2({
 
   // Fetch public questions on mount
   const fetchQuestions = useCallback(async () => {
+    const mutationVersionAtStart = questionsMutationVersionRef.current;
     try {
       const res = await fetch(`/api/questions?provider_id=${encodeURIComponent(providerId)}`);
       if (res.ok) {
         const data = await res.json();
-        setQuestions(data.questions ?? []);
+        if (questionsMutationVersionRef.current !== mutationVersionAtStart) return;
+        setQuestions(sortQuestionsForDisplay(data.questions ?? []));
       }
     } catch {
       // Silently fail — questions are non-critical
@@ -255,6 +267,7 @@ export default function QASectionV2({
   ) => {
     if (!questionText.trim()) return;
 
+    questionsMutationVersionRef.current += 1;
     setSubmitting(true);
     setSubmitStatus("idle");
     if (suggestionIndex !== undefined) setTappedIndex(suggestionIndex);
@@ -281,11 +294,11 @@ export default function QASectionV2({
 
       const data = await res.json();
       if (data.question) {
-        setQuestions((prev) =>
+        setQuestions((prev) => sortQuestionsForDisplay(
           prev.some((entry) => entry.id === data.question.id)
             ? prev.map((entry) => entry.id === data.question.id ? { ...entry, ...data.question } : entry)
             : [data.question, ...prev],
-        );
+        ));
 
         // For guests: show enrichment prompt after successful submit.
         // SKIP when:
@@ -557,6 +570,7 @@ export default function QASectionV2({
   const handleEditSubmit = async () => {
     if (!editingQuestion?.id || !editValue.trim() || editSubmitting) return;
 
+    questionsMutationVersionRef.current += 1;
     setEditSubmitting(true);
     try {
       const res = await fetch("/api/questions", {
@@ -584,9 +598,30 @@ export default function QASectionV2({
     }
   };
 
-  const visibleQuestions = questions.slice(0, 2);
-  const hasMore = questions.length > 2;
+  const answeredQuestions = useMemo(
+    () => questions.filter(hasProviderAnswer),
+    [questions],
+  );
+  const unansweredQuestions = useMemo(
+    () => questions.filter((question) => !hasProviderAnswer(question)),
+    [questions],
+  );
+  // The inline preview is social proof. New unanswered activity must never
+  // push a provider's richer response below the fold.
+  const visibleQuestions = (answeredQuestions.length > 0
+    ? answeredQuestions
+    : unansweredQuestions
+  ).slice(0, 2);
+  const hasMore = questions.length > visibleQuestions.length;
   const [showAllModal, setShowAllModal] = useState(false);
+  const [showUnanswered, setShowUnanswered] = useState(false);
+  const modalQuestions = showUnanswered || answeredQuestions.length === 0
+    ? questions
+    : answeredQuestions;
+  const closeAllQuestions = useCallback(() => {
+    setShowAllModal(false);
+    setShowUnanswered(false);
+  }, []);
 
   // Lock body scroll when modal is open
   useEffect(() => {
@@ -599,7 +634,7 @@ export default function QASectionV2({
   }, [showAllModal]);
 
   const hasQuestions = questions.length > 0;
-  const answeredCount = questions.filter((q) => q.status === "answered" || q.answer).length;
+  const answeredCount = answeredQuestions.length;
 
   // Determine if we're in post-submit state (success or enrichment)
   // For multi_provider variants, the card handles everything inline, so we
@@ -644,7 +679,7 @@ export default function QASectionV2({
       {hasQuestions && (
         <div className="mb-6">
           {visibleQuestions.map((qa, index) => {
-            const isAnswered = qa.status === "answered" || !!qa.answer;
+            const isAnswered = hasProviderAnswer(qa);
             const isPending = !isAnswered;
             const isOwner = user?.id && qa.asker_user_id === user.id;
             const canEdit = isOwner && isPending;
@@ -1233,7 +1268,7 @@ export default function QASectionV2({
         <>
           <div
             className="fixed inset-0 z-40 bg-black/50 backdrop-blur-[2px] transition-opacity"
-            onClick={() => setShowAllModal(false)}
+            onClick={closeAllQuestions}
             aria-hidden="true"
           />
 
@@ -1258,12 +1293,15 @@ export default function QASectionV2({
                     Questions & Answers
                   </h2>
                   <p className="text-sm text-gray-500 mt-0.5">
-                    {questions.length} question{questions.length !== 1 ? "s" : ""} &middot; {answeredCount} answered
+                    {answeredCount} provider answer{answeredCount !== 1 ? "s" : ""}
+                    {unansweredQuestions.length > 0 && (
+                      <> &middot; {unansweredQuestions.length} awaiting response</>
+                    )}
                   </p>
                 </div>
                 <button
                   type="button"
-                  onClick={() => setShowAllModal(false)}
+                  onClick={closeAllQuestions}
                   className="w-9 h-9 flex items-center justify-center rounded-full text-gray-400 hover:text-gray-600 hover:bg-gray-200/60 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-colors"
                   aria-label="Close"
                 >
@@ -1277,23 +1315,29 @@ export default function QASectionV2({
             {/* Scrollable content */}
             <div className="flex-1 overflow-y-auto overscroll-contain">
               <div className="px-5 lg:px-6 py-5 lg:py-6">
-                {questions.map((qa, index) => {
-                  const isAnswered = qa.status === "answered" || !!qa.answer;
+                {modalQuestions.map((qa, index) => {
+                  const isAnswered = hasProviderAnswer(qa);
                   const isPending = !isAnswered;
                   const isOwner = user?.id && qa.asker_user_id === user.id;
                   const askerName = qa.asker_name || "Anonymous";
+                  const startsUnansweredGroup = isPending && (
+                    index === 0 || hasProviderAnswer(modalQuestions[index - 1])
+                  );
 
                   return (
-                    <div
-                      key={qa.id || index}
-                      className={`${index > 0 ? "mt-6 pt-6 border-t border-gray-100" : ""}`}
-                    >
-                      <div className="flex items-start gap-3.5">
-                        <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${avatarGradient(askerName)} flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
-                          <span className="text-sm font-bold text-gray-600">
-                            {getInitials(askerName)}
-                          </span>
-                        </div>
+                    <div key={qa.id || index}>
+                      {startsUnansweredGroup && answeredQuestions.length > 0 && (
+                        <p className="mt-8 mb-4 pt-6 border-t border-gray-200 text-xs font-semibold uppercase tracking-wide text-gray-400">
+                          Awaiting a response
+                        </p>
+                      )}
+                      <div className={`${index > 0 && !startsUnansweredGroup ? "mt-6 pt-6 border-t border-gray-100" : ""}`}>
+                        <div className="flex items-start gap-3.5">
+                          <div className={`w-10 h-10 rounded-full bg-gradient-to-br ${avatarGradient(askerName)} flex items-center justify-center shrink-0 ring-2 ring-white shadow-sm`}>
+                            <span className="text-sm font-bold text-gray-600">
+                              {getInitials(askerName)}
+                            </span>
+                          </div>
 
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1.5">
@@ -1361,10 +1405,23 @@ export default function QASectionV2({
                             </div>
                           )}
                         </div>
+                        </div>
                       </div>
                     </div>
                   );
                 })}
+
+                {answeredQuestions.length > 0 && unansweredQuestions.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setShowUnanswered((visible) => !visible)}
+                    className="mt-6 w-full rounded-xl border border-gray-200 px-4 py-3 text-sm font-semibold text-gray-600 hover:border-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-colors"
+                  >
+                    {showUnanswered
+                      ? "Hide unanswered questions"
+                      : `Show ${unansweredQuestions.length} unanswered question${unansweredQuestions.length === 1 ? "" : "s"}`}
+                  </button>
+                )}
               </div>
             </div>
 
@@ -1372,7 +1429,7 @@ export default function QASectionV2({
             <div className="lg:hidden shrink-0 border-t border-gray-100 px-5 py-4 pb-[max(1rem,env(safe-area-inset-bottom))]">
               <button
                 type="button"
-                onClick={() => setShowAllModal(false)}
+                onClick={closeAllQuestions}
                 className="w-full py-3.5 rounded-xl bg-gray-900 text-[15px] font-semibold text-white hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-primary-200 transition-colors active:scale-[0.98]"
               >
                 Done

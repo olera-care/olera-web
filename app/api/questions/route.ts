@@ -32,20 +32,42 @@ export async function GET(request: NextRequest) {
     // Fetch both pending and answered questions that are public
     const { data: questions, error } = await db
       .from("provider_questions")
-      .select("id, question, answer, asker_name, asker_user_id, status, answered_at, created_at, asked_count, suggestion_key")
+      .select("id, question, answer, answer_status, asker_name, asker_user_id, status, answered_at, created_at, asked_count, suggestion_key")
       .in("provider_id", allVariants)
       .is("canonical_question_id", null)
       .eq("is_public", true)
       .in("status", ["pending", "approved", "answered"])
+      .order("answered_at", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false })
-      .limit(20);
+      .limit(40);
 
     if (error) {
       console.error("Failed to fetch questions:", error);
       return NextResponse.json({ error: "Failed to fetch questions" }, { status: 500 });
     }
 
-    return NextResponse.json({ questions: questions ?? [] });
+    // Never leak response drafts awaiting publication. Normalize their status
+    // too, so the client cannot mistake an unpublished response for visible
+    // provider social proof.
+    const publicQuestions = (questions ?? []).map((question) => {
+      const hasPublishedAnswer =
+        question.answer_status === "published" &&
+        typeof question.answer === "string" &&
+        question.answer.trim().length > 0;
+      const { answer_status: _answerStatus, ...publicQuestion } = question;
+      return {
+        ...publicQuestion,
+        answer: hasPublishedAnswer ? question.answer : null,
+        answered_at: hasPublishedAnswer ? question.answered_at : null,
+        status: hasPublishedAnswer
+          ? "answered"
+          : question.status === "pending"
+            ? "pending"
+            : "approved",
+      };
+    });
+
+    return NextResponse.json({ questions: publicQuestions });
   } catch (err) {
     console.error("Questions GET error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
@@ -308,10 +330,18 @@ export async function POST(request: NextRequest) {
     if (!recorded) {
       return NextResponse.json({ error: "Failed to submit question" }, { status: 500 });
     }
+    // The public GET and server-rendered page both gate response copy on
+    // publication. Keep the mutation response under the same contract so a
+    // repeated ask cannot briefly expose an answer awaiting verification.
+    const hasPublishedAnswer =
+      recorded.is_public &&
+      recorded.answer_status === "published" &&
+      typeof recorded.answer === "string" &&
+      recorded.answer.trim().length > 0;
     const newQuestion = {
       id: recorded.question_id,
       question: recorded.question,
-      answer: recorded.answer,
+      answer: hasPublishedAnswer ? recorded.answer : null,
       asker_name: recorded.asker_name,
       status: recorded.status,
       created_at: recorded.created_at,
@@ -434,11 +464,7 @@ export async function POST(request: NextRequest) {
 
     const providerDisplayName = resolvedProvider?.display_name || resolvedIos?.provider_name || provider_id;
     const providerIdForLogs = resolvedProvider?.id || resolvedIos?.provider_id || provider_id;
-    const hasExistingPublishedAnswer =
-      deduplicated &&
-      !!newQuestion.answer?.trim() &&
-      recorded.answer_status === "published" &&
-      recorded.is_public;
+    const hasExistingPublishedAnswer = deduplicated && hasPublishedAnswer;
 
     // Resolve email: business_profiles first, then olera-providers fallback
     let pEmail = resolvedProvider?.email || null;

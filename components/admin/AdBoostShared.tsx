@@ -33,10 +33,15 @@ export interface CampaignRequest {
   updated_at: string;
   /** Set when the request has been soft-deleted (archived); null when live. */
   deleted_at: string | null;
-  /** Manual ad-platform metrics, entered by the operator on the detail page. */
+  /** Manual ad-platform metrics, entered by the operator on the detail page.
+   *  A snapshot of whenever someone last opened the ad dashboard — always read
+   *  them next to `metrics_updated_at`, never on their own. */
   ad_spend_cents: number | null;
   ad_clicks: number | null;
   ad_impressions: number | null;
+  /** When the three fields above were last saved. NULL = entered before this
+   *  was tracked (2026-08-20), so their age is unknown. */
+  metrics_updated_at?: string | null;
   /** Idempotency markers for request/readiness messages. A value means the
    *  provider communication completed successfully. */
   queued_email_sent_at?: string | null;
@@ -165,6 +170,31 @@ export function fmtTimestamp(ts: string): string {
     day: "numeric",
     year: "numeric",
   });
+}
+
+/** Age of the hand-entered ad-platform metrics, as "Aug 14 (6 days ago)".
+ *  Anchored to US Eastern like every other admin timestamp, so the date reads
+ *  the same for TJ in Thailand as for the ops day it belongs to.
+ *
+ *  Returns null when never recorded — the caller says "not recorded" rather
+ *  than implying a freshness we cannot back up. */
+export function fmtMetricsAge(
+  ts: string | null | undefined,
+): { label: string; days: number } | null {
+  if (!ts) return null;
+  const then = new Date(ts);
+  if (Number.isNaN(then.getTime())) return null;
+  const days = Math.max(
+    0,
+    Math.floor((Date.now() - then.getTime()) / (24 * 60 * 60 * 1000)),
+  );
+  const date = then.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "America/New_York",
+  });
+  const ago = days === 0 ? "today" : days === 1 ? "yesterday" : `${days} days ago`;
+  return { label: `${date} (${ago})`, days };
 }
 
 /** Build the canonical managed-ads landing URL with UTM attribution params. */

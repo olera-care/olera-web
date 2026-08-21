@@ -377,15 +377,14 @@ export default async function ProviderPage({
         const [qaResponse, reviewResponse, askedResponse] = await Promise.all([
           db
             .from("provider_questions")
-            .select("id, question, answer, asker_name, created_at, suggestion_key, asked_count")
+            .select("id, question, answer, answer_status, asker_name, status, answered_at, created_at, suggestion_key, asked_count")
             .in("provider_id", questionProviderIds)
             .is("canonical_question_id", null)
             .eq("is_public", true)
-            .eq("answer_status", "published")  // Only show published answers (not pending verification)
-            .in("status", ["approved", "answered"])
-            .not("answer", "is", null)
+            .in("status", ["pending", "approved", "answered"])
+            .order("answered_at", { ascending: false, nullsFirst: false })
             .order("created_at", { ascending: false })
-            .limit(20),
+            .limit(40),
           db
             .from("reviews")
             .select("id", { count: "exact", head: true })
@@ -405,8 +404,29 @@ export default async function ProviderPage({
           const key = row.suggestion_key || normalizeQuestion(row.question);
           if (key) suggestionStats[key] = (suggestionStats[key] || 0) + (row.asked_count ?? 1);
         }
+        const publicQuestions = (qaResponse.data || []).map((question) => {
+          const hasPublishedAnswer =
+            question.answer_status === "published" &&
+            typeof question.answer === "string" &&
+            question.answer.trim().length > 0;
+          return {
+            id: question.id,
+            question: question.question,
+            answer: hasPublishedAnswer ? question.answer : null,
+            asker_name: question.asker_name,
+            status: hasPublishedAnswer
+              ? "answered"
+              : question.status === "pending"
+                ? "pending"
+                : "approved",
+            answered_at: hasPublishedAnswer ? question.answered_at : null,
+            created_at: question.created_at,
+            suggestion_key: question.suggestion_key,
+            asked_count: question.asked_count,
+          };
+        });
         return {
-          questions: (qaResponse.data || []).filter((q: { answer: string | null }) => q.answer && q.answer.trim().length > 0),
+          questions: publicQuestions,
           reviewCount: reviewResponse.count ?? 0,
           suggestionStats,
         };
@@ -496,15 +516,21 @@ export default async function ProviderPage({
   };
   const displayClaimState = computeBadgeDisplayState();
 
-  const answeredQuestions = qaResult.questions as Array<{
+  const publicQuestions = qaResult.questions as Array<{
     id: string;
     question: string;
-    answer: string;
+    answer: string | null;
     asker_name: string;
+    status: "pending" | "approved" | "answered";
+    answered_at: string | null;
     created_at: string;
     suggestion_key: string | null;
     asked_count: number | null;
   }>;
+  const answeredQuestions = publicQuestions.filter(
+    (question): question is typeof question & { answer: string } =>
+      typeof question.answer === "string" && question.answer.trim().length > 0,
+  );
   const realReviewCount = qaResult.reviewCount;
   const suggestionStats = (qaResult.suggestionStats ?? {}) as Record<string, number>;
 
@@ -579,7 +605,19 @@ export default async function ProviderPage({
   const hasStaffScreening = staffScreeningItems.length > 0;
   const hasAcceptedPayments = acceptedPayments.length > 0;
 
-  const rawCareTypes = (profile.care_types ?? []).map(normalizeCareLabel);
+  // A provider's care_types can hold the same service in several shapes
+  // ("home-care" and "Home Care", "Dementia Care" and "Memory Care") which
+  // normalize to one canonical label, so dedupe after normalizing or the
+  // services list repeats itself. Same guard directoryHydrationFields uses.
+  const seenCareType = new Set<string>();
+  const rawCareTypes = (profile.care_types ?? [])
+    .map(normalizeCareLabel)
+    .filter((s) => {
+      const key = s.toLowerCase();
+      if (seenCareType.has(key)) return false;
+      seenCareType.add(key);
+      return true;
+    });
   const careServices: string[] = [...rawCareTypes];
   if (profile.category) {
     const inferred = getCategoryServices(profile.category);
@@ -1288,11 +1326,13 @@ export default async function ProviderPage({
                   providerPriceRange={priceRange ?? undefined}
                   providerCity={profile.city ?? undefined}
                   providerState={profile.state ?? undefined}
-                  questions={answeredQuestions.map((q) => ({
+                  questions={publicQuestions.map((q) => ({
                     id: q.id,
                     question: q.question,
                     answer: q.answer,
                     asker_name: q.asker_name,
+                    status: q.status,
+                    answered_at: q.answered_at ?? undefined,
                     created_at: q.created_at,
                     suggestion_key: q.suggestion_key,
                     asked_count: q.asked_count,

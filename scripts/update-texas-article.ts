@@ -52,7 +52,9 @@ const ARTICLE_HTML = `
 
 <h2>Can You Get Paid as a Caregiver in Texas?</h2>
 
-<p><strong>Yes.</strong> Through Texas Medicaid&rsquo;s <strong>STAR+PLUS</strong> program, family members and close friends can be officially hired and paid as caregivers.</p>
+<p>Caring for a family member can take a significant amount of time, especially when they need help with everyday tasks. In Texas, some Medicaid programs allow eligible family members and close friends to be hired and paid for providing that care.</p>
+
+<p>Through <strong>STAR+PLUS Consumer Directed Services (CDS)</strong>, eligible individuals can choose and hire their own caregivers rather than relying on an agency.</p>
 
 <!-- eligibility-checker -->
 
@@ -149,30 +151,30 @@ const ARTICLE_HTML = `
 
 <p>The application process has six steps. Most families can complete it in 30 to 90 days.</p>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6 not-prose">
+<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6 not-prose items-stretch">
   <div class="rounded-xl bg-white border border-gray-200 p-5 shadow-sm flex gap-4 items-start">
     <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-primary-100 text-primary-700 text-sm font-bold flex-shrink-0">1</span>
-    <div><p class="text-sm font-semibold text-gray-900 mb-1">Confirm Medicaid / STAR+PLUS Coverage</p><p class="text-sm text-gray-500">Make sure your loved one is enrolled in Texas Medicaid and assigned to a STAR+PLUS Managed Care Organization (MCO). Call <strong>2-1-1</strong> or visit <a href="https://www.yourtexasbenefits.com" target="_blank" rel="noopener noreferrer" class="text-primary-600 underline">YourTexasBenefits.com</a> to check coverage or join the waiver interest list.</p></div>
+    <div><p class="text-sm font-semibold text-gray-900 mb-1">Confirm Medicaid Coverage</p><p class="text-sm text-gray-500">Make sure your loved one has Texas Medicaid and is enrolled in STAR+PLUS. Call <strong>2-1-1</strong> or visit <a href="https://www.yourtexasbenefits.com" target="_blank" rel="noopener noreferrer" class="text-primary-600 underline">YourTexasBenefits.com</a> to check their coverage.</p></div>
   </div>
   <div class="rounded-xl bg-white border border-gray-200 p-5 shadow-sm flex gap-4 items-start">
     <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-primary-100 text-primary-700 text-sm font-bold flex-shrink-0">2</span>
-    <div><p class="text-sm font-semibold text-gray-900 mb-1">Schedule a Needs Assessment</p><p class="text-sm text-gray-500">Contact your loved one&rsquo;s MCO to request an assessment. A service coordinator or nurse will evaluate their daily care needs and determine the number of authorized care hours.</p></div>
+    <div><p class="text-sm font-semibold text-gray-900 mb-1">Complete a Care Assessment</p><p class="text-sm text-gray-500">Contact their health plan to schedule an assessment. A care coordinator will determine what help they need and how many care hours are approved.</p></div>
   </div>
   <div class="rounded-xl bg-white border border-gray-200 p-5 shadow-sm flex gap-4 items-start">
     <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-primary-100 text-primary-700 text-sm font-bold flex-shrink-0">3</span>
-    <div><p class="text-sm font-semibold text-gray-900 mb-1">Choose Consumer Directed Services (CDS)</p><p class="text-sm text-gray-500">Tell the service coordinator you want to use CDS, which allows your loved one to hire an eligible family member, friend, or caregiver instead of using agency staff.</p></div>
+    <div><p class="text-sm font-semibold text-gray-900 mb-1">Choose Consumer Directed Services (CDS)</p><p class="text-sm text-gray-500">Ask to use the CDS option. This allows your loved one to hire an eligible family member, friend, or caregiver instead of using agency staff.</p></div>
   </div>
   <div class="rounded-xl bg-white border border-gray-200 p-5 shadow-sm flex gap-4 items-start">
     <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-primary-100 text-primary-700 text-sm font-bold flex-shrink-0">4</span>
-    <div><p class="text-sm font-semibold text-gray-900 mb-1">Choose an FMSA</p><p class="text-sm text-gray-500">Select a state-contracted Financial Management Services Agency (FMSA) to manage payroll, taxes, and employer paperwork.</p></div>
+    <div><p class="text-sm font-semibold text-gray-900 mb-1">Choose a Payroll Provider</p><p class="text-sm text-gray-500">Select an approved Financial Management Services Agency (FMSA). They handle payroll, taxes, and employment paperwork.</p></div>
   </div>
   <div class="rounded-xl bg-white border border-gray-200 p-5 shadow-sm flex gap-4 items-start">
     <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-primary-100 text-primary-700 text-sm font-bold flex-shrink-0">5</span>
-    <div><p class="text-sm font-semibold text-gray-900 mb-1">Complete Caregiver Onboarding</p><p class="text-sm text-gray-500">The caregiver completes hiring paperwork, required background checks, and program orientation through the FMSA.</p></div>
+    <div><p class="text-sm font-semibold text-gray-900 mb-1">Complete Caregiver Onboarding</p><p class="text-sm text-gray-500">The caregiver completes the required paperwork, background check, and program orientation.</p></div>
   </div>
   <div class="rounded-xl bg-white border border-gray-200 p-5 shadow-sm flex gap-4 items-start">
     <span class="inline-flex items-center justify-center w-9 h-9 rounded-full bg-primary-100 text-primary-700 text-sm font-bold flex-shrink-0">6</span>
-    <div><p class="text-sm font-semibold text-gray-900 mb-1">Track Hours &amp; Get Paid</p><p class="text-sm text-gray-500">Caregivers log approved hours through Electronic Visit Verification (EVV) and receive pay through the FMSA.</p></div>
+    <div><p class="text-sm font-semibold text-gray-900 mb-1">Track Hours and Get Paid</p><p class="text-sm text-gray-500">The caregiver logs approved hours through the required EVV system and is paid through the FMSA.</p></div>
   </div>
 </div>
 
@@ -248,7 +250,7 @@ async function main() {
       excerpt:
         "Can you get paid to care for a family member in Texas? Yes, through Medicaid\u2019s STAR+PLUS program. Here is who qualifies and how to apply.",
       subtitle:
-        "A step-by-step guide to getting paid through Texas Medicaid\u2019s STAR+PLUS Consumer Directed Services program.",
+        "A step-by-step guide to becoming a paid caregiver through Texas Medicaid\u2019s STAR+PLUS Consumer Directed Services program.",
       reading_time: "8 min read",
       tags: ["texas", "medicaid", "paid-caregiving", "star-plus", "cover-alt:Family caregiver helping elderly parent at home in Texas"],
       focus_keyword: "get paid as a caregiver in texas",

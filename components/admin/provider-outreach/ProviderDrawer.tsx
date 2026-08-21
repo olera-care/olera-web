@@ -73,6 +73,8 @@ interface OutreachProvider {
   re_engage_channel?: string | null;
   re_engage_entered_at?: string | null;
   fax_number?: string | null;
+  fax_confidence?: string | null;
+  fax_status?: string | null;
   mail_address?: string | null;
   contact_form_url?: string | null;
   // Call tab (call_exhausted) fields
@@ -1051,6 +1053,13 @@ function ActionsSection({
   const [contactFormOpened, setContactFormOpened] = useState(false);
   const [findingContactForm, setFindingContactForm] = useState(false);
 
+  // Fax workflow state
+  const [faxNumber, setFaxNumber] = useState<string>(provider.fax_number || "");
+  const [findingFax, setFindingFax] = useState(false);
+  const [faxConfidence, setFaxConfidence] = useState<string | null>(provider.fax_confidence || null);
+  const [sendingFax, setSendingFax] = useState(false);
+  const [faxSent, setFaxSent] = useState(false);
+
   // Reset contact form state when provider changes
   useEffect(() => {
     setContactFormUrl(provider.contact_form_url || provider.website || "");
@@ -1059,6 +1068,15 @@ function ActionsSection({
     setContactFormOpened(false);
     setFindingContactForm(false);
   }, [provider.provider_id, provider.contact_form_url, provider.website]);
+
+  // Reset fax state when provider changes
+  useEffect(() => {
+    setFaxNumber(provider.fax_number || "");
+    setFaxConfidence(provider.fax_confidence || null);
+    setFindingFax(false);
+    setSendingFax(false);
+    setFaxSent(false);
+  }, [provider.provider_id, provider.fax_number, provider.fax_confidence]);
 
   // Auto-generate claim URL when entering contact form workflow
   useEffect(() => {
@@ -1097,6 +1115,43 @@ function ActionsSection({
         })
         .finally(() => {
           setFindingContactForm(false);
+        });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirmAction]);
+
+  // Auto-find fax number when entering fax workflow (if provider has website but no saved fax)
+  useEffect(() => {
+    if (
+      confirmAction === "fax" &&
+      provider.website &&
+      !provider.fax_number &&
+      !findingFax
+    ) {
+      setFindingFax(true);
+      const initialFaxNumber = faxNumber; // Capture initial value
+      fetch("/api/admin/provider-outreach/find-fax", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.fax) {
+            // Only update if user hasn't edited the fax number
+            setFaxNumber((current) =>
+              current === initialFaxNumber ? data.fax : current
+            );
+            setFaxConfidence((currentConf) =>
+              currentConf === null ? data.confidence : currentConf
+            );
+          }
+        })
+        .catch(() => {
+          // Non-fatal - user can enter manually
+        })
+        .finally(() => {
+          setFindingFax(false);
         });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1418,6 +1473,151 @@ Questions? support@olera.care or (979) 243-9801`;
     );
   }
 
+  // Show Fax workflow (find fax number, send fax)
+  if (confirmAction === "fax") {
+    return (
+      <div>
+        <SectionHeader>Send Fax</SectionHeader>
+        <div className="space-y-3">
+          {/* Fax number input */}
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-gray-500">Fax number</label>
+              {findingFax && (
+                <span className="text-xs text-gray-400 flex items-center gap-1">
+                  <span className="w-3 h-3 border border-gray-300 border-t-gray-500 rounded-full animate-spin" />
+                  Finding...
+                </span>
+              )}
+              {faxConfidence && !findingFax && (
+                <span className={`text-xs ${faxConfidence === "high" ? "text-green-600" : "text-amber-600"}`}>
+                  {faxConfidence === "high" ? "Found" : "Possible match"}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={faxNumber}
+                onChange={(e) => {
+                  setFaxNumber(e.target.value);
+                  setFaxConfidence(null); // Clear confidence when manually editing
+                }}
+                placeholder="(555) 123-4567"
+                className="flex-1 px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+              />
+              {provider.website && !findingFax && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setFindingFax(true);
+                    setActionError(null);
+                    try {
+                      const res = await fetch("/api/admin/provider-outreach/find-fax", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ provider_id: provider.provider_id }),
+                      });
+                      const data = await res.json();
+                      if (data.fax) {
+                        setFaxNumber(data.fax);
+                        setFaxConfidence(data.confidence);
+                      } else {
+                        setActionError(data.error_detail || "No fax number found");
+                      }
+                    } catch {
+                      setActionError("Failed to search for fax");
+                    } finally {
+                      setFindingFax(false);
+                    }
+                  }}
+                  className="text-xs text-blue-600 hover:underline whitespace-nowrap"
+                >
+                  Find Fax
+                </button>
+              )}
+            </div>
+            {!provider.website && (
+              <p className="text-xs text-gray-400">No website on file - enter fax manually</p>
+            )}
+          </div>
+
+          {/* Fax sent success message */}
+          {faxSent && (
+            <div className="p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700 flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Fax sent! Provider moved to Alternative Channels.
+            </div>
+          )}
+
+          {/* Send Fax button */}
+          {!faxSent && (
+            <button
+              onClick={async () => {
+                if (!faxNumber.trim()) {
+                  setActionError("Please enter a fax number");
+                  return;
+                }
+                setSendingFax(true);
+                setActionError(null);
+                try {
+                  // First save the fax number if entered manually
+                  if (!faxConfidence) {
+                    await fetch("/api/admin/provider-outreach/find-fax", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ provider_id: provider.provider_id, manual_fax: faxNumber.trim() }),
+                    });
+                  }
+                  // Send the fax
+                  const res = await fetch("/api/admin/provider-outreach/send-fax", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ provider_id: provider.provider_id, fax_number: faxNumber.trim() }),
+                  });
+                  const data = await res.json();
+                  if (res.ok && data.success) {
+                    // Record the outcome to move to re_engage
+                    await fetch("/api/admin/provider-outreach/record-outcome", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ provider_id: provider.provider_id, outcome: "try_fax" }),
+                    });
+                    setFaxSent(true);
+                    onOutcomeRecorded?.(provider.provider_id, true);
+                    setTimeout(() => onClose?.(), 1500);
+                  } else {
+                    if (data.missing_config) {
+                      setActionError("Fax service not configured. Contact admin.");
+                    } else {
+                      setActionError(data.error || "Failed to send fax");
+                    }
+                  }
+                } catch {
+                  setActionError("Network error");
+                } finally {
+                  setSendingFax(false);
+                }
+              }}
+              disabled={sendingFax || !faxNumber.trim()}
+              className={`${primaryBtn} w-full`}
+            >
+              {sendingFax ? "Sending..." : "Send Fax"}
+            </button>
+          )}
+
+          {actionError && <p className="text-sm text-red-600">{actionError}</p>}
+
+          <button onClick={cancelConfirm} className={`${plainBtn} w-full text-center`}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Show confirmation dialog
   if (confirmAction) {
     const configs: Record<string, { title: string; requiresCall?: boolean; confirmText: string }> = {
@@ -1505,7 +1705,7 @@ Questions? support@olera.care or (979) 243-9801`;
                 Resend Link
               </button>
             )}
-            <button onClick={() => setConfirmAction("try_fax")} className={outlineBtn}>
+            <button onClick={() => setConfirmAction("fax")} className={outlineBtn}>
               Fax
             </button>
             <button onClick={() => setConfirmAction("contact_form")} className={outlineBtn}>

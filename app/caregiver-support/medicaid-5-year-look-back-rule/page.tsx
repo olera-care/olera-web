@@ -8,7 +8,6 @@ import {
   MobileTableOfContents,
 } from "@/components/article/TableOfContents";
 import ShareButton from "@/components/article/ShareButton";
-import StatePenaltyTable from "@/components/article/StatePenaltyTable";
 import PenaltyCalculator from "@/components/article/PenaltyCalculator";
 
 // ============================================================
@@ -16,13 +15,13 @@ import PenaltyCalculator from "@/components/article/PenaltyCalculator";
 // ============================================================
 
 const TITLE =
-  "Medicaid 5-Year Look-Back Rule (2026): Penalties, State Rules & Exceptions";
+  "Medicaid Look-Back Period 2026: Penalties and State Rules";
 const META_DESCRIPTION =
-  "How the Medicaid 5-year look-back works in 2026: penalty calculations, state-by-state divisors, and the exceptions that protect your loved one\u2019s assets.";
+  "How Medicaid\u2019s 5-year look-back works in 2026: how penalty periods are calculated, what triggers them, and which transfers are exempt.";
 const OG_DESCRIPTION =
-  "A plain-English guide to the Medicaid 5-year look-back: penalties, state divisors, common mistakes, and legitimate exceptions.";
+  "A clear guide to the Medicaid 5-year look-back: how penalties work, common mistakes, and legitimate exceptions for families.";
 const SUBTITLE =
-  "What the Medicaid 5-year look-back actually means for your family, how penalties get calculated, and the legitimate ways to protect your loved one\u2019s assets, explained without the legal jargon.";
+  "A clear guide to the Medicaid 5-year look-back, how it may affect your family, and the steps you can take to plan ahead for your loved one\u2019s care.";
 const CANONICAL =
   "https://olera.care/caregiver-support/medicaid-5-year-look-back-rule";
 const OG_IMAGE = "https://olera.care/images/medicaid-look-back-cover.png";
@@ -164,10 +163,9 @@ const GLOSSARY = {
 // ============================================================
 
 const HEADINGS: ArticleHeading[] = [
-  { id: "quick-answer", text: "Quick Answer: What Is the Medicaid 5-Year Look-Back?", level: 2 },
+  { id: "quick-answer", text: "What Is the Medicaid 5-Year Look-Back?", level: 2 },
   { id: "how-it-works", text: "How the Look-Back Period Actually Works", level: 2 },
   { id: "penalty-calculation", text: "How the Penalty Period Is Calculated", level: 2 },
-  { id: "state-by-state", text: "State-by-State Look-Back Rules and Penalty Divisors", level: 2 },
   { id: "common-mistakes", text: "Common Mistakes That Trigger Penalties", level: 2 },
   { id: "medicare-vs-medicaid", text: "Medicare vs. Medicaid: There Is No Medicare Look-Back", level: 2 },
   { id: "exceptions", text: "Exceptions: Transferring Assets Without a Penalty", level: 2 },
@@ -177,65 +175,8 @@ const HEADINGS: ArticleHeading[] = [
   { id: "faq", text: "Frequently Asked Questions", level: 2 },
 ];
 
-const READING_TIME = "22 min read";
+const READING_TIME = "12 min read";
 
-// ============================================================
-// State penalty divisor data
-// ============================================================
-
-const STATE_DATA: { state: string; period: string; divisor: string; notes: string }[] = [
-  { state: "Alabama", period: "60 months", divisor: "~$7,200", notes: "Standard rules" },
-  { state: "Alaska", period: "60 months", divisor: "~$22,400", notes: "Highest divisor in the country" },
-  { state: "Arizona", period: "60 months", divisor: "~$8,500", notes: "Standard rules" },
-  { state: "Arkansas", period: "60 months", divisor: "~$6,500", notes: "Standard rules" },
-  { state: "California", period: "60 months (reimplementing 2026)", divisor: "Daily APPR-based (~$14,440/mo)", notes: "Daily gifting up to APPR allowed; only applies to Nursing Home Medicaid" },
-  { state: "Colorado", period: "60 months", divisor: "~$9,500", notes: "Standard rules" },
-  { state: "Connecticut", period: "60 months", divisor: "~$14,700", notes: "Standard rules" },
-  { state: "Delaware", period: "60 months", divisor: "~$11,000", notes: "Standard rules" },
-  { state: "Florida", period: "60 months", divisor: "~$10,500", notes: "Standard rules" },
-  { state: "Georgia", period: "60 months", divisor: "~$8,400", notes: "Standard rules" },
-  { state: "Hawaii", period: "60 months", divisor: "~$13,500", notes: "Standard rules" },
-  { state: "Idaho", period: "60 months", divisor: "~$9,200", notes: "Standard rules" },
-  { state: "Illinois", period: "60 months", divisor: "~$8,900", notes: "Standard rules" },
-  { state: "Indiana", period: "60 months", divisor: "~$7,800", notes: "Standard rules" },
-  { state: "Iowa", period: "60 months", divisor: "~$7,500", notes: "Standard rules" },
-  { state: "Kansas", period: "60 months", divisor: "~$6,700", notes: "Standard rules" },
-  { state: "Kentucky", period: "60 months", divisor: "~$9,200", notes: "Standard rules" },
-  { state: "Louisiana", period: "60 months", divisor: "~$5,500", notes: "Among the lowest divisors" },
-  { state: "Maine", period: "60 months", divisor: "~$11,800", notes: "Standard rules" },
-  { state: "Maryland", period: "60 months", divisor: "~$11,200", notes: "Standard rules" },
-  { state: "Massachusetts", period: "60 months", divisor: "~$13,800", notes: "Standard rules" },
-  { state: "Michigan", period: "60 months", divisor: "~$9,400", notes: "Standard rules" },
-  { state: "Minnesota", period: "60 months", divisor: "~$9,800", notes: "Standard rules" },
-  { state: "Mississippi", period: "60 months", divisor: "~$6,600", notes: "Standard rules" },
-  { state: "Missouri", period: "60 months", divisor: "~$5,800", notes: "Standard rules" },
-  { state: "Montana", period: "60 months", divisor: "~$8,900", notes: "Standard rules" },
-  { state: "Nebraska", period: "60 months", divisor: "~$7,200", notes: "Standard rules" },
-  { state: "Nevada", period: "60 months", divisor: "~$10,200", notes: "Standard rules" },
-  { state: "New Hampshire", period: "60 months", divisor: "~$11,400", notes: "Standard rules" },
-  { state: "New Jersey", period: "60 months", divisor: "~$13,200", notes: "Standard rules" },
-  { state: "New Mexico", period: "60 months", divisor: "~$8,400", notes: "Standard rules" },
-  { state: "New York", period: "60 months (Nursing Home only)", divisor: "~$14,800", notes: "No look-back yet for Community Medicaid (HCBS). 30-month look-back planned but not yet implemented" },
-  { state: "North Carolina", period: "60 months", divisor: "~$9,300", notes: "Standard rules" },
-  { state: "North Dakota", period: "60 months", divisor: "~$10,800", notes: "Standard rules" },
-  { state: "Ohio", period: "60 months", divisor: "~$7,800", notes: "Standard rules" },
-  { state: "Oklahoma", period: "60 months", divisor: "~$6,800", notes: "Standard rules" },
-  { state: "Oregon", period: "60 months", divisor: "~$10,400", notes: "Standard rules" },
-  { state: "Pennsylvania", period: "60 months", divisor: "~$11,000", notes: "Allows gifting up to $500/month without penalty" },
-  { state: "Rhode Island", period: "60 months", divisor: "~$11,600", notes: "Standard rules" },
-  { state: "South Carolina", period: "60 months", divisor: "~$8,000", notes: "Standard rules" },
-  { state: "South Dakota", period: "60 months", divisor: "~$8,400", notes: "Standard rules" },
-  { state: "Tennessee", period: "60 months", divisor: "~$7,600", notes: "Standard rules" },
-  { state: "Texas", period: "60 months", divisor: "~$7,900", notes: "Standard rules" },
-  { state: "Utah", period: "60 months", divisor: "~$8,200", notes: "Standard rules" },
-  { state: "Vermont", period: "60 months", divisor: "~$11,400", notes: "Standard rules" },
-  { state: "Virginia", period: "60 months", divisor: "~$9,700", notes: "Standard rules" },
-  { state: "Washington", period: "60 months", divisor: "~$11,800", notes: "Standard rules" },
-  { state: "West Virginia", period: "60 months", divisor: "~$9,400", notes: "Standard rules" },
-  { state: "Wisconsin", period: "60 months", divisor: "~$10,200", notes: "Standard rules" },
-  { state: "Wyoming", period: "60 months", divisor: "~$10,600", notes: "Standard rules" },
-  { state: "DC", period: "60 months", divisor: "~$13,500", notes: "Standard rules" },
-];
 
 // ============================================================
 // JSON-LD
@@ -248,7 +189,7 @@ const articleJsonLd = {
   description: META_DESCRIPTION,
   image: OG_IMAGE,
   datePublished: "2026-05-26",
-  dateModified: "2026-05-26",
+  dateModified: "2026-08-21",
   author: { "@type": "Organization", name: "Olera", url: "https://olera.care" },
   reviewedBy: {
     "@type": "Person",
@@ -300,7 +241,7 @@ const faqJsonLd = {
       name: "How far back does Medicaid actually look?",
       acceptedAnswer: {
         "@type": "Answer",
-        text: "In 49 states, the look-back period is exactly 60 months (5 years) from the date of the long-term care Medicaid application. California is reimplementing the standard look-back in 2026 after temporarily having a 30-month rule.",
+        text: "In most states, the look-back period is 60 months (5 years) from the date of the long-term care Medicaid application. California uses a 30-month look-back period for its Medi-Cal programs.",
       },
     },
     {
@@ -409,7 +350,7 @@ export default async function MedicaidLookBackRulePage() {
               <span className="text-gray-300">|</span>
               <span className="text-gray-400">{READING_TIME}</span>
               <span className="text-gray-300">|</span>
-              <span className="text-gray-400">Last updated May 26, 2026</span>
+              <span className="text-gray-400">Last updated Aug 21, 2026</span>
               <span className="text-gray-300">|</span>
               <ShareButton />
             </div>
@@ -435,10 +376,10 @@ export default async function MedicaidLookBackRulePage() {
               </h2>
               <CheckList
                 items={[
-                  <>The look-back period is <strong>60 months (5 years)</strong> in 49 states</>,
-                  <>Medicaid reviews all financial transfers for <strong>fair market value</strong></>,
-                  <>Penalty = total transferred &divide; state divisor (avg. <strong>$6,000&ndash;$22,000/mo</strong> depending on state)</>,
-                  <>Legitimate exceptions exist: spouse transfers, caregiver child, disabled child, and more</>,
+                  <>The look-back period is <strong>60 months (5 years)</strong> prior to applying for long-term care Medicaid in most states</>,
+                  <>Medicaid reviews all financial transfers to ensure assets weren&rsquo;t given away or sold below <strong>fair market value</strong></>,
+                  <><strong>Penalty Formula:</strong> The penalty period is calculated by dividing the total value of improperly transferred assets by your specific state&rsquo;s average monthly private-pay nursing home cost</>,
+                  <><strong>Exemptions:</strong> Legitimate exceptions exist, including transfers between spouses, transfers to a primary caregiver child, or transfers to a permanently disabled child</>,
                 ]}
               />
             </div>
@@ -446,15 +387,14 @@ export default async function MedicaidLookBackRulePage() {
             {/* Intro */}
             <div className="prose-editorial">
               <p>
-                If you&rsquo;re reading this, you&rsquo;re probably trying to figure out how to pay for a parent&rsquo;s nursing home care without losing everything they&rsquo;ve worked for, or you just found out a hospital is discharging your mom in three days and someone mentioned &ldquo;Medicaid look-back&rdquo; and now you&rsquo;re panicking.
+                If you&rsquo;re reading this, you&rsquo;re probably trying to understand how to pay for a loved one&rsquo;s long-term care while protecting the savings and assets they&rsquo;ve worked hard for.
               </p>
               <p>
-                Take a breath. We&rsquo;re going to walk through this together, in plain English, without the legal jargon.
+                The Medicaid 5-year look-back can feel complicated, especially when you&rsquo;re already making important decisions about care. But understanding how it works can help your family plan ahead, avoid unexpected issues, and feel more confident about the next steps.
               </p>
               <p>
-                The Medicaid 5-year look-back is one of the most misunderstood rules in elder care. It&rsquo;s also one of the most important. Get it wrong and your family member could be denied Medicaid coverage for months or even years, leaving you to pay out of pocket. Get it right and you can protect significant assets while still qualifying for the care your loved one needs.
+                We&rsquo;ll walk you through what the 5-year look-back means, what Medicaid considers, and the options your family may have.
               </p>
-              <p>Here&rsquo;s everything you need to know.</p>
             </div>
 
             {/* ── Quick Answer ──────────────────────────────── */}
@@ -462,7 +402,7 @@ export default async function MedicaidLookBackRulePage() {
               id="quick-answer"
               className="font-display text-2xl md:text-3xl text-gray-900 tracking-[-0.01em] mt-14 mb-4"
             >
-              Quick Answer: What Is the Medicaid 5-Year Look-Back?
+              What Is the Medicaid 5-Year Look-Back?
             </h2>
 
             <div className="prose-editorial">
@@ -480,8 +420,8 @@ export default async function MedicaidLookBackRulePage() {
               </h3>
               <CheckList
                 items={[
-                  "The look-back is 60 months in 49 states. California historically had a 30-month rule but is reimplementing the standard look-back in 2026.",
-                  "The look-back does not apply to Medicare. These are completely different programs (more on this below).",
+                  "The look-back period is 60 months (5 years) in most states, but California uses a 30-month look-back period for its long-term care Medi-Cal programs.",
+                  "The look-back does not apply to Medicare. These are completely different programs.",
                   "There are legitimate exceptions and strategies that let you transfer assets without triggering a penalty, but they have to be done correctly.",
                 ]}
               />
@@ -556,7 +496,7 @@ export default async function MedicaidLookBackRulePage() {
 
             <InfoBox>
               <p className="font-semibold mb-2">Formula</p>
-              <p className="font-mono text-sm bg-white/60 rounded-lg px-4 py-3">
+              <p className="font-display text-lg bg-white/60 rounded-lg px-4 py-3 tracking-[-0.01em]">
                 Total amount of disqualifying transfers &divide; State penalty divisor = Months of Medicaid ineligibility
               </p>
             </InfoBox>
@@ -597,28 +537,7 @@ export default async function MedicaidLookBackRulePage() {
 
             <PenaltyCalculator />
 
-            {/* ── State-by-State Table ────────────────────────── */}
-            <h2
-              id="state-by-state"
-              className="font-display text-2xl md:text-3xl text-gray-900 tracking-[-0.01em] mt-14 mb-4"
-            >
-              State-by-State Look-Back Rules and Penalty Divisors
-            </h2>
-
-            <div className="prose-editorial">
-              <p>
-                The look-back rule itself is federal, but the penalty divisor varies dramatically by state because it&rsquo;s tied to local nursing home costs. A few states also have unique exceptions.
-              </p>
-              <p>
-                The table below shows 2026 estimates. Verify your specific state&rsquo;s current divisor with your state Medicaid agency before making any decisions. These numbers update annually.
-              </p>
-            </div>
-
-            <StatePenaltyTable data={STATE_DATA} />
-
-            <Callout>
-              The penalty period has <strong>no cap</strong>. If someone gave away $500,000 within the look-back window in a state with an $8,000 divisor, the penalty period would be 62.5 months, over 5 years, and Medicaid would not pay for any care during that entire time.
-            </Callout>
+            {/* State-by-State section removed — divisor data hard to verify */}
 
             {/* ── Common Mistakes ─────────────────────────────── */}
             <h2
@@ -764,21 +683,18 @@ export default async function MedicaidLookBackRulePage() {
 
               <h3 className="flex items-center gap-2.5"><span className="inline-flex items-center gap-2 rounded-xl bg-green-100 text-green-800 text-xl font-semibold px-4 py-2"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>The Caregiver Child Exception</span></h3>
               <p>
-                This is one of the most powerful and underused exceptions. If an adult child:
+                In some cases, a parent may be able to transfer their home to an adult child without a Medicaid look-back penalty. The child generally must have:
               </p>
             </div>
             <CheckList
               items={[
-                "Lived in the parent\u2019s home for at least 2 years immediately before the parent\u2019s nursing home admission, AND",
-                "Provided care during that time that delayed the parent\u2019s need for nursing home placement",
+                "Lived in the parent\u2019s home for at least two years before the parent entered a nursing home",
+                "Provided care during that time that helped the parent remain at home and delayed the need for nursing home care",
               ]}
             />
             <div className="prose-editorial">
               <p>
-                &hellip;then the parent can transfer the home to that child without any look-back penalty.
-              </p>
-              <p>
-                This requires documentation: medical records, caregiver logs, statements from the parent&rsquo;s doctor confirming that the child&rsquo;s care prevented institutionalization. But for families where one child has been the primary caregiver, this can protect the home entirely.
+                Families will typically need documentation to support this, such as medical records, caregiving records, or a statement from the parent&rsquo;s doctor. For families where an adult child has been providing significant care at home, this exception may help protect the family home.
               </p>
 
               <h3 className="flex items-center gap-2.5"><span className="inline-flex items-center gap-2 rounded-xl bg-green-100 text-green-800 text-xl font-semibold px-4 py-2"><svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" /></svg>The Sibling Exception</span></h3>
@@ -999,7 +915,7 @@ export default async function MedicaidLookBackRulePage() {
                   },
                   {
                     q: "How far back does Medicaid actually look?",
-                    a: "In 49 states, the look-back period is exactly 60 months (5 years) from the date of the long-term care Medicaid application. California is reimplementing the standard look-back in 2026 after temporarily having a 30-month rule.",
+                    a: "In most states, the look-back period is 60 months (5 years) from the date of the long-term care Medicaid application. California uses a 30-month look-back period for its Medi-Cal programs.",
                   },
                   {
                     q: "Does the look-back apply to all Medicaid programs?",

@@ -3879,7 +3879,7 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 **Trust button / bounce rate — updated 2026-08-21 (prune DONE; #1658 still on staging only)**
 - ✅ **DONE 08-21: pruned 129 dead allowlist entries** (676 → 547). Expected 2.28% → ~1.53%. Backup at `~/Desktop/email-overrides-prune-backup-2026-08-21.json`. This was the big win; #1658 alone is only 2.28% → 2.21%.
 - 🟡 **Promote staging → main** (deferred 08-20 and 08-21). Small direct impact, but it is what stops the allowlist refilling and makes the prune a one-time job rather than a recurring chore. **QA on staging first.**
-- 🟡 **Verify the prune landed** in a day or two: account bounce rate should sit near 1.5% instead of 2.3%. If it does not move, the removed entries are being re-added by the Questions tab, which is the argument for promoting #1657... #1658.
+- 🟡 **Verify the prune landed** in a day or two: account bounce rate should sit near 1.5% instead of 2.3%. If it does not move, the removed entries are being re-added by the Questions tab, which is the argument for promoting #1658.
 - 🟡 **`isSuppressedRecipient` still uses exact `.eq("recipient", …)`.** The case-insensitive fix landed only in `getRecipientDeliveryHistory`, so a handful of mixed-case addresses can still evade send-time suppression. Small, unfixed.
 - 🟡 **`hello@seniorlistings.net` from_name** still has no "Olera" in it. One field, free trust win on Esther's original complaint, needs TJ's call because providers see it.
 - 🔴 **Reset `logan@joinolera.care` password** in Google Admin. Logan confirmed 08-20 he does not have it. Then the SmartLead connect takes minutes and gives capacity parity.

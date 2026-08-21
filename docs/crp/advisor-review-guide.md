@@ -15,7 +15,7 @@ Logan exports/pastes to Drive himself.
 
 # NIH Commercialization Readiness Pilot (CRP): Advisor Review Guide
 
-**Full application solicitation here: https://simpler.grants.gov/opportunity/ed6db6b2-d74e-4838-9223-ce72f4895688** (PAR-27-098, SBIR/STTR Commercialization Readiness Pilot Program, Parent SB1). *Summary below for reviewer orientation.*
+**Full application solicitation here: https://files.simpler.grants.gov/opportunities/ed6db6b2-d74e-4838-9223-ce72f4895688/attachments/6ef87dfe-4d97-48b0-ac8c-634a139051b6/PAR-27-098-Revised-Full-Announcement.html** (PAR-27-098, SBIR/STTR Commercialization Readiness Pilot Program, Parent SB1). *Summary below for reviewer orientation.*
 
 **What the CRP is.** The CRP provides up to three additional years of NIH-supported development toward commercialization for SBIR/STTR technologies that completed Phase II or IIB but still need late-stage development to reach the market (award ceiling $4,191,495 in total support). Full commercialization must ultimately continue after the CRP on non-SBIR resources; the solicitation instructs: "All applicants are expected to describe a realistic plan (extending beyond the CRP), which outlines how and when full commercialization can be accomplished. The full commercialization of the product/technology should be carried out with non-SBIR funds." The proposed activities should therefore leave the company able to attract third-party investment, sustain itself through revenue, or both.
 

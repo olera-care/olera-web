@@ -816,200 +816,14 @@ function ActivitySection({ provider }: { provider: OutreachProvider }) {
 
 function FollowUpSection({
   provider,
-  onOutcomeRecorded,
-  onContactFormFound,
-  onClose,
 }: {
   provider: OutreachProvider;
-  onOutcomeRecorded?: () => void;
-  onContactFormFound?: (providerId: string, url: string) => void;
-  onClose?: () => void;
 }) {
   const dueBadge = formatDueDateBadge(provider.due_date || null);
   const reasonChip = getNeedsCallReasonChip(provider.needs_call_reason || null);
   const explanation = getFollowUpReasonExplanation(provider);
   const engagement = provider.engagement || { emails_sent: 0, opens: 0, clicks: 0, resends: 0 };
   const resendCount = provider.resend_count ?? 0;
-
-  // Contact form workflow state
-  const [contactFormLoading, setContactFormLoading] = useState(false);
-  const [contactFormUrl, setContactFormUrl] = useState<string | null>(provider.contact_form_url || null);
-  const [contactFormError, setContactFormError] = useState<string | null>(null);
-  const [claimUrl, setClaimUrl] = useState<string | null>(null);
-  const [claimUrlLoading, setClaimUrlLoading] = useState(false);
-  const [claimUrlError, setClaimUrlError] = useState<string | null>(null);
-  const [messageCopied, setMessageCopied] = useState(false);
-  const [contactFormOpened, setContactFormOpened] = useState(false);
-  const [submittingConfirmation, setSubmittingConfirmation] = useState(false);
-  const [confirmationSuccess, setConfirmationSuccess] = useState(false);
-
-  // Reset contact form state when provider changes (critical: useState doesn't reinit on prop change)
-  useEffect(() => {
-    setContactFormUrl(provider.contact_form_url || null);
-    setContactFormError(null);
-    setClaimUrl(null);
-    setClaimUrlError(null);
-    setMessageCopied(false);
-    setContactFormOpened(false);
-    setSubmittingConfirmation(false);
-    setConfirmationSuccess(false);
-  }, [provider.provider_id, provider.contact_form_url]);
-
-  // Find contact form URL by crawling provider's website
-  const handleFindContactForm = async () => {
-    if (!provider.website) {
-      setContactFormError("Provider has no website on file");
-      return;
-    }
-
-    setContactFormLoading(true);
-    setContactFormError(null);
-
-    try {
-      const res = await fetch("/api/admin/provider-outreach/find-contact-form", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          website: provider.website,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to find contact form");
-      }
-
-      if (data.found && data.url) {
-        setContactFormUrl(data.url);
-        // Notify parent to update provider state
-        onContactFormFound?.(provider.provider_id, data.url);
-      } else {
-        setContactFormError("No contact form found on website");
-      }
-    } catch (err) {
-      setContactFormError(err instanceof Error ? err.message : "Failed to find contact form");
-    } finally {
-      setContactFormLoading(false);
-    }
-  };
-
-  // Generate a short claim URL for the contact form message
-  const handleFetchClaimUrl = async () => {
-    setClaimUrlLoading(true);
-    setClaimUrlError(null);
-
-    try {
-      const res = await fetch("/api/admin/provider-outreach/generate-claim-url", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to generate claim URL");
-      }
-
-      setClaimUrl(data.claim_url);
-    } catch (err) {
-      setClaimUrlError(err instanceof Error ? err.message : "Failed to generate claim URL");
-    } finally {
-      setClaimUrlLoading(false);
-    }
-  };
-
-  // Generate the contact form message with claim URL
-  // Note: This is only called when claimUrl exists (UI gate), so we can assert claimUrl is set
-  const getContactFormMessage = (): string => {
-    if (!claimUrl) return "";
-
-    const city = provider.city || provider.state || "your area";
-    const category = provider.provider_category || "care services";
-    const name = provider.provider_name;
-
-    return `Hi, I'm Logan from Olera.
-
-Families in ${city} searching for ${category} can already see the page we built for ${name}. But if one reached out today, no one would see the message.
-
-Activate your page (2 min, free) to fully manage it:
-${claimUrl}
-
-Questions? support@olera.care or (979) 243-9801`;
-  };
-
-  // Form field hints for contact forms that require name/email/phone
-  const CONTACT_FORM_HINTS = {
-    firstName: "Logan",
-    lastName: "DuBose",
-    email: "support@olera.care",
-    phone: "(979) 243-9801",
-  };
-
-  // Copy message to clipboard and open contact form in new tab
-  const handleCopyAndOpenContactForm = async () => {
-    if (!contactFormUrl) return;
-
-    const message = getContactFormMessage();
-    if (message) {
-      try {
-        await navigator.clipboard.writeText(message);
-        setMessageCopied(true);
-        setTimeout(() => setMessageCopied(false), 2000);
-      } catch {
-        // Clipboard access denied - show error briefly
-        setContactFormError("Could not copy to clipboard");
-        setTimeout(() => setContactFormError(null), 2000);
-      }
-    }
-
-    const url = contactFormUrl.startsWith("http") ? contactFormUrl : `https://${contactFormUrl}`;
-    window.open(url, "_blank");
-    setContactFormOpened(true);
-  };
-
-  // Record that the contact form was submitted (moves to re_engage stage)
-  const handleConfirmSubmission = async () => {
-    // Validate URL exists before submission
-    if (!contactFormUrl) {
-      setContactFormError("Please find or enter a contact form URL first");
-      return;
-    }
-
-    setSubmittingConfirmation(true);
-    setContactFormError(null);
-
-    try {
-      const res = await fetch("/api/admin/provider-outreach/record-outcome", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          outcome: "try_contact_form",
-          notes: `Contact form submitted: ${contactFormUrl}`,
-        }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Failed to record submission");
-      }
-
-      // Success - show message, notify parent, and close drawer
-      setConfirmationSuccess(true);
-      onOutcomeRecorded?.();
-      setTimeout(() => onClose?.(), 1500);
-    } catch (err) {
-      setContactFormError(err instanceof Error ? err.message : "Failed to record submission");
-    } finally {
-      setSubmittingConfirmation(false);
-    }
-  };
 
   return (
     <div>
@@ -1048,230 +862,6 @@ Questions? support@olera.care or (979) 243-9801`;
           <span className="text-gray-500">Emails Sent:</span>
           <span className="font-medium text-gray-900">{resendCount}</span>
         </div>
-      </div>
-
-      {/* Contact Form Workflow */}
-      <div className="border-t pt-4">
-        <h4 className="text-sm font-medium text-gray-900 mb-3">Contact Form Option</h4>
-
-        {/* Step 1: Find or display contact form URL */}
-        {!contactFormUrl ? (
-          <div className="mb-4">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleFindContactForm}
-                disabled={contactFormLoading || !provider.website}
-                className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md bg-gray-100 text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {contactFormLoading ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Finding contact form...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                    </svg>
-                    Find Contact Form
-                  </>
-                )}
-              </button>
-              {/* Manual lookup link - always show if website exists */}
-              {provider.website && (
-                <a
-                  href={provider.website.startsWith("http") ? provider.website : `https://${provider.website}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600"
-                >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                  </svg>
-                  Visit site
-                </a>
-              )}
-              {/* Enter manually button - always available */}
-              <button
-                onClick={async () => {
-                  const url = window.prompt("Enter contact form URL:");
-                  if (url?.trim()) {
-                    const trimmedUrl = url.trim();
-                    setContactFormUrl(trimmedUrl);
-                    setContactFormError(null);
-                    // Save to database
-                    try {
-                      await fetch("/api/admin/provider-outreach/save-contact-form-url", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ provider_id: provider.provider_id, url: trimmedUrl }),
-                      });
-                    } catch {
-                      // Non-fatal - URL is in local state, will be saved in notes on confirm
-                    }
-                    onContactFormFound?.(provider.provider_id, trimmedUrl);
-                  }
-                }}
-                className="text-sm text-gray-500 hover:text-gray-700"
-              >
-                Enter manually
-              </button>
-            </div>
-            {!provider.website && (
-              <p className="mt-1 text-xs text-gray-500">No website on file — enter URL manually above</p>
-            )}
-          </div>
-        ) : (
-          <div className="mb-4 p-3 bg-green-50 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm">
-                <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                <span className="text-gray-600">Contact form found:</span>
-                <a
-                  href={contactFormUrl.startsWith("http") ? contactFormUrl : `https://${contactFormUrl}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-green-600 hover:underline truncate max-w-[200px]"
-                >
-                  {contactFormUrl}
-                </a>
-              </div>
-              <button
-                onClick={() => {
-                  setContactFormUrl(null);
-                  setClaimUrl(null); // Also clear claim URL since it's tied to the contact form workflow
-                  setContactFormOpened(false);
-                }}
-                className="text-xs text-gray-400 hover:text-gray-600"
-                title="Clear to try a different URL"
-              >
-                Try different
-              </button>
-            </div>
-          </div>
-        )}
-
-        {contactFormError && (
-          <p className="mb-3 text-sm text-red-600">{contactFormError}</p>
-        )}
-
-        {/* Step 2: Generate claim URL (only show when contact form found) */}
-        {contactFormUrl && !claimUrl && (
-          <div className="mb-4">
-            {/* Check preconditions: email and slug required for claim URL */}
-            {!provider.email ? (
-              <p className="text-sm text-amber-600">Provider needs an email to generate claim link</p>
-            ) : !provider.slug ? (
-              <p className="text-sm text-amber-600">Provider needs a public page to generate claim link</p>
-            ) : (
-              <>
-                <button
-                  onClick={handleFetchClaimUrl}
-                  disabled={claimUrlLoading}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium rounded-md bg-blue-50 text-blue-700 hover:bg-blue-100 disabled:opacity-50"
-                >
-                  {claimUrlLoading ? (
-                    <>
-                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                      </svg>
-                      Generating...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-                      </svg>
-                      Generate Claim Link
-                    </>
-                  )}
-                </button>
-                {claimUrlError && (
-                  <p className="mt-1 text-sm text-red-600">{claimUrlError}</p>
-                )}
-              </>
-            )}
-          </div>
-        )}
-
-        {/* Step 3: Show message preview and copy/open button */}
-        {contactFormUrl && claimUrl && (
-          <div className="space-y-3">
-            {/* Message preview */}
-            <div className="p-3 bg-gray-50 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Message</span>
-                <span className="text-xs text-green-600 font-medium">
-                  {claimUrl}
-                </span>
-              </div>
-              <p className="text-sm text-gray-700 whitespace-pre-line">{getContactFormMessage()}</p>
-            </div>
-
-            {/* Form field hints */}
-            <div className="p-3 bg-amber-50 rounded-lg">
-              <p className="text-xs font-medium text-amber-800 mb-2">If form requires your info:</p>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-amber-700">
-                <div><span className="text-amber-500">Name:</span> {CONTACT_FORM_HINTS.firstName} {CONTACT_FORM_HINTS.lastName}</div>
-                <div><span className="text-amber-500">Email:</span> {CONTACT_FORM_HINTS.email}</div>
-                <div><span className="text-amber-500">Phone:</span> {CONTACT_FORM_HINTS.phone}</div>
-              </div>
-            </div>
-
-            {/* Copy & Open button */}
-            <button
-              onClick={handleCopyAndOpenContactForm}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-              </svg>
-              {messageCopied ? "Copied! Opening form..." : "Copy Message & Open Form"}
-            </button>
-
-            {/* Confirm Submission (only after form opened) */}
-            {contactFormOpened && !confirmationSuccess && (
-              <button
-                onClick={handleConfirmSubmission}
-                disabled={submittingConfirmation}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
-              >
-                {submittingConfirmation ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-                    </svg>
-                    Confirming...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Confirm Form Submitted
-                  </>
-                )}
-              </button>
-            )}
-
-            {/* Success message */}
-            {confirmationSuccess && (
-              <div className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-green-700 bg-green-50 rounded-md">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                </svg>
-                Moved to Alternative Channels
-              </div>
-            )}
-          </div>
-        )}
       </div>
     </div>
   );
@@ -1452,6 +1042,22 @@ function ActionsSection({
   // Resend requires call confirmation checkbox
   const [confirmedCall, setConfirmedCall] = useState(false);
 
+  // Contact form workflow state
+  const [contactFormUrl, setContactFormUrl] = useState<string | null>(provider.contact_form_url || null);
+  const [contactFormLoading, setContactFormLoading] = useState(false);
+  const [claimUrl, setClaimUrl] = useState<string | null>(null);
+  const [claimUrlLoading, setClaimUrlLoading] = useState(false);
+  const [messageCopied, setMessageCopied] = useState(false);
+  const [contactFormOpened, setContactFormOpened] = useState(false);
+
+  // Reset contact form state when provider changes
+  useEffect(() => {
+    setContactFormUrl(provider.contact_form_url || null);
+    setClaimUrl(null);
+    setMessageCopied(false);
+    setContactFormOpened(false);
+  }, [provider.provider_id, provider.contact_form_url]);
+
   const isTerminal = ["claimed", "archived"].includes(provider.stage);
   const canLaunch = provider.stage === "not_contacted" && provider.email;
   const isFollowUp = provider.stage === "needs_call";
@@ -1537,6 +1143,117 @@ function ActionsSection({
     setConfirmAction(null);
     setConfirmedCall(false);
     setActionError(null);
+    // Reset contact form workflow state
+    setContactFormUrl(provider.contact_form_url || null);
+    setClaimUrl(null);
+    setMessageCopied(false);
+    setContactFormOpened(false);
+  }
+
+  // Contact form workflow handlers
+  async function handleFindContactForm() {
+    if (!provider.website) {
+      setActionError("Provider has no website on file");
+      return;
+    }
+    setContactFormLoading(true);
+    setActionError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-contact-form", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, website: provider.website }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to find contact form");
+      if (data.found && data.url) {
+        setContactFormUrl(data.url);
+      } else {
+        setActionError("No contact form found on website");
+      }
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to find contact form");
+    } finally {
+      setContactFormLoading(false);
+    }
+  }
+
+  async function handleGenerateClaimUrl() {
+    setClaimUrlLoading(true);
+    setActionError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/generate-claim-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to generate claim URL");
+      setClaimUrl(data.claim_url);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to generate claim URL");
+    } finally {
+      setClaimUrlLoading(false);
+    }
+  }
+
+  function getContactFormMessage(): string {
+    if (!claimUrl) return "";
+    const city = provider.city || provider.state || "your area";
+    const category = provider.provider_category || "care services";
+    const name = provider.provider_name;
+    return `Hi, I'm Logan from Olera.
+
+Families in ${city} searching for ${category} can already see the page we built for ${name}. But if one reached out today, no one would see the message.
+
+Activate your page (2 min, free) to fully manage it:
+${claimUrl}
+
+Questions? support@olera.care or (979) 243-9801`;
+  }
+
+  async function handleCopyAndOpenForm() {
+    if (!contactFormUrl) return;
+    const message = getContactFormMessage();
+    if (message) {
+      try {
+        await navigator.clipboard.writeText(message);
+        setMessageCopied(true);
+        setTimeout(() => setMessageCopied(false), 2000);
+      } catch {
+        setActionError("Could not copy to clipboard");
+      }
+    }
+    const url = contactFormUrl.startsWith("http") ? contactFormUrl : `https://${contactFormUrl}`;
+    window.open(url, "_blank");
+    setContactFormOpened(true);
+  }
+
+  async function handleConfirmContactFormSubmission() {
+    if (!contactFormUrl) return;
+    setActionLoading(true);
+    setActionError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/record-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          outcome: "try_contact_form",
+          notes: `Contact form submitted: ${contactFormUrl}`,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to record submission");
+      setActionSuccess({ outcome: "try_contact_form" });
+      setConfirmAction(null);
+      onOutcomeRecorded?.(provider.provider_id, true);
+      setTimeout(() => onClose?.(), 1500);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to record submission");
+    } finally {
+      setActionLoading(false);
+    }
   }
 
   // Compact button styles
@@ -1580,6 +1297,110 @@ function ActionsSection({
     );
   }
 
+  // Show Contact Form workflow (special case with multi-step UI)
+  if (confirmAction === "contact_form") {
+    return (
+      <div>
+        <SectionHeader>Contact Form</SectionHeader>
+        <div className="space-y-3">
+          {/* Step 1: Find or enter contact form URL */}
+          {!contactFormUrl ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleFindContactForm}
+                  disabled={contactFormLoading || !provider.website}
+                  className={`${outlineBtn} flex-1`}
+                >
+                  {contactFormLoading ? "Finding..." : "Find Contact Form"}
+                </button>
+                {provider.website && (
+                  <a
+                    href={provider.website.startsWith("http") ? provider.website : `https://${provider.website}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-blue-600 hover:underline"
+                  >
+                    Visit site
+                  </a>
+                )}
+              </div>
+              <button
+                onClick={async () => {
+                  const url = window.prompt("Enter contact form URL:");
+                  if (url?.trim()) {
+                    setContactFormUrl(url.trim());
+                    try {
+                      await fetch("/api/admin/provider-outreach/save-contact-form-url", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ provider_id: provider.provider_id, url: url.trim() }),
+                      });
+                    } catch { /* non-fatal */ }
+                  }
+                }}
+                className="text-sm text-gray-500 hover:text-gray-700"
+              >
+                Enter URL manually
+              </button>
+              {!provider.website && (
+                <p className="text-xs text-gray-500">No website on file</p>
+              )}
+            </div>
+          ) : !claimUrl ? (
+            /* Step 2: Generate claim link */
+            <div className="space-y-2">
+              <div className="p-2 bg-green-50 rounded text-sm text-green-700 flex items-center justify-between">
+                <span className="truncate">{contactFormUrl}</span>
+                <button onClick={() => setContactFormUrl(null)} className="text-xs text-gray-400 hover:text-gray-600 ml-2">Clear</button>
+              </div>
+              {!provider.email ? (
+                <p className="text-sm text-amber-600">Provider needs an email to generate claim link</p>
+              ) : !provider.slug ? (
+                <p className="text-sm text-amber-600">Provider needs a public page to generate claim link</p>
+              ) : (
+                <button onClick={handleGenerateClaimUrl} disabled={claimUrlLoading} className={primaryBtn}>
+                  {claimUrlLoading ? "Generating..." : "Generate Claim Link"}
+                </button>
+              )}
+            </div>
+          ) : !contactFormOpened ? (
+            /* Step 3: Copy message and open form */
+            <div className="space-y-2">
+              <div className="p-2 bg-gray-50 rounded text-xs text-gray-600 max-h-24 overflow-y-auto whitespace-pre-line">
+                {getContactFormMessage()}
+              </div>
+              <div className="p-2 bg-amber-50 rounded text-xs text-amber-700">
+                <strong>Fill form as:</strong> Logan DuBose · support@olera.care · (979) 243-9801
+              </div>
+              <button onClick={handleCopyAndOpenForm} className={`${primaryBtn} w-full`}>
+                {messageCopied ? "Copied! Opening..." : "Copy Message & Open Form"}
+              </button>
+            </div>
+          ) : (
+            /* Step 4: Confirm submission */
+            <div className="space-y-2">
+              <p className="text-sm text-gray-700">Did you submit the contact form?</p>
+              <button
+                onClick={handleConfirmContactFormSubmission}
+                disabled={actionLoading}
+                className={`${primaryBtn} w-full bg-green-600 hover:bg-green-700`}
+              >
+                {actionLoading ? "Confirming..." : "Yes, Form Submitted"}
+              </button>
+            </div>
+          )}
+
+          {actionError && <p className="text-sm text-red-600">{actionError}</p>}
+
+          <button onClick={cancelConfirm} className={plainBtn}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Show confirmation dialog
   if (confirmAction) {
     const configs: Record<string, { title: string; requiresCall?: boolean; confirmText: string }> = {
@@ -1588,7 +1409,6 @@ function ActionsSection({
       send_claim_link: { title: "Send claim link email?", requiresCall: true, confirmText: "Send" },
       resend_link: { title: "Resend claim link and move to Alt Channels?", requiresCall: true, confirmText: "Resend" },
       try_fax: { title: "Move to Alternative Channels (Fax)?", requiresCall: true, confirmText: "Move to Fax" },
-      try_contact_form: { title: "Move to Alternative Channels (Contact Form)?", requiresCall: true, confirmText: "Move to Contact Form" },
       try_direct_mail: { title: "Move to Alternative Channels (Direct Mail)?", requiresCall: true, confirmText: "Move to Direct Mail" },
       move_to_ready: { title: "Move back to Call & Confirm?", confirmText: "Move" },
       remove: { title: `Remove ${provider.provider_name} from outreach?`, confirmText: "Remove" },
@@ -1661,8 +1481,6 @@ function ActionsSection({
         )}
 
         {/* Follow Up specific actions - move to alternative channels */}
-        {/* Follow Up: Resend + Alternative Channels */}
-        {/* Note: Contact Form is handled via the dedicated workflow in FollowUpSection above */}
         {isFollowUp && (
           <>
             {provider.email && (
@@ -1672,6 +1490,9 @@ function ActionsSection({
             )}
             <button onClick={() => setConfirmAction("try_fax")} className={outlineBtn}>
               Fax
+            </button>
+            <button onClick={() => setConfirmAction("contact_form")} className={outlineBtn}>
+              Contact Form
             </button>
             <button onClick={() => setConfirmAction("try_direct_mail")} className={outlineBtn}>
               Direct Mail
@@ -1819,12 +1640,7 @@ export function ProviderDrawer({
         {/* Follow Up Section - only for needs_call stage */}
         {showFollowUpSection && (
           <>
-            <FollowUpSection
-              provider={provider}
-              onOutcomeRecorded={() => onOutcomeRecorded?.(provider.provider_id, true)}
-              onContactFormFound={onContactFormFound}
-              onClose={onClose}
-            />
+            <FollowUpSection provider={provider} />
             <SectionDivider />
           </>
         )}

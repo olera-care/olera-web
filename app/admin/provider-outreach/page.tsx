@@ -3958,6 +3958,7 @@ export default function ProviderOutreachPage() {
       case "re_engage":
         // No "Move to In Sequence" - automation handles Cycle 2 start after 30 days
         return [
+          { stage: "needs_call", label: "Move to Follow Up", color: "bg-amber-600 hover:bg-amber-700" },
           { stage: "not_contacted", label: "Reset to Not Contacted", color: "bg-gray-500 hover:bg-gray-600" },
         ];
       case "done":

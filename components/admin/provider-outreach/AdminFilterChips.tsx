@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { getAdminColor, UNASSIGNED_CHIP_COLOR } from "@/lib/provider-outreach/admin-colors";
+import { getAdminColor } from "@/lib/provider-outreach/admin-colors";
 
 export interface AdminCount {
   count: number;
@@ -15,7 +15,7 @@ export interface AdminCounts {
 interface AdminFilterChipsProps {
   adminCounts: AdminCounts;
   totalCount: number;
-  selectedAdminId: string | null; // null = "All"
+  selectedAdminId: string | null; // null = show all assigned work combined
   onSelect: (adminId: string | null) => void;
   tabKey: string; // For localStorage persistence
 }
@@ -24,11 +24,12 @@ interface AdminFilterChipsProps {
  * Filter row for filtering providers by assigned admin.
  * Uses plain colored text instead of pills.
  *
- * Layout: All 23 · Grace 12 · Ces 8 · Unassigned 3
+ * Layout: Grace 12 · Ces 8 (only admins with assignments)
  *
  * - Selected item is underlined
  * - Admin names use their stable color
- * - "All" and counts are in gray
+ * - No "All" or "Unassigned" chips - focus on assigned work
+ * - null selection shows combined view of all assigned admins
  *
  * Selection is persisted per-tab in localStorage.
  */
@@ -39,17 +40,32 @@ export function AdminFilterChips({
   onSelect,
   tabKey,
 }: AdminFilterChipsProps) {
+  // Filter to only admins with assignments (exclude "unassigned" and count > 0)
+  const adminIds = Object.keys(adminCounts)
+    .filter((id) => id !== "unassigned" && adminCounts[id].count > 0);
+
+  // Sort admins by display name
+  adminIds.sort((a, b) => {
+    const nameA = adminCounts[a].display_name || "";
+    const nameB = adminCounts[b].display_name || "";
+    return nameA.localeCompare(nameB);
+  });
+
+  // Calculate total assigned count (sum of all admin counts, excluding unassigned)
+  const totalAssignedCount = adminIds.reduce((sum, id) => sum + adminCounts[id].count, 0);
+
   // Load persisted selection on mount, validate it exists in current adminCounts
   useEffect(() => {
     const stored = localStorage.getItem(`provider-outreach-filter-${tabKey}`);
     if (stored !== null) {
       const value = stored === "null" ? null : stored;
-      // Validate the stored admin ID still exists (or is "unassigned" or null)
-      const isValidSelection = value === null || value === "unassigned" || value in adminCounts;
+      // Only allow selecting existing admins with assignments, or null for combined view
+      // Don't allow "unassigned" anymore since we're focused on assigned work
+      const isValidSelection = value === null || (value !== "unassigned" && value in adminCounts && adminCounts[value].count > 0);
       if (isValidSelection && value !== selectedAdminId) {
         onSelect(value);
       } else if (!isValidSelection && selectedAdminId !== null) {
-        // Stored admin no longer exists, reset to "All"
+        // Invalid selection (admin no longer exists or has 0 count), reset to combined view
         localStorage.removeItem(`provider-outreach-filter-${tabKey}`);
         onSelect(null);
       }
@@ -65,28 +81,28 @@ export function AdminFilterChips({
     onSelect(adminId);
   };
 
-  // Sort admins by display name, with unassigned at the end
-  const adminIds = Object.keys(adminCounts).filter((id) => id !== "unassigned");
-  adminIds.sort((a, b) => {
-    const nameA = adminCounts[a].display_name || "";
-    const nameB = adminCounts[b].display_name || "";
-    return nameA.localeCompare(nameB);
-  });
+  // If no admins have assignments, don't render anything
+  if (adminIds.length === 0) {
+    return null;
+  }
 
-  const unassignedCount = adminCounts["unassigned"]?.count || 0;
+  // If only one admin has assignments, no need for filter chips
+  if (adminIds.length === 1) {
+    return null;
+  }
 
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mb-4 text-sm">
-      {/* All */}
+      {/* Combined view (all assigned work) */}
       <FilterItem
-        label="All"
-        count={totalCount}
+        label="All Assigned"
+        count={totalAssignedCount}
         isSelected={selectedAdminId === null}
         onClick={() => handleSelect(null)}
         textColorClass="text-gray-700"
       />
 
-      {/* Admin names */}
+      {/* Admin names - only those with assignments */}
       {adminIds.map((adminId) => {
         const { count, display_name } = adminCounts[adminId];
         const color = getAdminColor(adminId);
@@ -101,17 +117,6 @@ export function AdminFilterChips({
           />
         );
       })}
-
-      {/* Unassigned */}
-      {unassignedCount > 0 && (
-        <FilterItem
-          label="Unassigned"
-          count={unassignedCount}
-          isSelected={selectedAdminId === "unassigned"}
-          onClick={() => handleSelect("unassigned")}
-          textColorClass={UNASSIGNED_CHIP_COLOR.text}
-        />
-      )}
     </div>
   );
 }

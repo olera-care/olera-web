@@ -102,9 +102,20 @@ export async function POST(request: NextRequest) {
     const mediaUrl = `${baseUrl}/api/admin/provider-outreach/fax-pdf?provider_id=${encodeURIComponent(providerId)}`;
 
     // ── Send via Telnyx ──────────────────────────────────────────────────
-    // Normalize fax number to E.164
+    // Validate and normalize fax number to E.164
     const faxDigits = faxNumber.replace(/\D/g, "");
-    const toNumber = faxDigits.length === 10 ? `+1${faxDigits}` : `+${faxDigits}`;
+
+    // Validate: must be 10 digits, or 11 digits starting with 1
+    const isValid10 = faxDigits.length === 10;
+    const isValid11 = faxDigits.length === 11 && faxDigits.startsWith("1");
+    if (!isValid10 && !isValid11) {
+      return NextResponse.json(
+        { error: `Invalid fax number format. Expected 10-digit US number, got ${faxDigits.length} digits.` },
+        { status: 400 },
+      );
+    }
+
+    const toNumber = isValid10 ? `+1${faxDigits}` : `+${faxDigits}`;
 
     const telnyxRes = await fetch(TELNYX_API_URL, {
       method: "POST",

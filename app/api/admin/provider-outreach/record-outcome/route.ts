@@ -54,10 +54,6 @@ const VALID_OUTCOMES = [
 
 type FollowUpOutcome = (typeof VALID_OUTCOMES)[number];
 
-// Maximum number of times a claim link can be resent before requiring manual intervention
-// Configurable via env var, default 2
-const MAX_RESEND_COUNT = parseInt(process.env.OUTREACH_MAX_RESEND_COUNT || "2", 10);
-
 export async function POST(request: NextRequest) {
   try {
     const user = await getAuthUser();
@@ -129,13 +125,7 @@ export async function POST(request: NextRequest) {
 
     switch (outcome as FollowUpOutcome) {
       case "resend_link":
-        // Reject if already at limit
-        if (currentResendCount >= MAX_RESEND_COUNT) {
-          return NextResponse.json(
-            { error: `Resend link limit reached (${MAX_RESEND_COUNT}). Provider has been emailed too many times.` },
-            { status: 400 }
-          );
-        }
+        // No limit - track count and resend
         newResendCount = currentResendCount + 1;
         newStage = "re_engage"; // Move to re-engage after sending email
         shouldSendNudgeEmail = true;

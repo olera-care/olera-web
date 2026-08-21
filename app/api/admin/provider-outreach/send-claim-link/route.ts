@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     // Get current tracking record to verify provider exists in outreach
     const { data: tracking, error: trackingError } = await db
       .from("provider_outreach_tracking")
-      .select("id, provider_id, stage, sequence_started_at, email_source")
+      .select("id, provider_id, stage, sequence_started_at, email_source, resend_count")
       .eq("provider_id", provider_id)
       .single();
 
@@ -153,22 +153,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Update tracking: increment resend_count and set sequence_started_at if needed
+    const currentResendCount = (tracking.resend_count as number) ?? 0;
+    const updateData: Record<string, unknown> = {
+      resend_count: currentResendCount + 1,
+      updated_at: nowIso,
+    };
+
     // Set sequence_started_at if not already set, so this provider counts in Sequence Conv.
     // Also set sequenced_with_source for accurate org vs decision-maker conversion tracking.
-    // This ensures providers who receive manual claim links are tracked for conversion.
     if (!tracking.sequence_started_at) {
-      const { error: updateError } = await db
-        .from("provider_outreach_tracking")
-        .update({
-          sequence_started_at: nowIso,
-          sequenced_with_source: tracking.email_source || "organization",
-        })
-        .eq("id", tracking.id);
+      updateData.sequence_started_at = nowIso;
+      updateData.sequenced_with_source = tracking.email_source || "organization";
+    }
 
-      if (updateError) {
-        // Non-fatal: log but don't fail the request
-        console.error("[send-claim-link] Failed to set sequence_started_at:", updateError);
-      }
+    const { error: updateError } = await db
+      .from("provider_outreach_tracking")
+      .update(updateData)
+      .eq("id", tracking.id);
+
+    if (updateError) {
+      // Non-fatal: log but don't fail the request
+      console.error("[send-claim-link] Failed to update tracking:", updateError);
     }
 
     // Log touchpoints
@@ -202,6 +208,7 @@ export async function POST(request: NextRequest) {
       success: true,
       email_sent: true,
       email_log_id: sendResult.emailLogId,
+      resend_count: currentResendCount + 1,
     });
   } catch (err) {
     console.error("[send-claim-link] Error:", err);

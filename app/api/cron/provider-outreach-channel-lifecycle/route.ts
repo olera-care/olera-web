@@ -1,5 +1,5 @@
 /**
- * Cron endpoint: auto-progress providers through re-engagement channels.
+ * Cron endpoint: move providers from Alternative Channels to Call tab after 7 days.
  *
  * Triggered by Vercel Cron (daily at 9:00 AM — see vercel.json) or by an
  * admin curling locally with the CRON_SECRET bearer token.
@@ -7,9 +7,9 @@
  * Auth: requires `Authorization: Bearer ${CRON_SECRET}`. Fails closed
  * (401) if CRON_SECRET is unset OR doesn't match — never publicly callable.
  *
- * Channel Progression (after 5 days without response):
- *   - fax (sent 5+ days ago) → linkedin
- *   - linkedin (entered 5+ days ago) → direct_mail
+ * After 7 days in re_engage (Alternative Channels) without claiming:
+ *   - Move to call_exhausted stage (Call tab)
+ *   - Provider stays there until manual resolution (archive, not interested, etc.)
  *
  * Does NOT move providers who have claimed their profile.
  *
@@ -22,7 +22,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { withCronRun } from "@/lib/crons/run";
 
-const CHANNEL_WAIT_DAYS = 5;
+const DAYS_IN_ALT_CHANNELS = 7;
 
 function authorize(req: NextRequest): boolean {
   const secret = process.env.CRON_SECRET;
@@ -47,119 +47,71 @@ async function runCron(req: NextRequest) {
   return withCronRun("provider-outreach-channel-lifecycle", async () => {
     const db = getServiceClient();
     const now = new Date();
-    const cutoffDate = new Date(now.getTime() - CHANNEL_WAIT_DAYS * 24 * 60 * 60 * 1000);
+    const cutoffDate = new Date(now.getTime() - DAYS_IN_ALT_CHANNELS * 24 * 60 * 60 * 1000);
     const cutoffIso = cutoffDate.toISOString();
     const nowIso = now.toISOString();
 
-    let faxToLinkedin = 0;
-    let linkedinToDirectMail = 0;
+    let movedToCall = 0;
 
-    // ── Step 1: Move fax → linkedin ──
-    // Find providers in fax channel where fax was sent 5+ days ago
-    const { data: faxProviders, error: faxError } = await db
+    // Find providers in re_engage stage where they entered 7+ days ago
+    // Use stage_changed_at as the entry time (when they moved to re_engage)
+    // Filter out null stage_changed_at to avoid edge cases with old/migrated data
+    const { data: reEngageProviders, error: queryError } = await db
       .from("provider_outreach_tracking")
-      .select("id, provider_id, fax_sent_at")
+      .select("id, provider_id, stage_changed_at")
       .eq("stage", "re_engage")
-      .eq("re_engage_channel", "fax")
-      .not("fax_sent_at", "is", null)
-      .lte("fax_sent_at", cutoffIso)
-      .limit(50);
+      .not("stage_changed_at", "is", null)
+      .lte("stage_changed_at", cutoffIso)
+      .limit(100);
 
-    if (faxError) {
-      console.error("[provider-outreach-channel-lifecycle] Fax query error:", faxError);
-    } else if (faxProviders && faxProviders.length > 0) {
-      // Check which providers have claimed (exclude them)
-      const faxProviderIds = faxProviders.map((p) => p.provider_id);
-      const { data: claimedBps } = await db
-        .from("business_profiles")
-        .select("source_provider_id")
-        .in("source_provider_id", faxProviderIds)
-        .not("account_id", "is", null);
-
-      const claimedSet = new Set((claimedBps || []).map((bp) => bp.source_provider_id));
-
-      // Move unclaimed providers to linkedin
-      const toMoveToLinkedin = faxProviders.filter((p) => !claimedSet.has(p.provider_id));
-
-      for (const provider of toMoveToLinkedin) {
-        const { error: updateError } = await db
-          .from("provider_outreach_tracking")
-          .update({
-            re_engage_channel: "linkedin",
-            channel_entered_at: nowIso,
-            updated_at: nowIso,
-          })
-          .eq("id", provider.id);
-
-        if (updateError) {
-          console.error(`[provider-outreach-channel-lifecycle] Failed to move ${provider.provider_id} to linkedin:`, updateError);
-        } else {
-          faxToLinkedin++;
-        }
-      }
+    if (queryError) {
+      console.error("[provider-outreach-channel-lifecycle] Query error:", queryError);
+      return NextResponse.json({ error: "Query failed" }, { status: 500 });
     }
 
-    // ── Step 2: Move linkedin → direct_mail ──
-    // Find providers in linkedin channel where channel_entered_at was 5+ days ago
-    // OR where fax_sent_at was 10+ days ago (fallback if channel_entered_at not set)
-    const tenDaysCutoff = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString();
-
-    const { data: linkedinProviders, error: linkedinError } = await db
-      .from("provider_outreach_tracking")
-      .select("id, provider_id, channel_entered_at, fax_sent_at")
-      .eq("stage", "re_engage")
-      .eq("re_engage_channel", "linkedin")
-      .limit(50);
-
-    if (linkedinError) {
-      console.error("[provider-outreach-channel-lifecycle] LinkedIn query error:", linkedinError);
-    } else if (linkedinProviders && linkedinProviders.length > 0) {
-      // Filter by time: either channel_entered_at 5+ days ago OR fax_sent_at 10+ days ago
-      const eligibleLinkedin = linkedinProviders.filter((p) => {
-        if (p.channel_entered_at && p.channel_entered_at <= cutoffIso) return true;
-        if (p.fax_sent_at && p.fax_sent_at <= tenDaysCutoff) return true;
-        return false;
+    if (!reEngageProviders || reEngageProviders.length === 0) {
+      console.log("[provider-outreach-channel-lifecycle] No providers to move");
+      return NextResponse.json({
+        success: true,
+        moved_to_call: 0,
       });
+    }
 
-      if (eligibleLinkedin.length > 0) {
-        // Check which providers have claimed (exclude them)
-        const linkedinProviderIds = eligibleLinkedin.map((p) => p.provider_id);
-        const { data: claimedBps } = await db
-          .from("business_profiles")
-          .select("source_provider_id")
-          .in("source_provider_id", linkedinProviderIds)
-          .not("account_id", "is", null);
+    // Check which providers have claimed (exclude them)
+    const providerIds = reEngageProviders.map((p) => p.provider_id);
+    const { data: claimedBps } = await db
+      .from("business_profiles")
+      .select("source_provider_id")
+      .in("source_provider_id", providerIds)
+      .not("account_id", "is", null);
 
-        const claimedSet = new Set((claimedBps || []).map((bp) => bp.source_provider_id));
+    const claimedSet = new Set((claimedBps || []).map((bp) => bp.source_provider_id));
 
-        // Move unclaimed providers to direct_mail
-        const toMoveToDirectMail = eligibleLinkedin.filter((p) => !claimedSet.has(p.provider_id));
+    // Move unclaimed providers to call_exhausted
+    const toMove = reEngageProviders.filter((p) => !claimedSet.has(p.provider_id));
 
-        for (const provider of toMoveToDirectMail) {
-          const { error: updateError } = await db
-            .from("provider_outreach_tracking")
-            .update({
-              re_engage_channel: "direct_mail",
-              channel_entered_at: nowIso,
-              updated_at: nowIso,
-            })
-            .eq("id", provider.id);
+    for (const provider of toMove) {
+      const { error: updateError } = await db
+        .from("provider_outreach_tracking")
+        .update({
+          stage: "call_exhausted",
+          stage_changed_at: nowIso,
+          updated_at: nowIso,
+        })
+        .eq("id", provider.id);
 
-          if (updateError) {
-            console.error(`[provider-outreach-channel-lifecycle] Failed to move ${provider.provider_id} to direct_mail:`, updateError);
-          } else {
-            linkedinToDirectMail++;
-          }
-        }
+      if (updateError) {
+        console.error(`[provider-outreach-channel-lifecycle] Failed to move ${provider.provider_id}:`, updateError);
+      } else {
+        movedToCall++;
       }
     }
 
-    console.log(`[provider-outreach-channel-lifecycle] Moved ${faxToLinkedin} from fax→linkedin, ${linkedinToDirectMail} from linkedin→direct_mail`);
+    console.log(`[provider-outreach-channel-lifecycle] Moved ${movedToCall} providers from re_engage to call_exhausted`);
 
     return NextResponse.json({
       success: true,
-      fax_to_linkedin: faxToLinkedin,
-      linkedin_to_direct_mail: linkedinToDirectMail,
+      moved_to_call: movedToCall,
     });
   });
 }

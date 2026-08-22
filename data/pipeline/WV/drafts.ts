@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WV/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:52:08.696Z
+ * Last updated: 2026-08-22T09:34:52.631Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -309,8 +309,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Completed Medical Necessity Evaluation Request (MNER) from physician, physician assistant, or nurse practitioner",
         "Proof of West Virginia residency (utility bill, lease, or state-issued document)",
-        "Documentation of functional deficits in at least 5 ADL areas",
-        "Letter from Keystone Peer Review Organization (KEPRO) confirming medical evaluation",
+        "The MNER goes to Acentra Health, the ADW utilization management contractor, at 1007 Bullitt Street, Suite 200, Charleston WV 25301 or fax (866) 212-5053.",
         "Social Security card",
         "Medicare card (if applicable)",
         "Medicaid card (if already enrolled)",
@@ -326,6 +325,12 @@ export const drafts: PipelineStateDrafts = {
           "label": "Bureau of Senior Services",
           "phone": "(866) 767-1575",
           "description": "ADW program information and application assistance",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Acentra Health",
+          "phone": "(844) 723-7811",
+          "description": "Utilization management contractor that reviews the Medical Necessity Evaluation Request (MNER).",
           "hours": "Business hours"
         },
         {
@@ -402,7 +407,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "http://www.wvseniorservices.gov",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-08-22"
     },
     {
       "id": "pace-comprehensive-care",

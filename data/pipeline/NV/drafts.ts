@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NV/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.796Z
+ * Last updated: 2026-08-22T09:34:52.629Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -211,7 +211,7 @@ export const drafts: PipelineStateDrafts = {
     },
     {
       "id": "hcbs-waiver",
-      "name": "Home and Community-Based Services (HCBS) Waiver",
+      "name": "Home and Community Based Services (HCBS) Waiver for the Frail Elderly (FE)",
       "shortName": "HCBS Waiver",
       "tagline": "Keep your loved one at home with help for personal care, meals, and household tasks instead of nursing home placement.",
       "programType": "benefit",
@@ -322,16 +322,16 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Nevada ADSD",
+          "phone": "(775) 687-4210",
+          "description": "Aging and Disability Services Division. Submit the OCL Program Application to your nearest ADSD regional office, or give the information over the phone to an intake team member.",
+          "hours": "Mon-Fri 8am-5pm PT"
+        },
+        {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline to find your local ADSD Regional Center",
-          "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "Nevada ADSD",
-          "phone": "(775) 687-4210",
-          "description": "Aging and Disability Services Division main office for HCBS questions",
-          "hours": "Mon-Fri 8am-5pm PT"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         }
       ],
       "applicationNotes": [
@@ -395,7 +395,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://adsd.nv.gov/Programs/Seniors/PD_Waiver/Waiver_for_Person's_with_Physical_Disabilities_(PD)/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-08-22"
     },
     {
       "id": "medicare-savings-programs",
@@ -631,7 +631,7 @@ export const drafts: PipelineStateDrafts = {
       "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly money loaded onto an EBT card, like a debit card for food purchases. Most Nevada seniors get $100–400 per month, with the exact amount based on income and household size. Because Nevada expanded income limits beyond federal minimums, many seniors who wouldn't qualify elsewhere can get help here.\n\nThe program uses special rules for seniors that make qualifying easier. Your loved one doesn't face the strict gross income test that younger adults do, and medical expenses over $35/month actually increase their benefit amount. Nevada has no waitlist, if your loved one qualifies, benefits start within 30 days of approval.",
       "savingsRange": "$1,200 – $4,800/year in 2026",
       "savingsSource": "Based on typical monthly benefits of $100–400 for Nevada seniors",
-      "savingsVerified": true,
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 60+",
@@ -659,8 +659,8 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "assetLimits": {
-          "individual": 3500,
-          "couple": 3500,
+          "individual": 3200,
+          "couple": 3200,
           "countedAssets": [
             "Cash",
             "Bank accounts",
@@ -724,7 +724,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security award letter or pension statement",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "Current balance for every checking and savings account. Nevada does count these toward the SNAP resource limit.",
         "Medicare card and Medicare premium statements",
         "Prescription receipts and medical bills from last 3 months",
         "Rent receipt or mortgage statement",
@@ -748,7 +748,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for SNAP and all social services information",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         },
         {
           "label": "Access Nevada Support",
@@ -764,6 +764,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Nevada counts cash and money in checking and savings accounts as resources. The limit is $2,000 for most households and $3,200 when at least one member is age 60 or older or disabled.",
         "Seniors 60+ skip the gross income test that trips up younger applicants, focus on net income and assets instead",
         "Medical expenses over $35/month are deductible and increase your benefit amount, many families miss this",
         "If your loved one gets SSI, they may automatically qualify or get streamlined processing",
@@ -823,7 +824,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://www.dss.nv.gov/programs/snap/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-08-22"
     },
     {
       "id": "energy-assistance-eap-liheap",
@@ -2280,7 +2281,7 @@ export const drafts: PipelineStateDrafts = {
     },
     {
       "id": "hcbw-fe-waiver",
-      "name": "Home and Community-Based Waiver for the Frail Elderly (HCBW-FE)",
+      "name": "Home and Community Based Services (HCBS) Waiver for the Frail Elderly (FE)",
       "shortName": "HCBW-FE Waiver",
       "tagline": "If your loved one needs daily care to stay home safely, this Nevada waiver can pay for homemaker, respite, and companion services.",
       "programType": "benefit",
@@ -2391,15 +2392,15 @@ export const drafts: PipelineStateDrafts = {
       "contacts": [
         {
           "label": "Nevada ADSD",
-          "phone": null,
-          "description": "Aging and Disability Services Division for HCBW-FE applications",
-          "hours": "Contact via website for current phone numbers"
+          "phone": "(775) 687-4210",
+          "description": "Aging and Disability Services Division. Submit the OCL Program Application to your nearest ADSD regional office, or give the information over the phone to an intake team member.",
+          "hours": "Mon-Fri 8am-5pm PT"
         },
         {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all Nevada social services and program information",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         }
       ],
       "applicationNotes": [
@@ -2459,11 +2460,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": null,
+      "phone": "(775) 687-4210",
       "sourceUrl": "https://adsd.nv.gov",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-08-22"
     },
     {
       "id": "personal-care-services-program",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OH/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.798Z
+ * Last updated: 2026-08-22T09:34:52.615Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1217,7 +1217,7 @@ export const drafts: PipelineStateDrafts = {
     },
     {
       "id": "weatherization-assistance-program",
-      "name": "Weatherization Assistance Program (WAP)",
+      "name": "Home Weatherization Assistance Program (HWAP)",
       "shortName": "Weatherization Assistance",
       "tagline": "Free home weatherization services to help your loved one reduce energy bills and stay comfortable year-round",
       "programType": "benefit",
@@ -1343,9 +1343,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Ohio Weatherization Helpline",
-          "phone": "(800) 848-1300",
-          "description": "Statewide helpline for weatherization information and county provider contacts",
+          "label": "Ohio Energy Assistance (ODJFS)",
+          "phone": "(800) 282-0880",
+          "description": "Find your local Energy Assistance Provider, who takes weatherization applications. Apply online at energyhelp.ohio.gov.",
           "hours": "Business hours"
         },
         {
@@ -1368,6 +1368,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Ohio moved its energy assistance programs, including HWAP, from the Department of Development to the Department of Job and Family Services in April 2026. Apply through energyhelp.ohio.gov or your local Energy Assistance Provider.",
         "Each county has a different local agency - you cannot apply through a single statewide office",
         "Households with adults 60+, disabilities, children, or high energy bills get priority but others are served by application date",
         "Renters are eligible but may need landlord permission and cooperation for certain improvements",
@@ -1422,10 +1423,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "(800) 848-1300",
+      "phone": "(800) 282-0880",
       "sourceUrl": "https://development.ohio.gov/individual/energy-assistance/6-home-weatherization-assistance-program",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-22"
     },
     {
       "id": "oshiip-medicare-counseling",

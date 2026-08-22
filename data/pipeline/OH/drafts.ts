@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OH/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T09:34:52.615Z
+ * Last updated: 2026-08-22T10:09:04.888Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1294,7 +1294,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Find your county provider",
-            "description": "Visit https://coadinc.org/energy-services/hwap/ to find your county's specific weatherization agency, or call the state helpline at (800) 848-1300 for your local contact."
+            "description": "Visit https://coadinc.org/energy-services/hwap/ to find your county's specific weatherization agency, or call Ohio's energy assistance line at (800) 282-0880 for your local contact."
           },
           {
             "step": 2,

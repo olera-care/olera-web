@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NJ/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.796Z
+ * Last updated: 2026-08-22T09:34:52.627Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -577,28 +577,26 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Proof of income from all sources (tax returns, Social Security award letters, pension statements)",
-        "Proof of New Jersey residency (utility bill, lease agreement, or state-issued document)",
-        "Medicare card (Parts A, B, and D if applicable)",
-        "Proof of Social Security Title II Disability benefits if under age 65",
-        "Documentation showing you're not eligible for Medicaid",
-        "Social Security card",
-        "Birth certificate or other proof of age",
-        "Green card or other proof of lawful permanent residency if not a U.S. citizen",
-        "Current prescription list from your doctor or pharmacy",
-        "Medicare Part D plan information if already enrolled"
+        "Two current proofs of New Jersey residence, each clearly dated within the last 6 months",
+        "Your federal tax return, if you filed one",
+        "Proof of age, required only if you are not receiving Social Security benefits",
+        "Copies of the front and back of every health insurance and pharmacy card",
+        "Medicare Part D PDP enrollment assistance form",
+        "Completed income sections of the NJSave application, with signatures from both applicant and spouse if married",
+        "Documentation for all income and assets, required if you are also applying for a Medicare Savings Program",
+        "A completed Affidavit of Separation, if you are separated from your spouse"
       ],
       "contacts": [
         {
-          "label": "NJ Division of Aging Services",
-          "phone": "(866) 657-2835",
-          "description": "PAAD application help and general program questions",
+          "label": "PAAD / NJSave Hotline",
+          "phone": "1-800-792-9745",
+          "description": "NJ Division of Aging Services toll-free hotline for PAAD, Senior Gold, Medicare Savings Programs and Lifeline.",
           "hours": "Business hours"
         },
         {
-          "label": "Medicare Part D Plan Information",
-          "phone": "1-800-792-9745",
-          "description": "Help choosing qualifying Medicare Part D plans for PAAD",
+          "label": "NJSave application assistance",
+          "phone": "(866) 657-2835",
+          "description": "Help completing the NJSave application, which screens for PAAD and related programs.",
           "hours": "Business hours"
         },
         {
@@ -664,10 +662,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Pill",
-      "phone": "(866) 657-2835",
+      "phone": "1-800-792-9745",
       "sourceUrl": "https://www.nj.gov/humanservices/doas/home/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-22"
     },
     {
       "id": "lifeline-utility-credit",

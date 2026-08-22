@@ -18,6 +18,10 @@
  *   2. The frozen `pick` snapshot kept pre-correction values, so corrected
  *      programs re-surfaced in later AI review exports and the plan page kept
  *      rendering stale contact details. snapshot-drift catches that class.
+ *   3. A correction that only renamed a contact left the phone, program name and
+ *      documents untouched, so every comparison passed while the letter still
+ *      told the family to apply on a line that does not take applications
+ *      (CA LIHEAP, 2026-08-22). snapshot-drift now compares contactLabel too.
  *
  * WHAT THIS CANNOT DO: it catches INCONSISTENCY, not WRONGNESS. A draft whose
  * phone is wrong but internally consistent everywhere reads as clean here. That
@@ -194,8 +198,15 @@ function checkSnapshotDrift(ctx) {
     contacts.find((x) => !!x.phone);
   live.contactPhone = c?.phone ?? null;
   live.contactHours = c?.hours ?? null;
+  // The LABEL matters as much as the number. A correction that only renames a
+  // contact (CA 2026-08-22: "LIHEAP Application Line" -> "CSD Call Center",
+  // because that line answers questions and does not take applications) leaves
+  // the phone, name and documents all identical, so every other comparison here
+  // passes and the letter keeps telling the family to apply on a line that
+  // cannot take an application. Label drift is a routing claim, not cosmetics.
+  live.contactLabel = c?.label ?? null;
 
-  for (const key of ['name', 'shortName', 'contactPhone', 'contactHours', 'savingsRange']) {
+  for (const key of ['name', 'shortName', 'contactLabel', 'contactPhone', 'contactHours', 'savingsRange']) {
     if ((nav.pick[key] ?? null) !== (live[key] ?? null)) {
       report({
         id: row.id, state: nav.pick.stateId, programId: nav.pick.programId,

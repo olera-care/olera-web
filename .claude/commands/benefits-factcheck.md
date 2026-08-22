@@ -64,6 +64,17 @@ Only after all three fail should you use WebSearch, and then you must name the d
    - `savingsRange` must be a verified figure with its basis in `savingsSource` — maximums labeled as maximums, never "typical" ranges without official support.
    - Stamp `lastVerifiedDate: <today>` on every corrected program.
    - A program that doesn't exist as a consumer benefit gets **removed** — saved references drop out gracefully (`draftFor` returns null) and the page 404s.
+   - **Propagate the fact, don't patch the field the reviewer named.** The report points at one field; the fact usually lives in four. On 2026-08-22 the first pass fixed `contacts[0].phone` and `name` but left the retired Ohio number sitting in `applicationGuide.steps[0]`, left KEPRO in WV's `applicationGuide` + `applicationNotes` after moving the documents list to Acentra, and — worst — corrected Nevada 2-1-1's hours in only the three records the report happened to open while **ten other Nevada programs** kept telling families to call any hour. Statewide facts (a 2-1-1 line's hours, an agency rename, a retired phone) are state-wide edits, not program edits. All three shipped as a second PR (#1673) that should never have been needed.
+
+3b. **Grep the corrected value before you open the PR, not after the merge.** For every value you changed, grep the OLD value across the whole state file and expect zero. This is the check that would have caught all three misses above, costs one command, and needs no network:
+
+   ```bash
+   for pat in "848-1300" "24 hours, 7 days a week" "KEPRO"; do
+     echo "$pat: $(grep -ro "$pat" data/pipeline/{OH,NV,WV}/drafts.json | wc -l)"
+   done
+   ```
+
+   A non-zero count is either a second record carrying the same stale fact or an adjacent field (`applicationGuide`, `applicationNotes`, `intro`, `faqs`) the structured edit didn't reach. Both are the same bug. Do the same for the NEW value to confirm it actually landed everywhere it should.
 
 4. **Regenerate + de-churn:** `node scripts/benefits-pipeline.js --regen-index`, then revert the untouched states' `drafts.ts` (the regen rewrites all 51 headers with a new timestamp — keep only edited states + real changes; `git diff --numstat` = 1 line means timestamp-only). Then `tsc --noEmit` (run the binary directly, no `timeout` wrapper). **Skip tsc entirely on a data-only round** — `drafts.ts` is generated from JSON with an unchanged shape, so there is nothing new to typecheck, and a fresh worktree carries no `node_modules`, making `npm install` pure dead time. Typecheck only when the round also touches code.
 
@@ -91,7 +102,7 @@ Only after all three fail should you use WebSearch, and then you must name the d
 
    Fix until `--high` is empty, then read the `low` findings, which are deliberately advisory rather than automatic:
 
-   - `snapshot-drift` — the frozen `pick` disagrees with live data. This is the ghost that kept re-surfacing corrected programs in later review exports.
+   - `snapshot-drift` — the frozen `pick` disagrees with live data. This is the ghost that kept re-surfacing corrected programs in later review exports. It compares `contactLabel` as of 2026-08-22: a correction that only renames a contact (CA LIHEAP "Application Line" → "CSD Call Center", because that line answers questions and cannot take an application) leaves phone, name and documents identical, so every other comparison passed while the letter kept telling the family to apply on the wrong line. **A clean lint run before that date did not cover label drift.**
    - `stale-phone-in-text` / `cross-field-drift` — a number or retired program name printed in one field and not the others. This is the class the body-only patch created.
    - `sms-assembly` — simulates what is actually transmitted, since the send path appends the STOP and CALLED lines at send time. Catches doubled suffixes, a missing `{link}`, and punctuation flush against `{link}` (some clients pull it into the tapped URL and the link 404s).
    - `banned-phrase` — voice-spec violations, especially speed promises. "It's one phone call" is the banned "just one call" with the qualifier removed.

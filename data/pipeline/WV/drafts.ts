@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WV/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T09:34:52.631Z
+ * Last updated: 2026-08-22T10:09:04.897Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -283,7 +283,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Medical evaluation",
-            "description": "Keystone Peer Review Organization (KEPRO) will review the medical evaluation and send a confirmation letter."
+            "description": "Acentra Health, the utilization management contractor, will review the medical evaluation and send a confirmation letter."
           },
           {
             "step": 5,
@@ -351,7 +351,7 @@ export const drafts: PipelineStateDrafts = {
         "Your loved one's physician must initiate the process, self-referrals are not accepted",
         "Home safety is assessed, unsafe conditions for caregivers could delay or disqualify services",
         "Even if your loved one exceeds income limits, they may qualify through the Medically Needy Program if medical expenses consume most monthly income",
-        "Multiple organizations coordinate this program (DHHR, KEPRO, Case Management agencies), expect coordination delays"
+        "Multiple organizations coordinate this program (DHHR, Acentra Health, Case Management agencies), expect coordination delays"
       ],
       "relatedPrograms": [
         "West Virginia Medicaid",

@@ -278,7 +278,7 @@
           {
             "step": 4,
             "title": "Medical evaluation",
-            "description": "Keystone Peer Review Organization (KEPRO) will review the medical evaluation and send a confirmation letter."
+            "description": "Acentra Health, the utilization management contractor, will review the medical evaluation and send a confirmation letter."
           },
           {
             "step": 5,
@@ -346,7 +346,7 @@
         "Your loved one's physician must initiate the process, self-referrals are not accepted",
         "Home safety is assessed, unsafe conditions for caregivers could delay or disqualify services",
         "Even if your loved one exceeds income limits, they may qualify through the Medically Needy Program if medical expenses consume most monthly income",
-        "Multiple organizations coordinate this program (DHHR, KEPRO, Case Management agencies), expect coordination delays"
+        "Multiple organizations coordinate this program (DHHR, Acentra Health, Case Management agencies), expect coordination delays"
       ],
       "relatedPrograms": [
         "West Virginia Medicaid",

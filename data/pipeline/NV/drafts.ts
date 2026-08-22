@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NV/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T09:34:52.629Z
+ * Last updated: 2026-08-22T10:09:04.895Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -137,7 +137,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "General social services helpline and local resource referrals",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         },
         {
           "label": "Nevada Aging and Disability Services",
@@ -932,7 +932,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services and local EAP office locations",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         },
         {
           "label": "Nevada Division of Welfare and Supportive Services",
@@ -1135,7 +1135,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services and program referrals",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         }
       ],
       "applicationNotes": [
@@ -1604,7 +1604,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "General information about all senior services and caregiving resources",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         }
       ],
       "applicationNotes": [
@@ -1775,7 +1775,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services and program referrals",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         },
         {
           "label": "Nevada ADSD",
@@ -1925,7 +1925,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all aging and social services in Nevada",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         }
       ],
       "applicationNotes": [
@@ -2215,7 +2215,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "General assistance finding current benefit programs",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         }
       ],
       "applicationNotes": [
@@ -2599,7 +2599,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all Nevada social services and programs",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         }
       ],
       "applicationNotes": [
@@ -2773,7 +2773,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "Free 24/7 helpline for all social services and aging programs",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         }
       ],
       "applicationNotes": [
@@ -2936,7 +2936,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all Nevada social services and programs",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         }
       ],
       "applicationNotes": [

@@ -2904,17 +2904,17 @@
       },
       {
         "name": "Maryland Medicare Savings Program (MSP)",
-        "programId": "maryland-medicare-savings-program-msp",
+        "programId": "medicare-savings-program",
         "why": "Maryland automatically pays Medicare premiums, deductibles, and coinsurance, saving up to $2,000+ annually with no ongoing paperwork."
       },
       {
         "name": "Supplemental Nutrition Assistance Program (SNAP)",
-        "programId": "supplemental-nutrition-assistance-program-snap",
+        "programId": "snap-food-benefits",
         "why": "Immediate monthly grocery assistance averaging $188/month, with minimum $30 for seniors 62+ regardless of income level."
       },
       {
         "name": "State Health Insurance Assistance Program (SHIP)",
-        "programId": "state-health-insurance-assistance-program-ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free Medicare counseling available to everyone, helps optimize coverage and find savings without income requirements."
       }
     ],

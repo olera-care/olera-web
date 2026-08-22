@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.793Z
+ * Last updated: 2026-08-22T10:37:49.038Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2788,7 +2788,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "NC Food and Nutrition Services (FNS)/SNAP",
-        "programId": "food-nutrition-services-snap",
+        "programId": "snap-food-benefits",
         "why": "Immediate monthly grocery benefits up to $281 that you can apply for online within days."
       },
       {

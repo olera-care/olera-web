@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T11:33:52.357Z
+ * Last updated: 2026-08-22T10:37:49.024Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -3508,12 +3508,12 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
-        "programId": "florida-liheap",
+        "programId": "liheap-energy-assistance",
         "why": "Provides immediate financial relief of $400–$2,000 toward utility bills."
       },
       {
         "name": "SHINE (Serving Health Insurance Needs of Elders)",
-        "programId": "florida-shine",
+        "programId": "shine-medicare-counseling",
         "why": "Free expert help navigating all Medicare and insurance questions, available to every Florida senior."
       }
     ],

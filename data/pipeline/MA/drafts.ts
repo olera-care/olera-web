@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.787Z
+ * Last updated: 2026-08-22T10:37:49.031Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2934,17 +2934,17 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "MassHealth Medicare Savings Program",
-        "programId": "masshealthMedicareSavingsProgram",
+        "programId": "masshealth-medicare-savings",
         "why": "Covers Medicare premiums and copays for most Massachusetts seniors with income under $2,993/month."
       },
       {
         "name": "SNAP (Food Stamps)",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Provides $100-$300 monthly for groceries with straightforward income requirements."
       },
       {
         "name": "SHINE (Serving Health Insurance Needs of Everyone)",
-        "programId": "shine",
+        "programId": "shine-health-insurance-counseling",
         "why": "Free counseling helps navigate all Medicare and insurance options, no qualification needed."
       },
       {

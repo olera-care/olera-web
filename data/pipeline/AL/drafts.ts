@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T11:01:04.256Z
+ * Last updated: 2026-08-22T10:37:49.018Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2764,17 +2764,17 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Alabama Medicaid Medicare Savings Programs (QMB, SLMB, QI)",
-        "programId": "alabama-medicaid-medicare-savings-programs",
+        "programId": "medicare-savings-programs-qmb-slmb-qi",
         "why": "Can eliminate Medicare premiums and out-of-pocket costs if your loved one's income is below $1,695/month."
       },
       {
         "name": "Alabama SHIP (State Health Insurance Assistance Program)",
-        "programId": "alabama-ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free Medicare counseling helps every senior find the best coverage and avoid costly plan mistakes."
       },
       {
         "name": "Alabama Elderly Simplified Application Project (AESAP)",
-        "programId": "alabama-aesap",
+        "programId": "aesap-elderly-food-assistance",
         "why": "Streamlined food assistance application for seniors 60+ with no job income, just a 2-page form and no interview required."
       }
     ],

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NM/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.796Z
+ * Last updated: 2026-08-22T10:37:49.041Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -950,7 +950,7 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Program of All-Inclusive Care for the Elderly (PACE)",
-        "programId": "pace",
+        "programId": "pace-comprehensive-care",
         "why": "Covers all medical care, home services, meals, and transportation under one program for parents who need nursing home level care."
       },
       {
@@ -960,7 +960,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Senior Community Service Employment Program (SCSEP)",
-        "programId": "scsep",
+        "programId": "senior-employment-training-program",
         "why": "Offers part-time paid training positions for unemployed parents 55+ with income below $19,000-$25,500 annually."
       }
     ],

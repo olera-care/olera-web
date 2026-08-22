@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/KY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.785Z
+ * Last updated: 2026-08-22T10:37:49.030Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2609,7 +2609,7 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Kentucky Medicare Savings Programs (QMB, SLMB, QI)",
-        "programId": "kentucky-medicare-savings-programs",
+        "programId": "medicare-savings-programs-qmb-slmb-qi",
         "why": "Can save thousands annually on Medicare premiums and out-of-pocket costs if your loved one has limited income."
       },
       {
@@ -2619,12 +2619,12 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "SNAP (Supplemental Nutrition Assistance Program)",
-        "programId": "snap-kentucky",
+        "programId": "snap-food-benefits",
         "why": "Provides immediate monthly grocery assistance for seniors 60+ on fixed incomes."
       },
       {
         "name": "Kentucky State Health Insurance Assistance Program (SHIP)",
-        "programId": "kentucky-ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free Medicare counseling available to everyone, can identify coverage gaps and savings opportunities."
       }
     ],

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/HI/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.780Z
+ * Last updated: 2026-08-22T10:37:49.026Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -3508,22 +3508,22 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Med-QUEST",
-        "programId": "med-quest",
+        "programId": "medquest-medicaid-seniors-disabled",
         "why": "Covers all health care costs including nursing home care for seniors with limited income, potentially worth thousands monthly."
       },
       {
         "name": "Kūpuna Care Program",
-        "programId": "kupuna-care",
+        "programId": "kupuna-care-program",
         "why": "Provides attendant care, meals, and transportation for seniors 60+ who need daily help but don't qualify for Medicaid."
       },
       {
         "name": "SNAP",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Monthly grocery assistance that Hawaii residents may qualify for even with higher incomes than other states."
       },
       {
         "name": "Hawaii SHIP",
-        "programId": "hawaii-ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free expert Medicare counseling helps find cost-saving programs and avoid expensive coverage mistakes."
       }
     ],

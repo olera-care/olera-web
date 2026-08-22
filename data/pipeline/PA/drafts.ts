@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/PA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.800Z
+ * Last updated: 2026-08-22T10:37:49.045Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1666,12 +1666,12 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "SNAP (Supplemental Nutrition Assistance Program)",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Quick financial relief with up to $300/month for groceries, and eligibility often indicates qualification for other programs."
       },
       {
         "name": "SHIP (State Health Insurance Assistance Program)",
-        "programId": "ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free for everyone and can immediately identify Medicare cost savings your loved one may be missing."
       }
     ],

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.806Z
+ * Last updated: 2026-08-22T10:37:49.052Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -3392,7 +3392,7 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Apple Health",
-        "programId": "apple-health",
+        "programId": "apple-health-medicaid",
         "why": "Free comprehensive health coverage eliminates your loved one's medical costs and provides the foundation for accessing other care programs."
       },
       {
@@ -3402,7 +3402,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Medicaid Personal Care (MPC) Program",
-        "programId": "medicaid-personal-care",
+        "programId": "medicaid-personal-care-mpc",
         "why": "Covers in-home personal care assistance so your loved one can stay safely at home instead of moving to a facility."
       },
       {

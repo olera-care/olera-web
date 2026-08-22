@@ -2101,12 +2101,12 @@
       },
       {
         "name": "Qualified Medicare Beneficiary (QMB)",
-        "programId": "qmb-slmb",
+        "programId": "qmb-slmb-medicare-help",
         "why": "Delaware pays all Medicare premiums and co-pays if your loved one's income is under $1,585/month."
       },
       {
         "name": "Food Stamp Program (SNAP)",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Provides up to $291/month toward groceries for seniors on fixed incomes."
       }
     ],

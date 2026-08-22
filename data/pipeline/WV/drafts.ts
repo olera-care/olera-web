@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WV/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:09:04.897Z
+ * Last updated: 2026-08-22T10:37:49.053Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2483,17 +2483,17 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Medicaid Medicare Savings Programs",
-        "programId": "medicaid-medicare-savings-programs",
+        "programId": "medicare-savings-programs",
         "why": "Can immediately reduce your loved one's Medicare premiums and prescription costs if they qualify."
       },
       {
         "name": "SNAP",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Provides $100-300+ monthly grocery assistance with relatively quick approval for seniors 60+."
       },
       {
         "name": "SHIP",
-        "programId": "ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free Medicare counseling helps prevent overpaying for coverage, available to all seniors regardless of income."
       }
     ],

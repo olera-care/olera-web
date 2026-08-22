@@ -1791,12 +1791,12 @@
       },
       {
         "name": "Senior Health Insurance Information Program (SHIIP)",
-        "programId": "iowa-shiip",
+        "programId": "shiip-medicare-counseling",
         "why": "Free expert help navigating Medicare can save thousands annually in premiums and out-of-pocket costs."
       },
       {
         "name": "Supplemental Nutrition Assistance Program (SNAP)",
-        "programId": "iowa-snap",
+        "programId": "snap-food-benefits",
         "why": "Quick application process for immediate monthly grocery assistance, often the fastest benefit to secure."
       }
     ],

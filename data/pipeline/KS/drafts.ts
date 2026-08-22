@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/KS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.784Z
+ * Last updated: 2026-08-22T10:37:49.029Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2399,12 +2399,12 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Medicare Savings Programs (MSP)",
-        "programId": "medicare-savings-programs-msp",
+        "programId": "medicare-savings-programs-qmb-slmb-qi",
         "why": "Can save your loved one $2,000+ per year on Medicare costs and has the highest income limits of Kansas's major benefit programs."
       },
       {
         "name": "Senior Health Insurance Counseling for Kansas (SHICK)",
-        "programId": "senior-health-insurance-counseling-shick",
+        "programId": "shick-medicare-counseling",
         "why": "Free Medicare guidance available to all Kansas seniors, no income requirements and can prevent costly insurance mistakes."
       },
       {
@@ -2414,7 +2414,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Food Assistance (SNAP)",
-        "programId": "food-assistance-snap",
+        "programId": "snap-food-assistance",
         "why": "Provides up to $298 monthly for groceries with relatively straightforward qualification process."
       }
     ],

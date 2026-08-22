@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T11:01:04.265Z
+ * Last updated: 2026-08-22T10:37:49.028Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2189,17 +2189,17 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Medical Assistance (Medicaid) for Seniors/Disabled",
-        "programId": "medicaid-seniors-disabled",
+        "programId": "medical-assistance-medicaid-seniors-disabled",
         "why": "Covers all medical care plus long-term care services to help your loved one stay at home if they're 65+ with limited income."
       },
       {
         "name": "Supplemental Nutrition Assistance Program (SNAP)",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Provides $100-500+ monthly for groceries with faster approval than most other programs."
       },
       {
         "name": "Senior Health Insurance Program (SHIP)",
-        "programId": "ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free Medicare counseling available to any senior, no income limits, to avoid costly coverage mistakes."
       },
       {

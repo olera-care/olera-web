@@ -3503,12 +3503,12 @@
       },
       {
         "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
-        "programId": "florida-liheap",
+        "programId": "liheap-energy-assistance",
         "why": "Provides immediate financial relief of $400–$2,000 toward utility bills."
       },
       {
         "name": "SHINE (Serving Health Insurance Needs of Elders)",
-        "programId": "florida-shine",
+        "programId": "shine-medicare-counseling",
         "why": "Free expert help navigating all Medicare and insurance questions, available to every Florida senior."
       }
     ],

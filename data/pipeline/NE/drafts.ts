@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NE/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.794Z
+ * Last updated: 2026-08-22T10:37:49.039Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2940,7 +2940,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "SNAP Food Benefits",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Monthly grocery assistance up to $546 for couples provides immediate budget relief."
       },
       {
@@ -2950,7 +2950,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Nebraska SHIP",
-        "programId": "nebraska-ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free Medicare counseling helps optimize coverage and catch savings your family might miss."
       }
     ],

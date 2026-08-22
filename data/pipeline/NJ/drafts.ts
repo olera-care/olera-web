@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NJ/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T09:34:52.627Z
+ * Last updated: 2026-08-22T10:37:49.041Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1351,22 +1351,22 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Stay NJ",
-        "programId": "stay-nj",
+        "programId": "stay-nj-property-tax-relief",
         "why": "Up to $6,500 back on property taxes, the largest potential benefit in New Jersey."
       },
       {
         "name": "Pharmaceutical Assistance to the Aged & Disabled (PAAD)",
-        "programId": "paad",
+        "programId": "paad-prescription-assistance",
         "why": "Reduces prescription costs to $5-7 per medication, saving hundreds monthly for parents with multiple prescriptions."
       },
       {
         "name": "Senior Freeze (Property Tax Reimbursement)",
-        "programId": "senior-freeze",
+        "programId": "senior-freeze-property-tax",
         "why": "Protects against property tax increases for long-term homeowners, providing ongoing savings."
       },
       {
         "name": "Jersey Assistance for Community Caregiving (JACC)",
-        "programId": "jacc",
+        "programId": "jacc-community-caregiving",
         "why": "Helps parents who need nursing-level care stay at home when income is too high for Medicaid."
       }
     ],

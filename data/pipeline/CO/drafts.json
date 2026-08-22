@@ -2136,7 +2136,7 @@
     "startHere": [
       {
         "name": "Health First Colorado Buy-In (QMB, SLMB, QI)",
-        "programId": "health-first-colorado-buy-in",
+        "programId": "medicare-savings-programs",
         "why": "Can save hundreds monthly on Medicare premiums and out-of-pocket costs for parents on limited income."
       },
       {
@@ -2146,7 +2146,7 @@
       },
       {
         "name": "SNAP",
-        "programId": "snap-colorado",
+        "programId": "snap-food-benefits",
         "why": "Monthly grocery money that provides immediate budget relief for food costs."
       },
       {

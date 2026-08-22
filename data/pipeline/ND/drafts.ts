@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/ND/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:52:08.680Z
+ * Last updated: 2026-08-22T10:37:49.038Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -487,12 +487,12 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "North Dakota Aging in Community (AIC) Project",
-        "programId": "north-dakota-aging-in-community-aic-project",
+        "programId": "aging-in-community-project",
         "why": "Specifically designed for rural North Dakota seniors who want to stay home with community volunteer support."
       },
       {
         "name": "North Dakota Basic Care Assistance Program (BCAP)",
-        "programId": "north-dakota-basic-care-assistance-program-bcap",
+        "programId": "basic-care-assistance-program",
         "why": "Provides direct financial help for facility care when your loved one needs more support than home-based options can provide."
       }
     ],

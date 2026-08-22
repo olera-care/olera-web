@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NH/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.795Z
+ * Last updated: 2026-08-22T10:37:49.040Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2987,22 +2987,22 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualified Individual (QI/SLMB-135)",
-        "programId": "qmb-slmb-qi",
+        "programId": "medicare-savings-programs",
         "why": "Can save $4,000+ per year on Medicare costs if your loved one's income is under $1,660/month."
       },
       {
         "name": "Medicaid for Aged, Blind, Disabled (ABD)",
-        "programId": "medicaid-abd-nh",
+        "programId": "medicaid-aged-blind-disabled",
         "why": "Covers long-term care costs that Medicare doesn't, potentially saving tens of thousands in nursing home or home care expenses."
       },
       {
         "name": "SNAP (Supplemental Nutrition Assistance Program)",
-        "programId": "snap-nh",
+        "programId": "snap-food-benefits",
         "why": "Provides immediate monthly grocery assistance of $100-400+ for seniors on fixed incomes."
       },
       {
         "name": "SHIP (State Health Insurance Assistance Program)",
-        "programId": "ship-nh",
+        "programId": "ship-medicare-counseling",
         "why": "Free expert help to avoid overpaying for Medicare plans, available to everyone regardless of income."
       }
     ],

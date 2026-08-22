@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TX/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T11:01:04.283Z
+ * Last updated: 2026-08-22T10:37:49.049Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2236,17 +2236,17 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "STAR+PLUS",
-        "programId": "star-plus",
+        "programId": "star-plus-medicaid-hcbs",
         "why": "Combines full healthcare coverage with home care services if your loved one needs nursing home level care but wants to stay home."
       },
       {
         "name": "SNAP",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Quick way to reduce grocery costs by up to $298/month with relatively simple application process."
       },
       {
         "name": "Texas SHIP",
-        "programId": "texas-ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free expert help navigating Medicare options and finding prescription drug savings, no income requirements."
       }
     ],

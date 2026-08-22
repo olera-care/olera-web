@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.803Z
+ * Last updated: 2026-08-22T10:37:49.048Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1914,7 +1914,7 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Tennessee SNAP",
-        "programId": "tennessee-snap",
+        "programId": "snap-food-benefits",
         "why": "Up to $415/month for groceries with no asset limits, often the quickest approval."
       },
       {
@@ -1924,7 +1924,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Tennessee LIHEAP",
-        "programId": "tennessee-liheap",
+        "programId": "liheap-energy-assistance",
         "why": "One-time payment up to $1,000 toward heating/cooling bills with quick seasonal applications."
       }
     ],

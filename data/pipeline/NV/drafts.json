@@ -2987,7 +2987,7 @@
       },
       {
         "name": "SNAP",
-        "programId": "snap-nevada",
+        "programId": "snap-food-benefits",
         "why": "Provides immediate monthly grocery assistance ($100–400/month) for seniors 60+ on fixed incomes."
       },
       {
@@ -2997,7 +2997,7 @@
       },
       {
         "name": "Nevada Energy Assistance Program",
-        "programId": "nevada-energy-assistance",
+        "programId": "energy-assistance-eap-liheap",
         "why": "Covers up to $3,136/year in heating and cooling costs with no asset limits."
       }
     ],

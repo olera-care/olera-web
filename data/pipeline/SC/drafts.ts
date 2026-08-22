@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/SC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:52:08.689Z
+ * Last updated: 2026-08-22T10:37:49.047Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2430,7 +2430,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "SNAP (Food Assistance)",
-        "programId": "snap-food-assistance",
+        "programId": "snap-food-benefits",
         "why": "Provides $100–400/month for groceries with simplified application process for seniors 60+."
       },
       {

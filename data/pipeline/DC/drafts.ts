@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/DC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.777Z
+ * Last updated: 2026-08-22T10:37:49.023Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -727,17 +727,17 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Elderly and Persons with Physical Disabilities (EPD) Waiver Program",
-        "programId": "epd-waiver",
+        "programId": "epd-waiver-program",
         "why": "Covers personal care aides and adult day services if your loved one needs nursing home level care but wants to stay home."
       },
       {
         "name": "Safe at Home Program",
-        "programId": "safe-at-home",
+        "programId": "safe-at-home-program",
         "why": "Provides up to $7,000 in home modifications like grab bars and stair lifts to prevent falls."
       },
       {
         "name": "DACL Benefits Assistance",
-        "programId": "dacl-benefits",
+        "programId": "dacl-benefits-assistance",
         "why": "Free help enrolling your loved one in DC Medicaid home care programs that cover personal care and case management."
       }
     ],

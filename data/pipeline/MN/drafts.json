@@ -2241,12 +2241,12 @@
     "startHere": [
       {
         "name": "Medical Assistance (Medicaid)",
-        "programId": "medical-assistance",
+        "programId": "medical-assistance-medicaid",
         "why": "Free health coverage that unlocks other programs like home care waivers and simplified Medicare plans."
       },
       {
         "name": "Minnesota SNAP",
-        "programId": "minnesota-snap",
+        "programId": "snap-food-benefits",
         "why": "Monthly grocery assistance up to $546 with no gross income limits for seniors 60+."
       },
       {

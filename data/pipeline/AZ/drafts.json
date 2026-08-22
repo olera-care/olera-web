@@ -1707,17 +1707,17 @@
       },
       {
         "name": "AHCCCS (Arizona Long Term Care System - ALTCS)",
-        "programId": "arizona-altcs",
+        "programId": "ahcccs-altcs",
         "why": "Arizona's Medicaid covers the biggest expenses, nursing home care, assisted living, and home care services."
       },
       {
         "name": "Nutrition Assistance (NA) / SNAP in Arizona",
-        "programId": "arizona-snap",
+        "programId": "snap-food-benefits",
         "why": "Monthly grocery assistance starts quickly and provides $24-$300+ per month in immediate relief."
       },
       {
         "name": "Arizona State Health Insurance Assistance Program (SHIP)",
-        "programId": "arizona-ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free Medicare counseling helps you understand all healthcare options before making expensive decisions."
       }
     ],

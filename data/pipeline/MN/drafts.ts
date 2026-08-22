@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.789Z
+ * Last updated: 2026-08-22T10:37:49.034Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2240,12 +2240,12 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Medical Assistance (Medicaid)",
-        "programId": "medical-assistance",
+        "programId": "medical-assistance-medicaid",
         "why": "Free health coverage that unlocks other programs like home care waivers and simplified Medicare plans."
       },
       {
         "name": "Minnesota SNAP",
-        "programId": "minnesota-snap",
+        "programId": "snap-food-benefits",
         "why": "Monthly grocery assistance up to $546 with no gross income limits for seniors 60+."
       },
       {

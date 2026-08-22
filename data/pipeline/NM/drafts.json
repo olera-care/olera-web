@@ -945,7 +945,7 @@
     "startHere": [
       {
         "name": "Program of All-Inclusive Care for the Elderly (PACE)",
-        "programId": "pace",
+        "programId": "pace-comprehensive-care",
         "why": "Covers all medical care, home services, meals, and transportation under one program for parents who need nursing home level care."
       },
       {
@@ -955,7 +955,7 @@
       },
       {
         "name": "Senior Community Service Employment Program (SCSEP)",
-        "programId": "scsep",
+        "programId": "senior-employment-training-program",
         "why": "Offers part-time paid training positions for unemployed parents 55+ with income below $19,000-$25,500 annually."
       }
     ],

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/UT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.805Z
+ * Last updated: 2026-08-22T10:37:49.050Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2369,17 +2369,17 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Utah Medicaid Program",
-        "programId": "utah-medicaid",
+        "programId": "medicaid-program",
         "why": "Covers the biggest expenses, nursing home care, home-based services, and medical costs for seniors on limited incomes."
       },
       {
         "name": "Utah SNAP",
-        "programId": "utah-snap",
+        "programId": "snap-food-benefits",
         "why": "Quick financial relief with up to $415/month for groceries loaded directly onto an EBT card."
       },
       {
         "name": "Utah SHIP",
-        "programId": "utah-ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free Medicare counseling available to everyone, helps find cost assistance programs you might be missing."
       }
     ],

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T09:34:52.625Z
+ * Last updated: 2026-08-22T10:37:49.020Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2969,7 +2969,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "CalFresh",
-        "programId": "calfresh",
+        "programId": "calfresh-food-benefits",
         "why": "Up to $298/month for groceries with simplified application process for seniors 60+."
       }
     ],

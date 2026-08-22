@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NV/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:09:04.895Z
+ * Last updated: 2026-08-22T10:37:49.041Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2992,7 +2992,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "SNAP",
-        "programId": "snap-nevada",
+        "programId": "snap-food-benefits",
         "why": "Provides immediate monthly grocery assistance ($100–400/month) for seniors 60+ on fixed incomes."
       },
       {
@@ -3002,7 +3002,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Nevada Energy Assistance Program",
-        "programId": "nevada-energy-assistance",
+        "programId": "energy-assistance-eap-liheap",
         "why": "Covers up to $3,136/year in heating and cooling costs with no asset limits."
       }
     ],

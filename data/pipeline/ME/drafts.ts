@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/ME/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.788Z
+ * Last updated: 2026-08-22T10:37:49.033Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1205,22 +1205,22 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "SNAP (Supplemental Nutrition Assistance Program)",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Provides immediate monthly grocery money with the highest financial impact for qualifying seniors."
       },
       {
         "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
-        "programId": "liheap",
+        "programId": "liheap-energy-assistance",
         "why": "Maine's harsh winters make heating bill assistance critical for seniors on fixed incomes."
       },
       {
         "name": "Maine Senior Health Insurance Assistance Program",
-        "programId": "ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free expert help that can save hundreds on Medicare costs, available to all Maine seniors regardless of income."
       },
       {
         "name": "Home and Community-Based Services (HCBS) Waivers",
-        "programId": "hcbs",
+        "programId": "hcbs-waivers",
         "why": "Covers comprehensive home care services for parents who would otherwise need nursing home care."
       }
     ],

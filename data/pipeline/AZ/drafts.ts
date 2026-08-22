@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AZ/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.774Z
+ * Last updated: 2026-08-22T10:37:49.020Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1712,17 +1712,17 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "AHCCCS (Arizona Long Term Care System - ALTCS)",
-        "programId": "arizona-altcs",
+        "programId": "ahcccs-altcs",
         "why": "Arizona's Medicaid covers the biggest expenses, nursing home care, assisted living, and home care services."
       },
       {
         "name": "Nutrition Assistance (NA) / SNAP in Arizona",
-        "programId": "arizona-snap",
+        "programId": "snap-food-benefits",
         "why": "Monthly grocery assistance starts quickly and provides $24-$300+ per month in immediate relief."
       },
       {
         "name": "Arizona State Health Insurance Assistance Program (SHIP)",
-        "programId": "arizona-ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free Medicare counseling helps you understand all healthcare options before making expensive decisions."
       }
     ],

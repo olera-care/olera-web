@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:52:08.663Z
+ * Last updated: 2026-08-22T10:37:49.027Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1796,12 +1796,12 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Senior Health Insurance Information Program (SHIIP)",
-        "programId": "iowa-shiip",
+        "programId": "shiip-medicare-counseling",
         "why": "Free expert help navigating Medicare can save thousands annually in premiums and out-of-pocket costs."
       },
       {
         "name": "Supplemental Nutrition Assistance Program (SNAP)",
-        "programId": "iowa-snap",
+        "programId": "snap-food-benefits",
         "why": "Quick application process for immediate monthly grocery assistance, often the fastest benefit to secure."
       }
     ],

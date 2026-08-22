@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OR/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T11:01:04.280Z
+ * Last updated: 2026-08-22T10:37:49.045Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2631,22 +2631,22 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Medicare Savings Programs (MSP)",
-        "programId": "medicare-savings-programs-msp",
+        "programId": "medicare-savings-programs",
         "why": "Can immediately reduce Medicare premiums and co-pays if your loved one's income is under $1,800/month."
       },
       {
         "name": "SNAP Food Benefits (Oregon)",
-        "programId": "snap-food-benefits-oregon",
+        "programId": "snap-food-benefits",
         "why": "Monthly grocery assistance even for parents whose income seems too high for benefits."
       },
       {
         "name": "OPI-M (Medicaid-funded)",
-        "programId": "opi-m-medicaid-funded",
+        "programId": "opi-m-medicaid-home-care",
         "why": "Provides in-home care through Medicaid at higher income limits than regular Medicaid."
       },
       {
         "name": "Senior Health Insurance Benefits Assistance (SHIBA)",
-        "programId": "senior-health-insurance-benefits-assistance-shiba",
+        "programId": "shiba-medicare-counseling",
         "why": "Free expert help navigating Medicare, no income requirements."
       }
     ],

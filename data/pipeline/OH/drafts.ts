@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OH/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:09:04.888Z
+ * Last updated: 2026-08-22T10:37:49.043Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2236,7 +2236,7 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Medicaid for the Aged, Blind, or Disabled (ABD)",
-        "programId": "medicaid-abd",
+        "programId": "medicaid-aged-blind-disabled",
         "why": "Free comprehensive health coverage can save thousands monthly if your loved one qualifies."
       },
       {
@@ -2246,7 +2246,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Medicare Savings Programs (QMB, SLMB, QI-1)",
-        "programId": "medicare-savings",
+        "programId": "medicare-savings-programs",
         "why": "Eliminates Medicare premiums and copayments if income is below $1,824/month."
       },
       {

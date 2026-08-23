@@ -7,6 +7,62 @@
 
 ## Current Focus
 
+### 2026-08-23 — The navigator's problem was never the review loop, it was the pick (`great-poitras`)
+
+**The session started on "smooth out the AI review workflow" and ended somewhere else entirely.** TJ's loop today is nine hops across four tools that share no state: copy the export, paste into ChatGPT, paste the report into a fresh Claude session and re-explain the job, apply, copy the updated draft, paste back to ask "is this the most recent version", usually catch another miss, sometimes a third read in Perplexity, send. Six hops need TJ. Throughput is capped by his evenings; arrival is capped by intake completions. Those numbers are unrelated, so the queue grows without bound — which is exactly what happened.
+
+**The queue is 130, not 28.** The admin's default 30-day window filters on *intake* date, not compose date, so the backfill's letters are invisible. 100 of the 130 have intakes older than 30 days; median intake age **69 days**, max 152. Neither `Copy AI review prompt (28)` nor `Schedule all (28)` can see them.
+
+**Everything measurable about the FACTS came back healthy.** Snapshot drift across all 130 pending drafts: phone 0, name 0, label 0 — the patch scripts work. Honesty-rail violations, audited with a model against the four Tier-1 rails: **2 of 130**, both the speed rail, both mild (Alabama's "One call gets it started" is the banned "just one call" with the qualifier stripped, the exact failure `banned-phrase` was written to catch). Reachability: 130/130 contactable, zero on `do_not_contact`, zero bounce-only, 2 already acted.
+
+**The picks are not healthy.** Fit audit over all 130, Opus judging each pick against the family's own stated facts plus every program in their state:
+
+| verdict | n |
+| --- | --- |
+| good | 41 |
+| questionable | 79 |
+| wrong | 9 |
+
+The nine wrong ones are not subtle. Texas weatherization to an 87-year-old already on Medicaid with an immediate care need. NC Medicare Savings to a family asking for immediate memory care. MA MassHealth MSP to someone who asked for home health within a month. AL waiver requiring nursing-home level of care to someone asking about independent living. NJ PAAD to a 60-year-old who fails its age/disability gate.
+
+**Mechanism, confirmed.** `selectFirstStepProgram` puts entry-source **first**, ahead of the eligibility screen — the code calls landing on a program page "demonstrated intent." And for half the queue the screen is a no-op: **63 of 130 families gave us none of the four facts** (no care type, no age, no income, no Medicaid status), so `screen()` returns `{ruledOut:false, boost:0}` for everything. Pick source across the 130: entry 63, saved 35, state 32. Someone Googles "LIHEAP Texas", lands on our page, tells us nothing, and gets weatherization as their first step even when they typed that they need care now.
+
+**Also found: `benefits-draft-lint.js` had never been run this session and nobody ran it before sending either.** 78 drafts carry an SMS defect (punctuation flush against `{link}`, which 404s in some clients) and one letter literally prints "Call X at Contact information not specified in available sources" (`washington/mac-waiver`).
+
+**Corpus state, from `benefits-lint.js`:** 642 programs, **155 (24%) ever verified**. 85 HIGH findings across 72 programs — 33 null-lead-phone, 21 spouse-caveat-missing, 20 generic-anchor, 9 non-dialable, 2 self-contradiction. Five states have zero verified programs (AK, DC, ME, WI, WY). And `lastVerifiedDate` is **not** a clean bill of health: 11 programs stamped within 30 days still carry a HIGH finding.
+
+**Where I was wrong, three times, and each correction came from measuring instead of reasoning**
+
+- "33 programs send families to 2-1-1" — no. 18 do; **15 fall through to a named local office presented as the statewide door**, several labelled literally `Example: The Senior Alliance (Wayne County)`. That is worse than 2-1-1, which at least routes you.
+- "Release the ~66 letters whose programs are already verified" — unsafe, see the 11 stamped-but-HIGH programs above.
+- "Never auto-send the first letter for a program" — that rule holds **57% of every draft ever composed** (245 drafts, 139 distinct programs; July 89%, August 53%). Not self-liquidating. Deleted. The gate should be *program not cleared*, which is the thing novelty was a proxy for.
+
+**Decisions**
+
+- **Fit is a first-class gate, checked before facts.** Nothing checks it today — not the code, and not the review loop, because the export asks the external reviewer to judge fit with no family context.
+- **"We don't know enough" is an outcome, not a failure.** A third branch: when the family gave us none of the four facts, send an *ask*, not a guessed program. Today that is the largest destination in the system.
+- **Roles, not vendors.** Perplexity = retrieval and currency (searches and cites natively). OpenAI = fit and rails (judgment). Claude = research, draft, rebuttal, adjudication. Three models on the same job buys correlated errors plus a voting illusion; three models on different jobs buys coverage.
+- **An objection survives only if it names a primary-source URL and a quote**, or targets a voice rail (the rail is its own source). Never majority vote. Demonstrated live this session: three aggregator sites reported OpenAI's flagship at $5/$30, all agreeing; OpenAI's own docs say **$4/$20** promotional through 2026-11-21. Same shape as the CO "Older Coloradans Cash Fund".
+- **Run BOTH fit reads and treat disagreement as the review trigger.** `gpt-5.6-terra` costs **$0.003/letter** for this call (~900 in / ~120 out, and the system prompt caches). Opus second opinion ~$0.014. Cost is not a constraint.
+- **The `family-answers` engine is the reference implementation** — `lib/family-answers/engine.server.ts`, in prod, every 5 min: triage → research → draft → adversarial (Perplexity, independent) → rebuttal (Opus, concedes or contests). Plus `family_answer_jobs`, `AnswerPacketPanel`, and `packetNeedsAttention()`. Its rebuttal prompt already encodes TJ's own adjudication rule. The navigator queue is the one family-facing surface that never got this treatment.
+- **TJ reviews letters, not clearance records.** Clearance is a component. The letter goes out under his name; that is where his judgment belongs.
+
+**Routing the live 130 through the proposed gates: ask 63 · recompose 9 · human review 54 · auto-send 4.** Hold reasons (a letter can trip several): intake >45d 39, fit questionable 38, program never verified 21, states a dollar figure 9, program HIGH lint 6. **Four.** That is what the auto-send architecture delivers against today's queue, and it is the most useful number produced this session: the prize is not automation. It is that 63 families get a message that can help them, 9 wrong letters never go out, and the 54 needing judgment arrive pre-triaged.
+
+**Cost to run:** ~$24/month ongoing (fit x2 $2.21, rails $0.65, program clearance on a 90-day clock $21) plus ~$33 one-time for a Batch-API sweep of all 642 programs.
+
+**Artifact:** Navigator Routing Board — https://claude.ai/code/artifact/090ca73d-be16-4402-ad86-5f68a954f2f1
+
+**Next up**
+
+- Build the packet builder + queue surface, porting the `family-answers` shape. Fit gate, ask-first branch, durable per-letter verdict.
+- **The ask-first copy does not exist and is TJ's to write.** One question, not a form. It is now the largest destination in the system.
+- `BENEFITS_NAVIGATOR_REPLY_TO` is **unset** — the letter promises "my team and I read every reply" and nobody has configured where they land. Support Email already shows 899.
+- Decide the 100 backfill letters (median 69d): send, recompose, or convert to asks. Separate call from the build.
+- Wire `benefits-draft-lint` and `benefits-lint` into the send path. Both exist, neither gates anything.
+- Fix the 15 "Example:"/local-office call anchors and the 33 null-lead-phone programs. Data edits, no deploy needed for the drafts.
+- Open PRs untouched this session: #1674, #1675 (both docs-only, 08-22), #1651, #1629, #1418.
+
 ### 2026-08-21 — Provider answers stay visible (`codex/provider-qa-answer-priority`)
 
 Provider profile Q&A now treats published provider responses as the durable social proof: the inline preview shows answered threads without allowing newer unanswered questions to displace them, and the all-questions sheet opens with answers first while unanswered items remain behind an explicit disclosure. Server render and the hydrated GET now use the same publication-safe public dataset and deterministic ordering, removing the refresh-time 7→9 question swap. Pre-test also fixed two real edge cases: repeated asks could receive raw unpublished answer text from POST, and an in-flight mount GET could overwrite a newer submit/edit state. **Files:** `app/provider/[slug]/page.tsx`, `app/api/questions/route.ts`, `components/providers/QASectionV2.tsx`, `lib/qa-utils.ts`. **Validation:** TypeScript, targeted ESLint (0 errors; two existing `<img>` warnings), focused ordering/empty-answer/tie-break/immutability checks, and `git diff --check` pass; production compilation passed, while static generation remains blocked locally by missing Supabase env vars. **PR:** #1665 → `staging`. **Next:** review the Vercel preview on desktop/mobile, hard-refresh Graceful Homecare, expand/hide unanswered questions, submit a new question, and confirm a pending-verification answer never appears.

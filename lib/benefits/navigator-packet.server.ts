@@ -1,5 +1,6 @@
 import {
   CLEARANCE_MAX_AGE_DAYS,
+  agreedBetterProgram,
   routePacket,
   statesDollarFigure,
   type DraftLintHit,
@@ -12,6 +13,7 @@ import {
   judgeFit,
   programContext,
   readClearance,
+  resolveProgramByName,
   stateProgramNames,
 } from "./navigator-gates.server";
 import type { BenefitsNavigatorMeta } from "@/lib/family-comms/benefits-navigator.server";
@@ -132,7 +134,7 @@ export async function buildNavigatorPacket(
       intakeAgeDays: ageDays,
       statesDollarFigure: base.statesDollarFigure,
     });
-    return { ...base, fit: [], rails: [], clearance: null, route, holds, models };
+    return { ...base, fit: [], rails: [], clearance: null, recomposeTarget: null, route, holds, models };
   }
 
   const pick = navigator.pick ?? null;
@@ -165,9 +167,20 @@ export async function buildNavigatorPacket(
   models[PACKET_MODELS.fitSecond] = "fit";
   models[PACKET_MODELS.rails] = "rails";
 
+  // Both models naming the same alternative turns a weak pick into a
+  // re-selection with a destination. Resolve it to a real program id so the
+  // recompose can act on it; an unresolvable name still shows the reviewer
+  // what they converged on.
+  const agreedName = agreedBetterProgram(fit);
+  const resolved = agreedName ? resolveProgramByName(pick?.stateId ?? null, agreedName) : null;
+  const recomposeTarget = agreedName
+    ? { name: resolved?.label ?? agreedName, programId: resolved?.programId ?? null }
+    : null;
+
   const { route, holds } = routePacket({
     facts,
     fit,
+    recomposeTarget,
     rails,
     clearance,
     lint: base.lint,
@@ -181,6 +194,7 @@ export async function buildNavigatorPacket(
     fit,
     rails,
     clearance,
+    recomposeTarget,
     route,
     holds,
     models,

@@ -143,8 +143,11 @@ async function main() {
 
   if (DUMP) {
     const fs = await import("node:fs");
-    fs.writeFileSync(DUMP, JSON.stringify(built, null, 2));
-    console.log(`\n  dumped ${built.length} packets -> ${DUMP}`);
+    // Dump the profile id alongside the packet: without it a re-score cannot
+    // join back to the family, which is the whole point of scoring offline.
+    const payload = packets.map(({ row, packet }) => ({ profileId: row.id, packet }));
+    fs.writeFileSync(DUMP, JSON.stringify(payload, null, 2));
+    console.log(`\n  dumped ${payload.length} packets -> ${DUMP}`);
   }
 
   const byRoute = packets.reduce<Record<string, number>>((acc, p) => {

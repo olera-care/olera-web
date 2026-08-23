@@ -242,6 +242,14 @@ export interface NavigatorComposeInput {
    *  and Disabled Waiver they saved first, because the ladder sorts by
    *  ascending complexity before saved order). */
   exclude?: string[];
+  /**
+   * Re-select TO this program if it is usable. Set from a packet's
+   * recomposeTarget — the alternative both fit models independently named.
+   * Passed to selectFirstStepProgram as a pin, so it wins when it has
+   * callable content and falls through to the normal ladder when it does
+   * not; a suggestion that cannot anchor a letter must never produce one.
+   */
+  prefer?: { programId: string; stateId: string | null };
 }
 
 export interface NavigatorDraft {
@@ -276,6 +284,7 @@ export async function composeNavigatorDraft(
     stateAbbrev: input.state,
     facts,
     exclude: input.exclude,
+    pin: input.prefer ?? null,
   });
   if (!pick) return null;
 

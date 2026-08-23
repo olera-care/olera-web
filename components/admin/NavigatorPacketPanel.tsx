@@ -103,6 +103,18 @@ export default function NavigatorPacketPanel({ packet }: { packet: NavigatorPack
         <span className="ml-auto text-[11px] text-gray-400">checked {built}</span>
       </div>
 
+      {packet.recomposeTarget && (
+        <p className="mt-2 text-[12.5px] leading-relaxed text-gray-700">
+          <span className="text-gray-400">Both models would start with </span>
+          <span className="font-semibold text-gray-900">{packet.recomposeTarget.name}</span>
+          {packet.recomposeTarget.programId ? (
+            <span className="text-gray-400">. Recompose will switch to it.</span>
+          ) : (
+            <span className="text-gray-400">, but it did not match a program we hold, so recompose will pick from the ladder.</span>
+          )}
+        </p>
+      )}
+
       <div className="mt-2.5 space-y-0.5 border-t border-gray-100 pt-2.5">
         {packet.holds.length > 0 && (
           <>

@@ -126,9 +126,26 @@ export async function GET(request: NextRequest) {
       // Skip if admin-archived
       if (meta.admin_archived === true) { counts.skipped++; continue; }
 
-      // Skip if already verified
+      // Skip if already verified — but still mark the nudge as "sent"
+      // so the notification-setup-nudge cron can fire on schedule.
       const vs = provider.verification_state as string | null;
-      if (vs === "verified" || vs === "not_required") { counts.skipped++; continue; }
+      if (vs === "verified" || vs === "not_required") {
+        if (!meta.verification_nudge_sent && !dryRun) {
+          await db
+            .from("business_profiles")
+            .update({
+              metadata: {
+                ...meta,
+                verification_nudge_sent: true,
+                verification_nudge_sent_at: new Date().toISOString(),
+              },
+              updated_at: new Date().toISOString(),
+            })
+            .eq("id", provider.id);
+        }
+        counts.skipped++;
+        continue;
+      }
 
       // Must be at least 24h since the welcome email
       const welcomeSentAt = meta.welcome_email_sent_at as string | undefined;

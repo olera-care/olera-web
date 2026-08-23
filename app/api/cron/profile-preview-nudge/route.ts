@@ -32,11 +32,12 @@ function isBusinessHours(now: Date, state?: string | null): boolean {
 /**
  * GET /api/cron/profile-preview-nudge
  *
- * Runs daily. Sends a "see what families see" email to providers who:
+ * Onboarding Email 2. Runs daily. Sends a "see what families see" email to
+ * providers who:
  *  1. Have claimed their listing
- *  2. Have received the notification setup nudge (or at least welcome + verification)
+ *  2. Have passed through the verification step (verification_nudge_sent flag)
  *  3. Haven't already received this email (metadata.profile_preview_nudge_sent)
- *  4. Notification nudge was sent at least 72h ago
+ *  4. Verification step was processed at least 48h ago
  *  5. Current time is Mon-Fri 9am-4pm in the provider's timezone
  */
 export const maxDuration = 60;
@@ -130,8 +131,8 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Must have received the notification nudge (which implies welcome + verification)
-      if (!meta.notification_nudge_sent) {
+      // Must have passed through the verification step
+      if (!meta.welcome_email_sent || !meta.verification_nudge_sent) {
         counts.skipped++;
         continue;
       }
@@ -142,12 +143,12 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Must be at least 72h since the notification nudge
-      const notifSentAt = meta.notification_nudge_sent_at as string | undefined;
-      const notifTs = notifSentAt ? new Date(notifSentAt).getTime() : 0;
-      const hoursSinceNotif = notifTs ? (now - notifTs) / (60 * 60 * 1000) : Infinity;
+      // Must be at least 48h since the verification step was processed
+      const verifSentAt = meta.verification_nudge_sent_at as string | undefined;
+      const verifTs = verifSentAt ? new Date(verifSentAt).getTime() : 0;
+      const hoursSinceVerif = verifTs ? (now - verifTs) / (60 * 60 * 1000) : Infinity;
 
-      if (hoursSinceNotif < 72) {
+      if (hoursSinceVerif < 48) {
         counts.skipped++;
         continue;
       }

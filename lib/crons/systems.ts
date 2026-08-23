@@ -25,8 +25,8 @@ export const AUTOMATION_SYSTEMS: AutomationSystem[] = [
     jobIds: [
       "provider-welcome",
       "onboarding-verification-nudge",
-      "onboarding-notification-setup",
       "onboarding-profile-preview",
+      "onboarding-notification-setup",
       "weekly-provider-digest",
       "verification-reminders",
       "provider-dormant",
@@ -38,8 +38,8 @@ export const AUTOMATION_SYSTEMS: AutomationSystem[] = [
         jobIds: [
           "provider-welcome",
           "onboarding-verification-nudge",
-          "onboarding-notification-setup",
           "onboarding-profile-preview",
+          "onboarding-notification-setup",
         ],
       },
     ],

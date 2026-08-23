@@ -33,12 +33,13 @@ function isBusinessHours(now: Date, state?: string | null): boolean {
 /**
  * GET /api/cron/notification-setup-nudge
  *
- * Runs daily. Sends a notification setup email to providers who:
+ * Onboarding Email 3. Runs daily. Sends a notification setup email to
+ * providers who:
  *  1. Have claimed their listing (account_id is set)
- *  2. Have received both the welcome email AND the verification nudge
+ *  2. Have received the profile preview email (profile_preview_nudge_sent flag)
  *  3. Have NOT enabled SMS notifications (no notification_prefs.new_leads.sms = true)
  *  4. Haven't already received this nudge (metadata.notification_nudge_sent)
- *  5. Verification nudge was sent at least 48 hours ago
+ *  5. Profile preview was sent at least 72 hours ago
  *  6. Current time is Mon-Fri 9am-4pm in the provider's timezone
  */
 export const maxDuration = 60;
@@ -135,8 +136,8 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Must have received both welcome email AND verification nudge
-      if (!meta.welcome_email_sent || !meta.verification_nudge_sent) {
+      // Must have received the profile preview email
+      if (!meta.profile_preview_nudge_sent) {
         counts.skipped++;
         continue;
       }
@@ -147,12 +148,12 @@ export async function GET(request: NextRequest) {
         continue;
       }
 
-      // Must be at least 48 hours since the verification nudge was sent
-      const nudgeSentAt = meta.verification_nudge_sent_at as string | undefined;
-      const nudgeTs = nudgeSentAt ? new Date(nudgeSentAt).getTime() : 0;
-      const hoursSinceNudge = nudgeTs ? (now - nudgeTs) / (60 * 60 * 1000) : Infinity;
+      // Must be at least 72 hours since the profile preview was sent
+      const previewSentAt = meta.profile_preview_nudge_sent_at as string | undefined;
+      const previewTs = previewSentAt ? new Date(previewSentAt).getTime() : 0;
+      const hoursSincePreview = previewTs ? (now - previewTs) / (60 * 60 * 1000) : Infinity;
 
-      if (hoursSinceNudge < 48) {
+      if (hoursSincePreview < 72) {
         counts.skipped++;
         continue;
       }

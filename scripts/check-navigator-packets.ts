@@ -20,10 +20,11 @@ import { createClient } from "@supabase/supabase-js";
 import { buildNavigatorPacket, draftLintHits } from "../lib/benefits/navigator-packet.server";
 import {
   routePacket,
+  CLEARANCE_MAX_AGE_DAYS,
   type NavigatorPacket,
   type PacketRoute,
 } from "../lib/benefits/navigator-packet";
-import { factsFromProfile } from "../lib/benefits/navigator-gates.server";
+import { factsFromProfile, readClearance } from "../lib/benefits/navigator-gates.server";
 import { readBenefitsNavigator } from "../lib/family-comms/benefits-navigator.server";
 
 config({ path: ".env.local" });
@@ -84,15 +85,24 @@ async function main() {
       const nav = readBenefitsNavigator(row.metadata);
       let packet: NavigatorPacket;
       if (DRY) {
-        // Facts + lint only. Everything model-backed reads as "never ran",
-        // which the router holds — so a dry run can never show `auto`.
+        // Everything MODEL-backed reads as "never ran", which the router holds,
+        // so a dry run can still never show `auto`. But clearance and intake age
+        // are pure reads — the deployed bundle and a timestamp — and withholding
+        // them made every letter hold for "no clearance record", which told you
+        // nothing you did not already know. Supplying them means a dry run
+        // reports the real distribution of the free gates: which programs carry
+        // a HIGH lint finding, which were never verified, which intakes are
+        // stale. That is the cheap half of the routing, and it costs nothing.
         const facts = factsFromProfile({ ...row, careNeed: needByProfile.get(row.id) ?? null });
         const lint = draftLintHits(nav.edited_sms ?? nav.sms ?? null);
+        const clearance = nav.pick?.programId
+          ? readClearance(nav.pick.stateId ?? null, nav.pick.programId, CLEARANCE_MAX_AGE_DAYS)
+          : null;
         const { route, holds } = routePacket({
           facts,
           fit: [],
           rails: [],
-          clearance: null,
+          clearance,
           lint,
           intakeAgeDays: null,
           statesDollarFigure: false,
@@ -103,7 +113,7 @@ async function main() {
           facts,
           fit: [],
           rails: [],
-          clearance: null,
+          clearance,
           lint,
           intakeAgeDays: null,
           statesDollarFigure: false,

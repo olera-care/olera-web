@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:52:08.676Z
+ * Last updated: 2026-08-22T10:37:49.035Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2277,22 +2277,22 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Mississippi Elderly and Disabled (E&D) Waiver",
-        "programId": "mississippiEDWaiver",
+        "programId": "elderly-disabled-waiver",
         "why": "Free home care services can replace expensive nursing home costs if your loved one qualifies."
       },
       {
         "name": "Medicare Savings Programs",
-        "programId": "medicareSavingsMS",
+        "programId": "medicare-savings-programs",
         "why": "Covers Medicare premiums and copays if your loved one earns less than $1,816/month."
       },
       {
         "name": "SNAP in Mississippi",
-        "programId": "snapMS",
+        "programId": "snap-food-benefits",
         "why": "Up to $300/month in immediate grocery relief for parents on fixed incomes."
       },
       {
         "name": "Mississippi SHIP",
-        "programId": "mississippiSHIP",
+        "programId": "ship-medicare-counseling",
         "why": "Free Medicare counseling helps optimize coverage and reduce healthcare costs."
       }
     ],

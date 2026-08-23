@@ -2997,7 +2997,7 @@
       },
       {
         "name": "Medicare Savings Program (MSP)",
-        "programId": "medicare-savings-program-msp",
+        "programId": "medicare-savings-program",
         "why": "If your loved one has Medicare but limited income, this covers premiums and reduces medical costs immediately."
       },
       {
@@ -3007,7 +3007,7 @@
       },
       {
         "name": "Missouri State Health Insurance Assistance Program (Missouri SHIP)",
-        "programId": "missouri-state-health-insurance-assistance-program-missouri-ship",
+        "programId": "missouri-ship",
         "why": "Free expert help finding all Medicare savings your loved one qualifies for, no income limits."
       }
     ],

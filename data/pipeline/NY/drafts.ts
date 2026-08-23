@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.797Z
+ * Last updated: 2026-08-22T10:37:49.042Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2977,12 +2977,12 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Medicare Savings Program (MSP)",
-        "programId": "medicare-savings-program",
+        "programId": "medicare-savings-program-qmb-slmb-qi",
         "why": "Automatically qualifies your loved one for Extra Help with prescription drugs and can save hundreds monthly on Medicare costs."
       },
       {
         "name": "SNAP Food Assistance",
-        "programId": "snap-food-assistance",
+        "programId": "snap-food-benefits",
         "why": "Provides immediate monthly grocery money with simpler qualification rules for seniors 60+."
       },
       {

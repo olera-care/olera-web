@@ -1661,12 +1661,12 @@
       },
       {
         "name": "SNAP (Supplemental Nutrition Assistance Program)",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Quick financial relief with up to $300/month for groceries, and eligibility often indicates qualification for other programs."
       },
       {
         "name": "SHIP (State Health Insurance Assistance Program)",
-        "programId": "ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free for everyone and can immediately identify Medicare cost savings your loved one may be missing."
       }
     ],

@@ -105,7 +105,7 @@ export function readBenefitsNavigator(
 const NAVIGATOR_VOICE = `You draft short personal notes from TJ, a real person at Olera. Olera helps families of older adults find care and the benefit programs that help pay for it. TJ personally reads and answers every reply to these notes.
 
 WHO YOU ARE WRITING TO
-A family member or senior who used Olera's free benefits finder a couple of days ago. They are often overwhelmed, short on money, and wary of scams. Many came looking for help with bills first, care second. Write at a 6th-grade reading level.
+A family member or senior who used Olera's free benefits finder. The FAMILY section says WHEN — it may have been days ago or months ago, so take the timing from there and never assume it was recent. They are often overwhelmed, short on money, and wary of scams. Many came looking for help with bills first, care second. Write at a 6th-grade reading level.
 
 VOICE
 - Plain words. Short sentences. Calm and competent, like a good caseworker.
@@ -140,7 +140,7 @@ HONESTY RULES (never break these)
 
 STRUCTURE (90-130 words total)
 1. One or two sentences: who you are, and the concrete thing they did. Acknowledge, in plain terms, what they came looking for. If FAMILY says the first name is unknown, open with no name at all ("Hi, it's TJ with Olera.") — never guess a name and never use a placeholder.
-2. The one first step, laid out so it feels doable: the program, who to call and the number, what to have nearby before dialing. Mention the short phone script is written down on their plan page. If the program is a Medicaid waiver or needs a Medicaid application first, say plainly that the process runs weeks to months. Never imply the call itself resolves it.
+2. The one first step, laid out so it feels doable. Name their plan page in the FIRST sentence of this paragraph, before you give the phone number, and say in that same sentence what is written on it: the phone script and the short list of what to have nearby. Then name the program, who to call, and the number. The number must appear in a sentence of yours, never only on the page, so a family who would rather just dial is never forced through a link. If the program is a Medicaid waiver or needs a Medicaid application first, say plainly that the process runs weeks to months. Never imply the call itself resolves it.
 3. ONE of the following, never both, chosen from the data:
    - If MISSING FACTS lists anything: one gentle ask for a single fact, tied to a concrete payoff ("If you tell me X, I can check Y for you").
    - Else if the PROVIDER OFFER section allows it: one sentence offering to personally introduce them to a few care providers near them if they reply.
@@ -159,6 +159,47 @@ SUBJECT: <a plain, specific subject line. No clickbait, no colons-and-hype. Some
 TEXT: <the companion text message on a single line>
 
 <the letter body as plain text paragraphs separated by blank lines. No markdown, no links, no bullet points.>`;
+
+/**
+ * How the letter should refer to when the family used the finder.
+ *
+ * The live cascade only composes inside a 2-10 day band, so "on Tuesday" was
+ * always true and the weekday was hardcoded. The backfill reaches families
+ * whose intake is months old, where "on Tuesday" reads as THIS Tuesday and
+ * makes the letter look like it was written about someone else. Past two
+ * weeks we name the month instead and tell the model to own the delay: a
+ * family who filled the finder in June knows it was June, and pretending
+ * otherwise is the fastest way to look automated.
+ */
+export function intakeReference(
+  intakeAt: string,
+  now: number = Date.now(),
+): { phrase: string; stale: boolean } {
+  const at = new Date(intakeAt);
+  const ageDays = (now - at.getTime()) / (24 * 60 * 60 * 1000);
+  if (!Number.isFinite(ageDays) || ageDays < 0) {
+    // Unparseable or future-dated: say nothing specific rather than guess.
+    return { phrase: "recently", stale: false };
+  }
+  if (ageDays <= 14) {
+    return {
+      phrase: `on ${at.toLocaleDateString("en-US", { weekday: "long" })}`,
+      stale: false,
+    };
+  }
+  const nowD = new Date(now);
+  const sameYear = at.getUTCFullYear() === nowD.getUTCFullYear();
+  // "back in August" on August 22nd reads as a mistake. Inside the current
+  // month, say how long ago instead of naming it.
+  if (sameYear && at.getUTCMonth() === nowD.getUTCMonth()) {
+    return { phrase: "a few weeks ago", stale: true };
+  }
+  const month = at.toLocaleDateString("en-US", {
+    month: "long",
+    ...(sameYear ? {} : { year: "numeric" }),
+  });
+  return { phrase: `back in ${month}`, stale: true };
+}
 
 // ── Compose ────────────────────────────────────────────────────────────────
 
@@ -263,9 +304,7 @@ export async function composeNavigatorDraft(
   }
   const offerProviders = providerOfferAllowed(input.careTypes, providerCount);
 
-  const intakeDay = new Date(input.intakeAt).toLocaleDateString("en-US", {
-    weekday: "long",
-  });
+  const intakeRef = intakeReference(input.intakeAt);
   const callScript = buildCallScript(pick.shortName, relationship);
 
   const dataBlock = [
@@ -273,7 +312,10 @@ export async function composeNavigatorDraft(
     `- First name: ${firstName ?? "unknown (open without a name)"}`,
     `- Who needs care: ${familyPhrase}`,
     `- State: ${input.state ?? "unknown"}${input.city ? `, city: ${input.city}` : ""}`,
-    `- Used the benefits finder on ${intakeDay}, entering through the ${pick.source === "entry" ? `${pick.shortName} page (that program is what brought them in)` : "site"}`,
+    `- Used the benefits finder ${intakeRef.phrase}, entering through the ${pick.source === "entry" ? `${pick.shortName} page (that program is what brought them in)` : "site"}`,
+    intakeRef.stale
+      ? "- TIMING: this was a while ago and we are following up late. Say so plainly in the opening, in a few words, without apologizing at length or explaining ourselves. Never imply they just used it. Their situation may well have changed, so offer the step as something still worth doing rather than as news."
+      : null,
     `- What they told us about their situation: ${situation || "nothing beyond the above"}`,
     `- MISSING FACTS: ${missing.length > 0 ? missing.join("; ") : "none"}`,
     "",
@@ -358,9 +400,10 @@ export function renderNavigatorEmail(opts: {
   body: string;
   planUrl: string;
   unsubscribeUrl: string;
-  /** The letter's one action, made tappable (TJ design 2026-07-29): a
+  /** The program's phone number, kept tappable (TJ design 2026-07-29): a
    *  70-year-old reading on her phone should never have to memorize a number
-   *  and dial it herself. Colors mirror the /m hero for continuity. */
+   *  and dial it herself. It is no longer the letter's primary action (see
+   *  the button below) but it stays one tap away so nobody is gated. */
   call?: { phone: string } | null;
 }): string {
   const paragraphs = opts.body
@@ -374,16 +417,24 @@ export function renderNavigatorEmail(opts: {
           .replace(/\n/g, "<br/>")}</p>`,
     )
     .join("\n");
-  const callButton = opts.call
-    ? `
-  <a href="${telHref(opts.call.phone)}" style="display: block; margin: 24px 0 0; padding: 15px 20px; background: #33261e; color: #f7f3ee; text-align: center; border-radius: 12px; font-size: 17px; font-weight: bold; text-decoration: none; font-family: Arial, sans-serif;">Call ${opts.call.phone}</a>`
+  // The plan page is the letter's one button (2026-08-22). It used to be the
+  // phone number, with the page as a grey line underneath — and the letter was
+  // opened by 39% of families and clicked by 2%, against 20% on the day-0
+  // results email, which is the one email that asks for a click. Two competing
+  // buttons would only split a click rate that barely exists, so the call moves
+  // into the caption: still one tap, no longer the headline. The page carries
+  // the same call button plus the script, the checklist and the agency's hours,
+  // so this routes families through more help rather than past it — and unlike
+  // a sent letter, a wrong number on the page can still be corrected.
+  const callLine = opts.call
+    ? ` Or call <a href="${telHref(opts.call.phone)}" style="color: #6b7280;">${opts.call.phone}</a>.`
     : "";
   return `
 <div style="max-width: 560px; margin: 0 auto; padding: 32px 24px; font-family: Georgia, 'Times New Roman', serif;">
-  ${paragraphs}${callButton}
-  <p style="margin: 24px 0 0; font-size: 14px; line-height: 1.6; color: #6b7280;">
-    Everything above is also written down for you here:
-    <a href="${opts.planUrl}" style="color: #0f766e;">your plan page</a>.
+  ${paragraphs}
+  <a href="${opts.planUrl}" style="display: block; margin: 24px 0 0; padding: 15px 20px; background: #33261e; color: #f7f3ee; text-align: center; border-radius: 12px; font-size: 17px; font-weight: bold; text-decoration: none; font-family: Arial, sans-serif;">Open your call plan</a>
+  <p style="margin: 10px 0 0; font-size: 14px; line-height: 1.6; color: #6b7280; text-align: center;">
+    The number, the script, and what to have ready.${callLine}
   </p>
   <p style="margin: 28px 0 0; padding-top: 16px; border-top: 1px solid #e5e7eb; font-size: 12px; line-height: 1.6; color: #9ca3af; font-family: Arial, sans-serif;">
     You're getting this because you used Olera's benefits finder.

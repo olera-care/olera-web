@@ -2373,7 +2373,7 @@
     "startHere": [
       {
         "name": "Medicaid for Seniors/Disabled",
-        "programId": "alaska-medicaid-seniors",
+        "programId": "medicaid-seniors-disabled",
         "why": "Covers comprehensive health care including nursing home care and home-based services for the highest medical costs your loved one faces."
       },
       {
@@ -2383,7 +2383,7 @@
       },
       {
         "name": "Supplemental Nutrition Assistance Program (SNAP)",
-        "programId": "alaska-snap",
+        "programId": "snap-food-benefits",
         "why": "Provides hundreds of dollars monthly for groceries, one of the most immediate financial relief programs for seniors on fixed incomes."
       }
     ],

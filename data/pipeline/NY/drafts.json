@@ -2972,12 +2972,12 @@
       },
       {
         "name": "Medicare Savings Program (MSP)",
-        "programId": "medicare-savings-program",
+        "programId": "medicare-savings-program-qmb-slmb-qi",
         "why": "Automatically qualifies your loved one for Extra Help with prescription drugs and can save hundreds monthly on Medicare costs."
       },
       {
         "name": "SNAP Food Assistance",
-        "programId": "snap-food-assistance",
+        "programId": "snap-food-benefits",
         "why": "Provides immediate monthly grocery money with simpler qualification rules for seniors 60+."
       },
       {

@@ -2457,7 +2457,7 @@
       },
       {
         "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
-        "programId": "liheap-oklahoma",
+        "programId": "liheap-energy-assistance",
         "why": "Provides immediate help with utility bills ranging from $40-$750."
       }
     ],

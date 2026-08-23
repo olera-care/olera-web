@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/GA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:52:08.660Z
+ * Last updated: 2026-08-22T10:37:49.025Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2008,17 +2008,17 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Community Care Services Program (CCSP)",
-        "programId": "ccsp",
+        "programId": "ccsp-home-care",
         "why": "Can cover thousands in monthly home care costs to keep your loved one out of nursing homes while on Medicaid."
       },
       {
         "name": "Georgia Medicare Savings Programs (QMB, SLMB, QI)",
-        "programId": "medicare-savings",
+        "programId": "medicare-savings-programs",
         "why": "Reduces Medicare premiums and costs for anyone with income below $1,660/month."
       },
       {
         "name": "Georgia State Health Insurance Assistance Program (Georgia SHIP)",
-        "programId": "ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free Medicare counseling available to everyone, start here to avoid costly plan mistakes."
       }
     ],

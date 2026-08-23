@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T11:01:04.258Z
+ * Last updated: 2026-08-22T10:37:49.020Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -936,15 +936,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "LIHEAP Application Line",
+          "label": "CSD Call Center",
           "phone": "(866) 675-6623",
-          "description": "Apply by phone or get application help",
-          "hours": "Business hours"
-        },
-        {
-          "label": "LIHEAP Information Line",
-          "phone": "(866) 675-6623",
-          "description": "Income guidelines and participating agency information",
+          "description": "California Department of Community Services and Development call center for LIHEAP program questions and to find your local service provider. Applications are taken by that local provider, not this line.",
           "hours": "Business hours"
         }
       ],
@@ -1006,7 +1000,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(866) 675-6623",
       "sourceUrl": "https://www.csd.ca.gov/pages/liheapprogram.aspx",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-22"
     },
     {
       "id": "weatherization-assistance-program",
@@ -2974,7 +2969,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "CalFresh",
-        "programId": "calfresh",
+        "programId": "calfresh-food-benefits",
         "why": "Up to $298/month for groceries with simplified application process for seniors 60+."
       }
     ],

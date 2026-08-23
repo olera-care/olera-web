@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.798Z
+ * Last updated: 2026-08-22T10:37:49.044Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2456,7 +2456,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
-        "programId": "liheap-oklahoma",
+        "programId": "liheap-energy-assistance",
         "why": "Provides immediate help with utility bills ranging from $40-$750."
       }
     ],

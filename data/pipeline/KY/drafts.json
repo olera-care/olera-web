@@ -2610,7 +2610,7 @@
     "startHere": [
       {
         "name": "Kentucky Medicare Savings Programs (QMB, SLMB, QI)",
-        "programId": "kentucky-medicare-savings-programs",
+        "programId": "medicare-savings-programs-qmb-slmb-qi",
         "why": "Can save thousands annually on Medicare premiums and out-of-pocket costs if your loved one has limited income."
       },
       {
@@ -2620,12 +2620,12 @@
       },
       {
         "name": "SNAP (Supplemental Nutrition Assistance Program)",
-        "programId": "snap-kentucky",
+        "programId": "snap-food-benefits",
         "why": "Provides immediate monthly grocery assistance for seniors 60+ on fixed incomes."
       },
       {
         "name": "Kentucky State Health Insurance Assistance Program (SHIP)",
-        "programId": "kentucky-ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free Medicare counseling available to everyone, can identify coverage gaps and savings opportunities."
       }
     ],

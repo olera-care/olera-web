@@ -2370,17 +2370,17 @@
     "startHere": [
       {
         "name": "Utah Medicaid Program",
-        "programId": "utah-medicaid",
+        "programId": "medicaid-program",
         "why": "Covers the biggest expenses, nursing home care, home-based services, and medical costs for seniors on limited incomes."
       },
       {
         "name": "Utah SNAP",
-        "programId": "utah-snap",
+        "programId": "snap-food-benefits",
         "why": "Quick financial relief with up to $415/month for groceries loaded directly onto an EBT card."
       },
       {
         "name": "Utah SHIP",
-        "programId": "utah-ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free Medicare counseling available to everyone, helps find cost assistance programs you might be missing."
       }
     ],

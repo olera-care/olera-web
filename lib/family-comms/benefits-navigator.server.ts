@@ -285,6 +285,8 @@ export async function composeNavigatorDraft(
     facts,
     exclude: input.exclude,
     pin: input.prefer ?? null,
+    // A preferred program is a model's suggestion, not an approved letter.
+    pinScreened: true,
   });
   if (!pick) return null;
 

@@ -7,6 +7,22 @@
 
 ## Current Focus
 
+### 2026-08-22 — Growth System business concept captured and parked (`claude/claimed-listings-count-i6brod`)
+
+A strategy session with Logan produced a full-funnel provider growth-and-intake
+service concept (presence management + eldercare intake to booked assessments, with
+benefits screening as the differentiator), two provider-facing collateral mocks
+approved in direction, a pricing test plan, an ops model with a marketing-intern /
+call-center staffing split, and a five-bucket monetization taxonomy including
+rejected ideas (the $1-5 claim fee). All durable context now lives in
+**`docs/growth-system/README.md`** with the collateral HTML in
+`docs/growth-system/collateral/`. `scripts/traction-census.js` (same branch) is the
+data prerequisite: liquidity-pocket diagnostic over `growth_page_metrics` +
+`connections`; needs local `.env.local` Supabase creds. Parked until after the CRP
+submission (2026-09-04); no product or pricing commitments made. Separately, the
+same session finished the David Qu Drive-prep cycle: see `docs/crp/passes/aims-david-prep-2026-08-21.md`
+and `docs/crp/meetings/2026-08-21-david-qu-and-team.md`.
+
 ### 2026-08-17 — LumiWell Ad Boost published; the blocker was one keyword, not the firewall (operations, no code)
 
 **Zero code changes.** The only file touched is this log. The real artifacts live in Google Ads and Supabase.

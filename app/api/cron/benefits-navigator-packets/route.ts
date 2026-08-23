@@ -52,6 +52,23 @@ export async function GET(request: NextRequest) {
   if (!isAuthed) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
+  /**
+   * Shipped dormant. Each packet is up to three model calls, so switching this
+   * on is a spend decision (~$24/month against the current queue) and not one
+   * the code should make by arriving. The route stays scheduled and documented
+   * so vercel.json and the registry do not drift, and so it can be exercised by
+   * hand with ?secret=... while the decision is open.
+   *
+   * This is a spend gate, not a kill switch for a defect: the point is to
+   * enable it later without a deploy, which a code revert cannot do.
+   */
+  if (process.env.BENEFITS_PACKETS_ENABLED !== "1") {
+    return NextResponse.json({
+      skipped: "disabled",
+      reason: "Set BENEFITS_PACKETS_ENABLED=1 to turn the packet builder on.",
+    });
+  }
+
   const dryRun = request.nextUrl.searchParams.get("dry_run") === "true";
 
   return withCronRun("benefits-navigator-packets", async () => {

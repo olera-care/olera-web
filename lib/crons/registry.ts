@@ -525,7 +525,7 @@ export const CRON_REGISTRY: CronJob[] = [
     audience: "Care seekers",
     fn: "maintenance",
     schedule: "25 * * * *",
-    humanSchedule: "Hourly, at :25",
+    humanSchedule: "Hourly at :25, but DORMANT until BENEFITS_PACKETS_ENABLED=1. Each packet is up to three model calls, so switching it on is a spend decision. Until then every run returns immediately without touching a model.",
     path: "/api/cron/benefits-navigator-packets",
     emailTypes: [],
     successSignal:

@@ -383,8 +383,31 @@ export default function BenefitsFamiliesView() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ action, subject, body: letter, sms, testEmail, scheduledAt, overridePacket }),
         });
-        const d = await res.json().catch(() => null);
-        if (!res.ok) {
+        let d = await res.json().catch(() => null);
+        // The facts gate blocks server-side on the program record, which the
+        // client cannot evaluate: clearance is read from the deployed pipeline
+        // bundle, not from anything the queue fetches. So unlike the packet
+        // gate, there is nothing to confirm BEFORE the request. Confirm on the
+        // way back instead, naming the server's reason, and only then retry
+        // with the override. Without this the block is a dead end: the message
+        // says "send anyway if you disagree" and offers no way to do it.
+        if (res.status === 409 && action === "navigator_send" && !overridePacket && d?.error) {
+          if (!window.confirm(`${d.error}\n\nSend it anyway?`)) {
+            setCaseError(d.error);
+            return false;
+          }
+          const retry = await fetch(`/api/admin/benefits/families/${profileId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action, subject, body: letter, sms, testEmail, scheduledAt, overridePacket: true }),
+          });
+          const rd = await retry.json().catch(() => null);
+          if (!retry.ok) {
+            setCaseError(rd?.error || "That didn't go through. Try again.");
+            return false;
+          }
+          d = rd;
+        } else if (!res.ok) {
           setCaseError(d?.error || "That didn't go through. Try again.");
           return false;
         }

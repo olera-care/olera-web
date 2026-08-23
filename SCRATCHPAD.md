@@ -7,6 +7,54 @@
 
 ## Current Focus
 
+### 2026-08-23 — Two 90-day campaigns built and published; the "serving nothing" cause is now a running experiment
+
+**Ad Boost, no code.** Sandra (Edmonds Villa) and Hilda (Franchil) both went from nothing to a live, fully-wired 90-day Google flight. Sherry dropped from the batch — TJ couldn't reach her and her $50 flight lapses 08-24.
+
+| | Sandra · Edmonds Villa | Hilda · Franchil |
+| --- | --- | --- |
+| Google campaign | `24176699440` | `24166094865` |
+| Serving | Aug 31 → Nov 28 | live 08-23 → Nov 20 |
+| Olera row | `4e4082e1` scheduled | `f3ff5374` live |
+| Tag | `edmonds-villa-edmonds-90d-sep26` | `franchil-killeen-90d-aug26` |
+| Geo | Edmonds WA + 20mi, presence | Killeen TX + 20mi, presence |
+| Negatives | 48, her own senior-living list | 98, the shared home-care list |
+
+Both: Maximize Clicks with the $2.50 cap, Search only, EN+ES, AI Max off, $1.67/day no end date, 16 town-named phrase keywords, 13 headlines / 4 descriptions, tag matching the ad character-for-character.
+
+**Friday's head-term fix did not work, and the reason isn't keywords.** Aug 20–23: Zardy 0 impressions, Jasmine 3, while six other campaigns in the same account served normally (Rosemonte 125, Edmonds 81, LumiWell 51, HomeWell 51, Pacesetter 47, Legacy Haven 43). Change history confirms the keywords committed; every head term reads Eligible; ad, ad group and campaign all Eligible; geo correct; negatives clean; **landing page returns 200 to AdsBot** (the 08-15 firewall fix holds, so `project_waf_adsbot_quality_score` does not apply here). Quality Score is `—` on every keyword, so it is downstream of the problem, not a cause.
+
+**The one structural difference:** these two are the only campaigns whose **daily budget ($1.67) sits below the account-wide $2.50 max CPC cap**. The cap is $2.50 on every campaign checked (Miracle, Rosemonte, Pacesetter, Graceful). Rosemonte carries the same cap at $3.57/day and serves. Everything else uses a campaign-total budget, which Google paces differently. **Not proven** — the story needs an unverified "total-budget campaigns are exempt" clause, and Google flags Rosemonte and Pacesetter as "Bid setting limited" while the two dead ones aren't flagged at all, which cuts against it.
+
+**So it's an experiment, not a fix:** Miracle-Lightstar raised to **$3.57/day**, Graceful held at **$1.67/day as the control**. Read Monday. If Zardy recovers and Jasmine doesn't, budget level is the cause and all four move; if neither moves, the suspect becomes budget *type* (daily vs campaign-total) and the next test is converting Graceful to a $150 total.
+
+**Jasmine's Monday 10:15 ET wrap-up cancelled.** Her Nextdoor metrics were never entered, and with `ad_impressions`/`ad_clicks`/`ad_spend_cents` null the promo-complete template falls back to *"This intro did not produce enough measurable activity to produce an Olera inquiry"*, prints "—" in both stat tiles, and drops the demand-receipt rows. That is false — she got 131 visitors, 7 question taps across 3 topics, 1 save. Reversible: `promo_complete_email_sent_at` is still null, so "Send now" or a new time re-arms it.
+
+**Decisions made**
+
+- **Sandra targets Edmonds + 20mi, not her two literal counties.** She named King and Snohomish plus seven cities; a 20-mile radius covers all seven and excludes south King County (Kent, Auburn, Federal Way, 30–40mi), where no family places a parent in a six-bed Edmonds home.
+- **Sandra starts Aug 31, not on publish.** Her $50 intro runs to Aug 30; two campaigns from one advertiser in one city cannibalise each other in the auction. This also means Monday's budget read lands before she serves an impression.
+- **Negative lists are category-specific and must not be swapped.** Sandra keeps her hand-built senior-living list (Aegis, Atria, Brookdale, Avamere, "a place for mom"); the shared home-care list would negate `"assisted living"`, her core intent. Checked the reverse too: her `"home care"` negative blocks "senior **home care**" queries but not "senior **care home**", so none of her 16 keywords collide.
+- **Ad copy claims only what each profile substantiates.** Hilda: personal care, companionship, meal prep, housekeeping, transportation, respite — no live-in, no 24/7, no star rating. Sandra: 5.0★ is real, so "Rated 5 stars by families" stands.
+
+**Mechanics worth keeping**
+
+- **A new `ad_campaign_requests` row can only be created by the provider request route.** `/api/admin/ad-boost` POST updates existing rows only, and the admin UI has no create control. Direct Supabase insert is the path; scripts at `~/.../scratchpad/mkrow.mjs` and `mkrow-franchil.mjs` (guarded against duplicates). Claude's DB writes are blocked by the permission classifier, so **TJ runs them** — see `feedback_db_writes_blocked_auto_mode`.
+- **The insert bypasses the route's open-request guard.** Sandra now has two rows (Aug live, Sep scheduled). Safe here because the flights don't overlap, but the app never expected it.
+- **New rows land behind a photo-readiness paid-traffic gate** that locks scheduling until approved. Reviewed both galleries at full size before clearing: Sandra leads on residents-and-caregiver at the table (14 photos, Verified, 5.0★); Hilda leads on a caregiver with a client and their dog at home (5 photos, 4/4 questions answered).
+- **The `AD_FINAL_URL` re-auth fired on both builds** at the budget step, as the SOP predicts, and **neither rolled back** — 13 headlines, 4 descriptions and the keywords all survived both times. Verified field-by-field anyway; a clean Review screen right after that challenge is not evidence.
+- **The Review summary lies about two fields.** It printed `Ads: None` and `Locations: All countries and territories` on both campaigns while the real ad held 13/15 headlines and the radius was correctly set. Confirm on the step itself, never on the summary.
+- **`fill` no-ops on the budget field and on the Save that follows it.** The input shows the new value while Angular's model keeps the old one, and Save silently does nothing — same class as the documented `Remove` no-op. Only real per-character key events register. Cost two silent failures before it was caught; the campaigns-table row after a reload is the only trustworthy confirmation.
+- **The new-campaign wizard pre-selects "Continue from an existing campaign draft"** and had LumiWell's stale draft loaded. Clicking Continue blindly would have edited a live campaign's draft. Always pick "Create a new campaign".
+
+**Next up**
+
+- **Monday: read Zardy vs Jasmine.** The whole batch's budget hangs on it. If $3.57 wins, move Jasmine, Sandra and Hilda too — one field each.
+- **Jasmine's Nextdoor numbers** still need entering on row `354917bf` (blocked: Dia's content blocker crashes ads.nextdoor.com — `ERR_BLOCKED_BY_CONTENT_BLOCKER`). Not urgent now the wrap-up is cancelled, and she should get them from TJ directly.
+- **Nextdoor builds ×4** — none exist for anyone. Same browser blocker.
+- **Hilda's launch email is armed** by her `live` status. She has not been told the campaign exists; she answers phone, not email.
+- **NIH support letters due Sept 1** — soft letters (uses the suite, works with us, finds it valuable), explicitly not gated on ad performance. See `project_nih_letters_sept1`. Handoff: https://app.notion.com/p/3c55903a0ffe81c1a18cc95b5caf7a17
+- **Sherry gets a phone call**, not an email — suppressed since her 08-14 spam complaint, and she has an unseen lead from her ads.
 ### 2026-08-23 — The navigator's problem was never the review loop, it was the pick (`great-poitras`)
 
 **Set out to automate TJ's nine-hop copy-paste review loop. Found the loop was not the bottleneck and built a verdict engine instead — then found the engine was reading the family's stated need from the wrong table.** Both reframes came from measurement, not reasoning, and the second one came from TJ asking a one-line question ("why are we sending these to a backlog?").

@@ -7,6 +7,132 @@
 
 ## Current Focus
 
+### 2026-08-23 — Two 90-day campaigns built and published; the "serving nothing" cause is now a running experiment
+
+**Ad Boost, no code.** Sandra (Edmonds Villa) and Hilda (Franchil) both went from nothing to a live, fully-wired 90-day Google flight. Sherry dropped from the batch — TJ couldn't reach her and her $50 flight lapses 08-24.
+
+| | Sandra · Edmonds Villa | Hilda · Franchil |
+| --- | --- | --- |
+| Google campaign | `24176699440` | `24166094865` |
+| Serving | Aug 31 → Nov 28 | live 08-23 → Nov 20 |
+| Olera row | `4e4082e1` scheduled | `f3ff5374` live |
+| Tag | `edmonds-villa-edmonds-90d-sep26` | `franchil-killeen-90d-aug26` |
+| Geo | Edmonds WA + 20mi, presence | Killeen TX + 20mi, presence |
+| Negatives | 48, her own senior-living list | 98, the shared home-care list |
+
+Both: Maximize Clicks with the $2.50 cap, Search only, EN+ES, AI Max off, $1.67/day no end date, 16 town-named phrase keywords, 13 headlines / 4 descriptions, tag matching the ad character-for-character.
+
+**Friday's head-term fix did not work, and the reason isn't keywords.** Aug 20–23: Zardy 0 impressions, Jasmine 3, while six other campaigns in the same account served normally (Rosemonte 125, Edmonds 81, LumiWell 51, HomeWell 51, Pacesetter 47, Legacy Haven 43). Change history confirms the keywords committed; every head term reads Eligible; ad, ad group and campaign all Eligible; geo correct; negatives clean; **landing page returns 200 to AdsBot** (the 08-15 firewall fix holds, so `project_waf_adsbot_quality_score` does not apply here). Quality Score is `—` on every keyword, so it is downstream of the problem, not a cause.
+
+**The one structural difference:** these two are the only campaigns whose **daily budget ($1.67) sits below the account-wide $2.50 max CPC cap**. The cap is $2.50 on every campaign checked (Miracle, Rosemonte, Pacesetter, Graceful). Rosemonte carries the same cap at $3.57/day and serves. Everything else uses a campaign-total budget, which Google paces differently. **Not proven** — the story needs an unverified "total-budget campaigns are exempt" clause, and Google flags Rosemonte and Pacesetter as "Bid setting limited" while the two dead ones aren't flagged at all, which cuts against it.
+
+**So it's an experiment, not a fix:** Miracle-Lightstar raised to **$3.57/day**, Graceful held at **$1.67/day as the control**. Read Monday. If Zardy recovers and Jasmine doesn't, budget level is the cause and all four move; if neither moves, the suspect becomes budget *type* (daily vs campaign-total) and the next test is converting Graceful to a $150 total.
+
+**Jasmine's Monday 10:15 ET wrap-up cancelled.** Her Nextdoor metrics were never entered, and with `ad_impressions`/`ad_clicks`/`ad_spend_cents` null the promo-complete template falls back to *"This intro did not produce enough measurable activity to produce an Olera inquiry"*, prints "—" in both stat tiles, and drops the demand-receipt rows. That is false — she got 131 visitors, 7 question taps across 3 topics, 1 save. Reversible: `promo_complete_email_sent_at` is still null, so "Send now" or a new time re-arms it.
+
+**Decisions made**
+
+- **Sandra targets Edmonds + 20mi, not her two literal counties.** She named King and Snohomish plus seven cities; a 20-mile radius covers all seven and excludes south King County (Kent, Auburn, Federal Way, 30–40mi), where no family places a parent in a six-bed Edmonds home.
+- **Sandra starts Aug 31, not on publish.** Her $50 intro runs to Aug 30; two campaigns from one advertiser in one city cannibalise each other in the auction. This also means Monday's budget read lands before she serves an impression.
+- **Negative lists are category-specific and must not be swapped.** Sandra keeps her hand-built senior-living list (Aegis, Atria, Brookdale, Avamere, "a place for mom"); the shared home-care list would negate `"assisted living"`, her core intent. Checked the reverse too: her `"home care"` negative blocks "senior **home care**" queries but not "senior **care home**", so none of her 16 keywords collide.
+- **Ad copy claims only what each profile substantiates.** Hilda: personal care, companionship, meal prep, housekeeping, transportation, respite — no live-in, no 24/7, no star rating. Sandra: 5.0★ is real, so "Rated 5 stars by families" stands.
+
+**Mechanics worth keeping**
+
+- **A new `ad_campaign_requests` row can only be created by the provider request route.** `/api/admin/ad-boost` POST updates existing rows only, and the admin UI has no create control. Direct Supabase insert is the path; scripts at `~/.../scratchpad/mkrow.mjs` and `mkrow-franchil.mjs` (guarded against duplicates). Claude's DB writes are blocked by the permission classifier, so **TJ runs them** — see `feedback_db_writes_blocked_auto_mode`.
+- **The insert bypasses the route's open-request guard.** Sandra now has two rows (Aug live, Sep scheduled). Safe here because the flights don't overlap, but the app never expected it.
+- **New rows land behind a photo-readiness paid-traffic gate** that locks scheduling until approved. Reviewed both galleries at full size before clearing: Sandra leads on residents-and-caregiver at the table (14 photos, Verified, 5.0★); Hilda leads on a caregiver with a client and their dog at home (5 photos, 4/4 questions answered).
+- **The `AD_FINAL_URL` re-auth fired on both builds** at the budget step, as the SOP predicts, and **neither rolled back** — 13 headlines, 4 descriptions and the keywords all survived both times. Verified field-by-field anyway; a clean Review screen right after that challenge is not evidence.
+- **The Review summary lies about two fields.** It printed `Ads: None` and `Locations: All countries and territories` on both campaigns while the real ad held 13/15 headlines and the radius was correctly set. Confirm on the step itself, never on the summary.
+- **`fill` no-ops on the budget field and on the Save that follows it.** The input shows the new value while Angular's model keeps the old one, and Save silently does nothing — same class as the documented `Remove` no-op. Only real per-character key events register. Cost two silent failures before it was caught; the campaigns-table row after a reload is the only trustworthy confirmation.
+- **The new-campaign wizard pre-selects "Continue from an existing campaign draft"** and had LumiWell's stale draft loaded. Clicking Continue blindly would have edited a live campaign's draft. Always pick "Create a new campaign".
+
+**Next up**
+
+- **Monday: read Zardy vs Jasmine.** The whole batch's budget hangs on it. If $3.57 wins, move Jasmine, Sandra and Hilda too — one field each.
+- **Jasmine's Nextdoor numbers** still need entering on row `354917bf` (blocked: Dia's content blocker crashes ads.nextdoor.com — `ERR_BLOCKED_BY_CONTENT_BLOCKER`). Not urgent now the wrap-up is cancelled, and she should get them from TJ directly.
+- **Nextdoor builds ×4** — none exist for anyone. Same browser blocker.
+- **Hilda's launch email is armed** by her `live` status. She has not been told the campaign exists; she answers phone, not email.
+- **NIH support letters due Sept 1** — soft letters (uses the suite, works with us, finds it valuable), explicitly not gated on ad performance. See `project_nih_letters_sept1`. Handoff: https://app.notion.com/p/3c55903a0ffe81c1a18cc95b5caf7a17
+- **Sherry gets a phone call**, not an email — suppressed since her 08-14 spam complaint, and she has an unseen lead from her ads.
+### 2026-08-23 — The navigator's problem was never the review loop, it was the pick (`great-poitras`)
+
+**Set out to automate TJ's nine-hop copy-paste review loop. Found the loop was not the bottleneck and built a verdict engine instead — then found the engine was reading the family's stated need from the wrong table.** Both reframes came from measurement, not reasoning, and the second one came from TJ asking a one-line question ("why are we sending these to a backlog?").
+
+**The loop today.** Copy the export → ChatGPT → paste the report into a fresh Claude session and re-explain the job → apply → copy the updated draft → paste back to ask "is this the most recent version" → usually another miss → sometimes Perplexity → send. Nine hops, six of them TJ. Throughput is capped by his evenings, arrival by intake completions. Unrelated numbers, so the queue grows without bound: **129 pending, median intake 69 days, max 152. 100 of them invisible in the admin's default 30-day window** because it filters on intake date, not compose date.
+
+**Everything measurable about the FACTS came back healthy.** Snapshot drift across all 129: phone 0, name 0, label 0. Tier-1 honesty rails: **2 of 130**, both mild speed-rail. Reachability: 130/130 contactable, 0 on `do_not_contact`, 0 bounce-only.
+
+**The picks were not.** And the fit gate was judging blind: `care_need` lives on the `benefits_completed` **seeker_activity event** (and at `metadata.benefits_results.answers.careNeed`), while the gate read `business_profiles.care_types`. 94% of completions state a need — `payingForCare` 308, `stayingAtHome` 105, `memoryHealth` 32, `companionship` 13 — and reading the profile alone made **92 of 129 letters look fact-free when every one had a stated need**. The admin's own "Need" column had been rendering the real value all session.
+
+With the need supplied, the pattern was one sentence over and over: **families who typed "I need help paying for care" were being sent SNAP, LIHEAP, weatherization, and home-delivered meals.** `selectFirstStepProgram` ranks entry-source first — 53 of 63 entry picks genuinely match the family's `signup_source`, so they really did land on that page — and for `payingForCare` families the split is entry 51 / saved 14 / state 1.
+
+**What shipped** (`lib/benefits/navigator-packet.ts`, `navigator-gates.server.ts`, `navigator-packet.server.ts`, `app/api/cron/benefits-navigator-packets/route.ts`, `components/admin/NavigatorPacketPanel.tsx`, `BenefitsFamiliesView.tsx`, `scripts/check-navigator-packets.ts`, `scripts/check-openai-key.ts`). Five gates, fit first: do we know enough to pick, is the pick right (two independent models), does the letter break a rail, is the program cleared, does the draft lint. Four exits: ask / recompose / review / auto. Built hourly by cron at :25, rebuilt only when the LETTER changes — never on a clock, because fit verdicts vary run to run and a scheduled rebuild would silently reroute letters nobody touched.
+
+**Final routing, re-scored offline against the same 129 packets:**
+
+| | before | after |
+| --- | --- | --- |
+| ask | 0 | 0 |
+| recompose | 1 | **54** |
+| review | 122 | **41** |
+| auto | 7 | **34** |
+
+**Decisions**
+
+- **Every gate fails toward a human, never toward a send.** Missing key, refusal, unparseable JSON — all become holds. Silence is not approval.
+- **Two models agreeing on a better program is an instruction, not a hold.** Of 76 letters where both named an alternative, **60 named the same one**, and all 53 surviving targets resolve to a real program id. Recompose pins to it.
+- **A lone "wrong" against a "good" is an argument, not a verdict** — it goes to a human. Both negative recomposes. Measured on 14 dual reads: 11 agreed exactly, 2 differed on degree, 1 true split.
+- **"Wrong" means cannot-work, not "I would have chosen differently."** The first prompt asserted the opposite and produced 15 recomposes in 25 letters; recalibrating dropped it to 0 while still catching hard disqualifications (the Alabama waiver's nursing-home level-of-care gate).
+- **Roles, not vendors.** Perplexity retrieves, GPT judges fit, Claude adjudicates. Three models on the SAME job buys correlated errors and a voting illusion.
+- **An objection survives only with a primary-source URL and a quote.** Demonstrated live: three aggregator sites all said OpenAI flagship was $5/$30; OpenAI's own docs say $4/$20 promotional through 2026-11-21.
+- **Stale intake is not a gate.** It was circular for a backfill built to reach old intakes, and the residual worry (need may have passed) is unanswerable from the letter. `intakeAgeDays` stays as a queue filter — one bulk decision, not 100.
+
+**Where I was wrong, repeatedly, and each correction came from measuring**
+
+- "33 programs route families to 2-1-1" — 18 do; **15 fall through to a named LOCAL office presented as the statewide door**, several labelled literally `Example: The Senior Alliance (Wayne County)`. Worse than 2-1-1, which at least routes you.
+- "Release the 66 letters on verified programs" — unsafe. **11 programs stamped verified within 30 days still carry a HIGH lint finding**; the stamp records that a correction round touched the program, not that every field was checked.
+- "Never auto-send a program's first letter" — that rule holds **57% of every draft ever composed** (245 drafts, 139 distinct programs). Not self-liquidating. Deleted.
+- "Reorder the tiers so the need ranks first" — targets an empty table. **All 66 `payingForCare` families sampled have zero saved programs**; the matcher finds ~13 matches at intake and persists only `matchCount`.
+- "60% of picks are wrong" — that was **my own fit prompt's policy asserted as a measurement**. Recalibrating the bar took it to 0.
+- The ask-first branch and its copy — built for a bucket that does not exist. Dead.
+
+**Pre-test caught four real bugs across two rounds**
+
+1. **Every OpenAI fit call returned HTTP 400.** `gpt-5.6-terra` rejects an explicit `temperature: 0`. The second read was silently absent from the day it was added — and `check-openai-key` passed throughout, because it hand-wrote a payload omitting the parameter production sent. The guard now posts the body built by the production function.
+2. **Nothing at the send boundary read the packet.** `sendNavigatorLetter` is the one choke point the admin button and the scheduler share and it never consulted the verdict; the batch modal's exclusion was cosmetic since the scheduler renders no checkboxes. The gate now lives in the send path and refuses `recompose`/`ask` without an explicit override.
+3. **A scheduled letter hid a bad verdict** — chip precedence showed only "Scheduled", and scheduling can precede the packet.
+4. **The recompose pin skipped eligibility screening.** Its licence ("a human approved this letter") does not extend to a model's suggestion. Caught 1 in 12 real targets — `nevada/medicaid-long-term-care`, ruled out for that family.
+
+**Cost:** ~$24/month ongoing, ~$33 one-time for a Batch sweep of all 642 programs. Fit read is $0.0008/call. **Cost was never the constraint.**
+
+**PR:** #1689 → staging. **Artifact:** https://claude.ai/code/artifact/090ca73d-be16-4402-ad86-5f68a954f2f1
+
+**Addendum, same day, after the merge — the cron IS live and I was wrong three times about it**
+
+`cron_runs` has no `result` column. My diagnostic selected it and only checked `data`, never `error`, so it returned zero rows silently and I reported "the cron has never executed" three separate times. It had. **2 runs, 12 packets each**, which is exactly the 25 checked drafts (24 from the cron plus 1 written earlier by a script). It fires at :25 from main, which the parallel session's promotion had already carried.
+
+Lesson worth keeping: **a Supabase select on a non-existent column returns `{data: [], error: <msg>}`, not a throw.** Any diagnostic that reads only `data` will report "nothing happened" with total confidence. Check `error` on every probe whose answer is a count.
+
+**Verified as a result:** the metadata write is now clean at **n=25, zero losses** — no row that received a packet lost `benefits_results` or its pick snapshot. That was the single most dangerous path in the build and it is now evidenced rather than traced.
+
+**State at close:** 129 pending · 25 checked (review 23 · auto 1 · recompose 1) · 104 unchecked. At 12/run hourly that completes in ~9 runs, comfortably inside 24 hours.
+
+**Confirmed for the record: nothing sends or rewrites itself.** `auto` is a label, not a behavior — the only consumer of `route === "auto"` is a UI line choosing a chip. Letters leave by TJ's click or by the scheduler firing a time TJ picked. No cron recomposes; the only `composeNavigatorDraft` call in a cron is the coordinator creating drafts for families who have none. So the ~54 routed recompose will sit with their original wrong-program text until someone clicks the button.
+
+**Two gaps found while answering TJ, not yet built**
+
+- **"Schedule all" does not exclude unchecked letters.** The pre-exclusion holds back `ask` and `recompose`, but an unchecked draft has no route, so it is not excluded. Today that button would batch 104 letters no model has judged.
+- **The bridge rule only fires if the letter names the need.** A live Florida draft (Meals on Wheels, family stated paying-for-care) never mentions the need at all, so it incurs no debt and gives no acknowledgment. Safe but not what we want — the rule should require the acknowledgment, not just penalise a bare one.
+
+**Next up**
+
+- **Let the queue finish checking** (~9 hourly runs from 2026-08-23 15:36 UTC), then look at whatever lands in `Ready to send` first.
+- **TJ's call: does a recomposed letter need a read before it sends?** 54 recomposes is ~$5 and changes what 54 families are told. My read: yes for the first batch, then measure.
+- **TJ's call: weeks-first or need-first.** A family who Googles "SNAP Texas" and says they need care money has given two true signals. Entry-source still wins the pick; the letter now at least bridges honestly ("LIHEAP will not pay for care itself. It lowers the energy bill, which frees up money each month."). Screening at tier 1 is the unbuilt half and waits on this answer.
+- 24 letters held on **program never verified** — the one hold still doing real work. 642 programs, 155 (24%) ever verified, five states at zero (AK, DC, ME, WI, WY).
+- `getProgramsForFamily` now reads the need, which changes the **quiz results** and coordinator emails for every new family — not just these letters. Unwatched so far.
+
 ### 2026-08-21 — Provider answers stay visible (`codex/provider-qa-answer-priority`)
 
 Provider profile Q&A now treats published provider responses as the durable social proof: the inline preview shows answered threads without allowing newer unanswered questions to displace them, and the all-questions sheet opens with answers first while unanswered items remain behind an explicit disclosure. Server render and the hydrated GET now use the same publication-safe public dataset and deterministic ordering, removing the refresh-time 7→9 question swap. Pre-test also fixed two real edge cases: repeated asks could receive raw unpublished answer text from POST, and an in-flight mount GET could overwrite a newer submit/edit state. **Files:** `app/provider/[slug]/page.tsx`, `app/api/questions/route.ts`, `components/providers/QASectionV2.tsx`, `lib/qa-utils.ts`. **Validation:** TypeScript, targeted ESLint (0 errors; two existing `<img>` warnings), focused ordering/empty-answer/tie-break/immutability checks, and `git diff --check` pass; production compilation passed, while static generation remains blocked locally by missing Supabase env vars. **PR:** #1665 → `staging`. **Next:** review the Vercel preview on desktop/mobile, hard-refresh Graceful Homecare, expand/hide unanswered questions, submit a new question, and confirm a pending-verification answer never appears.

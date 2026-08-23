@@ -117,6 +117,14 @@ export interface NavigatorPacket {
   /** The letter names a dollar amount. Always worth a human read. */
   statesDollarFigure: boolean;
   route: PacketRoute;
+  /**
+   * Where to re-select TO, when both models independently landed on the same
+   * better program. Measured on the live queue: of 76 letters where both
+   * named an alternative, 60 named the SAME one. That is not "this pick is
+   * suboptimal", it is "send this instead" with the target supplied — so it
+   * becomes a recompose instruction rather than a hold on TJ's attention.
+   */
+  recomposeTarget: { name: string; programId: string | null } | null;
   /** Human-readable reasons, in the order they were evaluated. */
   holds: string[];
   models: Record<string, string>;
@@ -127,10 +135,20 @@ export interface NavigatorPacket {
 // ── Thresholds ─────────────────────────────────────────────────────────────
 
 /**
- * Past this, a letter is a different message and someone should read it as a
- * person. Not a factual concern: the composer already handles stale intakes
- * (intakeReference says "back in June" and instructs the model to own the
- * delay), but the family's situation may have genuinely moved on.
+ * Past this, an intake is old enough to be worth SEEING in the queue. It is
+ * deliberately not a hold any more.
+ *
+ * It was one, and it was wrong twice over. The composer already owns the
+ * delay (intakeReference says "back in June" and instructs the model to say
+ * so), and these letters were written by a backfill built specifically to
+ * reach old intakes — so holding them for being old holds them for the
+ * condition they exist to address. The other half, "their situation may have
+ * moved on", is real but unanswerable: a reviewer reading the letter cannot
+ * tell either. A gate nobody can act on is not a gate. It blocked 100 of 129
+ * letters and asked TJ to adjudicate something the letter cannot show him.
+ *
+ * Whether to write to months-old intakes at all is one bulk decision, made
+ * once from a queue filter over `intakeAgeDays`, not 100 individual ones.
  */
 export const STALE_INTAKE_DAYS = 45;
 
@@ -237,11 +255,36 @@ export function fitConsensus(reads: FitRead[]): FitConsensus {
   return reads[0].verdict;
 }
 
+/**
+ * The alternative both models independently named, or null.
+ *
+ * Requires every read to name one and all of them to agree. Matching is
+ * normalised and allows containment ("Community Choices" vs "Community
+ * Choices Waiver"), with a length floor so a short string cannot swallow an
+ * unrelated longer one — "care" must not match "Community Care Waiver".
+ */
+export function agreedBetterProgram(reads: FitRead[]): string | null {
+  if (reads.length < 2) return null;
+  const names = reads.map((r) => r.better).filter((b): b is string => !!b && b.trim().length > 0);
+  if (names.length !== reads.length) return null;
+
+  const norm = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const [first, ...rest] = names.map(norm);
+  if (first.length < 6) return null;
+  const allAgree = rest.every(
+    (n) => n === first || (n.length >= 6 && (n.includes(first) || first.includes(n))),
+  );
+  // Return the longest original spelling — it is the most resolvable.
+  return allAgree ? names.slice().sort((a, b) => b.length - a.length)[0] : null;
+}
+
 // ── The router ─────────────────────────────────────────────────────────────
 
 export interface RouteInput {
   facts: FactsRead;
   fit: FitRead[];
+  /** Resolved alternative from agreedBetterProgram, when there is one. */
+  recomposeTarget?: { name: string; programId: string | null } | null;
   rails: RailHit[];
   clearance: ClearanceRead | null;
   lint: DraftLintHit[];
@@ -279,14 +322,25 @@ export function routePacket(input: RouteInput): { route: PacketRoute; holds: str
     return { route: "recompose", holds: [`pick ruled out: ${first?.why ?? "fit verdict wrong"}`] };
   }
 
+  // Both models named the same better program. The action is to re-select,
+  // not to wait for a human — nobody reading this letter can produce a
+  // better answer than two independent reads that already converged.
+  if (consensus === "questionable" && input.recomposeTarget) {
+    return {
+      route: "recompose",
+      holds: [`both models would start with ${input.recomposeTarget.name} instead`],
+    };
+  }
+
   const holds: string[] = [];
 
   if (consensus === "unread") holds.push("fit was never read");
   else if (consensus === "split") holds.push("models disagree on fit");
-  else if (consensus === "questionable") {
-    const q = input.fit.find((r) => r.verdict === "questionable");
-    holds.push(`fit questionable: ${q?.why ?? "a better first call exists"}`);
-  }
+  // A bare "questionable" no longer holds. It means the program helps this
+  // family but is not the strongest first call, and when the models cannot
+  // converge on what IS stronger, a human reading the letter cannot either.
+  // Against a family who has received nothing for 69 days, real help that is
+  // not optimal beats another week of silence.
 
   for (const hit of input.rails) {
     holds.push(`${hit.rail} rail: "${hit.quote}"`);
@@ -307,10 +361,6 @@ export function routePacket(input: RouteInput): { route: PacketRoute; holds: str
   }
 
   if (input.statesDollarFigure) holds.push("letter states a dollar figure");
-
-  if (input.intakeAgeDays != null && input.intakeAgeDays > STALE_INTAKE_DAYS) {
-    holds.push(`intake was ${input.intakeAgeDays} days ago`);
-  }
 
   if (input.errors?.length) holds.push(...input.errors.map((e) => `stage failed: ${e}`));
 

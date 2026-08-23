@@ -7,6 +7,60 @@
 
 ## Current Focus
 
+### 2026-08-23 — Eight PRs and two promotions, and the two that mattered were both "already fixed, never shipped"
+
+**Started by resuming `benefits-backfill-drain` after a hard crash.** Rebuilt the timeline from `composed_at` / `recomposed_at` / `backfilled_at` stamps: a `--recompose` run at 11:57, the commit at 12:02:50 **mid-run**, a 90-draft drain run to 12:08:26, then nothing. No damage — 0 orphaned `seeker_activity` rows, 0 duplicate events, 0 half-written drafts. **A crash costs nothing here because selection is state-based (`!nav.composed_at`), not offset-based; there is no cursor to lose.**
+
+**The backlog was the visible work and it was not the valuable work.** The drain never resumed. Both defects worth fixing were already written and simply had not shipped:
+
+- **The letter STRUCTURE fix** sat on staging since 08-22 while production composed **27 of 30** live-path drafts in the old format. Promoted in #1678, along with `469c1bb40`, whose broken startHere IDs meant 13 states — Texas among them — got *no letter at all* rather than a wrong one.
+- **`data/pipeline` ships with the deploy.** Correcting a program fixes the *letters* instantly (database rows) and leaves the *website* stale. Eight public benefits pages were rendering a `tel:` button dialing the wrong number, two of them phantoms on no government page. Promoted in #1682.
+
+**The lesson fired twice in one day: when a correction spans a database row and a repo file, the database half creates a convincing illusion that the work has shipped.**
+
+**Shipped**
+
+| PR | what |
+| --- | --- |
+| #1677 | `--recompose` for the backfill script |
+| #1679 | `substituteSmsLink` — **78 of 130** pending texts had a period glued to `{link}`, 404ing the only tappable thing in the message |
+| #1680 | CA IHSS, WA ABD, UT Caregiver Support front doors |
+| #1681 | Round 2: seven front doors, `checkAnchorPhoneDrift`, and the field round 1 missed |
+| #1683 | Navigator reply-to default |
+| #1678, #1682, #1684 | three promotions to production |
+| **#1685** | **open** — gate the navigator send path on facts and fit |
+
+**Nine programs corrected across two fact-check rounds, 21 letters patched, one draft pulled.** WA MAC Waiver dismissed: DSHS has paused MAC/TSOA enrollment statewide with no reopening date, so the letter pointed a family at a closed door. OK was a *program-fit* error — both top contacts were the DDS line, which gates on "a developmental disability per Section 1408", and two senior-care families were told to call it, one of them caring for a spouse. NJ pointed at the income-tax "General Inquiries" line. AL and NC carried phantom numbers on no government page. **NM and MD were checked and found correct — confirming a thing is right is part of the result.**
+
+**Decisions**
+
+- **Structural defects block a send; staleness does not.** Only 155 of 642 programs have ever been verified, so gating on the stamp would stop three letters in four. Unverified means nobody looked, and a person clicking Send is a person looking. Measured: 129 pending → **1 blocked**, 43 unverified-but-sound deliberately allowed.
+- **A default beats an env var.** The navigator was the only outbound channel that could go quiet by omission; its two siblings both hardcode a fallback. The failure mode *is* forgetting the variable.
+- **Never invent a phone number.** CA, AL and PA have no statewide application line, so none was written — the locator is labelled honestly instead.
+- **The cron ships dormant.** Merging is not the moment to start spending ~$24/month.
+
+**Corrections I had to make to my own claims, all from measuring instead of reasoning**
+
+- "Replies are black-holed, 111 broken promises" — **false**. `noreply@olera.care` is aliased into the support mailbox; replies arrive and are triaged. Proven by a live thread.
+- "A family has been waiting 19 days" — **false**. TJ answered under a changed subject; the thread only reads `needs_reply` because the reply was a separate thread.
+- "The review queue is stalled" — **false**. The live path shows 111 sent. That correction killed my own top recommendation.
+- A stale-number alarm on two CA LIHEAP drafts — **false**. The correction *relabelled* a contact, it did not remove the number.
+
+**Traps worth remembering**
+
+- The skill's de-churn step (revert `drafts.ts` files with a `1 1` diff) **silently reverted two real fixes** — a single-field JSON edit has the identical numstat as a timestamp bump. Revert only *generated* `.ts` whose changed line is the `Last updated` header.
+- A propagation grep gave a **false all-clear** through bad paren escaping; only `grep -F` showed the residue. Twice.
+- `git show "origin/$B:lib/…"` returned three zeros because zsh parsed `$B:l` as a lowercase modifier. **Brace-delimit every git ref interpolation.**
+- I pushed ahead of a lint result **twice**, and both times the lint was reporting highs I had just caused.
+
+**Next up**
+
+- **#1685 needs review**, then items 3–7 of the `great-poitras` list.
+- **The ask-first copy is TJ's to write and blocks everything.** Routing the live queue gives ask 63 · recompose 9 · human review 54 · auto-send 4. The largest destination has no words.
+- 31 never-verified programs (~28 letters, all single-letter now) and **55 `anchor-phone-drift` findings** nationally — each one a public page and a letter disagreeing about the same program.
+- `lastVerifiedDate` is **not** a clean bill of health: 11 programs stamped within 30 days still carry a HIGH finding. Both fact-check rounds gated on that field.
+- 129 letters pending, **0 high, 0 medium**. The send button is the only human-gated step left.
+
 ### 2026-08-21 — Provider answers stay visible (`codex/provider-qa-answer-priority`)
 
 Provider profile Q&A now treats published provider responses as the durable social proof: the inline preview shows answered threads without allowing newer unanswered questions to displace them, and the all-questions sheet opens with answers first while unanswered items remain behind an explicit disclosure. Server render and the hydrated GET now use the same publication-safe public dataset and deterministic ordering, removing the refresh-time 7→9 question swap. Pre-test also fixed two real edge cases: repeated asks could receive raw unpublished answer text from POST, and an in-flight mount GET could overwrite a newer submit/edit state. **Files:** `app/provider/[slug]/page.tsx`, `app/api/questions/route.ts`, `components/providers/QASectionV2.tsx`, `lib/qa-utils.ts`. **Validation:** TypeScript, targeted ESLint (0 errors; two existing `<img>` warnings), focused ordering/empty-answer/tie-break/immutability checks, and `git diff --check` pass; production compilation passed, while static generation remains blocked locally by missing Supabase env vars. **PR:** #1665 → `staging`. **Next:** review the Vercel preview on desktop/mobile, hard-refresh Graceful Homecare, expand/hide unanswered questions, submit a new question, and confirm a pending-verification answer never appears.

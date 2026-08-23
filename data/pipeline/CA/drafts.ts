@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.020Z
+ * Last updated: 2026-08-23T07:26:45.353Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2546,15 +2546,9 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "California IHSS Information",
-          "phone": null,
-          "description": "Find your county IHSS office contact information",
-          "hours": "Varies by county"
-        },
-        {
-          "label": "California 2-1-1",
+          "label": "California 2-1-1 (start here, locator)",
           "phone": "2-1-1",
-          "description": "Free helpline for social services and county office referrals",
+          "description": "California has no statewide IHSS application line. Applications are taken by your county IHSS office. 2-1-1 can connect you to the right county office, or you can find it directly at cdss.ca.gov/inforesources/county-ihss-offices.",
           "hours": "24 hours, 7 days a week"
         }
       ],
@@ -2619,7 +2613,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://www.cdss.ca.gov/in-home-supportive-services",
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-18"
+      "lastVerifiedDate": "2026-08-23"
     },
     {
       "id": "caregiver-resource-centers",

@@ -301,6 +301,33 @@ export function statesDollarFigure(text: string): boolean {
   return /\$\s?[0-9]/.test(text);
 }
 
+// ── Staleness ──────────────────────────────────────────────────────────────
+
+/**
+ * Does this letter need a packet built (or rebuilt)?
+ *
+ * A packet is a verdict on a specific piece of text. Edit the letter, or
+ * recompose it, and the verdict no longer describes what would send — so the
+ * trigger is the letter changing, not the clock. Time alone is deliberately
+ * NOT a trigger: fit verdicts vary run to run, so a nightly rebuild would
+ * quietly reroute letters nobody touched, and a family's fate would depend on
+ * which night the cron happened to catch them.
+ */
+export function packetNeedsBuild(nav: {
+  packet?: { builtAt?: string } | null;
+  edited_at?: string;
+  recomposed_at?: string;
+  composed_at?: string;
+}): boolean {
+  const builtAt = nav.packet?.builtAt;
+  if (!builtAt) return true;
+  const newest = [nav.edited_at, nav.recomposed_at, nav.composed_at]
+    .filter((v): v is string => typeof v === "string" && v.length > 0)
+    .sort()
+    .pop();
+  return !!newest && newest > builtAt;
+}
+
 // ── Display ────────────────────────────────────────────────────────────────
 
 export const ROUTE_LABEL: Record<PacketRoute, string> = {

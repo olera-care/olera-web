@@ -516,6 +516,23 @@ export const CRON_REGISTRY: CronJob[] = [
     relatedAdminPath: "/admin/benefits",
   },
   {
+    id: "benefits-navigator-packets",
+    name: "Benefits navigator — packet builder",
+    description:
+      "Builds the routing verdict for pending first-step letters, replacing the manual copy-paste review loop. Five gates in order: do we hold enough facts to pick at all, is the program the right FIRST call (judged by two independent models), does the letter break an honesty rail, is the program cleared, does the draft lint. Writes the verdict onto the draft and sends nothing. Rebuilds only when the letter itself changes, never on a clock — fit verdicts vary run to run, so a scheduled rebuild would silently reroute letters nobody touched.",
+    recipientCohort:
+      "(no recipients — writes verdicts for the review queue; every pending navigator draft whose letter changed since its last packet)",
+    audience: "Care seekers",
+    fn: "maintenance",
+    schedule: "25 * * * *",
+    humanSchedule: "Hourly, at :25",
+    path: "/api/cron/benefits-navigator-packets",
+    emailTypes: [],
+    successSignal:
+      "Every pending letter carries a current verdict, so the queue explains why each one is waiting and a clean letter is not held behind its batch.",
+    relatedAdminPath: "/admin/benefits",
+  },
+  {
     id: "benefits-navigator-scheduler",
     name: "Benefits navigator — scheduled sends",
     description:

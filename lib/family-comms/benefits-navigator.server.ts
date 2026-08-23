@@ -21,6 +21,7 @@
  *    eligibility claims (Phase 4 gate: zero payment-acceptance data).
  */
 import Anthropic from "@anthropic-ai/sdk";
+import type { NavigatorPacket } from "@/lib/benefits/navigator-packet";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   selectFirstStepProgram,
@@ -78,6 +79,22 @@ export interface BenefitsNavigatorMeta {
    *  draft stays pending and the reason surfaces in the admin queue. */
   schedule_failed_at?: string;
   schedule_failed_reason?: string;
+  /** Recompose: the letter was re-drafted from current program data, which
+   *  discards the prior draft and TJ's edits to it. Present on live rows and
+   *  previously absent from this type. */
+  recomposed_at?: string;
+  recomposed_reason?: string;
+  /** Set when a fact-check round patched this draft's text in place. */
+  factcheck_patched_at?: string;
+  dismissed_reason?: string;
+  /** Composed by scripts/backfill-benefits-navigator-drafts.ts rather than by
+   *  the coordinator, which is why its intake can be months old. */
+  backfill?: boolean;
+  backfill_intake_age_days?: number;
+  /** The computed routing verdict (lib/benefits/navigator-packet.ts). Built
+   *  by the benefits-navigator-packets cron whenever the letter changes, and
+   *  read by the admin queue to explain why a letter is waiting. */
+  packet?: NavigatorPacket;
   sent_at?: string;
   /** Who fired the send: TJ's button or the scheduler cron. */
   sent_via?: "admin" | "scheduler";

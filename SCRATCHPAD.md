@@ -60,9 +60,26 @@ With the need supplied, the pattern was one sentence over and over: **families w
 
 **PR:** #1689 → staging. **Artifact:** https://claude.ai/code/artifact/090ca73d-be16-4402-ad86-5f68a954f2f1
 
+**Addendum, same day, after the merge — the cron IS live and I was wrong three times about it**
+
+`cron_runs` has no `result` column. My diagnostic selected it and only checked `data`, never `error`, so it returned zero rows silently and I reported "the cron has never executed" three separate times. It had. **2 runs, 12 packets each**, which is exactly the 25 checked drafts (24 from the cron plus 1 written earlier by a script). It fires at :25 from main, which the parallel session's promotion had already carried.
+
+Lesson worth keeping: **a Supabase select on a non-existent column returns `{data: [], error: <msg>}`, not a throw.** Any diagnostic that reads only `data` will report "nothing happened" with total confidence. Check `error` on every probe whose answer is a count.
+
+**Verified as a result:** the metadata write is now clean at **n=25, zero losses** — no row that received a packet lost `benefits_results` or its pick snapshot. That was the single most dangerous path in the build and it is now evidenced rather than traced.
+
+**State at close:** 129 pending · 25 checked (review 23 · auto 1 · recompose 1) · 104 unchecked. At 12/run hourly that completes in ~9 runs, comfortably inside 24 hours.
+
+**Confirmed for the record: nothing sends or rewrites itself.** `auto` is a label, not a behavior — the only consumer of `route === "auto"` is a UI line choosing a chip. Letters leave by TJ's click or by the scheduler firing a time TJ picked. No cron recomposes; the only `composeNavigatorDraft` call in a cron is the coordinator creating drafts for families who have none. So the ~54 routed recompose will sit with their original wrong-program text until someone clicks the button.
+
+**Two gaps found while answering TJ, not yet built**
+
+- **"Schedule all" does not exclude unchecked letters.** The pre-exclusion holds back `ask` and `recompose`, but an unchecked draft has no route, so it is not excluded. Today that button would batch 104 letters no model has judged.
+- **The bridge rule only fires if the letter names the need.** A live Florida draft (Meals on Wheels, family stated paying-for-care) never mentions the need at all, so it incurs no debt and gives no acknowledgment. Safe but not what we want — the rule should require the acknowledgment, not just penalise a bare one.
+
 **Next up**
 
-- **The packet cron has never executed.** `cron_runs` = 0. Every number above comes from hand-run scripts. Watch the first `:25` UTC run after #1689 merges and re-check that `benefits_cascade`, `sms_consent` and `benefits_results` survive the metadata write across every row it touches — verified on n=1 only.
+- **Let the queue finish checking** (~9 hourly runs from 2026-08-23 15:36 UTC), then look at whatever lands in `Ready to send` first.
 - **TJ's call: does a recomposed letter need a read before it sends?** 54 recomposes is ~$5 and changes what 54 families are told. My read: yes for the first batch, then measure.
 - **TJ's call: weeks-first or need-first.** A family who Googles "SNAP Texas" and says they need care money has given two true signals. Entry-source still wins the pick; the letter now at least bridges honestly ("LIHEAP will not pay for care itself. It lowers the energy bill, which frees up money each month."). Screening at tier 1 is the unbuilt half and waits on this answer.
 - 24 letters held on **program never verified** — the one hold still doing real work. 642 programs, 155 (24%) ever verified, five states at zero (AK, DC, ME, WI, WY).

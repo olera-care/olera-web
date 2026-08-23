@@ -43,6 +43,25 @@ import {
  * Fixing it here rather than in the prompt repairs every draft already sitting
  * in the queue, with no re-composition and no chance of altering a claim.
  */
+/**
+ * Where a family's reply lands.
+ *
+ * Every navigator letter closes with "You can reply to this email. My team and
+ * I read every reply." That line is required by the composer's STRUCTURE rule,
+ * so it is in all of them. The send used to read
+ * `process.env.BENEFITS_NAVIGATOR_REPLY_TO || undefined` with no default, and
+ * the variable was never set, so the promise was made on mail sent From
+ * `noreply@olera.care` carrying no Reply-To header at all.
+ *
+ * The other two outbound systems both default rather than trusting the
+ * environment: student outreach falls back to graize@olera.care, provider
+ * outreach to hello@olera.care. This one was the only channel that could go
+ * quiet by omission. support@olera.care is the monitored inbox, with Gmail
+ * sync, Supabase triage state and the /email-checker sweep already built
+ * around it, which is what "my team and I" refers to.
+ */
+const NAVIGATOR_REPLY_TO = process.env.BENEFITS_NAVIGATOR_REPLY_TO ?? "support@olera.care";
+
 export function substituteSmsLink(draft: string, url: string): string {
   return draft.replace(/\{link\}[.,;:!?]*\s*/g, `${url} `).trimEnd();
 }
@@ -135,7 +154,7 @@ export async function sendNavigatorLetter(
       emailType: "benefits_first_step",
       recipientType: "family",
       recipientProfileId: profileId,
-      replyTo: process.env.BENEFITS_NAVIGATOR_REPLY_TO || undefined,
+      replyTo: NAVIGATOR_REPLY_TO,
       listUnsubscribeUrl: careUnsubscribeUrl(profileId),
       metadata: {
         navigator: true,

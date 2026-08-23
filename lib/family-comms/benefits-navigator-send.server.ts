@@ -30,6 +30,7 @@ import {
   type BenefitsNavigatorMeta,
 } from "./benefits-navigator.server";
 import { ROUTE_LABEL } from "@/lib/benefits/navigator-packet";
+import { readClearance } from "@/lib/benefits/navigator-gates.server";
 
 /**
  * Substitute the plan link, dropping any punctuation left flush against it.
@@ -131,6 +132,39 @@ export async function sendNavigatorLetter(
         route === "recompose"
           ? `This letter's program was ruled out: ${why}. Recompose it, or send anyway if you disagree.`
           : `We do not know enough about this family to pick a program: ${why}. Ask them first, or send anyway if you disagree.`,
+    };
+  }
+
+  /**
+   * The facts gate, alongside the fit gate above. The packet judges whether
+   * this program is the right PICK; this judges whether the record the letter
+   * anchors on is structurally sound enough to print. Synchronous, no model
+   * call, no cost: readClearance reads the deployed pipeline bundle.
+   *
+   * Blocks only STRUCTURAL defects, never mere staleness. That distinction is
+   * the whole design. A null lead phone, prose where a number goes, an
+   * "Example: ..." label or an empty document list are objectively wrong and
+   * produce letters like "Call X at Contact information not specified in
+   * available sources" — one of those was one click from a family on
+   * 2026-08-23. Being unverified is different: only 155 of 642 programs have
+   * ever been verified, so blocking on the stamp would stop three letters in
+   * four and strand the queue. Unverified means "nobody looked", and a person
+   * clicking Send is a person looking.
+   *
+   * Shares overridePacket deliberately. Both gates ask the same question of a
+   * human — the automation says no, do you disagree — and one override keeps
+   * the admin drawer from growing a second checkbox for the same decision.
+   */
+  const clearance = navigator.pick?.programId
+    ? readClearance(navigator.pick.stateId ?? null, navigator.pick.programId, 90)
+    : null;
+  if (clearance && clearance.highFindings.length > 0 && !opts.overridePacket) {
+    return {
+      ok: false,
+      conflict: true,
+      error:
+        `The program this letter anchors on has an unresolved data problem (${clearance.highFindings.join(", ")}). ` +
+        `Fix the program record, or send anyway if you disagree.`,
     };
   }
 

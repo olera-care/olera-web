@@ -30,6 +30,23 @@ import {
   type BenefitsNavigatorMeta,
 } from "./benefits-navigator.server";
 
+/**
+ * Substitute the plan link, dropping any punctuation left flush against it.
+ *
+ * The link is the only tappable thing in the text, and some SMS clients pull a
+ * trailing "." into the tapped URL, so the family lands on a 404 on the one
+ * step we asked them to take. 78 of 130 pending drafts carried this on
+ * 2026-08-23; every one of them followed the link with a space and a capital
+ * letter, so dropping the period costs nothing readable and leaves whitespace
+ * on both sides of the URL, which is what link detection needs.
+ *
+ * Fixing it here rather than in the prompt repairs every draft already sitting
+ * in the queue, with no re-composition and no chance of altering a claim.
+ */
+export function substituteSmsLink(draft: string, url: string): string {
+  return draft.replace(/\{link\}[.,;:!?]*\s*/g, `${url} `).trimEnd();
+}
+
 export interface NavigatorSendOptions {
   profileId: string;
   /** Drawer overrides (the admin route passes TJ's live edits). Omitted →
@@ -167,7 +184,7 @@ export async function sendNavigatorLetter(
         : "";
     const stopSuffix = draftSms && /reply stop/i.test(draftSms) ? "" : " Reply STOP to opt out.";
     const smsBody = draftSms
-      ? `${draftSms.replace(/\{link\}/g, smsPlanUrl)}${progressSuffix}${stopSuffix}`
+      ? `${substituteSmsLink(draftSms, smsPlanUrl)}${progressSuffix}${stopSuffix}`
       : benefitsFirstStepSms({
           programShortName: navigator.pick.shortName,
           phone: navigator.pick.contactPhone,

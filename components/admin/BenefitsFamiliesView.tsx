@@ -1403,12 +1403,20 @@ function NavigatorDraftEditor({
         <button
           onClick={() => {
             const recomposeNote = navigator.scheduled_at ? " This also cancels the scheduled send." : "";
-            if (window.confirm(`Re-draft this letter from current program data? Your edits to this draft, including saved edits, will be discarded.${recomposeNote}`)) {
+            // The same button does two different jobs, so it has to say which.
+            // On a `recompose` verdict the current program is excluded and the
+            // letter comes back about something else entirely; otherwise it is
+            // the fact-check loop and the program stays put.
+            const ruledOut = navigator.packet?.route === "recompose";
+            const prompt = ruledOut
+              ? `The verdict ruled out ${navigator.pick?.shortName ?? "this program"} for this family, so re-drafting will pick a DIFFERENT program. Your edits to this draft, including saved edits, will be discarded.${recomposeNote}`
+              : `Re-draft this letter from current program data? Same program, today's facts. Your edits to this draft, including saved edits, will be discarded.${recomposeNote}`;
+            if (window.confirm(prompt)) {
               onNavigator("navigator_recompose");
             }
           }}
           disabled={busy}
-          title="Re-drafts the letter from today's program data — use after fact-check corrections deploy, so stale phone numbers and figures don't need hand-editing"
+          title="Re-drafts the letter. After a `recompose` verdict it excludes the ruled-out program and picks another; otherwise it re-drafts the same program against today's data, so corrected phone numbers and figures don't need hand-editing"
           className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 disabled:opacity-40"
         >
           {busy ? "Working…" : "Recompose"}

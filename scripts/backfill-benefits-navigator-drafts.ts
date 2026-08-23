@@ -52,6 +52,17 @@ const args = process.argv.slice(2);
 const APPLY = args.includes("--apply");
 // Print full letter bodies in a dry run so the copy can actually be reviewed.
 const SHOW = args.includes("--show");
+/**
+ * Re-draft letters this script already composed, instead of taking new families.
+ *
+ * Needed once already: the first ten drafts were composed before the letter's
+ * STRUCTURE rule changed, so they carry the old trailing "there is a script on
+ * your plan page" clause while every letter written after it names the page up
+ * front. Deliberately narrow — it only ever selects drafts this script made
+ * (`backfill: true`) that are still `pending`, so a care-team edit, a dismissal
+ * or anything already sent to a family is structurally out of reach.
+ */
+const RECOMPOSE = args.includes("--recompose");
 const flag = (name: string, dflt: number): number => {
   const i = args.indexOf(name);
   if (i === -1) return dflt;
@@ -99,13 +110,18 @@ async function main() {
     if (rows.length < 500) break;
   }
 
-  // ── 2. Narrow to families the cascade never drafted for ──
+  // ── 2. Narrow to the families this run is for ──
   const candidates = fams.filter((f) => {
     const meta = (f.metadata || {}) as Record<string, unknown>;
     if (!benefitsCompletedAt(meta)) return false;
-    if (readBenefitsNavigator(meta).composed_at) return false;
     if (readBenefitsCascade(meta).first_step_sent_at) return false;
-    return !!f.account_id;
+    if (!f.account_id) return false;
+    const nav = readBenefitsNavigator(meta) as Record<string, unknown>;
+    if (RECOMPOSE) {
+      // Ours, never sent, never touched by a human. Anything else is off limits.
+      return nav.backfill === true && nav.status === "pending" && !nav.edited_body;
+    }
+    return !nav.composed_at;
   });
 
   // ── 3. Drop anyone who asked us to stop ──
@@ -142,9 +158,9 @@ async function main() {
     .slice(0, LIMIT);
 
   const missingActivity = reachable.filter((c) => !hasActivity.has(c.id)).length;
-  console.log(`${APPLY ? "APPLY" : "DRY RUN"}  concurrency=${CONCURRENCY}`);
+  console.log(`${APPLY ? "APPLY" : "DRY RUN"}${RECOMPOSE ? "  [RECOMPOSE]" : ""}  concurrency=${CONCURRENCY}`);
   console.log(`  families who completed the finder: ${fams.length}`);
-  console.log(`  never drafted for:                 ${candidates.length}`);
+  console.log(`  ${RECOMPOSE ? "pending backfill drafts to redo:  " : "never drafted for:                "} ${candidates.length}`);
   console.log(`  reachable (not do_not_contact):    ${reachable.length}`);
   console.log(`  missing the queue activity row:    ${missingActivity} (repaired as we go)`);
   console.log(`  processing this run:               ${queue.length}\n`);
@@ -222,7 +238,15 @@ async function main() {
         >;
 
         // Someone else drafted while we were composing. Theirs wins; drop ours.
-        if (readBenefitsNavigator(freshMeta).composed_at) {
+        // In recompose mode a draft is expected to be there — it is the one we
+        // are replacing — so only bail if it stopped being ours to replace.
+        const freshNav = readBenefitsNavigator(freshMeta) as Record<string, unknown>;
+        if (RECOMPOSE) {
+          if (freshNav.status !== "pending" || freshNav.backfill !== true || freshNav.edited_body) {
+            console.log(`  --  ${label}  no longer a pending backfill draft, left alone`);
+            continue;
+          }
+        } else if (freshNav.composed_at) {
           console.log(`  --  ${label}  drafted concurrently, dropped ours`);
           continue;
         }
@@ -240,6 +264,7 @@ async function main() {
           // and any later analysis can tell them apart.
           backfill: true,
           backfill_intake_age_days: ageDays,
+          ...(RECOMPOSE ? { recomposed_at: new Date().toISOString() } : {}),
         };
 
         const { error: upErr } = await sb

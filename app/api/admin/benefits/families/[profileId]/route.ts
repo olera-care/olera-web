@@ -386,6 +386,7 @@ export async function POST(
         "navigator_dismiss",
         "navigator_test",
         "navigator_recompose",
+        "navigator_build_packet",
         "navigator_save",
         "navigator_schedule",
         "navigator_unschedule",
@@ -474,6 +475,19 @@ export async function POST(
       if (!intakeAt || !profile.account_id) {
         return NextResponse.json({ error: "Family is missing intake data" }, { status: 409 });
       }
+      // A packet routed `recompose` means an independent read found the
+      // family's own stated facts rule THIS program out. Re-running the ladder
+      // unchanged would pick it straight back: selectFirstStepProgram ranks
+      // entry-source first, and the entry page is usually how the family
+      // arrived at the wrong program in the first place. So the ruled-out
+      // program is excluded and the ladder has to find something else.
+      //
+      // Only on that verdict. A plain recompose is the fact-check loop —
+      // re-draft the SAME program against corrected data — and excluding there
+      // would silently change the family's program because a phone number moved.
+      const ruledOut =
+        navigator.packet?.route === "recompose" ? navigator.pick?.programId ?? null : null;
+
       const draft = await composeNavigatorDraft(db, {
         profileId,
         accountId: profile.account_id,
@@ -484,10 +498,15 @@ export async function POST(
         intakeAt,
         profileMeta: meta,
         factsRow: profile,
+        ...(ruledOut ? { exclude: [ruledOut] } : {}),
       });
       if (!draft) {
         return NextResponse.json(
-          { error: "No qualifying first-step program with current data — the old draft is unchanged. Dismiss it if the program no longer exists." },
+          {
+            error: ruledOut
+              ? "No other qualifying program for this family with current data. The letter is unchanged. This family probably needs a question rather than a program — dismiss the draft."
+              : "No qualifying first-step program with current data — the old draft is unchanged. Dismiss it if the program no longer exists.",
+          },
           { status: 409 },
         );
       }

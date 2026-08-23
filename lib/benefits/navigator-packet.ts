@@ -11,12 +11,12 @@
  * context. So the packet checks FIT FIRST and treats facts as the cheap,
  * cacheable part.
  *
- * The second finding is the reason `route: "ask"` exists at all. 63 of the
- * 130 families gave us none of the four facts, which makes `screen()` in
- * selectFirstStepProgram a no-op and leaves entry-source — the program page
- * they happened to land on — deciding their first step. A program pick for
- * those families is a guess dressed as advice, and the honest first message
- * is a question rather than a letter.
+ * `route: "ask"` exists for families who never told us what they need, so a
+ * pick would be a guess dressed as advice. That is RARE: 94% of benefits
+ * completions state a need. It looks common only if you read the profile
+ * row, because the need is stored on the benefits_completed seeker_activity
+ * event — reading the profile alone made 92 of 129 letters appear fact-free
+ * when every one of them had a stated need. Callers must supply careNeed.
  *
  * Pure module, no server or DB imports: the cron builds packets with it and
  * the admin queue re-reads the same `route`/`holds` to explain itself, so the
@@ -140,6 +140,13 @@ export const CLEARANCE_MAX_AGE_DAYS = 90;
 // ── Gate: do we know enough to pick? ───────────────────────────────────────
 
 export interface FactsInput {
+  /**
+   * The need the family picked at intake ("payingForCare", "memoryHealth"…).
+   * It lives on the benefits_completed seeker_activity event, NOT on the
+   * profile — 94% of completions have one, and reading only the profile made
+   * 92 of 129 letters look fact-free when none of them were.
+   */
+  careNeed: string | null;
   careTypes: string[];
   age: number | null;
   incomeBand: string | null;
@@ -149,23 +156,37 @@ export interface FactsInput {
   situation: string | null;
 }
 
+/** Intake stores the need camelCased; the models should read English. */
+export function humanCareNeed(raw: string): string {
+  const map: Record<string, string> = {
+    payingForCare: "paying for care",
+    stayingAtHome: "staying at home",
+    memoryHealth: "memory and health",
+    companionship: "companionship",
+  };
+  return map[raw] ?? raw.replace(/([a-z])([A-Z])/g, "$1 $2").toLowerCase();
+}
+
 /**
  * Decide whether we hold enough to pick a program at all.
  *
- * `enoughToPick` requires at least one DIRECTIONAL fact — care types or a
- * stated situation. Screening facts (age, income, Medicaid, veteran) do not
- * satisfy it on their own: knowing a family is 74 and on Medicaid tells you
- * what they might qualify for and nothing about what they need, and picking
- * on that alone is how an 87-year-old with an immediate care need was sent
- * to a home-energy retrofit.
+ * `enoughToPick` requires at least one DIRECTIONAL fact — the need they came
+ * for, a care type, or a stated situation. Screening facts (age, income,
+ * Medicaid, veteran) do not satisfy it: knowing a family is 74 and on
+ * Medicaid tells you what they might qualify for and nothing about what they
+ * need, and picking on that alone is how an 87-year-old with an immediate
+ * care need was sent to a home-energy retrofit.
  */
 export function readFacts(input: FactsInput): FactsRead {
   const directional: string[] = [];
   const screening: string[] = [];
   const missing: string[] = [];
 
+  if (input.careNeed) directional.push(`what they came for: ${humanCareNeed(input.careNeed)}`);
   if (input.careTypes.length > 0) directional.push(`care types: ${input.careTypes.join(", ")}`);
-  else missing.push("what kind of care or help they need");
+  if (!input.careNeed && input.careTypes.length === 0) {
+    missing.push("what kind of care or help they need");
+  }
 
   if (input.situation?.trim()) directional.push("described their situation");
 

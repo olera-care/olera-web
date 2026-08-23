@@ -70,6 +70,24 @@ export async function GET(request: NextRequest) {
       packetNeedsBuild(readBenefitsNavigator(row.metadata as Record<string, unknown>)),
     );
 
+    // The family's stated need lives on the benefits_completed event, not the
+    // profile. It is the single most important input to the fit gate, so it
+    // is loaded in one query up front rather than per letter.
+    const needByProfile = new Map<string, string>();
+    if (due.length > 0) {
+      const { data: intakeEvents } = await db
+        .from("seeker_activity")
+        .select("profile_id, metadata")
+        .eq("event_type", "benefits_completed")
+        .in("profile_id", due.map((r) => r.id));
+      for (const ev of intakeEvents ?? []) {
+        const need = (ev.metadata as { care_need?: unknown } | null)?.care_need;
+        if (ev.profile_id && typeof need === "string" && need) {
+          needByProfile.set(ev.profile_id, need);
+        }
+      }
+    }
+
     const counts = {
       pending: pending?.length ?? 0,
       due: due.length,
@@ -92,6 +110,7 @@ export async function GET(request: NextRequest) {
             care_types: row.care_types as string[] | null,
             state: row.state as string | null,
             metadata: row.metadata as Record<string, unknown> | null,
+            careNeed: needByProfile.get(row.id) ?? null,
           },
           nav,
         );

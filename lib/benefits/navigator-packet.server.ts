@@ -30,6 +30,12 @@ export interface PacketProfileInput {
   care_types?: string[] | null;
   state?: string | null;
   metadata?: Record<string, unknown> | null;
+  /**
+   * metadata.care_need from the family's benefits_completed event. Callers
+   * MUST supply it: it is the single most important input to the fit gate,
+   * and it does not live on the profile row.
+   */
+  careNeed?: string | null;
 }
 
 function intakeAgeDays(metadata: Record<string, unknown> | null | undefined): number | null {
@@ -95,6 +101,11 @@ export async function buildNavigatorPacket(
   const sms = navigator.edited_sms ?? navigator.sms ?? null;
 
   const facts = factsFromProfile(profile);
+  if (profile.careNeed === undefined) {
+    // Not a crash, but the fit gate is materially worse without it, and a
+    // silently-omitted need is what made 92 letters look fact-free.
+    errors.push("careNeed was not supplied — fit judged without the family's stated need");
+  }
   const ageDays = intakeAgeDays(profile.metadata);
 
   const base = {

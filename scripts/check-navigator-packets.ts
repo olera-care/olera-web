@@ -57,6 +57,21 @@ async function main() {
   if (error) throw error;
 
   const rows = ((data ?? []) as Row[]).slice(0, LIMIT || undefined);
+
+  // care_need lives on the benefits_completed event, not the profile.
+  const needByProfile = new Map<string, string>();
+  if (rows.length) {
+    const { data: evs } = await db
+      .from("seeker_activity")
+      .select("profile_id, metadata")
+      .eq("event_type", "benefits_completed")
+      .in("profile_id", rows.map((r) => r.id));
+    for (const ev of evs ?? []) {
+      const need = (ev.metadata as { care_need?: unknown } | null)?.care_need;
+      if (ev.profile_id && typeof need === "string" && need) needByProfile.set(ev.profile_id, need);
+    }
+  }
+  console.log(`  ${needByProfile.size}/${rows.length} have a stated care need\n`);
   console.log(`${rows.length} pending drafts${DRY ? " (dry: no model calls)" : ""}\n`);
 
   const packets: { row: Row; packet: NavigatorPacket }[] = [];
@@ -71,7 +86,7 @@ async function main() {
       if (DRY) {
         // Facts + lint only. Everything model-backed reads as "never ran",
         // which the router holds — so a dry run can never show `auto`.
-        const facts = factsFromProfile(row);
+        const facts = factsFromProfile({ ...row, careNeed: needByProfile.get(row.id) ?? null });
         const lint = draftLintHits(nav.edited_sms ?? nav.sms ?? null);
         const { route, holds } = routePacket({
           facts,
@@ -97,7 +112,10 @@ async function main() {
           models: {},
         };
       } else {
-        packet = await buildNavigatorPacket(row, nav);
+        packet = await buildNavigatorPacket(
+          { ...row, careNeed: needByProfile.get(row.id) ?? null },
+          nav,
+        );
       }
       packets.push({ row, packet });
       done++;

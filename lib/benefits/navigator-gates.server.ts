@@ -90,11 +90,14 @@ function parseJson<T>(raw: string): T | null {
 export function factsFromProfile(profile: {
   care_types?: string[] | null;
   metadata?: Record<string, unknown> | null;
+  /** From the benefits_completed intake event — see FactsInput.careNeed. */
+  careNeed?: string | null;
 }): FactsRead {
   const meta = (profile.metadata ?? {}) as Record<string, unknown>;
   const situationParts = [meta.benefits_situation, meta.situation, meta.care_context]
     .filter((v): v is string => typeof v === "string" && v.trim().length > 0);
   const input: FactsInput = {
+    careNeed: profile.careNeed ?? null,
     careTypes: Array.isArray(profile.care_types) ? profile.care_types.filter(Boolean) : [],
     age: typeof meta.age === "number" && meta.age > 0 ? meta.age : null,
     incomeBand: typeof meta.income_range === "string" && meta.income_range ? meta.income_range : null,

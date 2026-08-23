@@ -7,6 +7,38 @@
 
 ## Current Focus
 
+### 2026-08-23 — Backfill drain survived a hard crash intact; the real defect was in production, not on the branch (`benefits-backfill-drain`)
+
+**Session opened cold after the machine hard-stopped mid-run.** Reconstructed the timeline from `composed_at` / `recomposed_at` / `backfilled_at` stamps rather than guessing: first batch 08-22 16:23 (10 drafts), `--recompose` of those 10 at 11:57 today, commit `1f461cdce` at 12:02:50 **while the next run was still working**, drain run 11:59–12:08:26 (90 drafts at ~10/min, 23 queue rows repaired), last write 12:08:26, crash, new session 12:38.
+
+**No damage.** 0 orphaned `seeker_activity` rows, 0 duplicate `benefits_completed` events, 0 drafts missing a body or `composed_at`, 0 edited. The activity insert happens *after* the LLM returns, so a half-written family would have shown up as an orphan; none did. **A crash costs nothing here because selection is state-based (`!nav.composed_at`), not offset-based — there is no cursor to lose.** Whether the run finished cleanly at 90 or was cut off at 90-of-100 is unknowable from the data (a power cut during an LLM call leaves no trace) and does not matter.
+
+**Two things I told TJ in the first summary were wrong, both from a stale baseline.** I said "102 drafted, ~2 sent or edited" — it is exactly **100 drafted, 0 sent, 0 edited, 0 dismissed**; the 102 came from subtracting against the 244 in the script header instead of counting. And I said the review queue was stalled and recommended diagnosing it — the live path shows **111 sent, 30 pending, 4 dismissed**, so the care team is actively working the queue. The 100 backfill drafts are hours old, not stalled. That correction killed my own top recommendation.
+
+**The finding that mattered was not on this branch.** `d9ddbd61b` (letter STRUCTURE: name the plan page before the phone number) and `469c1bb40` (startHere program IDs repaired across 49 states) are both **in staging and not in `origin/main`**. Production's daily compose cron (~17:00 UTC) is still writing old-format letters off pre-repair pipeline data. Measured: **27 of 30 live-path pending drafts carry the old trailing "script on your plan page" clause, 6 put the phone number before the plan page.** The backfill cohort is **100/100 clean** because it was composed in this worktree at `1f461cdce`. So the recompose fixed 10 drafts in one cohort while 27 sat untouched in the other, and the cron adds more every day staging stays unpromoted. `--recompose` cannot reach them by design — its selector is `backfill: true`.
+
+**Ran `benefits-draft-lint` against the pending queue for the first time.** 130 scanned, **1 high**: WA `2a7f129f` / `washington/mac-waiver`, call anchor is the string `"Contact information not specified in available sources"`. It is a **live-path draft, not one of the 100** — the drain did not introduce it. The letter degrades honestly ("I am still tracking down a direct number for them, and I will send it once I have it") but that sentence creates a follow-up obligation with no owner and no tracking.
+
+**Verified the recompose guard against the real code path rather than trusting the commit message.** Edits land in `edited_body` (`app/api/admin/benefits/families/[profileId]/route.ts:446,676`) and send reads `edited_body || body` (`lib/family-comms/benefits-navigator-send.server.ts:81`), so `!nav.edited_body` genuinely puts a care-team edit out of reach. Also confirmed all 100 letters: 0 old clause, 0 phone-before-plan-page.
+
+**Decisions**
+
+- **Do not widen `--recompose` to the live cohort.** It is scoped to `backfill: true` because that is the only cohort with a provable "ours and untouched" claim. The 27 live drafts need a decision, not a flag flip.
+- **Promotion beats drafting.** Composing the remaining 141 reaches nobody extra; promoting staging→main stops prod generating new defective letters. Queue depth is not the constraint — the care team is sending.
+- **A clean lint run is not verification.** The script's own header says it catches inconsistency, not wrongness. 100 letters are queued to real families off that standard.
+
+**Next up**
+
+- Promote staging → main (`d9ddbd61b` + `469c1bb40`). Highest value, not on this branch.
+- Decide the 27 old-format live-path pending drafts.
+- Resume the drain in batches; 141 undrafted, 10 of them still missing the `seeker_activity` row that makes them visible in the queue.
+- WA `2a7f129f`: find the real MAC Waiver number by hand, or pull the draft.
+- ~2 of the original 244 have silently fallen out of the candidate set (`do_not_contact` or no usable first step). Not investigated.
+
+**Open risks:** the script does a full-blob `update({ metadata })` read-modify-write — it re-reads immediately before writing, but a concurrent writer touching a different `metadata` key inside that window is clobbered silently (same class as the Stream B `google_reviews_data` clobber). And `--recompose` overwrites `composed_at` as well as stamping `recomposed_at`, so the original compose time is lost; the 10 first-pass drafts now report 08-23 timestamps for an 08-22 composition, which cost real effort to untangle when rebuilding the crash timeline.
+
+**Handoff:** Notion → Branch Handoff Reports, "Benefits navigator backfill drain — Handoff (2026-08-23)".
+
 ### 2026-08-21 — Provider answers stay visible (`codex/provider-qa-answer-priority`)
 
 Provider profile Q&A now treats published provider responses as the durable social proof: the inline preview shows answered threads without allowing newer unanswered questions to displace them, and the all-questions sheet opens with answers first while unanswered items remain behind an explicit disclosure. Server render and the hydrated GET now use the same publication-safe public dataset and deterministic ordering, removing the refresh-time 7→9 question swap. Pre-test also fixed two real edge cases: repeated asks could receive raw unpublished answer text from POST, and an in-flight mount GET could overwrite a newer submit/edit state. **Files:** `app/provider/[slug]/page.tsx`, `app/api/questions/route.ts`, `components/providers/QASectionV2.tsx`, `lib/qa-utils.ts`. **Validation:** TypeScript, targeted ESLint (0 errors; two existing `<img>` warnings), focused ordering/empty-answer/tie-break/immutability checks, and `git diff --check` pass; production compilation passed, while static generation remains blocked locally by missing Supabase env vars. **PR:** #1665 → `staging`. **Next:** review the Vercel preview on desktop/mobile, hard-refresh Graceful Homecare, expand/hide unanswered questions, submit a new question, and confirm a pending-verification answer never appears.

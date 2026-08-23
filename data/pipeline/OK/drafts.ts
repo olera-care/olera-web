@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.044Z
+ * Last updated: 2026-08-23T08:24:45.940Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1497,13 +1497,19 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "DDS Respite Vouchers (OKC area)",
+          "label": "Area Agencies on Aging, statewide (start here)",
+          "phone": "1-800-211-2116",
+          "description": "For a care recipient aged 60 or older, this is the line to the Area Agency on Aging that covers your area. There is no income limit for caring for someone 60 or over. The DDS vouchers below are a separate program and require the care recipient to have a developmental disability.",
+          "hours": "Business hours, Monday to Friday"
+        },
+        {
+          "label": "DDS Respite Vouchers, OKC area (developmental disability only)",
           "phone": "(800) 522-1064",
           "description": "Children 18 and under with developmental disabilities",
           "hours": "Business hours"
         },
         {
-          "label": "DDS Respite Vouchers (Tulsa area)",
+          "label": "DDS Respite Vouchers, Tulsa area (developmental disability only)",
           "phone": "(800) 522-1075",
           "description": "Children 18 and under with developmental disabilities",
           "hours": "Business hours"
@@ -1559,10 +1565,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "HandHeart",
-      "phone": "(405) 271-2710",
-      "sourceUrl": "https://oklahoma.gov/content/dam/ok/en/okdhs/documents/okdhs-publication-library/13-06.pdf",
+      "phone": "1-800-211-2116",
+      "sourceUrl": "https://www.oklahoma.gov/okdhs/services/aging/titleiii.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-23"
     },
     {
       "id": "scsep-employment-program",

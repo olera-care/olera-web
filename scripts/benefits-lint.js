@@ -437,7 +437,37 @@ function checkEmptyDocuments(st, p) {
   });
 }
 
+/**
+ * program.phone is a SIBLING of contacts[], not a copy of it. The public
+ * program page renders it as the tappable tel: button
+ * (app/senior-benefits/[state]/[benefit]/page.tsx), and the family brief uses
+ * it as firstStep.phone. So a correction that fixes contacts[0] and stops there
+ * fixes the letter and leaves the WEBSITE dialing the old number.
+ *
+ * Added 2026-08-23, after a round corrected contacts[0] on three programs and
+ * shipped with all three program.phone values stale. Utah's public page was
+ * still dialing one county's office for a statewide program after the fix that
+ * was supposed to remove exactly that.
+ *
+ * Null program.phone is not flagged: the page falls back to tel:211, which is
+ * a working locator, and that is the honest state for a program with no
+ * statewide line.
+ */
+function checkAnchorPhoneDrift(st, p) {
+  const lead = (p.contacts || []).find((c) => c.phone);
+  if (!lead || !p.phone) return;
+  const norm = (v) => String(v).replace(/[^0-9]/g, '');
+  if (norm(p.phone) === norm(lead.phone)) return;
+  report({
+    state: st, programId: p.id, program: p.name, check: 'anchor-phone-drift', severity: 'high',
+    detail: `program.phone disagrees with the call anchor. The letter names "${lead.phone}" while the public program page's call button dials "${p.phone}".`,
+    value: `program.phone="${p.phone}" vs contacts[0].phone="${lead.phone}"`,
+    fix: 'Set program.phone to the anchor, or explain why the page should dial something else. Correcting contacts[] alone leaves the website stale.',
+  });
+}
+
 const CHECKS = [
+  checkAnchorPhoneDrift,
   checkMedicareNotRequired,
   checkMedicareCardParts,
   checkSelfContradiction,

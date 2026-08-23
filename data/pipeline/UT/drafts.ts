@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/UT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-23T07:37:14.505Z
+ * Last updated: 2026-08-23T08:24:45.945Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1716,7 +1716,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "HandHeart",
-      "phone": "(801) 468-2460",
+      "phone": "1-877-424-4640",
       "sourceUrl": "https://daas.utah.gov/services/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",

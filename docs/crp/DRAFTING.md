@@ -144,3 +144,106 @@ scored against a criterion:
 
 Append dated lessons below as they are learned; do not rewrite the method's
 history. Major changes to the loop itself get ratified by Logan first.
+
+## Lessons from the logos rebuild (2026-08-23)
+
+Context: Logan asked for a full reconstruction of the application's intellectual
+spine from first principles (`passes/logos-outline-2026-08-22.md`), then a new
+one-page Specific Aims translated from it
+(`passes/aims-logos-draft-2026-08-22.html`). Both went to David, Marcia, TJ, and
+Shupeng for review on 2026-08-22. Retrospective recorded at Logan's request
+before pausing drafting.
+
+**What worked particularly well.**
+
+- **Argument before prose.** Reconstructing the entire argument as one central
+  hypothesis with six falsifiable sub-hypotheses (H1 establishment, H2 family
+  economics, H3 provider value, H4 new capacity, H5 willingness-to-pay gradient,
+  H6 self-funding markets) before writing a single sentence of the new page.
+  Every paragraph of the resulting Aims was a derivation from the outline, not a
+  negotiation with older wording.
+- **Aims as questions.** "Determine whether..." titles force each aim to have a
+  yes/no answer and a pre-committed alternative. The earlier aims read as
+  activity lists; activities cannot fail, so they cannot be hypotheses.
+- **The skeptic's test.** Asking "what will we know three years from now, and why
+  does answering it justify NIH funding now" put the why-NIH argument on the
+  page itself (incumbents will not run the experiment; a pre-revenue firm cannot
+  run it unaided; NIH already built the identification half).
+- **Flag, never force.** Mismatches found during reconstruction (two vs. three
+  paid products, the unsupported "volunteer programs" line, 12 vs. 18 markets)
+  were recorded as flags in the outline rather than silently harmonized. That is
+  why the outline could be ratified quickly: nothing in it was smuggled.
+- **Private coherence pass before rendering.** Checking that every paragraph
+  advances the single hypothesis, then rendering and looking at the actual page,
+  caught drift that sentence-level review had been missing for days.
+
+**What changed in our understanding.**
+
+- The three aims are the causal chain in order: establish care at measured cost,
+  show that establishment activity creates provider value, show that provider
+  revenue sustains a market. The sequence itself is the hypothesis; reordering
+  or blending the aims destroys the logic.
+- The twelve county markets are the testbed, not a claim. The application does
+  not argue twelve is the right number; it argues the hypothesis must be tested
+  somewhere concentrated enough for marketplace effects to appear.
+- The open question the CRP answers sits between what SBIR proved
+  (identification works, demand exists) and what no one knows (whether the model
+  closes financially). Naming that gap plainly is stronger than claiming more.
+- Proposed and awaiting ratification: two paid products, not three, with
+  conversion/follow-up living inside the free establishment loop (Aim 1) rather
+  than as a third SKU. The CP and README section 5 still say three.
+
+**Why spine-first produced a stronger page than the earlier passes.**
+
+The earlier Aims were maintained by patchwork: each edit was locally reasonable
+and approved, but edits accumulated against prose whose underlying argument was
+never restated, so coherence decayed invisibly. Semantic drift (product naming,
+two vs. three products) survived because no single pass ever held the whole
+argument at once. Rebuilding the logos first meant the page had one author: the
+argument. Where the old text agreed with the argument it was kept; where it did
+not, the argument won and the difference was flagged.
+
+**What had not been working earlier, named so we do not repeat it.**
+
+- Semantic drift across documents that were each individually approved.
+- Premature prose: polishing sentences whose underlying claim was unsettled.
+- Patchwork editing of locked text as the default change mechanism.
+- Complexity as camouflage: elaborate structure hiding the weak coupling between
+  marketplace activity and the revenue products, which the hypothesis chain now
+  makes explicit and testable (H5).
+- Aims written as work plans rather than as experiments that can fail.
+
+**Principles to carry forward into the Research Strategy and CP.**
+
+1. No section gets drafted until it can name which hypothesis it advances and
+   what it hands to the next section. A section that advances none is questioned
+   before it is written.
+2. The Approach is re-derived from the logos, not edited from the existing
+   draft. It is the largest unowned item and blocks Qiping's work.
+3. The evidence locks hold at every speed: "more than 20" placements, "15,500+
+   monthly visitors" never "families seeking care", anti-kickback language
+   always constraint-scoped, care-established always operational telemetry.
+4. Render and look before showing Logan; fit pages by whole-line cuts from the
+   longest paragraphs, not word shaving.
+5. Flags are cheaper than forced consistency. Record the conflict and keep
+   moving; ratification is Logan's, with the team.
+
+**Open questions the team's feedback may answer.**
+
+- Two vs. three paid products (David, TJ; then CP and README section 5 update).
+- Whether the "Determine whether..." aim titles and the on-page why-NIH
+  paragraph survive reviewer-experienced eyes (Marcia).
+- Which of the page-budget sacrifices earn their way back (the daily-tasks
+  texture, the pathway steps, "at near-zero cost", product names in Aim 2).
+- Whether H1's success measure stays purely operational or needs a clinical
+  anchor Qiping would have to carry (current position: operational only).
+- Twelve vs. eighteen markets, and the award-end numbers that follow from it.
+- Innovation section ordering, with TJ.
+
+**Re-base note (2026-08-23).** When drafting resumes, the conceptual baseline is
+`passes/logos-outline-2026-08-22.md` (ratified by Logan) plus
+`passes/aims-logos-draft-2026-08-22.html`, subject to team feedback. Do not
+automatically carry forward older formulations. The predecessor locks (SPINE.md
+2026-08-20, specific-aims.md lock of 2026-08-21) remain the ratified record
+until Logan merges the new baseline; where they conflict with the logos outline,
+flag the conflict, never silently harmonize in either direction.

@@ -250,6 +250,12 @@ Qiping for directional review the same day; their feedback routes through Logan 
 the only path to reopening. Note the KI lock above predates the Innovation reorder
 (strategic-context §5); the numbering reference is stale.
 
+**Successor pending (2026-08-23):** a proposed replacement Aims page derived from the
+ratified logos outline exists at `passes/aims-logos-draft-2026-08-22.html` and is out
+for team review (David, Marcia, TJ, Shupeng). It has not replaced `specific-aims.md`;
+adoption is Logan's call after feedback. Until then the 2026-08-21 lock stands and
+conflicts between the two are flagged, not harmonized.
+
 Significance is complete and locked as of 2026-08-19: **The unmet need** (+ Figure 1),
 **The product and the business model** (+ Figure 2 + the accomplishments block +
 synthesis), **The two-sided market**, **Competitive environment and our advantage**
@@ -265,6 +271,17 @@ placements need to reach the consolidated pilot record; the state-by-state eligi
 line needs a home in Key Innovation 3.
 
 ## 11. Current priority
+
+**Paused for team review (2026-08-23).** Drafting is paused while David, Marcia, TJ,
+and Shupeng review the intellectual spine (`passes/logos-outline-2026-08-22.md`,
+ratified by Logan) and the new Specific Aims draft derived from it
+(`passes/aims-logos-draft-2026-08-22.html`). When work resumes, re-base on those two
+documents as the conceptual baseline, subject to the team's feedback; do not
+automatically carry forward older formulations. First items on return: incorporate
+feedback, ratify two-vs-three paid products (then reconcile CP and section 5 here),
+re-derive the Approach from the logos (blocks Qiping), and settle 12 vs. 18 markets.
+Retrospective and carried-forward principles: `DRAFTING.md`, entry dated 2026-08-23.
+The paragraph below is the pre-pause priority, kept for history.
 
 **72-hour goal (from 2026-08-17): Research Strategy Marcia-ready.** Pass order:
 **Aim 2 (active)** → Aim 3 → Preliminary Work → Aim 1 → Significance/Innovation →

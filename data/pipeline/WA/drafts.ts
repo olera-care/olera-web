@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-23T07:26:45.385Z
+ * Last updated: 2026-08-23T08:24:45.947Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -3097,7 +3097,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "CurrencyDollar",
-      "phone": null,
+      "phone": "877-501-2233",
       "sourceUrl": "https://www.dshs.wa.gov/esa/community-services-offices/aged-blind-or-disabled-cash-program",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",

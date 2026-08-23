@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.052Z
+ * Last updated: 2026-08-23T07:26:45.385Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -3035,16 +3035,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "DSHS Community Service Offices",
-          "phone": null,
-          "description": "Local offices handle ABD applications, find your regional office",
-          "hours": "Varies by location"
-        },
-        {
-          "label": "CCS HEN Line",
-          "phone": "(206) 328-5755",
-          "description": "Housing and Essential Needs referrals after ABD approval",
-          "hours": "Business hours"
+          "label": "DSHS Customer Service Contact Center (start here)",
+          "phone": "877-501-2233",
+          "description": "Statewide DSHS line that takes ABD applications by phone and completes the required financial interview. You can also apply online at washingtonconnection.org or in person at a local Community Services Office.",
+          "hours": "Applications and financial interviews 8 a.m. to 2 p.m., Monday to Friday. General agents 8 a.m. to 5 p.m."
         }
       ],
       "applicationNotes": [
@@ -3104,9 +3098,10 @@ export const drafts: PipelineStateDrafts = {
       },
       "icon": "CurrencyDollar",
       "phone": null,
-      "sourceUrl": "https://www.dshs.wa.gov/esa/community-services-offices",
+      "sourceUrl": "https://www.dshs.wa.gov/esa/community-services-offices/aged-blind-or-disabled-cash-program",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-23"
     },
     {
       "id": "cares-fund",

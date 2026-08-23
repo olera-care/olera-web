@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/UT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.050Z
+ * Last updated: 2026-08-23T08:24:45.945Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1636,28 +1636,28 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Salt Lake County Aging & Adult Services",
+          "label": "Utah Aging and Adult Services (start here)",
+          "phone": "1-877-424-4640",
+          "description": "Utah runs the Caregiver Support Program through local Area Agencies on Aging rather than from the state office, so the agency for your area is the one that signs people up. This is the state Aging Services line. You can also find your local agency directly at daas.utah.gov/locations.",
+          "hours": "Business hours, Monday to Friday"
+        },
+        {
+          "label": "Salt Lake County Aging & Adult Services (Salt Lake County only)",
           "phone": "(801) 468-2460",
           "description": "UCSP intake and assessment for Salt Lake County residents",
           "hours": "Business hours"
         },
         {
-          "label": "Davis County Area Agency on Aging",
+          "label": "Davis County Area Agency on Aging (Davis County only)",
           "phone": "(801) 451-3377",
           "description": "UCSP services for Davis County residents",
           "hours": "Business hours"
         },
         {
-          "label": "Weber/Morgan Counties",
+          "label": "Weber and Morgan Counties Area Agency on Aging (those counties only)",
           "phone": "(801) 625-3866",
           "description": "Care for the Caregiver Program serving Weber and Morgan Counties",
           "hours": "Business hours"
-        },
-        {
-          "label": "Utah DAAS",
-          "phone": "Contact through website",
-          "description": "Statewide program information and county office referrals",
-          "hours": "Visit daas.utah.gov/seniors/"
         }
       ],
       "applicationNotes": [
@@ -1716,10 +1716,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "HandHeart",
-      "phone": "(801) 468-2460",
-      "sourceUrl": "https://daas.utah.gov/seniors/",
+      "phone": "1-877-424-4640",
+      "sourceUrl": "https://daas.utah.gov/services/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-23"
     },
     {
       "id": "scsep-employment",

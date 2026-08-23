@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OH/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.043Z
+ * Last updated: 2026-08-23T08:40:32.539Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -136,15 +136,15 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Ohio Medicaid Hotline",
+          "label": "Ohio Medicaid Consumer Hotline (start here)",
           "phone": "(800) 324-8680",
-          "description": "General Medicaid questions and county office referrals",
+          "description": "Hotline staff can take your application over the phone. You can also apply online at benefits.ohio.gov or in person at your county Department of Job and Family Services.",
           "hours": "Mon-Fri 7am-8pm, Sat 8am-5pm ET"
         },
         {
           "label": "Local County JFS Office",
-          "phone": "Varies by county",
-          "description": "Application processing and case management",
+          "phone": null,
+          "description": "Find your county office at jfs.ohio.gov. Numbers differ by county, so there is no single line.",
           "hours": "Varies by county office"
         }
       ],
@@ -206,10 +206,10 @@ export const drafts: PipelineStateDrafts = {
       },
       "icon": "Stethoscope",
       "phone": "(800) 324-8680",
-      "sourceUrl": "https://medicaid.ohio.gov/families-and-individuals/citizen-programs-and-initiatives/aged-blind-disabled",
+      "sourceUrl": "https://medicaid.ohio.gov/families-and-individuals/support/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-08-23"
     },
     {
       "id": "passport-waiver",

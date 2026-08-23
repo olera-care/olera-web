@@ -34,6 +34,7 @@ function withLiveVerifiedDate<T extends { pick?: { programId?: string; stateId?:
   };
 }
 import { sendNavigatorLetter } from "@/lib/family-comms/benefits-navigator-send.server";
+import { buildNavigatorPacket } from "@/lib/benefits/navigator-packet.server";
 
 /**
  * Per-family case endpoints for the Benefits caseload view
@@ -517,6 +518,79 @@ export async function POST(
         return NextResponse.json({ error: "Couldn't save the new draft" }, { status: 500 });
       }
       return NextResponse.json({ success: true, navigator: navStamp });
+    }
+
+    // ── Build this letter's routing verdict, on demand ──────────────────────
+    //
+    // The packet cron can do the whole queue, but it needs an env var, a
+    // redeploy and a secret pasted into a URL. That is not a thing TJ can do
+    // from the admin, which meant the only way to see a verdict was a terminal.
+    // This is the same builder, one letter, behind the admin session he is
+    // already holding.
+    if (action === "navigator_build_packet") {
+      const navigator = readBenefitsNavigator(meta);
+      if (navigator.status !== "pending" || !navigator.body) {
+        return NextResponse.json({ error: "No pending draft for this family" }, { status: 409 });
+      }
+      // careNeed lives on the benefits_completed event, not the profile.
+      const { data: intake } = await db
+        .from("seeker_activity")
+        .select("metadata")
+        .eq("profile_id", profileId)
+        .eq("event_type", "benefits_completed")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const careNeed =
+        ((intake?.metadata as { careNeed?: unknown } | null)?.careNeed as string | null) ??
+        ((meta as { benefits_results?: { answers?: { careNeed?: string } } }).benefits_results
+          ?.answers?.careNeed ?? null);
+
+      let packet;
+      try {
+        packet = await buildNavigatorPacket(
+          {
+            care_types: (profile.care_types as string[] | null) ?? null,
+            state: (profile.state as string | null) ?? null,
+            metadata: meta,
+            careNeed,
+          },
+          navigator,
+        );
+      } catch (err) {
+        return NextResponse.json(
+          { error: `Couldn't build the verdict: ${err instanceof Error ? err.message : "unknown"}` },
+          { status: 502 },
+        );
+      }
+
+      // The build takes tens of seconds. Re-read and refuse to write a verdict
+      // describing text that changed underneath it — same guard as the cron.
+      const { data: fresh } = await db
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", profileId)
+        .maybeSingle();
+      const freshMeta = (fresh?.metadata as Record<string, unknown> | null) ?? meta;
+      const freshNav = readBenefitsNavigator(freshMeta);
+      if (freshNav.status !== "pending") {
+        return NextResponse.json(
+          { error: "This draft was sent or dismissed while the verdict was building." },
+          { status: 409 },
+        );
+      }
+      if (freshNav.edited_at !== navigator.edited_at || freshNav.recomposed_at !== navigator.recomposed_at) {
+        return NextResponse.json(
+          { error: "The letter changed while the verdict was building. Try again." },
+          { status: 409 },
+        );
+      }
+      const { error: pErr } = await db
+        .from("business_profiles")
+        .update({ metadata: { ...freshMeta, benefits_navigator: { ...freshNav, packet } } })
+        .eq("id", profileId);
+      if (pErr) return NextResponse.json({ error: "Couldn't save the verdict" }, { status: 500 });
+      return NextResponse.json({ success: true, packet });
     }
 
     // ── Navigator actions: send (through governance), test-send, or dismiss ──

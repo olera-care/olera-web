@@ -367,7 +367,7 @@ export default function BenefitsFamiliesView() {
   const navigatorAction = useCallback(
     async (
       profileId: string,
-      action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule",
+      action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule" | "navigator_build_packet",
       subject?: string,
       letter?: string,
       sms?: string,
@@ -1185,7 +1185,7 @@ function NavigatorDraftEditor({
   textable: boolean;
   busy: boolean;
   onNavigator: (
-    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule",
+    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule" | "navigator_build_packet",
     subject?: string,
     letter?: string,
     sms?: string,
@@ -1239,6 +1239,7 @@ function NavigatorDraftEditor({
     }
   });
   const [testState, setTestState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [packetBusy, setPacketBusy] = useState(false);
   // Copy a single-draft fact-check prompt (with TJ's in-place edits) for
   // pasting into an external AI before sending.
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
@@ -1274,6 +1275,31 @@ function NavigatorDraftEditor({
       {/* The verdict sits ABOVE the letter: whether this is the right letter
           for this family is the question you ask before reading the prose. */}
       {navigator.packet && <NavigatorPacketPanel packet={navigator.packet} />}
+      {/* Building the verdict was cron-only, which meant an env var, a redeploy
+          and a secret in a URL. One letter, one click, on the admin session. */}
+      <div className="mb-3 flex items-center gap-2">
+        <button
+          type="button"
+          disabled={packetBusy}
+          onClick={async () => {
+            setPacketBusy(true);
+            await onNavigator("navigator_build_packet");
+            setPacketBusy(false);
+          }}
+          className="rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-50"
+        >
+          {packetBusy
+            ? "Reading the letter…"
+            : navigator.packet
+              ? "Rebuild verdict"
+              : "Build verdict"}
+        </button>
+        <span className="text-[11px] text-amber-700/70">
+          {packetBusy
+            ? "Two models judge the pick. Takes up to a minute."
+            : "Judges whether this is the right program for this family."}
+        </span>
+      </div>
       <div className="mb-2 flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-amber-700">
           ✍ Navigator guidance — waiting for you
@@ -1664,7 +1690,7 @@ function CasePanel({
   familyLabel: string;
   hasEmail: boolean;
   onNavigator: (
-    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule",
+    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule" | "navigator_build_packet",
     subject?: string,
     letter?: string,
     sms?: string,

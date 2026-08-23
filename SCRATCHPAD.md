@@ -7,6 +7,67 @@
 
 ## Current Focus
 
+### 2026-08-23 — The navigator's problem was never the review loop, it was the pick (`great-poitras`)
+
+**Set out to automate TJ's nine-hop copy-paste review loop. Found the loop was not the bottleneck and built a verdict engine instead — then found the engine was reading the family's stated need from the wrong table.** Both reframes came from measurement, not reasoning, and the second one came from TJ asking a one-line question ("why are we sending these to a backlog?").
+
+**The loop today.** Copy the export → ChatGPT → paste the report into a fresh Claude session and re-explain the job → apply → copy the updated draft → paste back to ask "is this the most recent version" → usually another miss → sometimes Perplexity → send. Nine hops, six of them TJ. Throughput is capped by his evenings, arrival by intake completions. Unrelated numbers, so the queue grows without bound: **129 pending, median intake 69 days, max 152. 100 of them invisible in the admin's default 30-day window** because it filters on intake date, not compose date.
+
+**Everything measurable about the FACTS came back healthy.** Snapshot drift across all 129: phone 0, name 0, label 0. Tier-1 honesty rails: **2 of 130**, both mild speed-rail. Reachability: 130/130 contactable, 0 on `do_not_contact`, 0 bounce-only.
+
+**The picks were not.** And the fit gate was judging blind: `care_need` lives on the `benefits_completed` **seeker_activity event** (and at `metadata.benefits_results.answers.careNeed`), while the gate read `business_profiles.care_types`. 94% of completions state a need — `payingForCare` 308, `stayingAtHome` 105, `memoryHealth` 32, `companionship` 13 — and reading the profile alone made **92 of 129 letters look fact-free when every one had a stated need**. The admin's own "Need" column had been rendering the real value all session.
+
+With the need supplied, the pattern was one sentence over and over: **families who typed "I need help paying for care" were being sent SNAP, LIHEAP, weatherization, and home-delivered meals.** `selectFirstStepProgram` ranks entry-source first — 53 of 63 entry picks genuinely match the family's `signup_source`, so they really did land on that page — and for `payingForCare` families the split is entry 51 / saved 14 / state 1.
+
+**What shipped** (`lib/benefits/navigator-packet.ts`, `navigator-gates.server.ts`, `navigator-packet.server.ts`, `app/api/cron/benefits-navigator-packets/route.ts`, `components/admin/NavigatorPacketPanel.tsx`, `BenefitsFamiliesView.tsx`, `scripts/check-navigator-packets.ts`, `scripts/check-openai-key.ts`). Five gates, fit first: do we know enough to pick, is the pick right (two independent models), does the letter break a rail, is the program cleared, does the draft lint. Four exits: ask / recompose / review / auto. Built hourly by cron at :25, rebuilt only when the LETTER changes — never on a clock, because fit verdicts vary run to run and a scheduled rebuild would silently reroute letters nobody touched.
+
+**Final routing, re-scored offline against the same 129 packets:**
+
+| | before | after |
+| --- | --- | --- |
+| ask | 0 | 0 |
+| recompose | 1 | **54** |
+| review | 122 | **41** |
+| auto | 7 | **34** |
+
+**Decisions**
+
+- **Every gate fails toward a human, never toward a send.** Missing key, refusal, unparseable JSON — all become holds. Silence is not approval.
+- **Two models agreeing on a better program is an instruction, not a hold.** Of 76 letters where both named an alternative, **60 named the same one**, and all 53 surviving targets resolve to a real program id. Recompose pins to it.
+- **A lone "wrong" against a "good" is an argument, not a verdict** — it goes to a human. Both negative recomposes. Measured on 14 dual reads: 11 agreed exactly, 2 differed on degree, 1 true split.
+- **"Wrong" means cannot-work, not "I would have chosen differently."** The first prompt asserted the opposite and produced 15 recomposes in 25 letters; recalibrating dropped it to 0 while still catching hard disqualifications (the Alabama waiver's nursing-home level-of-care gate).
+- **Roles, not vendors.** Perplexity retrieves, GPT judges fit, Claude adjudicates. Three models on the SAME job buys correlated errors and a voting illusion.
+- **An objection survives only with a primary-source URL and a quote.** Demonstrated live: three aggregator sites all said OpenAI flagship was $5/$30; OpenAI's own docs say $4/$20 promotional through 2026-11-21.
+- **Stale intake is not a gate.** It was circular for a backfill built to reach old intakes, and the residual worry (need may have passed) is unanswerable from the letter. `intakeAgeDays` stays as a queue filter — one bulk decision, not 100.
+
+**Where I was wrong, repeatedly, and each correction came from measuring**
+
+- "33 programs route families to 2-1-1" — 18 do; **15 fall through to a named LOCAL office presented as the statewide door**, several labelled literally `Example: The Senior Alliance (Wayne County)`. Worse than 2-1-1, which at least routes you.
+- "Release the 66 letters on verified programs" — unsafe. **11 programs stamped verified within 30 days still carry a HIGH lint finding**; the stamp records that a correction round touched the program, not that every field was checked.
+- "Never auto-send a program's first letter" — that rule holds **57% of every draft ever composed** (245 drafts, 139 distinct programs). Not self-liquidating. Deleted.
+- "Reorder the tiers so the need ranks first" — targets an empty table. **All 66 `payingForCare` families sampled have zero saved programs**; the matcher finds ~13 matches at intake and persists only `matchCount`.
+- "60% of picks are wrong" — that was **my own fit prompt's policy asserted as a measurement**. Recalibrating the bar took it to 0.
+- The ask-first branch and its copy — built for a bucket that does not exist. Dead.
+
+**Pre-test caught four real bugs across two rounds**
+
+1. **Every OpenAI fit call returned HTTP 400.** `gpt-5.6-terra` rejects an explicit `temperature: 0`. The second read was silently absent from the day it was added — and `check-openai-key` passed throughout, because it hand-wrote a payload omitting the parameter production sent. The guard now posts the body built by the production function.
+2. **Nothing at the send boundary read the packet.** `sendNavigatorLetter` is the one choke point the admin button and the scheduler share and it never consulted the verdict; the batch modal's exclusion was cosmetic since the scheduler renders no checkboxes. The gate now lives in the send path and refuses `recompose`/`ask` without an explicit override.
+3. **A scheduled letter hid a bad verdict** — chip precedence showed only "Scheduled", and scheduling can precede the packet.
+4. **The recompose pin skipped eligibility screening.** Its licence ("a human approved this letter") does not extend to a model's suggestion. Caught 1 in 12 real targets — `nevada/medicaid-long-term-care`, ruled out for that family.
+
+**Cost:** ~$24/month ongoing, ~$33 one-time for a Batch sweep of all 642 programs. Fit read is $0.0008/call. **Cost was never the constraint.**
+
+**PR:** #1689 → staging. **Artifact:** https://claude.ai/code/artifact/090ca73d-be16-4402-ad86-5f68a954f2f1
+
+**Next up**
+
+- **The packet cron has never executed.** `cron_runs` = 0. Every number above comes from hand-run scripts. Watch the first `:25` UTC run after #1689 merges and re-check that `benefits_cascade`, `sms_consent` and `benefits_results` survive the metadata write across every row it touches — verified on n=1 only.
+- **TJ's call: does a recomposed letter need a read before it sends?** 54 recomposes is ~$5 and changes what 54 families are told. My read: yes for the first batch, then measure.
+- **TJ's call: weeks-first or need-first.** A family who Googles "SNAP Texas" and says they need care money has given two true signals. Entry-source still wins the pick; the letter now at least bridges honestly ("LIHEAP will not pay for care itself. It lowers the energy bill, which frees up money each month."). Screening at tier 1 is the unbuilt half and waits on this answer.
+- 24 letters held on **program never verified** — the one hold still doing real work. 642 programs, 155 (24%) ever verified, five states at zero (AK, DC, ME, WI, WY).
+- `getProgramsForFamily` now reads the need, which changes the **quiz results** and coordinator emails for every new family — not just these letters. Unwatched so far.
+
 ### 2026-08-21 — Provider answers stay visible (`codex/provider-qa-answer-priority`)
 
 Provider profile Q&A now treats published provider responses as the durable social proof: the inline preview shows answered threads without allowing newer unanswered questions to displace them, and the all-questions sheet opens with answers first while unanswered items remain behind an explicit disclosure. Server render and the hydrated GET now use the same publication-safe public dataset and deterministic ordering, removing the refresh-time 7→9 question swap. Pre-test also fixed two real edge cases: repeated asks could receive raw unpublished answer text from POST, and an in-flight mount GET could overwrite a newer submit/edit state. **Files:** `app/provider/[slug]/page.tsx`, `app/api/questions/route.ts`, `components/providers/QASectionV2.tsx`, `lib/qa-utils.ts`. **Validation:** TypeScript, targeted ESLint (0 errors; two existing `<img>` warnings), focused ordering/empty-answer/tie-break/immutability checks, and `git diff --check` pass; production compilation passed, while static generation remains blocked locally by missing Supabase env vars. **PR:** #1665 → `staging`. **Next:** review the Vercel preview on desktop/mobile, hard-refresh Graceful Homecare, expand/hide unanswered questions, submit a new question, and confirm a pending-verification answer never appears.

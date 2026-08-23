@@ -456,7 +456,12 @@ function checkEmptyDocuments(st, p) {
 function checkAnchorPhoneDrift(st, p) {
   const lead = (p.contacts || []).find((c) => c.phone);
   if (!lead || !p.phone) return;
-  const norm = (v) => String(v).replace(/[^0-9]/g, '');
+  // 11 digits starting with 1 is the same number as its 10-digit form:
+  // "1-800-211-2116" and "(800) 211-2116" must not read as a disagreement.
+  const norm = (v) => {
+    const d = String(v).replace(/[^0-9]/g, '');
+    return d.length === 11 && d.startsWith('1') ? d.slice(1) : d;
+  };
   if (norm(p.phone) === norm(lead.phone)) return;
   report({
     state: st, programId: p.id, program: p.name, check: 'anchor-phone-drift', severity: 'high',

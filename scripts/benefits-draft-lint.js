@@ -157,12 +157,18 @@ function isDialable(v) {
 /** Reproduce what benefits-navigator-send.server.ts actually transmits. The
  *  stored SMS is not the sent SMS: the send path appends a progress prompt and
  *  a STOP line unless the draft already carries them. */
+const SMS_SAMPLE_URL = 'https://olera.care/m/XXXXXXXXXXXX?src=benefits_first_step_sms';
+
 function assembleSms(draftSms) {
   if (!draftSms) return null;
-  const url = 'https://olera.care/m/XXXXXXXXXXXX?src=benefits_first_step_sms';
   const progress = !/\bCALLED\b/i.test(draftSms) ? ' Reply CALLED, NO ANSWER, or STUCK.' : '';
   const stop = /reply stop/i.test(draftSms) ? '' : ' Reply STOP to opt out.';
-  return draftSms.replace(/\{link\}/g, url) + progress + stop;
+  // Mirrors substituteSmsLink() in benefits-navigator-send.server.ts: punctuation
+  // flush against the placeholder is dropped so it cannot be pulled into the
+  // tapped URL. Keep the two in step or every downstream length/STOP check here
+  // is measuring a message the send path no longer transmits.
+  const body = draftSms.replace(/\{link\}[.,;:!?]*\s*/g, SMS_SAMPLE_URL + ' ').trimEnd();
+  return body + progress + stop;
 }
 
 /** Names the record itself marks as retired, e.g. "formerly called the Community
@@ -304,11 +310,19 @@ function checkSmsAssembly(ctx) {
       detail: 'The SMS has no {link} placeholder, so the family gets no plan page.',
       value: draft, fix: 'Add {link} where the plan URL belongs.' });
   }
-  if (/\{link\}[.,;:!?]/.test(draft)) {
-    report({ ...meta, check: 'sms-assembly', severity: 'medium',
-      detail: 'Punctuation sits flush against {link}. Some SMS clients pull the trailing character into the tapped URL and the link 404s.',
-      value: draft.match(/\{link\}[.,;:!?]/)[0],
-      fix: 'Put a space after {link}, or end the sentence before it.' });
+  // Tests the ASSEMBLED message, not the stored draft. The send path strips
+  // punctuation flush against the link, so a draft written as "{link}." is
+  // transmitted correctly and is not a finding. A hit here means the send path
+  // regressed, which is worth shouting about: the plan link is the only
+  // tappable thing in the text.
+  const sentForLink = assembleSms(draft);
+  const linkAt = sentForLink ? sentForLink.indexOf(SMS_SAMPLE_URL) : -1;
+  const afterLink = linkAt >= 0 ? sentForLink[linkAt + SMS_SAMPLE_URL.length] || '' : '';
+  if (linkAt >= 0 && /[.,;:!?]/.test(afterLink)) {
+    report({ ...meta, check: 'sms-assembly', severity: 'high',
+      detail: 'The transmitted message has punctuation flush against the plan URL. Some SMS clients pull the trailing character into the tapped link and it 404s. The send path is supposed to strip this.',
+      value: SMS_SAMPLE_URL + afterLink,
+      fix: 'Check substituteSmsLink() in benefits-navigator-send.server.ts.' });
   }
   if (/[‘’“”—]/.test(draft)) {
     report({ ...meta, check: 'sms-assembly', severity: 'medium',

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.018Z
+ * Last updated: 2026-08-23T08:40:32.509Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1043,7 +1043,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Find your county's weatherization agency",
-            "description": "Visit adeca.alabama.gov/weatherization for the complete county list. Central Alabama residents call (866) 780-4945 or (334) 262-4300. Northeast Alabama (Jefferson, Blount counties) call (256) 999-1166. Northwest Alabama call (256) 383-3832. Huntsville area call (256) 851-9800."
+            "description": "Visit adeca.alabama.gov/weatherization for the complete county list. Central Alabama residents (Regions 9 and 10) call (334) 262-4300. Northeast Alabama (Jefferson, Blount counties) call (256) 999-1166. Northwest Alabama call (256) 383-3832. Huntsville area call (256) 851-9800."
           },
           {
             "step": 2,
@@ -1085,19 +1085,19 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Central Alabama Regional Planning",
-          "phone": "(866) 780-4945",
-          "description": "Montgomery area and surrounding counties",
-          "hours": "Business hours"
+          "label": "Alabama 2-1-1 (start here, locator)",
+          "phone": "2-1-1",
+          "description": "The state does not take weatherization applications. Alabama contracts 13 regional community action agencies covering all 67 counties, and yours is the one that signs you up. 2-1-1 can point you toward local services, and the county map is at adeca.alabama.gov/weatherization.",
+          "hours": "Locator line"
         },
         {
-          "label": "Central Alabama Regional Planning",
+          "label": "Central Alabama Regional Planning (Regions 9 and 10 only)",
           "phone": "(334) 262-4300",
           "description": "Alternative number for Montgomery area",
           "hours": "Business hours"
         },
         {
-          "label": "Northeast Alabama CAA",
+          "label": "Northeast Alabama Community Action Agency (Region 3 only)",
           "phone": "(256) 999-1166",
           "description": "Jefferson, Blount counties and surrounding areas",
           "hours": "Call to schedule appointment"
@@ -1170,10 +1170,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "(866) 780-4945",
+      "phone": null,
       "sourceUrl": "https://adeca.alabama.gov/weatherization/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-23"
     },
     {
       "id": "ship-medicare-counseling",

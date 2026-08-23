@@ -151,7 +151,7 @@ COMPANION TEXT MESSAGE
 Also draft one short text message. It goes only to families who asked for texts, alongside the email, from the same number that texted their results. Texts get seen when email does not, so this is often the first thing they read.
 - Two or three short sentences, under 240 characters total. It must sound like a person texting, not a notification. Same voice rules as the letter.
 - Continue the identity established in the Day-0 thread: say this is Olera's care team following up, then point at the step the team prepared in one clause. Do not switch the text thread to "TJ from Olera" even when the companion email is TJ-signed. End exactly with "Reply CALLED, NO ANSWER, or STUCK." This gives the family a clear way to move their plan forward without opening a link.
-- Include the literal placeholder {link} exactly once where the plan link belongs. Write no other links, no phone numbers, and no opt-out language (both are added automatically).
+- Include the literal placeholder {link} exactly once where the plan link belongs. Write no other links, no phone numbers, and no opt-out language (both are added automatically). Never put a period or any other punctuation directly after {link}. End the clause before it, or let the link sit at the end of the sentence.
 
 FORMAT
 Return exactly this format, nothing else:

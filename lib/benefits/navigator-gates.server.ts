@@ -182,6 +182,33 @@ async function fitViaAnthropic(input: FitInput): Promise<FitRead | null> {
   }
 }
 
+/**
+ * The exact request body the fit gate sends to OpenAI.
+ *
+ * Exported so scripts/check-openai-key.ts posts THIS object rather than a
+ * hand-written copy of it. That guard passed for hours while every
+ * production fit call returned 400, because the copy omitted a parameter the
+ * real call sent. A guard that exercises a different payload than production
+ * is not a guard.
+ *
+ * No `temperature`: gpt-5.6-terra accepts only the default of 1 and rejects
+ * an explicit 0 outright. Nothing about this call can be pinned — Opus 5
+ * removes sampling parameters too — which is why a packet is built once and
+ * stored rather than recomputed on read.
+ */
+export function openAIFitBody(input: FitInput): Record<string, unknown> {
+  return {
+    model: FIT_MODEL_OPENAI,
+    messages: [
+      { role: "system", content: FIT_SYSTEM },
+      { role: "user", content: fitUserMessage(input) },
+    ],
+    response_format: { type: "json_object" },
+  };
+}
+
+export { OPENAI_URL, FIT_MODEL_OPENAI };
+
 async function fitViaOpenAI(input: FitInput): Promise<FitRead | null> {
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) return null;
@@ -189,19 +216,7 @@ async function fitViaOpenAI(input: FitInput): Promise<FitRead | null> {
     const res = await fetch(OPENAI_URL, {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: FIT_MODEL_OPENAI,
-        messages: [
-          { role: "system", content: FIT_SYSTEM },
-          { role: "user", content: fitUserMessage(input) },
-        ],
-        // Pin what can be pinned. Verdicts still vary run to run — Opus 5
-        // rejects sampling parameters outright — which is why a packet is
-        // built once and stored rather than recomputed on read. Rebuilding
-        // is a deliberate act, not something a page load does.
-        temperature: 0,
-        response_format: { type: "json_object" },
-      }),
+      body: JSON.stringify(openAIFitBody(input)),
     });
     if (!res.ok) return null;
     const body = (await res.json()) as { choices?: { message?: { content?: string } }[] };

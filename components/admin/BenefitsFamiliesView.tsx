@@ -373,6 +373,7 @@ export default function BenefitsFamiliesView() {
       sms?: string,
       testEmail?: string,
       scheduledAt?: string,
+      overridePacket?: boolean,
     ): Promise<boolean> => {
       setCaseBusy(true);
       setCaseError(null);
@@ -380,7 +381,7 @@ export default function BenefitsFamiliesView() {
         const res = await fetch(`/api/admin/benefits/families/${profileId}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action, subject, body: letter, sms, testEmail, scheduledAt }),
+          body: JSON.stringify({ action, subject, body: letter, sms, testEmail, scheduledAt, overridePacket }),
         });
         const d = await res.json().catch(() => null);
         if (!res.ok) {
@@ -1051,12 +1052,27 @@ export default function BenefitsFamiliesView() {
                               ⚠ Schedule blocked
                             </span>
                           ) : f.navigator.scheduledAt ? (
-                            <span
-                              className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800"
-                              title={`Sends automatically around ${formatEt(f.navigator.scheduledAt)}`}
-                            >
-                              ⏱ Scheduled
-                            </span>
+                            <>
+                              <span
+                                className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800"
+                                title={`Sends automatically around ${formatEt(f.navigator.scheduledAt)}`}
+                              >
+                                ⏱ Scheduled
+                              </span>
+                              {/* A scheduled letter whose packet says it must not
+                                  send still shows that. Scheduling can precede the
+                                  packet, and "Scheduled" alone would hide a pick
+                                  the family's own facts rule out. */}
+                              {(f.navigator.packet?.route === "recompose" ||
+                                f.navigator.packet?.route === "ask") && (
+                                <span
+                                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${ROUTE_CHIP[f.navigator.packet.route]}`}
+                                  title={f.navigator.packet.topHold ?? ""}
+                                >
+                                  {ROUTE_LABEL[f.navigator.packet.route]}
+                                </span>
+                              )}
+                            </>
                           ) : f.navigator.packet ? (
                             <span
                               className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${ROUTE_CHIP[f.navigator.packet.route]}`}
@@ -1104,8 +1120,8 @@ export default function BenefitsFamiliesView() {
                           reviewContext={reviewContextFor(f)}
                           familyLabel={f.displayName || f.email || "this family"}
                           hasEmail={!!f.email}
-                          onNavigator={(action, subject, letter, sms, testEmail, scheduledAt) =>
-                            navigatorAction(f.profileId, action, subject, letter, sms, testEmail, scheduledAt)
+                          onNavigator={(action, subject, letter, sms, testEmail, scheduledAt, overridePacket) =>
+                            navigatorAction(f.profileId, action, subject, letter, sms, testEmail, scheduledAt, overridePacket)
                           }
                           onAction={(action, text) => caseAction(f.profileId, action, text)}
                           onDelete={() => deleteFamily(f.profileId, f.displayName || f.email || "this family")}
@@ -1152,6 +1168,7 @@ function NavigatorDraftEditor({
     sms?: string,
     testEmail?: string,
     scheduledAt?: string,
+    overridePacket?: boolean,
   ) => Promise<boolean>;
 }) {
   // Saved edits win over the AI originals — reopening a row after a save
@@ -1290,9 +1307,24 @@ function NavigatorDraftEditor({
             const quietHoursNote = !hasEmail && textable
               ? " Outside the family’s texting hours, it will stay pending and send in their next window."
               : "";
-            if (window.confirm(`Send this ${channelCopy} to ${familyLabel}? It goes out under your name.${hasEmail ? " Email replies land in the support inbox." : ""}${quietHoursNote}${scheduledNote}`)) {
-              onNavigator("navigator_send", subject, letter, sms.trim() || undefined);
+            if (!window.confirm(`Send this ${channelCopy} to ${familyLabel}? It goes out under your name.${hasEmail ? " Email replies land in the support inbox." : ""}${quietHoursNote}${scheduledNote}`)) {
+              return;
             }
+            // The packet says this letter should not go as written. Ask a
+            // second time, naming the reason, and only then override. The
+            // server refuses without this flag, so a stray click cannot send.
+            const blocked = navigator.packet?.route;
+            let override = false;
+            if (blocked === "recompose" || blocked === "ask") {
+              const reason = navigator.packet?.holds[0] ?? "";
+              override = window.confirm(
+                blocked === "recompose"
+                  ? `This letter's program was ruled out.\n\n${reason}\n\nSend it anyway?`
+                  : `We do not know enough about this family to pick a program for them.\n\n${reason}\n\nSend it anyway?`,
+              );
+              if (!override) return;
+            }
+            onNavigator("navigator_send", subject, letter, sms.trim() || undefined, undefined, undefined, override);
           }}
           disabled={busy || letter.trim().length < 40}
           className="rounded-lg bg-gray-900 px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
@@ -1615,6 +1647,7 @@ function CasePanel({
     sms?: string,
     testEmail?: string,
     scheduledAt?: string,
+    overridePacket?: boolean,
   ) => Promise<boolean>;
   onAction: (action: string, text?: string) => void;
   onDelete: () => void;

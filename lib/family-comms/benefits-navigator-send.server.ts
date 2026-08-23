@@ -29,6 +29,7 @@ import {
   renderNavigatorEmail,
   type BenefitsNavigatorMeta,
 } from "./benefits-navigator.server";
+import { ROUTE_LABEL } from "@/lib/benefits/navigator-packet";
 
 export interface NavigatorSendOptions {
   profileId: string;
@@ -39,6 +40,12 @@ export interface NavigatorSendOptions {
   sms?: string | null;
   /** Who initiated the send. Both paths respect recipient SMS quiet hours. */
   trigger: "admin" | "scheduler";
+  /**
+   * Send anyway when the packet says this letter should not go as written.
+   * Only ever set from an explicit human confirmation in the admin drawer;
+   * the scheduler never sets it.
+   */
+  overridePacket?: boolean;
 }
 
 export type NavigatorSendResult =
@@ -62,6 +69,35 @@ export async function sendNavigatorLetter(
   if (navigator.status !== "pending" || !navigator.body) {
     return { ok: false, error: "No pending draft for this family", conflict: true };
   }
+  /**
+   * The packet gate. This is the ONE choke point both send paths share, so it
+   * is the only place a verdict can actually stop a letter.
+   *
+   * `recompose` means an independent read found the family's own stated facts
+   * rule this program out; `ask` means we never held enough to pick and the
+   * letter is a guess. Neither should reach a family by default. A UI that
+   * merely unticks a checkbox is not a guard — the scheduler cron does not
+   * render checkboxes, and a letter scheduled before its packet existed would
+   * otherwise fire on the verdict's blind side.
+   *
+   * Deliberately NOT blocked: `review`, an unbuilt packet, or a packet whose
+   * gates errored. Those mean "a person should look", and a person clicking
+   * Send is that person looking. Blocking them would strand the queue behind
+   * a cron.
+   */
+  const route = navigator.packet?.route;
+  if ((route === "recompose" || route === "ask") && !opts.overridePacket) {
+    const why = navigator.packet?.holds[0] ?? ROUTE_LABEL[route];
+    return {
+      ok: false,
+      conflict: true,
+      error:
+        route === "recompose"
+          ? `This letter's program was ruled out: ${why}. Recompose it, or send anyway if you disagree.`
+          : `We do not know enough about this family to pick a program: ${why}. Ask them first, or send anyway if you disagree.`,
+    };
+  }
+
   const smsEligible =
     !!profile.phone && !!(meta as { sms_consent?: unknown }).sms_consent &&
     profile.phone_validity !== "opted_out";

@@ -15,28 +15,14 @@
  * key looks exactly like no key at all from the outside.
  */
 import { config } from "dotenv";
+import { openAIFitBody, OPENAI_URL, FIT_MODEL_OPENAI } from "../lib/benefits/navigator-gates.server";
 
 config({ path: ".env.local" });
 
 /** Published rates for gpt-5.6-terra, 2026-08-23, per million tokens. */
 const RATE_IN = 2.0;
 const RATE_OUT = 12.0;
-const MODEL = "gpt-5.6-terra";
-
-/** A real fit-gate payload, small but structurally identical to production. */
-const SYSTEM = `You are an experienced senior-benefits counselor judging whether a program is the right FIRST call for a family. Return ONLY a JSON object: {"verdict":"good|questionable|wrong","why":"one sentence","better":"a program name or null"}`;
-const USER = `FAMILY:
-- care types: memory care
-- age 82
-- Medicaid: doesNotHave
-
-THE PICK:
-Low Income Home Energy Assistance Program (LIHEAP)
-what it is: Helps low-income households pay heating and cooling bills.
-eligibility: Household income at or below the state threshold.
-
-OTHER PROGRAMS AVAILABLE IN THIS STATE:
-Medicaid Aged & Disabled Waiver, Alzheimer's Respite Care, Area Agency on Aging`;
+const MODEL = FIT_MODEL_OPENAI;
 
 function mask(key: string): string {
   // Enough to tell two keys apart in a screenshot, not enough to use.
@@ -58,18 +44,25 @@ async function main() {
     console.log("⚠️  does not start with 'sk-' — check you copied the API key, not an org or project id");
   }
 
+  // Post the EXACT body production posts, built by the production function.
+  // A hand-written copy of it is how this guard passed while every real fit
+  // call returned 400 on a parameter the copy did not send.
+  const body = openAIFitBody({
+    factsBlock: "- care types: memory care\n- age 82\n- Medicaid: doesNotHave",
+    programName: "Low Income Home Energy Assistance Program (LIHEAP)",
+    programSummary: "Helps low-income households pay heating and cooling bills.",
+    eligibilitySummary: "Household income at or below the state threshold.",
+    stateProgramNames: [
+      "Medicaid Aged & Disabled Waiver",
+      "Alzheimer's Respite Care",
+      "Area Agency on Aging",
+    ],
+  });
   const started = Date.now();
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+  const res = await fetch(OPENAI_URL, {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [
-        { role: "system", content: SYSTEM },
-        { role: "user", content: USER },
-      ],
-      response_format: { type: "json_object" },
-    }),
+    body: JSON.stringify(body),
   });
   const ms = Date.now() - started;
 
@@ -83,14 +76,14 @@ async function main() {
     process.exit(1);
   }
 
-  const body = (await res.json()) as {
+  const payload = (await res.json()) as {
     model?: string;
     choices?: { message?: { content?: string } }[];
     usage?: { prompt_tokens?: number; completion_tokens?: number };
   };
-  const content = body.choices?.[0]?.message?.content ?? "";
+  const content = payload.choices?.[0]?.message?.content ?? "";
 
-  console.log(`\n✅ authenticated · ${ms}ms · served by ${body.model ?? "(unreported)"}`);
+  console.log(`\n✅ authenticated · ${ms}ms · served by ${payload.model ?? "(unreported)"}`);
 
   let parsed: { verdict?: string; why?: string } | null = null;
   try {
@@ -112,8 +105,8 @@ async function main() {
     }
   }
 
-  const pin = body.usage?.prompt_tokens ?? 0;
-  const pout = body.usage?.completion_tokens ?? 0;
+  const pin = payload.usage?.prompt_tokens ?? 0;
+  const pout = payload.usage?.completion_tokens ?? 0;
   const cost = (pin / 1e6) * RATE_IN + (pout / 1e6) * RATE_OUT;
   console.log(`\n   tokens: ${pin} in / ${pout} out`);
   console.log(`   cost:   $${cost.toFixed(5)} this call · ~$${(cost * 130).toFixed(2)} for a 130-letter queue`);

@@ -610,6 +610,9 @@ export async function POST(
         body: typeof body.body === "string" ? body.body : null,
         sms: typeof body.sms === "string" ? body.sms : null,
         trigger: "admin",
+        // Set only when the drawer's second confirmation was accepted. The
+        // scheduler has no equivalent and never overrides.
+        overridePacket: body.overridePacket === true,
       });
       if (!sendResult.ok) {
         return NextResponse.json(

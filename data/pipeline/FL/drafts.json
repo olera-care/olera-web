@@ -72,7 +72,7 @@
           {
             "step": 1,
             "title": "Call your local ADRC for a waitlist screening",
-            "description": "Call the statewide Elder Helpline at 1-800-96-ELDER (1-800-963-5337). They route you to the Aging and Disability Resource Center (ADRC) for your county. The ADRC does a telephonic screening that assigns a priority score from 1 to 7 based on frailty. Scores of 4 or higher (or 'imminent risk' at 7) are released from the waitlist faster."
+            "description": "Call the statewide Elder Helpline at 1-800-963-5337 (1-800-963-5337). They route you to the Aging and Disability Resource Center (ADRC) for your county. The ADRC does a telephonic screening that assigns a priority score from 1 to 7 based on frailty. Scores of 4 or higher (or 'imminent risk' at 7) are released from the waitlist faster."
           },
           {
             "step": 2,
@@ -123,7 +123,7 @@
         {
           "label": "Elder Helpline (start here)",
           "phone": "1-800-963-5337",
-          "description": "Statewide entry point (1-800-96-ELDER). Routes to your local ADRC for the waitlist screening. Email Medwaiver@elderaffairs.org for general program questions.",
+          "description": "Statewide entry point (1-800-963-5337). Routes to your local ADRC for the waitlist screening. Email Medwaiver@elderaffairs.org for general program questions.",
           "hours": "Monday-Friday, 8am-5pm local time"
         },
         {
@@ -1202,7 +1202,7 @@
           {
             "step": 1,
             "title": "Call the Elder Helpline",
-            "description": "Call 1-800-96-ELDER (1-800-963-5337). This is the Florida Department of Elder Affairs statewide line and it connects to the Aging and Disability Resource Center serving your loved one's county."
+            "description": "Call 1-800-963-5337 (1-800-963-5337). This is the Florida Department of Elder Affairs statewide line and it connects to the Aging and Disability Resource Center serving your loved one's county."
           },
           {
             "step": 2,
@@ -1246,7 +1246,7 @@
         {
           "label": "Florida Elder Helpline (start here)",
           "phone": "1-800-963-5337",
-          "description": "Statewide Department of Elder Affairs line, 1-800-96-ELDER. Routes to the Aging and Disability Resource Center for your county, which screens for EHEAP and takes the application.",
+          "description": "Statewide Department of Elder Affairs line, 1-800-963-5337. Routes to the Aging and Disability Resource Center for your county, which screens for EHEAP and takes the application.",
           "hours": null
         },
         {
@@ -1722,7 +1722,7 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local ADRCs (find via 1-800-96-ELDER)",
+            "name": "Local ADRCs (find via 1-800-963-5337)",
             "type": "service-area"
           },
           {
@@ -1764,7 +1764,7 @@
           {
             "step": 1,
             "title": "Call the Elder Helpline",
-            "description": "Call 1-800-96-ELDER (1-800-963-5337) to find your local Aging and Disability Resource Center (ADRC). Available Monday-Friday 8am-5pm ET."
+            "description": "Call 1-800-963-5337 (1-800-963-5337) to find your local Aging and Disability Resource Center (ADRC). Available Monday-Friday 8am-5pm ET."
           },
           {
             "step": 2,
@@ -1810,7 +1810,7 @@
       "contacts": [
         {
           "label": "Florida Elder Helpline",
-          "phone": "1-800-96-ELDER",
+          "phone": "1-800-963-5337",
           "description": "Statewide helpline to find your local ADRC and Meals on Wheels program",
           "hours": "Mon-Fri 8am-5pm local time"
         }
@@ -1875,7 +1875,7 @@
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "1-800-96-ELDER",
+      "phone": "1-800-963-5337",
       "sourceUrl": "https://elderaffairs.org/programs-and-services/food-assistance/",
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
@@ -1931,7 +1931,7 @@
           {
             "step": 1,
             "title": "Call the Elder Helpline",
-            "description": "Call 1-800-96-ELDER (1-800-963-5337) and ask to be connected to your local Area Agency on Aging (AAA) for ADI respite services."
+            "description": "Call 1-800-963-5337 (1-800-963-5337) and ask to be connected to your local Area Agency on Aging (AAA) for ADI respite services."
           },
           {
             "step": 2,
@@ -2692,7 +2692,7 @@
         {
           "label": "Elder Helpline (start here)",
           "phone": "1-800-963-5337",
-          "description": "Statewide entry point (1-800-96-ELDER). Routes to your loved one's local CCE provider for screening and assessment.",
+          "description": "Statewide entry point (1-800-963-5337). Routes to your loved one's local CCE provider for screening and assessment.",
           "hours": "Monday-Friday 8:00 AM-5:00 PM ET"
         },
         {
@@ -2833,12 +2833,12 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 1-800-96-ELDER for screening and assessment, processing varies but expect 30+ days for full approval.",
+        "summary": "Call 1-800-963-5337 for screening and assessment, processing varies but expect 30+ days for full approval.",
         "steps": [
           {
             "step": 1,
             "title": "Initial Contact",
-            "description": "Call 1-800-96-ELDER (1-800-963-5337) or the Elder Helpline at 1-800-262-2243 for initial screening and to determine if your loved one lives in the Elder Options service area."
+            "description": "Call 1-800-963-5337 (1-800-963-5337) or the Elder Helpline at 1-800-262-2243 for initial screening and to determine if your loved one lives in the Elder Options service area."
           },
           {
             "step": 2,
@@ -2895,7 +2895,7 @@
       "contacts": [
         {
           "label": "Elder Options Main Line",
-          "phone": "1-800-96-ELDER",
+          "phone": "1-800-963-5337",
           "description": "Primary intake and screening for Elder Options services. If your call routes to voicemail, leave a message; Elder Options returns calls in the order received, even during business hours.",
           "hours": "Monday-Friday 8am-5pm ET"
         },
@@ -2969,7 +2969,7 @@
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "1-800-96-ELDER",
+      "phone": "1-800-963-5337",
       "sourceUrl": "https://agingresources.org/",
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",

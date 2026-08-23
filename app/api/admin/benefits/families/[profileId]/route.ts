@@ -487,6 +487,15 @@ export async function POST(
       // would silently change the family's program because a phone number moved.
       const ruledOut =
         navigator.packet?.route === "recompose" ? navigator.pick?.programId ?? null : null;
+      // When both fit models independently named the SAME better program, the
+      // recompose has a destination rather than just an exclusion. Prefer it;
+      // selectFirstStepProgram falls back to the ladder if it cannot anchor a
+      // letter, so an unresolvable suggestion costs nothing.
+      const target = navigator.packet?.recomposeTarget ?? null;
+      const prefer =
+        ruledOut && target?.programId
+          ? { programId: target.programId, stateId: navigator.pick?.stateId ?? null }
+          : undefined;
 
       const draft = await composeNavigatorDraft(db, {
         profileId,
@@ -499,6 +508,7 @@ export async function POST(
         profileMeta: meta,
         factsRow: profile,
         ...(ruledOut ? { exclude: [ruledOut] } : {}),
+        ...(prefer ? { prefer } : {}),
       });
       if (!draft) {
         return NextResponse.json(

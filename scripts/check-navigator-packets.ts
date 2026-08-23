@@ -32,6 +32,13 @@ config({ path: ".env.local" });
 const args = process.argv.slice(2);
 const DRY = args.includes("--dry");
 const LIMIT = Number(args.find((a) => a.startsWith("--limit="))?.split("=")[1] ?? 0);
+/**
+ * Write every built packet to a JSON file. Building costs real model calls, so
+ * a run should be answerable more than once: the routing RULES are a pure
+ * function of the packet, and re-deciding a threshold should never mean paying
+ * to re-judge the same 129 letters.
+ */
+const DUMP = args.find((a) => a.startsWith("--dump="))?.split("=")[1] ?? null;
 /** Model calls are per-letter and the queue is >100; keep the fan-out civil. */
 const CONCURRENCY = 6;
 
@@ -133,6 +140,15 @@ async function main() {
     }
   }
   await Promise.all(Array.from({ length: CONCURRENCY }, worker));
+
+  if (DUMP) {
+    const fs = await import("node:fs");
+    // Dump the profile id alongside the packet: without it a re-score cannot
+    // join back to the family, which is the whole point of scoring offline.
+    const payload = packets.map(({ row, packet }) => ({ profileId: row.id, packet }));
+    fs.writeFileSync(DUMP, JSON.stringify(payload, null, 2));
+    console.log(`\n  dumped ${payload.length} packets -> ${DUMP}`);
+  }
 
   const byRoute = packets.reduce<Record<string, number>>((acc, p) => {
     acc[p.packet.route] = (acc[p.packet.route] ?? 0) + 1;

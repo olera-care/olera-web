@@ -103,6 +103,23 @@ export default function NavigatorPacketPanel({ packet }: { packet: NavigatorPack
         <span className="ml-auto text-[11px] text-gray-400">checked {built}</span>
       </div>
 
+      {packet.recomposeTarget && (
+        <p className="mt-2 text-[12.5px] leading-relaxed text-gray-700">
+          <span className="text-gray-400">Both models would start with </span>
+          <span className="font-semibold text-gray-900">{packet.recomposeTarget.name}</span>
+          {/* Recompose only pins to the target on the `recompose` route. On any
+              other route the button re-drafts the SAME program, so promising a
+              switch here would be a lie the button does not keep. */}
+          {packet.route !== "recompose" ? (
+            <span className="text-gray-400"> — noted, but Recompose will re-draft the current program, not switch.</span>
+          ) : packet.recomposeTarget.programId ? (
+            <span className="text-gray-400">. Recompose switches to it.</span>
+          ) : (
+            <span className="text-gray-400">, but it did not match a program we hold, so recompose picks from the ladder.</span>
+          )}
+        </p>
+      )}
+
       <div className="mt-2.5 space-y-0.5 border-t border-gray-100 pt-2.5">
         {packet.holds.length > 0 && (
           <>

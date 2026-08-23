@@ -375,6 +375,44 @@ export function readClearance(
   };
 }
 
+/**
+ * Resolve a program NAME a model suggested back to a real pipeline program.
+ *
+ * The models are asked to pick from the state list we hand them, so an exact
+ * normalised match is the common case; containment covers "Community Choices"
+ * against "Community Choices Waiver". Returns null rather than guessing —
+ * an unresolvable name still records the target for a human to read, it just
+ * cannot drive an automatic re-selection.
+ */
+export function resolveProgramByName(
+  stateId: string | null,
+  name: string,
+): { programId: string; label: string } | null {
+  const abbrev = stateId ? getStateAbbrev(stateId) : null;
+  const programs = abbrev ? pipelineDrafts[abbrev]?.programs ?? [] : [];
+  const norm = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  const target = norm(name);
+  if (target.length < 6) return null;
+
+  for (const p of programs) {
+    for (const candidate of [p.shortName, p.name]) {
+      if (!candidate) continue;
+      const c = norm(candidate);
+      if (c === target) return { programId: p.id, label: p.shortName || p.name };
+    }
+  }
+  for (const p of programs) {
+    for (const candidate of [p.shortName, p.name]) {
+      if (!candidate) continue;
+      const c = norm(candidate);
+      if (c.length >= 6 && (c.includes(target) || target.includes(c))) {
+        return { programId: p.id, label: p.shortName || p.name };
+      }
+    }
+  }
+  return null;
+}
+
 /** Program display names for the family's state, for the fit gate's suggestion. */
 export function stateProgramNames(stateId: string | null): string[] {
   if (!stateId) return [];

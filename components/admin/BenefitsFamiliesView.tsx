@@ -11,6 +11,12 @@ import {
   type ReviewItem,
   type ReviewPick,
 } from "@/lib/benefits/navigator-review-prompt";
+import NavigatorPacketPanel from "@/components/admin/NavigatorPacketPanel";
+import {
+  ROUTE_LABEL,
+  type NavigatorPacket,
+  type PacketRoute,
+} from "@/lib/benefits/navigator-packet";
 import { etInputToUtcIso, toEtInputValue, formatEt } from "@/lib/eastern-time";
 import { useUrlDateRangeState } from "@/hooks/useUrlDateRangeState";
 
@@ -95,6 +101,13 @@ interface FamilyRow {
     scheduledAt: string | null;
     scheduleFailed: boolean;
     firstStep: string | null;
+    /** Verdict summary. Null until the packet cron has judged this letter. */
+    packet: {
+      route: PacketRoute;
+      topHold: string | null;
+      holdCount: number;
+      builtAt: string;
+    } | null;
   } | null;
   /** Latest real inbound SMS — the 💬 chip (webhook writes metadata.sms_inbound). */
   inboundText: { at: string; body: string | null } | null;
@@ -142,6 +155,8 @@ interface NavigatorDetail {
   sent_at?: string;
   /** Full pickSnapshot from metadata — the letter's verifiable claims. */
   pick?: ReviewPick;
+  /** The computed routing verdict, rendered above the letter in the drawer. */
+  packet?: NavigatorPacket;
 }
 
 type LifecycleStatus =
@@ -154,12 +169,16 @@ type LifecycleStatus =
   | "new"
   | "in_cascade";
 
-type QueueFilter = LifecycleStatus | "all" | "draft_ready" | "scheduled";
+type QueueFilter = LifecycleStatus | "all" | "draft_ready" | "scheduled" | `route_${PacketRoute}`;
 
 const QUEUE_FILTERS: QueueFilter[] = [
   "all",
   "draft_ready",
   "scheduled",
+  "route_ask",
+  "route_recompose",
+  "route_review",
+  "route_auto",
   "needs_help",
   "stalled",
   "acting",
@@ -275,7 +294,21 @@ export default function BenefitsFamiliesView() {
   >("idle");
 
   const openBatchModal = () => {
-    setBatchExcluded(new Set());
+    // Pre-exclude anything the packet says must not send as written. Batch
+    // scheduling used to treat every draft-ready letter as equivalent; a
+    // letter routed `recompose` names a program the family's own facts rule
+    // out, and one routed `ask` was a guess we should not have made. Both are
+    // still unticked-by-default rather than hidden, because the reviewer
+    // overriding this deliberately is legitimate and hiding rows is not.
+    const holdBack = new Set(
+      (data?.families ?? [])
+        .filter((f) => {
+          const r = f.navigator?.status === "pending" ? f.navigator.packet?.route : null;
+          return r === "ask" || r === "recompose";
+        })
+        .map((f) => f.profileId),
+    );
+    setBatchExcluded(holdBack);
     setBatchTime(nextEasternMorning());
     setBatchState("idle");
     setBatchOpen(true);
@@ -470,6 +503,17 @@ export default function BenefitsFamiliesView() {
     (f) => f.navigator?.status === "pending" && f.navigator.scheduledAt,
   ).length;
   const draftReadyCount = pendingDraftCount - scheduledCount;
+  // Route counts come off the packet, so they only cover letters the cron has
+  // judged. A pending draft with no packet yet counts toward none of them,
+  // which is honest: we do not know where it goes until it is judged.
+  const routeCounts = families.reduce<Record<string, number>>((acc, f) => {
+    const r = f.navigator?.status === "pending" ? f.navigator.packet?.route : null;
+    if (r) acc[r] = (acc[r] ?? 0) + 1;
+    return acc;
+  }, {});
+  const unjudged = families.filter(
+    (f) => f.navigator?.status === "pending" && !f.navigator.packet,
+  ).length;
 
   /** Redacted review context for the AI fact-check prompt — never carries
    *  the family's name or email (the name is passed only so the builder can
@@ -550,7 +594,10 @@ export default function BenefitsFamiliesView() {
   const matchesFilter = (f: FamilyRow) =>
     filter === "all"
       ? true
-      : filter === "draft_ready"
+      : filter.startsWith("route_")
+        ? f.navigator?.status === "pending" &&
+          f.navigator.packet?.route === filter.slice("route_".length)
+        : filter === "draft_ready"
         ? f.navigator?.status === "pending" && !f.navigator.scheduledAt
         : filter === "scheduled"
           ? f.navigator?.status === "pending" && !!f.navigator.scheduledAt
@@ -687,6 +734,10 @@ export default function BenefitsFamiliesView() {
             ["all", "All"],
             ["draft_ready", "Draft ready"],
             ["scheduled", "Scheduled"],
+            ["route_ask", ROUTE_LABEL.ask],
+            ["route_recompose", ROUTE_LABEL.recompose],
+            ["route_review", ROUTE_LABEL.review],
+            ["route_auto", ROUTE_LABEL.auto],
             ["needs_help", "Needs help"],
             ["stalled", "Stalled"],
             ["acting", "Acting"],
@@ -701,6 +752,7 @@ export default function BenefitsFamiliesView() {
             key === "all" ? families.length
             : key === "draft_ready" ? draftReadyCount
             : key === "scheduled" ? scheduledCount
+            : key.startsWith("route_") ? routeCounts[key.slice("route_".length)] ?? 0
             : summary.lifecycle?.[key] ?? 0;
           if (key !== "all" && count === 0 && filter !== key) return null;
           return (
@@ -715,6 +767,11 @@ export default function BenefitsFamiliesView() {
             </button>
           );
         })}
+        {unjudged > 0 && (
+          <span className="text-[11px] text-gray-400">
+            {unjudged} not checked yet
+          </span>
+        )}
         {pendingDraftCount > 0 && (
           <span className="ml-auto flex items-center gap-2">
             {typeof exportState === "object" && (
@@ -813,6 +870,14 @@ export default function BenefitsFamiliesView() {
                     <span className="min-w-0 flex-1 truncate text-xs text-gray-700">
                       {f.email || f.displayName || f.profileId}
                     </span>
+                    {f.navigator?.packet && f.navigator.packet.route !== "auto" && (
+                      <span
+                        className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${ROUTE_CHIP[f.navigator.packet.route]}`}
+                        title={f.navigator.packet.topHold ?? ""}
+                      >
+                        {ROUTE_LABEL[f.navigator.packet.route]}
+                      </span>
+                    )}
                     <span className="shrink-0 text-[11px] text-gray-400">
                       {f.navigator?.firstStep || "—"}{f.state ? ` · ${f.state}` : ""}
                     </span>
@@ -992,12 +1057,28 @@ export default function BenefitsFamiliesView() {
                             >
                               ⏱ Scheduled
                             </span>
+                          ) : f.navigator.packet ? (
+                            <span
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${ROUTE_CHIP[f.navigator.packet.route]}`}
+                              title={
+                                f.navigator.packet.holdCount > 0
+                                  ? f.navigator.packet.topHold ?? ""
+                                  : "Clean on every gate"
+                              }
+                            >
+                              {ROUTE_LABEL[f.navigator.packet.route]}
+                              {f.navigator.packet.holdCount > 1 && (
+                                <span className="ml-1 font-normal opacity-70">
+                                  {f.navigator.packet.holdCount}
+                                </span>
+                              )}
+                            </span>
                           ) : (
                             <span
-                              className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800"
-                              title="Navigator guidance is drafted and waiting for your review"
+                              className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500"
+                              title="Drafted. The packet cron has not judged this letter yet."
                             >
-                              ✍ Draft ready
+                              ✍ Not yet checked
                             </span>
                           ))}
                       </span>
@@ -1150,6 +1231,9 @@ function NavigatorDraftEditor({
   };
   return (
     <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+      {/* The verdict sits ABOVE the letter: whether this is the right letter
+          for this family is the question you ask before reading the prose. */}
+      {navigator.packet && <NavigatorPacketPanel packet={navigator.packet} />}
       <div className="mb-2 flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-amber-700">
           ✍ Navigator guidance — waiting for you
@@ -1396,6 +1480,14 @@ function BreakdownRow({ label, count, total }: { label: React.ReactNode; count: 
     </div>
   );
 }
+
+/** Route chip colours. One saturated element per row; the route IS the state. */
+const ROUTE_CHIP: Record<PacketRoute, string> = {
+  ask: "bg-violet-100 text-violet-800",
+  recompose: "bg-rose-100 text-rose-800",
+  review: "bg-amber-100 text-amber-800",
+  auto: "bg-emerald-100 text-emerald-800",
+};
 
 const LIFECYCLE_CHIP: Record<LifecycleStatus, { label: string; className: string }> = {
   needs_help: { label: "Needs help", className: "bg-amber-100 text-amber-800" },

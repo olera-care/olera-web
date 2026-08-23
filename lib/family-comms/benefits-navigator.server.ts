@@ -21,14 +21,17 @@
  *    eligibility claims (Phase 4 gate: zero payment-acceptance data).
  */
 import Anthropic from "@anthropic-ai/sdk";
+import type { NavigatorPacket } from "@/lib/benefits/navigator-packet";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   selectFirstStepProgram,
   buildCallScript,
   benefitsSituationLine,
   familyPhraseFromRelationship,
+  parseEntrySourceProgram,
   type FirstStepPick,
 } from "./benefits-cascade.server";
+import { findPipelineDraftFor, getStateAbbrev } from "@/lib/program-data";
 import { familyBenefitsFacts, hasCoResidentSpouse } from "./benefits-guidance.server";
 import { countProvidersInArea } from "./provider-recs.server";
 
@@ -78,6 +81,22 @@ export interface BenefitsNavigatorMeta {
    *  draft stays pending and the reason surfaces in the admin queue. */
   schedule_failed_at?: string;
   schedule_failed_reason?: string;
+  /** Recompose: the letter was re-drafted from current program data, which
+   *  discards the prior draft and TJ's edits to it. Present on live rows and
+   *  previously absent from this type. */
+  recomposed_at?: string;
+  recomposed_reason?: string;
+  /** Set when a fact-check round patched this draft's text in place. */
+  factcheck_patched_at?: string;
+  dismissed_reason?: string;
+  /** Composed by scripts/backfill-benefits-navigator-drafts.ts rather than by
+   *  the coordinator, which is why its intake can be months old. */
+  backfill?: boolean;
+  backfill_intake_age_days?: number;
+  /** The computed routing verdict (lib/benefits/navigator-packet.ts). Built
+   *  by the benefits-navigator-packets cron whenever the letter changes, and
+   *  read by the admin queue to explain why a letter is waiting. */
+  packet?: NavigatorPacket;
   sent_at?: string;
   /** Who fired the send: TJ's button or the scheduler cron. */
   sent_via?: "admin" | "scheduler";
@@ -139,7 +158,9 @@ HONESTY RULES (never break these)
 - The provider offer, when included, is only an offer to introduce them if they reply. No claims about what providers accept or cost.
 
 STRUCTURE (90-130 words total)
-1. One or two sentences: who you are, and the concrete thing they did. Acknowledge, in plain terms, what they came looking for. If FAMILY says the first name is unknown, open with no name at all ("Hi, it's TJ with Olera.") — never guess a name and never use a placeholder.
+1. One or two sentences: who you are, and the concrete thing they did. Acknowledge, in plain terms, what they came looking for. If CAME LOOKING FOR names a program that is NOT the first step below, say so in one short clause before you give the step, so they can see we read what they typed. One clause, not a paragraph, and never talk them out of the thing they came for: "You were looking at X. That is worth applying for. For help with Y, the call I would start with is..." Do not do this when CAME LOOKING FOR is the same program as the first step, or when it says nothing specific.
+
+NAMING WHAT THEY NEED CREATES A DEBT. If you say back what they told you they need, and the first step does not directly answer it, you MUST bridge the two in the same breath. One plain sentence saying honestly what this step does and does not do, and why it is still the one to start with. "This will not pay for care itself. It frees up money each month, and it moves in weeks instead of months." Never say their need back and then hand them something unrelated with no connection, which reads as not having listened at all and is worse than never mentioning it. If you cannot make an honest bridge, do not name the need. If FAMILY says the first name is unknown, open with no name at all ("Hi, it's TJ with Olera.") — never guess a name and never use a placeholder.
 2. The one first step, laid out so it feels doable. Name their plan page in the FIRST sentence of this paragraph, before you give the phone number, and say in that same sentence what is written on it: the phone script and the short list of what to have nearby. Then name the program, who to call, and the number. The number must appear in a sentence of yours, never only on the page, so a family who would rather just dial is never forced through a link. If the program is a Medicaid waiver or needs a Medicaid application first, say plainly that the process runs weeks to months. Never imply the call itself resolves it.
 3. ONE of the following, never both, chosen from the data:
    - If MISSING FACTS lists anything: one gentle ask for a single fact, tied to a concrete payoff ("If you tell me X, I can check Y for you").
@@ -307,12 +328,51 @@ export async function composeNavigatorDraft(
   const intakeRef = intakeReference(input.intakeAt);
   const callScript = buildCallScript(pick.shortName, relationship);
 
+  // What they SAID they need, and what they CAME for. Two different facts,
+  // and neither reached the composer before 2026-08-23.
+  const NEED_PHRASE: Record<string, string> = {
+    payingForCare: "help paying for care",
+    stayingAtHome: "help staying at home",
+    memoryHealth: "help with memory and health",
+    companionship: "companionship",
+  };
+  const rawNeed =
+    (input.profileMeta as { benefits_results?: { answers?: { careNeed?: unknown } } })
+      ?.benefits_results?.answers?.careNeed;
+  const statedNeed = typeof rawNeed === "string" ? NEED_PHRASE[rawNeed] ?? null : null;
+
+  // The entry program, resolved independently of which tier won the pick.
+  let entryLabel: string | null = null;
+  try {
+    const { data: acct } = await db
+      .from("accounts")
+      .select("signup_source")
+      .eq("id", input.accountId)
+      .maybeSingle();
+    const entry = parseEntrySourceProgram(acct?.signup_source as string | null);
+    if (entry) {
+      const draft = findPipelineDraftFor(getStateAbbrev(entry.stateId), entry.programId);
+      entryLabel = draft?.shortName || draft?.name || null;
+    }
+  } catch {
+    // A missing entry label just means the letter opens without naming it.
+    entryLabel = null;
+  }
+
   const dataBlock = [
     "FAMILY (only what they told us — reference nothing else):",
     `- First name: ${firstName ?? "unknown (open without a name)"}`,
     `- Who needs care: ${familyPhrase}`,
     `- State: ${input.state ?? "unknown"}${input.city ? `, city: ${input.city}` : ""}`,
-    `- Used the benefits finder ${intakeRef.phrase}, entering through the ${pick.source === "entry" ? `${pick.shortName} page (that program is what brought them in)` : "site"}`,
+    `- Used the benefits finder ${intakeRef.phrase}`,
+    // The stated need and the entry program are DIFFERENT facts, and the
+    // composer used to see the entry program only when it happened to be the
+    // pick. So a family who typed "paying for care" and landed on the SNAP
+    // page got a SNAP letter that never acknowledged either thing.
+    statedNeed ? `- What they said they need: ${statedNeed}` : null,
+    entryLabel
+      ? `- CAME LOOKING FOR: the ${entryLabel} page${entryLabel === pick.shortName ? " (which is also the first step below)" : " (NOT the first step below)"}`
+      : "- CAME LOOKING FOR: nothing specific, they arrived through the site",
     intakeRef.stale
       ? "- TIMING: this was a while ago and we are following up late. Say so plainly in the opening, in a few words, without apologizing at length or explaining ourselves. Never imply they just used it. Their situation may well have changed, so offer the step as something still worth doing rather than as news."
       : null,

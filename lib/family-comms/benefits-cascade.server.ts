@@ -347,7 +347,7 @@ function toPick(
 }
 
 /** Parse "/benefits/{stateSlug}/{programId}" out of an entry-source path. */
-function parseEntrySourceProgram(entrySource: string | null | undefined): { stateId: string; programId: string } | null {
+export function parseEntrySourceProgram(entrySource: string | null | undefined): { stateId: string; programId: string } | null {
   if (!entrySource) return null;
   const segs = entrySource.split("?")[0].split("/").filter(Boolean);
   if (segs.length === 3 && segs[0] === "benefits") return { stateId: segs[1], programId: segs[2] };

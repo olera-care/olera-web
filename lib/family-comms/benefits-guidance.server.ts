@@ -65,6 +65,15 @@ export type FinancialPath = "a" | "b" | "c";
 export interface FamilyBenefitsFacts {
   state: string | null; // 2-letter state code
   careTypes: string[];
+  /**
+   * The need the family picked at intake, from
+   * metadata.benefits_results.answers.careNeed. Present on 89% of
+   * completions while careTypes is present on 6%, so this is the directional
+   * fact the ranker actually has — and until 2026-08-23 nothing read it, so
+   * the paysForCare bonus below could never fire for the 67% of families who
+   * said "payingForCare".
+   */
+  careNeed: "payingForCare" | "stayingAtHome" | "memoryHealth" | "companionship" | null;
   /** Self-sorted path from metadata.financial_path (the orientation fact). */
   financialPath: FinancialPath | null;
   /** From metadata.medicaid_status or inferred from payment_methods. */
@@ -154,9 +163,19 @@ export function familyBenefitsFacts(profile: { state?: string | null; care_types
     financialPath = "c";
   }
 
+  const rawNeed = meta.benefits_results?.answers?.careNeed ?? meta.care_need ?? null;
+  const careNeed =
+    rawNeed === "payingForCare" ||
+    rawNeed === "stayingAtHome" ||
+    rawNeed === "memoryHealth" ||
+    rawNeed === "companionship"
+      ? (rawNeed as FamilyBenefitsFacts["careNeed"])
+      : null;
+
   return {
     state: profile.state || null,
     careTypes: Array.isArray(profile.care_types) ? profile.care_types : [],
+    careNeed,
     financialPath,
     medicaidStatus,
     veteranStatus,
@@ -238,6 +257,12 @@ function isMedicaidGated(p: BenefitProgram): boolean {
   return p.requires_medicaid || /\bmedicaid\b|\bwaiver\b/i.test(p.name);
 }
 
+/** Setting affinity from the stated need, when careTypes is empty (94% of the time). */
+function careSettingFromNeed(need: FamilyBenefitsFacts["careNeed"]): "home" | "facility" | null {
+  if (need === "stayingAtHome") return "home";
+  return null;
+}
+
 function careSettingAffinity(careTypes: string[]): "home" | "facility" | null {
   const joined = careTypes.join(" ").toLowerCase().replace(/_/g, " ");
   if (!joined) return null;
@@ -281,7 +306,7 @@ export async function getProgramsForFamily(
   const statePrograms = ((stateRes.data as BenefitProgram[] | null) || []).map((p) => ({ p, isState: true }));
   const federalPrograms = ((federalRes.data as BenefitProgram[] | null) || []).map((p) => ({ p, isState: false }));
 
-  const affinity = careSettingAffinity(facts.careTypes);
+  const affinity = careSettingAffinity(facts.careTypes) ?? careSettingFromNeed(facts.careNeed);
   const seen = new Set<string>();
   const scored: { program: BenefitProgram; isState: boolean; score: number }[] = [];
   // Whether the stored income band may be compared to a program limit at all.
@@ -326,7 +351,14 @@ export async function getProgramsForFamily(
     if (!facts.financialPath && facts.medicaidStatus !== "alreadyHas" && (isMedicaidGated(p) || p.max_income_single != null)) continue;
 
     let score = p.priority_score + (isState ? 10 : 0);
-    if (paysForCare(p)) score += 25;
+    // The care-cost boost, doubled when the family SAID paying for care is
+    // what they came for. A stated need is weak signal on its own (67% pick
+    // it), so it re-ranks rather than filters — a food or energy program can
+    // still win on priority_score, it just no longer wins by default.
+    if (paysForCare(p)) score += facts.careNeed === "payingForCare" ? 50 : 25;
+    if (facts.careNeed === "memoryHealth" && /alzheimer|dementia|memory|cognitive/i.test(p.name)) {
+      score += 30;
+    }
     if (affinity) {
       const setting = programSetting(p.name);
       if (setting === affinity) score += 8;

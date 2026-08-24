@@ -13,39 +13,12 @@ h1 { font-size: 14pt; margin: 0 0 2pt 0; }
 .box h3 { margin: 0 0 2pt 0; font-size: 9.6pt; }
 .box p { margin: 0; font-size: 7.9pt; line-height: 1.28; }
 .core { border-width: 3px; background: #eaf5ee; }
-
-/* ecosystem grid */
 .sysgrid { display: grid; grid-template-columns: 1fr 74pt 1.15fr 74pt 1fr; gap: 5pt 0; align-items: stretch; }
 .conn { display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 7.3pt; color: #444; text-align: center; padding: 0 4pt; line-height: 1.22; }
 .conn .ar { font-size: 13pt; line-height: 1; color: #1a7f4e; margin-bottom: 1pt; }
 .vconn { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: 7.3pt; color: #444; padding: 1pt 0; line-height: 1.22; }
 .vconn .ar { font-size: 12pt; line-height: 1; color: #1a7f4e; }
 
-/* divider */
-.divider { text-align: center; font-size: 9pt; font-weight: bold; color: #1f4534; margin: 7pt 0 5pt 0; }
-.divider .ar { color: #1a7f4e; }
-
-/* journey */
-.jrow { display: flex; gap: 0; align-items: stretch; }
-.jp { flex: 1; border: 1.5px solid #1a7f4e; background: #fff; border-radius: 5pt; padding: 5pt 7pt; }
-.jp h4 { font-size: 8.8pt; margin: 0 0 2pt 0; color: #1f4534; }
-.jp p { font-size: 7.5pt; margin: 0; line-height: 1.28; }
-.jar { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #1a7f4e; padding: 0 1pt; width: 30px; text-align: center; }
-.jar .a { font-size: 11pt; line-height: 1; }
-.jar .lbl { font-size: 6.1pt; color: #555; line-height: 1.15; margin-top: 1pt; }
-.artcard { border: 1px solid #6b8f7d; border-radius: 3pt; padding: 3pt 5pt; margin-top: 3pt; background: #f7fbf8; font-size: 6.9pt; line-height: 1.4; text-align: left; }
-.artcard b { font-size: 6.9pt; }
-.mchip { display: inline-block; font-size: 6.7pt; border: 1px solid #6b8f7d; border-radius: 3pt; padding: 1pt 3pt; margin: 2pt 1pt 0 0; background: #fff; }
-.okchip { display: block; font-size: 7pt; border: 1px solid #1a7f4e; background: #eaf5ee; border-radius: 3pt; padding: 1.5pt 4pt; margin-top: 2.5pt; line-height: 1.25; }
-.caps { display: flex; gap: 0; margin-top: 6pt; border: 1.5px dashed #1a7f4e; border-radius: 5pt; background: #f5faf7; align-items: stretch; }
-.caps .clab { padding: 5pt 9pt; font-size: 7.8pt; font-weight: bold; color: #1f4534; display: flex; align-items: center; max-width: 150pt; line-height: 1.25; }
-.caps .c { flex: 1; padding: 5pt 8pt; font-size: 7.8pt; line-height: 1.25; display: flex; align-items: center; justify-content: center; text-align: center; border-left: 1px solid #b9cec3; }
-.loopline { display: flex; align-items: center; gap: 6pt; margin-top: 5pt; }
-.looplab { font-size: 7.9pt; color: #1f4534; white-space: nowrap; font-weight: bold; }
-.loopbar { flex: 1; border-bottom: 1.5px dashed #1a7f4e; height: 1pt; }
-.looptxt { font-size: 7.9pt; color: #444; }
-
-/* who-pays table */
 table.pay { border-collapse: collapse; width: 100%; font-size: 8.2pt; }
 table.pay th { background: #1f4534; color: #fff; padding: 5pt 6pt; text-align: left; font-size: 8.3pt; }
 table.pay td { border: 1px solid #c9d6cf; padding: 5pt 7pt; vertical-align: top; line-height: 1.3; background: #fff; }
@@ -56,10 +29,10 @@ table.pay td.rev { background: #eaf5ee !important; }
 .footnote { font-size: 7.8pt; color: #777; margin-top: 5pt; }
 </style></head><body>
 
-<!-- ============ FIGURE 1: ECOSYSTEM + JOURNEY ============ -->
+<!-- ============ FIGURE 1: ECOSYSTEM + ILLUSTRATED JOURNEY ============ -->
 <div class="page">
 <h1>1. The ecosystem CareNavigator coordinates, and one family's journey through it</h1>
-<p class="lede">An older adult has multiple interconnected needs. The resources that could meet them are fragmented across four worlds. CareNavigator identifies the needs, determines what applies and what pays, builds one coordinated plan, helps execute it, and follows through until support is actually in place.</p>
+<p class="lede">An older adult has multiple interconnected needs. The resources that could meet them are fragmented across four worlds. CareNavigator builds one plan across all of them and follows through until support is actually in place.</p>
 
 <div class="sysgrid">
   <div></div><div></div>
@@ -84,47 +57,170 @@ table.pay td.rev { background: #eaf5ee !important; }
   <div class="box"><h3>Care and support providers</h3><p>Home care, home health, hospice, assisted living, skilled nursing, rehabilitation, and adult day services.</p></div>
 </div>
 
-<div class="divider"><span class="ar">&#8595;</span> &nbsp;One family's journey through that ecosystem&nbsp; <span class="ar">&#8595;</span></div>
+<svg width="100%" viewBox="0 0 980 306" style="margin-top:4pt" font-family="Arial">
+  <!-- journey spine -->
+  <line x1="36" y1="188" x2="944" y2="188" stroke="#cfe0d6" stroke-width="5" stroke-linecap="round"/>
+  <g fill="#1a7f4e">
+    <path d="M168 183 l10 5 l-10 5 z"/><path d="M306 183 l10 5 l-10 5 z"/><path d="M498 183 l10 5 l-10 5 z"/><path d="M676 183 l10 5 l-10 5 z"/><path d="M842 183 l10 5 l-10 5 z"/>
+  </g>
 
-<div class="jrow">
-  <div class="jp"><h4>"Tell us what is happening"</h4>
-    <p>The family explains once, in plain language.</p>
-    <div class="artcard" style="font-style:italic">"Mom fell last month. She lives alone, and money is tight. We don't know where to start."</div></div>
-  <div class="jar"><span class="a">&#8594;</span></div>
-  <div class="jp"><h4>One profile, built once</h4>
-    <p>A persistent record of needs and means. It is reused, never re-asked.</p>
-    <div class="artcard"><b>Family profile</b><br>Health and daily function &bull; household &bull; insurance and benefits &bull; finances &bull; location &bull; preferences</div></div>
-  <div class="jar"><span class="a">&#8594;</span></div>
-  <div class="jp"><h4>Needs and means assessed</h4>
-    <p>Every relevant domain, screened against the profile.</p>
-    <span class="mchip">Healthcare</span><span class="mchip">Personal care</span><span class="mchip">Long-term care</span><span class="mchip">Food</span><span class="mchip">Housing</span><span class="mchip">Transportation</span><span class="mchip">Income</span></div>
-  <div class="jar"><span class="a">&#8594;</span></div>
-  <div class="jp"><h4>The care and funding plan</h4>
-    <p>One plan, drawing on all four worlds above.</p>
-    <div class="artcard"><b>Need &rarr; what pays &rarr; next step</b><br>Home care &rarr; VA pension &rarr; apply<br>Rides to clinic &rarr; MA benefit &rarr; activate<br>Groceries &rarr; SNAP &rarr; apply</div></div>
-  <div class="jar"><span class="a">&#8594;</span><span class="lbl">family reviews and approves &#10003;</span></div>
-  <div class="jp"><h4>The work gets done</h4>
-    <p>Applications filed, documents assembled, approvals tracked, appointments scheduled, providers contacted. The family is prompted only when their part is needed.</p></div>
-  <div class="jar"><span class="a">&#8594;</span></div>
-  <div class="jp"><h4>Aid and care established</h4>
-    <span class="okchip">&#10003; VA pension approved, $1,800 monthly</span>
-    <span class="okchip">&#10003; MA transportation benefit in use</span>
-    <span class="okchip">&#10003; Geriatric clinic visit completed</span>
-    <span class="okchip">&#10003; Home care three mornings a week</span></div>
+  <!-- S1: the family tells its story -->
+  <g stroke="none">
+    <rect x="30" y="52" width="140" height="42" rx="8" fill="#fff" stroke="#1a7f4e" stroke-width="1.2"/>
+    <path d="M92 94 l6 12 l6 -12 z" fill="#fff" stroke="#1a7f4e" stroke-width="1.2"/>
+    <rect x="93" y="92" width="12" height="3" fill="#fff"/>
+    <text x="38" y="68" font-size="7.6" font-style="italic" fill="#333">"Mom fell last month. She lives</text>
+    <text x="38" y="79" font-size="7.6" font-style="italic" fill="#333">alone, and money is tight."</text>
+  </g>
+  <g>
+    <circle cx="70" cy="146" r="8" fill="#4a5a6a"/>
+    <path d="M58 184 Q58 158 70 158 Q82 158 82 184 Z" fill="#8a6d9a"/>
+    <line x1="84" y1="162" x2="90" y2="184" stroke="#4a5a6a" stroke-width="2.2" stroke-linecap="round"/>
+    <circle cx="112" cy="142" r="8" fill="#4a5a6a"/>
+    <path d="M100 184 Q100 154 112 154 Q124 154 124 184 Z" fill="#1a7f4e"/>
+  </g>
+  <text x="90" y="207" font-size="7.8" font-weight="bold" fill="#1f4534" text-anchor="middle">Tells the story once</text>
+
+  <!-- S2: phone with persistent profile -->
+  <g>
+    <rect x="200" y="76" width="60" height="110" rx="9" fill="#2b3a33"/>
+    <rect x="204" y="84" width="52" height="94" fill="#fff"/>
+    <rect x="204" y="84" width="52" height="11" fill="#1a7f4e"/>
+    <text x="208" y="92" font-size="6" fill="#fff" font-weight="bold">CareNavigator</text>
+    <text x="209" y="106" font-size="6.4" font-weight="bold" fill="#1f4534">Family profile</text>
+    <g stroke="#1a7f4e" stroke-width="1.3" fill="none">
+      <path d="M212 115 c-2 -3 -6 0 -3 3 l3 3 l3 -3 c3 -3 -1 -6 -3 -3 z"/>
+      <path d="M208 133 l4 -4 l4 4 v4 h-8 z"/>
+      <path d="M212 141 c-3 0 -4 1 -4 3 v4 c0 2 2 4 4 4 c2 0 4 -2 4 -4 v-4 c0 -2 -1 -3 -4 -3 z"/>
+      <circle cx="212" cy="159" r="4"/>
+      <circle cx="212" cy="171" r="4"/>
+    </g>
+    <text x="210" y="161.5" font-size="5" fill="#1a7f4e" font-weight="bold">$</text>
+    <circle cx="212" cy="170" r="1.2" fill="#1a7f4e"/>
+    <g stroke="#d8e6dd" stroke-width="2.6" stroke-linecap="round">
+      <line x1="221" y1="114" x2="248" y2="114"/><line x1="221" y1="132" x2="248" y2="132"/>
+      <line x1="221" y1="146" x2="248" y2="146"/><line x1="221" y1="159" x2="248" y2="159"/>
+      <line x1="221" y1="171" x2="248" y2="171"/>
+    </g>
+  </g>
+  <text x="230" y="207" font-size="7.8" font-weight="bold" fill="#1f4534" text-anchor="middle">One persistent profile</text>
+
+  <!-- S3: needs branch as icons -->
+  <g stroke="#9dbfab" stroke-width="1.1">
+    <line x1="262" y1="120" x2="336" y2="100"/><line x1="262" y1="128" x2="378" y2="100"/><line x1="262" y1="136" x2="420" y2="100"/>
+    <line x1="262" y1="144" x2="336" y2="150"/><line x1="262" y1="152" x2="378" y2="150"/><line x1="262" y1="158" x2="420" y2="150"/>
+  </g>
+  <g>
+    <g transform="translate(336,100)"><circle r="13" fill="#eaf5ee" stroke="#1a7f4e" stroke-width="1.2"/><path d="M-1.5 -6 h3 v4.5 h4.5 v3 h-4.5 v4.5 h-3 v-4.5 h-4.5 v-3 h4.5 z" fill="#1a7f4e"/><text y="24" font-size="6.4" fill="#444" text-anchor="middle">Healthcare</text></g>
+    <g transform="translate(378,100)"><circle r="13" fill="#eaf5ee" stroke="#1a7f4e" stroke-width="1.2"/><path d="M0 5 l-5.5 -5 c-3 -3 1 -8 5.5 -3.5 c4.5 -4.5 8.5 -0.5 5.5 3.5 z" fill="#1a7f4e"/><text y="24" font-size="6.4" fill="#444" text-anchor="middle">Personal care</text></g>
+    <g transform="translate(420,100)"><circle r="13" fill="#eaf5ee" stroke="#1a7f4e" stroke-width="1.2"/><circle cy="1" r="5.5" fill="none" stroke="#1a7f4e" stroke-width="1.6"/><path d="M0 -4.5 q1 -4 4 -5" fill="none" stroke="#1a7f4e" stroke-width="1.6"/><text y="24" font-size="6.4" fill="#444" text-anchor="middle">Food</text></g>
+    <g transform="translate(336,150)"><circle r="13" fill="#eaf5ee" stroke="#1a7f4e" stroke-width="1.2"/><path d="M-6 1 l6 -6 l6 6 v6 h-12 z" fill="none" stroke="#1a7f4e" stroke-width="1.6"/><text y="24" font-size="6.4" fill="#444" text-anchor="middle">Housing</text></g>
+    <g transform="translate(378,150)"><circle r="13" fill="#eaf5ee" stroke="#1a7f4e" stroke-width="1.2"/><rect x="-7" y="-3" width="14" height="7" rx="2" fill="none" stroke="#1a7f4e" stroke-width="1.5"/><circle cx="-4" cy="5.5" r="1.8" fill="#1a7f4e"/><circle cx="4" cy="5.5" r="1.8" fill="#1a7f4e"/><text y="24" font-size="6.4" fill="#444" text-anchor="middle">Transportation</text></g>
+    <g transform="translate(420,150)"><circle r="13" fill="#eaf5ee" stroke="#1a7f4e" stroke-width="1.2"/><text y="4" font-size="11" fill="#1a7f4e" font-weight="bold" text-anchor="middle">$</text><text y="24" font-size="6.4" fill="#444" text-anchor="middle">Income</text></g>
+  </g>
+  <text x="378" y="207" font-size="7.8" font-weight="bold" fill="#1f4534" text-anchor="middle">Needs and means understood</text>
+
+  <!-- S4: ecosystem streams converge into the plan -->
+  <g font-size="6.6" font-weight="bold" fill="#1f4534" text-anchor="middle">
+    <rect x="472" y="4" width="52" height="14" rx="7" fill="#f5faf7" stroke="#1a7f4e" stroke-width="1"/>
+    <text x="498" y="13.5">Public aid</text>
+    <rect x="530" y="4" width="52" height="14" rx="7" fill="#f5faf7" stroke="#1a7f4e" stroke-width="1"/>
+    <text x="556" y="13.5">Insurance</text>
+    <rect x="588" y="4" width="54" height="14" rx="7" fill="#f5faf7" stroke="#1a7f4e" stroke-width="1"/>
+    <text x="615" y="13.5">Healthcare</text>
+    <rect x="648" y="4" width="52" height="14" rx="7" fill="#f5faf7" stroke="#1a7f4e" stroke-width="1"/>
+    <text x="674" y="13.5">Providers</text>
+  </g>
+  <g stroke="#1a7f4e" stroke-width="1.2" fill="none">
+    <path d="M498 18 C 498 50 545 60 552 86"/>
+    <path d="M556 18 C 556 48 562 60 566 86"/>
+    <path d="M615 18 C 615 50 588 60 582 86"/>
+    <path d="M674 18 C 674 52 606 62 596 86"/>
+  </g>
+  <g fill="#1a7f4e">
+    <path d="M549 82 l3 7 l5 -6 z"/><path d="M563 82 l3 7 l4 -7 z"/><path d="M579 81 l3 8 l4 -7 z"/><path d="M592 82 l4 7 l5 -5 z"/>
+  </g>
+  <g>
+    <path d="M536 90 h64 l12 12 v84 h-76 z" fill="#fff" stroke="#1f4534" stroke-width="1.4"/>
+    <path d="M600 90 v12 h12 z" fill="#eaf5ee" stroke="#8fa39a" stroke-width="0.9"/>
+    <text x="541" y="104" font-size="5.9" font-weight="bold" fill="#1f4534" letter-spacing="0.2">CARE + FUNDING PLAN</text>
+    <g font-size="6.2" fill="#333">
+      <path d="M545 113 l-3.5 -3.2 c-2 -2 0.6 -5 3.5 -2.2 c2.9 -2.8 5.5 -0.2 3.5 2.2 z" fill="#1a7f4e"/>
+      <text x="553" y="116">Home care</text>
+      <rect x="545" y="121" width="46" height="9" rx="4.5" fill="#eaf5ee"/><text x="549" y="127.5" fill="#14563a" font-weight="bold">VA pension &#8594; apply</text>
+      <rect x="541" y="137" width="12" height="6" rx="2" fill="none" stroke="#1a7f4e" stroke-width="1.2"/><circle cx="544" cy="144" r="1.5" fill="#1a7f4e"/><circle cx="550" cy="144" r="1.5" fill="#1a7f4e"/>
+      <text x="557" y="143">Rides to clinic</text>
+      <rect x="545" y="148" width="50" height="9" rx="4.5" fill="#eaf5ee"/><text x="549" y="154.5" fill="#14563a" font-weight="bold">MA benefit &#8594; activate</text>
+      <circle cx="546" cy="166" r="4" fill="none" stroke="#1a7f4e" stroke-width="1.3"/>
+      <text x="554" y="169">Groceries</text>
+      <rect x="545" y="173" width="42" height="9" rx="4.5" fill="#eaf5ee"/><text x="549" y="179.5" fill="#14563a" font-weight="bold">SNAP &#8594; apply</text>
+    </g>
+  </g>
+  <text x="574" y="207" font-size="7.8" font-weight="bold" fill="#1f4534" text-anchor="middle">One coordinated plan</text>
+
+  <!-- approval checkpoint -->
+  <g transform="translate(652,160)">
+    <rect x="-11" y="-11" width="22" height="22" rx="4" transform="rotate(45)" fill="#fff" stroke="#1a7f4e" stroke-width="1.6"/>
+    <path d="M-5 0 l4 4 l7 -8" fill="none" stroke="#1a7f4e" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+  <text x="652" y="207" font-size="6.8" fill="#444" text-anchor="middle">family reviews</text>
+  <text x="652" y="216" font-size="6.8" fill="#444" text-anchor="middle">and approves</text>
+
+  <!-- S5: execution in motion -->
+  <g>
+    <g transform="translate(706,120)">
+      <path d="M-9 4 L11 -6 L3 8 L0 3 Z" fill="#1a7f4e"/>
+      <g stroke="#9dbfab" stroke-width="1.4" stroke-linecap="round"><line x1="-16" y1="0" x2="-10" y2="0"/><line x1="-18" y1="5" x2="-12" y2="5"/></g>
+      <text y="26" font-size="6.4" fill="#444" text-anchor="middle">applications filed</text>
+    </g>
+    <g transform="translate(756,120)">
+      <rect x="-9" y="-8" width="18" height="17" rx="2" fill="#fff" stroke="#1f4534" stroke-width="1.4"/>
+      <line x1="-9" y1="-3" x2="9" y2="-3" stroke="#1f4534" stroke-width="1.4"/>
+      <line x1="-4" y1="-11" x2="-4" y2="-7" stroke="#1f4534" stroke-width="1.6"/><line x1="4" y1="-11" x2="4" y2="-7" stroke="#1f4534" stroke-width="1.6"/>
+      <circle cx="6" cy="7" r="5" fill="#eaf5ee" stroke="#1a7f4e" stroke-width="1.2"/><path d="M6 4.5 v2.5 l2 1.5" fill="none" stroke="#1a7f4e" stroke-width="1.1"/>
+      <text y="26" font-size="6.4" fill="#444" text-anchor="middle">visits scheduled</text>
+    </g>
+    <g transform="translate(806,120)">
+      <path d="M-8 -6 q-3 8 6 13 q4 2 6 -1 l-3 -4 q-2 -1 -4 1 q-4 -3 -4 -7 q2 -1 1 -3 z" fill="#1a7f4e" transform="rotate(-12)"/>
+      <path d="M2 -8 q6 2 6 8" fill="none" stroke="#9dbfab" stroke-width="1.4"/><path d="M4 -12 q9 3 9 12" fill="none" stroke="#9dbfab" stroke-width="1.4"/>
+      <text y="26" font-size="6.4" fill="#444" text-anchor="middle">providers contacted</text>
+    </g>
+    <g transform="translate(852,120)">
+      <circle r="10" fill="#eaf5ee" stroke="#1a7f4e" stroke-width="1.4"/><circle r="7" fill="none" stroke="#1a7f4e" stroke-width="0.8"/>
+      <path d="M-3.5 0 l2.5 3 l5 -6" fill="none" stroke="#1a7f4e" stroke-width="2" stroke-linecap="round"/>
+      <text y="26" font-size="6.4" fill="#444" text-anchor="middle">approvals in</text>
+    </g>
+  </g>
+  <text x="778" y="207" font-size="7.8" font-weight="bold" fill="#1f4534" text-anchor="middle">CareNavigator executes the plan</text>
+  <text x="778" y="217" font-size="6.6" fill="#777" text-anchor="middle">AI agents do the work; human navigators step in when needed</text>
+
+  <!-- S6: home, care established -->
+  <g>
+    <path d="M886 96 L926 68 L966 96 V186 H886 Z" fill="#fff" stroke="#1f4534" stroke-width="1.5"/>
+    <path d="M880 100 L926 66 L972 100" fill="none" stroke="#1f4534" stroke-width="2" stroke-linecap="round"/>
+    <g font-size="5.9" fill="#14563a" font-weight="bold">
+      <circle cx="896" cy="108" r="3.4" fill="#1a7f4e"/><path d="M894.5 108 l1.2 1.4 l2.2 -2.8" fill="none" stroke="#fff" stroke-width="1"/>
+      <text x="903" y="110.5">$1,800 pension monthly</text>
+      <circle cx="896" cy="121" r="3.4" fill="#1a7f4e"/><path d="M894.5 121 l1.2 1.4 l2.2 -2.8" fill="none" stroke="#fff" stroke-width="1"/>
+      <text x="903" y="123.5">clinic rides arranged</text>
+      <circle cx="896" cy="134" r="3.4" fill="#1a7f4e"/><path d="M894.5 134 l1.2 1.4 l2.2 -2.8" fill="none" stroke="#fff" stroke-width="1"/>
+      <text x="903" y="136.5">home care started</text>
+    </g>
+    <path d="M921 148 l-4 -3.6 c-2.4 -2.2 0.8 -5.6 4 -2.6 c3.2 -3 6.4 0.4 4 2.6 z" fill="#c0392b"/>
+    <circle cx="910" cy="160" r="6.5" fill="#4a5a6a"/>
+    <path d="M900 184 Q900 168 910 168 Q920 168 920 184 Z" fill="#8a6d9a"/>
+    <circle cx="938" cy="158" r="6.5" fill="#4a5a6a"/>
+    <path d="M928 184 Q928 166 938 166 Q948 166 948 184 Z" fill="#2e7d6b"/>
+  </g>
+  <text x="922" y="207" font-size="7.8" font-weight="bold" fill="#1f4534" text-anchor="middle">Aid and care established</text>
+
+  <!-- persistence loop -->
+  <path d="M900 226 C 700 262, 420 262, 248 232" fill="none" stroke="#1a7f4e" stroke-width="1.3" stroke-dasharray="4 3"/>
+  <path d="M252 238 l-8 -7 l11 -1 z" fill="#1a7f4e"/>
+  <text x="574" y="262" font-size="7.6" fill="#1f4534" text-anchor="middle" font-weight="bold">The profile lives on. The plan updates as needs, benefits, or providers change.</text>
+</svg>
 </div>
 
-<div class="caps">
-  <div class="clab">CareNavigator works beneath every step</div>
-  <div class="c">The website and app the family uses</div>
-  <div class="c">AI agents that prepare, file, and follow up</div>
-  <div class="c">Automated reminders and communications</div>
-  <div class="c">Human navigators when judgment is needed</div>
-</div>
-
-<div class="loopline"><span class="looplab">&#8617; The profile and plan persist.</span><div class="loopbar"></div><span class="looptxt">When needs, benefits, or providers change, the plan updates instead of starting over.</span></div>
-</div>
-
-<!-- ============ FIGURE 3 ============ -->
 <div class="page">
 <h1>2. Who pays, and why?</h1>
 <p class="q">Each customer category, what it buys, and whether the opportunity is economically meaningful at the county level.</p>
@@ -178,6 +274,7 @@ table.pay td.rev { background: #eaf5ee !important; }
 <p><b>Why pay when the website is free?</b> The free site serves families who come looking. Institutions pay us to find and engage the specific people they are responsible for, finish every case, and prove the results back into their systems.</p>
 </div>
 </div>
+
 
 
 </body></html>

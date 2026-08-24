@@ -159,6 +159,21 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Round five: the journey becomes an illustration (Logan, 2026-08-24)
+
+- The family journey is now drawn, not boxed: family figures with their own
+  words, a phone bearing the persistent profile, needs as icons branching from
+  it, four labeled streams descending from the ecosystem into the plan
+  document (need, what pays, next step), an approval checkpoint diamond,
+  execution as actions in motion (applications flying, visits scheduled,
+  providers called, approvals stamped), and a home vignette holding the
+  outcomes, with the persistence loop drawn as a dashed return path.
+- The capability band (website/app, AI agents, automation, human navigators)
+  was removed as a container per Logan; the AI-and-humans line survives as a
+  single caption under the execution scene.
+- Design rule adopted for these figures: text labels and clarifies, the
+  illustration carries the meaning.
+
 ## Round three of the figures (Logan, 2026-08-24)
 
 - Figure set is now three: ecosystem map (how-it-works-today band removed,

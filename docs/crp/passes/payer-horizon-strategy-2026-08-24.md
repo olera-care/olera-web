@@ -159,6 +159,29 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Figures 2 and 3 rebuilt as the revenue layer (Logan, 2026-08-24)
+
+- Figure sequence ratified by Logan: (1) what CareNavigator does, (2) how it
+  gets paid, (3) what each customer buys and what it could generate; a future
+  figure covers how it is delivered economically. The family journey figure is
+  retired; the county ledger and all CRP/approach framing are deferred to the
+  later layer at Logan's direction.
+- Figure 2 is the layered value-flow: free family core center (free for
+  families always; every provider listed free; no referral fees), providers of
+  care selling-today panel left, institutional emerging-buyers panel right
+  (dashed), money arrows inward, and a two-bar magnitude strip (~$85K provider,
+  ~$400K+ institutional per mid-sized county per year, labeled assumptions).
+- Figure 3 is the disciplined detail table with group bands for
+  selling-today vs emerging buyers and an illustrative ~$500K+/county total.
+- **Naming decisions pending team ratification:** the provider growth offering
+  is "Client Growth Services" (one name retiring Managed Ads / Boost /
+  visibility drift; growth framing avoids the paid-bias connotation Qiping
+  flagged); the institutional product is "Sponsored Navigation Episodes"
+  (outreach, completion, integration, verified reporting; never gated access).
+- Economics discipline: provider pricing anchored to pilot willingness to pay;
+  institutional pricing anchored to comparable navigation vendors and CMS's
+  existing dementia-navigation payment; every figure labeled assumption.
+
 ## Figure 1 FINALIZED (Logan, 2026-08-24)
 
 Ratified composition: title only ("CareNavigator Coordinates the Eldercare

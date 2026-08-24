@@ -132,6 +132,12 @@ export async function GET() {
       .from("email_log")
       .select("email_type, channel, status, delivered_at, first_opened_at, first_clicked_at, bounced_at, complained_at")
       .gte("created_at", since)
+      // KNOWN LIMITATION: PostgREST caps a row read at 10,000 no matter what
+      // .limit() says, and a 30-day window is ~14.5k rows. The per-automation
+      // rollups below are therefore an UNDERCOUNT, and which rows arrive is
+      // unordered so they can jitter between loads. The account-wide
+      // deliverability numbers no longer come from here (they use exact counts) —
+      // fixing the per-job rollups needs pagination and is a separate change.
       .limit(200000);
     for (const e of (data ?? []) as EmailLogRow[]) {
       const t = e.email_type || "unknown";
@@ -163,16 +169,14 @@ export async function GET() {
   let complaintEvents30d = 0;
   let bounceEvents30d = 0;
   try {
-    const { data } = await db
-      .from("email_events")
-      .select("event_type")
-      .in("event_type", ["complained", "bounced"])
-      .gte("occurred_at", since)
-      .limit(200000);
-    for (const e of (data ?? []) as Array<{ event_type: string }>) {
-      if (e.event_type === "complained") complaintEvents30d += 1;
-      else if (e.event_type === "bounced") bounceEvents30d += 1;
-    }
+    // Exact counts, not a row read — same 10,000-row cap applies here and a bad
+    // month would silently under-report the numerator instead of the denominator.
+    const [bouncedRes, complainedRes] = await Promise.all([
+      db.from("email_events").select("id", { count: "exact", head: true }).eq("event_type", "bounced").gte("occurred_at", since),
+      db.from("email_events").select("id", { count: "exact", head: true }).eq("event_type", "complained").gte("occurred_at", since),
+    ]);
+    bounceEvents30d = bouncedRes.count ?? 0;
+    complaintEvents30d = complainedRes.count ?? 0;
   } catch {
     /* email_events unreadable */
   }
@@ -281,11 +285,23 @@ export async function GET() {
   // sent (bounced mail is by definition NOT in delivered). The event cohort
   // (email_events.occurred_at) and email_log cohort (created_at) differ slightly
   // at the window edge — fine for a directional health KPI, not billing.
-  let deliveredAll30d = 0;
+  // Counted with exact-count HEAD queries, never summed from byType. PostgREST
+  // caps a row read at 10,000 regardless of .limit(), so the rollup above sees
+  // ~10k of the ~14.5k rows in a 30-day window. Summing it gave a correct bounce
+  // numerator over a denominator ~32% too small and rendered 4.42% OVER LIMIT
+  // against a true 3.04%. A false suspension warning is worse than none: it
+  // trains everyone to ignore the real one.
   let sentAll30d = 0;
-  for (const b of byType.values()) {
-    sentAll30d += b.sent;
-    deliveredAll30d += b.delivered;
+  let deliveredAll30d = 0;
+  try {
+    const [sentRes, deliveredRes] = await Promise.all([
+      db.from("email_log").select("id", { count: "exact", head: true }).neq("channel", "sms").gte("created_at", since),
+      db.from("email_log").select("id", { count: "exact", head: true }).neq("channel", "sms").not("delivered_at", "is", null).gte("created_at", since),
+    ]);
+    sentAll30d = sentRes.count ?? 0;
+    deliveredAll30d = deliveredRes.count ?? 0;
+  } catch (err) {
+    console.error("[admin/automations] account-wide deliverability counts failed:", err);
   }
   const complaintRate30d = deliveredAll30d ? complaintEvents30d / deliveredAll30d : 0;
   const bounceRate30d = sentAll30d ? bounceEvents30d / sentAll30d : 0;

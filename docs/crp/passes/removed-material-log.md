@@ -540,3 +540,21 @@ What the revert restores and what it costs:
   other on the same page. Left as TJ wrote it per the revert instruction.
 - The orphaned Hurdles line ("Benefit rules differ in every state, so each new market
   carries eligibility work the last one did not need") is homeless again.
+
+### Client Growth Services removed from Figure 2 (2026-08-24)
+
+Logan directed the Figure 2 rebuild around a single-product beachhead: Caregiver
+Staffing for healthcare and LTSS providers. The Client Growth Services card
+(managed marketing and reputation, monthly service fee, ~$200/month, ~10 paying
+providers, ~$25K per county per year) came off the figure entirely.
+
+- **Not a strategy reversal.** The offering itself is unchanged; it is simply
+  not beachhead. The 08-24 team meeting had already decided staffing-forward
+  with Managed Ads trimmed.
+- **Future homes:** the naming record ("Client Growth Services" retiring
+  Managed Ads / Boost / visibility drift, pending team ratification) stands in
+  `payer-horizon-strategy-2026-08-24.md`; the product row still exists in
+  Figure 3's table, which is now flagged inconsistent with Figure 2 and awaits
+  Logan's reconciliation decision.
+- Beachhead Revenue on Figure 2 dropped from ~$85K to ~$60K per county per
+  year accordingly (staffing only).

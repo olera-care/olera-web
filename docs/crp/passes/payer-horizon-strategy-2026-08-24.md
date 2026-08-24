@@ -159,6 +159,52 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Figure 1 LOCKED; house style extracted; Figure 2 rebuilt on the beachhead (Logan, 2026-08-24)
+
+- **Figure 1 locked.** Final edit: the cascade caption ("The cascade preventive
+  geriatric care interrupts.") removed; the cascade panel itself stays. The
+  figure is frozen as a proposal artifact at `../figures/figure-1-ecosystem.html`
+  (canonical, with rendered PDF); the working copy in the visuals file mirrors
+  it. Changes only on Logan's explicit direction.
+- **Figure house style ratified** at `../figures/README.md`: the default
+  standard for all future CRP figures, generalized from the Figure 1 lessons
+  (one argument per figure, full canvas, visual storytelling over prose boxes,
+  short large text, no nesting without meaning, no decoration, vocabulary
+  discipline, consistent visual grammar, no cross-figure repetition, serious
+  QA at true print width before showing).
+- **Figure 2 rebuilt around the caregiver-staffing beachhead.** The beachhead
+  is one product: Caregiver Staffing for healthcare and LTSS providers, shown
+  as the logic chain demand (families arrive needing care) to capacity
+  (serving them takes caregivers) to staffing (we recruit, providers hire),
+  with healthcare-professions students introduced visually as the new supply
+  entering the staffing step, no operational detail. Two strategic reasons on
+  record: staffing is providers' largest problem, and students expand the
+  caregiver supply rather than competing for it. Actual proposed pricing now
+  on the figure: ~$200 per month subscription or ~$500 per hire (the
+  subscription-vs-per-hire choice remains an Aim 3 packaging experiment).
+- **Client Growth Services removed from Figure 2** (removal logged in
+  `removed-material-log.md`). The name and product record stand in the naming
+  section below; the offering is unchanged strategically, it is simply not
+  beachhead. Center panel keeps the family, mini-cycle, and "Free for
+  families, always." and drops "Every provider is listed free / no referral
+  fees" (Figure 3's footnote still carries the no-gating statement).
+- Right panel redesigned to the first-principles argument with minimal text:
+  unmet needs become their costs, established care avoids those costs; they
+  buy completion, not access; fee per completed navigation episode; families
+  always enter free. No nested cards.
+- Revenue strip renamed to Logan's two categories: **Beachhead Revenue** ~$60K
+  per county per year (assumes ~25 provider staffing subscriptions at ~$200
+  per month) and **Emerging Revenue** ~$400K+ (assumes ~1,000 sponsored
+  episodes plus employer contracts, at maturity). Unifying line placed as the
+  figure lede: "Revenue comes from organizations that benefit when needed
+  care is coordinated and established."
+- **FLAG, not silently harmonized: Figure 3 is now inconsistent with Figure 2.**
+  The table still carries the Client Growth Services row (~$25K), the "selling
+  today" band naming, and an ~$85K provider subtotal implied by both products.
+  Reconciliation (drop the row and rename bands to Beachhead / Emerging, or
+  keep the table as the fuller product universe) is a Logan decision, queued
+  with the fourth figure (delivery economics).
+
 ## Figure 1 addendum: the unmet-needs cascade (Logan, 2026-08-24)
 
 - Added the counterfactual branch to the finalized figure: a dashed

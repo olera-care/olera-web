@@ -1,6 +1,6 @@
 <!doctype html><html><head><meta charset="utf-8"><title>CRP Strategy Visuals</title>
 <style>
-@page { size: letter landscape; margin: 0.4in; }
+@page { size: letter landscape; margin: 0.35in; }
 * { box-sizing: border-box; }
 body { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #1a1a1a; margin: 0; }
 .page { page-break-after: always; padding: 2pt 4pt; }
@@ -45,13 +45,13 @@ h1 { font-size: 15pt; margin: 0 0 2pt 0; }
 /* P2 extras */
 .echip { display: block; font-size: 7.4pt; border-radius: 3pt; padding: 2pt 4pt; margin-top: 2pt; border-width: 1px !important; }
 .trio { display: flex; gap: 8pt; }
-.trio .box { flex: 1; padding: 5pt 8pt; }
-.trio .box h3 { font-size: 9.2pt; } .trio .box p { font-size: 8pt; }
+.trio .box { flex: 1; padding: 4pt 7pt; }
+.trio .box h3 { font-size: 9.2pt; } .trio .box p { font-size: 7.7pt; }
 
 /* P3 table */
-table.pay { border-collapse: collapse; width: 100%; font-size: 8.6pt; }
-table.pay th { background: #2b2b2b; color: #fff; padding: 5pt 6pt; text-align: left; font-size: 8.6pt; }
-table.pay td { border: 1px solid #ccc; padding: 5pt 6pt; vertical-align: top; line-height: 1.28; }
+table.pay { border-collapse: collapse; width: 100%; font-size: 7.9pt; }
+table.pay th { background: #2b2b2b; color: #fff; padding: 4pt 5pt; text-align: left; font-size: 8.3pt; }
+table.pay td { border: 1px solid #ccc; padding: 4pt 5pt; vertical-align: top; line-height: 1.22; }
 table.pay tr.now td { background: #e9f5ee; }
 table.pay tr.later td { background: #fdf5e0; color: #4d4325; }
 table.pay tr.dim td { background: #f6f6f6; color: #777; }
@@ -187,48 +187,100 @@ table.pay tr.dim td { background: #f6f6f6; color: #777; }
 <!-- ============ PAGE 3: WHO BENEFITS, WHO PAYS ============ -->
 <div class="page">
 <h1>3. Who benefits, who pays, and why?</h1>
-<p class="q">For each plausible payer: what value do they receive, why would they pay, what would they buy, and what evidence must exist first?</p>
+<p class="q">In plain words: who each buyer is, why paying us saves them money, what they would buy, and what proof they need first.</p>
 
 <table class="pay">
-<tr><th style="width:13%">Payer</th><th style="width:18%">Value received</th><th style="width:17%">Economic incentive</th><th style="width:16%">What they buy from Olera</th><th style="width:14%">Payment model</th><th style="width:22%">Evidence needed before they pay</th></tr>
+<tr><th style="width:16%">Who they are</th><th style="width:17%">What they get from us</th><th style="width:19%">Why it saves them money</th><th style="width:17%">What they buy</th><th style="width:12%">How they pay</th><th style="width:19%">Proof they need first</th></tr>
 <tr class="now">
-  <td><b>Care providers</b> (home care, senior living)<span class="rowtag g">The CRP tests this</span></td>
-  <td>Qualified, funded families arriving; students to staff the shifts that let them say yes</td>
-  <td>Client acquisition and staffing are their two survival costs; they already pay others for both (thousands per client at incumbents)</td>
-  <td>Staff Recruitment; client-growth tools</td>
-  <td>Subscription + per-placement</td>
-  <td>Already partly in hand: paid staffing pilot, free-pilot cohorts. CRP measures willingness to pay at rising marketplace activity, then real billing</td></tr>
+  <td><b>Care providers</b><br>Home-care agencies and senior-living communities in our markets<span class="rowtag g">The CRP tests this</span></td>
+  <td>Families arriving with funding worked out, and caregivers to staff the shifts. Without staff they turn families away (63.3% declined cases in 2023)</td>
+  <td>Finding clients and finding staff are the two costs that decide whether they survive. They already pay recruiters and lead sellers for both</td>
+  <td><b>Staff Recruitment:</b> caregivers we recruit from health-professions students; the provider hires, trains, and supervises them</td>
+  <td>Flat monthly fee vs fee per placement: <b>which one works is itself an Aim 3 experiment</b></td>
+  <td>Mostly in hand: a pilot where providers paid for placed students. The CRP measures what they will pay as their market gets busier, then bills for real</td></tr>
 <tr class="later">
-  <td><b>Medicare Advantage plans</b><span class="rowtag a">Post-CRP, evidence-gated</span></td>
-  <td>Members' home support actually established, with the record returned; dual-eligible qualification</td>
-  <td>Capitated: avoidable ER, readmissions, SNF days are their cost; stars and retention are their revenue</td>
-  <td>Navigation episodes for defined cohorts (post-discharge, ADL-flagged, dual candidates)</td>
-  <td>Case rate per completed episode &#8594; PMPM at scale</td>
-  <td>Operational, not RCT-grade: establishment rate, time to care, cost per episode, member experience, reliability in their counties. This is the Aim 1 evidence package</td></tr>
+  <td><b>Medicare Advantage plans</b><br>Private insurers Medicare pays a fixed monthly amount per member; the plan covers all that member's care from it<span class="rowtag a">Post-CRP, evidence-gated</span></td>
+  <td>Members who need help at home actually get it, with proof returned; members who qualify for Medicaid get enrolled (plans are paid more for them)</td>
+  <td>Every prevented hospital stay or nursing-home month is money the plan keeps. Medicare also grades plans (star ratings): better grades mean bonus payments and more enrollees. Helped members stay enrolled</td>
+  <td>Navigation episodes for members the plan flags (for example, after a hospital stay): outreach, the full loop, follow-through, and the establishment record returned to the plan</td>
+  <td>Fee per completed case at first; later a flat monthly fee per eligible member (PMPM: per member per month)</td>
+  <td>Our measured results: share of cases ending in established care, days to establishment, cost per case, member satisfaction, county coverage. This is the Aim 1 package</td></tr>
 <tr class="later">
-  <td><b>Medicaid MCOs + state aging agencies</b><span class="rowtag a">Post-CRP, evidence-gated</span></td>
-  <td>Waiver applications completed; home and community care established; nursing-facility entry deferred</td>
-  <td>Institutional care costs roughly 2-3x home care; every state has a rebalancing mandate; waivers underused because navigation is broken</td>
-  <td>Establishment case rates; care-coordination subcontract. Our staffing supply also eases their capacity constraint</td>
-  <td>Case rate per completed establishment</td>
-  <td>Same package + county coverage. Procurement runs 12-24 months, which is exactly why this is post-CRP revenue</td></tr>
+  <td><b>Medicaid managed-care companies (MCOs)</b><br>Private companies a state hires to run Medicaid for a fixed monthly amount per enrollee, often including long-term care<span class="rowtag a">Post-CRP, evidence-gated</span></td>
+  <td>Waiver paperwork actually finished, so members get home care instead of waiting; and our student pipeline grows the home-care workforce their members depend on</td>
+  <td>A nursing-home month costs roughly 2-3x a home-care month. Whoever holds that bill saves on every placement deferred, and states require these companies to help members stay at home</td>
+  <td>Navigation episodes for flagged members, same as above, plus contracted care-coordination capacity</td>
+  <td>Fee per completed establishment</td>
+  <td>Same package, plus proof we cover their counties. Public buyers take 1-2 years from first meeting to contract, so this starts after the CRP: the CRP creates the proof</td></tr>
 <tr class="later">
-  <td><b>Health systems / ACOs</b><span class="rowtag a">Post-CRP, evidence-gated</span></td>
-  <td>Discharges placed with providers that have confirmed capacity; closure reported back</td>
-  <td>Delayed discharges cost bed-days today; readmissions cost penalties; ACOs hold total-cost risk</td>
-  <td>Post-discharge navigation episodes</td>
-  <td>Per-episode fee paid by the system</td>
-  <td>Time-to-establishment and completion rate in their discharge geography</td></tr>
+  <td><b>Hospitals, health systems, ACOs</b><br>ACOs are provider groups paid partly on keeping total cost of care down<span class="rowtag a">Post-CRP, evidence-gated</span></td>
+  <td>Patients discharged on time to home care that actually starts, with closure reported back</td>
+  <td>A patient stuck in a bed waiting for home care costs the hospital money today; a patient readmitted costs penalties; ACOs keep part of every dollar saved</td>
+  <td>Post-discharge navigation episodes. The discharge planner hands the family a neutral tool (every provider listed, family chooses): the cleanest way to satisfy patient-choice rules</td>
+  <td>Fee per episode, paid by the system</td>
+  <td>Completion rate and days-to-establishment in their discharge counties</td></tr>
 <tr class="dim">
-  <td><b>Self-insured employers</b><span class="rowtag gr">Later horizon</span></td>
-  <td>Working caregivers supported; fewer crisis absences</td>
-  <td>Productivity and retention (comps: Wellthy, Homethrive)</td>
-  <td>Caregiver-support benefit</td>
-  <td>Per-employee-per-month</td>
-  <td>Mostly operational + satisfaction; broker-mediated annual cycles</td></tr>
+  <td><b>Government aging agencies</b><br>State units on aging + Area Agencies on Aging (public eldercare helplines)<span class="rowtag gr">Later, smaller</span></td>
+  <td>Their mandate is exactly this pathway; understaffed for it</td>
+  <td>Not savings so much as mission: budgets are grants and public contracts</td>
+  <td>Contracted navigation capacity for their helpline callers</td>
+  <td>Public contracts and grants; modest dollars</td>
+  <td>Same results package; slow public buying cycles</td></tr>
+
 </table>
 
-<div class="takeaway"><b>What this teaches:</b> every institutional row pays on the <b>demand side</b>, sponsoring navigation for people they cover. The supply side never pays for placement, so adding payers never breaks neutrality. One precedent anchors the whole column: <b>CMS GUIDE already pays 390 organizations for navigation episodes</b>. The question is not whether institutions pay for navigation; it is whether we have the evidence, and the CRP is the machine that makes it.</div>
+<div class="trio" style="margin-top:6pt">
+  <div class="box t-hyp"><h3>Why not traditional Medicare?</h3><p>No company is on the hook for a member's total costs: the government pays each bill separately, so there is no buyer to call. The exception is CMS itself, which already pays 390 organizations for dementia navigation (GUIDE, 2024). Traditional Medicare enters through federal programs like that, not through sales.</p></div>
+  <div class="box t-hyp"><h3>Why not commercial insurance?</h3><p>Commercial plans mostly cover people under 65, so the older adult is usually not their member: the working adult child is. The opportunity is therefore an employer caregiver-support benefit for those adult children (monthly fee per employee; comps: Wellthy, Homethrive). A later horizon, sold through benefits brokers.</p></div>
+  <div class="box t-now"><h3>The rule that never changes</h3><p>Every buyer above pays on the family's side of the market, for navigation and staffing. No provider ever pays to be listed or to receive a family. Neutrality is never for sale.</p></div>
+</div>
+
+<div class="takeaway" style="margin-top:6pt"><b>What this teaches:</b> the question is not whether institutions pay for navigation (CMS already does); it is whether the evidence exists, and the CRP is the machine that makes it. Only the top row is tested inside the CRP; every other row is what the top row's evidence unlocks.</div>
+</div>
+
+<!-- ============ PAGE 3b: HOW A SPONSORED EPISODE WORKS ============ -->
+<div class="page">
+<h1>3b. How a sponsored episode would actually work</h1>
+<p class="q">The human storyboard: what the member, the plan administrator, and the discharge planner each experience. All of this is the post-CRP wrapper (amber) around the same navigation loop the CRP builds (blue).</p>
+
+<div class="rowlab">The member and family (example: a Medicare Advantage plan)</div>
+<div class="path">
+  <div class="step"><div class="box t-hyp"><span class="tag">1 &middot; flagged</span><h3>The plan spots the need</h3><p>Mrs. Rivera is discharged after a fall. Her plan's care manager sees she needs help at home (discharge feed, health survey, or a call).</p></div></div>
+  <div class="sarrow" style="color:#a8760a">&#8594;</div>
+  <div class="step"><div class="box t-hyp"><span class="tag">2 &middot; invited</span><h3>A warm introduction</h3><p>The care manager introduces the program; the family gets a link and a phone call. It is the same free CareNavigator any family can use: nothing is gated.</p></div></div>
+  <div class="sarrow">&#8594;</div>
+  <div class="step"><div class="box t-crp"><span class="tag">3 &middot; navigated</span><h3>The work gets done</h3><p>Needs screened, aid found and applied for, provider with capacity matched, follow-up until care starts. <b>This is the loop the CRP builds and proves.</b></p></div></div>
+  <div class="sarrow">&#8594;</div>
+  <div class="step"><div class="box t-crp"><span class="tag">4 &middot; established</span><h3>Care starts, verified</h3><p>Home care in place; benefits secured. The family paid nothing and chose their own provider from the full list.</p></div></div>
+</div>
+
+<div class="rowlab" style="margin-top:8pt">The plan administrator</div>
+<div class="path">
+  <div class="step"><div class="box t-hyp"><span class="tag">1</span><h3>Sends the list</h3><p>Flags eligible members (post-discharge, needs help at home) into the program.</p></div></div>
+  <div class="sarrow" style="color:#a8760a">&#8594;</div>
+  <div class="step"><div class="box t-hyp"><span class="tag">2</span><h3>Watches progress</h3><p>Dashboard or monthly report: episodes open, in progress, completed.</p></div></div>
+  <div class="sarrow" style="color:#a8760a">&#8594;</div>
+  <div class="step"><div class="box t-hyp"><span class="tag">3</span><h3>Receives the record</h3><p>Per member: care established (or not), date, services, benefit dollars secured. Feeds their care-management files and quality reporting.</p></div></div>
+  <div class="sarrow" style="color:#a8760a">&#8594;</div>
+  <div class="step"><div class="box t-hyp"><span class="tag">4</span><h3>Pays for results</h3><p>Invoiced per <b>completed</b> episode, each one backed by its record. No completion, no charge.</p></div></div>
+</div>
+
+<div class="rowlab" style="margin-top:8pt">The discharge planner or social worker (hospital / ACO)</div>
+<div class="path">
+  <div class="step"><div class="box t-hyp"><span class="tag">1</span><h3>Family needs home care before discharge</h3><p>Today: a printed list of agencies and good luck. Rules forbid steering to any one agency; only offering choice.</p></div></div>
+  <div class="sarrow" style="color:#a8760a">&#8594;</div>
+  <div class="step"><div class="box t-hyp"><span class="tag">2</span><h3>Hands the family the neutral tool</h3><p>Every provider is listed and the family chooses: a complete list IS the choice-compliant referral. The planner steers no one.</p></div></div>
+  <div class="sarrow">&#8594;</div>
+  <div class="step"><div class="box t-crp"><span class="tag">3</span><h3>We carry it from there</h3><p>Same loop: capacity-aware matching, follow-through, establishment confirmed.</p></div></div>
+  <div class="sarrow" style="color:#a8760a">&#8594;</div>
+  <div class="step"><div class="box t-hyp"><span class="tag">4</span><h3>Closure reported back</h3><p>The system learns the discharge actually held. Fewer stuck beds, fewer bounce-backs.</p></div></div>
+</div>
+
+<div class="trio" style="margin-top:8pt">
+  <div class="box t-now"><h3>Free for everyone, always: so why would anyone pay?</h3><p>A plan could just tell members "use this free site," and some would. We still win: more families, more establishment, more provider value, at near-zero cost to us. What sponsors buy is not access. It is <b>accountable completion for a defined population</b>: outreach to the members they flag, a team that carries every case to the end, verification, and documentation their auditors and quality programs require. Self-service gets a plan some starts and no proof; population programs live on completion rates and paperwork. Free is the front door; the paid product is done-for-you, with receipts.</p></div>
+</div>
+
+<div class="takeaway"><b>What this teaches:</b> the member experiences the same free product as every other family; the sponsor experiences a reporting and accountability wrapper around it. The wrapper is cheap to build compared to the loop, which is why the loop is the CRP and the wrapper is the horizon.</div>
 </div>
 
 <!-- ============ PAGE 4: THE FLYWHEEL ============ -->

@@ -84,6 +84,16 @@ plan-paid care coordination is an established category.)
   Year 2-3 commercialization activity (never a research aim).
 - One CP sentence each: telemetry/data asset compounding; self-insured
   employers as later segment.
+- **Aim 3 packaging experiment (Logan, 2026-08-24 visuals review):** for Staff
+  Recruitment, flat monthly subscription vs fee per placement is itself one of
+  the pre-registered pricing experiments, not a pre-decided choice.
+- Free-rider answer on record: the platform is free to all by design; sponsors
+  buy accountable completion for a defined population (outreach, follow-through,
+  verification, returned documentation), not access. Plans that point members at
+  the free site still grow the marketplace at near-zero cost to us.
+- Buyer-scope answers on record: traditional Medicare enters via CMS models
+  (GUIDE), not sales; commercial insurance enters as employer caregiver
+  benefits because the older adult is usually not the commercial member.
 
 ## Explicitly unchanged
 

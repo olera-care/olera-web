@@ -42,6 +42,12 @@ h1 { font-size: 15pt; margin: 0 0 2pt 0; }
 .painrow { display: flex; gap: 6pt; }
 .pain { flex: 1; font-size: 7.8pt; color: #8a2020; background: #faeeee; border-radius: 3pt; padding: 4pt 6pt; line-height: 1.25; }
 
+/* P2 extras */
+.echip { display: block; font-size: 7.4pt; border-radius: 3pt; padding: 2pt 4pt; margin-top: 2pt; border-width: 1px !important; }
+.trio { display: flex; gap: 8pt; }
+.trio .box { flex: 1; padding: 5pt 8pt; }
+.trio .box h3 { font-size: 9.2pt; } .trio .box p { font-size: 8pt; }
+
 /* P3 table */
 table.pay { border-collapse: collapse; width: 100%; font-size: 8.6pt; }
 table.pay th { background: #2b2b2b; color: #fff; padding: 5pt 6pt; text-align: left; font-size: 8.6pt; }
@@ -133,7 +139,9 @@ table.pay tr.dim td { background: #f6f6f6; color: #777; }
 <div class="legend"><span class="chip t-now">Exists today</span><span class="chip t-crp">CRP builds / proves</span><span class="chip t-hyp">Post-CRP hypothesis</span></div>
 
 <div class="path">
-  <div class="step"><div class="box t-now"><span class="tag">Step 1</span><h3>Need recognized</h3><p>Family reaches the platform organically, usually mid-crisis.</p></div></div>
+  <div class="step"><div class="box t-now"><span class="tag">Step 1</span><h3>Need recognized</h3><p>How families arrive:</p>
+    <span class="echip t-now">Organic search, usually mid-crisis (today)</span>
+    <span class="echip t-hyp">Sent by their MA plan, MCO, discharge planner / ACO, or employer (sponsored entry, post-CRP)</span></div></div>
   <div class="sarrow">&#8594;</div>
   <div class="step"><div class="box t-now"><span class="tag">Step 2</span><h3>Needs identified</h3><p>AI screening + curated database match care type to situation. Usability validated (Phases I-IIB).</p></div></div>
   <div class="sarrow">&#8594;</div>
@@ -143,26 +151,37 @@ table.pay tr.dim td { background: #f6f6f6; color: #777; }
   <div class="sarrow">&#8594;</div>
   <div class="step"><div class="box t-crp"><span class="tag">Step 5</span><h3>Provider with capacity connected</h3><p>Capacity-aware matching; response tracked to completion.</p></div></div>
   <div class="sarrow">&#8594;</div>
-  <div class="step"><div class="box t-crp"><span class="tag">Step 6</span><h3>Workforce to staff the case</h3><p>Student caregivers add the capacity to say yes (pilot: paid, 20+ placements).</p></div></div>
+  <div class="step"><div class="box t-crp"><span class="tag">Step 6 &middot; when needed</span><h3>Workforce to staff the case</h3><p>If the matched provider lacks staff, student caregivers add the capacity to say yes (pilot: providers paid, 20+ placements).</p></div></div>
   <div class="sarrow">&#8594;</div>
-  <div class="step"><div class="box t-crp" style="border-width:3px"><span class="tag">Step 7</span><h3>CARE ESTABLISHED, verified</h3><p><b>Measured: rate, time to care, benefit $ secured, referral closure.</b> Expert-verified.</p></div></div>
-  <div class="sarrow" style="color:#a8760a">&#8594;</div>
-  <div class="step"><div class="box t-hyp"><span class="tag">Downstream</span><h3>Crises averted</h3><p>Fewer ER visits and readmissions, later institutionalization, lower total cost. Needs payer data; not a CRP claim.</p></div></div>
+  <div class="step"><div class="box t-crp" style="border-width:3px"><span class="tag">Step 7</span><h3>CARE ESTABLISHED, verified</h3><p><b>Measured: rate, time to care, benefit $ secured, referral closure.</b> Expert-verified. The record is the billable unit.</p></div></div>
 </div>
 
 <div class="rowlab">Why each step fails today</div>
 <div class="painrow">
-  <div class="pain">Nobody to ask; advice is fragmented</div>
+  <div class="pain">Nobody to ask; advice fragmented; referrers have nowhere accountable to send people</div>
   <div class="pain">Directories list, but do not assess</div>
   <div class="pain">$58B in aid unclaimed each year</div>
   <div class="pain">Complex applications abandoned; no one follows up after filing</div>
   <div class="pain">Calls go unanswered; no one knows who has capacity</div>
   <div class="pain">63.3% of home-care providers declined cases in 2023 for lack of staff</div>
   <div class="pain">No actor is accountable for whether care actually started</div>
-  <div class="pain">Cascade: caregiver breakdown, emergency care, premature institutionalization</div>
 </div>
 
-<div class="takeaway"><b>What this teaches:</b> everything left of Step 7 is measurable from our own records; everything right of it lives in payers' claims data. The CRP builds Steps 4-6 and proves Step 7. Identification (Steps 1-3) is the half NIH already built. "Earlier" is measurable now as <b>time from recognized need to established care</b>: no claims data required.</div>
+<div class="rowlab" style="color:#1a7f4e">Where revenue returns to Olera</div>
+<div class="trio">
+  <div class="box t-now"><h3>From families: $0, ever</h3><p>No entry fee, no referral fee. The rule that keeps every provider listed and the platform neutral.</p></div>
+  <div class="box t-crp"><h3>From providers <span class="money">$</span> (the CRP tests this)</h3><p>Staffing placements when Step 6 fires, plus growth tools, sold into marketplace activity under real billing (H5). Steps 5-6 are where provider value is created.</p></div>
+  <div class="box t-hyp"><h3>From payer sponsors <span class="money">$</span> (post-CRP)</h3><p>Case rate per completed, verified episode: the Step 7 record is what a plan, hospital, or employer is invoiced against. Demand-side money; neutrality intact.</p></div>
+</div>
+
+<div class="rowlab" style="color:#a8760a">Downstream of Step 7: who gains when the cascade is averted (hypothesis tier; needs payer and public data, never a CRP claim)</div>
+<div class="trio">
+  <div class="box t-hyp"><h3>Families and caregivers</h3><p>Support in place earlier; caregiver strain reduced; aging in place. (Caregiver burden can be self-reported in the CRP study; the rest is downstream.)</p></div>
+  <div class="box t-hyp"><h3>Risk-bearing payers</h3><p>Fewer ER visits and readmissions, deferred nursing-facility episodes, lower total cost of care. Their claims data is what tests this.</p></div>
+  <div class="box t-hyp"><h3>Governments and the public</h3><p>Medicare and Medicaid carry most avoidable utilization and institutional spend; states gain from home-and-community rebalancing; and the $58B in appropriated aid actually reaches the households it was meant for (benefit $ secured IS measured in the CRP).</p></div>
+</div>
+
+<div class="takeaway"><b>What this teaches:</b> the CRP builds Steps 4-6 and proves Step 7; identification (Steps 1-3) is the half NIH already built. Both revenue streams monetize the same pathway from opposite ends: providers pay where value is created (Steps 5-6), sponsors pay for the verified result (Step 7). Governments are the largest downstream beneficiary but never a claimed endpoint; their one in-CRP number is benefit dollars secured.</div>
 </div>
 
 <!-- ============ PAGE 3: WHO BENEFITS, WHO PAYS ============ -->

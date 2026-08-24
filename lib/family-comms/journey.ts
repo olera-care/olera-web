@@ -10,10 +10,12 @@
  * owns and dims (and links) the ones another automation runs.
  *
  * DRIFT GUARD: timings and gates here are hand-authored mirrors of the real
- * ladder in app/api/cron/family-comms-coordinator/route.ts and the send path
- * in lib/family-comms/benefits-navigator-send.server.ts. If you change a time
- * band, gate, or rung order there, update the matching step here (grep for
- * "journey.ts" — both files carry a pointer comment).
+ * entry + delivery paths in components/providers/BenefitsDiscoveryModule*,
+ * components/waiver-library/ProgramBenefitsCard.tsx,
+ * app/api/benefits/save-results/route.ts,
+ * app/api/cron/family-comms-coordinator/route.ts, and
+ * lib/family-comms/benefits-navigator-send.server.ts. If you change a gate,
+ * CTA, time band, or rung order there, update the matching step here.
  *
  * Pure data + pure functions, client-safe (the detail page imports directly).
  */
@@ -44,6 +46,10 @@ export interface JourneyStep {
   emailSampleId?: string;
   /** Exact text sample selected by the family-journey preview link. */
   smsSampleId?: string;
+  /** Public/admin experience that lets an operator inspect this non-message step. */
+  experienceUrl?: string;
+  /** CTA label for experienceUrl. Defaults to "View experience". */
+  experienceLabel?: string;
 }
 
 export interface CommsJourney {
@@ -63,28 +69,41 @@ const BENEFITS_CASCADE: CommsJourney = {
   title: "Benefits cascade — the family's sequence",
   ordering: "time",
   description:
-    "One guidance journey across the channels a family chose: results arrive first, the daily coordinator drafts B1 and sends B2, and the hourly scheduler (or TJ's button) fires the approved first step. Text replies update the same living plan.",
+    "One guidance journey from the family's results CTA through the channels they choose: contact capture creates or updates their living plan, results arrive for a new family, the daily coordinator drafts B1 and sends B2, and the hourly scheduler (or TJ's button) fires the approved first step. Text replies update the same plan.",
   steps: [
     {
-      key: "intake_results",
-      title: "Results email delivered (when email is provided)",
-      timing: "Day 0 · New-family intake completed",
+      key: "results_cta",
+      title: "Results CTA submitted → contact captured",
+      timing: "Day 0 · Immediately before results delivery",
       description:
-        "A new family completes the benefits finder with an email. Olera identifies the strongest matches, adds them to the family's private plan, and emails the living /m plan link.",
+        "After seeing a benefits prompt on a program, provider, or editorial page, the family enters an email and submits the surface's results CTA — for example, “Email me my matches,” “Save my matches,” or “Check my eligibility.” The shared save-results path stores their matches and creates or updates the private living plan that every later message points back to; a phone is an optional second channel on supported surfaces.",
+      ownerNote: "Public benefits experience · funnel signals: cta_engaged + benefits_completed",
+      gate: "A valid email is required for the results email; an optional phone only receives the companion text when entered with the SMS disclosure",
+      traits: ["Conversion", "Contact capture"],
+      experienceUrl: "/benefits/texas/star-plus-medicaid-hcbs",
+      experienceLabel: "View example CTA",
+    },
+    {
+      key: "intake_results",
+      title: "Context-aware results email delivered (new email family)",
+      timing: "Day 0 · Results CTA completed",
+      description:
+        "A new family submits one of the benefits capture surfaces with an email. A specific program-page entry continues with that exact program, its general requirements, and its guide; a broad finder, provider, or editorial entry receives an honest plan-ready receipt. Olera also saves the requested program separately from ranked suggestions so it is not lost or mislabeled as an eligibility match.",
       emailType: "benefits_results_saved",
       emailSampleId: "benefits_results_saved",
       ownedBy: "benefits-results-texts",
+      gate: "New families with a valid email only; an email address never establishes eligibility. A returning account updates its plan without receiving a duplicate welcome-results email",
     },
     {
       key: "intake_results_sms",
       title: "Care-team question + plan texted (optional)",
       timing: "Day 0 · When a phone is provided",
       description:
-        "A new family who enters a phone under the SMS disclosure receives a bounded question from Olera's care team plus the same living /m plan link. The care team promises to reply within 48 hours when the family responds, and stores sms_consent for the later navigator and check-in.",
+        "A family who enters a phone under the SMS disclosure receives a bounded question from Olera's care team plus the same living /m plan link. New families can receive it with their initial results; a family on the program-page email path can also add a phone during post-submit enrichment. The care team promises to reply within 48 hours when the family responds, and stores sms_consent for the later navigator and check-in.",
       smsType: "benefits_results_sms",
       smsSampleId: "sms_benefits_match",
       ownedBy: "benefits-results-texts",
-      gate: "Requires a valid phone entered with the SMS disclosure; skipped when no phone is provided",
+      gate: "Requires a valid phone entered with the SMS disclosure. Initial save-results delivery is new-family only; post-submit phone enrichment can send the same results text to a returning family",
     },
     {
       key: "b1_draft",

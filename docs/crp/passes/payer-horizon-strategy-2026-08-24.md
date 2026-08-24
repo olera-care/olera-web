@@ -159,6 +159,36 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Round six: the ecosystem becomes its own figure (Logan, 2026-08-24)
+
+- Figures split again, now three: (1) the CareNavigator ecosystem as a
+  hub-and-spoke with the family + app at center; (2) the family journey,
+  unchanged pending semantic reconciliation; (3) who pays.
+- Figure 1's working definition, per Logan: a digital navigation platform that
+  helps older adults and families meet social determinants of health by
+  coordinating public aid, insurance coverage, healthcare services, and
+  personal care around one plan.
+- Every spoke is now a labeled two-way exchange: Public Aid Programs
+  (applications out, aid back), Insurance Coverage (eligibility out, benefits
+  back), Healthcare Services (health needs out, healthcare back), Personal
+  Care & Support (ADL/IADL needs out, daily assistance back); family to
+  CareNavigator (needs + means down, care + funding plan and established
+  support back up).
+- **Category change, FLAGGED: "Healthcare organizations" became "Healthcare
+  Services."** With home health, hospice, skilled nursing, rehabilitation, and
+  long-term care as the examples, the box describes care delivery, not
+  institutions. Hospitals, health systems, and ACOs dropped out of the
+  ecosystem figure entirely; they are referral sources and prospective payers
+  and live in the who-pays figure. This diverges from the earlier four-actor
+  taxonomy and needs reconciling in the journey figure and any prose that
+  inherits it. Note also that Personal Care & Support vs Healthcare Services
+  now splits what the old "care and support providers" box lumped together.
+- Center carries five functions: assesses needs, creates a living profile,
+  builds a care + funding plan, helps execute the plan, tracks aid and care
+  established. "Living profile" joins "persistent profile" as candidate
+  vocabulary; one term should win before prose.
+- Journey figure reconciliation is the named next step.
+
 ## Round five: the journey becomes an illustration (Logan, 2026-08-24)
 
 - The family journey is now drawn, not boxed: family figures with their own

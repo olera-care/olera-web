@@ -6,19 +6,8 @@ body { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #1f2a2
 .page { page-break-after: always; padding: 2pt 4pt; }
 .page:last-child { page-break-after: avoid; }
 h1 { font-size: 14pt; margin: 0 0 2pt 0; }
-.lede { font-size: 9.8pt; color: #333; margin: 0 0 5pt 0; line-height: 1.3; }
+.lede { font-size: 9.8pt; color: #333; margin: 0 0 4pt 0; line-height: 1.3; }
 .q { font-size: 10pt; color: #555; margin: 0 0 10pt 0; }
-
-.box { border: 1.5px solid #1a7f4e; background: #f5faf7; border-radius: 5pt; padding: 6pt 8pt; text-align: center; }
-.box h3 { margin: 0 0 2pt 0; font-size: 9.6pt; }
-.box p { margin: 0; font-size: 7.9pt; line-height: 1.28; }
-.core { border-width: 3px; background: #eaf5ee; }
-.sysgrid { display: grid; grid-template-columns: 1fr 74pt 1.15fr 74pt 1fr; gap: 4pt 0; align-items: stretch; }
-.conn { display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 7.3pt; color: #444; text-align: center; padding: 0 4pt; line-height: 1.22; }
-.conn .ar { font-size: 13pt; line-height: 1; color: #1a7f4e; margin-bottom: 1pt; }
-.vconn { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: 7.3pt; color: #444; padding: 1pt 0; line-height: 1.22; }
-.vconn .ar { font-size: 12pt; line-height: 1; color: #1a7f4e; }
-
 table.pay { border-collapse: collapse; width: 100%; font-size: 8.2pt; }
 table.pay th { background: #1f4534; color: #fff; padding: 5pt 6pt; text-align: left; font-size: 8.3pt; }
 table.pay td { border: 1px solid #c9d6cf; padding: 5pt 7pt; vertical-align: top; line-height: 1.3; background: #fff; }
@@ -28,35 +17,154 @@ table.pay td.rev { background: #eaf5ee !important; }
 .whypay p { margin: 0; font-size: 9pt; line-height: 1.35; }
 .footnote { font-size: 7.8pt; color: #777; margin-top: 5pt; }
 </style></head><body>
-
-<!-- ============ FIGURE 1: ECOSYSTEM + ILLUSTRATED JOURNEY ============ -->
+<!-- ============ FIGURE 1: THE CARENAVIGATOR ECOSYSTEM ============ -->
 <div class="page">
-<h1>1. The ecosystem CareNavigator coordinates, and one family's journey through it</h1>
-<p class="lede">An older adult has multiple interconnected needs. The resources that could meet them are fragmented across four worlds. CareNavigator builds one plan across all of them and follows through until support is actually in place.</p>
+<h1>1. CareNavigator coordinates the ecosystem to meet social determinants of health</h1>
+<p class="lede">A digital navigation platform that helps older adults and families meet social determinants of health by coordinating public aid, insurance coverage, healthcare services, and personal care around one plan.</p>
 
-<div class="sysgrid">
-  <div></div><div></div>
-  <div class="box"><h3>Older adults and families</h3><p>Most manage several concurrent needs and rarely know what they qualify for.</p></div>
-  <div></div><div></div>
+<svg width="100%" viewBox="0 0 980 552" font-family="Arial" style="margin-top:14pt">
 
-  <div></div><div></div>
-  <div class="vconn"><span class="ar">&#8645;</span>Families arrive directly or by referral. The platform is free to them.</div>
-  <div></div><div></div>
+  <!-- ===== TOP: older adults and families ===== -->
+  <rect x="330" y="14" width="320" height="96" rx="9" fill="#f5faf7" stroke="#1a7f4e" stroke-width="1.5"/>
+  <text x="490" y="34" font-size="10" font-weight="bold" fill="#1f2a24" text-anchor="middle">Older adults and families</text>
+  <text x="490" y="49" font-size="7.4" fill="#333" text-anchor="middle">Many older adults have unmet needs across the social determinants of health:</text>
+  <g font-size="6.8" font-weight="bold" fill="#1f4534" text-anchor="middle">
+    <rect x="345" y="57" width="32" height="15" rx="7.5" fill="#fff" stroke="#6b8f7d" stroke-width="1"/><text x="361" y="67">Food</text>
+    <rect x="383" y="57" width="46" height="15" rx="7.5" fill="#fff" stroke="#6b8f7d" stroke-width="1"/><text x="406" y="67">Housing</text>
+    <rect x="435" y="57" width="42" height="15" rx="7.5" fill="#fff" stroke="#6b8f7d" stroke-width="1"/><text x="456" y="67">Income</text>
+    <rect x="483" y="57" width="72" height="15" rx="7.5" fill="#fff" stroke="#6b8f7d" stroke-width="1"/><text x="519" y="67">Transportation</text>
+    <rect x="561" y="57" width="56" height="15" rx="7.5" fill="#fff" stroke="#6b8f7d" stroke-width="1"/><text x="589" y="67">Healthcare</text>
+    <rect x="623" y="57" width="1" height="0" fill="none"/>
+  </g>
+  <g font-size="6.8" font-weight="bold" fill="#1f4534" text-anchor="middle">
+    <rect x="452" y="76" width="34" height="15" rx="7.5" fill="#fff" stroke="#6b8f7d" stroke-width="1"/><text x="469" y="86">LTSS</text>
+  </g>
+  <text x="494" y="87" font-size="6.3" fill="#777" text-anchor="start">= daily help with bathing, dressing, meals,</text>
+  <text x="494" y="95" font-size="6.3" fill="#777" text-anchor="start">medications, and mobility (ADLs and IADLs)</text>
 
-  <div class="box"><h3>Public aid and benefit programs</h3><p>Federal, state, and local programs for food, housing, income, transportation, and long-term services and supports.</p></div>
-  <div class="conn"><span class="ar">&#8646;</span>Determines eligibility and completes applications.</div>
-  <div class="box core" style="grid-row: span 3; display:flex; flex-direction:column; justify-content:center;"><h3>CareNavigator by Olera</h3><p>Assesses needs, maps eligible funding, coordinates providers, and verifies that care begins.</p></div>
-  <div class="conn"><span class="ar">&#8646;</span>Receives referrals for patients needing home and community support.</div>
-  <div class="box"><h3>Healthcare organizations</h3><p>Hospitals, health systems, clinics, and ACOs. They identify needs, coordinate care, and bear financial risk.</p></div>
+  <!-- ===== vertical exchange lanes ===== -->
+  <line x1="462" y1="114" x2="462" y2="212" stroke="#1a7f4e" stroke-width="1.8"/>
+  <path d="M457 210 L462 221 L467 210 Z" fill="#1a7f4e"/>
+  <text x="452" y="162" font-size="7" font-weight="bold" fill="#14563a" text-anchor="end">Needs + means</text>
 
-  <div style="height:1pt"></div><div></div><div></div><div style="height:1pt"></div>
+  <line x1="518" y1="219" x2="518" y2="121" stroke="#1a7f4e" stroke-width="1.8"/>
+  <path d="M513 123 L518 112 L523 123 Z" fill="#1a7f4e"/>
+  <text x="528" y="156" font-size="7" font-weight="bold" fill="#14563a" text-anchor="start">Care + funding plan,</text>
+  <text x="528" y="167" font-size="7" font-weight="bold" fill="#14563a" text-anchor="start">established support</text>
 
-  <div class="box"><h3>Insurance and coverage</h3><p>Medicare, Medicare Advantage, Medicaid plans, commercial insurance, and long-term care insurance.</p></div>
-  <div class="conn"><span class="ar">&#8646;</span>Identifies unused coverage and plan benefits.</div>
-  <div class="conn"><span class="ar">&#8646;</span>Matches families to providers with verified capacity.</div>
-  <div class="box"><h3>Care and support providers</h3><p>Home care, home health, hospice, assisted living, skilled nursing, rehabilitation, and adult day services.</p></div>
+  <!-- ===== CENTER: CareNavigator + the family ===== -->
+  <rect x="355" y="222" width="270" height="268" rx="11" fill="#eaf5ee" stroke="#1a7f4e" stroke-width="3"/>
+  <text x="490" y="246" font-size="11" font-weight="bold" fill="#1f2a24" text-anchor="middle">CareNavigator + the family</text>
+
+  <!-- family figures -->
+  <g>
+    <circle cx="412" cy="304" r="9.5" fill="#4a5a6a"/>
+    <path d="M397 352 Q397 319 412 319 Q427 319 427 352 Z" fill="#8a6d9a"/>
+    <circle cx="452" cy="299" r="9.5" fill="#4a5a6a"/>
+    <path d="M437 352 Q437 314 452 314 Q467 314 467 352 Z" fill="#1a7f4e"/>
+    <rect x="463" y="324" width="9" height="15" rx="2" fill="#2b3a33"/>
+    <rect x="464.5" y="326" width="6" height="10" fill="#eaf5ee"/>
+  </g>
+
+  <!-- phone -->
+  <g>
+    <rect x="500" y="258" width="62" height="104" rx="9" fill="#2b3a33"/>
+    <rect x="504" y="266" width="54" height="89" fill="#fff"/>
+    <rect x="504" y="266" width="54" height="12" fill="#1a7f4e"/>
+    <text x="509" y="274.5" font-size="6.2" fill="#fff" font-weight="bold">CareNavigator</text>
+    <text x="509" y="289" font-size="6.6" font-weight="bold" fill="#1f4534">Family profile</text>
+    <g stroke="#1a7f4e" stroke-width="1.3" fill="none">
+      <path d="M512 298 c-2 -3 -6 0 -3 3 l3 3 l3 -3 c3 -3 -1 -6 -3 -3 z"/>
+      <path d="M508 315 l4 -4 l4 4 v4 h-8 z"/>
+      <circle cx="512" cy="333" r="4"/>
+      <circle cx="512" cy="347" r="4"/>
+    </g>
+    <text x="510" y="335.5" font-size="5.4" fill="#1a7f4e" font-weight="bold">$</text>
+    <circle cx="512" cy="346" r="1.3" fill="#1a7f4e"/>
+    <g stroke="#d8e6dd" stroke-width="2.6" stroke-linecap="round">
+      <line x1="521" y1="298" x2="550" y2="298"/><line x1="521" y1="315" x2="550" y2="315"/>
+      <line x1="521" y1="333" x2="550" y2="333"/><line x1="521" y1="347" x2="550" y2="347"/>
+    </g>
+  </g>
+
+  <!-- five functions -->
+  <g font-size="7.6" fill="#1f2a24">
+    <circle cx="392" cy="381" r="2.3" fill="#1a7f4e"/><text x="400" y="384">Assesses needs</text>
+    <circle cx="392" cy="402" r="2.3" fill="#1a7f4e"/><text x="400" y="405">Creates a living profile</text>
+    <circle cx="392" cy="423" r="2.3" fill="#1a7f4e"/><text x="400" y="426">Builds a care + funding plan</text>
+    <circle cx="392" cy="444" r="2.3" fill="#1a7f4e"/><text x="400" y="447">Helps execute the plan</text>
+    <circle cx="392" cy="465" r="2.3" fill="#1a7f4e"/><text x="400" y="468">Tracks aid and care established</text>
+  </g>
+
+  <!-- ===== LEFT TOP: Public Aid Programs ===== -->
+  <rect x="35" y="230" width="250" height="104" rx="9" fill="#f5faf7" stroke="#1a7f4e" stroke-width="1.5"/>
+  <text x="160" y="256" font-size="9.5" font-weight="bold" fill="#1f2a24" text-anchor="middle">Public Aid Programs</text>
+  <text x="160" y="280" font-size="7.9" fill="#333" text-anchor="middle">Food &#8226; Housing &#8226; Income &#8226; Transportation &#8226; LTSS</text>
+  <text x="160" y="300" font-size="6.6" fill="#777" text-anchor="middle">SNAP, housing assistance, SSI, VA pension, Medicaid waivers</text>
+
+  <g>
+    <line x1="292" y1="268" x2="350" y2="268" stroke="#1a7f4e" stroke-width="1.6"/>
+    <path d="M294 263 L283 268 L294 273 Z" fill="#1a7f4e"/>
+    <text x="320" y="262" font-size="6.9" font-weight="bold" fill="#14563a" text-anchor="middle">Applications</text>
+    <line x1="288" y1="300" x2="346" y2="300" stroke="#1a7f4e" stroke-width="1.6"/>
+    <path d="M344 295 L355 300 L344 305 Z" fill="#1a7f4e"/>
+    <text x="320" y="294" font-size="6.9" font-weight="bold" fill="#14563a" text-anchor="middle">Aid</text>
+  </g>
+
+  <!-- ===== LEFT BOTTOM: Insurance Coverage ===== -->
+  <rect x="35" y="380" width="250" height="104" rx="9" fill="#f5faf7" stroke="#1a7f4e" stroke-width="1.5"/>
+  <text x="160" y="406" font-size="9.5" font-weight="bold" fill="#1f2a24" text-anchor="middle">Insurance Coverage</text>
+  <text x="160" y="430" font-size="7.9" fill="#333" text-anchor="middle">Medicare &#8226; Medicare Advantage &#8226; Medicaid</text>
+  <text x="160" y="448" font-size="7.9" fill="#333" text-anchor="middle">Commercial &#8226; Long-term care insurance</text>
+
+  <g>
+    <line x1="292" y1="418" x2="350" y2="418" stroke="#1a7f4e" stroke-width="1.6"/>
+    <path d="M294 413 L283 418 L294 423 Z" fill="#1a7f4e"/>
+    <text x="320" y="412" font-size="6.9" font-weight="bold" fill="#14563a" text-anchor="middle">Eligibility</text>
+    <line x1="288" y1="450" x2="346" y2="450" stroke="#1a7f4e" stroke-width="1.6"/>
+    <path d="M344 445 L355 450 L344 455 Z" fill="#1a7f4e"/>
+    <text x="320" y="444" font-size="6.9" font-weight="bold" fill="#14563a" text-anchor="middle">Benefits</text>
+  </g>
+
+  <!-- ===== RIGHT TOP: Healthcare Services ===== -->
+  <rect x="695" y="230" width="250" height="104" rx="9" fill="#f5faf7" stroke="#1a7f4e" stroke-width="1.5"/>
+  <text x="820" y="256" font-size="9.5" font-weight="bold" fill="#1f2a24" text-anchor="middle">Healthcare Services</text>
+  <text x="820" y="280" font-size="7.9" fill="#333" text-anchor="middle">Home health &#8226; Hospice &#8226; Skilled nursing</text>
+  <text x="820" y="298" font-size="7.9" fill="#333" text-anchor="middle">Rehabilitation &#8226; Long-term care</text>
+
+  <g>
+    <line x1="630" y1="268" x2="688" y2="268" stroke="#1a7f4e" stroke-width="1.6"/>
+    <path d="M686 263 L697 268 L686 273 Z" fill="#1a7f4e"/>
+    <text x="660" y="262" font-size="6.9" font-weight="bold" fill="#14563a" text-anchor="middle">Health needs</text>
+    <line x1="634" y1="300" x2="692" y2="300" stroke="#1a7f4e" stroke-width="1.6"/>
+    <path d="M636 295 L625 300 L636 305 Z" fill="#1a7f4e"/>
+    <text x="660" y="294" font-size="6.9" font-weight="bold" fill="#14563a" text-anchor="middle">Healthcare</text>
+  </g>
+
+  <!-- ===== RIGHT BOTTOM: Personal Care & Support ===== -->
+  <rect x="695" y="380" width="250" height="104" rx="9" fill="#f5faf7" stroke="#1a7f4e" stroke-width="1.5"/>
+  <text x="820" y="406" font-size="9.5" font-weight="bold" fill="#1f2a24" text-anchor="middle">Personal Care &amp; Support</text>
+  <text x="820" y="430" font-size="7.9" fill="#333" text-anchor="middle">Home care &#8226; Assisted living &#8226; Adult day services</text>
+  <text x="820" y="448" font-size="7.9" fill="#333" text-anchor="middle">Transportation services</text>
+
+  <g>
+    <line x1="630" y1="418" x2="688" y2="418" stroke="#1a7f4e" stroke-width="1.6"/>
+    <path d="M686 413 L697 418 L686 423 Z" fill="#1a7f4e"/>
+    <text x="660" y="412" font-size="6.9" font-weight="bold" fill="#14563a" text-anchor="middle">ADL/IADL needs</text>
+    <line x1="634" y1="450" x2="692" y2="450" stroke="#1a7f4e" stroke-width="1.6"/>
+    <path d="M636 445 L625 450 L636 455 Z" fill="#1a7f4e"/>
+    <text x="660" y="444" font-size="6.9" font-weight="bold" fill="#14563a" text-anchor="middle">Daily assistance</text>
+  </g>
+
+  <!-- baseline note -->
+  <text x="490" y="530" font-size="8.2" fill="#555" text-anchor="middle">Resources from every part of the ecosystem reach the family through one plan, one profile, and one accountable layer.</text>
+</svg>
 </div>
 
+<!-- ============ FIGURE 2: THE FAMILY JOURNEY ============ -->
+<div class="page">
+<h1>2. The family journey through CareNavigator</h1>
+<p class="lede">One archetypal family, from telling their story once to established aid and care. (Semantics to be reconciled with Figure 1 next.)</p>
 <svg width="100%" viewBox="0 0 980 322" style="margin-top:2pt" font-family="Arial">
   <!-- ===== S4 convergence: pills, collector bar, single arrow ===== -->
   <g font-size="6.8" font-weight="bold" fill="#1f4534" text-anchor="middle">
@@ -211,7 +319,7 @@ table.pay td.rev { background: #eaf5ee !important; }
 </div>
 
 <div class="page">
-<h1>2. Who pays, and why?</h1>
+<h1>3. Who pays, and why?</h1>
 <p class="q">Each customer category, what it buys, and whether the opportunity is economically meaningful at the county level.</p>
 
 <table class="pay">
@@ -263,6 +371,7 @@ table.pay td.rev { background: #eaf5ee !important; }
 <p><b>Why pay when the website is free?</b> The free site serves families who come looking. Institutions pay us to find and engage the specific people they are responsible for, finish every case, and prove the results back into their systems.</p>
 </div>
 </div>
+
 
 
 

@@ -2,309 +2,289 @@
 <style>
 @page { size: letter landscape; margin: 0.35in; }
 * { box-sizing: border-box; }
-body { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #1a1a1a; margin: 0; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #1f2a24; margin: 0; }
 .page { page-break-after: always; padding: 2pt 4pt; }
 .page:last-child { page-break-after: avoid; }
-h1 { font-size: 15pt; margin: 0 0 2pt 0; }
-.q { font-size: 10.5pt; color: #555; margin: 0 0 10pt 0; font-style: italic; }
-.takeaway { margin-top: 10pt; padding: 7pt 10pt; background: #f4f4f4; border-left: 3px solid #333; font-size: 10pt; }
-.takeaway b { font-size: 10pt; }
+h1 { font-size: 15pt; margin: 0 0 3pt 0; }
+.lede { font-size: 11pt; color: #333; margin: 0 0 12pt 0; line-height: 1.35; }
+.q { font-size: 10pt; color: #555; margin: 0 0 10pt 0; }
 
-/* evidence tiers */
-.t-now { background: #e9f5ee; border: 2px solid #1a7f4e; }
-.t-crp { background: #eaf1fb; border: 2px dashed #1d5fbf; }
-.t-hyp { background: #fdf5e0; border: 2px dotted #a8760a; color: #5a4a1a; }
-.legend { display: flex; gap: 14pt; align-items: center; margin: 0 0 10pt 0; font-size: 8.5pt; }
-.legend .chip { padding: 2pt 8pt; border-radius: 3pt; }
-.legend .lbl { color: #666; font-weight: bold; margin-right: 2pt; }
-
-.box { border-radius: 5pt; padding: 7pt 9pt; }
+.box { border: 1.5px solid #1a7f4e; background: #f5faf7; border-radius: 6pt; padding: 8pt 10pt; text-align: center; }
 .box h3 { margin: 0 0 3pt 0; font-size: 10.5pt; }
-.box p { margin: 0; font-size: 8.8pt; line-height: 1.25; }
-.tag { display: inline-block; font-size: 7pt; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 3pt; color: #666; }
+.box p { margin: 0; font-size: 8.8pt; line-height: 1.3; }
+.core { border-width: 3px; background: #eaf5ee; }
 
-/* P1 system map */
-.sysgrid { display: grid; grid-template-columns: 1fr 46pt 1.35fr 46pt 1fr; grid-template-rows: auto auto auto auto; gap: 4pt 0; align-items: stretch; }
-.conn { display: flex; align-items: center; justify-content: center; flex-direction: column; font-size: 8pt; color: #444; text-align: center; padding: 0 2pt; }
-.conn .ar { font-size: 15pt; line-height: 1; color: #333; }
-.money { color: #1a7f4e; font-weight: bold; }
-.vconn { text-align: center; font-size: 8pt; color: #444; padding: 1pt 0; }
-.vconn .ar { font-size: 13pt; line-height: 1; }
+/* Figure 1 grid */
+.sysgrid { display: grid; grid-template-columns: 1fr 110pt 1.2fr 110pt 1fr; gap: 6pt 0; align-items: stretch; }
+.conn { display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 8pt; color: #444; text-align: center; padding: 0 6pt; line-height: 1.25; }
+.conn .ar { font-size: 16pt; line-height: 1; color: #1a7f4e; margin-bottom: 2pt; }
+.vconn { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: 8pt; color: #444; padding: 2pt 0; line-height: 1.25; }
+.vconn .ar { font-size: 14pt; line-height: 1; color: #1a7f4e; }
 
-/* P2 pathway */
-.path { display: flex; gap: 0; align-items: stretch; }
-.step { flex: 1; display: flex; flex-direction: column; }
-.step .box { flex: 1; border-radius: 4pt; padding: 5pt 6pt; }
-.step .box h3 { font-size: 9pt; }
-.step .box p { font-size: 7.8pt; }
-.sarrow { display: flex; align-items: center; font-size: 13pt; color: #555; padding: 0 2pt; }
-.rowlab { font-size: 8pt; font-weight: bold; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin: 8pt 0 3pt 0; }
-.painrow { display: flex; gap: 6pt; }
-.pain { flex: 1; font-size: 7.8pt; color: #8a2020; background: #faeeee; border-radius: 3pt; padding: 4pt 6pt; line-height: 1.25; }
+/* Figure 2 grid */
+.pathgrid { display: grid; grid-template-columns: 1fr 14px 1fr 14px 1fr 14px 1fr 14px 1fr 14px 1fr; gap: 5pt 0; align-items: stretch; }
+.pathgrid .box { padding: 6pt 7pt; }
+.pathgrid .box h3 { font-size: 9.4pt; }
+.pathgrid .box p { font-size: 8pt; }
+.pain { font-size: 7.9pt; color: #555; background: #f2f2f2; border-radius: 4pt; padding: 5pt 7pt; line-height: 1.3; text-align: center; font-style: italic; display: flex; align-items: center; justify-content: center; }
+.gar { display: flex; align-items: center; justify-content: center; font-size: 12pt; color: #1a7f4e; }
+.upar { display: flex; align-items: center; justify-content: center; font-size: 14pt; color: #1a7f4e; line-height: 1; }
+.val { font-size: 7.9pt; color: #14563a; background: #eaf5ee; border-radius: 4pt; padding: 5pt 7pt; line-height: 1.3; text-align: center; display: flex; align-items: center; justify-content: center; }
+.rowlab { font-size: 8pt; font-weight: bold; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin: 2pt 0 3pt 0; }
 
-/* P2 extras */
-.echip { display: block; font-size: 7.4pt; border-radius: 3pt; padding: 2pt 4pt; margin-top: 2pt; border-width: 1px !important; }
-.trio { display: flex; gap: 8pt; }
-.trio .box { flex: 1; padding: 4pt 7pt; }
-.trio .box h3 { font-size: 9.2pt; } .trio .box p { font-size: 7.7pt; }
+/* Figure 3 table */
+table.pay { border-collapse: collapse; width: 100%; font-size: 8.6pt; }
+table.pay th { background: #1f4534; color: #fff; padding: 6pt 7pt; text-align: left; font-size: 8.8pt; }
+table.pay td { border: 1px solid #c9d6cf; padding: 7pt 8pt; vertical-align: top; line-height: 1.35; background: #fff; }
+table.pay tr:nth-child(odd) td { background: #f7faf8; }
 
-/* P3 table */
-table.pay { border-collapse: collapse; width: 100%; font-size: 7.9pt; }
-table.pay th { background: #2b2b2b; color: #fff; padding: 4pt 5pt; text-align: left; font-size: 8.3pt; }
-table.pay td { border: 1px solid #ccc; padding: 4pt 5pt; vertical-align: top; line-height: 1.22; }
-table.pay tr.now td { background: #e9f5ee; }
-table.pay tr.later td { background: #fdf5e0; color: #4d4325; }
-table.pay tr.dim td { background: #f6f6f6; color: #777; }
-.rowtag { font-size: 6.8pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4px; display: block; margin-top: 2pt; }
-.rowtag.g { color: #1a7f4e; } .rowtag.a { color: #a8760a; } .rowtag.gr { color: #888; }
-
-/* P4 flywheel */
-.loop { display: flex; align-items: stretch; gap: 0; }
-.loop .box { flex: 1; padding: 6pt 7pt; border-radius: 4pt; }
-.loop .box h3 { font-size: 9.2pt; } .loop .box p { font-size: 7.9pt; }
-.returnbar { display: flex; align-items: center; gap: 6pt; margin-top: 5pt; }
-.returnline { flex: 1; border-bottom: 2px solid #1a7f4e; position: relative; height: 1pt; }
-.returnlab { font-size: 8.5pt; color: #1a7f4e; font-weight: bold; white-space: nowrap; }
-.returnbar.h .returnline { border-bottom: 2px dotted #a8760a; }
-.returnbar.h .returnlab { color: #a8760a; }
-.branch { text-align: center; font-size: 8.5pt; color: #a8760a; margin: 8pt 0 3pt 0; }
-.branch .ar { font-size: 13pt; }
-
-/* P5 bands */
-.bands { display: flex; gap: 8pt; align-items: stretch; }
-.band { flex: 1; border-radius: 5pt; padding: 8pt 10pt; }
-.band h2 { font-size: 11pt; margin: 0 0 5pt 0; }
-.band ul { margin: 0; padding-left: 13pt; font-size: 8.7pt; line-height: 1.45; }
-.band .sub { font-size: 8pt; color: #555; margin: 0 0 5pt 0; }
-.rule { margin-top: 9pt; padding: 7pt 10pt; border: 2px solid #333; border-radius: 5pt; font-size: 10pt; text-align: center; background: #fff; }
-
-/* P6 side by side */
-.duo { display: flex; gap: 10pt; }
-.thesis { flex: 1; border-radius: 5pt; padding: 8pt 11pt; }
-.thesis h2 { font-size: 11.5pt; margin: 0 0 4pt 0; }
-.thesis .claim { font-size: 9.5pt; font-style: italic; margin: 0 0 6pt 0; line-height: 1.3; }
-.thesis dl { margin: 0; font-size: 8.7pt; line-height: 1.3; }
-.thesis dt { font-weight: bold; margin-top: 5pt; color: #444; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.4px; }
-.thesis dd { margin: 1pt 0 0 0; }
-.verdict { display: flex; gap: 8pt; margin-top: 9pt; }
-.v { flex: 1; border-radius: 5pt; padding: 6pt 9pt; font-size: 8.6pt; line-height: 1.35; }
-.v h4 { margin: 0 0 3pt 0; font-size: 9pt; }
-.v.keep { background: #e9f5ee; border: 2px solid #1a7f4e; }
-.v.adopt { background: #eaf1fb; border: 2px dashed #1d5fbf; }
-.v.rej { background: #faeeee; border: 2px solid #b04040; }
+/* Figure 3b storyboard */
+.strip { display: flex; gap: 8pt; }
+.panel { flex: 1; border: 1.5px solid #1a7f4e; border-radius: 6pt; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
+.panel .art { background: #f2f7f4; padding: 4pt 4pt 0 4pt; text-align: center; }
+.panel .cap { padding: 6pt 8pt 8pt 8pt; font-size: 8.2pt; line-height: 1.35; }
+.panel .cap b { font-size: 8.4pt; }
+.pnum { display: inline-block; background: #1a7f4e; color: #fff; border-radius: 50%; width: 12pt; height: 12pt; line-height: 12pt; text-align: center; font-size: 7.5pt; font-weight: bold; margin-right: 4pt; }
 </style></head><body>
 
-<!-- ============ PAGE 1: WHAT ARE WE BUILDING ============ -->
+<!-- ============ FIGURE 1 ============ -->
 <div class="page">
 <h1>1. What are we actually building?</h1>
-<p class="q">One level above the feature list: who does CareNavigator coordinate, what flows between them, and where does money enter?</p>
-<div class="legend"><span class="lbl">EVIDENCE TIERS, ALL PAGES:</span>
-<span class="chip t-now">Exists today, with evidence</span>
-<span class="chip t-crp">The CRP builds and tests this</span>
-<span class="chip t-hyp">Post-CRP hypothesis, not claimed</span></div>
+<p class="lede"><b>We are building the coordination system for the entire eldercare ecosystem</b>, one place where families, benefits programs, care providers, new caregivers, and the organizations that pay for care work together until care is established.</p>
 
 <div class="sysgrid">
   <div></div><div></div>
-  <div class="box t-now" style="text-align:center"><h3>Aid &amp; benefits programs</h3><p>Medicaid waivers, VA, state and local aid. An estimated $58B goes unclaimed yearly because families cannot navigate them.</p></div>
+  <div class="box"><h3>Aid and benefits programs</h3><p>About $58 billion in aid goes unclaimed each year. Families cannot navigate it.</p></div>
   <div></div><div></div>
 
   <div></div><div></div>
-  <div class="vconn"><span class="ar">&#8645;</span> finds what pays; completes applications <span style="color:#1d5fbf">(execution loop: CRP builds)</span></div>
+  <div class="vconn"><span class="ar">&#8645;</span>We find what pays and we complete the applications.</div>
   <div></div><div></div>
 
-  <div class="box t-now"><h3>Families</h3><p>15,500+ monthly organic visitors. Use everything <b>free, always</b>. No entry fee, no referral fee, ever.</p></div>
-  <div class="conn"><span class="ar">&#8646;</span><span>screen, match,<br>follow up to<br><b>care established</b></span></div>
-  <div class="box t-now" style="text-align:center"><h3>CareNavigator (Olera)</h3><p><b>The coordination core:</b> screens needs, qualifies funding, executes applications, matches to providers <b>with confirmed capacity</b>, follows up until care starts, and <b>verifies establishment from its own records</b>. The verified record is the asset no one else holds.</p></div>
-  <div class="conn"><span class="ar">&#8646;</span><span>every provider listed;<br><b>no one pays for<br>a referral</b></span></div>
-  <div class="box t-now"><h3>Care providers</h3><p>725+ onboarded. Their two survival problems: finding clients and finding staff. They already pay others to solve both.<br><span class="money">$ buy Staff Recruitment &#8594; CRP tests this</span></p></div>
+  <div class="box"><h3>Families</h3><p>15,500+ families visit monthly. It is always free for them.</p></div>
+  <div class="conn"><span class="ar">&#8646;</span>We guide each family until care begins.</div>
+  <div class="box core"><h3>CareNavigator by Olera</h3><p>It matches care, secures funding and a provider, and follows through to care.</p></div>
+  <div class="conn"><span class="ar">&#8646;</span>Providers are listed free and pay only for staffing.</div>
+  <div class="box"><h3>Care providers</h3><p>725+ onboarded. Their biggest costs are finding clients and staff.</p></div>
 
-  <div class="conn" style="padding:2pt 0"><span class="ar">&#8593;</span><span>send covered members into the same loop</span></div>
+  <div class="vconn"><span class="ar">&#8593;</span>They can send the people they cover into the same system.</div>
   <div></div>
-  <div class="vconn"><span class="ar">&#8645;</span> recruits students; providers hire, train, supervise</div>
+  <div class="vconn"><span class="ar">&#8645;</span>We recruit the students and the providers hire them.</div>
   <div></div><div></div>
 
-  <div class="box t-hyp"><h3>Risk-bearing organizations</h3><p>MA plans, Medicaid MCOs, health systems, employers. They <b>sponsor navigation for families they cover</b>: demand-side money, so neutrality survives.<br><span class="money">$ per completed episode &#8594; post-CRP</span></p></div>
+  <div class="box"><h3>Insurers and hospitals</h3><p>They pay when care fails. They can sponsor navigation.</p></div>
   <div></div>
-  <div class="box t-crp" style="text-align:center"><h3>Caregiving workforce (health-professions students)</h3><p>New capacity, not competition for the scarce existing pool. Pilot evidence: providers paid, 20+ placements. CRP scales and tests it.</p></div>
+  <div class="box"><h3>New caregiving workforce</h3><p>We recruit health profession students and providers hire them to staff more cases.</p></div>
   <div></div><div></div>
 </div>
-
-<div class="takeaway"><b>What this teaches:</b> the marketplace is the chassis; the product is coordination that ends in <b>verified establishment</b>. Money only ever enters from the supply side buying tools (now) or the demand side sponsoring navigation (later). No provider ever pays for a referral, so the neutral position is never for sale.</div>
 </div>
 
-<!-- ============ PAGE 2: THE PATHWAY ============ -->
+<!-- ============ FIGURE 2 ============ -->
 <div class="page">
-<h1>2. The care-establishment pathway</h1>
-<p class="q">Where do families fail today, what does CareNavigator change at each step, and where does the downstream value arise?</p>
-<div class="legend"><span class="chip t-now">Exists today</span><span class="chip t-crp">CRP builds / proves</span><span class="chip t-hyp">Post-CRP hypothesis</span></div>
-
-<div class="path">
-  <div class="step"><div class="box t-now"><span class="tag">Step 1</span><h3>Need recognized</h3><p>How families arrive:</p>
-    <span class="echip t-now">Organic search, usually mid-crisis (today)</span>
-    <span class="echip t-hyp">Sent by their MA plan, MCO, discharge planner / ACO, or employer (sponsored entry, post-CRP)</span></div></div>
-  <div class="sarrow">&#8594;</div>
-  <div class="step"><div class="box t-now"><span class="tag">Step 2</span><h3>Needs identified</h3><p>AI screening + curated database match care type to situation. Usability validated (Phases I-IIB).</p></div></div>
-  <div class="sarrow">&#8594;</div>
-  <div class="step"><div class="box t-now"><span class="tag">Step 3</span><h3>Funding qualified</h3><p>What aid, insurance, or family resources can pay. Live today.</p></div></div>
-  <div class="sarrow">&#8594;</div>
-  <div class="step"><div class="box t-crp"><span class="tag">Step 4</span><h3>Applications executed</h3><p>Carry each application to a decision. Families are lost here today (measured on our own funnel).</p></div></div>
-  <div class="sarrow">&#8594;</div>
-  <div class="step"><div class="box t-crp"><span class="tag">Step 5</span><h3>Provider with capacity connected</h3><p>Capacity-aware matching; response tracked to completion.</p></div></div>
-  <div class="sarrow">&#8594;</div>
-  <div class="step"><div class="box t-crp"><span class="tag">Step 6 &middot; when needed</span><h3>Workforce to staff the case</h3><p>If the matched provider lacks staff, student caregivers add the capacity to say yes (pilot: providers paid, 20+ placements).</p></div></div>
-  <div class="sarrow">&#8594;</div>
-  <div class="step"><div class="box t-crp" style="border-width:3px"><span class="tag">Step 7</span><h3>CARE ESTABLISHED, verified</h3><p><b>Measured: rate, time to care, benefit $ secured, referral closure.</b> Expert-verified. The record is the billable unit.</p></div></div>
-</div>
+<h1>2. The care establishment pathway</h1>
+<p class="q">Families fail at these steps today. We carry them through all six.</p>
 
 <div class="rowlab">Why each step fails today</div>
-<div class="painrow">
-  <div class="pain">Nobody to ask; advice fragmented; referrers have nowhere accountable to send people</div>
-  <div class="pain">Directories list, but do not assess</div>
-  <div class="pain">$58B in aid unclaimed each year</div>
-  <div class="pain">Complex applications abandoned; no one follows up after filing</div>
-  <div class="pain">Calls go unanswered; no one knows who has capacity</div>
-  <div class="pain">63.3% of home-care providers declined cases in 2023 for lack of staff</div>
-  <div class="pain">No actor is accountable for whether care actually started</div>
+<div class="pathgrid">
+  <div class="pain">Families have nobody to ask and the advice is scattered.</div><div></div>
+  <div class="pain">Directories list names but never assess the person.</div><div></div>
+  <div class="pain">About $58 billion in aid goes unclaimed each year.</div><div></div>
+  <div class="pain">Families give up on the paperwork and nobody follows up.</div><div></div>
+  <div class="pain">Calls go unanswered and most providers lack the staff to say yes.</div><div></div>
+  <div class="pain">Nobody today is accountable for whether care actually starts.</div>
+
+  <div class="box"><h3>1. Need recognized</h3><p>Families find us online or are sent by their health plan or hospital.</p></div>
+  <div class="gar">&#8594;</div>
+  <div class="box"><h3>2. Needs identified</h3><p>The system screens the situation and matches the right type of care.</p></div>
+  <div class="gar">&#8594;</div>
+  <div class="box"><h3>3. Funding qualified</h3><p>It finds what aid, insurance, or family money can pay for the care.</p></div>
+  <div class="gar">&#8594;</div>
+  <div class="box"><h3>4. Applications completed</h3><p>We carry every application to a decision and we follow up after filing.</p></div>
+  <div class="gar">&#8594;</div>
+  <div class="box"><h3>5. Provider connected</h3><p>We match the family to a provider with real room to take the case.</p></div>
+  <div class="gar">&#8594;</div>
+  <div class="box"><h3>6. Care established</h3><p>Care begins and we confirm it from our own records. We measure how often and how fast.</p></div>
+
+  <div></div><div></div><div></div><div></div><div></div><div></div><div></div><div></div>
+  <div class="upar">&#8593;</div>
+  <div></div><div></div>
+
+  <div class="val">Families never pay us anything.</div><div></div>
+  <div></div><div></div>
+  <div class="val">Unclaimed aid finally reaches families. The public gains.</div><div></div>
+  <div></div><div></div>
+  <div class="box"><h3>Caregiver workforce</h3><p>We supply student caregivers when providers run short. They pay us for this.</p></div>
+  <div></div>
+  <div class="val">Insurers and hospitals can pay for each finished case. Governments save too.</div>
+</div>
 </div>
 
-<div class="rowlab" style="color:#1a7f4e">Where revenue returns to Olera</div>
-<div class="trio">
-  <div class="box t-now"><h3>From families: $0, ever</h3><p>No entry fee, no referral fee. The rule that keeps every provider listed and the platform neutral.</p></div>
-  <div class="box t-crp"><h3>From providers <span class="money">$</span> (the CRP tests this)</h3><p>Staffing placements when Step 6 fires, plus growth tools, sold into marketplace activity under real billing (H5). Steps 5-6 are where provider value is created.</p></div>
-  <div class="box t-hyp"><h3>From payer sponsors <span class="money">$</span> (post-CRP)</h3><p>Case rate per completed, verified episode: the Step 7 record is what a plan, hospital, or employer is invoiced against. Demand-side money; neutrality intact.</p></div>
-</div>
-
-<div class="rowlab" style="color:#a8760a">Downstream of Step 7: who gains when the cascade is averted (hypothesis tier; needs payer and public data, never a CRP claim)</div>
-<div class="trio">
-  <div class="box t-hyp"><h3>Families and caregivers</h3><p>Support in place earlier; caregiver strain reduced; aging in place. (Caregiver burden can be self-reported in the CRP study; the rest is downstream.)</p></div>
-  <div class="box t-hyp"><h3>Risk-bearing payers</h3><p>Fewer ER visits and readmissions, deferred nursing-facility episodes, lower total cost of care. Their claims data is what tests this.</p></div>
-  <div class="box t-hyp"><h3>Governments and the public</h3><p>Medicare and Medicaid carry most avoidable utilization and institutional spend; states gain from home-and-community rebalancing; and the $58B in appropriated aid actually reaches the households it was meant for (benefit $ secured IS measured in the CRP).</p></div>
-</div>
-
-<div class="takeaway"><b>What this teaches:</b> the CRP builds Steps 4-6 and proves Step 7; identification (Steps 1-3) is the half NIH already built. Both revenue streams monetize the same pathway from opposite ends: providers pay where value is created (Steps 5-6), sponsors pay for the verified result (Step 7). Governments are the largest downstream beneficiary but never a claimed endpoint; their one in-CRP number is benefit dollars secured.</div>
-</div>
-
-<!-- ============ PAGE 3: WHO BENEFITS, WHO PAYS ============ -->
+<!-- ============ FIGURE 3 ============ -->
 <div class="page">
 <h1>3. Who benefits, who pays, and why?</h1>
-<p class="q">In plain words: who each buyer is, why paying us saves them money, what they would buy, and what proof they need first.</p>
+<p class="q">Who would pay Olera, why they would, and what proof each buyer needs first.</p>
 
 <table class="pay">
-<tr><th style="width:16%">Who they are</th><th style="width:17%">What they get from us</th><th style="width:19%">Why it saves them money</th><th style="width:17%">What they buy</th><th style="width:12%">How they pay</th><th style="width:19%">Proof they need first</th></tr>
-<tr class="now">
-  <td><b>Care providers</b><br>Home-care agencies and senior-living communities in our markets<span class="rowtag g">The CRP tests this</span></td>
-  <td>Families arriving with funding worked out, and caregivers to staff the shifts. Without staff they turn families away (63.3% declined cases in 2023)</td>
-  <td>Finding clients and finding staff are the two costs that decide whether they survive. They already pay recruiters and lead sellers for both</td>
-  <td><b>Staff Recruitment:</b> caregivers we recruit from health-professions students; the provider hires, trains, and supervises them</td>
-  <td>Flat monthly fee vs fee per placement: <b>which one works is itself an Aim 3 experiment</b></td>
-  <td>Mostly in hand: a pilot where providers paid for placed students. The CRP measures what they will pay as their market gets busier, then bills for real</td></tr>
-<tr class="later">
-  <td><b>Medicare Advantage plans</b><br>Private insurers Medicare pays a fixed monthly amount per member; the plan covers all that member's care from it<span class="rowtag a">Post-CRP, evidence-gated</span></td>
-  <td>Members who need help at home actually get it, with proof returned; members who qualify for Medicaid get enrolled (plans are paid more for them)</td>
-  <td>Every prevented hospital stay or nursing-home month is money the plan keeps. Medicare also grades plans (star ratings): better grades mean bonus payments and more enrollees. Helped members stay enrolled</td>
-  <td>Navigation episodes for members the plan flags (for example, after a hospital stay): outreach, the full loop, follow-through, and the establishment record returned to the plan</td>
-  <td>Fee per completed case at first; later a flat monthly fee per eligible member (PMPM: per member per month)</td>
-  <td>Our measured results: share of cases ending in established care, days to establishment, cost per case, member satisfaction, county coverage. This is the Aim 1 package</td></tr>
-<tr class="later">
-  <td><b>Medicaid managed-care companies (MCOs)</b><br>Private companies a state hires to run Medicaid for a fixed monthly amount per enrollee, often including long-term care<span class="rowtag a">Post-CRP, evidence-gated</span></td>
-  <td>Waiver paperwork actually finished, so members get home care instead of waiting; and our student pipeline grows the home-care workforce their members depend on</td>
-  <td>A nursing-home month costs roughly 2-3x a home-care month. Whoever holds that bill saves on every placement deferred, and states require these companies to help members stay at home</td>
-  <td>Navigation episodes for flagged members, same as above, plus contracted care-coordination capacity</td>
-  <td>Fee per completed establishment</td>
-  <td>Same package, plus proof we cover their counties. Public buyers take 1-2 years from first meeting to contract, so this starts after the CRP: the CRP creates the proof</td></tr>
-<tr class="later">
-  <td><b>Hospitals, health systems, ACOs</b><br>ACOs are provider groups paid partly on keeping total cost of care down<span class="rowtag a">Post-CRP, evidence-gated</span></td>
-  <td>Patients discharged on time to home care that actually starts, with closure reported back</td>
-  <td>A patient stuck in a bed waiting for home care costs the hospital money today; a patient readmitted costs penalties; ACOs keep part of every dollar saved</td>
-  <td>Post-discharge navigation episodes. The discharge planner hands the family a neutral tool (every provider listed, family chooses): the cleanest way to satisfy patient-choice rules</td>
-  <td>Fee per episode, paid by the system</td>
-  <td>Completion rate and days-to-establishment in their discharge counties</td></tr>
-<tr class="dim">
-  <td><b>Government aging agencies</b><br>State units on aging + Area Agencies on Aging (public eldercare helplines)<span class="rowtag gr">Later, smaller</span></td>
-  <td>Their mandate is exactly this pathway; understaffed for it</td>
-  <td>Not savings so much as mission: budgets are grants and public contracts</td>
-  <td>Contracted navigation capacity for their helpline callers</td>
-  <td>Public contracts and grants; modest dollars</td>
-  <td>Same results package; slow public buying cycles</td></tr>
-
+<tr><th style="width:17%">Who they are</th><th style="width:17%">What they get from us</th><th style="width:18%">Why it saves them money</th><th style="width:17%">What they buy</th><th style="width:13%">How they pay</th><th style="width:18%">What proof they need first</th></tr>
+<tr>
+  <td><b>Care providers.</b> Home care agencies and senior living communities.</td>
+  <td>Families arrive with funding worked out. Student caregivers staff their open shifts.</td>
+  <td>Finding clients and staff decides their survival. They already pay others for both.</td>
+  <td>Staff Recruitment. We recruit student caregivers and the provider hires and supervises them.</td>
+  <td>A monthly fee or a fee per placement. We will test which one works better.</td>
+  <td>Mostly in hand already. Providers paid us for placed students in our pilot.</td></tr>
+<tr>
+  <td><b>Medicare Advantage plans.</b> Private insurers paid a fixed monthly amount to cover all of a member's care.</td>
+  <td>Their members get home support set up, with proof returned to the plan.</td>
+  <td>Every prevented hospital stay is money the plan keeps. Satisfied members also stay enrolled.</td>
+  <td>Navigation for members they flag, such as after a hospital stay.</td>
+  <td>A fee for each completed case. Later a flat monthly fee per eligible member.</td>
+  <td>Our measured results. How often care gets established, how fast, and at what cost.</td></tr>
+<tr>
+  <td><b>Medicaid managed care companies.</b> Private companies states hire to run Medicaid for a fixed monthly amount per person.</td>
+  <td>Waiver paperwork gets finished, so members get home care instead of waiting for a crisis.</td>
+  <td>A nursing home costs about three times more than home care. Every deferred placement is savings.</td>
+  <td>Navigation for flagged members plus our help growing the local caregiver workforce.</td>
+  <td>A fee for each completed case.</td>
+  <td>The same results package. Public buyers also take one to two years to sign a contract.</td></tr>
+<tr>
+  <td><b>Hospitals, health systems, and ACOs.</b> ACOs are provider groups rewarded for keeping total costs down.</td>
+  <td>Patients leave the hospital on time, to home care that actually starts.</td>
+  <td>A patient stuck waiting for home care costs the hospital money every day. Readmissions bring penalties.</td>
+  <td>Help getting discharged patients into care. The family picks from a complete list, so nobody steers.</td>
+  <td>A fee for each discharge case.</td>
+  <td>Our completion rate and speed in the counties they discharge into.</td></tr>
+<tr>
+  <td><b>Government aging agencies.</b> State and regional offices that run eldercare helplines today.</td>
+  <td>Their callers finally get the follow-through the agencies cannot staff themselves.</td>
+  <td>This is about their public mission more than savings. Budgets come from grants and contracts.</td>
+  <td>Navigation capacity behind their helplines.</td>
+  <td>Public contracts and grants.</td>
+  <td>The same results package. Government buying moves slowly.</td></tr>
 </table>
-
-<div class="trio" style="margin-top:6pt">
-  <div class="box t-hyp"><h3>Why not traditional Medicare?</h3><p>No company is on the hook for a member's total costs: the government pays each bill separately, so there is no buyer to call. The exception is CMS itself, which already pays 390 organizations for dementia navigation (GUIDE, 2024). Traditional Medicare enters through federal programs like that, not through sales.</p></div>
-  <div class="box t-hyp"><h3>Why not commercial insurance?</h3><p>Commercial plans mostly cover people under 65, so the older adult is usually not their member: the working adult child is. The opportunity is therefore an employer caregiver-support benefit for those adult children (monthly fee per employee; comps: Wellthy, Homethrive). A later horizon, sold through benefits brokers.</p></div>
-  <div class="box t-now"><h3>The rule that never changes</h3><p>Every buyer above pays on the family's side of the market, for navigation and staffing. No provider ever pays to be listed or to receive a family. Neutrality is never for sale.</p></div>
 </div>
 
-<div class="takeaway" style="margin-top:6pt"><b>What this teaches:</b> the question is not whether institutions pay for navigation (CMS already does); it is whether the evidence exists, and the CRP is the machine that makes it. Only the top row is tested inside the CRP; every other row is what the top row's evidence unlocks.</div>
-</div>
-
-<!-- ============ PAGE 3b: HOW A SPONSORED EPISODE WORKS ============ -->
+<!-- ============ FIGURE 3b ============ -->
 <div class="page">
-<h1>3b. How a sponsored episode would actually work</h1>
-<p class="q">The human storyboard: what the member, the plan administrator, and the discharge planner each experience. All of this is the post-CRP wrapper (amber) around the same navigation loop the CRP builds (blue).</p>
+<h1>3b. One sponsored case, from referral to payment</h1>
+<p class="q">Mrs. Rivera's story shows how a health plan, a family, and Olera work together.</p>
 
-<div class="rowlab">The member and family (example: a Medicare Advantage plan)</div>
-<div class="path">
-  <div class="step"><div class="box t-hyp"><span class="tag">1 &middot; flagged</span><h3>The plan spots the need</h3><p>Mrs. Rivera is discharged after a fall. Her plan's care manager sees she needs help at home (discharge feed, health survey, or a call).</p></div></div>
-  <div class="sarrow" style="color:#a8760a">&#8594;</div>
-  <div class="step"><div class="box t-hyp"><span class="tag">2 &middot; invited</span><h3>A warm introduction</h3><p>The care manager introduces the program; the family gets a link and a phone call. It is the same free CareNavigator any family can use: nothing is gated.</p></div></div>
-  <div class="sarrow">&#8594;</div>
-  <div class="step"><div class="box t-crp"><span class="tag">3 &middot; navigated</span><h3>The work gets done</h3><p>Needs screened, aid found and applied for, provider with capacity matched, follow-up until care starts. <b>This is the loop the CRP builds and proves.</b></p></div></div>
-  <div class="sarrow">&#8594;</div>
-  <div class="step"><div class="box t-crp"><span class="tag">4 &middot; established</span><h3>Care starts, verified</h3><p>Home care in place; benefits secured. The family paid nothing and chose their own provider from the full list.</p></div></div>
+<div class="strip">
+
+  <div class="panel"><div class="art">
+    <svg width="176" height="128" viewBox="0 0 176 128">
+      <!-- care manager -->
+      <circle cx="38" cy="46" r="11" fill="#4a5a6a"/>
+      <path d="M20 92 Q20 66 38 66 Q56 66 56 92 Z" fill="#2e7d6b"/>
+      <!-- laptop -->
+      <rect x="72" y="34" width="88" height="58" rx="4" fill="#2b3a33"/>
+      <rect x="76" y="38" width="80" height="50" fill="#ffffff"/>
+      <rect x="76" y="38" width="80" height="10" fill="#1a7f4e"/>
+      <text x="80" y="45.5" font-size="6.5" fill="#fff" font-family="Arial" font-weight="bold">Plan care dashboard</text>
+      <text x="80" y="58" font-size="6.2" fill="#333" font-family="Arial">R. Rivera, 84</text>
+      <text x="80" y="66" font-size="5.8" fill="#777" font-family="Arial">Discharged Mar 1. Needs</text>
+      <text x="80" y="73" font-size="5.8" fill="#777" font-family="Arial">help at home.</text>
+      <rect x="112" y="77" width="40" height="9" rx="2" fill="#1a7f4e"/>
+      <text x="117" y="83.5" font-size="6" fill="#fff" font-family="Arial" font-weight="bold">Refer &#8594;</text>
+      <rect x="64" y="92" width="104" height="5" rx="2" fill="#8fa39a"/>
+      <text x="8" y="116" font-size="7" fill="#555" font-family="Arial">The plan's care manager</text>
+    </svg>
+  </div><div class="cap"><span class="pnum">1</span><b>The plan spots the need.</b> A care manager sees Mrs. Rivera needs help at home after her hospital stay. She refers her with one click.</div></div>
+
+  <div class="panel"><div class="art">
+    <svg width="176" height="128" viewBox="0 0 176 128">
+      <!-- daughter -->
+      <circle cx="34" cy="48" r="11" fill="#4a5a6a"/>
+      <path d="M16 94 Q16 68 34 68 Q52 68 52 94 Z" fill="#1a7f4e"/>
+      <!-- phone -->
+      <rect x="86" y="18" width="52" height="94" rx="8" fill="#2b3a33"/>
+      <rect x="90" y="26" width="44" height="78" fill="#ffffff"/>
+      <rect x="90" y="26" width="44" height="9" fill="#1a7f4e"/>
+      <text x="93" y="32.5" font-size="5.5" fill="#fff" font-family="Arial" font-weight="bold">CareNavigator</text>
+      <rect x="93" y="39" width="38" height="14" rx="3" fill="#eef4f0"/>
+      <text x="95" y="45" font-size="4.8" fill="#333" font-family="Arial">Hi, I can help your</text>
+      <text x="95" y="50.5" font-size="4.8" fill="#333" font-family="Arial">mom. What is hard?</text>
+      <rect x="93" y="58" width="38" height="9" rx="4" fill="#fff" stroke="#1a7f4e" stroke-width="0.8"/>
+      <text x="97" y="64.5" font-size="5" fill="#1a7f4e" font-family="Arial">Bathing and meals</text>
+      <rect x="93" y="70" width="38" height="9" rx="4" fill="#fff" stroke="#1a7f4e" stroke-width="0.8"/>
+      <text x="97" y="76.5" font-size="5" fill="#1a7f4e" font-family="Arial">Paying for care</text>
+      <rect x="93" y="82" width="38" height="9" rx="4" fill="#fff" stroke="#1a7f4e" stroke-width="0.8"/>
+      <text x="97" y="88.5" font-size="5" fill="#1a7f4e" font-family="Arial">Feeling alone</text>
+      <text x="8" y="116" font-size="7" fill="#555" font-family="Arial">Mrs. Rivera's daughter</text>
+    </svg>
+  </div><div class="cap"><span class="pnum">2</span><b>The family opens the same free tool.</b> Her daughter gets a text and answers a few questions. Any family can use this for free without any referral.</div></div>
+
+  <div class="panel"><div class="art">
+    <svg width="176" height="128" viewBox="0 0 176 128">
+      <!-- phone with benefit result -->
+      <rect x="14" y="18" width="52" height="94" rx="8" fill="#2b3a33"/>
+      <rect x="18" y="26" width="44" height="78" fill="#ffffff"/>
+      <rect x="18" y="26" width="44" height="9" fill="#1a7f4e"/>
+      <text x="21" y="32.5" font-size="5.5" fill="#fff" font-family="Arial" font-weight="bold">Good news</text>
+      <rect x="21" y="39" width="38" height="26" rx="3" fill="#eaf5ee" stroke="#1a7f4e" stroke-width="0.8"/>
+      <text x="24" y="47" font-size="5" fill="#333" font-family="Arial">Mom may qualify for</text>
+      <text x="24" y="55" font-size="7" fill="#14563a" font-family="Arial" font-weight="bold">$1,800 / month</text>
+      <text x="24" y="62" font-size="4.8" fill="#555" font-family="Arial">in veteran's aid</text>
+      <rect x="21" y="70" width="38" height="10" rx="4" fill="#1a7f4e"/>
+      <text x="26" y="77" font-size="4.6" fill="#fff" font-family="Arial" font-weight="bold">We apply for you</text>
+      <!-- navigator with headset -->
+      <circle cx="128" cy="48" r="11" fill="#4a5a6a"/>
+      <path d="M116 38 A13 13 0 0 1 140 38" stroke="#1a7f4e" stroke-width="2.5" fill="none"/>
+      <rect x="138" y="44" width="4" height="8" rx="2" fill="#1a7f4e"/>
+      <path d="M110 94 Q110 68 128 68 Q146 68 146 94 Z" fill="#3a6b8a"/>
+      <text x="100" y="116" font-size="7" fill="#555" font-family="Arial">An Olera navigator</text>
+    </svg>
+  </div><div class="cap"><span class="pnum">3</span><b>The money gets found and filed.</b> The system finds aid the family never knew about. Our team completes the applications and follows up until they are decided.</div></div>
+
+  <div class="panel"><div class="art">
+    <svg width="176" height="128" viewBox="0 0 176 128">
+      <!-- phone provider list -->
+      <rect x="14" y="18" width="52" height="94" rx="8" fill="#2b3a33"/>
+      <rect x="18" y="26" width="44" height="78" fill="#ffffff"/>
+      <rect x="18" y="26" width="44" height="9" fill="#1a7f4e"/>
+      <text x="21" y="32.5" font-size="5" fill="#fff" font-family="Arial" font-weight="bold">All 47 providers</text>
+      <rect x="21" y="39" width="38" height="13" rx="2" fill="#f4f4f4"/>
+      <text x="23" y="45" font-size="4.8" fill="#333" font-family="Arial">Sunrise Home Care</text>
+      <text x="23" y="50" font-size="4.4" fill="#1a7f4e" font-family="Arial" font-weight="bold">Can start this week</text>
+      <rect x="21" y="55" width="38" height="13" rx="2" fill="#f4f4f4"/>
+      <text x="23" y="61" font-size="4.8" fill="#333" font-family="Arial">Caring Hands LLC</text>
+      <text x="23" y="66" font-size="4.4" fill="#777" font-family="Arial">Waitlist 3 weeks</text>
+      <rect x="21" y="71" width="38" height="13" rx="2" fill="#f4f4f4"/>
+      <text x="23" y="77" font-size="4.8" fill="#333" font-family="Arial">Comfort Keepers</text>
+      <text x="23" y="82" font-size="4.4" fill="#777" font-family="Arial">Full this month</text>
+      <text x="21" y="94" font-size="4.6" fill="#555" font-family="Arial">The family chooses.</text>
+      <!-- student caregiver + elder -->
+      <circle cx="112" cy="50" r="10" fill="#4a5a6a"/>
+      <path d="M100 92 Q100 68 112 68 Q124 68 124 92 Z" fill="#1a7f4e"/>
+      <rect x="104" y="70" width="16" height="6" rx="2" fill="#fff"/>
+      <text x="105.5" y="74.8" font-size="4.6" fill="#1a7f4e" font-family="Arial" font-weight="bold">STUDENT</text>
+      <circle cx="148" cy="54" r="9" fill="#4a5a6a"/>
+      <path d="M138 92 Q138 72 148 72 Q158 72 158 92 Z" fill="#8a6d9a"/>
+      <path d="M128 46 l3 -3 a2.4 2.4 0 0 1 3.4 3.4 l-6.4 6 -6.4 -6 a2.4 2.4 0 0 1 3.4 -3.4 Z" fill="#c0392b" transform="translate(4,-16)"/>
+      <text x="96" y="116" font-size="7" fill="#555" font-family="Arial">Caregiver and Mrs. Rivera</text>
+    </svg>
+  </div><div class="cap"><span class="pnum">4</span><b>A provider says yes.</b> The family picks from every provider in the county. A student caregiver fills the open shift so the provider can take the case.</div></div>
+
+  <div class="panel"><div class="art">
+    <svg width="176" height="128" viewBox="0 0 176 128">
+      <!-- laptop with record -->
+      <rect x="34" y="24" width="108" height="66" rx="4" fill="#2b3a33"/>
+      <rect x="38" y="28" width="100" height="58" fill="#ffffff"/>
+      <rect x="38" y="28" width="100" height="10" fill="#1a7f4e"/>
+      <text x="42" y="35.5" font-size="6.5" fill="#fff" font-family="Arial" font-weight="bold">Monthly report to the plan</text>
+      <circle cx="46" cy="48" r="4" fill="#1a7f4e"/>
+      <text x="43.6" y="50.8" font-size="6" fill="#fff" font-family="Arial" font-weight="bold">&#10003;</text>
+      <text x="54" y="50" font-size="6" fill="#333" font-family="Arial">R. Rivera. Care established Mar 4.</text>
+      <text x="54" y="60" font-size="5.6" fill="#555" font-family="Arial">Home care 20 hrs a week</text>
+      <text x="54" y="68" font-size="5.6" fill="#555" font-family="Arial">$1,800 monthly aid secured</text>
+      <rect x="54" y="73" width="72" height="9" rx="2" fill="#eaf5ee" stroke="#1a7f4e" stroke-width="0.8"/>
+      <text x="57" y="79.5" font-size="5.6" fill="#14563a" font-family="Arial" font-weight="bold">Invoice for one case.</text>
+      <rect x="26" y="90" width="124" height="5" rx="2" fill="#8fa39a"/>
+      <text x="30" y="116" font-size="7" fill="#555" font-family="Arial">Back at the health plan</text>
+    </svg>
+  </div><div class="cap"><span class="pnum">5</span><b>Proof comes back and payment follows.</b> Care begins and we confirm it. The plan receives the record and pays only for the finished case.</div></div>
+
 </div>
-
-<div class="rowlab" style="margin-top:8pt">The plan administrator</div>
-<div class="path">
-  <div class="step"><div class="box t-hyp"><span class="tag">1</span><h3>Sends the list</h3><p>Flags eligible members (post-discharge, needs help at home) into the program.</p></div></div>
-  <div class="sarrow" style="color:#a8760a">&#8594;</div>
-  <div class="step"><div class="box t-hyp"><span class="tag">2</span><h3>Watches progress</h3><p>Dashboard or monthly report: episodes open, in progress, completed.</p></div></div>
-  <div class="sarrow" style="color:#a8760a">&#8594;</div>
-  <div class="step"><div class="box t-hyp"><span class="tag">3</span><h3>Receives the record</h3><p>Per member: care established (or not), date, services, benefit dollars secured. Feeds their care-management files and quality reporting.</p></div></div>
-  <div class="sarrow" style="color:#a8760a">&#8594;</div>
-  <div class="step"><div class="box t-hyp"><span class="tag">4</span><h3>Pays for results</h3><p>Invoiced per <b>completed</b> episode, each one backed by its record. No completion, no charge.</p></div></div>
-</div>
-
-<div class="rowlab" style="margin-top:8pt">The discharge planner or social worker (hospital / ACO)</div>
-<div class="path">
-  <div class="step"><div class="box t-hyp"><span class="tag">1</span><h3>Family needs home care before discharge</h3><p>Today: a printed list of agencies and good luck. Rules forbid steering to any one agency; only offering choice.</p></div></div>
-  <div class="sarrow" style="color:#a8760a">&#8594;</div>
-  <div class="step"><div class="box t-hyp"><span class="tag">2</span><h3>Hands the family the neutral tool</h3><p>Every provider is listed and the family chooses: a complete list IS the choice-compliant referral. The planner steers no one.</p></div></div>
-  <div class="sarrow">&#8594;</div>
-  <div class="step"><div class="box t-crp"><span class="tag">3</span><h3>We carry it from there</h3><p>Same loop: capacity-aware matching, follow-through, establishment confirmed.</p></div></div>
-  <div class="sarrow" style="color:#a8760a">&#8594;</div>
-  <div class="step"><div class="box t-hyp"><span class="tag">4</span><h3>Closure reported back</h3><p>The system learns the discharge actually held. Fewer stuck beds, fewer bounce-backs.</p></div></div>
-</div>
-
-<div class="trio" style="margin-top:8pt">
-  <div class="box t-now"><h3>Free for everyone, always: so why would anyone pay?</h3><p>A plan could just tell members "use this free site," and some would. We still win: more families, more establishment, more provider value, at near-zero cost to us. What sponsors buy is not access. It is <b>accountable completion for a defined population</b>: outreach to the members they flag, a team that carries every case to the end, verification, and documentation their auditors and quality programs require. Self-service gets a plan some starts and no proof; population programs live on completion rates and paperwork. Free is the front door; the paid product is done-for-you, with receipts.</p></div>
-</div>
-
-<div class="takeaway"><b>What this teaches:</b> the member experiences the same free product as every other family; the sponsor experiences a reporting and accountability wrapper around it. The wrapper is cheap to build compared to the loop, which is why the loop is the CRP and the wrapper is the horizon.</div>
-</div>
-
-<!-- ============ PAGE 4: THE EXPANDED CONCEPTION ============ -->
-<div class="page">
-<h1>4. The expanded conception</h1>
-<p class="q">One figure, no comparison: what the bigger frame claims, what it changes, and what it must never touch.</p>
-<div class="legend"><span class="chip t-now">Exists today, with evidence</span><span class="chip t-crp">The CRP builds and tests this</span><span class="chip t-hyp">Post-CRP, evidence-gated</span></div>
-
-<div class="box t-now" style="padding:9pt 12pt; margin-bottom:9pt"><p style="font-size:11pt; line-height:1.4"><b>Olera is the system that establishes care and proves it.</b> Families use it free, always. Care providers pay for the staffing that lets them say yes. And every verified establishment builds the evidence for the buyers with the deepest pockets: <b>the insurers and health systems that end up paying for the ER visits, hospital stays, and nursing-home placements that follow when care is never established.</b></p></div>
-
-<div class="rowlab">The timeline</div>
-<div class="trio">
-  <div class="box t-crp"><h3>The customer for the next three years</h3><p>Care providers, unchanged by the expansion. They buy Staff Recruitment (flat monthly fee vs fee per placement: itself an Aim 3 experiment). Insurers and health systems appear nowhere in the tested aims.</p></div>
-  <div class="box t-crp"><h3>What the award must prove</h3><p><b>Outcome:</b> how often care gets established, how fast, and how much aid money reaches families. <b>Economic value:</b> what a family costs to acquire and serve, what providers pay, and whether a market covers its own costs. <b>Replicability:</b> a market-entry playbook, and which market features predicted success.</p></div>
-  <div class="box t-hyp"><h3>What happens after the award</h3><p>Insurers and health systems sign per-case pilots on that evidence; the first pilot doubles as the outcomes study, run on the payer's own data and dime. Markets that cover their costs expand on earnings. Navigation stays free for every family.</p></div>
-</div>
-
-<div class="rowlab" style="margin-top:9pt">The judgment</div>
-<div class="trio">
-  <div class="box" style="background:#e9f5ee; border:2px solid #1a7f4e"><h3>What the expansion gains</h3><p>It answers "why does this matter beyond providers." It makes the evidence package itself the product. It gives the vision a national ending, and it speaks the language of the investors and buyers who come next: outcomes, economic value, replicability.</p></div>
-  <div class="box" style="background:#faeeee; border:2px solid #b04040; color:#5a1f1f"><h3>What it risks, and the guard</h3><p>If insurers or clinical outcomes leak into the tested aims: unfundable scope, a heavier human-subjects burden, lost credibility. The guard is one rule: <b>if we can measure it from our own records or from what participants tell us, it is in the CRP; if it needs insurance claims data or comparison groups, it waits for a payer partner.</b></p></div>
-</div>
-
-<div class="takeaway"><b>What this teaches:</b> the expansion changes the story and the audience, not the experiment. Any sentence about insurers that would need new data to defend belongs after the award, not in it.</div>
 </div>
 
 </body></html>

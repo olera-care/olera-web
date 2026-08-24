@@ -316,7 +316,7 @@ export async function POST(request: NextRequest) {
     const fileName = `fax-${providerId}-${Date.now()}.html`;
     const { error: uploadError } = await db.storage
       .from(FAX_BUCKET)
-      .upload(fileName, faxHtml, {
+      .upload(fileName, Buffer.from(faxHtml, "utf-8"), {
         contentType: "text/html",
         upsert: true,
       });

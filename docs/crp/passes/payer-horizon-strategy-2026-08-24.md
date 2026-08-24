@@ -159,6 +159,17 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Figure 1 addendum: the unmet-needs cascade (Logan, 2026-08-24)
+
+- Added the counterfactual branch to the finalized figure: a dashed
+  warning-toned arrow from Older Adults and Families to a "When needs go
+  unmet" panel (preventable decline and crises at home; ED visits,
+  hospitalizations, readmissions; caregiver breakdown; premature
+  institutionalization and higher costs), captioned "The cascade preventive
+  geriatric care interrupts." Language matches the locked RS spine's vicious
+  cycle; no new claims introduced. The green return arrow and the red cascade
+  now visually oppose each other as prevented vs unprevented futures.
+
 ## Figures 2 and 3 rebuilt as the revenue layer (Logan, 2026-08-24)
 
 - Figure sequence ratified by Logan: (1) what CareNavigator does, (2) how it

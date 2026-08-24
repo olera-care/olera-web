@@ -135,6 +135,28 @@ plan-paid care coordination is an established category.)
   from that figure to keep it to one question; the money question lives in
   Figure 3.
 
+## Round three of the figures (Logan, 2026-08-24)
+
+- Figure set is now three: ecosystem map (how-it-works-today band removed,
+  commercial insurance added to coverage), the product experience (entry
+  pathways through follow-up, absorbing the storyboard without the sponsored
+  framing), and the payer table with an illustrative per-county revenue column.
+- The sponsored-case storyboard page is retired; its concreteness lives in the
+  new Figure 2 step 7 examples. An illustrated generic-family version can be
+  rebuilt later if wanted.
+- The fallback branch ("when the answer is no") is parked at Logan's direction
+  until the primary pathway is settled. The no-dead-ends rule above still
+  stands conceptually.
+- Per-county revenue figures are labeled illustrative assumptions: providers
+  ~$60K, MA plans ~$200K, Medicaid MCOs ~$100K, health systems ~$60K, aging
+  agencies ~$25-50K per county per year. Volumes, capture rates, and prices are
+  all untested; only the provider row is CRP-tested. These numbers exist to
+  size the opportunity, never to be quoted in application prose.
+- Logan's working insight this round: the model is easier to understand when it
+  starts from the job performed for a family across a fragmented ecosystem,
+  not from labels like marketplace or coordination infrastructure. Candidate
+  input for TJ's narrative pass.
+
 ## Visuals review outcomes (Logan, 2026-08-24)
 
 - Figures 4 (flywheel), 5 (proof bands), and 6 (thesis comparison) retired at

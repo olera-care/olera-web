@@ -15,286 +15,159 @@ h1 { font-size: 15pt; margin: 0 0 3pt 0; }
 .core { border-width: 3px; background: #eaf5ee; }
 
 /* Figure 1 grid */
-.sysgrid { display: grid; grid-template-columns: 1fr 80pt 1.15fr 80pt 1fr; gap: 7pt 0; align-items: stretch; }
+.sysgrid { display: grid; grid-template-columns: 1fr 80pt 1.15fr 80pt 1fr; gap: 8pt 0; align-items: stretch; }
 .conn { display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 7.8pt; color: #444; text-align: center; padding: 0 5pt; line-height: 1.25; }
 .conn .ar { font-size: 15pt; line-height: 1; color: #1a7f4e; margin-bottom: 2pt; }
 .vconn { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: 7.8pt; color: #444; padding: 2pt 0; line-height: 1.25; }
 .vconn .ar { font-size: 13pt; line-height: 1; color: #1a7f4e; }
-.band { display: flex; gap: 7pt; margin-top: 10pt; }
-.band .cell { flex: 1; border: 1px solid #b9cec3; background: #f7f7f7; border-radius: 5pt; padding: 6pt 9pt; font-size: 8.4pt; line-height: 1.3; text-align: center; }
-.band .cell.gap { background: #eaf5ee; border: 1.5px solid #1a7f4e; font-weight: bold; }
-.bandlab { font-size: 8pt; font-weight: bold; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin: 12pt 0 4pt 0; }
 
-/* Figure 2 grid */
-.pathgrid { display: grid; grid-template-columns: 1fr 10px 1fr 10px 1fr 10px 1fr 10px 1fr 10px 1fr 10px 1fr; gap: 5pt 0; align-items: stretch; }
-.pathgrid .box { padding: 6pt 6pt; }
-.pathgrid .box h3 { font-size: 8.9pt; }
-.pathgrid .box p { font-size: 7.8pt; }
-.gar { display: flex; align-items: center; justify-content: center; font-size: 11pt; color: #1a7f4e; }
-.chipcell { display: flex; flex-direction: column; align-items: stretch; }
-.chiplab { font-size: 6.8pt; color: #666; text-align: center; text-transform: uppercase; letter-spacing: 0.4px; margin: 1pt 0; }
-.chip2 { font-size: 7.3pt; border: 1px solid #1a7f4e; background: #fff; border-radius: 3pt; padding: 2pt 4pt; margin-top: 2pt; text-align: center; line-height: 1.2; }
-.fallband { display: flex; gap: 7pt; align-items: stretch; margin-top: 4pt; }
-.fall { flex: 1; border: 1.5px dashed #8a6d1f; background: #fdf8ea; border-radius: 5pt; padding: 6pt 9pt; font-size: 8.2pt; line-height: 1.3; text-align: center; color: #4d3f14; }
-.fallret { display: flex; align-items: center; font-size: 8.2pt; color: #4d3f14; padding: 0 4pt; max-width: 110pt; text-align: center; }
+/* Figure 2: entry strip + serpentine */
+.entryrow { display: flex; gap: 7pt; align-items: stretch; }
+.entry { flex: 1; border: 1px solid #6b8f7d; background: #fff; border-radius: 4pt; padding: 4pt 7pt; font-size: 8.2pt; text-align: center; line-height: 1.25; }
+.entrylab { font-size: 8pt; font-weight: bold; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 3pt 0; }
+.downrow { text-align: center; font-size: 13pt; color: #1a7f4e; line-height: 1.1; padding: 1pt 0; }
+.downnote { font-size: 7.8pt; color: #555; }
+.serp { display: grid; grid-template-columns: 1fr 15px 1fr 15px 1fr 15px 1fr; gap: 5pt 0; align-items: stretch; }
+.serp .box { text-align: left; padding: 7pt 9pt; }
+.serp .box h3 { font-size: 9.6pt; }
+.serp .box p { font-size: 8.2pt; }
+.gar { display: flex; align-items: center; justify-content: center; font-size: 12pt; color: #1a7f4e; }
+.chip2 { display: block; font-size: 7.6pt; border: 1px solid #1a7f4e; background: #fff; border-radius: 3pt; padding: 2pt 5pt; margin-top: 2.5pt; line-height: 1.2; }
 
 /* Figure 3 table */
-table.pay { border-collapse: collapse; width: 100%; font-size: 8.6pt; }
-table.pay th { background: #1f4534; color: #fff; padding: 5pt 7pt; text-align: left; font-size: 8.8pt; }
-table.pay td { border: 1px solid #c9d6cf; padding: 6pt 8pt; vertical-align: top; line-height: 1.3; background: #fff; }
+table.pay { border-collapse: collapse; width: 100%; font-size: 8.2pt; }
+table.pay th { background: #1f4534; color: #fff; padding: 5pt 6pt; text-align: left; font-size: 8.3pt; }
+table.pay td { border: 1px solid #c9d6cf; padding: 5pt 7pt; vertical-align: top; line-height: 1.3; background: #fff; }
 table.pay tr:nth-child(odd) td { background: #f7faf8; }
-.whypay { margin-top: 9pt; border: 2px solid #1a7f4e; border-radius: 6pt; background: #f5faf7; padding: 8pt 12pt; }
-.whypay h3 { margin: 0 0 3pt 0; font-size: 10.5pt; }
-.whypay p { margin: 0; font-size: 9pt; line-height: 1.4; }
-
-/* Figure 3b storyboard */
-.strip { display: flex; gap: 8pt; }
-.panel { flex: 1; border: 1.5px solid #1a7f4e; border-radius: 6pt; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
-.panel .art { background: #f2f7f4; padding: 4pt 4pt 0 4pt; text-align: center; }
-.panel .cap { padding: 6pt 8pt 8pt 8pt; font-size: 8.2pt; line-height: 1.35; }
-.panel .cap b { font-size: 8.4pt; }
-.pnum { display: inline-block; background: #1a7f4e; color: #fff; border-radius: 50%; width: 12pt; height: 12pt; line-height: 12pt; text-align: center; font-size: 7.5pt; font-weight: bold; margin-right: 4pt; }
+table.pay td.rev { background: #eaf5ee !important; }
+.whypay { margin-top: 8pt; border: 2px solid #1a7f4e; border-radius: 6pt; background: #f5faf7; padding: 7pt 12pt; }
+.whypay h3 { margin: 0 0 2pt 0; font-size: 10pt; display: inline; }
+.whypay p { margin: 0; font-size: 9pt; line-height: 1.35; }
+.footnote { font-size: 7.8pt; color: #777; margin-top: 5pt; }
 </style></head><body>
 
 <!-- ============ FIGURE 1 ============ -->
 <div class="page">
-<h1>1. What is CareNavigator in the eldercare ecosystem?</h1>
-<p class="lede"><b>CareNavigator is the coordination layer of the eldercare ecosystem.</b> It connects a family's needs to the programs and insurance that can pay, and to the organizations that deliver care, and it confirms that care actually begins.</p>
+<h1>1. The ecosystem CareNavigator coordinates</h1>
+<p class="lede"><b>CareNavigator coordinates the eldercare ecosystem around one family's needs.</b> It connects those needs to the programs and coverage that can pay and to the organizations that deliver care, and it verifies that care actually begins.</p>
 
 <div class="sysgrid">
   <div></div><div></div>
-  <div class="box"><h3>Older adults and families</h3><p>Most need several kinds of support at once and do not know what they qualify for.</p></div>
+  <div class="box"><h3>Older adults and families</h3><p>Most manage several concurrent needs and rarely know what they qualify for.</p></div>
   <div></div><div></div>
 
   <div></div><div></div>
-  <div class="vconn"><span class="ar">&#8645;</span>Families arrive on their own or by referral. Everything is free for them.</div>
+  <div class="vconn"><span class="ar">&#8645;</span>Families arrive directly or by referral. The platform is free to them.</div>
   <div></div><div></div>
 
-  <div class="box"><h3>Public aid and benefit programs</h3><p>Federal, state, and local programs for food, housing, income, and long-term care.</p></div>
-  <div class="conn"><span class="ar">&#8646;</span>Determines eligibility and files the applications.</div>
-  <div class="box core" style="grid-row: span 3; display:flex; flex-direction:column; justify-content:center;"><h3>CareNavigator by Olera</h3><p>It assesses needs, finds what can pay, matches providers, and confirms care began.</p></div>
-  <div class="conn"><span class="ar">&#8646;</span>Takes referrals when patients need support at home.</div>
-  <div class="box"><h3>Healthcare organizations</h3><p>Hospitals, health systems, clinics, and ACOs. They identify needs and hold cost risk.</p></div>
+  <div class="box"><h3>Public aid and benefit programs</h3><p>Federal, state, and local programs for food, housing, income, transportation, and long-term services and supports.</p></div>
+  <div class="conn"><span class="ar">&#8646;</span>Determines eligibility and completes applications.</div>
+  <div class="box core" style="grid-row: span 3; display:flex; flex-direction:column; justify-content:center;"><h3>CareNavigator by Olera</h3><p>Assesses needs, maps eligible funding, coordinates providers, and verifies that care begins.</p></div>
+  <div class="conn"><span class="ar">&#8646;</span>Receives referrals for patients needing home and community support.</div>
+  <div class="box"><h3>Healthcare organizations</h3><p>Hospitals, health systems, clinics, and ACOs. They identify needs, coordinate care, and bear financial risk.</p></div>
 
   <div style="height:2pt"></div><div></div><div></div><div style="height:2pt"></div>
 
-  <div class="box"><h3>Insurance and coverage</h3><p>Medicare, Medicare Advantage, Medicaid plans, and long-term care insurance.</p></div>
-  <div class="conn"><span class="ar">&#8646;</span>Finds unused coverage and benefits.</div>
-  <div class="conn"><span class="ar">&#8646;</span>Matches each family to a provider with capacity.</div>
-  <div class="box"><h3>Care and support providers</h3><p>Home care, home health, hospice, assisted living, nursing, rehab, and adult day care.</p></div>
-</div>
-
-<div class="bandlab">How the ecosystem works today</div>
-<div class="band">
-  <div class="cell">Public programs and insurers pay for most eldercare.</div>
-  <div class="cell">Providers deliver the actual services and support.</div>
-  <div class="cell">Families cover the rest out of pocket.</div>
-  <div class="cell gap">Nobody coordinates across all of it. That is the gap CareNavigator fills.</div>
+  <div class="box"><h3>Insurance and coverage</h3><p>Medicare, Medicare Advantage, Medicaid plans, commercial insurance, and long-term care insurance.</p></div>
+  <div class="conn"><span class="ar">&#8646;</span>Identifies unused coverage and plan benefits.</div>
+  <div class="conn"><span class="ar">&#8646;</span>Matches families to providers with verified capacity.</div>
+  <div class="box"><h3>Care and support providers</h3><p>Home care, home health, hospice, assisted living, skilled nursing, rehabilitation, and adult day services.</p></div>
 </div>
 </div>
 
 <!-- ============ FIGURE 2 ============ -->
 <div class="page">
-<h1>2. What happens to a family?</h1>
-<p class="q">One family with a need, every realistic path through the system, and what counts as success.</p>
+<h1>2. What actually happens when a family uses CareNavigator</h1>
+<p class="q">From any entry point to established aid and care. The same free experience for every family.</p>
 
-<div class="pathgrid">
-  <div class="box"><h3>1. Need recognized</h3><p>The family arrives on its own or by referral.</p></div>
-  <div class="gar">&#8594;</div>
-  <div class="box"><h3>2. Needs assessed</h3><p>What support does this person need day to day?</p></div>
-  <div class="gar">&#8594;</div>
-  <div class="box"><h3>3. Funding matched</h3><p>We find every source that can pay.</p></div>
-  <div class="gar">&#8594;</div>
-  <div class="box"><h3>4. Approvals completed</h3><p>We file applications and follow each one to a decision.</p></div>
-  <div class="gar">&#8594;</div>
-  <div class="box"><h3>5. Provider chosen</h3><p>The family picks a provider with room to take the case.</p></div>
-  <div class="gar">&#8594;</div>
-  <div class="box"><h3>6. Care established</h3><p>The support actually begins and we confirm it began.</p></div>
-  <div class="gar">&#8594;</div>
-  <div class="box"><h3>7. Follow-up</h3><p>We confirm care stays in place and re-check every no.</p></div>
-
-  <div></div><div></div><div></div><div></div>
-  <div class="chipcell"><div class="chiplab">Three sources, often combined</div>
-    <div class="chip2">Public aid the family must qualify for</div>
-    <div class="chip2">Insurance the family already holds</div>
-    <div class="chip2">The family's own funds</div></div>
-  <div></div><div></div><div></div><div></div><div></div>
-  <div class="chipcell"><div class="chiplab">What counts as established</div>
-    <div class="chip2">A benefit starts paying</div>
-    <div class="chip2">A covered service is used</div>
-    <div class="chip2">A first clinical visit happens</div>
-    <div class="chip2">Personal care begins</div></div>
-  <div></div><div></div>
+<div class="entrylab">How families enter</div>
+<div class="entryrow">
+  <div class="entry">Referred by their insurance plan</div>
+  <div class="entry">Referred by a hospital, clinic, or ACO</div>
+  <div class="entry">Google and online search</div>
+  <div class="entry">AI assistants and chatbots</div>
+  <div class="entry">Direct visit to the platform</div>
 </div>
+<div class="downrow">&#8595;<br><span class="downnote">Every path leads to the same front door.</span></div>
 
-<div class="bandlab">When the answer is no</div>
-<div class="fallband">
-  <div class="fall">Not eligible for a program. We switch to another funding source or a lower cost community option.</div>
-  <div class="fall">No provider has room. We arrange an alternative service or a managed waitlist with scheduled check-ins.</div>
-  <div class="fall">Nothing fits yet. The family leaves with a plan and a re-check date, never with nothing.</div>
-  <div class="fallret">&#8617; Every fallback feeds back into the pathway. A plan alone does not count as established.</div>
+<div class="serp">
+  <div class="box"><h3>1. Family enters CareNavigator</h3><p>One intake regardless of entry point. The family describes the situation once, in plain language, online or with a navigator.</p></div>
+  <div class="gar">&#8594;</div>
+  <div class="box"><h3>2. Needs assessed across every domain</h3><p>Food, housing, income, transportation, healthcare, long-term care, and personal care, plus what the family itself can manage.</p></div>
+  <div class="gar">&#8594;</div>
+  <div class="box"><h3>3. Resources mapped to those needs</h3><p>The system screens the aid programs, insurance benefits, healthcare services, and local providers relevant to this specific person.</p></div>
+  <div class="gar">&#8594;</div>
+  <div class="box"><h3>4. Care and funding plan created</h3><p>A written plan. What each benefit or coverage will pay for, which applications and approvals are required, and which choices belong to the family.</p></div>
+
+  <div></div><div></div><div></div><div></div><div></div><div></div>
+  <div class="gar">&#8595;</div>
+
+  <div class="box"><h3>8. Follow-up over time</h3><p>CareNavigator confirms each support actually began, monitors that it continues, and reopens the case when circumstances change.</p></div>
+  <div class="gar">&#8592;</div>
+  <div class="box"><h3>7. Aid and care established</h3><p>What success looks like for one family.</p>
+    <span class="chip2">A $1,800 monthly VA pension approved and paying</span>
+    <span class="chip2">A Medicare Advantage transportation benefit in use</span>
+    <span class="chip2">A first geriatric clinic visit completed</span>
+    <span class="chip2">Home care three mornings a week, begun and confirmed</span></div>
+  <div class="gar">&#8592;</div>
+  <div class="box"><h3>6. CareNavigator executes the plan</h3><p>Applications filed, documents assembled, approvals tracked, assessments scheduled, providers contacted, and family tasks surfaced at each checkpoint.</p></div>
+  <div class="gar">&#8592;</div>
+  <div class="box"><h3>5. Family reviews and approves</h3><p>The family sees the whole plan, sets priorities, and decides what to pursue. Nothing proceeds without their approval.</p></div>
 </div>
 </div>
 
 <!-- ============ FIGURE 3 ============ -->
 <div class="page">
-<h1>3. Who benefits, who pays, and why?</h1>
-<p class="q">Who would pay Olera, why they would, and what they would actually be buying.</p>
+<h1>3. Who pays, and why?</h1>
+<p class="q">Each customer category, what it buys, and whether the opportunity is economically meaningful at the county level.</p>
 
 <table class="pay">
-<tr><th style="width:17%">Who they are</th><th style="width:17%">What they get from us</th><th style="width:18%">Why it saves them money</th><th style="width:18%">What they buy</th><th style="width:12%">How they pay</th><th style="width:18%">What proof they need first</th></tr>
+<tr><th style="width:14%">Who they are</th><th style="width:14%">What they get from us</th><th style="width:15%">Why it saves them money</th><th style="width:15%">What they buy</th><th style="width:11%">How they pay</th><th style="width:13%">Proof they need first</th><th style="width:18%">Possible revenue per county per year*</th></tr>
 <tr>
   <td><b>Care providers.</b> Home care, home health, assisted living, and other care businesses.</td>
   <td>Families arrive with funding worked out and choose them freely.</td>
-  <td>Finding clients and staff decides their survival. They already pay for both.</td>
-  <td>Recruiting help for caregiver staff and tools to grow their business.</td>
-  <td>A monthly fee or a fee per hire. We will test both.</td>
-  <td>Mostly in hand. Providers paid us in our pilot.</td></tr>
+  <td>Client acquisition and staffing decide their survival. They already pay for both.</td>
+  <td>Caregiver recruiting and business growth tools.</td>
+  <td>Monthly fee or fee per hire. We will test both.</td>
+  <td>Mostly in hand. Providers paid us in our pilot.</td>
+  <td class="rev">If 25 providers pay about $200 a month: <b>~$60K</b></td></tr>
 <tr>
   <td><b>Medicare Advantage plans.</b> Private insurers paid a fixed monthly amount per member.</td>
-  <td>Members who need support at home actually get it, with proof returned.</td>
-  <td>Every prevented hospital stay is money the plan keeps. Helped members stay enrolled.</td>
-  <td>Outreach to members they flag, casework to completion, and results reported back.</td>
-  <td>A fee for each completed case.</td>
-  <td>How often care gets established, how fast, and at what cost per case.</td></tr>
+  <td>Members needing home support actually get it, with proof returned.</td>
+  <td>Every prevented hospital stay is money kept. Helped members stay enrolled.</td>
+  <td>Outreach to flagged members, casework to completion, results reported back.</td>
+  <td>Fee per completed case, then per member per month.</td>
+  <td>Establishment rate, time to care, and cost per case.</td>
+  <td class="rev">If plans refer 500 cases a year at about $400: <b>~$200K</b></td></tr>
 <tr>
-  <td><b>Medicaid managed care companies.</b> Companies states hire to run Medicaid for a fixed amount per person.</td>
-  <td>Waiver applications get finished and members get home care sooner.</td>
+  <td><b>Medicaid managed care organizations.</b> Companies states hire to run Medicaid per enrollee.</td>
+  <td>Waiver applications finished. Members reach home care sooner.</td>
   <td>A nursing home costs about three times more than home care.</td>
   <td>The same outreach and casework program for waiver-eligible members.</td>
-  <td>A fee for each completed case.</td>
-  <td>The same results, plus patience. Public contracts take one to two years.</td></tr>
+  <td>Fee per completed case.</td>
+  <td>The same results. Public contracts take one to two years.</td>
+  <td class="rev">If 200 waiver cases a year at about $500: <b>~$100K</b></td></tr>
 <tr>
-  <td><b>Hospitals, health systems, and ACOs.</b> ACOs are paid partly for keeping total costs down.</td>
-  <td>Patients leave on time to home support that actually starts.</td>
-  <td>Waiting patients cost money every day. Readmissions bring penalties.</td>
-  <td>Discharge referrals worked to completion, with closure reported back.</td>
-  <td>A fee for each discharge case.</td>
-  <td>Our completion rate and speed in their counties.</td></tr>
+  <td><b>Hospitals, health systems, and ACOs.</b> ACOs are paid partly for lowering total cost.</td>
+  <td>Patients discharged on time to home support that starts.</td>
+  <td>Waiting patients cost money daily. Readmissions bring penalties.</td>
+  <td>Discharge referrals worked to completion, closure reported.</td>
+  <td>Fee per discharge case.</td>
+  <td>Completion rate and speed in their counties.</td>
+  <td class="rev">If one system refers 300 discharges a year at about $200: <b>~$60K</b></td></tr>
 <tr>
-  <td><b>Government aging agencies.</b> State and regional offices running eldercare helplines.</td>
-  <td>Their callers get the follow-through they cannot staff.</td>
-  <td>This serves their public mission more than their budget.</td>
+  <td><b>Government aging agencies.</b> State and area offices running eldercare helplines.</td>
+  <td>Their callers get follow-through the agencies cannot staff.</td>
+  <td>Serves their statutory mission more than their budget.</td>
   <td>Casework capacity behind their existing helplines.</td>
   <td>Public contracts and grants.</td>
-  <td>The same results. Government buying moves slowly.</td></tr>
+  <td>The same results. Government buying moves slowly.</td>
+  <td class="rev">One modest contract: <b>~$25-50K</b></td></tr>
 </table>
+<p class="footnote">*Illustrative assumptions for one mid-sized county, not validated economics. Volumes, capture rates, and prices are all untested. The provider row is the only one the CRP itself will test.</p>
 
 <div class="whypay">
-<h3>Why would any of them pay when the website is free?</h3>
-<p>The free website serves families who come looking. An institution's problem is the members who never look. What an institution buys is a program built on top of the free platform. We find and contact the specific people they are responsible for, work every case to completion with dedicated staff, and report each result back into their systems with the family's consent. The family's experience stays free and identical either way. This is a proven kind of purchase. Free helplines and benefit checkers have existed for decades, yet plans and hospitals still pay companies to do outreach, follow-through, and reporting on top of them. What remains unproven is the price they will pay us, and that is a question for after the award.</p>
-</div>
-</div>
-
-<!-- ============ FIGURE 3b ============ -->
-<div class="page">
-<h1>3b. One sponsored case, from referral to payment</h1>
-<p class="q">Mrs. Rivera's story shows how a health plan, a family, and Olera work together.</p>
-
-<div class="strip">
-
-  <div class="panel"><div class="art">
-    <svg width="176" height="128" viewBox="0 0 176 128">
-      <circle cx="38" cy="46" r="11" fill="#4a5a6a"/>
-      <path d="M20 92 Q20 66 38 66 Q56 66 56 92 Z" fill="#2e7d6b"/>
-      <rect x="72" y="34" width="88" height="58" rx="4" fill="#2b3a33"/>
-      <rect x="76" y="38" width="80" height="50" fill="#ffffff"/>
-      <rect x="76" y="38" width="80" height="10" fill="#1a7f4e"/>
-      <text x="80" y="45.5" font-size="6.5" fill="#fff" font-family="Arial" font-weight="bold">Plan care dashboard</text>
-      <text x="80" y="58" font-size="6.2" fill="#333" font-family="Arial">R. Rivera, 84</text>
-      <text x="80" y="66" font-size="5.8" fill="#777" font-family="Arial">Discharged Mar 1. Needs</text>
-      <text x="80" y="73" font-size="5.8" fill="#777" font-family="Arial">help at home.</text>
-      <rect x="112" y="77" width="40" height="9" rx="2" fill="#1a7f4e"/>
-      <text x="117" y="83.5" font-size="6" fill="#fff" font-family="Arial" font-weight="bold">Refer &#8594;</text>
-      <rect x="64" y="92" width="104" height="5" rx="2" fill="#8fa39a"/>
-      <text x="8" y="116" font-size="7" fill="#555" font-family="Arial">The plan's care manager</text>
-    </svg>
-  </div><div class="cap"><span class="pnum">1</span><b>The plan spots the need.</b> A care manager sees Mrs. Rivera needs help at home after her hospital stay. She refers her with one click.</div></div>
-
-  <div class="panel"><div class="art">
-    <svg width="176" height="128" viewBox="0 0 176 128">
-      <circle cx="34" cy="48" r="11" fill="#4a5a6a"/>
-      <path d="M16 94 Q16 68 34 68 Q52 68 52 94 Z" fill="#1a7f4e"/>
-      <rect x="86" y="18" width="52" height="94" rx="8" fill="#2b3a33"/>
-      <rect x="90" y="26" width="44" height="78" fill="#ffffff"/>
-      <rect x="90" y="26" width="44" height="9" fill="#1a7f4e"/>
-      <text x="93" y="32.5" font-size="5.5" fill="#fff" font-family="Arial" font-weight="bold">CareNavigator</text>
-      <rect x="93" y="39" width="38" height="14" rx="3" fill="#eef4f0"/>
-      <text x="95" y="45" font-size="4.8" fill="#333" font-family="Arial">Hi, I can help your</text>
-      <text x="95" y="50.5" font-size="4.8" fill="#333" font-family="Arial">mom. What is hard?</text>
-      <rect x="93" y="58" width="38" height="9" rx="4" fill="#fff" stroke="#1a7f4e" stroke-width="0.8"/>
-      <text x="97" y="64.5" font-size="5" fill="#1a7f4e" font-family="Arial">Bathing and meals</text>
-      <rect x="93" y="70" width="38" height="9" rx="4" fill="#fff" stroke="#1a7f4e" stroke-width="0.8"/>
-      <text x="97" y="76.5" font-size="5" fill="#1a7f4e" font-family="Arial">Paying for care</text>
-      <rect x="93" y="82" width="38" height="9" rx="4" fill="#fff" stroke="#1a7f4e" stroke-width="0.8"/>
-      <text x="97" y="88.5" font-size="5" fill="#1a7f4e" font-family="Arial">Feeling alone</text>
-      <text x="8" y="116" font-size="7" fill="#555" font-family="Arial">Mrs. Rivera's daughter</text>
-    </svg>
-  </div><div class="cap"><span class="pnum">2</span><b>The family opens the same free tool.</b> Her daughter gets a text and answers a few questions. Any family can use this for free without any referral.</div></div>
-
-  <div class="panel"><div class="art">
-    <svg width="176" height="128" viewBox="0 0 176 128">
-      <rect x="14" y="18" width="52" height="94" rx="8" fill="#2b3a33"/>
-      <rect x="18" y="26" width="44" height="78" fill="#ffffff"/>
-      <rect x="18" y="26" width="44" height="9" fill="#1a7f4e"/>
-      <text x="21" y="32.5" font-size="5.5" fill="#fff" font-family="Arial" font-weight="bold">Good news</text>
-      <rect x="21" y="39" width="38" height="26" rx="3" fill="#eaf5ee" stroke="#1a7f4e" stroke-width="0.8"/>
-      <text x="24" y="47" font-size="5" fill="#333" font-family="Arial">Mom may qualify for</text>
-      <text x="24" y="55" font-size="7" fill="#14563a" font-family="Arial" font-weight="bold">$1,800 / month</text>
-      <text x="24" y="62" font-size="4.8" fill="#555" font-family="Arial">in veteran's aid</text>
-      <rect x="21" y="70" width="38" height="10" rx="4" fill="#1a7f4e"/>
-      <text x="26" y="77" font-size="4.6" fill="#fff" font-family="Arial" font-weight="bold">We apply for you</text>
-      <circle cx="128" cy="48" r="11" fill="#4a5a6a"/>
-      <path d="M116 38 A13 13 0 0 1 140 38" stroke="#1a7f4e" stroke-width="2.5" fill="none"/>
-      <rect x="138" y="44" width="4" height="8" rx="2" fill="#1a7f4e"/>
-      <path d="M110 94 Q110 68 128 68 Q146 68 146 94 Z" fill="#3a6b8a"/>
-      <text x="100" y="116" font-size="7" fill="#555" font-family="Arial">An Olera navigator</text>
-    </svg>
-  </div><div class="cap"><span class="pnum">3</span><b>The money gets found and filed.</b> The system finds aid the family never knew about. Our team completes the applications and follows up until they are decided.</div></div>
-
-  <div class="panel"><div class="art">
-    <svg width="176" height="128" viewBox="0 0 176 128">
-      <rect x="14" y="18" width="52" height="94" rx="8" fill="#2b3a33"/>
-      <rect x="18" y="26" width="44" height="78" fill="#ffffff"/>
-      <rect x="18" y="26" width="44" height="9" fill="#1a7f4e"/>
-      <text x="21" y="32.5" font-size="5" fill="#fff" font-family="Arial" font-weight="bold">All 47 providers</text>
-      <rect x="21" y="39" width="38" height="13" rx="2" fill="#f4f4f4"/>
-      <text x="23" y="45" font-size="4.8" fill="#333" font-family="Arial">Sunrise Home Care</text>
-      <text x="23" y="50" font-size="4.4" fill="#1a7f4e" font-family="Arial" font-weight="bold">Can start this week</text>
-      <rect x="21" y="55" width="38" height="13" rx="2" fill="#f4f4f4"/>
-      <text x="23" y="61" font-size="4.8" fill="#333" font-family="Arial">Caring Hands LLC</text>
-      <text x="23" y="66" font-size="4.4" fill="#777" font-family="Arial">Waitlist 3 weeks</text>
-      <rect x="21" y="71" width="38" height="13" rx="2" fill="#f4f4f4"/>
-      <text x="23" y="77" font-size="4.8" fill="#333" font-family="Arial">Comfort Keepers</text>
-      <text x="23" y="82" font-size="4.4" fill="#777" font-family="Arial">Full this month</text>
-      <text x="21" y="94" font-size="4.6" fill="#555" font-family="Arial">The family chooses.</text>
-      <circle cx="112" cy="50" r="10" fill="#4a5a6a"/>
-      <path d="M100 92 Q100 68 112 68 Q124 68 124 92 Z" fill="#1a7f4e"/>
-      <circle cx="148" cy="54" r="9" fill="#4a5a6a"/>
-      <path d="M138 92 Q138 72 148 72 Q158 72 158 92 Z" fill="#8a6d9a"/>
-      <path d="M128 46 l3 -3 a2.4 2.4 0 0 1 3.4 3.4 l-6.4 6 -6.4 -6 a2.4 2.4 0 0 1 3.4 -3.4 Z" fill="#c0392b" transform="translate(4,-16)"/>
-      <text x="92" y="116" font-size="7" fill="#555" font-family="Arial">A caregiver and Mrs. Rivera</text>
-    </svg>
-  </div><div class="cap"><span class="pnum">4</span><b>A provider says yes.</b> The family picks from every provider in the county and care is scheduled with one that has room to take the case.</div></div>
-
-  <div class="panel"><div class="art">
-    <svg width="176" height="128" viewBox="0 0 176 128">
-      <rect x="34" y="24" width="108" height="66" rx="4" fill="#2b3a33"/>
-      <rect x="38" y="28" width="100" height="58" fill="#ffffff"/>
-      <rect x="38" y="28" width="100" height="10" fill="#1a7f4e"/>
-      <text x="42" y="35.5" font-size="6.5" fill="#fff" font-family="Arial" font-weight="bold">Monthly report to the plan</text>
-      <circle cx="46" cy="48" r="4" fill="#1a7f4e"/>
-      <text x="43.6" y="50.8" font-size="6" fill="#fff" font-family="Arial" font-weight="bold">&#10003;</text>
-      <text x="54" y="50" font-size="6" fill="#333" font-family="Arial">R. Rivera. Care established Mar 4.</text>
-      <text x="54" y="60" font-size="5.6" fill="#555" font-family="Arial">Home care 20 hrs a week</text>
-      <text x="54" y="68" font-size="5.6" fill="#555" font-family="Arial">$1,800 monthly aid secured</text>
-      <rect x="54" y="73" width="72" height="9" rx="2" fill="#eaf5ee" stroke="#1a7f4e" stroke-width="0.8"/>
-      <text x="57" y="79.5" font-size="5.6" fill="#14563a" font-family="Arial" font-weight="bold">Invoice for one case.</text>
-      <rect x="26" y="90" width="124" height="5" rx="2" fill="#8fa39a"/>
-      <text x="30" y="116" font-size="7" fill="#555" font-family="Arial">Back at the health plan</text>
-    </svg>
-  </div><div class="cap"><span class="pnum">5</span><b>Proof comes back and payment follows.</b> Care begins and we confirm it. The plan receives the record and pays only for the finished case.</div></div>
-
+<p><b>Why pay when the website is free?</b> The free site serves families who come looking. Institutions pay us to find and engage the specific people they are responsible for, finish every case, and prove the results back into their systems.</p>
 </div>
 </div>
 

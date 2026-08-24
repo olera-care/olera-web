@@ -272,6 +272,23 @@ line needs a home in Key Innovation 3.
 
 ## 11. Current priority
 
+**Sprint to submit (2026-08-24).** The team is submitting this round (Sept 4;
+Sept 1 internal check). Division of labor from the 08-24 meeting
+(`meetings/2026-08-24-tj-qiping-narrative-rebase.md`): TJ owns the next Specific
+Aims pass (A/B/C versions, ~24-48h, Slack signal) and customer letters; Qiping
+owns human subjects and an Aim 3 simplification; Logan owns application
+initiation, budget + justification, biosketches, Drive submission folders, and
+the rest of the SF424 package. Claude's role while TJ drafts: no competing
+narrative drafts; support Logan's assembly lane, prepare the truth-and-
+consistency review for TJ's versions (evidence locks, AKS constraint-scoped
+wording, hypothesis coverage), and produce the canonical product descriptions
+Qiping asked for once ratified. Meeting-level decisions pending ratified text:
+staffing-forward product story, trim Managed Ads emphasis (working name
+"Boost"), interview-anchored real-billing pricing design in Aim 3. The logos
+outline remains the ratified truth layer; the narrative core on top of it is
+TJ's to propose. The paragraph below is the pre-pause priority, kept for
+history; the 2026-08-23 pause note above it is superseded by this sprint.
+
 **Paused for team review (2026-08-23).** Drafting is paused while David, Marcia, TJ,
 and Shupeng review the intellectual spine (`passes/logos-outline-2026-08-22.md`,
 ratified by Logan) and the new Specific Aims draft derived from it

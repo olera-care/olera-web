@@ -159,6 +159,27 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Round eight: vocabulary discipline pass on figure 1 (Logan, 2026-08-24)
+
+- Cycle fixed at five short steps: assess needs + means, update profile, build
+  plan, execute plan, track outcomes. The care-plan phone mockup returned to
+  the center element so the product reads as digital, not conceptual.
+- "Personal Care & Support" renamed to Long-Term Services & Supports (LTSS),
+  with "long-term care" removed from the Healthcare Services examples so the
+  clinical/non-clinical boundary is clean: Healthcare = home health, hospice,
+  skilled nursing, rehabilitation, physician services; LTSS = home care,
+  assisted living, adult day, non-medical daily-living help.
+- **"Preventive geriatric care" adopted on the return arrow, with a grounding
+  subline** ("coordinated support, established and maintained at home").
+  Pressure-test result, FLAGGED for prose migration: clinically, "geriatric
+  care" implies clinician-delivered medical services; CareNavigator
+  coordinates rather than delivers. Internal figures may carry the phrase;
+  NIH prose needs the grounded form or establishment language. Same standing
+  caveat applies to "operating system" in the figure subtitle (previously
+  rejected for NIH prose; retained here as Logan's internal test balloon).
+- Layout: side boxes narrowed, lanes lengthened, return arrow made the
+  heaviest stroke on the page as the figure's culmination.
+
 ## Round seven: figure 1 visual excellence pass (Logan, 2026-08-24)
 
 - Center redesigned as the CareNavigator cycle: assess needs, create living

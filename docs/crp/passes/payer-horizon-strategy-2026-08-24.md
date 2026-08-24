@@ -95,6 +95,46 @@ plan-paid care coordination is an established category.)
   (GUIDE), not sales; commercial insurance enters as employer caregiver
   benefits because the older adult is usually not the commercial member.
 
+## Resolved definitions (conceptual alignment round, 2026-08-24)
+
+- **Aid vs insurance boundary.** Legal categories blur (Medicaid is both; MA
+  supplemental benefits are aid-like things inside insurance). The functional
+  cut is what the family must do to unlock the money: aid-shaped resources
+  require qualifying and applying (VA pension, SNAP, waivers); coverage-shaped
+  resources are already held but unused (Medicare, MA benefits, LTC policies);
+  family funds are the third source, and real cases combine them. Figure 1 maps
+  the actors; Figure 2 maps the unlock mechanics.
+- **Care established, defined.** The resource actually begins and we confirm it
+  with a record. Per category: a basic-needs benefit is approved and first pays
+  out; a coverage benefit is activated and first used; healthcare has its first
+  completed visit; personal and long-term care serves its first shift or
+  completes move-in. Identified and referred do not count. Family-level
+  measures: share of identified needs established, time to first establishment.
+  Partial success is the expected case.
+- **No dead ends (fallback rule).** Not eligible: switch funding routes or step
+  down to a community alternative. No capacity: alternative service or managed
+  waitlist with scheduled re-checks. Nothing fits: the family leaves with a
+  plan and a re-check date. A plan alone never counts as established.
+- **What institutions buy (no gating).** The free site cannot serve an
+  institution even in principle: it cannot start itself (outreach to a named
+  list), cannot report back (consent, matching, data agreements), cannot commit
+  (service levels, dedicated staffing), cannot prove population results.
+  Institutions buy initiation, integration, accountability, and evidence, never
+  access. External proof: 211 and BenefitsCheckUp are free and long-standing,
+  yet plans pay Unite Us, findhelp, and Wellthy-type vendors for outreach,
+  closed loop, and reporting; GUIDE pays for delivered navigation with
+  reporting obligations. Residual uncertainty is price, which is post-CRP.
+- **Students parked out of thinking figures** (Logan). The workforce innovation
+  is real but distracts from the coordination architecture. It remains in the
+  logos (H4) and the Aims; it returns to figures when the fundamentals are
+  settled.
+- **Traction metrics removed from the architecture figure.** Monthly visitors
+  and onboarded provider counts are evidence, not architecture.
+- Figure 2 rebuilt around branches (three funding routes, four establishment
+  outcomes, fallback band). The earlier pain row and revenue row were dropped
+  from that figure to keep it to one question; the money question lives in
+  Figure 3.
+
 ## Visuals review outcomes (Logan, 2026-08-24)
 
 - Figures 4 (flywheel), 5 (proof bands), and 6 (thesis comparison) retired at

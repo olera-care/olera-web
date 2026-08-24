@@ -1747,81 +1747,136 @@ function stripEmDashes(text: string): string {
 
 /** Subject for the intake results email (benefits_results_saved). */
 export function benefitsResultsSavedSubject(opts: {
-  matchCount: number;
-  /** "Your mom's" / "Your" — pre-built by the caller's relationship helper. */
-  possessive: string;
   stateName: string;
+  requestedProgramName?: string;
 }): string {
-  return opts.matchCount > 0
-    ? `${opts.possessive} ${opts.matchCount} care benefit ${opts.matchCount === 1 ? "match" : "matches"} in ${opts.stateName}`
-    : `Care benefit programs in ${opts.stateName}`;
+  return opts.requestedProgramName
+    ? `What to check for ${stripEmDashes(opts.requestedProgramName)}`
+    : `Your ${stripEmDashes(opts.stateName)} benefits plan is ready`;
 }
 
 /**
- * Intake results email (benefits_results_saved) — the Day-0 welcome that
- * delivers real value up front: the top-5 matched programs as a starter list,
- * CTA to the full /m plan. Extracted from app/api/benefits/save-results so the
- * sample registry renders the LIVE template (drift-proof). The caller builds
- * the hero line and program rows (relationship phrasing + savings copy stay
- * with the route's helpers).
+ * Intake results email (benefits_results_saved), with two honest Day-0 shapes:
+ * a program-aware continuation when the family arrived through a specific
+ * benefits guide, and a general plan receipt for broad finder/provider/article
+ * entries. The old "strongest matches" list is deliberately gone: an email
+ * capture does not establish eligibility, and a specific program request
+ * should not be replaced by whatever else the care-need filter happened to rank.
  */
 export function benefitsResultsSavedEmail(opts: {
   /** First name, or "there". */
   greetingName: string;
-  /** Pre-built hero sentence; may contain <strong>. */
-  heroLine: string;
-  /** Top matches (max 5 for inbox scannability). Empty for the zero-state. */
-  programs: { name: string; url: string; savings: string | null }[];
+  stateName: string;
+  careLabel: string;
+  familyPhrase: string;
+  /** Other programs in the plan. These never replace the requested program. */
+  relatedPrograms: { name: string; url: string }[];
   /** Tracked CTA to the family's /m plan (or /portal fallback). */
   matchesUrl: string;
   matchCount: number;
+  requestedProgram?: {
+    name: string;
+    shortName: string;
+    url: string;
+    tagline: string | null;
+    eligibilityFactors: string[];
+    applicationSummary: string | null;
+  };
 }): string {
-  const programsHtml = opts.programs
+  const greetingName = escapeHtml(stripEmDashes(opts.greetingName));
+  const stateName = escapeHtml(stripEmDashes(opts.stateName));
+  const careLabel = escapeHtml(stripEmDashes(opts.careLabel));
+  const familyPhrase = escapeHtml(stripEmDashes(opts.familyPhrase));
+  const matchesUrl = escapeHtml(opts.matchesUrl);
+  const relatedProgramsHtml = opts.relatedPrograms
     .map(
       (p) => `
-              <a href="${p.url}" style="display: block; text-decoration: none; color: inherit; border-top: 1px solid #f3f4f6; padding: 16px 0;">
-                <div style="font-family: 'Caslon', 'Playfair Display', Georgia, serif; font-size: 17px; font-weight: 600; color: #111827; margin-bottom: 4px;">
-                  ${p.name}
-                </div>
-                ${p.savings ? `<div style="font-size: 13px; color: #047857; font-weight: 500;">${p.savings}</div>` : ""}
-              </a>
-            `,
+        <a href="${escapeHtml(p.url)}" style="display:block;color:#374151;text-decoration:none;border-top:1px solid #eef1f0;padding:11px 0;font-size:14px;line-height:1.4;">
+          ${escapeHtml(stripEmDashes(p.name))} <span style="color:${BRAND_COLOR};">&rarr;</span>
+        </a>`,
     )
     .join("");
-  return `
-<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #111827; background: #ffffff;">
 
-  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 16px; color: #6b7280;">
-    Hi ${opts.greetingName},
-  </p>
+  if (opts.requestedProgram) {
+    const program = opts.requestedProgram;
+    const shortName = escapeHtml(stripEmDashes(program.shortName));
+    const programName = escapeHtml(stripEmDashes(program.name));
+    const programUrl = escapeHtml(program.url);
+    const eligibilityHtml = program.eligibilityFactors
+      .map(
+        (factor) =>
+          `<tr><td style="padding:5px 8px 5px 0;color:${BRAND_COLOR};vertical-align:top;">&#10003;</td><td style="padding:5px 0;font-size:15px;color:#374151;line-height:1.45;">${escapeHtml(stripEmDashes(factor))}</td></tr>`,
+      )
+      .join("");
+    const ctaLabel = program.shortName.length <= 28
+      ? `See my ${shortName} next step &rarr;`
+      : "See eligibility and next steps &rarr;";
+    const relatedCopy = opts.relatedPrograms.length > 0
+      ? `We also saved ${opts.relatedPrograms.length === 1 ? "one program" : `${opts.relatedPrograms.length} programs`} that may help with related costs or care. These are additional options, not replacements for ${shortName}.`
+      : `Your Olera plan keeps ${shortName} and your next steps in one place.`;
 
-  <h1 style="font-family: 'Caslon', 'Playfair Display', Georgia, serif; font-size: 24px; line-height: 1.3; margin: 0 0 16px; color: #111827; font-weight: 700;">
-    ${opts.heroLine}
-  </h1>
-
-  ${
-    opts.programs.length > 0
-      ? `
-  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 24px; color: #6b7280;">
-    We added the strongest ${opts.programs.length} matches to your private Olera plan. Tap any program to see eligibility and how to apply:
-  </p>
-
-  <div style="margin: 0 0 32px;">
-    ${programsHtml}
-  </div>
-  `
-      : ""
+    return layout(
+      `
+        <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.6;">Hi ${greetingName},</p>
+        <p style="font-size:12px;color:${BRAND_COLOR};font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:0 0 8px;">The program you were looking into</p>
+        <h1 style="font-family:'Caslon','Playfair Display',Georgia,serif;font-size:28px;line-height:1.2;margin:0 0 16px;color:#111827;font-weight:700;">
+          You were checking ${shortName}. Start here.
+        </h1>
+        <p style="font-size:15px;line-height:1.6;margin:0 0 20px;color:#4b5563;">
+          You asked Olera to help you understand whether ${programName} could help ${familyPhrase} with ${careLabel}.
+        </p>
+        ${
+          program.tagline
+            ? `<p style="font-size:15px;line-height:1.6;margin:0 0 22px;color:#4b5563;">${escapeHtml(stripEmDashes(program.tagline))}</p>`
+            : ""
+        }
+        <div style="background:#eef8f6;border-radius:12px;padding:18px 20px;margin:0 0 22px;">
+          <p style="font-size:14px;font-weight:700;color:#1f4f4c;margin:0 0 8px;">What we can tell you now</p>
+          <p style="font-size:14px;line-height:1.55;color:#365f5c;margin:0 ${eligibilityHtml ? "0 10px" : "0"};">
+            We can't determine eligibility from an email address alone. This program generally looks at:
+          </p>
+          ${eligibilityHtml ? `<table width="100%" cellpadding="0" cellspacing="0">${eligibilityHtml}</table>` : ""}
+        </div>
+        ${
+          program.applicationSummary
+            ? `<p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 22px;">${escapeHtml(stripEmDashes(program.applicationSummary))}</p>`
+            : ""
+        }
+        <div style="margin:0 0 12px;">
+          <a href="${programUrl}" style="display:inline-block;background:#111827;color:#ffffff;padding:14px 24px;text-decoration:none;border-radius:999px;font-weight:600;font-size:15px;">${ctaLabel}</a>
+        </div>
+        <p style="font-size:13px;line-height:1.55;color:#6b7280;margin:0 0 28px;">
+          The guide includes the requirements, how to apply, and what to have ready.
+        </p>
+        <h2 style="font-family:'Caslon','Playfair Display',Georgia,serif;font-size:20px;line-height:1.3;color:#111827;margin:0 0 8px;">Other help we saved</h2>
+        <p style="font-size:14px;line-height:1.55;color:#6b7280;margin:0 0 10px;">${relatedCopy}</p>
+        ${relatedProgramsHtml}
+        <p style="font-size:13px;line-height:1.55;margin:16px 0 0;"><a href="${matchesUrl}" style="color:${BRAND_COLOR};font-weight:600;text-decoration:none;">See everything in my Olera plan &rarr;</a></p>
+        <p style="font-size:12px;color:#9ca3af;margin:28px 0 0;line-height:1.6;border-top:1px solid #eef1f0;padding-top:16px;">Olera gives families a clearer starting point for care benefits. We never sell your info.</p>
+      `,
+      `The requirements and next step for ${program.shortName}.`,
+    );
   }
 
-  <a href="${opts.matchesUrl}" style="display: inline-block; background: #111827; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 15px;">
-    Open my Olera plan →
-  </a>
+  const planSummary = opts.matchCount > 0
+    ? `We saved ${opts.matchCount} ${opts.matchCount === 1 ? "program" : "programs"} in ${stateName} that may help with ${careLabel} for ${familyPhrase}. This is a starting list, not an eligibility decision.`
+    : `We created your private Olera plan. We don't have a strong ${stateName} program to suggest yet, but we'll keep looking for help with ${careLabel}.`;
 
-  <p style="font-size: 12px; color: #9ca3af; margin: 40px 0 0; line-height: 1.6; border-top: 1px solid #f3f4f6; padding-top: 20px;">
-    Olera helps families find care benefits they're eligible for in their state. We never sell your info.
-  </p>
-</div>
-          `;
+  return layout(
+    `
+      <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.6;">Hi ${greetingName},</p>
+      <h1 style="font-family:'Caslon','Playfair Display',Georgia,serif;font-size:28px;line-height:1.2;margin:0 0 16px;color:#111827;font-weight:700;">Your ${stateName} benefits plan is ready.</h1>
+      <p style="font-size:15px;line-height:1.6;margin:0 0 24px;color:#4b5563;">${planSummary}</p>
+      <div style="background:#eef8f6;border-radius:12px;padding:18px 20px;margin:0 0 24px;">
+        <p style="font-size:14px;font-weight:700;color:#1f4f4c;margin:0 0 6px;">What happens next</p>
+        <p style="font-size:14px;line-height:1.55;color:#365f5c;margin:0;">Open any program to see what it covers, the requirements it generally checks, and how to apply.</p>
+      </div>
+      <a href="${matchesUrl}" style="display:inline-block;background:#111827;color:#ffffff;padding:14px 24px;text-decoration:none;border-radius:999px;font-weight:600;font-size:15px;">Review my benefits plan &rarr;</a>
+      ${relatedProgramsHtml ? `<div style="margin:28px 0 0;"><p style="font-size:13px;color:#6b7280;margin:0 0 4px;">Starting points in your plan</p>${relatedProgramsHtml}</div>` : ""}
+      <p style="font-size:12px;color:#9ca3af;margin:28px 0 0;line-height:1.6;border-top:1px solid #eef1f0;padding-top:16px;">Olera gives families a clearer starting point for care benefits. We never sell your info.</p>
+    `,
+    `Your ${opts.stateName} benefits plan and next steps are ready.`,
+  );
 }
 
 /**

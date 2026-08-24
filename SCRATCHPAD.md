@@ -7,6 +7,84 @@
 
 ## Current Focus
 
+### 2026-08-24 — One junk click silently shut off a paying provider, and it is not one provider
+
+**Started from TJ noticing Pacesetter's admin page looked fine while the comms timeline showed `failed`. It was not a display bug.** Sherry Pace's `ad_boost_traction` email was delivered, opened and clicked on **Thu 08-13 9:43pm ET**, then Outlook fired a complaint webhook **three minutes later**. `isSuppressedRecipient` reads all-time `email_log` with no expiry and no severity grading, so that one junk click permanently suppressed every non-exempt send to `pacesetterhomeservices@outlook.com`.
+
+**Five sends died silently**, all logged `failed / Suppressed: prior bounce/complaint on record`:
+
+| When (ET) | Type |
+| --- | --- |
+| Tue 08-18 7:45pm | `ad_boost_lead_delivered` |
+| Tue 08-18 7:45pm | `first_lead_celebration` |
+| Wed 08-19 2:49pm | `first_response_confirmation` |
+| Wed 08-19 2:49pm | `matches_encouragement` |
+| Sat 08-22 12:01pm | `ad_boost_lead_delivered` |
+
+**She is not dormant, which is what makes it bad.** She answered all 5 questions on her profile, and on 08-19 she opened the dashboard, found the 08-18 lead herself and replied to Tyasia in her own words ("Sorry for the late response. We are still training on this app"). The confirmation that her reply had sent was then itself suppressed. The **08-22 lead is still untouched** — thread empty, status `pending`: a family asking about respiratory care for a wife who does not want to go to the hospital.
+
+**A working inbox sat one column away the whole time.** `sherrypace2007@gmail.com` (the `accounts` row, Sherry Pace, `active_profile_id` = the claimed profile) is **13 sends / 13 delivered / 9 opened / 0 bounce / 0 complaint**. Provider notifications only ever target the **listing** email. There is no account-email fallback and no second channel — SMS is family-side only.
+
+**Blast radius, verified with exact counts** (PostgREST caps at 10k rows; the first pass silently truncated and made August look like a volume collapse — use `Prefer: count=exact` + `Range: 0-0`):
+
+| Demand notifications | Sent | Landed | Reach |
+| --- | --- | --- | --- |
+| May | 2,673 | 2,230 | 83.4% |
+| Jun | 2,777 | 2,493 | **89.8%** |
+| Jul | 2,677 | 2,293 | 85.7% |
+| Aug | 2,576 | 2,068 | **80.3%** |
+
+Volume is flat; bounces went 83 → 248. **636 sends suppressed in 90d**, 188 of them demand-critical (126 `question_received`, 41 `connection_request`, 19 `first_lead_celebration`, 2 `ad_boost_lead_delivered`). **71 providers unreachable since 07-10 with 121 demand events dropped, 7 of them claimed accounts.** Only 25 spam complaints exist platform-wide — real human junk clicks, tiny number, outsized damage.
+
+**The admin console hid it.** `app/api/admin/ad-boost/route.ts:270-276` drops any row with `bounced_at` or a non-`sent` status *before* counting, so the campaign page rendered "Recorded delivery: 4 successful sends / Watch lead outcomes" for a provider whose last five messages had all failed. Survivorship bias in the one card an operator checks.
+
+**Decisions made**
+
+- **Never trust-override a complaint address.** Bounce cases clear with `/api/admin/email-override?providerSlug=…` (it also flushes the backlog). Complaint cases do not — re-mailing an address that filed a complaint is what gets a Resend account suspended. Those get a phone call.
+- **Recovery mail admits no fault.** "Our records show the notification may have been filtered to spam" replaced "that is our bug". A Microsoft FBL complaint can come from a user junking it *or* from filter-level classification, so filtering is the accurate statement and it does not concede liability or accuse her of junking us.
+- **Recovery mail is minimized to the platform's own disclosure line.** `adBoostLeadDeliveredEmail` deliberately puts **first name + city + care type** in the body and keeps **phone, email and message text behind an authenticated link**. The first draft pasted the family's clinical sentence into personal Gmail; rewritten to match the product. HIPAA almost certainly does not reach Olera (no covered entity, no BAA, consumer-volunteered), but the FTC Health Breach Notification Rule does reach non-HIPAA consumer health platforms, and inconsistency with our own automated path is the worse exposure.
+- **`olera.care` is the WARM sending domain, not a personal one** — 5,602 `noreply@oleracare.com` (cold/unclaimed) vs **4,214 `noreply@olera.care`** (claimed) since Aug 1. `tj@olera.care` sits on the crown jewel, so hand-sent recovery mail carries the primary domain's reputation.
+
+**Shipped (branch `warm-yonath`, PR to staging): the deliverability watch — both halves of one system.** TJ's framing: an alert says *something happened*, a panel says *where to look*; neither is complete alone, so the alert deep-links into the panel.
+
+- **Panel half** — `app/admin/automations/page.tsx`: a `DeliverabilityStrip` under the stat cards showing bounce and complaint as *distance to limit* with the warn tick and suspension line drawn. `RESEND_*` constants had existed in `lib/email-thresholds.ts` for months with **zero importers**; the API computed both rates and `page.tsx` typed them at lines 77-78, and nothing ever rendered them. Computed, shipped to the browser, dropped.
+- **Alert half** — `app/api/cron/deliverability-watch/route.ts`, daily 12:00 UTC (~8am ET), registered in BOTH `vercel.json` and `lib/crons/registry.ts`. Posts to Slack `#notifications` (confirmed: that is where `sendSlackAlert` already goes, per `daily-digest`'s recipientCohort). **State-change only**, never on a schedule — that channel is busy and a daily line becomes wallpaper in a week. Danger tier at 87.5% of the hard limit.
+
+**Current account risk, on the canonical (panel) definition:** bounce **3.04%** (437 events / 14,384 sends, warn 2%, suspend 4%) and complaint **0.049%** (6 events / 12,381 delivered, warn 0.04%, suspend 0.08%). **Both are past the warn line.** Resend's AUP applies to the whole account, which also carries auth, family and student mail.
+
+**Three bugs caught by `/pre-test` before TJ tested (all fixed, tsc clean):**
+
+1. **The alert and the panel computed different rates.** I wrote the cron's queries from memory instead of reading the API. Panel's denominator is EVERY non-SMS `email_log` row including suppressed/failed; bounce and complaint counts come from the **`email_events`** table, not `email_log.bounced_at`/`complained_at`. My version gave 3.29% / 0.032% against the panel's 3.04% / 0.049% — and the complaint pair **straddles the warn line**, so the panel would have rendered red while the alert said green. Fixed by copying the API's definitions exactly, with the three traps commented at the call site.
+2. **A failed Slack post permanently swallowed the alert.** The observed level was written to `cron_runs.summary` regardless of send success, so the next run saw no change and never retried. That is the identical silent-failure class this system exists to catch, reproduced inside the watchdog. Now `announcedBounceLevel`/`announcedComplaintLevel` advance ONLY when `alerted === true`.
+3. **`jobChannels()` derives `["email"]` from `fn:"alert"`** when `channels` is absent, so the console would have listed a Slack-only job as an email sender. Set `channels: []`.
+
+Also made the count helper **throw** when `email_log`/`email_events` is unreadable rather than fail soft to zero — a watchdog that cannot read its inputs must not publish a false all-clear.
+
+**Mechanics worth keeping**
+
+- `withCronRun` writes the handler's returned object FLAT into `cron_runs.summary` with `status:"ok"`, and inserts a `status:"running"` row BEFORE the handler executes — so reading prior state must filter `.eq("status","ok")` or it reads its own in-flight row.
+- Prior state in the job's own last `cron_runs` row means **no migration and no new table**.
+- Bounce mix is 421 General / 9 MailboxFull / 6 ContentRejected / 1 Undetermined. Excluding soft bounces gives 2.94% — still `warn`, no verdict change. Left alone deliberately: the panel counts them, and changing only the alert would recreate bug #1.
+- PostgREST caps row reads (~10k). The first blast-radius pass silently truncated and made a 2,576-send August look like 306. Use `Prefer: count=exact` + `Range: 0-0`.
+
+**Shipped state: written and PR'd, NOT merged, NOT deployed.** Two hand-sent emails to `sherrypace2007@gmail.com` — A (lead handoff, sent Sun night ET so it tops her Monday inbox), B (routing fix, **held for Monday** because its "last serving day today" line is only true 08-24). Incident page: https://claude.ai/code/artifact/c94b6858-26bf-4d58-bd2c-26fca51c58a3
+
+**Proposed fixes, in build order** (F1 is the whole ballgame)
+
+1. **F1 — fall back to the account owner's verified email** when the listing address is suppressed. Route the *notification* there; keep the *contents* behind auth so the fallback never widens disclosure.
+2. **F2 — split suppression by stakes.** A complaint hard-stops digests/nudges forever; a lead or family question escalates to a human queue instead of vanishing.
+3. **F3 — show unreachable state on the campaign page.** Count failures, render a red state.
+4. **F4 — alert on dropped demand** to a claimed provider, same day, into Delivery Issues.
+5. **F5 — `await` the lead email.** `app/api/connections/create-inquiry/route.ts:250` calls it with `void`; a serverless function can drop that promise. No confirmed loss yet.
+
+**Next up**
+
+- **`/admin/deliverability` is the next build** — the provider-level dark list (Zone 3 of the mockup). The alert says *that* something is wrong; this says *who* to work. Mockup, with real data: https://claude.ai/code/artifact/e2b68383-f614-4877-80f6-928f4bd390fa
+- **Two open design calls on that page** (my defaults, override if wrong): never-delivered listings default-filtered OUT of the queue and surfaced as a single count; new page rather than a tab on `/admin/emails`.
+- **Verify the alert after deploy** — open `/api/cron/deliverability-watch?secret=<CRON_SECRET>&force=true` in a browser; it posts current state to #notifications regardless of change. `alerted:false` with a non-null `alertError` means the webhook is misconfigured and the account is unwatched.
+- **Fix architecture beyond the alert** (decided, unbuilt): rescue the family on delivery failure via a coordinator rung above `family_outcome_check`; extend `enrich-question-providers` from *missing* addresses to *dead* ones and to leads, approval-gated for claimed providers. Dropped: CTA gating (over-engineering, 0.4 inquiries/day) and complaint-escalates-within-email (a junked mailbox filters everything after).
+- **Ron Amon is the live one.** ~34h with no reply as of Sun 10:30pm ET, and he opened neither automated email we sent him. If Sherry has not responded by Monday midday ET, Olera contacts him directly.
+
 ### 2026-08-23 — Two 90-day campaigns built and published; the "serving nothing" cause is now a running experiment
 
 **Ad Boost, no code.** Sandra (Edmonds Villa) and Hilda (Franchil) both went from nothing to a live, fully-wired 90-day Google flight. Sherry dropped from the batch — TJ couldn't reach her and her $50 flight lapses 08-24.
@@ -54,7 +132,7 @@ Both: Maximize Clicks with the $2.50 cap, Search only, EN+ES, AI Max off, $1.67/
 - **Nextdoor builds ×4** — none exist for anyone. Same browser blocker.
 - **Hilda's launch email is armed** by her `live` status. She has not been told the campaign exists; she answers phone, not email.
 - **NIH support letters due Sept 1** — soft letters (uses the suite, works with us, finds it valuable), explicitly not gated on ad performance. See `project_nih_letters_sept1`. Handoff: https://app.notion.com/p/3c55903a0ffe81c1a18cc95b5caf7a17
-- **Sherry gets a phone call**, not an email — suppressed since her 08-14 spam complaint, and she has an unseen lead from her ads.
+- ~~**Sherry gets a phone call**~~ — done 08-24 by email to her *account* address (`sherrypace2007@gmail.com`, 13/13 delivered) rather than the suppressed listing address. Root cause was a 08-13 complaint, not 08-14; see the 2026-08-24 entry.
 ### 2026-08-23 — The navigator's problem was never the review loop, it was the pick (`great-poitras`)
 
 **Set out to automate TJ's nine-hop copy-paste review loop. Found the loop was not the bottleneck and built a verdict engine instead — then found the engine was reading the family's stated need from the wrong table.** Both reframes came from measurement, not reasoning, and the second one came from TJ asking a one-line question ("why are we sending these to a backlog?").

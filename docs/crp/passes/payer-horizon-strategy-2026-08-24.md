@@ -135,6 +135,30 @@ plan-paid care coordination is an established category.)
   from that figure to keep it to one question; the money question lives in
   Figure 3.
 
+## Round four: convergence to two figures (Logan, 2026-08-24)
+
+- The figure set converged to two, per Logan's direction: (1) the ecosystem
+  plus an archetypal family journey through it, one page; (2) who pays and why.
+- The journey is told through artifacts, not process boxes: the family's own
+  words, the persistent family profile, the assessed domains, the care and
+  funding plan (need, what pays, next step), execution, and tangible outcomes.
+  Family approval is a checkpoint on an arrow, not a box. Persistence is a
+  loop line, not a step.
+- **New named concept: the persistent family profile.** Built once, reused,
+  never re-asked; the plan updates as needs, benefits, or providers change
+  instead of starting over. This is new to the working model and matters
+  downstream: it is the consent anchor for the IRB design, the substrate of
+  the longitudinal data asset, and the mechanism behind follow-up and
+  re-engagement in Aim 1. Needs verification against what the platform
+  actually persists today before any application claim.
+- **CareNavigator drawn as a capability layer, not a step**: the website and
+  app, AI agents that prepare and file, automated communications, and human
+  navigators when judgment is needed, working beneath every step of the
+  journey. This framing matches how the technology should appear in the RS.
+- Logan's direction of travel: the concrete workflow should dictate the
+  abstraction (marketplace, platform, infrastructure), not the reverse. The
+  category label question is deliberately deferred.
+
 ## Round three of the figures (Logan, 2026-08-24)
 
 - Figure set is now three: ecosystem map (how-it-works-today band removed,

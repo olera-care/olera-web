@@ -5,51 +5,61 @@
 body { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #1f2a24; margin: 0; }
 .page { page-break-after: always; padding: 2pt 4pt; }
 .page:last-child { page-break-after: avoid; }
-h1 { font-size: 15pt; margin: 0 0 3pt 0; }
-.lede { font-size: 10.5pt; color: #333; margin: 0 0 10pt 0; line-height: 1.35; }
+h1 { font-size: 14pt; margin: 0 0 2pt 0; }
+.lede { font-size: 9.8pt; color: #333; margin: 0 0 7pt 0; line-height: 1.3; }
 .q { font-size: 10pt; color: #555; margin: 0 0 10pt 0; }
 
-.box { border: 1.5px solid #1a7f4e; background: #f5faf7; border-radius: 6pt; padding: 8pt 10pt; text-align: center; }
-.box h3 { margin: 0 0 3pt 0; font-size: 10.2pt; }
-.box p { margin: 0; font-size: 8.4pt; line-height: 1.3; }
+.box { border: 1.5px solid #1a7f4e; background: #f5faf7; border-radius: 5pt; padding: 6pt 8pt; text-align: center; }
+.box h3 { margin: 0 0 2pt 0; font-size: 9.6pt; }
+.box p { margin: 0; font-size: 7.9pt; line-height: 1.28; }
 .core { border-width: 3px; background: #eaf5ee; }
 
-/* Figure 1 grid */
-.sysgrid { display: grid; grid-template-columns: 1fr 80pt 1.15fr 80pt 1fr; gap: 8pt 0; align-items: stretch; }
-.conn { display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 7.8pt; color: #444; text-align: center; padding: 0 5pt; line-height: 1.25; }
-.conn .ar { font-size: 15pt; line-height: 1; color: #1a7f4e; margin-bottom: 2pt; }
-.vconn { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: 7.8pt; color: #444; padding: 2pt 0; line-height: 1.25; }
-.vconn .ar { font-size: 13pt; line-height: 1; color: #1a7f4e; }
+/* ecosystem grid */
+.sysgrid { display: grid; grid-template-columns: 1fr 74pt 1.15fr 74pt 1fr; gap: 5pt 0; align-items: stretch; }
+.conn { display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 7.3pt; color: #444; text-align: center; padding: 0 4pt; line-height: 1.22; }
+.conn .ar { font-size: 13pt; line-height: 1; color: #1a7f4e; margin-bottom: 1pt; }
+.vconn { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; font-size: 7.3pt; color: #444; padding: 1pt 0; line-height: 1.22; }
+.vconn .ar { font-size: 12pt; line-height: 1; color: #1a7f4e; }
 
-/* Figure 2: entry strip + serpentine */
-.entryrow { display: flex; gap: 7pt; align-items: stretch; }
-.entry { flex: 1; border: 1px solid #6b8f7d; background: #fff; border-radius: 4pt; padding: 4pt 7pt; font-size: 8.2pt; text-align: center; line-height: 1.25; }
-.entrylab { font-size: 8pt; font-weight: bold; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 3pt 0; }
-.downrow { text-align: center; font-size: 13pt; color: #1a7f4e; line-height: 1.1; padding: 1pt 0; }
-.downnote { font-size: 7.8pt; color: #555; }
-.serp { display: grid; grid-template-columns: 1fr 15px 1fr 15px 1fr 15px 1fr; gap: 5pt 0; align-items: stretch; }
-.serp .box { text-align: left; padding: 7pt 9pt; }
-.serp .box h3 { font-size: 9.6pt; }
-.serp .box p { font-size: 8.2pt; }
-.gar { display: flex; align-items: center; justify-content: center; font-size: 12pt; color: #1a7f4e; }
-.chip2 { display: block; font-size: 7.6pt; border: 1px solid #1a7f4e; background: #fff; border-radius: 3pt; padding: 2pt 5pt; margin-top: 2.5pt; line-height: 1.2; }
+/* divider */
+.divider { text-align: center; font-size: 9pt; font-weight: bold; color: #1f4534; margin: 7pt 0 5pt 0; }
+.divider .ar { color: #1a7f4e; }
 
-/* Figure 3 table */
+/* journey */
+.jrow { display: flex; gap: 0; align-items: stretch; }
+.jp { flex: 1; border: 1.5px solid #1a7f4e; background: #fff; border-radius: 5pt; padding: 5pt 7pt; }
+.jp h4 { font-size: 8.8pt; margin: 0 0 2pt 0; color: #1f4534; }
+.jp p { font-size: 7.5pt; margin: 0; line-height: 1.28; }
+.jar { display: flex; flex-direction: column; align-items: center; justify-content: center; color: #1a7f4e; padding: 0 1pt; width: 30px; text-align: center; }
+.jar .a { font-size: 11pt; line-height: 1; }
+.jar .lbl { font-size: 6.1pt; color: #555; line-height: 1.15; margin-top: 1pt; }
+.artcard { border: 1px solid #6b8f7d; border-radius: 3pt; padding: 3pt 5pt; margin-top: 3pt; background: #f7fbf8; font-size: 6.9pt; line-height: 1.4; text-align: left; }
+.artcard b { font-size: 6.9pt; }
+.mchip { display: inline-block; font-size: 6.7pt; border: 1px solid #6b8f7d; border-radius: 3pt; padding: 1pt 3pt; margin: 2pt 1pt 0 0; background: #fff; }
+.okchip { display: block; font-size: 7pt; border: 1px solid #1a7f4e; background: #eaf5ee; border-radius: 3pt; padding: 1.5pt 4pt; margin-top: 2.5pt; line-height: 1.25; }
+.caps { display: flex; gap: 0; margin-top: 6pt; border: 1.5px dashed #1a7f4e; border-radius: 5pt; background: #f5faf7; align-items: stretch; }
+.caps .clab { padding: 5pt 9pt; font-size: 7.8pt; font-weight: bold; color: #1f4534; display: flex; align-items: center; max-width: 150pt; line-height: 1.25; }
+.caps .c { flex: 1; padding: 5pt 8pt; font-size: 7.8pt; line-height: 1.25; display: flex; align-items: center; justify-content: center; text-align: center; border-left: 1px solid #b9cec3; }
+.loopline { display: flex; align-items: center; gap: 6pt; margin-top: 5pt; }
+.looplab { font-size: 7.9pt; color: #1f4534; white-space: nowrap; font-weight: bold; }
+.loopbar { flex: 1; border-bottom: 1.5px dashed #1a7f4e; height: 1pt; }
+.looptxt { font-size: 7.9pt; color: #444; }
+
+/* who-pays table */
 table.pay { border-collapse: collapse; width: 100%; font-size: 8.2pt; }
 table.pay th { background: #1f4534; color: #fff; padding: 5pt 6pt; text-align: left; font-size: 8.3pt; }
 table.pay td { border: 1px solid #c9d6cf; padding: 5pt 7pt; vertical-align: top; line-height: 1.3; background: #fff; }
 table.pay tr:nth-child(odd) td { background: #f7faf8; }
 table.pay td.rev { background: #eaf5ee !important; }
 .whypay { margin-top: 8pt; border: 2px solid #1a7f4e; border-radius: 6pt; background: #f5faf7; padding: 7pt 12pt; }
-.whypay h3 { margin: 0 0 2pt 0; font-size: 10pt; display: inline; }
 .whypay p { margin: 0; font-size: 9pt; line-height: 1.35; }
 .footnote { font-size: 7.8pt; color: #777; margin-top: 5pt; }
 </style></head><body>
 
-<!-- ============ FIGURE 1 ============ -->
+<!-- ============ FIGURE 1: ECOSYSTEM + JOURNEY ============ -->
 <div class="page">
-<h1>1. The ecosystem CareNavigator coordinates</h1>
-<p class="lede"><b>CareNavigator coordinates the eldercare ecosystem around one family's needs.</b> It connects those needs to the programs and coverage that can pay and to the organizations that deliver care, and it verifies that care actually begins.</p>
+<h1>1. The ecosystem CareNavigator coordinates, and one family's journey through it</h1>
+<p class="lede">An older adult has multiple interconnected needs. The resources that could meet them are fragmented across four worlds. CareNavigator identifies the needs, determines what applies and what pays, builds one coordinated plan, helps execute it, and follows through until support is actually in place.</p>
 
 <div class="sysgrid">
   <div></div><div></div>
@@ -66,59 +76,57 @@ table.pay td.rev { background: #eaf5ee !important; }
   <div class="conn"><span class="ar">&#8646;</span>Receives referrals for patients needing home and community support.</div>
   <div class="box"><h3>Healthcare organizations</h3><p>Hospitals, health systems, clinics, and ACOs. They identify needs, coordinate care, and bear financial risk.</p></div>
 
-  <div style="height:2pt"></div><div></div><div></div><div style="height:2pt"></div>
+  <div style="height:1pt"></div><div></div><div></div><div style="height:1pt"></div>
 
   <div class="box"><h3>Insurance and coverage</h3><p>Medicare, Medicare Advantage, Medicaid plans, commercial insurance, and long-term care insurance.</p></div>
   <div class="conn"><span class="ar">&#8646;</span>Identifies unused coverage and plan benefits.</div>
   <div class="conn"><span class="ar">&#8646;</span>Matches families to providers with verified capacity.</div>
   <div class="box"><h3>Care and support providers</h3><p>Home care, home health, hospice, assisted living, skilled nursing, rehabilitation, and adult day services.</p></div>
 </div>
+
+<div class="divider"><span class="ar">&#8595;</span> &nbsp;One family's journey through that ecosystem&nbsp; <span class="ar">&#8595;</span></div>
+
+<div class="jrow">
+  <div class="jp"><h4>"Tell us what is happening"</h4>
+    <p>The family explains once, in plain language.</p>
+    <div class="artcard" style="font-style:italic">"Mom fell last month. She lives alone, and money is tight. We don't know where to start."</div></div>
+  <div class="jar"><span class="a">&#8594;</span></div>
+  <div class="jp"><h4>One profile, built once</h4>
+    <p>A persistent record of needs and means. It is reused, never re-asked.</p>
+    <div class="artcard"><b>Family profile</b><br>Health and daily function &bull; household &bull; insurance and benefits &bull; finances &bull; location &bull; preferences</div></div>
+  <div class="jar"><span class="a">&#8594;</span></div>
+  <div class="jp"><h4>Needs and means assessed</h4>
+    <p>Every relevant domain, screened against the profile.</p>
+    <span class="mchip">Healthcare</span><span class="mchip">Personal care</span><span class="mchip">Long-term care</span><span class="mchip">Food</span><span class="mchip">Housing</span><span class="mchip">Transportation</span><span class="mchip">Income</span></div>
+  <div class="jar"><span class="a">&#8594;</span></div>
+  <div class="jp"><h4>The care and funding plan</h4>
+    <p>One plan, drawing on all four worlds above.</p>
+    <div class="artcard"><b>Need &rarr; what pays &rarr; next step</b><br>Home care &rarr; VA pension &rarr; apply<br>Rides to clinic &rarr; MA benefit &rarr; activate<br>Groceries &rarr; SNAP &rarr; apply</div></div>
+  <div class="jar"><span class="a">&#8594;</span><span class="lbl">family reviews and approves &#10003;</span></div>
+  <div class="jp"><h4>The work gets done</h4>
+    <p>Applications filed, documents assembled, approvals tracked, appointments scheduled, providers contacted. The family is prompted only when their part is needed.</p></div>
+  <div class="jar"><span class="a">&#8594;</span></div>
+  <div class="jp"><h4>Aid and care established</h4>
+    <span class="okchip">&#10003; VA pension approved, $1,800 monthly</span>
+    <span class="okchip">&#10003; MA transportation benefit in use</span>
+    <span class="okchip">&#10003; Geriatric clinic visit completed</span>
+    <span class="okchip">&#10003; Home care three mornings a week</span></div>
 </div>
 
-<!-- ============ FIGURE 2 ============ -->
-<div class="page">
-<h1>2. What actually happens when a family uses CareNavigator</h1>
-<p class="q">From any entry point to established aid and care. The same free experience for every family.</p>
-
-<div class="entrylab">How families enter</div>
-<div class="entryrow">
-  <div class="entry">Referred by their insurance plan</div>
-  <div class="entry">Referred by a hospital, clinic, or ACO</div>
-  <div class="entry">Google and online search</div>
-  <div class="entry">AI assistants and chatbots</div>
-  <div class="entry">Direct visit to the platform</div>
+<div class="caps">
+  <div class="clab">CareNavigator works beneath every step</div>
+  <div class="c">The website and app the family uses</div>
+  <div class="c">AI agents that prepare, file, and follow up</div>
+  <div class="c">Automated reminders and communications</div>
+  <div class="c">Human navigators when judgment is needed</div>
 </div>
-<div class="downrow">&#8595;<br><span class="downnote">Every path leads to the same front door.</span></div>
 
-<div class="serp">
-  <div class="box"><h3>1. Family enters CareNavigator</h3><p>One intake regardless of entry point. The family describes the situation once, in plain language, online or with a navigator.</p></div>
-  <div class="gar">&#8594;</div>
-  <div class="box"><h3>2. Needs assessed across every domain</h3><p>Food, housing, income, transportation, healthcare, long-term care, and personal care, plus what the family itself can manage.</p></div>
-  <div class="gar">&#8594;</div>
-  <div class="box"><h3>3. Resources mapped to those needs</h3><p>The system screens the aid programs, insurance benefits, healthcare services, and local providers relevant to this specific person.</p></div>
-  <div class="gar">&#8594;</div>
-  <div class="box"><h3>4. Care and funding plan created</h3><p>A written plan. What each benefit or coverage will pay for, which applications and approvals are required, and which choices belong to the family.</p></div>
-
-  <div></div><div></div><div></div><div></div><div></div><div></div>
-  <div class="gar">&#8595;</div>
-
-  <div class="box"><h3>8. Follow-up over time</h3><p>CareNavigator confirms each support actually began, monitors that it continues, and reopens the case when circumstances change.</p></div>
-  <div class="gar">&#8592;</div>
-  <div class="box"><h3>7. Aid and care established</h3><p>What success looks like for one family.</p>
-    <span class="chip2">A $1,800 monthly VA pension approved and paying</span>
-    <span class="chip2">A Medicare Advantage transportation benefit in use</span>
-    <span class="chip2">A first geriatric clinic visit completed</span>
-    <span class="chip2">Home care three mornings a week, begun and confirmed</span></div>
-  <div class="gar">&#8592;</div>
-  <div class="box"><h3>6. CareNavigator executes the plan</h3><p>Applications filed, documents assembled, approvals tracked, assessments scheduled, providers contacted, and family tasks surfaced at each checkpoint.</p></div>
-  <div class="gar">&#8592;</div>
-  <div class="box"><h3>5. Family reviews and approves</h3><p>The family sees the whole plan, sets priorities, and decides what to pursue. Nothing proceeds without their approval.</p></div>
-</div>
+<div class="loopline"><span class="looplab">&#8617; The profile and plan persist.</span><div class="loopbar"></div><span class="looptxt">When needs, benefits, or providers change, the plan updates instead of starting over.</span></div>
 </div>
 
 <!-- ============ FIGURE 3 ============ -->
 <div class="page">
-<h1>3. Who pays, and why?</h1>
+<h1>2. Who pays, and why?</h1>
 <p class="q">Each customer category, what it buys, and whether the opportunity is economically meaningful at the county level.</p>
 
 <table class="pay">
@@ -170,5 +178,6 @@ table.pay td.rev { background: #eaf5ee !important; }
 <p><b>Why pay when the website is free?</b> The free site serves families who come looking. Institutions pay us to find and engage the specific people they are responsible for, finish every case, and prove the results back into their systems.</p>
 </div>
 </div>
+
 
 </body></html>

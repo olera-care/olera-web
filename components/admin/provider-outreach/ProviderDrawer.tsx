@@ -81,6 +81,7 @@ interface OutreachProvider {
   fax_status?: string | null;
   mail_address?: string | null;
   contact_form_url?: string | null;
+  contact_form_send_count?: number;
   // Call tab (call_exhausted) fields
   stage_changed_at?: string | null;
 }
@@ -114,6 +115,8 @@ interface ProviderDrawerProps {
   onOutcomeRecorded?: (providerId: string, stageChanged: boolean) => void;
   // Claim link sent callback (updates resend_count in local state)
   onClaimLinkSent?: (providerId: string, newResendCount: number) => void;
+  // Contact form sent callback (updates contact_form_send_count in local state)
+  onContactFormSent?: (providerId: string, newSendCount: number) => void;
   // Current UI context
   activeTab?: string;
 }
@@ -264,6 +267,61 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
 
 function SectionDivider() {
   return <div className="border-t border-gray-200 my-8" />;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Call Script Section (personalized for the provider)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function CallScriptSection({ provider, activeTab }: { provider: OutreachProvider; activeTab?: string }) {
+  const city = provider.city || "your area";
+  const careType = provider.provider_category || "senior care";
+  const email = provider.email || "[email]";
+
+  // Different scripts per tab based on where provider is in the outreach lifecycle
+  const getScript = () => {
+    if (activeTab === "call_confirm") {
+      // First contact - no emails sent yet. Goal: confirm email, launch sequence.
+      return (
+        <>
+          &quot;Hi, this is [your name] from Dr. DuBose&apos;s company office, calling about his Family Referral Program for <span className="text-gray-700">{city}</span> families. He&apos;d like to send your team some info on the program, and I wanted to check first on the best email to send the details to.&quot;
+        </>
+      );
+    }
+    if (activeTab === "needs_call" || activeTab === "follow_up") {
+      // After 4-email sequence. First human contact. Check if they got emails, offer alternative channels.
+      return (
+        <>
+          <div>&quot;Hi, this is [your name] from Dr. DuBose&apos;s office. Just checking - did you get the emails we sent about your Olera page? Families in <span className="text-gray-700">{city}</span> are trying to reach you but those messages aren&apos;t getting through.&quot;</div>
+          <div className="mt-2 text-gray-400 italic">
+            If no: &quot;I can send it another way - fax, mail, or through your contact form. What works best?&quot;
+          </div>
+          <div className="text-gray-400 italic">
+            If yes: &quot;Any issues with the link, or questions I can answer?&quot;
+          </div>
+        </>
+      );
+    }
+    if (activeTab === "call_exhausted" || activeTab === "call") {
+      // After emails + alternative channels. Final push. Offer help to activate.
+      return (
+        <>
+          &quot;Hi, this is [your name] from Dr. DuBose&apos;s office. We&apos;ve reached out a few times about your Olera page - <span className="text-gray-700">{city}</span> families are looking for <span className="text-gray-700">{careType}</span> and their messages aren&apos;t getting to you. Do you need help activating your page?&quot;
+        </>
+      );
+    }
+    // Fallback (shouldn't reach here given showCallScript logic)
+    return null;
+  };
+
+  return (
+    <div className="mx-4 mb-3 px-3 py-2 bg-gray-50 rounded text-[11px] text-gray-500">
+      <div className="font-medium text-gray-400 mb-1">Script</div>
+      <div className="leading-relaxed">
+        {getScript()}
+      </div>
+    </div>
+  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -1058,6 +1116,7 @@ function ActivitySection({ provider }: { provider: OutreachProvider }) {
   const questionsCount = provider.questions_count ?? 0;
   const leadsCount = provider.leads_count ?? 0;
   const emailsSent = provider.resend_count ?? 0;
+  const formsSent = provider.contact_form_send_count ?? 0;
 
   return (
     <div>
@@ -1066,6 +1125,10 @@ function ActivitySection({ provider }: { provider: OutreachProvider }) {
         <div>
           <span className="text-2xl font-semibold text-gray-900">{emailsSent}</span>
           <span className="ml-1.5 text-sm text-gray-500">Emails Sent</span>
+        </div>
+        <div>
+          <span className="text-2xl font-semibold text-gray-900">{formsSent}</span>
+          <span className="ml-1.5 text-sm text-gray-500">Forms Sent</span>
         </div>
         <div>
           <span className="text-2xl font-semibold text-gray-900">{questionsCount}</span>
@@ -1094,6 +1157,7 @@ function FollowUpSection({
   const explanation = getFollowUpReasonExplanation(provider);
   const engagement = provider.engagement || { emails_sent: 0, opens: 0, clicks: 0, resends: 0 };
   const resendCount = provider.resend_count ?? 0;
+  const contactFormSendCount = provider.contact_form_send_count ?? 0;
 
   return (
     <div>
@@ -1131,6 +1195,10 @@ function FollowUpSection({
         <div className="flex items-center gap-1.5">
           <span className="text-gray-500">Emails Sent:</span>
           <span className="font-medium text-gray-900">{resendCount}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-gray-500">Forms Sent:</span>
+          <span className="font-medium text-gray-900">{contactFormSendCount}</span>
         </div>
       </div>
     </div>
@@ -1239,6 +1307,7 @@ function CallExhaustedSection({
   provider: OutreachProvider;
 }) {
   const emailsSent = provider.resend_count ?? 0;
+  const contactFormSendCount = provider.contact_form_send_count ?? 0;
   const daysSinceStageChange = provider.stage_changed_at
     ? Math.floor((Date.now() - new Date(provider.stage_changed_at).getTime()) / (1000 * 60 * 60 * 24))
     : 0;
@@ -1271,6 +1340,10 @@ function CallExhaustedSection({
           <span className="text-gray-500">Emails Sent:</span>
           <span className="font-medium text-gray-900">{emailsSent}</span>
         </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-gray-500">Forms Sent:</span>
+          <span className="font-medium text-gray-900">{contactFormSendCount}</span>
+        </div>
       </div>
     </div>
   );
@@ -1289,6 +1362,7 @@ function ActionsSection({
   onMoveToReady,
   onOutcomeRecorded,
   onClaimLinkSent,
+  onContactFormSent,
   onClose,
   activeTab,
 }: {
@@ -1300,6 +1374,7 @@ function ActionsSection({
   onMoveToReady?: (providerId: string) => void;
   onOutcomeRecorded?: (providerId: string, stageChanged: boolean) => void;
   onClaimLinkSent?: (providerId: string, newResendCount: number) => void;
+  onContactFormSent?: (providerId: string, newSendCount: number) => void;
   onClose?: () => void;
   activeTab?: string;
 }) {
@@ -1581,21 +1656,45 @@ Questions? support@olera.care or (979) 243-9801`;
     setActionLoading(true);
     setActionError(null);
     try {
-      const res = await fetch("/api/admin/provider-outreach/record-outcome", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          outcome: "try_contact_form",
-          notes: `Contact form submitted: ${contactFormUrl}`,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to record submission");
-      setActionSuccess({ outcome: "try_contact_form" });
-      setConfirmAction(null);
-      onOutcomeRecorded?.(provider.provider_id, true);
-      setTimeout(() => onClose?.(), 1500);
+      // In Follow Up (needs_call), move to Alt Channels via record-outcome
+      // In other tabs, just record the send without stage change via send-contact-form
+      if (isFollowUp) {
+        const res = await fetch("/api/admin/provider-outreach/record-outcome", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            provider_id: provider.provider_id,
+            outcome: "try_contact_form",
+            notes: `Contact form submitted: ${contactFormUrl}`,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to record submission");
+        setActionSuccess({ outcome: "try_contact_form" });
+        setConfirmAction(null);
+        onOutcomeRecorded?.(provider.provider_id, true);
+        setTimeout(() => onClose?.(), 1500);
+      } else {
+        // Non-Follow-Up: Use new endpoint that doesn't change stage
+        const res = await fetch("/api/admin/provider-outreach/send-contact-form", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            provider_id: provider.provider_id,
+            contact_form_url: contactFormUrl.trim(),
+            notes: `Contact form submitted: ${contactFormUrl}`,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to record submission");
+        // Update local state with new send count
+        onContactFormSent?.(provider.provider_id, data.send_count);
+        setActionSuccess({ outcome: "contact_form_sent" });
+        setConfirmAction(null);
+        // Don't close drawer - provider stays in current tab
+        // Auto-clear success message after 3 seconds
+        setTimeout(() => setActionSuccess(null), 3000);
+      }
     } catch (err) {
       setActionError(err instanceof Error ? err.message : "Failed to record submission");
     } finally {
@@ -1628,6 +1727,7 @@ Questions? support@olera.care or (979) 243-9801`;
         try_contact_form: "Moved to Alt Channels (Contact Form)",
         try_direct_mail: "Moved to Alt Channels (Direct Mail)",
         direct_mail: "Postcard sent",
+        contact_form_sent: "Contact form submitted",
       };
       message = messages[actionSuccess.outcome] || "Done";
     }
@@ -2101,6 +2201,13 @@ Questions? support@olera.care or (979) 243-9801`;
           </button>
         )}
 
+        {/* Contact Form - for non-follow-up, non-terminal stages (supplementary channel, no stage change) */}
+        {!isTerminal && !isFollowUp && (
+          <button onClick={() => setConfirmAction("contact_form")} className={outlineBtn}>
+            Contact Form
+          </button>
+        )}
+
         {/* Follow Up specific actions - move to alternative channels */}
         {isFollowUp && (
           <>
@@ -2181,6 +2288,7 @@ export function ProviderDrawer({
   onContactFound,
   onOutcomeRecorded,
   onClaimLinkSent,
+  onContactFormSent,
   activeTab,
 }: ProviderDrawerProps) {
   // Determine if we should show Follow Up section
@@ -2226,14 +2334,24 @@ export function ProviderDrawer({
       onMoveToReady={onMoveToReady}
       onOutcomeRecorded={onOutcomeRecorded}
       onClaimLinkSent={onClaimLinkSent}
+      onContactFormSent={onContactFormSent}
       onClose={onClose}
       activeTab={activeTab}
     />
   );
 
+  // Show call script for tabs where calling is the primary action
+  const showCallScript =
+    activeTab === "call_confirm" ||
+    activeTab === "needs_call" ||
+    activeTab === "call_exhausted";
+
   return (
     <DrawerShell onClose={onClose} header={header} footer={actionsFooter}>
       <div className="py-2">
+        {/* Call Script - show for Call & Confirm, Follow Up, and Call tabs */}
+        {showCallScript && <CallScriptSection provider={provider} activeTab={activeTab} />}
+
         {/* Contact Section */}
         <ContactSection
           provider={provider}

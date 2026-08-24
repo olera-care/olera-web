@@ -418,7 +418,62 @@ export async function POST(request: Request) {
       console.error("[claim/finalize] admin notification failed:", emailErr);
     }
 
-    // 6b. Slack alert (fire-and-forget)
+    // 6b. Check if provider was in cold outreach and update tracking
+    // This fixes the attribution loophole when magic link fails and provider uses OTP
+    let claimSource = "otp_verification";
+    let reEngageChannel: string | null = null;
+    try {
+      const nowIso = new Date().toISOString();
+      const { data: trackingRow } = await db
+        .from("provider_outreach_tracking")
+        .select("id, stage, re_engage_channel")
+        .eq("provider_id", providerId)
+        .maybeSingle();
+
+      if (trackingRow && trackingRow.stage !== "claimed") {
+        // Provider was in cold outreach - attribute to cold_outreach
+        claimSource = "cold_outreach";
+        reEngageChannel = trackingRow.re_engage_channel;
+        const oldStage = trackingRow.stage;
+
+        // Update tracking to claimed
+        const { error: updateErr, count } = await db
+          .from("provider_outreach_tracking")
+          .update({
+            stage: "claimed",
+            claimed_at: nowIso,
+            stage_changed_at: nowIso,
+          })
+          .eq("id", trackingRow.id)
+          .neq("stage", "claimed");
+
+        if (updateErr) {
+          console.error("[claim/finalize] Failed to update outreach tracking:", updateErr.message);
+        } else if (count && count > 0) {
+          console.log("[claim/finalize] Updated provider_outreach_tracking to claimed:", providerId);
+
+          // Log touchpoint
+          await db.from("provider_outreach_touchpoints").insert({
+            provider_id: providerId,
+            touchpoint_type: "stage_changed",
+            details: {
+              old_stage: oldStage,
+              new_stage: "claimed",
+              source: "cold_outreach_otp_fallback",
+              auto_updated: true,
+              ...(reEngageChannel && { re_engage_channel: reEngageChannel }),
+            },
+            admin_user_id: null,
+            created_at: nowIso,
+          });
+        }
+      }
+    } catch (trackingErr) {
+      console.error("[claim/finalize] Outreach tracking check failed:", trackingErr);
+      // Non-blocking - continue with claim
+    }
+
+    // 6c. Slack alert (fire-and-forget)
     try {
       const { data: claimedBp } = await db
         .from("business_profiles")
@@ -430,14 +485,14 @@ export async function POST(request: Request) {
         providerName: claimedBp?.display_name || providerId,
         claimedByEmail: user.email || "unknown",
         providerSlug: profileSlug,
-        claimSource: "otp_verification",
+        claimSource,
       });
       await sendSlackAlert(alert.text, alert.blocks);
     } catch {
       // Non-blocking
     }
 
-    // 6b-ii. Suspicious claim alert for OTP-based claims with medium/low trust
+    // 6c-ii. Suspicious claim alert for OTP-based claims with medium/low trust
     // One-click claims get their suspicious alert via /api/auth/auto-sign-in,
     // but OTP-only claims (manual email verification) need their own alert here.
     // Only send if trust scoring actually ran (reason !== "not_scored")
@@ -457,7 +512,7 @@ export async function POST(request: Request) {
       }
     }
 
-    // 6c. Loops: provider claimed (fire-and-forget)
+    // 6d. Loops: provider claimed (fire-and-forget)
     try {
       const { data: loopsBp } = await db
         .from("business_profiles")
@@ -480,17 +535,15 @@ export async function POST(request: Request) {
       // Non-blocking
     }
 
-    // 6d. Provider activity: claim attribution for the admin Providers section.
-    // source='email' — this endpoint is reached from the post-email onboard
-    // flow, distinct from the page-flow claim in /api/provider/claim-listing.
-    // Symmetrical write so distinct-provider counts can split by source cleanly.
+    // 6e. Provider activity: claim attribution for the admin Providers section.
+    // Uses claimSource determined above (cold_outreach if from outreach, else email/otp)
     db.from("provider_activity").insert({
       provider_id: providerId,
       profile_id: profileId,
       event_type: "claim_completed",
-      metadata: { source: "email" },
+      metadata: { source: claimSource === "cold_outreach" ? "cold_outreach" : "email" },
     }).then(({ error: actErr }: { error: { message: string } | null }) => {
-      if (actErr) console.error("[provider_activity] claim_completed (email) insert failed:", actErr);
+      if (actErr) console.error("[provider_activity] claim_completed insert failed:", actErr);
     });
 
     return NextResponse.json({ success: true, profileSlug, profileId });

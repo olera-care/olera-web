@@ -199,34 +199,37 @@ function DeliverabilityStrip({ summary }: {
         // Distance to the suspension line, capped for display only.
         const pctOfLimit = m.limit > 0 ? Math.min(m.rate / m.limit, 1) * 100 : 0;
         const state = m.rate >= m.limit ? "over" : m.rate >= m.warn ? "warn" : "ok";
+        // Red is reserved for actually over the line. Warn is amber: it means
+        // watch this, not stop everything. Two saturated red bars for a rate
+        // that is elevated but legal reads as an outage and burns the signal.
         const copy = {
-          over: { badge: "OVER LIMIT", badgeCls: "bg-red-100 text-red-700", num: "text-red-600", fill: "bg-red-500" },
-          warn: { badge: "APPROACHING LIMIT", badgeCls: "bg-red-100 text-red-700", num: "text-red-600", fill: "bg-red-500" },
-          ok: { badge: "WITHIN LIMITS", badgeCls: "bg-emerald-100 text-emerald-700", num: "text-gray-950", fill: "bg-emerald-500" },
+          over: { badge: "Over limit", badgeCls: "bg-red-50 text-red-700 ring-1 ring-red-200", num: "text-red-600", fill: "bg-red-500" },
+          warn: { badge: "Past warn line", badgeCls: "bg-amber-50 text-amber-700 ring-1 ring-amber-200", num: "text-gray-950", fill: "bg-amber-400" },
+          ok: { badge: "Within limits", badgeCls: "bg-gray-50 text-gray-500 ring-1 ring-gray-200", num: "text-gray-950", fill: "bg-emerald-400" },
         }[state];
         return (
-          <div key={m.key} className="rounded-xl border border-gray-200 bg-white px-4 py-3.5">
+          <div key={m.key} className="rounded-xl border border-gray-200 bg-white px-4 py-3">
             <div className="flex items-baseline justify-between gap-3">
               <span className="text-xs font-semibold text-gray-700">{m.label}</span>
-              <span className={`rounded px-2 py-0.5 text-[10px] font-semibold tracking-wide ${copy.badgeCls}`}>
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${copy.badgeCls}`}>
                 {copy.badge}
               </span>
             </div>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className={`text-2xl font-semibold leading-none tabular-nums ${copy.num}`}>
+            <div className="mt-1.5 flex items-baseline gap-2">
+              <span className={`text-xl font-semibold leading-none tabular-nums ${copy.num}`}>
                 {(m.rate * 100).toFixed(m.digits)}%
               </span>
               <span className="text-[11px] text-gray-400">
                 {m.events.toLocaleString()} of {m.denom.toLocaleString()} {m.denomLabel} · 30d
               </span>
             </div>
-            <div className="relative mt-3 h-2.5 rounded-sm bg-gray-100" role="img"
+            <div className="relative mt-2.5 h-1.5 rounded-full bg-gray-100" role="img"
               aria-label={`${m.label} ${(m.rate * 100).toFixed(m.digits)} percent, warning at ${(m.warn * 100).toFixed(m.digits)} percent, suspension at ${(m.limit * 100).toFixed(m.digits)} percent`}>
-              <span className={`absolute left-0 top-0 h-full rounded-sm ${copy.fill}`} style={{ width: `${pctOfLimit}%` }} />
-              <span className="absolute -top-1 -bottom-1 w-0.5 bg-amber-500" style={{ left: `${(m.warn / m.limit) * 100}%` }} />
-              <span className="absolute -top-1 -bottom-1 right-0 w-0.5 bg-gray-900" />
+              <span className={`absolute left-0 top-0 h-full rounded-full ${copy.fill}`} style={{ width: `${pctOfLimit}%` }} />
+              <span className="absolute -top-0.5 -bottom-0.5 w-px bg-gray-400" style={{ left: `${(m.warn / m.limit) * 100}%` }} />
+              <span className="absolute -top-0.5 -bottom-0.5 right-0 w-px bg-gray-500" />
             </div>
-            <div className="mt-1.5 flex justify-between text-[10px] tabular-nums text-gray-400">
+            <div className="mt-1 flex justify-between text-[10px] tabular-nums text-gray-400">
               <span>0%</span>
               <span>warn {(m.warn * 100).toFixed(m.digits)}%</span>
               <span>suspend {(m.limit * 100).toFixed(m.digits)}%</span>

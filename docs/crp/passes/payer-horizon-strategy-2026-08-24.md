@@ -159,6 +159,16 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Round seven: figure 1 visual excellence pass (Logan, 2026-08-24)
+
+- Center redesigned as the CareNavigator cycle: assess needs, create living
+  profile, build care + funding plan, help execute the plan, track aid and
+  care established, looping back to assess. The ring encodes the
+  continuous-reassessment claim visually; CareNavigator sits at the hub.
+- Family figures moved into the Older Adults and Families box; pills removed
+  everywhere in favor of plain sentences; type enlarged across the figure;
+  bottom summary sentence removed; whole figure vertically centered.
+
 ## Round six: the ecosystem becomes its own figure (Logan, 2026-08-24)
 
 - Figures split again, now three: (1) the CareNavigator ecosystem as a

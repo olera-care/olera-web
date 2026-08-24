@@ -21,14 +21,17 @@
  *    eligibility claims (Phase 4 gate: zero payment-acceptance data).
  */
 import Anthropic from "@anthropic-ai/sdk";
+import type { NavigatorPacket } from "@/lib/benefits/navigator-packet";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   selectFirstStepProgram,
   buildCallScript,
   benefitsSituationLine,
   familyPhraseFromRelationship,
+  parseEntrySourceProgram,
   type FirstStepPick,
 } from "./benefits-cascade.server";
+import { findPipelineDraftFor, getStateAbbrev } from "@/lib/program-data";
 import { familyBenefitsFacts, hasCoResidentSpouse } from "./benefits-guidance.server";
 import { countProvidersInArea } from "./provider-recs.server";
 
@@ -78,6 +81,22 @@ export interface BenefitsNavigatorMeta {
    *  draft stays pending and the reason surfaces in the admin queue. */
   schedule_failed_at?: string;
   schedule_failed_reason?: string;
+  /** Recompose: the letter was re-drafted from current program data, which
+   *  discards the prior draft and TJ's edits to it. Present on live rows and
+   *  previously absent from this type. */
+  recomposed_at?: string;
+  recomposed_reason?: string;
+  /** Set when a fact-check round patched this draft's text in place. */
+  factcheck_patched_at?: string;
+  dismissed_reason?: string;
+  /** Composed by scripts/backfill-benefits-navigator-drafts.ts rather than by
+   *  the coordinator, which is why its intake can be months old. */
+  backfill?: boolean;
+  backfill_intake_age_days?: number;
+  /** The computed routing verdict (lib/benefits/navigator-packet.ts). Built
+   *  by the benefits-navigator-packets cron whenever the letter changes, and
+   *  read by the admin queue to explain why a letter is waiting. */
+  packet?: NavigatorPacket;
   sent_at?: string;
   /** Who fired the send: TJ's button or the scheduler cron. */
   sent_via?: "admin" | "scheduler";
@@ -105,7 +124,7 @@ export function readBenefitsNavigator(
 const NAVIGATOR_VOICE = `You draft short personal notes from TJ, a real person at Olera. Olera helps families of older adults find care and the benefit programs that help pay for it. TJ personally reads and answers every reply to these notes.
 
 WHO YOU ARE WRITING TO
-A family member or senior who used Olera's free benefits finder a couple of days ago. They are often overwhelmed, short on money, and wary of scams. Many came looking for help with bills first, care second. Write at a 6th-grade reading level.
+A family member or senior who used Olera's free benefits finder. The FAMILY section says WHEN — it may have been days ago or months ago, so take the timing from there and never assume it was recent. They are often overwhelmed, short on money, and wary of scams. Many came looking for help with bills first, care second. Write at a 6th-grade reading level.
 
 VOICE
 - Plain words. Short sentences. Calm and competent, like a good caseworker.
@@ -139,8 +158,10 @@ HONESTY RULES (never break these)
 - The provider offer, when included, is only an offer to introduce them if they reply. No claims about what providers accept or cost.
 
 STRUCTURE (90-130 words total)
-1. One or two sentences: who you are, and the concrete thing they did. Acknowledge, in plain terms, what they came looking for. If FAMILY says the first name is unknown, open with no name at all ("Hi, it's TJ with Olera.") — never guess a name and never use a placeholder.
-2. The one first step, laid out so it feels doable: the program, who to call and the number, what to have nearby before dialing. Mention the short phone script is written down on their plan page. If the program is a Medicaid waiver or needs a Medicaid application first, say plainly that the process runs weeks to months. Never imply the call itself resolves it.
+1. One or two sentences: who you are, and the concrete thing they did. Acknowledge, in plain terms, what they came looking for. If CAME LOOKING FOR names a program that is NOT the first step below, say so in one short clause before you give the step, so they can see we read what they typed. One clause, not a paragraph, and never talk them out of the thing they came for: "You were looking at X. That is worth applying for. For help with Y, the call I would start with is..." Do not do this when CAME LOOKING FOR is the same program as the first step, or when it says nothing specific.
+
+NAMING WHAT THEY NEED CREATES A DEBT. If you say back what they told you they need, and the first step does not directly answer it, you MUST bridge the two in the same breath. One plain sentence saying honestly what this step does and does not do, and why it is still the one to start with. "This will not pay for care itself. It frees up money each month, and it moves in weeks instead of months." Never say their need back and then hand them something unrelated with no connection, which reads as not having listened at all and is worse than never mentioning it. If you cannot make an honest bridge, do not name the need. If FAMILY says the first name is unknown, open with no name at all ("Hi, it's TJ with Olera.") — never guess a name and never use a placeholder.
+2. The one first step, laid out so it feels doable. Name their plan page in the FIRST sentence of this paragraph, before you give the phone number, and say in that same sentence what is written on it: the phone script and the short list of what to have nearby. Then name the program, who to call, and the number. The number must appear in a sentence of yours, never only on the page, so a family who would rather just dial is never forced through a link. If the program is a Medicaid waiver or needs a Medicaid application first, say plainly that the process runs weeks to months. Never imply the call itself resolves it.
 3. ONE of the following, never both, chosen from the data:
    - If MISSING FACTS lists anything: one gentle ask for a single fact, tied to a concrete payoff ("If you tell me X, I can check Y for you").
    - Else if the PROVIDER OFFER section allows it: one sentence offering to personally introduce them to a few care providers near them if they reply.
@@ -151,7 +172,7 @@ COMPANION TEXT MESSAGE
 Also draft one short text message. It goes only to families who asked for texts, alongside the email, from the same number that texted their results. Texts get seen when email does not, so this is often the first thing they read.
 - Two or three short sentences, under 240 characters total. It must sound like a person texting, not a notification. Same voice rules as the letter.
 - Continue the identity established in the Day-0 thread: say this is Olera's care team following up, then point at the step the team prepared in one clause. Do not switch the text thread to "TJ from Olera" even when the companion email is TJ-signed. End exactly with "Reply CALLED, NO ANSWER, or STUCK." This gives the family a clear way to move their plan forward without opening a link.
-- Include the literal placeholder {link} exactly once where the plan link belongs. Write no other links, no phone numbers, and no opt-out language (both are added automatically).
+- Include the literal placeholder {link} exactly once where the plan link belongs. Write no other links, no phone numbers, and no opt-out language (both are added automatically). Never put a period or any other punctuation directly after {link}. End the clause before it, or let the link sit at the end of the sentence.
 
 FORMAT
 Return exactly this format, nothing else:
@@ -159,6 +180,47 @@ SUBJECT: <a plain, specific subject line. No clickbait, no colons-and-hype. Some
 TEXT: <the companion text message on a single line>
 
 <the letter body as plain text paragraphs separated by blank lines. No markdown, no links, no bullet points.>`;
+
+/**
+ * How the letter should refer to when the family used the finder.
+ *
+ * The live cascade only composes inside a 2-10 day band, so "on Tuesday" was
+ * always true and the weekday was hardcoded. The backfill reaches families
+ * whose intake is months old, where "on Tuesday" reads as THIS Tuesday and
+ * makes the letter look like it was written about someone else. Past two
+ * weeks we name the month instead and tell the model to own the delay: a
+ * family who filled the finder in June knows it was June, and pretending
+ * otherwise is the fastest way to look automated.
+ */
+export function intakeReference(
+  intakeAt: string,
+  now: number = Date.now(),
+): { phrase: string; stale: boolean } {
+  const at = new Date(intakeAt);
+  const ageDays = (now - at.getTime()) / (24 * 60 * 60 * 1000);
+  if (!Number.isFinite(ageDays) || ageDays < 0) {
+    // Unparseable or future-dated: say nothing specific rather than guess.
+    return { phrase: "recently", stale: false };
+  }
+  if (ageDays <= 14) {
+    return {
+      phrase: `on ${at.toLocaleDateString("en-US", { weekday: "long" })}`,
+      stale: false,
+    };
+  }
+  const nowD = new Date(now);
+  const sameYear = at.getUTCFullYear() === nowD.getUTCFullYear();
+  // "back in August" on August 22nd reads as a mistake. Inside the current
+  // month, say how long ago instead of naming it.
+  if (sameYear && at.getUTCMonth() === nowD.getUTCMonth()) {
+    return { phrase: "a few weeks ago", stale: true };
+  }
+  const month = at.toLocaleDateString("en-US", {
+    month: "long",
+    ...(sameYear ? {} : { year: "numeric" }),
+  });
+  return { phrase: `back in ${month}`, stale: true };
+}
 
 // ── Compose ────────────────────────────────────────────────────────────────
 
@@ -180,6 +242,14 @@ export interface NavigatorComposeInput {
    *  and Disabled Waiver they saved first, because the ladder sorts by
    *  ascending complexity before saved order). */
   exclude?: string[];
+  /**
+   * Re-select TO this program if it is usable. Set from a packet's
+   * recomposeTarget — the alternative both fit models independently named.
+   * Passed to selectFirstStepProgram as a pin, so it wins when it has
+   * callable content and falls through to the normal ladder when it does
+   * not; a suggestion that cannot anchor a letter must never produce one.
+   */
+  prefer?: { programId: string; stateId: string | null };
 }
 
 export interface NavigatorDraft {
@@ -214,6 +284,9 @@ export async function composeNavigatorDraft(
     stateAbbrev: input.state,
     facts,
     exclude: input.exclude,
+    pin: input.prefer ?? null,
+    // A preferred program is a model's suggestion, not an approved letter.
+    pinScreened: true,
   });
   if (!pick) return null;
 
@@ -263,17 +336,57 @@ export async function composeNavigatorDraft(
   }
   const offerProviders = providerOfferAllowed(input.careTypes, providerCount);
 
-  const intakeDay = new Date(input.intakeAt).toLocaleDateString("en-US", {
-    weekday: "long",
-  });
+  const intakeRef = intakeReference(input.intakeAt);
   const callScript = buildCallScript(pick.shortName, relationship);
+
+  // What they SAID they need, and what they CAME for. Two different facts,
+  // and neither reached the composer before 2026-08-23.
+  const NEED_PHRASE: Record<string, string> = {
+    payingForCare: "help paying for care",
+    stayingAtHome: "help staying at home",
+    memoryHealth: "help with memory and health",
+    companionship: "companionship",
+  };
+  const rawNeed =
+    (input.profileMeta as { benefits_results?: { answers?: { careNeed?: unknown } } })
+      ?.benefits_results?.answers?.careNeed;
+  const statedNeed = typeof rawNeed === "string" ? NEED_PHRASE[rawNeed] ?? null : null;
+
+  // The entry program, resolved independently of which tier won the pick.
+  let entryLabel: string | null = null;
+  try {
+    const { data: acct } = await db
+      .from("accounts")
+      .select("signup_source")
+      .eq("id", input.accountId)
+      .maybeSingle();
+    const entry = parseEntrySourceProgram(acct?.signup_source as string | null);
+    if (entry) {
+      const draft = findPipelineDraftFor(getStateAbbrev(entry.stateId), entry.programId);
+      entryLabel = draft?.shortName || draft?.name || null;
+    }
+  } catch {
+    // A missing entry label just means the letter opens without naming it.
+    entryLabel = null;
+  }
 
   const dataBlock = [
     "FAMILY (only what they told us — reference nothing else):",
     `- First name: ${firstName ?? "unknown (open without a name)"}`,
     `- Who needs care: ${familyPhrase}`,
     `- State: ${input.state ?? "unknown"}${input.city ? `, city: ${input.city}` : ""}`,
-    `- Used the benefits finder on ${intakeDay}, entering through the ${pick.source === "entry" ? `${pick.shortName} page (that program is what brought them in)` : "site"}`,
+    `- Used the benefits finder ${intakeRef.phrase}`,
+    // The stated need and the entry program are DIFFERENT facts, and the
+    // composer used to see the entry program only when it happened to be the
+    // pick. So a family who typed "paying for care" and landed on the SNAP
+    // page got a SNAP letter that never acknowledged either thing.
+    statedNeed ? `- What they said they need: ${statedNeed}` : null,
+    entryLabel
+      ? `- CAME LOOKING FOR: the ${entryLabel} page${entryLabel === pick.shortName ? " (which is also the first step below)" : " (NOT the first step below)"}`
+      : "- CAME LOOKING FOR: nothing specific, they arrived through the site",
+    intakeRef.stale
+      ? "- TIMING: this was a while ago and we are following up late. Say so plainly in the opening, in a few words, without apologizing at length or explaining ourselves. Never imply they just used it. Their situation may well have changed, so offer the step as something still worth doing rather than as news."
+      : null,
     `- What they told us about their situation: ${situation || "nothing beyond the above"}`,
     `- MISSING FACTS: ${missing.length > 0 ? missing.join("; ") : "none"}`,
     "",
@@ -358,9 +471,10 @@ export function renderNavigatorEmail(opts: {
   body: string;
   planUrl: string;
   unsubscribeUrl: string;
-  /** The letter's one action, made tappable (TJ design 2026-07-29): a
+  /** The program's phone number, kept tappable (TJ design 2026-07-29): a
    *  70-year-old reading on her phone should never have to memorize a number
-   *  and dial it herself. Colors mirror the /m hero for continuity. */
+   *  and dial it herself. It is no longer the letter's primary action (see
+   *  the button below) but it stays one tap away so nobody is gated. */
   call?: { phone: string } | null;
 }): string {
   const paragraphs = opts.body
@@ -374,16 +488,24 @@ export function renderNavigatorEmail(opts: {
           .replace(/\n/g, "<br/>")}</p>`,
     )
     .join("\n");
-  const callButton = opts.call
-    ? `
-  <a href="${telHref(opts.call.phone)}" style="display: block; margin: 24px 0 0; padding: 15px 20px; background: #33261e; color: #f7f3ee; text-align: center; border-radius: 12px; font-size: 17px; font-weight: bold; text-decoration: none; font-family: Arial, sans-serif;">Call ${opts.call.phone}</a>`
+  // The plan page is the letter's one button (2026-08-22). It used to be the
+  // phone number, with the page as a grey line underneath — and the letter was
+  // opened by 39% of families and clicked by 2%, against 20% on the day-0
+  // results email, which is the one email that asks for a click. Two competing
+  // buttons would only split a click rate that barely exists, so the call moves
+  // into the caption: still one tap, no longer the headline. The page carries
+  // the same call button plus the script, the checklist and the agency's hours,
+  // so this routes families through more help rather than past it — and unlike
+  // a sent letter, a wrong number on the page can still be corrected.
+  const callLine = opts.call
+    ? ` Or call <a href="${telHref(opts.call.phone)}" style="color: #6b7280;">${opts.call.phone}</a>.`
     : "";
   return `
 <div style="max-width: 560px; margin: 0 auto; padding: 32px 24px; font-family: Georgia, 'Times New Roman', serif;">
-  ${paragraphs}${callButton}
-  <p style="margin: 24px 0 0; font-size: 14px; line-height: 1.6; color: #6b7280;">
-    Everything above is also written down for you here:
-    <a href="${opts.planUrl}" style="color: #0f766e;">your plan page</a>.
+  ${paragraphs}
+  <a href="${opts.planUrl}" style="display: block; margin: 24px 0 0; padding: 15px 20px; background: #33261e; color: #f7f3ee; text-align: center; border-radius: 12px; font-size: 17px; font-weight: bold; text-decoration: none; font-family: Arial, sans-serif;">Open your call plan</a>
+  <p style="margin: 10px 0 0; font-size: 14px; line-height: 1.6; color: #6b7280; text-align: center;">
+    The number, the script, and what to have ready.${callLine}
   </p>
   <p style="margin: 28px 0 0; padding-top: 16px; border-top: 1px solid #e5e7eb; font-size: 12px; line-height: 1.6; color: #9ca3af; font-family: Arial, sans-serif;">
     You're getting this because you used Olera's benefits finder.

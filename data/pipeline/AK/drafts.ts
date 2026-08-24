@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.770Z
+ * Last updated: 2026-08-22T10:37:49.017Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2378,7 +2378,7 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Medicaid for Seniors/Disabled",
-        "programId": "alaska-medicaid-seniors",
+        "programId": "medicaid-seniors-disabled",
         "why": "Covers comprehensive health care including nursing home care and home-based services for the highest medical costs your loved one faces."
       },
       {
@@ -2388,7 +2388,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Supplemental Nutrition Assistance Program (SNAP)",
-        "programId": "alaska-snap",
+        "programId": "snap-food-benefits",
         "why": "Provides hundreds of dollars monthly for groceries, one of the most immediate financial relief programs for seniors on fixed incomes."
       }
     ],

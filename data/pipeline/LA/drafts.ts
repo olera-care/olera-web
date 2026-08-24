@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/LA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.786Z
+ * Last updated: 2026-08-22T10:37:49.031Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1798,7 +1798,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "SNAP",
-        "programId": "louisiana-snap",
+        "programId": "snap-food-benefits",
         "why": "Provides immediate monthly grocery benefits of $100-400 for seniors on fixed incomes."
       }
     ],

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.806Z
+ * Last updated: 2026-08-23T08:24:45.947Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -3035,16 +3035,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "DSHS Community Service Offices",
-          "phone": null,
-          "description": "Local offices handle ABD applications, find your regional office",
-          "hours": "Varies by location"
-        },
-        {
-          "label": "CCS HEN Line",
-          "phone": "(206) 328-5755",
-          "description": "Housing and Essential Needs referrals after ABD approval",
-          "hours": "Business hours"
+          "label": "DSHS Customer Service Contact Center (start here)",
+          "phone": "877-501-2233",
+          "description": "Statewide DSHS line that takes ABD applications by phone and completes the required financial interview. You can also apply online at washingtonconnection.org or in person at a local Community Services Office.",
+          "hours": "Applications and financial interviews 8 a.m. to 2 p.m., Monday to Friday. General agents 8 a.m. to 5 p.m."
         }
       ],
       "applicationNotes": [
@@ -3103,10 +3097,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "CurrencyDollar",
-      "phone": null,
-      "sourceUrl": "https://www.dshs.wa.gov/esa/community-services-offices",
+      "phone": "877-501-2233",
+      "sourceUrl": "https://www.dshs.wa.gov/esa/community-services-offices/aged-blind-or-disabled-cash-program",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-23"
     },
     {
       "id": "cares-fund",
@@ -3392,7 +3387,7 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Apple Health",
-        "programId": "apple-health",
+        "programId": "apple-health-medicaid",
         "why": "Free comprehensive health coverage eliminates your loved one's medical costs and provides the foundation for accessing other care programs."
       },
       {
@@ -3402,7 +3397,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Medicaid Personal Care (MPC) Program",
-        "programId": "medicaid-personal-care",
+        "programId": "medicaid-personal-care-mpc",
         "why": "Covers in-home personal care assistance so your loved one can stay safely at home instead of moving to a facility."
       },
       {

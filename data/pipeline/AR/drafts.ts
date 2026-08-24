@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AR/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.773Z
+ * Last updated: 2026-08-22T10:37:49.019Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2100,7 +2100,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "SNAP",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Provides $100-$300/month for groceries if your loved one is on a fixed income."
       },
       {
@@ -2110,7 +2110,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "LIHEAP",
-        "programId": "liheap",
+        "programId": "liheap-energy-assistance",
         "why": "Immediate help with heating and cooling bills up to $475 per season plus emergency assistance."
       }
     ],

@@ -2541,15 +2541,9 @@
       ],
       "contacts": [
         {
-          "label": "California IHSS Information",
-          "phone": null,
-          "description": "Find your county IHSS office contact information",
-          "hours": "Varies by county"
-        },
-        {
-          "label": "California 2-1-1",
+          "label": "California 2-1-1 (start here, locator)",
           "phone": "2-1-1",
-          "description": "Free helpline for social services and county office referrals",
+          "description": "California has no statewide IHSS application line. Applications are taken by your county IHSS office. 2-1-1 can connect you to the right county office, or you can find it directly at cdss.ca.gov/inforesources/county-ihss-offices.",
           "hours": "24 hours, 7 days a week"
         }
       ],
@@ -2614,7 +2608,7 @@
       "sourceUrl": "https://www.cdss.ca.gov/in-home-supportive-services",
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-18"
+      "lastVerifiedDate": "2026-08-23"
     },
     {
       "id": "caregiver-resource-centers",
@@ -2964,7 +2958,7 @@
       },
       {
         "name": "CalFresh",
-        "programId": "calfresh",
+        "programId": "calfresh-food-benefits",
         "why": "Up to $298/month for groceries with simplified application process for seniors 60+."
       }
     ],

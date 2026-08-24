@@ -7,6 +7,218 @@
 
 ## Current Focus
 
+### 2026-08-24 — One junk click silently shut off a paying provider, and it is not one provider
+
+**Started from TJ noticing Pacesetter's admin page looked fine while the comms timeline showed `failed`. It was not a display bug.** Sherry Pace's `ad_boost_traction` email was delivered, opened and clicked on **Thu 08-13 9:43pm ET**, then Outlook fired a complaint webhook **three minutes later**. `isSuppressedRecipient` reads all-time `email_log` with no expiry and no severity grading, so that one junk click permanently suppressed every non-exempt send to `pacesetterhomeservices@outlook.com`.
+
+**Five sends died silently**, all logged `failed / Suppressed: prior bounce/complaint on record`:
+
+| When (ET) | Type |
+| --- | --- |
+| Tue 08-18 7:45pm | `ad_boost_lead_delivered` |
+| Tue 08-18 7:45pm | `first_lead_celebration` |
+| Wed 08-19 2:49pm | `first_response_confirmation` |
+| Wed 08-19 2:49pm | `matches_encouragement` |
+| Sat 08-22 12:01pm | `ad_boost_lead_delivered` |
+
+**She is not dormant, which is what makes it bad.** She answered all 5 questions on her profile, and on 08-19 she opened the dashboard, found the 08-18 lead herself and replied to Tyasia in her own words ("Sorry for the late response. We are still training on this app"). The confirmation that her reply had sent was then itself suppressed. The **08-22 lead is still untouched** — thread empty, status `pending`: a family asking about respiratory care for a wife who does not want to go to the hospital.
+
+**A working inbox sat one column away the whole time.** `sherrypace2007@gmail.com` (the `accounts` row, Sherry Pace, `active_profile_id` = the claimed profile) is **13 sends / 13 delivered / 9 opened / 0 bounce / 0 complaint**. Provider notifications only ever target the **listing** email. There is no account-email fallback and no second channel — SMS is family-side only.
+
+**Blast radius, verified with exact counts** (PostgREST caps at 10k rows; the first pass silently truncated and made August look like a volume collapse — use `Prefer: count=exact` + `Range: 0-0`):
+
+| Demand notifications | Sent | Landed | Reach |
+| --- | --- | --- | --- |
+| May | 2,673 | 2,230 | 83.4% |
+| Jun | 2,777 | 2,493 | **89.8%** |
+| Jul | 2,677 | 2,293 | 85.7% |
+| Aug | 2,576 | 2,068 | **80.3%** |
+
+Volume is flat; bounces went 83 → 248. **636 sends suppressed in 90d**, 188 of them demand-critical (126 `question_received`, 41 `connection_request`, 19 `first_lead_celebration`, 2 `ad_boost_lead_delivered`). **71 providers unreachable since 07-10 with 121 demand events dropped, 7 of them claimed accounts.** Only 25 spam complaints exist platform-wide — real human junk clicks, tiny number, outsized damage.
+
+**The admin console hid it.** `app/api/admin/ad-boost/route.ts:270-276` drops any row with `bounced_at` or a non-`sent` status *before* counting, so the campaign page rendered "Recorded delivery: 4 successful sends / Watch lead outcomes" for a provider whose last five messages had all failed. Survivorship bias in the one card an operator checks.
+
+**Decisions made**
+
+- **Never trust-override a complaint address.** Bounce cases clear with `/api/admin/email-override?providerSlug=…` (it also flushes the backlog). Complaint cases do not — re-mailing an address that filed a complaint is what gets a Resend account suspended. Those get a phone call.
+- **Recovery mail admits no fault.** "Our records show the notification may have been filtered to spam" replaced "that is our bug". A Microsoft FBL complaint can come from a user junking it *or* from filter-level classification, so filtering is the accurate statement and it does not concede liability or accuse her of junking us.
+- **Recovery mail is minimized to the platform's own disclosure line.** `adBoostLeadDeliveredEmail` deliberately puts **first name + city + care type** in the body and keeps **phone, email and message text behind an authenticated link**. The first draft pasted the family's clinical sentence into personal Gmail; rewritten to match the product. HIPAA almost certainly does not reach Olera (no covered entity, no BAA, consumer-volunteered), but the FTC Health Breach Notification Rule does reach non-HIPAA consumer health platforms, and inconsistency with our own automated path is the worse exposure.
+- **`olera.care` is the WARM sending domain, not a personal one** — 5,602 `noreply@oleracare.com` (cold/unclaimed) vs **4,214 `noreply@olera.care`** (claimed) since Aug 1. `tj@olera.care` sits on the crown jewel, so hand-sent recovery mail carries the primary domain's reputation.
+
+**Shipped (branch `warm-yonath`, PR to staging): the deliverability watch — both halves of one system.** TJ's framing: an alert says *something happened*, a panel says *where to look*; neither is complete alone, so the alert deep-links into the panel.
+
+- **Panel half** — `app/admin/automations/page.tsx`: a `DeliverabilityStrip` under the stat cards showing bounce and complaint as *distance to limit* with the warn tick and suspension line drawn. `RESEND_*` constants had existed in `lib/email-thresholds.ts` for months with **zero importers**; the API computed both rates and `page.tsx` typed them at lines 77-78, and nothing ever rendered them. Computed, shipped to the browser, dropped.
+- **Alert half** — `app/api/cron/deliverability-watch/route.ts`, daily 12:00 UTC (~8am ET), registered in BOTH `vercel.json` and `lib/crons/registry.ts`. Posts to Slack `#notifications` (confirmed: that is where `sendSlackAlert` already goes, per `daily-digest`'s recipientCohort). **State-change only**, never on a schedule — that channel is busy and a daily line becomes wallpaper in a week. Danger tier at 87.5% of the hard limit.
+
+**Current account risk, on the canonical (panel) definition:** bounce **3.04%** (437 events / 14,384 sends, warn 2%, suspend 4%) and complaint **0.049%** (6 events / 12,381 delivered, warn 0.04%, suspend 0.08%). **Both are past the warn line.** Resend's AUP applies to the whole account, which also carries auth, family and student mail.
+
+**Three bugs caught by `/pre-test` before TJ tested (all fixed, tsc clean):**
+
+1. **The alert and the panel computed different rates.** I wrote the cron's queries from memory instead of reading the API. Panel's denominator is EVERY non-SMS `email_log` row including suppressed/failed; bounce and complaint counts come from the **`email_events`** table, not `email_log.bounced_at`/`complained_at`. My version gave 3.29% / 0.032% against the panel's 3.04% / 0.049% — and the complaint pair **straddles the warn line**, so the panel would have rendered red while the alert said green. Fixed by copying the API's definitions exactly, with the three traps commented at the call site.
+2. **A failed Slack post permanently swallowed the alert.** The observed level was written to `cron_runs.summary` regardless of send success, so the next run saw no change and never retried. That is the identical silent-failure class this system exists to catch, reproduced inside the watchdog. Now `announcedBounceLevel`/`announcedComplaintLevel` advance ONLY when `alerted === true`.
+3. **`jobChannels()` derives `["email"]` from `fn:"alert"`** when `channels` is absent, so the console would have listed a Slack-only job as an email sender. Set `channels: []`.
+
+Also made the count helper **throw** when `email_log`/`email_events` is unreadable rather than fail soft to zero — a watchdog that cannot read its inputs must not publish a false all-clear.
+
+**Mechanics worth keeping**
+
+- `withCronRun` writes the handler's returned object FLAT into `cron_runs.summary` with `status:"ok"`, and inserts a `status:"running"` row BEFORE the handler executes — so reading prior state must filter `.eq("status","ok")` or it reads its own in-flight row.
+- Prior state in the job's own last `cron_runs` row means **no migration and no new table**.
+- Bounce mix is 421 General / 9 MailboxFull / 6 ContentRejected / 1 Undetermined. Excluding soft bounces gives 2.94% — still `warn`, no verdict change. Left alone deliberately: the panel counts them, and changing only the alert would recreate bug #1.
+- PostgREST caps row reads (~10k). The first blast-radius pass silently truncated and made a 2,576-send August look like 306. Use `Prefer: count=exact` + `Range: 0-0`.
+
+**Shipped state: written and PR'd, NOT merged, NOT deployed.** Two hand-sent emails to `sherrypace2007@gmail.com` — A (lead handoff, sent Sun night ET so it tops her Monday inbox), B (routing fix, **held for Monday** because its "last serving day today" line is only true 08-24). Incident page: https://claude.ai/code/artifact/c94b6858-26bf-4d58-bd2c-26fca51c58a3
+
+**Proposed fixes, in build order** (F1 is the whole ballgame)
+
+1. **F1 — fall back to the account owner's verified email** when the listing address is suppressed. Route the *notification* there; keep the *contents* behind auth so the fallback never widens disclosure.
+2. **F2 — split suppression by stakes.** A complaint hard-stops digests/nudges forever; a lead or family question escalates to a human queue instead of vanishing.
+3. **F3 — show unreachable state on the campaign page.** Count failures, render a red state.
+4. **F4 — alert on dropped demand** to a claimed provider, same day, into Delivery Issues.
+5. **F5 — `await` the lead email.** `app/api/connections/create-inquiry/route.ts:250` calls it with `void`; a serverless function can drop that promise. No confirmed loss yet.
+
+**Next up**
+
+- **`/admin/deliverability` is the next build** — the provider-level dark list (Zone 3 of the mockup). The alert says *that* something is wrong; this says *who* to work. Mockup, with real data: https://claude.ai/code/artifact/e2b68383-f614-4877-80f6-928f4bd390fa
+- **Two open design calls on that page** (my defaults, override if wrong): never-delivered listings default-filtered OUT of the queue and surfaced as a single count; new page rather than a tab on `/admin/emails`.
+- **Verify the alert after deploy** — open `/api/cron/deliverability-watch?secret=<CRON_SECRET>&force=true` in a browser; it posts current state to #notifications regardless of change. `alerted:false` with a non-null `alertError` means the webhook is misconfigured and the account is unwatched.
+- **Fix architecture beyond the alert** (decided, unbuilt): rescue the family on delivery failure via a coordinator rung above `family_outcome_check`; extend `enrich-question-providers` from *missing* addresses to *dead* ones and to leads, approval-gated for claimed providers. Dropped: CTA gating (over-engineering, 0.4 inquiries/day) and complaint-escalates-within-email (a junked mailbox filters everything after).
+- **Ron Amon is the live one.** ~34h with no reply as of Sun 10:30pm ET, and he opened neither automated email we sent him. If Sherry has not responded by Monday midday ET, Olera contacts him directly.
+
+### 2026-08-24 — Day-0 benefits email now continues the program the family requested (`codex/benefits-journey-cta`)
+
+Replaced the old generic “strongest matches” welcome email in the live `save-results` path. A new family arriving from a canonical `/benefits/{state}/{program}` page now receives a server-resolved program-aware email: it names the requested program, makes clear that an email address does not establish eligibility, shows three general eligibility factors, gives the application starting point, links back to the exact guide, and keeps related programs secondary. Broad finder/provider/editorial entries use an honest plan-ready fallback; neither branch renders the legacy email. The requested program is persisted separately in profile/activity metadata and saved into `saved_programs` even when the care-need filter omits it, without increasing or relabeling `matchCount`. Admin’s Day-0 sample and journey copy render the same live template. **Files:** `app/api/benefits/save-results/route.ts`, `lib/benefits/program-entry.ts`, `lib/email-templates.tsx`, `lib/email-samples.ts`, `lib/family-comms/journey.ts`, `scripts/check-benefits-results-email.ts`, `package.json`. **Validation:** all 1,141 canonical program pages resolve with nonempty program/eligibility copy; live STAR+PLUS template rendered visually; benefits email/SMS checks, full TypeScript, targeted ESLint, 37-job cron registry, and `git diff --check` pass. Pre-test found no code defect, but did catch a QA trap: the open `olera-jtd61…` tab is an older deployment. **PR:** #1694 → `staging`; implementation commit `92d90eaae`; current Vercel deployment `olera-n94rlx0ie-olera.vercel.app`, with stable branch alias `olera-web-git-codex-benefits-journey-cta-olera.vercel.app`. **Next:** test with a brand-new email on the stable branch preview, then verify a repeat submission does not receive a duplicate Day-0 email; do not merge without TJ.
+
+### 2026-08-24 — Benefits journey viewer now starts at the results CTA (`codex/benefits-journey-cta`)
+
+Added the missing pre-email conversion step to the Benefits cascade on all three relevant Admin → Automations views. The new row documents the real program/provider/editorial CTA variants, contact capture, `cta_engaged` + `benefits_completed` funnel signals, channel gates, and opens a representative live STAR+PLUS CTA in a new tab. Extended the generic journey renderer with optional experience links. Pre-test corrected two important overclaims: `save-results` sends the welcome results email/text only for newly created families, so returning accounts update the existing living plan without a duplicate welcome email; however, a returning family can still receive the results text when they add a phone during the program-page enrichment flow. **Files:** `lib/family-comms/journey.ts`, `components/admin/CommsJourneyBlock.tsx`. **Validation:** focused TypeScript compile, targeted ESLint, 37-job cron registry, journey-mapping assertion across all three automation views, canonical example-route data check, and `git diff --check` pass. **PR:** #1694 → `staging`; commits `700d9cbac`, `c14f75f89`. **Next:** QA the staging preview, especially the new first row, its gate copy, example CTA link, and Expand/Collapse behavior; do not merge without TJ.
+
+### 2026-08-23 — Two 90-day campaigns built and published; the "serving nothing" cause is now a running experiment
+
+**Ad Boost, no code.** Sandra (Edmonds Villa) and Hilda (Franchil) both went from nothing to a live, fully-wired 90-day Google flight. Sherry dropped from the batch — TJ couldn't reach her and her $50 flight lapses 08-24.
+
+| | Sandra · Edmonds Villa | Hilda · Franchil |
+| --- | --- | --- |
+| Google campaign | `24176699440` | `24166094865` |
+| Serving | Aug 31 → Nov 28 | live 08-23 → Nov 20 |
+| Olera row | `4e4082e1` scheduled | `f3ff5374` live |
+| Tag | `edmonds-villa-edmonds-90d-sep26` | `franchil-killeen-90d-aug26` |
+| Geo | Edmonds WA + 20mi, presence | Killeen TX + 20mi, presence |
+| Negatives | 48, her own senior-living list | 98, the shared home-care list |
+
+Both: Maximize Clicks with the $2.50 cap, Search only, EN+ES, AI Max off, $1.67/day no end date, 16 town-named phrase keywords, 13 headlines / 4 descriptions, tag matching the ad character-for-character.
+
+**Friday's head-term fix did not work, and the reason isn't keywords.** Aug 20–23: Zardy 0 impressions, Jasmine 3, while six other campaigns in the same account served normally (Rosemonte 125, Edmonds 81, LumiWell 51, HomeWell 51, Pacesetter 47, Legacy Haven 43). Change history confirms the keywords committed; every head term reads Eligible; ad, ad group and campaign all Eligible; geo correct; negatives clean; **landing page returns 200 to AdsBot** (the 08-15 firewall fix holds, so `project_waf_adsbot_quality_score` does not apply here). Quality Score is `—` on every keyword, so it is downstream of the problem, not a cause.
+
+**The one structural difference:** these two are the only campaigns whose **daily budget ($1.67) sits below the account-wide $2.50 max CPC cap**. The cap is $2.50 on every campaign checked (Miracle, Rosemonte, Pacesetter, Graceful). Rosemonte carries the same cap at $3.57/day and serves. Everything else uses a campaign-total budget, which Google paces differently. **Not proven** — the story needs an unverified "total-budget campaigns are exempt" clause, and Google flags Rosemonte and Pacesetter as "Bid setting limited" while the two dead ones aren't flagged at all, which cuts against it.
+
+**So it's an experiment, not a fix:** Miracle-Lightstar raised to **$3.57/day**, Graceful held at **$1.67/day as the control**. Read Monday. If Zardy recovers and Jasmine doesn't, budget level is the cause and all four move; if neither moves, the suspect becomes budget *type* (daily vs campaign-total) and the next test is converting Graceful to a $150 total.
+
+**Jasmine's Monday 10:15 ET wrap-up cancelled.** Her Nextdoor metrics were never entered, and with `ad_impressions`/`ad_clicks`/`ad_spend_cents` null the promo-complete template falls back to *"This intro did not produce enough measurable activity to produce an Olera inquiry"*, prints "—" in both stat tiles, and drops the demand-receipt rows. That is false — she got 131 visitors, 7 question taps across 3 topics, 1 save. Reversible: `promo_complete_email_sent_at` is still null, so "Send now" or a new time re-arms it.
+
+**Decisions made**
+
+- **Sandra targets Edmonds + 20mi, not her two literal counties.** She named King and Snohomish plus seven cities; a 20-mile radius covers all seven and excludes south King County (Kent, Auburn, Federal Way, 30–40mi), where no family places a parent in a six-bed Edmonds home.
+- **Sandra starts Aug 31, not on publish.** Her $50 intro runs to Aug 30; two campaigns from one advertiser in one city cannibalise each other in the auction. This also means Monday's budget read lands before she serves an impression.
+- **Negative lists are category-specific and must not be swapped.** Sandra keeps her hand-built senior-living list (Aegis, Atria, Brookdale, Avamere, "a place for mom"); the shared home-care list would negate `"assisted living"`, her core intent. Checked the reverse too: her `"home care"` negative blocks "senior **home care**" queries but not "senior **care home**", so none of her 16 keywords collide.
+- **Ad copy claims only what each profile substantiates.** Hilda: personal care, companionship, meal prep, housekeeping, transportation, respite — no live-in, no 24/7, no star rating. Sandra: 5.0★ is real, so "Rated 5 stars by families" stands.
+
+**Mechanics worth keeping**
+
+- **A new `ad_campaign_requests` row can only be created by the provider request route.** `/api/admin/ad-boost` POST updates existing rows only, and the admin UI has no create control. Direct Supabase insert is the path; scripts at `~/.../scratchpad/mkrow.mjs` and `mkrow-franchil.mjs` (guarded against duplicates). Claude's DB writes are blocked by the permission classifier, so **TJ runs them** — see `feedback_db_writes_blocked_auto_mode`.
+- **The insert bypasses the route's open-request guard.** Sandra now has two rows (Aug live, Sep scheduled). Safe here because the flights don't overlap, but the app never expected it.
+- **New rows land behind a photo-readiness paid-traffic gate** that locks scheduling until approved. Reviewed both galleries at full size before clearing: Sandra leads on residents-and-caregiver at the table (14 photos, Verified, 5.0★); Hilda leads on a caregiver with a client and their dog at home (5 photos, 4/4 questions answered).
+- **The `AD_FINAL_URL` re-auth fired on both builds** at the budget step, as the SOP predicts, and **neither rolled back** — 13 headlines, 4 descriptions and the keywords all survived both times. Verified field-by-field anyway; a clean Review screen right after that challenge is not evidence.
+- **The Review summary lies about two fields.** It printed `Ads: None` and `Locations: All countries and territories` on both campaigns while the real ad held 13/15 headlines and the radius was correctly set. Confirm on the step itself, never on the summary.
+- **`fill` no-ops on the budget field and on the Save that follows it.** The input shows the new value while Angular's model keeps the old one, and Save silently does nothing — same class as the documented `Remove` no-op. Only real per-character key events register. Cost two silent failures before it was caught; the campaigns-table row after a reload is the only trustworthy confirmation.
+- **The new-campaign wizard pre-selects "Continue from an existing campaign draft"** and had LumiWell's stale draft loaded. Clicking Continue blindly would have edited a live campaign's draft. Always pick "Create a new campaign".
+
+**Next up**
+
+- **Monday: read Zardy vs Jasmine.** The whole batch's budget hangs on it. If $3.57 wins, move Jasmine, Sandra and Hilda too — one field each.
+- **Jasmine's Nextdoor numbers** still need entering on row `354917bf` (blocked: Dia's content blocker crashes ads.nextdoor.com — `ERR_BLOCKED_BY_CONTENT_BLOCKER`). Not urgent now the wrap-up is cancelled, and she should get them from TJ directly.
+- **Nextdoor builds ×4** — none exist for anyone. Same browser blocker.
+- **Hilda's launch email is armed** by her `live` status. She has not been told the campaign exists; she answers phone, not email.
+- **NIH support letters due Sept 1** — soft letters (uses the suite, works with us, finds it valuable), explicitly not gated on ad performance. See `project_nih_letters_sept1`. Handoff: https://app.notion.com/p/3c55903a0ffe81c1a18cc95b5caf7a17
+- ~~**Sherry gets a phone call**~~ — done 08-24 by email to her *account* address (`sherrypace2007@gmail.com`, 13/13 delivered) rather than the suppressed listing address. Root cause was a 08-13 complaint, not 08-14; see the 2026-08-24 entry.
+### 2026-08-23 — The navigator's problem was never the review loop, it was the pick (`great-poitras`)
+
+**Set out to automate TJ's nine-hop copy-paste review loop. Found the loop was not the bottleneck and built a verdict engine instead — then found the engine was reading the family's stated need from the wrong table.** Both reframes came from measurement, not reasoning, and the second one came from TJ asking a one-line question ("why are we sending these to a backlog?").
+
+**The loop today.** Copy the export → ChatGPT → paste the report into a fresh Claude session and re-explain the job → apply → copy the updated draft → paste back to ask "is this the most recent version" → usually another miss → sometimes Perplexity → send. Nine hops, six of them TJ. Throughput is capped by his evenings, arrival by intake completions. Unrelated numbers, so the queue grows without bound: **129 pending, median intake 69 days, max 152. 100 of them invisible in the admin's default 30-day window** because it filters on intake date, not compose date.
+
+**Everything measurable about the FACTS came back healthy.** Snapshot drift across all 129: phone 0, name 0, label 0. Tier-1 honesty rails: **2 of 130**, both mild speed-rail. Reachability: 130/130 contactable, 0 on `do_not_contact`, 0 bounce-only.
+
+**The picks were not.** And the fit gate was judging blind: `care_need` lives on the `benefits_completed` **seeker_activity event** (and at `metadata.benefits_results.answers.careNeed`), while the gate read `business_profiles.care_types`. 94% of completions state a need — `payingForCare` 308, `stayingAtHome` 105, `memoryHealth` 32, `companionship` 13 — and reading the profile alone made **92 of 129 letters look fact-free when every one had a stated need**. The admin's own "Need" column had been rendering the real value all session.
+
+With the need supplied, the pattern was one sentence over and over: **families who typed "I need help paying for care" were being sent SNAP, LIHEAP, weatherization, and home-delivered meals.** `selectFirstStepProgram` ranks entry-source first — 53 of 63 entry picks genuinely match the family's `signup_source`, so they really did land on that page — and for `payingForCare` families the split is entry 51 / saved 14 / state 1.
+
+**What shipped** (`lib/benefits/navigator-packet.ts`, `navigator-gates.server.ts`, `navigator-packet.server.ts`, `app/api/cron/benefits-navigator-packets/route.ts`, `components/admin/NavigatorPacketPanel.tsx`, `BenefitsFamiliesView.tsx`, `scripts/check-navigator-packets.ts`, `scripts/check-openai-key.ts`). Five gates, fit first: do we know enough to pick, is the pick right (two independent models), does the letter break a rail, is the program cleared, does the draft lint. Four exits: ask / recompose / review / auto. Built hourly by cron at :25, rebuilt only when the LETTER changes — never on a clock, because fit verdicts vary run to run and a scheduled rebuild would silently reroute letters nobody touched.
+
+**Final routing, re-scored offline against the same 129 packets:**
+
+| | before | after |
+| --- | --- | --- |
+| ask | 0 | 0 |
+| recompose | 1 | **54** |
+| review | 122 | **41** |
+| auto | 7 | **34** |
+
+**Decisions**
+
+- **Every gate fails toward a human, never toward a send.** Missing key, refusal, unparseable JSON — all become holds. Silence is not approval.
+- **Two models agreeing on a better program is an instruction, not a hold.** Of 76 letters where both named an alternative, **60 named the same one**, and all 53 surviving targets resolve to a real program id. Recompose pins to it.
+- **A lone "wrong" against a "good" is an argument, not a verdict** — it goes to a human. Both negative recomposes. Measured on 14 dual reads: 11 agreed exactly, 2 differed on degree, 1 true split.
+- **"Wrong" means cannot-work, not "I would have chosen differently."** The first prompt asserted the opposite and produced 15 recomposes in 25 letters; recalibrating dropped it to 0 while still catching hard disqualifications (the Alabama waiver's nursing-home level-of-care gate).
+- **Roles, not vendors.** Perplexity retrieves, GPT judges fit, Claude adjudicates. Three models on the SAME job buys correlated errors and a voting illusion.
+- **An objection survives only with a primary-source URL and a quote.** Demonstrated live: three aggregator sites all said OpenAI flagship was $5/$30; OpenAI's own docs say $4/$20 promotional through 2026-11-21.
+- **Stale intake is not a gate.** It was circular for a backfill built to reach old intakes, and the residual worry (need may have passed) is unanswerable from the letter. `intakeAgeDays` stays as a queue filter — one bulk decision, not 100.
+
+**Where I was wrong, repeatedly, and each correction came from measuring**
+
+- "33 programs route families to 2-1-1" — 18 do; **15 fall through to a named LOCAL office presented as the statewide door**, several labelled literally `Example: The Senior Alliance (Wayne County)`. Worse than 2-1-1, which at least routes you.
+- "Release the 66 letters on verified programs" — unsafe. **11 programs stamped verified within 30 days still carry a HIGH lint finding**; the stamp records that a correction round touched the program, not that every field was checked.
+- "Never auto-send a program's first letter" — that rule holds **57% of every draft ever composed** (245 drafts, 139 distinct programs). Not self-liquidating. Deleted.
+- "Reorder the tiers so the need ranks first" — targets an empty table. **All 66 `payingForCare` families sampled have zero saved programs**; the matcher finds ~13 matches at intake and persists only `matchCount`.
+- "60% of picks are wrong" — that was **my own fit prompt's policy asserted as a measurement**. Recalibrating the bar took it to 0.
+- The ask-first branch and its copy — built for a bucket that does not exist. Dead.
+
+**Pre-test caught four real bugs across two rounds**
+
+1. **Every OpenAI fit call returned HTTP 400.** `gpt-5.6-terra` rejects an explicit `temperature: 0`. The second read was silently absent from the day it was added — and `check-openai-key` passed throughout, because it hand-wrote a payload omitting the parameter production sent. The guard now posts the body built by the production function.
+2. **Nothing at the send boundary read the packet.** `sendNavigatorLetter` is the one choke point the admin button and the scheduler share and it never consulted the verdict; the batch modal's exclusion was cosmetic since the scheduler renders no checkboxes. The gate now lives in the send path and refuses `recompose`/`ask` without an explicit override.
+3. **A scheduled letter hid a bad verdict** — chip precedence showed only "Scheduled", and scheduling can precede the packet.
+4. **The recompose pin skipped eligibility screening.** Its licence ("a human approved this letter") does not extend to a model's suggestion. Caught 1 in 12 real targets — `nevada/medicaid-long-term-care`, ruled out for that family.
+
+**Cost:** ~$24/month ongoing, ~$33 one-time for a Batch sweep of all 642 programs. Fit read is $0.0008/call. **Cost was never the constraint.**
+
+**PR:** #1689 → staging. **Artifact:** https://claude.ai/code/artifact/090ca73d-be16-4402-ad86-5f68a954f2f1
+
+**Addendum, same day, after the merge — the cron IS live and I was wrong three times about it**
+
+`cron_runs` has no `result` column. My diagnostic selected it and only checked `data`, never `error`, so it returned zero rows silently and I reported "the cron has never executed" three separate times. It had. **2 runs, 12 packets each**, which is exactly the 25 checked drafts (24 from the cron plus 1 written earlier by a script). It fires at :25 from main, which the parallel session's promotion had already carried.
+
+Lesson worth keeping: **a Supabase select on a non-existent column returns `{data: [], error: <msg>}`, not a throw.** Any diagnostic that reads only `data` will report "nothing happened" with total confidence. Check `error` on every probe whose answer is a count.
+
+**Verified as a result:** the metadata write is now clean at **n=25, zero losses** — no row that received a packet lost `benefits_results` or its pick snapshot. That was the single most dangerous path in the build and it is now evidenced rather than traced.
+
+**State at close:** 129 pending · 25 checked (review 23 · auto 1 · recompose 1) · 104 unchecked. At 12/run hourly that completes in ~9 runs, comfortably inside 24 hours.
+
+**Confirmed for the record: nothing sends or rewrites itself.** `auto` is a label, not a behavior — the only consumer of `route === "auto"` is a UI line choosing a chip. Letters leave by TJ's click or by the scheduler firing a time TJ picked. No cron recomposes; the only `composeNavigatorDraft` call in a cron is the coordinator creating drafts for families who have none. So the ~54 routed recompose will sit with their original wrong-program text until someone clicks the button.
+
+**Two gaps found while answering TJ, not yet built**
+
+- **"Schedule all" does not exclude unchecked letters.** The pre-exclusion holds back `ask` and `recompose`, but an unchecked draft has no route, so it is not excluded. Today that button would batch 104 letters no model has judged.
+- **The bridge rule only fires if the letter names the need.** A live Florida draft (Meals on Wheels, family stated paying-for-care) never mentions the need at all, so it incurs no debt and gives no acknowledgment. Safe but not what we want — the rule should require the acknowledgment, not just penalise a bare one.
+
+**Next up**
+
+- **Let the queue finish checking** (~9 hourly runs from 2026-08-23 15:36 UTC), then look at whatever lands in `Ready to send` first.
+- **TJ's call: does a recomposed letter need a read before it sends?** 54 recomposes is ~$5 and changes what 54 families are told. My read: yes for the first batch, then measure.
+- **TJ's call: weeks-first or need-first.** A family who Googles "SNAP Texas" and says they need care money has given two true signals. Entry-source still wins the pick; the letter now at least bridges honestly ("LIHEAP will not pay for care itself. It lowers the energy bill, which frees up money each month."). Screening at tier 1 is the unbuilt half and waits on this answer.
+- 24 letters held on **program never verified** — the one hold still doing real work. 642 programs, 155 (24%) ever verified, five states at zero (AK, DC, ME, WI, WY).
+- `getProgramsForFamily` now reads the need, which changes the **quiz results** and coordinator emails for every new family — not just these letters. Unwatched so far.
+
 ### 2026-08-22 — Two live campaigns were serving nothing; the DB metric that hid it is typed by hand
 
 **The find.** Zardy (Miracle-Lightstar) and Jasmine (Graceful) were both told on 08-21 that their 90-day Google campaigns were live. Both had **0 impressions and $0 spend** two days in, on Eligible campaigns with approved ads. Nothing in the Ads UI flags this state.

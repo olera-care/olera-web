@@ -18,6 +18,10 @@
  *   2. The frozen `pick` snapshot kept pre-correction values, so corrected
  *      programs re-surfaced in later AI review exports and the plan page kept
  *      rendering stale contact details. snapshot-drift catches that class.
+ *   3. A correction that only renamed a contact left the phone, program name and
+ *      documents untouched, so every comparison passed while the letter still
+ *      told the family to apply on a line that does not take applications
+ *      (CA LIHEAP, 2026-08-22). snapshot-drift now compares contactLabel too.
  *
  * WHAT THIS CANNOT DO: it catches INCONSISTENCY, not WRONGNESS. A draft whose
  * phone is wrong but internally consistent everywhere reads as clean here. That
@@ -153,12 +157,18 @@ function isDialable(v) {
 /** Reproduce what benefits-navigator-send.server.ts actually transmits. The
  *  stored SMS is not the sent SMS: the send path appends a progress prompt and
  *  a STOP line unless the draft already carries them. */
+const SMS_SAMPLE_URL = 'https://olera.care/m/XXXXXXXXXXXX?src=benefits_first_step_sms';
+
 function assembleSms(draftSms) {
   if (!draftSms) return null;
-  const url = 'https://olera.care/m/XXXXXXXXXXXX?src=benefits_first_step_sms';
   const progress = !/\bCALLED\b/i.test(draftSms) ? ' Reply CALLED, NO ANSWER, or STUCK.' : '';
   const stop = /reply stop/i.test(draftSms) ? '' : ' Reply STOP to opt out.';
-  return draftSms.replace(/\{link\}/g, url) + progress + stop;
+  // Mirrors substituteSmsLink() in benefits-navigator-send.server.ts: punctuation
+  // flush against the placeholder is dropped so it cannot be pulled into the
+  // tapped URL. Keep the two in step or every downstream length/STOP check here
+  // is measuring a message the send path no longer transmits.
+  const body = draftSms.replace(/\{link\}[.,;:!?]*\s*/g, SMS_SAMPLE_URL + ' ').trimEnd();
+  return body + progress + stop;
 }
 
 /** Names the record itself marks as retired, e.g. "formerly called the Community
@@ -194,8 +204,15 @@ function checkSnapshotDrift(ctx) {
     contacts.find((x) => !!x.phone);
   live.contactPhone = c?.phone ?? null;
   live.contactHours = c?.hours ?? null;
+  // The LABEL matters as much as the number. A correction that only renames a
+  // contact (CA 2026-08-22: "LIHEAP Application Line" -> "CSD Call Center",
+  // because that line answers questions and does not take applications) leaves
+  // the phone, name and documents all identical, so every other comparison here
+  // passes and the letter keeps telling the family to apply on a line that
+  // cannot take an application. Label drift is a routing claim, not cosmetics.
+  live.contactLabel = c?.label ?? null;
 
-  for (const key of ['name', 'shortName', 'contactPhone', 'contactHours', 'savingsRange']) {
+  for (const key of ['name', 'shortName', 'contactLabel', 'contactPhone', 'contactHours', 'savingsRange']) {
     if ((nav.pick[key] ?? null) !== (live[key] ?? null)) {
       report({
         id: row.id, state: nav.pick.stateId, programId: nav.pick.programId,
@@ -293,11 +310,19 @@ function checkSmsAssembly(ctx) {
       detail: 'The SMS has no {link} placeholder, so the family gets no plan page.',
       value: draft, fix: 'Add {link} where the plan URL belongs.' });
   }
-  if (/\{link\}[.,;:!?]/.test(draft)) {
-    report({ ...meta, check: 'sms-assembly', severity: 'medium',
-      detail: 'Punctuation sits flush against {link}. Some SMS clients pull the trailing character into the tapped URL and the link 404s.',
-      value: draft.match(/\{link\}[.,;:!?]/)[0],
-      fix: 'Put a space after {link}, or end the sentence before it.' });
+  // Tests the ASSEMBLED message, not the stored draft. The send path strips
+  // punctuation flush against the link, so a draft written as "{link}." is
+  // transmitted correctly and is not a finding. A hit here means the send path
+  // regressed, which is worth shouting about: the plan link is the only
+  // tappable thing in the text.
+  const sentForLink = assembleSms(draft);
+  const linkAt = sentForLink ? sentForLink.indexOf(SMS_SAMPLE_URL) : -1;
+  const afterLink = linkAt >= 0 ? sentForLink[linkAt + SMS_SAMPLE_URL.length] || '' : '';
+  if (linkAt >= 0 && /[.,;:!?]/.test(afterLink)) {
+    report({ ...meta, check: 'sms-assembly', severity: 'high',
+      detail: 'The transmitted message has punctuation flush against the plan URL. Some SMS clients pull the trailing character into the tapped link and it 404s. The send path is supposed to strip this.',
+      value: SMS_SAMPLE_URL + afterLink,
+      fix: 'Check substituteSmsLink() in benefits-navigator-send.server.ts.' });
   }
   if (/[‘’“”—]/.test(draft)) {
     report({ ...meta, check: 'sms-assembly', severity: 'medium',

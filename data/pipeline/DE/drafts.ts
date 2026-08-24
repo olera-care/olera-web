@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/DE/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T11:01:04.260Z
+ * Last updated: 2026-08-22T10:37:49.023Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2106,12 +2106,12 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Qualified Medicare Beneficiary (QMB)",
-        "programId": "qmb-slmb",
+        "programId": "qmb-slmb-medicare-help",
         "why": "Delaware pays all Medicare premiums and co-pays if your loved one's income is under $1,585/month."
       },
       {
         "name": "Food Stamp Program (SNAP)",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Provides up to $291/month toward groceries for seniors on fixed incomes."
       }
     ],

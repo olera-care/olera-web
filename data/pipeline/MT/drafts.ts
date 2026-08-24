@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.791Z
+ * Last updated: 2026-08-22T10:37:49.036Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2532,17 +2532,17 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Medicaid for the Aged, Blind, and Disabled (ABD)",
-        "programId": "medicaid-abd-montana",
+        "programId": "medicaid-abd",
         "why": "Unlocks Montana's most comprehensive benefits including home care services and nursing home coverage."
       },
       {
         "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
-        "programId": "qmb-slmb-qi-montana",
+        "programId": "medicare-savings-programs",
         "why": "Can eliminate all Medicare out-of-pocket costs if your loved one's income is under $1,761/month."
       },
       {
         "name": "SNAP (Food Stamps)",
-        "programId": "snap-montana",
+        "programId": "snap-food-benefits",
         "why": "Fastest way to put money back in your loved one's budget, up to hundreds per month for groceries."
       }
     ],

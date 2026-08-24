@@ -2935,7 +2935,7 @@
       },
       {
         "name": "SNAP Food Benefits",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Monthly grocery assistance up to $546 for couples provides immediate budget relief."
       },
       {
@@ -2945,7 +2945,7 @@
       },
       {
         "name": "Nebraska SHIP",
-        "programId": "nebraska-ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free Medicare counseling helps optimize coverage and catch savings your family might miss."
       }
     ],

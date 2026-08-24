@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/PA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.800Z
+ * Last updated: 2026-08-23T08:24:45.941Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -831,22 +831,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Central PA Food Bank SNAP Hotline",
-          "phone": "(877) 999-5964",
-          "description": "SNAP application assistance and questions",
-          "hours": "Monday-Friday, business hours"
-        },
-        {
-          "label": "PA Department of Human Services",
-          "phone": "2-1-1",
-          "description": "Find your local County Assistance Office and get general benefit information",
-          "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "COMPASS Helpline",
+          "label": "COMPASS Helpline (start here)",
           "phone": "(800) 692-7462",
-          "description": "Technical help with online applications",
-          "hours": "Monday-Friday 8am-5pm"
+          "description": "Pennsylvania takes SNAP applications online at COMPASS, or on paper in person or by mail at your county assistance office. There is no phone application line. This helpline is who to call when the online application gives you trouble, and they can tell you which county assistance office is yours.",
+          "hours": "8:30 a.m. to 4:45 p.m., Monday to Friday"
         },
         {
           "label": "PA Department of Human Services Statewide Customer Service Center",
@@ -911,13 +899,13 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "(877) 999-5964",
+      "phone": "(800) 692-7462",
       "sourceUrl": "https://www.pa.gov/agencies/dhs/resources/snap/snap-older-adults",
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
       "reviewedBy": "Cecille Chavez",
       "reviewedAt": "2026-06-17",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-08-23"
     },
     {
       "id": "ship-medicare-counseling",
@@ -1666,12 +1654,12 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "SNAP (Supplemental Nutrition Assistance Program)",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Quick financial relief with up to $300/month for groceries, and eligibility often indicates qualification for other programs."
       },
       {
         "name": "SHIP (State Health Insurance Assistance Program)",
-        "programId": "ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free for everyone and can immediately identify Medicare cost savings your loved one may be missing."
       }
     ],

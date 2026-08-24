@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NJ/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T09:34:52.627Z
+ * Last updated: 2026-08-23T08:40:32.536Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -94,10 +94,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "NJ Division of Taxation",
-          "phone": "(609) 292-6400",
-          "description": "Property tax relief programs and Stay NJ questions",
-          "hours": "Mon-Fri 8:30am-4:30pm ET"
+          "label": "NJ Property Tax Relief Programs (start here)",
+          "phone": "1-888-238-1233",
+          "description": "Stay NJ is claimed on the combined Form PAS-1, the same application as Senior Freeze and ANCHOR. The deadline for the 2025 benefit is November 2, 2026. You can also apply online at propertytaxreliefapp.nj.gov.",
+          "hours": "Automated 24/7. Agents 8:30 a.m. to 5:30 p.m., Monday to Friday."
         },
         {
           "label": "New Jersey 2-1-1",
@@ -153,10 +153,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "CurrencyDollar",
-      "phone": "(609) 292-6400",
+      "phone": "1-888-238-1233",
       "sourceUrl": "https://www.nj.gov/treasury/taxation/staynj/index.shtml",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-23"
     },
     {
       "id": "senior-freeze-property-tax",
@@ -1351,22 +1352,22 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Stay NJ",
-        "programId": "stay-nj",
+        "programId": "stay-nj-property-tax-relief",
         "why": "Up to $6,500 back on property taxes, the largest potential benefit in New Jersey."
       },
       {
         "name": "Pharmaceutical Assistance to the Aged & Disabled (PAAD)",
-        "programId": "paad",
+        "programId": "paad-prescription-assistance",
         "why": "Reduces prescription costs to $5-7 per medication, saving hundreds monthly for parents with multiple prescriptions."
       },
       {
         "name": "Senior Freeze (Property Tax Reimbursement)",
-        "programId": "senior-freeze",
+        "programId": "senior-freeze-property-tax",
         "why": "Protects against property tax increases for long-term homeowners, providing ongoing savings."
       },
       {
         "name": "Jersey Assistance for Community Caregiving (JACC)",
-        "programId": "jacc",
+        "programId": "jacc-community-caregiving",
         "why": "Helps parents who need nursing-level care stay at home when income is too high for Medicaid."
       }
     ],

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MI/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.789Z
+ * Last updated: 2026-08-22T10:37:49.034Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -965,12 +965,12 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "MI Health Link Program",
-        "programId": "health-link",
+        "programId": "health-link-program",
         "why": "Coordinates all medical care and home services under one plan if your loved one has both Medicare and Medicaid."
       },
       {
         "name": "MiCAFE (Michigan's Coordinated Access to Food for the Elderly)",
-        "programId": "micafe",
+        "programId": "michigan-micafe-food-access",
         "why": "Provides free help getting your loved one enrolled in SNAP benefits for immediate grocery assistance."
       }
     ],

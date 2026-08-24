@@ -81,6 +81,9 @@ const navSections: NavSection[] = [
       { label: "Analytics", href: "/admin/analytics" },
       { label: "Ad Boost", href: "/admin/ad-boost" },
       { label: "Automations", href: "/admin/automations" },
+      // Sits next to Automations on purpose: that page carries account-level
+      // send risk, this one carries who stopped hearing from us. Two halves.
+      { label: "Deliverability", href: "/admin/deliverability" },
       { label: "Family Comms", href: "/admin/family-comms" },
       { label: "Benefits", href: "/admin/benefits" },
       // "Articles" — next to Benefits (also content), "Content" was ambiguous

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.789Z
+ * Last updated: 2026-08-22T10:37:49.035Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2996,7 +2996,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Medicare Savings Program (MSP)",
-        "programId": "medicare-savings-program-msp",
+        "programId": "medicare-savings-program",
         "why": "If your loved one has Medicare but limited income, this covers premiums and reduces medical costs immediately."
       },
       {
@@ -3006,7 +3006,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Missouri State Health Insurance Assistance Program (Missouri SHIP)",
-        "programId": "missouri-state-health-insurance-assistance-program-missouri-ship",
+        "programId": "missouri-ship",
         "why": "Free expert help finding all Medicare savings your loved one qualifies for, no income limits."
       }
     ],

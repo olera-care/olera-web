@@ -113,6 +113,10 @@
       "schedule": "0 17 * * *"
     },
     {
+      "path": "/api/cron/benefits-navigator-packets",
+      "schedule": "25 * * * *"
+    },
+    {
       "path": "/api/cron/benefits-navigator-scheduler",
       "schedule": "10 * * * *"
     },
@@ -131,6 +135,10 @@
     {
       "path": "/api/cron/war-room-discovery",
       "schedule": "30 10 * * *"
+    },
+    {
+      "path": "/api/cron/deliverability-watch",
+      "schedule": "0 12 * * *"
     },
     {
       "path": "/api/cron/enrich-question-providers",

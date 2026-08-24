@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T11:01:04.259Z
+ * Last updated: 2026-08-22T10:37:49.022Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1786,22 +1786,22 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "HUSKY Health (Medicaid for seniors/disabled)",
-        "programId": "husky-health",
+        "programId": "husky-health-medicaid-seniors",
         "why": "Covers all medical care plus long-term care services that can cost $100,000+ annually out-of-pocket."
       },
       {
         "name": "SNAP (Supplemental Nutrition Assistance Program)",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Fastest benefit to apply for with immediate monthly grocery assistance up to $298."
       },
       {
         "name": "Connecticut Home Care Program for Elders (CHCPE)",
-        "programId": "chcpe",
+        "programId": "chcpe-medicare-savings",
         "why": "Provides home care services plus Medicare savings to prevent costly nursing home placement."
       },
       {
         "name": "CHOICES (CT SHIP)",
-        "programId": "choices",
+        "programId": "choices-ship",
         "why": "Free service available to everyone that can save hundreds annually on Medicare costs."
       }
     ],

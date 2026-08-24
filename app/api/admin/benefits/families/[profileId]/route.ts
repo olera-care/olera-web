@@ -34,6 +34,7 @@ function withLiveVerifiedDate<T extends { pick?: { programId?: string; stateId?:
   };
 }
 import { sendNavigatorLetter } from "@/lib/family-comms/benefits-navigator-send.server";
+import { buildNavigatorPacket } from "@/lib/benefits/navigator-packet.server";
 
 /**
  * Per-family case endpoints for the Benefits caseload view
@@ -385,6 +386,7 @@ export async function POST(
         "navigator_dismiss",
         "navigator_test",
         "navigator_recompose",
+        "navigator_build_packet",
         "navigator_save",
         "navigator_schedule",
         "navigator_unschedule",
@@ -473,6 +475,28 @@ export async function POST(
       if (!intakeAt || !profile.account_id) {
         return NextResponse.json({ error: "Family is missing intake data" }, { status: 409 });
       }
+      // A packet routed `recompose` means an independent read found the
+      // family's own stated facts rule THIS program out. Re-running the ladder
+      // unchanged would pick it straight back: selectFirstStepProgram ranks
+      // entry-source first, and the entry page is usually how the family
+      // arrived at the wrong program in the first place. So the ruled-out
+      // program is excluded and the ladder has to find something else.
+      //
+      // Only on that verdict. A plain recompose is the fact-check loop —
+      // re-draft the SAME program against corrected data — and excluding there
+      // would silently change the family's program because a phone number moved.
+      const ruledOut =
+        navigator.packet?.route === "recompose" ? navigator.pick?.programId ?? null : null;
+      // When both fit models independently named the SAME better program, the
+      // recompose has a destination rather than just an exclusion. Prefer it;
+      // selectFirstStepProgram falls back to the ladder if it cannot anchor a
+      // letter, so an unresolvable suggestion costs nothing.
+      const target = navigator.packet?.recomposeTarget ?? null;
+      const prefer =
+        ruledOut && target?.programId
+          ? { programId: target.programId, stateId: navigator.pick?.stateId ?? null }
+          : undefined;
+
       const draft = await composeNavigatorDraft(db, {
         profileId,
         accountId: profile.account_id,
@@ -483,10 +507,16 @@ export async function POST(
         intakeAt,
         profileMeta: meta,
         factsRow: profile,
+        ...(ruledOut ? { exclude: [ruledOut] } : {}),
+        ...(prefer ? { prefer } : {}),
       });
       if (!draft) {
         return NextResponse.json(
-          { error: "No qualifying first-step program with current data — the old draft is unchanged. Dismiss it if the program no longer exists." },
+          {
+            error: ruledOut
+              ? "No other qualifying program for this family with current data. The letter is unchanged. This family probably needs a question rather than a program — dismiss the draft."
+              : "No qualifying first-step program with current data — the old draft is unchanged. Dismiss it if the program no longer exists.",
+          },
           { status: 409 },
         );
       }
@@ -517,6 +547,79 @@ export async function POST(
         return NextResponse.json({ error: "Couldn't save the new draft" }, { status: 500 });
       }
       return NextResponse.json({ success: true, navigator: navStamp });
+    }
+
+    // ── Build this letter's routing verdict, on demand ──────────────────────
+    //
+    // The packet cron can do the whole queue, but it needs an env var, a
+    // redeploy and a secret pasted into a URL. That is not a thing TJ can do
+    // from the admin, which meant the only way to see a verdict was a terminal.
+    // This is the same builder, one letter, behind the admin session he is
+    // already holding.
+    if (action === "navigator_build_packet") {
+      const navigator = readBenefitsNavigator(meta);
+      if (navigator.status !== "pending" || !navigator.body) {
+        return NextResponse.json({ error: "No pending draft for this family" }, { status: 409 });
+      }
+      // careNeed lives on the benefits_completed event, not the profile.
+      const { data: intake } = await db
+        .from("seeker_activity")
+        .select("metadata")
+        .eq("profile_id", profileId)
+        .eq("event_type", "benefits_completed")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const careNeed =
+        ((intake?.metadata as { careNeed?: unknown } | null)?.careNeed as string | null) ??
+        ((meta as { benefits_results?: { answers?: { careNeed?: string } } }).benefits_results
+          ?.answers?.careNeed ?? null);
+
+      let packet;
+      try {
+        packet = await buildNavigatorPacket(
+          {
+            care_types: (profile.care_types as string[] | null) ?? null,
+            state: (profile.state as string | null) ?? null,
+            metadata: meta,
+            careNeed,
+          },
+          navigator,
+        );
+      } catch (err) {
+        return NextResponse.json(
+          { error: `Couldn't build the verdict: ${err instanceof Error ? err.message : "unknown"}` },
+          { status: 502 },
+        );
+      }
+
+      // The build takes tens of seconds. Re-read and refuse to write a verdict
+      // describing text that changed underneath it — same guard as the cron.
+      const { data: fresh } = await db
+        .from("business_profiles")
+        .select("metadata")
+        .eq("id", profileId)
+        .maybeSingle();
+      const freshMeta = (fresh?.metadata as Record<string, unknown> | null) ?? meta;
+      const freshNav = readBenefitsNavigator(freshMeta);
+      if (freshNav.status !== "pending") {
+        return NextResponse.json(
+          { error: "This draft was sent or dismissed while the verdict was building." },
+          { status: 409 },
+        );
+      }
+      if (freshNav.edited_at !== navigator.edited_at || freshNav.recomposed_at !== navigator.recomposed_at) {
+        return NextResponse.json(
+          { error: "The letter changed while the verdict was building. Try again." },
+          { status: 409 },
+        );
+      }
+      const { error: pErr } = await db
+        .from("business_profiles")
+        .update({ metadata: { ...freshMeta, benefits_navigator: { ...freshNav, packet } } })
+        .eq("id", profileId);
+      if (pErr) return NextResponse.json({ error: "Couldn't save the verdict" }, { status: 500 });
+      return NextResponse.json({ success: true, packet });
     }
 
     // ── Navigator actions: send (through governance), test-send, or dismiss ──
@@ -610,6 +713,9 @@ export async function POST(
         body: typeof body.body === "string" ? body.body : null,
         sms: typeof body.sms === "string" ? body.sms : null,
         trigger: "admin",
+        // Set only when the drawer's second confirmation was accepted. The
+        // scheduler has no equivalent and never overrides.
+        overridePacket: body.overridePacket === true,
       });
       if (!sendResult.ok) {
         return NextResponse.json(

@@ -29,6 +29,44 @@ import {
   renderNavigatorEmail,
   type BenefitsNavigatorMeta,
 } from "./benefits-navigator.server";
+import { ROUTE_LABEL } from "@/lib/benefits/navigator-packet";
+import { readClearance } from "@/lib/benefits/navigator-gates.server";
+
+/**
+ * Substitute the plan link, dropping any punctuation left flush against it.
+ *
+ * The link is the only tappable thing in the text, and some SMS clients pull a
+ * trailing "." into the tapped URL, so the family lands on a 404 on the one
+ * step we asked them to take. 78 of 130 pending drafts carried this on
+ * 2026-08-23; every one of them followed the link with a space and a capital
+ * letter, so dropping the period costs nothing readable and leaves whitespace
+ * on both sides of the URL, which is what link detection needs.
+ *
+ * Fixing it here rather than in the prompt repairs every draft already sitting
+ * in the queue, with no re-composition and no chance of altering a claim.
+ */
+/**
+ * Where a family's reply lands.
+ *
+ * Every navigator letter closes with "You can reply to this email. My team and
+ * I read every reply." That line is required by the composer's STRUCTURE rule,
+ * so it is in all of them. The send used to read
+ * `process.env.BENEFITS_NAVIGATOR_REPLY_TO || undefined` with no default, and
+ * the variable was never set, so the promise was made on mail sent From
+ * `noreply@olera.care` carrying no Reply-To header at all.
+ *
+ * The other two outbound systems both default rather than trusting the
+ * environment: student outreach falls back to graize@olera.care, provider
+ * outreach to hello@olera.care. This one was the only channel that could go
+ * quiet by omission. support@olera.care is the monitored inbox, with Gmail
+ * sync, Supabase triage state and the /email-checker sweep already built
+ * around it, which is what "my team and I" refers to.
+ */
+const NAVIGATOR_REPLY_TO = process.env.BENEFITS_NAVIGATOR_REPLY_TO ?? "support@olera.care";
+
+export function substituteSmsLink(draft: string, url: string): string {
+  return draft.replace(/\{link\}[.,;:!?]*\s*/g, `${url} `).trimEnd();
+}
 
 export interface NavigatorSendOptions {
   profileId: string;
@@ -39,6 +77,12 @@ export interface NavigatorSendOptions {
   sms?: string | null;
   /** Who initiated the send. Both paths respect recipient SMS quiet hours. */
   trigger: "admin" | "scheduler";
+  /**
+   * Send anyway when the packet says this letter should not go as written.
+   * Only ever set from an explicit human confirmation in the admin drawer;
+   * the scheduler never sets it.
+   */
+  overridePacket?: boolean;
 }
 
 export type NavigatorSendResult =
@@ -62,6 +106,68 @@ export async function sendNavigatorLetter(
   if (navigator.status !== "pending" || !navigator.body) {
     return { ok: false, error: "No pending draft for this family", conflict: true };
   }
+  /**
+   * The packet gate. This is the ONE choke point both send paths share, so it
+   * is the only place a verdict can actually stop a letter.
+   *
+   * `recompose` means an independent read found the family's own stated facts
+   * rule this program out; `ask` means we never held enough to pick and the
+   * letter is a guess. Neither should reach a family by default. A UI that
+   * merely unticks a checkbox is not a guard — the scheduler cron does not
+   * render checkboxes, and a letter scheduled before its packet existed would
+   * otherwise fire on the verdict's blind side.
+   *
+   * Deliberately NOT blocked: `review`, an unbuilt packet, or a packet whose
+   * gates errored. Those mean "a person should look", and a person clicking
+   * Send is that person looking. Blocking them would strand the queue behind
+   * a cron.
+   */
+  const route = navigator.packet?.route;
+  if ((route === "recompose" || route === "ask") && !opts.overridePacket) {
+    const why = navigator.packet?.holds[0] ?? ROUTE_LABEL[route];
+    return {
+      ok: false,
+      conflict: true,
+      error:
+        route === "recompose"
+          ? `This letter's program was ruled out: ${why}. Recompose it, or send anyway if you disagree.`
+          : `We do not know enough about this family to pick a program: ${why}. Ask them first, or send anyway if you disagree.`,
+    };
+  }
+
+  /**
+   * The facts gate, alongside the fit gate above. The packet judges whether
+   * this program is the right PICK; this judges whether the record the letter
+   * anchors on is structurally sound enough to print. Synchronous, no model
+   * call, no cost: readClearance reads the deployed pipeline bundle.
+   *
+   * Blocks only STRUCTURAL defects, never mere staleness. That distinction is
+   * the whole design. A null lead phone, prose where a number goes, an
+   * "Example: ..." label or an empty document list are objectively wrong and
+   * produce letters like "Call X at Contact information not specified in
+   * available sources" — one of those was one click from a family on
+   * 2026-08-23. Being unverified is different: only 155 of 642 programs have
+   * ever been verified, so blocking on the stamp would stop three letters in
+   * four and strand the queue. Unverified means "nobody looked", and a person
+   * clicking Send is a person looking.
+   *
+   * Shares overridePacket deliberately. Both gates ask the same question of a
+   * human — the automation says no, do you disagree — and one override keeps
+   * the admin drawer from growing a second checkbox for the same decision.
+   */
+  const clearance = navigator.pick?.programId
+    ? readClearance(navigator.pick.stateId ?? null, navigator.pick.programId, 90)
+    : null;
+  if (clearance && clearance.highFindings.length > 0 && !opts.overridePacket) {
+    return {
+      ok: false,
+      conflict: true,
+      error:
+        `The program this letter anchors on has an unresolved data problem (${clearance.highFindings.join(", ")}). ` +
+        `Fix the program record, or send anyway if you disagree.`,
+    };
+  }
+
   const smsEligible =
     !!profile.phone && !!(meta as { sms_consent?: unknown }).sms_consent &&
     profile.phone_validity !== "opted_out";
@@ -118,7 +224,7 @@ export async function sendNavigatorLetter(
       emailType: "benefits_first_step",
       recipientType: "family",
       recipientProfileId: profileId,
-      replyTo: process.env.BENEFITS_NAVIGATOR_REPLY_TO || undefined,
+      replyTo: NAVIGATOR_REPLY_TO,
       listUnsubscribeUrl: careUnsubscribeUrl(profileId),
       metadata: {
         navigator: true,
@@ -167,7 +273,7 @@ export async function sendNavigatorLetter(
         : "";
     const stopSuffix = draftSms && /reply stop/i.test(draftSms) ? "" : " Reply STOP to opt out.";
     const smsBody = draftSms
-      ? `${draftSms.replace(/\{link\}/g, smsPlanUrl)}${progressSuffix}${stopSuffix}`
+      ? `${substituteSmsLink(draftSms, smsPlanUrl)}${progressSuffix}${stopSuffix}`
       : benefitsFirstStepSms({
           programShortName: navigator.pick.shortName,
           phone: navigator.pick.contactPhone,

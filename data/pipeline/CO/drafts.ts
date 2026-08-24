@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.775Z
+ * Last updated: 2026-08-22T10:37:49.021Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2141,7 +2141,7 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Health First Colorado Buy-In (QMB, SLMB, QI)",
-        "programId": "health-first-colorado-buy-in",
+        "programId": "medicare-savings-programs",
         "why": "Can save hundreds monthly on Medicare premiums and out-of-pocket costs for parents on limited income."
       },
       {
@@ -2151,7 +2151,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "SNAP",
-        "programId": "snap-colorado",
+        "programId": "snap-food-benefits",
         "why": "Monthly grocery money that provides immediate budget relief for food costs."
       },
       {

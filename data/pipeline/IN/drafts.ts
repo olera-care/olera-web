@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.783Z
+ * Last updated: 2026-08-22T10:37:49.029Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2156,17 +2156,17 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Healthy Indiana Plan Medicare Savings Programs",
-        "programId": "healthy-indiana-plan-medicare-savings",
+        "programId": "medicare-savings-programs",
         "why": "Reduces Medicare costs significantly if your loved one's income is under $2,433/month."
       },
       {
         "name": "SNAP",
-        "programId": "indiana-snap",
+        "programId": "snap-food-benefits",
         "why": "Provides $100–400/month for groceries with no asset limits for seniors 60+."
       },
       {
         "name": "Indiana SHIP",
-        "programId": "indiana-ship",
+        "programId": "indiana-ship-medicare-counseling",
         "why": "Free Medicare counseling that can save thousands by avoiding wrong plan choices, available to all income levels."
       }
     ],

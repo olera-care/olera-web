@@ -1913,7 +1913,7 @@
     "startHere": [
       {
         "name": "Tennessee SNAP",
-        "programId": "tennessee-snap",
+        "programId": "snap-food-benefits",
         "why": "Up to $415/month for groceries with no asset limits, often the quickest approval."
       },
       {
@@ -1923,7 +1923,7 @@
       },
       {
         "name": "Tennessee LIHEAP",
-        "programId": "tennessee-liheap",
+        "programId": "liheap-energy-assistance",
         "why": "One-time payment up to $1,000 toward heating/cooling bills with quick seasonal applications."
       }
     ],

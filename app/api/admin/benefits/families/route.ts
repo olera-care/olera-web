@@ -13,6 +13,7 @@ import {
   type BenefitsApplicationStatus,
 } from "@/lib/family-comms/benefits-cascade.server";
 import { readBenefitsNavigator } from "@/lib/family-comms/benefits-navigator.server";
+import type { PacketRoute } from "@/lib/benefits/navigator-packet";
 
 /**
  * GET /api/admin/benefits/families?from=<ISO>&to=<ISO>
@@ -45,6 +46,15 @@ interface FamilyRow {
     scheduleFailed: boolean;
     /** Picked program's short name — lets batch UIs list drafts reviewably. */
     firstStep: string | null;
+    /** The packet's verdict, summarised for the row. Null until the
+     *  benefits-navigator-packets cron has judged this letter. */
+    packet: {
+      route: PacketRoute;
+      /** First hold, for the row's sub-label. Full list rides the per-family GET. */
+      topHold: string | null;
+      holdCount: number;
+      builtAt: string;
+    } | null;
   } | null;
   /** Latest real inbound SMS (non-keyword) — the row's 💬 chip. */
   inboundText: { at: string; body: string | null } | null;
@@ -351,6 +361,14 @@ export async function GET(request: NextRequest) {
               scheduledAt: navMeta.scheduled_at ?? null,
               scheduleFailed: Boolean(navMeta.schedule_failed_reason),
               firstStep: navMeta.pick?.shortName ?? null,
+              packet: navMeta.packet
+                ? {
+                    route: navMeta.packet.route,
+                    topHold: navMeta.packet.holds[0] ?? null,
+                    holdCount: navMeta.packet.holds.length,
+                    builtAt: navMeta.packet.builtAt,
+                  }
+                : null,
             }
           : null,
         inboundText: lastText?.at ? { at: lastText.at, body: lastText.body ?? null } : null,

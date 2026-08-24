@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/ID/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T11:01:04.265Z
+ * Last updated: 2026-08-23T08:40:32.520Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -686,10 +686,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Idaho Dept. of Health & Welfare",
-          "phone": "(208) 334-5500",
-          "description": "Central number for local office referrals and Medicare Savings Program questions",
-          "hours": "Mon-Fri 8am-5pm MT"
+          "label": "Idaho Health and Welfare, Self Reliance (start here)",
+          "phone": "877-456-1233",
+          "description": "Idaho takes Medicaid and Medicare Savings Program applications by phone on this line, online through idalink.idaho.gov, or in person at a field office.",
+          "hours": "Business hours, Monday to Friday"
         },
         {
           "label": "Idaho 2-1-1",
@@ -761,11 +761,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "CurrencyDollar",
-      "phone": "(208) 334-5500",
-      "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/medicare-savings-program",
+      "phone": "877-456-1233",
+      "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/medicaid-health/apply-medicaid",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-08-23"
     },
     {
       "id": "snap-food-benefits",
@@ -2296,7 +2296,7 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Idaho Medicaid Aged, Blind, and Disabled (ABD) Program",
-        "programId": "idaho-medicaid-abd",
+        "programId": "medicaid-abd-program",
         "why": "Qualifying opens access to multiple other programs including home care waivers and comprehensive health coverage."
       },
       {
@@ -2306,12 +2306,12 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "SNAP",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Idaho has no gross income limit for seniors, making more parents eligible for monthly grocery assistance."
       },
       {
         "name": "Senior Health Insurance Benefits Advisors (SHIBA)",
-        "programId": "shiba",
+        "programId": "shiba-insurance-advisors",
         "why": "Free expert help navigating all Medicare and insurance decisions, available regardless of income."
       }
     ],

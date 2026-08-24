@@ -516,6 +516,23 @@ export const CRON_REGISTRY: CronJob[] = [
     relatedAdminPath: "/admin/benefits",
   },
   {
+    id: "benefits-navigator-packets",
+    name: "Benefits navigator — packet builder",
+    description:
+      "Builds the routing verdict for pending first-step letters, replacing the manual copy-paste review loop. Five gates in order: do we hold enough facts to pick at all, is the program the right FIRST call (judged by two independent models), does the letter break an honesty rail, is the program cleared, does the draft lint. Writes the verdict onto the draft and sends nothing. Rebuilds only when the letter itself changes, never on a clock — fit verdicts vary run to run, so a scheduled rebuild would silently reroute letters nobody touched.",
+    recipientCohort:
+      "(no recipients — writes verdicts for the review queue; every pending navigator draft whose letter changed since its last packet)",
+    audience: "Care seekers",
+    fn: "maintenance",
+    schedule: "25 * * * *",
+    humanSchedule: "Hourly at :25, but DORMANT until BENEFITS_PACKETS_ENABLED=1. Each packet is up to three model calls, so switching it on is a spend decision. Until then every run returns immediately without touching a model.",
+    path: "/api/cron/benefits-navigator-packets",
+    emailTypes: [],
+    successSignal:
+      "Every pending letter carries a current verdict, so the queue explains why each one is waiting and a clean letter is not held behind its batch.",
+    relatedAdminPath: "/admin/benefits",
+  },
+  {
     id: "benefits-navigator-scheduler",
     name: "Benefits navigator — scheduled sends",
     description:
@@ -612,6 +629,25 @@ export const CRON_REGISTRY: CronJob[] = [
   },
 
   // ── Data & maintenance ─────────────────────────────────────────────
+  {
+    id: "deliverability-watch",
+    name: "Deliverability watch (account risk)",
+    description:
+      "Recomputes the 30-day account-wide bounce and complaint rates and posts to Slack when either crosses a threshold — Resend's warning line, 87.5% of the hard limit, or back down again. Alerts on STATE CHANGE ONLY, never on a schedule, so the notifications channel does not learn to ignore it. Rate definitions match /api/admin/automations exactly (complaints over delivered, bounces over sent) so the alert and the panel can never disagree. Prior state is read from this job's own last cron_runs row, so there is no extra table. Never alerts by email: an email alert about email deliverability cannot arrive when it matters.",
+    recipientCohort: "Internal only — Slack #notifications.",
+    audience: "Internal",
+    fn: "alert",
+    schedule: "0 12 * * *",
+    humanSchedule: "Daily, 12:00 UTC (~8:00 AM ET)",
+    path: "/api/cron/deliverability-watch",
+    emailTypes: [],
+    // Sends nothing outbound — it posts to Slack. Without this, jobChannels()
+    // derives ["email"] from fn:"alert" and the console would imply it mails people.
+    channels: [],
+    successSignal:
+      "A threshold crossing reaches Slack within a day, and the run summary's alerted flag is true. alerted:false with a non-null alertError means the webhook is misconfigured and the account is unwatched.",
+    relatedAdminPath: "/admin/automations",
+  },
   {
     id: "enrich-question-providers",
     name: "Provider email top-up (unanswered questions)",

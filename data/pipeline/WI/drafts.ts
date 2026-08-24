@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WI/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.807Z
+ * Last updated: 2026-08-22T10:37:49.053Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -896,12 +896,12 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Elder Benefit Specialist (EBS) Program",
-        "programId": "elder-benefit-specialist-ebs-program",
+        "programId": "elder-benefit-specialist",
         "why": "Free expert help to identify which programs your loved one qualifies for and navigate applications."
       },
       {
         "name": "SeniorCare",
-        "programId": "seniorcare",
+        "programId": "seniorcare-prescription-assistance",
         "why": "Immediate prescription savings with $5 generics and $15 brand-name drugs."
       },
       {

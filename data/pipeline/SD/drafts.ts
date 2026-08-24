@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/SD/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.802Z
+ * Last updated: 2026-08-22T10:37:49.048Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2626,12 +2626,12 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "South Dakota Medicaid for Seniors/Disabled",
-        "programId": "medicaid-seniors",
+        "programId": "medicaid-seniors-disabled",
         "why": "Covers medical care plus nursing home and home health services if your loved one meets income limits."
       },
       {
         "name": "Medicare Savings Programs",
-        "programId": "medicare-savings",
+        "programId": "medicare-savings-programs",
         "why": "Can eliminate Medicare premiums and copays if your loved one's income is below $1,781/month."
       },
       {
@@ -2641,7 +2641,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Senior Health Information and Insurance Education (SHIINE)",
-        "programId": "shiine",
+        "programId": "shiine-medicare-counseling",
         "why": "Free help choosing Medicare plans, available to all seniors regardless of income."
       }
     ],

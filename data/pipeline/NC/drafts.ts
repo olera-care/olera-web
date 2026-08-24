@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-18T09:44:15.793Z
+ * Last updated: 2026-08-23T08:24:45.935Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1154,16 +1154,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "NC DEQ Energy Office",
-          "phone": "(919) 713-1570",
-          "description": "Statewide program information and referrals to local providers",
-          "hours": "Mon-Fri 8am-5pm ET"
-        },
-        {
-          "label": "Resources for Seniors (Wake/Durham)",
-          "phone": "(919) 713-1570",
-          "description": "Weatherization applications for Wake and Durham counties",
-          "hours": "Mon-Fri 8am-5pm ET"
+          "label": "NC DEQ general line (start here, locator)",
+          "phone": "1-877-623-6748",
+          "description": "North Carolina does not take weatherization applications at the state level. Your local weatherization provider does, and you can find yours at weatheriznc.org. This is the state department’s general line if you would rather ask a person which agency covers you.",
+          "hours": "Business hours, Monday to Friday"
         },
         {
           "label": "PTRC (Piedmont Triad)",
@@ -1228,10 +1222,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "(919) 713-1570",
+      "phone": "1-877-623-6748",
       "sourceUrl": "https://www.deq.nc.gov/energy-climate/state-energy-office/weatherization-assistance-program",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-23"
     },
     {
       "id": "home-delivered-meals",
@@ -2788,7 +2783,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "NC Food and Nutrition Services (FNS)/SNAP",
-        "programId": "food-nutrition-services-snap",
+        "programId": "snap-food-benefits",
         "why": "Immediate monthly grocery benefits up to $281 that you can apply for online within days."
       },
       {

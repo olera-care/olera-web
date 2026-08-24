@@ -11,6 +11,12 @@ import {
   type ReviewItem,
   type ReviewPick,
 } from "@/lib/benefits/navigator-review-prompt";
+import NavigatorPacketPanel from "@/components/admin/NavigatorPacketPanel";
+import {
+  ROUTE_LABEL,
+  type NavigatorPacket,
+  type PacketRoute,
+} from "@/lib/benefits/navigator-packet";
 import { etInputToUtcIso, toEtInputValue, formatEt } from "@/lib/eastern-time";
 import { useUrlDateRangeState } from "@/hooks/useUrlDateRangeState";
 
@@ -95,6 +101,13 @@ interface FamilyRow {
     scheduledAt: string | null;
     scheduleFailed: boolean;
     firstStep: string | null;
+    /** Verdict summary. Null until the packet cron has judged this letter. */
+    packet: {
+      route: PacketRoute;
+      topHold: string | null;
+      holdCount: number;
+      builtAt: string;
+    } | null;
   } | null;
   /** Latest real inbound SMS — the 💬 chip (webhook writes metadata.sms_inbound). */
   inboundText: { at: string; body: string | null } | null;
@@ -142,6 +155,8 @@ interface NavigatorDetail {
   sent_at?: string;
   /** Full pickSnapshot from metadata — the letter's verifiable claims. */
   pick?: ReviewPick;
+  /** The computed routing verdict, rendered above the letter in the drawer. */
+  packet?: NavigatorPacket;
 }
 
 type LifecycleStatus =
@@ -154,12 +169,16 @@ type LifecycleStatus =
   | "new"
   | "in_cascade";
 
-type QueueFilter = LifecycleStatus | "all" | "draft_ready" | "scheduled";
+type QueueFilter = LifecycleStatus | "all" | "draft_ready" | "scheduled" | `route_${PacketRoute}`;
 
 const QUEUE_FILTERS: QueueFilter[] = [
   "all",
   "draft_ready",
   "scheduled",
+  "route_ask",
+  "route_recompose",
+  "route_review",
+  "route_auto",
   "needs_help",
   "stalled",
   "acting",
@@ -275,7 +294,21 @@ export default function BenefitsFamiliesView() {
   >("idle");
 
   const openBatchModal = () => {
-    setBatchExcluded(new Set());
+    // Pre-exclude anything the packet says must not send as written. Batch
+    // scheduling used to treat every draft-ready letter as equivalent; a
+    // letter routed `recompose` names a program the family's own facts rule
+    // out, and one routed `ask` was a guess we should not have made. Both are
+    // still unticked-by-default rather than hidden, because the reviewer
+    // overriding this deliberately is legitimate and hiding rows is not.
+    const holdBack = new Set(
+      (data?.families ?? [])
+        .filter((f) => {
+          const r = f.navigator?.status === "pending" ? f.navigator.packet?.route : null;
+          return r === "ask" || r === "recompose";
+        })
+        .map((f) => f.profileId),
+    );
+    setBatchExcluded(holdBack);
     setBatchTime(nextEasternMorning());
     setBatchState("idle");
     setBatchOpen(true);
@@ -334,12 +367,13 @@ export default function BenefitsFamiliesView() {
   const navigatorAction = useCallback(
     async (
       profileId: string,
-      action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule",
+      action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule" | "navigator_build_packet",
       subject?: string,
       letter?: string,
       sms?: string,
       testEmail?: string,
       scheduledAt?: string,
+      overridePacket?: boolean,
     ): Promise<boolean> => {
       setCaseBusy(true);
       setCaseError(null);
@@ -347,10 +381,33 @@ export default function BenefitsFamiliesView() {
         const res = await fetch(`/api/admin/benefits/families/${profileId}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action, subject, body: letter, sms, testEmail, scheduledAt }),
+          body: JSON.stringify({ action, subject, body: letter, sms, testEmail, scheduledAt, overridePacket }),
         });
-        const d = await res.json().catch(() => null);
-        if (!res.ok) {
+        let d = await res.json().catch(() => null);
+        // The facts gate blocks server-side on the program record, which the
+        // client cannot evaluate: clearance is read from the deployed pipeline
+        // bundle, not from anything the queue fetches. So unlike the packet
+        // gate, there is nothing to confirm BEFORE the request. Confirm on the
+        // way back instead, naming the server's reason, and only then retry
+        // with the override. Without this the block is a dead end: the message
+        // says "send anyway if you disagree" and offers no way to do it.
+        if (res.status === 409 && action === "navigator_send" && !overridePacket && d?.error) {
+          if (!window.confirm(`${d.error}\n\nSend it anyway?`)) {
+            setCaseError(d.error);
+            return false;
+          }
+          const retry = await fetch(`/api/admin/benefits/families/${profileId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action, subject, body: letter, sms, testEmail, scheduledAt, overridePacket: true }),
+          });
+          const rd = await retry.json().catch(() => null);
+          if (!retry.ok) {
+            setCaseError(rd?.error || "That didn't go through. Try again.");
+            return false;
+          }
+          d = rd;
+        } else if (!res.ok) {
           setCaseError(d?.error || "That didn't go through. Try again.");
           return false;
         }
@@ -470,6 +527,17 @@ export default function BenefitsFamiliesView() {
     (f) => f.navigator?.status === "pending" && f.navigator.scheduledAt,
   ).length;
   const draftReadyCount = pendingDraftCount - scheduledCount;
+  // Route counts come off the packet, so they only cover letters the cron has
+  // judged. A pending draft with no packet yet counts toward none of them,
+  // which is honest: we do not know where it goes until it is judged.
+  const routeCounts = families.reduce<Record<string, number>>((acc, f) => {
+    const r = f.navigator?.status === "pending" ? f.navigator.packet?.route : null;
+    if (r) acc[r] = (acc[r] ?? 0) + 1;
+    return acc;
+  }, {});
+  const unjudged = families.filter(
+    (f) => f.navigator?.status === "pending" && !f.navigator.packet,
+  ).length;
 
   /** Redacted review context for the AI fact-check prompt — never carries
    *  the family's name or email (the name is passed only so the builder can
@@ -550,7 +618,10 @@ export default function BenefitsFamiliesView() {
   const matchesFilter = (f: FamilyRow) =>
     filter === "all"
       ? true
-      : filter === "draft_ready"
+      : filter.startsWith("route_")
+        ? f.navigator?.status === "pending" &&
+          f.navigator.packet?.route === filter.slice("route_".length)
+        : filter === "draft_ready"
         ? f.navigator?.status === "pending" && !f.navigator.scheduledAt
         : filter === "scheduled"
           ? f.navigator?.status === "pending" && !!f.navigator.scheduledAt
@@ -687,6 +758,10 @@ export default function BenefitsFamiliesView() {
             ["all", "All"],
             ["draft_ready", "Draft ready"],
             ["scheduled", "Scheduled"],
+            ["route_ask", ROUTE_LABEL.ask],
+            ["route_recompose", ROUTE_LABEL.recompose],
+            ["route_review", ROUTE_LABEL.review],
+            ["route_auto", ROUTE_LABEL.auto],
             ["needs_help", "Needs help"],
             ["stalled", "Stalled"],
             ["acting", "Acting"],
@@ -701,6 +776,7 @@ export default function BenefitsFamiliesView() {
             key === "all" ? families.length
             : key === "draft_ready" ? draftReadyCount
             : key === "scheduled" ? scheduledCount
+            : key.startsWith("route_") ? routeCounts[key.slice("route_".length)] ?? 0
             : summary.lifecycle?.[key] ?? 0;
           if (key !== "all" && count === 0 && filter !== key) return null;
           return (
@@ -715,6 +791,11 @@ export default function BenefitsFamiliesView() {
             </button>
           );
         })}
+        {unjudged > 0 && (
+          <span className="text-[11px] text-gray-400">
+            {unjudged} not checked yet
+          </span>
+        )}
         {pendingDraftCount > 0 && (
           <span className="ml-auto flex items-center gap-2">
             {typeof exportState === "object" && (
@@ -813,6 +894,14 @@ export default function BenefitsFamiliesView() {
                     <span className="min-w-0 flex-1 truncate text-xs text-gray-700">
                       {f.email || f.displayName || f.profileId}
                     </span>
+                    {f.navigator?.packet && f.navigator.packet.route !== "auto" && (
+                      <span
+                        className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${ROUTE_CHIP[f.navigator.packet.route]}`}
+                        title={f.navigator.packet.topHold ?? ""}
+                      >
+                        {ROUTE_LABEL[f.navigator.packet.route]}
+                      </span>
+                    )}
                     <span className="shrink-0 text-[11px] text-gray-400">
                       {f.navigator?.firstStep || "—"}{f.state ? ` · ${f.state}` : ""}
                     </span>
@@ -986,18 +1075,49 @@ export default function BenefitsFamiliesView() {
                               ⚠ Schedule blocked
                             </span>
                           ) : f.navigator.scheduledAt ? (
+                            <>
+                              <span
+                                className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800"
+                                title={`Sends automatically around ${formatEt(f.navigator.scheduledAt)}`}
+                              >
+                                ⏱ Scheduled
+                              </span>
+                              {/* A scheduled letter whose packet says it must not
+                                  send still shows that. Scheduling can precede the
+                                  packet, and "Scheduled" alone would hide a pick
+                                  the family's own facts rule out. */}
+                              {(f.navigator.packet?.route === "recompose" ||
+                                f.navigator.packet?.route === "ask") && (
+                                <span
+                                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${ROUTE_CHIP[f.navigator.packet.route]}`}
+                                  title={f.navigator.packet.topHold ?? ""}
+                                >
+                                  {ROUTE_LABEL[f.navigator.packet.route]}
+                                </span>
+                              )}
+                            </>
+                          ) : f.navigator.packet ? (
                             <span
-                              className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800"
-                              title={`Sends automatically around ${formatEt(f.navigator.scheduledAt)}`}
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${ROUTE_CHIP[f.navigator.packet.route]}`}
+                              title={
+                                f.navigator.packet.holdCount > 0
+                                  ? f.navigator.packet.topHold ?? ""
+                                  : "Clean on every gate"
+                              }
                             >
-                              ⏱ Scheduled
+                              {ROUTE_LABEL[f.navigator.packet.route]}
+                              {f.navigator.packet.holdCount > 1 && (
+                                <span className="ml-1 font-normal opacity-70">
+                                  {f.navigator.packet.holdCount}
+                                </span>
+                              )}
                             </span>
                           ) : (
                             <span
-                              className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800"
-                              title="Navigator guidance is drafted and waiting for your review"
+                              className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500"
+                              title="Drafted. The packet cron has not judged this letter yet."
                             >
-                              ✍ Draft ready
+                              ✍ Not yet checked
                             </span>
                           ))}
                       </span>
@@ -1023,8 +1143,8 @@ export default function BenefitsFamiliesView() {
                           reviewContext={reviewContextFor(f)}
                           familyLabel={f.displayName || f.email || "this family"}
                           hasEmail={!!f.email}
-                          onNavigator={(action, subject, letter, sms, testEmail, scheduledAt) =>
-                            navigatorAction(f.profileId, action, subject, letter, sms, testEmail, scheduledAt)
+                          onNavigator={(action, subject, letter, sms, testEmail, scheduledAt, overridePacket) =>
+                            navigatorAction(f.profileId, action, subject, letter, sms, testEmail, scheduledAt, overridePacket)
                           }
                           onAction={(action, text) => caseAction(f.profileId, action, text)}
                           onDelete={() => deleteFamily(f.profileId, f.displayName || f.email || "this family")}
@@ -1065,12 +1185,13 @@ function NavigatorDraftEditor({
   textable: boolean;
   busy: boolean;
   onNavigator: (
-    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule",
+    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule" | "navigator_build_packet",
     subject?: string,
     letter?: string,
     sms?: string,
     testEmail?: string,
     scheduledAt?: string,
+    overridePacket?: boolean,
   ) => Promise<boolean>;
 }) {
   // Saved edits win over the AI originals — reopening a row after a save
@@ -1118,6 +1239,7 @@ function NavigatorDraftEditor({
     }
   });
   const [testState, setTestState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [packetBusy, setPacketBusy] = useState(false);
   // Copy a single-draft fact-check prompt (with TJ's in-place edits) for
   // pasting into an external AI before sending.
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
@@ -1150,6 +1272,34 @@ function NavigatorDraftEditor({
   };
   return (
     <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+      {/* The verdict sits ABOVE the letter: whether this is the right letter
+          for this family is the question you ask before reading the prose. */}
+      {navigator.packet && <NavigatorPacketPanel packet={navigator.packet} />}
+      {/* Building the verdict was cron-only, which meant an env var, a redeploy
+          and a secret in a URL. One letter, one click, on the admin session. */}
+      <div className="mb-3 flex items-center gap-2">
+        <button
+          type="button"
+          disabled={packetBusy}
+          onClick={async () => {
+            setPacketBusy(true);
+            await onNavigator("navigator_build_packet");
+            setPacketBusy(false);
+          }}
+          className="rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-50"
+        >
+          {packetBusy
+            ? "Reading the letter…"
+            : navigator.packet
+              ? "Rebuild verdict"
+              : "Build verdict"}
+        </button>
+        <span className="text-[11px] text-amber-700/70">
+          {packetBusy
+            ? "Two models judge the pick. Takes up to a minute."
+            : "Judges whether this is the right program for this family."}
+        </span>
+      </div>
       <div className="mb-2 flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-amber-700">
           ✍ Navigator guidance — waiting for you
@@ -1206,9 +1356,24 @@ function NavigatorDraftEditor({
             const quietHoursNote = !hasEmail && textable
               ? " Outside the family’s texting hours, it will stay pending and send in their next window."
               : "";
-            if (window.confirm(`Send this ${channelCopy} to ${familyLabel}? It goes out under your name.${hasEmail ? " Email replies land in the support inbox." : ""}${quietHoursNote}${scheduledNote}`)) {
-              onNavigator("navigator_send", subject, letter, sms.trim() || undefined);
+            if (!window.confirm(`Send this ${channelCopy} to ${familyLabel}? It goes out under your name.${hasEmail ? " Email replies land in the support inbox." : ""}${quietHoursNote}${scheduledNote}`)) {
+              return;
             }
+            // The packet says this letter should not go as written. Ask a
+            // second time, naming the reason, and only then override. The
+            // server refuses without this flag, so a stray click cannot send.
+            const blocked = navigator.packet?.route;
+            let override = false;
+            if (blocked === "recompose" || blocked === "ask") {
+              const reason = navigator.packet?.holds[0] ?? "";
+              override = window.confirm(
+                blocked === "recompose"
+                  ? `This letter's program was ruled out.\n\n${reason}\n\nSend it anyway?`
+                  : `We do not know enough about this family to pick a program for them.\n\n${reason}\n\nSend it anyway?`,
+              );
+              if (!override) return;
+            }
+            onNavigator("navigator_send", subject, letter, sms.trim() || undefined, undefined, undefined, override);
           }}
           disabled={busy || letter.trim().length < 40}
           className="rounded-lg bg-gray-900 px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
@@ -1238,12 +1403,20 @@ function NavigatorDraftEditor({
         <button
           onClick={() => {
             const recomposeNote = navigator.scheduled_at ? " This also cancels the scheduled send." : "";
-            if (window.confirm(`Re-draft this letter from current program data? Your edits to this draft, including saved edits, will be discarded.${recomposeNote}`)) {
+            // The same button does two different jobs, so it has to say which.
+            // On a `recompose` verdict the current program is excluded and the
+            // letter comes back about something else entirely; otherwise it is
+            // the fact-check loop and the program stays put.
+            const ruledOut = navigator.packet?.route === "recompose";
+            const prompt = ruledOut
+              ? `The verdict ruled out ${navigator.pick?.shortName ?? "this program"} for this family, so re-drafting will pick a DIFFERENT program. Your edits to this draft, including saved edits, will be discarded.${recomposeNote}`
+              : `Re-draft this letter from current program data? Same program, today's facts. Your edits to this draft, including saved edits, will be discarded.${recomposeNote}`;
+            if (window.confirm(prompt)) {
               onNavigator("navigator_recompose");
             }
           }}
           disabled={busy}
-          title="Re-drafts the letter from today's program data — use after fact-check corrections deploy, so stale phone numbers and figures don't need hand-editing"
+          title="Re-drafts the letter. After a `recompose` verdict it excludes the ruled-out program and picks another; otherwise it re-drafts the same program against today's data, so corrected phone numbers and figures don't need hand-editing"
           className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 disabled:opacity-40"
         >
           {busy ? "Working…" : "Recompose"}
@@ -1397,6 +1570,14 @@ function BreakdownRow({ label, count, total }: { label: React.ReactNode; count: 
   );
 }
 
+/** Route chip colours. One saturated element per row; the route IS the state. */
+const ROUTE_CHIP: Record<PacketRoute, string> = {
+  ask: "bg-violet-100 text-violet-800",
+  recompose: "bg-rose-100 text-rose-800",
+  review: "bg-amber-100 text-amber-800",
+  auto: "bg-emerald-100 text-emerald-800",
+};
+
 const LIFECYCLE_CHIP: Record<LifecycleStatus, { label: string; className: string }> = {
   needs_help: { label: "Needs help", className: "bg-amber-100 text-amber-800" },
   stalled: { label: "Stalled", className: "bg-rose-50 text-rose-700" },
@@ -1517,12 +1698,13 @@ function CasePanel({
   familyLabel: string;
   hasEmail: boolean;
   onNavigator: (
-    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule",
+    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule" | "navigator_build_packet",
     subject?: string,
     letter?: string,
     sms?: string,
     testEmail?: string,
     scheduledAt?: string,
+    overridePacket?: boolean,
   ) => Promise<boolean>;
   onAction: (action: string, text?: string) => void;
   onDelete: () => void;

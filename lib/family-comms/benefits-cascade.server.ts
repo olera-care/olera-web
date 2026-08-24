@@ -347,7 +347,7 @@ function toPick(
 }
 
 /** Parse "/benefits/{stateSlug}/{programId}" out of an entry-source path. */
-function parseEntrySourceProgram(entrySource: string | null | undefined): { stateId: string; programId: string } | null {
+export function parseEntrySourceProgram(entrySource: string | null | undefined): { stateId: string; programId: string } | null {
   if (!entrySource) return null;
   const segs = entrySource.split("?")[0].split("/").filter(Boolean);
   if (segs.length === 3 && segs[0] === "benefits") return { stateId: segs[1], programId: segs[2] };
@@ -392,17 +392,12 @@ export async function selectFirstStepProgram(
      *  worse than a soft rule firing late. Falls through to the normal
      *  ladder when the pinned program has no callable content. */
     pin?: { programId: string; stateId: string | null } | null;
+    /** Run the pin through the eligibility screen. Set when the pin came from
+     *  a model suggestion rather than from a letter a human already sent. */
+    pinScreened?: boolean;
   },
 ): Promise<FirstStepPick | null> {
   const excluded = new Set(opts.exclude || []);
-
-  if (opts.pin?.programId && opts.pin.stateId && opts.stateAbbrev && !excluded.has(opts.pin.programId)) {
-    const pinnedDraft = draftFor(opts.stateAbbrev, opts.pin.programId);
-    if (pinnedDraft) {
-      const pinned = toPick(pinnedDraft, opts.stateAbbrev, opts.pin.stateId, "saved");
-      if (pinned) return pinned;
-    }
-  }
 
   // Eligibility screen (conservative: unknown facts and unjoined programs
   // always pass). sbf rows load once, only when there are facts to apply.
@@ -440,6 +435,23 @@ export async function selectFirstStepProgram(
     );
     return { ruledOut: verdict.ruledOut, boost: verdict.boost };
   };
+  // The pin, resolved here rather than before the screen exists.
+  //
+  // A pin from a SENT letter is never screened: we already told the family to
+  // start there, and contradicting it is worse than a soft rule firing late.
+  // A pin from a model suggestion has no such licence — nobody approved it —
+  // so `pinScreened` runs it through the same eligibility check every other
+  // candidate faces. Without that, a recompose could hand a family a program
+  // their own stated facts rule out, which is the exact failure this system
+  // exists to prevent.
+  if (opts.pin?.programId && opts.pin.stateId && opts.stateAbbrev && !excluded.has(opts.pin.programId)) {
+    const pinnedDraft = draftFor(opts.stateAbbrev, opts.pin.programId);
+    if (pinnedDraft && !(opts.pinScreened && screen(pinnedDraft, opts.pin.stateId).ruledOut)) {
+      const pinned = toPick(pinnedDraft, opts.stateAbbrev, opts.pin.stateId, "saved");
+      if (pinned) return pinned;
+    }
+  }
+
   const { data: account } = await db
     .from("accounts")
     .select("user_id, signup_source")

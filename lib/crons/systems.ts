@@ -90,6 +90,7 @@ export const AUTOMATION_SYSTEMS: AutomationSystem[] = [
       "cms-refresh",
       "cleanup",
       "email-preverify",
+      "deliverability-watch",
     ],
     operational: true,
   },

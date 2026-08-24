@@ -58,7 +58,27 @@ const PAGE = 1000;
  */
 const DELIVERY_GRACE_MS = 6 * 60 * 60 * 1000;
 
-type Cause = "complaint" | "bounce" | "never_delivered";
+type Cause = "complaint" | "bounce" | "never_delivered" | "never_attempted";
+
+/**
+ * Failures that say nothing about whether the provider can be reached.
+ *
+ * "Skipped: user notification preference disabled" is a provider who turned
+ * notifications OFF. They are not dark, they made a choice, and putting them in
+ * a queue of things to fix invites an operator to undo it.
+ *
+ * Resend rate limits and sandbox `to` rejections are our own plumbing failing.
+ * Real, worth fixing, but not evidence about the mailbox — and a provider listed
+ * here as unreachable when their address is fine wastes the operator's trust.
+ */
+function isReachabilityFailure(errorMessage: string | null): boolean {
+  const m = (errorMessage || "").toLowerCase();
+  if (!m) return true;
+  if (m.startsWith("skipped:")) return false;
+  if (m.includes("too many requests")) return false;
+  if (m.includes("invalid `to` field")) return false;
+  return true;
+}
 
 interface LogRow {
   recipient: string;
@@ -119,7 +139,11 @@ export async function GET(request: NextRequest) {
         .eq("recipient_type", "provider")
         .in("email_type", DEMAND_TYPES as unknown as string[])
         .gte("created_at", since)
-        .order("created_at", { ascending: false })
+        // Ordered by id, not created_at. Paging with .range() needs a UNIQUE
+        // sort key: created_at is not unique (a cron blasts hundreds of rows in
+        // the same instant), so page boundaries could duplicate or skip rows.
+        // Nothing here depends on chronological order — everything is aggregated.
+        .order("id", { ascending: true })
         .range(from, to),
     );
 
@@ -147,7 +171,8 @@ export async function GET(request: NextRequest) {
       // hard-bounced after, or a send old enough that a missing delivery event
       // means it never landed rather than that the webhook is still in flight.
       const settled = Date.now() - new Date(r.created_at).getTime() > DELIVERY_GRACE_MS;
-      const lost = r.status === "failed" || !!r.bounced_at || (!r.delivered_at && settled);
+      const failedForReachability = r.status === "failed" && isReachabilityFailure(r.error_message);
+      const lost = failedForReachability || !!r.bounced_at || (r.status !== "failed" && !r.delivered_at && settled);
       if (lost) {
         acc.lost[r.email_type] = (acc.lost[r.email_type] ?? 0) + 1;
         acc.lostCount += 1;
@@ -160,7 +185,16 @@ export async function GET(request: NextRequest) {
 
     const dark = [...byRecipient.values()].filter((a) => a.lostCount > 0);
     if (dark.length === 0) {
-      return NextResponse.json({ windowDays: days, generatedAt: new Date().toISOString(), counts: { total: 0, paid: 0, connection: 0, question: 0, claimed: 0, neverDelivered: 0 }, providers: [] });
+      // Every key the page reads must be present here too. This block was
+      // missed when the tiers were renamed and would have rendered
+      // "Lead undefined" and "undefined demand events lost" on a clean queue —
+      // the one state where the page should look most reassuring.
+      return NextResponse.json({
+        windowDays: days,
+        generatedAt: new Date().toISOString(),
+        counts: { total: 0, paid: 0, lead: 0, question: 0, claimed: 0, neverDelivered: 0, eventsLost: 0, withPhone: 0 },
+        providers: [],
+      });
     }
 
     // All-time history per address decides the CAUSE, and therefore the remedy.
@@ -175,6 +209,13 @@ export async function GET(request: NextRequest) {
             .from("email_log")
             .select("recipient, delivered_at, bounced_at, complained_at")
             .in("recipient", slice)
+            // Only rows that carry an event. A pending or suppressed row tells us
+            // nothing about whether the mailbox works, and skipping them cuts
+            // roughly a third of the fetch.
+            .or("delivered_at.not.is.null,bounced_at.not.is.null,complained_at.not.is.null")
+            // Same unique-key requirement as above; without an ORDER BY, Postgres
+            // makes no promise about row order between pages at all.
+            .order("id", { ascending: true })
             .range(from, to),
       );
       for (const h of hist) {
@@ -226,8 +267,19 @@ export async function GET(request: NextRequest) {
       const key = d.recipient.toLowerCase();
       const h = history.get(key) ?? { delivered: 0, bounced: 0, complained: 0 };
       const p = profiles.get(key);
+      // Nothing delivered AND nothing bounced means we never actually put mail on
+      // the wire — the cold-lane catch-all rule suppresses those before send, and
+      // it is the single largest bucket. Calling that "never delivered" tells an
+      // operator to replace an address that may be perfectly good; the real
+      // remedy is to verify it.
       const cause: Cause =
-        h.complained > 0 && h.bounced === 0 ? "complaint" : h.delivered > 0 ? "bounce" : "never_delivered";
+        h.complained > 0 && h.bounced === 0
+          ? "complaint"
+          : h.delivered > 0
+            ? "bounce"
+            : h.bounced > 0
+              ? "never_delivered"
+              : "never_attempted";
       const tier =
         PRIORITY.find((t) => t.types.some((ty) => d.lost[ty]))?.tier ?? "question";
       return {
@@ -265,7 +317,7 @@ export async function GET(request: NextRequest) {
         lead: providers.filter((p) => p.tier === "lead").length,
         question: providers.filter((p) => p.tier === "question").length,
         claimed: providers.filter((p) => p.claimed).length,
-        neverDelivered: providers.filter((p) => p.cause === "never_delivered").length,
+        neverDelivered: providers.filter((p) => p.cause === "never_delivered" || p.cause === "never_attempted").length,
         eventsLost: providers.reduce((n, p) => n + p.lostCount, 0),
         withPhone: providers.filter((p) => p.phone).length,
       },

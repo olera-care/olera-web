@@ -22,7 +22,7 @@ import AdminPageHeader from "@/components/admin/AdminPageHeader";
  */
 
 type Tier = "paid" | "lead" | "question";
-type Cause = "complaint" | "bounce" | "never_delivered";
+type Cause = "complaint" | "bounce" | "never_delivered" | "never_attempted";
 
 interface Provider {
   recipient: string;
@@ -82,7 +82,12 @@ const CAUSE_STYLE: Record<Cause, { label: string; cls: string; remedy: string }>
   never_delivered: {
     label: "Never delivered",
     cls: "bg-gray-50 text-gray-500 ring-1 ring-gray-200",
-    remedy: "No address has ever worked. Needs a new one, not a retry.",
+    remedy: "Every attempt bounced. Needs a new address, not a retry.",
+  },
+  never_attempted: {
+    label: "Never attempted",
+    cls: "bg-gray-50 text-gray-500 ring-1 ring-gray-200",
+    remedy: "Suppressed before send, usually the cold-lane catch-all rule. Verify the address rather than replacing it.",
   },
 };
 
@@ -137,7 +142,7 @@ export default function DeliverabilityPage() {
   const rows = useMemo(() => {
     if (!data) return [];
     return data.providers.filter((p) => {
-      if (!showNeverDelivered && p.cause === "never_delivered") return false;
+      if (!showNeverDelivered && (p.cause === "never_delivered" || p.cause === "never_attempted")) return false;
       if (tier === "all") return true;
       if (tier === "claimed") return p.claimed;
       return p.tier === tier;
@@ -198,7 +203,7 @@ export default function DeliverabilityPage() {
             <label className="flex items-center gap-2 text-[11px] font-medium text-gray-500">
               <input type="checkbox" checked={showNeverDelivered} onChange={(e) => setShowNeverDelivered(e.target.checked)}
                 className="h-3.5 w-3.5 rounded border-gray-300 text-teal-600 focus:ring-teal-600" />
-              Include {data.counts.neverDelivered} never-delivered listings
+              Include {data.counts.neverDelivered} never-reached listings
             </label>
           </div>
 
@@ -269,8 +274,9 @@ export default function DeliverabilityPage() {
           </div>
 
           <p className="mt-3 text-[11px] leading-relaxed text-gray-400">
-            Showing {rows.length} of {data.counts.total}. Never-delivered listings are hidden by default: they have never
-            accepted a single email, so they are a data-quality backlog rather than a queue a human works today.
+            Showing {rows.length} of {data.counts.total}. Listings that have never once received a message are hidden by
+            default: they are a data-quality backlog rather than a queue a human works today. Providers who turned
+            notifications off are excluded entirely — that is a choice, not a failure.
             Phone numbers come from the directory and are <span className="font-semibold">unverified</span> — no line-type
             check has been run against them.
           </p>

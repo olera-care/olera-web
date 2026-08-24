@@ -159,6 +159,19 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Figure 1 FINALIZED (Logan, 2026-08-24)
+
+Ratified composition: title only ("CareNavigator Coordinates the Eldercare
+Ecosystem to Deliver Preventive Geriatric Care", no subtitle); family box with
+left-aligned needs sentence and family figures; thin needs+means lane down; a
+solid block arrow up labeled Preventive Geriatric Care as the primary outcome;
+enlarged center with the five-step cycle (assess needs + means, update profile,
+build plan, execute plan, track outcomes) around the app and CareNavigator
+wordmark; four flanking boxes (Public Aid Programs, Insurance Coverage,
+Healthcare Services, LTSS) each with paired directional exchange labels.
+Figure 2 (journey) must now reconcile to this vocabulary; Figure 3 redesign
+still deferred.
+
 ## Round eight: vocabulary discipline pass on figure 1 (Logan, 2026-08-24)
 
 - Cycle fixed at five short steps: assess needs + means, update profile, build

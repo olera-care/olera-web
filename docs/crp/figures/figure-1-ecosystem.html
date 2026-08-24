@@ -1,4 +1,17 @@
-<!doctype html><html><head><meta charset="utf-8"><title>CRP Strategy Visuals</title>
+<!doctype html><html><head><meta charset="utf-8"><title>CRP Figure 1 (LOCKED)</title>
+<!--
+  FIGURE 1: CareNavigator Coordinates the Eldercare Ecosystem to Deliver
+  Preventive Geriatric Care.
+
+  STATUS: LOCKED 2026-08-24. Ratified by Logan as a final proposal figure.
+  Do not modify without Logan's explicit direction. The working copy in
+  passes/payer-horizon-visuals-2026-08-24.html mirrors this file; this file
+  is canonical.
+
+  Render: chrome --headless --no-sandbox --disable-gpu \
+    --print-to-pdf=figure-1-ecosystem.pdf --no-pdf-header-footer figure-1-ecosystem.html
+  (One landscape-letter page. QA screenshots at width 979 = true print width.)
+-->
 <style>
 @page { size: letter landscape; margin: 0.35in; }
 * { box-sizing: border-box; }
@@ -147,178 +160,5 @@ table.pay td.rev { background: #eaf5ee !important; }
   <text x="690" y="453" font-size="8.2" font-weight="bold" fill="#14563a" text-anchor="middle">Daily assistance</text>
 </svg>
 </div>
-
-<!-- ============ FIGURE 2: HOW CARENAVIGATOR GETS PAID ============ -->
-<div class="page">
-<h1>2. How CareNavigator Gets Paid</h1>
-<p class="lede">Families never pay. Revenue comes from the organizations that benefit when care is coordinated and established.</p>
-
-<svg width="100%" viewBox="0 0 980 612" font-family="Arial" style="margin-top:6pt">
-
-  <!-- ===== CENTER: free family core ===== -->
-  <rect x="352" y="60" width="276" height="330" rx="13" fill="#eaf5ee" stroke="#1a7f4e" stroke-width="3"/>
-  <g>
-    <circle cx="462" cy="102" r="8" fill="#4a5a6a"/>
-    <path d="M449 142 Q449 114 462 114 Q475 114 475 142 Z" fill="#8a6d9a"/>
-    <circle cx="496" cy="98" r="8" fill="#4a5a6a"/>
-    <path d="M483 142 Q483 110 496 110 Q509 110 509 142 Z" fill="#1a7f4e"/>
-    <rect x="506" y="119" width="7.5" height="13" rx="2" fill="#2b3a33"/>
-    <rect x="507.5" y="121" width="4.5" height="8.5" fill="#eaf5ee"/>
-  </g>
-  <g stroke="#1a7f4e" stroke-width="1.7" fill="none">
-    <circle cx="490" cy="196" r="36" stroke-dasharray="14 6"/>
-  </g>
-  <g fill="#1a7f4e">
-    <circle cx="490" cy="160" r="3.2"/><circle cx="524.2" cy="184.9" r="3.2"/><circle cx="511.2" cy="225.1" r="3.2"/>
-    <circle cx="468.8" cy="225.1" r="3.2"/><circle cx="455.8" cy="184.9" r="3.2"/>
-  </g>
-  <text x="490" y="254" font-size="12.5" font-weight="bold" fill="#1f2a24" text-anchor="middle">CareNavigator</text>
-  <text x="490" y="268" font-size="7.5" fill="#5a7264" text-anchor="middle">assess &#8226; plan &#8226; execute &#8226; track</text>
-  <text x="490" y="304" font-size="13" font-weight="bold" fill="#14563a" text-anchor="middle">Free for families,</text>
-  <text x="490" y="321" font-size="13" font-weight="bold" fill="#14563a" text-anchor="middle">always.</text>
-  <text x="490" y="348" font-size="8.4" fill="#333" text-anchor="middle">Every provider is listed free.</text>
-  <text x="490" y="361" font-size="8.4" fill="#333" text-anchor="middle">No referral fees, ever.</text>
-
-  <!-- ===== money arrows into center ===== -->
-  <path d="M330 210 L342 210 L342 202 L360 218 L342 234 L342 226 L330 226 Z" fill="#1a7f4e" transform="translate(-6,0)"/>
-  <text x="340" y="200" font-size="9.5" font-weight="bold" fill="#14563a" text-anchor="middle">$</text>
-  <path d="M650 210 L638 210 L638 202 L620 218 L638 234 L638 226 L650 226 Z" fill="#1a7f4e" transform="translate(6,0)"/>
-  <text x="640" y="200" font-size="9.5" font-weight="bold" fill="#14563a" text-anchor="middle">$</text>
-
-  <!-- ===== LEFT: provider customers ===== -->
-  <rect x="20" y="60" width="300" height="330" rx="11" fill="#f5faf7" stroke="#1a7f4e" stroke-width="1.5"/>
-  <text x="36" y="86" font-size="8" font-weight="bold" fill="#5a7264" letter-spacing="1.2">SELLING TODAY</text>
-  <text x="36" y="108" font-size="11.5" font-weight="bold" fill="#1f2a24">Providers of care pay for</text>
-  <text x="36" y="123" font-size="11.5" font-weight="bold" fill="#1f2a24">staffing and growth</text>
-  <text x="36" y="143" font-size="8.6" fill="#333">Home care, home health, senior living, and</text>
-  <text x="36" y="156" font-size="8.6" fill="#333">adult day providers in each county.</text>
-
-  <rect x="34" y="168" width="272" height="86" rx="8" fill="#fff" stroke="#6b8f7d" stroke-width="1"/>
-  <text x="46" y="188" font-size="9.8" font-weight="bold" fill="#1f4534">Caregiver Staffing</text>
-  <text x="46" y="204" font-size="8.4" fill="#333">We recruit caregivers. The provider hires,</text>
-  <text x="46" y="217" font-size="8.4" fill="#333">trains, and supervises them.</text>
-  <text x="46" y="238" font-size="8.4" font-weight="bold" fill="#14563a">Monthly subscription or per-hire fee</text>
-
-  <rect x="34" y="266" width="272" height="86" rx="8" fill="#fff" stroke="#6b8f7d" stroke-width="1"/>
-  <text x="46" y="286" font-size="9.8" font-weight="bold" fill="#1f4534">Client Growth Services</text>
-  <text x="46" y="302" font-size="8.4" fill="#333">Managed marketing and reputation that win</text>
-  <text x="46" y="315" font-size="8.4" fill="#333">clients beyond the free listing.</text>
-  <text x="46" y="336" font-size="8.4" font-weight="bold" fill="#14563a">Monthly service fee</text>
-
-  <text x="36" y="376" font-size="8.4" font-style="italic" fill="#555">The free marketplace brings them demand. They</text>
-  <text x="36" y="388" font-size="8.4" font-style="italic" fill="#555">pay for the staff and reach to serve it.</text>
-
-  <!-- ===== RIGHT: institutional customers ===== -->
-  <rect x="660" y="60" width="300" height="330" rx="11" fill="#fcfdfb" stroke="#1a7f4e" stroke-width="1.5" stroke-dasharray="7 4"/>
-  <text x="676" y="86" font-size="8" font-weight="bold" fill="#8a6d1f" letter-spacing="1.2">EMERGING BUYERS &#8226; LONGER SALES CYCLES</text>
-  <text x="676" y="108" font-size="11.5" font-weight="bold" fill="#1f2a24">Institutions sponsor navigation</text>
-  <text x="676" y="123" font-size="11.5" font-weight="bold" fill="#1f2a24">for the people they cover</text>
-  <text x="676" y="143" font-size="8.6" fill="#333">Medicare Advantage plans, Medicaid managed</text>
-  <text x="676" y="156" font-size="8.6" fill="#333">care, health systems and ACOs, employers.</text>
-
-  <rect x="674" y="168" width="272" height="124" rx="8" fill="#fff" stroke="#6b8f7d" stroke-width="1"/>
-  <text x="686" y="188" font-size="9.8" font-weight="bold" fill="#1f4534">Sponsored Navigation Episodes</text>
-  <text x="686" y="204" font-size="8.4" fill="#333">Outreach to the members they identify,</text>
-  <text x="686" y="217" font-size="8.4" fill="#333">navigation carried to completion, integration</text>
-  <text x="686" y="230" font-size="8.4" fill="#333">with their workflows, and verified results</text>
-  <text x="686" y="243" font-size="8.4" fill="#333">reported back with the family's consent.</text>
-  <text x="686" y="264" font-size="8.4" font-weight="bold" fill="#14563a">Fee per completed episode,</text>
-  <text x="686" y="277" font-size="8.4" font-weight="bold" fill="#14563a">later per member per month</text>
-
-  <text x="676" y="318" font-size="8.4" font-style="italic" fill="#555">Access is never gated. Families always enter</text>
-  <text x="676" y="330" font-size="8.4" font-style="italic" fill="#555">free. Institutions pay for outreach, completion,</text>
-  <text x="676" y="342" font-size="8.4" font-style="italic" fill="#555">integration, and proof, never for entry.</text>
-  <text x="676" y="368" font-size="8.4" fill="#555">They buy once results are proven, on one to</text>
-  <text x="676" y="380" font-size="8.4" fill="#555">two year contracting cycles.</text>
-
-  <!-- ===== BOTTOM: revenue magnitude ===== -->
-  <text x="20" y="432" font-size="11" font-weight="bold" fill="#1f2a24">Illustrative annual revenue potential, one mid-sized county</text>
-
-  <text x="20" y="462" font-size="9" fill="#333">Provider services</text>
-  <rect x="180" y="450" width="132" height="18" rx="3" fill="#1a7f4e"/>
-  <text x="320" y="463" font-size="9.5" font-weight="bold" fill="#14563a">~$85K per year</text>
-
-  <text x="20" y="494" font-size="9" fill="#333">Institutional sponsorship</text>
-  <rect x="180" y="482" width="620" height="18" rx="3" fill="#eaf5ee" stroke="#1a7f4e" stroke-width="1.4" stroke-dasharray="6 4"/>
-  <text x="808" y="495" font-size="9.5" font-weight="bold" fill="#14563a">~$400K+ per year</text>
-
-  <line x1="180" y1="444" x2="180" y2="506" stroke="#b9cec3" stroke-width="1"/>
-  <text x="20" y="530" font-size="8" fill="#777">Assumption-based estimates, not validated pricing or volumes. Provider pricing is anchored to pilot willingness to pay.</text>
-  <text x="20" y="542" font-size="8" fill="#777">Institutional pricing is anchored to comparable navigation vendors and Medicare's existing payment for dementia navigation.</text>
-</svg>
-</div>
-
-<!-- ============ FIGURE 3: DETAILED CUSTOMER AND REVENUE MODEL ============ -->
-<div class="page">
-<h1>3. What Each Customer Buys, and What It Could Generate</h1>
-<p class="q">The detail behind Figure 2. All pricing and volumes are illustrative assumptions for one mid-sized county.</p>
-
-<table class="pay">
-<tr><th style="width:16%">Customer</th><th style="width:18%">Value received</th><th style="width:18%">Product purchased</th><th style="width:13%">Payment model</th><th style="width:11%">Illustrative pricing</th><th style="width:12%">Volume per county</th><th style="width:12%">Annual revenue per county</th></tr>
-<tr><td colspan="7" style="background:#e3efe8; font-weight:bold; font-size:8.4pt;">Selling today &#8212; local providers of care</td></tr>
-<tr>
-  <td>Home care, home health, senior living, and adult day providers</td>
-  <td>Caregivers to staff the shifts and cases the marketplace brings them</td>
-  <td><b>Caregiver Staffing.</b> We recruit; the provider hires, trains, and supervises</td>
-  <td>Monthly subscription or per-hire fee</td>
-  <td>~$200/month or ~$500/hire</td>
-  <td>~25 paying providers</td>
-  <td class="rev"><b>~$60K</b></td></tr>
-<tr>
-  <td>The same providers</td>
-  <td>New clients won beyond their free marketplace listing</td>
-  <td><b>Client Growth Services.</b> Managed marketing and reputation</td>
-  <td>Monthly service fee</td>
-  <td>~$200/month</td>
-  <td>~10 paying providers</td>
-  <td class="rev"><b>~$25K</b></td></tr>
-<tr><td colspan="7" style="background:#faf5e4; font-weight:bold; font-size:8.4pt;">Emerging institutional buyers &#8212; longer sales cycles; they buy once results are proven</td></tr>
-<tr>
-  <td>Medicare Advantage plans</td>
-  <td>Members' home support actually established, with verified reporting; dual-eligible enrollment completed</td>
-  <td><b>Sponsored Navigation Episodes</b> for members they identify</td>
-  <td>Fee per completed episode, later per member per month</td>
-  <td>~$400/episode</td>
-  <td>~500 episodes/year</td>
-  <td class="rev"><b>~$200K</b></td></tr>
-<tr>
-  <td>Medicaid managed care organizations</td>
-  <td>Waiver enrollment finished; members served at home instead of in institutions</td>
-  <td>Sponsored Navigation Episodes, waiver-focused</td>
-  <td>Fee per completed episode</td>
-  <td>~$500/episode</td>
-  <td>~200 episodes/year</td>
-  <td class="rev"><b>~$100K</b></td></tr>
-<tr>
-  <td>Health systems and ACOs</td>
-  <td>Timely discharges to home support that starts, with closure reported back</td>
-  <td>Discharge navigation episodes</td>
-  <td>Fee per episode</td>
-  <td>~$200/episode</td>
-  <td>~300 episodes/year</td>
-  <td class="rev"><b>~$60K</b></td></tr>
-<tr>
-  <td>Self-insured employers</td>
-  <td>Working family caregivers supported; fewer crisis absences</td>
-  <td>Caregiver-support benefit for employees</td>
-  <td>Per employee per month</td>
-  <td>~$2-4 per employee/month</td>
-  <td>1-2 contracts</td>
-  <td class="rev"><b>~$50K</b></td></tr>
-<tr>
-  <td>Public aging agencies</td>
-  <td>Casework capacity behind their existing helplines</td>
-  <td>Contracted navigation capacity</td>
-  <td>Public contract or grant</td>
-  <td>Varies</td>
-  <td>1 contract</td>
-  <td class="rev"><b>~$25-50K</b></td></tr>
-<tr>
-  <td colspan="6" style="font-weight:bold; text-align:right;">Illustrative total, one mid-sized county at maturity</td>
-  <td class="rev"><b>~$500K+/year</b></td></tr>
-</table>
-<p class="footnote">All figures are assumptions, not validated economics. Provider pricing is anchored to pilot willingness to pay. Institutional pricing is anchored to comparable navigation vendors and Medicare's existing payment for dementia navigation. Institutions never pay to gate access; they pay for outreach, completion, workflow integration, and verified reporting above the free family layer.</p>
-</div>
-
 
 </body></html>

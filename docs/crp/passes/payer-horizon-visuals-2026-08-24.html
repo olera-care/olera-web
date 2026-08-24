@@ -1,0 +1,338 @@
+<!doctype html><html><head><meta charset="utf-8"><title>CRP Strategy Visuals</title>
+<style>
+@page { size: letter landscape; margin: 0.4in; }
+* { box-sizing: border-box; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #1a1a1a; margin: 0; }
+.page { page-break-after: always; padding: 2pt 4pt; }
+.page:last-child { page-break-after: avoid; }
+h1 { font-size: 15pt; margin: 0 0 2pt 0; }
+.q { font-size: 10.5pt; color: #555; margin: 0 0 10pt 0; font-style: italic; }
+.takeaway { margin-top: 10pt; padding: 7pt 10pt; background: #f4f4f4; border-left: 3px solid #333; font-size: 10pt; }
+.takeaway b { font-size: 10pt; }
+
+/* evidence tiers */
+.t-now { background: #e9f5ee; border: 2px solid #1a7f4e; }
+.t-crp { background: #eaf1fb; border: 2px dashed #1d5fbf; }
+.t-hyp { background: #fdf5e0; border: 2px dotted #a8760a; color: #5a4a1a; }
+.legend { display: flex; gap: 14pt; align-items: center; margin: 0 0 10pt 0; font-size: 8.5pt; }
+.legend .chip { padding: 2pt 8pt; border-radius: 3pt; }
+.legend .lbl { color: #666; font-weight: bold; margin-right: 2pt; }
+
+.box { border-radius: 5pt; padding: 7pt 9pt; }
+.box h3 { margin: 0 0 3pt 0; font-size: 10.5pt; }
+.box p { margin: 0; font-size: 8.8pt; line-height: 1.25; }
+.tag { display: inline-block; font-size: 7pt; font-weight: bold; letter-spacing: 0.5px; text-transform: uppercase; margin-bottom: 3pt; color: #666; }
+
+/* P1 system map */
+.sysgrid { display: grid; grid-template-columns: 1fr 46pt 1.35fr 46pt 1fr; grid-template-rows: auto auto auto auto; gap: 4pt 0; align-items: stretch; }
+.conn { display: flex; align-items: center; justify-content: center; flex-direction: column; font-size: 8pt; color: #444; text-align: center; padding: 0 2pt; }
+.conn .ar { font-size: 15pt; line-height: 1; color: #333; }
+.money { color: #1a7f4e; font-weight: bold; }
+.vconn { text-align: center; font-size: 8pt; color: #444; padding: 1pt 0; }
+.vconn .ar { font-size: 13pt; line-height: 1; }
+
+/* P2 pathway */
+.path { display: flex; gap: 0; align-items: stretch; }
+.step { flex: 1; display: flex; flex-direction: column; }
+.step .box { flex: 1; border-radius: 4pt; padding: 5pt 6pt; }
+.step .box h3 { font-size: 9pt; }
+.step .box p { font-size: 7.8pt; }
+.sarrow { display: flex; align-items: center; font-size: 13pt; color: #555; padding: 0 2pt; }
+.rowlab { font-size: 8pt; font-weight: bold; color: #666; text-transform: uppercase; letter-spacing: 0.5px; margin: 8pt 0 3pt 0; }
+.painrow { display: flex; gap: 6pt; }
+.pain { flex: 1; font-size: 7.8pt; color: #8a2020; background: #faeeee; border-radius: 3pt; padding: 4pt 6pt; line-height: 1.25; }
+
+/* P3 table */
+table.pay { border-collapse: collapse; width: 100%; font-size: 8.6pt; }
+table.pay th { background: #2b2b2b; color: #fff; padding: 5pt 6pt; text-align: left; font-size: 8.6pt; }
+table.pay td { border: 1px solid #ccc; padding: 5pt 6pt; vertical-align: top; line-height: 1.28; }
+table.pay tr.now td { background: #e9f5ee; }
+table.pay tr.later td { background: #fdf5e0; color: #4d4325; }
+table.pay tr.dim td { background: #f6f6f6; color: #777; }
+.rowtag { font-size: 6.8pt; font-weight: bold; text-transform: uppercase; letter-spacing: 0.4px; display: block; margin-top: 2pt; }
+.rowtag.g { color: #1a7f4e; } .rowtag.a { color: #a8760a; } .rowtag.gr { color: #888; }
+
+/* P4 flywheel */
+.loop { display: flex; align-items: stretch; gap: 0; }
+.loop .box { flex: 1; padding: 6pt 7pt; border-radius: 4pt; }
+.loop .box h3 { font-size: 9.2pt; } .loop .box p { font-size: 7.9pt; }
+.returnbar { display: flex; align-items: center; gap: 6pt; margin-top: 5pt; }
+.returnline { flex: 1; border-bottom: 2px solid #1a7f4e; position: relative; height: 1pt; }
+.returnlab { font-size: 8.5pt; color: #1a7f4e; font-weight: bold; white-space: nowrap; }
+.returnbar.h .returnline { border-bottom: 2px dotted #a8760a; }
+.returnbar.h .returnlab { color: #a8760a; }
+.branch { text-align: center; font-size: 8.5pt; color: #a8760a; margin: 8pt 0 3pt 0; }
+.branch .ar { font-size: 13pt; }
+
+/* P5 bands */
+.bands { display: flex; gap: 8pt; align-items: stretch; }
+.band { flex: 1; border-radius: 5pt; padding: 8pt 10pt; }
+.band h2 { font-size: 11pt; margin: 0 0 5pt 0; }
+.band ul { margin: 0; padding-left: 13pt; font-size: 8.7pt; line-height: 1.45; }
+.band .sub { font-size: 8pt; color: #555; margin: 0 0 5pt 0; }
+.rule { margin-top: 9pt; padding: 7pt 10pt; border: 2px solid #333; border-radius: 5pt; font-size: 10pt; text-align: center; background: #fff; }
+
+/* P6 side by side */
+.duo { display: flex; gap: 10pt; }
+.thesis { flex: 1; border-radius: 5pt; padding: 8pt 11pt; }
+.thesis h2 { font-size: 11.5pt; margin: 0 0 4pt 0; }
+.thesis .claim { font-size: 9.5pt; font-style: italic; margin: 0 0 6pt 0; line-height: 1.3; }
+.thesis dl { margin: 0; font-size: 8.7pt; line-height: 1.3; }
+.thesis dt { font-weight: bold; margin-top: 5pt; color: #444; font-size: 8pt; text-transform: uppercase; letter-spacing: 0.4px; }
+.thesis dd { margin: 1pt 0 0 0; }
+.verdict { display: flex; gap: 8pt; margin-top: 9pt; }
+.v { flex: 1; border-radius: 5pt; padding: 6pt 9pt; font-size: 8.6pt; line-height: 1.35; }
+.v h4 { margin: 0 0 3pt 0; font-size: 9pt; }
+.v.keep { background: #e9f5ee; border: 2px solid #1a7f4e; }
+.v.adopt { background: #eaf1fb; border: 2px dashed #1d5fbf; }
+.v.rej { background: #faeeee; border: 2px solid #b04040; }
+</style></head><body>
+
+<!-- ============ PAGE 1: WHAT ARE WE BUILDING ============ -->
+<div class="page">
+<h1>1. What are we actually building?</h1>
+<p class="q">One level above the feature list: who does CareNavigator coordinate, what flows between them, and where does money enter?</p>
+<div class="legend"><span class="lbl">EVIDENCE TIERS, ALL PAGES:</span>
+<span class="chip t-now">Exists today, with evidence</span>
+<span class="chip t-crp">The CRP builds and tests this</span>
+<span class="chip t-hyp">Post-CRP hypothesis, not claimed</span></div>
+
+<div class="sysgrid">
+  <div></div><div></div>
+  <div class="box t-now" style="text-align:center"><h3>Aid &amp; benefits programs</h3><p>Medicaid waivers, VA, state and local aid. An estimated $58B goes unclaimed yearly because families cannot navigate them.</p></div>
+  <div></div><div></div>
+
+  <div></div><div></div>
+  <div class="vconn"><span class="ar">&#8645;</span> finds what pays; completes applications <span style="color:#1d5fbf">(execution loop: CRP builds)</span></div>
+  <div></div><div></div>
+
+  <div class="box t-now"><h3>Families</h3><p>15,500+ monthly organic visitors. Use everything <b>free, always</b>. No entry fee, no referral fee, ever.</p></div>
+  <div class="conn"><span class="ar">&#8646;</span><span>screen, match,<br>follow up to<br><b>care established</b></span></div>
+  <div class="box t-now" style="text-align:center"><h3>CareNavigator (Olera)</h3><p><b>The coordination core:</b> screens needs, qualifies funding, executes applications, matches to providers <b>with confirmed capacity</b>, follows up until care starts, and <b>verifies establishment from its own records</b>. The verified record is the asset no one else holds.</p></div>
+  <div class="conn"><span class="ar">&#8646;</span><span>every provider listed;<br><b>no one pays for<br>a referral</b></span></div>
+  <div class="box t-now"><h3>Care providers</h3><p>725+ onboarded. Their two survival problems: finding clients and finding staff. They already pay others to solve both.<br><span class="money">$ buy staffing + growth tools &#8594; CRP tests this</span></p></div>
+
+  <div class="box t-hyp"><h3>Risk-bearing organizations</h3><p>MA plans, Medicaid MCOs, health systems, employers. They <b>sponsor navigation for families they cover</b>: demand-side money, so neutrality survives.<br><span class="money">$ per completed episode &#8594; post-CRP</span></p></div>
+  <div class="conn"><span class="ar">&#8593;</span><span>send covered members<br>into the same loop</span></div>
+  <div class="vconn"><span class="ar">&#8645;</span> recruits students; providers hire, train, supervise</div>
+  <div></div><div></div>
+
+  <div></div><div></div>
+  <div class="box t-crp" style="text-align:center"><h3>Caregiving workforce (health-professions students)</h3><p>New capacity, not competition for the scarce existing pool. Pilot evidence: providers paid, 20+ placements. CRP scales and tests it.</p></div>
+  <div></div><div></div>
+</div>
+
+<div class="takeaway"><b>What this teaches:</b> the marketplace is the chassis; the product is coordination that ends in <b>verified establishment</b>. Money only ever enters from the supply side buying tools (now) or the demand side sponsoring navigation (later). No provider ever pays for a referral, so the neutral position is never for sale.</div>
+</div>
+
+<!-- ============ PAGE 2: THE PATHWAY ============ -->
+<div class="page">
+<h1>2. The care-establishment pathway</h1>
+<p class="q">Where do families fail today, what does CareNavigator change at each step, and where does the downstream value arise?</p>
+<div class="legend"><span class="chip t-now">Exists today</span><span class="chip t-crp">CRP builds / proves</span><span class="chip t-hyp">Post-CRP hypothesis</span></div>
+
+<div class="path">
+  <div class="step"><div class="box t-now"><span class="tag">Step 1</span><h3>Need recognized</h3><p>Family reaches the platform organically, usually mid-crisis.</p></div></div>
+  <div class="sarrow">&#8594;</div>
+  <div class="step"><div class="box t-now"><span class="tag">Step 2</span><h3>Needs identified</h3><p>AI screening + curated database match care type to situation. Usability validated (Phases I-IIB).</p></div></div>
+  <div class="sarrow">&#8594;</div>
+  <div class="step"><div class="box t-now"><span class="tag">Step 3</span><h3>Funding qualified</h3><p>What aid, insurance, or family resources can pay. Live today.</p></div></div>
+  <div class="sarrow">&#8594;</div>
+  <div class="step"><div class="box t-crp"><span class="tag">Step 4</span><h3>Applications executed</h3><p>Carry each application to a decision. Families are lost here today (measured on our own funnel).</p></div></div>
+  <div class="sarrow">&#8594;</div>
+  <div class="step"><div class="box t-crp"><span class="tag">Step 5</span><h3>Provider with capacity connected</h3><p>Capacity-aware matching; response tracked to completion.</p></div></div>
+  <div class="sarrow">&#8594;</div>
+  <div class="step"><div class="box t-crp"><span class="tag">Step 6</span><h3>Workforce to staff the case</h3><p>Student caregivers add the capacity to say yes (pilot: paid, 20+ placements).</p></div></div>
+  <div class="sarrow">&#8594;</div>
+  <div class="step"><div class="box t-crp" style="border-width:3px"><span class="tag">Step 7</span><h3>CARE ESTABLISHED, verified</h3><p><b>Measured: rate, time to care, benefit $ secured, referral closure.</b> Expert-verified.</p></div></div>
+  <div class="sarrow" style="color:#a8760a">&#8594;</div>
+  <div class="step"><div class="box t-hyp"><span class="tag">Downstream</span><h3>Crises averted</h3><p>Fewer ER visits and readmissions, later institutionalization, lower total cost. Needs payer data; not a CRP claim.</p></div></div>
+</div>
+
+<div class="rowlab">Why each step fails today</div>
+<div class="painrow">
+  <div class="pain">Nobody to ask; advice is fragmented</div>
+  <div class="pain">Directories list, but do not assess</div>
+  <div class="pain">$58B in aid unclaimed each year</div>
+  <div class="pain">Complex applications abandoned; no one follows up after filing</div>
+  <div class="pain">Calls go unanswered; no one knows who has capacity</div>
+  <div class="pain">63.3% of home-care providers declined cases in 2023 for lack of staff</div>
+  <div class="pain">No actor is accountable for whether care actually started</div>
+  <div class="pain">Cascade: caregiver breakdown, emergency care, premature institutionalization</div>
+</div>
+
+<div class="takeaway"><b>What this teaches:</b> everything left of Step 7 is measurable from our own records; everything right of it lives in payers' claims data. The CRP builds Steps 4-6 and proves Step 7. Identification (Steps 1-3) is the half NIH already built. "Earlier" is measurable now as <b>time from recognized need to established care</b>: no claims data required.</div>
+</div>
+
+<!-- ============ PAGE 3: WHO BENEFITS, WHO PAYS ============ -->
+<div class="page">
+<h1>3. Who benefits, who pays, and why?</h1>
+<p class="q">For each plausible payer: what value do they receive, why would they pay, what would they buy, and what evidence must exist first?</p>
+
+<table class="pay">
+<tr><th style="width:13%">Payer</th><th style="width:18%">Value received</th><th style="width:17%">Economic incentive</th><th style="width:16%">What they buy from Olera</th><th style="width:14%">Payment model</th><th style="width:22%">Evidence needed before they pay</th></tr>
+<tr class="now">
+  <td><b>Care providers</b> (home care, senior living)<span class="rowtag g">The CRP tests this</span></td>
+  <td>Qualified, funded families arriving; students to staff the shifts that let them say yes</td>
+  <td>Client acquisition and staffing are their two survival costs; they already pay others for both (thousands per client at incumbents)</td>
+  <td>Staff Recruitment; client-growth tools</td>
+  <td>Subscription + per-placement</td>
+  <td>Already partly in hand: paid staffing pilot, free-pilot cohorts. CRP measures willingness to pay at rising marketplace activity, then real billing</td></tr>
+<tr class="later">
+  <td><b>Medicare Advantage plans</b><span class="rowtag a">Post-CRP, evidence-gated</span></td>
+  <td>Members' home support actually established, with the record returned; dual-eligible qualification</td>
+  <td>Capitated: avoidable ER, readmissions, SNF days are their cost; stars and retention are their revenue</td>
+  <td>Navigation episodes for defined cohorts (post-discharge, ADL-flagged, dual candidates)</td>
+  <td>Case rate per completed episode &#8594; PMPM at scale</td>
+  <td>Operational, not RCT-grade: establishment rate, time to care, cost per episode, member experience, reliability in their counties. This is the Aim 1 evidence package</td></tr>
+<tr class="later">
+  <td><b>Medicaid MCOs + state aging agencies</b><span class="rowtag a">Post-CRP, evidence-gated</span></td>
+  <td>Waiver applications completed; home and community care established; nursing-facility entry deferred</td>
+  <td>Institutional care costs roughly 2-3x home care; every state has a rebalancing mandate; waivers underused because navigation is broken</td>
+  <td>Establishment case rates; care-coordination subcontract. Our staffing supply also eases their capacity constraint</td>
+  <td>Case rate per completed establishment</td>
+  <td>Same package + county coverage. Procurement runs 12-24 months, which is exactly why this is post-CRP revenue</td></tr>
+<tr class="later">
+  <td><b>Health systems / ACOs</b><span class="rowtag a">Post-CRP, evidence-gated</span></td>
+  <td>Discharges placed with providers that have confirmed capacity; closure reported back</td>
+  <td>Delayed discharges cost bed-days today; readmissions cost penalties; ACOs hold total-cost risk</td>
+  <td>Post-discharge navigation episodes</td>
+  <td>Per-episode fee paid by the system</td>
+  <td>Time-to-establishment and completion rate in their discharge geography</td></tr>
+<tr class="dim">
+  <td><b>Self-insured employers</b><span class="rowtag gr">Later horizon</span></td>
+  <td>Working caregivers supported; fewer crisis absences</td>
+  <td>Productivity and retention (comps: Wellthy, Homethrive)</td>
+  <td>Caregiver-support benefit</td>
+  <td>Per-employee-per-month</td>
+  <td>Mostly operational + satisfaction; broker-mediated annual cycles</td></tr>
+</table>
+
+<div class="takeaway"><b>What this teaches:</b> every institutional row pays on the <b>demand side</b>, sponsoring navigation for people they cover. The supply side never pays for placement, so adding payers never breaks neutrality. One precedent anchors the whole column: <b>CMS GUIDE already pays 390 organizations for navigation episodes</b>. The question is not whether institutions pay for navigation; it is whether we have the evidence, and the CRP is the machine that makes it.</div>
+</div>
+
+<!-- ============ PAGE 4: THE FLYWHEEL ============ -->
+<div class="page">
+<h1>4. The flywheel: how one value creates the next</h1>
+<p class="q">Does the system compound? The inner loop is what the CRP runs and tests; the outer loop is what its evidence could unlock.</p>
+<div class="legend"><span class="chip t-crp">Inner loop: the CRP builds and tests this</span><span class="chip t-hyp">Outer loop: post-CRP, evidence-gated</span></div>
+
+<div class="rowlab">Inner loop (Aims 1-3)</div>
+<div class="loop">
+  <div class="box t-crp"><h3>Families arrive free</h3><p>Organic demand concentrated into 12 county markets at measured cost</p></div>
+  <div class="sarrow">&#8594;</div>
+  <div class="box t-crp"><h3>Care gets established</h3><p>Execution + follow-up loops; rate, time, and benefit $ verified</p></div>
+  <div class="sarrow">&#8594;</div>
+  <div class="box t-crp"><h3>Providers gain</h3><p>Funded clients arrive; student caregivers staff the shifts to say yes</p></div>
+  <div class="sarrow">&#8594;</div>
+  <div class="box t-crp"><h3>Providers buy tools</h3><p>Staffing + growth products; willingness to pay measured as activity rises</p></div>
+  <div class="sarrow">&#8594;</div>
+  <div class="box t-crp"><h3>Revenue covers the market</h3><p>The self-funding condition, verified independently, market by market</p></div>
+</div>
+<div class="returnbar"><span class="returnlab">&#8630; earnings reopen the loop: more family acquisition, next counties, navigation stays free</span><div class="returnline"></div></div>
+
+<div class="branch"><span class="ar">&#8600;</span> every completed loop also produces the <b>verified establishment record</b>, which feeds the outer loop <span class="ar">&#8601;</span></div>
+
+<div class="rowlab" style="color:#a8760a">Outer loop (post-CRP, unlocked by the evidence)</div>
+<div class="loop">
+  <div class="box t-hyp"><h3>Evidence package exists</h3><p>Establishment rate, time to care, cost per episode, per-county economics</p></div>
+  <div class="sarrow" style="color:#a8760a">&#8594;</div>
+  <div class="box t-hyp"><h3>Payers sign pilots</h3><p>MA plans, MCOs, health systems buy navigation episodes for covered members</p></div>
+  <div class="sarrow" style="color:#a8760a">&#8594;</div>
+  <div class="box t-hyp"><h3>Sponsored families enter</h3><p>Covered cohorts join the same free loop; volume grows without ad spend</p></div>
+  <div class="sarrow" style="color:#a8760a">&#8594;</div>
+  <div class="box t-hyp"><h3>Payer-linked outcomes study</h3><p>Their claims data finally tests utilization and institutionalization effects</p></div>
+  <div class="sarrow" style="color:#a8760a">&#8594;</div>
+  <div class="box t-hyp"><h3>Bigger flywheel</h3><p>Per-episode revenue + outcomes proof accelerate county expansion</p></div>
+</div>
+<div class="returnbar h"><span class="returnlab">&#8630; payer demand feeds more families into the SAME inner loop; the mechanism never changes</span><div class="returnline"></div></div>
+
+<div class="takeaway"><b>What this teaches:</b> the flywheel is real, but it has a load-bearing joint: <b>the verified establishment record</b> is the only thing that connects the inner loop to the outer one. If the CRP proves the inner loop, the outer loop becomes a sales problem. If we chase the outer loop now, we skip the proof that powers it.</div>
+</div>
+
+<!-- ============ PAGE 5: THREE-YEAR PROOF VS LONGER-TERM ============ -->
+<div class="page">
+<h1>5. What the CRP proves vs what it positions</h1>
+<p class="q">The scope-creep guard: which outcomes are proximal enough to measure in three years, and which belong to the longer-term thesis?</p>
+
+<div class="bands">
+  <div class="band t-now">
+    <h2>Evidence in hand today</h2>
+    <p class="sub">Established across Phases I-IIB and pilots</p>
+    <ul>
+      <li>Platform + curated national database; usability validated</li>
+      <li>15,500+ monthly organic visitors</li>
+      <li>725+ onboarded providers</li>
+      <li>Paid staffing pilot: providers paid, 20+ placements</li>
+      <li>Identification-to-establishment fall-off measured on our own funnel</li>
+      <li>$58B unclaimed aid; 63.3% of home-care providers declined cases (2023)</li>
+      <li>CMS GUIDE precedent: institutions already pay for navigation</li>
+    </ul>
+  </div>
+  <div class="band t-crp">
+    <h2>The CRP proves (by award end)</h2>
+    <p class="sub">From our own platform records + the IRB study</p>
+    <ul>
+      <li><b>Outcome:</b> establishment rate vs pre-registered bar; <b>time to established care</b>; benefit $ secured; connection completion</li>
+      <li><b>Economic value:</b> family CAC + cost to serve; provider value delivered; willingness to pay at rising activity; price, retention, churn under real billing; capacity added by students</li>
+      <li><b>Replicability:</b> the self-funding condition per market; a 12-market entry playbook; which market features predicted success</li>
+      <li>Optional secondary (Qiping's call): caregiver-reported burden, self-report only</li>
+    </ul>
+  </div>
+  <div class="band t-hyp">
+    <h2>Positioned, not proven</h2>
+    <p class="sub">Requires payer data, comparison groups, or counterparties</p>
+    <ul>
+      <li>Reduced ER visits and hospitalizations</li>
+      <li>Fewer 30-day readmissions</li>
+      <li>Delayed institutionalization; total cost of care</li>
+      <li>Payer revenue at scale (PMPM, shared savings)</li>
+      <li>Employer channel economics</li>
+      <li><b>Note:</b> the first payer pilot IS the study that tests these, co-funded by the payer whose data can answer them</li>
+    </ul>
+  </div>
+</div>
+
+<div class="rule"><b>The bright line:</b> measurable from our own platform records or participant self-report &#8594; belongs to the CRP.<br>Requires claims data or comparison populations &#8594; a post-CRP hypothesis, addressed to the payer whose data answers it.</div>
+
+<div class="takeaway"><b>What this teaches:</b> David's triad already maps onto the middle column: outcome = H1, economic value = H2/H3/H5/H6, replicability = H6 + the playbook. We adopt his names without adding a single new endpoint. Nothing in the right column ever migrates left without a payer partner and their data.</div>
+</div>
+
+<!-- ============ PAGE 6: CURRENT VS EXPANDED THESIS ============ -->
+<div class="page">
+<h1>6. Current thesis vs expanded conception</h1>
+<p class="q">Is the broader framing a genuine evolution or grander language? What changes, what it costs, and what must not move.</p>
+
+<div class="duo">
+  <div class="thesis t-now">
+    <h2>Current thesis (the CRP as written)</h2>
+    <p class="claim">"A free and open marketplace, where no one pays for referrals, can be sustained by providers buying products whose value the marketplace creates."</p>
+    <dl>
+      <dt>Customer in 3 years</dt><dd>Care providers (staffing first, growth tools second)</dd>
+      <dt>Award-end proof</dt><dd>Establishment works, at known cost; providers pay; markets self-fund; playbook replicates</dd>
+      <dt>Strength</dt><dd>Falsifiable, self-contained, every endpoint under our control</dd>
+      <dt>Weakness</dt><dd>Can read as "just a marketplace"; undersells who else eventually pays and why the record matters</dd>
+    </dl>
+  </div>
+  <div class="thesis t-crp">
+    <h2>Expanded conception (same experiment, bigger frame)</h2>
+    <p class="claim">"The system that establishes care and proves it. Verified establishment creates value for families, providers, and the organizations financially responsible for what happens when care is NOT established."</p>
+    <dl>
+      <dt>Customer in 3 years</dt><dd>Unchanged: care providers. Institutions appear only as the evidence-gated second horizon</dd>
+      <dt>Award-end proof</dt><dd>Same endpoints, told as outcome / economic value / replicability, plus time-to-care on the scoreboard</dd>
+      <dt>What it gains</dt><dd>Answers "why does this matter beyond providers"; makes the evidence package the product; hands the vision a national ending</dd>
+      <dt>What it risks</dt><dd>If payers or clinical outcomes leak into the tested aims: unfundable scope, human-subjects reweighting, credibility loss</dd>
+    </dl>
+  </div>
+</div>
+
+<div class="verdict">
+  <div class="v adopt"><h4>Adopt (cheap, real gains)</h4>Outcome / economic value / replicability as the award-end frame &bull; time to established care as a headline Aim 1 metric &bull; one payer-horizon passage in the CP (demand-side sponsor logic, GUIDE precedent, case-rate entry) &bull; data-asset and employer sentences in the CP</div>
+  <div class="v keep"><h4>Keep unchanged (the spine)</h4>H1-H6 and the three aims &bull; twelve markets &bull; provider-funded self-sufficiency as THE tested hypothesis &bull; the neutrality rule &bull; establishment as operational telemetry, never a clinical endpoint</div>
+  <div class="v rej"><h4>Reject for this CRP</h4>Clinical utilization outcomes as tested endpoints &bull; payer revenue as a tested hypothesis &bull; "operating system" language in NIH prose &bull; any new SKU or market count born from excitement rather than evidence</div>
+</div>
+
+<div class="takeaway"><b>The answer to the governing question:</b> we are building a better eldercare marketplace <i>whose completion records make it coordination infrastructure over time</i>. The marketplace is how; verified establishment is what; the payers are when-the-evidence-exists. The larger vision belongs in this CRP exactly twice: one paragraph of horizon in the CP, and one metric (time to care) in Aim 1. Everything else it earns later.</div>
+</div>
+
+</body></html>

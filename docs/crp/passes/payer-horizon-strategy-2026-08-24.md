@@ -95,9 +95,30 @@ plan-paid care coordination is an established category.)
   (GUIDE), not sales; commercial insurance enters as employer caregiver
   benefits because the older adult is usually not the commercial member.
 
+## Visuals review outcomes (Logan, 2026-08-24)
+
+- Figures 4 (flywheel), 5 (proof bands), and 6 (thesis comparison) retired at
+  Logan's direction; replaced by one "expanded conception" figure carrying the
+  claim, customer, award-end proof, gains, risks, and post-award trajectory.
+- Wording fix ratified: name the downstream buyers directly ("the insurers and
+  health systems that end up paying for the ER visits, hospital stays, and
+  nursing-home placements that follow when care is never established"), not
+  "organizations financially responsible for what happens."
+- **Market count deprecated in thinking documents.** Logan: stop the "12
+  counties" habit; the number is a residual artifact and David's "why 12, why
+  not more" stands unanswered. This restores SPINE.md's deliberate wording
+  ("selected local markets"; the number follows from the Approach redesign).
+  FLAG, not silently harmonized: the ratified logos outline and the Aims drafts
+  still say twelve; reconciliation happens in the Approach work, where market
+  selection criteria get derived.
+- **"Concentrated organic demand" language retired as self-contradictory.**
+  Organic demand is diffuse by nature. How local market density is actually
+  built (paid local acquisition, partnerships, thresholds, or something else)
+  is open Approach work, not settled language.
+
 ## Explicitly unchanged
 
-H1-H6, the three aims and their endpoints, twelve markets, the neutrality rule,
+H1-H6, the three aims and their endpoints, the neutrality rule,
 the Qiping boundary (care established = operational telemetry), and the funding
 thesis that the CRP tests provider-funded self-sufficiency. Rejected for the
 CRP: clinical utilization endpoints, payer revenue as tested hypothesis,

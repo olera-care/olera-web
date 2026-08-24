@@ -19,6 +19,7 @@ import { validateEmailStrict } from "@/lib/email-validation";
 import { generateBenefitsToken } from "@/lib/benefits-token";
 import { generateFamilyInboxUrl } from "@/lib/claim-tokens";
 import { getStateSlug } from "@/lib/program-data";
+import { resolveBenefitsProgramEntry } from "@/lib/benefits/program-entry";
 import { calculateFamilyCompleteness } from "@/lib/admin/profile-completeness";
 import { emailReturningUserSignInLink } from "@/lib/auth/returning-user";
 
@@ -46,21 +47,6 @@ function relationshipFamilyPhrase(rel: string | null | undefined): string {
       return "your family member";
     default:
       return "your family";
-  }
-}
-
-function relationshipPossessive(rel: string | null | undefined): string {
-  switch (rel) {
-    case "my-parent":
-      return "Your parent's";
-    case "my-spouse":
-      return "Your spouse's";
-    case "myself":
-      return "Your";
-    case "other-family":
-      return "Your family's";
-    default:
-      return "Your";
   }
 }
 
@@ -93,17 +79,6 @@ function stateDisplayName(stateAbbrev: string | null): string {
   const slug = getStateSlug(stateAbbrev);
   if (!slug) return stateAbbrev;
   return slug.charAt(0).toUpperCase() + slug.slice(1).replace(/-/g, " ");
-}
-
-/** Pull the upper-bound dollar string from a savingsRange like
- *  "$10,000 – $30,000/year" → "$30,000/year". Returns null when no $ found. */
-function topSavingsCopy(range: string | undefined): string | null {
-  if (!range) return null;
-  const matches = range.match(/\$[\d,]+/g);
-  if (!matches || matches.length === 0) return null;
-  const top = matches[matches.length - 1];
-  const period = /\bmo\b|month/i.test(range) ? "/mo" : "/yr";
-  return `Up to ${top}${period}`;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -465,6 +440,7 @@ export async function POST(req: Request) {
   // ═══════════════════════════════════════════════════════════════════
   const granularCareNeeds = careNeed ? CARE_NEED_MAP[careNeed] || [] : [];
   const stateAbbrev = stateCode?.toUpperCase() || null;
+  const requestedProgram = resolveBenefitsProgramEntry(entrySource);
 
   // Sibling P2 cleanup (partial): previously stored a duplicate
   // `benefits_results.answers` blob with age/medicaidStatus/incomeRange/
@@ -504,6 +480,18 @@ export async function POST(req: Request) {
       answers: careNeed ? { careNeed } : undefined,
       matchCount,
       completed_at: completedAt,
+      // This is the family's explicit intent, not an eligibility result. Keep
+      // it separate from the ranked matches so later guidance can acknowledge
+      // what they asked about without reconstructing it from account signup.
+      requested_program: requestedProgram
+        ? {
+            state_id: requestedProgram.stateId,
+            program_id: requestedProgram.programId,
+            name: requestedProgram.program.name,
+            short_name: requestedProgram.program.shortName,
+            entry_source: entrySource,
+          }
+        : undefined,
     },
     // A phone submitted through the benefits intake is an explicit request
     // for the results and follow-up guidance by text. Persist that choice so
@@ -643,7 +631,29 @@ export async function POST(req: Request) {
   // 4. Parallelize: set active profile + batch-save matching programs
   //    Both depend on familyProfileId/userId but not on each other.
   // ═══════════════════════════════════════════════════════════════════
-  const programInserts = matchedPrograms.map((p) => ({
+  const programsToSave: SavedProgramInput[] = [...matchedPrograms];
+  if (
+    requestedProgram &&
+    !programsToSave.some(
+      (program) =>
+        program.stateId === requestedProgram.stateId &&
+        program.programId === requestedProgram.programId,
+    )
+  ) {
+    // A care-need filter can rank other programs above the page the family
+    // chose. Preserve the chosen program in the living plan, but do not change
+    // matchCount or describe it as an eligibility match.
+    programsToSave.unshift({
+      programId: requestedProgram.programId,
+      stateId: requestedProgram.stateId,
+      name: requestedProgram.program.name,
+      shortName: requestedProgram.program.shortName,
+      programType: requestedProgram.program.programType,
+      savingsRange: requestedProgram.program.savingsRange,
+    });
+  }
+
+  const programInserts = programsToSave.map((p) => ({
     user_id: userId,
     program_id: p.programId,
     state_id: p.stateId,
@@ -662,7 +672,7 @@ export async function POST(req: Request) {
     // Batch save programs (skip if empty). `.select()` returns only the rows
     // actually inserted (duplicates are ignored), so we can report the real
     // saved count instead of the client-supplied match count.
-    matchedPrograms.length > 0
+    programsToSave.length > 0
       ? db.from("saved_programs").upsert(programInserts, { onConflict: "user_id,program_id", ignoreDuplicates: true }).select("program_id")
       : Promise.resolve({ data: [], error: null }),
   ]);
@@ -695,6 +705,8 @@ export async function POST(req: Request) {
       is_new_user: isNewUser,
       top_program: matchedPrograms[0]?.shortName || matchedPrograms[0]?.name || null,
       top_savings: matchedPrograms[0]?.savingsRange || null,
+      requested_program: requestedProgram?.program.shortName || requestedProgram?.program.name || null,
+      requested_program_id: requestedProgram?.programId || null,
       // Attribution — where the intake was submitted from. Surfaced in the
       // admin Activity Center + the Slack alert so leads are traceable to
       // the page that produced them (program page, article, provider page).
@@ -806,12 +818,11 @@ export async function POST(req: Request) {
   //    contact channel they explicitly supplied. Email and SMS can each be
   //    the primary path; when both exist, both fire in parallel.
   //
-  //    Email body delivers REAL value — top 5 matched programs as a
-  //    state-filtered starter list, personalized for relationship, primary
-  //    CTA goes to /m/{token} (token IS the auth — no magic-link redirect
-  //    indirection). This is the bar TJ set in the task: "real value before
-  //    we capture at scale" — 95% of users won't engage with email, so when
-  //    one does, the email needs to be worth their time.
+  //    A specific program-page entry leads with the program the family asked
+  //    about, clearly separates general requirements from an eligibility
+  //    decision, and links back to that guide. Broad entries receive an honest
+  //    plan receipt. The former generic "strongest matches" email is no longer
+  //    a live branch.
   // ═══════════════════════════════════════════════════════════════════
   const welcomeTasks: Promise<void>[] = [];
   if (isNewUser && normalizedEmail) {
@@ -820,25 +831,25 @@ export async function POST(req: Request) {
         const stateNameForEmail = stateDisplayName(stateAbbrev);
         const careLabel = careNeed ? CARE_NEED_LABEL_FOR_COPY[careNeed] || "care" : "care";
         const familyPhrase = relationshipFamilyPhrase(relationship);
-        const possessive = relationshipPossessive(relationship);
 
-        // Top 5 programs for the starter list. Limit chosen for inbox
-        // scannability — anything past 5 in an email feels like a wall.
-        // Full list lives at /m/{token} via the CTA below.
-        const topMatches = matchedPrograms.slice(0, 5);
-        const programs = topMatches.map((p) => ({
-          name: p.shortName || p.name,
-          url: `${siteUrl}/benefits/${p.stateId}/${p.programId}`,
-          savings: topSavingsCopy(p.savingsRange),
-        }));
+        const relatedPrograms = matchedPrograms
+          .filter(
+            (program) =>
+              !requestedProgram ||
+              program.stateId !== requestedProgram.stateId ||
+              program.programId !== requestedProgram.programId,
+          )
+          .slice(0, 3)
+          .map((program) => ({
+            name: program.shortName || program.name,
+            url: `${siteUrl}/benefits/${program.stateId}/${program.programId}`,
+          }));
 
         const matchesPath = benefitsToken ? `/m/${benefitsToken}` : "/portal";
 
-        // Subject — personalized when relationship known, falls back cleanly.
         const subject = benefitsResultsSavedSubject({
-          matchCount,
-          possessive,
           stateName: stateNameForEmail,
+          requestedProgramName: requestedProgram?.program.shortName,
         });
 
         const emailType = "benefits_results_saved";
@@ -856,22 +867,39 @@ export async function POST(req: Request) {
           appendTrackingParams(matchesPath, emailLogId),
           siteUrl,
         );
-
-        // Hero copy adapts to whether we found matches.
-        const heroLine =
-          matchCount > 0
-            ? `We found <strong>${matchCount} ${matchCount === 1 ? "program" : "programs"}</strong> in ${stateNameForEmail} that may help with ${careLabel} for ${familyPhrase}.`
-            : `We created your private Olera plan. There isn't a strong ${stateNameForEmail} match yet, but we'll keep checking for programs that may help with ${careLabel}.`;
+        const trackedRequestedProgramUrl = requestedProgram
+          ? appendTrackingParams(
+              `${siteUrl}/benefits/${requestedProgram.stateId}/${requestedProgram.programId}`,
+              emailLogId,
+            )
+          : undefined;
 
         await sendEmail({
           to: normalizedEmail,
           subject,
           html: benefitsResultsSavedEmail({
             greetingName: hasRealName ? displayName : "there",
-            heroLine,
-            programs,
+            stateName: stateNameForEmail,
+            careLabel,
+            familyPhrase,
+            relatedPrograms,
             matchesUrl: trackedMatchesUrl,
             matchCount,
+            requestedProgram:
+              requestedProgram && trackedRequestedProgramUrl
+                ? {
+                    name: requestedProgram.program.name,
+                    shortName: requestedProgram.program.shortName,
+                    url: trackedRequestedProgramUrl,
+                    tagline: requestedProgram.program.tagline,
+                    eligibilityFactors: (
+                      requestedProgram.program.structuredEligibility?.summary ||
+                      requestedProgram.program.eligibilityHighlights ||
+                      []
+                    ).slice(0, 3),
+                    applicationSummary: requestedProgram.program.applicationGuide?.summary || null,
+                  }
+                : undefined,
           }),
           emailLogId: emailLogId ?? undefined,
         });

@@ -85,14 +85,14 @@ const BENEFITS_CASCADE: CommsJourney = {
     },
     {
       key: "intake_results",
-      title: "Results email delivered (new email family)",
+      title: "Context-aware results email delivered (new email family)",
       timing: "Day 0 · Results CTA completed",
       description:
-        "A new family submits one of the benefits capture surfaces with an email. Olera identifies the strongest matches, adds them to the family's private plan, and emails the living /m plan link.",
+        "A new family submits one of the benefits capture surfaces with an email. A specific program-page entry continues with that exact program, its general requirements, and its guide; a broad finder, provider, or editorial entry receives an honest plan-ready receipt. Olera also saves the requested program separately from ranked suggestions so it is not lost or mislabeled as an eligibility match.",
       emailType: "benefits_results_saved",
       emailSampleId: "benefits_results_saved",
       ownedBy: "benefits-results-texts",
-      gate: "New families with a valid email only; a returning account updates its plan without receiving a duplicate welcome-results email",
+      gate: "New families with a valid email only; an email address never establishes eligibility. A returning account updates its plan without receiving a duplicate welcome-results email",
     },
     {
       key: "intake_results_sms",

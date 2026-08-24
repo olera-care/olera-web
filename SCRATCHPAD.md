@@ -7,6 +7,10 @@
 
 ## Current Focus
 
+### 2026-08-24 — Benefits journey viewer now starts at the results CTA (`codex/benefits-journey-cta`)
+
+Added the missing pre-email conversion step to the Benefits cascade on all three relevant Admin → Automations views. The new row documents the real program/provider/editorial CTA variants, contact capture, `cta_engaged` + `benefits_completed` funnel signals, channel gates, and opens a representative live STAR+PLUS CTA in a new tab. Extended the generic journey renderer with optional experience links. Pre-test corrected an important overclaim: `save-results` sends the welcome results email/text only for newly created families; returning accounts update the existing living plan without receiving a duplicate welcome. **Files:** `lib/family-comms/journey.ts`, `components/admin/CommsJourneyBlock.tsx`. **Validation:** focused TypeScript compile, 37-job cron registry, journey-mapping assertion across all three automation views, canonical example-route data check, and `git diff --check` pass. **Next:** QA the staging preview, especially the new first row, its gate copy, example CTA link, and Expand/Collapse behavior; do not merge without TJ.
+
 ### 2026-08-23 — Two 90-day campaigns built and published; the "serving nothing" cause is now a running experiment
 
 **Ad Boost, no code.** Sandra (Edmonds Villa) and Hilda (Franchil) both went from nothing to a live, fully-wired 90-day Google flight. Sherry dropped from the batch — TJ couldn't reach her and her $50 flight lapses 08-24.

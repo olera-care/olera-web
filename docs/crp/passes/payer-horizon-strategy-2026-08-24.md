@@ -159,6 +159,39 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Figure 5 carries the differentiators; Figure 6 refined (Logan, 2026-08-25)
+
+- **Figure 5 now answers "what is different about each half," not just "what is
+  it."** Each capability box gained a divider and three one-line
+  differentiators, replacing the generic activity description that overlapped
+  them. Logan's restraint instruction was explicit (no bullet lists, no
+  buzzwords, prefer mechanisms over adjectives), so each line names a mechanism
+  and each contrasts with a real alternative documented in CP section 2.
+  - **Care Navigation:** files the applications and follows through until care
+    starts (vs. Eldercare Locator, BenefitsCheckUp, and AAAs, which inform and
+    screen but do not execute); covers public aid and insurance, not only
+    private-pay services (vs. referral platforms limited to in-network
+    private-pay); no referral fees, so every provider is listed (vs. the
+    placement-fee model that biases recommendations).
+  - **New Caregiver Workforce:** adds new workers instead of competing for the
+    same pool (vs. staffing agencies drawing on the same constrained labor
+    pool); new cohorts arrive every season, so the pipeline refills (vs.
+    one-time placement against ~75% annual turnover); providers hire, train,
+    and supervise, so care stays licensed (the safety and compliance answer).
+- **These six lines are the seed for the Figure 8 competitive figure.** Each one
+  is already a differentiator stated against a named class of alternative, so
+  Figure 8 can put the alternatives on one axis rather than inventing new
+  claims.
+- **Truthfulness flag for prose migration:** "files the applications and follows
+  through until care starts" describes the execution and follow-up loop, which
+  is CRP work, not a live feature. Figure 5's title ("Olera Is Building
+  CareNavigator") carries that, but any prose derived from these lines must
+  preserve the live / in development / proposed distinction.
+- **Figure 6 refinements:** subtext in both customer blocks unwrapped to single
+  full-width lines, and the caregiver trio removed from the spine with the
+  compass enlarged and centred, rather than forcing a second icon into a narrow
+  column.
+
 ## Figures 6 and 7: the handoff into the business model (Logan, 2026-08-25)
 
 - **The handoff device.** Figure 5 ends with one system and two capabilities,

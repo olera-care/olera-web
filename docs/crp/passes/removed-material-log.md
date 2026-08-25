@@ -694,3 +694,16 @@ annotated with the evidence gate and the GUIDE precedent). Figures 6 and 7
 answer who pays and why, not how large the business could become. If that
 question needs a figure, this chart is the candidate; it lives in git history
 at commit ce7020a and its assumptions are recorded above.
+
+### Figure 5 activity descriptions and Figure 6 spine icon (2026-08-25)
+
+Figure 5's two capability descriptions ("Screens needs and means, builds the
+plan, and follows through until care actually starts." / "Recruits and vets new
+caregivers so providers can staff the families navigation sends them.") were
+replaced by three differentiator lines each, which cover the same ground while
+also stating what is different. **Future home:** both sentences are clean prose
+and belong in the RS or CP wherever the two capabilities are described.
+
+The caregiver trio icon came out of Figure 6's spine at Logan's direction rather
+than being forced into a narrow column; the compass now carries the spine alone.
+The trio still appears in Figures 3, 4, and 5.

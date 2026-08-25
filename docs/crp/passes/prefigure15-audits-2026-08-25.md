@@ -461,3 +461,24 @@ the title, legend re-centred, and the row stratifier changed.
 Two consequences logged in `removed-material-log.md` items 36 and 38: the
 payer-cluster market design is now invisible deck-wide, and the four IRB chips on
 slides 22 and 23 have lost their key.
+
+### Slide 22 edits (2026-08-25, Logan)
+
+Task block moved below the Uncertainty-removed band, label changed to "AIM 1 TASKS,"
+and all four task lines shortened. Band at y=346, tasks from y=410, viewBox 500 to
+490.
+
+One repair: the new "Reported throughout" line read "the volume of executed to test
+whether," missing its noun. Written as "the volume of executed cases, to test
+whether."
+
+Two consequences to decide on:
+
+- **Slides 23 and 24 now diverge from 22.** The three aim slides are the deck's one
+  deliberately repeated device. They still label the block "THE TASKS THAT PRODUCE
+  THESE MEASUREMENTS" and still place it above the band. One slide out of three
+  reads as a mistake rather than a choice.
+- **"Sharpens" and "learns" now both describe the database.** Slide 19's claim was
+  changed to "The database learns with every completed case" earlier the same day;
+  slide 22's reported-throughout line says "sharpens with use." Slide 17 uses
+  neither. One verb should win.

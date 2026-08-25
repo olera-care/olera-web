@@ -888,3 +888,14 @@ Slide numbers are the post-divider numbering (see
     pick."
     **relocated** — the slide title now carries it, and the legend still states the
     four-plus-eight split.
+
+## From slide 22, "Aim 1: Can Care Actually Get Established?" (2026-08-25)
+
+40. Task 1.1 qualifier: "Internal product verification, not human subjects research."
+    **homeless, and it matters** — this was the sentence that told a reviewer why
+    Task 1.1 needs no IRB. With slide 21's evidence key also gone, the deck no longer
+    draws the human-subjects boundary anywhere. That boundary is the thing Qiping
+    asked to be explicit. The written Approach now carries it alone.
+
+41. Task 1.3 scope: "Drive family acquisition in the twelve markets and ..."
+    **safe** — the twelve markets are stated on slides 21, 23, and 29.

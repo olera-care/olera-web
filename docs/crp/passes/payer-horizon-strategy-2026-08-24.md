@@ -5,19 +5,26 @@ work run while TJ drafts the Aims narrative). Not application text. Companion
 visuals: `payer-horizon-visuals-2026-08-24.html` (internal thinking tools, not
 grant figures). Ratification of the adoption list below is Logan's, with the team.
 
-## Figure 5 answers the marketability question (2026-08-25)
+## Figure 4 answers the marketability question (2026-08-25)
 
 The solicitation asks applicants to "explain how the proposed project will lead
 to a marketable product, process, or service." Figure 5 now answers it in one
-concluding statement rather than spreading the argument through the figure:
+concluding statement, placed at the end of Figure 4 rather than inside Figure 5:
 **"Care that gets established creates value for everyone the cycle harms, and
 the providers, insurers, and public programs that absorb its cost will pay for
 it."** The logic is the one Logan stated: breaking the vicious cycle is itself
 the marketable thing, because establishing preventive geriatric care creates
 value for every participant that bears the clinical or economic consequence of
-unmet need. The statement sits in a band spanning both capability boxes, with
-short arrows converging into it, so the figure reads: what are we building, what
-is different about it, why does it become marketable.
+unmet need.
+
+Placement matters. The statement first sat under Figure 5's two capability
+boxes; Logan moved it to Figure 4, where it primes marketability before the
+product appears, and leaves Figure 5 lighter so the reader looks at
+CareNavigator. It also lands where its subject already is: Figure 4's third box
+is care established and the cycle broken, so the band states what that outcome
+is worth. It sits in a band spanning all three boxes, with a short arrow down
+from the outcome box, and it hands the reader into Figure 5 already knowing the
+solution is worth something.
 
 The Care Navigation differentiators were rewritten to state the three things
 that separate CareNavigator from a directory or a referral marketplace:

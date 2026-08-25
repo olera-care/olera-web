@@ -1028,3 +1028,30 @@ cohort."
     pricing-method slide deleted earlier the same day, so they pointed at nothing.
     They now name what each stage decides: "price range" and "structure," which is
     how `approach-alignment-2026-08-25.md` defines them.
+
+## Slides merged: the timeline and the end state (2026-08-25)
+
+57. **"What Olera Owns on May 31, 2030"** (formerly slide 27) folded into the timeline
+    slide, now "26. Three-Year Timeline and End Result." Its three category headings
+    survive as chips and its "WHICH LETS OLERA" block survives as one line. What came
+    out:
+    - The nine asset pills, each stamped with the aim that produced it: hardened
+      execution loops (Aim 1), a staffing pipeline producing verified workers (Aim 2),
+      the database deeper by every case (Aims 1 and 2), a family market-entry playbook
+      with measured acquisition cost (Aim 1), a provider and workforce playbook with
+      measured cost per hire (Aim 2), per-market economics across twelve markets with
+      the variance (Aim 3), a validated price and package (Aim 3), unit economics with
+      confidence intervals independently rebuilt (Aim 3), and a payer evidence package
+      with two data-use agreements and one letter of intent (Aim 3).
+      **homeless, and this is now the second time the two data-use agreements and the
+      letter of intent have been dropped** (see item 52). They were the only countable
+      award-end payer deliverables in the deck and now appear nowhere. The aim stamps
+      are also gone: nothing states which aim produces which asset.
+    - Closing band: "Every line above is an asset, not a report. Each one is stamped
+      with the aim that produced it." **safe** with the pills it described.
+
+58. Timeline closing band: "Paid conversion opens in Year 2 Q2 because retention has to
+    be measured, not modeled. Every other date follows from that one."
+    **homeless** — this was the reason the schedule is shaped the way it is, and the
+    answer to a reviewer asking why revenue starts so late. The Gantt still shows the
+    date; nothing now explains it.

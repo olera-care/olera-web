@@ -596,3 +596,20 @@ on slide 26 pointing at deleted material or using retired vocabulary:
 One deliberate exception: slide 19's not-an-award-endpoint box still says "an actuarial
 model," which is Logan's own wording from this session. Slides 25 and 26 say "cost
 model." Worth settling.
+
+### Timeline and end state combined, deck renumbered (2026-08-25, Logan)
+
+Slide 26 is now "Three-Year Timeline and End Result." The Gantt is untouched. Below
+its milestone row: a rule under "AT AWARD END, MAY 31, 2030," three chips (A product
+that works · A market model that repeats · Evidence for investors and payers), a short
+arrow, and one band carrying the whole "which lets Olera" block: "Which lets Olera
+**operate** without the award, **sell** at a price providers already paid, and **raise**
+on numbers someone independent rebuilt." viewBox 470 to 536.
+
+The three verbs are bolded inside a single line rather than given three cards. Two rows
+of three boxes under an already dense Gantt would have been the crowding Logan asked to
+avoid; one row of three plus one line reads as a conclusion instead of a second slide
+compressed underneath.
+
+Body drops to 39 slides, 42 pages. Approach is 19 to 27, CRP Progress Report divider
+28, Commercialization Plan major 29, its sections 30 to 39.

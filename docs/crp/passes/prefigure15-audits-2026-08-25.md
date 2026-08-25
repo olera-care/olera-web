@@ -702,3 +702,56 @@ number-dense).
 
 Deck is 43 pages, 40 body slides. Commercialization Plan dividers shifted by one:
 major 30, sections 31 to 40.
+
+### Slide 29 revised, and the reconciliation pass (2026-08-25, Logan)
+
+Cover now carries Qiping Fan, PhD, Co-Investigator; the rule under the byline was
+extended to sit beneath the widened line. Slide 29 gained a fifth card, every subtext
+was cut to two plain lines, the remaining-risk question was broadened, and the closing
+band and regulatory foot-line came out.
+
+**The workforce card was a real gap.** Innovation 2 is a third of the deck's argument
+and the Progress Report had no evidence for it. It now reads "Could we recruit
+caregivers, and would anyone pay for them?" and carries the pilot: 900+ applicants,
+20+ placed, four national franchise brands and one assisted-living community paid or
+agreed to pay. That also absorbs the removed closing band, so nothing was lost with it.
+
+**The remaining-risk question was too narrow.** "Will concentrated local demand convert
+into recurring revenue?" named only Aim 3. It now reads **"Can one local market pay for
+itself, and can we repeat it?"** which carries all three aims in one line: density and
+establishment (Aim 1), capacity (Aim 2), economics and replication (Aim 3). It is also
+the same question slide 12 calls the primary hurdle and the Commercialization Plan
+calls the Valley of Death, so the three documents now name one thing.
+
+### Reconciliation against the brief and the preceding 28 slides
+
+Covered: development status of the technology, commercialization progress to date, past
+**and ongoing** activities ("adding that AI to the live product is underway", "about 150
+more claim one each month"), activities beyond the Phase II scope (named in the funder
+tags), validation studies, and risk mitigation as the whole frame.
+
+Every substantive claim the deck makes now has either a retired card or a named aim:
+technical build to card 1, family acceptance to card 2, national demand to card 3,
+provider supply to card 4, Innovation 2 and early willingness to pay to card 5, and
+everything else to the remaining risk.
+
+**Three gaps a reviewer could still find:**
+
+1. **"Enable third-party investment" is not stated on this slide.** The brief asks the
+   section to speak to investability. The deck answers it on slide 26 ("raise on
+   economics an investor can check"), but the Progress Report itself never says an
+   investor could enter now on retired risk. The written section must carry it.
+2. **Regulatory compliance and IP are gone from the deck.** The brief names both as
+   examples. FDA is on slide 27; trademark, copyright, trade secret, and the no-referral-fee
+   position now appear in no figure. Removed at Logan's direction, logged, and the
+   written section is their only home.
+3. **Net-new-worker share is implied, not stated.** Slide 19 claims we add capacity
+   rather than move it, and slide 23 measures it in Aim 2, but card 5 says "placed over
+   20 into provider jobs" and leaves the word "student" to imply they were new to care
+   work. One phrase would close it if Logan wants it explicit.
+
+**One thing proposed in planning that did not get built:** the Phase I to IIB impact
+scores of 20 and 25 (verified). They would fit in the funder tag with no extra line and
+are strong credibility for an NIH reader, but both NIA cards share that tag, so adding
+the scores means either repeating them or picking one card arbitrarily. Left out rather
+than added unasked. Say the word.

@@ -590,3 +590,20 @@ homes:** the pinch/band drawing is in git history at 435e12c; the
 bottleneck-then-capacity logic it drew now lives across Figure 2 (capacity
 figure) and Figure 3's insight line; the closing chain survives as Figure 2's
 bottom strip.
+
+### Figure 1 cycle nodes and Figure 2 text trimmed (2026-08-25)
+
+Logan's friction pass simplified the Figure 1 vicious-cycle miniature to
+three nodes. Removed: "Falls, malnutrition, medication errors," "Rehab,
+discharge home," "Same gaps at home," "Recurrence, worse baseline," and the
+"Exit: premature institutionalization, higher costs" wording (now
+"Long-term care facility"). **Future home:** CP fig-01 keeps the
+full-fidelity cycle; the RS spine prose keeps the complete cascade.
+
+From Figure 2: the closing chain (navigation coordinates the care, capacity
+delivers it, preventive geriatric care), the pipeline nodes "Students apply"
+and "Students gain patient-care experience," the caption phrase "not
+competing for them," and the "Too few caregivers / shifts go unfilled /
+cases turned away" lines. **Future homes:** the why-students rationale and
+the turned-away evidence live in CP section 2; "adding, not competing"
+remains available for prose.

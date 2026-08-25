@@ -159,6 +159,31 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Friction pass on Figures 1-2 (Logan, 2026-08-25)
+
+- **Figure 1 vicious cycle simplified to three nodes** at Logan's direction:
+  Unmet needs, No preventive care, ED visits and hospitalization, looping,
+  with the dashed exit relabeled simply "Long-term care facility" (branching
+  off the hospitalization node, as in CP fig-01). Dropped from the miniature:
+  falls/malnutrition/medication errors, rehab-discharge, same-gaps,
+  recurrence-worse-baseline (logged; CP fig-01 remains the full-fidelity
+  version). The red box is now 220 wide at x730, flush with the ecosystem
+  boxes below it. Locked artifact updated.
+- **Figure 2 tightened.** Title is now the bridge sentence itself
+  ("CareNavigator can find the right care and still fail if no provider has
+  the staff to deliver it."), no lede. "CareNavigator aggregates family
+  demand" feeds the provider card, whose caption is now "Workforce capacity
+  is the bottleneck." over "9.7 million caregiving jobs to fill nationally,
+  2024-2034" (the standalone stat block is folded in; the turned-away
+  caption retired). Pipeline reduced to three nodes: New cohort enters,
+  Olera recruits, Providers hire train supervise, with the "next semester"
+  return arc; caption now "Adding caregivers to the system." The closing
+  navigation-capacity-care chain is removed (the figure carries the
+  relationship itself).
+- **Open item:** the why-students rationale (career value of patient-care
+  experience, continuous cohort renewal, schedule fit, geographic spread,
+  per CP section 2) deliberately stays OFF the figure; its home is prose
+  (CP section 2 already carries it; RS Approach may want one sentence).
 ## Three-figure architecture ratified; value-path figure retired (Logan, 2026-08-25)
 
 - Logan's verdict on the value-path Figure 2: mostly a regression; the previous

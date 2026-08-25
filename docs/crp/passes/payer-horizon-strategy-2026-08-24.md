@@ -77,9 +77,12 @@ The Figure 5 signpost shipped with the stale Innovation order taken from
 `research-strategy.md` (working snapshot, 2026-08-17). The ratified order is in
 `strategic-context-2026-08-20.md` section 5, decision 3: **AI navigation,
 database, workforce**, and it explicitly notes README section 10 is stale on
-this. The signpost now reads: Key Innovation 1 (AI-assisted navigation), Key
-Innovation 2 (aid, provider, and outcomes database), Key Innovation 3 (new
-caregiver workforce).
+this. Logan then set the order himself: the signpost reads Key Innovation 1
+(AI-assisted navigation), Key Innovation 2 (new caregiver workforce), Key
+Innovation 3 (aid, provider, and outcomes database). Note this swaps the
+database and workforce positions relative to the strategic-context shorthand
+("AI navigation, database, workforce"), so the Innovation section itself must
+end up in the order the figure now states.
 
 **Open item for whoever finalizes Innovation:** `research-strategy.md` still
 carries the old numbering and calls KI 3 "a proprietary national resource and

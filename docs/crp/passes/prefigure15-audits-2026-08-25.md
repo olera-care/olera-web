@@ -244,3 +244,55 @@ consistent in 17, 18, 19, 25. "Verified record" is consistent in 11, 13, 19, 24.
 "Caregiver Passport" appears in no figure. Deliberate: it is a potential
 mechanism, not a ratified coinage, and house style forbids introducing one inside
 a figure.
+
+---
+
+## Front matter: title and contents (2026-08-25)
+
+Three unnumbered pages added ahead of Figure 1. **The 26 figures keep their
+numbers.** Numbering the front matter would have shifted every figure by three
+and broken the in-figure cross-references (Figure 20 to 22, Figure 9 to 6 and 7)
+along with every reference in the pass files. The deck is now 29 pages: title,
+contents 1, contents 2, then Figures 1 to 26.
+
+**Title page.** Typographic, one green accent bar, no motif. Left block carries
+the NOFO line, CareNavigator, "Figures for the CRP Application," and the people;
+right block carries project period, scope of the set, and status. The footer band
+states what the deck is: each figure answers one question and raises the next.
+
+**Contents 1, Research Strategy.** Two columns. Left: SIGNIFICANCE (1 to 10) and
+INNOVATION (11 to 14). Right: APPROACH (15 to 26). Titles are the exact current
+figure titles, not paraphrases.
+
+Section assignment follows the Research Strategy as it actually reads, not a
+generic NIH template. Its SIGNIFICANCE runs through "Competitive environment and
+our advantage" and closes on "Hurdles to adoption," which puts Figures 8 and 10
+in Significance; INNOVATION is the three key innovations, so 11 to 14; APPROACH
+is everything from 15.
+
+**Figure 9 has no counterpart in the written Significance.** "And Related
+Academic Efforts" answers a reviewer question the prose does not currently
+answer. It is grouped with Significance because it sits inside the 8-9-10 run and
+supports the same argument, but the written section needs the beat added, or the
+figure needs a home in Innovation. Flagged for Logan, not resolved here.
+
+**Contents 2, CRP Progress Report and Commercialization Plan.** Both marked NOT
+YET DEVELOPED at group level, with a dashed unchecked box on every row, using the
+deck's existing grammar where dashed means open or emerging. CP sections are
+listed in the Living Commercialization Plan's own numbering and wording, verbatim
+and in caps as the source has them.
+
+### Two findings from building the map
+
+1. **The Commercialization Plan has no Section 10.** Headings run 1 to 9 and then
+   11. Prose in Sections 3, 8, and 7 cross-references "Section 10" for the
+   revenue model and economics, which is Section 9 (Revenue Streams) as numbered.
+   Listed as written, per the CP provenance rule to flag rather than silently
+   harmonize, with a footnote on the slide saying so.
+
+2. **The Fundraising Plan is not a section.** PAR-27-098 requires four subsections
+   in addition to SF424's six: Statement of Need, SBIR/STTR Commercialization
+   History, Project Management Plan, and Fundraising Plan. The first three are
+   headings in the CP. The fourth exists only as a paragraph inside Section 7
+   (Finance Plan), so it does not appear in the contents. A reviewer looking for
+   the required heading will not find one.

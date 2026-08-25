@@ -482,3 +482,28 @@ Two consequences to decide on:
   changed to "The database learns with every completed case" earlier the same day;
   slide 22's reported-throughout line says "sharpens with use." Slide 17 uses
   neither. One verb should win.
+
+### Slide 23 edits (2026-08-25, Logan)
+
+Recruit pin removed, two pins rewritten, tasks moved below the band and rewritten,
+second-pool line removed, band rewritten, free-pilot note added. Layout now matches
+slide 22 exactly (band 346, tasks from 410, viewBox 490).
+
+Choices made inside the instructions, all flagged:
+
+- **"a certain number of shifts confirmed"** became "providers with repeat shift use
+  at 60 days / 50% or higher." No CRP document sets a shift-count threshold, and
+  inventing one would draw exactly the challenge a reviewer should not get to make.
+  Repeat use at 60 days is already committed on slide 27's month-24 gate, it means
+  more than one shift got confirmed, and it is operational, so the IRB tag came off
+  the card and its fill changed to the operational style.
+- **Satisfaction pin** reads "satisfaction with the work, from providers and from
+  workers / reported with reconciled counts," keeping the reconciliation Logan asked
+  to add satisfaction to rather than replace.
+- **Label is "AIM 2 TASKS."** Logan pasted the old header as context but asked for
+  slide 22's treatment, and slide 22 now says "AIM 1 TASKS."
+- **Task 2.2 got "the"** before the list, matching slide 22's Task 1.2 construction.
+- **The free-pilot note names the fee, not the shift.** "Staffing runs free for
+  providers" would have collided with the "first verified paid shift" pin two inches
+  above it, where "paid" means the worker was paid. The note reads "providers pay
+  Olera nothing for staffing in Aim 2."

@@ -899,3 +899,43 @@ Slide numbers are the post-divider numbering (see
 
 41. Task 1.3 scope: "Drive family acquisition in the twelve markets and ..."
     **safe** — the twelve markets are stated on slides 21, 23, and 29.
+
+## From slide 23, "Aim 2: Can We Bring New Caregivers Into the Workforce?" (2026-08-25)
+
+42. Pin over Recruit: "placed workers with no prior direct-care employment /
+    reported, not assumed."
+    **homeless, and the deck now promises what it no longer measures.** This was the
+    net-new-worker share, the only measurement anywhere in the deck that tests
+    Innovation 2's central claim: that the pathway adds caregivers rather than moving
+    them between employers. The rebase was explicit about it ("a baseline question on
+    the student intake form that costs nothing to collect; without it, Innovation 2
+    is an assertion"). Slide 19 still claims "We add new caregiver capacity to the
+    system" and routes it to Aim 2, and slide 23's own band still says "whether the
+    people we place are new to the care workforce." Both now rest on a measurement
+    the figure dropped. One line restores it.
+
+43. Pin under Shifts confirmed: "critical-task completion with providers and workers /
+    90% or higher," with its IRB tag.
+    **homeless** — this was the implementation-fidelity measure from the IRB field
+    study. Replaced by repeat shift use, which is operational, so the IRB tag came
+    off with it and Aim 2 now carries one IRB pin instead of two.
+
+44. Pin over Verified record: "reported counts reconcile to the outside record /
+    every module, every count."
+    **partly retained** — reconciliation survives inside the new threshold ("reported
+    with reconciled counts"); the every-module framing is gone, which is correct now
+    that staffing is the only module.
+
+45. Task line: "Year 3  Second-pool feasibility pilot in two campus-poor markets: can
+    the same pathway recruit, verify, and place people who are not students."
+    **at risk** — slide 21's mention of the second-pool pilot was removed earlier the
+    same day, so slide 28's Gantt is the only place it now appears, with no statement
+    of what it tests. This is the approved answer to "does the pathway work beyond
+    students," which is a question reviewers will ask of Innovation 2.
+
+46. Task 2.2 qualifier: "under IRB approval, with research participation firewalled
+    from hiring, onboarding, and shift allocation."
+    **homeless** — the firewall sentence was the protocol commitment that Aim 2's
+    research does not touch employment decisions. Slide 22's Task 1.2 still says
+    "under IRB approval"; slide 23's Task 2.2 no longer does, while the slide still
+    shows an IRB pin.

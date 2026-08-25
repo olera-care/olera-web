@@ -5,6 +5,40 @@ work run while TJ drafts the Aims narrative). Not application text. Companion
 visuals: `payer-horizon-visuals-2026-08-24.html` (internal thinking tools, not
 grant figures). Ratification of the adoption list below is Logan's, with the team.
 
+## Figure 5 answers the marketability question (2026-08-25)
+
+The solicitation asks applicants to "explain how the proposed project will lead
+to a marketable product, process, or service." Figure 5 now answers it in one
+concluding statement rather than spreading the argument through the figure:
+**"Care that gets established creates value for everyone the cycle harms, and
+the providers, insurers, and public programs that absorb its cost will pay for
+it."** The logic is the one Logan stated: breaking the vicious cycle is itself
+the marketable thing, because establishing preventive geriatric care creates
+value for every participant that bears the clinical or economic consequence of
+unmet need. The statement sits in a band spanning both capability boxes, with
+short arrows converging into it, so the figure reads: what are we building, what
+is different about it, why does it become marketable.
+
+The Care Navigation differentiators were rewritten to state the three things
+that separate CareNavigator from a directory or a referral marketplace:
+
+- *Open online to any family, no referral or eligibility gate.* Broad access.
+  Contrasts with plan-sponsored or program-gated navigation, which serves only
+  the members or beneficiaries a sponsor refers.
+- *Eldercare LLM assesses needs and means; AI agents execute until care starts.*
+  Assessment and execution in one system, ending at care establishment rather
+  than at a list of options. This is the differentiator no directory has.
+- *Coordinates public aid, insurance, healthcare, and LTSS, not just private-pay.*
+  Full-ecosystem coordination. Contrasts with referral marketplaces, whose
+  placement-fee economics limit them to private-pay providers who can pay.
+
+Truthfulness flags carried forward: the Eldercare LLM, the agentic execution
+loop, and care-establishment tracking are CRP work, in development, not live
+features. The figure states them as capability claims in the same present tense
+as the rest of the set; if the set is ever required to distinguish live from
+proposed, that is a change across all seven figures, not this one bullet.
+Workforce bullets held at three lines so the two sides stay balanced.
+
 ## The structural fact everything else rests on
 
 The commercial rule is "no provider pays for a referral." It constrains the

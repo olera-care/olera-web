@@ -707,3 +707,14 @@ and belong in the RS or CP wherever the two capabilities are described.
 The caregiver trio icon came out of Figure 6's spine at Logan's direction rather
 than being forced into a narrow column; the compass now carries the spine alone.
 The trio still appears in Figures 3, 4, and 5.
+
+### Figure 5 Care Navigation differentiators, first set (2026-08-25)
+
+The first differentiator set for Care Navigation ("Files the applications and
+follows through until care starts." / "Covers public aid and insurance, not only
+private-pay services." / "No referral fees, so every provider is listed.") was
+replaced at Logan's direction by a set built around access, the Eldercare LLM
+and AI agents, and full-ecosystem coordination. **Future home:** the referral-fee
+line is the cleanest statement of the neutrality rule we have and belongs in the
+CP wherever the commercial rule is stated; the follow-through line survives
+inside the new second bullet ("execute until care starts").

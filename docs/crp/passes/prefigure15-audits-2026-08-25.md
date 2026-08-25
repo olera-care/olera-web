@@ -803,3 +803,29 @@ opener are all prose, not figures. The traction numbers stay on slide 29.
 **Ledger correction:** `evidence-ledger.md` still marks the $58B unclaimed-aid claim
 "unsupported (citation missing)." `references.yaml` has `ncoa2025` verified 2026-08-19.
 That row is stale.
+
+### Both remaining changes applied (Logan: "do both of those too")
+
+**1. Slide 3, the delay mechanism.** Under "Long-term care facility," in the same
+italic red used for the causal label above it: *"families wait, and public programs
+pay last and most."* Eleven words carry TJ's whole sentence about hospitalization as
+the trigger and the public payer arriving last and paying most. The spur into the
+facility box is no longer unlabelled, and the slide now reads as a sequence with a
+cost inversion at its end rather than a ring of consequences.
+
+**2. Slide 7, the no-referral-fee consequence.** The bullet "Open online to any
+family, no referral or eligibility gate" became *"Open to any family, and no provider
+pays to be listed, Medicaid and Medicare included."* The old wording named a rule; the
+new one names what the rule buys. The clause about Medicaid and Medicare is the
+competitive point: a pay-per-referral model cannot list federally reimbursed providers,
+so the same sentence states the coverage advantage and its regulatory basis without
+using the word "kickback" or citing a statute on a concept slide. Measured at 328.9px
+at 8.6pt against a ~460px field; the two sibling bullets are 299.2 and 292.5, so the
+bullet block stays visually even.
+
+**Ledger corrected.** Two rows in `evidence-ledger.md` were stale and now resolve:
+the $58B unclaimed-aid claim against `ncoa2025`, and the acceptance figures against
+`fan2024`, `hoang2026`, and `careNavTAS2026`. The ledger's own note records that the
+superseded "≈5.6/7" had been misattributed to the AI agents rather than the platform.
+
+**State after this pass:** 43 pages, 0 em dashes, rendered and inspected at 979x741.

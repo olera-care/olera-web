@@ -5,8 +5,7 @@ import Link from "next/link";
 import {
   type CampaignRequest,
   STATUS_LABELS,
-  StatusBadge,
-  PhotoReadinessBadge,
+  PHOTO_READINESS_LABELS,
   adBudgetLabel,
   fmtDateOnly,
   fmtTimestamp,
@@ -103,8 +102,8 @@ export default function AdminAdBoostPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
-      <header className="mb-5">
+    <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
+      <header className="mb-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-3 min-w-0">
             <h1 className="text-2xl font-semibold text-gray-900">Ad Boost — provider queue</h1>
@@ -140,7 +139,7 @@ export default function AdminAdBoostPage() {
         </p>
       </header>
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-2">
           {tabs.map((tab) => (
             <button
@@ -173,7 +172,7 @@ export default function AdminAdBoostPage() {
         )}
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-1.5">
           {(statusChips.length > 1 || attentionCount > 0) && (
             <button
@@ -182,7 +181,7 @@ export default function AdminAdBoostPage() {
               className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
                 statusFilter === null
                   ? "bg-gray-800 text-white"
-                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  : "text-gray-500 hover:bg-gray-100"
               }`}
             >
               All
@@ -195,7 +194,7 @@ export default function AdminAdBoostPage() {
               className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
                 statusFilter === "attention"
                   ? "bg-amber-600 text-white"
-                  : "bg-amber-50 text-amber-700 hover:bg-amber-100"
+                  : "text-amber-700 hover:bg-gray-100"
               }`}
             >
               Needs attention
@@ -212,7 +211,7 @@ export default function AdminAdBoostPage() {
               className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
                 statusFilter === status
                   ? "bg-gray-800 text-white"
-                  : "bg-gray-100 text-gray-500 hover:bg-gray-200"
+                  : "text-gray-500 hover:bg-gray-100"
               }`}
             >
               {STATUS_LABELS[status] ?? status}
@@ -240,7 +239,7 @@ export default function AdminAdBoostPage() {
       {error && <p className="mb-4 text-sm text-red-600">{error}</p>}
 
       <div className="overflow-hidden rounded-xl border border-gray-200">
-        <div className="hidden xl:grid grid-cols-[minmax(145px,1.45fr)_95px_100px_minmax(120px,1.15fr)_50px_50px_44px_88px_48px] items-center gap-2 border-b border-gray-200 bg-gray-50 px-3 py-2.5 text-xs font-medium uppercase tracking-wide text-gray-400">
+        <div className="hidden xl:grid grid-cols-[minmax(145px,1.45fr)_95px_100px_minmax(120px,1.15fr)_52px_64px_44px_90px_48px] items-center gap-2 border-b border-gray-200 bg-gray-50 px-3 py-2.5 text-[10px] font-medium uppercase tracking-[0.06em] text-gray-400">
           <span>Provider</span>
           <span>Platforms</span>
           <span>Status</span>
@@ -313,7 +312,7 @@ function ProviderGroupRow({
 
   return (
     <div className="border-b border-gray-100 last:border-b-0">
-      <div className="grid grid-cols-1 gap-2 px-4 py-3.5 hover:bg-gray-50/60 xl:grid-cols-[minmax(145px,1.45fr)_95px_100px_minmax(120px,1.15fr)_50px_50px_44px_88px_48px] xl:items-center xl:px-3">
+      <div className="grid grid-cols-1 gap-2 px-4 py-3.5 hover:bg-gray-50/60 xl:grid-cols-[minmax(145px,1.45fr)_95px_100px_minmax(120px,1.15fr)_52px_64px_44px_90px_48px] xl:items-center xl:px-3">
         <div className="min-w-0">
           <Link
             href={`/admin/ad-boost/${request.id}`}
@@ -324,8 +323,8 @@ function ProviderGroupRow({
           <p className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs text-gray-400">
             <span>{group.latestRequest.completeness_at_submit ?? "—"}% complete</span>
             {hasHistory && (
-              <span className="rounded-full bg-primary-50 px-2 py-0.5 text-[11px] font-medium text-primary-700">
-                {campaignCountLabel}
+              <span className="text-[11px] text-gray-400">
+                · {campaignCountLabel}
               </span>
             )}
           </p>
@@ -334,9 +333,9 @@ function ProviderGroupRow({
         <PlatformBadges platforms={group.platforms} />
 
         <div className="flex flex-wrap items-center gap-1.5">
-          <StatusBadge status={request.status} />
+          <QueueStatusLabel status={request.status} />
           {!["live", "ended", "cancelled"].includes(request.status) && (
-            <PhotoReadinessBadge status={request.photo_readiness_status} />
+            <QueuePhotoReadinessLabel status={request.photo_readiness_status} />
           )}
           <PlanBadge request={request} />
           {!!request.deleted_at && (
@@ -412,7 +411,7 @@ function CampaignRow({
   const configuredBudget = adBudgetLabel(request.ad_budget_cents, request.ad_budget_type);
 
   return (
-    <div className="grid grid-cols-1 gap-2 border-b border-gray-100 px-4 py-3 last:border-b-0 xl:grid-cols-[minmax(145px,1.45fr)_95px_100px_minmax(120px,1.15fr)_50px_50px_44px_88px_48px] xl:items-center xl:px-3 xl:pl-6">
+    <div className="grid grid-cols-1 gap-2 border-b border-gray-100 px-4 py-3 last:border-b-0 xl:grid-cols-[minmax(145px,1.45fr)_95px_100px_minmax(120px,1.15fr)_52px_64px_44px_90px_48px] xl:items-center xl:px-3 xl:pl-6">
       <div className="min-w-0">
         <Link
           href={`/admin/ad-boost/${request.id}`}
@@ -430,9 +429,9 @@ function CampaignRow({
       <PlatformBadges platforms={platformsForChannel(request.channel)} />
 
       <div className="flex flex-wrap items-center gap-1.5">
-        <StatusBadge status={request.status} />
+        <QueueStatusLabel status={request.status} />
         {!["live", "ended", "cancelled"].includes(request.status) && (
-          <PhotoReadinessBadge status={request.photo_readiness_status} />
+          <QueuePhotoReadinessLabel status={request.photo_readiness_status} />
         )}
         <PlanBadge request={request} />
         {!!request.deleted_at && (
@@ -566,14 +565,14 @@ function PlatformBadges({ platforms }: { platforms: AdBoostPlatform[] }) {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       {platforms.map((platform) => {
-        const style =
+        const dot =
           platform === "google"
-            ? "bg-blue-50 text-blue-700"
+            ? "bg-blue-500"
             : platform === "meta"
-              ? "bg-indigo-50 text-indigo-700"
+              ? "bg-indigo-500"
               : platform === "nextdoor"
-                ? "bg-emerald-50 text-emerald-700"
-                : "bg-gray-100 text-gray-500";
+                ? "bg-emerald-500"
+                : "bg-gray-300";
         const label =
           platform === "google"
             ? "Google"
@@ -583,13 +582,39 @@ function PlatformBadges({ platforms }: { platforms: AdBoostPlatform[] }) {
                 ? "Nextdoor"
                 : "Unassigned";
         return (
-          <span key={platform} className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-[11px] font-medium ${style}`}>
-            <span className="h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
+          <span key={platform} className="inline-flex items-center gap-1 text-[11px] font-medium text-gray-500">
+            <span className={`h-1.5 w-1.5 rounded-full ${dot}`} aria-hidden="true" />
             {label}
           </span>
         );
       })}
     </div>
+  );
+}
+
+function QueueStatusLabel({ status }: { status: string }) {
+  const tone =
+    status === "live"
+      ? "text-emerald-700"
+      : status === "cancelled"
+        ? "text-gray-400"
+        : "text-gray-600";
+  return (
+    <span className={`text-xs font-medium ${tone}`}>
+      {STATUS_LABELS[status] ?? status}
+    </span>
+  );
+}
+
+function QueuePhotoReadinessLabel({
+  status,
+}: {
+  status: CampaignRequest["photo_readiness_status"];
+}) {
+  return (
+    <span className="basis-full text-[11px] leading-tight text-gray-400">
+      {PHOTO_READINESS_LABELS[status]}
+    </span>
   );
 }
 
@@ -677,7 +702,7 @@ function NextMoveCell({ action }: { action: AdBoostNextAction }) {
     action.level === "attention"
       ? "text-amber-800"
       : action.level === "healthy"
-        ? "text-teal-700"
+        ? "text-gray-600"
         : action.level === "done"
           ? "text-gray-500"
           : "text-gray-700";

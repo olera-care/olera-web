@@ -739,3 +739,15 @@ figure footnote. Nothing in it was wrong; the figure simply should not need it.
 ~$170K/county/year after the pressure test recorded in the strategy record. The
 old numbers are in git history at commit 92c2d2a if the assumptions are ever
 revisited with real contract data.
+
+### Figure 7 signpost second sentence (2026-08-25)
+
+Trimmed to one line at Logan's direction. The removed sentence: "The beachhead
+line matches the per-market mature revenue used there; the emerging lines sit
+above that model and depend on the outcomes evidence this project produces."
+**Future home:** CP Section 9, where the payer horizon is described. It is the
+one-sentence reconciliation between the ratified per-market projection and the
+institutional revenue this figure set introduces, and the reconciliation still
+has to exist somewhere in the application even though the figure no longer
+carries it. The two-band structure of the table (beachhead / emerging) carries
+the distinction visually; only the explicit tie to the CP projection was lost.

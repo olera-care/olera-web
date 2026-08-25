@@ -171,15 +171,29 @@ plan-paid care coordination is an established category.)
   without caregivers. Sponsored navigation is the navigation capability
   monetized, and institutions sponsor it because unmet needs become their costs.
   Neither solution is a cost center waiting for outside subsidy.
-- **Figure 6 answers all five of Logan's questions without economics:** who the
-  segments are (two customer boxes), who pays first versus later (SELLING TODAY
-  versus AS OUTCOMES ARE PROVEN, reinforced by solid versus dashed borders and
-  solid versus dashed money arrows and coins), what each buys (the product line
-  in green), why each pays (one sentence each), and how the revenue sustains the
-  solutions (both money arrows point up into CareNavigator). The trio and
-  compass icons carry over so each customer visibly buys the capability it maps
-  to. "Free for families, always." sits in the system box as the constraint that
-  makes the question non-trivial.
+- **Figure 6 redesigned as a revenue roadmap (Logan, 2026-08-25).** The first
+  version repeated Figure 5's box-and-arrow grammar and read as a variation of
+  the same slide. Every figure through 5 is a diagram (horizontal sequence in
+  1 and 4, radial in 2, two-column contrast in 3, Y-fan in 5), so the unused
+  grammar, and the one that fits "who pays and when" best, is chart-like: two
+  revenue bands laid on a time axis. After five diagram pages it reads as
+  turning the page to the business.
+- **How it encodes the argument.** A full-width slab across the top names what
+  the revenue must sustain (CareNavigator, both capabilities, free for families
+  always). Below it, the beachhead band starts at Today and runs the full
+  width; the emerging band starts partway across and runs to the end, so the
+  horizontal offset *is* the temporal claim rather than a label asserting it. A
+  dashed gate line at the offset ties both to the axis tick, "Preventive
+  geriatric care outcomes demonstrated." Each band carries the customer, what
+  they buy, and one reason. A solid coin sits on the beachhead band's origin
+  and a dashed coin on the emerging band's, marking where each revenue stream
+  begins. The trio and compass icons carry over so each customer visibly buys
+  the capability it maps to.
+- **Sequence pacing after the redesign:** 1 paired boxes, 2 radial ecosystem
+  (deliberately the densest page, since complexity is its argument), 3
+  two-column contrast, 4 three-box sequence, 5 Y-fan with a hero, 6 roadmap
+  chart, 7 table. Intentional variation inside one palette, type scale, and
+  icon set.
 - **Figure 7 is the audit layer**, rebuilt to Logan's column spec: customer
   segment, why they pay, Olera offering, payment model, illustrative economics.
   Two bands separate beachhead from emerging so no stream reads as equally

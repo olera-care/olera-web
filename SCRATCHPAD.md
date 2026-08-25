@@ -7,6 +7,36 @@
 
 ## Current Focus
 
+### 2026-08-25 — Two provider replies, and the launch email that never names its channel (`shiny-pasteur`, ops only, no code)
+
+**Sandra (Edmonds Villa) and Jasmine (Graceful) both answered. Wrote and sent both replies.** Everything below came out of live queries; nothing was taken from `ad_campaign_requests`, whose `ad_spend_cents` / `ad_clicks` / `ad_impressions` are null on every row touched today.
+
+**The finding worth keeping: `ad_boost_campaign_launched` never names its channel.** Jasmine received two of them, **Aug 14 (Nextdoor) and Aug 21 (Google)**, both with the identical subject **"Your Find Families campaign is live"**, and **opened neither**. The only place the word Nextdoor has ever reached her is TJ's hand-written Aug 21 email, which she answered with "Awesome, thanks for the update!" — politeness, not comprehension. Her reply email now re-establishes what ran before it reports what happened. **This gets worse with Meta**: four providers are owed Meta builds, and a third identical email is the current design. Every multi-channel provider hits this.
+
+**Sandra.** Her areas arrived 08-22 (King + Snohomish, seven cities). Already handled: Edmonds + 20mi covers all seven and excludes south King County. Reply confirmed the radius call, the Aug 31 start with no gap, and conceded the questions point — **she was right**, all four are `answered` + `is_public`, and the Medicare one was answered **Aug 21 11:14am PT**, hours after that paragraph was drafted. Her answer is also correct: adult family homes are not CMS rated.
+
+**Jasmine's Nextdoor numbers, reconstructed from our own tables** because row `354917bf` is blank: **133 unique page views Aug 14–21 against 2 on Aug 13**; peak 45 on the 16th; **7 `question_asked` events, all guests, Aug 14–16** (5 insurance/Medicaid, 1 pricing, 1 speed), all answered within a day, the 4 duplicate insurance rows `archived` by the deduper. **Traffic collapsed after Aug 18** — no row at all on the 19th, 1 unique on the 20th and 21st — so the $50 lifetime budget burned in roughly five of its eight booked days. Every question arrived in the first three days.
+
+**Decisions**
+
+- **Never assert "no calls."** Zero connections through Olera is not zero calls. This is [[project_adboost_outcome_blindness]] exactly: every in-app signal read zero while Hilda had already closed a paying client. The replacement sentence ("if your phone rang I would not see it") was also cut, because provider phone numbers are not displayed on the page, so it described a channel that does not exist.
+- **Do not hand the insurance finding to the provider as a task.** She already answered it. If five families still had to ask, that is the Q&A ordering bug we already own and already told her about.
+- **Cut "nine out of ten questions on Olera never get answered."** True (**771 answered / 7,731 pending = 9.1%**) and it flattered her, but it tells a provider in writing that most of the platform is unresponsive.
+- **The copy may not imply Jasmine funds her campaigns.** `plan_status`, `stripe_customer_id`, `subscribed_at` all null on both rows. Both flights are the free intro.
+- **The email frames Nextdoor and Meta as a continuing experiment**, not as "Nextdoor is finished, Google is the answer." No dates on either, because neither is built for any provider. This paragraph also pre-explains the next identical launch email she receives.
+- **NIH pre-announced to Jasmine for the first time.** Her sent follow-up never carried the line, unlike Sandra's, so the 08-23 handoff claim that all four drafts pre-announced it is wrong for her.
+
+**Also:** `/tj-voice` moved from `~/Desktop/TJ-hq/.claude/commands/` to user-global `~/.claude/skills/tj-voice/SKILL.md`, with the four Renora source PDFs converted to **absolute** paths (they were relative to TJ-hq and resolved to nothing anywhere else) and a register section added so it does not push provider email into grant prose. `/dance` has the same project-scoping problem and was left alone.
+
+**Artifacts:** Edmonds Villa Reply https://claude.ai/code/artifact/c1e22ae4-2b82-4a90-8e73-327b5c244347 · Jasmine's Nextdoor Numbers https://claude.ai/code/artifact/4dfaf211-05a1-4cbb-8ef6-30f4af3b117c · Drafts at `~/Desktop/provider-emails-2026-08-21/`.
+
+**Next up**
+
+- **The Monday budget read never happened.** Miracle-Lightstar at $3.57/day vs Graceful held at $1.67/day as the control. It was due 08-24 and the whole batch's budget hangs on it. Zardy is now the only provider whose "Five Letters" catch still stands in full, and a silent month is getting longer.
+- **NIH letters: four working days left, no draft exists.** Both emails sent today promise the document "in the next few days." Logan sent a Commercial Readiness Pilot letter-of-support request to Blake on 08-05; if that is the same grant, the provider version should be a trim of it. Tracker artifact "Five Letters by September 1" is now stale on the runway and on three of the five catches.
+- **Row `354917bf` still blank.** Leave the wrap-up cancelled or fill it, otherwise it contradicts the email just sent.
+- **Fix `ad_boost_campaign_launched` to name its channel.** Before the Meta builds, not after.
+
 ### 2026-08-24 — One junk click silently shut off a paying provider, and it is not one provider
 
 **Started from TJ noticing Pacesetter's admin page looked fine while the comms timeline showed `failed`. It was not a display bug.** Sherry Pace's `ad_boost_traction` email was delivered, opened and clicked on **Thu 08-13 9:43pm ET**, then Outlook fired a complaint webhook **three minutes later**. `isSuppressedRecipient` reads all-time `email_log` with no expiry and no severity grading, so that one junk click permanently suppressed every non-exempt send to `pacesetterhomeservices@outlook.com`.

@@ -8,8 +8,9 @@ Small, purposeful, legible: every file has a reason to exist. Detailed evidence 
 
 Three-year NIA CRP (~$4M) to take CareNavigator — a two-sided eldercare platform built
 across SBIR Phases I–IIB (1R44AG074116) — to commercial sustainability: concentrate
-family and provider participation in local markets, validate the Provider Growth Suite,
-and prove a provider-funded revenue model that keeps navigation free for families.
+family and provider participation in twelve local markets, add new caregiver capacity on
+the provider side, and prove a provider-funded revenue model that keeps navigation free
+for families.
 
 ## 2. Canonical files
 
@@ -22,7 +23,8 @@ and prove a provider-funded revenue model that keeps navigation free for familie
 | `evidence-ledger.md` | Claim → source → strength → verify? | maintained live | live |
 | `meetings/2026-08-21-david-qu-and-team.md` | Durable context from the David Qu call + team session: the traction-strategy reframe, letters plan, commitments, watch list | transcript, 2026-08-21 | live; newest team decisions |
 | `SPINE.md` | **The locked CRP strategic spine** and the test every claim, aim, and figure is checked against; architecture fixed 2026-08-20, language refinable | strategy session 2026-08-20 | locked; reopen only with Logan |
-| `strategic-context-2026-08-20.md` | Why the current strategy: business diagnosis → free-core + two-product framing, temporal frame, story spine, unresolved questions | strategy session 2026-08-20 | stable; supersedes README §5's three-product terminology pending TJ ratification |
+| `CANON.md` | **The conceptual canon**: the durable output of the 40-slide figure sequence. The causal chain the application follows, the settled decisions by domain (problem narrative, workforce, beachhead product, payer evidence, HSR boundary, Aim architecture, market design), working hypotheses, open questions, and the index of what it supersedes | figure sequence, 2026-08-24 to 08-25 | live; read before drafting any section |
+| `strategic-context-2026-08-20.md` | Why the current strategy: business diagnosis → free-core + two-product framing, temporal frame, story spine, unresolved questions | strategy session 2026-08-20 | reference; its two-product framing and several unresolved items are superseded by `CANON.md` §6 |
 | `figures/` + `MANIFEST.md` | Figure files, captions, placement, argument, status | RS: extracted from Drive docx; CP: SVGs from staging v0.24 | live |
 | `tools/` | `render_pdf.py` (house-style HTML/PDF, the layout artifact), `export_docx.py` (house-style .docx for the Drive round-trip; shares the formatter with the renderer), `make_reference_docx.py` + `house-reference.docx` (Word style template: Letter, 0.5in margins, Arial 11pt justified, 9pt references) | this repo | stable |
 | `reference/phase-iib/` | Phase IIB application (1R44AG074116) as historical source: prior framing, technical descriptions, accomplishments, figures | uploaded 2026-08-19 | reference only, never current truth |
@@ -37,33 +39,41 @@ read back through the API.
 
 ## 3. Strategic thesis
 
-Benefits and navigation attract families → family demand attracts providers → providers
-get neutral, free family connections → Olera sells providers tools for their three big
-problems: **Staffing, Visibility/Boost, Conversion**. The pieces reinforce one another
-(one system, not three companies). Engineering supports the research: each aim states
+Navigation attracts families → family demand attracts providers → providers get neutral,
+free family connections → **Olera sells providers the one thing that binds them, caregiver
+staffing**, because unfilled shifts cap the clients they can take. Navigation alone would
+only route demand at a supply side that cannot absorb it, which is why workforce expansion
+is part of the product and not a second business. The payer and institutional customers
+above that layer are evidenced during the award, not sold (`CANON.md` §2.6). Engineering supports the research: each aim states
 what exists / is partial / is completed under CRP; research questions target the
 commercial uncertainties. Human-subjects work follows **Verify → Validate → Scale**.
 
 ## 4. Major unresolved weaknesses (score-movers)
 
-1. **Commercial readiness evidence** — preliminary work must show real movement toward
-   commercialization with honest maturity labels (Staffing: real pilot experience ·
-   Visibility/Managed Ads: emerging, operating · Conversion: least mature, not yet a
-   product). Metrics must be revenue or revenue-adjacent; every milestone answers "why
-   are we closer to sustainable revenue?"
-2. **Human-subjects rigor** — Aim 1: one focused ADRD-caregiver study (defend the
-   population choice; no dropout-only recruiting). Aim 2: intervention definition still
-   unresolved. Aim 3: least developed; must pass the investor common-sense test.
-3. **Letters as real evidence** — customers (~15 signed Growth Suite providers) and
+1. **Commercial readiness evidence.** Preliminary work must show real movement toward
+   commercialization with honest maturity labels. The CRP's product is Caregiver Staffing
+   (real pilot experience, providers paid); Managed Ads/Boost is a live company activity
+   and Conversion is not a product, and neither is a CRP deliverable. Metrics must be
+   revenue or revenue-adjacent; every milestone answers "why are we closer to sustainable
+   revenue?" The progress-report device in `CANON.md` §2.11 is the strongest form of this
+   argument we have found.
+2. **Human-subjects rigor.** Resolved in architecture (`CANON.md` §2.7): three bounded IRB
+   studies, one per aim, everything else operational or commercial evidence, determinations
+   obtained rather than assumed, and the project designed to stay outside the NIH
+   clinical-trial definition. What remains is Qiping's protocol detail and the open
+   determinations listed in `CANON.md` §5.
+3. **Letters as real evidence.** Customers (~15 signed providers) and
    investors (AAN/Blake Petty, Ziegler, Equitage) speaking to actual value and CRP
    milestones. Interest is never framed as commitment.
 
 ## 5. Fixed terminology
 
-CareNavigator · Provider Growth Suite · **exactly three products: Staffing,
-Visibility/Boost, Conversion** (profiles sit under Visibility; no fourth product) ·
-family/caregiver · provider · market = county · commercial readiness · sustainability.
-Flag semantic drift on sight.
+CareNavigator · Care Navigation · New Caregiver Workforce · **one product the CRP sells and
+prices: Caregiver Staffing** (Managed Ads/Boost and Conversion are company activities, not
+CRP products; "Provider Growth Suite" is retired as an umbrella) · family/caregiver ·
+provider · market = county, defined once at first use · care established · a first verified
+paid shift · commercial readiness · sustainability. Full table with the retired terms:
+`CANON.md` §3. Flag semantic drift on sight.
 
 ## 6. House style (canonical, ratified 2026-08-17)
 
@@ -197,9 +207,11 @@ written; rendering rules govern the docx/PDF surfaces.
 
 ## 7. Provisional claims (flag, never silently harmonize)
 
-- **End-state numbers** (market count 12 vs 18; award-end payers/revenue/run-rate —
-  three versions in circulation) — locked only after the Aim 3 redesign, then
-  reconciled RS → CP → Aims in one pass.
+- **Market count: resolved to twelve** (2026-08-25), derived twice and with composition
+  specified: 4 anchors + 8 replication markets, 6 of them in two payer clusters
+  (`CANON.md` §2.9). CP §9 still says 18 and is stale. **Award-end payers/revenue/run-rate**
+  remain provisional with three versions in circulation; reconcile RS → CP → Aims in one
+  pass once TJ's Aims land.
 - **AI agents**: agentic layer is in development in a separate codebase (integration
   ~3 months out, pre-award). Never described as existing today; current state =
   structured screening/matching + AI-drafted, expert-approved guidance.
@@ -242,6 +254,21 @@ the default whenever Logan says "next paragraph."
 
 ## 10. Locked sections (do not reopen without cause)
 
+**Superseded by the figure sequence (2026-08-25).** Locks below still record what was
+ratified and when, but three of them now conflict with `CANON.md`, which is current.
+Do not draft from the older version and do not harmonize in the other direction.
+
+- **The Aim architecture** in `specific-aims.md` (Aim 2 = provider capacity plus two
+  provider products; Aim 3 = revenue model) is superseded. Current: Aim 2 is the
+  workforce aim, product and pricing consolidate into Aim 3, connection completion is
+  measured inside Aim 1 (`CANON.md` §2.8, §6.2). The page itself is not rewritten;
+  TJ owns the next Aims pass and this is the architecture it should start from.
+- **The product count** in Significance and in Key Innovation 1's surrounding text
+  assumes more than one CRP product (`CANON.md` §6.1).
+- **The workforce framing** in Key Innovation 2 is students-as-strategy rather than
+  workforce expansion with students as the first tested population (`CANON.md` §2.4).
+
+
 **Key Innovation 1** is locked as of 2026-08-19, with Figure 3 wrapped top-right.
 
 **The Specific Aims page is locked as of 2026-08-21**, rebuilt on `SPINE.md` and the
@@ -271,6 +298,19 @@ placements need to reach the consolidated pilot record; the state-by-state eligi
 line needs a home in Key Innovation 3.
 
 ## 11. Current priority
+
+**Paused for team review (2026-08-25).** A 40-slide concept deck covering the whole
+application (`passes/payer-horizon-visuals-2026-08-24.html`, rendered PDF alongside)
+went to David, Marcia, TJ, and Qiping. Its conceptual output is `CANON.md`, its method
+output is the dated section at the end of `DRAFTING.md`, and its visual output is the
+sequence section at the end of `figures/README.md`. **When prose drafting resumes, read
+`CANON.md` first**: sections 2 and 3 are the working foundation, section 4 is what team
+feedback may move, and section 5 is the list of things not to state as settled. First
+items on return, once feedback lands: TJ's Aims pass on the new architecture, the third
+market axis (SES or waiver generosity), and the Commercialization Plan's missing
+Section 10 and Fundraising Plan headings. The paragraph below is the pre-pause
+priority, kept for history.
+
 
 **Sprint to submit (2026-08-24).** The team is submitting this round (Sept 4;
 Sept 1 internal check). Division of labor from the 08-24 meeting

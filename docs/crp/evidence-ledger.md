@@ -28,7 +28,7 @@ records; consolidation needed) · **unsupported** (no source located yet) ·
 | Phase I–IIB impact scores 20 and 25 | award records | verified | RS Preliminary; CP §2 | No |
 | MARS 4.57/5 (n=30); TAS 5.83/7 (n=65) after four weeks; CARE-NAV multi-agent TAS 5.73/7 (n=31, unpublished) | `fan2024`, `hoang2026`, `careNavTAS2026` | verified 2026-08-19 | RS Preliminary; deck slide 29 | No — resolved. The earlier "4.6/5 (n=31)", "≈5.6/7" and "n=200" figures are superseded by references.yaml, which also notes that ≈5.6/7 was misattributed to the AI agents rather than the platform. |
 | $58B unclaimed aid annually | `ncoa2025` (NCOA 2025), references.yaml | verified 2026-08-19 | Aims, RS Significance; deck slide 4 context | No — resolved |
-| Direct-care: 9.7M openings 2024–2034 | PHI 2025 (verified in CP bibliography) | verified | Aims, RS, CP §2 | No |
+| Direct-care: 9.7M **job openings** 2024–2034 | `phi2025`, verified | verified | Aims, RS, CP §2; deck slides 5 and 16 | **Yes, wording.** The source is 9.7M total openings including transfers and labor-force exits. The figures say "9.7M unfilled roles by 2034," which the source does not support. Say "openings" everywhere. |
 | Caregiver turnover ≈75% (CP) vs "approaches 80%" (RS) | Activated Insights 2024: 75.0% (verified) | verified (RS overstated) | CP §2 vs RS Significance | Fix RS to 75% |
 | 63.3% of home-care providers turned down cases (2023) | Activated Insights 2024 Benchmarking Report (`activatedInsights2024`) | verified 2026-08-19 | RS Significance (unmet need), CP §2 | No — resolved; confirm page/table against the report PDF at the citation-integrity pass |
 | ≈100K non-medical home care agencies; ≈165K organizations total | state-licensing estimates (canon since CP v0.2x) | verified-method (estimate) | CP §5 | Keep "estimates vary" framing |
@@ -36,6 +36,13 @@ records; consolidation needed) · **unsupported** (no source located yet) ·
 | 200+ I-Corps provider interviews | I-Corps program records | verified | RS, CP | No |
 | Ziegler / Equitage diligence shaped endpoints; John Reinhart engagement | correspondence | records-exist | RS Preliminary; CP §1/§7 | Letters task (TJ) |
 | ~15 providers signed up for Growth Suite (letter pool) | 2026-08-17 meeting | records-exist | letters workstream | Yes — list from DB |
+| 263,800 health-professions undergraduate degrees a year | `nces2024`, verified 2026-08-19 | verified | RS Innovation 2; deck slide 16 | No. The verified quantity is the annual degree flow, not an enrollment count |
+| Over 700 providers have claimed a listing; ~150 more each month | claims dashboard; SCRATCHPAD entry 2026-08-05 records 711 | pullable (stale) | RS Preliminary; deck slide 29 | Yes. Pull and date before submission. No service-role key in this environment |
+| ~25 paying accounts in a mature market | planning assumption | hypothesis | CP §9; deck slide 9; the market-count derivation | Yes. This assumption drives the market count more than anything else in the derivation |
+| ~$220K/year illustrative total for one mature mid-sized market | build from the slide 9 table | hypothesis (illustrative) | deck slide 9; CP §9 | Label illustrative wherever it appears; every payer line in it is beyond the award |
+| Repeat shift use at 60 days ≥50%; accounts reaching a first verified paid shift ≥70% | derived from the month-24 gate, not measured | hypothesis | deck slides 23 and 26 | Yes. State as targets, never as expected values |
+| Expert-panel agreement ≥85%, material errors ≤10%, follow-ups on time ≥95%, outcome ascertainment ≥80% | Aim 1 gate values | hypothesis (committed targets) | deck slides 20 and 22 | No. These are pre-committed thresholds, not claims about the world |
+| LTV:CAC ≥3:1, payback <12 months, positive per-market margin | Aim 3 targets | hypothesis (committed targets) | deck slide 24 | No. Same |
 
 ## Market figures retired (2026-08-19)
 

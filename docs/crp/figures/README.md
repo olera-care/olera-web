@@ -79,3 +79,53 @@ feedback.
   intellectual jobs must not share a layout archetype, or the reader reads them
   as variations of one slide. Vary the architecture across the sequence while
   holding palette, type scale, and icon set constant.
+
+## Lessons from the 40-slide concept deck (2026-08-25)
+
+Extracted from `../passes/payer-horizon-visuals-2026-08-24.html`, the first time the
+house style was held across a whole sequence rather than a single figure. The
+principles above all held. These are what a sequence teaches that one figure cannot.
+
+- **A sequence has a grammar of titles.** Each title is a move, not a label, and it
+  earns its place by answering the question the previous title created ("But There Is
+  Competition" only works after "Business Model"). Read the titles alone, in order,
+  before building anything: if they do not tell the story by themselves, the sequence
+  is wrong and no amount of figure quality will fix it.
+- **Say where the evidence stops.** A line marking what the work does not deliver
+  ("THE AWARD ENDS HERE") makes everything above it more credible, not less. Refusing
+  a claim inside the figure is stronger than omitting it.
+- **Removal is two operations.** Delete the element, then resize its container and
+  lift everything below it. A box holding a title over 50 pixels of air is a defect,
+  and it is the defect this pass shipped most often. Recheck the viewBox after any
+  deletion.
+- **New white space is not an invitation to new text.** When Logan cuts something for
+  crowding, the correct next state is a less crowded figure.
+- **Every threshold on a figure comes from somewhere.** Lift it from a value already
+  committed elsewhere in the application, or leave it off. A plausible invented number
+  is the easiest thing to draw and the least defensible thing in the set.
+- **Every term on a figure must be defined somewhere in the application.** A
+  70 percent gate on an undefined "provider value endpoint" survived two review passes
+  because it looked precise. If the phrase cannot be traced to a definition, it is not
+  a metric, it is a shape.
+- **Define a unit once, at first use, in the figure that introduces it.** Alternating
+  "market" and "county" across a set assumes a reader who has memorized an internal
+  equivalence.
+- **Do not let two figures share a block.** Two Approach figures carried an identical
+  aim block, which read as a rendering error rather than as emphasis. Repetition
+  across a set is a sequencing signal, not a design choice.
+- **Vary the temporal device.** Three timelines in four slides is a template, even
+  when each is individually correct. Reserve the still, arrow-free composition for the
+  one place in the sequence that is an inventory rather than a movement.
+- **Plain-language subtexts, hard-capped.** Two lines, twelfth-grade language,
+  measured to fit. The cap is what converts grant register into the actual point.
+- **Measure text, never eyeball it.** `scratchpad/w.py` (an Arial AFM width table) is
+  the reason the bullet fields balance. Note it reads stdin at import, so any script
+  importing it runs with `< /dev/null`.
+- **Screenshot at 979 pixels wide, always.** A 1056px screenshot passes layouts that
+  print rejects. Chromium here is `/opt/pw-browsers/chromium`; `chromium` on PATH
+  fails. QA at `--window-size=979,741 --force-device-scale-factor=2` for letter
+  landscape at 0.35in margins.
+- **Regenerate structural pages from one script, and keep the script in sync.** The
+  dividers and contents pages are generated; hand-editing a generated page and then
+  re-running the generator silently reverts the edit. This happened once and cost a
+  whole cleanup pass.

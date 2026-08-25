@@ -11,6 +11,31 @@ application. Reopen only with Logan, and flag rather than silently edit.
 Companion context: `strategic-context-2026-08-20.md` (the diagnosis and reasoning that
 produced this; its section 8 records the organizing frame, section 9 points here).
 
+## Amendment: what the figure sequence settled (2026-08-25)
+
+The architecture below still holds, and so does the strategic test. Building the
+40-slide concept deck resolved three things the spine left open or stated in a form
+that is now stale. `CANON.md` is the current record; these are the specific deltas.
+
+1. **"Two provider products, Managed Ads and Staff Recruitment" is superseded.** The
+   CRP sells and prices **one** product, Caregiver Staffing. Managed Ads is a live
+   company activity, not a CRP deliverable. The revenue argument above that layer is
+   the payer horizon, which the award evidences rather than sells (`CANON.md` §2.6).
+2. **"Selected local markets" is now twelve**, derived twice and with composition
+   specified (`CANON.md` §2.9). The count is no longer deliberately unspecified.
+3. **"The specific workforce intervention" is now specified**: workforce expansion
+   infrastructure, with health-professions students as the first tested population
+   and a verified, portable experience record as the mechanism (`CANON.md` §2.4).
+   The spine's own phrase "caregiver workforce" remains correct and is preferred at
+   spine level.
+
+One evidence figure in the paragraph is stale: the remaining Phase IIB year's
+**"n=200 evaluation"** is superseded by `references.yaml` (see `evidence-ledger.md`).
+
+Two things the figure work confirmed rather than changed: the identification and
+establishment dichotomy carried every figure without strain, and the strategic test
+below rejected material correctly every time it was applied.
+
 ## The spine
 
 > Older adults increasingly need help with the ordinary tasks of daily living, while

@@ -247,3 +247,91 @@ automatically carry forward older formulations. The predecessor locks (SPINE.md
 2026-08-20, specific-aims.md lock of 2026-08-21) remain the ratified record
 until Logan merges the new baseline; where they conflict with the logos outline,
 flag the conflict, never silently harmonize in either direction.
+
+## Lessons from the figure sequence (2026-08-25)
+
+Context: Logan asked for concept figures covering the whole application. The result
+was 40 slides (`passes/payer-horizon-visuals-2026-08-24.html`), sent to David, Marcia,
+TJ, and Qiping on 2026-08-25. The conceptual output is `CANON.md`. What follows is the
+method output: what drawing the argument taught us about writing it.
+
+**Visualizing the argument is a test of whether we have one.** Prose can carry a vague
+claim for weeks because sentences flow past. A figure cannot. Every defect the figure
+pass exposed had been sitting in approved text: a "provider value endpoint" used as a
+70 percent threshold with no definition anywhere in the workspace; "county" and
+"market" alternating as if the reader knew they were the same thing; two adjacent
+sections sharing an entire block verbatim. None of these survived the first attempt to
+draw them. **Before drafting a section that has resisted several passes, try to draw
+it.** The failure mode of the drawing tells you what is wrong with the thinking.
+
+**One question in, one question out.** The strongest sequencing discipline we found is
+to ask, of every unit: what question does the reader arrive with, and what question do
+they leave with? A figure that answers a question nobody was asking is filler, and so
+is a paragraph. Applied to the whole application this produced the chain in `CANON.md`
+section 1, and applied to a single passage it decides whether a sentence stays.
+
+**Titles are the argument, not labels.** "The Competitive Environment" is a topic. "But
+There Is Competition" is a move in an argument, and it only works because the previous
+title created the need for it. Run-in headings in the Research Strategy should be read
+in sequence, on their own, and still tell the story; that is the scanning reviewer's
+whole experience of the document.
+
+**Concrete mechanism beats abstract category, every time.** "Social determinants of
+health" became "food, housing, income, transportation." "Care coordination" became
+assess, build a plan, execute, track. "Providers face workforce challenges" became
+"unfilled shifts cap the clients they can take." The abstraction is always shorter and
+always weaker, because the reviewer has to convert it back into a mechanism to judge
+whether it is true, and some of them will not bother.
+
+**Plain language is a constraint that improves the claim.** Logan's standard for the
+progress-report subtexts was twelfth-grade language, two lines. Writing to that
+constraint is where "we validated technology acceptance in a mixed-methods evaluation"
+became "would families accept it, and four peer-reviewed studies say yes." The second
+is not a simplification of the first. It is the first one's actual point, which the
+grant register had been hiding.
+
+**Removal has a second step, and skipping it is how a document decays.** Cutting text
+leaves a container sized for text that is gone: in the figures, boxes with 50 pixels of
+air; in prose, a topic sentence that promises a clause that no longer follows, a
+transition into a deleted point, a cross-reference to a removed section. Three
+orphaned references survived two deletions in this pass before anyone caught them.
+**After any cut, reread what the cut point receives and hands off.**
+
+**New white space is not an invitation to new text.** Logan had to say this explicitly,
+which means the instinct is real and it is ours. When a passage is cut for being
+overstuffed, the correct next state is a shorter passage.
+
+**Say where the evidence stops, on the page.** The most persuasive element in the deck
+is the line that marks where the award ends and refuses the sixth item on the payer
+ladder. Naming the limit is what makes the five claims below it credible. The same
+move belongs in the prose wherever we are about to be accused of overreach: state the
+boundary before the reviewer draws it.
+
+**A number must say what it is.** "9.7M unfilled roles by 2034" is not what PHI
+published; the source says 9.7 million total job openings including transfers and
+labor-force exits. The wrong version had been carried in figures and drafts alike
+because it was more dramatic and nobody re-read the `supports` line. **Re-read the
+ledger's `supports` text, not the claim as we last phrased it.**
+
+**Thresholds come from somewhere or they do not go in.** Every gate value in the
+Approach figures was either lifted from a value already committed elsewhere in the
+application or left out. Inventing a plausible number is the easiest thing in the world
+and the least defensible line in a review.
+
+**Vocabulary drift is invisible inside a document and obvious across a set.** The
+figures found drift that sentence-level review had missed for weeks, because forty
+slides put every synonym on one surface. The cheap version of this check for prose is a
+grep for each ratified term and its near-synonyms across the whole workspace, not a
+reading pass.
+
+**Vary the architecture, hold the system constant.** Two adjacent figures doing
+different jobs must not share a layout, or the reader reads them as variations of one
+slide. The prose analogue is real: three consecutive paragraphs that open with a claim
+and close with a number read as a template, and a reviewer skims templates. Vary the
+shape of the argument while holding voice, vocabulary, and evidence standard constant.
+
+**Surgical edits, and say which unit you changed.** Logan's standing instruction
+through the whole sequence was to edit surgically rather than redesign, and the
+recurring failure was ambiguity about which unit was being edited (slide numbers moved
+under us three times). When a document is being renumbered or restructured, state
+which unit you actually changed, in its current numbering, every time.

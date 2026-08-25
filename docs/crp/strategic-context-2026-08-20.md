@@ -138,11 +138,11 @@ marketing-and-recruiting denominator in `market-denominator.md`). Category-level
 willingness to pay is established by the industry's existing spend; product-level
 willingness to pay is the CRP's question. The narrowing from four candidate tools to two
 is convergence, not retreat: the two that survived are the two that produced paid or
-operating evidence. (Terminology note: the two-product framing supersedes README §5's
-"exactly three products" and needs a ratified README update with TJ; "premium offerings"
-overstates maturity and "commercialization hypotheses" as a noun understates the built
-products. Recommended pattern: concrete product nouns, hypothesis language attached to
-the revenue model.)
+operating evidence. (Terminology note, updated 2026-08-25: the narrowing
+did not stop at two. The CRP sells and prices one product, Caregiver Staffing; Managed
+Ads remains a live company activity and belongs in the commercialization history, not
+in the CRP product plan. See `CANON.md` §6.1. The recommended pattern still holds:
+concrete product nouns, hypothesis language attached to the revenue model.)
 
 **The free core is itself instrumented as a hypothesis.** Aim 3's cross-side liquidity
 analysis (provider value, retention, and margin modeled against lagged qualified family
@@ -176,6 +176,16 @@ reporting); the writer's block traced to Significance asserting what the Approac
 correctly treats as a question. Fix the mode of Significance, not its confidence.
 
 ## 5. Decisions ratified in the 2026-08-20 strategy discussion
+
+**Partly superseded 2026-08-25.** Items 1 and 3 below have been overtaken by the
+figure sequence; `CANON.md` is current. Item 1: the two-product framing is now one
+CRP product, Caregiver Staffing, with the payer horizon evidenced rather than sold
+(`CANON.md` §6.1). Item 3: Innovation order and content are now AI-assisted
+navigation, new caregiver workforce, aid/provider/outcomes database, with the
+workforce innovation restated as workforce expansion infrastructure (`CANON.md`
+§2.4). Items 2, 4, and 5 stand, and item 5 in particular was vindicated: the aims
+that survived the figure pass are the ones that test what actually decides whether
+Olera becomes a sustainable company.
 
 1. **Two-product framing stands** (Managed Ads, Staff Recruitment). Approach
    inconsistencies (four modules) are known and deliberately deferred until the
@@ -213,11 +223,14 @@ correctly treats as a question. Fix the mode of Significance, not its confidence
   rate and time-to-response is cheap pre-award operations work that converts the CRP's
   weakest assumed claim into a measured baseline. Strongly recommended during the
   remaining IIB year; not CRP-fundable work.
-- **12 vs 18 markets, award-end numbers:** still provisional per README §7; locked only
-  after the Aim 3 redesign.
-- **Whether "Growth Suite" survives as a name** under the two-product framing.
-- **Handoff experiment design:** agreed in principle; shape and placement (inside Aim 2
-  referral module vs its own task) undecided until the Approach pass.
+- ~~**12 vs 18 markets:**~~ **resolved 2026-08-25 to twelve**, derived twice and with
+  composition specified (`CANON.md` §2.9). Award-end payer/revenue/run-rate numbers are
+  still provisional. CP §9's 18 is stale.
+- ~~**Whether "Growth Suite" survives as a name:**~~ **resolved 2026-08-25: retired.**
+  There is one CRP product, Caregiver Staffing, so the umbrella names nothing.
+- ~~**Handoff experiment design:**~~ **resolved 2026-08-25**: connection completion is
+  measured inside Aim 1's establishment chain rather than as a separate experiment
+  (`CANON.md` §2.8).
 
 ## 7. Market-sizing placeholders (preserved; do not refine yet)
 

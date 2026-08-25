@@ -14,6 +14,17 @@ justified, 1pt after paragraphs, SPECIFIC AIMS heading per the Phase IIB page-4
 precedent) on 2026-08-21. Citations resolve by first appearance: ncoa2025,
 activatedInsights2024.
 
+ARCHITECTURE SUPERSEDED 2026-08-25 (do not draft from this page). The 40-slide
+concept deck re-based the Aim architecture. Current, in CANON.md section 2.8: Aim 1
+establish care reliably and prove it was established; Aim 2 bring new caregivers into
+the workforce and fill vacant jobs at licensed providers; Aim 3 will providers pay,
+do the economics hold, and does the model replicate. Product and pricing work
+consolidates into Aim 3; connection completion is measured inside Aim 1; the CRP
+sells and prices one product, Caregiver Staffing, so the two-product Aim 2 sentence
+below is stale. This page is deliberately NOT rewritten here: TJ owns the next Aims
+pass and CANON.md is the architecture it should start from. The 2026-08-21 lock still
+records what was ratified and when. Flag conflicts, do not harmonize either way.
+
 NOTES CARRIED FROM THE AUDIT: "twelve local markets" is final text on the page at
 Logan's direction but the count remains reconciled against the Approach redesign
 (README section 7 register). The Growth Suite umbrella name is retired here in favor

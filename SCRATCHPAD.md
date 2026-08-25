@@ -7,6 +7,49 @@
 
 ## Current Focus
 
+### 2026-08-25 — The budget experiment is falsified, and the CRP provider letters were rebuilt against the actual review criteria (`shiny-pasteur`, ops only, no code)
+
+**Google Ads, read at last.** The Monday budget experiment was four days overdue. It resolved, and it went the opposite way from the prediction.
+
+| Aug 24–25 | budget | impr | clicks | lost IS (rank) | lost IS (budget) |
+| --- | --- | --- | --- | --- | --- |
+| Miracle-Lightstar (raised to $3.57) | $3.57/day | **0** | 0 | > 90% | **0.00%** |
+| Graceful (control, held at $1.67) | $1.67/day | **13** | 1 | 89.74% | **0.00%** |
+
+The rule was "if Zardy recovers and Jasmine does not, budget level is the cause." **The reverse happened.** The arm that was raised still serves nothing; the untouched control started serving.
+
+**The number that settles it: `lost IS (budget) = 0.00%` on both.** Neither campaign has lost a single impression to its daily budget. Both lose ~90% to **Ad Rank**. Money was never the constraint, so raising it could not have helped. Graceful also improved with no change made (Aug 20–23 it read 4 impressions and 85.53% lost-to-budget; Aug 24–25 read 13 and 0.00%) — that is a new campaign leaving the learning phase, not a budget effect. Both still show `Eligible (Learning)`.
+
+**Zardy's keyword table confirms it.** All 36 keywords at 0 impressions. Not a volume problem: `"personal care assistance"` (149 impressions in July), `"home care agency"`, `"elderly home care"`, `"home care cleveland"` all read **Eligible** and all read **0**. Ten flagged *Low search volume* are suburb long-tails.
+
+**The lever is the bid cap, not the budget.** Read directly off his campaign today: "Set a maximum cost per click bid limit" is checked at **$2.50**. Every campaign in the account that serves clears at **$2.01–$2.44** — Pacesetter $2.01, LumiWell $2.21, Graceful $2.26, Edmonds $2.27, Rosemonte $2.44. All pressed against the same ceiling. Cleveland appears unable to clear it. **Not proven** — the bid simulator would give the curve — but budget, keywords, ads, geo and schedule are all eliminated.
+
+**Two things nobody was looking for.** Franchil's 90-day campaign reads **Pending / all ads under review**, 0 impressions, published Sunday Aug 23 (the ad itself reads Eligible, so it is the campaign-level review gate). And Edmonds Villa's August flight is healthy: 59 impressions, 2 clicks, $4.55 over two days, 68% lost to rank, 0% to budget.
+
+**The CRP letters were the wrong shape, and TJ caught it.** Codex's five drafts described what Olera did to each provider's page. Read against PAR-27-098's **Significance** criterion — which asks for *market pull, urgency of unmet need, understanding of customer needs, and hurdles that may prevent acceptance* — that is unscoreable. Worse, Doc 07's own rule says thin letters **subtract**: they make a reviewer discount the good one.
+
+**Aim 2 is the load-bearing sentence:** *"because the families Olera refers become high-margin customers for eldercare providers, those providers pay for premium advertising."* Olera asserts that. **The letters exist so a buyer says it instead.** Each of the five now carries one distinct load, per Doc 07's deliberately-different rule: Hilda the Aim 2 mechanism, Zardy market pull, Jasmine the adoption hurdle she raised herself, Sandra market segment, Sherry qualified demand.
+
+**Decisions**
+
+- **Nothing is put in a provider's mouth.** A second pass cut every sentence whose job was to make the point land. "Most families have never heard of an adult family home" was likely false in Washington and was hers to judge; Jasmine's letter no longer indicts A Place for Mom by name with an invented detail; Hilda's drops "not a small event" and lets the arithmetic argue.
+- **No competitor names in Sandra's letter.** Small homes and large operators share local referral networks. That comparison is hers to make, not ours to assign her.
+- **"Ninety-day evaluation" removed from all five.** Four of five first drafts had it. Five letters announcing a trial that just began reads as no traction, on the criterion where the opposite is needed.
+- **Hilda's letter deliberately carries two blanks** (`hours/week`, `annual value`). The old draft proved "customer" and left "high-margin" unstated, which a reviewer cannot score. Only her call can fill them; if she is vague the sentence comes out rather than being estimated.
+- **These five cannot carry willingness-to-pay** — none of them pays. That evidence sits with Lauren and Jennifer on the staffing side, and Doc 07's two open questions about them matter more to this application than anything here.
+
+**Also:** `ad_boost_campaign_launched` fired to Hilda on 08-23 and she did not open it. **She has opened nothing since June** — 12 emails, 0 opens, including all three `ad_boost_lead_outcome_check` prompts, which is why the John Turman close only ever surfaced by phone.
+
+**Artifacts / files:** Five Letters https://claude.ai/code/artifact/b9ef5d16-6953-4503-b757-192092cbbda6 · letters generated by `~/Desktop/TJ-hq/Olera/CRP/05 - Letters of Support/make-provider-letters.py` (Arial 11, 1in margins, format lives in the script so regeneration never needs reformatting) into `Provider Drafts 2026-08-25/`.
+
+**Next up**
+
+- **Raise Miracle-Lightstar's CPC cap and revert the budget to $1.67.** The $3.57 bought nothing and the experiment says it never could. Use the bid simulator rather than guessing.
+- **Hilda is a phone call, ~9am Central.** Beat 2 of the 08-17 call sheet is stale: the 90 days is already published, not an offer, and it is in ad review rather than serving. Her two letter blanks map onto beat 3 exactly.
+- **Deadline discrepancy, unresolved.** The 08-17 call sheet says the NIH deadline is **5 Sep** with effective submission 8 Sep; every letter and email sent today says **September 1**. Settle which before more asks go out.
+- **Sherry: deliver her untouched Aug 22 lead before the letter ask.** Sandra's and Jasmine's letters went out today.
+- **Recheck Franchil's ad review Wednesday.** Still pending after one and a half business days.
+
 ### 2026-08-25 — Two provider replies, and the launch email that never names its channel (`shiny-pasteur`, ops only, no code)
 
 **Sandra (Edmonds Villa) and Jasmine (Graceful) both answered. Wrote and sent both replies.** Everything below came out of live queries; nothing was taken from `ad_campaign_requests`, whose `ad_spend_cents` / `ad_clicks` / `ad_impressions` are null on every row touched today.

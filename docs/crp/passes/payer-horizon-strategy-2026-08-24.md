@@ -5,6 +5,24 @@ work run while TJ drafts the Aims narrative). Not application text. Companion
 visuals: `payer-horizon-visuals-2026-08-24.html` (internal thinking tools, not
 grant figures). Ratification of the adoption list below is Logan's, with the team.
 
+## Figure 5 signposts the Innovation section (2026-08-25)
+
+One gray line under the two capability boxes: *"Developed in Innovation: Key
+Innovation 1 (student caregiver workforce), Key Innovation 2 (AI-assisted
+navigation), Key Innovation 3 (the outcomes database behind both)."* It tells a
+reviewer that the figure is a summary, not the whole argument, and it names the
+one innovation the figure cannot show. Figure 5 has two boxes; the Innovation
+section has three innovations, and the third, the national resource and outcomes
+database, sits under both capabilities rather than inside either. Naming it in
+the signpost is the honest way to say there is more.
+
+Numbering verified against `research-strategy.md` (KI 1 workforce, KI 2
+navigation, KI 3 database) as of 2026-08-25. **Dependency:** README section 10
+records that the Innovation order has been renumbered once already and that the
+Key Innovation 1 lock predates the reorder. If Innovation is renumbered again,
+this line changes with it. If that churn continues, drop the numbers and name
+the three innovations instead.
+
 ## Figure 4 answers the marketability question (2026-08-25)
 
 The solicitation asks applicants to "explain how the proposed project will lead

@@ -858,3 +858,33 @@ Slide numbers are the post-divider numbering (see
 35. Coupling-arrow clause: "which is what makes staffing bind."
     **homeless** — the reason Aim 1's family demand matters to Aim 2. The arrow now
     states the coupling without the mechanism.
+
+## From slide 21, "Where the Work Happens First, and Where It Replicates" (2026-08-25)
+
+36. All eight P1 / P2 market badges, and their legend row: "P1 P2 — six markets
+    inside two payer footprints, so episodes concentrate."
+    **homeless, and now invisible deck-wide** — the payer-cluster design (six of the
+    twelve markets placed inside two payer footprints so episodes concentrate enough
+    to interest a payer) was an approved market-design decision on 2026-08-25. It
+    appears nowhere else in the deck: slide 26 argues the payer case but never says
+    the markets were chosen to support it. Needs a home in the written Approach or a
+    line on slide 26.
+
+37. "the Year 3 second-pool pilot runs in two campus-poor markets."
+    **safe** — carried by slide 23's task list (Year 3 second-pool feasibility pilot)
+    and slide 28's timetable.
+
+38. The evidence key: "AND TWO KINDS OF EVIDENCE, CODED THE SAME WAY IN EVERY AIM
+    THAT FOLLOWS," with the IRB chip ("formal human subjects research: usability,
+    trust, acceptability, workflow") and the plain chip ("operational and commercial
+    records: platform, billing, employment").
+    **homeless, with a live consequence** — four IRB chips remain on slides 22 and 23
+    and now have no key anywhere in the deck. The human-subjects-versus-operational
+    distinction is what Qiping asked to be made explicit, so it needs a home: either
+    a one-line key on slides 22 and 23, or the written Approach carrying it alone.
+
+39. Closing band: "Twelve markets, chosen by structure rather than geography. Four
+    for depth, eight to test whether the playbook transfers to variation we did not
+    pick."
+    **relocated** — the slide title now carries it, and the legend still states the
+    four-plus-eight split.

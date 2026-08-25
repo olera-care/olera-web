@@ -440,3 +440,24 @@ Two corrections applied and flagged:
   month-12 gate and split by owning aim. Each label sits in the quadrant its curve
   leaves open (Aim 1's above the diamond, Aim 2's below), because the longer text
   would have crossed the connector at the old position.
+
+### Slide 21 edits (2026-08-25, Logan)
+
+P1/P2 badges out, second-pool note out, evidence key out, closing band folded into
+the title, legend re-centred, and the row stratifier changed.
+
+- Title set in the deck's title case: "21. Where the Work Happens First, and Where
+  It Replicates."
+- With the badges gone the cells no longer needed the height that held them: cell
+  height 84 to 56, dots re-centred, legend moved up under the grid and centred as a
+  single row on x=490.
+- **Row stratifier changed from waiver generosity to SES.** This is a change to the
+  approved market design, not a relabel. The 2026-08-25 rebase chose waiver
+  generosity because it drives what aid can actually be secured, which is Aim 1's
+  dependent variable. SES is a different construct. Applied at Logan's direction and
+  flagged to him; `approach-alignment-2026-08-25.md` and
+  `approach-rebase-2026-08-25.md` still say waiver generosity and need reconciling.
+
+Two consequences logged in `removed-material-log.md` items 36 and 38: the
+payer-cluster market design is now invisible deck-wide, and the four IRB chips on
+slides 22 and 23 have lost their key.

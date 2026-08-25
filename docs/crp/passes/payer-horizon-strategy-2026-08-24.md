@@ -159,6 +159,34 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Figure 5 built: the product introduction (Logan, 2026-08-25)
+
+- **Seven-page sequence now.** 1 vicious cycle, 2 navigation requirement,
+  3 capacity bottleneck, 4 therefore both are needed, 5 the product,
+  6 how it gets paid, 7 the detail table. Figures 4's title gained "Therefore,"
+  at Logan's direction, making the deductive chain explicit.
+- **Figure 5's job, deliberately narrow:** show that CareNavigator is the one
+  system providing the two requirements the reader has just accepted. Not a
+  feature tour, no traction metrics (per the standing figures rule), no
+  commercial content.
+- **Composition:** the product on top (the app mockup retired from Figure 2,
+  scaled up as the hero, with the CareNavigator by Olera wordmark), two arrows
+  fanning down to two capability boxes. Left reuses the compass and is titled
+  Care Navigation; right reuses the caregiver trio and is titled New Caregiver
+  Workforce. The italic subtitle under each answers the earlier figure by
+  echoing its title: "navigates the complex eldercare ecosystem" (Figure 2) and
+  "relieves the caregiver-capacity bottleneck" (Figure 3). One concrete
+  sentence each states what the capability actually does.
+- Figure 3's workforce-pools line (Students, Career changers, Gig workers,
+  Retirees) removed at Logan's direction; the pools remain recorded in the
+  removal log and in CP section 2.
+- **Truthfulness note for prose migration:** the figure says Olera *is
+  building* CareNavigator, which is the honest framing. The navigation
+  platform is deployed, the execution and follow-up loop is CRP work, and the
+  workforce program has a completed pilot. Any prose derived from this figure
+  must preserve those distinctions rather than implying the whole system is
+  live.
+
 ## Product introduction deferred; Figure 2 becomes the navigation problem (Logan, 2026-08-25)
 
 - **Strategic decision: the reader should understand why the product must

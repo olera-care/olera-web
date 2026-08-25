@@ -666,3 +666,12 @@ considering as a new Figure 5, and the app mockup in particular is the natural
 centerpiece of that figure. The wordmark and mockup still exist in the
 commercial figure (now Figure 5, "How CareNavigator Gets Paid") and in git
 history at commit 4ad11db.
+
+### Workforce pools line removed from Figure 3 (2026-08-25)
+
+"Students · Career changers · Gig workers · Retirees" came off Figure 3 at
+Logan's direction once the ring center already read New Caregiver Workforce.
+**Future home:** the pools are recorded in the strategy file and argued in CP
+section 2, where the student beachhead rationale lives. The graduation cap on
+one of three figures in the workforce icon still signals students as one pool
+among several.

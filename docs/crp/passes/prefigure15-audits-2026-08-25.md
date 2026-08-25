@@ -643,3 +643,62 @@ bounded to what the CRP actually establishes.
 (figures 3 to 12, 14 to 17, 19 to 27; dividers 1, 2, 13, 18, 28, 29, 30 to 39). No
 orphaned reference to any removed text. Font sizes unchanged: nothing was resized to
 fill space, and no replacement copy was written.
+
+### Slide 29, the CRP Progress Report (2026-08-25)
+
+**What the brief asks, read closely.** The operative verb in II.4 is *mitigate*, not
+*describe*. It also names activities "beyond the scope of the Phase II project" and
+asks that the work "enable third-party investment at any point in the development
+timeline." So the section is a risk-retirement statement, not a chronology, and the
+non-SBIR work (organic growth, the provider network, the staffing pilot) is invited
+rather than tolerated.
+
+**Argument.** Two NIH awards already bought the parts private capital will not fund:
+the curated database, the validated product, the national demand, and the provider
+network. What none of it bought is proof that concentrated local demand converts to
+revenue. That is the only remaining class of risk, and it is the three aims.
+
+**Device: an inventory weighted against a remainder, with no arrows.** Four solid
+cards under ALREADY RETIRED occupy roughly two thirds of the canvas; one dashed red
+card under NOT YET RETIRED occupies a quarter and stops short of the others' height.
+The area ratio is the argument. This is the only slide in the deck with no flow: every
+other figure moves, and a progress report is a statement of position. That stillness
+is deliberate.
+
+Rejected: a burn-down over a funding timeline (slides 25 and 26 are already a
+staircase and a Gantt; a third temporal device in four slides), a four-into-one
+convergence (slides 19 and 20), and a two-panel established/open grid (slide 11).
+
+**Numbers, verified against `references.yaml` (all verified 2026-08-19):**
+
+- Usability 4.57 of 5, n=30 (`fan2024`). The evidence ledger's "4.6/5, n=31" is stale;
+  `fan2024` explicitly supersedes it. The ledger row should be corrected.
+- Technology acceptance 5.83 of 7, n=65, after four weeks of independent use
+  (`hoang2026`). This is **the platform, not the AI**. `hoang2026` notes that earlier
+  Olera drafts quoted "about 5.6 of 7" and misattributed it to the AI agents.
+- The multi-agent AI system, 5.73 of 7, n=31 (`careNavTAS2026`), **unpublished,
+  manuscript in preparation**, and the slide says so. Logan's brief called this
+  "system usability" in one bullet and "technology acceptance" in another; the source
+  is a modified Technology Acceptance Survey.
+- The AI is described as built and evaluated with "integration into the platform is
+  underway." The evidence ledger marks "AI navigation agents run in production today"
+  as **overstated**: the agentic layer is a separate codebase roughly three months
+  from integration. This is the slide's most important accuracy guardrail, and it also
+  satisfies the brief's "ongoing activities."
+
+**Provider count: "over 700."** Logan asked for the database number. This session has
+no Supabase credentials, so the count could not be pulled. The only measured value in
+the repo is **711 claimed profiles on 2026-08-05**, from a prod bot-claim audit that
+swept every claimed profile. The Research Strategy says 725+ and the Commercialization
+Plan says about 750, both undated and neither reconcilable to a query. CLAUDE.md ranks
+actual data above the application documents, so the slide states "over 700 ... growing
+by about 150 a month," which is true under all three. **Pull the live count before
+submission and date it.**
+
+**Left out on purpose:** the Growth Suite as launched (ledger: overstated), Managed Ads
+billing (contradicts the staffing-only beachhead), and the 2,400 leads a month and 15x
+lead-day activity figures (pullable, not verified, and the slide is already
+number-dense).
+
+Deck is 43 pages, 40 body slides. Commercialization Plan dividers shifted by one:
+major 30, sections 31 to 40.

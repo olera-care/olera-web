@@ -159,6 +159,32 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## The vicious cycle gets its own opening figure (Logan, 2026-08-25)
+
+- Logan's diagnosis: the ecosystem figure was carrying two introductions at
+  once, the needs older adults face and the ecosystem CareNavigator
+  coordinates. The vicious cycle now opens the sequence on its own page, and
+  everything downstream shifts by one.
+- **Sequence is now six pages.** 1: When older adults' needs go unmet, a
+  vicious cycle follows. 2: CareNavigator coordinates the eldercare ecosystem
+  (the former Figure 1, deloaded). 3: A major bottleneck is the caregiver
+  shortage. 4: Navigation and new capacity together break the vicious cycle.
+  5: How CareNavigator gets paid. 6: the detail table.
+- **New Figure 1 is assembled from existing parts, not redesigned.** The
+  older-adults box (title, family icons, the needs sentence) on the left, a
+  dashed red arrow, and the vicious-cycle box on the right, both scaled up for
+  a dedicated page. The cycle content is untouched: unmet needs, hospital, no
+  care, repeating, with the dotted exit to a long-term care facility.
+- **Figure 2 deloaded.** The large older-adults box is gone, replaced by the
+  family icon and a one-line label; the full cycle is replaced by the
+  condensed treatment already used in Figure 3 (dashed box, header, unlabeled
+  mini ring) with a "see Figure 1" pointer. Everything else in the ecosystem
+  figure is unchanged: the needs lane, the preventive geriatric care return
+  arrow, the CareNavigator center, and the four stakeholder boxes.
+- **Locked artifact renamed** from `figure-1-ecosystem` to `figure-ecosystem`
+  and refreshed, since its old name now contradicts its position in the
+  sequence. References in `figures/README.md` and this file updated.
+
 ## Workforce concept broadened; Figure 2 recomposed (Logan, 2026-08-25)
 
 - **The workforce concept is no longer student-specific.** "Health-professions
@@ -457,7 +483,7 @@ plan-paid care coordination is an established category.)
 
 - **Figure 1 locked.** Final edit: the cascade caption ("The cascade preventive
   geriatric care interrupts.") removed; the cascade panel itself stays. The
-  figure is frozen as a proposal artifact at `../figures/figure-1-ecosystem.html`
+  figure is frozen as a proposal artifact at `../figures/figure-ecosystem.html`
   (canonical, with rendered PDF); the working copy in the visuals file mirrors
   it. Changes only on Logan's explicit direction.
 - **Figure house style ratified** at `../figures/README.md`: the default

@@ -1,7 +1,8 @@
 # CRP figure house style
 
 Default standard for every CRP figure. Extracted from the lessons paid for while
-building Figure 1 (`figure-1-ecosystem.html`, LOCKED 2026-08-24), which is the
+building the ecosystem figure (`figure-ecosystem.html`, LOCKED 2026-08-24;
+Figure 2 in the current sequence), which is the
 reference point for the quality bar. Apply these before drafting, not after
 feedback.
 

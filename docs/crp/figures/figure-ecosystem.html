@@ -1,18 +1,19 @@
 <!doctype html><html><head><meta charset="utf-8"><title>CRP Figure 1 (LOCKED)</title>
 <!--
-  FIGURE 1: CareNavigator Coordinates the Eldercare Ecosystem to Deliver
-  Preventive Geriatric Care.
+  THE ECOSYSTEM FIGURE: CareNavigator Coordinates the Eldercare Ecosystem to
+  Deliver Preventive Geriatric Care. Figure 2 in the current sequence (file
+  renamed from figure-1-ecosystem when the vicious cycle took the opening slot).
 
   STATUS: LOCKED 2026-08-24; amended 2026-08-25 on Logan direction only
-  (vicious cycle: three-node clockwise circle reading unmet needs, hospital,
-  no care, repeating, with labels beside their dots and a dotted exit from
-  the hospital node to "Long-term care facility" centered beneath).
+  (deloaded 2026-08-25: the older-adults box and the full vicious cycle moved
+  to their own opening figure, so this figure keeps only the family icon and a
+  condensed reference to that cycle).
   Do not modify without Logan's explicit direction. The working copy in
   passes/payer-horizon-visuals-2026-08-24.html mirrors this file; this file
   is canonical.
 
   Render: chrome --headless --no-sandbox --disable-gpu \
-    --print-to-pdf=figure-1-ecosystem.pdf --no-pdf-header-footer figure-1-ecosystem.html
+    --print-to-pdf=figure-ecosystem.pdf --no-pdf-header-footer figure-ecosystem.html
   (One landscape-letter page. QA screenshots at width 979 = true print width.)
 -->
 <style>
@@ -33,44 +34,34 @@ table.pay td.rev { background: #eaf5ee !important; }
 .whypay p { margin: 0; font-size: 9pt; line-height: 1.35; }
 .footnote { font-size: 7.8pt; color: #777; margin-top: 5pt; }
 </style></head><body>
-<!-- ============ FIGURE 1: THE CARENAVIGATOR ECOSYSTEM ============ -->
+<!-- ============ FIGURE 2: THE CARENAVIGATOR ECOSYSTEM ============ -->
 <div class="page">
-<h1>1. CareNavigator Coordinates the Eldercare Ecosystem to Deliver Preventive Geriatric Care</h1>
+<h1>2. CareNavigator Coordinates the Eldercare Ecosystem to Deliver Preventive Geriatric Care</h1>
 
 <svg width="100%" viewBox="0 0 980 600" font-family="Arial" style="margin-top:52pt">
 
-  <!-- ===== TOP: older adults and families ===== -->
-  <rect x="300" y="18" width="380" height="126" rx="10" fill="#f5faf7" stroke="#1a7f4e" stroke-width="1.5"/>
+  <!-- ===== TOP: older adults and families (icon only; detail lives in Figure 1) ===== -->
   <g>
-    <circle cx="345" cy="72" r="10" fill="#4a5a6a"/>
-    <path d="M329 124 Q329 88 345 88 Q361 88 361 124 Z" fill="#8a6d9a"/>
-    <circle cx="387" cy="67" r="10" fill="#4a5a6a"/>
-    <path d="M371 124 Q371 83 387 83 Q403 83 403 124 Z" fill="#1a7f4e"/>
-    <rect x="399" y="94" width="9" height="16" rx="2" fill="#2b3a33"/>
-    <rect x="400.5" y="96" width="6" height="11" fill="#eaf5ee"/>
+    <circle cx="470" cy="56" r="11" fill="#4a5a6a"/>
+    <path d="M453 112 Q453 74 470 74 Q487 74 487 112 Z" fill="#8a6d9a"/>
+    <circle cx="513" cy="51" r="11" fill="#4a5a6a"/>
+    <path d="M496 112 Q496 69 513 69 Q530 69 530 112 Z" fill="#1a7f4e"/>
+    <rect x="527" y="80" width="10" height="17" rx="2" fill="#2b3a33"/>
+    <rect x="528.5" y="82" width="7" height="12" fill="#eaf5ee"/>
   </g>
-  <text x="545" y="50" font-size="12.5" font-weight="bold" fill="#1f2a24" text-anchor="middle">Older adults and families</text>
-  <text x="424" y="76" font-size="9.3" fill="#333">Needs may include food, housing, income, transportation,</text>
-  <text x="424" y="91" font-size="9.3" fill="#333">healthcare, and long-term support, including bathing,</text>
-  <text x="424" y="106" font-size="9.3" fill="#333">dressing, meals, medications, and mobility.</text>
+  <text x="490" y="132" font-size="11.5" font-weight="bold" fill="#1f2a24" text-anchor="middle">Older adults and families</text>
 
-  <!-- ===== the unmet-needs cascade (counterfactual branch) ===== -->
-  <line x1="688" y1="81" x2="716" y2="81" stroke="#b04040" stroke-width="1.8" stroke-dasharray="5 4"/>
-  <path d="M715 76 L728 81 L715 86 Z" fill="#b04040"/>
-  <rect x="730" y="18" width="220" height="176" rx="10" fill="#fdf3f2" stroke="#b04040" stroke-width="1.5" stroke-dasharray="7 4"/>
-  <text x="840" y="38" font-size="7.2" font-weight="bold" fill="#a03a3a" text-anchor="middle" letter-spacing="1">THE VICIOUS CYCLE OF UNMET NEED</text>
-  <g font-weight="bold" fill="#6b2323">
-    <text x="840" y="60" font-size="8.2" text-anchor="middle">Unmet needs</text>
-    <text x="879" y="127" font-size="8" text-anchor="start">Hospital</text>
-    <text x="802" y="127" font-size="8" text-anchor="end">No care</text>
-  </g>
-  <path d="M 849.4 73.3 A 34 34 0 0 1 873.0 114.2" fill="none" stroke="#b04040" stroke-width="1.4"/><path d="M 871.3 121.0 L 869.5 113.4 L 876.5 115.1 Z" fill="#b04040"/>
-  <path d="M 863.6 130.5 A 34 34 0 0 1 816.4 130.5" fill="none" stroke="#b04040" stroke-width="1.4"/><path d="M 811.3 125.6 L 818.9 127.9 L 813.9 133.0 Z" fill="#b04040"/>
-  <path d="M 807.0 114.2 A 34 34 0 0 1 830.6 73.3" fill="none" stroke="#b04040" stroke-width="1.4"/><path d="M 837.4 71.4 L 831.6 76.8 L 829.6 69.9 Z" fill="#b04040"/>
-  <circle cx="840.0" cy="72.0" r="3.5" fill="#b04040"/><circle cx="869.4" cy="123.0" r="3.5" fill="#b04040"/><circle cx="810.6" cy="123.0" r="3.5" fill="#b04040"/>
-  <path d="M 876 132 C 893 148 878 160 858 164" fill="none" stroke="#b04040" stroke-width="1.2" stroke-dasharray="4 3"/>
-  <path d="M 851.0 165.4 L 857.3 160.5 L 858.7 167.5 Z" fill="#b04040"/>
-  <text x="840" y="182" font-size="7.4" fill="#6b2323" text-anchor="middle">Long-term care facility</text>
+  <!-- ===== the alternative path, condensed from Figure 1 ===== -->
+  <line x1="576" y1="88" x2="716" y2="88" stroke="#b04040" stroke-width="1.8" stroke-dasharray="5 4"/>
+  <path d="M715 83 L728 88 L715 93 Z" fill="#b04040"/>
+  <rect x="730" y="30" width="220" height="112" rx="10" fill="#fdf3f2" stroke="#b04040" stroke-width="1.5" stroke-dasharray="7 4"/>
+  <text x="840" y="50" font-size="6.4" font-weight="bold" fill="#a03a3a" text-anchor="middle" letter-spacing="0.8">THE VICIOUS CYCLE OF UNMET NEED</text>
+  <path d="M 847.2 71.0 A 26 26 0 0 1 865.2 102.3" fill="none" stroke="#b04040" stroke-width="1.2"/><path d="M 863.9 107.6 L 862.3 101.6 L 868.1 103.0 Z" fill="#b04040"/>
+  <path d="M 858.1 114.7 A 26 26 0 0 1 821.9 114.7" fill="none" stroke="#b04040" stroke-width="1.2"/><path d="M 818.0 110.9 L 824.0 112.5 L 819.9 116.9 Z" fill="#b04040"/>
+  <path d="M 814.8 102.3 A 26 26 0 0 1 832.8 71.0" fill="none" stroke="#b04040" stroke-width="1.2"/><path d="M 838.1 69.5 L 833.7 73.9 L 832.0 68.1 Z" fill="#b04040"/>
+  <circle cx="840.0" cy="70.0" r="3.0" fill="#b04040"/><circle cx="862.5" cy="109.0" r="3.0" fill="#b04040"/><circle cx="817.5" cy="109.0" r="3.0" fill="#b04040"/>
+  <text x="840" y="134" font-size="7.8" font-style="italic" fill="#b04040" text-anchor="middle">see Figure 1</text>
+
   <!-- ===== needs lane down ===== -->
   <line x1="444" y1="150" x2="444" y2="212" stroke="#1a7f4e" stroke-width="1.8"/>
   <path d="M439 210 L444 221 L449 210 Z" fill="#1a7f4e"/>

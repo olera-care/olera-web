@@ -159,6 +159,51 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Figures 1-2 unified: the bottleneck handoff (Logan, 2026-08-25)
+
+- Logan's diagnosis: Figure 2 opened with staffing too abruptly ("why did a
+  care-navigation company suddenly become a staffing company?"). Directive:
+  make the progression feel inevitable, solve the narrative transition first.
+- **Discovery that settled it: the CP's own Figure 1 (fig-01.svg) already
+  encodes the two-intervention story.** Its vicious cycle (care need emerges,
+  daily needs go unmet, falls and crises, ED and hospitalization, discharge
+  home to the same gaps, recurrence at a worse baseline, exit to premature
+  institutionalization) carries two marked interception points: "Olera 1:
+  existing aid and care reached in time" and "Olera 2: workforce capacity
+  added." Figures 1 and 2 now mirror settled CP logic rather than inventing a
+  bridge.
+- **Figure 1 amended (minimum change, on Logan's direction; lock otherwise
+  holds).** The red cascade is reframed as "The Vicious Cycle of Unmet Need":
+  four beats (daily needs go unmet; decline, falls, crises at home; ED visits,
+  hospitalization; discharge home, gaps remain) closed by a return arc, with
+  "Exit: premature institutionalization, higher costs" below the loop. The
+  "caregiver breakdown" beat came off (logged in removed-material-log.md).
+  Locked artifact and PDF in figures/ updated to match.
+- **Figure 2 rebuilt as the value chain with a visible bottleneck.** One
+  full-width flow band that starts wide (CareNavigator brings families),
+  physically pinches at the bottleneck (Providers lack staff, with the red
+  callback "the vicious cycle keeps running" beneath the thin section),
+  re-widens where Olera injects caregivers (health-professions students, new
+  cohorts every semester), and flows through care established in time
+  (preventive geriatric care delivered) to outcomes improve (fewer
+  hospitalizations, readmissions, less institutional care). Three tags hang
+  from the chain: "Free for families, always." (no coin) under navigation; a
+  solid $ coin, Beachhead Revenue, providers pay for staffing, under the
+  capacity step; a dashed $ coin, Emerging Revenue, institutions that bear
+  those costs sponsor navigation, under outcomes. Solid vs dashed coins carry
+  now vs later; the tags' left-to-right order is the temporal order. Staffing
+  now reads as the response to the bottleneck navigation encounters, serving
+  its three recorded purposes (revenue, provider capacity, higher
+  establishment likelihood).
+- Lede changed to the bridge sentence: "CareNavigator can find the right care
+  and still fail if no provider has the staff to deliver it." The prior
+  revenue-origin lede is retired; its idea now lives in the chain itself.
+- The three-panel architecture (free core center, offering panels left/right)
+  is retired, including the center family+mini-cycle block, which repeated
+  Figure 1 content. The revenue-over-time chart stays as the temporal band,
+  amplified to fill its space, labels matched exactly to the tag vocabulary
+  (Beachhead Revenue / Emerging Revenue).
+
 ## Figure 2 round two: the temporal architecture (Logan, 2026-08-25)
 
 - Logan reframed the figure's job: anticipate the reviewer's question after

@@ -558,3 +558,22 @@ providers, ~$25K per county per year) came off the figure entirely.
   Logan's reconciliation decision.
 - Beachhead Revenue on Figure 2 dropped from ~$85K to ~$60K per county per
   year accordingly (staffing only).
+
+### Figure 1 cascade beat and Figure 2 panel architecture (2026-08-25)
+
+Reframing the Figure 1 red box as "The Vicious Cycle of Unmet Need" (Logan's
+direction, minimum-change amendment to the locked figure) dropped the
+"Caregiver breakdown" beat: the loop version follows the CP fig-01 cycle
+(unmet needs, decline, ED/hospitalization, discharge to the same gaps), and
+caregiver breakdown is not a step in that loop. **Future home:** the RS
+narrative where caregiver burden and breakdown are discussed; it remains a
+named harm in the spine's vicious-cycle prose.
+
+The Figure 2 three-panel architecture (Beachhead Offering panel with the
+evergreen workforce ring, center free-family core, Emerging Offering panel)
+was retired for the bottleneck value-chain design. The evergreen ring's
+recurrence idea survives as the station sub-line "new cohorts every semester";
+the ring drawing itself and the panel headings are available in git history
+(commit de9da32) if a standalone staffing figure ever wants them. The retired
+lede "Revenue comes from organizations that benefit when needed care is
+coordinated and established." remains a candidate sentence for CP prose.

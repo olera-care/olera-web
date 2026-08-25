@@ -240,8 +240,8 @@ plan-paid care coordination is an established category.)
   problem now reads left to right before any detail: demand aggregates,
   providers hit the bottleneck, new capacity is needed.
 - **The pipeline gained a fourth node** so it reads as Logan specified:
-  Providers hire, next season, New cohort, Olera recruits, Olera vets, back to
-  Providers hire. Providers hire stays at the ring's leftmost point on the
+  Hire, next season, New cohort, Recruit, Vet, back to Hire (node labels
+  shortened to single verbs 2026-08-25). Providers hire stays at the ring's leftmost point on the
   provider box centerline, so the straight connector is unchanged.
 - **Figure 3** gains a home icon above "Needs met," matching the icon-over-
   concept language of the other two boxes and grounding the outcome in the

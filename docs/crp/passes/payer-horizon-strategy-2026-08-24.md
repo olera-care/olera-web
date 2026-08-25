@@ -5,6 +5,93 @@ work run while TJ drafts the Aims narrative). Not application text. Companion
 visuals: `payer-horizon-visuals-2026-08-24.html` (internal thinking tools, not
 grant figures). Ratification of the adoption list below is Logan's, with the team.
 
+## Figures 8 to 11+: the Significance and Innovation sequence (2026-08-25)
+
+The chain of reviewer questions the sequence answers, each figure leaving the
+next one's question standing:
+
+- Figure 7 ends on who pays. The reviewer thinks: someone already sells this.
+  **Figure 8: But There Is Competition.**
+- Figure 8 ends on a coverage gap. The reviewer thinks: academics have surely
+  studied this. **Figure 9: And Related Academic Efforts.**
+- Figure 9 ends on what is established and what is not. The reviewer thinks: so
+  why has nobody done it? **Figure 10: And Hurdles to Adoption.**
+- Figure 10 ends on the barriers. The reviewer thinks: what makes you able to
+  get past them? **Figure 11: But We Have Three Key Innovations**, then one
+  figure each.
+
+### Figure 8, and why not a matrix
+
+A competitive matrix was the obvious form and is wrong for this argument. A
+checkbox grid frames the gap as missing features, which invites the reviewer to
+conclude a competitor could add a column. The actual claim is about span: a
+family travels from unmet need to a caregiver arriving, and every existing
+service covers one stretch of that path and stops.
+
+So Figure 8 is a coverage diagram. Five stages across the top (assess needs,
+find aid and insurance, match providers, establish care, staff the care), one
+bar per category of alternative, and bar length encodes how far that category
+carries a family. Where each bar ends is the argument, and the note explaining
+why it ends sits in the gap the bar leaves. Length and position both carry
+meaning, so this is not chart cosplay. Rows are ordered by where each bar starts,
+which produces a staircase and reads as movement along the path.
+
+Categories and the honesty decisions behind each:
+
+- **Public information services** (Eldercare Locator, BenefitsCheckUp): solid
+  through find-aid, then a dashed extension through establish-care labeled
+  "bounded by staff capacity." The references file explicitly warns against
+  calling these information-only, because NCOA's Benefits Enrollment Centers and
+  the Locator's Certified Information Specialists give real hands-on help. The
+  accurate distinction is that screening serves anyone while assistance is
+  bounded by staff and funding, and the dashed segment states exactly that.
+- **General AI assistants**: included because a reviewer will ask. They reach
+  match-providers and stop; the note is "answers questions; cannot file, follow
+  up, or confirm." CP Section 5 frames these as interoperability rather than
+  competition, which the figure does not contradict.
+- **Human navigators**: the longest bar, covering four of five stages, with
+  "excellent, scarce, episodic." They are the quality benchmark, not a foil, and
+  the figure says so.
+- **Referral marketplaces**: match and establish only, with "aid and insurance
+  skipped; placement fees decide who is listed" sitting in the two stages they
+  never touch (`wapoAPFM2024`, `caseyAPFM2024`, CP Table 7).
+- **Staffing channels**: the last stage only, with "moves workers between
+  employers; the shortage does not shrink," which is RS Table 2's sharpest row.
+
+Provider-side tooling (eldercare CRMs, advertising channels) is deliberately
+absent: the figure's frame is the family's path to established care, and those
+vendors sit outside it. They remain in CP Table 7 and RS Table 2.
+
+The benefit is stated, not implied, twice: inside the green bar ("One system
+carries the family the whole way, and adds the caregivers the last step needs")
+and in the closing line ("The advantage is coverage, not features. Every
+alternative solves one stretch of the path and stops at the handoff that loses
+families.").
+
+### Material gathered for Figures 9 to 11
+
+Figure 9 will be built from verified references only. Available and relevant:
+CAPABLE (`szanton2021`, `szanton2018`) for home-based function-focused support
+reducing disability and Medicaid spending; the unmet-need literature
+(`freedmanSpillman2014`, `hass2017`, `depalma2013`, `unmetNeedsSR2024`) for the
+cycle Figure 1 draws; Olera's own peer-reviewed platform work (`fan2023`,
+`fan2024`, `dubose2024`, `hoang2026`) and the CARE-NAV evaluation
+(`careNavTAS2026`, unpublished, manuscript in preparation); the pre-health
+patient-care-hours literature (`paProgramPCE`, `paeaStudent2025`, `nces2024`)
+for the workforce pathway. Anything beyond this set requires verification before
+it appears in a figure, and the figure must not manufacture differentiation
+where academic groups are doing similar work.
+
+Figure 10 has ratified source material in two places that should be reconciled
+rather than reinvented: CP Section 5's four acceptance hurdles (provider
+conversion after bad experiences with per-lead models, student caregiver safety,
+family trust in AI navigation, campus-by-campus dependence) and the RS's
+Significance close, which names local density as the primary hurdle (families,
+providers, and workforce concentrated in one market at a cost that market's
+revenue sustains). The RS hurdle is the load-bearing one and the CP's four are
+specific; the figure should keep hurdle and response visually distinct so the
+reviewer sees that each barrier has an experiment attached.
+
 ## Pressure test of the Figure 7 economics (2026-08-25)
 
 Logan asked whether the illustrative per-county economics would survive a

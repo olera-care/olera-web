@@ -92,6 +92,46 @@ revenue sustains). The RS hurdle is the load-bearing one and the CP's four are
 specific; the figure should keep hurdle and response visually distinct so the
 reviewer sees that each barrier has an experiment attached.
 
+## Figure 12: Key Innovation 1 (2026-08-25)
+
+Three beats in one composition: two parallel tracks over the same five steps,
+with the difference between them being where the family ends up.
+
+**What exists today** is the top track. The first step is filled, because
+today's tools genuinely do identify aid. The next three are dashed and empty,
+because the family executes them alone, and two red arrows drop out of the track
+at the two points where Aim 1 says families are actually lost: while executing
+the application, and again after filing while waiting for a decision. Both
+drop-off points come from Preliminary Work, not from a general claim about
+navigation. "Care established" on that track is dashed, because it is the
+outcome many never reach. **No quantities appear anywhere**: Preliminary Work
+establishes that families are lost at those two points but does not give
+percentages, and a funnel with invented numbers would be the easiest thing on
+this page for a reviewer to break.
+
+**What we do differently** is the bottom track: the same five steps, all
+carried, ending in a filled endpoint. The mechanism line states it without
+adjectives: agents prepare, gather, schedule, and follow the case to a decision,
+then confirm care started. The left-hand labels carry the real contrast, "tools
+inform; the family executes" against "agents execute; the family decides." That
+second half matters for the trust hurdle in Figure 10: agents do the work, the
+family keeps the decisions.
+
+**Why it matters** is the closing band: the unit of success changes from
+information delivered to care established, the same families already arriving
+convert instead of falling out, and every completed case teaches Key Innovation
+3. The middle claim is the commercially load-bearing one, because it means the
+innovation improves yield on demand we already have rather than requiring more
+acquisition spend.
+
+**Live versus proposed** is stated on the figure rather than left to inference:
+the multi-agent system was evaluated with 31 dementia family caregivers
+(`careNavTAS2026`, manuscript in preparation), and the CRP builds the execution
+and follow-up loops and verifies them against blinded expert review. The
+evaluation is done; the execution loop is the work being funded. The technology
+acceptance score is deliberately left off the figure, since an unpublished
+number invites a question the figure cannot answer in place.
+
 ## Figure 11, and why the three are not three peers (2026-08-25)
 
 The lazy version of this figure is three equal boxes in a row, which would be

@@ -939,3 +939,11 @@ Slide numbers are the post-divider numbering (see
     research does not touch employment decisions. Slide 22's Task 1.2 still says
     "under IRB approval"; slide 23's Task 2.2 no longer does, while the slide still
     shows an IRB pin.
+
+**Item 42 reversed (2026-08-25).** The net-new-worker pin is back on slide 23 over
+Recruit, reworded: "workers new to care work, not moved from another employer /
+measured at intake." The old wording named the data field ("no prior direct-care
+employment / reported, not assumed"); the new wording names the claim the field
+settles, which is the distinction Innovation 2 rests on. "Measured at intake" states
+where the number comes from, and avoids repeating the Retained pin's "reported by
+cohort."

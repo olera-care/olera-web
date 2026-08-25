@@ -607,3 +607,17 @@ competing for them," and the "Too few caregivers / shifts go unfilled /
 cases turned away" lines. **Future homes:** the why-students rationale and
 the turned-away evidence live in CP section 2; "adding, not competing"
 remains available for prose.
+
+### Figure 2 explanatory text removed (2026-08-25)
+
+Logan's simplification pass removed from Figure 2: the caption "Workforce
+capacity is the bottleneck." (the title now carries the claim), the standalone
+line "9.7 million caregiving jobs to fill nationally, 2024-2034" (folded into
+the label "9.7M unfilled roles by 2034"), the subtitle "Health-professions
+students enter care delivery through licensed providers." (replaced by the
+in-ring statement "1M health-professions students each year"), the caption
+"Adding caregivers to the system," and the pipeline detail "train, supervise"
+(node is now "Providers hire"). **Future homes:** the licensed-provider
+mechanism and the train/supervise detail are load-bearing for the safety
+argument and live in CP section 2; keep them in prose wherever the student
+pipeline is described.

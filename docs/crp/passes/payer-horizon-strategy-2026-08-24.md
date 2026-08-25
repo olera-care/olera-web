@@ -159,6 +159,42 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Causal correction and three-block synthesis (Logan, 2026-08-25)
+
+- **Figure 1 cycle direction corrected.** Logan caught that the loop ran the
+  wrong way. The causal sequence is now unmet need, ED visit and
+  hospitalization, discharge without care established, back to the same unmet
+  need. Clockwise: Unmet needs (top), "ED visits, hospitalization" (lower
+  right), "No care" (lower left, renamed from "No preventive geriatric
+  care"), repeating. The dashed exit runs from the ED node to "Long-term care
+  facility" centered beneath. Locked artifact updated.
+- **Figure 2 stripped to the bottleneck claim.** Title: "The Bottleneck Is the
+  Caregiver Shortage." The explanatory caption and the standalone shortage
+  stat are gone; the evidence now rides on the label itself, "9.7M unfilled
+  roles by 2034." Right column: "New workforce capacity is needed" (one line)
+  over a three-node pipeline (New cohort, Olera recruits, Providers hire) with
+  the "next semester" return arc and the ring center reading "1M
+  health-professions students each year." The connector to the provider box
+  is a straight horizontal line on that box's centerline (y=231).
+- **TRUTHFULNESS FLAG, unverified:** "1M health-professions students each
+  year" is on the figure at Logan's direction but has no source in
+  references.yaml. It must be verified (or replaced with a sourced figure)
+  before it appears in any submitted document. The 9.7M figure is already
+  cited in CP section 2.
+- **Figure 3 rebuilt as three blocks on one grid:** CareNavigator (dashed
+  five-node ring from Figure 1's center) + Evergreen caregiver workforce
+  (Figure 2's pipeline ring) then a heavy arrow into the cycle turned green.
+  The green cycle reuses Figure 1's exact geometry and node positions with
+  the semantics reversed: Needs met (top), "Fewer ED visits, hospitalization"
+  (lower right), "Preventive care" (lower left), so the flow reads preventive
+  care, needs met, fewer ED visits, sustained. The dashed exit from the ED
+  node now points at "The vicious cycle breaks / less long-term care
+  placement" instead of into a facility. All three blocks share a ring
+  centerline (y=245) and title and subtitle baselines (y=345, y=361).
+- Visual grammar across the set is now fixed: the same clockwise three-node
+  circle appears red in Figures 1 and 2 and green in Figure 3; icons, type
+  scale, and spacing conventions are shared.
+
 ## Five-figure narrative ratified: interrupt, bottleneck, synthesis, then revenue (Logan, 2026-08-25)
 
 - Logan resequenced the deck so the commercial figure comes only after the

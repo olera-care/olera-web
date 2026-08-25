@@ -755,12 +755,13 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
       key: "move_to_call",
       phase: "Alternative Channels",
       title: "Move to Call tab",
-      timing: "Manual · After 7-day wait",
+      timing: "Automated · After 7-day wait",
       description:
-        "After waiting 7 days with no response, admin moves provider to Call tab for final outreach attempts. " +
-        "Batch action available to move multiple providers at once.",
-      ownerNote: "Bulk action in Alternative Channels tab",
-      traits: ["Manual", "Batch"],
+        "After 7 days in Alternative Channels with no response, provider automatically moves to Call tab " +
+        "via the daily lifecycle cron. Admins can also manually batch-move providers earlier if needed. " +
+        "Claimed providers are excluded from auto-move.",
+      ownedBy: "provider-outreach-channel-lifecycle",
+      traits: ["Automated", "7-day trigger"],
     },
     // ── Call (Final Touch) ──────────────────────────────────────────────
     {

@@ -833,3 +833,28 @@ Slide numbers are the post-divider numbering (see
     **retired, not removed by request** — items 28 and 29 were the only two dashed
     connectors on the slide. With them gone the legend explained a distinction the
     figure no longer draws. If a dashed claim returns, the legend returns with it.
+
+## From slide 20, "Three Aims, One Chain of Evidence" (2026-08-25)
+
+32. Closing band: "Nothing enters Aim 3 that has not already cleared its own bar.
+    Each offering graduates on its own schedule, or waits."
+    **safe** — the gates now name their actual bars, so the diagram states the rule
+    instead of asserting it, and slide 27 carries the pre-committed move if a bar is
+    missed.
+
+33. Gate labels: "graduates when its bars are met" (twice).
+    **replaced, not lost** — each gate now names the bar it enforces: Aim 1's is
+    "expert-panel agreement 85%, errors under 10%," Aim 2's is "the staffing path
+    completes end to end." Both are taken verbatim from slide 27's month-12 gate,
+    split by the aim that owns them.
+
+34. Aim 3 qualifier: ", measured in Aim 1" (on "tested against the cost of serving
+    families").
+    **safe** — the attribution was added on 2026-08-25 to fix a dependency error
+    that had cost-to-serve emerging from Aim 2. The diagram itself now carries it:
+    Aim 1 gates into Aim 3, so the source of the cost figure is structural rather
+    than stated.
+
+35. Coupling-arrow clause: "which is what makes staffing bind."
+    **homeless** — the reason Aim 1's family demand matters to Aim 2. The arrow now
+    states the coupling without the mechanism.

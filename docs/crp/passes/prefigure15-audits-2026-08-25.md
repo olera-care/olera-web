@@ -425,3 +425,18 @@ only would be inter-slide drift on identical content. Row pitch 36 to 52.
 
 **Aim 2 now rests on one claim** in this figure, because the claim that fed both Aim 1
 and Aim 2 was removed. Flagged, not resolved.
+
+### Slide 20 edits (2026-08-25, Logan)
+
+Aim 2 subtext, Aim 3 subtext and qualifier, the coupling-arrow label, both gate
+labels, and the closing band. viewBox 440 to 350 since the band is gone.
+
+Two corrections applied and flagged:
+
+- "and fill vaccant jobs with licensed providers" → **"and fill vacant jobs at
+  licensed providers."** Typo, and the preposition: new caregivers fill vacancies
+  *at* providers; "with licensed providers" reads as providers being the filler.
+- The gates now name real bars rather than a generic phrase, taken from slide 27's
+  month-12 gate and split by owning aim. Each label sits in the quadrant its curve
+  leaves open (Aim 1's above the diamond, Aim 2's below), because the longer text
+  would have crossed the connector at the old position.

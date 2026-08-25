@@ -159,6 +159,40 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Five-figure narrative ratified: interrupt, bottleneck, synthesis, then revenue (Logan, 2026-08-25)
+
+- Logan resequenced the deck so the commercial figure comes only after the
+  reader understands why staffing is core, not a side business: Figure 1 what
+  CareNavigator does and the vicious cycle it interrupts; Figure 2 why
+  navigation alone is insufficient (caregiver capacity is the bottleneck);
+  Figure 3 the synthesis (navigation plus new capacity breaks the cycle);
+  Figure 4 the commercial figure (unchanged); Figure 5 the detail table.
+- **Figure 1 final corrections applied:** exit originates from the ED node,
+  "Long-term care facility" centered beneath the cycle with whitespace,
+  lower labels stacked directly under their dots, and the node renamed
+  "No preventive geriatric care" per Logan's stacking instruction (ties the
+  cycle to the title vocabulary). Locked artifact updated.
+- **Figure 2 reframed as the bottleneck argument.** Title: "The Delivery of
+  Preventive Geriatric Care Is Bottlenecked by the Caregiver Shortage." Left:
+  demand aggregates into providers with unfilled roles ("Workforce capacity
+  is the bottleneck." + the 9.7M line), then a red dashed arrow into a
+  miniature of Figure 1's red box ("THE VICIOUS CYCLE OF UNMET NEED ...
+  keeps running"), reusing the cycle visually instead of prose. Right: "New
+  workforce capacity is needed to break the cycle" over the three-node
+  evergreen pipeline. No revenue content.
+- **Figure 3 built: the synthesis.** Two inputs (CareNavigator, coordinates
+  the right care; New caregivers, create the capacity to deliver it)
+  converge with a plus sign into the cycle transformed green: a four-node
+  clockwise ring (needs identified, care coordinated, care delivered, needs
+  met) around Preventive Geriatric Care, with CareNavigator feeding the
+  identification side and caregivers feeding the delivery side. To the
+  right, Figure 1's red box grammar returns transformed: a dashed green box,
+  "THE VICIOUS CYCLE BREAKS," with green down-arrows on the red-world
+  outcomes (ED visits and hospitalization; institutionalization).
+- Visual grammar now codified across the set: red counterclockwise ring =
+  the vicious cycle; green clockwise rings = the interventions; the dashed
+  outcome box changes from red to green when the cycle breaks.
+
 ## Friction pass on Figures 1-2 (Logan, 2026-08-25)
 
 - **Figure 1 vicious cycle simplified to three nodes** at Logan's direction:

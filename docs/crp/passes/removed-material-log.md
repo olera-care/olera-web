@@ -1055,3 +1055,48 @@ cohort."
     **homeless** — this was the reason the schedule is shaped the way it is, and the
     answer to a reviewer asking why revenue starts so late. The Gantt still shows the
     date; nothing now explains it.
+
+## Consolidated cleanup pass (2026-08-25, Logan)
+
+59. **Cover:** "PAR-27-098," the STATUS line ("Research Strategy developed,
+    Commercialization Plan outlined"), and the band "Each figure answers one question
+    and raises the next. Dividers mark every section and subsection of the written
+    application."
+    **safe** — the NOFO number belongs on the application, not the cover; the status
+    is visible from the deck itself.
+
+60. **Contents, Research Strategy:** "SLIDE 1 OPENS THE SECTION" and the band
+    "Twenty-three figures, one argument. Significance establishes the problem,
+    Innovation names what is new, and Approach shows what would prove it."
+    **safe** — the band restated what the three group headers already show.
+
+61. **Contents, Commercialization Plan:** "SLIDE 29 OPENS THE SECTION," the NOT YET
+    DEVELOPED stamp, the ten dashed markers, the intro line, both footnotes, the plan's
+    own section numbers on each row, and the band "These slides hold places, not
+    arguments."
+    **one item is not safe.** The footnote "The plan numbers its sections 1 to 9 and
+    11. There is no Section 10, and the prose cross-references to Section 10 point at
+    Revenue Streams" was the flag on a real defect in the Commercialization Plan. It
+    now appears nowhere. Removing the row numbers hides the gap rather than fixing it;
+    the plan still needs renumbering. Same for the Fundraising Plan footnote: the NOFO
+    requires that subsection and the plan has no heading for it.
+
+62. **Slide 12:** the four red-card subtexts ("A wrong benefit answer can cost a family
+    months of care," "Per-lead and per-placement models taught them to expect
+    extraction," "New workers in a vulnerable person's home is where trust is lost
+    fastest," "Campus-by-campus and market-by-market work does not scale by itself")
+    and the band "Each of these is an uncertainty the aims are built to measure, not a
+    risk to be argued away."
+    **homeless** — the subtexts were the reason each hurdle is real. The headline
+    statements now assert the hurdles without evidencing them.
+
+63. **Slide 14:** "The first two are what we do. The third is what makes doing it
+    repeatedly hard to copy: it can only be built by executing cases, and it sharpens
+    with every family served."
+    **homeless, and it was the moat claim.** The bidirectional arrows still show the
+    database being fed by the other two innovations, but nothing now says that is what
+    makes the position defensible. Slide 17's band carries the nearest equivalent.
+
+64. **Slide 15:** "AI agents prepare, gather, schedule, and follow the case to a
+    decision, then confirm care started."
+    **safe** — the second row's stage names say the same thing.

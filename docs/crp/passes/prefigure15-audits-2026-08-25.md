@@ -613,3 +613,33 @@ compressed underneath.
 
 Body drops to 39 slides, 42 pages. Approach is 19 to 27, CRP Progress Report divider
 28, Commercialization Plan major 29, its sections 30 to 39.
+
+### Consolidated cleanup pass (2026-08-25, Logan)
+
+Every item applied. Four layout consequences the removals created, all fixed rather
+than left as gaps:
+
+- **Slide 12's red cards were sized for two lines of subtext.** With the subtext gone
+  they held a title over 50px of air. Card height 82 to 40, arrows and green cards
+  lifted 42px to close the gap, viewBox 470 to 300.
+- **Contents, Research Strategy:** CRP Progress Report moved from y=366 to y=310, level
+  with Innovation in the left column, so the four sections read as two balanced rows
+  rather than three groups and an orphan.
+- **Slide 4:** compass moved from y=338 to y=360, the true centre of the cycle ring,
+  and "Care Navigation" moved from inside the ring to the foot of the box at y=500. The
+  ring now holds one object instead of two stacked ones.
+- **Slide 25's aim stamps** sit to the right of each rung's number circle, in the open
+  space above each box, at 7pt letter-spaced in the eyebrow grey. Rung 6 has no stamp,
+  which is itself the signpost that it falls outside the award. Mapping: rungs 1 and 4
+  to Aim 1 (the measured case and the outcomes are Aim 1 measurements), rungs 2, 3 and
+  5 to Aim 3 (payer agreements, claims linkage and the cost model are Task 3.4).
+
+**Slide 26's band** now reads "Which lets Olera **operate** on revenue it measured,
+**raise** on economics an investor can check, and **begin** payer validation with the
+evidence in hand." Three verbs, two audiences, and "begin" keeps the payer claim
+bounded to what the CRP actually establishes.
+
+**Deck-wide QA after the removals.** 42 pages, zero em dashes, numbering sequential
+(figures 3 to 12, 14 to 17, 19 to 27; dividers 1, 2, 13, 18, 28, 29, 30 to 39). No
+orphaned reference to any removed text. Font sizes unchanged: nothing was resized to
+fill space, and no replacement copy was written.

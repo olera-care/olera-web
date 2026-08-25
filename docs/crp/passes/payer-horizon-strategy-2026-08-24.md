@@ -159,6 +159,37 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Product introduction deferred; Figure 2 becomes the navigation problem (Logan, 2026-08-25)
+
+- **Strategic decision: the reader should understand why the product must
+  exist before seeing the product.** Figures 1 through 4 now argue the problem
+  and the required shape of a solution in generic terms; CareNavigator is not
+  named until Figure 5.
+- **Figure 2 retitled** "To Break the Cycle, You Must Navigate a Complex
+  Eldercare Ecosystem." The center is now **Care Navigation**: the app mockup
+  and the CareNavigator by Olera wordmark are replaced by a compass inside the
+  same five-step ring. The ecosystem, the exchange arrows, the four
+  stakeholder boxes, and the step vocabulary are unchanged.
+- **Figure 2 now ends in the green cycle, not the red one.** The dashed red
+  arrow to the vicious cycle becomes a solid green arrow to the positive
+  cycle (Needs met, Stays home, Care in place, dotted exit to less long-term
+  care placement), in the same top-right position. Figures 1 and 2 now mirror
+  each other exactly: same family, same gesture rightward, opposite outcome.
+- **Vocabulary consequence, applied deliberately:** the product was also named
+  in Figures 3 and 4, which would have made a Figure 5 "introduction"
+  incoherent. Figure 3's caption is now "Care navigation aggregates family
+  demand" and Figure 4's first box is "Care Navigation." The compass now
+  appears inside Figure 4's navigation ring as well, so one symbol carries
+  navigation across the set. Verified: "CareNavigator" appears only in
+  Figure 5.
+- **Figure 4 keeps the full green cycle** rather than condensing it. The two
+  appearances do different work: in Figure 2 the cycle is the target that
+  navigation aims at (smaller, no house icon); in Figure 4 it is the achieved
+  result of navigation plus capacity (larger, house icon, titled). The house
+  icon is the visual marker of the difference.
+- **Open: whether a dedicated product-introduction figure earns its place.**
+  Recommendation recorded for Logan's decision, not yet built.
+
 ## The vicious cycle gets its own opening figure (Logan, 2026-08-25)
 
 - Logan's diagnosis: the ecosystem figure was carrying two introductions at

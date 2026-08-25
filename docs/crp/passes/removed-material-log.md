@@ -650,3 +650,19 @@ pilot results (900 applications, 100 accepted, 25 placed) remain in CP
 section 2, which is where the beachhead pool is argued. The graduation cap
 stays on one of three figures in the workforce icon so students still read as
 one pool among several.
+
+### Product identity removed from Figures 2 through 4 (2026-08-25)
+
+To let the sequence establish the problem before naming the product, the
+following came out of the pre-product figures: the CareNavigator app mockup
+(phone with care-plan checklist) and the "CareNavigator / by Olera" wordmark
+at the center of the ecosystem figure, replaced by a compass and "Care
+Navigation"; "CareNavigator aggregates family demand" in Figure 3, now "Care
+navigation aggregates family demand"; and the "CareNavigator" title on Figure
+4's first box, now "Care Navigation."
+
+**Future home:** all of it belongs in the product-introduction figure Logan is
+considering as a new Figure 5, and the app mockup in particular is the natural
+centerpiece of that figure. The wordmark and mockup still exist in the
+commercial figure (now Figure 5, "How CareNavigator Gets Paid") and in git
+history at commit 4ad11db.

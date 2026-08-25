@@ -947,3 +947,39 @@ employment / reported, not assumed"); the new wording names the claim the field
 settles, which is the distinction Innovation 2 rests on. "Measured at intake" states
 where the number comes from, and avoids repeating the Retained pin's "reported by
 cohort."
+
+## From slide 24 and the removal of the pricing-method slide (2026-08-25)
+
+47. **The entire pricing-method figure** (formerly slide 25, "What Providers Will
+    Pay, Measured by What They Do"): the four-stage narrowing interval running
+    stated-preference range-setting, discrete-choice structure, randomized offer
+    prices under real billing, and the renewal price-change test, with each stage
+    labelled by method and evidence class.
+    **homeless** — the deck no longer shows that stated preference only bounds the
+    range and that the price is set by revealed behaviour. That reasoning was the
+    answer to a reviewer asking why our prices are credible. Slide 24 now carries the
+    defensible-basis point in one line ("starting from the pilot prices"), and the
+    written Approach carries the method alone. The four-stage table is in
+    `approach-alignment-2026-08-25.md`.
+
+48. Slide 24 pin: "what providers say about value, price, and churn / about 30
+    interviews," with its IRB tag.
+    **removed by decision** — Aim 3 is now centred on commercial behaviour only. This
+    was the qualitative explanation for churn patterns; without it, a churn result
+    will be a number with no account of why. Aim 3 now carries no IRB component at
+    all, which simplifies the human-subjects story.
+
+49. Slide 24 task clause: "with offer prices randomized at the account level and
+    stratified by market and provider size."
+    **safe** — the pathway still shows "Offer at a randomized price," and the
+    stratification is in the written Approach.
+
+50. Slide 24 task clause: "with survival analysis on account-month records" and
+    "with discrepancies investigated and reported rather than reconciled."
+    **homeless** — the second clause was the honesty commitment on the independent
+    analyst's reconstruction. Task 3.3 now says the analyst rebuilds the economics
+    but not what happens when the rebuild disagrees.
+
+51. Slide 24 line: "Running alongside: the payer evidence package described in Slide
+    26, which sells nothing during the award."
+    **relocated** — now Task 3.4, and slide 25 is still the figure.

@@ -507,3 +507,38 @@ Choices made inside the instructions, all flagged:
   providers" would have collided with the "first verified paid shift" pin two inches
   above it, where "paid" means the worker was paid. The note reads "providers pay
   Olera nothing for staffing in Aim 2."
+
+### Slide 24 rewritten, pricing-method slide removed, deck renumbered (2026-08-25)
+
+**Slide 24.** Every measurement in plain language, the IRB interview pin removed,
+tasks rewritten and moved below the band, and the band restated as the commercial
+question. "Use the product" is now "Use the staffing product."
+
+The pricing pin was the crux: it read "conversion by price arm, pre-registered rule /
+the price we operate on," which said nothing a reviewer could act on and implied
+arbitrary prices. It now reads "conversion at each offered price, starting from the
+pilot prices / the price providers will pay," and Task 3.1 names the two pilot-derived
+hypotheses out loud, about $275 a month or $150 a hire, which are the same figures on
+slide 9's table. The prices now have a visible provenance.
+
+Plain-language swaps: "cost to serve an account, from live billing records /
+re-runnable" became "what it costs us to serve one paying account / from real billing
+records"; "time from offer to first payment / payback under 12 months" became "time to
+recover what it cost to win the account / under 12 months"; "provider revenue against
+the cost to serve families / covers it, or is reported" became "profit margin per
+market, after the cost of serving families / positive, and reported."
+
+**Two knock-ons found in the vocabulary pass, both fixed.** Slide 22 still said
+"re-runnable, and falling," now "recalculated, and falling." Slide 26's month-24
+if-we-miss said pricing alternatives would "add value where the interviews locate the
+gap," which pointed at the provider interview study Aim 3 no longer runs; it now reads
+"Pricing alternatives, committed in advance, run in order: unbundle, re-tier, and
+re-test." Slide 26 also said "at every price arm," now "at every price tested."
+
+**Deck renumbered.** Removing the pricing-method slide drops the body from 42 to 41
+slides and every slide after it moves up one: figures 26 to 30 became 25 to 29, the
+CRP Progress Report divider 31 became 30, the Commercialization Plan major divider 32
+became 31, and its ten section dividers 33 to 42 became 32 to 41. Both contents pages,
+both major dividers, the Approach subsection divider's slide range, and the title
+page's slide count were regenerated rather than patched. 44 pages total. No internal
+cross-reference pointed at a moved slide.

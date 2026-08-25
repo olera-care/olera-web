@@ -1272,7 +1272,9 @@ function ReEngageSection({
       {channel === "contact_form" && provider.contact_form_url && (
         <div className="mb-4 p-3 bg-orange-50 rounded-lg">
           <div className="flex items-center gap-2 text-sm">
-            <span className="text-gray-500">Form submitted:</span>
+            <span className="text-gray-500">
+              {(provider.contact_form_send_count ?? 0) > 0 ? "Form submitted:" : "Contact form:"}
+            </span>
             <a
               href={provider.contact_form_url.startsWith("http") ? provider.contact_form_url : `https://${provider.contact_form_url}`}
               target="_blank"

@@ -159,6 +159,34 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Refinement pass: node labels, arrow origins, three matched boxes (Logan, 2026-08-25)
+
+- **Figure 1.** Cycle labels moved beside their dots ("No care" left, "Hospital"
+  right, shortened from "ED visits, hospitalization"); the dotted exit now runs
+  directly from the Hospital node to "Long-term care facility" centered
+  beneath. Reads: unmet need, hospital, no care, repeat, with a secondary
+  dotted path hospital to facility. Locked artifact updated.
+- **Figure 2.** Retitled "A Major Bottleneck Is the Caregiver Shortage"; ring
+  center now reads "each year (evergreen)". The workforce ring was rotated so
+  its nodes sit at 30, 150, and 270 degrees, putting "Providers hire" at the
+  ring's leftmost point exactly on the provider box's vertical centerline
+  (y=221). The connector is therefore a straight horizontal line from that
+  node into the box, and the node label sits outside the ring above the line.
+  Flow around the ring is unchanged: New cohort, Olera recruits, Providers
+  hire, with the "next semester" return arc.
+- **Figure 3 rebuilt in the commercial figure's box language.** Three equal
+  boxes (268 x 300) on one grid: CareNavigator (heavy border, #eaf5ee, family
+  icons and the dashed five-node ring, "Free for families, always." removed) +
+  Evergreen caregiver workforce (Beachhead-panel styling, #f5faf7, student
+  icons and the three-node pipeline ring) then a heavy arrow into the cycle
+  broken (heavy border, #eaf5ee, Figure 1's cycle geometry in green: Needs met,
+  Stays home, Care in place, with the dotted exit now pointing to less
+  long-term care placement). All three rings share a centerline (y=217) and
+  all titles and subtitles share baselines (y=291, y=305).
+- The visual system is now closed: one clockwise three-node circle appears red
+  in Figures 1 and 2 and green in Figure 3; the same family, student, and
+  caregiver icons recur; box fills, borders, and type scale are shared.
+
 ## Causal correction and three-block synthesis (Logan, 2026-08-25)
 
 - **Figure 1 cycle direction corrected.** Logan caught that the loop ran the

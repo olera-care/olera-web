@@ -621,3 +621,15 @@ in-ring statement "1M health-professions students each year"), the caption
 mechanism and the train/supervise detail are load-bearing for the safety
 argument and live in CP section 2; keep them in prose wherever the student
 pipeline is described.
+
+### Figure 3 rebuilt in box language (2026-08-25)
+
+The open three-block Figure 3 (rings without containers) was replaced with
+three bordered boxes matching the commercial figure's design language. Removed
+in the process: "Free for families, always." from the CareNavigator box (it
+belongs to the commercial figure, where the free-access constraint is
+load-bearing; Figure 3 is about care delivery, not payment), and the green
+cycle's earlier labels "Preventive care" and "Fewer ED visits,
+hospitalization," now shortened to "Care in place" and "Stays home" to mirror
+Figure 1's one-word-per-node treatment. **Future home:** the free-for-families
+constraint remains in Figure 4 and throughout the CP.

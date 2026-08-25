@@ -4,9 +4,9 @@
   Preventive Geriatric Care.
 
   STATUS: LOCKED 2026-08-24; amended 2026-08-25 on Logan direction only
-  (vicious cycle: three-node clockwise circle reading unmet needs, ED visits
-  and hospitalization, no care, repeating; dashed exit from the ED node to
-  "Long-term care facility" centered beneath; box aligned to the flanks).
+  (vicious cycle: three-node clockwise circle reading unmet needs, hospital,
+  no care, repeating, with labels beside their dots and a dotted exit from
+  the hospital node to "Long-term care facility" centered beneath).
   Do not modify without Logan's explicit direction. The working copy in
   passes/payer-horizon-visuals-2026-08-24.html mirrors this file; this file
   is canonical.
@@ -57,21 +57,20 @@ table.pay td.rev { background: #eaf5ee !important; }
   <!-- ===== the unmet-needs cascade (counterfactual branch) ===== -->
   <line x1="688" y1="81" x2="716" y2="81" stroke="#b04040" stroke-width="1.8" stroke-dasharray="5 4"/>
   <path d="M715 76 L728 81 L715 86 Z" fill="#b04040"/>
-  <rect x="730" y="18" width="220" height="190" rx="10" fill="#fdf3f2" stroke="#b04040" stroke-width="1.5" stroke-dasharray="7 4"/>
+  <rect x="730" y="18" width="220" height="176" rx="10" fill="#fdf3f2" stroke="#b04040" stroke-width="1.5" stroke-dasharray="7 4"/>
   <text x="840" y="38" font-size="7.2" font-weight="bold" fill="#a03a3a" text-anchor="middle" letter-spacing="1">THE VICIOUS CYCLE OF UNMET NEED</text>
-  <g font-weight="bold" fill="#6b2323" text-anchor="middle">
-    <text x="840" y="60" font-size="8.2">Unmet needs</text>
-    <text x="810" y="150" font-size="8">No care</text>
-    <text x="870" y="150" font-size="8">ED visits,</text>
-    <text x="870" y="161" font-size="8">hospitalization</text>
+  <g font-weight="bold" fill="#6b2323">
+    <text x="840" y="60" font-size="8.2" text-anchor="middle">Unmet needs</text>
+    <text x="879" y="127" font-size="8" text-anchor="start">Hospital</text>
+    <text x="802" y="127" font-size="8" text-anchor="end">No care</text>
   </g>
-  <path d="M 850.5 73.7 A 34 34 0 0 1 873.3 113.1" fill="none" stroke="#b04040" stroke-width="1.4"/><path d="M 871.8 119.9 L 869.7 112.3 L 876.8 113.8 Z" fill="#b04040"/>
-  <path d="M 862.8 131.3 A 34 34 0 0 1 817.2 131.3" fill="none" stroke="#b04040" stroke-width="1.4"/><path d="M 812.0 126.6 L 819.7 128.6 L 814.8 133.9 Z" fill="#b04040"/>
-  <path d="M 806.7 113.1 A 34 34 0 0 1 829.5 73.7" fill="none" stroke="#b04040" stroke-width="1.4"/><path d="M 836.2 71.5 L 830.6 77.1 L 828.4 70.2 Z" fill="#b04040"/>
+  <path d="M 849.4 73.3 A 34 34 0 0 1 873.0 114.2" fill="none" stroke="#b04040" stroke-width="1.4"/><path d="M 871.3 121.0 L 869.5 113.4 L 876.5 115.1 Z" fill="#b04040"/>
+  <path d="M 863.6 130.5 A 34 34 0 0 1 816.4 130.5" fill="none" stroke="#b04040" stroke-width="1.4"/><path d="M 811.3 125.6 L 818.9 127.9 L 813.9 133.0 Z" fill="#b04040"/>
+  <path d="M 807.0 114.2 A 34 34 0 0 1 830.6 73.3" fill="none" stroke="#b04040" stroke-width="1.4"/><path d="M 837.4 71.4 L 831.6 76.8 L 829.6 69.9 Z" fill="#b04040"/>
   <circle cx="840.0" cy="72.0" r="3.5" fill="#b04040"/><circle cx="869.4" cy="123.0" r="3.5" fill="#b04040"/><circle cx="810.6" cy="123.0" r="3.5" fill="#b04040"/>
-  <path d="M 875 127 C 922 130 920 168 884 179" fill="none" stroke="#b04040" stroke-width="1.2" stroke-dasharray="4 3"/>
-  <path d="M 877.3 181.0 L 884.7 182.9 L 882.6 175.5 Z" fill="#b04040"/>
-  <text x="840" y="196" font-size="7.4" fill="#6b2323" text-anchor="middle">Long-term care facility</text>
+  <path d="M 876 132 C 893 148 878 160 858 164" fill="none" stroke="#b04040" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <path d="M 851.0 165.4 L 857.3 160.5 L 858.7 167.5 Z" fill="#b04040"/>
+  <text x="840" y="182" font-size="7.4" fill="#6b2323" text-anchor="middle">Long-term care facility</text>
   <!-- ===== needs lane down ===== -->
   <line x1="444" y1="150" x2="444" y2="212" stroke="#1a7f4e" stroke-width="1.8"/>
   <path d="M439 210 L444 221 L449 210 Z" fill="#1a7f4e"/>

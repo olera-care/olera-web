@@ -92,6 +92,86 @@ revenue sustains). The RS hurdle is the load-bearing one and the CP's four are
 specific; the figure should keep hurdle and response visually distinct so the
 reviewer sees that each barrier has an experiment attached.
 
+## Full QA pass, Figures 1 to 14 (2026-08-25)
+
+Fourteen pages, zero em dashes, every figure inspected at 979px, the true print
+content width.
+
+**Method correction first.** Every QA screenshot in this session before this pass
+was taken at a 1958px CSS viewport, which is double print width, not the 2x
+device scaling I assumed. For the thirteen SVG figures this is harmless, because
+an SVG with `width="100%"` and a viewBox scales rather than reflows, so
+proportions and collisions are identical at any width. For Figure 7 it was not
+harmless: it is an HTML table, its columns are percentages of the container, and
+at double width the text wrapped differently. The "no cell over two lines" check
+Logan asked for had therefore never been run at the width that actually prints.
+The house-style README already warns about exactly this ("a 1056px screenshot
+passes layouts that print rejects"); the correct incantation is
+`--window-size=979,H --force-device-scale-factor=2`, which yields a 1958px image
+of a 979px page. Recorded here because it will happen again otherwise.
+
+**Four defects found and fixed:**
+
+1. **Figure 7, three-line cell at print width.** The Medicare Advantage payment
+   model read "Per completed episode, later per member per month" and wrapped to
+   three lines in a 15% column. Now "Per completed episode, then PMPM." Every
+   cell in the table is two lines or fewer at 979px, verified.
+2. **Figure 7 repeated Figure 6 verbatim.** The provider row's "why they pay"
+   cell said "They cannot serve the families navigation sends them," which is
+   Figure 6's provider subtext word for word. Figure 7 is the detail behind
+   Figure 6 and may share concepts, but repeating a sentence wastes the cell.
+   Now "Staffing is the binding constraint. Unfilled shifts cap the clients they
+   can take," which adds the revenue mechanism instead.
+3. **Figure 11 repeated Figure 14 verbatim.** Both carried "What programs
+   actually decide, county by county," and both said "published on the open
+   web." Figure 14 owns that content, so Figure 11's line is now "The
+   expert-curated record of aid, providers, and what happened to each case,"
+   which names the three parts of the innovation's title and leaves Figure 14
+   its argument. The division is now clean: Figure 11 shows the relationship
+   among the three innovations, Figure 14 shows what is in the database and why
+   it is hard to copy.
+4. **Figure 13 repeated Figure 9 nearly verbatim.** Figure 9's workforce
+   response says "Key Innovation 2 tests recruitment, retention, and provider
+   economics"; Figure 13's evidence line said "The CRP tests recruitment,
+   retention, and provider economics at market scale." Figure 13 now reads "The
+   CRP runs the pathway in live markets and measures what each placement costs
+   and how long students stay," which names the actual measures.
+
+**Checks that passed:**
+
+- **Product name discipline.** CareNavigator appears first in Figure 5 and never
+  in Figures 1 through 4, verified by scanning each figure's text.
+- **Key Innovation numbering.** Figures 5, 9, 11, 12, 13, and 14 all use the
+  ratified order (1 navigation, 2 workforce, 3 database).
+- **Shared vocabulary holds.** Care Navigation, New Caregiver Workforce,
+  Healthcare and LTSS providers, and Preventive Geriatric Care mean the same
+  thing in every figure that uses them.
+- **Numbers appear once each and agree.** 9.7M unfilled roles by 2034 appears in
+  Figures 3 and 13 with identical wording, which is intentional. 263,800,
+  72,000+, 700+, 15,500+, more than 900, more than 20, and n=31 each appear
+  exactly once.
+- **Deliberate device reuse, not repetition.** Figure 3's mini vicious cycle
+  recalls Figure 1, and Figure 4's outcome ring reuses Figure 2's. Both are the
+  reader recognizing an established glyph, which is the opposite of the failure
+  mode.
+
+**Two findings not fixed, both needing Logan's decision:**
+
+1. **Figure 6's second customer block is still labeled "Insurance and healthcare
+   organizations,"** while Figure 7's emerging rows include self-insured
+   employers and public aging agencies, which are neither, and Figure 4's band
+   says "providers, insurers, and public programs." This was flagged after the
+   Figure 7 rebuild and has not been decided. Options: (a) "Insurers, health
+   systems, and public programs," which matches Figure 4 and covers everything
+   in Figure 7 except the employer row; (b) leave it, on the grounds that the
+   subtext already states the concept. Not changed unilaterally because Logan
+   approved Figure 6 and asked for no unnecessary changes, and because it alters
+   which segments the figure implies.
+2. **The market count conflict remains open.** Specific Aims says twelve
+   markets, CP Section 5 says 12 counties, CP Section 9 says 18 markets. No
+   figure states a number, so the set is safe either way, but a reviewer reading
+   both CP sections will see it.
+
 ## Figure 14: Key Innovation 3 (2026-08-25)
 
 Third architecture in three figures: strata. Three layers stacked by how hard

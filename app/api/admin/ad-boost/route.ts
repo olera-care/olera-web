@@ -115,10 +115,29 @@ export async function GET(request: NextRequest) {
     if (!row) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
+    // The detail page is campaign-scoped for editing, but provider continuity
+    // belongs here too. Fetch every request for the same provider (including
+    // archived rows) so operators can move between current and past campaigns
+    // without returning to the queue.
+    const { data: providerCampaignRows, error: providerCampaignError } = await db
+      .from("ad_campaign_requests")
+      .select(ROW_SELECT)
+      .eq("provider_id", row.provider_id)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (providerCampaignError) {
+      console.error("[admin/ad-boost] provider campaign history failed:", providerCampaignError);
+      return NextResponse.json({ error: providerCampaignError.message }, { status: 500 });
+    }
+
+    const providerCampaigns = providerCampaignRows?.length ? providerCampaignRows : [row];
+    const campaignTags = providerCampaigns.map(
+      (campaign) => campaign.campaign_tag || campaign.id,
+    );
     const tag = row.campaign_tag || row.id;
     const [delivered, adLandings, leads, receipt, communicationResult, profileResult] = await Promise.all([
-      countDeliveredByCampaign(db, [tag]),
-      countAdLandingsByCampaign(db, [tag]),
+      countDeliveredByCampaign(db, campaignTags),
+      countAdLandingsByCampaign(db, campaignTags),
       listLeadsByCampaign(db, tag),
       getCampaignReceipt(db, row),
       db
@@ -214,6 +233,14 @@ export async function GET(request: NextRequest) {
         week: receipt.week,
       },
       profileImages,
+      providerCampaigns: providerCampaigns.map((campaign) => {
+        const campaignTag = campaign.campaign_tag || campaign.id;
+        return {
+          ...campaign,
+          delivered: delivered[campaignTag] ?? 0,
+          ad_landings: adLandings[campaignTag] ?? 0,
+        };
+      }),
     });
   }
 

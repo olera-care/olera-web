@@ -37,15 +37,30 @@ const db = createClient(SUPABASE_URL, SERVICE_KEY);
 const SLUG = "star-plus-waiver-texas-complete-guide";
 
 const ARTICLE_HTML = `
-<p class="text-lg leading-relaxed">STAR+PLUS is Texas Medicaid&rsquo;s program that helps seniors and adults with disabilities stay home instead of moving to a nursing facility. It covers everything from personal care to home modifications.</p>
+<div class="not-prose my-8 rounded-2xl bg-primary-25 border border-primary-100 p-6 sm:p-8">
+  <h2 class="text-xl font-bold text-gray-900" style="margin-top:0;margin-bottom:12px;">Quick Summary</h2>
+  <ul style="list-style:none;padding:0;margin:0;font-size:15px;line-height:1.5;color:#374151;">
+    <li style="padding:3px 0;"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#d1fae5;color:#059669;font-size:12px;flex-shrink:0;margin-right:6px;">&#10003;</span> In 2026, the individual income limit is <b>$2,982 per month</b> with a <b>$2,000</b> countable asset limit</li>
+    <li style="padding:3px 0;"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#d1fae5;color:#059669;font-size:12px;flex-shrink:0;margin-right:6px;">&#10003;</span> Services can include personal care, home-delivered meals, home modifications, nursing, therapy, respite care, and more</li>
+    <li style="padding:3px 0;"><span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:#d1fae5;color:#059669;font-size:12px;flex-shrink:0;margin-right:6px;">&#10003;</span> Family members and close friends may be able to provide paid care through Consumer Directed Services</li>
+  </ul>
+</div>
 
-<p>Most families don&rsquo;t find out about it until there&rsquo;s a crisis. This guide puts everything you need in one place.</p>
+<p>There is a Texas Medicaid program that could make long-term care more affordable for your family, but many families don't know it exists.</p>
+
+<p>The STAR+PLUS Waiver can help eligible Texas seniors access the support they need while continuing to live at home or in their community. This guide breaks down what you need to know, including eligibility, costs, covered services, and how to apply.</p>
+
+<p>One important step is to get on the interest list early. To get started, call Texas Health and Human Services at <strong>1-877-438-5658</strong> or visit <a href="https://www.yourtexasbenefits.com" target="_blank" rel="noopener noreferrer" class="text-primary-600 font-semibold underline">YourTexasBenefits.com</a> to learn about joining the STAR+PLUS HCBS interest list.</p>
 
 <h2>What Is the STAR+PLUS Waiver?</h2>
 
-<p><strong>STAR+PLUS</strong> is a Texas Medicaid managed care program that combines acute care (doctor visits, hospital stays, prescriptions) with long-term services and supports (LTSS). It is run through private managed care organizations (MCOs) contracted by the state.</p>
+<p>STAR+PLUS is a Texas Medicaid program that helps older adults and people with disabilities get the medical care and long-term support they need.</p>
 
-<p>The <strong>HCBS waiver</strong> (Home and Community-Based Services) is the part of STAR+PLUS that pays for services delivered at home or in the community, rather than in a nursing facility. This is what most families are looking for when they search for the STAR+PLUS waiver. For a quick overview of eligibility and covered services, see our <a href="/texas/benefits/star-plus" class="text-primary-600 underline">STAR+PLUS HCBS program page</a>.</p>
+<p>The <strong>STAR+PLUS HCBS waiver</strong> is the part of the program that helps people receive long-term care at home or in their community instead of a nursing facility. It can help cover services like personal care, meals, home modifications, and other daily support.</p>
+
+<p>When families talk about the STAR+PLUS Waiver, this is usually the program they're referring to.</p>
+
+<p>For a quick look at eligibility and covered services, visit our <a href="/benefits/texas/star-plus-medicaid-hcbs" class="text-primary-600 underline">STAR+PLUS HCBS program page</a>.</p>
 
 <div class="my-6 rounded-xl bg-primary-50 border border-primary-200 p-5 not-prose">
   <p class="text-sm font-semibold text-primary-800 mb-2">Key distinction</p>
@@ -84,7 +99,7 @@ const ARTICLE_HTML = `
       <tr class="border-t border-primary-100 bg-primary-25">
         <td class="px-4 py-3 text-sm font-medium text-gray-900" style="border:none;">Asset limit</td>
         <td class="px-4 py-3 text-sm text-gray-600" style="border:none;">$2,000</td>
-        <td class="px-4 py-3 text-sm text-gray-600" style="border:none;">$154,140 (community spouse allowance)</td>
+        <td class="px-4 py-3 text-sm text-gray-600" style="border:none;">$32,532 to $162,660 (community spouse allowance)</td>
       </tr>
       <tr class="border-t border-primary-100">
         <td class="px-4 py-3 text-sm font-medium text-gray-900" style="border:none;">Home</td>
@@ -100,7 +115,7 @@ const ARTICLE_HTML = `
   </table>
 </div>
 
-<p><em>If your loved one&rsquo;s income is over $2,982, a <strong>Qualified Income Trust</strong> (Miller Trust) can bring countable income below the limit. This is very common and your managed care organization can help set one up.</em></p>
+<p><em>If your loved one&rsquo;s income is over $2,982, a <strong>Qualified Income Trust</strong> (Miller Trust) may help them qualify for the STAR+PLUS Waiver. The trust allows excess income to be excluded from the eligibility limit and must be set up by the family or a legal representative before applying. Many families work with an elder law attorney or benefits specialist to set it up correctly.</em></p>
 
 <!-- eligibility-checker -->
 
@@ -190,9 +205,9 @@ const ARTICLE_HTML = `
   </div>
 </div>
 
-<h3>How Long Is the Waitlist?</h3>
+<h2>How Long Is the Waitlist?</h2>
 
-<p>The STAR+PLUS HCBS waiver interest list wait time varies by region:</p>
+<p>The STAR+PLUS HCBS waiver interest list wait time varies significantly by region and can range from several months to a few years. Because demand routinely exceeds available funding slots, getting on the interest list as early as possible is the single most important step you can take.</p>
 
 <div class="my-6 rounded-xl border border-primary-200 overflow-hidden not-prose">
   <table style="margin:0;border:none;" class="w-full">
@@ -277,29 +292,24 @@ const ARTICLE_HTML = `
 
 <h2>Hire a Family Member as Your Caregiver</h2>
 
-<p>Through STAR+PLUS, you can hire someone you already trust to be your paid caregiver &mdash; including a family member or close friend. You&rsquo;re in charge of who you hire and how they work. No agency required.</p>
+<p>Through Consumer Directed Services (CDS), you can choose who provides your care, including a family member, relative, or trusted friend. You manage their schedule and care, while a Financial Management Services Agency (FMSA) takes care of payroll and taxes.</p>
 
-<div class="grid grid-cols-1 sm:grid-cols-2 gap-4 my-6 not-prose">
+<div class="my-6 not-prose">
   <div class="rounded-xl bg-primary-50 border border-primary-200 p-5 shadow-sm">
-    <p class="text-base font-semibold text-primary-800 mb-3">Who can be hired</p>
+    <p class="text-base font-semibold text-primary-800 mb-3">Who can be hired:</p>
     <ul class="space-y-2.5 text-sm text-primary-900" style="list-style:none;padding:0;margin:0;">
       <li class="flex items-center gap-2.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600 flex-shrink-0"><path d="M20 6L9 17l-5-5"/></svg>Adult children</li>
-      <li class="flex items-center gap-2.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600 flex-shrink-0"><path d="M20 6L9 17l-5-5"/></svg>Siblings and other relatives</li>
-      <li class="flex items-center gap-2.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600 flex-shrink-0"><path d="M20 6L9 17l-5-5"/></svg>Close friends and neighbors</li>
-      <li class="flex items-center gap-2.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600 flex-shrink-0"><path d="M20 6L9 17l-5-5"/></svg>Anyone 18+ who passes a background check</li>
-    </ul>
-  </div>
-  <div class="rounded-xl bg-red-50 border border-red-200 p-5 shadow-sm">
-    <p class="text-base font-semibold text-red-700 mb-3">Who cannot</p>
-    <ul class="space-y-2.5 text-sm text-red-800" style="list-style:none;padding:0;margin:0;">
-      <li class="flex items-center gap-2.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-red-500 flex-shrink-0"><path d="M18 6L6 18M6 6l12 12"/></svg>Spouses (in most cases)</li>
-      <li class="flex items-center gap-2.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-red-500 flex-shrink-0"><path d="M18 6L6 18M6 6l12 12"/></svg>Legal guardians (in most cases)</li>
-      <li class="flex items-center gap-2.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-red-500 flex-shrink-0"><path d="M18 6L6 18M6 6l12 12"/></svg>The person receiving services</li>
+      <li class="flex items-center gap-2.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600 flex-shrink-0"><path d="M20 6L9 17l-5-5"/></svg>Other relatives</li>
+      <li class="flex items-center gap-2.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600 flex-shrink-0"><path d="M20 6L9 17l-5-5"/></svg>Friends or neighbors</li>
+      <li class="flex items-center gap-2.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600 flex-shrink-0"><path d="M20 6L9 17l-5-5"/></svg>Other adults who meet program requirements and pass required background checks</li>
+      <li class="flex items-center gap-2.5"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-primary-600 flex-shrink-0"><path d="M20 6L9 17l-5-5"/></svg>In some situations, spouses or other family members may qualify depending on program rules</li>
     </ul>
   </div>
 </div>
 
-<p>Pay ranges from <strong>$10 to $17 per hour</strong>, depending on your location and insurance plan. For a detailed breakdown, see our guide on <a href="/texas/how-to-get-paid-as-a-caregiver-in-texas" class="text-primary-600 underline">how to get paid as a caregiver in Texas</a>.</p>
+<h3>How much do caregivers get paid?</h3>
+
+<p>Pay rates vary based on where you live and your managed care plan. Your MCO or FMSA can tell you the rate available in your area.</p>
 
 <h2>Documents You Will Need</h2>
 
@@ -319,17 +329,17 @@ const ARTICLE_HTML = `
 <p>STAR+PLUS is just one of several programs available to Texas families. Depending on your situation, you may also qualify for:</p>
 
 <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 my-6 not-prose">
-  <a href="/texas/benefits/medicaid" class="rounded-xl bg-white border border-gray-200 p-5 shadow-sm hover:border-primary-300 hover:shadow-md transition-all no-underline block">
-    <p class="text-sm font-semibold text-gray-900 mb-1">Texas Medicaid for Elderly &amp; Disabled</p>
-    <p class="text-xs text-gray-500">Full Medicaid coverage for seniors and adults with disabilities who meet income and asset limits.</p>
+  <a href="/benefits/texas/pace-eldercare" class="rounded-xl bg-white border border-gray-200 p-5 shadow-sm hover:border-primary-300 hover:shadow-md transition-all no-underline block">
+    <p class="text-sm font-semibold text-gray-900 mb-1">Program of All-Inclusive Care for the Elderly (PACE) in Texas</p>
+    <p class="text-xs text-gray-500">Comprehensive medical and long-term care for seniors who qualify for nursing home-level care but want to stay in their community.</p>
   </a>
-  <a href="/texas/benefits/medicare-savings" class="rounded-xl bg-white border border-gray-200 p-5 shadow-sm hover:border-primary-300 hover:shadow-md transition-all no-underline block">
+  <a href="/benefits/texas/medicaid-buy-in-qmb-slmb-qi" class="rounded-xl bg-white border border-gray-200 p-5 shadow-sm hover:border-primary-300 hover:shadow-md transition-all no-underline block">
     <p class="text-sm font-semibold text-gray-900 mb-1">Medicare Savings Programs</p>
     <p class="text-xs text-gray-500">Help paying Medicare premiums, deductibles, and copays for low-income seniors.</p>
   </a>
-  <a href="/texas/benefits/respite-care" class="rounded-xl bg-white border border-gray-200 p-5 shadow-sm hover:border-primary-300 hover:shadow-md transition-all no-underline block">
-    <p class="text-sm font-semibold text-gray-900 mb-1">Respite Care Services</p>
-    <p class="text-xs text-gray-500">Temporary relief for family caregivers so you can rest while your loved one is cared for.</p>
+  <a href="/benefits/texas/snap-food-benefits" class="rounded-xl bg-white border border-gray-200 p-5 shadow-sm hover:border-primary-300 hover:shadow-md transition-all no-underline block">
+    <p class="text-sm font-semibold text-gray-900 mb-1">Supplemental Nutrition Assistance Program (SNAP) in Texas</p>
+    <p class="text-xs text-gray-500">Monthly food benefits for low-income individuals and families in Texas.</p>
   </a>
 </div>
 
@@ -343,7 +353,7 @@ const ARTICLE_HTML = `
 
 <hr />
 
-<p class="text-sm text-gray-500"><em>Eligibility requirements are updated annually. Verify current program availability at <a href="https://www.hhs.texas.gov" target="_blank" rel="noopener noreferrer">hhs.texas.gov</a> or call <strong>211</strong>.</em></p>
+<p class="text-sm text-gray-500"><em>Eligibility requirements are updated annually. Verify current program availability at the <a href="https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-members/star-plus" target="_blank" rel="noopener noreferrer" class="text-primary-600 underline">Texas HHS STAR+PLUS page</a> or call <strong>1-877-438-5658</strong>.</em></p>
 `;
 
 async function main() {
@@ -359,14 +369,14 @@ async function main() {
     const { error } = await db
       .from("content_articles")
       .update({
-        title: "STAR+PLUS Waiver Texas 2026 — Complete Guide to Eligibility & How to Apply",
-        meta_title: "STAR+PLUS Waiver Texas 2026 — Complete Guide to Eligibility & How to Apply",
+        title: "STAR+PLUS Waiver Texas 2026: Complete Guide to Eligibility & How to Apply",
+        meta_title: "STAR+PLUS Waiver Texas 2026: Eligibility & Apply",
         meta_description:
-          "STAR+PLUS Texas 2026 guide: income limits, covered services, how to apply, waitlist times, and where to find help in Houston, Dallas, and San Antonio.",
-        canonical_url: `https://olera.care/texas/${SLUG}`,
+          "STAR+PLUS waiver Texas 2026: $2,982/mo income limit, covered home care services, how to apply, and interest list wait times. Check eligibility free.",
+        canonical_url: `https://olera.care/caregiver-support/${SLUG}`,
         content_html: ARTICLE_HTML.trim(),
         excerpt:
-          "STAR+PLUS is Texas Medicaid\u2019s program that helps seniors and adults with disabilities stay home instead of moving to a nursing facility. It covers everything from personal care to home modifications.",
+          "Learn about the STAR+PLUS waiver in Texas: eligibility, income limits, covered services, how to apply, and current interest list wait times.",
         subtitle:
           "Everything you need to know about eligibility, covered services, how to apply, and waitlist times across Texas.",
         reading_time: "10 min read",
@@ -393,12 +403,12 @@ async function main() {
     .from("content_articles")
     .insert({
       slug: SLUG,
-      title: "STAR+PLUS Waiver Texas 2026 — Complete Guide to Eligibility & How to Apply",
+      title: "STAR+PLUS Waiver Texas 2026: Complete Guide to Eligibility & How to Apply",
       status: "published",
       published_at: new Date().toISOString(),
       section: "caregiver-support",
       category: "guide",
-      meta_title: "STAR+PLUS Waiver Texas 2026 — Complete Guide to Eligibility & How to Apply",
+      meta_title: "STAR+PLUS Waiver Texas 2026: Complete Guide to Eligibility & How to Apply",
       meta_description:
         "STAR+PLUS Texas 2026 guide: income limits, covered services, how to apply, waitlist times, and where to find help in Houston, Dallas, and San Antonio.",
       canonical_url: `https://olera.care/texas/${SLUG}`,

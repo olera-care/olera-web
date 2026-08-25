@@ -47,17 +47,16 @@ export async function generateMetadata({
   }
 
   const title = article.meta_title || article.title;
-  // Prefer excerpt (natural opening paragraph) over CMS meta_description
-  // to avoid overriding Google's body-pulled snippets for top articles.
-  // CMS meta_description is only used when explicitly set AND excerpt is empty.
-  const description = article.excerpt || article.meta_description || undefined;
+  // Prefer CMS meta_description when set (concise, keyword-optimized).
+  // Fall back to excerpt for articles that haven't had a custom description written.
+  const description = article.meta_description || article.excerpt || undefined;
   const ogTitle = article.og_title || title;
   const ogDescription = article.og_description || description;
   const ogImage = article.og_image_url || article.cover_image_url;
   const canonical = article.canonical_url || `https://olera.care/caregiver-support/${slug}`;
 
   return {
-    title: `${title} | Olera Caregiver Support`,
+    title: `${title} | Olera`,
     description,
     alternates: { canonical },
     ...(article.noindex && {
@@ -194,28 +193,44 @@ export default async function ResourceArticlePage({
     : [];
 
   // JSON-LD structured data
+  const authorSchema = showAuthorCard
+    ? {
+        "@type": "Person" as const,
+        name: authorName,
+        ...(authorRole && { jobTitle: authorRole }),
+        ...(authorSlug && { url: `https://olera.care/author/${authorSlug}` }),
+      }
+    : {
+        "@type": "Organization" as const,
+        name: "Olera",
+        url: "https://olera.care",
+      };
+
   const articleJsonLd = article ? {
     "@context": "https://schema.org",
     "@type": article.structured_data_type || "Article",
     headline: title,
-    description: article.excerpt || subtitle,
+    description: article.meta_description || article.excerpt || subtitle,
     image: coverImage || undefined,
     datePublished: article.published_at,
     dateModified: article.updated_at,
-    author: {
-      "@type": "Person",
-      name: authorName,
-      ...(authorRole && { jobTitle: authorRole }),
-    },
-    reviewedBy: {
-      "@type": "Person",
-      name: reviewerName,
-      ...(reviewerRole && { jobTitle: reviewerRole }),
-    },
+    author: authorSchema,
+    ...(reviewerName && !byline.isSamePerson && {
+      reviewedBy: {
+        "@type": "Person",
+        name: reviewerName,
+        ...(reviewerRole && { jobTitle: reviewerRole }),
+        ...(reviewerSlug && { url: `https://olera.care/author/${reviewerSlug}` }),
+      },
+    }),
     publisher: {
       "@type": "Organization",
       name: "Olera",
       url: "https://olera.care",
+      logo: {
+        "@type": "ImageObject",
+        url: "https://olera.care/olera-logo.png",
+      },
     },
     mainEntityOfPage: {
       "@type": "WebPage",
@@ -344,13 +359,6 @@ export default async function ResourceArticlePage({
                   {/* Refresh date leads, prominent */}
                   <span className="text-gray-700 font-medium">Updated {formatDate(refreshedAt)}</span>
                   <span className="text-gray-300 mx-1.5">&middot;</span>
-                  {/* Original publish date, demoted */}
-                  {publishedAt && (
-                    <>
-                      <span className="text-gray-400">originally {formatDate(publishedAt)}</span>
-                      <span className="text-gray-300 mx-1.5">&middot;</span>
-                    </>
-                  )}
                 </>
               ) : (
                 publishedAt && (
@@ -370,7 +378,7 @@ export default async function ResourceArticlePage({
               <img
                 src={coverImage}
                 alt={title}
-                className="w-full aspect-[2/1] object-cover rounded-2xl"
+                className="w-full aspect-[3/2] object-cover rounded-2xl"
               />
             </figure>
           )}

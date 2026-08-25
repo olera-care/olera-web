@@ -16,12 +16,12 @@ const FAQS: FAQItem[] = [
   {
     question: "How long is the STAR+PLUS waitlist in Texas?",
     answer:
-      "The HCBS waiver interest list typically ranges from <strong>6 to 18 months</strong> depending on your region. Rural areas tend to have shorter waits (3 to 8 months), while major metros like Dallas and Austin can be 8 to 16 months. Getting on the list early is the most important step.",
+      "The HCBS waiver interest list wait time varies significantly by region and can range from several months to a few years. Because demand routinely exceeds available funding slots, getting on the interest list as early as possible is the single most important step you can take.",
   },
   {
     question: "Can a family member be a paid caregiver under STAR+PLUS?",
     answer:
-      "<strong>Yes.</strong> Through Consumer Directed Services (CDS), family members including adult children, siblings, and close friends can be hired as paid caregivers. They must be 18 or older and pass a background check. Spouses and legal guardians are generally not eligible. Pay ranges from $10 to $17 per hour.",
+      "<strong>Yes.</strong> Through Consumer Directed Services (CDS), adult family members and trusted friends may be hired as paid caregivers if they meet program requirements. In some cases, spouses or legal guardians may also qualify. Pay varies by region and insurance plan.",
   },
   {
     question: "What is the income limit for STAR+PLUS in Texas?",

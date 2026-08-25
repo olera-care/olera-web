@@ -755,3 +755,51 @@ scores of 20 and 25 (verified). They would fit in the funder tag with no extra l
 are strong credibility for an NIH reader, but both NIA cards share that tag, so adding
 the scores means either repeating them or picking one card arbitrarily. Left out rather
 than added unasked. Say the word.
+
+### Reconciling TJ's Background framing into slides 3 to 5 (2026-08-25)
+
+Three changes, four text elements, no geometry touched. TJ's framing is absorbed
+without a resequence.
+
+1. **Slide 3, the causal arrow is now labelled.** The red dashed arrow between the
+   family panel and the cycle carried the figure's causality and said nothing. It now
+   reads *"too expensive to afford, too confusing to find."* This is TJ's diagnosis in
+   his own words, and it makes slide 3 state cause and consequence together instead of
+   only consequence. It also silently sets up slide 4 as the confusion and slide 5 as a
+   cause of the expense, which delivers Logan's proposed progression without moving a
+   single slide.
+2. **Slide 4 names what its two columns are for.** The figure already draws the dual
+   failure: Public Aid and Insurance on the left are how care gets paid for, Healthcare
+   and LTSS on the right are where care comes from. Nothing said so. Two column labels
+   now do, which is the affordability half of TJ's diagnosis made visible with no new
+   boxes.
+3. **Slide 5 gains the measured shortage.** Under "9.7M unfilled roles by 2034,"
+   which is a projection, the slide now carries *"63.3% declined cases they could not
+   staff, 2023,"* which is a fact. Verified against `activatedInsights2024`
+   (2026-08-19).
+
+**Declined, and why.** Resequencing the opening so the cycle comes after the causes
+(Logan's stated progression) would be a rebuild; the current order already delivers it
+now that slide 3 names the cause, and leading with harm is the stronger opening for a
+reviewer. Slide 6 untouched: it already carries the payer line, which is TJ's
+cost-inversion conclusion. Slide 7 untouched for now. The $80,080 figure, the 43%
+with no retirement account, the Medicare and Medicaid mechanics, and the universality
+opener are all prose, not figures. The traction numbers stay on slide 29.
+
+**Two things TJ's framing surfaces that are still unhoused:**
+
+- **The delay mechanism.** "Families wait, and decline, until a hospitalization, when
+  public programs finally step in at the most expensive possible moment and after the
+  most harm." No figure says families *wait*, or that the public payer arrives late and
+  pays more. Slide 3's unlabelled spur to "Long-term care facility" is the natural home
+  for a short version of it, if Logan wants a fourth change.
+- **The no-referral-fee consequence.** Slide 7's "no referral or eligibility gate" does
+  not say what the rule buys: every provider listed, no steering, and federally
+  reimbursed providers able to participate where pay-per-referral models must exclude
+  them. That is a real competitive and regulatory advantage stated nowhere in the deck,
+  and it lost its last home when the regulatory foot-line came off slide 29. One bullet
+  rewrite would fix it.
+
+**Ledger correction:** `evidence-ledger.md` still marks the $58B unclaimed-aid claim
+"unsupported (citation missing)." `references.yaml` has `ncoa2025` verified 2026-08-19.
+That row is stale.

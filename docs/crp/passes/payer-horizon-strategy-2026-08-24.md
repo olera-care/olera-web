@@ -163,8 +163,13 @@ plan-paid care coordination is an established category.)
 
 - **Figure 1 vicious cycle simplified to three nodes** at Logan's direction:
   Unmet needs, No preventive care, ED visits and hospitalization, looping,
-  with the dashed exit relabeled simply "Long-term care facility" (branching
-  off the hospitalization node, as in CP fig-01). Dropped from the miniature:
+  with the dashed exit relabeled simply "Long-term care facility." After
+  Logan rejected the first lopsided draft ("make it a proper circle"), the
+  loop is a true circle with three even computed arcs: Unmet needs on top,
+  No preventive care lower-left, ED visits lower-right, so the bottom pair
+  reads left to right in causal order; flow runs counterclockwise and the
+  exit forks off the return arc, where discharge diverges (home still unmet,
+  or out to a facility). Dropped from the miniature:
   falls/malnutrition/medication errors, rehab-discharge, same-gaps,
   recurrence-worse-baseline (logged; CP fig-01 remains the full-fidelity
   version). The red box is now 220 wide at x730, flush with the ecosystem

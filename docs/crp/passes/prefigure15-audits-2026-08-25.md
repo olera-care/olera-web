@@ -110,6 +110,19 @@ decision structure, swimlane timeline, stamped inventory, decision tree.
 - Trim order if the set runs long: fold 26 into 25, then 21 into 20. Do not fold 22,
   which carries the emerging-customer distinction that nothing else states.
 
+## Applied, 2026-08-25
+
+All five must-change edits and three of the four minor alignments are applied and
+rendered. Change 9 (Figure 5's "every season") is deliberately left, per the
+recommendation in this file: Figure 5 describes the beachhead, where seasonality is
+literally true, and Figure 13 now carries the extensibility statement instead.
+
+One QA catch during application: the "verified record" label first sat on the arrow
+between the provider and workforce boxes at y=241 and was overrun by the workforce
+box's fill. It now stacks as two short lines above the badge, inside the gap, clear of
+both boxes. Verified at 979px, the true print width; 14 pages, zero em dashes, every
+Figure 7 cell still two lines or fewer.
+
 ## Ready to execute
 
 Both audits hold. The consistency change set is nine edits across five figures, none

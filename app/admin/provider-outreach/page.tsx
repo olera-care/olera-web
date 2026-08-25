@@ -10,6 +10,7 @@ import { AdminChip } from "@/components/admin/provider-outreach/AdminChip";
 import { AdminFilterChips, type AdminCounts } from "@/components/admin/provider-outreach/AdminFilterChips";
 import { AdminAutocomplete } from "@/components/admin/provider-outreach/AdminAutocomplete";
 import { NotesModal } from "@/components/admin/provider-outreach/NotesModal";
+import { WorkflowGuideModal } from "@/components/admin/provider-outreach/WorkflowGuideModal";
 import { EmailHistoryPopover } from "@/components/admin/provider-outreach/EmailHistoryPopover";
 import { ProviderDrawer } from "@/components/admin/provider-outreach/ProviderDrawer";
 import { NOT_INTERESTED_REASONS } from "@/lib/provider-outreach/constants";
@@ -2990,6 +2991,9 @@ export default function ProviderOutreachPage() {
   // Notes modal state
   const [notesModalProvider, setNotesModalProvider] = useState<{ id: string; name: string } | null>(null);
 
+  // Workflow guide modal state
+  const [showWorkflowGuide, setShowWorkflowGuide] = useState(false);
+
   // Provider drawer state (for detail view)
   const [drawerProvider, setDrawerProvider] = useState<OutreachProvider | null>(null);
 
@@ -4129,6 +4133,16 @@ export default function ProviderOutreachPage() {
                 View messaging journey
                 <span aria-hidden="true">&rarr;</span>
               </Link>
+              <span className="mx-2 text-gray-300">·</span>
+              <button
+                type="button"
+                onClick={() => setShowWorkflowGuide(true)}
+                className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-primary-700 transition-colors hover:text-primary-800"
+                title="View the workflow guide for this page"
+              >
+                View workflow guide
+                <span aria-hidden="true">&rarr;</span>
+              </button>
             </p>
           </div>
           <div className="flex items-center gap-3">
@@ -7216,6 +7230,11 @@ export default function ProviderOutreachPage() {
           providerName={notesModalProvider.name}
           onClose={() => setNotesModalProvider(null)}
         />
+      )}
+
+      {/* Workflow Guide Modal */}
+      {showWorkflowGuide && (
+        <WorkflowGuideModal onClose={() => setShowWorkflowGuide(false)} />
       )}
 
       {/* Provider Detail Drawer */}

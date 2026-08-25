@@ -357,3 +357,42 @@ grammar where dashed means open.
 
 **Neither carries a black h1.** Every substantive figure does. That is the
 fastest signal that a page is furniture rather than argument.
+
+---
+
+## Edits, 2026-08-25 (Logan)
+
+**Slide 4**, virtuous-cycle panel removed. It previewed Slide 6's whole argument
+inside the ecosystem map. Removing it also balanced the composition: the family now
+sits centered with open space on both sides instead of one loaded corner.
+
+**Slide 12**, Families and Providers columns swapped, so the order is Families,
+Providers, Workforce, Every Market. Geometry unchanged, content exchanged.
+
+**County and market, resolved deck-wide.** The two words were being used
+interchangeably for the same thing, most sharply on Slide 9, whose total row said
+"one mid-sized county" while its own footnote said "per-market economics," and on
+Slide 19, whose claim line read "County economics work, and replicate across
+markets."
+
+The deck now uses **market** for the commercial unit and states the equivalence once,
+at first use, in Slide 9's total row: "one mid-sized market (one county) at
+maturity." That is the Commercialization Plan's own definition ("in this model, one
+market is one county," Section 9). Slide 12's band moved from "one county" to "one
+local market." Slide 19's line became "The economics work in one market, and repeat
+in the next," which states replication without colliding with the term.
+
+**County survives on Slide 17 deliberately.** "What programs actually decide, county
+by county" and "a county-by-county record of unmet need" are the geographic and
+public-health sense, not the commercial unit, and Slide 17 never says market. Same
+word, genuinely different referent.
+
+**Slide 19 carried a stale range** the renumbering sweep missed because it was not a
+"Figure N" pattern: the left column header read "WHAT FIGURES 1 TO 14 CLAIM." Now
+"WHAT SLIDES 3 TO 17 CLAIM."
+
+**Three evidence lines removed** from Slides 15, 16, and 17 (the 31-caregiver
+evaluation, the Texas A&M pilot, and the 15,500 monthly visitors). Logged with
+candidate homes in `removed-material-log.md` items 24 to 26. Worth noting: the deck
+no longer states anywhere the family volume the database learns from, which is the
+mechanism behind Slide 17's "sharpens with use" claim.

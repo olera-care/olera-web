@@ -766,3 +766,41 @@ home:** CP Section 9, alongside the sponsored-episode description. It is the
 answer to the obvious reviewer question about whether plan, MCO, and health
 system episodes are the same episodes counted three times, and the pressure test
 in the strategy record depends on it holding.
+
+## From the CRP figure deck (removed 2026-08-25, at Logan's direction)
+
+Slide numbers are the post-divider numbering (see
+`passes/prefigure15-audits-2026-08-25.md` for the old-figure mapping).
+
+23. **Slide 4** ("To Break the Cycle, You Must Navigate a Complex Eldercare
+    Ecosystem"), the top-right virtuous-cycle panel and its inbound arrow: a green
+    box containing the loop "Needs met → Stays home → Care in place" with a dashed
+    spur to "Less long-term care placement."
+    **safe** — this is Slide 6's whole subject ("Therefore, Navigation and New
+    Capacity Together Break the Vicious Cycle"), drawn there at full size. Slide 4
+    is the ecosystem map, and the panel was previewing the next argument inside it.
+    Removing it also makes the composition symmetric: the family sits centered with
+    open space on both sides instead of one loaded corner.
+
+24. **Slide 15** (Key Innovation 1), evidence line: "Multi-agent system evaluated
+    with 31 dementia family caregivers (manuscript in preparation); the CRP builds
+    the execution and follow-up loops and verifies them against blinded expert
+    review."
+    **homeless** — the 31-caregiver evaluation appears nowhere else in the deck.
+    Candidate home: the CRP Progress Report section (slide 31), whose NOFO brief is
+    development status and de-risking activities to date. Flag for that section.
+
+25. **Slide 16** (Key Innovation 2), evidence line: "Texas A&M pilot: more than 900
+    caregiver applicants and more than 20 placed into provider-employed roles, with
+    providers paying for placements. The CRP runs the pathway in live markets and
+    measures what each placement costs and how long students stay."
+    **safe in prose, homeless in the deck** — the pilot is carried by the Research
+    Strategy (Innovation section and Preliminary Work) and by Commercialization Plan
+    Section 4. No figure now shows it. Same candidate home as item 24.
+
+26. **Slide 17** (Key Innovation 3), evidence line: "15,500+ monthly visitors arrive
+    through organic search today, which is the volume the loop runs on."
+    **safe** — the same figure is in the Research Strategy's Preliminary Work and its
+    Figure 6 caption. Note that the deck no longer states anywhere the family volume
+    the database learns from, which is the mechanism behind the "sharpens with use"
+    claim. Worth restoring if a reviewer needs the loop sized.

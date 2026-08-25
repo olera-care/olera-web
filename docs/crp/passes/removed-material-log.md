@@ -675,3 +675,22 @@ Logan's direction once the ring center already read New Caregiver Workforce.
 section 2, where the student beachhead rationale lives. The graduation cap on
 one of three figures in the workforce icon still signals students as one pool
 among several.
+
+### Commercial figure "How CareNavigator Gets Paid" superseded (2026-08-25)
+
+The three-panel commercial figure (Beachhead Offering panel, free family core,
+Emerging Offering panel, plus the two-layer revenue-over-time trajectory) was
+replaced by the new Figure 6, which carries the same commercial concepts into
+the sequence's visual grammar: two customers paying up into the one system
+introduced in Figure 5.
+
+Carried forward: the beachhead-versus-emerging distinction, the customer
+segments, the free-for-families constraint, the coin-on-shaft money glyph, and
+the solid-versus-dashed timing grammar.
+
+**Removed, with future home: the two-layer revenue trajectory** (beachhead
+revenue solid from today, emerging revenue dashed from roughly year four,
+annotated with the evidence gate and the GUIDE precedent). Figures 6 and 7
+answer who pays and why, not how large the business could become. If that
+question needs a figure, this chart is the candidate; it lives in git history
+at commit ce7020a and its assumptions are recorded above.

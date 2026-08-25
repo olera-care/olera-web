@@ -159,6 +159,44 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Figures 6 and 7: the handoff into the business model (Logan, 2026-08-25)
+
+- **The handoff device.** Figure 5 ends with one system and two capabilities,
+  both of which cost money to run while families never pay. Figure 6 therefore
+  inverts Figure 5's fan: where Figure 5 showed one system branching down into
+  two capabilities, Figure 6 shows two customers paying up into one system.
+- **The structural argument that makes it inevitable: each capability has its
+  own customer.** Caregiver Staffing is the workforce capability monetized, and
+  providers buy it because they cannot serve the families navigation sends them
+  without caregivers. Sponsored navigation is the navigation capability
+  monetized, and institutions sponsor it because unmet needs become their costs.
+  Neither solution is a cost center waiting for outside subsidy.
+- **Figure 6 answers all five of Logan's questions without economics:** who the
+  segments are (two customer boxes), who pays first versus later (SELLING TODAY
+  versus AS OUTCOMES ARE PROVEN, reinforced by solid versus dashed borders and
+  solid versus dashed money arrows and coins), what each buys (the product line
+  in green), why each pays (one sentence each), and how the revenue sustains the
+  solutions (both money arrows point up into CareNavigator). The trio and
+  compass icons carry over so each customer visibly buys the capability it maps
+  to. "Free for families, always." sits in the system box as the constraint that
+  makes the question non-trivial.
+- **Figure 7 is the audit layer**, rebuilt to Logan's column spec: customer
+  segment, why they pay, Olera offering, payment model, illustrative economics.
+  Two bands separate beachhead from emerging so no stream reads as equally
+  mature. Six segments, an illustrative county total of ~$500K+, and a footnote
+  carrying the neutrality rules and the pricing anchors. This is also the
+  artifact that answers the solicitation's market-segment-and-customers
+  requirement.
+- **Reconciliation completed.** The long-standing flag that Figure 7's table
+  contradicted the figure set is now closed: the Client Growth Services row is
+  gone (the product left the model in August), band naming matches the
+  beachhead/emerging vocabulary, and every row's offering matches what Figure 6
+  shows.
+- **Open, Logan's call:** the two-layer revenue-over-time trajectory from the
+  retired commercial figure is not in the new pair. Figures 6 and 7 answer who
+  pays and why but not "how large could this become." If that question needs a
+  visual, the trajectory is the candidate and would be a Figure 8.
+
 ## Figure 5 built: the product introduction (Logan, 2026-08-25)
 
 - **Seven-page sequence now.** 1 vicious cycle, 2 navigation requirement,

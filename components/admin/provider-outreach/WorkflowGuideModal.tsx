@@ -160,14 +160,60 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
             </div>
           </section>
 
-          {/* Conditions - Placeholder */}
+          {/* Not Interested */}
+          <section className="mb-6">
+            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs">!</span>
+              Not Interested (Soft Terminal)
+            </h4>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
+              <p className="text-sm text-amber-900">
+                <strong>Effect:</strong> Stops cold outreach only. Provider can still receive questions, leads, and other engagement.
+              </p>
+              <div className="text-sm text-amber-900">
+                <strong>Mark as Not Interested when:</strong>
+                <ul className="list-disc list-inside mt-1 space-y-1 ml-2">
+                  <li>Provider explicitly declines (soft refusal)</li>
+                  <li>Temporarily closed</li>
+                  <li>All attempts exhausted with no claim:
+                    <ul className="list-disc list-inside ml-4 mt-1 text-amber-800">
+                      <li>Call &amp; Confirm: 3 calls</li>
+                      <li>Email sequence completed</li>
+                      <li>Follow Up: 2 calls</li>
+                      <li>Alternative Channels: 7-day wait</li>
+                      <li>Call (final): 2 calls</li>
+                      <li className="font-semibold">Total: 7+ calls minimum</li>
+                    </ul>
+                  </li>
+                </ul>
+              </div>
+              <p className="text-sm text-amber-800 italic">
+                Notes must support the decision — document decline or all attempts made.
+              </p>
+            </div>
+          </section>
+
+          {/* Archived */}
           <section>
             <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs">!</span>
-              Conditions: Not Interested vs Archived
+              <span className="w-5 h-5 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs">✕</span>
+              Archived (Hard Terminal)
             </h4>
-            <div className="bg-gray-100 border border-gray-200 rounded-lg p-4">
-              <p className="text-sm text-gray-500 italic">Conditions to be added.</p>
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-3">
+              <p className="text-sm text-red-900">
+                <strong>Effect:</strong> Complete system block. Provider stops receiving ALL communication — emails, questions, leads, everything.
+              </p>
+              <div className="text-sm text-red-900">
+                <strong>Archive only when:</strong>
+                <ul className="list-disc list-inside mt-1 space-y-1 ml-2">
+                  <li>Angry provider / threatening legal action</li>
+                  <li>Permanently closed / out of business</li>
+                  <li>Invalid provider (doesn&apos;t offer senior care services)</li>
+                </ul>
+              </div>
+              <p className="text-sm text-red-800 font-medium">
+                ⚠️ Use with caution — this is irreversible in normal workflow.
+              </p>
             </div>
           </section>
         </div>

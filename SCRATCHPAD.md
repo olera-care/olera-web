@@ -7,6 +7,44 @@
 
 ## Current Focus
 
+### 2026-08-25 (later) — The cap theory died too, and Zardy's zero has no known cause (`shiny-pasteur`, ops only, no code)
+
+**TJ said raise Zardy's cap. I opened Google Ads to do it, checked one thing first, and did not make the change.**
+
+**The falsifying fact:** Miracle-Lightstar's **July** campaign ran in the same account, same $2.50 max CPC cap, same Cleveland market, and cleared at **$1.92 average CPC** — 338 impressions, 26 clicks, $49.97 spent. Cleveland clears $2.50 comfortably. The cap was never the binding constraint, so raising it would have spent money on the wrong lever *and* handed him a confident wrong diagnosis.
+
+**Everything structural is now eliminated for his August campaign, which has served 0 impressions since 20 Aug:**
+
+| Suspect | How it died |
+| --- | --- |
+| Daily budget level | Raised $1.67 → $3.57, no change. `lost IS (budget)` is **0.00%** |
+| Max CPC cap | July cleared at **$1.92** under the same cap |
+| Negative keyword list | The shared `provider managed ads negative keywords` list (110 entries, sharedSetId `12134249254`) is applied to **Graceful, which is serving**, and to **his own July campaign** |
+| Ad approval | Eligible |
+| Keyword eligibility | Eligible, including head terms that earned 149 and 59 impressions in July |
+| Geo | Cuyahoga, Lake, Lorain, Medina counties. Cleveland is in Cuyahoga |
+
+Meanwhile Graceful — launched the same day, **smaller** budget, same negative list — has ramped to 24 impressions / 2 clicks / $1.86 CPC all-time.
+
+**The practical path, and it is better than more diagnosis:** his July campaign is a working reference in the same account, same city, same list — **$50 total budget over a fixed flight**. The August rebuild is the broken artifact, not Cleveland and not the bid. Rebuild on the July structure or open a Google Ads support case.
+
+**Method note worth keeping.** The cap recommendation came from an *inference* (every serving campaign clears at $2.01–$2.44, so Cleveland must be above $2.50) when one query against his own July history would have killed it. The inference was the weak link, not the data. Same failure shape as "no calls out of that week" earlier the same day: a sentence that made the point land better than the evidence supported.
+
+**Also settled and built**
+
+- **Deadline is September 1**, TJ's internal date. It is now said out loud in Hilda's beat 5, with **Friday 28 Aug** named as the return date so the weekend is slack.
+- **Franchil is still `Pending / all ads under review`**, 0 impressions, published Sunday 23 Aug. Roughly two business days in a one-business-day queue. The ad itself reads Eligible, so it is the campaign-level gate. Support ticket if unchanged Wednesday.
+- **Outreach notes now live inside the Five Letters page**, not in a separate artifact — TJ went looking for the call guidance where the letters were and it was not there. Hilda has the six beats; Zardy has four, rewritten tonight to remove the falsified diagnosis and to say *do not name a cause*.
+- **Sandra's and Jasmine's letter emails went out**, both leading with campaign news and carrying the NIH context paragraph. Sandra's letterhead uses "Edmonds Villa Adult Family Home" per TJ, though she signs her own mail "Edmonds Villa **High Acuity** Adult Family Home".
+
+**Next up**
+
+- **Do not raise Zardy's cap.** Rebuild his August campaign on the July structure, or open support.
+- **Hilda: call, ~9am Central.** Her two letter blanks (hours/week, annual value) are the only thing that closes Aim 2's "high-margin" half.
+- **Sherry: deliver her untouched 22 Aug lead, then the letter.**
+- **Recheck Franchil's ad review Wednesday.**
+
+
 ### 2026-08-25 — The budget experiment is falsified, and the CRP provider letters were rebuilt against the actual review criteria (`shiny-pasteur`, ops only, no code)
 
 **Google Ads, read at last.** The Monday budget experiment was four days overdue. It resolved, and it went the opposite way from the prediction.
@@ -44,7 +82,7 @@ The rule was "if Zardy recovers and Jasmine does not, budget level is the cause.
 
 **Next up**
 
-- **Raise Miracle-Lightstar's CPC cap and revert the budget to $1.67.** The $3.57 bought nothing and the experiment says it never could. Use the bid simulator rather than guessing.
+- ~~**Raise Miracle-Lightstar's CPC cap**~~ &mdash; **FALSIFIED same evening, see the entry above.** His July campaign cleared at $1.92 under the same $2.50 cap. Do not raise it.
 - **Hilda is a phone call, ~9am Central.** Beat 2 of the 08-17 call sheet is stale: the 90 days is already published, not an offer, and it is in ad review rather than serving. Her two letter blanks map onto beat 3 exactly.
 - **Deadline discrepancy, unresolved.** The 08-17 call sheet says the NIH deadline is **5 Sep** with effective submission 8 Sep; every letter and email sent today says **September 1**. Settle which before more asks go out.
 - **Sherry: deliver her untouched Aug 22 lead before the letter ask.** Sandra's and Jasmine's letters went out today.

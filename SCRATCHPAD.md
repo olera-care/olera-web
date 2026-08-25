@@ -7,6 +7,10 @@
 
 ## Current Focus
 
+### 2026-08-25 — Ad Boost is now a provider queue with continuous campaign history (`codex/ad-boost-provider-queue`)
+
+Reworked Admin → Ad Boost around one provider rather than one row per ad request. The queue groups campaigns by provider, exposes Google/Meta/Nextdoor at a glance, supports submitted-date sorting, expands multi-campaign providers, and uses a quieter table/card hierarchy that stays compact at tablet widths. The campaign detail page now includes an always-visible, newest-first provider history with platform, flight timing, status, landings, leads, archived state, and direct navigation between campaigns. Pre-test caught and fixed stale form state during sibling-campaign navigation by remounting the editor for the selected request and hiding the previous request while the next one loads. **Files:** `app/admin/ad-boost/page.tsx`, `components/admin/ad-boost-queue.ts`, `app/admin/ad-boost/[id]/page.tsx`, `app/api/admin/ad-boost/route.ts`. **Validation:** TypeScript, targeted ESLint, provider-grouping smoke assertions, schema/index review, and `git diff --check` pass; no migration or cron change. Local visual QA was blocked because this worktree lacks Supabase environment variables. **Commits:** `fc676e9ae`, `f4b424fed`, `a0111f883`. **Next:** use the Vercel preview to verify grouping/expansion, each sort option, the tablet breakpoint, and switching/saving sibling campaigns; do not merge without TJ.
+
 ### 2026-08-24 — One junk click silently shut off a paying provider, and it is not one provider
 
 **Started from TJ noticing Pacesetter's admin page looked fine while the comms timeline showed `failed`. It was not a display bug.** Sherry Pace's `ad_boost_traction` email was delivered, opened and clicked on **Thu 08-13 9:43pm ET**, then Outlook fired a complaint webhook **three minutes later**. `isSuppressedRecipient` reads all-time `email_log` with no expiry and no severity grading, so that one junk click permanently suppressed every non-exempt send to `pacesetterhomeservices@outlook.com`.

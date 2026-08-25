@@ -296,3 +296,64 @@ and in caps as the source has them.
    headings in the CP. The fourth exists only as a paragraph inside Section 7
    (Finance Plan), so it does not appear in the contents. A reviewer looking for
    the required heading will not find one.
+
+---
+
+## Deck architecture: section dividers and renumbering (2026-08-25)
+
+The deck is now structured on the formal application hierarchy. 45 pages: three
+unnumbered front-matter pages (title, contents 1, contents 2) then 42 numbered
+body slides, dividers included in the numbering.
+
+```
+        title
+        Contents: Research Strategy
+        Contents: Commercialization Plan
+ 1      RESEARCH STRATEGY                    major divider
+ 2        Significance                       subsection divider
+ 3-12       figures
+13        Innovation
+14-17       figures
+18        Approach
+19-30       figures
+31        CRP Progress Report                not yet developed
+32      COMMERCIALIZATION PLAN               major divider
+33-42     sections 1 to 9 and 11             not yet developed
+```
+
+Section membership follows the NOFO's Research Plan subsections (II.1
+Significance, II.2 Innovation, II.3 Approach, II.4 CRP Progress Report) and the
+Living Commercialization Plan's own section list and order.
+
+### Renumbering
+
+Slide numbers are continuous across the body and dividers consume numbers, so
+every figure moved. Old figure number to new slide number:
+
+| old | new | old | new | old | new |
+|---|---|---|---|---|---|
+| 1 to 10 | +2 (3 to 12) | 11 to 14 | +3 (14 to 17) | 15 to 26 | +4 (19 to 30) |
+
+Cross-references inside the figures were updated with the numbering and now say
+"Slide", not "Figure", because a slide number in this deck no longer identifies a
+figure: "Figures 6 and 7" became "Slides 8 and 9" (slide 11), "Figure 22" became
+"Slide 26" (slide 24). Two HTML comments carrying old numbers were updated too.
+Earlier pass files still use the old figure numbers; the table above decodes them
+rather than rewriting the record.
+
+### Divider design
+
+**Major dividers (slides 1, 32)** are dark: a full-bleed `#1f4534` panel, the
+section name at 40px in white, and the section's own subsections listed with
+their divider slide numbers and status. They are the only dark pages in the deck,
+so a section break is unmistakable when scrolling.
+
+**Subsection dividers** are light and hold four things: the parent section as an
+eyebrow, the slide number, the subsection name at 34px, and either its slide
+range or "Not yet developed." A rail at the foot of the page shows every sibling
+subsection with the current one filled, so position is readable without the
+contents page. Undeveloped siblings are dashed, matching the deck's existing
+grammar where dashed means open.
+
+**Neither carries a black h1.** Every substantive figure does. That is the
+fastest signal that a page is furniture rather than argument.

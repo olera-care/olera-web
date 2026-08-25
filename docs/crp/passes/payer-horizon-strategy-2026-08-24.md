@@ -159,6 +159,53 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Figure 2 round two: the temporal architecture (Logan, 2026-08-25)
+
+- Logan reframed the figure's job: anticipate the reviewer's question after
+  Figure 1 (who pays, what are they buying, could this become a meaningful
+  business) and answer it before it is asked. Directive: push the thinking,
+  not just execute the layout.
+- **Ratified architecture: top band structural, bottom band temporal.** Two
+  parallel panels flank the free core, each making the same two-beat argument
+  (customer + pain, then mechanism): Beachhead Offering, "Healthcare and LTSS
+  providers need staff," with the evergreen workforce cycle (health-professions
+  students apply, Olera screens, providers hire, return arc labeled "next
+  semester") around a Caregiver Staffing hub, closed by "Adding caregivers to
+  the workforce, not competing for them"; Emerging Offering, "Insurance and
+  healthcare organizations bear the costs of unmet needs," with the logic
+  Preventive geriatric care to fewer avoidable downstream costs
+  (hospitalizations, readmissions, institutional care), closed by "So they
+  sponsor navigation." The right panel deliberately reuses "preventive
+  geriatric care" as the handoff from Figure 1.
+- **Purchase mechanics deliberately unstated.** Per Logan, the figure claims
+  only the economic reason to pay; episode fees, PMPM, and contracting are not
+  resolved and are not shown.
+- **Payment arrows redesigned** as coin-on-shaft glyphs (a $ coin riding the
+  arrow into the CareNavigator box), computed from panel edges so alignment is
+  exact.
+- **The county ledger is retired from Figure 2** along with proposed pricing,
+  the demand-capacity-staffing chain, "staffing is their largest problem,"
+  "longer sales cycles," "they buy completion, not access," "families always
+  enter free," and all assumption footnotes. The county economics remain
+  recorded here and in Figure 3's table.
+- **Bottom band: revenue over time, chosen over alternatives.** A two-layer
+  area chart ("Revenue builds in two layers"): Beachhead revenue solid from
+  today; Emerging revenue dashed, starting around year 4 and growing past the
+  beachhead by year 10, annotated "Evidence opens institutional buyers" and
+  "Medicare already prices navigation (GUIDE)" as the one verified scale
+  anchor. Valley of Death rejected (it argues the funding gap, the CP's job,
+  not opportunity size); market-sizing rejected for now on truthfulness
+  grounds (customers x value needs market counts we have not verified).
+  Axes carry no dollar values: the chart claims sequence and structure, not
+  magnitude.
+- **Open item: magnitude.** The trajectory answers "how does it grow," not
+  "how large." Upgrade path once verified: national counts of home care and
+  LTSS establishments, MA enrollment 65+, GUIDE's 390 participating
+  organizations. A research task before it becomes a figure task.
+- Figure 3 remains inconsistent with Figure 2 (county ledger, Client Growth
+  Services row, band naming) and now also with the no-pricing decision; the
+  reconciliation decision is still Logan's, queued with the fourth figure.
+
 ## Figure 1 LOCKED; house style extracted; Figure 2 rebuilt on the beachhead (Logan, 2026-08-24)
 
 - **Figure 1 locked.** Final edit: the cascade caption ("The cascade preventive

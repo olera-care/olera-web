@@ -92,6 +92,62 @@ revenue sustains). The RS hurdle is the load-bearing one and the CP's four are
 specific; the figure should keep hurdle and response visually distinct so the
 reviewer sees that each barrier has an experiment attached.
 
+## Figure 9, and the honesty problem it had to solve (2026-08-25)
+
+The trap in a "related academic efforts" figure is manufacturing distance from
+work we are actually part of. Olera has four peer-reviewed studies of its own
+platform; pretending the academic landscape is something happening elsewhere
+would be both false and easy for a reviewer to check. So the figure puts our own
+work inside the established column, on the digital-caregiver-tools row, and says
+so ("including our published work").
+
+Form: two panels per strand, established on the left in solid blocks, open on
+the right in dashed blocks, using the house grammar where dashed means not yet
+settled. Our response sits in green under each open question, so the reviewer
+never has to infer the relationship. A chevron between the panels makes each row
+read as movement from settled to open rather than as a table cell pair.
+
+The five strands and the reference each rests on:
+
+1. **Unmet need research** (`freedmanSpillman2014`, `hass2017`, `depalma2013`,
+   `unmetNeedsSR2024`). Established: unmet ADL and IADL need predicts emergency
+   visits, readmission, and placement. This row exists to show restraint: we
+   claim no novelty here, and the response states the Qiping boundary in the
+   figure's own words, that we measure care established rather than clinical
+   endpoints.
+2. **Home-based support trials** (`szanton2021`, `szanton2018`). CAPABLE proves
+   the value of getting support into the home and that the savings exceed the
+   program cost. What it does not solve is how a family outside a trial finds
+   and funds that support, which is exactly our front door.
+3. **Digital caregiver tools and AI** (`fan2023`, `fan2024`, `dubose2024`,
+   `hoang2026`, `careNavTAS2026`). Established: these platforms can be built and
+   measured as usable and accepted. Open: whether AI agents can complete
+   applications and follow a case to decision, which is Key Innovation 1.
+4. **Payer-funded navigation** (`cmsGuide2024`, added to `references.yaml` this
+   session). Established: Medicare pays for care navigation, caregiver support,
+   and respite in dementia. Open: whether navigation beyond dementia is paid the
+   same way, which is what the emerging revenue in Figures 6 and 7 rests on.
+   **Verification note:** the CMS model page returns 403 to automated fetching,
+   so the entry was verified against the AHA news report of the launch, and the
+   participant count is deliberately not stated anywhere because the 2026-07-08
+   announcement was reported both as 390 organizations and as "over 400."
+5. **Health-professions pipeline** (`paProgramPCE`, `paeaStudent2025`,
+   `nces2024`). Established: admission requires documented patient-care hours.
+   Open: whether that requirement converts into durable eldercare capacity,
+   which is Key Innovation 2.
+
+Deliberately absent: academic dementia care navigation trials such as the Care
+Ecosystem and D-CARE. They are real and relevant, but nothing about them is in
+`references.yaml` and the citation invariant forbids putting an unverified
+program name in a figure. GUIDE carries the payer-funded navigation strand until
+those are verified. **Open item:** verify one or two academic navigation trials
+and decide whether they earn a sixth row or replace the GUIDE row's framing.
+
+The closing band, "Much of the science is settled. What remains open is
+operational: whether execution and new capacity can be delivered where families
+actually live," is the handoff into Figure 10. It converts the academic question
+into an adoption question, which is what the hurdles figure answers.
+
 ## Pressure test of the Figure 7 economics (2026-08-25)
 
 Logan asked whether the illustrative per-county economics would survive a

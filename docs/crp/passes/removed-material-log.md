@@ -751,3 +751,18 @@ institutional revenue this figure set introduces, and the reconciliation still
 has to exist somewhere in the application even though the figure no longer
 carries it. The two-band structure of the table (beachhead / emerging) carries
 the distinction visually; only the explicit tie to the CP projection was lost.
+
+### Figure 7 subtitle (2026-08-25)
+
+Removed at Logan's direction: "The detail behind Figure 6. Illustrative
+assumptions for one mid-sized county at maturity, not validated economics. Each
+episode is counted once, under the sponsor that pays for it."
+
+Two things left with it. "Not validated economics" is partly carried by the
+column header ("Illustrative economics") and the total row ("Illustrative
+total, one mid-sized county at maturity"), so the figure still labels itself.
+The non-double-counting rule is now stated nowhere on the figure. **Future
+home:** CP Section 9, alongside the sponsored-episode description. It is the
+answer to the obvious reviewer question about whether plan, MCO, and health
+system episodes are the same episodes counted three times, and the pressure test
+in the strategy record depends on it holding.

@@ -151,3 +151,33 @@ only crossing in the figure.
 QA: the first render left 150 to 290 pixels of empty space between short claims and
 their anchor dots, weakening the association; dotted leaders now close that gap.
 Verified at 979px, 15 pages, zero em dashes.
+
+## Figures 16 to 26 built, 2026-08-25
+
+Twenty-six pages, zero em dashes, every new figure inspected at 979px. Devices as
+planned in Audit 2, with no device repeated from Figures 1 to 14 and none repeated
+within the Approach set except the deliberate pathway family at 18, 19, and 20.
+
+**Two content corrections made while building, not cosmetic:**
+
+1. **Figure 16 originally labeled the Aim 1 to Aim 2 coupling "consented family
+   demand, for the referral pathway only."** The referral network is one of the three
+   provider modules the staffing-only decision removed, so that label pointed at a
+   product that no longer exists. It now reads "family demand in the same markets,
+   which is what makes staffing bind," which is the coupling that actually survives.
+2. **Figure 16's cost-to-serve dependency was drawn as a long path emerging from under
+   Aim 2.** Cost to serve families is Aim 1's output, not Aim 2's. Rather than route a
+   line around two boxes, the dependency is now stated inside Aim 3 where it is used:
+   "tested against the cost of serving families, measured in Aim 1."
+
+**QA catches fixed before delivery:** pin cards colliding with each other in Figure 20
+(card width now derives from stage pitch); the IRB tag overrunning its threshold line
+in the shared aim template; the award-end line cutting through the top rung in Figure
+22; Gantt bars stacking one per row in Figure 24 (bars now pack greedily into rows,
+and labels move outside the bar when the bar is too short); the third group of Figure
+25 overflowing its closing band; and the governing-law list in Figure 26 overlapping
+its band and using ragged label offsets.
+
+**Note for the written Approach:** Figures 16 and 24 both map to "Overall design and
+timetable" and may merge into a single Research Strategy figure. Figure 26 can fold
+into Figure 25 if the page budget demands it.

@@ -1798,9 +1798,13 @@ function CityRow({
                       <div className="flex-1 min-w-0">
                         {/* Row 1: Provider name + badges */}
                         <div className="flex items-center gap-2 mb-0.5">
-                          <span className="font-medium text-gray-900 text-sm truncate">
+                          <Link
+                            href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
+                            className="font-medium text-gray-900 hover:text-primary-600 transition-colors text-sm truncate"
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             {provider.provider_name}
-                          </span>
+                          </Link>
 
                           {/* Confirm button - show in Call & Confirm tab */}
                           {activeTab === "call_confirm" && (

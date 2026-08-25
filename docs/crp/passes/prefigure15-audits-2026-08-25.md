@@ -181,3 +181,66 @@ its band and using ragged label offsets.
 **Note for the written Approach:** Figures 16 and 24 both map to "Overall design and
 timetable" and may merge into a single Research Strategy figure. Figure 26 can fold
 into Figure 25 if the page budget demands it.
+
+---
+
+## QA pass, Figures 1 to 26 (2026-08-25)
+
+Method: automated structural checks, a six-word shingle scan for repeated
+phrasing across all 26 figures, a vocabulary consistency scan, and visual
+inspection of rendered pages at true print width (979 CSS px, 2x device scale).
+The earlier habit of screenshotting at 1958 px was double print width and could
+not catch HTML-table line wrapping; all inspection here is at 979.
+
+### Structural checks (clean)
+
+- 26 pages render; titles are sequential 1 to 26 and match the intended set.
+- Zero em dashes.
+- Internal cross-references resolve: "Figure 22" in Figure 20, "Figures 6 and 7"
+  in Figure 9.
+- Aim numbering consistent across Figures 15 to 25.
+
+### Defects found and fixed
+
+**1. Figures 15 and 16 shared an entire block verbatim.** Both carried the three
+aim names plus the same three subtitles. Figure 15's subtitles were removed and
+its remaining aim titles bumped to 12.5 px, so only the aim *names* recur, which
+is required consistency rather than repetition.
+
+**2. Figure 19's closing repeated Figure 15's claim word for word** ("we add
+caregivers rather than move them"). Rewritten to "whether the people we place are
+new to care work, whether they stay, and whether providers get value worth paying
+for."
+
+**3. "Provider value endpoint" was used as a threshold subject without ever being
+defined** in the figure set, in Figure 19 (pinned over "Provider hires") and again
+in Figure 23's month-24 gate. A reviewer reading Figure 19 met a 70% bar on an
+undefined term. Research Strategy section on Aim 2 defines it for staffing as the
+first verified paid shift, so both instances now name the thing itself:
+Figure 19 reads "accounts reaching a first verified paid shift, 70% or higher";
+Figure 23 reads "first verified paid shift in 70% of accounts."
+
+### Repetition judged intentional and left alone
+
+- Figures 18, 19, 20 share the template label "THE TASKS THAT PRODUCE THESE
+  MEASUREMENTS." Same device, same label, is the point.
+- Figure 23 restates thresholds from 18, 19, and 20. A gate figure has to be
+  self-contained, and it adds what 18 to 20 do not carry: the pre-committed move
+  if the number is missed.
+- Figures 21 and 24 share the task name "randomized offer prices under real
+  billing." It is the name of the experiment.
+- Figures 1 and 3, and 2 and 4, reuse device deliberately to show the same
+  structure changing.
+- Figures 6 and 7 share a band label by design; 7 is the detail behind 6.
+- Figure 16's two gates carry the same italic label. Parallel gates, parallel
+  labels.
+
+### Vocabulary scan (clean)
+
+CareNavigator first appears in Figure 5 and never earlier. Key Innovation
+numbering is consistent across Figures 5, 9, 11, 12, 13, 14. "Twelve markets" is
+consistent in 17, 18, 19, 25. "Verified record" is consistent in 11, 13, 19, 24.
+
+"Caregiver Passport" appears in no figure. Deliberate: it is a potential
+mechanism, not a ratified coinage, and house style forbids introducing one inside
+a figure.

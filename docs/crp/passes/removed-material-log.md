@@ -718,3 +718,24 @@ and AI agents, and full-ecosystem coordination. **Future home:** the referral-fe
 line is the cleanest statement of the neutrality rule we have and belongs in the
 CP wherever the commercial rule is stated; the follow-through line survives
 inside the new second bullet ("execute until care starts").
+
+### Figure 7 explanatory footnote and first economics set (2026-08-25)
+
+**Removed at Logan's direction, with future home: the neutrality-and-anchoring
+paragraph.** "Families never pay, and no provider pays for a referral.
+Institutions never pay to gate access: they pay for outreach to members they
+identify, follow-through to completion, workflow integration, and verified
+reporting above the free family layer. Beachhead pricing will be anchored to
+pilot willingness to pay; institutional pricing is anchored to comparable
+navigation vendors and Medicare's existing payment for dementia navigation."
+This is the clearest statement we have of why institutional money does not
+compromise neutrality, and of what the pricing is anchored to. It belongs in the
+CP, Section 9 (Revenue Streams), where the payer horizon is described, not in a
+figure footnote. Nothing in it was wrong; the figure simply should not need it.
+
+**Revised, not removed: the illustrative per-county economics.** The first set
+(~$200/month or ~$500/hire across ~25 providers, ~$60K/year beachhead;
+500 + 200 + 300 sponsored episodes; ~$500K+/county/year total) was cut to
+~$170K/county/year after the pressure test recorded in the strategy record. The
+old numbers are in git history at commit 92c2d2a if the assumptions are ever
+revisited with real contract data.

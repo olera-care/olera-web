@@ -5,6 +5,97 @@ work run while TJ drafts the Aims narrative). Not application text. Companion
 visuals: `payer-horizon-visuals-2026-08-24.html` (internal thinking tools, not
 grant figures). Ratification of the adoption list below is Logan's, with the team.
 
+## Pressure test of the Figure 7 economics (2026-08-25)
+
+Logan asked whether the illustrative per-county economics would survive a
+challenge. They would not have. The findings, and what changed:
+
+**1. The figure contradicted the Commercialization Plan by roughly 17x.** CP
+Section 9 states the ratified per-market economics: one market is one county,
+mature revenue is about $2,500 a month (about $30K a year), entering cost about
+$30K, and the whole company reaches about $0.87M a year across 18 markets by the
+end of the award, about $2.8M at roughly 70 markets by 2037 self-funded, about
+$5.7M at roughly 180 markets with growth capital. Figure 7 claimed about $500K
+per county per year. The beachhead row alone, at about $60K, was already double
+the CP's entire mature-market revenue. A reviewer reading both documents finds
+the contradiction immediately, and the CP is the ratified number.
+
+**Fix:** the beachhead row is now about $30K per county per year, matching CP
+Table 9 exactly: about 25 paying providers at about $100 a month equivalent.
+Note the modeling nuance: CP Table 9's $2,500 a month covers three provider
+products (Staffing, Boost, Conversion), while the figure shows only Caregiver
+Staffing. Attributing the full ratified figure to Staffing alone is the
+conservative choice for the figure, but if Boost and Conversion stay in the CP,
+per-county provider revenue splits among the three rather than adding to them.
+
+**2. Provider count and per-hire price both hold up.** About 25 paying providers
+per county is consistent with the CP's own about 1,500 paying providers across
+about 70 markets (about 21 per market), and with roughly 165,000 providers
+nationally across roughly 3,100 counties (market-denominator note, section 2).
+The about $500 per hire price is well anchored: the median caregiver acquisition
+cost in the same note is $520 (`caregiverCAC2025`). At about $100 a month
+equivalent, we are assuming roughly two to three hires per provider per year
+through Olera, a small share of the hiring a provider with 75% turnover does. It
+is conservative by construction.
+
+**3. The episode volumes assumed near-total sponsor penetration.** The old set
+had 1,000 sponsored episodes a year in one county, which required an MA plan, a
+Medicaid MCO, a health system, an employer, and an aging agency all under
+contract simultaneously and at full volume. Cut to 250 episodes (120 + 50 + 80),
+roughly 4% of the high-need older adults in a mid-sized county (about 250K
+residents, about 45K aged 65+, of whom perhaps 6,000 have significant unmet LTSS
+need in a year). That is a defensible at-maturity ceiling rather than an
+assumption of universal contracting.
+
+**4. Double-counting risk was real and is now stated on the figure.** MA plans,
+Medicaid MCOs, and health systems are not disjoint populations: the same
+discharge for the same person could plausibly be sponsored by a plan or by the
+system that discharged them. The figure now says "Each episode is counted once,
+under the sponsor that pays for it." A second modeling artifact stays flagged
+here rather than on the figure: MA and Medicaid contracts are signed at plan
+level, not county level, so per-county attribution is an allocation by member
+volume, not a sales unit.
+
+**5. National scaling now lands in a defensible place.** At the old numbers,
+every US county at maturity implied about $1.6B a year, and the CP's own 2037
+capital case is $5.7M. At the revised numbers, about $170K per county gives
+about $30M a year across the CP's 180-market capital case and about $530M if
+every county in the country were mature, under 0.1% of the roughly $553B care
+economy. Large, but no longer arithmetic a reviewer can puncture.
+
+Per-segment revisions: MA about 120 episodes at about $400 (about $50K);
+Medicaid MCO about 50 at about $500 (about $25K); health systems about 80 at
+about $200 (about $15K); employers one contract (about $25K); public aging
+agencies about $25K per contract. County total about $170K, of which about $30K
+is the validated beachhead and about $140K depends on outcomes evidence this
+project produces. That split is now stated in the figure's signpost, which points
+to CP Section 9, Tables 8-9, and Figure 10 for the underlying build.
+
+## Innovation numbering corrected (2026-08-25)
+
+The Figure 5 signpost shipped with the stale Innovation order taken from
+`research-strategy.md` (working snapshot, 2026-08-17). The ratified order is in
+`strategic-context-2026-08-20.md` section 5, decision 3: **AI navigation,
+database, workforce**, and it explicitly notes README section 10 is stale on
+this. The signpost now reads: Key Innovation 1 (AI-assisted navigation), Key
+Innovation 2 (aid, provider, and outcomes database), Key Innovation 3 (new
+caregiver workforce).
+
+**Open item for whoever finalizes Innovation:** `research-strategy.md` still
+carries the old numbering and calls KI 3 "a proprietary national resource and
+outcomes database." The Aims page says "aid, services, and providers over an
+expert-curated national database." The figure now uses Logan's "aid, provider,
+and outcomes database." These three should converge on one name before
+submission.
+
+**Vocabulary flag, not fixed:** Figure 6's second customer block is labeled
+"Insurance and healthcare organizations," but Figure 7's emerging rows include
+self-insured employers and public aging agencies, which are neither. Figure 4's
+band says "providers, insurers, and public programs." One of the two should
+move. Recommendation: Figure 6 becomes "Insurers, health systems, and public
+programs," which matches Figure 4 and covers everything in Figure 7 except the
+employer row. Left for Logan because it changes which segments Figure 6 implies.
+
 ## Figure 5 signposts the Innovation section (2026-08-25)
 
 One gray line under the two capability boxes: *"Developed in Innovation: Key

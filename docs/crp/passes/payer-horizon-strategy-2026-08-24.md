@@ -92,6 +92,47 @@ revenue sustains). The RS hurdle is the load-bearing one and the CP's four are
 specific; the figure should keep hurdle and response visually distinct so the
 reviewer sees that each barrier has an experiment attached.
 
+## Figure 13: Key Innovation 2 (2026-08-25)
+
+Different architecture from Figure 12 on purpose: not two tracks but one flow
+with a counter-example attached. The flow reads left to right, students to
+licensed provider to the workforce, and the red dashed band drops into the
+workforce box from above, showing what every existing channel does instead:
+stir the same pool. The circular arrow is the whole argument in one glyph, and
+the bold line under it says it outright, "The pool does not grow."
+
+**What exists today**: agencies, job boards, and gig platforms move workers
+between employers. RS Table 2's sharpest row, restated as a picture.
+**What we do differently**: new people enter eldercare through a pathway their
+careers already require, and they enter as employees of a licensed provider.
+**Why it matters**: the closing band, "Every other channel competes for the same
+workers. This one adds workers," plus the seasonal replenishment and the fact
+that provider employment keeps the work inside licensed care.
+
+Two numbers appear, both verified and both chosen carefully:
+
+- **263,800 health-professions degrees a year** (`nces2024`), not the "about one
+  million enrolled" figure that has circulated in Olera drafts. The reference
+  entry is explicit that the million is derived from degree flow rather than
+  published, and that the verified quantity is the annual degree total. The
+  figure uses the verified one.
+- **9.7M unfilled roles by 2034** (`phi2025`), matching Figure 3's wording
+  exactly so the two figures do not appear to cite different facts.
+
+The pilot line states the record in the locked phrasing: more than 900 caregiver
+applicants, more than 20 placed into provider-employed roles, providers paying
+for placements. The "about 100 placed" figure from RS Preliminary Work is not
+used anywhere here; README section 10 already lists correcting it as a required
+fix, and repeating it in a figure would spread the error.
+
+**Two QA catches worth recording.** The first draft floated the red band across
+the top with no attachment, so it read as a caption rather than as a claim about
+the workforce pool; it now sits above that box with a dashed arrow into it. The
+first draft also reused the house glyph from Figure 4 for "Licensed provider,"
+which would have collided with the vocabulary the set already established, where
+the house means the older adult's home and needs met there. It is now a
+building.
+
 ## Figure 12: Key Innovation 1 (2026-08-25)
 
 Three beats in one composition: two parallel tracks over the same five steps,

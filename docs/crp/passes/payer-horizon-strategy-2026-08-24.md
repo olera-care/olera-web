@@ -192,6 +192,9 @@ plan-paid care coordination is an established category.)
 
 ## The vicious cycle gets its own opening figure (Logan, 2026-08-25)
 
+- Figure 3 retitled to name the turn in the argument rather than the fact:
+  "Navigation Alone Encounters a Major Caregiver-Capacity Bottleneck"
+  (was "A Major Bottleneck Is the Caregiver Shortage").
 - Logan's diagnosis: the ecosystem figure was carrying two introductions at
   once, the needs older adults face and the ecosystem CareNavigator
   coordinates. The vicious cycle now opens the sequence on its own page, and

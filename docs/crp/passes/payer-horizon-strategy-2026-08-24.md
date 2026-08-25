@@ -92,6 +92,40 @@ revenue sustains). The RS hurdle is the load-bearing one and the CP's four are
 specific; the figure should keep hurdle and response visually distinct so the
 reviewer sees that each barrier has an experiment attached.
 
+## Figure 14: Key Innovation 3 (2026-08-25)
+
+Third architecture in three figures: strata. Three layers stacked by how hard
+each is to obtain, with visual weight increasing downward, so depth encodes
+defensibility. It is the natural form for this argument because the argument is
+literally about what lies beneath what anyone can reach.
+
+- **Published on the open web.** Public directories and program rules, often
+  neither accurate nor current. Tagged "available to anyone, including
+  general-purpose AI," which disposes of the obvious reviewer objection in the
+  top band rather than leaving it for the end.
+- **Never published.** Local programs and provider realities, gathered by field
+  work, expert curation, and direct outreach. Tagged with what already exists:
+  72,000+ records and 700+ guides from Phases I-IIB.
+- **Learned only from completed cases.** What programs actually decide, county
+  by county, and what happened after. The five white chips name the longitudinal
+  record concretely: what was needed, what qualified, where it stalled, whether
+  capacity existed, what care started. Tagged "built by this project, case by
+  case," so a reviewer can see exactly which layer the money buys.
+
+The closing band deliberately does not repeat Figure 11's moat line. Figure 11
+already said the database can only be built by executing cases. Figure 14 adds
+what Figure 11 did not: "A competitor who copies the features starts with an
+empty database. Ours becomes a county-by-county record of unmet need and what
+resolved it, which no public dataset contains." The second sentence is the
+public-health value RS Key Innovation 3 claims, stated as something the record
+becomes rather than something that exists.
+
+**Phrasing decision.** RS Key Innovation 3 says the database is "already fed by
+thousands of families a month." The figure uses "15,500+ monthly visitors arrive
+through organic search today" instead, which is the locked phrasing, and does
+not call them families seeking care. The RS sentence and the locked metric
+should be reconciled in the RS itself; flagged, not edited.
+
 ## Figure 13: Key Innovation 2 (2026-08-25)
 
 Different architecture from Figure 12 on purpose: not two tracks but one flow

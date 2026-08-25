@@ -983,3 +983,27 @@ cohort."
 51. Slide 24 line: "Running alongside: the payer evidence package described in Slide
     26, which sells nothing during the award."
     **relocated** — now Task 3.4, and slide 25 is still the figure.
+
+## From slide 25, "While We Develop Staffing, We Build the Case for Future Payer Products" (2026-08-25)
+
+52. The five rung subtexts: "Aim 1 produces this," "needs an agreement, not a study,"
+    "two signed data-use agreements," "aid secured, needs closed, time to care," and
+    "one letter of intent, contingent."
+    **two are homeless and concrete** — "two signed data-use agreements" and "one
+    letter of intent, contingent" were the only countable payer-side deliverables
+    stated anywhere in the deck. They are award-end commitments a reviewer can hold
+    us to, and they now appear nowhere. The other three were explanatory and are
+    safe: rung 4's examples moved inside its box, and rungs 1 and 2 explain
+    themselves.
+
+53. The line-boundary gloss: "everything below this line is delivered; the top rung is
+    not."
+    **safe** — the dashed red line and "THE AWARD ENDS HERE" carry it, and rung 6 was
+    lifted so the separation is unambiguous.
+
+54. Closing-band qualifications: "We do not finish holding proof of effect, and the
+    plan does not pretend otherwise. Nothing in this stream sells anything during the
+    award."
+    **retained in one word** — "post-award" in the new band does the same work without
+    the defensive tone. The no-selling point is gone from the deck; slide 9 marks the
+    payer rows as emerging rather than current, which covers it indirectly.

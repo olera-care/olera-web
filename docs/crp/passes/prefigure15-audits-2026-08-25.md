@@ -542,3 +542,33 @@ became 31, and its ten section dividers 33 to 42 became 32 to 41. Both contents 
 both major dividers, the Approach subsection divider's slide range, and the title
 page's slide count were regenerated rather than patched. 44 pages total. No internal
 cross-reference pointed at a moved slide.
+
+### Slide 25 rewritten in plain language (2026-08-25, Logan)
+
+Title, all six rungs, both explanatory layers, and the closing band. Structure and
+geometry unchanged except for one fix noted below.
+
+Jargon retired, and what replaced it:
+
+| was | now |
+|---|---|
+| A measurable episode, with a verifiable establishment event | A measured case with verified care establishment |
+| Attribution rules that match a payer's members to our episodes | A way to match a payer's members to the people we serve |
+| Linkage to claims demonstrated at a pre-specified match rate | Our cases linked to a payer's own claims records |
+| Intermediate outcomes with face validity | Outcomes that matter to a payer: aid secured, needs met, time to care |
+| An actuarial value model with stated assumptions and sensitivity | A cost model for what that care is worth |
+| Proof of effect on utilization and placement | Proof that it lowers hospital use and long-term care placement |
+
+**"Institutional placement" became "long-term care placement."** That is the deck's
+own term, on slides 3 and 6, and it names the thing rather than the category.
+
+**Closing band, one line instead of three.** "We finish the award with the evidence a
+payer needs to begin post-award studies of hospital use and long-term care placement."
+The single word "post-award" replaces all three defensive sentences: it states the
+boundary without apologising for it.
+
+**One design fix the edit exposed.** With the subtexts gone, rung 6 sat directly on the
+award line, so the line appeared to cut through both rung 5 and rung 6. Rung 6 lifted
+14px, which leaves the line touching the top of the delivered stack and floating clear
+below the undelivered rung. That is the correct reading: the line is the ceiling of
+what the award produces.

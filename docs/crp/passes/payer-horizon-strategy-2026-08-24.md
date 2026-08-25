@@ -92,6 +92,47 @@ revenue sustains). The RS hurdle is the load-bearing one and the CP's four are
 specific; the figure should keep hurdle and response visually distinct so the
 reviewer sees that each barrier has an experiment attached.
 
+## Figure 11, and why the three are not three peers (2026-08-25)
+
+The lazy version of this figure is three equal boxes in a row, which would be
+false. Key Innovations 1 and 2 are the two systems that act, and they are the
+two capabilities Figure 5 already showed the reader. Key Innovation 3 is what
+they run on and what they write to: navigation reads which programs actually pay
+and writes back what each case decided; the workforce reads where capacity is
+short and writes back placements and retention.
+
+So the architecture is two above, one wide beneath, joined by bidirectional
+arrows. The deliberate echo of Figure 5 is the point: the reader recognizes the
+two capabilities and then sees the thing underneath them they had not been shown
+before. The database earns its place visually by being the only element that
+touches both.
+
+The three at the level this figure states them:
+
+1. **AI-assisted navigation.** Agents complete the work: applications,
+   documents, follow-up, and confirmation that care started. The mechanism is
+   completion, not answering.
+2. **New caregiver workforce.** Capacity created rather than moved, through a
+   pathway students' careers already require.
+3. **Aid, provider, and outcomes database.** What programs actually decide,
+   county by county, learned from completed cases and never published on the
+   open web.
+
+The closing line is the moat argument stated plainly: "The first two are what we
+do. The third is what makes doing it repeatedly hard to copy: it can only be
+built by executing cases, and it sharpens with every family served." This is
+drawn from RS Key Innovation 3's own paragraph (a competitor who copies the
+features starts with an empty database) rather than invented here.
+
+**Held back for Figures 12 to 14, deliberately.** Nothing on this figure states
+what exists today or why each difference matters, because that is the three-beat
+each innovation figure owes: what exists now, what we do differently, why the
+difference matters. Figure 11 only has to make the reader want those three
+figures. The discipline Logan named applies there: an innovation is not
+innovative because it uses AI, holds a database, or recruits caregivers, so each
+figure has to land on a mechanism, and the mechanism has to be one an existing or
+emerging competitor cannot simply adopt.
+
 ## Figure 10, and the two hurdle framings it reconciles (2026-08-25)
 
 We had two ratified hurdle statements that had never been put in the same place.

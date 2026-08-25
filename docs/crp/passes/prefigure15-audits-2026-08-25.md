@@ -572,3 +572,27 @@ award line, so the line appeared to cut through both rung 5 and rung 6. Rung 6 l
 14px, which leaves the line touching the top of the delivered stack and floating clear
 below the undelivered rung. That is the correct reading: the line is the ceiling of
 what the award produces.
+
+### Gate slide removed, deck renumbered again (2026-08-25)
+
+Body drops from 41 to 40 slides. Figures 27 to 30 became 26 to 29, the CRP Progress
+Report divider 30 became 29, the Commercialization Plan major divider 31 became 30,
+and its ten section dividers 32 to 41 became 31 to 40. Contents, dividers and the
+title count regenerated. 43 pages.
+
+**Three orphans on the Gantt, fixed.** The removals of the last two turns left labels
+on slide 26 pointing at deleted material or using retired vocabulary:
+
+- "stage 1" and "stage 2" referred to the four-stage pricing chain on the deleted
+  pricing-method slide. Now "price range" and "structure," the decisions those stages
+  make per the alignment doc. If those two pre-billing stages are being dropped from
+  the plan as well, the bars should come out; that is a research-design call, not a
+  labelling one.
+- "episode cohort accrues" used the word slide 25 just retired. Now "measured cases
+  accrue."
+- "actuarial model, first read, investor package" is now "cost model," matching slide
+  25's "A cost model for what that care is worth."
+
+One deliberate exception: slide 19's not-an-award-endpoint box still says "an actuarial
+model," which is Logan's own wording from this session. Slides 25 and 26 say "cost
+model." Worth settling.

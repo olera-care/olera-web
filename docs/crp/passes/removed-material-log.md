@@ -1007,3 +1007,24 @@ cohort."
     **retained in one word** — "post-award" in the new band does the same work without
     the defensive tone. The no-selling point is gone from the deck; slide 9 marks the
     payer rows as emerging rather than current, which covers it indirectly.
+
+## Slide removed: "Every Gate Has a Number, and a Move If We Miss" (2026-08-25)
+
+55. **The entire gate figure** (formerly slide 26): three gates at month 12, month 24,
+    and award end, each with its threshold list and, below a red dashed arrow, the
+    pre-committed move if the number is missed. Closing band: "No gate is a hope. Each
+    one has a number, and a move that is committed to before the number arrives."
+    **thresholds safe, moves homeless.** Every threshold it listed still appears on
+    the aim slides it drew from, and slide 20's two gate labels were sourced from its
+    month-12 gate, so no number is lost. What is gone from the deck entirely is the
+    **pre-committed failure move**: what happens if agent-panel agreement misses, if
+    pricing misses, or if the sustainability threshold is missed. That is the NOFO's
+    "quantitative milestones" and "decision points" requirement, and reviewers score
+    it. The written Approach and `approach-rebase-2026-08-25.md` carry the moves; no
+    figure does.
+
+56. Gantt labels "stage 1" and "stage 2" on the Pricing and economics lane.
+    **relabelled, not removed** — they referred to the four-stage chain on the
+    pricing-method slide deleted earlier the same day, so they pointed at nothing.
+    They now name what each stage decides: "price range" and "structure," which is
+    how `approach-alignment-2026-08-25.md` defines them.

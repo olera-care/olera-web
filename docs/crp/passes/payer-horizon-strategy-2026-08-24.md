@@ -171,7 +171,27 @@ plan-paid care coordination is an established category.)
   without caregivers. Sponsored navigation is the navigation capability
   monetized, and institutions sponsor it because unmet needs become their costs.
   Neither solution is a cost center waiting for outside subsidy.
-- **Figure 6 redesigned as a revenue roadmap (Logan, 2026-08-25).** The first
+- **Roadmap version rejected and replaced (Logan, 2026-08-25).** Logan's verdict
+  on the roadmap was blunt and correct: it picked a chart grammar for
+  information that is not quantitative. The bands had no y-value and their
+  length carried no meaning beyond one start offset, so it was a chart shape
+  wrapped around two text boxes with most of the canvas dead, violating the
+  house rules against containers that exist only to hold sentences and against
+  leftover rather than intentional whitespace. **Lesson for the house style:
+  borrowing the look of a chart without the substance of one is a recognizable
+  failure mode; match the grammar to the shape of the information.**
+- **Replacement: a value-exchange map.** A business model is an exchange, and
+  Figure 2 already established the house device for exchange, the paired
+  directional arrows with give and get labels. Figure 6 now applies that device
+  to money: a tall CareNavigator spine on the left carrying both capability
+  icons and "Free for families, always."; two customer blocks stacked on the
+  right; and between them, for each customer, a rightward arrow labeled with
+  what we deliver and a leftward arrow carrying a coin and labeled with what
+  they pay. Solid for the beachhead, dashed for the emerging buyers. The
+  composition is a two-row exchange ledger with a shared spine, which is
+  distinct from every other figure while reusing established vocabulary.
+- **Superseded note (the roadmap description below is retained for the record).**
+- **Figure 6, first version, roadmap (superseded).** The first
   version repeated Figure 5's box-and-arrow grammar and read as a variation of
   the same slide. Every figure through 5 is a diagram (horizontal sequence in
   1 and 4, radial in 2, two-column contrast in 3, Y-fan in 5), so the unused

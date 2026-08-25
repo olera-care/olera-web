@@ -64,3 +64,18 @@ feedback.
 - **Locked figures** live in this directory as standalone HTML plus rendered
   PDF, with a LOCK comment in the file header. Working drafts stay in
   `../passes/`. A locked figure changes only on Logan's explicit direction.
+
+## Failure modes we have actually shipped
+
+- **Chart cosplay.** Borrowing the look of a chart (bands, axes, timelines) for
+  information that is not quantitative. If neither axis encodes a value and no
+  length or position carries meaning, it is a diagram wearing a chart's clothes,
+  and it reads as filler. Match the grammar to the shape of the information:
+  quantities get charts, relationships get diagrams, exchanges get paired
+  arrows, attributes across cases get tables.
+- **Containers larger than their contents.** A box whose text occupies half its
+  width is not "breathing room," it is dead space. Size containers to content.
+- **Repeating a neighbor's composition.** Two adjacent figures doing different
+  intellectual jobs must not share a layout archetype, or the reader reads them
+  as variations of one slide. Vary the architecture across the sequence while
+  holding palette, type scale, and icon set constant.

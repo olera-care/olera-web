@@ -130,3 +130,24 @@ in the front half of the narrative. The visual architecture assigns a distinct d
 to each of twelve slides, every one with a prose home, and no device repeats from
 Figures 1 to 14. Recommend applying the nine edits first so the set is internally
 consistent before Figure 15 is drawn on top of it.
+
+## Figure 15 built, 2026-08-25
+
+Device as planned: bipartite mapping, ten claims on the left with dotted leaders to
+anchor dots, four nodes on the right. Three are the aims; the fourth is dashed and gray
+and reads "NOT AN AWARD ENDPOINT: supported by cited literature and an actuarial model,
+not measured here." Only one claim connects to it, "Established care means less
+avoidable utilization and placement," which discharges the requirement this audit
+placed on Figure 15 to keep the institutionalization language in Figures 2 and 4
+honest without reopening a locked figure.
+
+Two link styles carry meaning: solid means the aim settles the claim, dashed means the
+aim supports it without settling it. Two claims are dashed, extensibility beyond
+students (a Year 3 feasibility pilot, not a test) and institutional willingness to pay
+(an evidence package, not proof). One claim, "Providers cannot serve the demand
+navigation sends them," forks to both Aim 1 and Aim 2, which is accurate and is the
+only crossing in the figure.
+
+QA: the first render left 150 to 290 pixels of empty space between short claims and
+their anchor dots, weakening the association; dotted leaders now close that gap.
+Verified at 979px, 15 pages, zero em dashes.

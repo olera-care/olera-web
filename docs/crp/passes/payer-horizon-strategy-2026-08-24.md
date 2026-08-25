@@ -92,6 +92,56 @@ revenue sustains). The RS hurdle is the load-bearing one and the CP's four are
 specific; the figure should keep hurdle and response visually distinct so the
 reviewer sees that each barrier has an experiment attached.
 
+## Figure 10, and the two hurdle framings it reconciles (2026-08-25)
+
+We had two ratified hurdle statements that had never been put in the same place.
+The RS Significance close names one primary hurdle: local density, meaning
+families, providers, and workforce concentrated in the same market at a cost
+that market's revenue sustains. CP Section 5 names four acceptance hurdles:
+provider wariness after per-lead and per-placement models, student caregiver
+safety, family trust in AI navigation, and campus-by-campus dependence.
+
+Figure 10 treats the RS hurdle as the container and the CP four as what sits
+inside it, which is how they actually relate: each of the four, unresolved,
+stops one of the groups from concentrating. The primary hurdle is a full-width
+red band across the top; the four sit beneath it as columns tagged by whose
+adoption they block (providers, families, workforce, every market).
+
+Hurdle and response are kept visually distinct by color rather than by label:
+red block above (the barrier, in the house grammar Figures 1 and 3 established
+for the problem), green block below (what we do), with an arrow between them.
+Each response block ends with the aim that measures it, below a divider, so the
+reviewer sees that every hurdle has an experiment attached rather than a
+reassurance:
+
+- Providers wary of platforms → start free, pay after value. **Aim 3**:
+  conversion and churn under real billing.
+- Families trusting AI with care → expert-curated database, audited. **Aim 1**:
+  acceptance validated under IRB.
+- Student caregiver safety → licensed providers hire, train, insure, supervise.
+  **Aim 2**: the pathway measured end to end.
+- Each market repeating affordably → self-service portals and a documented
+  playbook. **Aims 1 and 2**: acquisition cost per market.
+
+Closing line: "Each of these is an uncertainty the aims are built to measure,
+not a risk to be argued away." That is the handoff into Figure 11, which answers
+what makes the measurements come out our way.
+
+**Conflict found while mapping the aims, not resolved here.** The number of
+markets the CRP opens is stated three different ways in ratified documents:
+Specific Aims says "the twelve markets," CP Section 5 says "The CRP targets 12
+counties and approximately 300 paying providers," and CP Section 9 says "The CRP
+opens all 18 markets early: 5 in Year 1 and the rest by the end of Year 2." The
+Aims page is locked, so this is flagged rather than edited. Figure 10 avoids the
+number entirely, saying "each market." Note the Figure 7 pressure test above
+used 18 markets from CP Section 9 for its national scaling check; if 12 is
+correct, that check becomes more conservative, not less.
+
+Vocabulary note: the Aims name the provider products "Managed Ads" and "Staff
+Recruitment," while the figure set uses "Caregiver Staffing" and dropped the
+client-growth products entirely. Figure 10 refers to what is tested rather than
+to product names, which sidesteps the drift README section 10 already flags.
+
 ## Figure 9, and the honesty problem it had to solve (2026-08-25)
 
 The trap in a "related academic efforts" figure is manufacturing distance from

@@ -396,3 +396,32 @@ evaluation, the Texas A&M pilot, and the 15,500 monthly visitors). Logged with
 candidate homes in `removed-material-log.md` items 24 to 26. Worth noting: the deck
 no longer states anywhere the family volume the database learns from, which is the
 mechanism behind Slide 17's "sharpens with use" claim.
+
+### Slide 19 rebuilt (2026-08-25, Logan)
+
+Ten claims down to seven, four rewordings, closing line out, title changed. Rebuilt
+rather than patched so the fan of connectors stays clean.
+
+Three of Logan's instructions were applied with a small correction each, all flagged
+to him:
+
+- "a licensed professional approve" → **"a licensed professional would approve."**
+  The swap he wanted was sign to approve; without "would" the clause loses agreement.
+- "19. So What Would Our Resarch Approach Actually Prove It?" → **"19. So What Would
+  Our Research Approach Actually Prove?"** Typo fixed, and "Prove It" dropped because
+  the inserted subject makes "would X prove it" ungrammatical.
+- "County economic hold across mutiple market types" → **"The economics hold across
+  multiple market types."** Keeps his meaning, including the replication-design point
+  his wording adds, without reopening the county-versus-market decision made the same
+  day. Note this is a better claim than what it replaced: it names the 2x2x2
+  replication grid rather than just asserting repeatability.
+
+**Type scale.** Claim text 9.4 to 11 and the two column headers 8.4 to 9, both sizes
+already in the deck. The aim card labels and names were left at 7.8 and 12.5
+deliberately: slide 20 shows the same three aim names at 12.5, and growing them here
+only would be inter-slide drift on identical content. Row pitch 36 to 52.
+
+**The legend went with the dashed connectors.** See removed-material-log item 31.
+
+**Aim 2 now rests on one claim** in this figure, because the claim that fed both Aim 1
+and Aim 2 was removed. Flagged, not resolved.

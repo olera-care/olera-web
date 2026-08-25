@@ -804,3 +804,32 @@ Slide numbers are the post-divider numbering (see
     Figure 6 caption. Note that the deck no longer states anywhere the family volume
     the database learns from, which is the mechanism behind the "sharpens with use"
     claim. Worth restoring if a reviewer needs the loop sized.
+
+## From slide 19, "So What Would Our Research Approach Actually Prove?" (2026-08-25)
+
+27. Claim line: "Providers cannot serve the demand navigation sends them."
+    **homeless** — this was the only place the deck stated the bottleneck as a
+    measured claim rather than an assertion. It fed two aims (Aim 1's demand and
+    Aim 2's capacity), and its removal is why Aim 2 now rests on a single claim in
+    this figure. Slide 5 still argues the bottleneck; nothing now says we will
+    measure it.
+
+28. Claim line: "The pathway extends beyond students to other new-worker pools."
+    **safe** — carried by slide 16's note ("Students are the first population
+    tested. Other new-worker pools follow the same pathway") and by Aim 2's Year 3
+    second-pool feasibility pilot on slides 23 and 28.
+
+29. Claim line: "Organizations that bear the cost will pay for completed navigation."
+    **safe** — this is slide 26's whole subject (the payer evidence package) and
+    slide 9's emerging-buyer rows.
+
+30. Closing line: "The aims are what these claims require, not a plan we brought
+    with us."
+    **homeless** — the figure's thesis sentence. Its work is now done by the
+    structure alone.
+
+31. Connector legend: "solid: the aim settles the claim / dashed: the aim supports
+    it without settling it."
+    **retired, not removed by request** — items 28 and 29 were the only two dashed
+    connectors on the slide. With them gone the legend explained a distinction the
+    figure no longer draws. If a dashed claim returns, the legend returns with it.

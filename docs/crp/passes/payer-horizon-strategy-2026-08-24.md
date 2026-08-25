@@ -159,6 +159,52 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Three-figure architecture ratified; value-path figure retired (Logan, 2026-08-25)
+
+- Logan's verdict on the value-path Figure 2: mostly a regression; the previous
+  commercial figure is preferred. One survivor, kept as Figure 2's lede: "CareNavigator
+  can find the right care and still fail if no provider has the staff to
+  deliver it." Diagnosis adopted: one figure was being asked to explain why
+  staffing exists, how it works, why it matters, how it earns, who future
+  buyers are, and how much, all at once.
+- **Ratified sequence: coordinate, deliver, monetize.** Figure 1: how
+  CareNavigator coordinates preventive geriatric care (plus the vicious
+  cycle). Figure 2: what prevents that care from being delivered (capacity)
+  and how Olera expands it (the evergreen student pipeline). Figure 3: how the
+  system gets paid (the restored commercial figure). Figure 4: the detail
+  table (renumbered; reconciliation still pending).
+- **Figure 1 red box rebuilt as a faithful miniature of CP fig-01** at Logan's
+  direction: a six-node circular cycle (daily needs go unmet; falls,
+  malnutrition, medication errors; ED visits, hospitalization; rehab,
+  discharge home; same gaps at home; recurrence, worse baseline) with the
+  dashed exit to premature institutionalization. The CP figure's entry ("care
+  need emerges") is played by the existing dashed arrow from the family box;
+  its two Olera interception arrows are not redrawn because Figure 1's whole
+  composition is those interventions. Box grew to 222x222; locked artifact
+  updated.
+- **Figure 2 is now the capacity figure.** Left: CareNavigator brings families
+  to a provider card whose staff row shows three filled and three dashed
+  unfilled roles ("Too few caregivers. Shifts go unfilled. Cases are turned
+  away."), anchored by the CP-cited 9.7 million caregiving jobs to fill
+  2024-2034. Right: the evergreen caregiver pipeline as a five-node ring (new
+  cohort enters; students apply; Olera vets them; providers hire, train,
+  supervise; students gain patient-care experience; return arc "next
+  semester") around "A new caregiving workforce," captioned "Adding
+  caregivers to the workforce, not competing for them," with an arrow from
+  the hire step into the card's unfilled roles. Closing chain: navigation
+  coordinates the care, capacity delivers it, Preventive Geriatric Care.
+- **Figure 3 restored** from the ratified commercial figure (Beachhead
+  Offering / free family core / Emerging Offering, coin-on-shaft payment
+  arrows, two-layer revenue trajectory with the GUIDE anchor). Left panel no
+  longer redraws the pipeline (Figure 2 owns it): it names Caregiver Staffing,
+  the recruit-and-vet-from-the-pipeline description, the subscription-vs-
+  per-hire packaging (no prices), and the new insight line "The same sale that
+  earns revenue adds the capacity navigation depends on." Lede restored to
+  "Revenue comes from organizations that benefit when needed care is
+  coordinated and established."
+- The value-path band figure (pinched flow with hanging revenue tags) is
+  retired and logged; it lives at commit 435e12c if wanted.
+
 ## Figures 1-2 unified: the bottleneck handoff (Logan, 2026-08-25)
 
 - Logan's diagnosis: Figure 2 opened with staffing too abruptly ("why did a

@@ -577,3 +577,16 @@ the ring drawing itself and the panel headings are available in git history
 (commit de9da32) if a standalone staffing figure ever wants them. The retired
 lede "Revenue comes from organizations that benefit when needed care is
 coordinated and established." remains a candidate sentence for CP prose.
+
+### Value-path Figure 2 retired (2026-08-25)
+
+Logan judged the bottleneck value-chain figure (full-width pinched flow band
+with Free / Beachhead Revenue / Emerging Revenue tags and the trajectory
+below, commit 435e12c) a regression and directed a return to the prior
+commercial figure. Kept from it: the lede sentence "CareNavigator can find
+the right care and still fail if no provider has the staff to deliver it."
+(now Figure 2's lede) and the amplified trajectory chart treatment. **Future
+homes:** the pinch/band drawing is in git history at 435e12c; the
+bottleneck-then-capacity logic it drew now lives across Figure 2 (capacity
+figure) and Figure 3's insight line; the closing chain survives as Figure 2's
+bottom strip.

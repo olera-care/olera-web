@@ -159,6 +159,34 @@ plan-paid care coordination is an established category.)
   abstraction (marketplace, platform, infrastructure), not the reverse. The
   category label question is deliberately deferred.
 
+## Workforce concept broadened; Figure 2 recomposed (Logan, 2026-08-25)
+
+- **The workforce concept is no longer student-specific.** "Health-professions
+  students each year (evergreen)" becomes **New Caregiver Workforce**, with the
+  candidate pools shown lightly beneath the cycle: Students, Career changers,
+  Gig workers, Retirees. "Next semester" becomes "next season" so the pipeline
+  is not defined by an academic calendar. Figure 3's box carries the same name
+  with no subtitle, so the vocabulary matches exactly across both figures.
+- **The unverified "1M health-professions students each year" is gone.** It was
+  the ring's center text and is replaced by the New Caregiver Workforce label,
+  which retires the truthfulness flag raised when it was added. The only
+  quantitative claim left in Figure 2 is the 9.7M shortage, which CP section 2
+  already cites.
+- **Figure 2 recomposed around paired headers.** The caregiver trio moved out
+  of the cycle to become the right-hand header icon, directly resolving the
+  icon, node, and label collision Logan flagged. Both columns now open with an
+  icon group over a bold statement on a shared baseline (y=112): "CareNavigator
+  aggregates family demand" and "New workforce capacity is needed." The
+  problem now reads left to right before any detail: demand aggregates,
+  providers hit the bottleneck, new capacity is needed.
+- **The pipeline gained a fourth node** so it reads as Logan specified:
+  Providers hire, next season, New cohort, Olera recruits, Olera vets, back to
+  Providers hire. Providers hire stays at the ring's leftmost point on the
+  provider box centerline, so the straight connector is unchanged.
+- **Figure 3** gains a home icon above "Needs met," matching the icon-over-
+  concept language of the other two boxes and grounding the outcome in the
+  community rather than an institution.
+
 ## Refinement pass: node labels, arrow origins, three matched boxes (Logan, 2026-08-25)
 
 - **Figure 1.** Cycle labels moved beside their dots ("No care" left, "Hospital"

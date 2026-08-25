@@ -633,3 +633,20 @@ cycle's earlier labels "Preventive care" and "Fewer ED visits,
 hospitalization," now shortened to "Care in place" and "Stays home" to mirror
 Figure 1's one-word-per-node treatment. **Future home:** the free-for-families
 constraint remains in Figure 4 and throughout the CP.
+
+### Student-specific workforce framing broadened (2026-08-25)
+
+Logan broadened the workforce concept beyond health-professions students.
+Removed from the figures: "1M health-professions students each year"
+(unverified, and no longer accurate to a broadened pool), "each year
+(evergreen)", "next semester" (now "next season"), and Figure 3's subtitle
+"renewed each semester". The named pools are now Students, Career changers,
+Gig workers, and Retirees, shown as light examples.
+
+**Future homes:** the student-specific rationale (patient-care experience
+advances health careers, cohorts renew continuously, schedules fit hard-to-fill
+shifts, colleges are geographically distributed) and the completed student
+pilot results (900 applications, 100 accepted, 25 placed) remain in CP
+section 2, which is where the beachhead pool is argued. The graduation cap
+stays on one of three figures in the workforce icon so students still read as
+one pool among several.

@@ -1953,6 +1953,13 @@ function CityRow({
                               Web
                             </span>
                           )}
+
+                          {/* Call status chip - show if provider has call logs */}
+                          {provider.call_count && provider.call_count > 0 && (
+                            <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded border ${getCallStatusColor(provider.latest_call_status)}`}>
+                              {formatCallStatus(provider.latest_call_status) || "Called"} ({provider.call_count})
+                            </span>
+                          )}
                         </div>
 
                         {/* Row 2: Category · City, State · Phone · Email */}
@@ -2382,6 +2389,11 @@ function ReEngageProviderRow({
                 {channelInfo && (
                   <span className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${channelInfo.className}`}>
                     {channelInfo.label}
+                  </span>
+                )}
+                {provider.call_count && provider.call_count > 0 && (
+                  <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded border ${getCallStatusColor(provider.latest_call_status)}`}>
+                    {formatCallStatus(provider.latest_call_status) || "Called"} ({provider.call_count})
                   </span>
                 )}
                 <span className="text-xs text-gray-500">{waitDays}d</span>

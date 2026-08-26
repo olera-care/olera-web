@@ -7,6 +7,46 @@
 
 ## Current Focus
 
+### 2026-08-26 (later) — Zardy's campaign was never broken. Cleveland repriced ~2.5x and our standing $2.50 bid cap is now below the floor (`shiny-brahe`)
+
+**Ad Boost, no code.** Ran the diagnosis on Miracle-Lightstar `24151612515` and got a definitive answer from Google's own budget simulator. **Nothing has been changed in Google Ads yet** — budget still `$3.57/day`, Max CPC still `$2.50`, awaiting TJ's call.
+
+**THE ANSWER: the bid is roughly half what the auction now costs.**
+
+| Google's campaign budget simulator (based on real auction data, Aug 22-23) | | | | | |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Budget | Clicks | Cost | Impr. | Top impr. | **Min. bid limit req'd** |
+| $2.37/day | 1 | $4.68 | 26 | 15 | **$5.12** |
+| $1.59/day | 1 | $2.17 | 25 | 14 | **$4.98** |
+
+Current Max CPC bid limit: **$2.50**. Google says entry costs **~$5.00**. His July campaign cleared at **$1.92 avg CPC under the same $2.50 cap** and served 338 impressions. **The Cleveland home-care auction has repriced roughly 2.5x since July.** A cap that comfortably won in July cannot win a single auction now.
+
+**This falsifies the line in the 08-25 call-sheet artifact** that "the August rebuild is the broken artifact, not Cleveland and not the bid." It IS the bid and it IS Cleveland. Five theories died over three days because everyone kept looking *inside* the campaign for a change that happened *outside* it.
+
+**Budget is definitively NOT the constraint.** Google reports `Search lost IS (budget) = 0.00%`, and the simulator projects 25-26 impressions at budgets *below* the current $3.57/day. Any budget increase is wasted motion.
+
+**Everything else verified clean at source** (campaign `24151612515`): campaign/ad group/ad all Eligible; 20 keywords with all five head terms Eligible incl. `"personal care assistance"`; only the shared 98-term negative list attached, and none of the 74 terms captured is a substring of any of his keywords; Max CPC reads `$2.50` at source; geo = Cuyahoga/Lake/Lorain/Medina counties; no device bid adjustments; ad schedule "eligible to show all the time"; languages EN+ES; start 20 Aug, no end date; Google's own Recommendations offer no delivery diagnostic, only generic upsells.
+
+**Decisions made / corrections**
+
+- **Campaign-total budgets no longer exist on this campaign.** The Budget panel offers *only* "average daily budget" — there is no total-budget option to switch back to. **"Rebuild on the July structure" is not executable by editing**, which retires that advice. It is also the same wall as the 08-19 session where seven extension attempts failed server-side.
+- **I was wrong twice in this session and both are worth recording.** First I recommended raising the daily budget $3.57 → $12 while simultaneously citing `lost IS (budget) = 0.00%` — incoherent, and the simulator disproved it outright. Second, I proposed a $4.00 cap from inference; Google's stated floor is **$5.12**, so $4.00 would have failed and looked like a sixth dead theory. **Lesson: open the budget simulator before theorising. It is based on real auction data and it answers the question directly.**
+- **The `>90% lost IS (rank)` figure was read at an all-time date range**, not the flight window. It pointed the right way but was not the evidence I treated it as.
+- **Recommended change (NOT applied, TJ's call):** Max CPC `$2.50 → $5.50`, **leave the daily budget alone**. A budget-increase re-auth (`CAMPAIGN_BUDGET_INCREASE_BEYOND_THRESHOLD`) was triggered before the simulator was consulted and was correctly never completed.
+- **The economics are thin and TJ should decide with eyes open.** At ~$4.68/click his $150 buys roughly **32 clicks** across the flight. July bought 26 clicks for $50. That may not be a deal worth taking, and that is a business call rather than a fix.
+
+**Open risk, unverified:** `olera.care` returns **429 to normal browser user agents** from this machine (homepage and provider pages alike) while returning **200 to AdsBot-Google, AdsBot-Google-Mobile and Googlebot**. Most likely the Vercel firewall challenging a Thailand egress IP (there is a `tj-home-bypass` rule and a "Block Restricted Regions" rule), **not** a global outage — but it cannot be distinguished from this machine. If it were real, every ad dollar across every provider is being spent to land users on a 429. **Test: load any provider page from a US IP or a phone on cellular.**
+
+**Also this session:** the "Five Letters by September 1" artifact was rewritten from a send-sheet into a **collection call sheet** — board of five with channel and what's-new per provider, ordered Hilda → Sandra → Jasmine → Sherry, with Zardy held back until his campaign serves. https://claude.ai/code/artifact/b9ef5d16-6953-4503-b757-192092cbbda6
+
+**Next up**
+
+- **TJ decides on Cleveland**: raise Zardy's cap to $5.50 and spend the $150 at ~$4.68/click, or stop buying Cleveland Google. Nothing changes until he says.
+- **Check the other live campaigns for the same repricing.** If $2.50 is obsolete generally, that reframes the whole Google program and the SOP's "$2.50 max CPC" locked invariant needs rewriting. LumiWell, Edmonds Villa and Graceful all run the same cap.
+- **Verify the 429 from a US IP** before spending anywhere else.
+- **Hilda's Google is still Pending — all ads under review since 23 Aug.** Open the support case; it is past the point where waiting is the right move.
+- Call Zardy today regardless. The call-sheet script holds at zero impressions.
+
 ### 2026-08-26 — All five letter-target providers are live on Nextdoor, and the Google budget experiment came back inverted (`shiny-brahe`)
 
 **Ad Boost, no code.** Audited the whole book, then took the five NIH letter-target providers from zero Nextdoor presence to five published campaigns. Also found two letter targets whose Google campaigns have never served an impression while their Olera rows say `live`.
@@ -60,7 +100,7 @@ All five: Advanced Create, Website visits, Autobid/CPC, all three placements, Sp
 
 **Next up**
 
-- **Diagnose Zardy's `24151612515` and Hilda's stuck review.** Highest priority — both are letter targets, both currently misrepresented as live, and the budget hypothesis is gone.
+- ~~**Diagnose Zardy's `24151612515`**~~ — done, see the 2026-08-26 (later) entry: **the bid is ~half the auction price**; Google's simulator states a $5.12 minimum vs our $2.50 cap. Not a build error. **Hilda's stuck review is still open** and is now a support case.
 - **Fix the Ad Boost metrics** on Pacesetter, Legacy Haven, Rosemonte, Edmonds Villa, plus the five null flights. Enter Graceful's Nextdoor finals on row `354917bf` (8,318 / 134 / $50.00) and **correct her flight dates to Aug 14-17**.
 - **Fix the drafted email to Jasmine** at `~/Desktop/provider-emails-2026-08-21/6-jasmine-graceful-NEXTDOOR-RESULTS.txt` — it says her flight ran "the 14th through the 21st".
 - **No `ad_campaign_requests` rows exist for the five new Nextdoor campaigns.** They are live on the platform and invisible to Olera. Needs direct inserts (TJ runs them; the classifier blocks Claude's DB writes) with `channel='nextdoor'`, the sep26 tags, Sep 1-7, `ad_budget_cents=7500`, `ad_budget_type='lifetime'`.

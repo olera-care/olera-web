@@ -3,12 +3,12 @@
 from figs import TEAL, GREEN, GFILL, RED, RFILL, GREY, RULE, INK, _wrap, _box, _t
 
 def fig4():
-    """6.6 x 2.65in. Build, validate free, commercialize paid."""
+    """6.6 x 2.65in. Engineer, pilot free, pilot paid."""
     W,H=660,265
     b=[]
-    stages=[(8,"AIM 1","YEAR 1","Build and verify","the technology both","products require",GFILL),
-            (240,"AIM 2","YEARS 1-2","Validate at no charge","two markets: families,","caregivers, providers","#ffffff"),
-            (472,"AIM 3","YEARS 2-3","Commercialize","six new markets,","paid customers",GFILL)]
+    stages=[(8,"AIM 1","YEAR 1","Engineer","the technology both","products require",GFILL),
+            (240,"AIM 2","YEARS 1-2","Small pilot, free","two markets: families,","caregivers, providers","#ffffff"),
+            (472,"AIM 3","YEARS 2-3","Commercialize","eight new markets,","paid customers",GFILL)]
     for x,aim,yr,t1,t2,t3,fill in stages:
         b.append(_t(x+90,15,yr,9.4,GREY,weight="bold",ls=1.0))
         b.append(_box(x,22,180,80,fill,TEAL,1.3))
@@ -36,8 +36,8 @@ def fig4():
     return _wrap(W/100,H/100,"".join(b))
 
 def fig5():
-    """7.0 x 2.75in. Three-year timetable for the re-based aims."""
-    W,H=700,232
+    """7.0 x 2.44in. Three-year timetable."""
+    W,H=700,244
     b=[]
     x0=306
     qw=(W-x0-8)/12.0
@@ -50,13 +50,14 @@ def fig5():
           ("","1.2  Database and domain model",0,4,TEAL),
           ("","1.3  Workforce infrastructure and record",0,4,TEAL),
           ("","1.4  Verification against expert review",2,4,TEAL),
+          ("","1.5  Market selection and preparation",3,4,TEAL),
           ("Aim 2","2.1  Activate two markets, no charge",3,5,GREEN),
           ("","2.2  Care establishment, measured",4,8,GREEN),
           ("","2.3  Family study (IRB)",4,7,GREEN),
           ("","2.4  Recruit, place, retain caregivers",4,8,GREEN),
           ("","2.5  Provider study (IRB)",5,8,GREEN),
           ("","2.6  Cost to acquire, cost to serve",5,8,GREEN),
-          ("Aim 3","3.1  Open six markets: wave 1",6,9,TEAL),
+          ("Aim 3","3.1  Open eight markets: wave 1",6,9,TEAL),
           ("","\u00a0\u00a0\u00a0\u00a0\u00a0\u00a0wave 2",8,11,TEAL),
           ("","3.2  Price under real billing",7,11,TEAL),
           ("","3.3  Unit economics and retention",7,12,TEAL),

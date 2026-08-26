@@ -1100,3 +1100,46 @@ cohort."
 64. **Slide 15:** "AI agents prepare, gather, schedule, and follow the case to a
     decision, then confirm care started."
     **safe** — the second row's stage names say the same thing.
+
+---
+
+## Master Research Strategy build, 2026-08-26
+
+Removals made while reconciling the live Research Plan, Qiping's methods, and the
+re-based aim architecture into one 12-page master document. Full text of the live
+document is archived verbatim at `live-research-plan-2026-08-26.md`.
+
+65. **Table (staffing channel matrix): "Coverage of the hiring problem: the channels
+    providers use today."** Four rows against job boards, staffing agencies, and gig
+    platforms.
+    **Future home: Commercialization Plan, competitive section.** Its content survives
+    in prose in Significance and in Key Innovation 1. It was the most redundant asset in
+    the document and its removal is what made the page budget close.
+
+66. **Preliminary Work as a section** (773 words in the live document).
+    **Not carried.** The CRP solicitation requires a Progress Report, not a Preliminary
+    Data section. Four items that were only in Preliminary Work were merged into the
+    Progress Report: the lead-volume and lead-day activity statistics, the Ziegler and
+    Equitage diligence, the Indiana replication pilot, and the July 2026 nationwide
+    launch with no paywall.
+
+67. **HSR compliance detail moved out of the Research Strategy**: informed consent
+    procedures, e-consent mechanics, identifier separation and storage, data security,
+    interview compensation amounts, withdrawal procedures, and full recruitment scripts.
+    **Future home: PHS Human Subjects and Clinical Trials Information form, which is not
+    yet drafted.** Signposted from the Approach opening. The funded Phase IIB Research
+    Strategy drew the same boundary: its HSR task carries a full power calculation and no
+    consent language at all. Bias and validity safeguards were deliberately kept in the
+    Research Strategy (separation from sales conversations, the employment firewall, the
+    shortened non-converter interview format), because those are method, not compliance.
+
+68. **Prose that duplicated an asset**, cut in favor of the asset: the aim-by-aim
+    narration that Figure 4 already carries, the decision-point enumeration that Figure 5
+    annotates itself, the market derivation that Table 3 sets out, and the Phase I to IIB
+    study results that Table 7 lists.
+    **safe** — every fact survives in the figure or table that carries it.
+
+69. **Old planning estimate: ~300 paying accounts, ~$200/month, ~$720K ARR.**
+    **Future home: Commercialization Plan, to be re-derived from the eight-market paid
+    design.** It was computed from a twelve-market design and a four-product suite that no
+    longer exist, so carrying it forward would have been inheriting a stale number.

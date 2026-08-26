@@ -128,37 +128,47 @@ def figwrap(svg, num, cap, width):
             f'<p class="caption"><b>Figure {num}.</b> {cap}</p></div>')
 
 def splice(text, anchor, addition, label):
-    assert anchor in text, f'SPLICE ANCHOR MISSING: {label}'
-    return text.replace(anchor, anchor + addition, 1)
+    """Insert `addition` right after `anchor`.
+
+    Anchors are matched with whitespace-insensitive comparison, so a line
+    rewrap in the prose files cannot silently detach a figure or table. A
+    missing or ambiguous anchor raises rather than no-opping.
+    """
+    pat = re.compile(r'\s+'.join(re.escape(w) for w in anchor.split()))
+    hits = list(pat.finditer(text))
+    assert hits, f'SPLICE ANCHOR MISSING: {label}'
+    assert len(hits) == 1, f'SPLICE ANCHOR AMBIGUOUS ({len(hits)} matches): {label}'
+    i = hits[0].end()
+    return text[:i] + addition + text[i:]
 
 sig = body1.SIGNIFICANCE
+assert '</p>\n\n<p class="sec"><b>What it costs' in sig, 'FIG1 ANCHOR MISSING'
 sig = sig.replace('</p>\n\n<p class="sec"><b>What it costs',
    '</p>\n' + figblock(figs.fig1(), 1,
    'The eldercare ecosystem a family must navigate, the three gates that must all be cleared for a recognized need to become established care, and the cycle that follows failure at any one of them.')
    + '\n<p class="sec"><b>What it costs')
+assert '<p class="sec"><b>What it costs, and who pays it.</b>' in sig, 'FIG2 ANCHOR MISSING'
 sig = sig.replace('<p class="sec"><b>What it costs, and who pays it.</b>',
    figwrap(figs.fig2(), 2, 'Demand rising while both sources of supply contract.', 2.6)
    + '<p class="sec"><b>What it costs, and who pays it.</b>')
-sig = sig.replace('<p class="sec"><b>What establishing care actually requires.</b>',
-   '<p class="clearfix"></p><p class="sec"><b>What establishing care actually requires.</b>')
-sig = splice(sig, 'which is the distinction the last row records and which Key Innovation 1 develops.</p>', tables2.T3_STAFF, 'T3 staffing')
-_a1 = "benchmark on the provider's own numbers.</p>"
+_cf = '<p class="sec"><b>Why information is not the bottleneck.</b>'
+assert _cf in sig, 'CLEARFIX ANCHOR MISSING: significance'
+sig = sig.replace(_cf, '<p class="clearfix"></p>' + _cf)
+_a1 = "so every larger agency is ahead from the first month.</p>"
 sig = splice(sig, _a1, tables2.T1, 'T1 ROI')
 sig = splice(sig, 'criticism of the incentives it creates.<sup>REF22</sup></p>', tables2.T2, 'T2 nav')
 
-for _a,_l in [('<p class="sec"><b>What it costs, and who pays it.</b>','fig2 anchor'),
-              ('<p class="sec"><b>What establishing care actually requires.</b>','clearfix1')]:
-    assert _a in body1.SIGNIFICANCE or _l=='clearfix1', _l
-
 inn = body1.INNOVATION
+assert '<p class="sec first-sec"><b>Key Innovation 1: capacity created, not moved.</b>' in inn, 'FIG3 ANCHOR MISSING'
 inn = inn.replace('<p class="sec first-sec"><b>Key Innovation 1: capacity created, not moved.</b>',
    figwrap(figs.fig3(), 3, 'Existing channels move workers between employers. This pathway adds them, and the verified record follows the worker.', 3.0)
    + '<p class="sec first-sec"><b>Key Innovation 1: capacity created, not moved.</b>')
+assert '<p class="sec"><b>Key Innovation 2:' in inn, 'CLEARFIX ANCHOR MISSING: innovation'
 inn = inn.replace('<p class="sec"><b>Key Innovation 2:',
    '<p class="clearfix"></p><p class="sec"><b>Key Innovation 2:')
 
 app = body2.APPROACH_OPEN
-app = splice(app, 'whether the playbook repeats.</p>',
+app = splice(app, 'then pilot it paid in eight new ones.</p>',
    figblock(figs2.fig4(), 4, 'The three aims as one sequence. Each stage carries a gate, and Aim 2 produces every parameter that Aim 3 prices against.'), 'fig4')
 app = splice(app, 'operating attention, not capital.</p>', tables2.T4_MARKETS, 'T4')
 
@@ -168,7 +178,7 @@ app = splice(app, 'At award end the independent rebuild is delivered.</p>',
    figblock(figs2.fig5(), 5, 'Three-year timetable, showing the sequencing among the aims, staged market entry, and the four formal decision points.'), 'fig5')
 
 prog = body2.PROGRESS
-prog = splice(prog, 'designed to reward.</p>', tables2.T8_RISKS, 'T8 risks')
+prog = splice(prog, "using I-Corps support and the company's own capital.</p>", tables2.T8_RISKS, 'T7 risks')
 
 refs = '<div class="refs"><h1 class="sechead first">Bibliography and References Cited</h1>'
 for i,(k,txt) in enumerate(REFS):

@@ -131,8 +131,11 @@ lost in drafting.
   every safety and liability objection.
 - **New cohorts arrive every season, so the pipeline refills.** Seasonality is a
   feature of the student channel, not a defect to hide.
-- **Extensibility is demonstrated, not asserted:** a bounded second-pool feasibility
-  pilot in Year 3, in campus-poor markets, small n, feasibility endpoints only.
+- **Extensibility is claimed by design, not by a funded task** (ratified 2026-08-26).
+  The pathway is population-agnostic; Aim 2 tests the campus dependency by running one
+  market with a health-professions campus nearby and one without. A non-student worker
+  pool is named as the first extension after the award and carries no endpoint here.
+  The earlier plan for a bounded second-pool pilot in Year 3 is withdrawn.
 
 ### 2.5 Staffing is the beachhead, and it is the only product the award sells
 
@@ -208,63 +211,73 @@ The distinction that organizes the entire commercial argument:
 
 ### 2.8 The Aim architecture
 
-Three aims, one chain of evidence. Aims 1 and 2 run in parallel in Years 1 to 2 (Aim
-2's second-pool pilot extends into Year 3); Aim 3 runs Years 2 to 3.
+**Ratified 2026-08-26** (Logan and TJ). Supersedes the earlier product-axis architecture
+in which Aims 1 and 2 split the family and provider products and ran in parallel. The axis
+is now **maturity**, not product: engineer, pilot free, pilot paid. Both products move
+through all three stages together.
 
-| | Question the aim answers | Gate into Aim 3 |
+| | What the aim asks | Gate |
 |---|---|---|
-| **Aim 1** | Can care actually get established, at a quality a licensed professional would approve, at a cost that falls? | Expert-panel agreement 85 percent or higher, material errors under 10 percent |
-| **Aim 2** | Can we bring new caregivers into the workforce and fill vacant jobs at licensed providers? | The staffing path completes end to end |
-| **Aim 3** | Will providers pay for the staffing product, remain customers, and generate a sustainable profit margin, and does the model replicate? | (Aim 3 is tested against the cost of serving families) |
+| **Aim 1** (Year 1) | Can we engineer the technology and infrastructure both products require, well enough to put in front of families? | Month 12: expert-panel agreement 85 percent or higher, material errors under 10 percent, or no market activates |
+| **Aim 2** (Years 1-2) | With families, providers, and caregivers concentrated in two markets at no charge, does care get established and does the staffing pathway complete? | Month 21: care established and the staffing path completing end to end, or wave one is held |
+| **Aim 3** (Years 2-3) | In eight new paid markets, will providers pay, do the unit economics hold after real costs, and does the playbook repeat? | Month 30: interim price analysis and the stop rule |
 
-- **The aims are questions with yes/no answers, not activity lists.** Activities
-  cannot fail, so they cannot be hypotheses. Every aim states the uncertainty it
-  removes in one sentence.
-- **The coupling is explicit**: Aims 1 and 2 run in the same markets, because family
-  demand is what makes provider staffing worth buying. The two aims are not parallel
-  workstreams that happen to share a calendar.
-- **Aim 2 charges providers nothing.** The pilots are free; paid conversion is tested
-  in Aim 3, with a conversion cohort drawn from the Aim 2 free pilots and a separate
-  paid-entry cohort paying from first contact.
-- **Aim 3's pricing starts from pilot-derived hypotheses**, about $275 a month or
-  about $150 per hire, and then finds what providers will actually pay through
-  randomized offer prices under real billing. **We do not test arbitrary prices**, and
-  the application must say why the starting points are what they are. Stated-preference
-  instruments set a range; revealed behavior decides the price.
-- **Aim 3 speaks standard business language**: revenue, unit economics, retention,
-  churn, payback, profit margin. Targets are lifetime value to acquisition cost of
-  3:1 or better, payback under 12 months, and a positive per-market margin after the
-  cost of serving families, with an independent analyst rebuilding the economics from
-  billing and cost records.
-- **The database learns from every completed case**, and that is reported throughout
-  Aim 1 rather than made its own aim: eligibility accuracy against the volume of
-  executed cases, to test whether the database sharpens with use.
+- **The aims are questions with yes/no answers, not activity lists.** Activities cannot
+  fail, so they cannot be hypotheses.
+- **The sequence is the design, not a schedule.** Every parameter Aim 3 prices against is
+  produced by Aim 2 at no commercial risk: baseline conversion, cost to serve, fill rate
+  and time to hire, 90-day worker retention, and the playbook itself. Aim 3 is Aim 2 run
+  larger, in markets we did not design in, with money changing hands.
+- **Aim 1 ends with markets ready, not software alone** (Task 1.5, market selection and
+  preparation), so the month 12 gate reads as a launch decision rather than a code freeze.
+- **Aim 2 charges nothing**, so adoption is never confounded with price. Its free access
+  is grandfathered for the life of the award; see 2.9.
+- **Aim 3's prices start from what providers have already paid us**, about $275 a month
+  and about $150 per placement, with a stated-preference instrument setting the range and
+  revealed behavior deciding the price. We do not test arbitrary prices.
+- **Aim 3 speaks standard business language**: revenue, unit economics, retention, churn,
+  payback, margin. Targets are lifetime value to acquisition cost of 3:1 or better, payback
+  under 12 months, and a positive per-market margin after the cost of serving that market's
+  families, with an independent analyst rebuilding the economics from raw records.
+- **A stop rule is stated on the page.** If, at the month 30 interim, worker retention and
+  paid conversion both fail their thresholds, the provider-funded model is reported as
+  disconfirmed and wave two is held.
+- **The database learns from every completed case**, reported inside the aims rather than
+  made its own aim: eligibility accuracy against the accumulating volume of executed cases.
 
 ### 2.9 Market design
 
-- **Twelve markets, derived twice and for different reasons**, not chosen.
-  1. The pricing experiment needs roughly 300 paying accounts to detect a
-     commercially meaningful conversion difference across two arms. At about 25 paying
-     accounts per mature market, that is about twelve markets. **The binding quantity
-     is accounts, not markets**; if markets run richer, fewer suffice and the saved
-     entry cost goes to depth.
-  2. A heterogeneity grid of three structural axes at two levels each is eight cells,
-     one replication market per cell, plus four anchor markets carrying the IRB
-     studies and the deep cost instrumentation. Four plus eight is twelve.
-- **Composition matters as much as count**: 4 anchor markets (depth, instrumentation,
-  IRB studies) and 8 replication markets (the playbook run as written, one per cell).
-- **Payer clustering changes composition, not count.** Risk-bearing organizations
-  contract regionally, so six of the markets sit as two clusters of three inside two
-  payer footprints. Spreading twelve markets across twelve unrelated regions would
-  satisfy the heterogeneity requirement and destroy the payer evidence.
-- **Geography is not an axis.** The axes are workforce-source availability
-  (campus-rich, campus-poor), provider density and urbanicity (metro, small metro or
-  rural), and a third socioeconomic axis (see section 5 for the unresolved form).
-- **If a budget cut forces fewer**, reduce to ten by dropping two replication cells
-  and accepting a descriptive rather than inferential price contrast. The anchors and
-  the payer clusters are the last things to cut.
-- **A market is one county**, and the deck says so at first use. Do not alternate
+- **Ten markets: two free in Aim 2, eight paid in Aim 3** (ratified 2026-08-26).
+  Supersedes the twelve-market derivation previously recorded here.
+- **Why the earlier twelve was wrong.** That derivation required roughly 300 *paying*
+  accounts. A price experiment randomizes accounts *offered* a price, not accounts that
+  convert, which overstated the requirement by about three times at a 35 percent
+  conversion rate. The corrected derivation is below.
+- **The two free markets (Aim 2)** differ on workforce source, one with a
+  health-professions campus nearby and one without, because the riskiest assumption in
+  the application is whether people new to care work can be recruited and kept. One
+  market cannot separate a product that works from a market that happens to work.
+- **The eight paid markets (Aim 3)** follow from the pricing experiment: four price
+  points rather than two, because two show the direction of demand and four show the
+  shape of the curve; two markets per arm, because price is assigned by market (neighbors
+  compare quotes) so one market per arm means the arm *is* a market; and within each pair
+  one campus-rich and one campus-poor market, so price is crossed with workforce source
+  rather than confounded with it. Four arms times two types is eight.
+- **Two waves of four.** Wave one at month 21 is the only wave with runway to observe
+  12-month retention. Wave two at month 30 is run as written by staff who did not design
+  it, which is the replication test.
+- **Free pilot providers are grandfathered** for the life of the award. Conversion of the
+  Aim 2 cohort is explicitly *not* an Aim 3 activity or endpoint. This keeps the paid test
+  clean and removes any incentive for a pilot provider to shade their Aim 2 answers.
+- **Socioeconomic status and urbanicity are stratification variables**, measured and
+  reported, not design axes. That is what keeps eight from becoming sixteen.
+- **A market is one county**, and the document says so at first use. Do not alternate
   between "market" and "county" as if the reader knows they are the same thing.
+- **Budget**: roughly $30,000 to enter a market, so ten markets is about seven percent of
+  the requested budget. The binding constraint is operating attention, not capital.
+- **Stale elsewhere**: Commercialization Plan §9 still says 18 markets and the old
+  ~300-account / ~$720K ARR planning estimate is not carried forward. Both need
+  reconciling against this section.
 
 ### 2.10 What the award produces, and in what order
 
@@ -369,8 +382,9 @@ evidence or to what David, Marcia, TJ, and Qiping say about the deck.
   the family population (SES).
 - **The external name for the verified worker record.** "Senior Care Experience
   Passport" is internal. Nothing external has been ratified.
-- **Whether Aim 2 ends in Year 2 or Year 3.** The aim architecture says Years 1 to 2;
-  the second-pool pilot and the timetable put workforce work in Year 3.
+- ~~Whether Aim 2 ends in Year 2 or Year 3.~~ **Closed 2026-08-26.** Aim 2 runs Years 1
+  to 2 and ends at the month 21 gate. The second-pool pilot that pushed workforce work
+  into Year 3 has been withdrawn (see 2.4).
 - **Whether the payer stream's secondary observational outcomes need Logan's and
   Qiping's explicit ratification** as an extension of the care-established-is-
   operational boundary. Flagged in the re-base and never closed.

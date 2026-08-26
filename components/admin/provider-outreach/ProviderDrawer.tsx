@@ -1138,24 +1138,29 @@ function CallLogSection({ provider }: { provider: OutreachProvider }) {
       ) : logs.length === 0 ? (
         <p className="text-sm text-gray-400 italic">No calls logged yet</p>
       ) : (
-        <div className="space-y-2 max-h-36 overflow-y-auto">
+        <div className="space-y-3 max-h-48 overflow-y-auto">
           {logs.map((log) => {
             const badge = getCallStatusBadge(log.status);
             return (
-              <div key={log.id} className="flex items-start gap-2 text-sm">
-                <span className="text-xs text-gray-400 whitespace-nowrap pt-0.5">
-                  {formatDate(log.created_at)}
-                </span>
-                <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium rounded ${badge.className}`}>
-                  {badge.label}
-                </span>
-                {log.notes && (
-                  <span className="text-gray-600 truncate flex-1">&quot;{log.notes}&quot;</span>
+              <div key={log.id} className="text-sm">
+                {/* Row 1: Time, status, admin */}
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs text-gray-400">
+                    {formatDate(log.created_at)}
+                  </span>
+                  <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium rounded ${badge.className}`}>
+                    {badge.label}
+                  </span>
+                  <span className="text-xs text-gray-400 ml-auto">
+                    {log.admin_name || "Unknown"}
+                  </span>
+                </div>
+                {/* Row 2: Full note text */}
+                {log.notes ? (
+                  <p className="text-gray-600 whitespace-pre-wrap">{log.notes}</p>
+                ) : (
+                  <p className="text-gray-400 italic">No notes</p>
                 )}
-                {!log.notes && <span className="text-gray-400">—</span>}
-                <span className="text-xs text-gray-400 whitespace-nowrap">
-                  {log.admin_name || "Unknown"}
-                </span>
               </div>
             );
           })}

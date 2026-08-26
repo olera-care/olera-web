@@ -337,6 +337,9 @@ interface OutreachProvider {
   } | null;
   // Email source: 'organization' (scraped/manual) or 'decision_maker' (Apollo)
   email_source?: "organization" | "decision_maker" | null;
+  // Call log stats (from provider_outreach_touchpoints with type = 'call_attempted')
+  call_count?: number;
+  latest_call_status?: string;
 }
 
 interface ActiveState {
@@ -477,6 +480,43 @@ function getNeedsCallReasonChip(reason: string | null): { label: string; classNa
     case "manual":
     default:
       return { label, className: "bg-gray-100 text-gray-600" };
+  }
+}
+
+// Call status labels for display in chips
+const CALL_STATUS_LABELS: Record<string, string> = {
+  voicemail: "VM",
+  no_answer: "No Ans",
+  hung_up: "Hung Up",
+  callback: "Callback",
+  new_email: "New Email",
+  resend: "Resend",
+  spoke_with: "Spoke",
+};
+
+function formatCallStatus(status?: string): string {
+  if (!status) return "";
+  return CALL_STATUS_LABELS[status] || status;
+}
+
+function getCallStatusColor(status?: string): string {
+  switch (status) {
+    case "voicemail":
+      return "bg-amber-50 text-amber-700 border-amber-200";
+    case "no_answer":
+      return "bg-gray-100 text-gray-600 border-gray-200";
+    case "hung_up":
+      return "bg-red-50 text-red-700 border-red-200";
+    case "callback":
+      return "bg-blue-50 text-blue-700 border-blue-200";
+    case "new_email":
+      return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    case "resend":
+      return "bg-teal-50 text-teal-700 border-teal-200";
+    case "spoke_with":
+      return "bg-purple-50 text-purple-700 border-purple-200";
+    default:
+      return "bg-gray-100 text-gray-600 border-gray-200";
   }
 }
 
@@ -1475,8 +1515,6 @@ interface CityRowProps {
   onOpenActionModal: (provider: OutreachProvider) => void;
   onRemoveProvider: (provider: OutreachProvider) => void;
   onOpenDrawer: (provider: OutreachProvider) => void;
-  // Move to Ready (for Not Interested tab)
-  onMoveToReady?: (providerId: string) => void;
   // Reset to Ready with Apollo email (for In Sequence tab)
   onResetToReadyWithApollo?: (providerId: string) => Promise<boolean>;
   // City assignment
@@ -1508,7 +1546,6 @@ function CityRow({
   onOpenActionModal,
   onRemoveProvider,
   onOpenDrawer,
-  onMoveToReady,
   onResetToReadyWithApollo,
   cityOwnerId,
   cityOwnerName,
@@ -1542,10 +1579,26 @@ function CityRow({
   const [movingToReadyId, setMovingToReadyId] = useState<string | null>(null);
 
   // Memoize cityProviders to avoid unnecessary useEffect re-runs
-  const cityProviders = useMemo(
-    () => providers.filter((p) => (p.city || "(No City)") === city.city),
-    [providers, city.city]
-  );
+  // In Follow Up tab: sort providers with logged calls to the bottom
+  const cityProviders = useMemo(() => {
+    const filtered = providers.filter((p) => (p.city || "(No City)") === city.city);
+
+    // Only apply call-based sorting in Follow Up tab
+    if (activeTab === "needs_call") {
+      return filtered.sort((a, b) => {
+        const aHasCalls = (a.call_count ?? 0) > 0;
+        const bHasCalls = (b.call_count ?? 0) > 0;
+        // Providers without calls come first
+        if (aHasCalls !== bHasCalls) {
+          return aHasCalls ? 1 : -1;
+        }
+        // Within same group, maintain alphabetical order
+        return a.provider_name.localeCompare(b.provider_name);
+      });
+    }
+
+    return filtered;
+  }, [providers, city.city, activeTab]);
 
 
   // Auto email lookup when city is expanded
@@ -1798,121 +1851,133 @@ function CityRow({
                       {/* Main content - two lines */}
                       <div className="flex-1 min-w-0">
                         {/* Row 1: Provider name + badges */}
-                        <div className="flex items-center gap-2 mb-0.5">
-                          <Link
-                            href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
-                            className="font-medium text-gray-900 hover:text-primary-600 transition-colors text-sm truncate"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            {provider.provider_name}
-                          </Link>
+                        <div className="flex items-center justify-between gap-4 mb-0.5">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <Link
+                              href={provider.slug ? `/admin/directory/${provider.slug}` : "#"}
+                              className="font-medium text-gray-900 hover:text-primary-600 transition-colors text-sm truncate"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              {provider.provider_name}
+                            </Link>
 
-                          {/* Confirm button - show in Call & Confirm tab */}
-                          {activeTab === "call_confirm" && (
-                            ((provider.confirmed_at || confirmedProviders.has(provider.provider_id)) && !unconfirmedProviders.has(provider.provider_id)) ? (
-                              <button
-                                type="button"
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  setUnconfirmingProvider(provider.provider_id);
-                                  try {
-                                    const res = await fetch("/api/admin/provider-outreach/confirm", {
-                                      method: "DELETE",
-                                      headers: { "Content-Type": "application/json" },
-                                      body: JSON.stringify({ provider_id: provider.provider_id }),
-                                    });
-                                    if (res.ok) {
-                                      setConfirmedProviders(prev => {
-                                        const next = new Set(prev);
-                                        next.delete(provider.provider_id);
-                                        return next;
+                            {/* Confirm button - show in Call & Confirm tab */}
+                            {activeTab === "call_confirm" && (
+                              ((provider.confirmed_at || confirmedProviders.has(provider.provider_id)) && !unconfirmedProviders.has(provider.provider_id)) ? (
+                                <button
+                                  type="button"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    setUnconfirmingProvider(provider.provider_id);
+                                    try {
+                                      const res = await fetch("/api/admin/provider-outreach/confirm", {
+                                        method: "DELETE",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ provider_id: provider.provider_id }),
                                       });
-                                      setUnconfirmedProviders(prev => new Set([...prev, provider.provider_id]));
+                                      if (res.ok) {
+                                        setConfirmedProviders(prev => {
+                                          const next = new Set(prev);
+                                          next.delete(provider.provider_id);
+                                          return next;
+                                        });
+                                        setUnconfirmedProviders(prev => new Set([...prev, provider.provider_id]));
+                                      }
+                                    } catch {
+                                      // Silent fail
+                                    } finally {
+                                      setUnconfirmingProvider(null);
                                     }
-                                  } catch {
-                                    // Silent fail
-                                  } finally {
-                                    setUnconfirmingProvider(null);
-                                  }
-                                }}
-                                disabled={unconfirmingProvider === provider.provider_id}
-                                className="text-blue-500 hover:text-blue-400 shrink-0"
-                                title="Click to unconfirm"
-                              >
-                                {unconfirmingProvider === provider.provider_id ? (
-                                  <span className="w-4 h-4 border-2 border-blue-300 border-t-blue-500 rounded-full animate-spin inline-block" />
-                                ) : (
-                                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-                                  </svg>
-                                )}
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={async (e) => {
-                                  e.stopPropagation();
-                                  setConfirmingProvider(provider.provider_id);
-                                  setConfirmError(null);
-                                  try {
-                                    const res = await fetch("/api/admin/provider-outreach/confirm", {
-                                      method: "POST",
-                                      headers: { "Content-Type": "application/json" },
-                                      body: JSON.stringify({ provider_id: provider.provider_id }),
-                                    });
-                                    if (res.ok) {
-                                      setConfirmedProviders(prev => new Set([...prev, provider.provider_id]));
-                                      setUnconfirmedProviders(prev => {
-                                        const next = new Set(prev);
-                                        next.delete(provider.provider_id);
-                                        return next;
+                                  }}
+                                  disabled={unconfirmingProvider === provider.provider_id}
+                                  className="text-blue-500 hover:text-blue-400 shrink-0"
+                                  title="Click to unconfirm"
+                                >
+                                  {unconfirmingProvider === provider.provider_id ? (
+                                    <span className="w-4 h-4 border-2 border-blue-300 border-t-blue-500 rounded-full animate-spin inline-block" />
+                                  ) : (
+                                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={async (e) => {
+                                    e.stopPropagation();
+                                    setConfirmingProvider(provider.provider_id);
+                                    setConfirmError(null);
+                                    try {
+                                      const res = await fetch("/api/admin/provider-outreach/confirm", {
+                                        method: "POST",
+                                        headers: { "Content-Type": "application/json" },
+                                        body: JSON.stringify({ provider_id: provider.provider_id }),
                                       });
-                                    } else {
+                                      if (res.ok) {
+                                        setConfirmedProviders(prev => new Set([...prev, provider.provider_id]));
+                                        setUnconfirmedProviders(prev => {
+                                          const next = new Set(prev);
+                                          next.delete(provider.provider_id);
+                                          return next;
+                                        });
+                                      } else {
+                                        setConfirmError(provider.provider_id);
+                                      }
+                                    } catch {
                                       setConfirmError(provider.provider_id);
+                                    } finally {
+                                      setConfirmingProvider(null);
                                     }
-                                  } catch {
-                                    setConfirmError(provider.provider_id);
-                                  } finally {
-                                    setConfirmingProvider(null);
-                                  }
-                                }}
-                                disabled={confirmingProvider === provider.provider_id}
-                                className={`shrink-0 ${
-                                  confirmError === provider.provider_id
-                                    ? "text-red-500 hover:text-red-600"
-                                    : "text-gray-400 hover:text-blue-500"
-                                }`}
-                                title={confirmError === provider.provider_id ? "Failed - click to retry" : "Click to confirm"}
-                              >
-                                {confirmingProvider === provider.provider_id ? (
-                                  <span className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin inline-block" />
-                                ) : (
-                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth={1.5}>
-                                    <circle cx="10" cy="10" r="7.5" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6.5 10l2 2 4-4" />
-                                  </svg>
-                                )}
-                              </button>
-                            )
-                          )}
+                                  }}
+                                  disabled={confirmingProvider === provider.provider_id}
+                                  className={`shrink-0 ${
+                                    confirmError === provider.provider_id
+                                      ? "text-red-500 hover:text-red-600"
+                                      : "text-gray-400 hover:text-blue-500"
+                                  }`}
+                                  title={confirmError === provider.provider_id ? "Failed - click to retry" : "Click to confirm"}
+                                >
+                                  {confirmingProvider === provider.provider_id ? (
+                                    <span className="w-4 h-4 border-2 border-gray-300 border-t-blue-500 rounded-full animate-spin inline-block" />
+                                  ) : (
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 20 20" stroke="currentColor" strokeWidth={1.5}>
+                                      <circle cx="10" cy="10" r="7.5" />
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M6.5 10l2 2 4-4" />
+                                    </svg>
+                                  )}
+                                </button>
+                              )
+                            )}
+                          </div>
 
-                          {/* Sequence progress badge - only show in In Sequence tab */}
-                          {activeTab === "in_sequence" && typeof provider.emails_sent === "number" && (
-                            <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded shrink-0 ${
-                              provider.sequence_status?.failed_step !== undefined
-                                ? "bg-red-100 text-red-700"
-                                : "bg-blue-100 text-blue-700"
-                            }`}>
-                              {provider.emails_sent}/4
-                            </span>
-                          )}
+                          {/* Badges - far right */}
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            {/* Sequence progress badge - only show in In Sequence tab */}
+                            {activeTab === "in_sequence" && typeof provider.emails_sent === "number" && (
+                              <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded ${
+                                provider.sequence_status?.failed_step !== undefined
+                                  ? "bg-red-100 text-red-700"
+                                  : "bg-blue-100 text-blue-700"
+                              }`}>
+                                {provider.emails_sent}/4
+                              </span>
+                            )}
 
-                          {/* Web indicator - show if provider has website */}
-                          {provider.website && (
-                            <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-600" title="Has website">
-                              Web
-                            </span>
-                          )}
+                            {/* Web indicator - show if provider has website */}
+                            {provider.website && (
+                              <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500" title="Has website">
+                                Web
+                              </span>
+                            )}
+
+                            {/* Call status chip - show if provider has call logs */}
+                            {provider.call_count && provider.call_count > 0 && (
+                              <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded ${getCallStatusColor(provider.latest_call_status)}`}>
+                                {formatCallStatus(provider.latest_call_status) || "Called"} ({provider.call_count})
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         {/* Row 2: Category · City, State · Phone · Email */}
@@ -2045,10 +2110,6 @@ function FollowUpProviderRow({
   provider: OutreachProvider;
   onOpenDrawer: () => void;
 }) {
-  const dueBadge = formatDueDateBadge(provider.due_date);
-  const reasonChip = getNeedsCallReasonChip(provider.needs_call_reason);
-  const formSendCount = provider.contact_form_send_count ?? 0;
-
   return (
     <div className="border-b border-gray-100 last:border-b-0">
       <div
@@ -2075,20 +2136,17 @@ function FollowUpProviderRow({
               >
                 {provider.provider_name}
               </Link>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-1.5 shrink-0">
                 {provider.website && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-600" title="Has website">
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500" title="Has website">
                     Web
                   </span>
                 )}
-                {reasonChip && (
-                  <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${reasonChip.className}`}>
-                    {reasonChip.label}
+                {provider.call_count && provider.call_count > 0 && (
+                  <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded ${getCallStatusColor(provider.latest_call_status)}`}>
+                    {formatCallStatus(provider.latest_call_status) || "Called"} ({provider.call_count})
                   </span>
                 )}
-                <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${dueBadge.className}`}>
-                  {dueBadge.text}
-                </span>
               </div>
             </div>
 
@@ -2281,7 +2339,6 @@ function ReEngageProviderRow({
   const waitDays = daysSince(provider.re_engage_entered_at);
   const channelInfo = getChannelLabel(provider.re_engage_channel || null);
   const isExpired = waitDays >= DIRECT_MAIL_EXPIRY_DAYS;
-  const formSendCount = provider.contact_form_send_count ?? 0;
 
   return (
     <div className="border-b border-gray-100 last:border-b-0">
@@ -2328,9 +2385,9 @@ function ReEngageProviderRow({
               >
                 {provider.provider_name}
               </Link>
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-1.5 shrink-0">
                 {provider.website && (
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-600" title="Has website">
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500" title="Has website">
                     Web
                   </span>
                 )}
@@ -2339,7 +2396,12 @@ function ReEngageProviderRow({
                     {channelInfo.label}
                   </span>
                 )}
-                <span className="text-xs text-gray-500">{waitDays}d</span>
+                {provider.call_count && provider.call_count > 0 && (
+                  <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded ${getCallStatusColor(provider.latest_call_status)}`}>
+                    {formatCallStatus(provider.latest_call_status) || "Called"} ({provider.call_count})
+                  </span>
+                )}
+                <span className="text-[10px] text-gray-400">{waitDays}d</span>
               </div>
             </div>
 
@@ -2491,8 +2553,6 @@ function CallProviderRow({
   const daysSinceEntry = provider.stage_changed_at
     ? daysSince(provider.stage_changed_at)
     : 0;
-  const emailsSent = provider.resend_count ?? 0;
-  const formSendCount = provider.contact_form_send_count ?? 0;
 
   return (
     <div
@@ -2519,18 +2579,18 @@ function CallProviderRow({
             >
               {provider.provider_name}
             </Link>
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-1.5 shrink-0">
               {provider.website && (
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-blue-50 text-blue-600" title="Has website">
+                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-500" title="Has website">
                   Web
                 </span>
               )}
-              {emailsSent > 0 && (
-                <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600">
-                  {emailsSent} sent
+              {provider.call_count && provider.call_count > 0 && (
+                <span className={`inline-flex px-1.5 py-0.5 text-[10px] font-medium rounded ${getCallStatusColor(provider.latest_call_status)}`}>
+                  {formatCallStatus(provider.latest_call_status) || "Called"} ({provider.call_count})
                 </span>
               )}
-              <span className="text-xs text-gray-500">{daysSinceEntry}d</span>
+              <span className="text-[10px] text-gray-400">{daysSinceEntry}d</span>
             </div>
           </div>
 
@@ -2838,6 +2898,19 @@ export default function ProviderOutreachPage() {
   // Email source comparison (org vs Apollo decision-maker)
   const [emailSourceExpanded, setEmailSourceExpanded] = useState(false);
 
+  // Daily activity stats
+  const [activityStatsExpanded, setActivityStatsExpanded] = useState(false);
+  const [activityStatsDate, setActivityStatsDate] = useState(() =>
+    new Date().toLocaleDateString("en-CA", { timeZone: "America/Chicago" })
+  );
+  const [activityStats, setActivityStats] = useState<{
+    date: string;
+    calls: { total: number; voicemail: number; no_answer: number; hung_up: number; callback: number; new_email: number; resend: number; spoke_with: number };
+    emails: { total: number; intro: number; followup: number; demand_loss: number; final: number; nudge: number };
+    daily_series: Array<{ date: string; calls: number; emails: number }>;
+  } | null>(null);
+  const [activityStatsLoading, setActivityStatsLoading] = useState(false);
+
   // Email template preview
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
@@ -3010,6 +3083,75 @@ export default function ProviderOutreachPage() {
       }
     }
   }, [providers]); // eslint-disable-line react-hooks/exhaustive-deps -- only sync when providers change
+
+  // Drawer navigation: compute prev/next provider within same city (memoized)
+  const drawerNavigation = useMemo(() => {
+    if (!drawerProvider) {
+      return { hasPrevious: false, hasNext: false, handlePrevious: () => {}, handleNext: () => {} };
+    }
+
+    const drawerCity = drawerProvider.city || "(No City)";
+    const cityProviders = providers
+      .filter((p) => (p.city || "(No City)") === drawerCity)
+      .sort((a, b) => {
+        // Apply same sorting as CityRow: in Follow Up tab, providers with calls go to bottom
+        if (activeTab === "needs_call") {
+          const aHasCalls = (a.call_count ?? 0) > 0;
+          const bHasCalls = (b.call_count ?? 0) > 0;
+          if (aHasCalls !== bHasCalls) {
+            return aHasCalls ? 1 : -1;
+          }
+        }
+        return a.provider_name.localeCompare(b.provider_name);
+      });
+
+    const currentIndex = cityProviders.findIndex((p) => p.provider_id === drawerProvider.provider_id);
+    const hasPrevious = currentIndex > 0;
+    const hasNext = currentIndex < cityProviders.length - 1 && currentIndex !== -1;
+
+    const handlePrevious = () => {
+      if (hasPrevious) {
+        setDrawerProvider(cityProviders[currentIndex - 1]);
+      }
+    };
+
+    const handleNext = () => {
+      if (hasNext) {
+        setDrawerProvider(cityProviders[currentIndex + 1]);
+      }
+    };
+
+    return { hasPrevious, hasNext, handlePrevious, handleNext };
+  }, [drawerProvider, providers, activeTab]);
+
+  // Keyboard navigation for drawer (left/right arrows)
+  useEffect(() => {
+    if (!drawerProvider) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't navigate if user is interacting with form elements
+      const target = e.target as HTMLElement;
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT" ||
+        target.isContentEditable
+      ) {
+        return;
+      }
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        drawerNavigation.handlePrevious();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        drawerNavigation.handleNext();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [drawerProvider, drawerNavigation]);
 
   // Standardized archive reasons (same codes as Questions/Connections)
   // Archive = Stop all outreach. Provider is invalid, out of business, or explicitly declined.
@@ -3579,6 +3721,31 @@ export default function ProviderOutreachPage() {
     fetchConversionStats();
   }, [statsExpanded, conversionExpanded, emailSourceExpanded, conversionStats, selectedState]);
 
+  // Effect: fetch activity stats when section is expanded or date changes
+  useEffect(() => {
+    if (!activityStatsExpanded) return;
+
+    let cancelled = false;
+    const fetchActivityStats = async () => {
+      setActivityStatsLoading(true);
+      try {
+        const res = await fetch(`/api/admin/provider-outreach/activity-stats?date=${activityStatsDate}&days=7`);
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          setActivityStats(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch activity stats:", err);
+      } finally {
+        if (!cancelled) setActivityStatsLoading(false);
+      }
+    };
+    fetchActivityStats();
+    return () => {
+      cancelled = true;
+    };
+  }, [activityStatsExpanded, activityStatsDate]);
+
   // Reset conversion stats when state changes
   useEffect(() => {
     setConversionStats(null);
@@ -3595,7 +3762,7 @@ export default function ProviderOutreachPage() {
       setPreviewLoading(true);
       setPreviewHtml(null); // Clear old preview while loading new one
       try {
-        // Use correct engine: nudge is sent via Resend, sequence emails via SmartLead
+        // nudge is sent via Resend (polished), sequence emails via SmartLead (simpler)
         const engine = previewTemplate === "nudge" ? "resend" : "smartlead";
         const res = await fetch(`/api/admin/provider-outreach/template-preview?template=${previewTemplate}&engine=${engine}`);
         if (res.ok) {
@@ -4619,6 +4786,32 @@ export default function ProviderOutreachPage() {
                 </span>
               )}
             </button>
+
+            <span className="text-gray-300">|</span>
+
+            {/* Daily Activity toggle */}
+            <button
+              type="button"
+              onClick={() => setActivityStatsExpanded(!activityStatsExpanded)}
+              className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                activityStatsExpanded ? "text-gray-900" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <svg
+                className={`w-3.5 h-3.5 transform transition-transform ${activityStatsExpanded ? "rotate-90" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span>Daily Activity</span>
+              {activityStats && (
+                <span className="text-xs text-gray-400">
+                  ({activityStats.calls.total} calls)
+                </span>
+              )}
+            </button>
           </div>
 
           {/* Outreach Funnel expanded content */}
@@ -4942,6 +5135,116 @@ export default function ProviderOutreachPage() {
                 </div>
               ) : (
                 <div className="text-sm text-gray-500">No email source data yet. Start sequences to compare org vs Apollo performance.</div>
+              )}
+            </div>
+          )}
+
+          {/* Daily Activity expanded content */}
+          {activityStatsExpanded && (
+            <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+              {/* Date picker */}
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-medium text-gray-700">Activity for</span>
+                <input
+                  type="date"
+                  value={activityStatsDate}
+                  onChange={(e) => setActivityStatsDate(e.target.value)}
+                  max={new Date().toLocaleDateString("en-CA", { timeZone: "America/Chicago" })}
+                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+
+              {activityStatsLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+                  <span className="ml-2 text-sm text-gray-500">Loading stats...</span>
+                </div>
+              ) : activityStats ? (
+                <div className="space-y-4">
+                  {/* Main stats grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Calls</div>
+                      <div className="mt-1 text-2xl font-semibold text-gray-900 tabular-nums">{activityStats.calls.total}</div>
+                    </div>
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Voicemails</div>
+                      <div className="mt-1 text-2xl font-semibold text-amber-600 tabular-nums">{activityStats.calls.voicemail}</div>
+                    </div>
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Emails Sent</div>
+                      <div className="mt-1 text-2xl font-semibold text-gray-900 tabular-nums">{activityStats.emails.total}</div>
+                    </div>
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Resends</div>
+                      <div className="mt-1 text-2xl font-semibold text-teal-600 tabular-nums">{activityStats.emails.nudge}</div>
+                    </div>
+                  </div>
+
+                  {/* Call status breakdown */}
+                  {activityStats.calls.total > 0 && (
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Call Outcomes</div>
+                      <div className="flex flex-wrap items-center gap-2 text-sm">
+                        {activityStats.calls.voicemail > 0 && (
+                          <span className="px-2 py-0.5 bg-amber-50 text-amber-700 rounded">VM {activityStats.calls.voicemail}</span>
+                        )}
+                        {activityStats.calls.no_answer > 0 && (
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded">No Ans {activityStats.calls.no_answer}</span>
+                        )}
+                        {activityStats.calls.spoke_with > 0 && (
+                          <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded">Spoke {activityStats.calls.spoke_with}</span>
+                        )}
+                        {activityStats.calls.callback > 0 && (
+                          <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded">Callback {activityStats.calls.callback}</span>
+                        )}
+                        {activityStats.calls.hung_up > 0 && (
+                          <span className="px-2 py-0.5 bg-red-50 text-red-700 rounded">Hung Up {activityStats.calls.hung_up}</span>
+                        )}
+                        {activityStats.calls.new_email > 0 && (
+                          <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded">New Email {activityStats.calls.new_email}</span>
+                        )}
+                        {activityStats.calls.resend > 0 && (
+                          <span className="px-2 py-0.5 bg-teal-50 text-teal-700 rounded">Resend {activityStats.calls.resend}</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sparkline chart for last 7 days */}
+                  {activityStats.daily_series.length > 0 && (() => {
+                    const maxCount = Math.max(1, ...activityStats.daily_series.map((d) => d.calls + d.emails));
+                    return (
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Last 7 Days</div>
+                      <div className="flex items-end gap-1 h-12">
+                        {activityStats.daily_series.map((day) => {
+                          const total = day.calls + day.emails;
+                          const heightPct = Math.max(4, (total / maxCount) * 100);
+                          const isToday = day.date === activityStatsDate;
+                          return (
+                            <div
+                              key={day.date}
+                              className="flex-1 flex flex-col items-center gap-0.5"
+                              title={`${day.date}: ${day.calls} calls, ${day.emails} emails`}
+                            >
+                              <div
+                                className={`w-full rounded-sm ${isToday ? "bg-primary-500" : "bg-gray-300"}`}
+                                style={{ height: `${heightPct}%` }}
+                              />
+                              <span className="text-[9px] text-gray-400">
+                                {new Date(day.date + "T12:00:00").toLocaleDateString("en-US", { weekday: "narrow" })}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    );
+                  })()}
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500">No activity data available.</div>
               )}
             </div>
           )}
@@ -5454,36 +5757,6 @@ export default function ProviderOutreachPage() {
                           stage: provider.stage,
                         });
                       }}
-                      onMoveToReady={(activeTab === "done" && activeDoneSubTab === "not_interested") ? async (providerId) => {
-                        try {
-                          const res = await fetch("/api/admin/provider-outreach/update-stage", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              provider_ids: [providerId],
-                              stage: "not_contacted",
-                            }),
-                          });
-                          if (res.ok) {
-                            // Mark as recently moved to filter from stale API responses
-                            markAsRecentlyMoved(providerId);
-                            // Remove from current list and update counts
-                            setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
-                            setStageCounts((prev) => ({
-                              ...prev,
-                              not_interested: Math.max(0, prev.not_interested - 1),
-                              done: Math.max(0, prev.done - 1),
-                              call_confirm: prev.call_confirm + 1,
-                            }));
-                            showToast("Moved to Call & Confirm", "success");
-                          } else {
-                            const err = await res.json();
-                            showToast(err.error || "Failed to move provider", "error");
-                          }
-                        } catch {
-                          showToast("Network error", "error");
-                        }
-                      } : undefined}
                       onResetToReadyWithApollo={activeTab === "in_sequence" ? async (providerId) => {
                         // Find provider to get Apollo contact
                         const provider = providers.find(p => p.provider_id === providerId);
@@ -7243,6 +7516,10 @@ export default function ProviderOutreachPage() {
           provider={drawerProvider}
           onClose={() => setDrawerProvider(null)}
           activeTab={activeTab}
+          onPrevious={drawerNavigation.handlePrevious}
+          onNext={drawerNavigation.handleNext}
+          hasPrevious={drawerNavigation.hasPrevious}
+          hasNext={drawerNavigation.hasNext}
           onOutcomeRecorded={(providerId, stageChanged) => {
             if (stageChanged) {
               // Provider moved to a different stage - remove from current list
@@ -7344,12 +7621,25 @@ export default function ProviderOutreachPage() {
               prev && prev.provider_id === providerId ? { ...prev, phone } : prev
             );
           }}
+          onFaxUpdate={(providerId, fax) => {
+            setProviders((prev) =>
+              prev.map((p) =>
+                p.provider_id === providerId ? { ...p, fax_number: fax } : p
+              )
+            );
+            // Update drawer provider too
+            setDrawerProvider((prev) =>
+              prev && prev.provider_id === providerId ? { ...prev, fax_number: fax } : prev
+            );
+          }}
           onLaunchSequence={(providerId) => {
             // Look up provider from state and open sequence confirmation modal
             const provider = providers.find((p) => p.provider_id === providerId);
             if (provider) {
               setSequenceConfirmProviders([provider]);
               setShowSequenceConfirm(true);
+              setShowSequencePreview(true); // Auto-expand preview
+              fetchSequencePreview([providerId]); // Fetch email preview data
               setDrawerProvider(null);
             }
           }}
@@ -7377,50 +7667,6 @@ export default function ProviderOutreachPage() {
               stage: provider?.stage || "not_contacted",
             });
             setDrawerProvider(null);
-          }}
-          onMoveToReady={async (providerId) => {
-            const provider = providers.find((p) => p.provider_id === providerId);
-            const fromStage = provider?.stage;
-            try {
-              const res = await fetch("/api/admin/provider-outreach/update-stage", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  provider_ids: [providerId],
-                  stage: "not_contacted",
-                }),
-              });
-              if (res.ok) {
-                markAsRecentlyMoved(providerId);
-                setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
-                // Update stage counts based on where provider came from
-                setStageCounts((prev) => {
-                  const updated = { ...prev, call_confirm: prev.call_confirm + 1 };
-                  if (fromStage === "not_interested") {
-                    updated.not_interested = Math.max(0, prev.not_interested - 1);
-                    updated.done = Math.max(0, prev.done - 1);
-                  } else if (fromStage === "needs_call") {
-                    updated.needs_call = Math.max(0, prev.needs_call - 1);
-                  } else if (fromStage === "re_engage") {
-                    updated.re_engage = Math.max(0, prev.re_engage - 1);
-                  } else if (fromStage === "call_exhausted") {
-                    updated.call_exhausted = Math.max(0, prev.call_exhausted - 1);
-                  }
-                  return updated;
-                });
-                showToast("Moved to Call & Confirm", "success");
-                setDrawerProvider(null);
-              } else {
-                const data = await res.json().catch(() => ({}));
-                showToast(data.error || "Failed to move", "error");
-                throw new Error("API error"); // Signal failure to child
-              }
-            } catch (err) {
-              if (!(err instanceof Error && err.message === "API error")) {
-                showToast("Network error", "error");
-              }
-              throw err; // Re-throw so child knows it failed
-            }
           }}
           onResetToReadyWithApollo={async (providerId) => {
             const provider = providers.find((p) => p.provider_id === providerId);
@@ -7477,6 +7723,22 @@ export default function ProviderOutreachPage() {
             if (isNotContactedTab(activeTab)) {
               fetchCities();
             }
+          }}
+          onCallLogged={(providerId, newCallCount, latestStatus) => {
+            // Update call_count and latest_call_status in local state for sorting
+            setProviders((prev) =>
+              prev.map((p) =>
+                p.provider_id === providerId
+                  ? { ...p, call_count: newCallCount, latest_call_status: latestStatus }
+                  : p
+              )
+            );
+            // Update drawer provider too
+            setDrawerProvider((prev) =>
+              prev && prev.provider_id === providerId
+                ? { ...prev, call_count: newCallCount, latest_call_status: latestStatus }
+                : prev
+            );
           }}
         />
       )}

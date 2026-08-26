@@ -3,6 +3,8 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import {
   renderEmail,
+  renderVariantEmail,
+  previewEmail,
   buildContextFromProvider,
   PROVIDER_OUTREACH_EMAIL_TYPE,
   PROVIDER_OUTREACH_FROM,
@@ -10,6 +12,43 @@ import {
 } from "@/lib/provider-outreach";
 import { OUTREACH_STAGES, type OutreachStage } from "../route";
 import { NOT_INTERESTED_REASON_VALUES, type NotInterestedReason } from "@/lib/provider-outreach";
+
+// PDF attachment cache (survives warm Lambda invocations)
+let cachedPdfAttachment: { filename: string; content: string; encoding: string; type: string } | null = null;
+let pdfFetchAttempted = false;
+
+/**
+ * Fetch PDF attachment from public URL.
+ * In Vercel, public/ files are served via CDN, not accessible via filesystem.
+ * We fetch once and cache in memory for the lifetime of the Lambda instance.
+ */
+async function getPdfAttachment(): Promise<typeof cachedPdfAttachment> {
+  if (cachedPdfAttachment) return cachedPdfAttachment;
+  if (pdfFetchAttempted) return null; // Don't retry failed fetches
+
+  pdfFetchAttempted = true;
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+    const pdfUrl = `${baseUrl}/Olera%20for%20Providers.pdf`;
+    const response = await fetch(pdfUrl);
+    if (!response.ok) {
+      console.warn(`[record-outcome] Failed to fetch PDF: ${response.status}`);
+      return null;
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    cachedPdfAttachment = {
+      filename: "Olera for Providers.pdf",
+      content: Buffer.from(arrayBuffer).toString("base64"),
+      encoding: "base64",
+      type: "application/pdf",
+    };
+    console.log("[record-outcome] PDF attachment loaded and cached");
+    return cachedPdfAttachment;
+  } catch (err) {
+    console.warn("[record-outcome] Failed to fetch PDF attachment:", err);
+    return null;
+  }
+}
 
 /**
  * POST /api/admin/provider-outreach/record-outcome
@@ -67,7 +106,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { provider_id, outcome, notes, not_interested_reason } = body;
+    const { provider_id, outcome, notes, not_interested_reason, custom_subject, custom_body } = body;
 
     if (!provider_id || typeof provider_id !== "string") {
       return NextResponse.json({ error: "provider_id is required" }, { status: 400 });
@@ -287,9 +326,36 @@ export async function POST(request: NextRequest) {
             slug: provider.slug,
           });
 
-          const rendered = renderEmail("nudge", context);
+          // Render email - use custom content if provided, otherwise default nudge template
+          let rendered;
+          const isCustomEmail = !!(custom_subject || custom_body);
 
-          // Send via Resend
+          if (isCustomEmail) {
+            // Use custom content with standard footer
+            const preview = previewEmail("nudge", context);
+
+            // Substitute {claim_url} in custom body if present
+            let finalBody = custom_body || preview.editableBody;
+            if (finalBody.includes("{claim_url}")) {
+              finalBody = finalBody.replace(/\{claim_url\}/g, context.claim_url);
+            }
+
+            rendered = renderVariantEmail(
+              {
+                subject: custom_subject || preview.subject,
+                body: finalBody,
+              },
+              context
+            );
+          } else {
+            // Use default nudge template
+            rendered = renderEmail("nudge", context);
+          }
+
+          // Fetch PDF attachment (cached after first fetch)
+          const pdfAttachment = await getPdfAttachment();
+
+          // Send via Resend with PDF attachment
           const sendResult = await sendEmail({
             to: provider.email,
             from: PROVIDER_OUTREACH_FROM,
@@ -298,10 +364,13 @@ export async function POST(request: NextRequest) {
             html: rendered.html,
             emailType: PROVIDER_OUTREACH_EMAIL_TYPE,
             providerId: provider_id,
+            attachments: pdfAttachment ? [pdfAttachment] : undefined,
             metadata: {
               template_key: "nudge",
-              trigger: "resend_link_outcome",
+              trigger: isCustomEmail ? "resend_link_custom" : "resend_link_outcome",
               resend_count: newResendCount,
+              has_pdf_attachment: !!pdfAttachment,
+              is_custom: isCustomEmail,
             },
           });
 

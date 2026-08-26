@@ -22,7 +22,7 @@ st.font.name = 'Arial'; st.font.size = Pt(11); st.font.color.rgb = BLACK
 st.element.rPr.rFonts.set(qn('w:eastAsia'), 'Arial')
 pf = st.paragraph_format
 pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-pf.space_after = Pt(3); pf.space_before = Pt(0)
+pf.space_after = Pt(2); pf.space_before = Pt(0)
 pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
 def border(p_or_tc, edge='bottom', sz=8, color='000000'):
@@ -165,8 +165,8 @@ def build_table(thtml, matrix=False):
             cell = tbl.cell(ri,ci)
             cell.text = ''
             p = cell.paragraphs[0]
-            p.paragraph_format.space_after = Pt(1.5)
-            p.paragraph_format.space_before = Pt(1.5)
+            p.paragraph_format.space_after = Pt(1)
+            p.paragraph_format.space_before = Pt(1)
             right = 'class="n"' in attrs or ('n"' in attrs and 'class="n' in attrs)
             centre = matrix and 'rowlab' not in attrs
             p.alignment = (WD_ALIGN_PARAGRAPH.CENTER if centre else
@@ -196,7 +196,7 @@ for blk in blocks:
     if b.startswith('<h1'):
         txt = re.sub(r'<[^>]+>','',b).strip().upper()
         p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-        p.paragraph_format.space_before = Pt(10); p.paragraph_format.space_after = Pt(3)
+        p.paragraph_format.space_before = Pt(9); p.paragraph_format.space_after = Pt(2)
         r = p.add_run(txt); r.bold = True
         border(p,'bottom',10,'000000')
 
@@ -247,7 +247,7 @@ for blk in blocks:
         p = doc.add_paragraph()
         if 'caption' in cls:
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            p.paragraph_format.space_after = Pt(5)
+            p.paragraph_format.space_after = Pt(4)
             add_runs(p, inner, size=9)
         elif 'tnote' in cls:
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
@@ -268,7 +268,7 @@ for blk in blocks:
         else:
             p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
             if 'sec' in cls.split():
-                p.paragraph_format.space_before = Pt(7)
+                p.paragraph_format.space_before = Pt(6)
             add_runs(p, inner)
 
 doc.save('Olera_CRP_ResearchStrategy.docx')

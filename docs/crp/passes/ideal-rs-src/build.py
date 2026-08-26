@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import re, figs, tables, body1, body2
+import re, figs, figs2, tables, tables2, body1, body2
 
 REFS = [
  ("ncoa2025","National Council on Aging. Benefits access and unclaimed assistance for older adults. 2025."),
@@ -53,8 +53,10 @@ p.aimhead { font-weight: bold; text-align: left; margin: 9pt 0 3pt 0; font-size:
             color: #14453f; border-bottom: 0.8pt solid #14453f; padding-bottom: 1.5pt; }
 p.metrics-head { font-style: italic; text-decoration: underline; text-align: left;
                  margin: 5pt 0 2pt 0; }
-p.caption { text-align: left; margin: 2pt 0 5pt 0; font-size: 9pt; }
-p.tnote { text-align: left; margin: -2pt 0 5pt 0; font-size: 9pt; font-style: italic; color: #333; }
+p.caption { text-align: left; margin: 2pt 0 5pt 0; font-size: 9pt;
+            break-before: avoid; page-break-before: avoid; }
+p.tnote { text-align: left; margin: -2pt 0 5pt 0; font-size: 9pt; font-style: italic;
+          color: #333; break-before: avoid; page-break-before: avoid; }
 h1.sechead { font-size: 11pt; font-weight: bold; text-transform: uppercase;
              letter-spacing: 0.4pt; margin: 11pt 0 4pt 0; text-align: left;
              border-bottom: 1.2pt solid #000; padding-bottom: 2pt; }
@@ -66,7 +68,12 @@ div.figwrap { float: right; margin: 2pt 0 5pt 11pt; break-inside: avoid; page-br
 div.figwrap svg { display: block; }
 div.figwrap p.caption { margin: 3pt 0 0 0; }
 p.clearfix { clear: both; margin: 0; height: 0; }
-table { break-inside: avoid; page-break-inside: avoid; }
+/* Comparison matrices and figures stay whole; long data tables may break, with
+   the header repeating, rather than stranding a third of a page. */
+table.matrix { break-inside: avoid; page-break-inside: avoid; }
+table.dat thead { display: table-header-group; }
+table.dat tr { break-inside: avoid; page-break-inside: avoid; }
+table.dat tbody tr:last-child { break-after: avoid; page-break-after: avoid; }
 table.dat { width: 100%; border-collapse: collapse; font-size: 9pt; line-height: 1.16;
             margin: 5pt 0 2pt 0; }
 table.dat thead th { text-align: left; font-weight: bold; color: #14453f;
@@ -102,7 +109,7 @@ div.refs p { font-size: 9pt; text-align: left; margin: 0 0 3pt 0; text-indent: -
 
 import os
 WORD = os.environ.get("WORD_EXPORT") == "1"
-FIGPNG = {1:6.7, 4:6.5, 5:7.0}
+FIGPNG = {1:6.7, 4:6.6, 5:7.0}
 def figblock(svg, num, cap):
     if WORD:
         w = FIGPNG[num]
@@ -120,6 +127,10 @@ def figwrap(svg, num, cap, width):
     return (f'<div class="figwrap" style="width:{width}in">{svg}'
             f'<p class="caption"><b>Figure {num}.</b> {cap}</p></div>')
 
+def splice(text, anchor, addition, label):
+    assert anchor in text, f'SPLICE ANCHOR MISSING: {label}'
+    return text.replace(anchor, anchor + addition, 1)
+
 sig = body1.SIGNIFICANCE
 sig = sig.replace('</p>\n\n<p class="sec"><b>What it costs',
    '</p>\n' + figblock(figs.fig1(), 1,
@@ -130,10 +141,14 @@ sig = sig.replace('<p class="sec"><b>What it costs, and who pays it.</b>',
    + '<p class="sec"><b>What it costs, and who pays it.</b>')
 sig = sig.replace('<p class="sec"><b>What establishing care actually requires.</b>',
    '<p class="clearfix"></p><p class="sec"><b>What establishing care actually requires.</b>')
-sig = sig.replace('Table 1 sets our pricing against that\nbenchmark on the provider\'s own numbers.</p>',
-   "Table 1 sets our pricing against that benchmark on the provider's own numbers.</p>" + tables.T1)
-sig = sig.replace('has\ndrawn sustained criticism of the incentives it creates.<sup>REF22</sup></p>',
-   'has drawn sustained criticism of the incentives it creates.<sup>REF22</sup></p>' + tables.T2)
+sig = splice(sig, 'which is the distinction the last row records and which Key Innovation 1 develops.</p>', tables2.T3_STAFF, 'T3 staffing')
+_a1 = "benchmark on the provider's own numbers.</p>"
+sig = splice(sig, _a1, tables2.T1, 'T1 ROI')
+sig = splice(sig, 'criticism of the incentives it creates.<sup>REF22</sup></p>', tables2.T2, 'T2 nav')
+
+for _a,_l in [('<p class="sec"><b>What it costs, and who pays it.</b>','fig2 anchor'),
+              ('<p class="sec"><b>What establishing care actually requires.</b>','clearfix1')]:
+    assert _a in body1.SIGNIFICANCE or _l=='clearfix1', _l
 
 inn = body1.INNOVATION
 inn = inn.replace('<p class="sec first-sec"><b>Key Innovation 1: capacity created, not moved.</b>',
@@ -143,19 +158,17 @@ inn = inn.replace('<p class="sec"><b>Key Innovation 2:',
    '<p class="clearfix"></p><p class="sec"><b>Key Innovation 2:')
 
 app = body2.APPROACH_OPEN
-app = app.replace('rather than three parallel projects (Figure 4).</p>',
-   'rather than three parallel projects (Figure 4).</p>'
-   + figblock(figs.fig4(), 4, 'Three aims, one chain of evidence. Aims 1 and 2 run in the same markets and each carries a gate into Aim 3.'))
-app = app.replace('the staging reflects it.</p>', 'the staging reflects it.</p>' + tables.T3)
+app = splice(app, 'whether the playbook repeats.</p>',
+   figblock(figs2.fig4(), 4, 'The three aims as one sequence. Each stage carries a gate, and Aim 2 produces every parameter that Aim 3 prices against.'), 'fig4')
+app = splice(app, 'operating attention, not capital.</p>', tables2.T4_MARKETS, 'T4')
 
-app += (body2.AIM1 + tables.T4 + body2.PP1 + body2.AIM2 + tables.T5 + body2.PP2
-        + body2.AIM3 + tables.T6 + body2.PP3 + body2.APPROACH_CLOSE)
-app = app.replace('the payer package are delivered.</p>',
-   'the payer package are delivered.</p>'
-   + figblock(figs.fig5(), 5, 'Three-year timetable, showing the sequencing among the aims, staged market entry, and the three formal decision points.'))
+app += (body2.AIM1 + tables2.T5 + body2.PP1 + body2.AIM2 + tables2.T6 + body2.PP2
+        + body2.AIM3 + tables2.T7 + body2.PP3 + body2.APPROACH_CLOSE)
+app = splice(app, 'At award end the independent rebuild is delivered.</p>',
+   figblock(figs2.fig5(), 5, 'Three-year timetable, showing the sequencing among the aims, staged market entry, and the four formal decision points.'), 'fig5')
 
 prog = body2.PROGRESS
-prog = prog.replace('this program\nis designed to reward.</p>', 'this program is designed to reward.</p>' + tables.T7)
+prog = splice(prog, 'designed to reward.</p>', tables2.T8_RISKS, 'T8 risks')
 
 refs = '<div class="refs"><h1 class="sechead first">Bibliography and References Cited</h1>'
 for i,(k,txt) in enumerate(REFS):

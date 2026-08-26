@@ -56,41 +56,38 @@ makes this an addressable market and not only a public health problem.</p>
 
 <p class="sec"><b>What establishing care actually requires.</b> Closing the gap is not a
 matter of better information. A family that knows exactly which program it qualifies for
-still has to complete the application, gather supporting documents, file, wait, respond
-to requests, and then find a provider with capacity on the date the benefit starts.
-Existing help stops before that point. Clinicians and discharge planners hand off.
-Information services return lists. Referral marketplaces introduce a provider and are
-paid on placement. None of them is accountable for whether care was established, and none
-of them can create a caregiver who does not exist.</p>
+still has to complete the application, gather documents, file, wait, respond to requests,
+and then find a provider with capacity on the date the benefit starts. Existing help stops
+before that point: clinicians and discharge planners hand off, information services return
+lists, and referral marketplaces introduce a provider and are paid on placement. None is
+accountable for whether care was established, and none can create a caregiver who does not
+exist.</p>
 
-<p>Two things are therefore required at once: navigation that runs all the way to a
-confirmed start, and capacity on the other side so that the start is possible. Neither is
-sufficient alone, which is the central structural claim of this application.</p>
-
-<p class="sec"><b>Why navigation alone cannot close the gap.</b> A navigation product
-that clears the first two gates aggregates family demand and delivers it to a supply
-side that cannot absorb it. The result is a faster path to the same refusal. This is
-not a hypothetical constraint: it is the reason nearly two-thirds of home-care providers
-turned away business in 2023.<sup>REF3</sup></p>
-
-<p>Olera did not select workforce development as an adjacent business opportunity. We
-encountered it as the binding constraint on our own product working. That is why
-capacity creation sits inside the product rather than beside it, and why this
-application proposes to test both halves in the same markets at the same time.</p>
+<p class="sec"><b>Why navigation alone cannot close the gap.</b> Two things are required
+at once: navigation that runs all the way to a confirmed start, and capacity on the other
+side so that the start is possible. A product that clears only the first two gates
+aggregates family demand and delivers it to a supply side that cannot absorb it, which is a
+faster path to the same refusal. That is not hypothetical; it is why nearly two-thirds of
+home-care providers turned away business in 2023.<sup>REF3</sup> Olera did not select
+workforce development as an adjacent opportunity. We encountered it as the binding
+constraint on our own product working, which is why capacity creation sits inside the
+product rather than beside it.</p>
 
 <p class="sec"><b>The product and the path to market.</b> CareNavigator is an eldercare
 AI navigation system built over an expert-curated national database of aid programs and
 providers, developed across NIA SBIR Phases I through IIB. It screens a household's needs
-and means, identifies the aid and services that fit, and, with the agent layer entering
-production in the remaining Phase IIB year, executes the applications and follows each
-case to a decision. Alongside it, Olera recruits and verifies new caregivers and places
+and means and identifies the aid and services that fit. What this award adds is execution:
+agents that file the application or send the intake packet, follow up on a schedule, and
+confirm the date aid or care began. Securing a benefit and securing a service differ in
+their steps, and the system adapts to which is being pursued, but the shape is the same:
+prepare the request, transmit it, follow up, confirm the outcome. Alongside it, Olera recruits and verifies new caregivers and places
 them with licensed providers, who hire, train, insure, and supervise them as employees.</p>
 
-<p>Families use CareNavigator at no cost, and no provider pays to be listed or to receive
-a family connection. Because no fee is charged for a referral, no steering incentive
+<p><b>Olera builds two products, CareNavigator and Caregiver Staffing. During this award only
+Caregiver Staffing is sold and priced.</b> Families use CareNavigator at no cost, and no
+provider pays to be listed or to receive a family connection. Because no fee is charged for a referral, no steering incentive
 exists and federally reimbursed providers can participate, which pay-per-referral models
-cannot accommodate. Revenue comes from one optional provider product during this award:
-<b>Caregiver Staffing</b>.</p>
+cannot accommodate. </p>
 
 <p class="sec"><b>Market segments and customers.</b> The beachhead customer is the
 healthcare and long-term services provider. Roughly 165,000 such organizations operate in
@@ -113,8 +110,10 @@ Medicare now pays directly for care navigation, caregiver support, and respite t
 the GUIDE model, which began in July 2024.<sup>REF19</sup> Medicare Advantage plans,
 Medicaid managed care organizations, health systems and accountable care organizations,
 self-insured employers, and long-term care insurers each bear part of the cost of unmet
-need. Aim 3 produces the evidence package these organizations require before contracting;
-it does not assume they will.</p>
+need. Each bears part of the cost of unmet need, and the establishment and cost data this award
+produces is what makes them addressable. <b>None of them is tested in this award and none
+carries an endpoint in any aim.</b> They are modeled in the Commercialization Plan, where
+the nearest-term line is the provider growth tools Olera already operates.</p>
 
 <p class="sec"><b>Competitive environment and our advantage.</b> Table 2 places
 CareNavigator against every category of alternative across the five stages of the path to
@@ -127,38 +126,45 @@ employers, so one provider's hire is another's vacancy and the national shortage
 shrink. Referral marketplaces charge placement fees, which determines who appears and has
 drawn sustained criticism of the incentives it creates.<sup>REF22</sup></p>
 
+<p>Caregiver Staffing competes in a separate market with its own incumbents, and Table 3
+places it against them. Job boards leave every screening decision to the provider, staffing
+agencies keep the worker as their own employee, and gig platforms fill a shift without
+filling a role. All three draw from the same constrained pool of people already in direct
+care, which is the distinction the last row records and which Key Innovation 1 develops.</p>
+
 <p class="sec"><b>Related development efforts in academia and industry.</b> Most of the
 relevant science is settled and what remains open is operational, which is the reason
-this is a commercialization award rather than a trial. Research on unmet need, largely
-from the National Health and Aging Trends Study and Medicare-linked cohorts, establishes
-that unmet daily-activity needs predict downstream utilization and
-placement.<sup>REF4,REF5</sup> We treat that as established and measure care established
-rather than clinical endpoints. Home-based support trials, principally CAPABLE, show that
-function-focused support reduces disability with savings well above program
-cost;<sup>REF12,REF13</sup> what no trial addresses is how a family outside a trial finds
-such support, funds it, and gets it started, and CareNavigator is the front door those
-programs assume already exists. Work on digital caregiver tools, including four
-peer-reviewed studies of our own, establishes that such platforms can be built and
-measured as usable and accepted;<sup>REF25,REF26,REF27,REF28</sup> what remains open is
-whether AI agents can complete applications and carry a case to a decision. Payer-funded
-navigation is no longer speculative, given the GUIDE model.<sup>REF19</sup> And research
-on health-professions admissions establishes that documented patient-care hours are a
-requirement for entry,<sup>REF23,REF24</sup> which is the incentive our workforce pathway
-uses; whether that requirement converts into durable eldercare capacity is what Aim 2
+this is a commercialization award rather than a trial. Research on unmet need, from the National Health and Aging Trends
+Study and Medicare-linked cohorts, establishes that unmet daily-activity needs predict
+downstream utilization and placement;<sup>REF4,REF5</sup> we treat that as settled and
+measure care established rather than clinical endpoints. Home-based support trials,
+principally CAPABLE, show that function-focused support reduces disability with savings well
+above program cost,<sup>REF12,REF13</sup> but no trial addresses how a family outside a
+trial finds such support, funds it, and gets it started, and CareNavigator is the front door
+those programs assume exists. Work on digital caregiver tools, including four peer-reviewed
+studies of our own, establishes that such platforms can be built and measured as usable and
+accepted;<sup>REF25,REF26,REF27,REF28</sup> what remains open is whether agents can complete
+applications and carry a case to a decision. Payer-funded navigation is no longer
+speculative, given the GUIDE model.<sup>REF19</sup> And documented patient-care hours are a
+requirement for health-professions admission,<sup>REF23,REF24</sup> which is the incentive
+our workforce pathway uses; whether it converts into durable capacity is what Aim 2
 tests.</p>
 
 <p class="sec"><b>Hurdles to adoption.</b> The primary hurdle is local density at a cost
 the market sustains: families, providers, and caregivers must concentrate in the same
 market, and that market's revenue must cover the cost of bringing them together. Four
 specific hurdles follow. Families must trust an AI system with care decisions, which we
-address by drawing every answer from an expert-curated database audited by domain
-experts and by validating acceptance under IRB approval in Aim 1. Providers are wary of
+address by drawing every answer from an expert-curated database audited by a blinded panel
+of licensed social workers in Aim 1, and by validating acceptance with family caregivers
+under IRB approval in Aim 2. Providers are wary of
 platforms, so they begin at no cost and are asked to pay only after value has been
-delivered, with conversion and churn measured under real billing in Aim 3. New caregivers
+delivered, which is exactly how Aim 2 runs, with conversion and churn measured under real billing only
+afterward in Aim 3. New caregivers
 must be safe and welcome, which is why licensed providers employ, train, insure, and
-supervise them, and why Aim 2 measures the pathway end to end. And every market must
+supervise them, and why Aim 2 measures the pathway end to end with both providers and workers. And every market must
 repeat affordably, which self-service portals and a documented market-entry playbook
-address, with acquisition cost per market measured in Aims 1 and 2.</p>
+address, with acquisition cost per market measured in Aim 2 and re-measured in each Aim 3
+wave.</p>
 """
 
 INNOVATION = r"""

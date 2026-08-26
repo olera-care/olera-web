@@ -7492,6 +7492,22 @@ export default function ProviderOutreachPage() {
               fetchCities();
             }
           }}
+          onCallLogged={(providerId, newCallCount, latestStatus) => {
+            // Update call_count and latest_call_status in local state for sorting
+            setProviders((prev) =>
+              prev.map((p) =>
+                p.provider_id === providerId
+                  ? { ...p, call_count: newCallCount, latest_call_status: latestStatus }
+                  : p
+              )
+            );
+            // Update drawer provider too
+            setDrawerProvider((prev) =>
+              prev && prev.provider_id === providerId
+                ? { ...prev, call_count: newCallCount, latest_call_status: latestStatus }
+                : prev
+            );
+          }}
         />
       )}
     </div>

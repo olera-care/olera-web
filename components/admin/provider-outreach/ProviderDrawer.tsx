@@ -117,6 +117,8 @@ interface ProviderDrawerProps {
   onClaimLinkSent?: (providerId: string, newResendCount: number) => void;
   // Contact form sent callback (updates contact_form_send_count in local state)
   onContactFormSent?: (providerId: string, newSendCount: number) => void;
+  // Call logged callback (updates call_count in local state for sorting)
+  onCallLogged?: (providerId: string, newCallCount: number, latestStatus: string) => void;
   // Current UI context
   activeTab?: string;
 }
@@ -1366,7 +1368,13 @@ function getCallStatusBadge(status: string): { label: string; className: string 
     : { label: status, className: "bg-gray-100 text-gray-600" };
 }
 
-function CallLogSection({ provider }: { provider: OutreachProvider }) {
+function CallLogSection({
+  provider,
+  onCallLogged,
+}: {
+  provider: OutreachProvider;
+  onCallLogged?: (providerId: string, newCallCount: number, latestStatus: string) => void;
+}) {
   const [logs, setLogs] = useState<CallLogEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedStatus, setSelectedStatus] = useState<CallStatus>("voicemail");
@@ -1414,7 +1422,12 @@ function CallLogSection({ provider }: { provider: OutreachProvider }) {
       if (res.ok) {
         const data = await res.json();
         // Add the new log to the top of the list
-        setLogs((prev) => [data.log, ...prev]);
+        setLogs((prev) => {
+          const newLogs = [data.log, ...prev];
+          // Notify parent of the new call count and status for sorting
+          onCallLogged?.(provider.provider_id, newLogs.length, selectedStatus);
+          return newLogs;
+        });
         setCallNotes("");
         setSelectedStatus("voicemail");
       } else {
@@ -1426,7 +1439,7 @@ function CallLogSection({ provider }: { provider: OutreachProvider }) {
     } finally {
       setSubmitting(false);
     }
-  }, [provider.provider_id, selectedStatus, callNotes, submitting]);
+  }, [provider.provider_id, selectedStatus, callNotes, submitting, onCallLogged]);
 
   return (
     <div>
@@ -2803,6 +2816,7 @@ export function ProviderDrawer({
   onOutcomeRecorded,
   onClaimLinkSent,
   onContactFormSent,
+  onCallLogged,
   activeTab,
 }: ProviderDrawerProps) {
   // Determine if we should show Follow Up section
@@ -2884,7 +2898,7 @@ export function ProviderDrawer({
         <SectionDivider />
 
         {/* Call Log Section */}
-        <CallLogSection provider={provider} />
+        <CallLogSection provider={provider} onCallLogged={onCallLogged} />
 
         <SectionDivider />
 

@@ -1,0 +1,784 @@
+<title>The Stranded Capacity Proposal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,300..700;1,6..72,300..600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --paper:#f7f8f5; --surface:#ffffff; --sunk:#eef1ec;
+  --ink:#16211c; --ink-2:#3d4a43; --muted:#63706a;
+  --rule:#dbe0da; --rule-2:#c3ccc4;
+  --pine:#14653f; --pine-soft:#e4efe8;
+  --clay:#9c3b30; --clay-soft:#f8ece9;
+  --gold:#8a6a1f; --gold-soft:#f6efdd;
+  --slate:#38526b; --slate-soft:#e7eef4;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#10150f; --surface:#171d18; --sunk:#1c231d;
+    --ink:#e7ebe5; --ink-2:#bcc6bd; --muted:#93a096;
+    --rule:#2a332b; --rule-2:#3a453b;
+    --pine:#6cc294; --pine-soft:#16281f;
+    --clay:#e0917f; --clay-soft:#2a1a17;
+    --gold:#d6b25f; --gold-soft:#2a2314;
+    --slate:#8fb2cd; --slate-soft:#16212a;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#10150f; --surface:#171d18; --sunk:#1c231d;
+  --ink:#e7ebe5; --ink-2:#bcc6bd; --muted:#93a096;
+  --rule:#2a332b; --rule-2:#3a453b;
+  --pine:#6cc294; --pine-soft:#16281f;
+  --clay:#e0917f; --clay-soft:#2a1a17;
+  --gold:#d6b25f; --gold-soft:#2a2314;
+  --slate:#8fb2cd; --slate-soft:#16212a;
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--paper); color:var(--ink);
+  font-family:"Newsreader",Georgia,"Times New Roman",serif;
+  font-size:19px; line-height:1.62; font-optical-sizing:auto;
+  margin:0; padding:0 20px 120px;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1000px;margin:0 auto}
+.col{max-width:672px;margin-left:auto;margin-right:auto}
+p{margin:0 0 1.05em; text-wrap:pretty}
+h1,h2,h3,h4{text-wrap:balance;margin:0;font-weight:600;line-height:1.18}
+strong{font-weight:600}
+em{font-style:italic}
+a{color:var(--pine)}
+
+/* ---------- masthead ---------- */
+.mast{padding:76px 0 40px;border-bottom:2px solid var(--ink);margin-bottom:44px}
+.mast .eyebrow{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:20px}
+.mast h1{font-size:clamp(38px,6.2vw,62px);letter-spacing:-.022em;line-height:1.04;margin-bottom:18px}
+.mast .sub{font-size:21px;color:var(--ink-2);max-width:640px;line-height:1.5}
+.mast .meta{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:13px;color:var(--muted);margin-top:26px;line-height:1.7}
+
+/* ---------- section furniture ---------- */
+.part{margin:72px 0 0;padding-top:26px;border-top:1px solid var(--rule-2)}
+.part-label{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--pine);font-weight:600;margin-bottom:12px}
+h2{font-size:clamp(28px,4vw,38px);letter-spacing:-.018em;margin-bottom:14px}
+h3{font-size:23px;letter-spacing:-.012em;margin:38px 0 12px}
+h4{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:13px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:600;margin:30px 0 10px}
+.lede{font-size:21px;color:var(--ink-2);line-height:1.52;margin-bottom:26px}
+
+/* ---------- evidence chips ---------- */
+.tag{display:inline;font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:10.5px;font-weight:600;letter-spacing:.07em;text-transform:uppercase;padding:2px 6px;border-radius:3px;white-space:nowrap;vertical-align:2px}
+.t-v{background:var(--pine-soft);color:var(--pine)}
+.t-a{background:var(--gold-soft);color:var(--gold)}
+.t-c{background:var(--slate-soft);color:var(--slate)}
+.t-s{background:var(--clay-soft);color:var(--clay)}
+
+/* ---------- pull quote / soundbite ---------- */
+.bite{border-left:3px solid var(--pine);background:var(--pine-soft);padding:16px 20px;margin:26px 0;border-radius:0 4px 4px 0}
+.bite p{margin:0;font-size:20px;line-height:1.45}
+.bite .cap{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--pine);font-weight:600;margin-bottom:7px;display:block}
+
+.callout{border:1px solid var(--rule-2);background:var(--surface);padding:20px 22px;margin:26px 0;border-radius:4px}
+.callout h4{margin-top:0}
+.callout p:last-child{margin-bottom:0}
+.warn{border-left:3px solid var(--clay);background:var(--clay-soft)}
+
+/* ---------- tables ---------- */
+.tbl{margin:30px auto;max-width:960px;overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:13.5px;line-height:1.45;font-variant-numeric:tabular-nums}
+caption{caption-side:top;text-align:left;font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:12px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:600;padding-bottom:10px}
+th{text-align:left;font-weight:600;color:var(--ink);border-bottom:1.5px solid var(--ink);padding:9px 12px 9px 0;vertical-align:bottom}
+td{padding:10px 12px 10px 0;border-bottom:1px solid var(--rule);vertical-align:top;color:var(--ink-2)}
+td:first-child{color:var(--ink);font-weight:500}
+tr.tot td{border-top:1.5px solid var(--ink);border-bottom:none;font-weight:600;color:var(--ink)}
+.num{text-align:right;padding-right:0}
+.tnote{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:12px;color:var(--muted);margin-top:10px;line-height:1.5}
+
+/* ---------- figures ---------- */
+figure{margin:34px auto;max-width:960px}
+figure svg{display:block;width:100%;height:auto}
+figcaption{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:12.5px;color:var(--muted);margin-top:12px;line-height:1.5}
+.fignum{color:var(--ink);font-weight:600}
+
+/* ---------- lists ---------- */
+ul,ol{margin:0 0 1.05em;padding-left:1.15em}
+li{margin-bottom:.42em}
+li::marker{color:var(--muted)}
+ul.tight li{margin-bottom:.22em}
+
+.aimcard{border:1px solid var(--rule-2);border-left:3px solid var(--pine);background:var(--surface);padding:20px 22px;margin:22px 0;border-radius:0 4px 4px 0}
+.aimcard h3{margin-top:0;font-size:21px}
+.aimcard .q{font-style:italic;color:var(--ink-2);margin-bottom:12px}
+.aimcard p:last-child{margin-bottom:0}
+
+hr.soft{border:none;border-top:1px solid var(--rule);margin:44px 0}
+.small{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:13.5px;line-height:1.6;color:var(--ink-2)}
+:focus-visible{outline:2px solid var(--pine);outline-offset:3px}
+@media (max-width:700px){body{font-size:17.5px;padding:0 16px 80px}.mast{padding-top:48px}}
+</style>
+
+<div class="wrap">
+
+<header class="mast col">
+  <div class="eyebrow">Visualization Exercise &nbsp;·&nbsp; Not a submission draft</div>
+  <h1>The Stranded Capacity Proposal</h1>
+  <p class="sub">The strongest truthful CRP application Olera could realistically put in front of NIA on September 4, compressed to its load-bearing bones.</p>
+  <div class="meta">
+    NIA SBIR Commercialization Readiness Pilot &nbsp;·&nbsp; $4,000,000 &nbsp;·&nbsp; June 1, 2027 to May 31, 2030<br>
+    Olera, Inc. &nbsp;·&nbsp; Tokunbo Falohun, PhD, PI &nbsp;·&nbsp; Logan DuBose, MD, MBA, Co-I &nbsp;·&nbsp; Qiping Fan, PhD, Co-I<br>
+    Prepared 2026-08-26
+  </div>
+</header>
+
+<div class="col">
+
+<h4>How to read this</h4>
+<p class="small">This is roughly 40 pages of application compressed to its argument. Every load-bearing claim carries a tag:</p>
+<p class="small" style="margin-bottom:1.6em">
+<span class="tag t-v">Verified</span> in our records or bibliography today &nbsp;&nbsp;
+<span class="tag t-a">Assumed</span> obtainable by September 4 &nbsp;&nbsp;
+<span class="tag t-c">CRP work</span> what the award produces &nbsp;&nbsp;
+<span class="tag t-s">Stretch</span> possible, lower confidence
+</p>
+<p class="small">Sentences marked <strong>Reviewer sound bite</strong> are deliberately engineered to be quoted by a reviewer defending the score. Every assumption appears again in the register near the end, so you can weigh the whole borrowed load at once. The mock review at the end critiques what is on this page, not what I meant.</p>
+
+<div class="callout warn">
+<h4>One honest warning before you read</h4>
+<p>A compressed spine is more persuasive than the twelve-page document it represents, because compression hides thin places. Some of what you feel reading this will be the format. Read the assumption register and the mock review before you decide.</p>
+</div>
+
+</div>
+
+<!-- =================== NORTH STAR =================== -->
+<div class="part col">
+  <div class="part-label">North Star</div>
+  <h2>What Olera exists to do</h2>
+  <div class="bite" style="border-left-width:4px">
+    <p style="font-size:22px">The capacity to care for America's aging population already exists. It is stranded: in aid no one claims, in workers who never enter the field, and in providers turning away families they could serve. Olera releases it, market by market, and every completed case teaches the system how to release it faster.</p>
+  </div>
+  <p class="small"><strong>Why this over the alternative.</strong> David's version describes the mechanism accurately and its closing line is the best sentence either of us wrote. This one makes a claim instead: the constraint is misallocation, not scarcity. That matters because scarcity is a tragedy to be mourned and misallocation is a problem to be solved, and only one of those is fundable. It also names the three gates and the learning loop without listing them, and it survives being said aloud.</p>
+</div>
+
+<!-- =================== SPECIFIC AIMS =================== -->
+<div class="part col">
+  <div class="part-label">Attachment 1</div>
+  <h2>Specific Aims</h2>
+  <p class="lede">One page. It carries the whole argument, because a large share of reviewers form their judgment here and read the rest selectively.</p>
+
+  <p><strong>Background.</strong> If we are fortunate, each of us will reach the point where we, or someone we love, needs help with the ordinary tasks of daily living. When that moment arrives, families meet a system that fails them at one of three gates. <em>Can they find the care?</em> <em>Can they afford it?</em> <em>Is anyone available to deliver it?</em> Failure at any one gate stops a recognized need from becoming established care.</p>
+
+  <p>All three gates are closing. Full-time home care runs $80,080 a year <span class="tag t-a">Assumed</span> while an estimated $58 billion in assistance that could pay for it goes unclaimed annually <span class="tag t-v">Verified</span>. Medicare does not cover custodial home care, and Medicaid, the nation's largest long-term care payer, pays only after a family has spent down. And 63.3 percent of home-care providers declined cases in 2023 that they could not staff <span class="tag t-v">Verified</span>. Families of modest means therefore wait and decline until a hospitalization, when public programs finally arrive at the most expensive possible moment and after the most harm.</p>
+
+  <p>The consequences compound. Unmet needs with daily activities predict emergency visits, readmission, nursing-home placement, and mortality <span class="tag t-v">Verified</span>, and each of those deepens the needs that went unmet. The trajectory worsens: 82 million Americans over 65 by 2050, against a family caregiver support ratio falling from more than seven potential caregivers per adult over 80 to four by 2030, and 9.7 million direct-care job openings this decade <span class="tag t-v">Verified</span>.</p>
+
+  <div class="bite">
+    <span class="cap">Reviewer sound bite</span>
+    <p>The financing and delivery model for long-term care was built for a demographic structure that no longer exists.</p>
+  </div>
+
+  <p><strong>What we built, and what remains.</strong> Across NIA SBIR Phases I through IIB (1R44AG074116, impact scores 20 and 25) <span class="tag t-v">Verified</span> Olera built CareNavigator: an eldercare AI navigation system over an expert-curated national database of more than 72,000 aid programs and providers in all fifty states, with acceptance validated in four peer-reviewed studies <span class="tag t-v">Verified</span>. The Phase IIB study section assessed the platform's commercial potential as extremely high <span class="tag t-a">Assumed</span>. What SBIR did not buy, because it cannot be bought with research funds, is proof that a local market pays for itself.</p>
+
+  <p><strong>Objective.</strong> We will bring Olera to full commercial operation in ten local markets, carrying families from recognized need to established aid and care, adding new caregivers to the providers who serve them, and finding the price at which those providers fund the platform. Families never pay, and no provider pays to be listed, Medicaid and Medicare included.</p>
+
+  <div class="aimcard">
+    <h3>Aim 1. Establish care reliably, and prove it was established.</h3>
+    <p class="q">Can an agentic system carry a household from screened need to established aid or care, at a quality a licensed professional would approve, at a cost that falls?</p>
+    <p class="small">Build and verify the execution and follow-up loops against blinded expert review; validate usability and trust with 25 family caregivers under IRB approval; measure cost to acquire and cost to serve from live records. <strong>Gate:</strong> expert-panel agreement 85 percent or higher, material errors under 10 percent.</p>
+  </div>
+
+  <div class="aimcard">
+    <h3>Aim 2. Bring new caregivers into the workforce, and make providers want them.</h3>
+    <p class="q">Can we add caregivers who were not already in the field, make them employable through a verified record, and do they stay?</p>
+    <p class="small">Verify the recruitment-to-placement pipeline end to end; validate acceptability, appropriateness, and feasibility with providers and workers under IRB approval; measure net-new-worker share at intake and retention at 90 days and 12 months. Providers pay nothing in Aim 2. <strong>Gate:</strong> the staffing path completes end to end.</p>
+  </div>
+
+  <div class="aimcard">
+    <h3>Aim 3. Determine whether providers pay, the economics hold, and the model replicates.</h3>
+    <p class="q">What will providers actually pay, do the unit economics work after real costs, and does the playbook repeat where it should struggle?</p>
+    <p class="small">Randomized offer prices under real billing, starting from the prices providers already paid us; measure conversion, retention, churn, lifetime value against acquisition cost, payback, and per-market margin; independent analyst rebuilds the economics from billing records. <strong>Gate:</strong> LTV to CAC of 3:1 or better, payback under 12 months, positive per-market margin.</p>
+  </div>
+
+  <p><strong>What exists at award end.</strong> A product that works, verified against expert review. A market model that repeats, run as written in market types chosen to include the ones where it should struggle. And an evidence package an outside analyst rebuilt from records, plus the linkage, cost model, and intermediate outcomes a risk-bearing payer requires before it will contract.</p>
+
+  <div class="bite">
+    <span class="cap">Reviewer sound bite</span>
+    <p>Nine years of federal investment bought the technology and the demand. It did not buy proof that a local market pays for itself, because that cannot be bought with research funds. It has to be measured in real markets, with real money changing hands.</p>
+  </div>
+</div>
+
+<!-- =================== SIGNIFICANCE =================== -->
+<div class="part col">
+  <div class="part-label">Research Strategy &nbsp;·&nbsp; Section 1</div>
+  <h2>Significance</h2>
+  <p class="lede">NIH requires this section to cover five things: the unmet need with its market segments and customers, how the project leads to a marketable product, the competitive environment, related development efforts in academia and industry, and hurdles to acceptance. It covers them in that order.</p>
+
+  <h3>The problem is one problem with three gates</h3>
+  <p>Care is difficult to find, difficult to afford, and increasingly impossible to staff. A family that clears two gates and fails the third ends up exactly where a family that cleared none does: with a need that never became care.</p>
+</div>
+
+<figure>
+<svg viewBox="0 0 960 300" role="img" aria-label="Three gates a family must pass, and the vicious cycle that follows failure at any one">
+  <defs>
+    <marker id="ar" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="var(--muted)"/></marker>
+    <marker id="arR" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="var(--clay)"/></marker>
+  </defs>
+  <text x="0" y="14" font-family="IBM Plex Sans, sans-serif" font-size="11.5" font-weight="600" letter-spacing="1.6" fill="var(--muted)">A RECOGNIZED NEED</text>
+  <rect x="0" y="26" width="150" height="52" rx="3" fill="var(--sunk)" stroke="var(--rule-2)"/>
+  <text x="75" y="48" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="var(--ink)">Someone needs</text>
+  <text x="75" y="64" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="13" fill="var(--ink)">daily help</text>
+
+  <line x1="152" y1="52" x2="196" y2="52" stroke="var(--muted)" stroke-width="1.4" marker-end="url(#ar)"/>
+
+  <g>
+    <rect x="200" y="26" width="168" height="52" rx="3" fill="var(--surface)" stroke="var(--rule-2)"/>
+    <text x="284" y="47" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="13.5" font-weight="600" fill="var(--ink)">GATE 1  Find it</text>
+    <text x="284" y="65" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="11.5" fill="var(--muted)">a fragmented ecosystem</text>
+  </g>
+  <line x1="370" y1="52" x2="410" y2="52" stroke="var(--muted)" stroke-width="1.4" marker-end="url(#ar)"/>
+  <g>
+    <rect x="414" y="26" width="168" height="52" rx="3" fill="var(--surface)" stroke="var(--rule-2)"/>
+    <text x="498" y="47" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="13.5" font-weight="600" fill="var(--ink)">GATE 2  Afford it</text>
+    <text x="498" y="65" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="11.5" fill="var(--muted)">$58B in aid unclaimed</text>
+  </g>
+  <line x1="584" y1="52" x2="624" y2="52" stroke="var(--muted)" stroke-width="1.4" marker-end="url(#ar)"/>
+  <g>
+    <rect x="628" y="26" width="180" height="52" rx="3" fill="var(--surface)" stroke="var(--rule-2)"/>
+    <text x="718" y="47" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="13.5" font-weight="600" fill="var(--ink)">GATE 3  Staff it</text>
+    <text x="718" y="65" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="11.5" fill="var(--muted)">63.3% declined cases</text>
+  </g>
+  <line x1="810" y1="52" x2="850" y2="52" stroke="var(--pine)" stroke-width="1.8" marker-end="url(#ar)"/>
+  <rect x="854" y="26" width="106" height="52" rx="3" fill="var(--pine-soft)" stroke="var(--pine)"/>
+  <text x="907" y="48" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="600" fill="var(--pine)">Established</text>
+  <text x="907" y="64" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="600" fill="var(--pine)">care</text>
+
+  <path d="M284,80 L284,104" stroke="var(--clay)" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arR)"/>
+  <path d="M498,80 L498,104" stroke="var(--clay)" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arR)"/>
+  <path d="M718,80 L718,104" stroke="var(--clay)" stroke-width="1.4" stroke-dasharray="5 4" marker-end="url(#arR)"/>
+
+  <rect x="200" y="110" width="608" height="130" rx="3" fill="var(--clay-soft)" stroke="var(--clay)" stroke-dasharray="6 4"/>
+  <text x="504" y="132" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="11.5" font-weight="600" letter-spacing="1.6" fill="var(--clay)">FAILURE AT ANY GATE ENTERS THE SAME CYCLE</text>
+
+  <g font-family="IBM Plex Sans, sans-serif" font-size="12.5" fill="var(--clay)" text-anchor="middle">
+    <text x="278" y="172">Need goes unmet</text>
+    <text x="430" y="172">Crisis</text>
+    <text x="560" y="172">Hospital</text>
+    <text x="726" y="172">Discharge, no care</text>
+    <text x="504" y="222">Function declines, caregiver breaks down, placement arrives early, savings and public programs absorb the cost</text>
+  </g>
+  <line x1="352" y1="167" x2="398" y2="167" stroke="var(--clay)" stroke-width="1.2" marker-end="url(#arR)"/>
+  <line x1="456" y1="167" x2="518" y2="167" stroke="var(--clay)" stroke-width="1.2" marker-end="url(#arR)"/>
+  <line x1="596" y1="167" x2="650" y2="167" stroke="var(--clay)" stroke-width="1.2" marker-end="url(#arR)"/>
+  <path d="M726,180 L726,196 L278,196 L278,180" fill="none" stroke="var(--clay)" stroke-width="1.2" marker-end="url(#arR)"/>
+</svg>
+<figcaption><span class="fignum">Figure 1.</span> A recognized need becomes established care only by clearing all three gates. Failure at any one enters the same cycle, which deepens the need that started it.</figcaption>
+</figure>
+
+<div class="col">
+  <h3>The trajectory, and who pays for it</h3>
+  <p>This is not a steady-state problem. Demand is rising while both sources of supply contract. The informal capacity that has always absorbed most of American eldercare is halving per older adult, and the paid workforce that would have to replace it is short 9.7 million openings over the decade.</p>
+</div>
+
+<figure>
+<svg viewBox="0 0 960 250" role="img" aria-label="Older adult population rising while family caregiver support ratio falls">
+  <line x1="70" y1="20" x2="70" y2="196" stroke="var(--rule-2)"/>
+  <line x1="70" y1="196" x2="880" y2="196" stroke="var(--rule-2)"/>
+  <g font-family="IBM Plex Sans, sans-serif" font-size="11.5" fill="var(--muted)">
+    <text x="70" y="216">2010</text><text x="340" y="216">2030</text><text x="620" y="216">2050</text>
+    <text x="0" y="60" font-weight="600" fill="var(--pine)">DEMAND</text>
+    <text x="0" y="172" font-weight="600" fill="var(--clay)">SUPPLY</text>
+  </g>
+  <path d="M70,168 C280,150 480,96 880,40" fill="none" stroke="var(--pine)" stroke-width="2.6"/>
+  <circle cx="880" cy="40" r="4.5" fill="var(--pine)"/>
+  <text x="872" y="28" text-anchor="end" font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="600" fill="var(--pine)">82 million Americans over 65</text>
+  <text x="82" y="162" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="var(--pine)">61 million (2024)</text>
+
+  <path d="M70,58 C200,74 300,112 400,124 C560,142 700,152 880,158" fill="none" stroke="var(--clay)" stroke-width="2.6" stroke-dasharray="7 4"/>
+  <circle cx="70" cy="58" r="4.5" fill="var(--clay)"/>
+  <text x="84" y="52" font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="600" fill="var(--clay)">7 potential family caregivers per adult 80+</text>
+  <circle cx="400" cy="124" r="4.5" fill="var(--clay)"/>
+  <text x="412" y="118" font-family="IBM Plex Sans, sans-serif" font-size="13" font-weight="600" fill="var(--clay)">4 by 2030</text>
+  <text x="620" y="184" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="var(--clay)">paid workforce short 9.7M openings this decade</text>
+</svg>
+<figcaption><span class="fignum">Figure 2.</span> The squeeze. Sources: Census projections, AARP caregiver support ratio, PHI direct-care openings. All verified.</figcaption>
+</figure>
+
+<div class="col">
+  <p>The costs of that gap do not vanish. They move. Function declines and emergency use rises. Working family caregivers, about 70 percent of the working-age caregiver population, lose hours and income <span class="tag t-v">Verified</span>. Families spend down and Medicaid inherits the bill. The clearest measurement of the inversion comes from CAPABLE, a home-based function-focused intervention whose implementation was associated with roughly $3,000 of program cost against more than $20,000 in reduced Medicaid spending per participant <span class="tag t-v">Verified</span>.</p>
+
+  <div class="bite">
+    <span class="cap">Reviewer sound bite</span>
+    <p>The money to support older adults at home largely already exists. It is simply spent later, on worse outcomes, by whoever is left holding the consequence. Every dollar of that consequence sits on an identifiable balance sheet, and that is what makes this a market and not only a tragedy.</p>
+  </div>
+
+  <h3>Why navigation alone is insufficient</h3>
+  <p>A navigation product that clears gates one and two aggregates family demand and delivers it to a supply side that cannot absorb it. The result is a faster path to the same disappointment. This is the reason workforce expansion is inside our product rather than beside it: <strong>we did not choose staffing as an adjacent business, we encountered it as the binding constraint on our own product working.</strong></p>
+  <p>Established care therefore requires two things at once. Navigation that runs all the way to completion, and capacity that exists when it arrives. That combination is what our product is.</p>
+
+  <h3>Who pays, and why</h3>
+  <p>Families never pay. Revenue comes from the side of the market with a budget and a bleeding constraint. During this award we sell exactly one product, Caregiver Staffing, and everything else on the table below is a measurement obligation rather than a sales target.</p>
+</div>
+
+<div class="tbl">
+<table>
+<caption>Table 1. The provider ROI case, on the provider's own numbers</caption>
+<thead><tr><th>Agency size</th><th class="num">Hires needed per year<br><span style="font-weight:400;color:var(--muted)">at 75% turnover</span></th><th class="num">Current cost<br><span style="font-weight:400;color:var(--muted)">at $520 industry median</span></th><th class="num">Olera<br><span style="font-weight:400;color:var(--muted)">$275/mo unlimited</span></th><th class="num">Effective cost<br>per hire</th><th class="num">Annual saving</th></tr></thead>
+<tbody>
+<tr><td>15 caregivers</td><td class="num">11</td><td class="num">$5,850</td><td class="num">$3,300</td><td class="num">$293</td><td class="num">$2,550</td></tr>
+<tr><td>30 caregivers</td><td class="num">23</td><td class="num">$11,700</td><td class="num">$3,300</td><td class="num">$147</td><td class="num">$8,400</td></tr>
+<tr><td>50 caregivers</td><td class="num">38</td><td class="num">$19,500</td><td class="num">$3,300</td><td class="num">$88</td><td class="num">$16,200</td></tr>
+<tr class="tot"><td>100 caregivers</td><td class="num">75</td><td class="num">$39,000</td><td class="num">$3,300</td><td class="num">$44</td><td class="num">$35,700</td></tr>
+</tbody>
+</table>
+<p class="tnote"><span class="tag t-v">Verified</span> The $520 benchmark is Activated Insights' published median caregiver acquisition cost, and it is the <em>word-of-mouth</em> channel, which is the cheapest one an agency has. Turnover of 75 to 79 percent is from the same source. Break-even against the benchmark arrives at 6.3 hires a year, which is an agency of roughly eight caregivers. Every agency larger than that is ahead on day one.</p>
+</div>
+
+<div class="col">
+  <p>That is the cost-substitution arm, and it uses only published numbers. The revenue arm is larger and less precise. A single filled role at 25 hours a week generates roughly $39,000 in annual billings, and at a 35 percent gross margin about $13,650 of gross profit <span class="tag t-a">Assumed</span>. Against a $3,300 annual subscription that is a fourfold return from one placement, and the monthly fee is recovered within about two weeks of that caregiver working. Set against 63.3 percent of agencies declining cases they could not staff, the opportunity cost of the empty role is the real number, and it is far larger than the price.</p>
+
+  <div class="bite">
+    <span class="cap">Reviewer sound bite</span>
+    <p>Olera does not ask providers to believe in a new category. It asks them to pay less for something they already buy. Our price is 44 to 92 percent below the median cost of a caregiver hire on the cheapest channel these agencies currently use.</p>
+  </div>
+</div>
+
+<div class="tbl">
+<table>
+<caption>Table 2. Market segments and customers</caption>
+<thead><tr><th style="width:23%">Segment</th><th style="width:26%">Why they buy</th><th style="width:22%">What they buy</th><th style="width:29%">CRP treatment</th></tr></thead>
+<tbody>
+<tr><td>Healthcare and LTSS providers<br><span style="color:var(--muted);font-weight:400">~165,000 organizations</span></td><td>Unfilled shifts cap the clients they can accept</td><td>Caregiver Staffing, per hire or monthly</td><td><strong>Sold and priced.</strong> Adoption, willingness to pay, retention, unit economics all directly tested</td></tr>
+<tr><td>Medicare GUIDE participants</td><td>Federally paid today for navigation, caregiver support, and respite, and respite requires workforce</td><td>Both capabilities, under an existing CMS payment</td><td>Evidence package plus a letter of intent <span class="tag t-s">Stretch</span></td></tr>
+<tr><td>Medicare Advantage plans</td><td>Avoidable utilization is their cost; retention and stars are their revenue</td><td>Sponsored navigation episodes</td><td>Evidence package, data-use agreement, linkage demonstration</td></tr>
+<tr><td>Medicaid managed care</td><td>Institutional care costs far more than home care and waivers go underused</td><td>Waiver-focused episodes</td><td>Evidence package</td></tr>
+<tr><td>Health systems and ACOs</td><td>Delayed discharge costs bed-days; readmission carries penalties</td><td>Discharge navigation with closure reported back</td><td>Evidence package</td></tr>
+<tr><td>Self-insured employers, LTC insurers, public aging agencies</td><td>Caregiver productivity loss; delayed institutionalization; casework capacity</td><td>Varies by segment</td><td>Evidence package, secondary</td></tr>
+</tbody>
+</table>
+<p class="tnote">The rule this table enforces: the CRP sells one product and prices one product. A reviewer should be able to see that we know the difference between a customer and a hypothesis.</p>
+</div>
+
+<div class="col">
+  <h3>Competitive environment</h3>
+  <p>Our advantage is coverage, not features. Every alternative solves one stretch of the path and stops at a handoff, and the handoff is where families are lost.</p>
+</div>
+
+<div class="tbl">
+<table>
+<caption>Table 3. What each alternative covers, and where it stops</caption>
+<thead><tr><th style="width:30%">Category</th><th class="num">Assess<br>needs</th><th class="num">Find aid and<br>insurance</th><th class="num">Match<br>providers</th><th class="num">Establish<br>care</th><th class="num">Staff<br>the care</th></tr></thead>
+<tbody>
+<tr><td><strong>CareNavigator</strong><br><span style="color:var(--muted);font-weight:400">navigation plus new workforce</span></td><td class="num" style="color:var(--pine)">✓</td><td class="num" style="color:var(--pine)">✓</td><td class="num" style="color:var(--pine)">✓</td><td class="num" style="color:var(--pine)">✓</td><td class="num" style="color:var(--pine)">✓</td></tr>
+<tr><td>Public information services<br><span style="color:var(--muted);font-weight:400">Eldercare Locator, BenefitsCheckUp</span></td><td class="num" style="color:var(--pine)">✓</td><td class="num" style="color:var(--pine)">✓</td><td class="num" style="color:var(--clay)">✗</td><td class="num" style="color:var(--clay)">✗</td><td class="num" style="color:var(--clay)">✗</td></tr>
+<tr><td>General AI assistants</td><td class="num" style="color:var(--pine)">✓</td><td class="num" style="color:var(--pine)">✓</td><td class="num" style="color:var(--clay)">✗</td><td class="num" style="color:var(--clay)">✗</td><td class="num" style="color:var(--clay)">✗</td></tr>
+<tr><td>Human navigators<br><span style="color:var(--muted);font-weight:400">social workers, discharge planners</span></td><td class="num" style="color:var(--pine)">✓</td><td class="num" style="color:var(--pine)">✓</td><td class="num" style="color:var(--pine)">✓</td><td class="num" style="color:var(--pine)">✓</td><td class="num" style="color:var(--clay)">✗</td></tr>
+<tr><td>Referral marketplaces<br><span style="color:var(--muted);font-weight:400">A Place for Mom, Caring.com</span></td><td class="num" style="color:var(--pine)">✓</td><td class="num" style="color:var(--clay)">✗</td><td class="num" style="color:var(--pine)">✓</td><td class="num" style="color:var(--clay)">✗</td><td class="num" style="color:var(--clay)">✗</td></tr>
+<tr><td>Staffing channels<br><span style="color:var(--muted);font-weight:400">agencies, job boards, gig platforms</span></td><td class="num" style="color:var(--clay)">✗</td><td class="num" style="color:var(--clay)">✗</td><td class="num" style="color:var(--clay)">✗</td><td class="num" style="color:var(--clay)">✗</td><td class="num" style="color:var(--pine)">✓</td></tr>
+</tbody>
+</table>
+<p class="tnote">Human navigators are excellent and cover four of five. They are also scarce, episodic, and cannot be scaled by hiring, which is the same workforce constraint from a different direction. Staffing channels move workers between employers, so one provider's hire is another's vacancy and the shortage does not shrink.</p>
+</div>
+
+<div class="col">
+  <h3>Related development efforts in academia and industry</h3>
+  <p>Most of the relevant science is settled, and what remains open is operational. That distinction is the reason this is a commercialization award and not a trial.</p>
+  <ul>
+    <li><strong>Unmet need research</strong> (NHATS, Medicare-linked cohorts) establishes that unmet daily-activity needs predict emergency use, readmission, placement, and mortality. We take this as settled and measure care established, not clinical endpoints.</li>
+    <li><strong>Home-based support trials</strong> (CAPABLE, Johns Hopkins) show function-focused home support reduces disability with Medicaid savings well above program cost. What no trial addresses is how a family outside a trial finds such support, funds it, and gets it started. CareNavigator is the front door those programs assume already exists.</li>
+    <li><strong>Digital caregiver tools and AI</strong>, including four peer-reviewed studies of our own, establish that caregiver platforms can be built and measured as usable and accepted. What remains open is whether agents can complete applications and follow a case to a decision.</li>
+    <li><strong>Payer-funded navigation</strong> is no longer hypothetical. The Medicare GUIDE model began in July 2024 and pays participants for care navigation, caregiver support, and respite in dementia <span class="tag t-v">Verified</span>. The open question is whether navigation beyond dementia is paid the same way.</li>
+    <li><strong>Health-professions pipeline research</strong> establishes that admission to these programs requires documented patient-care hours. Whether that requirement converts into durable eldercare capacity is what Aim 2 tests.</li>
+  </ul>
+
+  <h3>Hurdles to adoption</h3>
+  <p>The primary hurdle is local density at a cost the market sustains. Families, providers, and caregivers must concentrate in the same market, and that market's revenue must cover the cost of bringing them together. Four specific hurdles follow, each with its mitigation and the aim that tests it: families must trust AI with care decisions (answers come from an expert-curated database audited by domain experts; Aim 1 validates acceptance under IRB); providers are wary of platforms (they start free and pay only after value is delivered; Aim 3 measures conversion and churn under real billing); new caregivers must be safe and welcome (licensed providers hire, train, insure, and supervise them as employees; Aim 2 measures the pathway end to end); and every market must repeat affordably (self-service portals and a documented playbook; Aims 1 and 2 measure acquisition cost per market).</p>
+</div>
+
+<!-- =================== INNOVATION =================== -->
+<div class="part col">
+  <div class="part-label">Research Strategy &nbsp;·&nbsp; Section 2</div>
+  <h2>Innovation</h2>
+  <p class="lede">Three departures. The first is the one no competitor can copy by building software, and it leads because it is the most consequential.</p>
+
+  <h3>1. Capacity created, not moved</h3>
+  <p>Every staffing channel that serves this industry, agencies, job boards, and gig platforms alike, competes for workers already in the direct-care market. One provider's hire is another provider's vacancy. The national shortage does not shrink by a single worker.</p>
+  <p>Olera adds people who were not in the field. The first population tested is health-professions students, chosen because admission to their programs requires documented patient-care hours, which makes recruitment structurally cheap: 263,800 health-professions degrees are conferred annually <span class="tag t-v">Verified</span> and our pilot drew more than 900 applicants <span class="tag t-v">Verified</span>. New cohorts arrive every semester, so the pipeline refills rather than depleting.</p>
+  <p><strong>But the innovation is not the student channel, which is copyable.</strong> It is the infrastructure underneath: the machinery that turns a person who has never worked in eldercare into someone a licensed provider will hire, and that carries their verified record of hours, competencies, populations served, supervisor evaluations, and credential status forward across employers. That layer is what makes <em>any</em> new worker pool viable, and it compounds with every shift worked. A Year 3 feasibility pilot in two campus-poor markets tests a second, non-student pool against the same pathway.</p>
+
+  <div class="bite">
+    <span class="cap">Reviewer sound bite</span>
+    <p>Every other channel in this industry competes for the same overextended workers. This one adds workers. That is the difference between redistributing a shortage and reducing it.</p>
+  </div>
+
+  <h3>2. Execution, not information</h3>
+  <p>The paradigm today is that tools inform and the family executes. A family is told which programs they may qualify for, and is then left to prepare applications, gather documents, file, wait, follow up, and confirm. They are lost at exactly those steps. Our agents do the work and the family decides, which changes the unit of success from information delivered to care established. Every completed case becomes training data for the next one.</p>
+
+  <h3>3. A record of what actually happens, which no public dataset contains</h3>
+  <p>This is the innovation we have been under-claiming. Three layers of information exist. The open web holds public directories and program rules, often neither accurate nor current, and it is available to any general-purpose AI. Beneath that sit local program realities and provider truths that were never published, which we assembled by field work and expert curation into more than 72,000 records and 700 guides <span class="tag t-v">Verified</span>. Beneath that sits a third layer that can only be learned from completed cases: what programs actually decide, county by county, where applications stall, whether capacity existed, and what care started.</p>
+  <p>No public dataset holds the third layer. NHATS is a survey. Claims data show what was billed, not what was needed and denied. What this project builds is the first longitudinal, county-level administrative record of what older adults need, what they qualify for, where the system fails them, and whether care was established.</p>
+
+  <div class="bite">
+    <span class="cap">Reviewer sound bite</span>
+    <p>A competitor who copies every feature starts with an empty database. More importantly, so does every researcher and every state agency, because this measurement does not currently exist anywhere.</p>
+  </div>
+  <p class="small"><strong>Note for Logan.</strong> This reframe is new and it is the boldest move in the package. It converts our weakest-scoring innovation into a scientific contribution NIA can value on its own terms, and it supplies the "societal, educational, and scientific benefits" the Commercialization Plan is required to describe. It also creates an obligation we should accept deliberately: if we claim it is measurement infrastructure, we should commit to publishing from it.</p>
+</div>
+
+<!-- =================== APPROACH =================== -->
+<div class="part col">
+  <div class="part-label">Research Strategy &nbsp;·&nbsp; Section 3</div>
+  <h2>Approach</h2>
+  <p class="lede">If someone gave us $4 million to determine whether this should become national care infrastructure, this is the experiment we would run.</p>
+
+  <h3>The one uncertainty that is left</h3>
+  <p>Two NIH awards and our own capital retired five commercial risks (Section 4). One remains, and it is the one research funding cannot buy: <strong>can a single local market pay for itself, and can we repeat it?</strong> Three aims answer that as one chain of evidence.</p>
+</div>
+
+<figure>
+<svg viewBox="0 0 960 250" role="img" aria-label="Three aims forming one chain of evidence">
+  <defs><marker id="a2" markerWidth="9" markerHeight="7" refX="8" refY="3.5" orient="auto"><path d="M0,0 L9,3.5 L0,7 z" fill="var(--pine)"/></marker></defs>
+  <text x="0" y="14" font-family="IBM Plex Sans, sans-serif" font-size="11.5" font-weight="600" letter-spacing="1.6" fill="var(--muted)">YEARS 1 TO 2, IN THE SAME MARKETS</text>
+  <text x="660" y="14" font-family="IBM Plex Sans, sans-serif" font-size="11.5" font-weight="600" letter-spacing="1.6" fill="var(--muted)">YEARS 2 TO 3</text>
+
+  <rect x="0" y="26" width="290" height="76" rx="3" fill="var(--surface)" stroke="var(--rule-2)"/>
+  <text x="16" y="50" font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="600" letter-spacing="1.2" fill="var(--pine)">AIM 1</text>
+  <text x="16" y="72" font-family="IBM Plex Sans, sans-serif" font-size="15" font-weight="600" fill="var(--ink)">Establish care reliably</text>
+  <text x="16" y="90" font-family="IBM Plex Sans, sans-serif" font-size="12.5" fill="var(--muted)">and prove it was established</text>
+
+  <rect x="0" y="132" width="290" height="76" rx="3" fill="var(--surface)" stroke="var(--rule-2)"/>
+  <text x="16" y="156" font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="600" letter-spacing="1.2" fill="var(--pine)">AIM 2</text>
+  <text x="16" y="178" font-family="IBM Plex Sans, sans-serif" font-size="15" font-weight="600" fill="var(--ink)">Add new caregivers</text>
+  <text x="16" y="196" font-family="IBM Plex Sans, sans-serif" font-size="12.5" fill="var(--muted)">and fill vacant jobs at licensed providers</text>
+
+  <path d="M145,104 L145,130" stroke="var(--rule-2)" stroke-width="1.2"/>
+  <text x="155" y="122" font-family="IBM Plex Sans, sans-serif" font-size="11.5" font-style="italic" fill="var(--muted)">family demand makes staffing worth buying</text>
+
+  <path d="M292,64 L360,64 L360,117 L420,117" fill="none" stroke="var(--pine)" stroke-width="1.6" marker-end="url(#a2)"/>
+  <path d="M292,170 L360,170 L360,117" fill="none" stroke="var(--pine)" stroke-width="1.6"/>
+  <text x="300" y="52" font-family="IBM Plex Sans, sans-serif" font-size="11.5" fill="var(--pine)">gate: 85% panel agreement,</text>
+  <text x="300" y="66" font-family="IBM Plex Sans, sans-serif" font-size="11.5" fill="var(--pine)">errors under 10%</text>
+  <text x="300" y="192" font-family="IBM Plex Sans, sans-serif" font-size="11.5" fill="var(--pine)">gate: staffing path completes end to end</text>
+
+  <rect x="424" y="74" width="300" height="86" rx="3" fill="var(--pine-soft)" stroke="var(--pine)"/>
+  <text x="440" y="98" font-family="IBM Plex Sans, sans-serif" font-size="12" font-weight="600" letter-spacing="1.2" fill="var(--pine)">AIM 3</text>
+  <text x="440" y="120" font-family="IBM Plex Sans, sans-serif" font-size="15" font-weight="600" fill="var(--ink)">Do providers pay, and</text>
+  <text x="440" y="138" font-family="IBM Plex Sans, sans-serif" font-size="15" font-weight="600" fill="var(--ink)">do the economics hold?</text>
+  <text x="440" y="152" font-family="IBM Plex Sans, sans-serif" font-size="12" fill="var(--muted)">tested against the cost of serving families</text>
+
+  <line x1="726" y1="117" x2="768" y2="117" stroke="var(--pine)" stroke-width="1.6" marker-end="url(#a2)"/>
+  <rect x="772" y="74" width="188" height="86" rx="3" fill="var(--surface)" stroke="var(--ink)"/>
+  <text x="866" y="102" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="13.5" font-weight="600" fill="var(--ink)">A product that works</text>
+  <text x="866" y="122" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="13.5" font-weight="600" fill="var(--ink)">A model that repeats</text>
+  <text x="866" y="142" text-anchor="middle" font-family="IBM Plex Sans, sans-serif" font-size="13.5" font-weight="600" fill="var(--ink)">Evidence they can check</text>
+</svg>
+<figcaption><span class="fignum">Figure 3.</span> The aims are a causal chain, not parallel workstreams. Aim 1 without Aim 2 routes demand at a supply side that cannot absorb it. Aim 3 is meaningless without both.</figcaption>
+</figure>
+
+<div class="col">
+  <h3>Market design, derived rather than chosen</h3>
+  <p>We reopened this question from first principles rather than carrying forward a number. Two findings changed the answer.</p>
+  <p><strong>First, the statistical requirement was overstated roughly threefold.</strong> The prior derivation called for 300 <em>paying</em> accounts. A price experiment randomizes accounts that receive an <em>offer</em>; conversion is the outcome. At an expected 35 percent conversion, 180 offers yields about 63 paying accounts. <strong>Second, we do not need a hypothesis test.</strong> A business must choose a price under a pre-registered rule, which is estimation, not null rejection. Estimating conversion to a 95 percent interval of plus or minus 12 points at three price points needs about 180 offers total, and an adaptive design that drops a dominated arm at interim needs fewer.</p>
+  <p>Statistics is therefore not the binding constraint. Replication is.</p>
+</div>
+
+<div class="tbl">
+<table>
+<caption>Table 4. Deriving the number of markets</caption>
+<thead><tr><th style="width:30%">Requirement</th><th style="width:40%">What it demands</th><th style="width:30%">Markets implied</th></tr></thead>
+<tbody>
+<tr><td>Price is chosen, not guessed</td><td>~180 accounts offered a price across 3 arms, adaptive, pre-registered decision rule</td><td>4 to 6 at realistic provider density</td></tr>
+<tr><td>Unit economics measured, not modeled</td><td>Enough paying accounts to estimate CAC, LTV, churn, and margin from live billing</td><td>4 to 6</td></tr>
+<tr><td>The playbook replicates</td><td>2x2 design on the axes that matter (campus-rich vs campus-poor, metro vs small-metro/rural), <strong>2 markets per cell</strong> so within-cell variance is estimable</td><td><strong>8 replication markets</strong></td></tr>
+<tr><td>Depth, instrumentation, IRB studies</td><td>Sites with existing traffic and provider base, opened first, deeply instrumented</td><td><strong>2 anchor markets</strong></td></tr>
+<tr><td>Payer evidence</td><td>Episode density inside a payer footprint, not spread thin</td><td>Composition, not count: 6 of the 10 sit as two clusters of 3</td></tr>
+<tr><td>Operational feasibility</td><td>Staged entry a small distributed team can actually run</td><td>2 in Year 1, 4 in Year 2, 4 in Year 3</td></tr>
+<tr class="tot"><td>Derived total</td><td>2 anchors plus 8 replication markets, staged 2 / 4 / 4</td><td>10 markets</td></tr>
+</tbody>
+</table>
+<p class="tnote">Socioeconomic status becomes a measured stratification variable rather than a third design axis, because three axes at two levels each gives eight cells with one market apiece and no way to separate market effect from noise. Two axes with two markets per cell is a stronger design at the same count. If budget forces a cut, the defensible reduction is to six, accepting one market per cell; the anchors and the payer clusters are the last things to go.</p>
+</div>
+
+<div class="col">
+  <div class="callout">
+    <h4>Why $4 million, and why not incremental funding</h4>
+    <p class="small" style="margin-bottom:.7em">Market entry is about 7.5 percent of this budget. The money is the build, and the build cannot be staged across small awards because the three aims must run concurrently in the same markets to mean anything.</p>
+    <p class="small" style="margin-bottom:0"><strong>Illustrative allocation</strong> <span class="tag t-a">Assumed</span>: agent execution and workforce infrastructure engineering, roughly $900K. Company personnel scaling from the current team, roughly $1.5M. Clemson subaward for three IRB studies and quarter-time Co-I effort, roughly $450K. Market entry and acquisition across 10 markets, roughly $500K. Payer data-use agreements, linkage, and cost modeling, roughly $250K. Operations and call center scaling, roughly $250K. Independent economic rebuild, IP, and audit, roughly $150K.</p>
+  </div>
+
+  <h3>The three aims in detail</h3>
+</div>
+
+<div class="tbl">
+<table>
+<caption>Table 5. Aims, measures, and quantitative milestones</caption>
+<thead><tr><th style="width:14%">Aim</th><th style="width:34%">What is measured</th><th style="width:22%">Milestone</th><th style="width:30%">Uncertainty removed</th></tr></thead>
+<tbody>
+<tr><td><strong>Aim 1</strong><br>Years 1-2</td><td>Agreement with a blinded expert panel<br>Material errors against the gold standard<br>Scheduled follow-ups sent on due date<br>Usability and trust (IRB, n=25)<br>Outcome ascertainment at the pre-specified window<br>Cost per established case from live records</td><td class="num" style="text-align:left">≥85%<br>≤10%<br>≥95%<br>SUS 72+, trust 5 of 7<br>≥80%<br>recalculated, falling</td><td>Whether the system can carry a household to established care at a quality a professional would sign, at a cost that falls</td></tr>
+<tr><td><strong>Aim 2</strong><br>Years 1-3</td><td>Workers new to care work, measured at intake<br>Accounts reaching a first verified paid shift<br>Provider and worker satisfaction, reconciled counts<br>Acceptability, appropriateness, feasibility (IRB)<br>Providers with repeat shift use at 60 days<br>Worker retention at 90 days and 12 months</td><td class="num" style="text-align:left">reported<br>≥70%<br>reported<br>≥4.0<br>≥50%<br>reported by cohort</td><td>Whether the people we place are new to the workforce, whether they stay, and whether providers get value from the hire</td></tr>
+<tr><td><strong>Aim 3</strong><br>Years 2-3</td><td>Conversion at each randomized offer price<br>Cost to serve one paying account<br>Lifetime value against acquisition cost<br>Payback period<br>Per-market margin after cost of serving families<br>Independent rebuild from billing records</td><td class="num" style="text-align:left">estimated, ±12pp<br>from real billing<br>≥3:1 over 12 months<br>&lt;12 months<br>positive<br>delivered</td><td>Whether providers will pay for the staffing product, remain customers, and generate a sustainable margin that repeats across market types</td></tr>
+</tbody>
+</table>
+<p class="tnote">Aim 3 prices start from what providers already paid us, roughly $275 a month or $150 per hire, and the experiment finds what they will actually pay. We do not test arbitrary prices. Providers pay nothing during Aim 2; the conversion cohort comes from those free pilots and a separate paid-entry cohort pays from first contact.</p>
+</div>
+
+<div class="col">
+  <div class="callout warn">
+    <h4>The uncertainty that could kill the thesis, named out loud</h4>
+    <p class="small" style="margin-bottom:.7em">If new-entrant caregivers do not stay long enough to be worth more to a provider than they cost to acquire, providers will not pay twice, and the commercial model fails regardless of how well navigation performs. That is the single greatest risk in this project, it is why Aim 2 measures retention at both 90 days and 12 months, and it is why Aim 2 runs from Year 1 rather than waiting for Aim 1 to finish.</p>
+    <p class="small" style="margin-bottom:0"><strong>Stop rule.</strong> If at month 24 fewer than 40 percent of placed workers remain in direct care at 90 days <em>and</em> paid conversion is below 20 percent at every offered price, we will report the provider-funded model as disconfirmed, halt market expansion, and redirect remaining effort to completing the payer evidence package. We would rather publish that result than spend Year 3 defending it.</p>
+  </div>
+
+  <h3>What this award proves, and what it only prepares</h3>
+  <p>A risk-bearing organization needs six things before it will contract. This award delivers five and refuses the sixth, and the refusal is what makes the first five credible.</p>
+</div>
+
+<figure>
+<svg viewBox="0 0 960 210" role="img" aria-label="Six things a payer requires, five delivered by the award and one beyond it">
+  <g font-family="IBM Plex Sans, sans-serif">
+    <rect x="0" y="30" width="700" height="4" fill="var(--pine)"/>
+    <text x="0" y="18" font-size="11.5" font-weight="600" letter-spacing="1.6" fill="var(--pine)">DELIVERED BY THIS AWARD</text>
+    <text x="724" y="18" font-size="11.5" font-weight="600" letter-spacing="1.6" fill="var(--clay)">BEYOND IT</text>
+    <rect x="724" y="30" width="236" height="4" fill="var(--clay)"/>
+    <g font-size="12.5" fill="var(--ink-2)">
+      <text x="0" y="58" font-weight="600" fill="var(--ink)">1</text><text x="0" y="78">A measured case with</text><text x="0" y="94">verified establishment</text><text x="0" y="118" fill="var(--muted)">Aim 1</text>
+      <text x="145" y="58" font-weight="600" fill="var(--ink)">2</text><text x="145" y="78">A way to match their</text><text x="145" y="94">members to our cases</text><text x="145" y="118" fill="var(--muted)">Aim 3</text>
+      <text x="290" y="58" font-weight="600" fill="var(--ink)">3</text><text x="290" y="78">Linkage to their own</text><text x="290" y="94">claims records</text><text x="290" y="118" fill="var(--muted)">Aim 3</text>
+      <text x="425" y="58" font-weight="600" fill="var(--ink)">4</text><text x="425" y="78">Outcomes they value:</text><text x="425" y="94">aid secured, time to care</text><text x="425" y="118" fill="var(--muted)">Aim 1</text>
+      <text x="580" y="58" font-weight="600" fill="var(--ink)">5</text><text x="580" y="78">A cost model for what</text><text x="580" y="94">that care is worth</text><text x="580" y="118" fill="var(--muted)">Aim 3</text>
+    </g>
+    <rect x="724" y="46" width="236" height="86" rx="3" fill="var(--clay-soft)" stroke="var(--clay)" stroke-dasharray="6 4"/>
+    <text x="740" y="70" font-size="12.5" font-weight="600" fill="var(--clay)">6</text>
+    <text x="740" y="92" font-size="12.5" fill="var(--clay)">Proof it lowers hospital use</text>
+    <text x="740" y="108" font-size="12.5" fill="var(--clay)">and institutional placement</text>
+    <text x="740" y="126" font-size="11.5" font-style="italic" fill="var(--clay)">the first post-award study</text>
+    <line x1="712" y1="46" x2="712" y2="180" stroke="var(--ink)" stroke-width="1.5"/>
+    <text x="704" y="172" text-anchor="end" font-size="11.5" font-weight="600" letter-spacing="1.4" fill="var(--ink)">THE AWARD ENDS HERE</text>
+  </g>
+</svg>
+<figcaption><span class="fignum">Figure 4.</span> We will not claim this award proves reductions in hospitalization or institutionalization, because the design does not establish those causal effects. It produces exactly what a payer needs in order to fund the study that would.</figcaption>
+</figure>
+
+<div class="col">
+  <h3>Human subjects, and the clinical-trial line</h3>
+  <p>Three bounded IRB studies, one per aim, conducted through Clemson: family-caregiver usability and trust (Aim 1, n=25); provider and worker acceptability, appropriateness, and feasibility (Aim 2); and a small qualitative adoption and price-fairness component (Aim 3). Everything else is operational and commercial evidence from platform, billing, and employment records.</p>
+  <p>The project stays outside the NIH clinical-trial definition by design. No one is prospectively assigned to receive or not receive navigation. Health-related outcomes appear only as secondary observational measures on a cohort that all receives the service. Price arms are assigned to business accounts and the outcome is a purchase, not a health outcome. Worker-facing research is firewalled from employment decisions in the protocol. Determinations are obtained rather than assumed, including for the streams we expect to be non-human-subjects research, and every determination is listed so a reviewer does not have to guess.</p>
+
+  <h3>Regulatory plan</h3>
+  <p>No FDA pathway applies. The product is navigational and administrative software that does not diagnose, treat, or make clinical decisions, so it is not a medical device and no premarket authorization gates commercialization. What does govern is addressed explicitly: HIPAA-aligned privacy safeguards; marketing and referral practice, where charging no fee for a referral means no steering incentive exists; employment and supervision, where licensed providers employ, train, insure, and supervise every worker; and payer linkage, which requires a data-use agreement and an IRB determination before any record is joined.</p>
+
+  <h3>Technical assistance and oversight</h3>
+  <p>Three external providers, each with defined deliverables and integration mechanics. <strong>Clemson University</strong> (Qiping Fan, PhD, Co-I at quarter time) designs and executes the three IRB studies and holds the human-subjects protocols. <strong>An independent financial analyst</strong>, engaged in Year 3, rebuilds the unit economics from raw billing and cost records without access to our model, which is the difference between an audited number and a claimed one. <strong>Actuarial consultation</strong> supports the payer cost model. Oversight runs through a weekly operating review and a quarterly milestone review against the gates in Table 5, with the PI accountable for integration and go/no-go decisions.</p>
+</div>
+
+<div class="tbl">
+<table>
+<caption>Table 6. What exists on May 31, 2030 that does not exist today</caption>
+<thead><tr><th style="width:34%">Asset</th><th style="width:33%">Today</th><th style="width:33%">At award end</th></tr></thead>
+<tbody>
+<tr><td>Care establishment</td><td>Families are matched to aid and providers, then execute alone</td><td>An agent system that files, follows up, and confirms, verified at 85 percent agreement with blinded expert review</td></tr>
+<tr><td>Workforce supply</td><td>A manually run pilot: 900+ applicants, 20+ placed, 3 providers paid</td><td>An instrumented pipeline with a portable verified worker record, retention measured at 90 days and 12 months, and one non-student pool tested</td></tr>
+<tr><td>Price</td><td>Two hypotheses from what three providers paid</td><td>A price chosen under a pre-registered rule from randomized offers under real billing</td></tr>
+<tr><td>Unit economics</td><td>Modeled</td><td>Measured from live billing and rebuilt independently by an outside analyst</td></tr>
+<tr><td>Market model</td><td>One market's worth of organic activity</td><td>A playbook run as written in 10 markets across 4 market types, with variance reported</td></tr>
+<tr><td>Payer readiness</td><td>Customer discovery conversations</td><td>Signed data-use agreements, demonstrated claims linkage at a pre-specified match rate, a delivered cost model, and intermediate outcomes</td></tr>
+<tr><td>Measurement</td><td>No public dataset records unmet need and resolution at county level</td><td>A longitudinal county-level record of what was needed, what qualified, where it stalled, and what care started</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- =================== CRP PROGRESS REPORT =================== -->
+<div class="part col">
+  <div class="part-label">Research Strategy &nbsp;·&nbsp; Section 4</div>
+  <h2>CRP Progress Report</h2>
+  <p class="lede">NIH asks how past and ongoing activities, including those beyond the Phase II scope, mitigate commercialization risk and enable third-party investment. Five risks are retired. One is not, and it is the one that cannot be retired with research funds.</p>
+</div>
+
+<div class="tbl">
+<table>
+<caption>Table 7. Risks retired, and by whom</caption>
+<thead><tr><th style="width:16%">Risk</th><th style="width:19%">Retired by</th><th style="width:65%">Evidence</th></tr></thead>
+<tbody>
+<tr><td><strong>Technical</strong><br><span style="color:var(--muted);font-weight:400">Could the data be assembled?</span></td><td>NIA Phase I to IIB</td><td>A national database of more than 72,000 aid programs and providers across all fifty states, and an eldercare AI that runs on it. Production integration of the agent system is underway in the remaining Phase IIB year. <span class="tag t-v">Verified</span></td></tr>
+<tr><td><strong>User</strong><br><span style="color:var(--muted);font-weight:400">Would families accept it?</span></td><td>NIA Phase I to IIB</td><td>Four peer-reviewed studies. Usability 4.57 of 5 (n=30); technology acceptance 5.83 of 7 after four weeks of independent use (n=65); the multi-agent version 5.73 of 7 (n=31, in preparation). <span class="tag t-v">Verified</span></td></tr>
+<tr><td><strong>Demand</strong><br><span style="color:var(--muted);font-weight:400">Would families come, and at what cost?</span></td><td>Beyond Phase II scope, company funds</td><td>Organic visits grew from about 50 a day in 2023 to more than 500 today, roughly 15,500 a month, from nearly every county in the country, at near-zero acquisition cost. <span class="tag t-v">Verified</span></td></tr>
+<tr><td><strong>Supply</strong><br><span style="color:var(--muted);font-weight:400">Would providers show up?</span></td><td>I-Corps and company funds</td><td>More than 300 customer-discovery conversations with owners and operators through NIH and NSF I-Corps. More than 700 providers have since claimed their listing for free, with roughly 150 more each month. <span class="tag t-v">Verified</span></td></tr>
+<tr><td><strong>Workforce and willingness to pay</strong><br><span style="color:var(--muted);font-weight:400">Could we recruit caregivers, and would anyone pay?</span></td><td>Beyond Phase II scope, company funds</td><td>A student caregiver pilot drew more than 900 applicants and placed more than 20 into provider jobs. Four providers trialed the staffing product and <strong>three paid</strong>, at roughly $50 to $275 per hire and $275 a month, <strong>across multiple semesters</strong>. Delivery was manual, which capped scale; this award builds the infrastructure that removes the cap. <span class="tag t-v">Verified</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="col">
+  <div class="callout" style="border-left:3px solid var(--clay);background:var(--clay-soft)">
+    <h4 style="color:var(--clay)">The risk that remains</h4>
+    <p style="margin-bottom:0"><strong>Can one local market pay for itself, and can we repeat it?</strong> Nine years of federal and company investment bought everything above. It did not buy this, because it cannot be bought. It has to be measured in real markets with real money changing hands, over a period long enough for retention and churn to be observed. That is Aims 1, 2, and 3.</p>
+  </div>
+  <p class="small">Two of the five risks were retired outside the Phase II scope, with I-Corps support and our own capital. In a program that scores commercialization initiative, that distinction is the point rather than a footnote. And NIH's own prior peer review has already assessed this technology's commercial potential as extremely high <span class="tag t-a">Assumed</span>.</p>
+</div>
+
+<!-- =================== COMMERCIALIZATION PLAN =================== -->
+<div class="part col">
+  <div class="part-label">Attachment 3</div>
+  <h2>Commercialization Plan</h2>
+  <p class="lede">Eleven sections in the order the SF424 and the NOFO jointly require. Compressed here to the answers, not the prose.</p>
+
+  <h3>1. Statement of Need</h3>
+  <p><strong>The Valley of Death.</strong> Olera has a validated technology and demonstrated demand, and no proof that a market pays for itself. Investors price that gap as unfinanceable: the evidence they require is generated only by operating at commercial scale, and operating at commercial scale requires the capital they will not commit until the evidence exists.</p>
+  <p><strong>Why federal funding, specifically.</strong> Three activities in this plan would not otherwise happen. Running a price experiment that can fail, and publishing the result, is something no venture-backed company does. Concentrating families, providers, and a new workforce in markets deliberately chosen to include the ones where the model should struggle is the opposite of what growth capital funds. And building the payer evidence package for products that generate no revenue during the award is a three-year investment with no near-term return.</p>
+
+  <div class="bite">
+    <span class="cap">Reviewer sound bite</span>
+    <p>Private capital would fund us to grow where it already works. Only federal funding will pay us to find out where it does not.</p>
+  </div>
+
+  <h3>2. Value of the Project, Expected Outcomes, and Impact</h3>
+  <p>The product is CareNavigator plus the workforce infrastructure that makes its output deliverable. Current approaches fail because each solves one stretch of the path and stops at a handoff. Commercially, the award produces a validated provider-funded revenue model and an investor-ready evidence package. Non-commercially, it produces the first county-level longitudinal record of eldercare need and resolution, which we commit to publishing from, and a pathway that brings new workers into a field short 9.7 million openings while giving health-professions students the documented patient-care hours their training requires.</p>
+
+  <h3>3. Company</h3>
+  <p>Olera, Inc. is a fully virtual company: two full-time and two part-time employees, engineering and marketing support, a two-person call center, and contract staff <span class="tag t-v">Verified</span>. Being virtual is an operating advantage for a geographically distributed project, and it is why market entry costs what it does. Funding history is approximately $2.7M in NIA SBIR awards. There is no recurring commercial revenue today and no venture capital raised. Management scales with the award into commercial operations, market management, and workforce operations roles.</p>
+
+  <h3>4. SBIR/STTR Commercialization History</h3>
+  <p>No name changes, not a subsidiary or spin-off. Substantially all revenue in each of the past five years derived from SBIR funding, reported year by year <span class="tag t-a">Assumed</span>. Two Phase II awards. Revenue generated to date from commercialization of SBIR-funded projects is limited to paid staffing pilots. We state this plainly rather than dressing it: the prior awards were research awards, the technology they produced works and has been independently praised for its commercial potential, and this application exists precisely because converting that technology into revenue is the step that has not yet been funded.</p>
+
+  <h3>5. Market, Customer, and Competition</h3>
+  <p>Segments and customers are Table 2; competition is Table 3; ROI is Table 1. The serviceable market for the beachhead is auditable rather than asserted: roughly 165,000 eldercare provider organizations spending at least $5 billion a year on marketing and recruiting, an estimate built entirely from published low-end inputs <span class="tag t-v">Verified</span>. The broader opportunity sits at the intersection of senior care and LTSS, family caregiving, provider client acquisition, caregiver staffing, benefits enrollment, and health-plan cost reduction, but our projections rest on the auditable denominator, not the intersection.</p>
+
+  <h3>6. Intellectual Property Protection</h3>
+  <p>We hold no patents and do not expect the software to be patentable in a way that would matter. We say so directly, because a reviewer will conclude it anyway. The defensible barriers are temporal and compounding: an expert-curated database assembled over nine years that a competitor must rebuild from scratch; a case-outcome record that only accrues by operating; organic search position built over three years; and a multi-employer worker record whose value rises with each employer on it. Trade secret protection, database rights, and contractual terms cover what is coverable.</p>
+
+  <h3>7. Finance Plan</h3>
+  <p>The $4 million is required from award start, roughly $1.3 million annually, allocated as in the Approach. Post-award, the company requires growth capital to expand beyond the validated markets at speed.</p>
+
+  <h3>8. Fundraising Plan</h3>
+  <p>Third-party funds are needed to scale, and we target a growth round at or above the $4 million NIH request. <span class="tag t-a">Assumed</span> An investor letter accompanying this application states the specific evidence required before a term sheet: measured unit economics rebuilt by an independent analyst, retention through 12 months, and replication across market types. That letter is the strongest available proof of both halves of our Valley of Death argument, namely that the capital does not exist today and that it does exist once this award produces its evidence.</p>
+  <p class="small"><strong>Reconciliation, stated explicitly.</strong> Earlier drafts argued both that private capital will not fund this and that post-award operating revenue could fund expansion without outside capital. Both are true at different speeds and the plan now says so: operating revenue can sustain the company and fund slow organic expansion, which is why this is not a bet on raising; growth capital determines whether national coverage takes five years or fifteen.</p>
+
+  <h3>9. Production and Marketing Plan</h3>
+  <p>Production is software operations, the curated database pipeline, and the call center. Marketing is two playbooks, family acquisition through organic search and local partners, and provider acquisition through direct outreach and self-service claiming. The playbooks are themselves a deliverable of Aims 1 and 2, documented so that market eleven can be opened by someone who did not open market one.</p>
+
+  <h3>10. Revenue Stream</h3>
+  <p>Recurring provider subscriptions and placement fees during and immediately after the award, with per-episode and per-member payer contracts as the post-award layer. Staffing revenue alone carries a market to self-funding in the model; every payer line is upside beyond the award. Staffing scales with market count and provider density, and headcount grows in market operations and workforce operations rather than in engineering, which is the shape that makes the model repeat.</p>
+
+  <h3>11. Project Management Plan</h3>
+  <p>The PI holds integration and go/no-go authority. Weekly operating review across the three aims; quarterly milestone review against the gates in Table 5; Clemson integrated through the Co-I with protocol authority and joint quarterly review. Market openings are staged 2 / 4 / 4 with a documented entry checklist and an explicit gate before each wave, so a failing wave stops expansion rather than propagating it.</p>
+</div>
+
+<div class="tbl">
+<table>
+<caption>Table 8. Team and execution capacity</caption>
+<thead><tr><th style="width:26%">Who</th><th style="width:30%">Role</th><th style="width:44%">Why a reviewer should believe it</th></tr></thead>
+<tbody>
+<tr><td>Tokunbo Falohun, PhD<br><span style="color:var(--muted);font-weight:400">PI</span></td><td>Integration, commercial operations, go/no-go</td><td>PI on two NIA awards scored 20 and 25, both delivered against milestones <span class="tag t-v">Verified</span></td></tr>
+<tr><td>Logan DuBose, MD, MBA<br><span style="color:var(--muted);font-weight:400">Co-Investigator</span></td><td>Product, growth, market operations</td><td>Clinical and commercial training; built the organic acquisition engine and the provider pipeline</td></tr>
+<tr><td>Qiping Fan, PhD<br><span style="color:var(--muted);font-weight:400">Co-Investigator, Clemson</span></td><td>Human subjects research, all three IRB studies, quarter time</td><td>Co-author on the peer-reviewed evaluation record; institutional IRB and research infrastructure <span class="tag t-v">Verified</span></td></tr>
+<tr><td>Marcia Ory, PhD<br><span style="color:var(--muted);font-weight:400">Advisor</span></td><td>Aging research, study design, dissemination</td><td>Texas A&amp;M professor with extensive NIH experience; co-author on the platform evaluation studies <span class="tag t-v">Verified</span></td></tr>
+<tr><td>David Qu<br><span style="color:var(--muted);font-weight:400">Advisor</span></td><td>Commercialization, investor readiness, go-to-market</td><td>Digital health operating and investor experience; has reviewed and pressure-tested this plan</td></tr>
+<tr><td>Company operations</td><td>2 FT, 2 PT, engineering and marketing support, 2-person call center, contract staff; scaling with the award</td><td>Fully virtual and already distributed, which is the operating model a 10-market project requires <span class="tag t-v">Verified</span></td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- =================== LETTERS =================== -->
+<div class="part col">
+  <div class="part-label">Attachment 4</div>
+  <h2>Letters of Support</h2>
+  <p class="lede">Designed as scored evidence rather than an appendix. Each letter has one job and a criterion it serves.</p>
+</div>
+
+<div class="tbl">
+<table>
+<caption>Table 9. The letter package</caption>
+<thead><tr><th style="width:24%">Signer</th><th style="width:46%">The load-bearing content</th><th style="width:30%">Serves</th></tr></thead>
+<tbody>
+<tr><td>Home care provider 1<br><span style="color:var(--muted);font-weight:400">multi-location franchise</span> <span class="tag t-a">Assumed</span></td><td>Trialed the staffing product across multiple semesters, paid for placements, and commits to purchase at $275 per month with demand for approximately 15 workers per semester once the scaled offering is available</td><td>Significance (market pull), CP criterion (revenue realism)</td></tr>
+<tr><td>Home care provider 2 <span class="tag t-a">Assumed</span></td><td>Paid during the pilot; states the alternative cost of hiring through existing channels and commits at a defined price and quantity</td><td>Significance, corroborates Table 1</td></tr>
+<tr><td>Assisted living community <span class="tag t-a">Assumed</span></td><td>Prior payment; intent to purchase at defined pricing; describes cases declined for want of staff</td><td>Significance (urgency of need)</td></tr>
+<tr><td>Investor <span class="tag t-a">Assumed</span></td><td>Names the specific evidence required before a term sheet, states that it does not exist today, and confirms the round would be at or above the NIH request</td><td>Fundraising criterion, Statement of Need</td></tr>
+<tr><td>Clemson University <span class="tag t-v">Verified as available</span></td><td>Confirms Co-I effort, IRB capacity, and research infrastructure for three studies</td><td>Environment, Approach (oversight)</td></tr>
+<tr><td>Marcia Ory, PhD <span class="tag t-a">Assumed</span></td><td>Advisory commitment; independent assessment of the significance of the workforce and navigation approach in aging services</td><td>Investigator, Environment</td></tr>
+<tr><td>David Qu <span class="tag t-a">Assumed</span></td><td>Advisory commitment; independent commercial assessment from someone who has pressure-tested the plan</td><td>Investigator, CP criterion</td></tr>
+<tr><td>University partner <span class="tag t-a">Assumed</span></td><td>Confirms student pipeline access and the patient-care-hours requirement that drives recruitment</td><td>Approach feasibility (Aim 2)</td></tr>
+<tr><td>GUIDE participant or risk-bearing organization <span class="tag t-s">Stretch</span></td><td>Interest in a post-award pilot contingent on the evidence package</td><td>CP criterion, Overall Impact</td></tr>
+</tbody>
+</table>
+<p class="tnote">The distinction that matters and that most applications blur: these are not letters expressing enthusiasm. Four of them document a trial, a payment, a price, and a quantity. That progression, trialed to paid to repeated to committed, is the evidence a commercialization panel is actually looking for.</p>
+</div>
+
+<!-- =================== WHY NOW =================== -->
+<div class="part col">
+  <div class="part-label">Synthesis</div>
+  <h2>Why NIH should fund this now</h2>
+  <p>America is not short of the resources to care for its aging population. It is short of the machinery to release them. Fifty-eight billion dollars of assistance goes unclaimed each year while families spend down to Medicaid. Hundreds of thousands of people would enter caregiving if a path existed, while providers turn away two of every three cases they cannot staff. Both failures produce the same outcome: a recognized need that never becomes established care, and a family that ends up in the hospital instead.</p>
+  <p>Nine years of NIA investment built the technology that closes the first gap and validated that families accept it. Our own capital, deployed beyond the Phase II scope, showed that families arrive by the thousand at almost no acquisition cost, that providers show up, and that providers will pay for new caregivers. Every risk that research money can retire has been retired.</p>
+  <p>One is left. Whether a local market pays for itself, and whether that repeats. It cannot be answered by more research, because it is only answerable with real customers paying real prices over a real retention window. And it cannot be answered by private capital, because private capital funds expansion where the model already works and will not fund the experiment that determines whether it does, least of all in the markets where it might not.</p>
+  <p>That is precisely the gap this program exists to close. Three years and $4 million buys a definitive answer: a product verified against expert review, a price chosen by experiment rather than assumption, unit economics an outside analyst rebuilt from records, a playbook run as written in ten markets across four market types, and the linkage and cost model that let institutional payers begin their own validation the day the award ends.</p>
+
+  <div class="bite" style="border-left-width:4px">
+    <p style="font-size:21px">If the answer is yes, NIH will have converted its own nine-year investment into national care infrastructure that runs on private revenue and stays free for families forever. If the answer is no, we will have determined that at a fraction of what the market would spend discovering it, and we will publish it. Either outcome is worth knowing, and only one funder will pay to find out.</p>
+  </div>
+</div>
+
+<!-- =================== ASSUMPTION REGISTER =================== -->
+<div class="part col">
+  <div class="part-label">Reality Check</div>
+  <h2>Assumption register</h2>
+  <p class="lede">Everything the version above borrows against reality, in one place, so you can weigh the whole load at once.</p>
+</div>
+
+<div class="tbl">
+<table>
+<caption>Table 10. What we are assuming, and how hard it is</caption>
+<thead><tr><th style="width:34%">Assumption</th><th style="width:16%">Difficulty</th><th style="width:50%">If it does not land</th></tr></thead>
+<tbody>
+<tr><td>2 to 4 provider letters with defined price and quantity</td><td>Moderate</td><td><strong>The single most damaging loss.</strong> Significance drops from demonstrated pull to understood need. This is the load-bearing assumption of the whole package</td></tr>
+<tr><td>Investor letter engaging the $4M test</td><td>Moderate</td><td>Fundraising criterion weakens and the Valley of Death argument loses its cleanest proof</td></tr>
+<tr><td>Consolidated pilot invoice record</td><td>Low, but not yet done</td><td>The strongest row of the Progress Report becomes an assertion. This has been outstanding for over a week</td></tr>
+<tr><td>Phase IIB summary statement wording on commercial potential</td><td>Low</td><td>We lose a sentence written by NIH's own reviewers, which nothing we write can replace</td></tr>
+<tr><td>$80,080 home care cost, 43% with no retirement account, Medicaid two-thirds share</td><td>Low</td><td>TJ's opening loses its three sharpest numbers. Sources exist, they are not yet in our bibliography</td></tr>
+<tr><td>Billable rate and gross margin for the ROI revenue arm</td><td>Low</td><td>The ROI case keeps its cost-substitution arm, which uses only published inputs and is sufficient on its own</td></tr>
+<tr><td>Detailed budget, staffing, and PMP for 10 markets</td><td>Moderate, pure execution</td><td>The scope-versus-team attack lands unanswered. This is the most-cited weakness of ambitious small-company applications</td></tr>
+<tr><td>Refreshed claimed-provider count</td><td>Low</td><td>We cite a number dated 2026-08-05 in a September submission</td></tr>
+<tr><td>Marcia Ory and David Qu advisory letters</td><td>Low</td><td>Investigator and Environment lose independent corroboration</td></tr>
+<tr><td>University partner letter on student pipeline access</td><td>Low to moderate</td><td>Aim 2 feasibility rests on our own assertion</td></tr>
+<tr><td>GUIDE or payer letter of interest <span class="tag t-s">Stretch</span></td><td>High</td><td>Payers stay a horizon rather than a named near-term customer. Everything else survives</td></tr>
+</tbody>
+</table>
+<p class="tnote">Nothing above requires a completed study, a signed contract, a partnership that does not exist, or an outcome we have not observed. That was the constraint, and the package holds within it. Whether these are obtainable in nine days is a separate question from whether they are plausible, and it is the question the September 1 gate exists to answer.</p>
+</div>
+
+<!-- =================== MOCK REVIEW =================== -->
+<div class="part col">
+  <div class="part-label">Mock Review</div>
+  <h2>Summary statement</h2>
+  <p class="lede">Written after the package, against what is actually on the page. Reviewer voice, NIH 1 to 9 scale where 1 is exceptional.</p>
+
+  <h4>Overall impact</h4>
+  <p class="small">This application proposes to determine whether a validated eldercare navigation platform can be sustained by provider-funded revenue in concentrated local markets, and pairs that with an unusual workforce-expansion approach that adds new entrants to the direct-care labor pool rather than competing for existing workers. The problem is of high significance to NIA's mission and the applicant's understanding of both sides of the market is exceptional. The experimental design is more rigorous than is typical for a commercialization application, particularly the randomized offer-price experiment under real billing, the pre-registered decision rule, and the independent economic rebuild. The applicant's willingness to specify a stop rule and to state explicitly what the award does not prove is noted favorably by this reviewer. Enthusiasm is tempered by the company's pre-revenue status, an intellectual property position the applicant candidly describes as thin, and a scope that remains ambitious for the organization proposed.</p>
+</div>
+
+<div class="tbl">
+<table>
+<caption>Table 11. Criterion scores</caption>
+<thead><tr><th style="width:20%">Criterion</th><th class="num" style="width:8%">Score</th><th style="width:36%">Strengths</th><th style="width:36%">Weaknesses</th></tr></thead>
+<tbody>
+<tr><td>Significance</td><td class="num" style="font-size:18px;font-weight:600">2</td><td>Problem is of major importance to NIA. Market segments and customer needs are unusually well characterized. The provider ROI analysis uses the industry's own published acquisition-cost benchmark rather than applicant assumptions, which this reviewer found persuasive. Competitive analysis is honest and grants incumbents real strengths</td><td>Demonstrated market pull remains modest in absolute terms. Three paying pilot customers and a small number of letters is real evidence but a small base from which to project a national business</td></tr>
+<tr><td>Investigator</td><td class="num" style="font-size:18px;font-weight:600">3</td><td>PI has delivered two NIA awards at strong impact scores. Complementary team spanning clinical, commercial, and academic research. Advisory bench is credible and letters are specific rather than generic</td><td>No member of the team has previously commercialized a technology. For a commercialization readiness program this is a material gap. Company operations remain small relative to a 10-market execution plan</td></tr>
+<tr><td>Innovation</td><td class="num" style="font-size:18px;font-weight:600">3</td><td>The workforce-expansion argument is genuinely novel and correctly identified as the more consequential of the innovations. The distinction between adding workers and redistributing them is well made. The county-level outcome record is a real asset with scientific as well as commercial value</td><td>The AI navigation component, while well executed, is not technically novel in the current environment, and the application's defense rests on data assets rather than on technical departure. The applicant should not overstate this</td></tr>
+<tr><td>Approach</td><td class="num" style="font-size:18px;font-weight:600">2</td><td>Aims form a genuine causal chain with explicit gates. Market count is derived rather than asserted, and the applicant corrected an error in their own prior reasoning, which is a good sign. Pre-registration, adaptive design, independent rebuild, and a specified stop rule are all present. Human subjects scope is appropriately bounded and the clinical-trial boundary is well reasoned</td><td>Feasibility remains the central concern. Ten markets, three IRB studies, and two infrastructure builds in 36 months is aggressive for this organization even with the staged plan. The 90-day and 12-month retention endpoints, on which the commercial model depends, read out late relative to the pricing work</td></tr>
+<tr><td>Environment</td><td class="num" style="font-size:18px;font-weight:600">3</td><td>Clemson subaward is well integrated with defined deliverables. Fully distributed operating model is well suited to a multi-market project. Prior award performance is documented</td><td>Company remains pre-revenue with essentially all historical revenue from SBIR sources. Track record in commercializing prior SBIR projects is limited to pilot-scale payments</td></tr>
+<tr class="tot"><td>Overall impact</td><td class="num" style="font-size:20px">24</td><td colspan="2">Strong application addressing an important problem with a rigorous and honest design, limited by the company's commercial maturity rather than by the quality of the science or the plan</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="col">
+  <h4>What the panel's harshest critic writes</h4>
+  <div class="callout warn">
+  <p class="small" style="margin-bottom:.7em"><em>"I am not persuaded that $4 million is proportionate. At award end the applicant projects operating in ten counties with recurring revenue well under $1 million. The applicant argues that the evidence rather than the revenue is the deliverable, and I take the point, but a commercialization program is asked to judge influence on a market offering, and ten counties is not a market."</em></p>
+  <p class="small" style="margin-bottom:.7em"><em>"The entire commercial thesis depends on whether short-tenure health-professions students remain in direct care long enough to be worth their acquisition cost. The applicant deserves credit for naming this and for the stop rule, but the risk is not mitigated by naming it. If retention is poor, Aims 1 and 3 produce a well-measured negative result."</em></p>
+  <p class="small" style="margin-bottom:0"><em>"There is no patent position and the applicant says so. The stated barriers are a curated database and search position. Both are real and neither is durable against a well-capitalized entrant who decides this market is attractive, which the applicant's own analysis suggests it is."</em></p>
+  </div>
+
+  <h4>My read</h4>
+  <p class="small">A 24 is fundable at NIA in most rounds and is a genuine improvement on the low-to-mid 30s the current materials would earn. It is also short of the 10 to 20 you asked me to reach for, and I do not think the gap is a writing problem. Three things cap it: no prior commercialization, no IP, and a $4 million ask against a ten-county end state. The first two cannot be fixed before September 4. The third is a design choice we could still revisit.</p>
+  <p class="small">The most useful thing this exercise revealed is that <strong>the harshest critic's first paragraph is answerable and we have not answered it.</strong> The counter is that the deliverable is a validated, transferable market model plus the payer evidence package, and that the ten counties are an instrument rather than the outcome. That argument exists in our thinking and appears nowhere on the page as a direct rebuttal. Making it explicit is worth more than any other single edit available to us.</p>
+</div>
+
+</div>

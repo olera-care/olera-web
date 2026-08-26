@@ -119,6 +119,11 @@ interface ProviderDrawerProps {
   onContactFormSent?: (providerId: string, newSendCount: number) => void;
   // Call logged callback (updates call_count in local state for sorting)
   onCallLogged?: (providerId: string, newCallCount: number, latestStatus: string) => void;
+  // Navigation callbacks for prev/next provider
+  onPrevious?: () => void;
+  onNext?: () => void;
+  hasPrevious?: boolean;
+  hasNext?: boolean;
   // Current UI context
   activeTab?: string;
 }
@@ -2974,6 +2979,10 @@ export function ProviderDrawer({
   onClaimLinkSent,
   onContactFormSent,
   onCallLogged,
+  onPrevious,
+  onNext,
+  hasPrevious = false,
+  hasNext = false,
   activeTab,
 }: ProviderDrawerProps) {
   // Determine if we should show Follow Up section
@@ -3030,8 +3039,44 @@ export function ProviderDrawer({
     activeTab === "needs_call" ||
     activeTab === "call_exhausted";
 
+  // Navigation buttons for prev/next provider
+  const navigationExtras = (onPrevious || onNext) ? (
+    <div className="flex items-center gap-1">
+      <button
+        onClick={onPrevious}
+        disabled={!hasPrevious}
+        className={`p-1.5 rounded-md transition-colors ${
+          hasPrevious
+            ? "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            : "text-gray-300 cursor-not-allowed"
+        }`}
+        title="Previous provider"
+        aria-label="Previous provider"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+      <button
+        onClick={onNext}
+        disabled={!hasNext}
+        className={`p-1.5 rounded-md transition-colors ${
+          hasNext
+            ? "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            : "text-gray-300 cursor-not-allowed"
+        }`}
+        title="Next provider"
+        aria-label="Next provider"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+  ) : undefined;
+
   return (
-    <DrawerShell onClose={onClose} header={header} footer={actionsFooter}>
+    <DrawerShell onClose={onClose} header={header} headerExtras={navigationExtras} footer={actionsFooter}>
       <div className="py-2">
         {/* Call Script - show for Call & Confirm, Follow Up, and Call tabs */}
         {showCallScript && <CallScriptSection provider={provider} activeTab={activeTab} />}

@@ -7283,11 +7283,45 @@ export default function ProviderOutreachPage() {
       )}
 
       {/* Provider Detail Drawer */}
-      {drawerProvider && (
+      {drawerProvider && (() => {
+        // Compute navigation for prev/next provider within same city
+        const drawerCity = drawerProvider.city || "(No City)";
+        const cityProviders = providers
+          .filter((p) => (p.city || "(No City)") === drawerCity)
+          .sort((a, b) => {
+            // Apply same sorting as CityRow: in Follow Up tab, providers with calls go to bottom
+            if (activeTab === "needs_call") {
+              const aHasCalls = (a.call_count ?? 0) > 0;
+              const bHasCalls = (b.call_count ?? 0) > 0;
+              if (aHasCalls !== bHasCalls) {
+                return aHasCalls ? 1 : -1;
+              }
+            }
+            return a.provider_name.localeCompare(b.provider_name);
+          });
+        const currentIndex = cityProviders.findIndex((p) => p.provider_id === drawerProvider.provider_id);
+        const hasPrevious = currentIndex > 0;
+        const hasNext = currentIndex < cityProviders.length - 1 && currentIndex !== -1;
+        const handlePrevious = () => {
+          if (hasPrevious) {
+            setDrawerProvider(cityProviders[currentIndex - 1]);
+          }
+        };
+        const handleNext = () => {
+          if (hasNext) {
+            setDrawerProvider(cityProviders[currentIndex + 1]);
+          }
+        };
+
+        return (
         <ProviderDrawer
           provider={drawerProvider}
           onClose={() => setDrawerProvider(null)}
           activeTab={activeTab}
+          onPrevious={handlePrevious}
+          onNext={handleNext}
+          hasPrevious={hasPrevious}
+          hasNext={hasNext}
           onOutcomeRecorded={(providerId, stageChanged) => {
             if (stageChanged) {
               // Provider moved to a different stage - remove from current list
@@ -7509,7 +7543,8 @@ export default function ProviderOutreachPage() {
             );
           }}
         />
-      )}
+        );
+      })()}
     </div>
   );
 }

@@ -1710,6 +1710,7 @@ function EmailSendsSection({ provider }: { provider: OutreachProvider }) {
   const [emails, setEmails] = useState<EmailSendEntry[]>([]);
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Fetch email history when expanded
   useEffect(() => {
@@ -1718,14 +1719,23 @@ function EmailSendsSection({ provider }: { provider: OutreachProvider }) {
     let cancelled = false;
     async function fetchEmails() {
       setLoading(true);
+      setError(null);
       try {
         const res = await fetch(
           `/api/admin/provider-outreach/email-sends?provider_id=${encodeURIComponent(provider.provider_id)}`
         );
-        if (res.ok && !cancelled) {
-          const data = await res.json();
-          setEmails(data.emails || []);
-          setLoaded(true);
+        if (!cancelled) {
+          if (res.ok) {
+            const data = await res.json();
+            setEmails(data.emails || []);
+            setLoaded(true);
+          } else {
+            setError("Failed to load email history");
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          setError("Network error");
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -1741,6 +1751,7 @@ function EmailSendsSection({ provider }: { provider: OutreachProvider }) {
   useEffect(() => {
     setLoaded(false);
     setEmails([]);
+    setError(null);
   }, [provider.provider_id]);
 
   // Use actual count from API once loaded, otherwise estimate from provider data
@@ -1782,6 +1793,8 @@ function EmailSendsSection({ provider }: { provider: OutreachProvider }) {
             <div className="flex items-center justify-center py-4">
               <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
             </div>
+          ) : error ? (
+            <p className="text-sm text-red-500 py-2">{error}</p>
           ) : emails.length === 0 ? (
             <p className="text-sm text-gray-400 italic py-2">No emails sent yet</p>
           ) : (

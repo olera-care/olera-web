@@ -78,20 +78,38 @@ export async function GET(request: NextRequest) {
       const details = tp.details as {
         template_key?: string;
         trigger?: string;
-        to_email?: string;
+        source?: string;           // "smartlead" or undefined for Resend
+        email?: string;            // Used by auto-send-executor (Resend path)
+        to_email?: string;         // Alternative field name
+        recipient_email?: string;  // Used by SmartLead webhook
         open_count?: number;
         click_count?: number;
+        cadence_day?: number;
+        sequence_step?: number;    // SmartLead uses this instead of cadence_day
       } | null;
       const adminData = tp.admin_users as { display_name?: string } | null;
-      const templateKey = details?.template_key || "unknown";
+
+      // Determine template key - SmartLead doesn't include it, so derive from sequence_step
+      let templateKey = details?.template_key;
+      if (!templateKey && details?.sequence_step != null) {
+        // SmartLead sequence_step: 1=intro, 2=followup, 3=demand_loss, 4=final
+        const stepToTemplate: Record<number, string> = {
+          1: "intro",
+          2: "followup",
+          3: "demand_loss",
+          4: "final",
+        };
+        templateKey = stepToTemplate[details.sequence_step] || "unknown";
+      }
+      templateKey = templateKey || "unknown";
 
       return {
         id: tp.id,
         sent_at: tp.created_at,
         template_key: templateKey,
         template_label: TEMPLATE_LABELS[templateKey] || templateKey,
-        trigger: details?.trigger || "unknown",
-        to_email: details?.to_email || null,
+        trigger: details?.trigger || (details?.source === "smartlead" ? "smartlead" : "unknown"),
+        to_email: details?.email || details?.recipient_email || details?.to_email || null,
         open_count: details?.open_count ?? 0,
         click_count: details?.click_count ?? 0,
         admin_name: adminData?.display_name || null,

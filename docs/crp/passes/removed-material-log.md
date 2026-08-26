@@ -1143,3 +1143,15 @@ document is archived verbatim at `live-research-plan-2026-08-26.md`.
     **Future home: Commercialization Plan, to be re-derived from the eight-market paid
     design.** It was computed from a twelve-market design and a four-product suite that no
     longer exist, so carrying it forward would have been inheriting a stale number.
+
+70. **Table (market derivation): "How the number of markets follows from what the aims
+    have to measure."** Five rows deriving two free plus eight paid markets.
+    **Content moved into the Approach opening as prose.** The Aim 3 analysis rewrite
+    spelled the same design out in Task 3.2, so the table previewed prose that followed
+    rather than replacing prose. Removing it funded part of the five reviewer fixes.
+    Reversible: the table is still in `ideal-rs-src/tables2.py` as `T4_MARKETS`.
+
+71. **Approach closing list of the four things the award leaves behind.**
+    **Superseded by the three per-aim "what completing Aim N delivers" paragraphs**, which
+    say the same four things where each is earned. The closing keeps the proportionality
+    argument, which is its unique content.

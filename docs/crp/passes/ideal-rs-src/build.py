@@ -156,7 +156,7 @@ sig = sig.replace('<p class="sec"><b>What it costs, and who pays it.</b>',
 assert '<p class="sec"><b>Why information is not the bottleneck.</b>' in sig, 'SIG SECTION MISSING'
 _a1 = "so every larger agency is ahead from the first month.</p>"
 sig = splice(sig, _a1, tables2.T1, 'T1 ROI')
-sig = splice(sig, 'criticism of the incentives it creates.<sup>REF22</sup></p>', tables2.T2, 'T2 nav')
+sig = splice(sig, 'has drawn sustained criticism.<sup>REF22</sup></p>', tables2.T2, 'T2 nav')
 
 inn = body1.INNOVATION
 assert '<p class="sec first-sec"><b>Key Innovation 1: capacity created, not moved.</b>' in inn, 'FIG3 ANCHOR MISSING'
@@ -168,13 +168,12 @@ inn = inn.replace('<p class="sec"><b>Key Innovation 2:',
    '<p class="clearfix"></p><p class="sec"><b>Key Innovation 2:')
 
 app = body2.APPROACH_OPEN
-app = splice(app, 'then pilot it paid in eight new ones.</p>',
+app = splice(app, 'The award answers that in three stages (Figure 4).</p>',
    figblock(figs2.fig4(), 4, 'The three aims as one sequence. Each stage carries a gate, and Aim 2 produces every parameter that Aim 3 prices against.'), 'fig4')
-app = splice(app, 'operating attention, not capital.</p>', tables2.T4_MARKETS, 'T4')
 
 app += (body2.AIM1 + tables2.T5 + body2.PP1 + body2.AIM2 + tables2.T6 + body2.PP2
         + body2.AIM3 + tables2.T7 + body2.PP3 + body2.APPROACH_CLOSE)
-app = splice(app, 'At award end the independent rebuild is delivered.</p>',
+app = splice(app, 'and evidence is what we do not have.</p>',
    figblock(figs2.fig5(), 5, 'Three-year timetable, showing the sequencing among the aims, staged market entry, and the four formal decision points.'), 'fig5')
 
 prog = body2.PROGRESS

@@ -37,7 +37,7 @@ def fig4():
 
 def fig5():
     """7.0 x 2.44in. Three-year timetable."""
-    W,H=700,244
+    W,H=700,222
     b=[]
     x0=306
     qw=(W-x0-8)/12.0
@@ -71,7 +71,7 @@ def fig5():
         for q in range(1,12):
             b.append(f'<line x1="{x0+qw*q}" y1="{y+2}" x2="{x0+qw*q}" y2="{y+11.6}" stroke="#ffffff" stroke-width="0.8"/>')
         b.append(f'<rect x="{x0+qw*s}" y="{y+2}" width="{qw*(e-s)}" height="9.6" rx="2" fill="{col}" opacity="0.85"/>')
-        y+=11.4
+        y+=10.2
     for q,txt in [(4,"Month 12"),(7,"Month 21"),(10,"Month 30"),(12,"Award end")]:
         xx=x0+qw*q
         b.append(f'<line x1="{xx}" y1="38" x2="{xx}" y2="{y+5}" stroke="{RED}" stroke-width="1.3"/>')

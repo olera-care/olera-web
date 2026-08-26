@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from tables import T1, T2 as T2_NAV, T7 as _T7_RISKS
 # the risks table is the eighth in the re-based document
-T8_RISKS = _T7_RISKS.replace('<b>Table 7.</b>', '<b>Table 7.</b>')
+T8_RISKS = _T7_RISKS.replace('<b>Table 7.</b>', '<b>Table 6.</b>')
 
 # Table 2 caption updated to name it as the navigation side
 T2 = T2_NAV.replace('<b>Table 2.</b> Coverage of the path to care, by category of alternative.',
@@ -49,7 +49,7 @@ def metrics(num, aim, rows, note=None):
 <tbody>{r}</tbody></table>
 <p class="caption"><b>Table {num}.</b> Aim {aim} quantitative success criteria.</p>{n}"""
 
-T5 = metrics(4, 1, [
+T5 = metrics(3, 1, [
  ("Agreement with the blinded expert panel","&#8805; 85%","Quarterly stratified audit, Task 1.4"),
  ("Material errors against the expert gold standard","&#8804; 10%","Same audit"),
  ("Inter-rater reliability among panelists","&#954; &#8805; 0.70","Established before adjudication"),
@@ -61,25 +61,25 @@ T5 = metrics(4, 1, [
  ("Verified experience record populated for every placement","100%","Workforce system"),
 ], note="Gate: the first two criteria must be met at month 12 before Aim 2 activates.")
 
-T6 = metrics(5, 2, [
- ("Households reaching established aid or care","Reported with 95% CI","Confirmed start date, Task 2.2"),
+T6 = metrics(4, 2, [
+ ("Households reaching established aid or care","Estimated, &#177;5 pts","n = 400, confirmed start date, Task 2.2"),
  ("Outcome ascertainment at the pre-specified, category-specific window","&#8805; 80%","Task 2.2"),
  ("Task completion, with drop-off per step, held two cycles running","&#8805; 90% / &#8804; 10%","Task 2.2 funnel instrumentation"),
  ("Usability, System Usability Scale","&#8805; 72","Task 2.3, IRB, n = 25"),
  ("Trust in automation","&#8805; 5 of 7","Task 2.3, IRB"),
  ("Placed workers with no prior direct-care employment","Reported","Ascertained at intake, Task 2.4"),
- ("Worker retention at 90 days","Reported by cohort","Employment and verified-record data"),
+ ("Placed workers still in direct care at 90 days","&#8805; 50%","Employment and verified-record data"),
  ("Provider acceptability, appropriateness, feasibility","&#8805; 4.0 of 5","Task 2.5, IRB"),
  ("Cost to acquire and cost to serve","Measured, both sides","Task 2.6, time-driven activity-based costing"),
-], note="Gate: care established and the staffing path completing end to end, at month 21, before wave one opens.")
+], note="Gate at month 21, before wave one opens: the execution loops complete for both aid and services, and worker retention meets its bar.")
 
-T7 = metrics(6, 3, [
- ("Paid conversion within 60 days, by price arm","Estimated with 95% CI","Task 3.2, four arms across eight markets"),
+T7 = metrics(5, 3, [
+ ("Paid conversion within 60 days, by price arm","Estimated with 95% CI","Task 3.2, randomization inference across 8 markets"),
  ("Lifetime value against acquisition cost, 12 months","&#8805; 3 : 1","Task 3.3, restricted mean survival time"),
  ("Payback period on acquisition cost","&lt; 12 months","Task 3.3"),
  ("Per-market contribution margin after cost of serving families","Positive","Task 3.3"),
  ("Retention at 3, 6, 9, and 12 months","Reported by wave","Discrete-time survival, competing events"),
  ("Cost per activation, wave two against wave one","Falling","Task 3.1"),
- ("Provider value against prior-period family demand","Estimated with 95% CI","Task 3.3, market random effect"),
+ ("Provider value against prior-period family demand","Estimated with 95% CI","Task 3.3, market as fixed stratum"),
  ("Independent rebuild delivered, discrepancies reported","Delivered","Task 3.5"),
 ])

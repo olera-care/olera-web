@@ -8,10 +8,10 @@ his pass supersedes this text.
 
 SIGNIFICANCE = r"""
 <p class="sec first-sec"><b>The unmet need.</b> If we are fortunate, each of us will
-reach the point where we, or someone we love, needs help with the ordinary tasks of
-daily living: bathing, dressing, meals, medications, and moving safely through the
-home. Most families meet that moment at its worst, after a fall, a diagnosis, or a
-sudden hospitalization, and are expected to become experts in eldercare overnight.</p>
+reach the point where we, or someone we love, needs help with bathing, dressing, meals,
+medications, and moving safely through the home. Most families meet that moment at its
+worst, after a fall or a sudden hospitalization, and are expected to become experts in
+eldercare overnight.</p>
 
 <p>A recognized need becomes established care only if a family clears three gates
 (Figure 1). They must <b>find</b> the right care inside a fragmented ecosystem of public
@@ -72,11 +72,11 @@ providers, developed across NIA SBIR Phases I through IIB. It screens a househol
 and means and identifies the aid and services that fit. What this award adds is execution:
 agents that file the application or send the intake packet, follow up on a schedule, and
 confirm the date aid or care began. Alongside it, Olera recruits and verifies new
-caregivers and places them with licensed providers, who hire, train, insure, and supervise
-them as employees. <b>Only Caregiver Staffing is sold and priced during this award.</b>
+caregivers and places them with licensed providers, who employ, train, insure, and
+supervise them. <b>Only Caregiver Staffing is sold and priced during this award.</b>
 Families use CareNavigator at no cost, and no provider pays to be listed or to receive a
-family connection. Because no fee is charged for a referral, no steering incentive exists
-and federally reimbursed providers can participate, which pay-per-referral models cannot
+family connection. Charging no referral fee means no steering incentive exists and
+federally reimbursed providers can participate, which pay-per-referral models cannot
 accommodate.</p>
 
 <p class="sec"><b>Market segments and customers.</b> The beachhead customer is the
@@ -107,44 +107,40 @@ one stretch of the path and stops at a handoff, and the handoffs are where famil
 lost.</b> Human navigators are the strongest competitor and cover four of the five stages.
 They are also scarce, episodic, and cannot be scaled by hiring, which is the same workforce
 constraint from a different direction. Referral marketplaces charge placement fees, which
-determines who appears and has drawn sustained criticism of the incentives it
-creates.<sup>REF22</sup></p>
+determines who appears and has drawn sustained criticism.<sup>REF22</sup></p>
 
-<p>Caregiver Staffing competes against a different set of incumbents, and the same
-pattern holds. Job boards leave every screening decision to the provider, staffing
-agencies keep the worker as their own employee, and gig platforms fill a shift without
-filling a role. All three draw from the same constrained pool of people already in direct
-care. <b>None of them adds a caregiver to the field,</b> which is the distinction Key
-Innovation 1 develops.</p>
+<p>Caregiver Staffing faces a different set of incumbents and the same pattern holds. Job
+boards leave every screening decision to the provider, staffing agencies keep the worker as
+their own employee, and gig platforms fill a shift without filling a role. All three draw
+from the same constrained pool of people already in direct care. <b>None of them adds a
+caregiver to the field,</b> which is the distinction Key Innovation 1 develops.</p>
 
 <p class="sec"><b>Related development efforts in academia and industry.</b> The relevant
 science is largely settled and what remains open is operational, which is why this is a
-commercialization award rather than a trial. Unmet daily-activity needs are established as
+commercialization award rather than a trial. Unmet daily-activity needs are established
 predictors of downstream utilization and placement,<sup>REF4,REF5</sup> so we measure care
 established rather than clinical endpoints. Home-based support trials, principally CAPABLE,
 show that function-focused support reduces disability with savings well above program
 cost,<sup>REF12,REF13</sup> but none addresses how a family outside a trial finds such
-support, funds it, and gets it started. CareNavigator is the front door those programs
-assume exists. Studies of digital caregiver tools, four of them our own, establish that
-such platforms can be built and measured as usable and
-accepted;<sup>REF25,REF26,REF27,REF28</sup> what remains open is whether agents can
-complete applications and carry a case to a decision. And documented patient-care hours are
-a requirement for health-professions admission,<sup>REF23,REF24</sup> the incentive our
-workforce pathway uses; whether it converts into durable capacity is what Aim 2
-tests.</p>
+support, funds it, and starts it. CareNavigator is the front door those programs assume
+exists. Studies of digital caregiver tools, four of them our own, establish that such
+platforms can be built and measured as usable and
+accepted;<sup>REF25,REF26,REF27,REF28</sup> what remains open is whether agents can carry a
+case to a decision. And documented patient-care hours are a requirement for
+health-professions admission,<sup>REF23,REF24</sup> the incentive our workforce pathway
+uses; whether it converts into durable capacity is what Aim 2 tests.</p>
 
 <p class="sec"><b>Hurdles to adoption.</b> The primary hurdle is local density at a cost
-the market sustains: families, providers, and caregivers must concentrate in the same
-market, and that market's revenue must cover the cost of bringing them together. Four
-hurdles follow, each answered by a named aim. Families must trust an AI system with care
-decisions, so every answer comes from a database audited by a blinded panel of licensed
-social workers in Aim 1, with acceptance measured under IRB approval in Aim 2. Providers
-are wary of platforms, so Aim 2 gives them the product free and Aim 3 asks a different set
-of providers to pay only after the value is demonstrated. New caregivers must be safe and
-welcome, which is why licensed providers employ, train, insure, and supervise them, and why
-Aim 2 measures the pathway end to end. And every market must repeat affordably, which
-self-service tools and a documented playbook address, with acquisition cost measured in Aim
-2 and re-measured in each Aim 3 wave.</p>
+the market sustains: families, providers, and caregivers must concentrate in one market,
+and that market's revenue must cover the cost of bringing them together. Four hurdles
+follow, each answered by a named aim. Families must trust an AI system with care decisions,
+so every answer comes from a database audited by a blinded expert panel in Aim 1, with
+acceptance measured under IRB approval in Aim 2. Providers are wary of platforms, so Aim 2
+gives them the product free and Aim 3 asks a different set of providers to pay only after
+the value is shown. New caregivers must be safe and welcome, which is why licensed providers
+employ, train, insure, and supervise them, and why Aim 2 measures the pathway end to end.
+And every market must repeat affordably, which self-service tools and a documented playbook
+address, with acquisition cost measured in Aim 2 and re-measured in each Aim 3 wave.</p>
 """
 
 INNOVATION = r"""

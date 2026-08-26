@@ -1515,8 +1515,6 @@ interface CityRowProps {
   onOpenActionModal: (provider: OutreachProvider) => void;
   onRemoveProvider: (provider: OutreachProvider) => void;
   onOpenDrawer: (provider: OutreachProvider) => void;
-  // Move to Ready (for Not Interested tab)
-  onMoveToReady?: (providerId: string) => void;
   // Reset to Ready with Apollo email (for In Sequence tab)
   onResetToReadyWithApollo?: (providerId: string) => Promise<boolean>;
   // City assignment
@@ -1548,7 +1546,6 @@ function CityRow({
   onOpenActionModal,
   onRemoveProvider,
   onOpenDrawer,
-  onMoveToReady,
   onResetToReadyWithApollo,
   cityOwnerId,
   cityOwnerName,
@@ -5516,36 +5513,6 @@ export default function ProviderOutreachPage() {
                           stage: provider.stage,
                         });
                       }}
-                      onMoveToReady={(activeTab === "done" && activeDoneSubTab === "not_interested") ? async (providerId) => {
-                        try {
-                          const res = await fetch("/api/admin/provider-outreach/update-stage", {
-                            method: "POST",
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({
-                              provider_ids: [providerId],
-                              stage: "not_contacted",
-                            }),
-                          });
-                          if (res.ok) {
-                            // Mark as recently moved to filter from stale API responses
-                            markAsRecentlyMoved(providerId);
-                            // Remove from current list and update counts
-                            setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
-                            setStageCounts((prev) => ({
-                              ...prev,
-                              not_interested: Math.max(0, prev.not_interested - 1),
-                              done: Math.max(0, prev.done - 1),
-                              call_confirm: prev.call_confirm + 1,
-                            }));
-                            showToast("Moved to Call & Confirm", "success");
-                          } else {
-                            const err = await res.json();
-                            showToast(err.error || "Failed to move provider", "error");
-                          }
-                        } catch {
-                          showToast("Network error", "error");
-                        }
-                      } : undefined}
                       onResetToReadyWithApollo={activeTab === "in_sequence" ? async (providerId) => {
                         // Find provider to get Apollo contact
                         const provider = providers.find(p => p.provider_id === providerId);
@@ -7450,50 +7417,6 @@ export default function ProviderOutreachPage() {
               stage: provider?.stage || "not_contacted",
             });
             setDrawerProvider(null);
-          }}
-          onMoveToReady={async (providerId) => {
-            const provider = providers.find((p) => p.provider_id === providerId);
-            const fromStage = provider?.stage;
-            try {
-              const res = await fetch("/api/admin/provider-outreach/update-stage", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  provider_ids: [providerId],
-                  stage: "not_contacted",
-                }),
-              });
-              if (res.ok) {
-                markAsRecentlyMoved(providerId);
-                setProviders((prev) => prev.filter((p) => p.provider_id !== providerId));
-                // Update stage counts based on where provider came from
-                setStageCounts((prev) => {
-                  const updated = { ...prev, call_confirm: prev.call_confirm + 1 };
-                  if (fromStage === "not_interested") {
-                    updated.not_interested = Math.max(0, prev.not_interested - 1);
-                    updated.done = Math.max(0, prev.done - 1);
-                  } else if (fromStage === "needs_call") {
-                    updated.needs_call = Math.max(0, prev.needs_call - 1);
-                  } else if (fromStage === "re_engage") {
-                    updated.re_engage = Math.max(0, prev.re_engage - 1);
-                  } else if (fromStage === "call_exhausted") {
-                    updated.call_exhausted = Math.max(0, prev.call_exhausted - 1);
-                  }
-                  return updated;
-                });
-                showToast("Moved to Call & Confirm", "success");
-                setDrawerProvider(null);
-              } else {
-                const data = await res.json().catch(() => ({}));
-                showToast(data.error || "Failed to move", "error");
-                throw new Error("API error"); // Signal failure to child
-              }
-            } catch (err) {
-              if (!(err instanceof Error && err.message === "API error")) {
-                showToast("Network error", "error");
-              }
-              throw err; // Re-throw so child knows it failed
-            }
           }}
           onResetToReadyWithApollo={async (providerId) => {
             const provider = providers.find((p) => p.provider_id === providerId);

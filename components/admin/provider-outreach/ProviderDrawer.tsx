@@ -107,7 +107,6 @@ interface ProviderDrawerProps {
   onMarkNotInterested?: (providerId: string, reason?: string) => void;
   onArchive?: (providerId: string) => void;
   onRemove?: (providerId: string, providerName: string) => void;
-  onMoveToReady?: (providerId: string) => void;
   // Reset to Ready with Apollo email (for in_sequence providers)
   onResetToReadyWithApollo?: (providerId: string) => Promise<boolean>;
   // Apollo callbacks
@@ -1895,7 +1894,6 @@ function ActionsSection({
   onMarkNotInterested,
   onArchive,
   onRemove,
-  onMoveToReady,
   onOutcomeRecorded,
   onClaimLinkSent,
   onContactFormSent,
@@ -1907,7 +1905,6 @@ function ActionsSection({
   onMarkNotInterested?: (providerId: string) => void;
   onArchive?: (providerId: string) => void;
   onRemove?: (providerId: string, providerName: string) => void;
-  onMoveToReady?: (providerId: string) => void;
   onOutcomeRecorded?: (providerId: string, stageChanged: boolean) => void;
   onClaimLinkSent?: (providerId: string, newResendCount: number) => void;
   onContactFormSent?: (providerId: string, newSendCount: number) => void;
@@ -2121,22 +2118,6 @@ function ActionsSection({
       }
     } catch {
       setActionError("Network error");
-    } finally {
-      setActionLoading(false);
-    }
-  }
-
-  async function handleMoveToReady() {
-    if (!onMoveToReady) return;
-    setActionLoading(true);
-    setActionError(null);
-    try {
-      await onMoveToReady(provider.provider_id);
-      // Parent handles success feedback and closes drawer
-      setConfirmAction(null);
-    } catch {
-      // Parent threw - show error in modal, don't close
-      setActionError("Failed to move");
     } finally {
       setActionLoading(false);
     }
@@ -2667,7 +2648,6 @@ Questions? support@olera.care or (979) 243-9801`;
       resend_link: { title: "Resend claim link and move to Alt Channels?", requiresCall: true, confirmText: "Resend" },
       try_fax: { title: "Move to Alternative Channels (Fax)?", requiresCall: true, confirmText: "Move to Fax" },
       try_direct_mail: { title: "Move to Alternative Channels (Direct Mail)?", requiresCall: true, confirmText: "Move to Direct Mail" },
-      move_to_ready: { title: "Move back to Call & Confirm?", confirmText: "Move" },
       remove: { title: `Remove ${provider.provider_name} from outreach?`, confirmText: "Remove" },
     };
     const config = configs[confirmAction];
@@ -2697,8 +2677,6 @@ Questions? support@olera.care or (979) 243-9801`;
                   onClose?.();
                 } else if (confirmAction === "claim_link" || confirmAction === "send_claim_link") {
                   handleSendClaimLink();
-                } else if (confirmAction === "move_to_ready") {
-                  handleMoveToReady();
                 } else if (confirmAction === "remove") {
                   onRemove?.(provider.provider_id, provider.provider_name);
                   onClose?.();
@@ -2771,10 +2749,10 @@ Questions? support@olera.care or (979) 243-9801`;
           </button>
         )}
 
-        {/* Move to Ready - for needs_call, re_engage, call_exhausted, or not_interested */}
-        {["needs_call", "re_engage", "call_exhausted", "not_interested"].includes(provider.stage) && provider.email && onMoveToReady && (
-          <button onClick={() => setConfirmAction("move_to_ready")} className={outlineBtn}>
-            Move to Ready
+        {/* Start Sequence - for needs_call, re_engage, call_exhausted, or not_interested */}
+        {["needs_call", "re_engage", "call_exhausted", "not_interested"].includes(provider.stage) && provider.email && onLaunchSequence && (
+          <button onClick={() => { onLaunchSequence(provider.provider_id); onClose?.(); }} className={outlineBtn}>
+            Start Sequence
           </button>
         )}
 
@@ -2820,7 +2798,6 @@ export function ProviderDrawer({
   onMarkNotInterested,
   onArchive,
   onRemove,
-  onMoveToReady,
   onResetToReadyWithApollo,
   onContactFound,
   onOutcomeRecorded,
@@ -2868,7 +2845,6 @@ export function ProviderDrawer({
       onMarkNotInterested={onMarkNotInterested}
       onArchive={onArchive}
       onRemove={onRemove}
-      onMoveToReady={onMoveToReady}
       onOutcomeRecorded={onOutcomeRecorded}
       onClaimLinkSent={onClaimLinkSent}
       onContactFormSent={onContactFormSent}

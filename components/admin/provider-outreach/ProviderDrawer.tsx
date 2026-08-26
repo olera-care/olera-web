@@ -2930,20 +2930,13 @@ Questions? support@olera.care or (979) 243-9801`;
             </div>
           </div>
 
-          {/* Validation: check for unfilled [Your name] placeholder */}
-          {composeBody.includes("[Your name]") && (
-            <p className="text-sm text-amber-600">
-              Please replace [Your name] with your actual name before sending.
-            </p>
-          )}
-
           {actionError && <p className="text-sm text-red-600">{actionError}</p>}
 
           {/* Action buttons */}
           <div className="flex items-center gap-2 pt-1">
             <button
               onClick={() => handleSendClaimLink(composeSubject, composeBody)}
-              disabled={actionLoading || !composeSubject.trim() || !composeBody.trim() || composeBody.includes("[Your name]")}
+              disabled={actionLoading || !composeSubject.trim() || !composeBody.trim()}
               className={primaryBtn}
             >
               {actionLoading ? "Sending..." : "Send Email"}

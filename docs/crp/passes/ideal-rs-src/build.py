@@ -151,9 +151,9 @@ assert '<p class="sec"><b>What it costs, and who pays it.</b>' in sig, 'FIG2 ANC
 sig = sig.replace('<p class="sec"><b>What it costs, and who pays it.</b>',
    figwrap(figs.fig2(), 2, 'Demand rising while both sources of supply contract.', 2.6)
    + '<p class="sec"><b>What it costs, and who pays it.</b>')
-_cf = '<p class="sec"><b>Why information is not the bottleneck.</b>'
-assert _cf in sig, 'CLEARFIX ANCHOR MISSING: significance'
-sig = sig.replace(_cf, '<p class="clearfix"></p>' + _cf)
+# No clearfix after Figure 2: the following prose wraps around it. A clear:both here
+# pushes the next section below the float and leaves dead space beside it.
+assert '<p class="sec"><b>Why information is not the bottleneck.</b>' in sig, 'SIG SECTION MISSING'
 _a1 = "so every larger agency is ahead from the first month.</p>"
 sig = splice(sig, _a1, tables2.T1, 'T1 ROI')
 sig = splice(sig, 'criticism of the incentives it creates.<sup>REF22</sup></p>', tables2.T2, 'T2 nav')

@@ -2152,6 +2152,13 @@ function ActionsSection({
   const [sendingMail, setSendingMail] = useState(false);
   const [mailSent, setMailSent] = useState(false);
 
+  // Compose email modal state (for customizable nudge emails)
+  const [showComposeModal, setShowComposeModal] = useState(false);
+  const [composeSubject, setComposeSubject] = useState("");
+  const [composeBody, setComposeBody] = useState("");
+  const [composeLoading, setComposeLoading] = useState(false);
+  const [composeToEmail, setComposeToEmail] = useState("");
+
   // Reset contact form state when provider changes
   useEffect(() => {
     setContactFormUrl(provider.contact_form_url || provider.website || "");
@@ -2177,6 +2184,37 @@ function ActionsSection({
     setMailSent(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [provider.provider_id, provider.mail_address, provider.address, provider.city, provider.state, provider.zipcode]);
+
+  // Reset compose modal state when provider changes
+  useEffect(() => {
+    setShowComposeModal(false);
+    setComposeSubject("");
+    setComposeBody("");
+    setComposeLoading(false);
+    setComposeToEmail("");
+  }, [provider.provider_id]);
+
+  // Load default email template for compose modal
+  async function loadComposeTemplate() {
+    setComposeLoading(true);
+    setActionError(null); // Clear any previous errors
+    try {
+      const res = await fetch(`/api/admin/provider-outreach/send-claim-link?provider_id=${provider.provider_id}`);
+      const data = await res.json();
+      if (res.ok) {
+        setComposeSubject(data.subject || "");
+        setComposeBody(data.body || "");
+        setComposeToEmail(data.to_email || provider.email || "");
+        setShowComposeModal(true);
+      } else {
+        setActionError(data.error || "Failed to load template");
+      }
+    } catch {
+      setActionError("Failed to load email template");
+    } finally {
+      setComposeLoading(false);
+    }
+  }
 
   // Auto-generate claim URL when entering contact form workflow
   useEffect(() => {
@@ -2294,19 +2332,24 @@ function ActionsSection({
     }
   }
 
-  async function handleSendClaimLink() {
+  async function handleSendClaimLink(customSubject?: string, customBody?: string) {
     setActionLoading(true);
     setActionError(null);
     try {
+      const payload: Record<string, string> = { provider_id: provider.provider_id };
+      if (customSubject) payload.custom_subject = customSubject;
+      if (customBody) payload.custom_body = customBody;
+
       const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: provider.provider_id }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setActionSuccess({ outcome: "claim_link" });
         setConfirmAction(null);
+        setShowComposeModal(false);
         // Update local state with new resend_count
         if (typeof data.resend_count === "number") {
           onClaimLinkSent?.(provider.provider_id, data.resend_count);
@@ -2838,6 +2881,81 @@ Questions? support@olera.care or (979) 243-9801`;
     );
   }
 
+  // Show compose email modal
+  if (showComposeModal) {
+    return (
+      <div>
+        <SectionHeader>Compose Email</SectionHeader>
+        <div className="p-3 bg-gray-50 border border-gray-200 rounded-md space-y-3">
+          {/* To field (read-only) */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">To</label>
+            <div className="text-sm text-gray-700 bg-gray-100 px-2 py-1.5 rounded border border-gray-200">
+              {composeToEmail}
+            </div>
+          </div>
+
+          {/* Subject field (editable) */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">Subject</label>
+            <input
+              type="text"
+              value={composeSubject}
+              onChange={(e) => setComposeSubject(e.target.value)}
+              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="Email subject..."
+            />
+          </div>
+
+          {/* Body field (editable) */}
+          <div>
+            <label className="block text-xs font-medium text-gray-500 mb-1">
+              Message
+              <span className="ml-1 font-normal text-gray-400">(supports markdown links)</span>
+            </label>
+            <textarea
+              value={composeBody}
+              onChange={(e) => setComposeBody(e.target.value)}
+              rows={14}
+              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+              placeholder="Email body..."
+            />
+          </div>
+
+          {/* Footer preview (locked) */}
+          <div>
+            <label className="block text-xs font-medium text-gray-400 mb-1">Footer (auto-added)</label>
+            <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1.5 rounded border border-gray-200 italic">
+              Best, Logan · [Signature with photo] · Manage/Unsubscribe links
+            </div>
+          </div>
+
+          {actionError && <p className="text-sm text-red-600">{actionError}</p>}
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              onClick={() => handleSendClaimLink(composeSubject, composeBody)}
+              disabled={actionLoading || !composeSubject.trim() || !composeBody.trim()}
+              className={primaryBtn}
+            >
+              {actionLoading ? "Sending..." : "Send Email"}
+            </button>
+            <button
+              onClick={() => {
+                setShowComposeModal(false);
+                setActionError(null);
+              }}
+              className={plainBtn}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Show confirmation dialog
   if (confirmAction) {
     const configs: Record<string, { title: string; requiresCall?: boolean; confirmText: string }> = {
@@ -2909,8 +3027,8 @@ Questions? support@olera.care or (979) 243-9801`;
 
         {/* Send Claim Link - for non-follow-up active stages */}
         {!isTerminal && !isFollowUp && provider.email && (
-          <button onClick={() => setConfirmAction("claim_link")} className={canLaunch ? outlineBtn : primaryBtn}>
-            Send Claim Link
+          <button onClick={loadComposeTemplate} disabled={composeLoading} className={canLaunch ? outlineBtn : primaryBtn}>
+            {composeLoading ? "Loading..." : "Send Claim Link"}
           </button>
         )}
 
@@ -2943,8 +3061,8 @@ Questions? support@olera.care or (979) 243-9801`;
 
         {/* Call Exhausted: Resend Claim Link (no stage change) */}
         {isCallExhausted && provider.email && (
-          <button onClick={() => setConfirmAction("send_claim_link")} className={primaryBtn}>
-            Send Claim Link
+          <button onClick={loadComposeTemplate} disabled={composeLoading} className={primaryBtn}>
+            {composeLoading ? "Loading..." : "Send Claim Link"}
           </button>
         )}
 
@@ -2979,6 +3097,10 @@ Questions? support@olera.care or (979) 243-9801`;
           </button>
         )}
       </div>
+      {/* Error display for failed template load or other errors */}
+      {actionError && (
+        <p className="mt-2 text-sm text-red-600">{actionError}</p>
+      )}
     </div>
   );
 }

@@ -277,24 +277,34 @@ function finalEmail(): EmailDraft {
  * Standalone: Nudge email
  *
  * NOT part of the cadence. Used by:
- *   - "Send Claim Link" action from Ready tab / Not Interested stage
- *   - Future re-engagement triggers
+ *   - "Send Claim Link" action after a phone call
+ *   - Post-call follow-up with claim link
  *
- * Short and direct - just delivers the link.
+ * Admin can edit subject and body before sending.
+ * Bracketed placeholders like [First name] are for the admin to fill in.
+ * System placeholders like provider name and city are auto-filled.
  *
- * Style: Minimal, transactional.
+ * Style: Personal follow-up after a call.
  */
 function nudgeEmail(): EmailDraft {
   return {
-    subject: `The link for ${PLACEHOLDER.providerName}'s page`,
+    subject: `${PLACEHOLDER.providerName}'s page on Olera, from our call today`,
     body: [
-      `Hi ${PLACEHOLDER.greetingName},`,
+      `Hi [First name],`,
       ``,
-      `Here's the link to take over ${PLACEHOLDER.providerName}'s page on Olera:`,
+      `Thanks for taking my call just now. As promised, here's the link for ${PLACEHOLDER.providerName}'s page on Olera:`,
+      ``,
+      `[Personal line]`,
+      ``,
+      `Right now the page only shows the basics from public records. Activating it lets you add your photos, services, and contact details, so families searching in ${PLACEHOLDER.city} see your story instead of ours. Two minutes, free, no contracts, no referral or per-lead fees.`,
       ``,
       `[Activate your page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `Two minutes, free: no contracts, no referral or per-lead fees. If anything gets in the way, just reply or call +1 (979) 243-9801.`,
+      `If this belongs with your administrator, just forward this email. The attached one-pager covers who we are, in short: founded by a physician, backed by the National Institute on Aging, and free for the families who use it.`,
+      ``,
+      `Talk soon,`,
+      `[Your name]`,
+      `+1 (979) 243-9801`,
     ].join("\n"),
   };
 }

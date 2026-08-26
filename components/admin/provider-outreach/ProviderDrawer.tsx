@@ -3015,7 +3015,7 @@ Questions? support@olera.care or (979) 243-9801`;
               }}
               disabled={previewLoading || !composeSubject.trim() || !composeBody.trim()}
               className={`px-3 py-1 text-sm font-medium rounded-md transition ${
-                showPreview
+                showPreview || previewLoading
                   ? "bg-primary-100 text-primary-700"
                   : "text-gray-500 hover:text-gray-700 disabled:opacity-50"
               }`}

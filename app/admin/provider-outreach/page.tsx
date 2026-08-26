@@ -3131,9 +3131,14 @@ export default function ProviderOutreachPage() {
     if (!drawerProvider) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't navigate if user is typing in an input field
+      // Don't navigate if user is interacting with form elements
       const target = e.target as HTMLElement;
-      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
+      if (
+        target.tagName === "INPUT" ||
+        target.tagName === "TEXTAREA" ||
+        target.tagName === "SELECT" ||
+        target.isContentEditable
+      ) {
         return;
       }
 

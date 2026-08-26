@@ -220,6 +220,9 @@ export interface OutreachProvider {
   email_source?: "organization" | "decision_maker" | null;
   // Count of notes in provider_outreach_notes table (for icon fill state)
   notes_count?: number;
+  // Call log stats (from provider_outreach_touchpoints with type = 'call_attempted')
+  call_count?: number;
+  latest_call_status?: string;
 }
 
 /**
@@ -390,6 +393,75 @@ async function enrichWithNotesCount(
 }
 
 /**
+ * Enrich providers with call log stats from provider_outreach_touchpoints table.
+ * Returns call_count (total calls) and latest_call_status (most recent status).
+ * Uses batching to avoid URL length limits with large provider lists.
+ */
+async function enrichWithCallStats(
+  db: ReturnType<typeof getServiceClient>,
+  providers: OutreachProvider[]
+): Promise<OutreachProvider[]> {
+  if (providers.length === 0) return providers;
+
+  const providerIds = providers.map((p) => p.provider_id).filter(Boolean);
+
+  if (providerIds.length === 0) return providers;
+
+  // Query call_attempted touchpoints in batches
+  const callStats = new Map<string, { count: number; latestStatus: string | null; latestAt: string | null }>();
+
+  for (let i = 0; i < providerIds.length; i += IN_CLAUSE_BATCH_SIZE) {
+    const batch = providerIds.slice(i, i + IN_CLAUSE_BATCH_SIZE);
+
+    const { data: touchpoints, error } = await db
+      .from("provider_outreach_touchpoints")
+      .select("provider_id, details, created_at")
+      .in("provider_id", batch)
+      .eq("touchpoint_type", "call_attempted")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("[enrichWithCallStats] Query error:", error);
+      continue;
+    }
+
+    // Aggregate stats per provider
+    for (const tp of touchpoints || []) {
+      const existing = callStats.get(tp.provider_id);
+      const details = tp.details as { status?: string } | null;
+      const status = details?.status || null;
+
+      if (!existing) {
+        // First touchpoint for this provider (most recent due to ORDER BY)
+        callStats.set(tp.provider_id, {
+          count: 1,
+          latestStatus: status,
+          latestAt: tp.created_at,
+        });
+      } else {
+        // Increment count
+        existing.count++;
+        // Update latest if this is more recent (shouldn't happen with ORDER BY, but be safe)
+        if (tp.created_at > (existing.latestAt || "")) {
+          existing.latestStatus = status;
+          existing.latestAt = tp.created_at;
+        }
+      }
+    }
+  }
+
+  // Enrich providers
+  return providers.map((p) => {
+    const stats = callStats.get(p.provider_id);
+    return {
+      ...p,
+      call_count: stats?.count || 0,
+      latest_call_status: stats?.latestStatus || undefined,
+    };
+  });
+}
+
+/**
  * GET /api/admin/provider-outreach
  *
  * List providers by stage with optional city filter.
@@ -468,7 +540,8 @@ export async function GET(request: NextRequest) {
       const searchResults = await searchProviders(db, state, search);
       const withEmail = await enrichWithEmailVerification(db, searchResults);
       const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
-      const enriched = await enrichWithNotesCount(db, withQuestions);
+      const withNotes = await enrichWithNotesCount(db, withQuestions);
+      const enriched = await enrichWithCallStats(db, withNotes);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats, is_search: true });
     }
 
@@ -478,7 +551,8 @@ export async function GET(request: NextRequest) {
       const providers = await getNotContactedProviders(db, state, city, emailFilter);
       const withEmail = await enrichWithEmailVerification(db, providers);
       const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
-      const enriched = await enrichWithNotesCount(db, withQuestions);
+      const withNotes = await enrichWithNotesCount(db, withQuestions);
+      const enriched = await enrichWithCallStats(db, withNotes);
       // Compute admin counts from the providers list (includes display_name for filter chips)
       const computedAdminCounts = await computeAdminCountsFromProviders(db, providers);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: computedAdminCounts, follow_ups_today: followUpsTodayStats });
@@ -489,7 +563,8 @@ export async function GET(request: NextRequest) {
       const providers = await getClaimedProviders(db, state, city);
       const withEmail = await enrichWithEmailVerification(db, providers);
       const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
-      const enriched = await enrichWithNotesCount(db, withQuestions);
+      const withNotes = await enrichWithNotesCount(db, withQuestions);
+      const enriched = await enrichWithCallStats(db, withNotes);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
@@ -508,7 +583,8 @@ export async function GET(request: NextRequest) {
       const providers = await getHiddenProviders(db, state, city);
       const withEmail = await enrichWithEmailVerification(db, providers);
       const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
-      const enriched = await enrichWithNotesCount(db, withQuestions);
+      const withNotes = await enrichWithNotesCount(db, withQuestions);
+      const enriched = await enrichWithCallStats(db, withNotes);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
@@ -517,7 +593,8 @@ export async function GET(request: NextRequest) {
       const providers = await getArchivedProviders(db, state, city);
       const withEmail = await enrichWithEmailVerification(db, providers);
       const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
-      const enriched = await enrichWithNotesCount(db, withQuestions);
+      const withNotes = await enrichWithNotesCount(db, withQuestions);
+      const enriched = await enrichWithCallStats(db, withNotes);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
@@ -770,7 +847,8 @@ export async function GET(request: NextRequest) {
 
     const withEmail = await enrichWithEmailVerification(db, providers);
     const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
-    const enriched = await enrichWithNotesCount(db, withQuestions);
+    const withNotes = await enrichWithNotesCount(db, withQuestions);
+    const enriched = await enrichWithCallStats(db, withNotes);
     return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
   } catch (err) {
     console.error("[provider-outreach] Error:", err);

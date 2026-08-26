@@ -101,12 +101,12 @@ interface ProviderDrawerProps {
   // Inline editing callbacks
   onEmailUpdate?: (providerId: string, email: string, emailSource?: "decision_maker") => void;
   onPhoneUpdate?: (providerId: string, phone: string | null) => void;
+  onFaxUpdate?: (providerId: string, fax: string | null) => void;
   // Action callbacks (use providerId to avoid type mismatches with page's full OutreachProvider)
   onLaunchSequence?: (providerId: string) => void;
   onMarkNotInterested?: (providerId: string, reason?: string) => void;
   onArchive?: (providerId: string) => void;
   onRemove?: (providerId: string, providerName: string) => void;
-  onMoveToReady?: (providerId: string) => void;
   // Reset to Ready with Apollo email (for in_sequence providers)
   onResetToReadyWithApollo?: (providerId: string) => Promise<boolean>;
   // Apollo callbacks
@@ -117,6 +117,13 @@ interface ProviderDrawerProps {
   onClaimLinkSent?: (providerId: string, newResendCount: number) => void;
   // Contact form sent callback (updates contact_form_send_count in local state)
   onContactFormSent?: (providerId: string, newSendCount: number) => void;
+  // Call logged callback (updates call_count in local state for sorting)
+  onCallLogged?: (providerId: string, newCallCount: number, latestStatus: string) => void;
+  // Navigation callbacks for prev/next provider
+  onPrevious?: () => void;
+  onNext?: () => void;
+  hasPrevious?: boolean;
+  hasNext?: boolean;
   // Current UI context
   activeTab?: string;
 }
@@ -332,19 +339,25 @@ function ContactSection({
   provider,
   onEmailUpdate,
   onPhoneUpdate,
+  onFaxUpdate,
 }: {
   provider: OutreachProvider;
   onEmailUpdate?: (email: string) => void;
   onPhoneUpdate?: (phone: string | null) => void;
+  onFaxUpdate?: (fax: string | null) => void;
 }) {
   const [editingEmail, setEditingEmail] = useState(false);
   const [editingPhone, setEditingPhone] = useState(false);
+  const [editingFax, setEditingFax] = useState(false);
   const [emailValue, setEmailValue] = useState(provider.email || "");
   const [phoneValue, setPhoneValue] = useState(provider.phone || "");
+  const [faxValue, setFaxValue] = useState(provider.fax_number || "");
   const [savingEmail, setSavingEmail] = useState(false);
   const [savingPhone, setSavingPhone] = useState(false);
+  const [savingFax, setSavingFax] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [faxError, setFaxError] = useState<string | null>(null);
 
   // Auto email finding state
   const [findingEmail, setFindingEmail] = useState(false);
@@ -447,12 +460,15 @@ function ContactSection({
       // Reset editing state to prevent stale data if switching providers while editing
       setEditingEmail(false);
       setEditingPhone(false);
+      setEditingFax(false);
       setEmailValue(provider.email || "");
       setPhoneValue(provider.phone || "");
+      setFaxValue(provider.fax_number || "");
       setEmailError(null);
       setPhoneError(null);
+      setFaxError(null);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- Only reset on provider_id change; email/phone values are read at that moment
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Only reset on provider_id change; email/phone/fax values are read at that moment
   }, [provider.provider_id]);
 
   // Trigger verification when found email changes
@@ -597,6 +613,29 @@ function ContactSection({
       setPhoneError("Network error");
     } finally {
       setSavingPhone(false);
+    }
+  }
+
+  async function handleSaveFax() {
+    setSavingFax(true);
+    setFaxError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-fax", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, fax: faxValue.trim() }),
+      });
+      if (res.ok) {
+        onFaxUpdate?.(faxValue.trim() || null);
+        setEditingFax(false);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setFaxError(data.error || "Failed to save");
+      }
+    } catch {
+      setFaxError("Network error");
+    } finally {
+      setSavingFax(false);
     }
   }
 
@@ -795,7 +834,332 @@ function ContactSection({
           </div>
         )}
         </div>
+
+      {/* Fax */}
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-gray-500 w-16">Fax</span>
+        {editingFax ? (
+          <div className="flex items-center gap-2 flex-1 ml-3">
+            <input
+              type="tel"
+              value={faxValue}
+              onChange={(e) => setFaxValue(e.target.value)}
+              className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              placeholder="(555) 123-4567"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSaveFax();
+                if (e.key === "Escape") {
+                  e.stopPropagation();
+                  setEditingFax(false);
+                  setFaxValue(provider.fax_number || "");
+                }
+              }}
+              autoFocus
+            />
+            <button
+              onClick={handleSaveFax}
+              disabled={savingFax}
+              className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+            >
+              {savingFax ? "..." : "Save"}
+            </button>
+            <button
+              onClick={() => {
+                setEditingFax(false);
+                setFaxValue(provider.fax_number || "");
+                setFaxError(null);
+              }}
+              className="text-sm text-gray-400 hover:text-gray-600"
+            >
+              Cancel
+            </button>
+            {faxError && <span className="text-xs text-red-500">{faxError}</span>}
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 flex-1 ml-3">
+            {provider.fax_number ? (
+              <span className="text-sm text-gray-900">
+                {formatPhone(provider.fax_number)}
+              </span>
+            ) : (
+              <span className="text-sm text-gray-400 italic">No fax</span>
+            )}
+            <button
+              onClick={() => {
+                setEditingFax(true);
+                setFaxValue(provider.fax_number || "");
+              }}
+              className="ml-auto text-xs text-gray-400 hover:text-gray-600"
+            >
+              Edit
+            </button>
+          </div>
+        )}
+        </div>
       </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Saved Contacts Section (additional emails, fax, phone for reference)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CONTACT_TYPE_LABELS: Record<string, string> = {
+  email: "Email",
+  fax: "Fax",
+  phone: "Phone",
+};
+
+interface SavedContact {
+  id: string;
+  provider_id: string;
+  type: "email" | "fax" | "phone";
+  value: string;
+  label: string | null;
+  notes: string | null;
+  admin_id: string;
+  admin_name: string | null;
+  created_at: string;
+}
+
+function SavedContactsSection({
+  provider,
+  onUseEmail,
+}: {
+  provider: OutreachProvider;
+  onUseEmail?: (email: string) => void;
+}) {
+  const [contacts, setContacts] = useState<SavedContact[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newType, setNewType] = useState<"email" | "fax" | "phone">("email");
+  const [newValue, setNewValue] = useState("");
+  const [newLabel, setNewLabel] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [usingEmail, setUsingEmail] = useState<string | null>(null);
+
+  // Reset state when provider changes to avoid stale data flash
+  useEffect(() => {
+    setContacts([]);
+    setShowAddForm(false);
+    setNewValue("");
+    setNewLabel("");
+    setSubmitError(null);
+  }, [provider.provider_id]);
+
+  // Fetch contacts on mount / provider change
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchContacts() {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `/api/admin/provider-outreach/contacts?provider_id=${encodeURIComponent(provider.provider_id)}`
+        );
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          setContacts(data.contacts || []);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchContacts();
+    return () => {
+      cancelled = true;
+    };
+  }, [provider.provider_id]);
+
+  const handleAddContact = useCallback(async () => {
+    if (submitting || !newValue.trim()) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          type: newType,
+          value: newValue.trim(),
+          label: newLabel.trim() || undefined,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setContacts((prev) => [data.contact, ...prev]);
+        setNewValue("");
+        setNewLabel("");
+        setShowAddForm(false);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSubmitError(data.error || "Failed to save");
+      }
+    } catch {
+      setSubmitError("Network error");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [provider.provider_id, newType, newValue, newLabel, submitting]);
+
+  const handleUseEmail = useCallback(async (email: string) => {
+    if (usingEmail) return;
+    setUsingEmail(email);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, email }),
+      });
+      if (res.ok) {
+        onUseEmail?.(email);
+      }
+    } finally {
+      setUsingEmail(null);
+    }
+  }, [provider.provider_id, onUseEmail, usingEmail]);
+
+  const handleDelete = useCallback(async (contactId: string) => {
+    try {
+      const res = await fetch("/api/admin/provider-outreach/contacts", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contact_id: contactId }),
+      });
+      if (res.ok) {
+        setContacts((prev) => prev.filter((c) => c.id !== contactId));
+      }
+    } catch {
+      // Silent fail for delete
+    }
+  }, []);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+          Saved Contacts
+        </span>
+        {!showAddForm && (
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="text-xs text-primary-600 hover:text-primary-700"
+          >
+            + Add
+          </button>
+        )}
+      </div>
+
+      {/* Add contact form */}
+      {showAddForm && (
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg space-y-2">
+          <div className="flex items-center gap-2">
+            <select
+              value={newType}
+              onChange={(e) => setNewType(e.target.value as "email" | "fax" | "phone")}
+              className="px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+              disabled={submitting}
+            >
+              <option value="email">Email</option>
+              <option value="fax">Fax</option>
+              <option value="phone">Phone</option>
+            </select>
+            <input
+              type="text"
+              value={newValue}
+              onChange={(e) => setNewValue(e.target.value)}
+              placeholder={newType === "email" ? "email@example.com" : "(555) 123-4567"}
+              className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              disabled={submitting}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddContact();
+                }
+                if (e.key === "Escape") {
+                  e.stopPropagation();
+                  setShowAddForm(false);
+                }
+              }}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={newLabel}
+              onChange={(e) => setNewLabel(e.target.value)}
+              placeholder="Label (e.g., Sales Director)"
+              className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              disabled={submitting}
+            />
+            <button
+              onClick={handleAddContact}
+              disabled={submitting || !newValue.trim()}
+              className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+            >
+              {submitting ? "..." : "Save"}
+            </button>
+            <button
+              onClick={() => {
+                setShowAddForm(false);
+                setNewValue("");
+                setNewLabel("");
+                setSubmitError(null);
+              }}
+              className="text-xs text-gray-400 hover:text-gray-600"
+            >
+              Cancel
+            </button>
+          </div>
+          {submitError && (
+            <p className="text-xs text-red-500">{submitError}</p>
+          )}
+        </div>
+      )}
+
+      {/* Contacts list */}
+      {loading ? (
+        <div className="flex items-center justify-center py-4">
+          <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+        </div>
+      ) : contacts.length === 0 ? (
+        <p className="text-sm text-gray-400 italic">No saved contacts</p>
+      ) : (
+        <div className="space-y-2">
+          {contacts.map((contact) => (
+            <div key={contact.id} className="flex items-center justify-between text-sm group">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400 w-12">{CONTACT_TYPE_LABELS[contact.type]}</span>
+                  <span className="text-gray-900 truncate">{contact.value}</span>
+                  {contact.label && (
+                    <span className="text-gray-500">· {contact.label}</span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {contact.type === "email" && contact.value !== provider.email && (
+                  <button
+                    onClick={() => handleUseEmail(contact.value)}
+                    disabled={usingEmail === contact.value}
+                    className="text-xs text-primary-600 hover:text-primary-700 disabled:opacity-50"
+                  >
+                    {usingEmail === contact.value ? "..." : "Use"}
+                  </button>
+                )}
+                <button
+                  onClick={() => handleDelete(contact.id)}
+                  className="text-xs text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -986,6 +1350,209 @@ function DecisionMakerSection({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Call Log Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CALL_STATUSES = [
+  { value: "voicemail", label: "VM", color: "bg-amber-100 text-amber-700" },
+  { value: "no_answer", label: "No Answer", color: "bg-gray-100 text-gray-600" },
+  { value: "hung_up", label: "Hung Up", color: "bg-red-100 text-red-700" },
+  { value: "callback", label: "Callback", color: "bg-blue-100 text-blue-700" },
+  { value: "new_email", label: "New Email", color: "bg-emerald-100 text-emerald-700" },
+  { value: "resend", label: "Resend", color: "bg-teal-100 text-teal-700" },
+  { value: "spoke_with", label: "Spoke With", color: "bg-purple-100 text-purple-700" },
+] as const;
+
+type CallStatus = (typeof CALL_STATUSES)[number]["value"];
+
+interface CallLogEntry {
+  id: string;
+  provider_id: string;
+  status: CallStatus;
+  notes: string | null;
+  admin_id: string;
+  admin_name: string | null;
+  created_at: string;
+}
+
+function getCallStatusBadge(status: string): { label: string; className: string } {
+  const found = CALL_STATUSES.find((s) => s.value === status);
+  return found
+    ? { label: found.label, className: found.color }
+    : { label: status, className: "bg-gray-100 text-gray-600" };
+}
+
+function CallLogSection({
+  provider,
+  onCallLogged,
+}: {
+  provider: OutreachProvider;
+  onCallLogged?: (providerId: string, newCallCount: number, latestStatus: string) => void;
+}) {
+  const [logs, setLogs] = useState<CallLogEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedStatus, setSelectedStatus] = useState<CallStatus>("voicemail");
+  const [callNotes, setCallNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Reset state when provider changes to avoid stale data flash
+  useEffect(() => {
+    setLogs([]);
+    setCallNotes("");
+    setSubmitError(null);
+  }, [provider.provider_id]);
+
+  // Fetch call logs on mount / provider change
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchLogs() {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `/api/admin/provider-outreach/call-logs?provider_id=${encodeURIComponent(provider.provider_id)}`
+        );
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          setLogs(data.logs || []);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchLogs();
+    return () => {
+      cancelled = true;
+    };
+  }, [provider.provider_id]);
+
+  const handleLogCall = useCallback(async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/call-logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          status: selectedStatus,
+          notes: callNotes.trim() || undefined,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Add the new log to the top of the list
+        setLogs((prev) => {
+          const newLogs = [data.log, ...prev];
+          // Notify parent of the new call count and status for sorting
+          onCallLogged?.(provider.provider_id, newLogs.length, selectedStatus);
+          return newLogs;
+        });
+        setCallNotes("");
+        setSelectedStatus("voicemail");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSubmitError(data.error || "Failed to log call");
+      }
+    } catch {
+      setSubmitError("Network error");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [provider.provider_id, selectedStatus, callNotes, submitting, onCallLogged]);
+
+  return (
+    <div>
+      <SectionHeader>Call Log</SectionHeader>
+
+      {/* Log call form */}
+      <div className="mb-5 p-3 bg-gray-50 rounded-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value as CallStatus)}
+            className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+            disabled={submitting}
+          >
+            {CALL_STATUSES.map((status) => (
+              <option key={status.value} value={status.value}>
+                {status.label}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={handleLogCall}
+            disabled={submitting}
+            className="px-4 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+          >
+            {submitting ? "..." : "Log Call"}
+          </button>
+        </div>
+        <input
+          type="text"
+          value={callNotes}
+          onChange={(e) => setCallNotes(e.target.value)}
+          placeholder="Optional notes..."
+          className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+          disabled={submitting}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleLogCall();
+            }
+            if (e.key === "Escape") {
+              e.stopPropagation();
+              setCallNotes("");
+            }
+          }}
+        />
+        {submitError && (
+          <p className="mt-1 text-xs text-red-500">{submitError}</p>
+        )}
+      </div>
+
+      {/* Call history */}
+      {loading ? (
+        <div className="flex items-center justify-center py-4">
+          <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+        </div>
+      ) : logs.length === 0 ? (
+        <p className="text-sm text-gray-400 italic">No calls logged yet</p>
+      ) : (
+        <div className="space-y-3 max-h-48 overflow-y-auto">
+          {logs.map((log) => {
+            const badge = getCallStatusBadge(log.status);
+            return (
+              <div key={log.id} className="text-sm">
+                {/* Row 1: Time, status, admin */}
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs text-gray-400">
+                    {formatDate(log.created_at)}
+                  </span>
+                  <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium rounded ${badge.className}`}>
+                    {badge.label}
+                  </span>
+                  <span className="text-xs text-gray-400 ml-auto">
+                    {log.admin_name || "Unknown"}
+                  </span>
+                </div>
+                {/* Row 2: Full note text */}
+                {log.notes ? (
+                  <p className="text-gray-600 whitespace-pre-wrap">{log.notes}</p>
+                ) : (
+                  <p className="text-gray-400 italic">No notes</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Notes Section
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -996,6 +1563,14 @@ function NotesSection({ provider }: { provider: OutreachProvider }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Reset state when provider changes to avoid stale data flash
+  useEffect(() => {
+    setNotes([]);
+    setNewNote("");
+    setSubmitError(null);
+    setLoading(true);
+  }, [provider.provider_id]);
 
   useEffect(() => {
     async function fetchNotes() {
@@ -1139,6 +1714,163 @@ function ActivitySection({ provider }: { provider: OutreachProvider }) {
           <span className="ml-1.5 text-sm text-gray-500">Leads</span>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Email Sends Section (detailed email history)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface EmailSendEntry {
+  id: string;
+  sent_at: string;
+  template_key: string;
+  template_label: string;
+  trigger: string;
+  to_email: string | null;
+  open_count: number;
+  click_count: number;
+  admin_name: string | null;
+}
+
+function EmailSendsSection({ provider }: { provider: OutreachProvider }) {
+  const [expanded, setExpanded] = useState(false);
+  const [emails, setEmails] = useState<EmailSendEntry[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Fetch email history when expanded
+  useEffect(() => {
+    if (!expanded || loaded) return;
+
+    let cancelled = false;
+    async function fetchEmails() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(
+          `/api/admin/provider-outreach/email-sends?provider_id=${encodeURIComponent(provider.provider_id)}`
+        );
+        if (!cancelled) {
+          if (res.ok) {
+            const data = await res.json();
+            setEmails(data.emails || []);
+            setLoaded(true);
+          } else {
+            setError("Failed to load email history");
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          setError("Network error");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchEmails();
+    return () => {
+      cancelled = true;
+    };
+  }, [expanded, loaded, provider.provider_id]);
+
+  // Reset loaded state when provider changes
+  useEffect(() => {
+    setLoaded(false);
+    setEmails([]);
+    setError(null);
+  }, [provider.provider_id]);
+
+  // Use actual count from API once loaded, otherwise estimate from provider data
+  const emailCount = loaded ? emails.length : (provider.engagement?.emails_sent ?? provider.resend_count ?? 0);
+
+  // Format date for display
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  return (
+    <div>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between py-2 text-left group"
+      >
+        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider group-hover:text-gray-600">
+          Email History ({emailCount})
+        </span>
+        <svg
+          className={`w-4 h-4 text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {expanded && (
+        <div className="mt-2">
+          {loading ? (
+            <div className="flex items-center justify-center py-4">
+              <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+            </div>
+          ) : error ? (
+            <p className="text-sm text-red-500 py-2">{error}</p>
+          ) : emails.length === 0 ? (
+            <p className="text-sm text-gray-400 italic py-2">No emails sent yet</p>
+          ) : (
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {emails.map((email) => (
+                <div
+                  key={email.id}
+                  className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-900">
+                        {email.template_label}
+                      </span>
+                      {(email.open_count > 0 || email.click_count > 0) && (
+                        <div className="flex items-center gap-1.5 text-xs">
+                          {email.open_count > 0 && (
+                            <span className="text-blue-600">{email.open_count} open{email.open_count !== 1 ? "s" : ""}</span>
+                          )}
+                          {email.click_count > 0 && (
+                            <span className="text-green-600">{email.click_count} click{email.click_count !== 1 ? "s" : ""}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                      <span>{formatDate(email.sent_at)}</span>
+                      {email.to_email && (
+                        <>
+                          <span className="text-gray-300">·</span>
+                          <span className="truncate">{email.to_email}</span>
+                        </>
+                      )}
+                      {email.admin_name && (
+                        <>
+                          <span className="text-gray-300">·</span>
+                          <span>by {email.admin_name}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -1361,7 +2093,6 @@ function ActionsSection({
   onMarkNotInterested,
   onArchive,
   onRemove,
-  onMoveToReady,
   onOutcomeRecorded,
   onClaimLinkSent,
   onContactFormSent,
@@ -1373,7 +2104,6 @@ function ActionsSection({
   onMarkNotInterested?: (providerId: string) => void;
   onArchive?: (providerId: string) => void;
   onRemove?: (providerId: string, providerName: string) => void;
-  onMoveToReady?: (providerId: string) => void;
   onOutcomeRecorded?: (providerId: string, stageChanged: boolean) => void;
   onClaimLinkSent?: (providerId: string, newResendCount: number) => void;
   onContactFormSent?: (providerId: string, newSendCount: number) => void;
@@ -1422,6 +2152,21 @@ function ActionsSection({
   const [sendingMail, setSendingMail] = useState(false);
   const [mailSent, setMailSent] = useState(false);
 
+  // Compose email modal state (for customizable nudge emails)
+  const [showComposeModal, setShowComposeModal] = useState(false);
+  const [composeSubject, setComposeSubject] = useState("");
+  const [composeBody, setComposeBody] = useState("");
+  const [composeLoading, setComposeLoading] = useState(false);
+  const [composeToEmail, setComposeToEmail] = useState("");
+  // Track compose mode: "send" = just send email, "resend" = send + move to Alt Channels
+  const [composeMode, setComposeMode] = useState<"send" | "resend">("send");
+  // Checkbox for "I called" confirmation in resend mode
+  const [composeConfirmedCall, setComposeConfirmedCall] = useState(false);
+  // HTML preview state
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState("");
+  const [previewLoading, setPreviewLoading] = useState(false);
+
   // Reset contact form state when provider changes
   useEffect(() => {
     setContactFormUrl(provider.contact_form_url || provider.website || "");
@@ -1447,6 +2192,96 @@ function ActionsSection({
     setMailSent(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [provider.provider_id, provider.mail_address, provider.address, provider.city, provider.state, provider.zipcode]);
+
+  // Reset compose modal state when provider changes
+  useEffect(() => {
+    setShowComposeModal(false);
+    setComposeSubject("");
+    setComposeBody("");
+    setComposeLoading(false);
+    setComposeToEmail("");
+    setComposeMode("send");
+    setComposeConfirmedCall(false);
+    setShowPreview(false);
+    setPreviewHtml("");
+    setPreviewLoading(false);
+  }, [provider.provider_id]);
+
+  // Load default email template for compose modal (send mode - no stage change)
+  async function loadComposeTemplate() {
+    setComposeLoading(true);
+    setActionError(null);
+    setComposeMode("send");
+    setComposeConfirmedCall(false);
+    try {
+      const res = await fetch(`/api/admin/provider-outreach/send-claim-link?provider_id=${provider.provider_id}`);
+      const data = await res.json();
+      if (res.ok) {
+        setComposeSubject(data.subject || "");
+        setComposeBody(data.body || "");
+        setComposeToEmail(data.to_email || provider.email || "");
+        setShowComposeModal(true);
+      } else {
+        setActionError(data.error || "Failed to load template");
+      }
+    } catch {
+      setActionError("Failed to load email template");
+    } finally {
+      setComposeLoading(false);
+    }
+  }
+
+  // Load compose template for resend mode (sends email + moves to Alt Channels)
+  async function loadComposeTemplateForResend() {
+    setComposeLoading(true);
+    setActionError(null);
+    setComposeMode("resend");
+    setComposeConfirmedCall(false);
+    try {
+      const res = await fetch(`/api/admin/provider-outreach/send-claim-link?provider_id=${provider.provider_id}`);
+      const data = await res.json();
+      if (res.ok) {
+        setComposeSubject(data.subject || "");
+        setComposeBody(data.body || "");
+        setComposeToEmail(data.to_email || provider.email || "");
+        setShowComposeModal(true);
+      } else {
+        setActionError(data.error || "Failed to load template");
+      }
+    } catch {
+      setActionError("Failed to load email template");
+    } finally {
+      setComposeLoading(false);
+    }
+  }
+
+  // Generate HTML preview of the composed email
+  async function loadEmailPreview() {
+    setPreviewLoading(true);
+    setActionError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/preview-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          custom_subject: composeSubject,
+          custom_body: composeBody,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.html) {
+        setPreviewHtml(data.html);
+        setShowPreview(true);
+      } else {
+        setActionError(data.error || "Failed to generate preview");
+      }
+    } catch {
+      setActionError("Failed to generate preview");
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
 
   // Auto-generate claim URL when entering contact form workflow
   useEffect(() => {
@@ -1564,19 +2399,24 @@ function ActionsSection({
     }
   }
 
-  async function handleSendClaimLink() {
+  async function handleSendClaimLink(customSubject?: string, customBody?: string) {
     setActionLoading(true);
     setActionError(null);
     try {
+      const payload: Record<string, string> = { provider_id: provider.provider_id };
+      if (customSubject) payload.custom_subject = customSubject;
+      if (customBody) payload.custom_body = customBody;
+
       const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: provider.provider_id }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok) {
         setActionSuccess({ outcome: "claim_link" });
         setConfirmAction(null);
+        setShowComposeModal(false);
         // Update local state with new resend_count
         if (typeof data.resend_count === "number") {
           onClaimLinkSent?.(provider.provider_id, data.resend_count);
@@ -1592,17 +2432,40 @@ function ActionsSection({
     }
   }
 
-  async function handleMoveToReady() {
-    if (!onMoveToReady) return;
+  // Handle resend link with compose modal (sends email + moves to Alt Channels)
+  async function handleResendLink(customSubject?: string, customBody?: string) {
     setActionLoading(true);
     setActionError(null);
     try {
-      await onMoveToReady(provider.provider_id);
-      // Parent handles success feedback and closes drawer
-      setConfirmAction(null);
+      const payload: Record<string, string> = {
+        provider_id: provider.provider_id,
+        outcome: "resend_link",
+      };
+      if (customSubject) payload.custom_subject = customSubject;
+      if (customBody) payload.custom_body = customBody;
+
+      const res = await fetch("/api/admin/provider-outreach/record-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setActionSuccess({
+          outcome: "resend_link",
+          emailSent: data.email_sent,
+          emailError: data.email_error,
+        });
+        setConfirmAction(null);
+        setShowComposeModal(false);
+        setComposeConfirmedCall(false);
+        onOutcomeRecorded?.(provider.provider_id, true);
+        setTimeout(() => onClose?.(), 1500);
+      } else {
+        setActionError(data.error || "Failed to send");
+      }
     } catch {
-      // Parent threw - show error in modal, don't close
-      setActionError("Failed to move");
+      setActionError("Network error");
     } finally {
       setActionLoading(false);
     }
@@ -2124,16 +2987,187 @@ Questions? support@olera.care or (979) 243-9801`;
     );
   }
 
+  // Show compose email modal
+  if (showComposeModal) {
+    return (
+      <div>
+        <SectionHeader>Compose Email</SectionHeader>
+        <div className="p-3 bg-gray-50 border border-gray-200 rounded-md space-y-3">
+          {/* Toggle between Edit and Preview */}
+          <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
+            <button
+              onClick={() => setShowPreview(false)}
+              className={`px-3 py-1 text-sm font-medium rounded-md transition ${
+                !showPreview
+                  ? "bg-primary-100 text-primary-700"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => {
+                if (!previewHtml) {
+                  loadEmailPreview();
+                } else {
+                  setShowPreview(true);
+                }
+              }}
+              disabled={previewLoading || !composeSubject.trim() || !composeBody.trim()}
+              className={`px-3 py-1 text-sm font-medium rounded-md transition ${
+                showPreview || previewLoading
+                  ? "bg-primary-100 text-primary-700"
+                  : "text-gray-500 hover:text-gray-700 disabled:opacity-50"
+              }`}
+            >
+              {previewLoading ? "Loading..." : "Preview"}
+            </button>
+            {showPreview && (
+              <button
+                onClick={() => {
+                  setPreviewHtml("");
+                  loadEmailPreview();
+                }}
+                disabled={previewLoading}
+                className="ml-auto text-xs text-gray-400 hover:text-gray-600"
+              >
+                Refresh preview
+              </button>
+            )}
+          </div>
+
+          {/* Preview pane */}
+          {showPreview && previewHtml && (
+            <div className="border border-gray-200 rounded-md bg-white overflow-hidden">
+              <iframe
+                srcDoc={previewHtml}
+                title="Email Preview"
+                className="w-full h-[400px] border-0"
+                sandbox="allow-same-origin"
+              />
+            </div>
+          )}
+
+          {/* Edit pane */}
+          {!showPreview && (
+            <>
+              {/* To field (read-only) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">To</label>
+                <div className="text-sm text-gray-700 bg-gray-100 px-2 py-1.5 rounded border border-gray-200">
+                  {composeToEmail}
+                </div>
+              </div>
+
+              {/* Subject field (editable) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Subject</label>
+                <input
+                  type="text"
+                  value={composeSubject}
+                  onChange={(e) => {
+                    setComposeSubject(e.target.value);
+                    setPreviewHtml(""); // Clear preview when editing
+                  }}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Email subject..."
+                />
+              </div>
+
+              {/* Body field (editable) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">
+                  Message
+                  <span className="ml-1 font-normal text-gray-400">(supports markdown links)</span>
+                </label>
+                <textarea
+                  value={composeBody}
+                  onChange={(e) => {
+                    setComposeBody(e.target.value);
+                    setPreviewHtml(""); // Clear preview when editing
+                  }}
+                  rows={12}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Email body..."
+                />
+              </div>
+
+              {/* Footer preview (locked) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1">Footer (auto-added)</label>
+                <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1.5 rounded border border-gray-200 italic">
+                  Best, Logan · [Signature with photo] · Manage/Unsubscribe links · PDF attachment
+                </div>
+              </div>
+            </>
+          )}
+
+          {actionError && <p className="text-sm text-red-600">{actionError}</p>}
+
+          {/* Checkbox for resend mode (requires call confirmation) */}
+          {composeMode === "resend" && (
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={composeConfirmedCall}
+                onChange={(e) => setComposeConfirmedCall(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span className="text-sm text-gray-600">I called and confirmed this action</span>
+            </label>
+          )}
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              onClick={() => {
+                if (composeMode === "resend") {
+                  handleResendLink(composeSubject, composeBody);
+                } else {
+                  handleSendClaimLink(composeSubject, composeBody);
+                }
+              }}
+              disabled={
+                actionLoading ||
+                !composeSubject.trim() ||
+                !composeBody.trim() ||
+                (composeMode === "resend" && !composeConfirmedCall)
+              }
+              className={primaryBtn}
+            >
+              {actionLoading
+                ? "Sending..."
+                : composeMode === "resend"
+                ? "Resend & Move to Alt Channels"
+                : "Send Email"}
+            </button>
+            <button
+              onClick={() => {
+                setShowComposeModal(false);
+                setActionError(null);
+                setComposeConfirmedCall(false);
+                setShowPreview(false);
+                setPreviewHtml("");
+              }}
+              className={plainBtn}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Show confirmation dialog
   if (confirmAction) {
     const configs: Record<string, { title: string; requiresCall?: boolean; confirmText: string }> = {
       launch: { title: "Launch email sequence for this provider?", confirmText: "Launch" },
       claim_link: { title: "Send claim link email?", confirmText: "Send" },
       send_claim_link: { title: "Send claim link email?", requiresCall: true, confirmText: "Send" },
-      resend_link: { title: "Resend claim link and move to Alt Channels?", requiresCall: true, confirmText: "Resend" },
+      // resend_link now uses compose modal instead of confirmation dialog
       try_fax: { title: "Move to Alternative Channels (Fax)?", requiresCall: true, confirmText: "Move to Fax" },
       try_direct_mail: { title: "Move to Alternative Channels (Direct Mail)?", requiresCall: true, confirmText: "Move to Direct Mail" },
-      move_to_ready: { title: "Move back to Call & Confirm?", confirmText: "Move" },
       remove: { title: `Remove ${provider.provider_name} from outreach?`, confirmText: "Remove" },
     };
     const config = configs[confirmAction];
@@ -2163,8 +3197,6 @@ Questions? support@olera.care or (979) 243-9801`;
                   onClose?.();
                 } else if (confirmAction === "claim_link" || confirmAction === "send_claim_link") {
                   handleSendClaimLink();
-                } else if (confirmAction === "move_to_ready") {
-                  handleMoveToReady();
                 } else if (confirmAction === "remove") {
                   onRemove?.(provider.provider_id, provider.provider_name);
                   onClose?.();
@@ -2198,8 +3230,8 @@ Questions? support@olera.care or (979) 243-9801`;
 
         {/* Send Claim Link - for non-follow-up active stages */}
         {!isTerminal && !isFollowUp && provider.email && (
-          <button onClick={() => setConfirmAction("claim_link")} className={canLaunch ? outlineBtn : primaryBtn}>
-            Send Claim Link
+          <button onClick={loadComposeTemplate} disabled={composeLoading} className={canLaunch ? outlineBtn : primaryBtn}>
+            {composeLoading ? "Loading..." : "Send Claim Link"}
           </button>
         )}
 
@@ -2214,8 +3246,8 @@ Questions? support@olera.care or (979) 243-9801`;
         {isFollowUp && (
           <>
             {provider.email && (
-              <button onClick={() => setConfirmAction("resend_link")} className={outlineBtn}>
-                Resend Link
+              <button onClick={loadComposeTemplateForResend} disabled={composeLoading} className={outlineBtn}>
+                {composeLoading ? "Loading..." : "Resend Link"}
               </button>
             )}
             <button onClick={() => setConfirmAction("fax")} className={outlineBtn}>
@@ -2232,15 +3264,15 @@ Questions? support@olera.care or (979) 243-9801`;
 
         {/* Call Exhausted: Resend Claim Link (no stage change) */}
         {isCallExhausted && provider.email && (
-          <button onClick={() => setConfirmAction("send_claim_link")} className={primaryBtn}>
-            Send Claim Link
+          <button onClick={loadComposeTemplate} disabled={composeLoading} className={primaryBtn}>
+            {composeLoading ? "Loading..." : "Send Claim Link"}
           </button>
         )}
 
-        {/* Move to Ready - for needs_call, re_engage, call_exhausted, or not_interested */}
-        {["needs_call", "re_engage", "call_exhausted", "not_interested"].includes(provider.stage) && provider.email && onMoveToReady && (
-          <button onClick={() => setConfirmAction("move_to_ready")} className={outlineBtn}>
-            Move to Ready
+        {/* Start Sequence - for needs_call, re_engage, call_exhausted, or not_interested */}
+        {["needs_call", "re_engage", "call_exhausted", "not_interested"].includes(provider.stage) && provider.email && onLaunchSequence && (
+          <button onClick={() => { onLaunchSequence(provider.provider_id); onClose?.(); }} className={outlineBtn}>
+            Start Sequence
           </button>
         )}
 
@@ -2268,6 +3300,10 @@ Questions? support@olera.care or (979) 243-9801`;
           </button>
         )}
       </div>
+      {/* Error display for failed template load or other errors */}
+      {actionError && (
+        <p className="mt-2 text-sm text-red-600">{actionError}</p>
+      )}
     </div>
   );
 }
@@ -2281,16 +3317,21 @@ export function ProviderDrawer({
   onClose,
   onEmailUpdate,
   onPhoneUpdate,
+  onFaxUpdate,
   onLaunchSequence,
   onMarkNotInterested,
   onArchive,
   onRemove,
-  onMoveToReady,
   onResetToReadyWithApollo,
   onContactFound,
   onOutcomeRecorded,
   onClaimLinkSent,
   onContactFormSent,
+  onCallLogged,
+  onPrevious,
+  onNext,
+  hasPrevious = false,
+  hasNext = false,
   activeTab,
 }: ProviderDrawerProps) {
   // Determine if we should show Follow Up section
@@ -2333,7 +3374,6 @@ export function ProviderDrawer({
       onMarkNotInterested={onMarkNotInterested}
       onArchive={onArchive}
       onRemove={onRemove}
-      onMoveToReady={onMoveToReady}
       onOutcomeRecorded={onOutcomeRecorded}
       onClaimLinkSent={onClaimLinkSent}
       onContactFormSent={onContactFormSent}
@@ -2348,8 +3388,44 @@ export function ProviderDrawer({
     activeTab === "needs_call" ||
     activeTab === "call_exhausted";
 
+  // Navigation buttons for prev/next provider
+  const navigationExtras = (onPrevious || onNext) ? (
+    <div className="flex items-center gap-1">
+      <button
+        onClick={onPrevious}
+        disabled={!hasPrevious}
+        className={`p-1.5 rounded-md transition-colors ${
+          hasPrevious
+            ? "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            : "text-gray-300 cursor-not-allowed"
+        }`}
+        title="Previous provider"
+        aria-label="Previous provider"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+      <button
+        onClick={onNext}
+        disabled={!hasNext}
+        className={`p-1.5 rounded-md transition-colors ${
+          hasNext
+            ? "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            : "text-gray-300 cursor-not-allowed"
+        }`}
+        title="Next provider"
+        aria-label="Next provider"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+  ) : undefined;
+
   return (
-    <DrawerShell onClose={onClose} header={header} footer={actionsFooter}>
+    <DrawerShell onClose={onClose} header={header} headerExtras={navigationExtras} footer={actionsFooter}>
       <div className="py-2">
         {/* Call Script - show for Call & Confirm, Follow Up, and Call tabs */}
         {showCallScript && <CallScriptSection provider={provider} activeTab={activeTab} />}
@@ -2359,7 +3435,21 @@ export function ProviderDrawer({
           provider={provider}
           onEmailUpdate={(email) => onEmailUpdate?.(provider.provider_id, email)}
           onPhoneUpdate={(phone) => onPhoneUpdate?.(provider.provider_id, phone)}
+          onFaxUpdate={(fax) => onFaxUpdate?.(provider.provider_id, fax)}
         />
+
+        <SectionDivider />
+
+        {/* Saved Contacts Section */}
+        <SavedContactsSection
+          provider={provider}
+          onUseEmail={(email) => onEmailUpdate?.(provider.provider_id, email)}
+        />
+
+        <SectionDivider />
+
+        {/* Call Log Section */}
+        <CallLogSection provider={provider} onCallLogged={onCallLogged} />
 
         <SectionDivider />
 
@@ -2408,6 +3498,11 @@ export function ProviderDrawer({
 
         {/* Activity Section */}
         <ActivitySection provider={provider} />
+
+        <SectionDivider />
+
+        {/* Email History Section */}
+        <EmailSendsSection provider={provider} />
       </div>
     </DrawerShell>
   );

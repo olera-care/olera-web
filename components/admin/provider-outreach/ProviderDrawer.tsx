@@ -1743,7 +1743,8 @@ function EmailSendsSection({ provider }: { provider: OutreachProvider }) {
     setEmails([]);
   }, [provider.provider_id]);
 
-  const emailCount = provider.engagement?.emails_sent ?? provider.resend_count ?? 0;
+  // Use actual count from API once loaded, otherwise estimate from provider data
+  const emailCount = loaded ? emails.length : (provider.engagement?.emails_sent ?? provider.resend_count ?? 0);
 
   // Format date for display
   const formatDate = (dateStr: string) => {

@@ -50,7 +50,7 @@ def metrics(num, aim, rows, note=None):
 <p class="caption"><b>Table {num}.</b> Aim {aim} quantitative success criteria.</p>{n}"""
 
 T5 = metrics(3, 1, [
- ("Agreement with the blinded expert panel","&#8805; 85%","Quarterly audit of 60 cases, Task 1.4"),
+ ("Agreement with the blinded expert panel","&#8805; 85%","120 audited cases before the gate, Task 1.4"),
  ("Material errors against the expert gold standard","&#8804; 10%","Same audit"),
  ("Inter-rater reliability among panelists","&#954; &#8805; 0.70","Established before adjudication"),
  ("Execution loops complete end to end, aid and services","Both paths","Internal release testing"),

@@ -90,9 +90,10 @@ record accumulates hours, competencies, populations served, supervisor evaluatio
 credential status, and travels with the worker to any licensed employer.</p>
 
 <p class="sec"><b>Task 1.4: Verification against blinded expert review.</b> A panel of licensed clinical social workers, independent of the engineering team and
-holding no equity in Olera, audits a stratified random sample of 60 cases each quarter, 240 over the award, which
-sizes quarterly agreement to a 95 percent half-width of about 9 points and the cumulative
-figure to about 5. The panel determines eligibility blinded to what the platform
+holding no equity in Olera, audits a stratified random sample of 60 cases in each of the two quarters before the month
+12 gate, 120 in all, which sizes cumulative agreement to a 95 percent half-width of about 6
+points. The audit then repeats annually, so accuracy is re-established as the system and the
+underlying program rules change. The panel determines eligibility blinded to what the platform
 produced and, for a subset,
 prepares the applications by hand. Both are compared with the platform's output, category
 by category for eligibility and field by field for applications, and agreement is reported

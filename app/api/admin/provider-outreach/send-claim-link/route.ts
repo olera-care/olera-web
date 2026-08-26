@@ -1,6 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { readFileSync } from "fs";
-import { join } from "path";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import {
@@ -13,19 +11,41 @@ import {
   PROVIDER_OUTREACH_REPLY_TO,
 } from "@/lib/provider-outreach";
 
-// Load PDF attachment once at module level (cached across requests)
-let pdfAttachment: { filename: string; content: string; encoding: string; type: string } | null = null;
-try {
-  const pdfPath = join(process.cwd(), "public", "Olera for Providers.pdf");
-  const pdfBuffer = readFileSync(pdfPath);
-  pdfAttachment = {
-    filename: "Olera for Providers.pdf",
-    content: pdfBuffer.toString("base64"),
-    encoding: "base64",
-    type: "application/pdf",
-  };
-} catch (err) {
-  console.warn("[send-claim-link] PDF attachment not found, emails will be sent without attachment:", err);
+// PDF attachment cache (survives warm Lambda invocations)
+let cachedPdfAttachment: { filename: string; content: string; encoding: string; type: string } | null = null;
+let pdfFetchAttempted = false;
+
+/**
+ * Fetch PDF attachment from public URL.
+ * In Vercel, public/ files are served via CDN, not accessible via filesystem.
+ * We fetch once and cache in memory for the lifetime of the Lambda instance.
+ */
+async function getPdfAttachment(): Promise<typeof cachedPdfAttachment> {
+  if (cachedPdfAttachment) return cachedPdfAttachment;
+  if (pdfFetchAttempted) return null; // Don't retry failed fetches
+
+  pdfFetchAttempted = true;
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+    const pdfUrl = `${baseUrl}/Olera%20for%20Providers.pdf`;
+    const response = await fetch(pdfUrl);
+    if (!response.ok) {
+      console.warn(`[send-claim-link] Failed to fetch PDF: ${response.status}`);
+      return null;
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    cachedPdfAttachment = {
+      filename: "Olera for Providers.pdf",
+      content: Buffer.from(arrayBuffer).toString("base64"),
+      encoding: "base64",
+      type: "application/pdf",
+    };
+    console.log("[send-claim-link] PDF attachment loaded and cached");
+    return cachedPdfAttachment;
+  } catch (err) {
+    console.warn("[send-claim-link] Failed to fetch PDF attachment:", err);
+    return null;
+  }
 }
 
 /**
@@ -181,6 +201,9 @@ export async function POST(request: NextRequest) {
       // Use default nudge template
       rendered = renderEmail("nudge", context);
     }
+
+    // Fetch PDF attachment (cached after first fetch)
+    const pdfAttachment = await getPdfAttachment();
 
     // Send via Resend with PDF attachment
     const sendResult = await sendEmail({

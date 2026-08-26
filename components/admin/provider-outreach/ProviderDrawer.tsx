@@ -940,6 +940,15 @@ function SavedContactsSection({
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [usingEmail, setUsingEmail] = useState<string | null>(null);
 
+  // Reset state when provider changes to avoid stale data flash
+  useEffect(() => {
+    setContacts([]);
+    setShowAddForm(false);
+    setNewValue("");
+    setNewLabel("");
+    setSubmitError(null);
+  }, [provider.provider_id]);
+
   // Fetch contacts on mount / provider change
   useEffect(() => {
     let cancelled = false;
@@ -1387,6 +1396,13 @@ function CallLogSection({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  // Reset state when provider changes to avoid stale data flash
+  useEffect(() => {
+    setLogs([]);
+    setCallNotes("");
+    setSubmitError(null);
+  }, [provider.provider_id]);
+
   // Fetch call logs on mount / provider change
   useEffect(() => {
     let cancelled = false;
@@ -1547,6 +1563,14 @@ function NotesSection({ provider }: { provider: OutreachProvider }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // Reset state when provider changes to avoid stale data flash
+  useEffect(() => {
+    setNotes([]);
+    setNewNote("");
+    setSubmitError(null);
+    setLoading(true);
+  }, [provider.provider_id]);
 
   useEffect(() => {
     async function fetchNotes() {

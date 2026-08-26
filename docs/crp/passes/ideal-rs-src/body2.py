@@ -53,9 +53,8 @@ two markets per point, because price is assigned by market and one market per ar
 arm is a market; and within each pair one market has a health-professions campus nearby and
 one does not, so price is crossed with workforce source rather than confounded with it. They open in two waves of
 four, the first early enough to observe 12-month retention and the second run as written by
-staff who did not design it. At roughly $30,000 to enter a market, ten markets is about
-seven percent of the requested budget; the binding constraint is operating attention, not
-capital.</p>
+staff who did not design it. At roughly $30,000 to enter a market, ten markets is about $300,000, or under eight percent
+of the $4 million requested; the binding constraint is operating attention, not capital.</p>
 """
 
 AIM1 = r"""
@@ -91,8 +90,10 @@ record accumulates hours, competencies, populations served, supervisor evaluatio
 credential status, and travels with the worker to any licensed employer.</p>
 
 <p class="sec"><b>Task 1.4: Verification against blinded expert review.</b> A panel of licensed clinical social workers, independent of the engineering team and
-holding no equity in Olera, audits a stratified random sample of cases each quarter. The
-panel determines eligibility blinded to what the platform produced and, for a subset,
+holding no equity in Olera, audits a stratified random sample of 60 cases each quarter, 240 over the award, which
+sizes quarterly agreement to a 95 percent half-width of about 9 points and the cumulative
+figure to about 5. The panel determines eligibility blinded to what the platform
+produced and, for a subset,
 prepares the applications by hand. Both are compared with the platform's output, category
 by category for eligibility and field by field for applications, and agreement is reported
 as percent agreement with a 95 percent confidence interval and as Cohen's kappa.
@@ -185,10 +186,10 @@ application through screening, interview, hire, and first confirmed shift, which
 time to hire and fill rate. Retention is reported by cohort at 90 days, separately for workers who stay with the
 placing provider and those who move to another licensed employer carrying their verified
 record, because a worker who changes employers still represents capacity added to the
-field. <b>The month 21 gate requires half of placed workers still in direct care at 90
-days.</b> That bar sits above the 40 percent floor at which the Aim 3 stop rule fires, so
-opening paid markets requires evidence that retention holds and not merely the absence of
-disconfirmation.</p>
+field. <b>The month 21 gate requires half of the Aim 2 placements still in direct care at 90
+days.</b> Below that, a provider replaces half of what they bought within a quarter and
+pays twice for one hire, which is the point at which this stops being cheaper than what
+they do now.</p>
 
 <p class="sec"><b>Task 2.5: Validate the staffing product with providers and workers.</b>
 <i>(Human subjects research; Clemson University IRB.)</i> A sequential mixed-methods
@@ -279,10 +280,12 @@ difference between arms is referred to the distribution of differences the other
 price assignments would have produced. That is valid with few clusters and assumes nothing
 about large samples. Account-level generalized estimating equations, with market as the
 cluster and small-sample corrections, are pre-specified as secondary and reported as
-descriptive. A biostatistician sizes the arms against the conversion rate measured in Aim 2
-rather than an assumed one, and states in advance the interval width the design will
-deliver, so no one discovers afterward that the answer was never going to be precise enough
-to act on. A pre-registered
+descriptive. Approximately 40 provider accounts per market reach a priced offer, about 320 across the
+eight markets and 80 per arm, which sizes account-level conversion to a 95 percent
+half-width near 10 points in each arm. A biostatistician confirms that sizing against the
+conversion rate measured in Aim 2 rather than an assumed one, and states in advance the
+interval width the market-level comparison will deliver, so no one discovers afterward that
+the answer was never going to be precise enough to act on. A pre-registered
 interim analysis at month 30 drops a dominated arm and reallocates to wave two. The
 decision rule selects the price maximizing expected 12-month revenue per account rather
 than conversion alone, because a price that converts and then churns is worse than one
@@ -291,7 +294,10 @@ that does neither.</p>
 <p class="sec"><b>Task 3.3: Measure unit economics, retention, and cross-side value.</b>
 Every figure comes from live billing, payroll, and cost records. Acquisition cost includes
 spending on non-converters. Monthly net account margin is revenue less the cost to serve
-defined in Task 2.6. Retention is estimated at 3, 6, 9, and 12 months, and time to churn with discrete-time
+defined in Task 2.6. Lifetime value and acquisition cost are estimated on the converting
+accounts pooled across markets. Per-market contribution margin is reported for every market
+and flagged as descriptive where a market carries fewer than 20 paying accounts, so a thin
+cell is never presented as a result. Retention is estimated at 3, 6, 9, and 12 months, and time to churn with discrete-time
 survival models on account-month records matching the billing cycle, treating voluntary
 cancellation, uncured payment failure, and downgrade as competing events. Restricted mean
 survival time at 12 months gives expected account lifetime, and lifetime times monthly net
@@ -352,11 +358,12 @@ cost, repackage, and re-test in wave two. If margins are positive but below what
 needs to fund itself, no further markets open until the cost structure improves. If wave two
 slips, wave one still carries the pricing, unit economics, and retention results.</p>
 
-<p class="sec"><b>The stop rule.</b> If, at the month 30 interim analysis, fewer than 40
-percent of placed workers remain in direct care at 90 days <b>and</b> paid conversion is
-below 20 percent at every offered price, we will report the provider-funded model as
-disconfirmed, hold wave two, and redirect the remaining effort to completing and publishing
-the analysis. A commercialization program should fund projects willing to find out they are
+<p class="sec"><b>The stop rule.</b> If, at the month 30 interim analysis, fewer than 40 percent of the workers placed in the
+wave-one paid markets remain in direct care at 90 days <b>and</b> paid conversion is below
+20 percent at every offered price, we will report the provider-funded model as disconfirmed,
+hold wave two, and redirect the remaining effort to completing and publishing the analysis.
+The month 21 gate tested retention in the free markets; this tests whether it survives when
+a provider is paying for it. A commercialization program should fund projects willing to find out they are
 wrong.</p>
 
 <p class="sec"><b>If staffing revenue alone proves insufficient.</b> One product may not

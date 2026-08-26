@@ -50,7 +50,7 @@ def metrics(num, aim, rows, note=None):
 <p class="caption"><b>Table {num}.</b> Aim {aim} quantitative success criteria.</p>{n}"""
 
 T5 = metrics(3, 1, [
- ("Agreement with the blinded expert panel","&#8805; 85%","Quarterly stratified audit, Task 1.4"),
+ ("Agreement with the blinded expert panel","&#8805; 85%","Quarterly audit of 60 cases, Task 1.4"),
  ("Material errors against the expert gold standard","&#8804; 10%","Same audit"),
  ("Inter-rater reliability among panelists","&#954; &#8805; 0.70","Established before adjudication"),
  ("Execution loops complete end to end, aid and services","Both paths","Internal release testing"),
@@ -74,7 +74,7 @@ T6 = metrics(4, 2, [
 ], note="Gate at month 21, before wave one opens: the execution loops complete for both aid and services, and worker retention meets its bar.")
 
 T7 = metrics(5, 3, [
- ("Paid conversion within 60 days, by price arm","Estimated with 95% CI","Task 3.2, randomization inference across 8 markets"),
+ ("Paid conversion within 60 days, by price arm","&#177;10 pts per arm","Task 3.2, ~320 offers, randomization inference"),
  ("Lifetime value against acquisition cost, 12 months","&#8805; 3 : 1","Task 3.3, restricted mean survival time"),
  ("Payback period on acquisition cost","&lt; 12 months","Task 3.3"),
  ("Per-market contribution margin after cost of serving families","Positive","Task 3.3"),

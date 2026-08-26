@@ -2898,6 +2898,19 @@ export default function ProviderOutreachPage() {
   // Email source comparison (org vs Apollo decision-maker)
   const [emailSourceExpanded, setEmailSourceExpanded] = useState(false);
 
+  // Daily activity stats
+  const [activityStatsExpanded, setActivityStatsExpanded] = useState(false);
+  const [activityStatsDate, setActivityStatsDate] = useState(() =>
+    new Date().toLocaleDateString("en-CA", { timeZone: "America/Chicago" })
+  );
+  const [activityStats, setActivityStats] = useState<{
+    date: string;
+    calls: { total: number; voicemail: number; no_answer: number; hung_up: number; callback: number; new_email: number; resend: number; spoke_with: number };
+    emails: { total: number; intro: number; followup: number; demand_loss: number; final: number; nudge: number };
+    daily_series: Array<{ date: string; calls: number; emails: number }>;
+  } | null>(null);
+  const [activityStatsLoading, setActivityStatsLoading] = useState(false);
+
   // Email template preview
   const [previewTemplate, setPreviewTemplate] = useState<string | null>(null);
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
@@ -3707,6 +3720,31 @@ export default function ProviderOutreachPage() {
     };
     fetchConversionStats();
   }, [statsExpanded, conversionExpanded, emailSourceExpanded, conversionStats, selectedState]);
+
+  // Effect: fetch activity stats when section is expanded or date changes
+  useEffect(() => {
+    if (!activityStatsExpanded) return;
+
+    let cancelled = false;
+    const fetchActivityStats = async () => {
+      setActivityStatsLoading(true);
+      try {
+        const res = await fetch(`/api/admin/provider-outreach/activity-stats?date=${activityStatsDate}&days=7`);
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          setActivityStats(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch activity stats:", err);
+      } finally {
+        if (!cancelled) setActivityStatsLoading(false);
+      }
+    };
+    fetchActivityStats();
+    return () => {
+      cancelled = true;
+    };
+  }, [activityStatsExpanded, activityStatsDate]);
 
   // Reset conversion stats when state changes
   useEffect(() => {
@@ -4748,6 +4786,32 @@ export default function ProviderOutreachPage() {
                 </span>
               )}
             </button>
+
+            <span className="text-gray-300">|</span>
+
+            {/* Daily Activity toggle */}
+            <button
+              type="button"
+              onClick={() => setActivityStatsExpanded(!activityStatsExpanded)}
+              className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                activityStatsExpanded ? "text-gray-900" : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              <svg
+                className={`w-3.5 h-3.5 transform transition-transform ${activityStatsExpanded ? "rotate-90" : ""}`}
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+              <span>Daily Activity</span>
+              {activityStats && (
+                <span className="text-xs text-gray-400">
+                  ({activityStats.calls.total} calls)
+                </span>
+              )}
+            </button>
           </div>
 
           {/* Outreach Funnel expanded content */}
@@ -5071,6 +5135,116 @@ export default function ProviderOutreachPage() {
                 </div>
               ) : (
                 <div className="text-sm text-gray-500">No email source data yet. Start sequences to compare org vs Apollo performance.</div>
+              )}
+            </div>
+          )}
+
+          {/* Daily Activity expanded content */}
+          {activityStatsExpanded && (
+            <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+              {/* Date picker */}
+              <div className="flex items-center justify-between mb-4">
+                <span className="text-sm font-medium text-gray-700">Activity for</span>
+                <input
+                  type="date"
+                  value={activityStatsDate}
+                  onChange={(e) => setActivityStatsDate(e.target.value)}
+                  max={new Date().toLocaleDateString("en-CA", { timeZone: "America/Chicago" })}
+                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                />
+              </div>
+
+              {activityStatsLoading ? (
+                <div className="flex items-center justify-center py-4">
+                  <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+                  <span className="ml-2 text-sm text-gray-500">Loading stats...</span>
+                </div>
+              ) : activityStats ? (
+                <div className="space-y-4">
+                  {/* Main stats grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Calls</div>
+                      <div className="mt-1 text-2xl font-semibold text-gray-900 tabular-nums">{activityStats.calls.total}</div>
+                    </div>
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Voicemails</div>
+                      <div className="mt-1 text-2xl font-semibold text-amber-600 tabular-nums">{activityStats.calls.voicemail}</div>
+                    </div>
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Emails Sent</div>
+                      <div className="mt-1 text-2xl font-semibold text-gray-900 tabular-nums">{activityStats.emails.total}</div>
+                    </div>
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Resends</div>
+                      <div className="mt-1 text-2xl font-semibold text-teal-600 tabular-nums">{activityStats.emails.nudge}</div>
+                    </div>
+                  </div>
+
+                  {/* Call status breakdown */}
+                  {activityStats.calls.total > 0 && (
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Call Outcomes</div>
+                      <div className="flex flex-wrap items-center gap-2 text-sm">
+                        {activityStats.calls.voicemail > 0 && (
+                          <span className="px-2 py-0.5 bg-amber-50 text-amber-700 rounded">VM {activityStats.calls.voicemail}</span>
+                        )}
+                        {activityStats.calls.no_answer > 0 && (
+                          <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded">No Ans {activityStats.calls.no_answer}</span>
+                        )}
+                        {activityStats.calls.spoke_with > 0 && (
+                          <span className="px-2 py-0.5 bg-purple-50 text-purple-700 rounded">Spoke {activityStats.calls.spoke_with}</span>
+                        )}
+                        {activityStats.calls.callback > 0 && (
+                          <span className="px-2 py-0.5 bg-blue-50 text-blue-700 rounded">Callback {activityStats.calls.callback}</span>
+                        )}
+                        {activityStats.calls.hung_up > 0 && (
+                          <span className="px-2 py-0.5 bg-red-50 text-red-700 rounded">Hung Up {activityStats.calls.hung_up}</span>
+                        )}
+                        {activityStats.calls.new_email > 0 && (
+                          <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded">New Email {activityStats.calls.new_email}</span>
+                        )}
+                        {activityStats.calls.resend > 0 && (
+                          <span className="px-2 py-0.5 bg-teal-50 text-teal-700 rounded">Resend {activityStats.calls.resend}</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Sparkline chart for last 7 days */}
+                  {activityStats.daily_series.length > 0 && (() => {
+                    const maxCount = Math.max(1, ...activityStats.daily_series.map((d) => d.calls + d.emails));
+                    return (
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Last 7 Days</div>
+                      <div className="flex items-end gap-1 h-12">
+                        {activityStats.daily_series.map((day) => {
+                          const total = day.calls + day.emails;
+                          const heightPct = Math.max(4, (total / maxCount) * 100);
+                          const isToday = day.date === activityStatsDate;
+                          return (
+                            <div
+                              key={day.date}
+                              className="flex-1 flex flex-col items-center gap-0.5"
+                              title={`${day.date}: ${day.calls} calls, ${day.emails} emails`}
+                            >
+                              <div
+                                className={`w-full rounded-sm ${isToday ? "bg-primary-500" : "bg-gray-300"}`}
+                                style={{ height: `${heightPct}%` }}
+                              />
+                              <span className="text-[9px] text-gray-400">
+                                {new Date(day.date + "T12:00:00").toLocaleDateString("en-US", { weekday: "narrow" })}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                    );
+                  })()}
+                </div>
+              ) : (
+                <div className="text-sm text-gray-500">No activity data available.</div>
               )}
             </div>
           )}

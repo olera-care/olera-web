@@ -3086,6 +3086,70 @@ export default function ProviderOutreachPage() {
     }
   }, [providers]); // eslint-disable-line react-hooks/exhaustive-deps -- only sync when providers change
 
+  // Drawer navigation: compute prev/next provider within same city (memoized)
+  const drawerNavigation = useMemo(() => {
+    if (!drawerProvider) {
+      return { hasPrevious: false, hasNext: false, handlePrevious: () => {}, handleNext: () => {} };
+    }
+
+    const drawerCity = drawerProvider.city || "(No City)";
+    const cityProviders = providers
+      .filter((p) => (p.city || "(No City)") === drawerCity)
+      .sort((a, b) => {
+        // Apply same sorting as CityRow: in Follow Up tab, providers with calls go to bottom
+        if (activeTab === "needs_call") {
+          const aHasCalls = (a.call_count ?? 0) > 0;
+          const bHasCalls = (b.call_count ?? 0) > 0;
+          if (aHasCalls !== bHasCalls) {
+            return aHasCalls ? 1 : -1;
+          }
+        }
+        return a.provider_name.localeCompare(b.provider_name);
+      });
+
+    const currentIndex = cityProviders.findIndex((p) => p.provider_id === drawerProvider.provider_id);
+    const hasPrevious = currentIndex > 0;
+    const hasNext = currentIndex < cityProviders.length - 1 && currentIndex !== -1;
+
+    const handlePrevious = () => {
+      if (hasPrevious) {
+        setDrawerProvider(cityProviders[currentIndex - 1]);
+      }
+    };
+
+    const handleNext = () => {
+      if (hasNext) {
+        setDrawerProvider(cityProviders[currentIndex + 1]);
+      }
+    };
+
+    return { hasPrevious, hasNext, handlePrevious, handleNext };
+  }, [drawerProvider, providers, activeTab]);
+
+  // Keyboard navigation for drawer (left/right arrows)
+  useEffect(() => {
+    if (!drawerProvider) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't navigate if user is typing in an input field
+      const target = e.target as HTMLElement;
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) {
+        return;
+      }
+
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        drawerNavigation.handlePrevious();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        drawerNavigation.handleNext();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [drawerProvider, drawerNavigation]);
+
   // Standardized archive reasons (same codes as Questions/Connections)
   // Archive = Stop all outreach. Provider is invalid, out of business, or explicitly declined.
   const ARCHIVE_REASONS = [
@@ -7283,45 +7347,15 @@ export default function ProviderOutreachPage() {
       )}
 
       {/* Provider Detail Drawer */}
-      {drawerProvider && (() => {
-        // Compute navigation for prev/next provider within same city
-        const drawerCity = drawerProvider.city || "(No City)";
-        const cityProviders = providers
-          .filter((p) => (p.city || "(No City)") === drawerCity)
-          .sort((a, b) => {
-            // Apply same sorting as CityRow: in Follow Up tab, providers with calls go to bottom
-            if (activeTab === "needs_call") {
-              const aHasCalls = (a.call_count ?? 0) > 0;
-              const bHasCalls = (b.call_count ?? 0) > 0;
-              if (aHasCalls !== bHasCalls) {
-                return aHasCalls ? 1 : -1;
-              }
-            }
-            return a.provider_name.localeCompare(b.provider_name);
-          });
-        const currentIndex = cityProviders.findIndex((p) => p.provider_id === drawerProvider.provider_id);
-        const hasPrevious = currentIndex > 0;
-        const hasNext = currentIndex < cityProviders.length - 1 && currentIndex !== -1;
-        const handlePrevious = () => {
-          if (hasPrevious) {
-            setDrawerProvider(cityProviders[currentIndex - 1]);
-          }
-        };
-        const handleNext = () => {
-          if (hasNext) {
-            setDrawerProvider(cityProviders[currentIndex + 1]);
-          }
-        };
-
-        return (
+      {drawerProvider && (
         <ProviderDrawer
           provider={drawerProvider}
           onClose={() => setDrawerProvider(null)}
           activeTab={activeTab}
-          onPrevious={handlePrevious}
-          onNext={handleNext}
-          hasPrevious={hasPrevious}
-          hasNext={hasNext}
+          onPrevious={drawerNavigation.handlePrevious}
+          onNext={drawerNavigation.handleNext}
+          hasPrevious={drawerNavigation.hasPrevious}
+          hasNext={drawerNavigation.hasNext}
           onOutcomeRecorded={(providerId, stageChanged) => {
             if (stageChanged) {
               // Provider moved to a different stage - remove from current list
@@ -7543,8 +7577,7 @@ export default function ProviderOutreachPage() {
             );
           }}
         />
-        );
-      })()}
+      )}
     </div>
   );
 }

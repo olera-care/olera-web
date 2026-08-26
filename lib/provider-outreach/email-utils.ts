@@ -345,7 +345,8 @@ export function renderEmail(
  */
 export function renderVariantEmail(
   variantDraft: { subject: string; body: string },
-  context: TemplateContext
+  context: TemplateContext,
+  templateKey: ProviderOutreachTemplateKey = "nudge"
 ): RenderedEmail {
   // Build substitution variables for footer
   const vars = buildVars(context);
@@ -354,9 +355,9 @@ export function renderVariantEmail(
   const bodyHtml = bodyToPolishedHtml(variantDraft.body);
   const footerHtml = composePolishedFooterHtml(vars);
 
-  // Wrap in polished layout with Day 0 category label
+  // Wrap in polished layout with appropriate category label
   const html = polishedLayout(bodyHtml, footerHtml, {
-    categoryLabel: getCategoryLabel("intro"),
+    categoryLabel: getCategoryLabel(templateKey),
   });
 
   // Build plain text version

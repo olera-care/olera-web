@@ -3762,9 +3762,8 @@ export default function ProviderOutreachPage() {
       setPreviewLoading(true);
       setPreviewHtml(null); // Clear old preview while loading new one
       try {
-        // Use correct engine: nudge is sent via Resend, sequence emails via SmartLead
-        const engine = previewTemplate === "nudge" ? "resend" : "smartlead";
-        const res = await fetch(`/api/admin/provider-outreach/template-preview?template=${previewTemplate}&engine=${engine}`);
+        // Always use Resend engine for polished gallery-style preview
+        const res = await fetch(`/api/admin/provider-outreach/template-preview?template=${previewTemplate}&engine=resend`);
         if (res.ok) {
           const data = await res.json();
           setPreviewHtml(data.html);

@@ -100,11 +100,23 @@ div.refs { break-before: page; page-break-before: always; }
 div.refs p { font-size: 9pt; text-align: left; margin: 0 0 3pt 0; text-indent: -14pt; padding-left: 14pt; }
 """
 
+import os
+WORD = os.environ.get("WORD_EXPORT") == "1"
+FIGPNG = {1:6.7, 4:6.5, 5:7.0}
 def figblock(svg, num, cap):
+    if WORD:
+        w = FIGPNG[num]
+        return (f'<div class="fig"><img src="png/fig{num}.png" style="width:{w}in"></div>'
+                f'<p class="caption"><b>Figure {num}.</b> {cap}</p>')
     return (f'<div class="fig">{svg}</div>'
             f'<p class="caption"><b>Figure {num}.</b> {cap}</p>')
 
 def figwrap(svg, num, cap, width):
+    if WORD:
+        return ('<table align="right" class="figfloat" cellspacing="0" cellpadding="0" '
+                f'style="width:{width}in"><tr><td>'
+                f'<img src="png/fig{num}.png" style="width:{width}in">'
+                f'<p class="caption"><b>Figure {num}.</b> {cap}</p></td></tr></table>')
     return (f'<div class="figwrap" style="width:{width}in">{svg}'
             f'<p class="caption"><b>Figure {num}.</b> {cap}</p></div>')
 
@@ -150,12 +162,14 @@ for i,(k,txt) in enumerate(REFS):
     refs += f'<p>{i+1}. {txt}</p>'
 refs += '</div>'
 
-doc = (f'<style>{CSS}</style>'
+doc = ('<!DOCTYPE html>\n<html><head><meta charset="utf-8">'
+  '<title>Olera CRP Research Strategy</title>'
+  f'<style>{CSS}</style></head><body>'
   '<h1 class="sechead first">Significance</h1>' + sig +
   '<h1 class="sechead">Innovation</h1>' + inn +
   '<h1 class="sechead">Approach</h1>' + app +
-  '<h1 class="sechead">CRP Progress Report</h1>' + prog + refs)
+  '<h1 class="sechead">CRP Progress Report</h1>' + prog + refs + '</body></html>')
 doc = resolve(doc)
-open('rs.html','w').write(doc)
+open('rs_word.html' if WORD else 'rs.html','w').write(doc)
 txt = re.sub(r'<style>.*?</style>','',doc,flags=re.S)
 print('words in body:', len(re.sub(r'<[^>]+>',' ',txt).split()))

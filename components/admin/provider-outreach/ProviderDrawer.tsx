@@ -1690,6 +1690,149 @@ function ActivitySection({ provider }: { provider: OutreachProvider }) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Email Sends Section (detailed email history)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface EmailSendEntry {
+  id: string;
+  sent_at: string;
+  template_key: string;
+  template_label: string;
+  trigger: string;
+  to_email: string | null;
+  open_count: number;
+  click_count: number;
+  admin_name: string | null;
+}
+
+function EmailSendsSection({ provider }: { provider: OutreachProvider }) {
+  const [expanded, setExpanded] = useState(false);
+  const [emails, setEmails] = useState<EmailSendEntry[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  // Fetch email history when expanded
+  useEffect(() => {
+    if (!expanded || loaded) return;
+
+    let cancelled = false;
+    async function fetchEmails() {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `/api/admin/provider-outreach/email-sends?provider_id=${encodeURIComponent(provider.provider_id)}`
+        );
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          setEmails(data.emails || []);
+          setLoaded(true);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchEmails();
+    return () => {
+      cancelled = true;
+    };
+  }, [expanded, loaded, provider.provider_id]);
+
+  // Reset loaded state when provider changes
+  useEffect(() => {
+    setLoaded(false);
+    setEmails([]);
+  }, [provider.provider_id]);
+
+  const emailCount = provider.engagement?.emails_sent ?? provider.resend_count ?? 0;
+
+  // Format date for display
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  return (
+    <div>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between py-2 text-left group"
+      >
+        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider group-hover:text-gray-600">
+          Email History ({emailCount})
+        </span>
+        <svg
+          className={`w-4 h-4 text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {expanded && (
+        <div className="mt-2">
+          {loading ? (
+            <div className="flex items-center justify-center py-4">
+              <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+            </div>
+          ) : emails.length === 0 ? (
+            <p className="text-sm text-gray-400 italic py-2">No emails sent yet</p>
+          ) : (
+            <div className="space-y-2 max-h-48 overflow-y-auto">
+              {emails.map((email) => (
+                <div
+                  key={email.id}
+                  className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-900">
+                        {email.template_label}
+                      </span>
+                      {(email.open_count > 0 || email.click_count > 0) && (
+                        <div className="flex items-center gap-1.5 text-xs">
+                          {email.open_count > 0 && (
+                            <span className="text-blue-600">{email.open_count} open{email.open_count !== 1 ? "s" : ""}</span>
+                          )}
+                          {email.click_count > 0 && (
+                            <span className="text-green-600">{email.click_count} click{email.click_count !== 1 ? "s" : ""}</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                      <span>{formatDate(email.sent_at)}</span>
+                      {email.to_email && (
+                        <>
+                          <span className="text-gray-300">·</span>
+                          <span className="truncate">{email.to_email}</span>
+                        </>
+                      )}
+                      {email.admin_name && (
+                        <>
+                          <span className="text-gray-300">·</span>
+                          <span>by {email.admin_name}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Follow Up Section (for needs_call stage)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -2947,6 +3090,11 @@ export function ProviderDrawer({
 
         {/* Activity Section */}
         <ActivitySection provider={provider} />
+
+        <SectionDivider />
+
+        {/* Email History Section */}
+        <EmailSendsSection provider={provider} />
       </div>
     </DrawerShell>
   );

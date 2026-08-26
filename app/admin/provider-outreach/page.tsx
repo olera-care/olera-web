@@ -1579,10 +1579,26 @@ function CityRow({
   const [movingToReadyId, setMovingToReadyId] = useState<string | null>(null);
 
   // Memoize cityProviders to avoid unnecessary useEffect re-runs
-  const cityProviders = useMemo(
-    () => providers.filter((p) => (p.city || "(No City)") === city.city),
-    [providers, city.city]
-  );
+  // In Follow Up tab: sort providers with logged calls to the bottom
+  const cityProviders = useMemo(() => {
+    const filtered = providers.filter((p) => (p.city || "(No City)") === city.city);
+
+    // Only apply call-based sorting in Follow Up tab
+    if (activeTab === "needs_call") {
+      return filtered.sort((a, b) => {
+        const aHasCalls = (a.call_count ?? 0) > 0;
+        const bHasCalls = (b.call_count ?? 0) > 0;
+        // Providers without calls come first
+        if (aHasCalls !== bHasCalls) {
+          return aHasCalls ? 1 : -1;
+        }
+        // Within same group, maintain alphabetical order
+        return a.provider_name.localeCompare(b.provider_name);
+      });
+    }
+
+    return filtered;
+  }, [providers, city.city, activeTab]);
 
 
   // Auto email lookup when city is expanded

@@ -2162,6 +2162,10 @@ function ActionsSection({
   const [composeMode, setComposeMode] = useState<"send" | "resend">("send");
   // Checkbox for "I called" confirmation in resend mode
   const [composeConfirmedCall, setComposeConfirmedCall] = useState(false);
+  // HTML preview state
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState("");
+  const [previewLoading, setPreviewLoading] = useState(false);
 
   // Reset contact form state when provider changes
   useEffect(() => {
@@ -2198,6 +2202,9 @@ function ActionsSection({
     setComposeToEmail("");
     setComposeMode("send");
     setComposeConfirmedCall(false);
+    setShowPreview(false);
+    setPreviewHtml("");
+    setPreviewLoading(false);
   }, [provider.provider_id]);
 
   // Load default email template for compose modal (send mode - no stage change)
@@ -2245,6 +2252,34 @@ function ActionsSection({
       setActionError("Failed to load email template");
     } finally {
       setComposeLoading(false);
+    }
+  }
+
+  // Generate HTML preview of the composed email
+  async function loadEmailPreview() {
+    setPreviewLoading(true);
+    setActionError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/preview-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          custom_subject: composeSubject,
+          custom_body: composeBody,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.html) {
+        setPreviewHtml(data.html);
+        setShowPreview(true);
+      } else {
+        setActionError(data.error || "Failed to generate preview");
+      }
+    } catch {
+      setActionError("Failed to generate preview");
+    } finally {
+      setPreviewLoading(false);
     }
   }
 
@@ -2958,48 +2993,114 @@ Questions? support@olera.care or (979) 243-9801`;
       <div>
         <SectionHeader>Compose Email</SectionHeader>
         <div className="p-3 bg-gray-50 border border-gray-200 rounded-md space-y-3">
-          {/* To field (read-only) */}
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">To</label>
-            <div className="text-sm text-gray-700 bg-gray-100 px-2 py-1.5 rounded border border-gray-200">
-              {composeToEmail}
+          {/* Toggle between Edit and Preview */}
+          <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
+            <button
+              onClick={() => setShowPreview(false)}
+              className={`px-3 py-1 text-sm font-medium rounded-md transition ${
+                !showPreview
+                  ? "bg-primary-100 text-primary-700"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => {
+                if (!previewHtml) {
+                  loadEmailPreview();
+                } else {
+                  setShowPreview(true);
+                }
+              }}
+              disabled={previewLoading || !composeSubject.trim() || !composeBody.trim()}
+              className={`px-3 py-1 text-sm font-medium rounded-md transition ${
+                showPreview
+                  ? "bg-primary-100 text-primary-700"
+                  : "text-gray-500 hover:text-gray-700 disabled:opacity-50"
+              }`}
+            >
+              {previewLoading ? "Loading..." : "Preview"}
+            </button>
+            {showPreview && (
+              <button
+                onClick={() => {
+                  setPreviewHtml("");
+                  loadEmailPreview();
+                }}
+                disabled={previewLoading}
+                className="ml-auto text-xs text-gray-400 hover:text-gray-600"
+              >
+                Refresh preview
+              </button>
+            )}
+          </div>
+
+          {/* Preview pane */}
+          {showPreview && previewHtml && (
+            <div className="border border-gray-200 rounded-md bg-white overflow-hidden">
+              <iframe
+                srcDoc={previewHtml}
+                title="Email Preview"
+                className="w-full h-[400px] border-0"
+                sandbox="allow-same-origin"
+              />
             </div>
-          </div>
+          )}
 
-          {/* Subject field (editable) */}
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">Subject</label>
-            <input
-              type="text"
-              value={composeSubject}
-              onChange={(e) => setComposeSubject(e.target.value)}
-              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Email subject..."
-            />
-          </div>
+          {/* Edit pane */}
+          {!showPreview && (
+            <>
+              {/* To field (read-only) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">To</label>
+                <div className="text-sm text-gray-700 bg-gray-100 px-2 py-1.5 rounded border border-gray-200">
+                  {composeToEmail}
+                </div>
+              </div>
 
-          {/* Body field (editable) */}
-          <div>
-            <label className="block text-xs font-medium text-gray-500 mb-1">
-              Message
-              <span className="ml-1 font-normal text-gray-400">(supports markdown links)</span>
-            </label>
-            <textarea
-              value={composeBody}
-              onChange={(e) => setComposeBody(e.target.value)}
-              rows={14}
-              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-              placeholder="Email body..."
-            />
-          </div>
+              {/* Subject field (editable) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Subject</label>
+                <input
+                  type="text"
+                  value={composeSubject}
+                  onChange={(e) => {
+                    setComposeSubject(e.target.value);
+                    setPreviewHtml(""); // Clear preview when editing
+                  }}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Email subject..."
+                />
+              </div>
 
-          {/* Footer preview (locked) */}
-          <div>
-            <label className="block text-xs font-medium text-gray-400 mb-1">Footer (auto-added)</label>
-            <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1.5 rounded border border-gray-200 italic">
-              Best, Logan · [Signature with photo] · Manage/Unsubscribe links · PDF attachment
-            </div>
-          </div>
+              {/* Body field (editable) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">
+                  Message
+                  <span className="ml-1 font-normal text-gray-400">(supports markdown links)</span>
+                </label>
+                <textarea
+                  value={composeBody}
+                  onChange={(e) => {
+                    setComposeBody(e.target.value);
+                    setPreviewHtml(""); // Clear preview when editing
+                  }}
+                  rows={12}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Email body..."
+                />
+              </div>
+
+              {/* Footer preview (locked) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-400 mb-1">Footer (auto-added)</label>
+                <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1.5 rounded border border-gray-200 italic">
+                  Best, Logan · [Signature with photo] · Manage/Unsubscribe links · PDF attachment
+                </div>
+              </div>
+            </>
+          )}
 
           {actionError && <p className="text-sm text-red-600">{actionError}</p>}
 
@@ -3045,6 +3146,8 @@ Questions? support@olera.care or (979) 243-9801`;
                 setShowComposeModal(false);
                 setActionError(null);
                 setComposeConfirmedCall(false);
+                setShowPreview(false);
+                setPreviewHtml("");
               }}
               className={plainBtn}
             >

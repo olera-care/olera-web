@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { readFileSync } from "fs";
+import { join } from "path";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import {
@@ -10,6 +12,21 @@ import {
   PROVIDER_OUTREACH_FROM,
   PROVIDER_OUTREACH_REPLY_TO,
 } from "@/lib/provider-outreach";
+
+// Load PDF attachment once at module level (cached across requests)
+let pdfAttachment: { filename: string; content: string; encoding: string; type: string } | null = null;
+try {
+  const pdfPath = join(process.cwd(), "public", "Olera for Providers.pdf");
+  const pdfBuffer = readFileSync(pdfPath);
+  pdfAttachment = {
+    filename: "Olera for Providers.pdf",
+    content: pdfBuffer.toString("base64"),
+    encoding: "base64",
+    type: "application/pdf",
+  };
+} catch (err) {
+  console.warn("[send-claim-link] PDF attachment not found, emails will be sent without attachment:", err);
+}
 
 /**
  * POST /api/admin/provider-outreach/send-claim-link
@@ -165,7 +182,7 @@ export async function POST(request: NextRequest) {
       rendered = renderEmail("nudge", context);
     }
 
-    // Send via Resend
+    // Send via Resend with PDF attachment
     const sendResult = await sendEmail({
       to: provider.email,
       from: PROVIDER_OUTREACH_FROM,
@@ -174,11 +191,13 @@ export async function POST(request: NextRequest) {
       html: rendered.html,
       emailType: PROVIDER_OUTREACH_EMAIL_TYPE,
       providerId: provider_id,
+      attachments: pdfAttachment ? [pdfAttachment] : undefined,
       metadata: {
         template_key: "nudge",
         trigger: isCustomEmail ? "manual_custom_email" : "manual_send_claim_link",
         from_stage: tracking.stage,
         is_custom: isCustomEmail,
+        has_pdf_attachment: !!pdfAttachment,
       },
     });
 

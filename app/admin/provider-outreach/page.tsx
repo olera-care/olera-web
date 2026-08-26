@@ -7406,6 +7406,17 @@ export default function ProviderOutreachPage() {
               prev && prev.provider_id === providerId ? { ...prev, phone } : prev
             );
           }}
+          onFaxUpdate={(providerId, fax) => {
+            setProviders((prev) =>
+              prev.map((p) =>
+                p.provider_id === providerId ? { ...p, fax_number: fax } : p
+              )
+            );
+            // Update drawer provider too
+            setDrawerProvider((prev) =>
+              prev && prev.provider_id === providerId ? { ...prev, fax_number: fax } : prev
+            );
+          }}
           onLaunchSequence={(providerId) => {
             // Look up provider from state and open sequence confirmation modal
             const provider = providers.find((p) => p.provider_id === providerId);

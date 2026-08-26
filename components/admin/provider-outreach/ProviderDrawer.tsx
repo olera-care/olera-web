@@ -101,6 +101,7 @@ interface ProviderDrawerProps {
   // Inline editing callbacks
   onEmailUpdate?: (providerId: string, email: string, emailSource?: "decision_maker") => void;
   onPhoneUpdate?: (providerId: string, phone: string | null) => void;
+  onFaxUpdate?: (providerId: string, fax: string | null) => void;
   // Action callbacks (use providerId to avoid type mismatches with page's full OutreachProvider)
   onLaunchSequence?: (providerId: string) => void;
   onMarkNotInterested?: (providerId: string, reason?: string) => void;
@@ -332,19 +333,25 @@ function ContactSection({
   provider,
   onEmailUpdate,
   onPhoneUpdate,
+  onFaxUpdate,
 }: {
   provider: OutreachProvider;
   onEmailUpdate?: (email: string) => void;
   onPhoneUpdate?: (phone: string | null) => void;
+  onFaxUpdate?: (fax: string | null) => void;
 }) {
   const [editingEmail, setEditingEmail] = useState(false);
   const [editingPhone, setEditingPhone] = useState(false);
+  const [editingFax, setEditingFax] = useState(false);
   const [emailValue, setEmailValue] = useState(provider.email || "");
   const [phoneValue, setPhoneValue] = useState(provider.phone || "");
+  const [faxValue, setFaxValue] = useState(provider.fax_number || "");
   const [savingEmail, setSavingEmail] = useState(false);
   const [savingPhone, setSavingPhone] = useState(false);
+  const [savingFax, setSavingFax] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [faxError, setFaxError] = useState<string | null>(null);
 
   // Auto email finding state
   const [findingEmail, setFindingEmail] = useState(false);
@@ -447,12 +454,15 @@ function ContactSection({
       // Reset editing state to prevent stale data if switching providers while editing
       setEditingEmail(false);
       setEditingPhone(false);
+      setEditingFax(false);
       setEmailValue(provider.email || "");
       setPhoneValue(provider.phone || "");
+      setFaxValue(provider.fax_number || "");
       setEmailError(null);
       setPhoneError(null);
+      setFaxError(null);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- Only reset on provider_id change; email/phone values are read at that moment
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Only reset on provider_id change; email/phone/fax values are read at that moment
   }, [provider.provider_id]);
 
   // Trigger verification when found email changes
@@ -597,6 +607,29 @@ function ContactSection({
       setPhoneError("Network error");
     } finally {
       setSavingPhone(false);
+    }
+  }
+
+  async function handleSaveFax() {
+    setSavingFax(true);
+    setFaxError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-fax", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, fax: faxValue.trim() }),
+      });
+      if (res.ok) {
+        onFaxUpdate?.(faxValue.trim() || null);
+        setEditingFax(false);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setFaxError(data.error || "Failed to save");
+      }
+    } catch {
+      setFaxError("Network error");
+    } finally {
+      setSavingFax(false);
     }
   }
 
@@ -795,7 +828,323 @@ function ContactSection({
           </div>
         )}
         </div>
+
+      {/* Fax */}
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-gray-500 w-16">Fax</span>
+        {editingFax ? (
+          <div className="flex items-center gap-2 flex-1 ml-3">
+            <input
+              type="tel"
+              value={faxValue}
+              onChange={(e) => setFaxValue(e.target.value)}
+              className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              placeholder="(555) 123-4567"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSaveFax();
+                if (e.key === "Escape") {
+                  e.stopPropagation();
+                  setEditingFax(false);
+                  setFaxValue(provider.fax_number || "");
+                }
+              }}
+              autoFocus
+            />
+            <button
+              onClick={handleSaveFax}
+              disabled={savingFax}
+              className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+            >
+              {savingFax ? "..." : "Save"}
+            </button>
+            <button
+              onClick={() => {
+                setEditingFax(false);
+                setFaxValue(provider.fax_number || "");
+                setFaxError(null);
+              }}
+              className="text-sm text-gray-400 hover:text-gray-600"
+            >
+              Cancel
+            </button>
+            {faxError && <span className="text-xs text-red-500">{faxError}</span>}
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 flex-1 ml-3">
+            {provider.fax_number ? (
+              <span className="text-sm text-gray-900">
+                {formatPhone(provider.fax_number)}
+              </span>
+            ) : (
+              <span className="text-sm text-gray-400 italic">No fax</span>
+            )}
+            <button
+              onClick={() => {
+                setEditingFax(true);
+                setFaxValue(provider.fax_number || "");
+              }}
+              className="ml-auto text-xs text-gray-400 hover:text-gray-600"
+            >
+              Edit
+            </button>
+          </div>
+        )}
+        </div>
       </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Saved Contacts Section (additional emails, fax, phone for reference)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CONTACT_TYPE_LABELS: Record<string, string> = {
+  email: "Email",
+  fax: "Fax",
+  phone: "Phone",
+};
+
+interface SavedContact {
+  id: string;
+  provider_id: string;
+  type: "email" | "fax" | "phone";
+  value: string;
+  label: string | null;
+  notes: string | null;
+  admin_id: string;
+  admin_name: string | null;
+  created_at: string;
+}
+
+function SavedContactsSection({
+  provider,
+  onUseEmail,
+}: {
+  provider: OutreachProvider;
+  onUseEmail?: (email: string) => void;
+}) {
+  const [contacts, setContacts] = useState<SavedContact[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newType, setNewType] = useState<"email" | "fax" | "phone">("email");
+  const [newValue, setNewValue] = useState("");
+  const [newLabel, setNewLabel] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [usingEmail, setUsingEmail] = useState<string | null>(null);
+
+  // Fetch contacts on mount / provider change
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchContacts() {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `/api/admin/provider-outreach/contacts?provider_id=${encodeURIComponent(provider.provider_id)}`
+        );
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          setContacts(data.contacts || []);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchContacts();
+    return () => {
+      cancelled = true;
+    };
+  }, [provider.provider_id]);
+
+  const handleAddContact = useCallback(async () => {
+    if (submitting || !newValue.trim()) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          type: newType,
+          value: newValue.trim(),
+          label: newLabel.trim() || undefined,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setContacts((prev) => [data.contact, ...prev]);
+        setNewValue("");
+        setNewLabel("");
+        setShowAddForm(false);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSubmitError(data.error || "Failed to save");
+      }
+    } catch {
+      setSubmitError("Network error");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [provider.provider_id, newType, newValue, newLabel, submitting]);
+
+  const handleUseEmail = useCallback(async (email: string) => {
+    if (usingEmail) return;
+    setUsingEmail(email);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, email }),
+      });
+      if (res.ok) {
+        onUseEmail?.(email);
+      }
+    } finally {
+      setUsingEmail(null);
+    }
+  }, [provider.provider_id, onUseEmail, usingEmail]);
+
+  const handleDelete = useCallback(async (contactId: string) => {
+    try {
+      const res = await fetch("/api/admin/provider-outreach/contacts", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contact_id: contactId }),
+      });
+      if (res.ok) {
+        setContacts((prev) => prev.filter((c) => c.id !== contactId));
+      }
+    } catch {
+      // Silent fail for delete
+    }
+  }, []);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+          Saved Contacts
+        </span>
+        {!showAddForm && (
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="text-xs text-primary-600 hover:text-primary-700"
+          >
+            + Add
+          </button>
+        )}
+      </div>
+
+      {/* Add contact form */}
+      {showAddForm && (
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg space-y-2">
+          <div className="flex items-center gap-2">
+            <select
+              value={newType}
+              onChange={(e) => setNewType(e.target.value as "email" | "fax" | "phone")}
+              className="px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+              disabled={submitting}
+            >
+              <option value="email">Email</option>
+              <option value="fax">Fax</option>
+              <option value="phone">Phone</option>
+            </select>
+            <input
+              type="text"
+              value={newValue}
+              onChange={(e) => setNewValue(e.target.value)}
+              placeholder={newType === "email" ? "email@example.com" : "(555) 123-4567"}
+              className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              disabled={submitting}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddContact();
+                }
+                if (e.key === "Escape") {
+                  e.stopPropagation();
+                  setShowAddForm(false);
+                }
+              }}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={newLabel}
+              onChange={(e) => setNewLabel(e.target.value)}
+              placeholder="Label (e.g., Sales Director)"
+              className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              disabled={submitting}
+            />
+            <button
+              onClick={handleAddContact}
+              disabled={submitting || !newValue.trim()}
+              className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+            >
+              {submitting ? "..." : "Save"}
+            </button>
+            <button
+              onClick={() => {
+                setShowAddForm(false);
+                setNewValue("");
+                setNewLabel("");
+                setSubmitError(null);
+              }}
+              className="text-xs text-gray-400 hover:text-gray-600"
+            >
+              Cancel
+            </button>
+          </div>
+          {submitError && (
+            <p className="text-xs text-red-500">{submitError}</p>
+          )}
+        </div>
+      )}
+
+      {/* Contacts list */}
+      {loading ? (
+        <div className="flex items-center justify-center py-4">
+          <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+        </div>
+      ) : contacts.length === 0 ? (
+        <p className="text-sm text-gray-400 italic">No saved contacts</p>
+      ) : (
+        <div className="space-y-2">
+          {contacts.map((contact) => (
+            <div key={contact.id} className="flex items-center justify-between text-sm group">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400 w-12">{CONTACT_TYPE_LABELS[contact.type]}</span>
+                  <span className="text-gray-900 truncate">{contact.value}</span>
+                  {contact.label && (
+                    <span className="text-gray-500">· {contact.label}</span>
+                  )}
+                </div>
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {contact.type === "email" && contact.value !== provider.email && (
+                  <button
+                    onClick={() => handleUseEmail(contact.value)}
+                    disabled={usingEmail === contact.value}
+                    className="text-xs text-primary-600 hover:text-primary-700 disabled:opacity-50"
+                  >
+                    {usingEmail === contact.value ? "..." : "Use"}
+                  </button>
+                )}
+                <button
+                  onClick={() => handleDelete(contact.id)}
+                  className="text-xs text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -2466,6 +2815,7 @@ export function ProviderDrawer({
   onClose,
   onEmailUpdate,
   onPhoneUpdate,
+  onFaxUpdate,
   onLaunchSequence,
   onMarkNotInterested,
   onArchive,
@@ -2544,6 +2894,15 @@ export function ProviderDrawer({
           provider={provider}
           onEmailUpdate={(email) => onEmailUpdate?.(provider.provider_id, email)}
           onPhoneUpdate={(phone) => onPhoneUpdate?.(provider.provider_id, phone)}
+          onFaxUpdate={(fax) => onFaxUpdate?.(provider.provider_id, fax)}
+        />
+
+        <SectionDivider />
+
+        {/* Saved Contacts Section */}
+        <SavedContactsSection
+          provider={provider}
+          onUseEmail={(email) => onEmailUpdate?.(provider.provider_id, email)}
         />
 
         <SectionDivider />

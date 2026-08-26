@@ -7390,6 +7390,8 @@ export default function ProviderOutreachPage() {
             if (provider) {
               setSequenceConfirmProviders([provider]);
               setShowSequenceConfirm(true);
+              setShowSequencePreview(true); // Auto-expand preview
+              fetchSequencePreview([providerId]); // Fetch email preview data
               setDrawerProvider(null);
             }
           }}

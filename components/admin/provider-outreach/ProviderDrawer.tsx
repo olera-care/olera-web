@@ -986,6 +986,186 @@ function DecisionMakerSection({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Call Log Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CALL_STATUSES = [
+  { value: "voicemail", label: "VM", color: "bg-amber-100 text-amber-700" },
+  { value: "no_answer", label: "No Answer", color: "bg-gray-100 text-gray-600" },
+  { value: "hung_up", label: "Hung Up", color: "bg-red-100 text-red-700" },
+  { value: "callback", label: "Callback", color: "bg-blue-100 text-blue-700" },
+  { value: "new_email", label: "New Email", color: "bg-emerald-100 text-emerald-700" },
+  { value: "resend", label: "Resend", color: "bg-teal-100 text-teal-700" },
+  { value: "spoke_with", label: "Spoke With", color: "bg-purple-100 text-purple-700" },
+] as const;
+
+type CallStatus = (typeof CALL_STATUSES)[number]["value"];
+
+interface CallLogEntry {
+  id: string;
+  provider_id: string;
+  status: CallStatus;
+  notes: string | null;
+  admin_id: string;
+  admin_name: string | null;
+  created_at: string;
+}
+
+function getCallStatusBadge(status: string): { label: string; className: string } {
+  const found = CALL_STATUSES.find((s) => s.value === status);
+  return found
+    ? { label: found.label, className: found.color }
+    : { label: status, className: "bg-gray-100 text-gray-600" };
+}
+
+function CallLogSection({ provider }: { provider: OutreachProvider }) {
+  const [logs, setLogs] = useState<CallLogEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedStatus, setSelectedStatus] = useState<CallStatus>("voicemail");
+  const [callNotes, setCallNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // Fetch call logs on mount / provider change
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchLogs() {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `/api/admin/provider-outreach/call-logs?provider_id=${encodeURIComponent(provider.provider_id)}`
+        );
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          setLogs(data.logs || []);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchLogs();
+    return () => {
+      cancelled = true;
+    };
+  }, [provider.provider_id]);
+
+  const handleLogCall = useCallback(async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/call-logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          status: selectedStatus,
+          notes: callNotes.trim() || undefined,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Add the new log to the top of the list
+        setLogs((prev) => [data.log, ...prev]);
+        setCallNotes("");
+        setSelectedStatus("voicemail");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSubmitError(data.error || "Failed to log call");
+      }
+    } catch {
+      setSubmitError("Network error");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [provider.provider_id, selectedStatus, callNotes, submitting]);
+
+  return (
+    <div>
+      <SectionHeader>Call Log</SectionHeader>
+
+      {/* Log call form */}
+      <div className="mb-5 p-3 bg-gray-50 rounded-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value as CallStatus)}
+            className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+            disabled={submitting}
+          >
+            {CALL_STATUSES.map((status) => (
+              <option key={status.value} value={status.value}>
+                {status.label}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={handleLogCall}
+            disabled={submitting}
+            className="px-4 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+          >
+            {submitting ? "..." : "Log Call"}
+          </button>
+        </div>
+        <input
+          type="text"
+          value={callNotes}
+          onChange={(e) => setCallNotes(e.target.value)}
+          placeholder="Optional notes..."
+          className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+          disabled={submitting}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleLogCall();
+            }
+            if (e.key === "Escape") {
+              e.stopPropagation();
+              setCallNotes("");
+            }
+          }}
+        />
+        {submitError && (
+          <p className="mt-1 text-xs text-red-500">{submitError}</p>
+        )}
+      </div>
+
+      {/* Call history */}
+      {loading ? (
+        <div className="flex items-center justify-center py-4">
+          <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+        </div>
+      ) : logs.length === 0 ? (
+        <p className="text-sm text-gray-400 italic">No calls logged yet</p>
+      ) : (
+        <div className="space-y-2 max-h-36 overflow-y-auto">
+          {logs.map((log) => {
+            const badge = getCallStatusBadge(log.status);
+            return (
+              <div key={log.id} className="flex items-start gap-2 text-sm">
+                <span className="text-xs text-gray-400 whitespace-nowrap pt-0.5">
+                  {formatDate(log.created_at)}
+                </span>
+                <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium rounded ${badge.className}`}>
+                  {badge.label}
+                </span>
+                {log.notes && (
+                  <span className="text-gray-600 truncate flex-1">&quot;{log.notes}&quot;</span>
+                )}
+                {!log.notes && <span className="text-gray-400">—</span>}
+                <span className="text-xs text-gray-400 whitespace-nowrap">
+                  {log.admin_name || "Unknown"}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Notes Section
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -2360,6 +2540,11 @@ export function ProviderDrawer({
           onEmailUpdate={(email) => onEmailUpdate?.(provider.provider_id, email)}
           onPhoneUpdate={(phone) => onPhoneUpdate?.(provider.provider_id, phone)}
         />
+
+        <SectionDivider />
+
+        {/* Call Log Section */}
+        <CallLogSection provider={provider} />
 
         <SectionDivider />
 

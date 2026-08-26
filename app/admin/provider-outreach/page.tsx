@@ -337,6 +337,9 @@ interface OutreachProvider {
   } | null;
   // Email source: 'organization' (scraped/manual) or 'decision_maker' (Apollo)
   email_source?: "organization" | "decision_maker" | null;
+  // Call log stats (from provider_outreach_touchpoints with type = 'call_attempted')
+  call_count?: number;
+  latest_call_status?: string;
 }
 
 interface ActiveState {
@@ -477,6 +480,43 @@ function getNeedsCallReasonChip(reason: string | null): { label: string; classNa
     case "manual":
     default:
       return { label, className: "bg-gray-100 text-gray-600" };
+  }
+}
+
+// Call status labels for display in chips
+const CALL_STATUS_LABELS: Record<string, string> = {
+  voicemail: "VM",
+  no_answer: "No Ans",
+  hung_up: "Hung Up",
+  callback: "Callback",
+  new_email: "New Email",
+  resend: "Resend",
+  spoke_with: "Spoke",
+};
+
+function formatCallStatus(status?: string): string {
+  if (!status) return "";
+  return CALL_STATUS_LABELS[status] || status;
+}
+
+function getCallStatusColor(status?: string): string {
+  switch (status) {
+    case "voicemail":
+      return "bg-amber-50 text-amber-700 border-amber-200";
+    case "no_answer":
+      return "bg-gray-100 text-gray-600 border-gray-200";
+    case "hung_up":
+      return "bg-red-50 text-red-700 border-red-200";
+    case "callback":
+      return "bg-blue-50 text-blue-700 border-blue-200";
+    case "new_email":
+      return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    case "resend":
+      return "bg-teal-50 text-teal-700 border-teal-200";
+    case "spoke_with":
+      return "bg-purple-50 text-purple-700 border-purple-200";
+    default:
+      return "bg-gray-100 text-gray-600 border-gray-200";
   }
 }
 
@@ -2089,6 +2129,11 @@ function FollowUpProviderRow({
                 <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded-full ${dueBadge.className}`}>
                   {dueBadge.text}
                 </span>
+                {provider.call_count && provider.call_count > 0 && (
+                  <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded border ${getCallStatusColor(provider.latest_call_status)}`}>
+                    {formatCallStatus(provider.latest_call_status) || "Called"} ({provider.call_count})
+                  </span>
+                )}
               </div>
             </div>
 
@@ -2528,6 +2573,11 @@ function CallProviderRow({
               {emailsSent > 0 && (
                 <span className="px-1.5 py-0.5 rounded text-[10px] font-medium bg-gray-100 text-gray-600">
                   {emailsSent} sent
+                </span>
+              )}
+              {provider.call_count && provider.call_count > 0 && (
+                <span className={`inline-flex px-2 py-0.5 text-xs font-medium rounded border ${getCallStatusColor(provider.latest_call_status)}`}>
+                  {formatCallStatus(provider.latest_call_status) || "Called"} ({provider.call_count})
                 </span>
               )}
               <span className="text-xs text-gray-500">{daysSinceEntry}d</span>

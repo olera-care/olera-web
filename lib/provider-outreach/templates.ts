@@ -281,8 +281,8 @@ function finalEmail(): EmailDraft {
  *   - Post-call follow-up with claim link
  *
  * Admin can edit subject and body before sending.
- * Bracketed placeholders like [First name] are for the admin to fill in.
- * System placeholders like provider name and city are auto-filled.
+ * System auto-fills: provider name, city, greeting name, claim URL.
+ * Admin MUST fill in: [Your name] (validated before send).
  *
  * Style: Personal follow-up after a call.
  */
@@ -290,11 +290,9 @@ function nudgeEmail(): EmailDraft {
   return {
     subject: `${PLACEHOLDER.providerName}'s page on Olera, from our call today`,
     body: [
-      `Hi [First name],`,
+      `Hi ${PLACEHOLDER.greetingName},`,
       ``,
       `Thanks for taking my call just now. As promised, here's the link for ${PLACEHOLDER.providerName}'s page on Olera:`,
-      ``,
-      `[Personal line]`,
       ``,
       `Right now the page only shows the basics from public records. Activating it lets you add your photos, services, and contact details, so families searching in ${PLACEHOLDER.city} see your story instead of ours. Two minutes, free, no contracts, no referral or per-lead fees.`,
       ``,

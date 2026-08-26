@@ -3,6 +3,8 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import {
   renderEmail,
+  renderVariantEmail,
+  previewEmail,
   buildContextFromProvider,
   PROVIDER_OUTREACH_EMAIL_TYPE,
   PROVIDER_OUTREACH_FROM,
@@ -104,7 +106,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { provider_id, outcome, notes, not_interested_reason } = body;
+    const { provider_id, outcome, notes, not_interested_reason, custom_subject, custom_body } = body;
 
     if (!provider_id || typeof provider_id !== "string") {
       return NextResponse.json({ error: "provider_id is required" }, { status: 400 });
@@ -324,7 +326,31 @@ export async function POST(request: NextRequest) {
             slug: provider.slug,
           });
 
-          const rendered = renderEmail("nudge", context);
+          // Render email - use custom content if provided, otherwise default nudge template
+          let rendered;
+          const isCustomEmail = !!(custom_subject || custom_body);
+
+          if (isCustomEmail) {
+            // Use custom content with standard footer
+            const preview = previewEmail("nudge", context);
+
+            // Substitute {claim_url} in custom body if present
+            let finalBody = custom_body || preview.editableBody;
+            if (finalBody.includes("{claim_url}")) {
+              finalBody = finalBody.replace(/\{claim_url\}/g, context.claim_url);
+            }
+
+            rendered = renderVariantEmail(
+              {
+                subject: custom_subject || preview.subject,
+                body: finalBody,
+              },
+              context
+            );
+          } else {
+            // Use default nudge template
+            rendered = renderEmail("nudge", context);
+          }
 
           // Fetch PDF attachment (cached after first fetch)
           const pdfAttachment = await getPdfAttachment();
@@ -341,9 +367,10 @@ export async function POST(request: NextRequest) {
             attachments: pdfAttachment ? [pdfAttachment] : undefined,
             metadata: {
               template_key: "nudge",
-              trigger: "resend_link_outcome",
+              trigger: isCustomEmail ? "resend_link_custom" : "resend_link_outcome",
               resend_count: newResendCount,
               has_pdf_attachment: !!pdfAttachment,
+              is_custom: isCustomEmail,
             },
           });
 

@@ -188,12 +188,20 @@ export async function POST(request: NextRequest) {
 
     if (isCustomEmail) {
       // Use custom content with standard footer
-      // previewEmail gives us rawBody (body without footer) for fallback
+      // previewEmail gives us editableBody (body without claim_url substituted) for fallback
       const preview = previewEmail("nudge", context);
+
+      // Substitute {claim_url} in custom body if present
+      // The compose modal shows {claim_url} as placeholder, we replace it here
+      let finalBody = custom_body || preview.editableBody;
+      if (finalBody.includes("{claim_url}")) {
+        finalBody = finalBody.replace(/\{claim_url\}/g, context.claim_url);
+      }
+
       rendered = renderVariantEmail(
         {
           subject: custom_subject || preview.subject,
-          body: custom_body || preview.rawBody,
+          body: finalBody,
         },
         context
       );
@@ -364,7 +372,8 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       subject: preview.subject,
-      body: preview.rawBody,
+      // Use editableBody which keeps {claim_url} as placeholder (not ugly long URL)
+      body: preview.editableBody,
       to_email: provider.email,
       provider_name: provider.provider_name,
     });

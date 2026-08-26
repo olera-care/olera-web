@@ -2158,6 +2158,10 @@ function ActionsSection({
   const [composeBody, setComposeBody] = useState("");
   const [composeLoading, setComposeLoading] = useState(false);
   const [composeToEmail, setComposeToEmail] = useState("");
+  // Track compose mode: "send" = just send email, "resend" = send + move to Alt Channels
+  const [composeMode, setComposeMode] = useState<"send" | "resend">("send");
+  // Checkbox for "I called" confirmation in resend mode
+  const [composeConfirmedCall, setComposeConfirmedCall] = useState(false);
 
   // Reset contact form state when provider changes
   useEffect(() => {
@@ -2192,12 +2196,40 @@ function ActionsSection({
     setComposeBody("");
     setComposeLoading(false);
     setComposeToEmail("");
+    setComposeMode("send");
+    setComposeConfirmedCall(false);
   }, [provider.provider_id]);
 
-  // Load default email template for compose modal
+  // Load default email template for compose modal (send mode - no stage change)
   async function loadComposeTemplate() {
     setComposeLoading(true);
-    setActionError(null); // Clear any previous errors
+    setActionError(null);
+    setComposeMode("send");
+    setComposeConfirmedCall(false);
+    try {
+      const res = await fetch(`/api/admin/provider-outreach/send-claim-link?provider_id=${provider.provider_id}`);
+      const data = await res.json();
+      if (res.ok) {
+        setComposeSubject(data.subject || "");
+        setComposeBody(data.body || "");
+        setComposeToEmail(data.to_email || provider.email || "");
+        setShowComposeModal(true);
+      } else {
+        setActionError(data.error || "Failed to load template");
+      }
+    } catch {
+      setActionError("Failed to load email template");
+    } finally {
+      setComposeLoading(false);
+    }
+  }
+
+  // Load compose template for resend mode (sends email + moves to Alt Channels)
+  async function loadComposeTemplateForResend() {
+    setComposeLoading(true);
+    setActionError(null);
+    setComposeMode("resend");
+    setComposeConfirmedCall(false);
     try {
       const res = await fetch(`/api/admin/provider-outreach/send-claim-link?provider_id=${provider.provider_id}`);
       const data = await res.json();
@@ -2355,6 +2387,45 @@ function ActionsSection({
           onClaimLinkSent?.(provider.provider_id, data.resend_count);
         }
         setTimeout(() => onClose?.(), 1200);
+      } else {
+        setActionError(data.error || "Failed to send");
+      }
+    } catch {
+      setActionError("Network error");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  // Handle resend link with compose modal (sends email + moves to Alt Channels)
+  async function handleResendLink(customSubject?: string, customBody?: string) {
+    setActionLoading(true);
+    setActionError(null);
+    try {
+      const payload: Record<string, string> = {
+        provider_id: provider.provider_id,
+        outcome: "resend_link",
+      };
+      if (customSubject) payload.custom_subject = customSubject;
+      if (customBody) payload.custom_body = customBody;
+
+      const res = await fetch("/api/admin/provider-outreach/record-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setActionSuccess({
+          outcome: "resend_link",
+          emailSent: data.email_sent,
+          emailError: data.email_error,
+        });
+        setConfirmAction(null);
+        setShowComposeModal(false);
+        setComposeConfirmedCall(false);
+        onOutcomeRecorded?.(provider.provider_id, true);
+        setTimeout(() => onClose?.(), 1500);
       } else {
         setActionError(data.error || "Failed to send");
       }
@@ -2926,25 +2997,54 @@ Questions? support@olera.care or (979) 243-9801`;
           <div>
             <label className="block text-xs font-medium text-gray-400 mb-1">Footer (auto-added)</label>
             <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1.5 rounded border border-gray-200 italic">
-              Best, Logan · [Signature with photo] · Manage/Unsubscribe links
+              Best, Logan · [Signature with photo] · Manage/Unsubscribe links · PDF attachment
             </div>
           </div>
 
           {actionError && <p className="text-sm text-red-600">{actionError}</p>}
 
+          {/* Checkbox for resend mode (requires call confirmation) */}
+          {composeMode === "resend" && (
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={composeConfirmedCall}
+                onChange={(e) => setComposeConfirmedCall(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span className="text-sm text-gray-600">I called and confirmed this action</span>
+            </label>
+          )}
+
           {/* Action buttons */}
           <div className="flex items-center gap-2 pt-1">
             <button
-              onClick={() => handleSendClaimLink(composeSubject, composeBody)}
-              disabled={actionLoading || !composeSubject.trim() || !composeBody.trim()}
+              onClick={() => {
+                if (composeMode === "resend") {
+                  handleResendLink(composeSubject, composeBody);
+                } else {
+                  handleSendClaimLink(composeSubject, composeBody);
+                }
+              }}
+              disabled={
+                actionLoading ||
+                !composeSubject.trim() ||
+                !composeBody.trim() ||
+                (composeMode === "resend" && !composeConfirmedCall)
+              }
               className={primaryBtn}
             >
-              {actionLoading ? "Sending..." : "Send Email"}
+              {actionLoading
+                ? "Sending..."
+                : composeMode === "resend"
+                ? "Resend & Move to Alt Channels"
+                : "Send Email"}
             </button>
             <button
               onClick={() => {
                 setShowComposeModal(false);
                 setActionError(null);
+                setComposeConfirmedCall(false);
               }}
               className={plainBtn}
             >
@@ -2962,7 +3062,7 @@ Questions? support@olera.care or (979) 243-9801`;
       launch: { title: "Launch email sequence for this provider?", confirmText: "Launch" },
       claim_link: { title: "Send claim link email?", confirmText: "Send" },
       send_claim_link: { title: "Send claim link email?", requiresCall: true, confirmText: "Send" },
-      resend_link: { title: "Resend claim link and move to Alt Channels?", requiresCall: true, confirmText: "Resend" },
+      // resend_link now uses compose modal instead of confirmation dialog
       try_fax: { title: "Move to Alternative Channels (Fax)?", requiresCall: true, confirmText: "Move to Fax" },
       try_direct_mail: { title: "Move to Alternative Channels (Direct Mail)?", requiresCall: true, confirmText: "Move to Direct Mail" },
       remove: { title: `Remove ${provider.provider_name} from outreach?`, confirmText: "Remove" },
@@ -3043,8 +3143,8 @@ Questions? support@olera.care or (979) 243-9801`;
         {isFollowUp && (
           <>
             {provider.email && (
-              <button onClick={() => setConfirmAction("resend_link")} className={outlineBtn}>
-                Resend Link
+              <button onClick={loadComposeTemplateForResend} disabled={composeLoading} className={outlineBtn}>
+                {composeLoading ? "Loading..." : "Resend Link"}
               </button>
             )}
             <button onClick={() => setConfirmAction("fax")} className={outlineBtn}>

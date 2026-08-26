@@ -1155,3 +1155,80 @@ document is archived verbatim at `live-research-plan-2026-08-26.md`.
     **Superseded by the three per-aim "what completing Aim N delivers" paragraphs**, which
     say the same four things where each is earned. The closing keeps the proportionality
     argument, which is its unique content.
+
+---
+
+## Line-edit pass, 26 Aug 2026 (entries 72-84)
+
+Removed while bringing the Research Strategy to the 12-page limit after Logan's
+line-by-line pass. Everything here was cut for space or redundancy, not because
+it was wrong. Anything worth reviving has its future home named.
+
+72. **Task 1.5, "Market selection and preparation."** Dissolved on instruction:
+    market activation moved into Aim 2 Task 2.1. The selection criteria survive
+    there, and the "Year 1 ends with markets ready" claim survives as one sentence
+    in Aim 1's gate paragraph, so the "nothing customer-facing in Year 1" objection
+    stays closed without a fifth task.
+
+73. **The up-front HSR paragraph** (formal determinations, who participates and who
+    does not, anticipated non-human-subjects streams, inclusion and exclusion logic).
+    Removed on instruction; the Phase IIB exemplar carries none of it. The statutory
+    inclusion statement was relocated into Task 2.4 rather than deleted, because it
+    is a scored Approach compliance element. Everything else lives in the PHS Human
+    Subjects and Clinical Trials Information form.
+
+74. **The "Ten markets, and why that number" paragraph** and **Table 4 (market
+    derivation).** Removed on instruction. The rationale is now stated where it first
+    matters: two markets in Task 2.1, eight in Task 3.1, cost and share of budget in
+    Task 3.1. Restore the derivation table in the Commercialization Plan if a reviewer
+    asks how ten was chosen.
+
+75. **The separate stop-rule section.** Folded into Aim 3's alternative strategies on
+    instruction, with the month 30 rule intact. Nothing visible to a reviewer was lost;
+    the aim structure now reads problems, alternatives, gate at each aim.
+
+76. **"What our operating record shows" and "The question that remains"** as standalone
+    paragraphs. Absorbed into the CRP Progress Report on instruction.
+
+77. **Safeguards sentence in Task 2.4** (separation of research participation from
+    employment decisions and shift allocation, non-disclosure of worker responses,
+    withdrawal protections). Trimmed to one clause. The full text belongs in the PHS
+    Human Subjects form, which the Approach signposts, and the Phase IIB exemplar
+    carries no safeguards language at all.
+
+78. **Four quantitative criteria** across Tables 4 to 6: "Prepared workflows carrying a
+    current state and a next step," "Verified experience record populated for every
+    placement," "Applications transmitted without family approval," "Outcome
+    ascertainment at the pre-specified window," and "Cost per activation, wave two
+    against wave one." Each is either stated in the task prose or implied by a
+    criterion that survives. Restore in the Project Management Plan's milestone table.
+
+79. **The $5 billion bottom-up estimate of provider marketing and recruiting spend.**
+    Replaced with a fully derived figure: roughly 970,000 direct-care positions filled
+    a year (PHI 2025) at 16 percent of annual pay (Boushey and Glynn, CAP 2012) against
+    a direct-care median just under $26,000, which is about $4 billion a year. Same
+    order of magnitude, two published inputs, no internal estimate to defend.
+
+80. **"Roughly 70 percent of working-age family caregivers hold jobs."** Replaced with
+    Mudrazija and Aranda 2025: $107 billion a year in forgone earnings plus roughly $26
+    billion in employer productivity loss. A dollar figure where a proportion was.
+
+81. **The Medicaid institutional-rate framing.** Cut on evidence. Of $415 billion in
+    2022 US long-term services and supports spending, $284 billion was home and
+    community-based against $131 billion institutional. The defensible claim, now in
+    the text, is that Medicaid pays only after a family has spent down.
+
+82. **Table 3 (staffing competitors) as a separate table.** Merged into the single
+    competitive table on the Find it, Afford it, Staff it, Establish care framework,
+    on instruction.
+
+83. **The Gantt's explanatory footnote** listing what each decision point holds. It was
+    being clipped by the figure's own height, and the gate labels in Figure 5 plus the
+    per-aim gate paragraphs already carry it.
+
+84. **Contingency and detail sentences** cut for space, each stated once elsewhere:
+    "If wave two slips, wave one still carries the pricing, unit economics, and
+    retention results"; "Campus seasonality could open hiring gaps between terms";
+    "accuracy is reported separately for rules that changed inside the measurement
+    window"; "every count is reconciled against the outside record of the same event";
+    the duplicate contamination-mitigation sentence in Task 3.2.

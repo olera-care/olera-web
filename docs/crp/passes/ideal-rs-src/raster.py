@@ -1,5 +1,6 @@
 import re, subprocess, pymupdf, figs, figs2
-SVGS = {1:figs.fig1(), 2:figs.fig2(), 3:figs.fig3(), 4:figs2.fig4(), 5:figs2.fig5()}
+SVGS = {1: figs.fig1(), 2: figs.fig2(), 3: figs.fig_product(),
+        4: figs.fig3(), 5: figs2.fig4(), 6: figs2.fig5()}
 for n, svg in SVGS.items():
     m = re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', svg)
     w_in, h_in = float(m.group(1))/100.0, float(m.group(2))/100.0

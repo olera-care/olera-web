@@ -33,56 +33,115 @@ def _t(x,y,s,size=12.5,fill=INK,anchor="middle",weight="normal",style="normal",l
 
 # ---------------------------------------------------------------- FIGURE 1
 def fig1():
-    """6.7 x 4.55in. The eldercare ecosystem, the three gates, and the cycle."""
-    W,H=670,398
+    """6.7 x 3.05in. The three gates, the ecosystem behind them, and the cycle.
+
+    Gates lead. The ecosystem sits underneath as the thing Gate 1 and Gate 2
+    are asking a family to navigate, not as the frame of the figure.
+    """
+    W,H=670,220
     b=[]
-    b.append(_t(140,13,"HOW CARE GETS PAID FOR",10.4,GREY,weight="bold",ls=1.1))
-    b.append(_t(530,13,"WHERE CARE COMES FROM",10.4,GREY,weight="bold",ls=1.1))
-    b.append(f'<line x1="18" y1="19" x2="262" y2="19" stroke="{RULE}" stroke-width="0.9"/>')
-    b.append(f'<line x1="408" y1="19" x2="652" y2="19" stroke="{RULE}" stroke-width="0.9"/>')
-    quads=[(18,26,"Public Aid Programs","SNAP, housing aid, SSI, VA pension, Medicaid waivers"),
-           (18,98,"Insurance Coverage","Medicare, Medicare Advantage, Medicaid, commercial"),
-           (408,26,"Healthcare Services","Home health, hospice, skilled nursing, rehabilitation"),
-           (408,98,"Long-Term Services and Supports","Home care, assisted living, adult day")]
-    for x,y,t1,t2 in quads:
-        b.append(_box(x,y,244,50,"#ffffff"))
-        b.append(_t(x+122,y+20,t1,12.5,TEAL,weight="bold"))
-        b.append(_t(x+122,y+37,t2,9.6,GREY))
-    b.append(_box(272,62,126,50,GFILL,GREEN,1.3))
-    b.append(_t(335,80,"Older adult",12.5,TEAL,weight="bold"))
-    b.append(_t(335,96,"and family",12.5,TEAL,weight="bold"))
-    for x1,y1,x2,y2 in [(262,56,272,74),(262,124,272,106),(408,56,398,74),(408,124,398,106)]:
-        b.append(f'<line x1="{x1}" y1="{y1}" x2="{x2}" y2="{y2}" stroke="{RULE}" stroke-width="1.1"/>')
-    b.append(_t(335,164,"Four systems, separate eligibility rules, and no single party accountable for whether care actually begins",10.2,GREY,style="italic"))
-    gy=182
-    b.append(_t(18,gy,"A RECOGNIZED NEED BECOMES ESTABLISHED CARE ONLY BY CLEARING ALL THREE GATES",10.4,GREY,anchor="start",weight="bold",ls=1.1))
-    gates=[(18,"GATE 1","Find it","a fragmented ecosystem"),
-           (185,"GATE 2","Afford it","$58B in aid unclaimed"),
-           (352,"GATE 3","Staff it","63.3% declined cases")]
+    # --- the three gates -------------------------------------------------
+    gates=[(8,"GATE 1","Find it","a fragmented ecosystem"),
+           (175,"GATE 2","Afford it","$58B in aid unclaimed"),
+           (342,"GATE 3","Staff it","63.3% declined cases")]
     for x,g,t,s2 in gates:
-        b.append(_box(x,gy+10,155,58,"#ffffff",TEAL,1.2))
-        b.append(_t(x+77,gy+27,g,9.6,GREEN,weight="bold",ls=1.0))
-        b.append(_t(x+77,gy+44,t,13.5,TEAL,weight="bold"))
-        b.append(_t(x+77,gy+59,s2,10.0,GREY))
-    for x in (175,342):
-        b.append(f'<line x1="{x}" y1="{gy+39}" x2="{x+8}" y2="{gy+39}" stroke="{TEAL}" stroke-width="1.2" marker-end="url(#ah)"/>')
-    b.append(f'<line x1="509" y1="{gy+39}" x2="525" y2="{gy+39}" stroke="{GREEN}" stroke-width="1.5" marker-end="url(#ag)"/>')
-    b.append(_box(529,gy+10,123,58,GFILL,GREEN,1.3))
-    b.append(_t(590,gy+35,"Established",13.5,GREEN,weight="bold"))
-    b.append(_t(590,gy+52,"care",13.5,GREEN,weight="bold"))
-    cy=272
-    for x in (95,262,429):
-        b.append(f'<line x1="{x}" y1="{gy+70}" x2="{x}" y2="{cy+2}" stroke="{RED}" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#ar)"/>')
-    b.append(_box(18,cy+6,634,112,RFILL,RED,1.1,dash="5 4"))
-    b.append(_t(335,cy+26,"FAILURE AT ANY GATE ENTERS THE SAME CYCLE",10.4,RED,weight="bold",ls=1.1))
-    stops=[(92,"Need goes unmet"),(248,"Function declines"),(408,"Crisis, then hospital"),(568,"Discharge, no support")]
+        b.append(_box(x,8,155,58,"#ffffff",TEAL,1.2))
+        b.append(_t(x+77,25,g,9.6,GREEN,weight="bold",ls=1.0))
+        b.append(_t(x+77,42,t,13.5,TEAL,weight="bold"))
+        b.append(_t(x+77,57,s2,10.0,GREY))
+    for x in (165,332):
+        b.append(f'<line x1="{x}" y1="37" x2="{x+8}" y2="37" stroke="{TEAL}" stroke-width="1.2" marker-end="url(#ah)"/>')
+    b.append(f'<line x1="499" y1="37" x2="517" y2="37" stroke="{GREEN}" stroke-width="1.6" marker-end="url(#ag)"/>')
+    b.append(_box(521,8,131,58,GFILL,GREEN,1.3))
+    b.append(_t(586,33,"Established",13.5,GREEN,weight="bold"))
+    b.append(_t(586,50,"care",13.5,GREEN,weight="bold"))
+
+    # --- the ecosystem the first two gates ask a family to navigate ------
+    ey=78
+    b.append(f'<line x1="8" y1="{ey-4}" x2="652" y2="{ey-4}" stroke="{RULE}" stroke-width="0.9"/>')
+    b.append(_t(330,ey+10,"FOUR SEPARATE SYSTEMS, SEPARATE ELIGIBILITY RULES, NO ONE ACCOUNTABLE",9.2,GREY,weight="bold",ls=0.8))
+    chips=[(8,"Public Aid Programs","SNAP, SSI, VA pension, waivers"),
+           (172,"Insurance Coverage","Medicare, Medicaid, commercial"),
+           (336,"Healthcare Services","Home health, hospice, rehab"),
+           (500,"Long-Term Services","Home care, assisted living, adult day")]
+    for x,t1,t2 in chips:
+        b.append(_t(x+76,ey+27,t1,10.6,TEAL,weight="bold"))
+        b.append(_t(x+76,ey+39,t2,9.0,GREY))
+    for x in (168,332,496):
+        b.append(f'<line x1="{x}" y1="{ey+18}" x2="{x}" y2="{ey+43}" stroke="{RULE}" stroke-width="0.9"/>')
+
+    # --- failure at any gate ---------------------------------------------
+    cy=118
+    for x in (85,252,419):
+        b.append(f'<line x1="{x}" y1="{ey+58}" x2="{x}" y2="{cy+2}" stroke="{RED}" stroke-width="1.1" stroke-dasharray="4 3" marker-end="url(#ar)"/>')
+    b.append(_box(8,cy+6,644,78,RFILL,RED,1.1,dash="5 4"))
+    b.append(_t(330,cy+21,"THE VICIOUS CYCLE",10.4,RED,weight="bold",ls=1.4))
+    b.append(_t(330,cy+35,"Failure at any gate enters it.",9.6,RED))
+    stops=[(90,"Need goes unmet"),(250,"Function declines"),(412,"Crisis, then hospital"),(572,"Discharge, no support")]
     for x,s2 in stops:
-        b.append(_t(x,cy+56,s2,11.2,RED))
-    for x1 in (160,318,478):
-        b.append(f'<line x1="{x1}" y1="{cy+52}" x2="{x1+20}" y2="{cy+52}" stroke="{RED}" stroke-width="1.1" marker-end="url(#ar)"/>')
-    b.append(f'<path d="M568,{cy+64} L568,{cy+78} L92,{cy+78} L92,{cy+64}" fill="none" stroke="{RED}" stroke-width="1.1" marker-end="url(#ar)"/>')
-    b.append(_t(335,cy+92,"Caregiver breakdown, premature institutionalization, savings exhausted, public programs absorb the cost.",10.2,RED,style="italic"))
-    b.append(_t(335,cy+107,"Each turn deepens the need that started it.",10.2,RED,style="italic"))
+        b.append(_t(x,cy+55,s2,11.2,RED))
+    for x1 in (162,322,486):
+        b.append(f'<line x1="{x1}" y1="{cy+51}" x2="{x1+18}" y2="{cy+51}" stroke="{RED}" stroke-width="1.1" marker-end="url(#ar)"/>')
+    b.append(f'<path d="M572,{cy+63} L572,{cy+72} L90,{cy+72} L90,{cy+63}" fill="none" stroke="{RED}" stroke-width="1.1" marker-end="url(#ar)"/>')
+    return _wrap(W/100,H/100,"".join(b))
+
+def fig_product():
+    """6.7 x 1.72in. What CareNavigator produces for one household.
+
+    Three panels: the intake, the plan it returns, and the tasks the system
+    then executes and confirms. Geometry is laid out from the panel box so
+    nothing can overflow it.
+    """
+    W,H=670,172
+    BOX_T, BOX_B = 24, 164
+    b=[]
+    heads=[(8,206,"1.  SCREEN THE HOUSEHOLD"),
+           (232,206,"2.  RETURN A CARE AND FUNDING PLAN"),
+           (456,206,"3.  EXECUTE AND CONFIRM")]
+    for x,w,t in heads:
+        b.append(_t(x,11,t,9.2,GREEN,anchor="start",weight="bold",ls=0.9))
+        b.append(f'<line x1="{x}" y1="17" x2="{x+w}" y2="17" stroke="{GREEN}" stroke-width="0.9"/>')
+        b.append(_box(x,BOX_T,w,BOX_B-BOX_T,"#ffffff"))
+
+    # panel 1: the intake
+    rows1=[("Household","Widow, 81, lives alone"),
+           ("Needs","Bathing, meals, medications"),
+           ("Function","2 ADLs, mild cognitive loss"),
+           ("Means","$1,410/mo, no LTC insurance"),
+           ("County","Greenville, SC")]
+    y=42
+    for k,v in rows1:
+        b.append(_t(20,y,k,8.6,GREY,anchor="start",ls=0.6))
+        b.append(_t(20,y+12,v,10.0,INK,anchor="start"))
+        y+=24
+
+    # panel 2: the plan it returns
+    plan=[("Medicaid HCBS waiver","est. $2,100/mo",GREEN),
+          ("SNAP","est. $189/mo",GREEN),
+          ("VA Aid and Attendance","screening required",GREY),
+          ("Home care, 12 hrs/wk","3 agencies with capacity",GREEN)]
+    y=36
+    for name,val,col in plan:
+        fill = GFILL if col==GREEN else "#f4f6f4"
+        b.append(f'<rect x="240" y="{y}" width="208" height="26" rx="2" fill="{fill}"/>')
+        b.append(_t(250,y+12,name,10.0,TEAL,anchor="start",weight="bold"))
+        b.append(_t(250,y+22,val,8.8,col,anchor="start"))
+        y+=30
+
+    # panel 3: the tasks it executes
+    tasks=[("Waiver application","Submitted  Mar 4"),
+           ("Income documentation","Requested, sent  Mar 11"),
+           ("SNAP application","Approved  Mar 22"),
+           ("Agency intake packet","Sent to 3 agencies"),
+           ("Care start confirmed","Apr 2, 12 hrs/wk")]
+    y=38
+    b.append(f'<line x1="472" y1="48" x2="472" y2="144" stroke="{GREEN}" stroke-width="0.9" stroke-dasharray="3 3"/>')
+    for name,status in tasks:
+        b.append(f'<circle cx="472" cy="{y+8}" r="5" fill="{GFILL}" stroke="{GREEN}" stroke-width="1.1"/>')
+        b.append(f'<path d="M469.4,{y+8} L471.4,{y+10.4} L475,{y+5.4}" fill="none" stroke="{GREEN}" stroke-width="1.4"/>')
+        b.append(_t(484,y+6,name,10.0,TEAL,anchor="start",weight="bold"))
+        b.append(_t(484,y+17,status,8.8,GREY,anchor="start"))
+        y+=25
     return _wrap(W/100,H/100,"".join(b))
 
 # ---------------------------------------------------------------- FIGURE 2

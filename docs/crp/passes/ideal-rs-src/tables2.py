@@ -1,45 +1,47 @@
 # -*- coding: utf-8 -*-
-from tables import T1, T2 as T2_NAV, T7 as _T7_RISKS
-# the risks table is the eighth in the re-based document
-T8_RISKS = _T7_RISKS.replace('<b>Table 7.</b>', '<b>Table 6.</b>')
+from tables import T1, T7 as _RISKS
 
-# Table 2 caption updated to name it as the navigation side
-T2 = T2_NAV.replace('<b>Table 2.</b> Coverage of the path to care, by category of alternative.',
-                    '<b>Table 2.</b> Coverage of the path to care: the alternatives families use.')
+T7_RISKS = _RISKS  # already captioned Table 7
 
-T3_STAFF = """
+# --------------------------------------------------------------- TABLE 2
+# One table for both sides of the business, mapped to the path a family
+# travels. Navigation and staffing alternatives appear together because the
+# argument is that no single alternative covers the whole path.
+T2 = """
 <table class="matrix">
-<colgroup><col style="width:31%"><col style="width:17.25%"><col style="width:17.25%"><col style="width:17.25%"><col style="width:17.25%"></colgroup>
-<thead><tr><th class="rowlab">What a provider needs from a hiring channel</th>
-<th class="own">Olera Caregiver Staffing</th>
-<th>Job boards<span class="eg">Indeed, MyCNAJobs</span></th>
-<th>Staffing agencies<span class="eg">local and franchise</span></th>
-<th>Gig platforms<span class="eg">shift marketplaces</span></th></tr></thead>
+<colgroup><col style="width:30%"><col style="width:14%"><col style="width:14%"><col style="width:14%"><col style="width:14%"><col style="width:14%"></colgroup>
+<thead><tr><th class="rowlab">Category of alternative</th>
+<th>Find it</th><th>Afford it</th><th>Staff it</th><th>Establish care</th><th>Open to any family</th></tr></thead>
 <tbody>
-<tr><td class="rowlab">Delivers applicants at low cost</td><td class="own"><span class="yes">&#10003;</span></td><td><span class="yes">&#10003;</span></td><td><span class="no">&#10007;</span></td><td><span class="yes">&#10003;</span></td></tr>
-<tr><td class="rowlab">Screens and verifies before the provider spends time</td><td class="own"><span class="yes">&#10003;</span></td><td><span class="no">&#10007;</span></td><td><span class="yes">&#10003;</span></td><td><span class="no">&#10007;</span></td></tr>
-<tr><td class="rowlab">Worker becomes the provider's own employee</td><td class="own"><span class="yes">&#10003;</span></td><td><span class="yes">&#10003;</span></td><td><span class="no">&#10007;</span></td><td><span class="no">&#10007;</span></td></tr>
-<tr><td class="rowlab">Adds workers who were not already in direct care</td><td class="own"><span class="yes">&#10003;</span></td><td><span class="no">&#10007;</span></td><td><span class="no">&#10007;</span></td><td><span class="no">&#10007;</span></td></tr>
+<tr><td class="rowlab own"><b>Olera</b><span class="eg">CareNavigator and Caregiver Staffing</span></td><td class="own"><span class="yes">&#10003;</span></td><td class="own"><span class="yes">&#10003;</span></td><td class="own"><span class="yes">&#10003;</span></td><td class="own"><span class="yes">&#10003;</span></td><td class="own"><span class="yes">&#10003;</span></td></tr>
+<tr><td class="rowlab">Public information services<span class="eg">Eldercare Locator, BenefitsCheckUp</span></td><td><span class="yes">&#10003;</span></td><td><span class="yes">&#10003;</span></td><td><span class="no">&#10007;</span></td><td><span class="no">&#10007;</span></td><td><span class="yes">&#10003;</span></td></tr>
+<tr><td class="rowlab">General AI assistants<span class="eg">ChatGPT, Claude, Gemini</span></td><td><span class="yes">&#10003;</span></td><td><span class="yes">&#10003;</span></td><td><span class="no">&#10007;</span></td><td><span class="no">&#10007;</span></td><td><span class="yes">&#10003;</span></td></tr>
+<tr><td class="rowlab">Human navigators<span class="eg">social workers, case managers, discharge planners, private care managers</span></td><td><span class="yes">&#10003;</span></td><td><span class="yes">&#10003;</span></td><td><span class="no">&#10007;</span></td><td><span class="yes">&#10003;</span></td><td><span class="no">&#10007;</span></td></tr>
+<tr><td class="rowlab">Employer and health-plan navigation platforms<span class="eg">Wellthy, Grayce, Cariloop, Homethrive, ianacare</span></td><td><span class="yes">&#10003;</span></td><td><span class="yes">&#10003;</span></td><td><span class="no">&#10007;</span></td><td><span class="yes">&#10003;</span></td><td><span class="no">&#10007;</span></td></tr>
+<tr><td class="rowlab">Referral marketplaces<span class="eg">A Place for Mom, Caring.com</span></td><td><span class="yes">&#10003;</span></td><td><span class="no">&#10007;</span></td><td><span class="no">&#10007;</span></td><td><span class="no">&#10007;</span></td><td><span class="yes">&#10003;</span></td></tr>
+<tr><td class="rowlab">Staffing agencies, job boards, gig platforms<span class="eg">local and franchise agencies, Indeed, shift marketplaces</span></td><td><span class="no">&#10007;</span></td><td><span class="no">&#10007;</span></td><td><span class="yes">&#10003;</span></td><td><span class="no">&#10007;</span></td><td><span class="yes">&#10003;</span></td></tr>
 </tbody></table>
-<p class="caption"><b>Table 3.</b> Coverage of the hiring problem: the channels providers use today.</p>
+<p class="caption"><b>Table 2.</b> Coverage of the path to care, by category of alternative.</p>
+<p class="tnote">The staffing channels in the last row supply workers already in direct care. None of them enlarges the workforce.</p>
 """
 
-T4_MARKETS = """
+# --------------------------------------------------------------- TABLE 3
+T3_CHANNELS = """
 <table class="dat">
-<colgroup><col style="width:26%"><col style="width:49%"><col style="width:25%"></colgroup>
-<thead><tr><th>What the design requires</th><th>Why</th><th>Markets</th></tr></thead>
+<colgroup><col style="width:11%"><col style="width:44%"><col style="width:45%"></colgroup>
+<thead><tr><th>Side</th><th>Channels already producing for us</th><th>Channels added in Aim 2</th></tr></thead>
 <tbody>
-<tr><td>Pilot before charging, in more than one place</td><td>One market cannot separate a product that works from a market that happens to work, and the two must differ on workforce source so the campus dependency is tested while it is free to learn</td><td>2, free, in Aim 2</td></tr>
-<tr><td>Four price points, not two</td><td>Two points show which direction demand moves. Four show the shape of the curve, which is what choosing a price requires</td><td>4 arms</td></tr>
-<tr><td>Two markets per arm, crossed with market type</td><td>Price is assigned by market because neighbors compare quotes, so one market per arm means the arm is a market. Within each pair, one campus-rich and one campus-poor</td><td>4 &#215; 2 = 8, paid, in Aim 3</td></tr>
-<tr><td>Two waves of four</td><td>Wave one at month 21 is the only wave with runway to observe 12-month retention. Wave two at month 30 is run as written by staff who did not design it</td><td>4 at month 21, 4 at month 30</td></tr>
-<tr class="tot"><td>Derived design</td><td>Two free pilot markets, then eight paid markets in two waves</td><td>10 markets, about 7% of the budget</td></tr>
+<tr><td><b>Families</b></td><td>Organic search and published guidance: about 15,500 visits a month, from nearly every county, at near-zero acquisition cost</td><td>Area agencies on aging, faith and community organizations, hospital discharge teams and clinical referral</td></tr>
+<tr><td><b>Providers</b></td><td>Claimed listings on the free tools, more than 700 to date and about 150 more each month; direct outreach, more than 300 I-Corps discovery conversations</td><td>Provider associations and franchise networks</td></tr>
+<tr><td><b>Caregivers</b></td><td>Campus advisors and pre-health student organizations: the student pilot drew more than 900 applicants and placed more than 20</td><td>Community colleges and workforce development boards, the primary non-student pool; career changers; referrals from placed workers</td></tr>
 </tbody></table>
-<p class="caption"><b>Table 3.</b> How the number of markets follows from what the aims have to measure.</p>
+<p class="caption"><b>Table 3.</b> Acquisition channels activated in each pilot market, and what each has produced to date.</p>
+<p class="tnote">Every channel runs under a budget, an attribution window, and a cost ceiling set in advance; channels that miss the ceiling are closed rather than carried.</p>
 """
+
 
 def metrics(num, aim, rows, note=None):
-    r = "".join(f'<tr><td>{a}</td><td class="n">{b}</td><td>{c}</td></tr>' for a,b,c in rows)
+    r = "".join(f'<tr><td>{a}</td><td class="n">{b}</td><td>{c}</td></tr>' for a, b, c in rows)
     n = f'<p class="tnote">{note}</p>' if note else ''
     return f"""
 <p class="metrics-head">Metrics for Success and Quantitative Criteria (Aim {aim}):</p>
@@ -49,37 +51,32 @@ def metrics(num, aim, rows, note=None):
 <tbody>{r}</tbody></table>
 <p class="caption"><b>Table {num}.</b> Aim {aim} quantitative success criteria.</p>{n}"""
 
-T5 = metrics(3, 1, [
- ("Agreement with the blinded expert panel","&#8805; 85%","120 audited cases before the gate, Task 1.4"),
- ("Material errors against the expert gold standard","&#8804; 10%","Same audit"),
- ("Inter-rater reliability among panelists","&#954; &#8805; 0.70","Established before adjudication"),
- ("Execution loops complete end to end, aid and services","Both paths","Internal release testing"),
- ("Prepared workflows carrying a current state and a next step","100%","Platform telemetry"),
- ("Applications transmitted without family approval","0","Platform audit log"),
- ("Escalations reaching a navigator or named local agency","100%","Escalation log"),
- ("Scheduled follow-ups sent on their due date, every miss logged","&#8805; 95%","Platform telemetry"),
- ("Verified experience record populated for every placement","100%","Workforce system"),
+
+T4 = metrics(4, 1, [
+ ("Agreement with the blinded expert panel", "&#8805; 85%", "120 audited cases before the gate, Task 1.4"),
+ ("Material errors against the expert gold standard", "&#8804; 10%", "Same audit"),
+  ("Inter-rater reliability among panelists", "&#954; &#8805; 0.70", "Established before adjudication"),
+ ("Execution loops complete end to end, aid and services", "Both paths", "Internal release testing"),
+ 
 ], note="Gate: the first two criteria must be met at month 12 before Aim 2 activates.")
 
-T6 = metrics(4, 2, [
- ("Households reaching established aid or care","Estimated, &#177;5 pts","n = 400, confirmed start date, Task 2.2"),
- ("Outcome ascertainment at the pre-specified, category-specific window","&#8805; 80%","Task 2.2"),
- ("Task completion, with drop-off per step, held two cycles running","&#8805; 90% / &#8804; 10%","Task 2.2 funnel instrumentation"),
- ("Usability, System Usability Scale","&#8805; 72","Task 2.3, IRB, n = 25"),
- ("Trust in automation","&#8805; 5 of 7","Task 2.3, IRB"),
- ("Placed workers with no prior direct-care employment","Reported","Ascertained at intake, Task 2.4"),
- ("Placed workers still in direct care at 90 days","&#8805; 50%","Employment and verified-record data"),
- ("Provider acceptability, appropriateness, feasibility","&#8805; 4.0 of 5","Task 2.5, IRB"),
- ("Cost to acquire and cost to serve","Measured, both sides","Task 2.6, time-driven activity-based costing"),
+T5 = metrics(5, 2, [
+ ("Households reaching established aid or care", "Estimated, &#177;5 pts", "n = 400, confirmed start date, Task 2.3"),
+  ("Task completion, with drop-off per step, two cycles running", "&#8805; 90% / &#8804; 10%", "Task 2.3 funnel instrumentation"),
+ ("Usability, System Usability Scale", "&#8805; 72", "Task 2.4, IRB, n = 25 families"),
+ ("Trust in automation", "&#8805; 5 of 7", "Task 2.4, IRB"),
+ ("Placed workers with no prior direct-care employment", "Reported", "Ascertained at intake, Task 2.2"),
+ ("Placed workers still in direct care at 90 days", "&#8805; 50%", "Employment and verified-record data"),
+ ("Provider acceptability, appropriateness, feasibility", "&#8805; 4.0 of 5", "Task 2.4, IRB"),
+ ("Cost to acquire and cost to serve", "Measured, both sides", "Task 2.5, activity-based costing"),
 ], note="Gate at month 21, before wave one opens: the execution loops complete for both aid and services, and worker retention meets its bar.")
 
-T7 = metrics(5, 3, [
- ("Paid conversion within 60 days, by price arm","&#177;10 pts per arm","Task 3.2, ~320 offers, randomization inference"),
- ("Lifetime value against acquisition cost, 12 months","&#8805; 3 : 1","Task 3.3, restricted mean survival time"),
- ("Payback period on acquisition cost","&lt; 12 months","Task 3.3"),
- ("Per-market contribution margin after cost of serving families","Positive","Task 3.3"),
- ("Retention at 3, 6, 9, and 12 months","Reported by wave","Discrete-time survival, competing events"),
- ("Cost per activation, wave two against wave one","Falling","Task 3.1"),
- ("Provider value against prior-period family demand","Estimated with 95% CI","Task 3.3, market as fixed stratum"),
- ("Independent rebuild delivered, discrepancies reported","Delivered","Task 3.5"),
+T6 = metrics(6, 3, [
+ ("Paid conversion within 60 days, by price arm", "&#177;10 pts per arm", "Task 3.2, ~320 offers, randomization inference"),
+ ("Lifetime value against acquisition cost, 12 months", "&#8805; 3 : 1", "Task 3.3, restricted mean survival time"),
+ ("Payback period on acquisition cost", "&lt; 12 months", "Task 3.3"),
+ ("Per-market profitability after the cost of serving families", "Positive", "Task 3.3"),
+  ("Retention at 3, 6, 9, and 12 months", "Reported by wave", "Discrete-time survival, competing events"),
+ ("Independent validation delivered", "Delivered", "Task 3.3, ADC"),
+ ("Institutional-buyer evidence package assembled", "Delivered", "Task 3.5"),
 ])

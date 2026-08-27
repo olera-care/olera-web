@@ -939,6 +939,12 @@ function SavedContactsSection({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [usingEmail, setUsingEmail] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editType, setEditType] = useState<"email" | "fax" | "phone">("email");
+  const [editValue, setEditValue] = useState("");
+  const [editLabel, setEditLabel] = useState("");
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   // Reset state when provider changes to avoid stale data flash
   useEffect(() => {
@@ -947,6 +953,7 @@ function SavedContactsSection({
     setNewValue("");
     setNewLabel("");
     setSubmitError(null);
+    setEditingId(null);
   }, [provider.provider_id]);
 
   // Fetch contacts on mount / provider change
@@ -1035,6 +1042,54 @@ function SavedContactsSection({
       // Silent fail for delete
     }
   }, []);
+
+  const startEdit = useCallback((contact: SavedContact) => {
+    setEditingId(contact.id);
+    setEditType(contact.type);
+    setEditValue(contact.value);
+    setEditLabel(contact.label || "");
+    setEditError(null);
+  }, []);
+
+  const cancelEdit = useCallback(() => {
+    setEditingId(null);
+    setEditType("email");
+    setEditValue("");
+    setEditLabel("");
+    setEditError(null);
+  }, []);
+
+  const handleSaveEdit = useCallback(async () => {
+    if (!editingId || editSubmitting || !editValue.trim()) return;
+    setEditSubmitting(true);
+    setEditError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/contacts", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contact_id: editingId,
+          type: editType,
+          value: editValue.trim(),
+          label: editLabel.trim() || null,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setContacts((prev) =>
+          prev.map((c) => (c.id === editingId ? data.contact : c))
+        );
+        cancelEdit();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setEditError(data.error || "Failed to save changes");
+      }
+    } catch {
+      setEditError("Network error");
+    } finally {
+      setEditSubmitting(false);
+    }
+  }, [editingId, editType, editValue, editLabel, editSubmitting, cancelEdit]);
 
   return (
     <div>
@@ -1128,36 +1183,110 @@ function SavedContactsSection({
         <p className="text-sm text-gray-400 italic">No saved contacts</p>
       ) : (
         <div className="space-y-2">
-          {contacts.map((contact) => (
-            <div key={contact.id} className="flex items-center justify-between text-sm group">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400 w-12">{CONTACT_TYPE_LABELS[contact.type]}</span>
-                  <span className="text-gray-900 truncate">{contact.value}</span>
-                  {contact.label && (
-                    <span className="text-gray-500">· {contact.label}</span>
+          {contacts.map((contact) => {
+            const isEditing = editingId === contact.id;
+
+            if (isEditing) {
+              return (
+                <div key={contact.id} className="p-2 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={editType}
+                      onChange={(e) => setEditType(e.target.value as "email" | "fax" | "phone")}
+                      className="px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                      disabled={editSubmitting}
+                    >
+                      <option value="email">Email</option>
+                      <option value="fax">Fax</option>
+                      <option value="phone">Phone</option>
+                    </select>
+                    <input
+                      type="text"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      placeholder={editType === "email" ? "email@example.com" : "(555) 123-4567"}
+                      className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      disabled={editSubmitting}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleSaveEdit();
+                        }
+                        if (e.key === "Escape") {
+                          e.stopPropagation();
+                          cancelEdit();
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={editLabel}
+                      onChange={(e) => setEditLabel(e.target.value)}
+                      placeholder="Label (e.g., Sales Director)"
+                      className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      disabled={editSubmitting}
+                    />
+                    <button
+                      onClick={handleSaveEdit}
+                      disabled={editSubmitting || !editValue.trim()}
+                      className="px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50"
+                    >
+                      {editSubmitting ? "..." : "Save"}
+                    </button>
+                    <button
+                      onClick={cancelEdit}
+                      disabled={editSubmitting}
+                      className="text-xs text-gray-400 hover:text-gray-600"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  {editError && (
+                    <p className="text-xs text-red-500">{editError}</p>
                   )}
                 </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                {contact.type === "email" && contact.value !== provider.email && (
+              );
+            }
+
+            return (
+              <div key={contact.id} className="flex items-center justify-between text-sm group">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400 w-12">{CONTACT_TYPE_LABELS[contact.type]}</span>
+                    <span className="text-gray-900 truncate">{contact.value}</span>
+                    {contact.label && (
+                      <span className="text-gray-500">· {contact.label}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {contact.type === "email" && contact.value !== provider.email && (
+                    <button
+                      onClick={() => handleUseEmail(contact.value)}
+                      disabled={usingEmail === contact.value}
+                      className="text-xs text-primary-600 hover:text-primary-700 disabled:opacity-50"
+                    >
+                      {usingEmail === contact.value ? "..." : "Use"}
+                    </button>
+                  )}
                   <button
-                    onClick={() => handleUseEmail(contact.value)}
-                    disabled={usingEmail === contact.value}
-                    className="text-xs text-primary-600 hover:text-primary-700 disabled:opacity-50"
+                    onClick={() => startEdit(contact)}
+                    className="text-xs text-gray-400 hover:text-primary-600 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                   >
-                    {usingEmail === contact.value ? "..." : "Use"}
+                    Edit
                   </button>
-                )}
-                <button
-                  onClick={() => handleDelete(contact.id)}
-                  className="text-xs text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  Remove
-                </button>
+                  <button
+                    onClick={() => handleDelete(contact.id)}
+                    className="text-xs text-gray-400 hover:text-red-500 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

@@ -2906,7 +2906,9 @@ export default function ProviderOutreachPage() {
   const [activityStats, setActivityStats] = useState<{
     date: string;
     calls: { total: number; voicemail: number; no_answer: number; hung_up: number; callback: number; new_email: number; resend: number; spoke_with: number; note: number };
+    calls_by_admin?: Array<{ admin_id: string; display_name: string; total: number; voicemail: number; no_answer: number; hung_up: number; callback: number; spoke_with: number; new_email: number; resend: number; note: number }>;
     emails: { total: number; intro: number; followup: number; demand_loss: number; final: number; nudge: number };
+    sequences_started?: number;
     daily_series: Array<{ date: string; calls: number; emails: number }>;
   } | null>(null);
   const [activityStatsLoading, setActivityStatsLoading] = useState(false);

@@ -2905,7 +2905,7 @@ export default function ProviderOutreachPage() {
   );
   const [activityStats, setActivityStats] = useState<{
     date: string;
-    calls: { total: number; voicemail: number; no_answer: number; hung_up: number; callback: number; new_email: number; resend: number; spoke_with: number };
+    calls: { total: number; voicemail: number; no_answer: number; hung_up: number; callback: number; new_email: number; resend: number; spoke_with: number; note: number };
     emails: { total: number; intro: number; followup: number; demand_loss: number; final: number; nudge: number };
     daily_series: Array<{ date: string; calls: number; emails: number }>;
   } | null>(null);
@@ -5283,6 +5283,9 @@ export default function ProviderOutreachPage() {
                         {activityStats.calls.resend > 0 && (
                           <span className="px-2 py-0.5 bg-teal-50 text-teal-700 rounded">Resend {activityStats.calls.resend}</span>
                         )}
+                        {activityStats.calls.note > 0 && (
+                          <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded">Note {activityStats.calls.note}</span>
+                        )}
                       </div>
                     </div>
                   )}
@@ -5293,10 +5296,10 @@ export default function ProviderOutreachPage() {
                     return (
                     <div className="bg-white border border-gray-200 rounded-lg p-3">
                       <div className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Last 7 Days</div>
-                      <div className="flex items-end gap-1 h-12">
+                      <div className="flex items-end gap-1">
                         {activityStats.daily_series.map((day) => {
                           const total = day.calls + day.emails;
-                          const heightPct = Math.max(4, (total / maxCount) * 100);
+                          const heightPct = Math.max(8, (total / maxCount) * 100);
                           const isToday = day.date === activityStatsDate;
                           return (
                             <div
@@ -5304,10 +5307,12 @@ export default function ProviderOutreachPage() {
                               className="flex-1 flex flex-col items-center gap-0.5"
                               title={`${day.date}: ${day.calls} calls, ${day.emails} emails`}
                             >
-                              <div
-                                className={`w-full rounded-sm ${isToday ? "bg-primary-500" : "bg-gray-300"}`}
-                                style={{ height: `${heightPct}%` }}
-                              />
+                              <div className="h-10 w-full flex items-end">
+                                <div
+                                  className={`w-full rounded-sm ${isToday ? "bg-primary-500" : "bg-gray-300"}`}
+                                  style={{ height: `${heightPct}%` }}
+                                />
+                              </div>
                               <span className="text-[9px] text-gray-400">
                                 {new Date(day.date + "T12:00:00").toLocaleDateString("en-US", { weekday: "narrow" })}
                               </span>

@@ -3440,20 +3440,7 @@ export function ProviderDrawer({
 
         <SectionDivider />
 
-        {/* Saved Contacts Section */}
-        <SavedContactsSection
-          provider={provider}
-          onUseEmail={(email) => onEmailUpdate?.(provider.provider_id, email)}
-        />
-
-        <SectionDivider />
-
-        {/* Call Log Section */}
-        <CallLogSection provider={provider} onCallLogged={onCallLogged} />
-
-        <SectionDivider />
-
-        {/* Decision Maker Section */}
+        {/* Decision Maker Section - grouped with contacts for discovery workflow */}
         <DecisionMakerSection
           provider={provider}
           onUseEmail={(email) => onEmailUpdate?.(provider.provider_id, email, "decision_maker")}
@@ -3464,6 +3451,19 @@ export function ProviderDrawer({
               : undefined
           }
         />
+
+        <SectionDivider />
+
+        {/* Saved Contacts Section */}
+        <SavedContactsSection
+          provider={provider}
+          onUseEmail={(email) => onEmailUpdate?.(provider.provider_id, email)}
+        />
+
+        <SectionDivider />
+
+        {/* Call Log Section */}
+        <CallLogSection provider={provider} onCallLogged={onCallLogged} />
 
         <SectionDivider />
 

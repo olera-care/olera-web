@@ -1361,6 +1361,7 @@ const CALL_STATUSES = [
   { value: "new_email", label: "New Email", color: "bg-emerald-100 text-emerald-700" },
   { value: "resend", label: "Resend", color: "bg-teal-100 text-teal-700" },
   { value: "spoke_with", label: "Spoke With", color: "bg-purple-100 text-purple-700" },
+  { value: "note", label: "Note", color: "bg-slate-100 text-slate-600" },
 ] as const;
 
 type CallStatus = (typeof CALL_STATUSES)[number]["value"];
@@ -1553,22 +1554,16 @@ function CallLogSection({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Notes Section
+// Historical Notes Section (read-only - new notes go through Call Log with "Note" status)
 // ─────────────────────────────────────────────────────────────────────────────
 
-function NotesSection({ provider }: { provider: OutreachProvider }) {
+function HistoricalNotesSection({ provider }: { provider: OutreachProvider }) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newNote, setNewNote] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Reset state when provider changes to avoid stale data flash
   useEffect(() => {
     setNotes([]);
-    setNewNote("");
-    setSubmitError(null);
     setLoading(true);
   }, [provider.provider_id]);
 
@@ -1589,97 +1584,39 @@ function NotesSection({ provider }: { provider: OutreachProvider }) {
     fetchNotes();
   }, [provider.provider_id]);
 
-  const handleSubmit = useCallback(async () => {
-    if (!newNote.trim() || submitting) return;
-    setSubmitting(true);
-    setSubmitError(null);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/notes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          note: newNote.trim(),
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setNotes((prev) => [data.note, ...prev]);
-        setNewNote("");
-      } else {
-        setSubmitError("Failed to add note");
-      }
-    } catch {
-      setSubmitError("Network error");
-    } finally {
-      setSubmitting(false);
-    }
-  }, [newNote, provider.provider_id, submitting]);
+  // Don't render section if no historical notes
+  if (!loading && notes.length === 0) {
+    return null;
+  }
 
   return (
-    <div>
-      <SectionHeader>Notes</SectionHeader>
+    <>
+      <div>
+        <SectionHeader>Notes</SectionHeader>
 
-      {/* Add note input */}
-      <div className="mb-5">
-        <textarea
-          ref={textareaRef}
-          value={newNote}
-          onChange={(e) => setNewNote(e.target.value)}
-          placeholder="Add a note..."
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          rows={2}
-          disabled={submitting}
-          onKeyDown={(e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-              e.preventDefault();
-              handleSubmit();
-            }
-            // Prevent ESC from bubbling to drawer and closing it while editing
-            if (e.key === "Escape") {
-              e.stopPropagation();
-              // Clear the note and blur the textarea
-              setNewNote("");
-              textareaRef.current?.blur();
-            }
-          }}
-        />
-        <div className="mt-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400">Ctrl+Enter to submit</span>
-            {submitError && <span className="text-xs text-red-500">{submitError}</span>}
+        {loading ? (
+          <div className="flex items-center justify-center py-4">
+            <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
           </div>
-          <button
-            onClick={handleSubmit}
-            disabled={!newNote.trim() || submitting}
-            className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
-          >
-            {submitting ? "Adding..." : "Add Note"}
-          </button>
-        </div>
-      </div>
-
-      {/* Notes list */}
-      {loading ? (
-        <div className="flex items-center justify-center py-6">
-          <span className="w-5 h-5 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
-        </div>
-      ) : notes.length === 0 ? (
-        <p className="text-sm text-gray-400 italic">No notes yet</p>
-      ) : (
-        <div className="space-y-3 max-h-48 overflow-y-auto">
-          {notes.map((note) => (
-            <div key={note.id} className="text-sm">
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-medium text-gray-700">{note.admin_name || "Unknown"}</span>
-                <span className="text-xs text-gray-400">{formatDate(note.created_at)}</span>
+        ) : (
+          <div className="space-y-3 max-h-48 overflow-y-auto">
+            {notes.map((note) => (
+              <div key={note.id} className="text-sm">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs text-gray-400">{formatDate(note.created_at)}</span>
+                  <span className="inline-flex px-1.5 py-0.5 text-xs font-medium rounded bg-slate-100 text-slate-600">
+                    Note
+                  </span>
+                  <span className="text-xs text-gray-400 ml-auto">{note.admin_name || "Unknown"}</span>
+                </div>
+                <p className="text-gray-600 whitespace-pre-wrap">{note.note}</p>
               </div>
-              <p className="text-gray-600 whitespace-pre-wrap">{note.note}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <SectionDivider />
+    </>
   );
 }
 
@@ -3570,10 +3507,8 @@ export function ProviderDrawer({
           </>
         )}
 
-        {/* Notes Section */}
-        <NotesSection provider={provider} />
-
-        <SectionDivider />
+        {/* Historical Notes Section (read-only, no new notes - use Call Log instead) */}
+        <HistoricalNotesSection provider={provider} />
 
         {/* Activity Section */}
         <ActivitySection provider={provider} />

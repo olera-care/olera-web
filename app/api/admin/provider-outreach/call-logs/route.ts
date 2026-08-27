@@ -12,6 +12,7 @@ export const CALL_STATUSES = [
   "new_email",
   "resend",
   "spoke_with",
+  "note",
 ] as const;
 
 export type CallStatus = (typeof CALL_STATUSES)[number];

@@ -64,7 +64,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!sequencedProviders || sequencedProviders.length === 0) {
-      return NextResponse.json({ providers: [], total: 0, by_source: {} });
+      return NextResponse.json({ providers: [], total: 0, by_source: {}, source_labels: SOURCE_LABELS });
     }
 
     const sequencedProviderIds = sequencedProviders.map((p) => p.provider_id);

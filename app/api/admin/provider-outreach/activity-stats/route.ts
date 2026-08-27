@@ -63,6 +63,7 @@ export async function GET(request: NextRequest) {
       new_email: 0,
       resend: 0,
       spoke_with: 0,
+      note: 0,
     };
     let totalCalls = 0;
 

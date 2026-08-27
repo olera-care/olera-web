@@ -1361,6 +1361,7 @@ const CALL_STATUSES = [
   { value: "new_email", label: "New Email", color: "bg-emerald-100 text-emerald-700" },
   { value: "resend", label: "Resend", color: "bg-teal-100 text-teal-700" },
   { value: "spoke_with", label: "Spoke With", color: "bg-purple-100 text-purple-700" },
+  { value: "note", label: "Note", color: "bg-slate-100 text-slate-600" },
 ] as const;
 
 type CallStatus = (typeof CALL_STATUSES)[number]["value"];
@@ -1553,22 +1554,16 @@ function CallLogSection({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Notes Section
+// Historical Notes Section (read-only - new notes go through Call Log with "Note" status)
 // ─────────────────────────────────────────────────────────────────────────────
 
-function NotesSection({ provider }: { provider: OutreachProvider }) {
+function HistoricalNotesSection({ provider }: { provider: OutreachProvider }) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newNote, setNewNote] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Reset state when provider changes to avoid stale data flash
   useEffect(() => {
     setNotes([]);
-    setNewNote("");
-    setSubmitError(null);
     setLoading(true);
   }, [provider.provider_id]);
 
@@ -1589,97 +1584,39 @@ function NotesSection({ provider }: { provider: OutreachProvider }) {
     fetchNotes();
   }, [provider.provider_id]);
 
-  const handleSubmit = useCallback(async () => {
-    if (!newNote.trim() || submitting) return;
-    setSubmitting(true);
-    setSubmitError(null);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/notes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          note: newNote.trim(),
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setNotes((prev) => [data.note, ...prev]);
-        setNewNote("");
-      } else {
-        setSubmitError("Failed to add note");
-      }
-    } catch {
-      setSubmitError("Network error");
-    } finally {
-      setSubmitting(false);
-    }
-  }, [newNote, provider.provider_id, submitting]);
+  // Don't render section if no historical notes
+  if (!loading && notes.length === 0) {
+    return null;
+  }
 
   return (
-    <div>
-      <SectionHeader>Notes</SectionHeader>
+    <>
+      <div>
+        <SectionHeader>Notes</SectionHeader>
 
-      {/* Add note input */}
-      <div className="mb-5">
-        <textarea
-          ref={textareaRef}
-          value={newNote}
-          onChange={(e) => setNewNote(e.target.value)}
-          placeholder="Add a note..."
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          rows={2}
-          disabled={submitting}
-          onKeyDown={(e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-              e.preventDefault();
-              handleSubmit();
-            }
-            // Prevent ESC from bubbling to drawer and closing it while editing
-            if (e.key === "Escape") {
-              e.stopPropagation();
-              // Clear the note and blur the textarea
-              setNewNote("");
-              textareaRef.current?.blur();
-            }
-          }}
-        />
-        <div className="mt-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400">Ctrl+Enter to submit</span>
-            {submitError && <span className="text-xs text-red-500">{submitError}</span>}
+        {loading ? (
+          <div className="flex items-center justify-center py-4">
+            <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
           </div>
-          <button
-            onClick={handleSubmit}
-            disabled={!newNote.trim() || submitting}
-            className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
-          >
-            {submitting ? "Adding..." : "Add Note"}
-          </button>
-        </div>
-      </div>
-
-      {/* Notes list */}
-      {loading ? (
-        <div className="flex items-center justify-center py-6">
-          <span className="w-5 h-5 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
-        </div>
-      ) : notes.length === 0 ? (
-        <p className="text-sm text-gray-400 italic">No notes yet</p>
-      ) : (
-        <div className="space-y-3 max-h-48 overflow-y-auto">
-          {notes.map((note) => (
-            <div key={note.id} className="text-sm">
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-medium text-gray-700">{note.admin_name || "Unknown"}</span>
-                <span className="text-xs text-gray-400">{formatDate(note.created_at)}</span>
+        ) : (
+          <div className="space-y-3 max-h-48 overflow-y-auto">
+            {notes.map((note) => (
+              <div key={note.id} className="text-sm">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs text-gray-400">{formatDate(note.created_at)}</span>
+                  <span className="inline-flex px-1.5 py-0.5 text-xs font-medium rounded bg-slate-100 text-slate-600">
+                    Note
+                  </span>
+                  <span className="text-xs text-gray-400 ml-auto">{note.admin_name || "Unknown"}</span>
+                </div>
+                <p className="text-gray-600 whitespace-pre-wrap">{note.note}</p>
               </div>
-              <p className="text-gray-600 whitespace-pre-wrap">{note.note}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <SectionDivider />
+    </>
   );
 }
 
@@ -2087,6 +2024,10 @@ function CallExhaustedSection({
 // Actions Section
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Pattern to find the CTA line in email body: [Activate your page →]({claim_url})
+const CTA_PATTERN = /\[Activate your page[^\]]*\]\(\{claim_url\}\)/;
+const CTA_DISPLAY_TEXT = "[Activate your page →]({claim_url})";
+
 function ActionsSection({
   provider,
   onLaunchSequence,
@@ -2155,7 +2096,8 @@ function ActionsSection({
   // Compose email modal state (for customizable nudge emails)
   const [showComposeModal, setShowComposeModal] = useState(false);
   const [composeSubject, setComposeSubject] = useState("");
-  const [composeBody, setComposeBody] = useState("");
+  const [composeBody, setComposeBody] = useState(""); // Text before CTA
+  const [composeClosing, setComposeClosing] = useState(""); // Text after CTA
   const [composeLoading, setComposeLoading] = useState(false);
   const [composeToEmail, setComposeToEmail] = useState("");
   // Track compose mode: "send" = just send email, "resend" = send + move to Alt Channels
@@ -2198,6 +2140,7 @@ function ActionsSection({
     setShowComposeModal(false);
     setComposeSubject("");
     setComposeBody("");
+    setComposeClosing("");
     setComposeLoading(false);
     setComposeToEmail("");
     setComposeMode("send");
@@ -2206,6 +2149,28 @@ function ActionsSection({
     setPreviewHtml("");
     setPreviewLoading(false);
   }, [provider.provider_id]);
+
+  // Parse email body to split around the CTA
+  function parseEmailBody(body: string): { message: string; closing: string } {
+    const match = body.match(CTA_PATTERN);
+    if (match && match.index !== undefined) {
+      const ctaStart = match.index;
+      const ctaEnd = ctaStart + match[0].length;
+      const message = body.slice(0, ctaStart).replace(/\n+$/, "");
+      const closing = body.slice(ctaEnd).replace(/^\n+/, "");
+      return { message, closing };
+    }
+    return { message: body, closing: "" };
+  }
+
+  // Reassemble body from message + CTA + closing
+  function assembleEmailBody(message: string, closing: string): string {
+    const parts = [message.trim(), "", CTA_DISPLAY_TEXT];
+    if (closing.trim()) {
+      parts.push("", closing.trim());
+    }
+    return parts.join("\n");
+  }
 
   // Load default email template for compose modal (send mode - no stage change)
   async function loadComposeTemplate() {
@@ -2218,7 +2183,9 @@ function ActionsSection({
       const data = await res.json();
       if (res.ok) {
         setComposeSubject(data.subject || "");
-        setComposeBody(data.body || "");
+        const { message, closing } = parseEmailBody(data.body || "");
+        setComposeBody(message);
+        setComposeClosing(closing);
         setComposeToEmail(data.to_email || provider.email || "");
         setShowComposeModal(true);
       } else {
@@ -2242,7 +2209,9 @@ function ActionsSection({
       const data = await res.json();
       if (res.ok) {
         setComposeSubject(data.subject || "");
-        setComposeBody(data.body || "");
+        const { message, closing } = parseEmailBody(data.body || "");
+        setComposeBody(message);
+        setComposeClosing(closing);
         setComposeToEmail(data.to_email || provider.email || "");
         setShowComposeModal(true);
       } else {
@@ -2260,13 +2229,14 @@ function ActionsSection({
     setPreviewLoading(true);
     setActionError(null);
     try {
+      const fullBody = assembleEmailBody(composeBody, composeClosing);
       const res = await fetch("/api/admin/provider-outreach/preview-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider_id: provider.provider_id,
           custom_subject: composeSubject,
-          custom_body: composeBody,
+          custom_body: fullBody,
         }),
       });
       const data = await res.json();
@@ -3074,30 +3044,43 @@ Questions? support@olera.care or (979) 243-9801`;
                 />
               </div>
 
-              {/* Body field (editable) */}
+              {/* Message field - unified container with locked CTA in middle */}
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">
                   Message
                   <span className="ml-1 font-normal text-gray-400">(supports markdown links)</span>
                 </label>
-                <textarea
-                  value={composeBody}
-                  onChange={(e) => {
-                    setComposeBody(e.target.value);
-                    setPreviewHtml(""); // Clear preview when editing
-                  }}
-                  rows={12}
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Email body..."
-                />
-              </div>
-
-              {/* Footer preview (locked) */}
-              <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Footer (auto-added)</label>
-                <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1.5 rounded border border-gray-200 italic">
-                  Best, Logan · [Signature with photo] · Manage/Unsubscribe links · PDF attachment
+                <div className="border border-gray-300 rounded overflow-hidden focus-within:ring-1 focus-within:ring-primary-500 focus-within:border-primary-500">
+                  {/* Top: editable text before CTA */}
+                  <textarea
+                    value={composeBody}
+                    onChange={(e) => {
+                      setComposeBody(e.target.value);
+                      setPreviewHtml("");
+                    }}
+                    rows={5}
+                    className="w-full px-2 py-1.5 text-sm border-0 focus:ring-0 resize-none"
+                    placeholder="Email body..."
+                  />
+                  {/* Middle: locked CTA - not editable */}
+                  <div className="px-2 py-1.5 bg-gray-50 text-sm text-gray-500 select-none border-y border-gray-200">
+                    {CTA_DISPLAY_TEXT}
+                  </div>
+                  {/* Bottom: editable text after CTA */}
+                  <textarea
+                    value={composeClosing}
+                    onChange={(e) => {
+                      setComposeClosing(e.target.value);
+                      setPreviewHtml("");
+                    }}
+                    rows={3}
+                    className="w-full px-2 py-1.5 text-sm border-0 focus:ring-0 resize-none"
+                    placeholder="Optional closing text..."
+                  />
                 </div>
+                <p className="mt-1 text-xs text-gray-400">
+                  Footer with signature added automatically
+                </p>
               </div>
             </>
           )}
@@ -3121,10 +3104,11 @@ Questions? support@olera.care or (979) 243-9801`;
           <div className="flex items-center gap-2 pt-1">
             <button
               onClick={() => {
+                const fullBody = assembleEmailBody(composeBody, composeClosing);
                 if (composeMode === "resend") {
-                  handleResendLink(composeSubject, composeBody);
+                  handleResendLink(composeSubject, fullBody);
                 } else {
-                  handleSendClaimLink(composeSubject, composeBody);
+                  handleSendClaimLink(composeSubject, fullBody);
                 }
               }}
               disabled={
@@ -3146,6 +3130,7 @@ Questions? support@olera.care or (979) 243-9801`;
                 setShowComposeModal(false);
                 setActionError(null);
                 setComposeConfirmedCall(false);
+                setComposeClosing("");
                 setShowPreview(false);
                 setPreviewHtml("");
               }}
@@ -3440,20 +3425,7 @@ export function ProviderDrawer({
 
         <SectionDivider />
 
-        {/* Saved Contacts Section */}
-        <SavedContactsSection
-          provider={provider}
-          onUseEmail={(email) => onEmailUpdate?.(provider.provider_id, email)}
-        />
-
-        <SectionDivider />
-
-        {/* Call Log Section */}
-        <CallLogSection provider={provider} onCallLogged={onCallLogged} />
-
-        <SectionDivider />
-
-        {/* Decision Maker Section */}
+        {/* Decision Maker Section - grouped with contacts for discovery workflow */}
         <DecisionMakerSection
           provider={provider}
           onUseEmail={(email) => onEmailUpdate?.(provider.provider_id, email, "decision_maker")}
@@ -3464,6 +3436,19 @@ export function ProviderDrawer({
               : undefined
           }
         />
+
+        <SectionDivider />
+
+        {/* Saved Contacts Section */}
+        <SavedContactsSection
+          provider={provider}
+          onUseEmail={(email) => onEmailUpdate?.(provider.provider_id, email)}
+        />
+
+        <SectionDivider />
+
+        {/* Call Log Section */}
+        <CallLogSection provider={provider} onCallLogged={onCallLogged} />
 
         <SectionDivider />
 
@@ -3491,10 +3476,8 @@ export function ProviderDrawer({
           </>
         )}
 
-        {/* Notes Section */}
-        <NotesSection provider={provider} />
-
-        <SectionDivider />
+        {/* Historical Notes Section (read-only, no new notes - use Call Log instead) */}
+        <HistoricalNotesSection provider={provider} />
 
         {/* Activity Section */}
         <ActivitySection provider={provider} />

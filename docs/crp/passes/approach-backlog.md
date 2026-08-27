@@ -219,6 +219,53 @@ T-6, T-7, T-8. Seven placeholders remain in the document: two `[TJ: ...]`,
 
 ---
 
+## 3c. Reconciliation with the live Drive copy, 2026-08-27
+
+**The living document.** `2. Research Plan [Most Updated 8.26.26]`, Drive id
+`1eicajMItCyBEdz4YJrZ9kHfVnnDxRKtn`. It is a `.docx` export of our own master,
+uploaded at commit `f1a12bd` and hand-edited in Drive since.
+
+**Method.** Rather than diff the live copy against our current head, which would
+have buried five real edits under a full generation of our own changes, the
+ancestor was identified first by exact-paragraph matching across every historical
+`.docx` in the branch. `f1a12bd` matched 93.4 percent verbatim; the next best was
+`4b4a2f3` at 87.7 percent and everything older fell to 16 percent or less. The
+diff was then run against `f1a12bd` only, in both directions, at sentence level,
+with markdown-table rows and figure-caption flattening excluded as converter
+artifacts.
+
+**Result: exactly five human edits**, all in Significance and Approach. Two merged
+cleanly, three were sentence deletions.
+
+| # | Team edit | Disposition |
+|---|---|---|
+| A | "no capacity in the local market" to "no **caregiver** capacity in the local market" | Merged with our own compression as "no local caregiver capacity to deliver it" |
+| B | Deleted "We did not choose workforce development; it was a binding constraint on our own product working." | Honored, on Logan's instruction against my recommendation. Logged as removal 91 |
+| C | Dropped "which is" from the Key Innovation 1 pointer | Merged, together with our cut of "and infrastructure" |
+| D | Deleted "Year 1 also ends with the two markets selected and partnerships signed..." | Honored, on Logan's instruction. Removal 91 |
+| E | Deleted "Below that a provider replaces half of what they bought within a quarter..." | Honored, on Logan's instruction. Removal 91 |
+
+My recommendation on B, D, and E was to keep all three, on the grounds that each
+answers a "why" a reviewer would otherwise ask: why workforce is not scope creep,
+why the month 12 gate is commercial rather than technical, and why the retention
+bar sits at 50 percent. Logan overrode that and the deletions were applied. All
+three sentences are preserved verbatim in the removal log for reuse in the
+Commercialization Plan and in reviewer responses.
+
+**Twelve pages held.** Last-page headroom improved from 25pt to 52pt.
+
+### Standing risk
+
+The Drive copy is now a full generation behind the master. It does not contain
+Task 1.5, the reversed Aim 3 tasks, the deleted Aim 2 Stream A, Figure 5 as the
+evidence chain, the Phase IIB n=200 study, the Ory correction, David Qu, the
+revenue-model headline, the Table 2 pilot-scale note, the Aim 3 precision
+statement, Table 4's eight rows, three restored citations, or the Table 2
+label-visibility fix. **Anyone editing it is working on a superseded base.** It
+should be replaced with the current export before further team review.
+
+---
+
 ## 4. Deferred to the visualization exercise
 
 Do not touch these before the relevant visual exists.

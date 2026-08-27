@@ -34,11 +34,11 @@ or a family's. That is what makes this an addressable market and not only a publ
 problem.</p>
 
 <p class="sec"><b>Why information is not the bottleneck.</b> Knowing what exists is not the
-hard part. A family has to work out which aid program applies, which insurance benefit applies, and which service or provider is needed, then complete the same sequence for each: applications, documentation, intake, scheduling, waiting, follow-up requests, provider availability, approval, and confirmation that care began. Families are lost to follow-up somewhere in that sequence, and existing help stops earlier: a discharge planner hands over a printed list and the case closes at the hospital door, information services return directories, referral marketplaces introduce a provider and are paid on placement. None is accountable for whether care was established, and even where navigation succeeds there may be no local capacity to deliver it.</p>
+hard part. A family has to work out which aid program applies, which insurance benefit applies, and which service or provider is needed, then complete the same sequence for each: applications, documentation, intake, scheduling, waiting, follow-up requests, provider availability, approval, and confirmation that care began. Families are lost to follow-up somewhere in that sequence, and existing help stops earlier: a discharge planner hands over a printed list and the case closes at the hospital door, information services return directories, referral marketplaces introduce a provider and are paid on placement. None is accountable for whether care was established, and even where navigation succeeds there may be no local caregiver capacity to deliver it.</p>
 
 <p>Two things are therefore required at once: navigation that runs through to established
 care meeting the family's needs, and an available caregiver or provider to deliver it.
-<b>Neither is sufficient alone, and that is the structural claim of this application.</b> A product that helps families find and afford care still fails if the local system lacks the caregivers to deliver it, which is a faster path back into the vicious cycle. We did not choose workforce development; it was a binding constraint on our own product working.</p>
+<b>Neither is sufficient alone, and that is the structural claim of this application.</b> A product that helps families find and afford care still fails if the local system lacks the caregivers to deliver it, which is a faster path back into the vicious cycle.</p>
 
 <p class="sec"><b>The product and the north star.</b> Olera exists to increase the effective
 capacity of America's aging-care system: to unlock financial resources that already exist, to
@@ -70,7 +70,7 @@ discharge planners, and private geriatric care managers do this work well and co
 the path than any product does. They are also scarce, and the constraint cannot be solved by hiring: healthcare social workers are projected to grow six percent by 2034, about 13,600 positions, against a population over 65 growing far faster.<sup>@blsSocialWork2025</sup> The closest commercial analogues are the navigation
 platforms sold to employers and health plans, where access depends on who employs or insures a family,<sup>@navPlatforms2026</sup> and referral
 marketplaces charge placement fees, which determines who appears and has drawn sustained
-criticism.<sup>@wapoAPFM2024</sup> <b>Olera builds the pathways that bring new people into caregiving,</b> which is the subject of Key Innovation 1.</p>
+criticism.<sup>@wapoAPFM2024</sup> <b>Olera builds the pathways that bring new people into caregiving,</b> the subject of Key Innovation 1.</p>
 
 <p class="sec"><b>Related development efforts in academia and industry.</b> What the science
 has settled is that hands-on navigation works. Unmet daily-activity needs predict downstream utilization and placement,<sup>@freedmanSpillman2014,@unmetNeedsSR2024</sup> which is why we

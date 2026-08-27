@@ -1274,3 +1274,29 @@ it was wrong. Anything worth reviving has its future home named.
     eight units of assignment" signpost in Aim 3 (folded into the randomization
     inference sentence), and the compounding clause in Key Innovation 2 (Key
     Innovation 3 makes the same argument at length).
+
+91. **Three sentences deleted by the team in the live Drive copy** ("2. Research
+    Plan [Most Updated 8.26.26]"), reconciled into the master on 2026-08-27 on
+    Logan's instruction. Each was still present in our branch and each was cut
+    deliberately by a human editor, not lost:
+    - "We did not choose workforce development; it was a binding constraint on our
+      own product working." (Significance, after the structural claim.) The
+      anti-scope-creep sentence. The preceding sentence still establishes why
+      workforce capacity is required for the product to work.
+    - "Year 1 also ends with the two markets selected and partnerships signed, so
+      month 12 is a launch decision rather than a software review." (Aim 1 gate.)
+      Figure 6 still shows market selection inside Year 1.
+    - "Below that a provider replaces half of what they bought within a quarter,
+      which is where this stops being cheaper than what they do now." (Aim 2,
+      Task 2.2.) The economic justification for the 50 percent retention bar. The
+      bar itself remains stated in the prose and in Table 5.
+    **Future home:** if a reviewer asks why the retention bar sits at 50 percent,
+    or why workforce sits inside the product, the third and first sentences are
+    the prepared answers. Keep them for the Commercialization Plan and for
+    responses to reviewer critiques.
+
+92. **"which is" and "in the local market"**, trimmed by the team in the same pass
+    and merged: "no capacity in the local market to deliver it" became "no local
+    caregiver capacity to deliver it" (the team's "caregiver" plus our
+    compression), and "caregiving, which is the subject of Key Innovation 1"
+    became "caregiving, the subject of Key Innovation 1".

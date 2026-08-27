@@ -37,9 +37,7 @@ caregiving costs working Americans $107 billion a year in earnings they do not m
 costs their employers roughly $26 billion more in lost productivity.<sup>@mudrazija2025</sup>
 Families then spend down what they saved, so a lifetime of retirement savings, and often the inheritance behind it, is redirected into a few years of long-term care. Medicaid
 picks the bill up only once that money is gone, and by then the family has lost its assets, the employer has lost the work, and the public system has inherited a more expensive person to care for.<sup>@kffLtss2022</sup> CAPABLE showed how
-avoidable that is: roughly $3,000 in program cost against more than $20,000 in reduced
-Medicaid spending per participant,<sup>@szanton2018,@szanton2021</sup> <b>The money to
-support older adults at home largely exists today. Too much of it is spent later, on worse
+avoidable that is: roughly $3,000 in program cost against more than $20,000 in reduced Medicaid spending per participant.<sup>@szanton2018,@szanton2021</sup> <b>The money to support older adults at home largely exists today. Too much of it is spent later, on worse
 outcomes and more expensive care.</b> Every dollar of that consequence sits on an identifiable
 balance sheet: a health plan's, a state Medicaid budget's, a health system's, an employer's,
 or a family's. That is what makes this an addressable market and not only a public health

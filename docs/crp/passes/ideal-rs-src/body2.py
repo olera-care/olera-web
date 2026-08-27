@@ -288,10 +288,7 @@ account-level assignment specified in advance as a sensitivity analysis. If conv
 at every price for the arms to be distinguishable, the interim analysis reallocates and the
 result is reported as a finding. If price sits below cost to serve, the pre-registered
 alternatives run in order: improve the product where the Task 3.4 interviews locate the gap,
-reduce acquisition and serving cost, repackage, re-test in wave two.</p>
-
-<p><b>If staffing revenue alone proves insufficient,</b> the alternative commercialization
-pathway is the institutional customer class that Task 3.5 makes available, together with an employer-paid caregiver benefit on the same navigation product, contracted navigation for risk-bearing organizations on the GUIDE precedent, and aggregate market intelligence from the outcomes record. There is also a point at which we would stop. If, at the month 30 interim analysis,
+reduce acquisition and serving cost, repackage, re-test in wave two. And if staffing revenue alone proves insufficient, the alternative commercialization pathway is the institutional customer class that Task 3.5 makes available, together with an employer-paid caregiver benefit on the same navigation product, contracted navigation for risk-bearing organizations on the GUIDE precedent, and aggregate market intelligence from the outcomes record. There is also a point at which we would stop. If, at the month 30 interim analysis,
 fewer than 40 percent of the workers placed in the wave-one paid markets remain in direct care at
 90 days <b>and</b> paid conversion is below 20 percent at every offered price, we hold wave two
 and redirect the remaining effort to completing and publishing the analysis. <b>A
@@ -316,8 +313,7 @@ PROGRESS = r"""
 production today, doing the screening and matching described in Significance. The multi-agent
 navigation layer, developed and evaluated under Phase IIB using retrieval-augmented generation,
 parameter-efficient fine-tuning, and reinforcement learning from expert feedback, is in production
-integration during the remaining Phase IIB year. Execution and follow-up, which Aim 1 builds, do
-not exist in the product today.</p>
+integration during the remaining Phase IIB year. Execution and follow-up, which Aim 1 builds, do not exist in the product today and are not in scope for the existing award, so no budget line here re-funds Phase IIB work.</p>
 
 <p class="sec"><b>What prior funding established.</b> The technology was developed across NIA SBIR
 Phase I/II Fast-Track and Phase IIB awards (1R44AG074116), scored at 20 and 25, and the Phase IIB
@@ -329,13 +325,9 @@ runs about fifteen times higher on the day a family lead arrives than on days wi
 provider tools launched nationwide in July 2026 with no paywall, so there is no pricing history to
 read and Aim 3 sets the first one.</p>
 
-<p class="sec"><b>Ongoing Phase IIB work this award does not re-fund.</b> The remaining Phase
-IIB year completes production integration of the agent system and continues database expansion,
-and this application begins where that ends. No budget line here supports agent development
-already funded under Phase IIB; Aim 1 builds execution, follow-up, confirmation, and the
-workforce infrastructure, none of which is in scope for the existing award.</p>
 
-<p class="sec"><b>The endpoints this application works to.</b> Olera has been evaluated by Ziegler,
+
+<p class="sec"><b>Investor diligence set these milestones.</b> Olera has been evaluated by Ziegler,
 the leading underwriter of financing for nonprofit senior living providers, and by Equitage
 Ventures, an early-stage fund dedicated to the aging economy. <b>That diligence set the commercial
 endpoints in Tables 4 through 6, so the milestones here are the ones our prospective investors said

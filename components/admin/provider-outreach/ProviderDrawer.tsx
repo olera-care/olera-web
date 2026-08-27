@@ -1396,12 +1396,19 @@ function CallLogSection({
   const [callNotes, setCallNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [currentAdminId, setCurrentAdminId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editStatus, setEditStatus] = useState<CallStatus>("voicemail");
+  const [editNotes, setEditNotes] = useState("");
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   // Reset state when provider changes to avoid stale data flash
   useEffect(() => {
     setLogs([]);
     setCallNotes("");
     setSubmitError(null);
+    setEditingId(null);
   }, [provider.provider_id]);
 
   // Fetch call logs on mount / provider change
@@ -1416,6 +1423,7 @@ function CallLogSection({
         if (res.ok && !cancelled) {
           const data = await res.json();
           setLogs(data.logs || []);
+          setCurrentAdminId(data.current_admin_id || null);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -1462,6 +1470,55 @@ function CallLogSection({
       setSubmitting(false);
     }
   }, [provider.provider_id, selectedStatus, callNotes, submitting, onCallLogged]);
+
+  const startEdit = useCallback((log: CallLogEntry) => {
+    setEditingId(log.id);
+    setEditStatus(log.status);
+    setEditNotes(log.notes || "");
+    setEditError(null);
+  }, []);
+
+  const cancelEdit = useCallback(() => {
+    setEditingId(null);
+    setEditStatus("voicemail");
+    setEditNotes("");
+  }, []);
+
+  const handleSaveEdit = useCallback(async () => {
+    if (!editingId || editSubmitting) return;
+    setEditSubmitting(true);
+    setEditError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/call-logs", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          touchpoint_id: editingId,
+          status: editStatus,
+          notes: editNotes.trim() || null,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Update the log in the list
+        setLogs((prev) =>
+          prev.map((log) => (log.id === editingId ? data.log : log))
+        );
+        // If this was the most recent log, notify parent of status change
+        if (logs[0]?.id === editingId) {
+          onCallLogged?.(provider.provider_id, logs.length, editStatus);
+        }
+        cancelEdit();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setEditError(data.error || "Failed to save changes");
+      }
+    } catch {
+      setEditError("Network error");
+    } finally {
+      setEditSubmitting(false);
+    }
+  }, [editingId, editStatus, editNotes, editSubmitting, logs, provider.provider_id, onCallLogged, cancelEdit]);
 
   return (
     <div>
@@ -1524,9 +1581,68 @@ function CallLogSection({
         <div className="space-y-3 max-h-48 overflow-y-auto">
           {logs.map((log) => {
             const badge = getCallStatusBadge(log.status);
+            const isEditing = editingId === log.id;
+            const canEdit = currentAdminId === log.admin_id;
+
+            if (isEditing) {
+              return (
+                <div key={log.id} className="text-sm p-2 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <select
+                      value={editStatus}
+                      onChange={(e) => setEditStatus(e.target.value as CallStatus)}
+                      className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                      disabled={editSubmitting}
+                    >
+                      {CALL_STATUSES.map((status) => (
+                        <option key={status.value} value={status.value}>
+                          {status.label}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleSaveEdit}
+                      disabled={editSubmitting}
+                      className="px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50"
+                    >
+                      {editSubmitting ? "..." : "Save"}
+                    </button>
+                    <button
+                      onClick={cancelEdit}
+                      disabled={editSubmitting}
+                      className="px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={editNotes}
+                    onChange={(e) => setEditNotes(e.target.value)}
+                    placeholder="Notes..."
+                    className="w-full px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    disabled={editSubmitting}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleSaveEdit();
+                      }
+                      if (e.key === "Escape") {
+                        e.stopPropagation();
+                        cancelEdit();
+                      }
+                    }}
+                  />
+                  {editError && (
+                    <p className="mt-1 text-xs text-red-500">{editError}</p>
+                  )}
+                </div>
+              );
+            }
+
             return (
-              <div key={log.id} className="text-sm">
-                {/* Row 1: Time, status, admin */}
+              <div key={log.id} className="text-sm group">
+                {/* Row 1: Time, status, admin, edit button */}
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xs text-gray-400">
                     {formatDate(log.created_at)}
@@ -1537,6 +1653,15 @@ function CallLogSection({
                   <span className="text-xs text-gray-400 ml-auto">
                     {log.admin_name || "Unknown"}
                   </span>
+                  {canEdit && (
+                    <button
+                      onClick={() => startEdit(log)}
+                      className="text-xs text-gray-400 hover:text-primary-600 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                      title="Edit"
+                    >
+                      Edit
+                    </button>
+                  )}
                 </div>
                 {/* Row 2: Full note text */}
                 {log.notes ? (

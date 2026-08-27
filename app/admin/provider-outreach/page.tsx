@@ -5238,7 +5238,7 @@ export default function ProviderOutreachPage() {
               ) : activityStats ? (
                 <div className="space-y-4">
                   {/* Main stats grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <div className="bg-white border border-gray-200 rounded-lg p-3">
                       <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Calls</div>
                       <div className="mt-1 text-2xl font-semibold text-gray-900 tabular-nums">{activityStats.calls.total}</div>
@@ -5254,6 +5254,10 @@ export default function ProviderOutreachPage() {
                     <div className="bg-white border border-gray-200 rounded-lg p-3">
                       <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Resends</div>
                       <div className="mt-1 text-2xl font-semibold text-teal-600 tabular-nums">{activityStats.emails.nudge}</div>
+                    </div>
+                    <div className="bg-white border border-gray-200 rounded-lg p-3 col-span-2 sm:col-span-1">
+                      <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Sequences</div>
+                      <div className="mt-1 text-2xl font-semibold text-indigo-600 tabular-nums">{activityStats.sequences_started ?? 0}</div>
                     </div>
                   </div>
 
@@ -5286,6 +5290,36 @@ export default function ProviderOutreachPage() {
                         {activityStats.calls.note > 0 && (
                           <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded">Note {activityStats.calls.note}</span>
                         )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Per-admin breakdown */}
+                  {activityStats.calls_by_admin && activityStats.calls_by_admin.length > 0 && (
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">By Admin</div>
+                      <div className="space-y-1.5">
+                        {activityStats.calls_by_admin.map((admin: { admin_id: string; display_name: string; total: number; voicemail: number; no_answer: number; spoke_with: number; callback: number; hung_up: number; new_email: number; resend: number; note: number }) => {
+                          // Build breakdown string with all non-zero outcomes
+                          const outcomes: string[] = [];
+                          if (admin.voicemail > 0) outcomes.push(`VM ${admin.voicemail}`);
+                          if (admin.no_answer > 0) outcomes.push(`No Ans ${admin.no_answer}`);
+                          if (admin.spoke_with > 0) outcomes.push(`Spoke ${admin.spoke_with}`);
+                          if (admin.callback > 0) outcomes.push(`Callback ${admin.callback}`);
+                          if (admin.hung_up > 0) outcomes.push(`Hung Up ${admin.hung_up}`);
+                          if (admin.new_email > 0) outcomes.push(`New Email ${admin.new_email}`);
+                          if (admin.resend > 0) outcomes.push(`Resend ${admin.resend}`);
+                          if (admin.note > 0) outcomes.push(`Note ${admin.note}`);
+
+                          return (
+                            <div key={admin.admin_id} className="flex items-center justify-between text-sm">
+                              <span className="font-medium text-gray-700">{admin.display_name}</span>
+                              <span className="text-gray-600">
+                                {admin.total} calls{outcomes.length > 0 && ` (${outcomes.join(", ")})`}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}

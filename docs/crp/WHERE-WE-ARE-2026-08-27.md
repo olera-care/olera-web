@@ -57,6 +57,37 @@ Team memo version published as an artifact for circulation to David, TJ, Qiping.
 
 ---
 
+## 2b. David's written feedback, sent separately
+
+Overlaps with the meeting in places, and adds several items.
+
+**Positioning and business model**
+- **We are a platform company, not a staffing company or an advertising company.** This is the sharpest new framing and it answers the objection Logan raised with Qiping: why not just be a staffing company. It should shape both the Innovation section and the CP.
+- **We make money when value is delivered to the provider.** Reinforces pricing on successful placement or utilization rather than a flat subscription.
+- **Multiple revenue tiers**, providers short term and payers longer term.
+- **Beef up the premium provider offering and its value proposition.**
+
+**Core competency**
+- **Emphasize the data and AI capability.**
+- **We are outcome-driven, not merely transaction-driven.** Use the ACO REACH measures he sent.
+- **The whole ecosystem should see benefits**, not only the paying side.
+
+**Craft and structure**
+- **One bold north star tying all the aims and innovation together.** He had language for us to mull over. This is arguably the largest single item on the list and it belongs to TJ and Logan jointly.
+- Better structure for ease of reading.
+- Audit every figure: what to use and what to drop.
+- Check every cited reference.
+- Table of contents, page numbers, page margins.
+- Run a grammar and typo tool over everything.
+
+**People**
+- Beef up our own bios.
+- Add strategic advisors and prospective investors.
+
+**One item to check rather than adopt.** The table of contents and page numbers come from investor-deck convention and may not transfer. A TOC would consume page budget inside a hard 12-page limit, and NIH assembles page numbering at submission rather than expecting it in the attachments. Margins we already meet: Letter, 0.5in on all four sides, Arial 11pt. Confirm all three against the SF424 guide before adding anything.
+
+---
+
 ## 3. Still open
 
 | Question | Owner |

@@ -70,10 +70,10 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
 
     // Step 1: Get all providers who went through the sequence (sequence_started_at IS NOT NULL)
-    // Include fax_sent_at and mailer_sent_at for attribution
+    // Include fax_sent_at and mail_sent_at for attribution
     const { data: sequencedProviders, error: seqError } = await db
       .from("provider_outreach_tracking")
-      .select("provider_id, assigned_to, fax_sent_at, mailer_sent_at, sequence_started_at")
+      .select("provider_id, assigned_to, fax_sent_at, mail_sent_at, sequence_started_at")
       .not("sequence_started_at", "is", null);
 
     if (seqError) {
@@ -92,7 +92,7 @@ export async function GET(request: NextRequest) {
     const trackingDataMap = new Map(
       sequencedProviders.map((p) => [p.provider_id, {
         fax_sent_at: p.fax_sent_at as string | null,
-        mailer_sent_at: p.mailer_sent_at as string | null,
+        mail_sent_at: p.mail_sent_at as string | null,
         sequence_started_at: p.sequence_started_at as string | null,
       }])
     );
@@ -230,7 +230,7 @@ export async function GET(request: NextRequest) {
       const claimDate = new Date(bp.created_at);
 
       // Determine conversion source by finding the most recent action BEFORE claim
-      // Check: fax_sent_at, mailer_sent_at, and touchpoints
+      // Check: fax_sent_at, mail_sent_at, and touchpoints
       let conversionSource = "smartlead"; // Default: assume SmartLead sequence
       let mostRecentTime: number | null = null;
       const claimTime = claimDate.getTime();
@@ -245,8 +245,8 @@ export async function GET(request: NextRequest) {
       }
 
       // Check direct mail
-      if (trackingData?.mailer_sent_at) {
-        const mailerTime = new Date(trackingData.mailer_sent_at).getTime();
+      if (trackingData?.mail_sent_at) {
+        const mailerTime = new Date(trackingData.mail_sent_at).getTime();
         if (mailerTime < claimTime && (mostRecentTime === null || mailerTime > mostRecentTime)) {
           mostRecentTime = mailerTime;
           conversionSource = "direct_mail";

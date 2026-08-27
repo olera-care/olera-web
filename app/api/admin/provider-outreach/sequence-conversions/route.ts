@@ -97,9 +97,9 @@ export async function GET(request: NextRequest) {
     const providerIds = claimedBps.map((bp) => bp.source_provider_id);
     const accountIds = claimedBps.map((bp) => bp.account_id);
 
-    // Step 3: Get provider details from provider_data
+    // Step 3: Get provider details from olera-providers
     const { data: providerData, error: pdError } = await db
-      .from("provider_data")
+      .from("olera-providers")
       .select("provider_id, provider_name, city")
       .in("provider_id", providerIds);
 

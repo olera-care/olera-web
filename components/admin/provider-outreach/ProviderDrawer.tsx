@@ -2024,6 +2024,10 @@ function CallExhaustedSection({
 // Actions Section
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Pattern to find the CTA line in email body: [Activate your page →]({claim_url})
+const CTA_PATTERN = /\[Activate your page[^\]]*\]\(\{claim_url\}\)/;
+const CTA_DISPLAY_TEXT = "[Activate your page →]({claim_url})";
+
 function ActionsSection({
   provider,
   onLaunchSequence,
@@ -2092,7 +2096,8 @@ function ActionsSection({
   // Compose email modal state (for customizable nudge emails)
   const [showComposeModal, setShowComposeModal] = useState(false);
   const [composeSubject, setComposeSubject] = useState("");
-  const [composeBody, setComposeBody] = useState("");
+  const [composeBody, setComposeBody] = useState(""); // Text before CTA
+  const [composeClosing, setComposeClosing] = useState(""); // Text after CTA
   const [composeLoading, setComposeLoading] = useState(false);
   const [composeToEmail, setComposeToEmail] = useState("");
   // Track compose mode: "send" = just send email, "resend" = send + move to Alt Channels
@@ -2135,6 +2140,7 @@ function ActionsSection({
     setShowComposeModal(false);
     setComposeSubject("");
     setComposeBody("");
+    setComposeClosing("");
     setComposeLoading(false);
     setComposeToEmail("");
     setComposeMode("send");
@@ -2143,6 +2149,28 @@ function ActionsSection({
     setPreviewHtml("");
     setPreviewLoading(false);
   }, [provider.provider_id]);
+
+  // Parse email body to split around the CTA
+  function parseEmailBody(body: string): { message: string; closing: string } {
+    const match = body.match(CTA_PATTERN);
+    if (match && match.index !== undefined) {
+      const ctaStart = match.index;
+      const ctaEnd = ctaStart + match[0].length;
+      const message = body.slice(0, ctaStart).replace(/\n+$/, "");
+      const closing = body.slice(ctaEnd).replace(/^\n+/, "");
+      return { message, closing };
+    }
+    return { message: body, closing: "" };
+  }
+
+  // Reassemble body from message + CTA + closing
+  function assembleEmailBody(message: string, closing: string): string {
+    const parts = [message.trim(), "", CTA_DISPLAY_TEXT];
+    if (closing.trim()) {
+      parts.push("", closing.trim());
+    }
+    return parts.join("\n");
+  }
 
   // Load default email template for compose modal (send mode - no stage change)
   async function loadComposeTemplate() {
@@ -2155,7 +2183,9 @@ function ActionsSection({
       const data = await res.json();
       if (res.ok) {
         setComposeSubject(data.subject || "");
-        setComposeBody(data.body || "");
+        const { message, closing } = parseEmailBody(data.body || "");
+        setComposeBody(message);
+        setComposeClosing(closing);
         setComposeToEmail(data.to_email || provider.email || "");
         setShowComposeModal(true);
       } else {
@@ -2179,7 +2209,9 @@ function ActionsSection({
       const data = await res.json();
       if (res.ok) {
         setComposeSubject(data.subject || "");
-        setComposeBody(data.body || "");
+        const { message, closing } = parseEmailBody(data.body || "");
+        setComposeBody(message);
+        setComposeClosing(closing);
         setComposeToEmail(data.to_email || provider.email || "");
         setShowComposeModal(true);
       } else {
@@ -2197,13 +2229,14 @@ function ActionsSection({
     setPreviewLoading(true);
     setActionError(null);
     try {
+      const fullBody = assembleEmailBody(composeBody, composeClosing);
       const res = await fetch("/api/admin/provider-outreach/preview-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider_id: provider.provider_id,
           custom_subject: composeSubject,
-          custom_body: composeBody,
+          custom_body: fullBody,
         }),
       });
       const data = await res.json();
@@ -3011,24 +3044,42 @@ Questions? support@olera.care or (979) 243-9801`;
                 />
               </div>
 
-              {/* Body field (editable) */}
+              {/* Message field - unified container with locked CTA in middle */}
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">
                   Message
                   <span className="ml-1 font-normal text-gray-400">(supports markdown links)</span>
                 </label>
-                <textarea
-                  value={composeBody}
-                  onChange={(e) => {
-                    setComposeBody(e.target.value);
-                    setPreviewHtml(""); // Clear preview when editing
-                  }}
-                  rows={10}
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Email body..."
-                />
+                <div className="border border-gray-300 rounded overflow-hidden focus-within:ring-1 focus-within:ring-primary-500 focus-within:border-primary-500">
+                  {/* Top: editable text before CTA */}
+                  <textarea
+                    value={composeBody}
+                    onChange={(e) => {
+                      setComposeBody(e.target.value);
+                      setPreviewHtml("");
+                    }}
+                    rows={5}
+                    className="w-full px-2 py-1.5 text-sm border-0 focus:ring-0 resize-none"
+                    placeholder="Email body..."
+                  />
+                  {/* Middle: locked CTA - not editable */}
+                  <div className="px-2 py-1.5 bg-gray-50 text-sm text-gray-500 select-none border-y border-gray-200">
+                    {CTA_DISPLAY_TEXT}
+                  </div>
+                  {/* Bottom: editable text after CTA */}
+                  <textarea
+                    value={composeClosing}
+                    onChange={(e) => {
+                      setComposeClosing(e.target.value);
+                      setPreviewHtml("");
+                    }}
+                    rows={3}
+                    className="w-full px-2 py-1.5 text-sm border-0 focus:ring-0 resize-none"
+                    placeholder="Optional closing text..."
+                  />
+                </div>
                 <p className="mt-1 text-xs text-gray-400">
-                  Footer with signature and activation button added automatically
+                  Footer with signature added automatically
                 </p>
               </div>
             </>
@@ -3053,10 +3104,11 @@ Questions? support@olera.care or (979) 243-9801`;
           <div className="flex items-center gap-2 pt-1">
             <button
               onClick={() => {
+                const fullBody = assembleEmailBody(composeBody, composeClosing);
                 if (composeMode === "resend") {
-                  handleResendLink(composeSubject, composeBody);
+                  handleResendLink(composeSubject, fullBody);
                 } else {
-                  handleSendClaimLink(composeSubject, composeBody);
+                  handleSendClaimLink(composeSubject, fullBody);
                 }
               }}
               disabled={
@@ -3078,6 +3130,7 @@ Questions? support@olera.care or (979) 243-9801`;
                 setShowComposeModal(false);
                 setActionError(null);
                 setComposeConfirmedCall(false);
+                setComposeClosing("");
                 setShowPreview(false);
                 setPreviewHtml("");
               }}

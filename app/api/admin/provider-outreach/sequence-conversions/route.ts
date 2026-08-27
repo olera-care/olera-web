@@ -110,10 +110,10 @@ export async function GET(request: NextRequest) {
       (providerData || []).map((p: { provider_id: string; provider_name: string; city: string | null }) => [p.provider_id, { name: p.provider_name, city: p.city }])
     );
 
-    // Step 4: Get account emails
+    // Step 4: Get account emails (accounts → auth.users)
     const { data: accounts, error: accError } = await db
       .from("accounts")
-      .select("id, email")
+      .select("id, user_id")
       .in("id", accountIds);
 
     if (accError) {
@@ -121,9 +121,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch account data" }, { status: 500 });
     }
 
-    const accountEmailMap = new Map<string, string>(
-      (accounts || []).map((a: { id: string; email: string }) => [a.id, a.email])
-    );
+    // Fetch emails from auth.users
+    const accountEmailMap = new Map<string, string>();
+    for (const account of accounts || []) {
+      if (account.user_id) {
+        try {
+          const { data: authUser } = await db.auth.admin.getUserById(account.user_id);
+          if (authUser?.user?.email) {
+            accountEmailMap.set(account.id, authUser.user.email);
+          }
+        } catch {
+          // Skip if we can't get the email
+        }
+      }
+    }
 
     // Step 5: Get admin display names for assigned_to
     const assignedToIds = Array.from(new Set(sequencedProviders.map((p) => p.assigned_to).filter((id): id is string => Boolean(id))));

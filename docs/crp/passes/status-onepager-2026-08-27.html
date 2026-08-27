@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<title>Olera CRP status</title>
+<style>
+@page { size: letter; margin: 0.45in 0.5in; }
+* { box-sizing: border-box; }
+html,body { margin:0; padding:0; }
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 8.6pt; line-height: 1.28; color:#1a2420;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.hd { border-bottom: 2pt solid #14453f; padding-bottom: 5pt; margin-bottom: 8pt; }
+.eyebrow { font-size:6.8pt; letter-spacing:.14em; text-transform:uppercase; color:#14453f;
+  font-weight:bold; margin-bottom:3pt; }
+h1 { font-size:17pt; line-height:1.05; margin:0 0 4pt 0; color:#14453f; letter-spacing:-.01em; }
+.meta { font-size:7.2pt; color:#5f6b64; }
+.lede { font-size:9.2pt; line-height:1.3; margin:6pt 0 7pt 0; padding:5pt 8pt;
+  background:#e8f1ec; border-left:3pt solid #14453f; }
+.lede b { color:#14453f; }
+
+.cols { display:flex; gap:16pt; align-items:flex-start; }
+.col { flex:1 1 0; min-width:0; }
+
+h2 { font-size:7.4pt; letter-spacing:.13em; text-transform:uppercase; color:#14453f;
+  font-weight:bold; margin:0 0 4pt 0; padding-bottom:2.5pt; border-bottom:.75pt solid #b9c4bd; }
+h2.sp { margin-top:8pt; }
+ul { margin:0 0 0 0; padding-left:10pt; list-style:none; }
+li { margin:0 0 4pt 0; position:relative; padding-left:0; }
+li:before { content:"▪"; color:#1a7f4e; position:absolute; left:-9pt; font-size:7pt; top:.5pt; }
+li.o:before { content:"▪"; color:#9b1c1c; }
+b { color:#0d1a16; }
+.who { color:#5f6b64; font-style:italic; }
+
+table { width:100%; border-collapse:collapse; font-size:8.2pt; }
+td { padding:2.3pt 0; vertical-align:top; border-bottom:.5pt solid #e2e9e6; }
+td.d { width:58pt; color:#14453f; font-weight:bold; white-space:nowrap; }
+tr:last-child td { border-bottom:0; }
+
+.people td.d { width:44pt; }
+.gate { margin:5pt 0 7pt 0; padding:4.5pt 8pt; border:.75pt solid #b9c4bd; background:#fafcfb; }
+.gate .g { font-weight:bold; color:#14453f; font-size:9pt; letter-spacing:.02em; }
+.gate .n { color:#9b1c1c; }
+.gate .s { font-size:7.6pt; color:#5f6b64; margin-top:2pt; }
+
+.dec { display:flex; gap:8pt; margin-top:5pt; }
+.dec > div { flex:1; padding:4.5pt 7pt; font-size:8pt; }
+.go { background:#e6f2ea; border-left:2.5pt solid #1a7f4e; }
+.no { background:#f8f1e2; border-left:2.5pt solid #8a5a12; }
+.dec b { display:block; font-size:7pt; letter-spacing:.1em; text-transform:uppercase; margin-bottom:2pt; }
+.go b { color:#1a7f4e; } .no b { color:#8a5a12; }
+
+.ft { margin-top:6pt; padding-top:3.5pt; border-top:1pt solid #14453f;
+  font-size:7pt; color:#5f6b64; display:flex; justify-content:space-between; }
+</style></head><body>
+
+<div class="hd">
+  <div class="eyebrow">Olera · NIH NIA SBIR CRP · Status memo</div>
+  <h1>Five Days to Go/No-Go</h1>
+  <div class="meta">Thursday 27 August 2026 · To: David Qu, TJ Falohun, Qiping Fan · From: Logan DuBose</div>
+</div>
+
+<div class="lede">
+Three discussions today moved the proposal further than the previous week did. <b>The application can plausibly reach a fundable range,</b> and the work that gets it there is now specific rather than vague. We sprint to Tuesday 1 September, then decide honestly whether to submit on the 4th or take the extra months.
+</div>
+
+<div class="gate">
+  <div class="g">The problem now has four gates: find it &nbsp;·&nbsp; afford it &nbsp;·&nbsp; <span class="n">execute it</span> &nbsp;·&nbsp; staff it</div>
+  <div class="s">Qiping identified the gap. The work between finding care and receiving it is administrative, which is exactly what the agent layer does, and we were not naming it. Propagates to Figure 1, the opening Significance sentence, and the competitive table.</div>
+</div>
+
+<div class="cols">
+<div class="col">
+
+  <h2>Decided today</h2>
+  <ul>
+    <li><b>Staffing is the beachhead, for two reasons.</b> It is the only thing we can sell now, and it is the bottleneck that makes navigation fail.</li>
+    <li><b>The payer opportunity is a secondary endpoint, never an aim.</b> Data collected alongside the work. TJ: instrumenting for it "kills prose."</li>
+    <li><b>Aim 3 gets simpler.</b> One price, one wave, no human subjects. The four-price randomized design is dropped: providers talk to each other, so varying price is a commercial risk, not just a statistical one.</li>
+    <li><b>Market selection becomes criteria-driven,</b> including payer consolidation, per David's account of Times Square Health choosing Rochester over Chicago.</li>
+    <li><b>No campus stratification.</b> We have no hypothesis that students outperform other workers, so it tests nothing.</li>
+    <li><b>Students are not the innovation.</b> The system that brings new capacity into a local market through licensed providers is. Students are the first population it is tested on.</li>
+    <li><b>Aim 2 measures value created,</b> and willingness to pay becomes the explicit output that sets the Aim 3 price. Provider question sharpened to: did you have to deny care to anyone we sent you?</li>
+    <li><b>National baselines, not a control arm,</b> for readmission and admission comparison.</li>
+    <li><b>Qiping moves to co-PI.</b> Effort unchanged.</li>
+    <li><b>Commercialization Plan gets rebuilt from a clean sheet.</b> Of 24 substantive claims in it, 19 already appear in the Research Strategy and none are unique to it.</li>
+  </ul>
+
+  <h2 class="sp">Still open</h2>
+  <ul>
+    <li class="o"><b>How many paid markets?</b> 8 down to 4 or 6, one wave. Drives the model, budget, and feasibility critique. <span class="who">Logan + Qiping</span></li>
+    <li class="o"><b>What does one mature market earn?</b> Four figures exist across our own documents, $30k to $165k. Nothing commercial can be written until this is one number. <span class="who">Logan, today</span></li>
+    <li class="o"><b>Are workers in the Aim 1 usability study?</b> Removed, then proposed back. <span class="who">Qiping</span></li>
+    <li class="o"><b>Aim 2 or Aim 3 for care establishment?</b> <span class="who">Qiping</span></li>
+    <li class="o"><b>Flat subscription or per placement?</b> David argued against a fixed fee. <span class="who">Logan + David</span></li>
+    <li class="o"><b>How hard to push the payer argument?</b> David wants it prominent; TJ worries it reads as hand-waving. <span class="who">Team, Tuesday</span></li>
+  </ul>
+
+</div>
+<div class="col">
+
+  <h2>Who is doing what</h2>
+  <table class="people">
+    <tr><td class="d">TJ</td><td>Innovation and Aim 1, then a whole-document read for holes rather than sentences. Innovation has gone from our weakest section to possibly our strongest.</td></tr>
+    <tr><td class="d">Qiping</td><td>Approach and human-subjects rigor. Rebuild Aim 3 to read more simply than Aims 1 and 2. National-baseline literature search. Map David's outcome list onto secondary measures. Flag unsubstantiated absolutes.</td></tr>
+    <tr><td class="d">Logan</td><td>Commercialization Plan clean-sheet rebuild, next 24 hours, revenue number first. Letters, budget, and remaining components daily. Hands off the Research Strategy for 24 hours.</td></tr>
+    <tr><td class="d">David</td><td>Commercial pressure testing. Outcome list delivered and in use. Reviews the Tuesday package. Investor letter on outcome, economic value, replicability.</td></tr>
+    <tr><td class="d">Marcia</td><td>Independent read of the Tuesday package.</td></tr>
+  </table>
+
+  <h2 class="sp">The next five days</h2>
+  <table>
+    <tr><td class="d">Thu to Fri</td><td>Each of us on our own section. Async check-in at 24 to 36 hours.</td></tr>
+    <tr><td class="d">Sat to Sun</td><td>Heaviest writing window. Substantiation sweep. Commercialization modelling and figures. Letters chased.</td></tr>
+    <tr><td class="d">Monday</td><td>Integration. Three documents as one argument: same market count, price, revenue figure, vocabulary.</td></tr>
+    <tr><td class="d">Tuesday</td><td>Package circulated in the morning. Independent reads during the day. Go/no-go in the evening.</td></tr>
+    <tr><td class="d">Wed to Fri</td><td>If go: pressure testing, collateral, submission by close of business Friday.</td></tr>
+  </table>
+  <div style="font-size:7.8pt;color:#5f6b64;margin-top:5pt;">
+  Roughly 120 hours of calendar time remain. Near 120 to 150 focused hours across the three of us tells us whether this reaches a fundable range. An ambitious target, not a quota, and a marathon we are allowed to run twice.
+  </div>
+
+  <h2 class="sp">Tuesday, one question</h2>
+  <div style="font-size:8.4pt;">Is this application strong enough that submitting on 4 September is justified, or would several more months materially improve its probability of funding? <span style="color:#5f6b64;">The decision rests on quality, not on hours spent or attachment to the date.</span></div>
+  <div class="dec">
+    <div class="go"><b>Go</b>Plausibly fundable. Wednesday to Friday become integration, pressure testing, polish, and submission.</div>
+    <div class="no"><b>Postpone</b>More development materially improves the odds. Nothing is wasted: we carry a stronger application and a concrete plan toward January.</div>
+  </div>
+</div>
+</div>
+
+<div class="ft">
+  <span>Full detail: docs/crp/WHERE-WE-ARE-2026-08-27.md</span>
+  <span>From the TJ, David, and Qiping discussions of 27 Aug 2026</span>
+</div>
+
+</body></html>

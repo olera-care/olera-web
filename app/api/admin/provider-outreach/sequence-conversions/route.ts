@@ -232,22 +232,23 @@ export async function GET(request: NextRequest) {
       // Determine conversion source by finding the most recent action BEFORE claim
       // Check: fax_sent_at, mailer_sent_at, and touchpoints
       let conversionSource = "smartlead"; // Default: assume SmartLead sequence
-      let mostRecentDate: Date | null = null;
+      let mostRecentTime: number | null = null;
+      const claimTime = claimDate.getTime();
 
       // Check fax
       if (trackingData?.fax_sent_at) {
-        const faxDate = new Date(trackingData.fax_sent_at);
-        if (faxDate < claimDate && (!mostRecentDate || faxDate > mostRecentDate)) {
-          mostRecentDate = faxDate;
+        const faxTime = new Date(trackingData.fax_sent_at).getTime();
+        if (faxTime < claimTime && (mostRecentTime === null || faxTime > mostRecentTime)) {
+          mostRecentTime = faxTime;
           conversionSource = "fax";
         }
       }
 
       // Check direct mail
       if (trackingData?.mailer_sent_at) {
-        const mailerDate = new Date(trackingData.mailer_sent_at);
-        if (mailerDate < claimDate && (!mostRecentDate || mailerDate > mostRecentDate)) {
-          mostRecentDate = mailerDate;
+        const mailerTime = new Date(trackingData.mailer_sent_at).getTime();
+        if (mailerTime < claimTime && (mostRecentTime === null || mailerTime > mostRecentTime)) {
+          mostRecentTime = mailerTime;
           conversionSource = "direct_mail";
         }
       }
@@ -255,10 +256,10 @@ export async function GET(request: NextRequest) {
       // Check touchpoints - find most recent one BEFORE claim date
       // Touchpoints are already sorted desc, so first one before claim is the most recent
       for (const tp of providerTouchpoints) {
-        const tpDate = new Date(tp.date);
-        if (tpDate < claimDate) {
-          if (!mostRecentDate || tpDate > mostRecentDate) {
-            mostRecentDate = tpDate;
+        const tpTime = new Date(tp.date).getTime();
+        if (tpTime < claimTime) {
+          if (mostRecentTime === null || tpTime > mostRecentTime) {
+            mostRecentTime = tpTime;
             conversionSource = getSourceFromTouchpoint(tp.type);
           }
           break; // Found the most recent touchpoint before claim, no need to continue
@@ -266,7 +267,7 @@ export async function GET(request: NextRequest) {
       }
 
       // If no actions found but they went through sequence, attribute to SmartLead
-      if (!mostRecentDate && trackingData?.sequence_started_at) {
+      if (mostRecentTime === null && trackingData?.sequence_started_at) {
         conversionSource = "smartlead";
       }
 

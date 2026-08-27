@@ -3858,13 +3858,32 @@ export default function ProviderOutreachPage() {
     }
   }, [expandedCities, activeTab, debouncedSearch, fetchProviders]);
 
-  // Clear selection, providers, and stage counts when tab/state/search changes
+  // Track previous values to detect what changed
+  const prevClearStateRef = useRef(selectedState);
+  const prevClearSearchRef = useRef(debouncedSearch);
+
+  // Clear selection and expanded cities when tab/state/search changes
+  // Set loading immediately to show spinner instead of "No providers" flash
+  // Only clear providers when state or search changes (not just tab)
   useEffect(() => {
     setSelectedProviders(new Set());
     setExpandedCities(new Set());
-    setProviders([]);
-    // Clear stage counts when STATE changes (not tab) to avoid showing stale data
-    // Stage counts are state-level, so changing tab within same state keeps counts
+
+    // Show loading spinner immediately on any tab/state/search change
+    // This prevents the "No providers" flash while fetch is in progress
+    setLoadingProviders(true);
+
+    // Only clear providers when state or search actually changed
+    // When just tab changes, providers are filtered by stage anyway
+    const stateChanged = prevClearStateRef.current !== selectedState;
+    const searchChanged = prevClearSearchRef.current !== debouncedSearch;
+
+    if (stateChanged || searchChanged) {
+      setProviders([]);
+    }
+
+    prevClearStateRef.current = selectedState;
+    prevClearSearchRef.current = debouncedSearch;
   }, [activeTab, selectedState, debouncedSearch]);
 
   // Update URL when Done sub-tab changes (for refresh persistence)

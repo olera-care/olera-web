@@ -183,6 +183,112 @@ export async function POST(request: NextRequest) {
 }
 
 /**
+ * PATCH /api/admin/provider-outreach/contacts
+ *
+ * Update an existing saved contact.
+ * Body: { contact_id, type?, value?, label?, notes? }
+ */
+export async function PATCH(request: NextRequest) {
+  try {
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    const adminUser = await getAdminUser(user.id);
+    if (!adminUser) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const { contact_id, type, value, label, notes } = body;
+
+    if (!contact_id) {
+      return NextResponse.json({ error: "contact_id is required" }, { status: 400 });
+    }
+
+    if (type !== undefined && !CONTACT_TYPES.includes(type)) {
+      return NextResponse.json(
+        { error: `Invalid type. Must be one of: ${CONTACT_TYPES.join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    if (value !== undefined && !value?.trim()) {
+      return NextResponse.json({ error: "value cannot be empty" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+
+    // Fetch the existing touchpoint
+    const { data: existing, error: fetchError } = await db
+      .from("provider_outreach_touchpoints")
+      .select("id, provider_id, details, admin_user_id, created_at")
+      .eq("id", contact_id)
+      .eq("touchpoint_type", "contact_saved")
+      .single();
+
+    if (fetchError || !existing) {
+      return NextResponse.json({ error: "Contact not found" }, { status: 404 });
+    }
+
+    // Build updated details
+    const currentDetails = existing.details as {
+      type?: string;
+      value?: string;
+      label?: string;
+      notes?: string;
+    } || {};
+
+    const updatedDetails = {
+      ...currentDetails,
+      ...(type !== undefined && { type }),
+      ...(value !== undefined && { value: value.trim() }),
+      ...(label !== undefined && { label: label?.trim() || null }),
+      ...(notes !== undefined && { notes: notes?.trim() || null }),
+    };
+
+    // Update the touchpoint
+    const { error: updateError } = await db
+      .from("provider_outreach_touchpoints")
+      .update({ details: updatedDetails })
+      .eq("id", contact_id);
+
+    if (updateError) {
+      console.error("[contacts] Update error:", updateError);
+      return NextResponse.json({ error: "Failed to update contact" }, { status: 500 });
+    }
+
+    // Fetch admin name for the original creator
+    const { data: adminData } = await db
+      .from("admin_users")
+      .select("display_name")
+      .eq("id", existing.admin_user_id)
+      .single();
+
+    const contact: SavedContact = {
+      id: existing.id,
+      provider_id: existing.provider_id,
+      type: updatedDetails.type as ContactType || "email",
+      value: updatedDetails.value || "",
+      label: updatedDetails.label || null,
+      notes: updatedDetails.notes || null,
+      admin_id: existing.admin_user_id,
+      admin_name: adminData?.display_name || null,
+      created_at: existing.created_at,
+    };
+
+    return NextResponse.json({ success: true, contact });
+  } catch (err) {
+    console.error("[contacts] Error:", err);
+    return NextResponse.json(
+      { error: `Internal server error: ${err instanceof Error ? err.message : String(err)}` },
+      { status: 500 }
+    );
+  }
+}
+
+/**
  * DELETE /api/admin/provider-outreach/contacts
  *
  * Delete a saved contact.

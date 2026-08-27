@@ -2024,11 +2024,6 @@ function CallExhaustedSection({
 // Actions Section
 // ─────────────────────────────────────────────────────────────────────────────
 
-// CTA button text for compose email (locked, not editable by admin)
-const CTA_BUTTON_TEXT = "Activate your page";
-// Pattern to find the CTA line in email body: [Activate your page →]({claim_url})
-const CTA_PATTERN = /\[Activate your page[^\]]*\]\(\{claim_url\}\)/;
-
 function ActionsSection({
   provider,
   onLaunchSequence,
@@ -2098,7 +2093,6 @@ function ActionsSection({
   const [showComposeModal, setShowComposeModal] = useState(false);
   const [composeSubject, setComposeSubject] = useState("");
   const [composeBody, setComposeBody] = useState("");
-  const [composeClosing, setComposeClosing] = useState(""); // Text after the CTA button
   const [composeLoading, setComposeLoading] = useState(false);
   const [composeToEmail, setComposeToEmail] = useState("");
   // Track compose mode: "send" = just send email, "resend" = send + move to Alt Channels
@@ -2141,7 +2135,6 @@ function ActionsSection({
     setShowComposeModal(false);
     setComposeSubject("");
     setComposeBody("");
-    setComposeClosing("");
     setComposeLoading(false);
     setComposeToEmail("");
     setComposeMode("send");
@@ -2150,35 +2143,6 @@ function ActionsSection({
     setPreviewHtml("");
     setPreviewLoading(false);
   }, [provider.provider_id]);
-
-  // Parse email body to split around the CTA button
-  function parseEmailBody(body: string): { message: string; closing: string } {
-    const match = body.match(CTA_PATTERN);
-    if (match && match.index !== undefined) {
-      const ctaStart = match.index;
-      const ctaEnd = ctaStart + match[0].length;
-      // Message is everything before the CTA line (trim trailing newlines)
-      const message = body.slice(0, ctaStart).replace(/\n+$/, "");
-      // Closing is everything after the CTA line (trim leading newlines)
-      const closing = body.slice(ctaEnd).replace(/^\n+/, "");
-      return { message, closing };
-    }
-    // Fallback: no CTA found, use entire body as message
-    return { message: body, closing: "" };
-  }
-
-  // Reassemble body from message + CTA + closing
-  function assembleEmailBody(message: string, closing: string): string {
-    const cta = `[${CTA_BUTTON_TEXT} →]({claim_url})`;
-    const parts = [message.trim()];
-    parts.push(""); // blank line before CTA
-    parts.push(cta);
-    if (closing.trim()) {
-      parts.push(""); // blank line after CTA
-      parts.push(closing.trim());
-    }
-    return parts.join("\n");
-  }
 
   // Load default email template for compose modal (send mode - no stage change)
   async function loadComposeTemplate() {
@@ -2191,10 +2155,7 @@ function ActionsSection({
       const data = await res.json();
       if (res.ok) {
         setComposeSubject(data.subject || "");
-        // Parse the body to split around CTA
-        const { message, closing } = parseEmailBody(data.body || "");
-        setComposeBody(message);
-        setComposeClosing(closing);
+        setComposeBody(data.body || "");
         setComposeToEmail(data.to_email || provider.email || "");
         setShowComposeModal(true);
       } else {
@@ -2218,10 +2179,7 @@ function ActionsSection({
       const data = await res.json();
       if (res.ok) {
         setComposeSubject(data.subject || "");
-        // Parse the body to split around CTA
-        const { message, closing } = parseEmailBody(data.body || "");
-        setComposeBody(message);
-        setComposeClosing(closing);
+        setComposeBody(data.body || "");
         setComposeToEmail(data.to_email || provider.email || "");
         setShowComposeModal(true);
       } else {
@@ -2239,15 +2197,13 @@ function ActionsSection({
     setPreviewLoading(true);
     setActionError(null);
     try {
-      // Reassemble the full body with CTA for preview
-      const fullBody = assembleEmailBody(composeBody, composeClosing);
       const res = await fetch("/api/admin/provider-outreach/preview-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider_id: provider.provider_id,
           custom_subject: composeSubject,
-          custom_body: fullBody,
+          custom_body: composeBody,
         }),
       });
       const data = await res.json();
@@ -3055,7 +3011,7 @@ Questions? support@olera.care or (979) 243-9801`;
                 />
               </div>
 
-              {/* Message field (editable - text BEFORE the CTA) */}
+              {/* Body field (editable) */}
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">
                   Message
@@ -3067,50 +3023,13 @@ Questions? support@olera.care or (979) 243-9801`;
                     setComposeBody(e.target.value);
                     setPreviewHtml(""); // Clear preview when editing
                   }}
-                  rows={8}
+                  rows={10}
                   className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
                   placeholder="Email body..."
                 />
-              </div>
-
-              {/* CTA Button preview (locked - cannot be edited) */}
-              <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">
-                  Activation Button
-                  <span className="ml-1 font-normal text-gray-400">(protected)</span>
-                </label>
-                <div className="flex items-center gap-2 px-3 py-2 bg-gray-50 border border-gray-200 border-dashed rounded">
-                  <span className="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-primary-600 rounded cursor-default select-none">
-                    {CTA_BUTTON_TEXT} →
-                  </span>
-                  <span className="text-xs text-gray-400 italic">Links to provider&apos;s claim page</span>
-                </div>
-              </div>
-
-              {/* Closing field (editable - text AFTER the CTA, optional) */}
-              <div>
-                <label className="block text-xs font-medium text-gray-500 mb-1">
-                  Closing
-                  <span className="ml-1 font-normal text-gray-400">(optional, after button)</span>
-                </label>
-                <textarea
-                  value={composeClosing}
-                  onChange={(e) => {
-                    setComposeClosing(e.target.value);
-                    setPreviewHtml(""); // Clear preview when editing
-                  }}
-                  rows={4}
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Optional text after the activation button..."
-                />
-              </div>
-
-              {/* Footer preview (locked) */}
-              <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Footer (auto-added)</label>
-                <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1.5 rounded border border-gray-200 italic">
-                  Best, Logan · [Signature with photo] · Manage/Unsubscribe links · PDF attachment
-                </div>
+                <p className="mt-1 text-xs text-gray-400">
+                  Footer with signature and activation button added automatically
+                </p>
               </div>
             </>
           )}
@@ -3134,12 +3053,10 @@ Questions? support@olera.care or (979) 243-9801`;
           <div className="flex items-center gap-2 pt-1">
             <button
               onClick={() => {
-                // Reassemble the full body with CTA before sending
-                const fullBody = assembleEmailBody(composeBody, composeClosing);
                 if (composeMode === "resend") {
-                  handleResendLink(composeSubject, fullBody);
+                  handleResendLink(composeSubject, composeBody);
                 } else {
-                  handleSendClaimLink(composeSubject, fullBody);
+                  handleSendClaimLink(composeSubject, composeBody);
                 }
               }}
               disabled={
@@ -3161,7 +3078,6 @@ Questions? support@olera.care or (979) 243-9801`;
                 setShowComposeModal(false);
                 setActionError(null);
                 setComposeConfirmedCall(false);
-                setComposeClosing("");
                 setShowPreview(false);
                 setPreviewHtml("");
               }}

@@ -10,6 +10,7 @@ import { AdminChip } from "@/components/admin/provider-outreach/AdminChip";
 import { AdminFilterChips, type AdminCounts } from "@/components/admin/provider-outreach/AdminFilterChips";
 import { AdminAutocomplete } from "@/components/admin/provider-outreach/AdminAutocomplete";
 import { NotesModal } from "@/components/admin/provider-outreach/NotesModal";
+import { SequenceConversionsModal } from "@/components/admin/provider-outreach/SequenceConversionsModal";
 import { WorkflowGuideModal } from "@/components/admin/provider-outreach/WorkflowGuideModal";
 import { EmailHistoryPopover } from "@/components/admin/provider-outreach/EmailHistoryPopover";
 import { ProviderDrawer } from "@/components/admin/provider-outreach/ProviderDrawer";
@@ -3066,6 +3067,9 @@ export default function ProviderOutreachPage() {
   // Notes modal state
   const [notesModalProvider, setNotesModalProvider] = useState<{ id: string; name: string } | null>(null);
 
+  // Sequence conversions modal state
+  const [showSequenceConvModal, setShowSequenceConvModal] = useState(false);
+
   // Workflow guide modal state
   const [showWorkflowGuide, setShowWorkflowGuide] = useState(false);
 
@@ -4669,9 +4673,14 @@ export default function ProviderOutreachPage() {
                 : "none pending"}
             </p>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Conversion rate: providers who claimed after going through the email sequence">
+          <button
+            type="button"
+            onClick={() => setShowSequenceConvModal(true)}
+            className="rounded-lg border border-gray-200 bg-white px-4 py-3 hover:border-primary-300 hover:bg-primary-50/50 transition-colors text-left"
+            title="Click to view sequence conversions"
+          >
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Sequence Conv.</p>
-            <p className="mt-1 text-2xl font-semibold text-gray-900">
+            <p className="mt-1 text-2xl font-semibold text-gray-900 tabular-nums">
               {sequenceConversion
                 ? `${sequenceConversion.claimed} / ${sequenceConversion.sequenced}`
                 : "—"}
@@ -4681,7 +4690,7 @@ export default function ProviderOutreachPage() {
                 ? `${sequenceConversion.rate}% claimed from sequence`
                 : "loading..."}
             </p>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -7620,6 +7629,11 @@ export default function ProviderOutreachPage() {
           providerName={notesModalProvider.name}
           onClose={() => setNotesModalProvider(null)}
         />
+      )}
+
+      {/* Sequence Conversions Modal */}
+      {showSequenceConvModal && (
+        <SequenceConversionsModal onClose={() => setShowSequenceConvModal(false)} />
       )}
 
       {/* Workflow Guide Modal */}

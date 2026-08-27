@@ -254,6 +254,24 @@ Commercialization Plan and in reviewer responses.
 
 **Twelve pages held.** Last-page headroom improved from 25pt to 52pt.
 
+### Word-export defects found 2026-08-27 (reported by Logan: "figure 4 was absent entirely")
+
+Two block elements were spliced *inside* an unterminated `<p>`. Chromium
+auto-closes the paragraph, so the PDF rendered correctly and hid both defects
+for the whole life of the Word export. The `.docx` block parser matches
+`<p>...</p>` first, so it swallowed each element instead.
+
+| Defect | Effect on the .docx | Fix |
+|---|---|---|
+| Figure 4 (`figs.fig3()`) spliced after `<p class="sec first-sec">` | Image silently dropped. Five images in the package instead of six | Prepend the figure frame before the paragraph, as Figure 2 already does |
+| Table 7 spliced mid-paragraph on the text anchor "using I-Corps support and company capital." | Table flattened into a 2,124-character run-on paragraph reading "RiskRetired byEvidence Technical Could the data be assembled?NIA Phase I to IIB..." | Split the source paragraph in `body2.py` and re-anchor the splice onto `</p>` |
+
+**Guard installed.** `assert_no_nested_blocks()` runs in `build.py` before the
+HTML is written and fails the build on any `<table>`, `<div>`, `<h1>`, or `<h2>`
+inside a `<p>`. Verified to fire on the original markup and to pass the corrected
+markup. Word export re-verified: six images, nine tables, no flattened tables,
+twelve pages.
+
 ### Standing risk
 
 The Drive copy is now a full generation behind the master. It does not contain

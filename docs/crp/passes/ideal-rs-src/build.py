@@ -180,10 +180,13 @@ sig = splice(sig, 'families can still fall through before care is established.</
    tables2.T2, 'T2 competitive')
 
 inn = body1.INNOVATION
-inn = splice(inn, '<p class="sec first-sec">',
+# Prepend, never splice-after: a <table> placed inside <p> is dropped by the
+# .docx block parser, though Chromium silently auto-corrects it in the PDF.
+_a4 = '<p class="sec first-sec">'
+assert inn.count(_a4) == 1, 'FIG4 ANCHOR MISSING'
+inn = inn.replace(_a4,
    figwrap(figs.fig3(), 4,
-     'Existing channels move workers between employers. This pathway adds them, and the verified record follows the worker.', 3.0),
-   'fig4 workforce')
+     'Existing channels move workers between employers. This pathway adds them, and the verified record follows the worker.', 3.0) + _a4)
 inn = inn.replace('<p class="sec"><b>Key Innovation 2:',
    '<p class="clearfix"></p><p class="sec"><b>Key Innovation 2:')
 
@@ -204,7 +207,7 @@ app = splice(app, 'holds the next stage until its gate is met.</p>',
    'fig6 gantt')
 
 prog = body2.PROGRESS
-prog = splice(prog, "using I-Corps support and company capital.", tables2.T7_RISKS, 'T7 risks')
+prog = splice(prog, "using I-Corps support and company capital.</p>", tables2.T7_RISKS, 'T7 risks')
 
 sig, inn, app, prog = resolve(sig), resolve(inn), resolve(app), resolve(prog)
 uncited = [k for k in REFS if k not in CITED]
@@ -216,6 +219,21 @@ for i, k in enumerate(CITED):
     refs += f'<p>{i+1}. {REFS[k]}</p>'
 refs += '</div>'
 
+
+def assert_no_nested_blocks(doc):
+    """A <table>, <div> or heading inside a <p> is invalid HTML. Chromium
+    auto-closes the paragraph and the PDF looks correct, but the .docx block
+    parser matches <p>...</p> first and swallows the element, silently dropping
+    a figure or flattening a table into run-on prose. Fail the build instead."""
+    for m in re.finditer(r'<p[^>]*>(.*?)</p>', doc, re.S):
+        bad = re.search(r'<(table|div|h1|h2)\b', m.group(1))
+        if bad:
+            ctx = m.group(1)[max(0, bad.start()-90):bad.start()+40].replace('\n', ' ')
+            raise AssertionError(
+                "NESTED BLOCK: <%s> inside <p>. Prepend it before the paragraph, "
+                "or split the paragraph, rather than splicing mid-<p>.\n  ...%s..."
+                % (bad.group(1), ctx))
+
 doc = ('<!DOCTYPE html>\n<html><head><meta charset="utf-8">'
   '<title>Olera CRP Research Strategy</title>'
   f'<style>{CSS}</style></head><body>'
@@ -223,6 +241,7 @@ doc = ('<!DOCTYPE html>\n<html><head><meta charset="utf-8">'
   '<h1 class="sechead">Innovation</h1>' + inn +
   '<h1 class="sechead">Approach</h1>' + app +
   '<h1 class="sechead">CRP Progress Report</h1>' + prog + refs + '</body></html>')
+assert_no_nested_blocks(doc)
 open('rs_word.html' if WORD else 'rs.html','w').write(doc)
 txt = re.sub(r'<style>.*?</style>','',doc,flags=re.S)
 print('words in body:', len(re.sub(r'<[^>]+>',' ',txt).split()))

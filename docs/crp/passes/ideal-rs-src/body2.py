@@ -181,7 +181,9 @@ PROGRESS = r"""
 
 <p class="sec"><b>What prior funding established.</b> The technology was developed across NIA SBIR
 Phase I/II Fast-Track and Phase IIB awards (1R44AG074116), scored at 20 and 25, and the Phase IIB review
-assessed the platform's commercial potential as extremely high. Table 7 records what each activity established and which funding produced it; two of the five were funded outside the Phase II scope, using I-Corps support and company capital. <b>The Phase IIB evaluation now underway is the
+assessed the platform's commercial potential as extremely high. Table 7 records what each activity established and which funding produced it; two of the five were funded outside the Phase II scope, using I-Corps support and company capital.</p>
+
+<p><b>The Phase IIB evaluation now underway is the
 largest of them.</b> Two hundred family caregivers of people living with dementia, from diverse backgrounds and at least half reporting a documented social need, are evaluating the integrated CareNavigator before and after use on technology acceptance, usability, self-efficacy, and caregiving appraisals. It reports before this award begins. Among providers with a claimed account, platform activity runs about fifteen times higher on the day a family lead arrives. The provider tools launched nationwide in July 2026 with no paywall, so there is no pricing
 history to read and Aim 3 sets the first one.</p>
 

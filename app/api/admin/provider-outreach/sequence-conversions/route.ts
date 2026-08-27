@@ -71,13 +71,14 @@ export async function GET(request: NextRequest) {
       .order("created_at", { ascending: false });
 
     // Apply date filter on claim date (created_at)
-    if (date) {
-      // Filter for claims on this specific day
-      const dayStart = `${date}T00:00:00.000Z`;
-      const nextDay = new Date(date);
-      nextDay.setDate(nextDay.getDate() + 1);
-      const dayEnd = nextDay.toISOString().split("T")[0] + "T00:00:00.000Z";
-      bpQuery = bpQuery.gte("created_at", dayStart).lt("created_at", dayEnd);
+    // Use CT timezone to match Daily Activity behavior
+    // Query a wider range and filter in-memory to handle DST correctly
+    const filterDate = date || null;
+    if (filterDate) {
+      // Use CT timezone offsets (CST = -06:00, CDT = -05:00)
+      const dayStart = `${filterDate}T00:00:00-06:00`;
+      const dayEndPlusBuffer = `${filterDate}T23:59:59-05:00`;
+      bpQuery = bpQuery.gte("created_at", dayStart).lte("created_at", dayEndPlusBuffer);
     }
 
     const { data: claimedBps, error: bpError } = await bpQuery;
@@ -139,12 +140,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Step 6: Build response
-    const providers: SequenceConversion[] = claimedBps.map((bp) => {
+    // Step 6: Build response, filtering by exact CT date if specified
+    const providers: SequenceConversion[] = [];
+
+    for (const bp of claimedBps) {
+      // If date filter is set, verify this claim is actually on that date in CT
+      if (filterDate) {
+        const claimDateCT = new Date(bp.created_at).toLocaleDateString("en-CA", { timeZone: "America/Chicago" });
+        if (claimDateCT !== filterDate) continue;
+      }
+
       const providerInfo = providerMap.get(bp.source_provider_id);
       const assignedTo = assignedToMap.get(bp.source_provider_id);
 
-      return {
+      providers.push({
         provider_id: bp.source_provider_id,
         provider_name: providerInfo?.name || "Unknown Provider",
         city: providerInfo?.city || null,
@@ -152,8 +161,8 @@ export async function GET(request: NextRequest) {
         claimed_at: bp.created_at,
         assigned_to: assignedTo || null,
         assigned_to_display_name: assignedTo ? (adminNameMap.get(assignedTo) || assignedTo) : null,
-      };
-    });
+      });
+    }
 
     return NextResponse.json({
       providers,

@@ -7,6 +7,30 @@
 
 ## Current Focus
 
+### 2026-08-27 — Zardy's letter is signed-tomorrow, and the call sheet was rebuilt for the team
+
+The CRP support-letter run. Five letters due to the NIH by **September 1**; working deadline **Friday 28 Aug**, which leaves the weekend as slack.
+
+**Zardy Dweh (Miracle-Lightstar, Cleveland) went from "do not ask yet" to signing-tomorrow in a day.** TJ texted him, confirmed the cell (216-635-8464) and asked for the form. He could not find the original send and volunteered a different address, **dwehzardy@yahoo.com** — treat `zd@miracle-lightstar.co` as unreliable from here, since the "he opens everything" read came from activity on that address. He now has the documents and says he will sign Friday. The only blocker is that he has no printer at home. If Friday passes, the unblock is a **PDF he can sign on his phone**, not another reminder: the file sent is a `.docx`, which phones cannot sign. This machine has no docx→PDF converter, so it is a two-click export from Word or Pages.
+
+**His letter was broadened at TJ's call.** The middle paragraph had him write "We have recruited more than fifty caregivers. We do not have enough clients to place them with." That is a checkable headcount plus a flat admission of failure in a document carrying his own signature. Rewritten as capacity rather than shortfall: "We have built a trained caregiver workforce and we have capacity to serve more families than currently find us. Recruiting caregivers has not been our constraint. Finding families who need care is." Same economics for the reviewer — supply is fine, demand is the bottleneck — without the self-harm. Fixed at source in `~/Desktop/TJ-hq/Olera/CRP/05 - Letters of Support/make-provider-letters.py`; all five regenerated into `Provider Drafts 2026-08-27` so there is no stale file to grab by mistake.
+
+**Decisions made**
+
+- **The pay-for-letter framing came out of the whole document.** Earlier drafts threaded a compliance argument through the call sheet — "the ads happen either way", "a letter bought with free advertising is a receipt, not evidence", never let the campaign become the letter's price. TJ: *"you're over-indexing on the payments for the letter thing. It's just a communication"*, and he had already settled the no-payment point with Zardy by phone. Writing a denial into an email invents a doubt the reader did not have. The real rule survives, stated once: no pricing, plans or tiers with anyone on the list.
+- **Provider emails get plain short sentences, not hedging.** Zardy is an immigrant and things have to be put clearly; the careful qualifying sentence that protects the writer is the one that loses the reader. Saved as `feedback_provider_comms_plain_not_hedged`.
+- **Accuracy corrections stay, compliance anxiety does not.** TJ's text said the promotion would "run for three months", which describes the Google campaign — that has served zero impressions since 20 Aug, and Zardy was already told on 21 Aug it was live. Stating the real dates retires the wrong claim without narrating a correction.
+- **The artifact is now a team document, published in place.** Cut the pay-for-letter thread, every reference to earlier versions of itself, and the self-critical register about what got said wrong. Also cut, and recoverable from that session if wanted: the Doc 07 correction (Hilda's letter says Olera *funded* her campaign) and the closing note that willingness-to-pay sits with Lauren and Jennifer, not these five.
+
+**Next up**
+
+- Four calls, in order: **Hilda Boiwo** (phone only, ~9am Central — the two blanks are the point of her letter and she has to fill them live; open the Google support case before dialling), **Sandra Namwase** (cleanest signature, do not over-explain), **Jasmine** (needs surname; use Aug 14–17, 8,318 impressions, 134 clicks, $0.37 CPC — not the "14th through the 21st" range), **Sherry R Pace** (deliver her 22 Aug lead before asking for anything; never the listing address).
+- Confirm Zardy's signed copy Friday evening; send the PDF only if it slips.
+- Check whether the resend carried the Google status. If not, send it separately from the letter.
+- Zardy's Google rebuild on the July structure (338 impressions, 26 clicks, $1.92 CPC on $50) is still unstarted.
+
+**Artifact:** https://claude.ai/code/artifact/b9ef5d16-6953-4503-b757-192092cbbda6 — cleaned for team sharing. **No app code touched this session.**
+
 ### 2026-08-25 — Ad Boost is now a provider queue with continuous campaign history (`codex/ad-boost-provider-queue`)
 
 Reworked Admin → Ad Boost around one provider rather than one row per ad request. The queue groups campaigns by provider, exposes Google/Meta/Nextdoor at a glance, supports submitted-date sorting, expands multi-campaign providers, and uses a quieter table/card hierarchy that stays compact at tablet widths. The campaign detail page now includes an always-visible, newest-first provider history with platform, flight timing, status, landings, leads, archived state, and direct navigation between campaigns. Pre-test caught and fixed stale form state during sibling-campaign navigation by remounting the editor for the selected request and hiding the previous request while the next one loads. **Files:** `app/admin/ad-boost/page.tsx`, `components/admin/ad-boost-queue.ts`, `app/admin/ad-boost/[id]/page.tsx`, `app/api/admin/ad-boost/route.ts`. **Validation:** TypeScript, targeted ESLint, provider-grouping smoke assertions, schema/index review, and `git diff --check` pass; no migration or cron change. Local visual QA was blocked because this worktree lacks Supabase environment variables. **Commits:** `fc676e9ae`, `f4b424fed`, `a0111f883`. **Next:** use the Vercel preview to verify grouping/expansion, each sort option, the tablet breakpoint, and switching/saving sibling campaigns; do not merge without TJ.

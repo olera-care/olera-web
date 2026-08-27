@@ -19,10 +19,11 @@ interface SequenceConversionsModalProps {
 
 const SOURCE_CONFIG: Record<string, { label: string; color: string }> = {
   smartlead: { label: "SmartLead", color: "bg-blue-100 text-blue-700" },
+  email_resend: { label: "Resend/Nudge", color: "bg-indigo-100 text-indigo-700" },
   fax: { label: "Fax", color: "bg-amber-100 text-amber-700" },
   contact_form: { label: "Contact Form", color: "bg-purple-100 text-purple-700" },
   direct_mail: { label: "Direct Mail", color: "bg-green-100 text-green-700" },
-  linkedin: { label: "LinkedIn", color: "bg-sky-100 text-sky-700" },
+  unknown: { label: "Unknown", color: "bg-gray-100 text-gray-600" },
 };
 
 export function SequenceConversionsModal({ onClose }: SequenceConversionsModalProps) {

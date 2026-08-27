@@ -25,14 +25,32 @@ export interface SequenceConversion {
   conversion_source: string; // "smartlead", "fax", "contact_form", "direct_mail", "linkedin"
 }
 
-// Map re_engage_channel to display labels
+// Conversion source labels based on last touchpoint before claim
 const SOURCE_LABELS: Record<string, string> = {
   smartlead: "SmartLead",
-  fax: "Fax",
+  email_resend: "Resend/Nudge",
   contact_form: "Contact Form",
+  fax: "Fax",
   direct_mail: "Direct Mail",
-  linkedin: "LinkedIn",
+  unknown: "Unknown",
 };
+
+// Map touchpoint types to conversion sources
+function getSourceFromTouchpoint(touchpointType: string | null): string {
+  if (!touchpointType) return "unknown";
+
+  switch (touchpointType) {
+    case "smartlead_enrolled":
+    case "sequence_launched":
+      return "smartlead";
+    case "email_sent":
+      return "email_resend"; // Manual resend or nudge email
+    case "contact_form_sent":
+      return "contact_form";
+    default:
+      return "unknown";
+  }
+}
 
 export async function GET(request: NextRequest) {
   try {
@@ -52,10 +70,10 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
 
     // Step 1: Get all providers who went through the sequence (sequence_started_at IS NOT NULL)
-    // Include re_engage_channel and sequenced_with_source for conversion attribution
+    // Include fax_sent_at and mailer_sent_at for attribution
     const { data: sequencedProviders, error: seqError } = await db
       .from("provider_outreach_tracking")
-      .select("provider_id, assigned_to, re_engage_channel, sequenced_with_source")
+      .select("provider_id, assigned_to, fax_sent_at, mailer_sent_at, sequence_started_at")
       .not("sequence_started_at", "is", null);
 
     if (seqError) {
@@ -71,10 +89,11 @@ export async function GET(request: NextRequest) {
     const assignedToMap = new Map(
       sequencedProviders.map((p) => [p.provider_id, p.assigned_to])
     );
-    const sourceMap = new Map(
+    const trackingDataMap = new Map(
       sequencedProviders.map((p) => [p.provider_id, {
-        re_engage_channel: p.re_engage_channel,
-        sequenced_with_source: p.sequenced_with_source,
+        fax_sent_at: p.fax_sent_at as string | null,
+        mailer_sent_at: p.mailer_sent_at as string | null,
+        sequence_started_at: p.sequence_started_at as string | null,
       }])
     );
 
@@ -168,14 +187,32 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Step 6: Build response, filtering by exact CT date if specified
+    // Step 6: Get last touchpoint before claim for each provider (for attribution)
+    // Look for: smartlead_enrolled, email_sent, contact_form_sent
+    const { data: touchpoints } = await db
+      .from("provider_outreach_touchpoints")
+      .select("provider_id, touchpoint_type, created_at")
+      .in("provider_id", providerIds)
+      .in("touchpoint_type", ["smartlead_enrolled", "sequence_launched", "email_sent", "contact_form_sent"])
+      .order("created_at", { ascending: false });
+
+    // Build map of provider_id -> most recent touchpoint
+    const lastTouchpointMap = new Map<string, { type: string; date: string }>();
+    for (const tp of touchpoints || []) {
+      if (!lastTouchpointMap.has(tp.provider_id)) {
+        lastTouchpointMap.set(tp.provider_id, { type: tp.touchpoint_type, date: tp.created_at });
+      }
+    }
+
+    // Step 7: Build response, filtering by exact CT date if specified
     const providers: SequenceConversion[] = [];
     const bySource: Record<string, number> = {
       smartlead: 0,
+      email_resend: 0,
       fax: 0,
       contact_form: 0,
       direct_mail: 0,
-      linkedin: 0,
+      unknown: 0,
     };
 
     for (const bp of claimedBps) {
@@ -187,12 +224,47 @@ export async function GET(request: NextRequest) {
 
       const providerInfo = providerMap.get(bp.source_provider_id);
       const assignedTo = assignedToMap.get(bp.source_provider_id);
-      const sourceInfo = sourceMap.get(bp.source_provider_id);
+      const trackingData = trackingDataMap.get(bp.source_provider_id);
+      const lastTouchpoint = lastTouchpointMap.get(bp.source_provider_id);
+      const claimDate = new Date(bp.created_at);
 
-      // Determine conversion source:
-      // - If re_engage_channel is set, use that (fax, contact_form, direct_mail, linkedin)
-      // - Otherwise, they converted from the email sequence (smartlead)
-      const conversionSource = sourceInfo?.re_engage_channel || "smartlead";
+      // Determine conversion source by finding the most recent action before claim
+      // Check: fax_sent_at, mailer_sent_at, and last touchpoint
+      let conversionSource = "smartlead"; // Default: assume SmartLead sequence
+      let mostRecentDate: Date | null = null;
+
+      // Check fax
+      if (trackingData?.fax_sent_at) {
+        const faxDate = new Date(trackingData.fax_sent_at);
+        if (faxDate < claimDate && (!mostRecentDate || faxDate > mostRecentDate)) {
+          mostRecentDate = faxDate;
+          conversionSource = "fax";
+        }
+      }
+
+      // Check direct mail
+      if (trackingData?.mailer_sent_at) {
+        const mailerDate = new Date(trackingData.mailer_sent_at);
+        if (mailerDate < claimDate && (!mostRecentDate || mailerDate > mostRecentDate)) {
+          mostRecentDate = mailerDate;
+          conversionSource = "direct_mail";
+        }
+      }
+
+      // Check last touchpoint
+      if (lastTouchpoint) {
+        const tpDate = new Date(lastTouchpoint.date);
+        if (tpDate < claimDate && (!mostRecentDate || tpDate > mostRecentDate)) {
+          mostRecentDate = tpDate;
+          conversionSource = getSourceFromTouchpoint(lastTouchpoint.type);
+        }
+      }
+
+      // If no actions found but they went through sequence, attribute to SmartLead
+      if (!mostRecentDate && trackingData?.sequence_started_at) {
+        conversionSource = "smartlead";
+      }
+
       bySource[conversionSource] = (bySource[conversionSource] || 0) + 1;
 
       providers.push({

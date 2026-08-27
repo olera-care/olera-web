@@ -1232,3 +1232,45 @@ it was wrong. Anything worth reviving has its future home named.
     "accuracy is reported separately for rules that changed inside the measurement
     window"; "every count is reconciled against the outside record of the same event";
     the duplicate contamination-mitigation sentence in Task 3.2.
+
+85. **Aim 2 Stream A (n=25 family usability study).** Deleted as duplication. The
+    Phase IIB Year 3 evaluation (n=200 diverse AD/ADRD caregivers, pre/post on
+    technology acceptance, usability, self-efficacy, and caregiving appraisals,
+    reporting 31 May 2027) already covers family acceptance of navigation and
+    planning, and reports before this award begins. What Aim 1 adds instead is
+    Task 1.5, which tests the *execution* experience: whether a family understands
+    and trusts an agent acting on their behalf and catches an error when one appears.
+    Future home: nothing. This work is done and should not be re-funded.
+
+86. **Task 3.4 as previously written** (the standalone "second worker pool" /
+    market-intelligence task). Deleted; the remaining task was renumbered 3.5 to 3.4.
+    Future home: the second worker pool is measured inside Aim 2 Task 2.2 and
+    reported in Table 5; market intelligence is a Commercialization Plan revenue
+    pathway, not an aim.
+
+87. **The revenue-diversification sentence in Aim 3 Potential Problems** ("And if
+    staffing revenue alone proves insufficient, the alternative commercialization
+    pathway is the institutional customer class ... together with an employer-paid
+    caregiver benefit on the same product, contracted navigation on the GUIDE
+    precedent, and aggregate market intelligence from the outcomes record."). Cut for
+    space and scope. It also carried a stale cross-reference to a Task 3.5 that no
+    longer exists. Replaced with a one-clause signpost. **Future home: the
+    Commercialization Plan**, where all four pathways belong and can be costed.
+
+88. **Duplicated statements of the Phase IIB reliance**, each of which appeared in
+    three or four places at once. Kept: Figure 5's chain and closing line, the Aim 1
+    Potential Problems contingency, and the Progress Report description of the n=200
+    study. Cut: the second copy in the Approach opener, the "this application relies
+    on it rather than repeating it" sentence in the Progress Report, and the longer
+    restatement inside the Significance adoption-hurdles paragraph.
+
+89. **Duplicated team and consultant descriptors.** Dr. Fan's 25 percent effort,
+    Dr. Ory's Phase IIB supervision role, and ADC's "strategic accounting and CPA
+    firm" descriptor each appeared twice. Each now appears once, in Technical
+    Assistance and Project Oversight (Fan, Ory) or Task 3.3 (ADC).
+
+90. **Prose that Table 2 and Figure 5 already carry.** The staffing-channel sentence
+    in the competitive paragraph (Table 2's note states it), the "eight markets is
+    eight units of assignment" signpost in Aim 3 (folded into the randomization
+    inference sentence), and the compounding clause in Key Innovation 2 (Key
+    Innovation 3 makes the same argument at length).

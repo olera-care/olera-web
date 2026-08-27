@@ -7,7 +7,7 @@ for i, p in enumerate(d):
     lab = "Bibliography (separate attachment)" if i == d.page_count-1 else f"Research Strategy, page {i+1} of {d.page_count-1}"
     pages.append(f'<figure class="pg"><img src="data:image/png;base64,{b64}" alt="{lab}" loading="lazy"><figcaption>{lab}</figcaption></figure>')
 
-HEAD = """<title>The Ten-Market Research Strategy</title>
+HEAD = """<title>The Three-Stage Research Strategy</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400..700&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
@@ -74,9 +74,9 @@ ul{margin:0 0 1em;padding-left:1.15em}li{margin-bottom:.4em}li::marker{color:var
 
 BODY_TOP = """
 <header class="col">
-  <div class="eyebrow">Ideal-version exercise &nbsp;·&nbsp; Submission-format draft</div>
-  <h1>The Ten-Market Research Strategy</h1>
-  <p class="sub">The strongest Research Strategy Olera could realistically submit on September 4, typeset in house style and rendered as it would reach a reviewer.</p>
+  <div class="eyebrow">Re-based on the 2026-08-26 TJ session &nbsp;·&nbsp; Submission-format draft</div>
+  <h1>The Three-Stage Research Strategy</h1>
+  <p class="sub">Build, then validate free, then commercialize paid. The Approach rebuilt on the architecture you and TJ settled, typeset in house style and rendered as it would reach a reviewer.</p>
   <div class="meta">
     NIA SBIR Commercialization Readiness Pilot &nbsp;·&nbsp; $4,000,000 &nbsp;·&nbsp; June 1, 2027 to May 31, 2030<br>
     Letter portrait &nbsp;·&nbsp; Arial 11pt &nbsp;·&nbsp; 0.5in margins &nbsp;·&nbsp; justified &nbsp;·&nbsp; superscript citations<br>
@@ -86,19 +86,19 @@ BODY_TOP = """
 
 <div class="col">
 <div class="stats">
-  <div class="stat"><b>11</b><span>pages of Research Strategy, against a 12-page ceiling</span></div>
+  <div class="stat"><b>12</b><span>pages of Research Strategy, against a 12-page ceiling</span></div>
   <div class="stat"><b>5</b><span>figures, sized by load</span></div>
-  <div class="stat"><b>7</b><span>tables</span></div>
-  <div class="stat"><b>29</b><span>numbered references</span></div>
+  <div class="stat"><b>8</b><span>tables</span></div>
+  <div class="stat"><b>8</b><span>markets: 2 free, then 6 paid</span></div>
 </div>
 
 <h3>What this is</h3>
-<p class="small">A real submission draft, not a mock-up. Structure and typography are measured from the Phase IIB application: bold run-in headings, per-aim task numbering, italic-underlined metrics heads, figures at 2.6 to 6.7 inches rather than uniformly full width, and the bibliography as a separate attachment outside the page limit. Every claim is either verified in our records today or drawn from the small set of assumptions listed at the end.</p>
+<p class="small">A real submission draft. Structure and typography are measured from the Phase IIB application: bold run-in headings, per-aim task numbering, italic-underlined metrics heads, figures at 2.0 to 7.0 inches rather than uniformly full width, and the bibliography as a separate attachment outside the page limit. <b>Aim 1 is deliberately a gated skeleton</b>, four task titles and a gate, so TJ has a frame to fill without colliding with this pass.</p>
 
 <div class="card warn">
-<p class="small" style="margin-bottom:0"><b>Read the assumption register before you judge it.</b> This document assumes a handful of things that do not exist yet, chiefly provider letters with a price and a quantity. They are listed in full after the pages. A typeset document is more persuasive than the same argument in a plan, and some of what you feel reading this will be the typesetting.</p>
+<p class="small" style="margin-bottom:0"><b>Read the assumption register before you judge it.</b> This document assumes a handful of things that do not exist yet, chiefly provider letters with a price and a quantity. They are listed in full after the pages.</p>
 </div>
-</div>
+
 
 <div class="docwrap">
 """
@@ -107,23 +107,22 @@ BODY_BOT = """
 </div>
 
 <div class="part col">
-<h2>What changed while building it</h2>
+<h2>What changed, and why</h2>
 
-<h3>The market count fell out at ten</h3>
-<p class="small">The derivation is Table 3 on page 6. Two corrections drove it. The old requirement of 300 <i>paying</i> accounts confused offers with conversions; a price experiment randomizes accounts offered a price, so at 35 percent conversion the requirement was roughly threefold too high. And the old eight-cell heterogeneity grid gave one market per cell, which cannot separate a market effect from noise. Two axes with two markets per cell is a stronger design at a lower count. Ten is two anchors plus eight replication markets, staged two, four, four, with six sitting in two payer clusters.</p>
+<h3>The Approach is rebuilt, not patched</h3>
+<p class="small">Aim 1 builds in Year 1. Aim 2 validates both products in two markets at no charge. Aim 3 charges for staffing in six new markets. TJ's objection was the one that mattered: an aim is not a company activity, and the old Aim 2 read as a process inventory. Each aim now opens with a question that can come back no. The old parallel structure also made Aim 3 depend on two aims succeeding at once; the sequence contains failure instead of propagating it.</p>
 
-<h3>Market entry is under eight percent of the budget</h3>
-<p class="small">At about $30,000 per market, ten markets cost roughly $300,000. That reframes the case for $4 million: the money is the build, the studies, and the team, not the map. The Approach says so explicitly, because the alternative is a reviewer doing that arithmetic and concluding we padded the market count to justify the ask.</p>
+<h3>Eight markets, derived from the new sequence</h3>
+<p class="small">Two in Aim 2, differing on campus-rich versus campus-poor, because whether new entrants can be recruited without a health-professions campus nearby is the riskiest assumption in the application and Aim 2 exists to find problems while they are free. Six in Aim 3, as three price arms crossed with two market types, in two waves. Price is assigned at matched-market level, not account level, because neighboring providers compare quotes. That is the old Google Doc's method and it is better than the one I used last time. Market entry is about six percent of the budget.</p>
 
-<h3>Three things went in that were not in the plan</h3>
-<ul class="small">
-<li><b>A stated stop rule</b> at the end of Aim 3. If, at month 24, fewer than 40 percent of placed workers remain in direct care at 90 days and paid conversion is below 20 percent at every price, we report the model disconfirmed, halt expansion, and publish it.</li>
-<li><b>Retention named as the thesis-killer</b> in Aim 2, with two pre-specified responses rather than reassurance.</li>
-<li><b>A team and execution paragraph</b> in the Progress Report. Investigator and Environment are our two weakest criteria and the Research Strategy said nothing about either.</li>
-</ul>
+<h3>What I harvested rather than rewrote</h3>
+<p class="small">The Google Doc's Approach was methodologically stronger than mine, and the difference was not padding. Carried over intact and rehoused: the blinded expert panel with Cohen's kappa and held-out audit households; the family study's UXEIE framework, System Usability Scale, and 12-item trust scale; the implementation measures and the two-consecutive-batches saturation rule; Van Westendorp seeding; generalized estimating equations with market as the cluster; discrete-time survival with competing events and restricted mean survival time feeding lifetime value; and time-driven activity-based costing.</p>
 
-<h3>Where the award ends, stated on the page</h3>
-<p class="small">The Approach names the six things a risk-bearing payer requires, delivers five, and refuses the sixth in the document's own words: we will not claim this award proves reduced hospitalization, because the design does not establish it. The refusal is what makes the other five credible.</p>
+<h3>The payer story left the aims entirely</h3>
+<p class="small">No endpoints, no tasks, no milestones. It appears twice: one clause in Significance saying none of it is tested here, and the contingency paragraph closing Aim 3, which names the four adjacent lines including Managed Ads as an emerging product. Everything else is Commercialization Plan.</p>
+
+<h3>Five surgical edits to Significance</h3>
+<p class="small">TJ's aid-versus-services gap is closed, so execution now covers securing a service and not only filing a benefit. Staffing competitors get their own compact matrix, Table 3, since the navigation matrix could not carry both. The two-product sentence appears verbatim. The hurdles now point at the new aims. And the emerging-payer paragraph says plainly that nothing there is tested.</p>
 </div>
 
 <div class="part">
@@ -150,13 +149,13 @@ BODY_BOT = """
 </div>
 
 <div class="part col">
-<h2>What I would fix next</h2>
+<h2>Where the remaining risk sits</h2>
 <div class="card good">
-<p class="small" style="margin-bottom:.7em"><b>1. The harshest critic's objection still has no rebuttal on the page.</b> A reviewer will say that ten counties and under $1 million of run-rate revenue is not "sustained, powerful influence on the relevant market offering." The counter is that the markets are an instrument and the deliverable is a transferable model plus the payer package. The Approach's closing paragraph gestures at it. It should say it outright.</p>
-<p class="small" style="margin-bottom:.7em"><b>2. Innovation runs light at about 1.3 pages.</b> There is roughly a page of unspent budget. The best use is a fourth paragraph on why the three innovations compound rather than merely coexist, which is currently implied and never argued.</p>
-<p class="small" style="margin-bottom:0"><b>3. Reference 2 is deliberately marked unverified</b> in the bibliography so the draft cannot be mistaken for finished. Three of TJ's opening statistics need sourcing into <code>references.yaml</code> before any of this is real.</p>
+<p class="small" style="margin-bottom:.7em"><b>1. The document is at 12 of 12 pages.</b> There is no headroom, and TJ still has to expand Innovation and fill in Aim 1, which is currently 380 words. Roughly 400 words need to come out to make room. The places I would take them from, in order: the market-architecture prose, which Table 4 already carries; Aim 3 Task 3.3, which is dense; and the Progress Report's team paragraph.</p>
+<p class="small" style="margin-bottom:.7em"><b>2. Front-loaded build risk.</b> A commercialization reviewer may ask why a CRP funds a year of engineering. Aim 1 is framed as completing commercially required capability with a hard month-12 gate, which is the best available answer, but the question will still be asked.</p>
+<p class="small" style="margin-bottom:0"><b>3. The proportionality argument is still not made outright.</b> Eight markets and under $1M of run-rate revenue against $4M invites the scope question. The answer is that the markets are an instrument and the deliverable is a transferable model, and it belongs in the Approach's closing paragraph rather than being left for the reader to infer.</p>
 </div>
-<p class="small">The Specific Aims page and the Commercialization Plan are unbuilt. The Aims page is a compression of this document and should be written after it, not before.</p>
+<p class="small">Aim 1 belongs to TJ, along with Innovation. The Specific Aims page is a compression of this document and should be written after it. The Commercialization Plan is where the four emerging revenue lines get modeled.</p>
 </div>
 """
 

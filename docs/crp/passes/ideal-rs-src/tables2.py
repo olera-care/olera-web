@@ -22,7 +22,7 @@ T2 = """
 <tr><td class="rowlab">Staffing agencies, job boards, gig platforms<span class="eg">local and franchise agencies, Indeed, shift marketplaces</span></td><td><span class="no">&#10007;</span></td><td><span class="no">&#10007;</span></td><td><span class="yes">&#10003;</span></td><td><span class="no">&#10007;</span></td><td><span class="yes">&#10003;</span></td></tr>
 </tbody></table>
 <p class="caption"><b>Table 2.</b> Coverage of the path to care, by category of alternative.</p>
-<p class="tnote">The staffing channels in the last row supply workers already in direct care. None of them enlarges the workforce.</p>
+<p class="tnote">Coverage is by design across the full pathway. Olera clears the first three stages at production scale today and the last at pilot scale; Aim 1 builds the execution layer that closes it. The staffing channels in the last row supply workers already in direct care and none of them enlarges the workforce.</p>
 """
 
 # --------------------------------------------------------------- TABLE 3
@@ -53,30 +53,33 @@ def metrics(num, aim, rows, note=None):
 
 
 T4 = metrics(4, 1, [
- ("Agreement with the blinded expert panel", "&#8805; 85%", "120 audited cases before the gate, Task 1.4"),
- ("Material errors against the expert gold standard", "&#8804; 10%", "Same audit"),
-  ("Inter-rater reliability among panelists", "&#954; &#8805; 0.70", "Established before adjudication"),
- ("Execution loops complete end to end, aid and services", "Both paths", "Internal release testing"),
- 
-], note="Gate: the first two criteria must be met at month 12 before Aim 2 activates.")
+  ("Field-level agreement with the blinded expert panel", "&#8805; 90%", "120 audited packages, Task 1.4"),
+ ("Material errors against the expert standard", "&#8804; 10%", "Same audit"),
+ ("Inter-rater reliability among panelists", "&#954; &#8805; 0.70", "Established before adjudication"),
+ ("Execution loops complete end to end, aid and services", "Both paths", "Task 1.1 release testing"),
+ ("Curated records re-verified on schedule", "&#8805; 95%", "Task 1.2 re-verification log"),
+ ("Workers completing the pathway to a verified record", "&#8805; 90%", "Task 1.3 workforce system"),
+ ("Usability with families and workers", "SUS &#8805; 72", "Task 1.5, IRB"),
+ ("Unnoticed incorrect submissions in testing", "0", "Task 1.5 safety measure"),
+], note="Gate at month 12, both parts: the first two criteria are met, and the Task 1.5 backlog clears.")
 
 T5 = metrics(5, 2, [
  ("Households reaching established aid or care", "Estimated, &#177;5 pts", "n = 400, confirmed start date, Task 2.3"),
   ("Task completion, with drop-off per step, two cycles running", "&#8805; 90% / &#8804; 10%", "Task 2.3 funnel instrumentation"),
- ("Usability, System Usability Scale", "&#8805; 72", "Task 2.4, IRB, n = 25 families"),
- ("Trust in automation", "&#8805; 5 of 7", "Task 2.4, IRB"),
- ("Placed workers with no prior direct-care employment", "Reported", "Ascertained at intake, Task 2.2"),
+  ("Placed workers with no prior direct-care employment", "Reported", "Ascertained at intake, Task 2.2"),
  ("Placed workers still in direct care at 90 days", "&#8805; 50%", "Employment and verified-record data"),
  ("Provider acceptability, appropriateness, feasibility", "&#8805; 4.0 of 5", "Task 2.4, IRB"),
+ ("Providers stating the product is worth paying for", "Reported with range", "Task 2.4 willingness to pay"),
+ ("Workers intending to remain in direct care", "Reported", "Task 2.4, IRB"),
  ("Cost to acquire and cost to serve", "Measured, both sides", "Task 2.5, activity-based costing"),
 ], note="Gate at month 21, before wave one opens: the execution loops complete for both aid and services, and worker retention meets its bar.")
 
 T6 = metrics(6, 3, [
- ("Paid conversion within 60 days, by price arm", "&#177;10 pts per arm", "Task 3.2, ~320 offers, randomization inference"),
+  ("Paid conversion within 60 days, by price arm", "&#177;10 pts per arm", "Task 3.2, 320 offers, randomization inference"),
  ("Lifetime value against acquisition cost, 12 months", "&#8805; 3 : 1", "Task 3.3, restricted mean survival time"),
  ("Payback period on acquisition cost", "&lt; 12 months", "Task 3.3"),
  ("Per-market profitability after the cost of serving families", "Positive", "Task 3.3"),
   ("Retention at 3, 6, 9, and 12 months", "Reported by wave", "Discrete-time survival, competing events"),
  ("Independent validation delivered", "Delivered", "Task 3.3, ADC"),
- ("Institutional-buyer evidence package assembled", "Delivered", "Task 3.5"),
+  ("Institutional-buyer evidence package assembled", "Delivered", "Task 3.4"),
 ])

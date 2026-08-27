@@ -119,6 +119,7 @@ table.matrix .yes { color: #14453f; font-weight: bold; }
 table.matrix .no { color: #9b1c1c; font-weight: bold; }
 table.matrix .own { background: #14453f; color: #fff; }
 table.matrix .own .yes, table.matrix .own .no { color: #fff; }
+table.matrix td.rowlab.own, table.matrix td.rowlab.own b { color: #fff; }
 table.matrix thead th.own { border-bottom: 1pt solid #14453f; border-radius: 5pt 5pt 0 0; padding-top: 3pt; }
 table.matrix tbody tr:last-child td.own { border-radius: 0 0 5pt 5pt; }
 div.refs { break-before: page; page-break-before: always; }
@@ -189,7 +190,7 @@ inn = inn.replace('<p class="sec"><b>Key Innovation 2:',
 app = body2.APPROACH_OPEN
 app = splice(app, 'answers that question in three stages</b> (Figure 5).</p>',
    figblock(figs2.fig4(), 5,
-     'The three aims as one sequence, each stage held by a gate.'), 'fig5 stages')
+     'What each stage establishes, and what the next one therefore does not repeat.'), 'fig5 chain')
 
 app += body2.AIM1 + tables2.T4
 app += body2.AIM2 + tables2.T5
@@ -197,13 +198,13 @@ app += body2.AIM3 + tables2.T6
 app += body2.APPROACH_CLOSE
 app = splice(app, 'any channel that misses its cost ceiling is closed rather than carried.</p>',
    tables2.T3_CHANNELS, 'T3 channels')
-app = splice(app, 'evidence is what we do not have.</p>',
+app = splice(app, 'holds the next stage until its gate is met.</p>',
    figblock(figs2.fig5(), 6,
      'Three-year timetable, showing the sequencing among the aims, staged market entry, and the four decision points.'),
    'fig6 gantt')
 
 prog = body2.PROGRESS
-prog = splice(prog, "using I-Corps support and the company's own capital.", tables2.T7_RISKS, 'T7 risks')
+prog = splice(prog, "using I-Corps support and company capital.", tables2.T7_RISKS, 'T7 risks')
 
 sig, inn, app, prog = resolve(sig), resolve(inn), resolve(app), resolve(prog)
 uncited = [k for k in REFS if k not in CITED]

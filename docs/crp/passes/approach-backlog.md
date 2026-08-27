@@ -154,6 +154,71 @@ Net effect: 12 pages held, last page headroom up from 20pt to 98pt.
 
 ---
 
+## 3b. Architecture revision executed 2026-08-27 (34 changes)
+
+Logan's HSR mapping, adopted in full: **Aim 1** families + workers, pre-market;
+**Aim 2** families + workers + providers, post-use; **Aim 3** no HSR. Executed
+together with the accumulated decisions since the last major revision.
+
+### Structural
+
+| Change | Where | Why |
+|---|---|---|
+| **Figure 5 rebuilt as the evidence chain** and merged with the proposed non-duplication figure: four bands, Phase IIB / Aim 1 / Aim 2 / Aim 3, a dashed RELIED ON arrow from Phase IIB, and two gate arrows | Approach opener | The chain figure and the stage figure would have been near-duplicates. Merging made the non-duplication argument the figure's job and saved roughly 100pt |
+| **Aim 2 Stream A (n=25 family usability) deleted** | Aim 2 | Duplicates the Phase IIB Year 3 n=200 evaluation, which reports 31 May 2027, before this award begins. See removal-log entry 85 |
+| **New Task 1.5**, pre-market study with 20–25 families and 15–20 workers: task-based think-aloud, SUS + 12-item TIAS, safety as the unnoticed-incorrect-submission rate | Aim 1 | Families and workers test the *execution* experience, which Phase IIB does not touch. This is what Aim 1's HSR is for |
+| **Task 1.4 narrowed to execution outputs**, bar anchored at 90 percent field-level agreement, "the standard Phase IIB set for identification" | Aim 1 | Phase IIB Aim 1 Task 1.2 already measures eligibility-matching accuracy >90%. Task 1.4 measures the harder downstream task, assembling a filing. Resolves D-7 |
+| **Two-part gate to Aim 2**: Table 4 criteria met, and the people who have to use the product able to | Aim 1 | The gate now has a human-factors half |
+| **Task 2.4 rebuilt as one three-group post-use value study**: ~40 families, 30 provider accounts, 40 placed workers, purposive across outcome strata, AIM/IAM/FIM + willingness-to-pay, GEE, CFIR, COREQ | Aim 2 | One study, three populations, one IRB protocol, instead of two streams |
+| **Tasks 3.1 and 3.2 reversed**: 3.1 sets the price range and pre-registers; 3.2 opens eight markets under assigned prices | Aim 3 | Pre-registration has to precede the first market opening, not follow it |
+| **Task 3.4 (old) deleted; old 3.5 renumbered 3.4** | Aim 3 | See removal-log entry 86 |
+| **End-deliverable statement moved to close Aim 3** as "What exists at the end of three years" | Aim 3 | Investor readiness belongs where the evidence it rests on has just been described |
+| **Phase IIB contingency stated** in Aim 1 Potential Problems | Aim 1 | If the n=200 study misses its milestones, the corresponding validation is added to Task 1.5 and no market activates |
+
+### Evidence and framing
+
+| Change | Where | Why |
+|---|---|---|
+| **The Phase IIB n=200 study written into the Progress Report** with its design, population, and reporting date | Progress Report | It appeared nowhere in the delivered draft. It is the largest piece of prior-funding evidence we have |
+| **Marcia Ory corrected**: she is the named HSR supervision consultant *on Phase IIB*, not a prospective advisor | Progress Report, Technical assistance | She is already committed. Understating that lost an Environment point. Closes half of T-1 |
+| **David Qu added** as an independent reviewer who informed the aims, with `[TITLE, AFFILIATION]` and no commitment stated | Progress Report | Logan's instruction: include him as someone who informed the aims, not as committed to a number. Closes the other half of T-1 |
+| **Revenue model headline quoted**: ~50 paying accounts and $165,000 ARR per mature market against ~$30,000 to enter, LTV above 4x CAC, with the Commercialization Plan signposted for assumptions | Significance | Closes T-3. Model at `docs/crp/models/staffing_revenue_model.py` |
+| **Table 2 pilot-scale note added** distinguishing production-scale from pilot-scale coverage | Significance | Closes T-9 |
+| **Aim 3 market-level precision stated**: resolves a difference of roughly 20 percentage points or more; smaller differences reported as ordered but not separated | Aim 3 | Closes D-4. A reviewer who computes this themselves and finds it unstated discounts the design |
+| **Table 4 expanded to 8 rows** covering Tasks 1.1–1.3 and 1.5 | Aim 1 | Closes D-6 |
+| **Three lost citations restored** (`censusProj2023`, `aarpCareGap2013`, `wapoAPFM2024`) | Significance | Silently dropped in the earlier compression pass; caught by the new key-based citation resolver's uncited-reference check |
+| **Technical mechanisms pulled up** and in-development sentences added to Key Innovation 2 | Innovation | Reviewer read the Innovation section as claiming built capability |
+| **Team placeholders inserted**: `[TEAM: who leads market operations]`, `[TEAM: staff per market at steady state]` | Progress Report | T-2 remains open, but the gap is now visible rather than invisible |
+
+### Defects found and fixed during the render pass
+
+| Defect | Fix |
+|---|---|
+| Table 2's Olera row label was teal text on a teal background, invisible in both the PDF and the Word export | Added `table.matrix td.rowlab.own { color: #fff }`; `td.rowlab` was out-specifying `.own` |
+| `Task 3.5` cross-reference in Aim 3 Potential Problems, pointing at a task that no longer exists | Reference removed with the sentence (removal-log 87) |
+| `"where the the Aim 2 value study"` | Corrected |
+
+**Page budget: 12 pages held.** Body fell from 9,413 to 9,227 rendered words across
+roughly twenty compressions, none of which removed a method, a metric, a citation, or
+a contingency. The largest single recovery was removing prose that a figure or table
+already carried. Word export verified at the same page count via LibreOffice.
+
+### Now closed
+
+D-1 (HSR architecture, resolved by Logan's mapping), D-2 (Aim 3 HSR, eliminated),
+D-4, D-6, D-7, D-10 (Task 3.5 scope, resolved by renumbering and deletion),
+T-1, T-3, T-9.
+
+### Still open
+
+D-3 (scope reduction), D-5 (Aim 2 establishment threshold, currently defended as
+precision-only), D-8 (two waves in Aim 3), D-9 (four price arms), T-2, T-4, T-5,
+T-6, T-7, T-8. Seven placeholders remain in the document: two `[TJ: ...]`,
+`[SURNAME TBD]`, `[TITLE, AFFILIATION]`, two `[TEAM: ...]`, and
+`[CONFIRM EDITION AND YEAR]` in reference 1.
+
+---
+
 ## 4. Deferred to the visualization exercise
 
 Do not touch these before the relevant visual exists.

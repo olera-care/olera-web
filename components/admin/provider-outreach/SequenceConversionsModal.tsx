@@ -22,9 +22,8 @@ export function SequenceConversionsModal({ onClose }: SequenceConversionsModalPr
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Date filter state
-  const [dateFrom, setDateFrom] = useState<string>("");
-  const [dateTo, setDateTo] = useState<string>("");
+  // Date filter state (empty = all time)
+  const [selectedDate, setSelectedDate] = useState<string>("");
 
   // Fetch conversions
   const fetchConversions = useCallback(async () => {
@@ -33,8 +32,7 @@ export function SequenceConversionsModal({ onClose }: SequenceConversionsModalPr
 
     try {
       const params = new URLSearchParams();
-      if (dateFrom) params.set("date_from", dateFrom);
-      if (dateTo) params.set("date_to", dateTo);
+      if (selectedDate) params.set("date", selectedDate);
 
       const url = `/api/admin/provider-outreach/sequence-conversions${params.toString() ? `?${params}` : ""}`;
       const res = await fetch(url);
@@ -52,7 +50,7 @@ export function SequenceConversionsModal({ onClose }: SequenceConversionsModalPr
     } finally {
       setLoading(false);
     }
-  }, [dateFrom, dateTo]);
+  }, [selectedDate]);
 
   // Fetch on mount and when date filters change
   useEffect(() => {
@@ -79,12 +77,11 @@ export function SequenceConversionsModal({ onClose }: SequenceConversionsModalPr
     });
   };
 
-  const clearFilters = () => {
-    setDateFrom("");
-    setDateTo("");
+  const clearFilter = () => {
+    setSelectedDate("");
   };
 
-  const hasFilters = dateFrom || dateTo;
+  const hasFilter = Boolean(selectedDate);
 
   return (
     <div
@@ -118,30 +115,21 @@ export function SequenceConversionsModal({ onClose }: SequenceConversionsModalPr
         <div className="px-5 py-3 border-b border-gray-100 shrink-0 bg-gray-50">
           <div className="flex items-center gap-4 flex-wrap">
             <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">Date range:</label>
+              <label className="text-sm text-gray-600">Claimed on:</label>
               <input
                 type="date"
-                value={dateFrom}
-                onChange={(e) => setDateFrom(e.target.value)}
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
                 className="px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="From"
-              />
-              <span className="text-gray-400">to</span>
-              <input
-                type="date"
-                value={dateTo}
-                onChange={(e) => setDateTo(e.target.value)}
-                className="px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-                placeholder="To"
               />
             </div>
-            {hasFilters && (
+            {hasFilter && (
               <button
                 type="button"
-                onClick={clearFilters}
+                onClick={clearFilter}
                 className="text-sm text-gray-500 hover:text-gray-700 underline"
               >
-                Clear
+                Show all
               </button>
             )}
             <div className="ml-auto text-sm text-gray-600 font-medium tabular-nums">
@@ -183,7 +171,7 @@ export function SequenceConversionsModal({ onClose }: SequenceConversionsModalPr
                 />
               </svg>
               <p className="mt-3 text-sm text-gray-500">
-                {hasFilters ? "No conversions in this date range" : "No sequence conversions yet"}
+                {hasFilter ? "No conversions on this date" : "No sequence conversions yet"}
               </p>
             </div>
           ) : (

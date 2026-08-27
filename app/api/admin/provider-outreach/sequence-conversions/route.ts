@@ -7,8 +7,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  * Returns providers who claimed after going through the email sequence.
  *
  * Query params:
- *   - date_from (optional): Filter by claim date (ISO string, inclusive)
- *   - date_to (optional): Filter by claim date (ISO string, inclusive)
+ *   - date (optional): Filter by specific claim date (YYYY-MM-DD). If omitted, returns all conversions.
  *
  * Returns:
  *   - providers: Array of SequenceConversion
@@ -38,8 +37,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { searchParams } = new URL(request.url);
-    const dateFrom = searchParams.get("date_from");
-    const dateTo = searchParams.get("date_to");
+    const date = searchParams.get("date"); // Single date filter (YYYY-MM-DD)
 
     const db = getServiceClient();
 
@@ -72,15 +70,14 @@ export async function GET(request: NextRequest) {
       .not("account_id", "is", null)
       .order("created_at", { ascending: false });
 
-    // Apply date filters on claim date (created_at)
-    if (dateFrom) {
-      bpQuery = bpQuery.gte("created_at", dateFrom);
-    }
-    if (dateTo) {
-      // Add one day to make it inclusive
-      const toDate = new Date(dateTo);
-      toDate.setDate(toDate.getDate() + 1);
-      bpQuery = bpQuery.lt("created_at", toDate.toISOString());
+    // Apply date filter on claim date (created_at)
+    if (date) {
+      // Filter for claims on this specific day
+      const dayStart = `${date}T00:00:00.000Z`;
+      const nextDay = new Date(date);
+      nextDay.setDate(nextDay.getDate() + 1);
+      const dayEnd = nextDay.toISOString().split("T")[0] + "T00:00:00.000Z";
+      bpQuery = bpQuery.gte("created_at", dayStart).lt("created_at", dayEnd);
     }
 
     const { data: claimedBps, error: bpError } = await bpQuery;

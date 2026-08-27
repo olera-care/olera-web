@@ -10,22 +10,30 @@ interface SequenceConversion {
   claimed_at: string;
   assigned_to: string | null;
   assigned_to_display_name: string | null;
+  conversion_source: string;
 }
 
 interface SequenceConversionsModalProps {
   onClose: () => void;
 }
 
+const SOURCE_CONFIG: Record<string, { label: string; color: string }> = {
+  smartlead: { label: "SmartLead", color: "bg-blue-100 text-blue-700" },
+  fax: { label: "Fax", color: "bg-amber-100 text-amber-700" },
+  contact_form: { label: "Contact Form", color: "bg-purple-100 text-purple-700" },
+  direct_mail: { label: "Direct Mail", color: "bg-green-100 text-green-700" },
+  linkedin: { label: "LinkedIn", color: "bg-sky-100 text-sky-700" },
+};
+
 export function SequenceConversionsModal({ onClose }: SequenceConversionsModalProps) {
   const [providers, setProviders] = useState<SequenceConversion[]>([]);
   const [total, setTotal] = useState<number>(0);
+  const [bySource, setBySource] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Date filter state (empty = all time)
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const [showAll, setShowAll] = useState(false);
 
-  // Fetch conversions
   const fetchConversions = useCallback(async () => {
     setLoading(true);
     setError(null);
@@ -45,6 +53,7 @@ export function SequenceConversionsModal({ onClose }: SequenceConversionsModalPr
       const data = await res.json();
       setProviders(data.providers || []);
       setTotal(data.total || 0);
+      setBySource(data.by_source || {});
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to fetch conversions");
     } finally {
@@ -52,17 +61,13 @@ export function SequenceConversionsModal({ onClose }: SequenceConversionsModalPr
     }
   }, [selectedDate]);
 
-  // Fetch on mount and when date filters change
   useEffect(() => {
     fetchConversions();
   }, [fetchConversions]);
 
-  // Escape key to close
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
+      if (e.key === "Escape") onClose();
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
@@ -77,72 +82,103 @@ export function SequenceConversionsModal({ onClose }: SequenceConversionsModalPr
     });
   };
 
-  const clearFilter = () => {
-    setSelectedDate("");
-  };
-
+  const clearFilter = () => setSelectedDate("");
   const hasFilter = Boolean(selectedDate);
+
+  // Show first 5 by default, expand to show all
+  const displayedProviders = showAll ? providers : providers.slice(0, 5);
+  const hasMore = providers.length > 5;
+
+  // Get active sources (those with count > 0)
+  const activeSources = Object.entries(bySource)
+    .filter(([, count]) => count > 0)
+    .sort((a, b) => b[1] - a[1]);
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
       onClick={(e) => {
         e.stopPropagation();
         onClose();
       }}
     >
       <div
-        className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden"
+        className="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[85vh] flex flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="px-5 py-4 border-b border-gray-100 shrink-0">
-          <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold text-gray-900">Sequence Conversions</h3>
+        <div className="px-6 pt-6 pb-4">
+          <div className="flex items-start justify-between">
+            <div>
+              {loading ? (
+                <div className="h-8 w-48 bg-gray-100 rounded animate-pulse" />
+              ) : (
+                <h2 className="text-2xl font-semibold text-gray-900">
+                  {total} provider{total !== 1 ? "s" : ""} claimed
+                </h2>
+              )}
+              <p className="text-sm text-gray-500 mt-1">from sequence outreach</p>
+            </div>
             <button
               type="button"
               onClick={onClose}
-              className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-100"
+              className="p-2 -m-2 text-gray-400 hover:text-gray-600 transition-colors rounded-full hover:bg-gray-100"
             >
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
           </div>
-        </div>
 
-        {/* Date Filter */}
-        <div className="px-5 py-3 border-b border-gray-100 shrink-0 bg-gray-50">
-          <div className="flex items-center gap-4 flex-wrap">
-            <div className="flex items-center gap-2">
-              <label className="text-sm text-gray-600">Claimed on:</label>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                className="px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-              />
+          {/* Source Pills */}
+          {!loading && activeSources.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-4">
+              {activeSources.map(([source, count]) => {
+                const config = SOURCE_CONFIG[source] || { label: source, color: "bg-gray-100 text-gray-700" };
+                return (
+                  <span
+                    key={source}
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium ${config.color}`}
+                  >
+                    {config.label}
+                    <span className="text-xs opacity-75">{count}</span>
+                  </span>
+                );
+              })}
             </div>
+          )}
+
+          {/* Date Filter */}
+          <div className="flex items-center gap-3 mt-4 pt-4 border-t border-gray-100">
+            <label className="text-sm text-gray-500">Claimed on</label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+            />
             {hasFilter && (
               <button
                 type="button"
                 onClick={clearFilter}
-                className="text-sm text-gray-500 hover:text-gray-700 underline"
+                className="text-sm text-primary-600 hover:text-primary-700 font-medium"
               >
                 Show all
               </button>
             )}
-            <div className="ml-auto text-sm text-gray-600 font-medium tabular-nums">
-              {loading ? "..." : `${total} provider${total !== 1 ? "s" : ""}`}
-            </div>
           </div>
         </div>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto px-6 pb-6">
           {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <span className="w-6 h-6 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+            <div className="space-y-4 pt-2">
+              {[1, 2, 3].map((i) => (
+                <div key={i} className="animate-pulse">
+                  <div className="h-5 bg-gray-100 rounded w-3/4 mb-2" />
+                  <div className="h-4 bg-gray-50 rounded w-1/2" />
+                </div>
+              ))}
             </div>
           ) : error ? (
             <div className="py-12 text-center">
@@ -150,65 +186,83 @@ export function SequenceConversionsModal({ onClose }: SequenceConversionsModalPr
               <button
                 type="button"
                 onClick={fetchConversions}
-                className="mt-2 text-sm text-teal-700 hover:underline"
+                className="mt-2 text-sm text-primary-600 hover:underline font-medium"
               >
-                Retry
+                Try again
               </button>
             </div>
           ) : providers.length === 0 ? (
             <div className="py-12 text-center">
-              <svg
-                className="w-12 h-12 mx-auto text-gray-300"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                strokeWidth={1}
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                />
-              </svg>
-              <p className="mt-3 text-sm text-gray-500">
+              <div className="w-12 h-12 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                <svg className="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <p className="text-gray-500">
                 {hasFilter ? "No conversions on this date" : "No sequence conversions yet"}
               </p>
             </div>
           ) : (
-            <div className="divide-y divide-gray-100">
-              {/* Table header */}
-              <div className="px-5 py-2 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide grid grid-cols-12 gap-2">
-                <div className="col-span-4">Provider</div>
-                <div className="col-span-2">City</div>
-                <div className="col-span-2">Owner</div>
-                <div className="col-span-2 text-right">Claimed</div>
-              </div>
+            <div className="space-y-1 pt-2">
+              {displayedProviders.map((provider) => {
+                const sourceConfig = SOURCE_CONFIG[provider.conversion_source] || {
+                  label: provider.conversion_source,
+                  color: "bg-gray-100 text-gray-700",
+                };
 
-              {/* Rows */}
-              {providers.map((provider) => (
-                <div key={provider.provider_id} className="px-5 py-3">
-                  <div className="grid grid-cols-12 gap-2 items-start">
-                    <div className="col-span-4">
-                      <div className="text-sm font-medium text-gray-900 truncate" title={provider.provider_name}>
-                        {provider.provider_name}
+                return (
+                  <div
+                    key={provider.provider_id}
+                    className="group py-3 border-b border-gray-50 last:border-0"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2">
+                          <h3 className="font-medium text-gray-900 truncate">
+                            {provider.provider_name}
+                          </h3>
+                          <span
+                            className={`shrink-0 px-2 py-0.5 rounded-full text-xs font-medium ${sourceConfig.color}`}
+                          >
+                            {sourceConfig.label}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-500 mt-0.5">
+                          {provider.city || "—"}
+                          <span className="mx-1.5 text-gray-300">·</span>
+                          {provider.assigned_to_display_name || "—"}
+                          <span className="mx-1.5 text-gray-300">·</span>
+                          {formatDate(provider.claimed_at)}
+                        </p>
                       </div>
                     </div>
-                    <div className="col-span-2 text-sm text-gray-600 truncate" title={provider.city || "—"}>
-                      {provider.city || "—"}
-                    </div>
-                    <div className="col-span-2 text-sm text-gray-600 truncate" title={provider.assigned_to_display_name || "—"}>
-                      {provider.assigned_to_display_name || "—"}
-                    </div>
-                    <div className="col-span-2 text-sm text-gray-600 text-right tabular-nums">
-                      {formatDate(provider.claimed_at)}
-                    </div>
+                    {/* Email shown subtly */}
+                    <p className="text-xs text-gray-400 mt-1 truncate">
+                      {provider.claim_email}
+                    </p>
                   </div>
-                  <div className="mt-1 text-xs text-gray-400 flex items-center gap-1">
-                    <span className="text-gray-300">&rarr;</span>
-                    <span>claimed with: {provider.claim_email}</span>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
+
+              {/* Show more button */}
+              {hasMore && !showAll && (
+                <button
+                  type="button"
+                  onClick={() => setShowAll(true)}
+                  className="w-full py-3 text-sm text-primary-600 hover:text-primary-700 font-medium"
+                >
+                  Show {providers.length - 5} more
+                </button>
+              )}
+              {hasMore && showAll && (
+                <button
+                  type="button"
+                  onClick={() => setShowAll(false)}
+                  className="w-full py-3 text-sm text-gray-500 hover:text-gray-700"
+                >
+                  Show less
+                </button>
+              )}
             </div>
           )}
         </div>

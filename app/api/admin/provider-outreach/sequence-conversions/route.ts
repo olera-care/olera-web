@@ -22,7 +22,17 @@ export interface SequenceConversion {
   claimed_at: string;
   assigned_to: string | null;
   assigned_to_display_name: string | null;
+  conversion_source: string; // "smartlead", "fax", "contact_form", "direct_mail", "linkedin"
 }
+
+// Map re_engage_channel to display labels
+const SOURCE_LABELS: Record<string, string> = {
+  smartlead: "SmartLead",
+  fax: "Fax",
+  contact_form: "Contact Form",
+  direct_mail: "Direct Mail",
+  linkedin: "LinkedIn",
+};
 
 export async function GET(request: NextRequest) {
   try {
@@ -42,9 +52,10 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
 
     // Step 1: Get all providers who went through the sequence (sequence_started_at IS NOT NULL)
+    // Include re_engage_channel and sequenced_with_source for conversion attribution
     const { data: sequencedProviders, error: seqError } = await db
       .from("provider_outreach_tracking")
-      .select("provider_id, assigned_to")
+      .select("provider_id, assigned_to, re_engage_channel, sequenced_with_source")
       .not("sequence_started_at", "is", null);
 
     if (seqError) {
@@ -53,12 +64,18 @@ export async function GET(request: NextRequest) {
     }
 
     if (!sequencedProviders || sequencedProviders.length === 0) {
-      return NextResponse.json({ providers: [], total: 0 });
+      return NextResponse.json({ providers: [], total: 0, by_source: {} });
     }
 
     const sequencedProviderIds = sequencedProviders.map((p) => p.provider_id);
     const assignedToMap = new Map(
       sequencedProviders.map((p) => [p.provider_id, p.assigned_to])
+    );
+    const sourceMap = new Map(
+      sequencedProviders.map((p) => [p.provider_id, {
+        re_engage_channel: p.re_engage_channel,
+        sequenced_with_source: p.sequenced_with_source,
+      }])
     );
 
     // Step 2: Get business_profiles that have claimed (account_id IS NOT NULL)
@@ -89,7 +106,7 @@ export async function GET(request: NextRequest) {
     }
 
     if (!claimedBps || claimedBps.length === 0) {
-      return NextResponse.json({ providers: [], total: 0 });
+      return NextResponse.json({ providers: [], total: 0, by_source: {}, source_labels: SOURCE_LABELS });
     }
 
     const providerIds = claimedBps.map((bp) => bp.source_provider_id);
@@ -153,6 +170,13 @@ export async function GET(request: NextRequest) {
 
     // Step 6: Build response, filtering by exact CT date if specified
     const providers: SequenceConversion[] = [];
+    const bySource: Record<string, number> = {
+      smartlead: 0,
+      fax: 0,
+      contact_form: 0,
+      direct_mail: 0,
+      linkedin: 0,
+    };
 
     for (const bp of claimedBps) {
       // If date filter is set, verify this claim is actually on that date in CT
@@ -163,6 +187,13 @@ export async function GET(request: NextRequest) {
 
       const providerInfo = providerMap.get(bp.source_provider_id);
       const assignedTo = assignedToMap.get(bp.source_provider_id);
+      const sourceInfo = sourceMap.get(bp.source_provider_id);
+
+      // Determine conversion source:
+      // - If re_engage_channel is set, use that (fax, contact_form, direct_mail, linkedin)
+      // - Otherwise, they converted from the email sequence (smartlead)
+      const conversionSource = sourceInfo?.re_engage_channel || "smartlead";
+      bySource[conversionSource] = (bySource[conversionSource] || 0) + 1;
 
       providers.push({
         provider_id: bp.source_provider_id,
@@ -172,12 +203,15 @@ export async function GET(request: NextRequest) {
         claimed_at: bp.created_at,
         assigned_to: assignedTo || null,
         assigned_to_display_name: assignedTo ? (adminNameMap.get(assignedTo) || assignedTo) : null,
+        conversion_source: conversionSource,
       });
     }
 
     return NextResponse.json({
       providers,
       total: providers.length,
+      by_source: bySource,
+      source_labels: SOURCE_LABELS,
     });
   } catch (err) {
     console.error("[sequence-conversions] Error:", err);

@@ -22,7 +22,7 @@ export interface SequenceConversion {
   claimed_at: string;
   assigned_to: string | null;
   assigned_to_display_name: string | null;
-  conversion_source: string; // "smartlead", "fax", "contact_form", "direct_mail", "linkedin"
+  conversion_source: string; // "smartlead", "email_resend", "fax", "contact_form", "direct_mail", "unknown"
 }
 
 // Conversion source labels based on last touchpoint before claim
@@ -187,7 +187,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Step 6: Get last touchpoint before claim for each provider (for attribution)
+    // Step 6: Get touchpoints for attribution
     // Look for: smartlead_enrolled, email_sent, contact_form_sent
     const { data: touchpoints } = await db
       .from("provider_outreach_touchpoints")
@@ -196,12 +196,13 @@ export async function GET(request: NextRequest) {
       .in("touchpoint_type", ["smartlead_enrolled", "sequence_launched", "email_sent", "contact_form_sent"])
       .order("created_at", { ascending: false });
 
-    // Build map of provider_id -> most recent touchpoint
-    const lastTouchpointMap = new Map<string, { type: string; date: string }>();
+    // Build map of provider_id -> array of touchpoints (sorted desc by date)
+    const touchpointsByProvider = new Map<string, Array<{ type: string; date: string }>>();
     for (const tp of touchpoints || []) {
-      if (!lastTouchpointMap.has(tp.provider_id)) {
-        lastTouchpointMap.set(tp.provider_id, { type: tp.touchpoint_type, date: tp.created_at });
+      if (!touchpointsByProvider.has(tp.provider_id)) {
+        touchpointsByProvider.set(tp.provider_id, []);
       }
+      touchpointsByProvider.get(tp.provider_id)!.push({ type: tp.touchpoint_type, date: tp.created_at });
     }
 
     // Step 7: Build response, filtering by exact CT date if specified
@@ -225,11 +226,11 @@ export async function GET(request: NextRequest) {
       const providerInfo = providerMap.get(bp.source_provider_id);
       const assignedTo = assignedToMap.get(bp.source_provider_id);
       const trackingData = trackingDataMap.get(bp.source_provider_id);
-      const lastTouchpoint = lastTouchpointMap.get(bp.source_provider_id);
+      const providerTouchpoints = touchpointsByProvider.get(bp.source_provider_id) || [];
       const claimDate = new Date(bp.created_at);
 
-      // Determine conversion source by finding the most recent action before claim
-      // Check: fax_sent_at, mailer_sent_at, and last touchpoint
+      // Determine conversion source by finding the most recent action BEFORE claim
+      // Check: fax_sent_at, mailer_sent_at, and touchpoints
       let conversionSource = "smartlead"; // Default: assume SmartLead sequence
       let mostRecentDate: Date | null = null;
 
@@ -251,12 +252,16 @@ export async function GET(request: NextRequest) {
         }
       }
 
-      // Check last touchpoint
-      if (lastTouchpoint) {
-        const tpDate = new Date(lastTouchpoint.date);
-        if (tpDate < claimDate && (!mostRecentDate || tpDate > mostRecentDate)) {
-          mostRecentDate = tpDate;
-          conversionSource = getSourceFromTouchpoint(lastTouchpoint.type);
+      // Check touchpoints - find most recent one BEFORE claim date
+      // Touchpoints are already sorted desc, so first one before claim is the most recent
+      for (const tp of providerTouchpoints) {
+        const tpDate = new Date(tp.date);
+        if (tpDate < claimDate) {
+          if (!mostRecentDate || tpDate > mostRecentDate) {
+            mostRecentDate = tpDate;
+            conversionSource = getSourceFromTouchpoint(tp.type);
+          }
+          break; // Found the most recent touchpoint before claim, no need to continue
         }
       }
 

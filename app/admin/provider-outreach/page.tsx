@@ -10,6 +10,7 @@ import { AdminChip } from "@/components/admin/provider-outreach/AdminChip";
 import { AdminFilterChips, type AdminCounts } from "@/components/admin/provider-outreach/AdminFilterChips";
 import { AdminAutocomplete } from "@/components/admin/provider-outreach/AdminAutocomplete";
 import { NotesModal } from "@/components/admin/provider-outreach/NotesModal";
+import { SequenceConversionsModal } from "@/components/admin/provider-outreach/SequenceConversionsModal";
 import { WorkflowGuideModal } from "@/components/admin/provider-outreach/WorkflowGuideModal";
 import { EmailHistoryPopover } from "@/components/admin/provider-outreach/EmailHistoryPopover";
 import { ProviderDrawer } from "@/components/admin/provider-outreach/ProviderDrawer";
@@ -2906,7 +2907,9 @@ export default function ProviderOutreachPage() {
   const [activityStats, setActivityStats] = useState<{
     date: string;
     calls: { total: number; voicemail: number; no_answer: number; hung_up: number; callback: number; new_email: number; resend: number; spoke_with: number; note: number };
+    calls_by_admin?: Array<{ admin_id: string; display_name: string; total: number; voicemail: number; no_answer: number; hung_up: number; callback: number; spoke_with: number; new_email: number; resend: number; note: number }>;
     emails: { total: number; intro: number; followup: number; demand_loss: number; final: number; nudge: number };
+    sequences_started?: number;
     daily_series: Array<{ date: string; calls: number; emails: number }>;
   } | null>(null);
   const [activityStatsLoading, setActivityStatsLoading] = useState(false);
@@ -3063,6 +3066,9 @@ export default function ProviderOutreachPage() {
 
   // Notes modal state
   const [notesModalProvider, setNotesModalProvider] = useState<{ id: string; name: string } | null>(null);
+
+  // Sequence conversions modal state
+  const [showSequenceConvModal, setShowSequenceConvModal] = useState(false);
 
   // Workflow guide modal state
   const [showWorkflowGuide, setShowWorkflowGuide] = useState(false);
@@ -4667,9 +4673,14 @@ export default function ProviderOutreachPage() {
                 : "none pending"}
             </p>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Conversion rate: providers who claimed after going through the email sequence">
+          <button
+            type="button"
+            onClick={() => setShowSequenceConvModal(true)}
+            className="rounded-lg border border-gray-200 bg-white px-4 py-3 hover:border-primary-300 hover:bg-primary-50/50 transition-colors text-left"
+            title="Click to view sequence conversions"
+          >
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Sequence Conv.</p>
-            <p className="mt-1 text-2xl font-semibold text-gray-900">
+            <p className="mt-1 text-2xl font-semibold text-gray-900 tabular-nums">
               {sequenceConversion
                 ? `${sequenceConversion.claimed} / ${sequenceConversion.sequenced}`
                 : "—"}
@@ -4679,7 +4690,7 @@ export default function ProviderOutreachPage() {
                 ? `${sequenceConversion.rate}% claimed from sequence`
                 : "loading..."}
             </p>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -5238,7 +5249,7 @@ export default function ProviderOutreachPage() {
               ) : activityStats ? (
                 <div className="space-y-4">
                   {/* Main stats grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <div className="bg-white border border-gray-200 rounded-lg p-3">
                       <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Calls</div>
                       <div className="mt-1 text-2xl font-semibold text-gray-900 tabular-nums">{activityStats.calls.total}</div>
@@ -5254,6 +5265,10 @@ export default function ProviderOutreachPage() {
                     <div className="bg-white border border-gray-200 rounded-lg p-3">
                       <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Resends</div>
                       <div className="mt-1 text-2xl font-semibold text-teal-600 tabular-nums">{activityStats.emails.nudge}</div>
+                    </div>
+                    <div className="bg-white border border-gray-200 rounded-lg p-3 col-span-2 sm:col-span-1">
+                      <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Sequences</div>
+                      <div className="mt-1 text-2xl font-semibold text-indigo-600 tabular-nums">{activityStats.sequences_started ?? 0}</div>
                     </div>
                   </div>
 
@@ -5286,6 +5301,36 @@ export default function ProviderOutreachPage() {
                         {activityStats.calls.note > 0 && (
                           <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded">Note {activityStats.calls.note}</span>
                         )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Per-admin breakdown */}
+                  {activityStats.calls_by_admin && activityStats.calls_by_admin.length > 0 && (
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">By Admin</div>
+                      <div className="space-y-1.5">
+                        {activityStats.calls_by_admin.map((admin: { admin_id: string; display_name: string; total: number; voicemail: number; no_answer: number; spoke_with: number; callback: number; hung_up: number; new_email: number; resend: number; note: number }) => {
+                          // Build breakdown string with all non-zero outcomes
+                          const outcomes: string[] = [];
+                          if (admin.voicemail > 0) outcomes.push(`VM ${admin.voicemail}`);
+                          if (admin.no_answer > 0) outcomes.push(`No Ans ${admin.no_answer}`);
+                          if (admin.spoke_with > 0) outcomes.push(`Spoke ${admin.spoke_with}`);
+                          if (admin.callback > 0) outcomes.push(`Callback ${admin.callback}`);
+                          if (admin.hung_up > 0) outcomes.push(`Hung Up ${admin.hung_up}`);
+                          if (admin.new_email > 0) outcomes.push(`New Email ${admin.new_email}`);
+                          if (admin.resend > 0) outcomes.push(`Resend ${admin.resend}`);
+                          if (admin.note > 0) outcomes.push(`Note ${admin.note}`);
+
+                          return (
+                            <div key={admin.admin_id} className="flex items-center justify-between text-sm">
+                              <span className="font-medium text-gray-700">{admin.display_name}</span>
+                              <span className="text-gray-600">
+                                {admin.total} calls{outcomes.length > 0 && ` (${outcomes.join(", ")})`}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -7584,6 +7629,11 @@ export default function ProviderOutreachPage() {
           providerName={notesModalProvider.name}
           onClose={() => setNotesModalProvider(null)}
         />
+      )}
+
+      {/* Sequence Conversions Modal */}
+      {showSequenceConvModal && (
+        <SequenceConversionsModal onClose={() => setShowSequenceConvModal(false)} />
       )}
 
       {/* Workflow Guide Modal */}

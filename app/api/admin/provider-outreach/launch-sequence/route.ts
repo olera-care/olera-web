@@ -729,17 +729,31 @@ export async function POST(request: NextRequest) {
                     .update({ smartlead_data: smartleadData })
                     .eq("id", trackingId);
 
-                  // Log touchpoint
-                  await db.from("provider_outreach_touchpoints").insert({
-                    provider_id: provider.provider_id,
-                    touchpoint_type: "smartlead_enrolled",
-                    admin_user_id: adminUser.id,
-                    details: {
-                      campaign_id: report.campaign_id,
-                      campaign_name: campaignName,
-                      lead_email: provider.email,
+                  // Log touchpoints:
+                  // 1. sequence_launched - for activity stats tracking
+                  // 2. smartlead_enrolled - for SmartLead-specific debugging
+                  await db.from("provider_outreach_touchpoints").insert([
+                    {
+                      provider_id: provider.provider_id,
+                      touchpoint_type: "sequence_launched",
+                      admin_user_id: adminUser.id,
+                      details: {
+                        engine: "smartlead",
+                        campaign_id: report.campaign_id,
+                        campaign_name: campaignName,
+                      },
                     },
-                  });
+                    {
+                      provider_id: provider.provider_id,
+                      touchpoint_type: "smartlead_enrolled",
+                      admin_user_id: adminUser.id,
+                      details: {
+                        campaign_id: report.campaign_id,
+                        campaign_name: campaignName,
+                        lead_email: provider.email,
+                      },
+                    },
+                  ]);
 
                   launchedProviders.push(provider.provider_id);
                 }

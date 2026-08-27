@@ -3084,45 +3084,102 @@ export default function ProviderOutreachPage() {
     }
   }, [providers]); // eslint-disable-line react-hooks/exhaustive-deps -- only sync when providers change
 
-  // Drawer navigation: compute prev/next provider within same city (memoized)
+  // Drawer navigation: compute prev/next provider matching display order (memoized)
   const drawerNavigation = useMemo(() => {
     if (!drawerProvider) {
       return { hasPrevious: false, hasNext: false, handlePrevious: () => {}, handleNext: () => {} };
     }
 
-    const drawerCity = drawerProvider.city || "(No City)";
-    const cityProviders = providers
-      .filter((p) => (p.city || "(No City)") === drawerCity)
-      .sort((a, b) => {
-        // Apply same sorting as CityRow: in Follow Up tab, providers with calls go to bottom
-        if (activeTab === "needs_call") {
-          const aHasCalls = (a.call_count ?? 0) > 0;
-          const bHasCalls = (b.call_count ?? 0) > 0;
-          if (aHasCalls !== bHasCalls) {
-            return aHasCalls ? 1 : -1;
-          }
-        }
-        return a.provider_name.localeCompare(b.provider_name);
-      });
+    // Helper to apply admin filter (used by Follow Up and other tabs)
+    const applyAdminFilter = (list: OutreachProvider[]) => {
+      if (!selectedAdminFilter) return list;
+      if (selectedAdminFilter === "unassigned") {
+        return list.filter((p) => !p.assigned_to);
+      }
+      return list.filter((p) => p.assigned_to === selectedAdminFilter);
+    };
 
-    const currentIndex = cityProviders.findIndex((p) => p.provider_id === drawerProvider.provider_id);
+    let navigationList: OutreachProvider[];
+
+    if (activeTab === "needs_call") {
+      // Follow Up tab: match FollowUpQueue display order
+      // Group by due date (overdue, today, upcoming), sort by engagement priority
+      let followUpProviders = providers.filter((p) => p.stage === "needs_call");
+      followUpProviders = applyAdminFilter(followUpProviders);
+      const today = getTodayISO();
+
+      const getEngagementPriority = (reason: string | null): number => {
+        switch (reason) {
+          case "replied": return 0;
+          case "clicked_not_claimed": return 1;
+          case "manual": return 2;
+          case "sequence_exhausted":
+          case "sequence_completed": return 3;
+          default: return 4;
+        }
+      };
+
+      const sortByEngagementThenDate = (a: OutreachProvider, b: OutreachProvider) => {
+        const priorityA = getEngagementPriority(a.needs_call_reason);
+        const priorityB = getEngagementPriority(b.needs_call_reason);
+        if (priorityA !== priorityB) return priorityA - priorityB;
+        if (!a.due_date && !b.due_date) return 0;
+        if (!a.due_date) return 1;
+        if (!b.due_date) return -1;
+        return a.due_date.localeCompare(b.due_date);
+      };
+
+      const overdue = followUpProviders.filter((p) => p.due_date && p.due_date < today).sort(sortByEngagementThenDate);
+      const dueToday = followUpProviders.filter((p) => !p.due_date || p.due_date === today).sort(sortByEngagementThenDate);
+      const upcoming = followUpProviders.filter((p) => p.due_date && p.due_date > today).sort(sortByEngagementThenDate);
+
+      navigationList = [...overdue, ...dueToday, ...upcoming];
+    } else if (activeTab === "re_engage") {
+      // Alternative Channels tab: match ReEngageQueue display order
+      // Apply channel filter, sort by re_engage_entered_at (oldest first)
+      let reEngageProviders = providers.filter((p) => p.stage === "re_engage");
+
+      // Apply channel filter
+      if (selectedChannelFilter !== "all") {
+        if (selectedChannelFilter === "email") {
+          reEngageProviders = reEngageProviders.filter((p) => !p.re_engage_channel || p.re_engage_channel === "re_engage");
+        } else {
+          reEngageProviders = reEngageProviders.filter((p) => p.re_engage_channel === selectedChannelFilter);
+        }
+      }
+
+      navigationList = reEngageProviders.sort((a, b) => {
+        if (!a.re_engage_entered_at && !b.re_engage_entered_at) return 0;
+        if (!a.re_engage_entered_at) return 1;
+        if (!b.re_engage_entered_at) return -1;
+        return a.re_engage_entered_at.localeCompare(b.re_engage_entered_at);
+      });
+    } else {
+      // City-grouped tabs (Call & Confirm, In Sequence, etc.): navigate within same city
+      const drawerCity = drawerProvider.city || "(No City)";
+      navigationList = providers
+        .filter((p) => (p.city || "(No City)") === drawerCity)
+        .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
+    }
+
+    const currentIndex = navigationList.findIndex((p) => p.provider_id === drawerProvider.provider_id);
     const hasPrevious = currentIndex > 0;
-    const hasNext = currentIndex < cityProviders.length - 1 && currentIndex !== -1;
+    const hasNext = currentIndex < navigationList.length - 1 && currentIndex !== -1;
 
     const handlePrevious = () => {
       if (hasPrevious) {
-        setDrawerProvider(cityProviders[currentIndex - 1]);
+        setDrawerProvider(navigationList[currentIndex - 1]);
       }
     };
 
     const handleNext = () => {
       if (hasNext) {
-        setDrawerProvider(cityProviders[currentIndex + 1]);
+        setDrawerProvider(navigationList[currentIndex + 1]);
       }
     };
 
     return { hasPrevious, hasNext, handlePrevious, handleNext };
-  }, [drawerProvider, providers, activeTab]);
+  }, [drawerProvider, providers, activeTab, selectedAdminFilter, selectedChannelFilter]);
 
   // Keyboard navigation for drawer (left/right arrows)
   useEffect(() => {

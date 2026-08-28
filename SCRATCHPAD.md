@@ -185,6 +185,121 @@ All five: Advanced Create, Website visits, Autobid/CPC, all three placements, Sp
 
 Reworked Admin → Ad Boost around one provider rather than one row per ad request. The queue groups campaigns by provider, exposes Google/Meta/Nextdoor at a glance, supports submitted-date sorting, expands multi-campaign providers, and uses a quieter table/card hierarchy that stays compact at tablet widths. The campaign detail page now includes an always-visible, newest-first provider history with platform, flight timing, status, landings, leads, archived state, and direct navigation between campaigns. Pre-test caught and fixed stale form state during sibling-campaign navigation by remounting the editor for the selected request and hiding the previous request while the next one loads. **Files:** `app/admin/ad-boost/page.tsx`, `components/admin/ad-boost-queue.ts`, `app/admin/ad-boost/[id]/page.tsx`, `app/api/admin/ad-boost/route.ts`. **Validation:** TypeScript, targeted ESLint, provider-grouping smoke assertions, schema/index review, and `git diff --check` pass; no migration or cron change. Local visual QA was blocked because this worktree lacks Supabase environment variables. **Commits:** `fc676e9ae`, `f4b424fed`, `a0111f883`. **Next:** use the Vercel preview to verify grouping/expansion, each sort option, the tablet breakpoint, and switching/saving sibling campaigns; do not merge without TJ.
 
+
+### 2026-08-25 (later) — The cap theory died too, and Zardy's zero has no known cause (`shiny-pasteur`, ops only, no code)
+
+> **Superseded 08-26.** The elimination below rules out the $2.50 max CPC because Zardy's July campaign cleared at $1.92 under the same cap. That reference turned out to be invalid: Google's own budget simulator later returned a **$5.12 minimum bid**, meaning the Cleveland auction repriced roughly 2.5x between July and August, so July's clearing price says nothing about August's. The cap is back on the suspect list and is currently the leading explanation. See the **2026-08-26 (later)** entry before acting on anything here.
+
+**TJ said raise Zardy's cap. I opened Google Ads to do it, checked one thing first, and did not make the change.**
+
+**The falsifying fact:** Miracle-Lightstar's **July** campaign ran in the same account, same $2.50 max CPC cap, same Cleveland market, and cleared at **$1.92 average CPC** — 338 impressions, 26 clicks, $49.97 spent. Cleveland clears $2.50 comfortably. The cap was never the binding constraint, so raising it would have spent money on the wrong lever *and* handed him a confident wrong diagnosis.
+
+**Everything structural is now eliminated for his August campaign, which has served 0 impressions since 20 Aug:**
+
+| Suspect | How it died |
+| --- | --- |
+| Daily budget level | Raised $1.67 → $3.57, no change. `lost IS (budget)` is **0.00%** |
+| Max CPC cap | July cleared at **$1.92** under the same cap |
+| Negative keyword list | The shared `provider managed ads negative keywords` list (110 entries, sharedSetId `12134249254`) is applied to **Graceful, which is serving**, and to **his own July campaign** |
+| Ad approval | Eligible |
+| Keyword eligibility | Eligible, including head terms that earned 149 and 59 impressions in July |
+| Geo | Cuyahoga, Lake, Lorain, Medina counties. Cleveland is in Cuyahoga |
+
+Meanwhile Graceful — launched the same day, **smaller** budget, same negative list — has ramped to 24 impressions / 2 clicks / $1.86 CPC all-time.
+
+**The practical path, and it is better than more diagnosis:** his July campaign is a working reference in the same account, same city, same list — **$50 total budget over a fixed flight**. The August rebuild is the broken artifact, not Cleveland and not the bid. Rebuild on the July structure or open a Google Ads support case.
+
+**Method note worth keeping.** The cap recommendation came from an *inference* (every serving campaign clears at $2.01–$2.44, so Cleveland must be above $2.50) when one query against his own July history would have killed it. The inference was the weak link, not the data. Same failure shape as "no calls out of that week" earlier the same day: a sentence that made the point land better than the evidence supported.
+
+**Also settled and built**
+
+- **Deadline is September 1**, TJ's internal date. It is now said out loud in Hilda's beat 5, with **Friday 28 Aug** named as the return date so the weekend is slack.
+- **Franchil is still `Pending / all ads under review`**, 0 impressions, published Sunday 23 Aug. Roughly two business days in a one-business-day queue. The ad itself reads Eligible, so it is the campaign-level gate. Support ticket if unchanged Wednesday.
+- **Outreach notes now live inside the Five Letters page**, not in a separate artifact — TJ went looking for the call guidance where the letters were and it was not there. Hilda has the six beats; Zardy has four, rewritten tonight to remove the falsified diagnosis and to say *do not name a cause*.
+- **Sandra's and Jasmine's letter emails went out**, both leading with campaign news and carrying the NIH context paragraph. Sandra's letterhead uses "Edmonds Villa Adult Family Home" per TJ, though she signs her own mail "Edmonds Villa **High Acuity** Adult Family Home".
+
+**Next up**
+
+- **Do not raise Zardy's cap.** Rebuild his August campaign on the July structure, or open support.
+- **Hilda: call, ~9am Central.** Her two letter blanks (hours/week, annual value) are the only thing that closes Aim 2's "high-margin" half.
+- **Sherry: deliver her untouched 22 Aug lead, then the letter.**
+- **Recheck Franchil's ad review Wednesday.**
+
+
+### 2026-08-25 — The budget experiment is falsified, and the CRP provider letters were rebuilt against the actual review criteria (`shiny-pasteur`, ops only, no code)
+
+**Google Ads, read at last.** The Monday budget experiment was four days overdue. It resolved, and it went the opposite way from the prediction.
+
+| Aug 24–25 | budget | impr | clicks | lost IS (rank) | lost IS (budget) |
+| --- | --- | --- | --- | --- | --- |
+| Miracle-Lightstar (raised to $3.57) | $3.57/day | **0** | 0 | > 90% | **0.00%** |
+| Graceful (control, held at $1.67) | $1.67/day | **13** | 1 | 89.74% | **0.00%** |
+
+The rule was "if Zardy recovers and Jasmine does not, budget level is the cause." **The reverse happened.** The arm that was raised still serves nothing; the untouched control started serving.
+
+**The number that settles it: `lost IS (budget) = 0.00%` on both.** Neither campaign has lost a single impression to its daily budget. Both lose ~90% to **Ad Rank**. Money was never the constraint, so raising it could not have helped. Graceful also improved with no change made (Aug 20–23 it read 4 impressions and 85.53% lost-to-budget; Aug 24–25 read 13 and 0.00%) — that is a new campaign leaving the learning phase, not a budget effect. Both still show `Eligible (Learning)`.
+
+**Zardy's keyword table confirms it.** All 36 keywords at 0 impressions. Not a volume problem: `"personal care assistance"` (149 impressions in July), `"home care agency"`, `"elderly home care"`, `"home care cleveland"` all read **Eligible** and all read **0**. Ten flagged *Low search volume* are suburb long-tails.
+
+**The lever is the bid cap, not the budget.** Read directly off his campaign today: "Set a maximum cost per click bid limit" is checked at **$2.50**. Every campaign in the account that serves clears at **$2.01–$2.44** — Pacesetter $2.01, LumiWell $2.21, Graceful $2.26, Edmonds $2.27, Rosemonte $2.44. All pressed against the same ceiling. Cleveland appears unable to clear it. **Not proven** — the bid simulator would give the curve — but budget, keywords, ads, geo and schedule are all eliminated.
+
+**Two things nobody was looking for.** Franchil's 90-day campaign reads **Pending / all ads under review**, 0 impressions, published Sunday Aug 23 (the ad itself reads Eligible, so it is the campaign-level review gate). And Edmonds Villa's August flight is healthy: 59 impressions, 2 clicks, $4.55 over two days, 68% lost to rank, 0% to budget.
+
+**The CRP letters were the wrong shape, and TJ caught it.** Codex's five drafts described what Olera did to each provider's page. Read against PAR-27-098's **Significance** criterion — which asks for *market pull, urgency of unmet need, understanding of customer needs, and hurdles that may prevent acceptance* — that is unscoreable. Worse, Doc 07's own rule says thin letters **subtract**: they make a reviewer discount the good one.
+
+**Aim 2 is the load-bearing sentence:** *"because the families Olera refers become high-margin customers for eldercare providers, those providers pay for premium advertising."* Olera asserts that. **The letters exist so a buyer says it instead.** Each of the five now carries one distinct load, per Doc 07's deliberately-different rule: Hilda the Aim 2 mechanism, Zardy market pull, Jasmine the adoption hurdle she raised herself, Sandra market segment, Sherry qualified demand.
+
+**Decisions**
+
+- **Nothing is put in a provider's mouth.** A second pass cut every sentence whose job was to make the point land. "Most families have never heard of an adult family home" was likely false in Washington and was hers to judge; Jasmine's letter no longer indicts A Place for Mom by name with an invented detail; Hilda's drops "not a small event" and lets the arithmetic argue.
+- **No competitor names in Sandra's letter.** Small homes and large operators share local referral networks. That comparison is hers to make, not ours to assign her.
+- **"Ninety-day evaluation" removed from all five.** Four of five first drafts had it. Five letters announcing a trial that just began reads as no traction, on the criterion where the opposite is needed.
+- **Hilda's letter deliberately carries two blanks** (`hours/week`, `annual value`). The old draft proved "customer" and left "high-margin" unstated, which a reviewer cannot score. Only her call can fill them; if she is vague the sentence comes out rather than being estimated.
+- **These five cannot carry willingness-to-pay** — none of them pays. That evidence sits with Lauren and Jennifer on the staffing side, and Doc 07's two open questions about them matter more to this application than anything here.
+
+**Also:** `ad_boost_campaign_launched` fired to Hilda on 08-23 and she did not open it. **She has opened nothing since June** — 12 emails, 0 opens, including all three `ad_boost_lead_outcome_check` prompts, which is why the John Turman close only ever surfaced by phone.
+
+**Artifacts / files:** Five Letters https://claude.ai/code/artifact/b9ef5d16-6953-4503-b757-192092cbbda6 · letters generated by `~/Desktop/TJ-hq/Olera/CRP/05 - Letters of Support/make-provider-letters.py` (Arial 11, 1in margins, format lives in the script so regeneration never needs reformatting) into `Provider Drafts 2026-08-25/`.
+
+**Next up**
+
+- ~~**Raise Miracle-Lightstar's CPC cap**~~ &mdash; **FALSIFIED same evening, see the entry above.** His July campaign cleared at $1.92 under the same $2.50 cap. Do not raise it.
+- **Hilda is a phone call, ~9am Central.** Beat 2 of the 08-17 call sheet is stale: the 90 days is already published, not an offer, and it is in ad review rather than serving. Her two letter blanks map onto beat 3 exactly.
+- **Deadline discrepancy, unresolved.** The 08-17 call sheet says the NIH deadline is **5 Sep** with effective submission 8 Sep; every letter and email sent today says **September 1**. Settle which before more asks go out.
+- **Sherry: deliver her untouched Aug 22 lead before the letter ask.** Sandra's and Jasmine's letters went out today.
+- **Recheck Franchil's ad review Wednesday.** Still pending after one and a half business days.
+
+### 2026-08-25 — Two provider replies, and the launch email that never names its channel (`shiny-pasteur`, ops only, no code)
+
+**Sandra (Edmonds Villa) and Jasmine (Graceful) both answered. Wrote and sent both replies.** Everything below came out of live queries; nothing was taken from `ad_campaign_requests`, whose `ad_spend_cents` / `ad_clicks` / `ad_impressions` are null on every row touched today.
+
+**The finding worth keeping: `ad_boost_campaign_launched` never names its channel.** Jasmine received two of them, **Aug 14 (Nextdoor) and Aug 21 (Google)**, both with the identical subject **"Your Find Families campaign is live"**, and **opened neither**. The only place the word Nextdoor has ever reached her is TJ's hand-written Aug 21 email, which she answered with "Awesome, thanks for the update!" — politeness, not comprehension. Her reply email now re-establishes what ran before it reports what happened. **This gets worse with Meta**: four providers are owed Meta builds, and a third identical email is the current design. Every multi-channel provider hits this.
+
+**Sandra.** Her areas arrived 08-22 (King + Snohomish, seven cities). Already handled: Edmonds + 20mi covers all seven and excludes south King County. Reply confirmed the radius call, the Aug 31 start with no gap, and conceded the questions point — **she was right**, all four are `answered` + `is_public`, and the Medicare one was answered **Aug 21 11:14am PT**, hours after that paragraph was drafted. Her answer is also correct: adult family homes are not CMS rated.
+
+**Jasmine's Nextdoor numbers, reconstructed from our own tables** because row `354917bf` is blank: **133 unique page views Aug 14–21 against 2 on Aug 13**; peak 45 on the 16th; **7 `question_asked` events, all guests, Aug 14–16** (5 insurance/Medicaid, 1 pricing, 1 speed), all answered within a day, the 4 duplicate insurance rows `archived` by the deduper. **Traffic collapsed after Aug 18** — no row at all on the 19th, 1 unique on the 20th and 21st — so the $50 lifetime budget burned in roughly five of its eight booked days. Every question arrived in the first three days.
+
+**Decisions**
+
+- **Never assert "no calls."** Zero connections through Olera is not zero calls. This is [[project_adboost_outcome_blindness]] exactly: every in-app signal read zero while Hilda had already closed a paying client. The replacement sentence ("if your phone rang I would not see it") was also cut, because provider phone numbers are not displayed on the page, so it described a channel that does not exist.
+- **Do not hand the insurance finding to the provider as a task.** She already answered it. If five families still had to ask, that is the Q&A ordering bug we already own and already told her about.
+- **Cut "nine out of ten questions on Olera never get answered."** True (**771 answered / 7,731 pending = 9.1%**) and it flattered her, but it tells a provider in writing that most of the platform is unresponsive.
+- **The copy may not imply Jasmine funds her campaigns.** `plan_status`, `stripe_customer_id`, `subscribed_at` all null on both rows. Both flights are the free intro.
+- **The email frames Nextdoor and Meta as a continuing experiment**, not as "Nextdoor is finished, Google is the answer." No dates on either, because neither is built for any provider. This paragraph also pre-explains the next identical launch email she receives.
+- **NIH pre-announced to Jasmine for the first time.** Her sent follow-up never carried the line, unlike Sandra's, so the 08-23 handoff claim that all four drafts pre-announced it is wrong for her.
+
+**Also:** `/tj-voice` moved from `~/Desktop/TJ-hq/.claude/commands/` to user-global `~/.claude/skills/tj-voice/SKILL.md`, with the four Renora source PDFs converted to **absolute** paths (they were relative to TJ-hq and resolved to nothing anywhere else) and a register section added so it does not push provider email into grant prose. `/dance` has the same project-scoping problem and was left alone.
+
+**Artifacts:** Edmonds Villa Reply https://claude.ai/code/artifact/c1e22ae4-2b82-4a90-8e73-327b5c244347 · Jasmine's Nextdoor Numbers https://claude.ai/code/artifact/4dfaf211-05a1-4cbb-8ef6-30f4af3b117c · Drafts at `~/Desktop/provider-emails-2026-08-21/`.
+
+**Next up**
+
+- **The Monday budget read never happened.** Miracle-Lightstar at $3.57/day vs Graceful held at $1.67/day as the control. It was due 08-24 and the whole batch's budget hangs on it. Zardy is now the only provider whose "Five Letters" catch still stands in full, and a silent month is getting longer.
+- **NIH letters: four working days left, no draft exists.** Both emails sent today promise the document "in the next few days." Logan sent a Commercial Readiness Pilot letter-of-support request to Blake on 08-05; if that is the same grant, the provider version should be a trim of it. Tracker artifact "Five Letters by September 1" is now stale on the runway and on three of the five catches.
+- **Row `354917bf` still blank.** Leave the wrap-up cancelled or fill it, otherwise it contradicts the email just sent.
+- **Fix `ad_boost_campaign_launched` to name its channel.** Before the Meta builds, not after.
+
+
 ### 2026-08-24 — One junk click silently shut off a paying provider, and it is not one provider
 
 **Started from TJ noticing Pacesetter's admin page looked fine while the comms timeline showed `failed`. It was not a display bug.** Sherry Pace's `ad_boost_traction` email was delivered, opened and clicked on **Thu 08-13 9:43pm ET**, then Outlook fired a complaint webhook **three minutes later**. `isSuppressedRecipient` reads all-time `email_log` with no expiry and no severity grading, so that one junk click permanently suppressed every non-exempt send to `pacesetterhomeservices@outlook.com`.

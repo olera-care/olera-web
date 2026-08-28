@@ -27,7 +27,13 @@ import MobileClaimTooltip from "@/components/providers/MobileClaimTooltip";
 import { MobileManageLink } from "@/components/providers/MobileManageLink";
 import PriceEstimate from "@/components/providers/PriceEstimate";
 import PricingEducationBadge from "@/components/providers/PricingEducationBadge";
-import { getPricingConfig, getRegionalEstimate } from "@/lib/pricing-config";
+import {
+  getPricingConfig,
+  getRegionalEstimate,
+  summarizeProviderRates,
+  RATE_UNIT_SUFFIX,
+} from "@/lib/pricing-config";
+import type { PriceSource } from "@/components/providers/PriceEstimate";
 import { getProfileCategoryFallbackImage } from "@/lib/types/provider";
 import ManagePageCTA from "@/components/providers/ManagePageCTA";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
@@ -131,7 +137,9 @@ interface ExtendedMetadata extends OrganizationMetadata, CaregiverMetadata {
   staff?: StaffInfo;
   badge?: string;
   accepted_payments?: string[];
-  pricing_details?: { service: string; rate: string; rateType: string }[];
+  pricing_details?: { service: string; rate: string; rateMin?: string; rateMax?: string; rateType: string }[];
+  /** Provider explicitly chose not to publish a price. Honoured on the public page. */
+  contact_for_pricing?: boolean;
   staff_screening?: { background_checked: boolean; licensed: boolean; insured: boolean };
   reviews?: { name: string; rating: number; date: string; comment: string; relationship?: string }[];
   community_score?: number;
@@ -284,43 +292,76 @@ export default async function ProviderPage({
   // 2. hourly_rate_min/max (legacy home care format)
   // 3. price_min/max with price_unit (fallback, e.g. when price_range wasn't set)
   // 4. Regional estimate (state/metro average) for non-Tier 3 categories
-  const priceUnitSuffix = meta?.price_unit === "HOUR" ? "/hr" : "/mo";
-  const priceRange = (() => {
-    // Primary: pre-formatted string from formatPriceRange
-    if (meta?.price_range) return meta.price_range;
+  // The billing unit for price_min/max. `price_unit` is frequently absent, and
+  // defaulting an absent unit to "/mo" silently republished hourly money as
+  // monthly. Fall back to the CATEGORY's default unit instead, which is the
+  // only defensible guess.
+  const priceUnitSuffix = (() => {
+    if (meta?.price_unit === "HOUR") return "/hr";
+    if (meta?.price_unit === "MONTH") return "/mo";
+    const categoryUnit = profile.category ? getPricingConfig(profile.category).unit : "month";
+    return RATE_UNIT_SUFFIX[categoryUnit];
+  })();
 
-    // Legacy hourly format
+  // Resolve the headline price AND where it came from. The source is
+  // load-bearing: a provider's own rate and a regional market average must not
+  // render identically (see PriceEstimate).
+  const priceResolution = ((): { text: string | null; source: PriceSource } => {
+    // 0. Provider explicitly opted out of publishing a price.
+    //    This wins over every other source INCLUDING the regional estimate --
+    //    showing a market average to a provider who chose "Contact for pricing"
+    //    overrides an explicit decision they made about their own business.
+    if (meta?.contact_for_pricing === true) {
+      return { text: null, source: "contact_only" };
+    }
+
+    // 1. Pre-formatted string from formatPriceRange
+    if (meta?.price_range) return { text: meta.price_range, source: "provider_reported" };
+
+    // 2. Legacy hourly format
     if (meta?.hourly_rate_min != null && meta?.hourly_rate_max != null) {
       if (meta.hourly_rate_max > meta.hourly_rate_min) {
-        return `$${meta.hourly_rate_min}-${meta.hourly_rate_max}/hr`;
+        return { text: `$${meta.hourly_rate_min}-${meta.hourly_rate_max}/hr`, source: "provider_reported" };
       }
       if (meta.hourly_rate_max === meta.hourly_rate_min) {
-        return `$${meta.hourly_rate_min}/hr`;
+        return { text: `$${meta.hourly_rate_min}/hr`, source: "provider_reported" };
       }
       // Invalid: max < min, fall through
     }
 
-    // Direct price_min/max fallback
+    // 3. Direct price_min/max
     if (meta?.price_min != null && meta?.price_max != null) {
       if (meta.price_max > meta.price_min) {
-        return `$${meta.price_min.toLocaleString()}-${meta.price_max.toLocaleString()}${priceUnitSuffix}`;
+        return { text: `$${meta.price_min.toLocaleString()}-${meta.price_max.toLocaleString()}${priceUnitSuffix}`, source: "provider_reported" };
       }
       if (meta.price_max === meta.price_min) {
-        return `$${meta.price_min.toLocaleString()}${priceUnitSuffix}`;
+        return { text: `$${meta.price_min.toLocaleString()}${priceUnitSuffix}`, source: "provider_reported" };
       }
       // Invalid: max < min, fall through
     }
 
-    // Single price fallbacks
+    // 4. Single price fallbacks
     if (meta?.price_min != null) {
-      return `From $${meta.price_min.toLocaleString()}${priceUnitSuffix}`;
+      return { text: `From $${meta.price_min.toLocaleString()}${priceUnitSuffix}`, source: "provider_reported" };
     }
     if (meta?.price_max != null) {
-      return `Up to $${meta.price_max.toLocaleString()}${priceUnitSuffix}`;
+      return { text: `Up to $${meta.price_max.toLocaleString()}${priceUnitSuffix}`, source: "provider_reported" };
     }
 
-    // Regional estimate fallback (match card behavior)
-    // Only for non-Tier 3 categories (Tier 3 = Medicare/Medicaid covered)
+    // 5. Derive from the provider's own service rows -- but only when those
+    //    rows are COMPARABLE (a single shared unit). summarizeProviderRates
+    //    returns null for mixed units, unreadable units, or rows with no
+    //    number, so a stray rateType on an empty rate can never mint a price.
+    //    Deriving here also stops a market average from masking bad provider
+    //    data: a provider quoting "per month" for home care now shows their
+    //    own implausible number instead of a plausible-looking regional one.
+    const derived = summarizeProviderRates(meta?.pricing_details, profile.category);
+    if (derived) {
+      return { text: derived.formatted, source: "provider_reported" };
+    }
+
+    // 6. Regional estimate -- an area benchmark, never the provider's price.
+    //    Only for non-Tier 3 categories (Tier 3 = Medicare/Medicaid covered).
     const tierConfig = profile.category ? getPricingConfig(profile.category) : null;
     if (tierConfig?.tier !== 3 && profile.state) {
       const regional = getRegionalEstimate(
@@ -329,12 +370,15 @@ export default async function ProviderPage({
         profile.city ?? undefined
       );
       if (regional) {
-        return regional.formatted;
+        return { text: regional.formatted, source: "regional_estimate" };
       }
     }
 
-    return null;
+    return { text: null, source: "contact_only" };
   })();
+
+  const priceRange = priceResolution.text;
+  const priceSource = priceResolution.source;
 
   const rating = meta?.rating;
   const images =
@@ -1120,6 +1164,7 @@ export default async function ProviderPage({
                   <PriceEstimate
                     priceRange={priceRange!}
                     category={profile.category ?? undefined}
+                    source={priceSource}
                     providerName={profile.display_name}
                     city={profile.city ?? undefined}
                     state={profile.state ?? undefined}

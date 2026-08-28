@@ -5,7 +5,7 @@ import figs_son as S1, figs_s2 as S2, figs_s4 as S4, figs_s5 as S5
 import figs_s6 as S6, figs_s7 as S7, figs_s8 as S8
 import figs_live as LV, figs_extra as EX
 
-FIGS = {'fig1': S1.fig1(), 'fig2': S1.fig2(), 'fig3': S1.fig3(),
+FIGS = {'fig1': S1.fig1(), 'fig2': S1.fig2(), 'fig3': LV.fig3(),
         'fig4': S2.fig4_combined(), 'fig5': LV.fig5(), 'fig6': LV.fig6(),
         'fig7': S4.fig7(), 'fig8': S5.fig8(), 'fig9a': S6.fig9(),
         'fig10b': S6.fig10(), 'figxproc': EX.market_process(),

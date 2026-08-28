@@ -16,6 +16,8 @@ from collections import Counter
 
 TRUTH = json.load(open('docx_truth.json'))
 KNOWN_FIGURE_TABLES = {38, 43}      # source tables now rendered as Figures 5 and 6
+# text the author asked to change, so it is expected not to match the source
+DIRECTED = {d['was']: d['now'] for d in json.load(open('convert_log.json'))['directed']}
 
 def norm(s):
     s = (s.replace('’', "'").replace('‘', "'").replace('“', '"').replace('”', '"')
@@ -32,6 +34,8 @@ def present(frag):
     f = norm(frag)
     if not f:
         return True
+    for was, now in DIRECTED.items():
+        f = f.replace(norm(was), norm(now))
     return f in pdf or re.sub(r'[^a-z0-9$%]', '', f.lower()) in pdfj
 
 SENT = re.compile(r'(?<=[.:;?])\s+(?=[A-Z(“"\d])')
@@ -57,7 +61,8 @@ for i, x in enumerate(TRUTH):
         if not present(u):
             missing.append(('sentence', i, u))
 
-print(f'CHECK 1  sentence and cell presence: {checked} units, {len(missing)} missing')
+print(f'CHECK 1  sentence and cell presence: {checked} units, {len(missing)} missing '
+      f'({len(DIRECTED)} author-directed text edits allowed for)')
 for k, i, t in missing:
     print(f'  MISSING {k} #{i}: {t[:250]}')
 
@@ -71,7 +76,10 @@ for i, x in enumerate(TRUTH):
     blob = (x['text'] + ' ' + ' '.join(x['tb'])) if x['k'] == 'p' else \
            ' '.join(''.join(t for t, _ in c) for r in x['grid'] for c in r)
     (figtext if i in KNOWN_FIGURE_TABLES else srctext).append(blob)
-sj, pj = Counter(jtoks('\n'.join(srctext))), Counter(jtoks(pdf))
+src_joined = '\n'.join(srctext)
+for was, now in DIRECTED.items():
+    src_joined = src_joined.replace(was, now)
+sj, pj = Counter(jtoks(src_joined)), Counter(jtoks(pdf))
 short = {w: (n, pj.get(w, 0)) for w, n in sj.items() if pj.get(w, 0) < n}
 print(f'\nCHECK 2  token accounting: {len(sj)} distinct tokens, {len(short)} short')
 for w, (a, b) in sorted(short.items(), key=lambda kv: kv[1][0] - kv[1][1], reverse=True):
@@ -103,7 +111,7 @@ print(f'  {bad} cross-reference tokens lost')
 
 srcfigs = [n for x in TRUTH if x['k'] == 'p' for n in x['imgs']]
 man = json.load(open('manifest_cp.json'))
-renfigs = [v for k, v, _ in man if k == 'FIG']
+renfigs = [v for k, v, _ in man if k in ('FIG', 'FIGFLOAT')]
 print(f'\nCHECK 4  figures: {len(srcfigs)} image anchors + {len(KNOWN_FIGURE_TABLES)} '
       f'figure-tables in the source = {len(srcfigs)+len(KNOWN_FIGURE_TABLES)}; '
       f'{len(renfigs)} figures in the render')

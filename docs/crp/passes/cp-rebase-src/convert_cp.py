@@ -20,7 +20,7 @@ import re, json, html
 
 TRUTH = json.load(open('docx_truth.json'))
 LOG = {'emdash': [], 'para_splits': [], 'caption_norm': [], 'dedup_caption': [],
-       'superscript': [], 'typos': [], 'notes': []}
+       'superscript': [], 'typos': [], 'directed': [], 'notes': []}
 
 def dedash(s, where):
     if '—' in s:
@@ -40,6 +40,20 @@ TYPO_FIX = [('.2. New workforce supply', '2. New workforce supply',
 # name when the section was pasted in, giving 'Year 2 (CRP)Validate free'.
 GLUED = re.compile(r'(\((?:post-)?CRP\))(?=[A-Z])')
 
+# Edits Logan asked for directly. Not rebase corrections: these change the live
+# document's text, so they are logged separately from the mechanical fixes.
+DIRECTED = [('VALUE OF THE CRP PROJECT, EXPECTED OUTCOMES, AND IMPACT - What does this CRP create?',
+             'VALUE OF THE CRP PROJECT, EXPECTED OUTCOMES, AND IMPACT - What does CRP create?',
+             'shortened so the section heading sets on one line')]
+
+def fix_directed(c, where):
+    for bad, good, note in DIRECTED:
+        if bad in c:
+            LOG['directed'].append({'where': where, 'was': bad, 'now': good, 'note': note})
+            c = c.replace(bad, good)
+    return c
+
+
 def fix_typos(c, where):
     if GLUED.search(c):
         LOG['typos'].append({'where': where, 'was': c[:40], 'now': GLUED.sub(r'\1\\n', c)[:42],
@@ -55,7 +69,7 @@ def fix_typos(c, where):
 def clean(s, where=''):
     s = (s.replace('’', "'").replace('‘', "'")
           .replace('“', '"').replace('”', '"'))
-    return fix_typos(dedash(s, where), where)
+    return fix_directed(fix_typos(dedash(s, where), where), where)
 
 CITE = re.compile(r'(?<=[a-zA-Z0-9%)])\.\s?(\d{1,2}(?:[,\u2013-]\s?\d{1,2})*)(?=\s+[A-Z(]|\s*\$|<|$)')
 # in Table 6 the reference numbers are glued straight onto the preceding word
@@ -98,10 +112,17 @@ IMGMAP = {'image11.png': 'FIG1', 'image20.png': 'FIG2', 'image18.png': 'FIG3',
           'image2.png': 'FIG12', 'image5.png': 'FIG13'}
 # Word floats these two above their anchoring paragraph
 BEFORE_ANCHOR = {'image18.png'}
+# The source anchors exactly these three with wrapSquare, right of the column,
+# so text runs beside them. Everything else is wrapTopAndBottom or inline.
+FLOAT_RIGHT = {'image11.png', 'image13.png', 'image21.png'}
 # source tables that hold figure content, replaced by the house figure
 TABLE_FIGS = {38: 'FIG5', 43: 'FIG6'}
 # the one source table whose first row is content, not a header
 NO_HEADER = {57}
+# The five remaining risks. The prose introduces them as a sequence, the next
+# paragraph says the order matters, and Figure 3 numbers them 1 to 5, so they
+# are set as a numbered list rather than five running paragraphs. Text unchanged.
+RISKS = [4, 5, 6, 7, 8]
 
 CAPLEAD = re.compile(r'^((?:Figure|Table)\s+(?:\d+|X)\s*[.:])\s*')
 
@@ -195,15 +216,30 @@ def mk_table(grid, no_header):
     return '\n'.join(out), ncol, len(body)
 
 
-def build(figmap):
+def build(figmap, figwidth):
     parts, manifest = [], []
     used = set()
 
+    def clearfix():
+        if parts and 'figwrap' in ''.join(parts[-6:]) and not parts[-1].startswith(
+                '<p class="clearfix"'):
+            parts.append('<p class="clearfix"></p>')
+
     def emit_fig(name, where):
+        clearfix()
         key = IMGMAP[name]
         used.add(key)
         parts.append(figmap[key])
         manifest.append(('FIG', key, where))
+
+    def float_caption(text, where):
+        t = re.sub(r'\s+', ' ', text).strip()
+        m = CAPLEAD.match(t)
+        if not m:
+            return f'<p class="caption">{esc(clean(t, where))}</p>'
+        manifest.append(('cap', t[:70], where))
+        return (f'<p class="caption"><b>{esc(m.group(1))}</b> '
+                f'{esc(clean(t[m.end():], where))}</p>')
 
     def emit_caption(text, where):
         t = re.sub(r'\s+', ' ', text).strip()
@@ -218,9 +254,27 @@ def build(figmap):
                          f'{esc(clean(rest, where))}</p>')
         manifest.append(('cap', t[:70], where))
 
+    pending_risks = []
+
+    def flush_risks():
+        if not pending_risks:
+            return
+        lis = []
+        for rs, w in pending_risks:
+            lead, bold = rs[0]
+            body = ''.join(t for t, _ in rs[1:])
+            lis.append(f'<li><b class="rk">{esc(clean(lead.strip(), w))}</b> '
+                       f'{esc(clean(body.strip(), w))}</li>')
+            manifest.append(('risk', lead.strip(), w))
+        parts.append('<ol class="risks">' + ''.join(lis) + '</ol>')
+        pending_risks.clear()
+
     for i, x in enumerate(TRUTH):
         where = f'#{i}'
+        if i not in RISKS:
+            flush_risks()
         if x['k'] == 'tbl':
+            clearfix()
             if i in TABLE_FIGS:
                 key = TABLE_FIGS[i]
                 used.add(key)
@@ -232,17 +286,45 @@ def build(figmap):
             manifest.append(('table', f'{nr}x{nc}', where))
             continue
 
+        if i in RISKS:
+            pending_risks.append((x['runs'], where))
+            continue
+
         runs, side = strip_inline_caption(x, where)
-        pre = [n for n in x['imgs'] if n in BEFORE_ANCHOR or side == 'before']
-        post = [n for n in x['imgs'] if n not in pre]
+        floats = [n for n in x['imgs'] if n in FLOAT_RIGHT]
+        rest = [n for n in x['imgs'] if n not in FLOAT_RIGHT]
+        pre = [n for n in rest if n in BEFORE_ANCHOR or side == 'before']
+        post = [n for n in rest if n not in pre]
+
+        # a float belongs before the text it wraps, unless the anchoring
+        # paragraph is itself a caption, in which case it would come between a
+        # table and its caption
+        text_is_caption = bool(x['text'].strip()) and CAPLEAD.match(x['text'].strip())
+        # the float owns the last caption on the item; the rest stay in place
+        tb = list(x['tb'])
+        float_caps = [tb.pop() for _ in floats] if floats else []
+
+        def emit_floats():
+            for n in floats:
+                key = IMGMAP[n]
+                used.add(key)
+                cap = float_caption(float_caps.pop(0), where) if float_caps else ''
+                w = figwidth[key]
+                parts.append(f'<div class="figwrap" style="width:{w}in">'
+                             f'{figmap[key]}{cap}</div>')
+                manifest.append(('FIGFLOAT', key, where))
+
+        if floats and not text_is_caption:
+            emit_floats()
         for n in pre:
             emit_fig(n, where)
-        for cap in (x['tb'] if pre and not post else []):
+        for cap in (tb if pre and not post else []):
             emit_caption(cap, where)
 
         text = ''.join(r[0] for r in runs).strip() if x['runs'] else x['text'].strip()
         if text:
             if i in HEADIDX:
+                clearfix()
                 parts.append(f'<h1 class="sechead">{esc(clean(text, where))}</h1>')
                 manifest.append(('head', text, where))
             elif CAPLEAD.match(text):
@@ -262,9 +344,32 @@ def build(figmap):
         for n in post:
             emit_fig(n, where)
         if post or not pre:
-            for cap in x['tb']:
+            for cap in tb:
                 emit_caption(cap, where)
+        if floats and text_is_caption:
+            emit_floats()
 
+    flush_risks()
     missing = set(figmap) - used
     assert not missing, f'figures never placed: {missing}'
-    return '\n\n'.join(parts), manifest
+    return '\n\n'.join(bind_captions(parts)), manifest
+
+
+def bind_captions(parts):
+    """Bind every figure and every short table to the caption that follows it.
+
+    A caption is useless on the page after its figure, and Chromium honours
+    break-inside on a wrapper far more reliably than break-before on a sibling.
+    Long tables are left alone: they are meant to break, and their header row
+    repeats."""
+    out, i = [], 0
+    while i < len(parts):
+        b = parts[i]
+        nxt = parts[i + 1] if i + 1 < len(parts) else ''
+        is_cap = nxt.startswith('<p class="caption"')
+        if b.startswith('<div class="fig">') and is_cap:
+            out.append(f'<div class="figblk">{b}{nxt}</div>'); i += 2; continue
+        if b.startswith('<table class="dat keep">') and is_cap:
+            out.append(f'<div class="figblk">{b}{nxt}</div>'); i += 2; continue
+        out.append(b); i += 1
+    return out

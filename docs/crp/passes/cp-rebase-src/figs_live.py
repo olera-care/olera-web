@@ -8,7 +8,7 @@ phrase). Because the live document is the baseline for this rebase, the strings
 below are taken verbatim from the live tables. Layout and palette are unchanged
 from the locked Section 3 figures, which are left untouched.
 """
-from figs_son import TEAL, GFILL, GREY, RULE, INK, _wrap, _t
+from figs_son import TEAL, GREEN, RED, GFILL, GREY, RULE, INK, _wrap, _t
 from figs_s3 import _box
 
 
@@ -101,4 +101,63 @@ def fig6():
                      f'stroke="{RULE}" stroke-width="0.6"/>')
     b.append(f'<line x1="{GX+3}" y1="6" x2="{colx(NC)-3}" y2="6" stroke="{RULE}" '
              f'stroke-width="1.2" marker-end="url(#sah)"/>')
+    return _wrap(W / 100, H / 100, "".join(b))
+
+
+# ------------------------------------------------------------------ FIGURE 3
+def fig3():
+    """7.2 x 2.18in. Re-cut so the red label clears the terrain and the right
+    wall climbs instead of sitting flat.
+
+    The climb is shaped like the revenue model the plan actually states: Year 1
+    is an engineering year and Year 2 deploys Staffing free, so the basin runs
+    flat through both; paid testing begins in Year 3, so the wall lifts there and
+    steepens toward the end of the award."""
+    T = _t
+    W, H = 720, 218
+    LX0, RX1 = 8, 712
+    VX0, VX1 = 176, 544
+    CLIMB = 402                      # where Year 3 lifts the wall
+    b = []
+
+    ridge = (f"M{LX0} 74 H126 C 182 74, 202 150, 256 152 "
+             f"C 306 153, 360 153, {CLIMB} 150 "
+             f"C 482 143, 546 123, 602 104 C 650 89, 682 80, {RX1} 76")
+    b.append(f'<path d="{ridge} V164 H{LX0} Z" fill="{GFILL}" stroke="none"/>')
+    b.append(f'<path d="{ridge}" fill="none" stroke="{TEAL}" stroke-width="1.4"/>')
+
+    for x0, anchor, eyebrow, head, hcol, lines in [
+        (LX0, "start", "TODAY", "Demonstrated demand", TEAL,
+         ["15,500+ monthly visitors", "CareNavigator usability validated",
+          "Staffing willingness to pay shown"]),
+        (RX1, "end", "AT CRP COMPLETION", "Commercial sustainability", GREEN,
+         ["Repeatable provider revenue", "Institutional evidence package",
+          "Positioned for private investment"])]:
+        b.append(T(x0, 13, eyebrow, 9.4, GREY, anchor=anchor, weight="bold", ls=1.0))
+        b.append(T(x0, 31, head, 12.0, hcol, anchor=anchor, weight="bold"))
+        for i, ln in enumerate(lines):
+            b.append(T(x0, 46 + i * 12.2, ln, 9.6, GREY, anchor=anchor))
+
+    # the basin is flat through Years 1 and 2, which is where the label belongs
+    b.append(T(300, 126, "VALLEY OF DEATH", 12.5, RED, weight="bold", ls=1.4))
+
+    # where the wall starts to climb
+    b.append(f'<line x1="{CLIMB}" y1="102" x2="{CLIMB}" y2="151" stroke="{GREY}" '
+             f'stroke-width="1.1" stroke-dasharray="4 3"/>')
+    b.append(T(CLIMB + 7, 92, "YEAR 3", 9.4, GREY, anchor="start", weight="bold", ls=0.9))
+    b.append(T(CLIMB + 7, 103, "paid testing begins", 9.2, GREY, anchor="start",
+               style="italic"))
+
+    seg = (VX1 - VX0) / 5.0
+    ty = 190
+    b.append(f'<line x1="{VX0}" y1="{ty}" x2="{VX1 + 12}" y2="{ty}" stroke="{TEAL}" '
+             f'stroke-width="1.3" marker-end="url(#sah)"/>')
+    for i, rk in enumerate(["Technical", "Validation", "Evidence", "Commercial", "Financing"]):
+        x = VX0 + seg * i + seg / 2
+        b.append(f'<circle cx="{x}" cy="{ty}" r="7.6" fill="#ffffff" stroke="{TEAL}" '
+                 f'stroke-width="1.3"/>')
+        b.append(T(x, ty + 3.6, str(i + 1), 9.8, TEAL, weight="bold"))
+        b.append(T(x, ty + 21, rk, 10.4, TEAL, weight="bold"))
+    b.append(T(360, 174, "THE FIVE REMAINING RISKS, RETIRED IN SEQUENCE", 9.4, GREY,
+               weight="bold", ls=0.8))
     return _wrap(W / 100, H / 100, "".join(b))

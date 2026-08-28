@@ -13,7 +13,7 @@ CSS = """
 * { box-sizing: border-box; }
 body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; line-height: 1.2;
        margin: 0; color: #000; }
-p { margin: 0 0 3pt 0; text-align: justify; }
+p { margin: 0 0 3pt 0; text-align: justify; orphans: 2; widows: 2; }
 p.sec { margin: 6pt 0 3pt 0; }
 p.caption { text-align: left; margin: 2pt 0 5pt 0; font-size: 9pt;
             break-before: avoid; page-break-before: avoid; }
@@ -26,6 +26,21 @@ h1.sechead:first-child { margin-top: 0; }
 sup { line-height: 0; font-size: 7.5pt; }
 div.fig { margin: 5pt 0 2pt 0; text-align: center; break-inside: avoid; page-break-inside: avoid; }
 div.fig svg, div.fig img { display: inline-block; max-width: 100%; }
+/* the three figures the source anchors with wrapSquare, right of the column */
+div.figwrap { float: right; margin: 2pt 0 5pt 13pt; break-inside: avoid;
+              page-break-inside: avoid; }
+div.figwrap svg, div.figwrap img { display: block; max-width: 100%; }
+div.figwrap div.fig { margin: 0; }
+div.figwrap p.caption { margin: 3pt 0 0 0; }
+p.clearfix { clear: both; margin: 0; height: 0; line-height: 0; }
+/* a figure and its caption are one indivisible block, as are short tables */
+div.figblk { break-inside: avoid; page-break-inside: avoid; margin: 0; }
+div.figblk table.dat { margin-bottom: 0; }
+ol.risks { margin: 6pt 0 3pt 0; padding: 0 0 0 20pt; }
+ol.risks li { margin: 0 0 3pt 0; text-align: justify; padding-left: 2pt;
+              break-inside: avoid; page-break-inside: avoid; }
+ol.risks li::marker { font-weight: bold; color: #14453f; }
+ol.risks b.rk { color: #14453f; }
 table.dat { width: 100%; border-collapse: collapse; font-size: 9pt; line-height: 1.16;
             margin: 6pt 0 2pt 0; }
 table.dat thead { display: table-header-group; }
@@ -40,34 +55,37 @@ table.dat tbody tr:last-child td { border-bottom: 1pt solid #14453f; }
 table.dat.keep { break-inside: avoid; page-break-inside: avoid; }
 """
 
-def figblock(svg, png):
+FIGW = {}
+
+def figblock(svg, png, key):
     """Width comes from the figure's own viewBox, so the Word export matches the
     PDF instead of stretching every figure to the text column."""
     m = re.search(r'viewBox="0 0 ([\d.]+) ([\d.]+)"', svg)
     w = float(m.group(1)) / 100.0
+    FIGW[key] = w
     inner = f'<img src="png/{png}.png" style="width:{w}in">' if WORD else svg
     return f'<div class="fig">{inner}</div>'
 
 FIGMAP = {
-    'FIG1':     figblock(S1.fig1(), 'fig1'),
-    'FIG2':     figblock(S1.fig2(), 'fig2'),
-    'FIG3':     figblock(S1.fig3(), 'fig3'),
-    'FIG4':     figblock(S2.fig4_combined(), 'fig4'),
-    'FIG5':     figblock(LV.fig5(), 'fig5'),
-    'FIG6':     figblock(LV.fig6(), 'fig6'),
-    'FIG7':     figblock(S4.fig7(), 'fig7'),
-    'FIG8':     figblock(S5.fig8(), 'fig8'),
-    'FIG9A':    figblock(S6.fig9(), 'fig9a'),
-    'FIG10B':   figblock(S6.fig10(), 'fig10b'),
-    'FIGXPROC': figblock(EX.market_process(), 'figxproc'),
-    'CHAIN':    figblock(S7.chain(), 'chain'),
-    'FIGXORG':  figblock(EX.organic(), 'figxorg'),
-    'FIG11':    figblock(S7.fig11(), 'fig11'),
-    'FIG12':    figblock(S7.fig12(), 'fig12'),
-    'FIG13':    figblock(S8.fig13(), 'fig13'),
+    'FIG1':     figblock(S1.fig1(), 'fig1', 'FIG1'),
+    'FIG2':     figblock(S1.fig2(), 'fig2', 'FIG2'),
+    'FIG3':     figblock(LV.fig3(), 'fig3', 'FIG3'),
+    'FIG4':     figblock(S2.fig4_combined(), 'fig4', 'FIG4'),
+    'FIG5':     figblock(LV.fig5(), 'fig5', 'FIG5'),
+    'FIG6':     figblock(LV.fig6(), 'fig6', 'FIG6'),
+    'FIG7':     figblock(S4.fig7(), 'fig7', 'FIG7'),
+    'FIG8':     figblock(S5.fig8(), 'fig8', 'FIG8'),
+    'FIG9A':    figblock(S6.fig9(), 'fig9a', 'FIG9A'),
+    'FIG10B':   figblock(S6.fig10(), 'fig10b', 'FIG10B'),
+    'FIGXPROC': figblock(EX.market_process(), 'figxproc', 'FIGXPROC'),
+    'CHAIN':    figblock(S7.chain(), 'chain', 'CHAIN'),
+    'FIGXORG':  figblock(EX.organic(), 'figxorg', 'FIGXORG'),
+    'FIG11':    figblock(S7.fig11(), 'fig11', 'FIG11'),
+    'FIG12':    figblock(S7.fig12(), 'fig12', 'FIG12'),
+    'FIG13':    figblock(S8.fig13(), 'fig13', 'FIG13'),
 }
 
-BODY, MANIFEST = C.build(FIGMAP)
+BODY, MANIFEST = C.build(FIGMAP, FIGW)
 
 DOC = f"""<meta charset="utf-8"><title>Olera CRP Commercialization Plan, rebased</title>
 <style>{CSS}</style>

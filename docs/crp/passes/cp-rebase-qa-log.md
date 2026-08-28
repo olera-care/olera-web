@@ -4,7 +4,7 @@
 **Baseline:** `3. Commercialization Plan`, Google Drive fileId `1VutumddG9xH-UO3UBklUKsLvMnw0drwn`,
 `application/vnd.openxmlformats-officedocument.wordprocessingml.document`, 1,011,546 bytes,
 modified `2026-08-28T16:22:24.294Z`.
-**Outputs:** `Olera_CRP_CommercializationPlan_rebased.pdf` and `.docx` (20 pages each).
+**Outputs:** `Olera_CRP_CommercializationPlan_rebased.pdf` (20 pp) and `.docx` (19 pp).
 **Build:** `cp-rebase-src/` (`inspect_truth.py` → `convert_cp.py` → `build_cp.py` → `diff_cp.py`).
 
 The prior workspace Commercialization Plan was discarded. Nothing was merged forward from it.
@@ -94,6 +94,26 @@ in `cp-rebase-src/convert_log.json`.
 | M6 | Each floating caption appears twice in the source, once in the figure's text box and once as an inline run of the anchoring paragraph. The inline duplicate was dropped, the text-box copy kept, on the side the author placed it | Figures 1, 2, 3, 4, 10 flywheel, both Figure X | 7 |
 | M7 | "Digital product and AI infrastructure" and "Data and workforce infrastructure" are one paragraph with two bold run-in labels in the source; split into two paragraphs, matching how Word displays them | item 87 | 1 |
 | M8 | Markdown heading marker stripped from the Production and Marketing heading | item 85 | 1 |
+
+### Layout, added 2026-08-28 after review
+
+| # | Change | Basis |
+|---|---|---|
+| L1 | Figures 1, 10 (flywheel) and X (organic traffic) now float right with text wrapping around them | the source anchors exactly these three `wrapSquare`; every other image is `wrapTopAndBottom` or inline |
+| L2 | Figure X (organic traffic) redrawn at 2.68 x 2.09 in | the size the source floats it at; it had been stretched to full width |
+| L3 | Every figure and every short table is bound to its caption in one unbreakable block | a caption on the page after its figure |
+| L4 | The five remaining risks set as a numbered list | the prose introduces them as a sequence, the next paragraph says the order matters, and Figure 3 numbers them 1 to 5. Text unchanged |
+| L5 | Orphan and widow control on paragraphs, list items kept whole | single stranded lines |
+| L6 | Figure 3 re-cut: the red label cleared the terrain line, and the right wall now climbs instead of sitting flat, lifting at Year 3 where the plan's own model starts paid testing | requested |
+
+### Author-directed text edits
+
+These change the live document's words, so they are logged apart from the mechanical fixes and
+the completeness check allows for them explicitly.
+
+| # | Was | Now | Why |
+|---|---|---|---|
+| D1 | "…AND IMPACT - What does this CRP create?" | "…AND IMPACT - What does CRP create?" | so the section heading sets on one line |
 
 Typographic decisions that are presentation only, applied uniformly: bold run-ins reproduced from
 the source's own runs rather than inferred; captions set 9 pt with the label in teal; tables set

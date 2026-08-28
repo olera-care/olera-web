@@ -5,18 +5,18 @@
   "#0"
  ],
  [
-  "para",
-  "The product and its impact. Older Americans and their famili",
+  "cap",
+  "Figure 1. Unmet eldercare needs can drive a vicious cycle of hospitali",
   "#1"
  ],
  [
-  "FIG",
+  "FIGFLOAT",
   "FIG1",
   "#1"
  ],
  [
-  "cap",
-  "Figure 1. Unmet eldercare needs can drive a vicious cycle of hospitali",
+  "para",
+  "The product and its impact. Older Americans and their famili",
   "#1"
  ],
  [
@@ -40,28 +40,28 @@
   "#3"
  ],
  [
-  "para",
-  "Technical risk. Can CareNavigator execute and track care est",
+  "risk",
+  "Technical risk.",
   "#4"
  ],
  [
-  "para",
-  "Real-world validation risk. Does the complete pathway work i",
+  "risk",
+  "Real-world validation risk.",
   "#5"
  ],
  [
-  "para",
-  "Evidence risk. Does establishing care produce outcomes and e",
+  "risk",
+  "Evidence risk.",
   "#6"
  ],
  [
-  "para",
-  "Commercial risk. Can the value created support durable reven",
+  "risk",
+  "Commercial risk.",
   "#7"
  ],
  [
-  "para",
-  "Financing risk. Is Olera investable when CRP ends? Convert t",
+  "risk",
+  "Financing risk.",
   "#8"
  ],
  [
@@ -455,18 +455,18 @@
   "#82"
  ],
  [
-  "para",
-  "Use of post-CRP capital. Third-party capital accelerates bot",
+  "cap",
+  "Figure 10. Post-CRP growth flywheel.",
   "#83"
  ],
  [
-  "FIG",
+  "FIGFLOAT",
   "FIG10B",
   "#83"
  ],
  [
-  "cap",
-  "Figure 10. Post-CRP growth flywheel.",
+  "para",
+  "Use of post-CRP capital. Third-party capital accelerates bot",
   "#83"
  ],
  [
@@ -525,13 +525,13 @@
   "#91"
  ],
  [
-  "FIG",
-  "FIGXORG",
+  "cap",
+  "Figure X. Organic traffic growth, 2023\u20132026.",
   "#91"
  ],
  [
-  "cap",
-  "Figure X. Organic traffic growth, 2023\u20132026.",
+  "FIGFLOAT",
+  "FIGXORG",
   "#91"
  ],
  [

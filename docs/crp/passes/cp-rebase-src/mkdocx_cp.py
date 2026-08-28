@@ -10,6 +10,51 @@ from docx.oxml import OxmlElement
 TEAL = RGBColor(0x14, 0x45, 0x3F); BLACK = RGBColor(0, 0, 0)
 SRC = open('cp_word.html', encoding='utf-8').read()
 
+
+def _match(html, start):
+    """Index just past the </div> that closes the <div ...> beginning at start."""
+    i, depth = start, 0
+    while i < len(html):
+        if html.startswith('<div', i):
+            depth += 1; i += 4
+        elif html.startswith('</div>', i):
+            depth -= 1; i += 6
+            if depth == 0:
+                return i
+        else:
+            i += 1
+    raise AssertionError('unclosed div')
+
+
+def flatten(html):
+    """Nested divs defeat a regex block split, so normalise them first.
+
+    A figblk is only a page-break wrapper and can be dropped: the Word export
+    keeps a figure with its caption through keep_with_next. A figwrap becomes a
+    single flat marker carrying the float width, the image and the caption."""
+    out = []
+    i = 0
+    while i < len(html):
+        if html.startswith('<div class="figblk">', i):
+            end = _match(html, i)
+            out.append(flatten(html[i + len('<div class="figblk">'):end - 6]))
+            i = end
+        elif html.startswith('<div class="figwrap"', i):
+            end = _match(html, i)
+            blk = html[i:end]
+            w = re.search(r'width:([\d.]+)in', blk).group(1)
+            img = re.search(r'<img[^>]*>', blk).group(0)
+            cap = re.search(r'<p class="caption">(.*?)</p>', blk, re.S)
+            out.append(f'<div class="figfloat" data-w="{w}">{img}'
+                       f'<p class="caption">{cap.group(1) if cap else ""}</p></div>')
+            i = end
+        else:
+            out.append(html[i]); i += 1
+    return ''.join(out)
+
+
+SRC = flatten(SRC)
+
 doc = Document()
 sec = doc.sections[0]
 sec.page_width, sec.page_height = Inches(8.5), Inches(11)
@@ -174,7 +219,7 @@ def build_table(thtml, keep=False, plain=False):
                 cell_border(cell, 'bottom', 2, 'B9C4BD')
     return tbl
 
-BLOCK = re.compile(r'(<h1[^>]*>.*?</h1>|<div class="figfloat".*?</div>|'
+BLOCK = re.compile(r'(<h1[^>]*>.*?</h1>|<div class="figfloat"[^>]*>.*?</div>|'
                    r'<div class="fig">.*?</div>|<div class="chain">.*?</div>|'
                    r'<ol class="risks">.*?</ol>|'
                    r'<table[^>]*>.*?</table>|<p[^>]*>.*?</p>)', re.S)
@@ -195,9 +240,10 @@ while i < len(blocks):
         border(p, 'bottom', 12, '000000')
 
     elif b.startswith('<div class="figfloat"'):
-        img = re.search(r'src="([^"]+)"[^>]*style="width:([\d.]+)in"', b)
+        img = re.search(r'src="([^"]+)"', b)
+        w = float(re.search(r'data-w="([\d.]+)"', b).group(1))
         cap = re.search(r'<p class="caption">(.*?)</p>', b, re.S)
-        add_figure(img.group(1), float(img.group(2)), cap.group(1), floated=True)
+        add_figure(img.group(1), w, cap.group(1), floated=True)
 
     elif b.startswith('<div class="chain">'):
         img = re.search(r'src="([^"]+)"[^>]*style="width:([\d.]+)in"', b)

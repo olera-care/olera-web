@@ -10,35 +10,39 @@ from figs_son import TEAL, GFILL, GREY, RULE, INK, _wrap, _t
 
 
 def organic():
-    """7.2 x 1.62in. Organic visitors per day, 2023 to 2026. Redraw of image21.png."""
-    W, H = 720, 162
-    L, R, TOP, BOT = 74, 700, 46, 132
+    """2.68 x 2.09in, the size and proportions the live document floats it at.
+
+    Redraw of image21.png: same series, same two labelled endpoints, same
+    subtitle. Narrow enough for text to wrap around it, which is how the source
+    anchors it (wrapSquare, right of the column)."""
+    W, H = 268, 209
+    L, R, TOP, BOT = 34, 262, 62, 168
     VMAX = 560.0
     pts = [(2023.0, 50), (2023.4, 68), (2023.8, 92), (2024.2, 124), (2024.6, 165),
            (2025.0, 218), (2025.4, 292), (2025.7, 372), (2026.0, 500)]
     def px(yr): return L + (yr - 2023.0) / 3.0 * (R - L)
     def py(v):  return BOT - (v / VMAX) * (BOT - TOP)
     b = []
-    b.append(_t(L - 30, 18, "Organic visitors per day", 11.0, INK, anchor="start", weight="bold"))
-    b.append(_t(L - 30, 32, "zero paid acquisition · search infrastructure built from zero",
-                9.2, GREY, anchor="start"))
+    b.append(_t(2, 14, "Organic visitors per day", 10.0, INK, anchor="start", weight="bold"))
+    b.append(_t(2, 26, "zero paid acquisition", 8.4, GREY, anchor="start"))
+    b.append(_t(2, 36, "search infrastructure built from zero", 8.4, GREY, anchor="start"))
     for g, lab in ((0, "0"), (250, "250"), (500, "500+")):
         y = py(g)
         b.append(f'<line x1="{L}" y1="{y:.1f}" x2="{R}" y2="{y:.1f}" stroke="{RULE}" '
                  f'stroke-width="{1.0 if g == 0 else 0.5}"/>')
-        b.append(_t(L - 7, y + 3.4, lab, 9.0, GREY, anchor="end"))
-    b.append(f'<line x1="{L}" y1="{TOP-6}" x2="{L}" y2="{py(0):.1f}" stroke="{RULE}" stroke-width="1.0"/>')
+        b.append(_t(L - 5, y + 3.0, lab, 8.0, GREY, anchor="end"))
+    b.append(f'<line x1="{L}" y1="{TOP-4}" x2="{L}" y2="{py(0):.1f}" stroke="{RULE}" stroke-width="1.0"/>')
     for yr in (2023, 2024, 2025, 2026):
-        b.append(_t(px(yr), BOT + 15, str(yr), 9.0, GREY))
+        b.append(_t(px(yr), BOT + 13, str(yr), 8.0, GREY))
     poly = " ".join(f"{px(x):.1f},{py(v):.1f}" for x, v in pts)
     b.append(f'<polygon points="{px(2023.0):.1f},{py(0):.1f} {poly} {px(2026.0):.1f},{py(0):.1f}" '
              f'fill="{GFILL}" stroke="none"/>')
-    b.append(f'<polyline points="{poly}" fill="none" stroke="{TEAL}" stroke-width="1.8" '
+    b.append(f'<polyline points="{poly}" fill="none" stroke="{TEAL}" stroke-width="1.7" '
              f'stroke-linejoin="round" stroke-linecap="round"/>')
-    b.append(f'<circle cx="{px(2023.0):.1f}" cy="{py(50):.1f}" r="3.6" fill="{TEAL}"/>')
-    b.append(_t(px(2023.0) + 52, py(50) - 9, "≈50/day (2023)", 9.5, INK, weight="bold"))
-    b.append(f'<circle cx="{px(2026.0):.1f}" cy="{py(500):.1f}" r="3.6" fill="{TEAL}"/>')
-    b.append(_t(px(2026.0) - 52, py(500) - 10, "500+/day (2026)", 9.5, INK, weight="bold"))
+    b.append(f'<circle cx="{px(2023.0):.1f}" cy="{py(50):.1f}" r="3.0" fill="{TEAL}"/>')
+    b.append(_t(px(2023.0) + 44, py(50) - 8, "\u224850/day (2023)", 8.6, INK, weight="bold"))
+    b.append(f'<circle cx="{px(2026.0):.1f}" cy="{py(500):.1f}" r="3.0" fill="{TEAL}"/>')
+    b.append(_t(px(2026.0) - 44, py(500) - 9, "500+/day (2026)", 8.6, INK, weight="bold"))
     return _wrap(W / 100, H / 100, "".join(b))
 
 

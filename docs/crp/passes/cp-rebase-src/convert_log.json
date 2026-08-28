@@ -234,5 +234,13 @@
    "note": "missing line break between the year label and the stage name"
   }
  ],
+ "directed": [
+  {
+   "where": "#16",
+   "was": "VALUE OF THE CRP PROJECT, EXPECTED OUTCOMES, AND IMPACT - What does this CRP create?",
+   "now": "VALUE OF THE CRP PROJECT, EXPECTED OUTCOMES, AND IMPACT - What does CRP create?",
+   "note": "shortened so the section heading sets on one line"
+  }
+ ],
  "notes": []
 }

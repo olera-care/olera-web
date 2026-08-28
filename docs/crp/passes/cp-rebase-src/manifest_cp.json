@@ -1,7 +1,7 @@
 [
  [
   "head",
-  "STATEMENT OF NEED - Why does Olera need CRP?",
+  "1. Statement of Need",
   "#0"
  ],
  [
@@ -25,18 +25,18 @@
   "#2"
  ],
  [
-  "para",
-  "Olera's Valley of Death (Figure 3). CareNavigator is deploye",
-  "#3"
- ],
- [
   "FIG",
-  "FIG2",
+  "FIG3",
   "#3"
  ],
  [
   "cap",
-  "Figure 2. Care establishment requires a coordinated pathway from asses",
+  "Figure 2. CRP bridges the five remaining risks between demonstrated de",
+  "#3"
+ ],
+ [
+  "para",
+  "Olera's Valley of Death (Figure 2). CareNavigator is deploye",
   "#3"
  ],
  [
@@ -66,26 +66,6 @@
  ],
  [
   "para",
-  "The order matters: the pathway cannot be measured until it c",
-  "#9"
- ],
- [
-  "FIG",
-  "FIG3",
-  "#10"
- ],
- [
-  "cap",
-  "Figure 3. CRP bridges the remaining technical, validation, evidence, c",
-  "#10"
- ],
- [
-  "para",
-  "Therefore, Olera's Valley of Death is the gap between demons",
-  "#10"
- ],
- [
-  "para",
   "Why government funding is the right instrument at this stage",
   "#11"
  ],
@@ -105,13 +85,8 @@
   "#14"
  ],
  [
-  "para",
-  "Together, these aims advance Olera from a nationally deploye",
-  "#15"
- ],
- [
   "head",
-  "VALUE OF THE CRP PROJECT, EXPECTED OUTCOMES, AND IMPACT - What does this CRP create?",
+  "2. Value of the CRP Project, Expected Outcomes, and Impact",
   "#16"
  ],
  [
@@ -131,7 +106,7 @@
  ],
  [
   "cap",
-  "Figure 4. What a family sees, what the system does, and what accumulat",
+  "Figure 3. What a family sees, what the system does, and what accumulat",
   "#18"
  ],
  [
@@ -146,7 +121,7 @@
  ],
  [
   "table",
-  "7x4",
+  "7x3",
   "#21"
  ],
  [
@@ -185,13 +160,8 @@
   "#28"
  ],
  [
-  "para",
-  "Integration with Olera's business plan. These CRP outputs in",
-  "#29"
- ],
- [
   "head",
-  "COMPANY - Can this company actually execute that transition and survive afterward?",
+  "3. Company",
   "#30"
  ],
  [
@@ -206,12 +176,12 @@
  ],
  [
   "table",
-  "11x2",
+  "8x2",
   "#33"
  ],
  [
   "cap",
-  "Table 4. Olera at a glance: present size, operating continuity, fundin",
+  "Table 3. Olera at a glance.",
   "#34"
  ],
  [
@@ -221,48 +191,18 @@
  ],
  [
   "para",
-  "Key research, operations, engineering, marketing, and scient",
-  "#36"
- ],
- [
-  "para",
-  "Olera's progression from R&amp;D to commercial scale.",
-  "#37"
- ],
- [
-  "FIG",
-  "FIG5",
-  "#38"
- ],
- [
-  "cap",
-  "Figure 5. Olera's progression from problem discovery through federal R",
-  "#39"
- ],
- [
-  "para",
-  "This progression is the company's commercialization history ",
+  "Olera's progression from R&amp;D to commercial scale. Early ",
   "#40"
  ],
  [
   "para",
-  "Vision, sustainability, and management evolution. Olera scal",
+  "Vision, sustainability, and management evolution. Today, the",
   "#41"
  ],
  [
   "para",
   "The lean internal team is complemented by senior expertise a",
   "#42"
- ],
- [
-  "FIG",
-  "FIG6",
-  "#43"
- ],
- [
-  "cap",
-  "Figure 6. Management capacity scales against validated commercial need",
-  "#44"
  ],
  [
   "para",
@@ -281,12 +221,12 @@
  ],
  [
   "cap",
-  "Table 5: SBIR/STTR Commercialization History",
+  "Table 4. SBIR/STTR commercialization history.",
   "#48"
  ],
  [
   "head",
-  "4. MARKET, CUSTOMER, AND COMPETITION - Who is going to buy this?",
+  "4. Market, Customer, and Competition",
   "#49"
  ],
  [
@@ -305,23 +245,13 @@
   "#52"
  ],
  [
-  "FIG",
-  "FIG7",
-  "#53"
- ],
- [
-  "cap",
-  "Figure 7. Olera's provider beachhead addresses a recurring staffing ex",
-  "#54"
- ],
- [
   "para",
-  "Market opportunity and path to meaningful scale. The two mar",
+  "Market opportunity and path to meaningful scale. Caregiver S",
   "#55"
  ],
  [
   "para",
-  "Significant advantages and competitive position. Sections 1 ",
+  "Significant advantages and competitive position. The remaini",
   "#56"
  ],
  [
@@ -356,7 +286,7 @@
  ],
  [
   "cap",
-  "Table 4. Principal market-acceptance uncertainties and the CRP activit",
+  "Table 5. Principal market-acceptance uncertainties and the CRP activit",
   "#63"
  ],
  [
@@ -370,13 +300,8 @@
   "#65"
  ],
  [
-  "para",
-  "Taken together, Olera is entering two commercially substanti",
-  "#66"
- ],
- [
   "head",
-  "5. INTELLECTUAL PROPERTY PROTECTION - How will we protect  IP?",
+  "5. Intellectual Property Protection",
   "#67"
  ],
  [
@@ -385,28 +310,13 @@
   "#68"
  ],
  [
-  "FIG",
-  "FIG8",
-  "#69"
- ],
- [
-  "cap",
-  "Figure 8. Formal protections secure specific Olera assets, while cumul",
-  "#70"
- ],
- [
   "para",
   "Temporal barriers to replication. Individual interface featu",
   "#71"
  ],
  [
-  "para",
-  "Working legal basis for drafting. USPTO guidance distinguish",
-  "#72"
- ],
- [
   "head",
-  "7. FINANCE PLAN - How will Olera secure the capital needed after CRP funding ends?",
+  "6. Finance Plan",
   "#73"
  ],
  [
@@ -420,29 +330,9 @@
   "#75"
  ],
  [
-  "FIG",
-  "FIG9A",
-  "#76"
- ],
- [
-  "cap",
-  "Figure 10. Financing transition from CRP validation to post-CRP commer",
-  "#77"
- ],
- [
   "para",
   "Fundraising Plan. Olera will begin financing its next stage ",
   "#78"
- ],
- [
-  "table",
-  "3x3",
-  "#79"
- ],
- [
-  "cap",
-  "Table 5. Fundraising plan for uninterrupted post-CRP commercialization",
-  "#80"
  ],
  [
   "para",
@@ -456,7 +346,7 @@
  ],
  [
   "cap",
-  "Figure 10. Post-CRP growth flywheel.",
+  "Figure 4. Post-CRP growth flywheel.",
   "#83"
  ],
  [
@@ -466,17 +356,17 @@
  ],
  [
   "para",
-  "Use of post-CRP capital. Third-party capital accelerates bot",
+  "Use of post-CRP capital. The raise is intentionally larger t",
   "#83"
  ],
  [
   "para",
-  "Financing continuity. Commercial revenue provides validation",
+  "Financing continuity. If financing takes longer than expecte",
   "#84"
  ],
  [
   "head",
-  "9. PRODUCTION AND MARKETING PLAN - How will Olera produce and sell this at scale?",
+  "7. Production and Marketing Plan",
   "#85"
  ],
  [
@@ -492,16 +382,6 @@
  [
   "para",
   "Data and workforce infrastructure. Olera's provider and bene",
-  "#87"
- ],
- [
-  "FIG",
-  "FIGXPROC",
-  "#87"
- ],
- [
-  "cap",
-  "Figure X. Olera's repeatable process for producing and activating a lo",
   "#87"
  ],
  [
@@ -521,12 +401,12 @@
  ],
  [
   "cap",
-  "Table X. Olera uses distinct but coordinated acquisition channels to c",
+  "Table 6. Olera uses distinct but coordinated acquisition channels to c",
   "#91"
  ],
  [
   "cap",
-  "Figure X. Organic traffic growth, 2023\u20132026.",
+  "Figure 5. Organic traffic growth, 2023\u20132026.",
   "#91"
  ],
  [
@@ -551,17 +431,17 @@
  ],
  [
   "para",
-  "Scaling the production and commercial system. The operating ",
+  "Scaling the production and commercial system. The CRP does n",
   "#95"
  ],
  [
   "head",
-  "9. REVENUE STREAM - What is the commercial opportunity?",
+  "8. Revenue Stream",
   "#96"
  ],
  [
   "para",
-  "Two revenue engines, sequenced by evidence. Olera's revenue ",
+  "Two revenue engines, sequenced by evidence. CareNavigator re",
   "#97"
  ],
  [
@@ -571,28 +451,18 @@
  ],
  [
   "table",
-  "10x4",
+  "7x4",
   "#99"
  ],
  [
   "cap",
-  "Table 6. The projection separates published benchmarks from Olera plan",
+  "Table 7. The projection separates published benchmarks from Olera assu",
   "#100"
  ],
  [
   "para",
   "For the financial projection, Olera holds every paid market ",
   "#101"
- ],
- [
-  "FIG",
-  "FIG11",
-  "#102"
- ],
- [
-  "cap",
-  "Figure 11. Replication economics at the deliberately conservative 10-h",
-  "#103"
  ],
  [
   "para",
@@ -603,11 +473,6 @@
   "para",
   "Institutional CareNavigator: contracts follow outcomes evide",
   "#105"
- ],
- [
-  "FIG",
-  "CHAIN",
-  "#106"
  ],
  [
   "para",
@@ -621,22 +486,12 @@
  ],
  [
   "cap",
-  "Table 7. Illustrative base case through post-CRP Year 4. The final col",
+  "Table 8. Illustrative base case through post-CRP Year 4, with the fina",
   "#109"
  ],
  [
-  "FIG",
-  "FIG12",
-  "#110"
- ],
- [
-  "cap",
-  "Figure 12. Revenue is intentionally back-loaded: Year 1 builds the sys",
-  "#111"
- ],
- [
   "para",
-  "How the projection should be read. These projections are not",
+  "How the projection should be read. These are bottom-up scena",
   "#112"
  ],
  [
@@ -651,7 +506,7 @@
  ],
  [
   "head",
-  "11. PROJECT MANAGEMENT PLAN",
+  "9. Project Management Plan",
   "#115"
  ],
  [
@@ -666,32 +521,17 @@
  ],
  [
   "para",
-  "Commercialization timeline and gates. The first three years ",
+  "Commercialization timeline and gates. The detailed experimen",
   "#118"
  ],
  [
-  "FIG",
-  "FIG13",
-  "#119"
- ],
- [
-  "cap",
-  "Figure 13. Five commercialization stages and the four decisions betwee",
-  "#120"
- ],
- [
   "table",
-  "5x4",
+  "5x3",
   "#121"
  ],
  [
   "cap",
-  "Table 8. Five-year research-to-commercialization management timeline. ",
+  "Table 9. Five-year commercialization management timeline. Revenue valu",
   "#122"
- ],
- [
-  "para",
-  "Together, these gates ensure that commercialization advances",
-  "#123"
  ]
 ]

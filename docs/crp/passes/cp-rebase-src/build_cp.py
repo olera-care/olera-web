@@ -12,12 +12,12 @@ CSS = """
 body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; line-height: 1.2;
        margin: 0; color: #000; }
 p { margin: 0 0 3pt 0; text-align: justify; orphans: 2; widows: 2; }
-p.sec { margin: 6pt 0 3pt 0; }
-p.caption { text-align: left; margin: 2pt 0 5pt 0; font-size: 9pt;
+p.sec { margin: 5pt 0 2pt 0; }
+p.caption { text-align: left; margin: 2pt 0 4pt 0; font-size: 9pt;
             break-before: avoid; page-break-before: avoid; }
 p.caption b { color: #14453f; }
 h1.sechead { font-size: 11pt; font-weight: bold;
-             letter-spacing: 0.3pt; margin: 11pt 0 5pt 0; text-align: left;
+             letter-spacing: 0.3pt; margin: 8pt 0 4pt 0; text-align: left;
              border-bottom: 1.2pt solid #000; padding-bottom: 2pt;
              break-after: avoid; page-break-after: avoid; }
 h1.sechead:first-child { margin-top: 0; }
@@ -66,23 +66,13 @@ def figblock(svg, png, key):
     inner = f'<img src="png/{png}.png" style="width:{w}in">' if WORD else svg
     return f'<div class="fig">{inner}</div>'
 
+# The six figures that survive Pass 1, renumbered in document order.
 FIGMAP = {
-    'FIG1':     figblock(N.fig1(), 'fig1', 'FIG1'),
-    'FIG2':     figblock(N.fig2(), 'fig2', 'FIG2'),
-    'FIG3':     figblock(N.fig3(), 'fig3', 'FIG3'),
-    'FIG4':     figblock(N.fig4(), 'fig4', 'FIG4'),
-    'FIG5':     figblock(N.fig5(), 'fig5', 'FIG5'),
-    'FIG6':     figblock(N.fig6(), 'fig6', 'FIG6'),
-    'FIG7':     figblock(N.fig7(), 'fig7', 'FIG7'),
-    'FIG8':     figblock(N.fig8(), 'fig8', 'FIG8'),
-    'FIG9A':    figblock(N.fig9(), 'fig9a', 'FIG9A'),
-    'FIG10B':   figblock(N.fig10_flywheel(), 'fig10b', 'FIG10B'),
-    'FIGXPROC': figblock(N.market_process(), 'figxproc', 'FIGXPROC'),
-    'CHAIN':    figblock(N.chain(), 'chain', 'CHAIN'),
-    'FIGXORG':  figblock(N.organic(), 'figxorg', 'FIGXORG'),
-    'FIG11':    figblock(N.fig11(), 'fig11', 'FIG11'),
-    'FIG12':    figblock(N.fig12(), 'fig12', 'FIG12'),
-    'FIG13':    figblock(N.fig13(), 'fig13', 'FIG13'),
+    'FIG1':   figblock(N.fig1(), 'fig1', 'FIG1'),               # 1, vicious cycle, floated
+    'FIG3':   figblock(N.fig3(), 'fig3', 'FIG3'),               # 2, valley of death
+    'FIG4':   figblock(N.fig4(), 'fig4', 'FIG4'),               # 3, product and county
+    'FIG10B': figblock(N.fig10_flywheel(), 'fig10b', 'FIG10B'), # 4, growth flywheel, floated
+    'FIGXORG': figblock(N.organic(), 'figxorg', 'FIGXORG'),     # 5, organic traffic, floated
 }
 
 BODY, MANIFEST = C.build(FIGMAP, FIGW)

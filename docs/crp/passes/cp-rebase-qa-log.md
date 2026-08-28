@@ -4,7 +4,10 @@
 **Baseline:** `3. Commercialization Plan`, Google Drive fileId `1VutumddG9xH-UO3UBklUKsLvMnw0drwn`,
 `application/vnd.openxmlformats-officedocument.wordprocessingml.document`, 1,011,546 bytes,
 modified `2026-08-28T16:22:24.294Z`.
-**Outputs:** `Olera_CRP_CommercializationPlan_rebased.pdf` and `.docx`, 21 pages each.
+**Outputs:** `Olera_CRP_CommercializationPlan_rebased.pdf` and `.docx`.
+**Superseded:** the compression and consistency passes of 2026-08-28 took this from 21 pages
+to 12. See `cp-compression-change-log.md` and `removed-material-cp-compression.md`; the open
+items in section 6 below were carried into that log and re-checked there.
 **Build:** `cp-rebase-src/` (`inspect_truth.py` → `convert_cp.py` → `build_cp.py` → `diff_cp.py`).
 
 The prior workspace Commercialization Plan was discarded. Nothing was merged forward from it.

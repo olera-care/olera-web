@@ -19,6 +19,7 @@ The only transformations:
 import re, json, html
 
 TRUTH = json.load(open('docx_truth.json'))
+import edits as E
 LOG = {'emdash': [], 'para_splits': [], 'caption_norm': [], 'dedup_caption': [],
        'superscript': [], 'typos': [], 'directed': [], 'notes': []}
 
@@ -125,6 +126,15 @@ NO_HEADER = {57}
 RISKS = [4, 5, 6, 7, 8]
 
 CAPLEAD = re.compile(r'^((?:Figure|Table)\s+(?:\d+|X)\s*[.:])\s*')
+
+
+def _runs_from_markup(text):
+    """'**label.** rest' -> the run list the rest of the converter expects."""
+    out = []
+    for k, part in enumerate(re.split(r'\*\*', text)):
+        if part:
+            out.append([part, k % 2 == 1])
+    return out
 
 
 def strip_inline_caption(x, where):
@@ -271,6 +281,8 @@ def build(figmap, figwidth):
 
     for i, x in enumerate(TRUTH):
         where = f'#{i}'
+        if i in E.DROP or i in E.DROP_FIGURE_TABLES:
+            continue
         if i not in RISKS:
             flush_risks()
         if x['k'] == 'tbl':
@@ -281,15 +293,39 @@ def build(figmap, figwidth):
                 parts.append(figmap[key])
                 manifest.append(('FIG', key, where))
                 continue
-            h, nc, nr = mk_table(x['grid'], i in NO_HEADER)
+            grid = x['grid']
+            if i in E.TABLE_CELL:
+                grid = [list(r) for r in grid]
+                for (r, c), txt in E.TABLE_CELL[i].items():
+                    if '**' in txt:
+                        grid[r][c] = _runs_from_markup(txt)
+                    else:
+                        grid[r][c] = [[txt, grid[r][c][0][1] if grid[r][c] else False]]
+            if i in E.TABLE_DROP_ROWS:
+                grid = [r for k, r in enumerate(grid) if k not in E.TABLE_DROP_ROWS[i]]
+            if i in E.TABLE_DROP_COLS:
+                keep = [c for c in range(len(grid[0])) if c not in E.TABLE_DROP_COLS[i]]
+                grid = [[r[c] for c in keep] for r in grid]
+            h, nc, nr = mk_table(grid, i in NO_HEADER)
             parts.append(h)
             manifest.append(('table', f'{nr}x{nc}', where))
             continue
+
+        if i in E.REPLACE:
+            x = dict(x, text=E.REPLACE[i], runs=_runs_from_markup(E.REPLACE[i]))
 
         if i in RISKS:
             pending_risks.append((x['runs'], where))
             continue
 
+        if i in E.TB_REPLACE:
+            x = dict(x, tb=list(E.TB_REPLACE[i]))
+        moved_in = [n for n, tgt in E.FIG_REANCHOR.items() if tgt == i]
+        x = dict(x, imgs=[n for n in x['imgs']
+                          if n not in E.DROP_FIGURES and n not in E.FIG_REANCHOR] + moved_in)
+        if moved_in:
+            x = dict(x, tb=list(x['tb']) + [c for n in moved_in
+                                            for c in E.TB_REANCHOR_CAPTION.get(n, [])])
         runs, side = strip_inline_caption(x, where)
         floats = [n for n in x['imgs'] if n in FLOAT_RIGHT]
         rest = [n for n in x['imgs'] if n not in FLOAT_RIGHT]
@@ -350,7 +386,7 @@ def build(figmap, figwidth):
             emit_floats()
 
     flush_risks()
-    missing = set(figmap) - used
+    missing = {k for k in figmap if k not in used}
     assert not missing, f'figures never placed: {missing}'
     return '\n\n'.join(bind_captions(parts)), manifest
 

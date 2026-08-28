@@ -1,72 +1,10 @@
 {
- "emdash": [
-  {
-   "where": "#1",
-   "before": " an upstream, measurable intermediate outcome\u2014whether a recognized need successfully reache",
-   "after": " an upstream, measurable intermediate outcome, whether a recognized need successfully reache"
-  },
-  {
-   "where": "#2",
-   "before": "al workforce available to home-care providers\u2014including when insufficient provider capacity",
-   "after": "al workforce available to home-care providers, including when insufficient provider capacity"
-  },
-  {
-   "where": "#2",
-   "before": " would otherwise prevent care establishment\u2014and ",
-   "after": " would otherwise prevent care establishment, and "
-  },
-  {
-   "where": "#51",
-   "before": "ess of where the underlying client originates\u2014existing clients, externally generated referr",
-   "after": "ess of where the underlying client originates, existing clients, externally generated referr"
-  },
-  {
-   "where": "#74",
-   "before": " to an investable commercial inflection point\u2014not to assume that revenue from the limited C",
-   "after": " to an investable commercial inflection point, not to assume that revenue from the limited C"
-  }
- ],
+ "emdash": [],
  "para_splits": [
   "#87"
  ],
  "caption_norm": [],
- "dedup_caption": [
-  {
-   "where": "#1",
-   "side": "trailing",
-   "text": "Figure 1. Unmet eldercare needs can drive a vicious cycle of hospitali"
-  },
-  {
-   "where": "#3",
-   "side": "trailing",
-   "text": "Figure 2. Care establishment requires a coordinated pathway from asses"
-  },
-  {
-   "where": "#10",
-   "side": "leading",
-   "text": "Figure 3. CRP bridges the remaining technical, validation, evidence, c"
-  },
-  {
-   "where": "#18",
-   "side": "trailing",
-   "text": "Figure 4. What a family sees, what the system does, and what accumulat"
-  },
-  {
-   "where": "#83",
-   "side": "trailing",
-   "text": "Figure 10. Post-CRP growth flywheel."
-  },
-  {
-   "where": "#87",
-   "side": "trailing",
-   "text": "Figure X. Olera's repeatable process for producing and activating a lo"
-  },
-  {
-   "where": "#91",
-   "side": "trailing",
-   "text": "Figure X. Organic traffic growth, 2023\u20132026."
-  }
- ],
+ "dedup_caption": [],
  "superscript": [
   {
    "where": "#51",
@@ -93,10 +31,6 @@
    "marker": "34"
   },
   {
-   "where": "#98",
-   "marker": "1-3"
-  },
-  {
    "where": "table cell",
    "marker": "1,3",
    "glued": true
@@ -104,11 +38,6 @@
   {
    "where": "table cell",
    "marker": "2",
-   "glued": true
-  },
-  {
-   "where": "table cell",
-   "marker": "4-6",
    "glued": true
   },
   {
@@ -125,18 +54,6 @@
   }
  ],
  "typos": [
-  {
-   "where": "table cell",
-   "was": ".2. New workforce supply",
-   "now": "2. New workforce supply",
-   "note": "stray leading period before list item 2 in the four-advantages table"
-  },
-  {
-   "where": "table cell",
-   "was": ".2. New workforce supply",
-   "now": "2. New workforce supply",
-   "note": "stray leading period before list item 2 in the four-advantages table"
-  },
   {
    "where": "#81",
    "was": "rel-evant",
@@ -234,13 +151,6 @@
    "note": "missing line break between the year label and the stage name"
   }
  ],
- "directed": [
-  {
-   "where": "#16",
-   "was": "VALUE OF THE CRP PROJECT, EXPECTED OUTCOMES, AND IMPACT - What does this CRP create?",
-   "now": "VALUE OF THE CRP PROJECT, EXPECTED OUTCOMES, AND IMPACT - What does CRP create?",
-   "note": "shortened so the section heading sets on one line"
-  }
- ],
+ "directed": [],
  "notes": []
 }

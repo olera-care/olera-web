@@ -789,8 +789,8 @@ def fig3():
             b.append(_t(x0, yy, ln, S, GREY, anchor=anchor)); yy += S * 1.25
     TOPLINE = y + HEAD * 1.25 + S * 1.6 + 3 * S * 1.25 + 8
 
-    BASIN = TOPLINE + 74
-    FLOOR = BASIN + 14
+    BASIN = TOPLINE + 64
+    FLOOR = BASIN + 12
     CLIMB = 402
     ridge = (f"M8 {TOPLINE} H126 C 182 {TOPLINE}, 202 {BASIN}, 256 {BASIN+2} "
              f"C 306 {BASIN+3}, 360 {BASIN+3}, {CLIMB} {BASIN} "
@@ -807,14 +807,14 @@ def fig3():
     b.append(_t(CLIMB + 8, BASIN - 40, "paid testing begins", S, GREY, anchor="start",
                 style="italic"))
 
-    strip = FLOOR + S * 2.0
+    strip = FLOOR + S * 1.7
     b.append(_t(360, strip, "THE FIVE REMAINING RISKS, RETIRED IN SEQUENCE", S, GREY,
                 weight="bold", ls=0.8))
     risks = ["Technical", "Validation", "Evidence", "Commercial", "Financing"]
     rw = [B.w(r, S, "bold") for r in risks]
     span = sum(rw) + 34 * (len(risks) - 1)
     x = (W - span) / 2
-    ty = strip + S * 2.4
+    ty = strip + S * 2.2
     centres = []
     for i, r in enumerate(risks):
         cxx = x + rw[i] / 2
@@ -827,7 +827,7 @@ def fig3():
                  f'stroke="{TEAL}" stroke-width="1.3"/>')
         b.append(_t(cxx, ty + S * 0.35, str(i + 1), S, TEAL, weight="bold"))
         b.append(_t(cxx, ty + S * 1.9, r, S, TEAL, weight="bold"))
-    H = ty + S * 1.9 + S * 0.6
+    H = ty + S * 1.9 + S * 0.35
     return _wrap(W / 100, H / 100, "".join(b))
 
 
@@ -860,7 +860,7 @@ def fig4():
     for i, lines in enumerate(head):
         for k, ln in enumerate(lines):
             b.append(_t(cx(i), 14 + k * LB * 1.15, ln, LB, TEAL, weight="bold"))
-    RULE1 = 14 + nh * LB * 1.15 + 2
+    RULE1 = 13 + nh * LB * 1.15 + 1
     b.append(f'<line x1="{GX}" y1="{RULE1}" x2="{GR}" y2="{RULE1}" stroke="{TEAL}" '
              f'stroke-width="1.1"/>')
 
@@ -878,8 +878,8 @@ def fig4():
             (6, "How has the first month gone?", False)]
     wrapped = [(i, B.wrap(t, inner - 6, S), live) for i, t, live in says]
     nb = max(len(l) for _, l, _ in wrapped)
-    BUBH = 12 + nb * S * 1.2
-    BUBY = RULE1 + 14
+    BUBH = 5 + nb * S * 1.2
+    BUBY = RULE1 + 6
     b.append(f'<line x1="{GX+4}" y1="{BUBY+BUBH/2}" x2="{GR-4}" y2="{BUBY+BUBH/2}" '
              f'stroke="{RULE}" stroke-width="1"/>')
     for i, lines, live in wrapped:
@@ -889,7 +889,7 @@ def fig4():
         for k, ln in enumerate(lines):
             b.append(_t(cx(i), y0 + k * S * 1.2, ln, S, INK))
     rail(BUBY + BUBH / 2 - LB * 0.1, *rails[0])
-    SEP1 = BUBY + BUBH + 16
+    SEP1 = BUBY + BUBH + 6
     b.append(f'<line x1="0" y1="{SEP1}" x2="{GR}" y2="{SEP1}" stroke="{RULE}" stroke-width="0.9"/>')
 
     # --- register 2, the system -------------------------------------------
@@ -902,7 +902,7 @@ def fig4():
               "blocks an appropriate plan"),
              (0, 7, "#ffffff", I_OUTCOMES, "Longitudinal outcomes layer", "CRP",
               "Case status, failure points, care established, and subsequent outcomes")]
-    y = SEP1 + 14
+    y = SEP1 + 6
     plan = []
     for c0, c1, fill, icon, lead, tag, desc in bands:
         span = colx(c1) - colx(c0)
@@ -925,14 +925,14 @@ def fig4():
         for k, ln in enumerate(dl):
             b.append(_t(tx, ty + (k + 1) * S * 1.18, ln, S, INK, anchor="start",
                         style="italic" if narrow else "normal"))
-        y += max(h, S * 1.15 + len(dl) * S * 1.18 + 12) + 10
+        y += max(h, S * 1.15 + len(dl) * S * 1.18 + 7) + 4
     rail((SEP1 + y) / 2 - LB, *rails[1])
-    SEP2 = y + 4
+    SEP2 = y + 1
     b.append(f'<line x1="0" y1="{SEP2}" x2="{GR}" y2="{SEP2}" stroke="{RULE}" stroke-width="0.9"/>')
 
     # --- register 3, what accumulates -------------------------------------
-    NUM = 14.0 * B.U
-    ny = SEP2 + 18 + NUM * 0.8
+    NUM = 12.5 * B.U
+    ny = SEP2 + 10 + NUM * 0.8
     cascade = [(0, 1200, "families", "assessed"), (1, 780, "matched to", "home care"),
                (2, 510, "funding", "identified"), (4, 390, "applications", "completed"),
                (5, 281, "care", "established")]
@@ -949,11 +949,11 @@ def fig4():
     b.append(_t(cx(3), ny + 8 + S * 2.8, "by capacity", S, GREY, style="italic"))
     outs = [("median time", "to care"), ("aid dollars", "secured"),
             ("downstream", "outcomes")]
-    oy = SEP2 + 16 + S * 0.85
+    oy = SEP2 + 9 + S * 0.85
     for k, (a, c) in enumerate(outs):
         b.append(_t(cx(6), oy + k * S * 2.5, a, S, GREY))
         b.append(_t(cx(6), oy + k * S * 2.5 + S * 1.2, c, S, GREY))
-    H = max(ny + 8 + S * 2.8, oy + (len(outs) - 1) * S * 2.5 + S * 1.2) + S * 0.8
+    H = max(ny + 8 + S * 2.8, oy + (len(outs) - 1) * S * 2.5 + S * 1.2) + S * 0.5
     rail((SEP2 + H) / 2 - LB, *rails[2], subbold=True)
     for i in range(1, NC):
         b.insert(0, f'<line x1="{colx(i)}" y1="{RULE1+4}" x2="{colx(i)}" y2="{H-6}" '

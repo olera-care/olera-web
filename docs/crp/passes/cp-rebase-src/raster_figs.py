@@ -3,12 +3,9 @@
 import re, subprocess, pymupdf, os
 import figs95 as N
 
-FIGS = {'fig1': N.fig1(), 'fig2': N.fig2(), 'fig3': N.fig3(),
-        'fig4': N.fig4(), 'fig5': N.fig5(), 'fig6': N.fig6(),
-        'fig7': N.fig7(), 'fig8': N.fig8(), 'fig9a': N.fig9(),
-        'fig10b': N.fig10_flywheel(), 'figxproc': N.market_process(),
-        'figxorg': N.organic(), 'fig11': N.fig11(), 'chain': N.chain(),
-        'fig12': N.fig12(), 'fig13': N.fig13()}
+# only the six figures that survive Pass 1 are needed for the Word export
+FIGS = {'fig1': N.fig1(), 'fig3': N.fig3(), 'fig4': N.fig4(),
+        'fig10b': N.fig10_flywheel(), 'figxorg': N.organic()}
 
 os.makedirs('png', exist_ok=True)
 for name, svg in FIGS.items():

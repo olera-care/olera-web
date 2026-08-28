@@ -181,18 +181,18 @@ TABLE_DROP_ROWS[33] = [5, 6, 11]
 # ------------------------------------------------------------- replacements
 R = {}
 
-R[1] = ("**The product and its impact.** Older Americans and their families face a problem the "
-        "market has not solved. Unmet daily care needs compound into preventable geriatric "
-        "hospitalization, premature institutionalization, and rising public costs, and each makes "
-        "the next more likely (Figure 1). Olera developed CareNavigator through NIA Phase I–IIB as "
-        "a care-navigation platform that helps families identify the care they need, the aid that "
-        "can help pay for it, and the providers who can deliver it. Its impact potential comes from "
-        "intervening while unmet need may still be reversible: among community-dwelling Medicaid "
-        "HCBS users, unmet service needs have been associated with substantially greater "
-        "emergency-department use (52% vs. 34%) and hospital or rehabilitation stays "
-        "(36% vs. 24%).1 CareNavigator therefore targets an upstream, measurable intermediate "
-        "outcome, whether a recognized need successfully reaches established care, before unmet "
-        "needs force higher and costlier levels of care.")
+R[1] = ("**The product and its impact.** The gap between older Americans who need help and the "
+        "care available to them is growing. An aging population is increasing demand while families "
+        "continue to face a fragmented system for finding providers, securing financial assistance, "
+        "and establishing care. When care is not established, the consequences can compound into a "
+        "vicious cycle of unmet need, hospitalization, failed care establishment, and premature "
+        "institutionalization (Figure 1). Among community-dwelling Medicaid HCBS users, unmet "
+        "service needs have been associated with substantially greater emergency-department use "
+        "(52% vs. 34%) and hospital or rehabilitation stays (36% vs. 24%).1 Olera developed "
+        "CareNavigator through NIA Phase I\u2013IIB to intervene earlier in this cycle by helping "
+        "families identify appropriate care, find aid to pay for it, and connect with providers who "
+        "can deliver it. Its central outcome is simple and measurable: does a recognized need reach "
+        "established care?")
 
 R[2] = ("The remaining opportunity is to carry navigation through the full pathway from recognized "
         "need to established care (Figure 2). Prior work substantially developed the upstream navigation "

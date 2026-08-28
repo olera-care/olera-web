@@ -46,7 +46,54 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
     }
 
-    const trimmedEmail = email.trim();
+    const trimmedEmail = email.trim().toLowerCase();
+
+    // Check for obvious email errors (typos, invalid TLDs) - catches errors before API call
+    const [, domain] = trimmedEmail.split("@");
+    if (domain) {
+      const parts = domain.split(".");
+      const tld = parts[parts.length - 1];
+      const domainName = parts.slice(0, -1).join(".");
+      const baseDomain = domainName.split(".").pop() || domainName;
+
+      // TLD must be at least 2 characters
+      if (tld.length < 2) {
+        return NextResponse.json(
+          { error: "invalid_format", message: "Invalid domain extension - too short" },
+          { status: 400 }
+        );
+      }
+
+      // Common TLD typos
+      const tldTypos: Record<string, string> = {
+        "con": "com", "cmo": "com", "ocm": "com", "cm": "com", "om": "com",
+        "nte": "net", "ent": "net", "ne": "net",
+        "ogr": "org", "og": "org", "rg": "org",
+        "eud": "edu", "ed": "edu",
+        "gvo": "gov", "go": "gov",
+      };
+      if (tldTypos[tld]) {
+        return NextResponse.json(
+          { error: "invalid_format", message: `Did you mean .${tldTypos[tld]}? (.${tld} is not a valid domain extension)` },
+          { status: 400 }
+        );
+      }
+
+      // Common domain name typos for major providers
+      const domainTypos: Record<string, string> = {
+        "gmial": "gmail", "gmal": "gmail", "gnail": "gmail", "gmil": "gmail",
+        "gmai": "gmail", "gamil": "gmail", "gmali": "gmail", "gmaul": "gmail",
+        "yahooo": "yahoo", "yaho": "yahoo", "yhoo": "yahoo", "yaoo": "yahoo",
+        "hotmal": "hotmail", "hotmai": "hotmail", "hotmial": "hotmail",
+        "outlok": "outlook", "outloo": "outlook", "outlookk": "outlook",
+      };
+      if (domainTypos[baseDomain]) {
+        return NextResponse.json(
+          { error: "invalid_format", message: `Did you mean ${domainTypos[baseDomain]}? (${baseDomain} looks like a typo)` },
+          { status: 400 }
+        );
+      }
+    }
 
     // Email deliverability check - matches questions/leads/connections security layer
     // This prevents saving emails that will bounce, protecting sender reputation.

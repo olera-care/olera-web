@@ -445,10 +445,77 @@ function ContactSection({
     }
   }, [verifyEmail, fetchTrustScore]);
 
+  // Detect obvious email errors that don't need API verification
+  // Returns error message if invalid, null if email looks OK
+  const detectObviousEmailError = useCallback((email: string): string | null => {
+    if (!email) return null;
+
+    const trimmed = email.trim().toLowerCase();
+
+    // Basic structure check
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      return "Invalid email format";
+    }
+
+    const [, domain] = trimmed.split("@");
+    if (!domain) return "Missing domain";
+
+    const parts = domain.split(".");
+    const tld = parts[parts.length - 1];
+    const domainName = parts.slice(0, -1).join(".");
+
+    // TLD must be at least 2 characters
+    if (tld.length < 2) {
+      return "Invalid domain extension";
+    }
+
+    // Common TLD typos (these domains don't exist)
+    const tldTypos: Record<string, string> = {
+      "con": "com", "cmo": "com", "ocm": "com", "cm": "com", "om": "com",
+      "nte": "net", "ent": "net", "ne": "net",
+      "ogr": "org", "og": "org", "rg": "org",
+      "eud": "edu", "ed": "edu",
+      "gvo": "gov", "go": "gov",
+      "co": "com", // Often a typo for .com (though .co is valid, flag it)
+    };
+    if (tldTypos[tld]) {
+      return `Did you mean .${tldTypos[tld]}? (.${tld} is not valid)`;
+    }
+
+    // Common domain name typos for major providers
+    const domainTypos: Record<string, string> = {
+      "gmial": "gmail", "gmal": "gmail", "gnail": "gmail", "gmil": "gmail",
+      "gmai": "gmail", "gamil": "gmail", "gmali": "gmail", "gmaul": "gmail",
+      "yahooo": "yahoo", "yaho": "yahoo", "yhoo": "yahoo", "yaoo": "yahoo",
+      "hotmal": "hotmail", "hotmai": "hotmail", "hotmial": "hotmail",
+      "outlok": "outlook", "outloo": "outlook", "outlookk": "outlook",
+    };
+    // Check the base domain (e.g., "gmail" from "gmail.com")
+    const baseDomain = domainName.split(".").pop() || domainName;
+    if (domainTypos[baseDomain]) {
+      return `Did you mean ${domainTypos[baseDomain]}? (${baseDomain} looks like a typo)`;
+    }
+
+    return null; // No obvious errors
+  }, []);
+
   // Handler for inline email input change - triggers debounced verification as user types
   const handleEmailInputChange = useCallback((value: string) => {
     setEmailValue(value);
     setEmailError(null);
+
+    // First check for obvious errors (typos, invalid TLD, etc.)
+    const obviousError = detectObviousEmailError(value);
+    if (obviousError) {
+      // Clear any pending verification
+      if (verifyDebounceRef.current) clearTimeout(verifyDebounceRef.current);
+      // Show as invalid immediately without calling API
+      setVerificationStatus("invalid");
+      setTrustScoreStatus("idle");
+      setTrustScoreReason("");
+      setEmailError(obviousError);
+      return;
+    }
 
     const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
     if (!isValidEmail) {
@@ -466,11 +533,21 @@ function ContactSection({
     verifyDebounceRef.current = setTimeout(() => {
       verifyAndScore(value.trim());
     }, 500); // 500ms debounce for typing
-  }, [verifyAndScore]);
+  }, [verifyAndScore, detectObviousEmailError]);
 
   // Handler for inline email input blur - triggers immediate verification (fallback)
   // This catches cases where user pastes and immediately clicks away
   const handleEmailInputBlur = useCallback(() => {
+    // First check for obvious errors
+    const obviousError = detectObviousEmailError(emailValue);
+    if (obviousError) {
+      if (verifyDebounceRef.current) clearTimeout(verifyDebounceRef.current);
+      setVerificationStatus("invalid");
+      setTrustScoreStatus("idle");
+      setEmailError(obviousError);
+      return;
+    }
+
     const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue.trim());
     if (!isValidEmail) {
       setVerificationStatus("idle");
@@ -483,7 +560,7 @@ function ContactSection({
     if (verificationStatus === "idle") {
       verifyAndScore(emailValue.trim());
     }
-  }, [emailValue, verificationStatus, verifyAndScore]);
+  }, [emailValue, verificationStatus, verifyAndScore, detectObviousEmailError]);
 
   // Reset state when provider changes
   const lastProviderIdRef = useRef<string | null>(null);
@@ -601,11 +678,15 @@ function ContactSection({
         setFoundEmail(null);
       } else {
         const data = await res.json().catch(() => ({}));
-        // Handle specific 422 errors with human-readable messages
-        if (data.error === "undeliverable" || data.error === "risky" || data.error === "never_delivered") {
+        // Handle specific errors with human-readable messages
+        if (data.error === "undeliverable" || data.error === "risky" || data.error === "never_delivered" || data.error === "invalid_format") {
           setEmailError(data.message || "Email verification failed");
+          // Mark as invalid if it's a format error
+          if (data.error === "invalid_format") {
+            setVerificationStatus("invalid");
+          }
         } else {
-          setEmailError(data.error || "Failed to save");
+          setEmailError(data.message || data.error || "Failed to save");
         }
       }
     } catch {
@@ -618,6 +699,15 @@ function ContactSection({
   // Save manually edited email (with optional force override)
   async function handleSaveEmail(force = false) {
     if (!emailValue.trim()) return;
+
+    // Check for obvious errors before even calling API
+    const obviousError = detectObviousEmailError(emailValue);
+    if (obviousError) {
+      setVerificationStatus("invalid");
+      setEmailError(obviousError);
+      return;
+    }
+
     setSavingEmail(true);
     setEmailError(null);
     try {
@@ -634,11 +724,15 @@ function ContactSection({
         setTrustScoreStatus("idle");
       } else {
         const data = await res.json().catch(() => ({}));
-        // Handle specific 422 errors with human-readable messages
-        if (data.error === "undeliverable" || data.error === "risky" || data.error === "never_delivered") {
+        // Handle specific errors with human-readable messages
+        if (data.error === "undeliverable" || data.error === "risky" || data.error === "never_delivered" || data.error === "invalid_format") {
           setEmailError(data.message || "Email verification failed");
+          // Mark as invalid if it's a format error
+          if (data.error === "invalid_format") {
+            setVerificationStatus("invalid");
+          }
         } else {
-          setEmailError(data.error || "Failed to save");
+          setEmailError(data.message || data.error || "Failed to save");
         }
       }
     } catch {

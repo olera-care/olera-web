@@ -64,13 +64,14 @@ export async function PATCH(request: NextRequest) {
         );
       }
 
-      // Common TLD typos
+      // Common TLD typos (only include TLDs that are NOT valid country codes)
+      // Valid ccTLDs we must NOT flag: .co (Colombia), .cm (Cameroon), .om (Oman), .ne (Niger)
       const tldTypos: Record<string, string> = {
-        "con": "com", "cmo": "com", "ocm": "com", "cm": "com", "om": "com",
-        "nte": "net", "ent": "net", "ne": "net",
-        "ogr": "org", "og": "org", "rg": "org",
-        "eud": "edu", "ed": "edu",
-        "gvo": "gov", "go": "gov",
+        "con": "com", "cmo": "com", "ocm": "com", "comm": "com", "coom": "com",
+        "nte": "net", "ent": "net", "nett": "net",
+        "ogr": "org", "og": "org", "rg": "org", "orgg": "org",
+        "eud": "edu", "eduu": "edu",
+        "gvo": "gov", "go": "gov", "govv": "gov",
       };
       if (tldTypos[tld]) {
         return NextResponse.json(

@@ -41,10 +41,10 @@ export async function GET(request: NextRequest) {
     const dayStart = `${targetDate}T00:00:00-06:00`; // Earliest possible CT start
     const dayEndPlusBuffer = `${targetDate}T23:59:59-05:00`; // Latest possible CT end (CDT)
 
-    // Fetch call touchpoints for the target date
+    // Fetch call touchpoints for the target date (include admin_user_id for per-admin breakdown)
     const { data: callTouchpoints, error: callError } = await db
       .from("provider_outreach_touchpoints")
-      .select("details, created_at")
+      .select("details, created_at, admin_user_id")
       .eq("touchpoint_type", "call_attempted")
       .gte("created_at", dayStart)
       .lte("created_at", dayEndPlusBuffer);
@@ -63,8 +63,12 @@ export async function GET(request: NextRequest) {
       new_email: 0,
       resend: 0,
       spoke_with: 0,
+      note: 0,
     };
     let totalCalls = 0;
+
+    // Track calls by admin for per-admin breakdown
+    const callsByAdmin: Record<string, { total: number; voicemail: number; no_answer: number; hung_up: number; callback: number; spoke_with: number; new_email: number; resend: number; note: number }> = {};
 
     for (const tp of callTouchpoints || []) {
       // Verify this touchpoint is actually on the target date in CT
@@ -76,6 +80,16 @@ export async function GET(request: NextRequest) {
       totalCalls++;
       if (status in callsByStatus) {
         callsByStatus[status]++;
+      }
+
+      // Track per-admin stats
+      const adminId = tp.admin_user_id || "unknown";
+      if (!callsByAdmin[adminId]) {
+        callsByAdmin[adminId] = { total: 0, voicemail: 0, no_answer: 0, hung_up: 0, callback: 0, spoke_with: 0, new_email: 0, resend: 0, note: 0 };
+      }
+      callsByAdmin[adminId].total++;
+      if (status in callsByAdmin[adminId]) {
+        (callsByAdmin[adminId] as Record<string, number>)[status]++;
       }
     }
 
@@ -126,6 +140,48 @@ export async function GET(request: NextRequest) {
         emailsByTemplate[templateKey]++;
       }
     }
+
+    // Fetch sequence_launched touchpoints for the target date
+    const { data: sequenceTouchpoints, error: sequenceError } = await db
+      .from("provider_outreach_touchpoints")
+      .select("created_at")
+      .eq("touchpoint_type", "sequence_launched")
+      .gte("created_at", dayStart)
+      .lte("created_at", dayEndPlusBuffer);
+
+    if (sequenceError) {
+      console.error("[activity-stats] Sequence query error:", sequenceError);
+    }
+
+    // Count sequences started (filter to exact CT date)
+    let sequencesStarted = 0;
+    for (const tp of sequenceTouchpoints || []) {
+      const tpDate = new Date(tp.created_at).toLocaleDateString("en-CA", { timeZone: "America/Chicago" });
+      if (tpDate === targetDate) {
+        sequencesStarted++;
+      }
+    }
+
+    // Fetch admin display names for per-admin breakdown
+    const adminIds = Object.keys(callsByAdmin).filter(id => id !== "unknown");
+    let adminNameMap = new Map<string, string>();
+    if (adminIds.length > 0) {
+      const { data: admins } = await db
+        .from("admin_users")
+        .select("id, display_name")
+        .in("id", adminIds);
+      adminNameMap = new Map((admins || []).map(a => [a.id, a.display_name || "Unknown"]));
+    }
+
+    // Build calls_by_admin array sorted by total calls descending
+    const callsByAdminArray = Object.entries(callsByAdmin)
+      .filter(([adminId]) => adminId !== "unknown")
+      .map(([adminId, stats]) => ({
+        admin_id: adminId,
+        display_name: adminNameMap.get(adminId) || "Unknown",
+        ...stats,
+      }))
+      .sort((a, b) => b.total - a.total);
 
     // Fetch daily series for sparkline (last N days)
     // Generate date strings in CT timezone
@@ -196,10 +252,12 @@ export async function GET(request: NextRequest) {
         total: totalCalls,
         ...callsByStatus,
       },
+      calls_by_admin: callsByAdminArray,
       emails: {
         total: totalEmails,
         ...emailsByTemplate,
       },
+      sequences_started: sequencesStarted,
       daily_series: dailySeries,
     });
   } catch (err) {

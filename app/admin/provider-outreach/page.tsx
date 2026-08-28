@@ -10,6 +10,7 @@ import { AdminChip } from "@/components/admin/provider-outreach/AdminChip";
 import { AdminFilterChips, type AdminCounts } from "@/components/admin/provider-outreach/AdminFilterChips";
 import { AdminAutocomplete } from "@/components/admin/provider-outreach/AdminAutocomplete";
 import { NotesModal } from "@/components/admin/provider-outreach/NotesModal";
+import { SequenceConversionsModal } from "@/components/admin/provider-outreach/SequenceConversionsModal";
 import { WorkflowGuideModal } from "@/components/admin/provider-outreach/WorkflowGuideModal";
 import { EmailHistoryPopover } from "@/components/admin/provider-outreach/EmailHistoryPopover";
 import { ProviderDrawer } from "@/components/admin/provider-outreach/ProviderDrawer";
@@ -2905,8 +2906,10 @@ export default function ProviderOutreachPage() {
   );
   const [activityStats, setActivityStats] = useState<{
     date: string;
-    calls: { total: number; voicemail: number; no_answer: number; hung_up: number; callback: number; new_email: number; resend: number; spoke_with: number };
+    calls: { total: number; voicemail: number; no_answer: number; hung_up: number; callback: number; new_email: number; resend: number; spoke_with: number; note: number };
+    calls_by_admin?: Array<{ admin_id: string; display_name: string; total: number; voicemail: number; no_answer: number; hung_up: number; callback: number; spoke_with: number; new_email: number; resend: number; note: number }>;
     emails: { total: number; intro: number; followup: number; demand_loss: number; final: number; nudge: number };
+    sequences_started?: number;
     daily_series: Array<{ date: string; calls: number; emails: number }>;
   } | null>(null);
   const [activityStatsLoading, setActivityStatsLoading] = useState(false);
@@ -3064,6 +3067,9 @@ export default function ProviderOutreachPage() {
   // Notes modal state
   const [notesModalProvider, setNotesModalProvider] = useState<{ id: string; name: string } | null>(null);
 
+  // Sequence conversions modal state
+  const [showSequenceConvModal, setShowSequenceConvModal] = useState(false);
+
   // Workflow guide modal state
   const [showWorkflowGuide, setShowWorkflowGuide] = useState(false);
 
@@ -3084,45 +3090,102 @@ export default function ProviderOutreachPage() {
     }
   }, [providers]); // eslint-disable-line react-hooks/exhaustive-deps -- only sync when providers change
 
-  // Drawer navigation: compute prev/next provider within same city (memoized)
+  // Drawer navigation: compute prev/next provider matching display order (memoized)
   const drawerNavigation = useMemo(() => {
     if (!drawerProvider) {
       return { hasPrevious: false, hasNext: false, handlePrevious: () => {}, handleNext: () => {} };
     }
 
-    const drawerCity = drawerProvider.city || "(No City)";
-    const cityProviders = providers
-      .filter((p) => (p.city || "(No City)") === drawerCity)
-      .sort((a, b) => {
-        // Apply same sorting as CityRow: in Follow Up tab, providers with calls go to bottom
-        if (activeTab === "needs_call") {
-          const aHasCalls = (a.call_count ?? 0) > 0;
-          const bHasCalls = (b.call_count ?? 0) > 0;
-          if (aHasCalls !== bHasCalls) {
-            return aHasCalls ? 1 : -1;
-          }
-        }
-        return a.provider_name.localeCompare(b.provider_name);
-      });
+    // Helper to apply admin filter (used by Follow Up and other tabs)
+    const applyAdminFilter = (list: OutreachProvider[]) => {
+      if (!selectedAdminFilter) return list;
+      if (selectedAdminFilter === "unassigned") {
+        return list.filter((p) => !p.assigned_to);
+      }
+      return list.filter((p) => p.assigned_to === selectedAdminFilter);
+    };
 
-    const currentIndex = cityProviders.findIndex((p) => p.provider_id === drawerProvider.provider_id);
+    let navigationList: OutreachProvider[];
+
+    if (activeTab === "needs_call") {
+      // Follow Up tab: match FollowUpQueue display order
+      // Group by due date (overdue, today, upcoming), sort by engagement priority
+      let followUpProviders = providers.filter((p) => p.stage === "needs_call");
+      followUpProviders = applyAdminFilter(followUpProviders);
+      const today = getTodayISO();
+
+      const getEngagementPriority = (reason: string | null): number => {
+        switch (reason) {
+          case "replied": return 0;
+          case "clicked_not_claimed": return 1;
+          case "manual": return 2;
+          case "sequence_exhausted":
+          case "sequence_completed": return 3;
+          default: return 4;
+        }
+      };
+
+      const sortByEngagementThenDate = (a: OutreachProvider, b: OutreachProvider) => {
+        const priorityA = getEngagementPriority(a.needs_call_reason);
+        const priorityB = getEngagementPriority(b.needs_call_reason);
+        if (priorityA !== priorityB) return priorityA - priorityB;
+        if (!a.due_date && !b.due_date) return 0;
+        if (!a.due_date) return 1;
+        if (!b.due_date) return -1;
+        return a.due_date.localeCompare(b.due_date);
+      };
+
+      const overdue = followUpProviders.filter((p) => p.due_date && p.due_date < today).sort(sortByEngagementThenDate);
+      const dueToday = followUpProviders.filter((p) => !p.due_date || p.due_date === today).sort(sortByEngagementThenDate);
+      const upcoming = followUpProviders.filter((p) => p.due_date && p.due_date > today).sort(sortByEngagementThenDate);
+
+      navigationList = [...overdue, ...dueToday, ...upcoming];
+    } else if (activeTab === "re_engage") {
+      // Alternative Channels tab: match ReEngageQueue display order
+      // Apply channel filter, sort by re_engage_entered_at (oldest first)
+      let reEngageProviders = providers.filter((p) => p.stage === "re_engage");
+
+      // Apply channel filter
+      if (selectedChannelFilter !== "all") {
+        if (selectedChannelFilter === "email") {
+          reEngageProviders = reEngageProviders.filter((p) => !p.re_engage_channel || p.re_engage_channel === "re_engage");
+        } else {
+          reEngageProviders = reEngageProviders.filter((p) => p.re_engage_channel === selectedChannelFilter);
+        }
+      }
+
+      navigationList = reEngageProviders.sort((a, b) => {
+        if (!a.re_engage_entered_at && !b.re_engage_entered_at) return 0;
+        if (!a.re_engage_entered_at) return 1;
+        if (!b.re_engage_entered_at) return -1;
+        return a.re_engage_entered_at.localeCompare(b.re_engage_entered_at);
+      });
+    } else {
+      // City-grouped tabs (Call & Confirm, In Sequence, etc.): navigate within same city
+      const drawerCity = drawerProvider.city || "(No City)";
+      navigationList = providers
+        .filter((p) => (p.city || "(No City)") === drawerCity)
+        .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
+    }
+
+    const currentIndex = navigationList.findIndex((p) => p.provider_id === drawerProvider.provider_id);
     const hasPrevious = currentIndex > 0;
-    const hasNext = currentIndex < cityProviders.length - 1 && currentIndex !== -1;
+    const hasNext = currentIndex < navigationList.length - 1 && currentIndex !== -1;
 
     const handlePrevious = () => {
       if (hasPrevious) {
-        setDrawerProvider(cityProviders[currentIndex - 1]);
+        setDrawerProvider(navigationList[currentIndex - 1]);
       }
     };
 
     const handleNext = () => {
       if (hasNext) {
-        setDrawerProvider(cityProviders[currentIndex + 1]);
+        setDrawerProvider(navigationList[currentIndex + 1]);
       }
     };
 
     return { hasPrevious, hasNext, handlePrevious, handleNext };
-  }, [drawerProvider, providers, activeTab]);
+  }, [drawerProvider, providers, activeTab, selectedAdminFilter, selectedChannelFilter]);
 
   // Keyboard navigation for drawer (left/right arrows)
   useEffect(() => {
@@ -3858,13 +3921,32 @@ export default function ProviderOutreachPage() {
     }
   }, [expandedCities, activeTab, debouncedSearch, fetchProviders]);
 
-  // Clear selection, providers, and stage counts when tab/state/search changes
+  // Track previous values to detect what changed
+  const prevClearStateRef = useRef(selectedState);
+  const prevClearSearchRef = useRef(debouncedSearch);
+
+  // Clear selection and expanded cities when tab/state/search changes
+  // Set loading immediately to show spinner instead of "No providers" flash
+  // Only clear providers when state or search changes (not just tab)
   useEffect(() => {
     setSelectedProviders(new Set());
     setExpandedCities(new Set());
-    setProviders([]);
-    // Clear stage counts when STATE changes (not tab) to avoid showing stale data
-    // Stage counts are state-level, so changing tab within same state keeps counts
+
+    // Show loading spinner immediately on any tab/state/search change
+    // This prevents the "No providers" flash while fetch is in progress
+    setLoadingProviders(true);
+
+    // Only clear providers when state or search actually changed
+    // When just tab changes, providers are filtered by stage anyway
+    const stateChanged = prevClearStateRef.current !== selectedState;
+    const searchChanged = prevClearSearchRef.current !== debouncedSearch;
+
+    if (stateChanged || searchChanged) {
+      setProviders([]);
+    }
+
+    prevClearStateRef.current = selectedState;
+    prevClearSearchRef.current = debouncedSearch;
   }, [activeTab, selectedState, debouncedSearch]);
 
   // Update URL when Done sub-tab changes (for refresh persistence)
@@ -4591,9 +4673,14 @@ export default function ProviderOutreachPage() {
                 : "none pending"}
             </p>
           </div>
-          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Conversion rate: providers who claimed after going through the email sequence">
+          <button
+            type="button"
+            onClick={() => setShowSequenceConvModal(true)}
+            className="rounded-lg border border-gray-200 bg-white px-4 py-3 hover:border-primary-300 hover:bg-primary-50/50 transition-colors text-left"
+            title="Click to view sequence conversions"
+          >
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Sequence Conv.</p>
-            <p className="mt-1 text-2xl font-semibold text-gray-900">
+            <p className="mt-1 text-2xl font-semibold text-gray-900 tabular-nums">
               {sequenceConversion
                 ? `${sequenceConversion.claimed} / ${sequenceConversion.sequenced}`
                 : "—"}
@@ -4603,7 +4690,7 @@ export default function ProviderOutreachPage() {
                 ? `${sequenceConversion.rate}% claimed from sequence`
                 : "loading..."}
             </p>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -5162,7 +5249,7 @@ export default function ProviderOutreachPage() {
               ) : activityStats ? (
                 <div className="space-y-4">
                   {/* Main stats grid */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                     <div className="bg-white border border-gray-200 rounded-lg p-3">
                       <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Calls</div>
                       <div className="mt-1 text-2xl font-semibold text-gray-900 tabular-nums">{activityStats.calls.total}</div>
@@ -5178,6 +5265,10 @@ export default function ProviderOutreachPage() {
                     <div className="bg-white border border-gray-200 rounded-lg p-3">
                       <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Resends</div>
                       <div className="mt-1 text-2xl font-semibold text-teal-600 tabular-nums">{activityStats.emails.nudge}</div>
+                    </div>
+                    <div className="bg-white border border-gray-200 rounded-lg p-3 col-span-2 sm:col-span-1">
+                      <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Sequences</div>
+                      <div className="mt-1 text-2xl font-semibold text-indigo-600 tabular-nums">{activityStats.sequences_started ?? 0}</div>
                     </div>
                   </div>
 
@@ -5207,6 +5298,39 @@ export default function ProviderOutreachPage() {
                         {activityStats.calls.resend > 0 && (
                           <span className="px-2 py-0.5 bg-teal-50 text-teal-700 rounded">Resend {activityStats.calls.resend}</span>
                         )}
+                        {activityStats.calls.note > 0 && (
+                          <span className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded">Note {activityStats.calls.note}</span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Per-admin breakdown */}
+                  {activityStats.calls_by_admin && activityStats.calls_by_admin.length > 0 && (
+                    <div className="bg-white border border-gray-200 rounded-lg p-3">
+                      <div className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">By Admin</div>
+                      <div className="space-y-1.5">
+                        {activityStats.calls_by_admin.map((admin: { admin_id: string; display_name: string; total: number; voicemail: number; no_answer: number; spoke_with: number; callback: number; hung_up: number; new_email: number; resend: number; note: number }) => {
+                          // Build breakdown string with all non-zero outcomes
+                          const outcomes: string[] = [];
+                          if (admin.voicemail > 0) outcomes.push(`VM ${admin.voicemail}`);
+                          if (admin.no_answer > 0) outcomes.push(`No Ans ${admin.no_answer}`);
+                          if (admin.spoke_with > 0) outcomes.push(`Spoke ${admin.spoke_with}`);
+                          if (admin.callback > 0) outcomes.push(`Callback ${admin.callback}`);
+                          if (admin.hung_up > 0) outcomes.push(`Hung Up ${admin.hung_up}`);
+                          if (admin.new_email > 0) outcomes.push(`New Email ${admin.new_email}`);
+                          if (admin.resend > 0) outcomes.push(`Resend ${admin.resend}`);
+                          if (admin.note > 0) outcomes.push(`Note ${admin.note}`);
+
+                          return (
+                            <div key={admin.admin_id} className="flex items-center justify-between text-sm">
+                              <span className="font-medium text-gray-700">{admin.display_name}</span>
+                              <span className="text-gray-600">
+                                {admin.total} calls{outcomes.length > 0 && ` (${outcomes.join(", ")})`}
+                              </span>
+                            </div>
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -5217,10 +5341,10 @@ export default function ProviderOutreachPage() {
                     return (
                     <div className="bg-white border border-gray-200 rounded-lg p-3">
                       <div className="text-xs font-medium uppercase tracking-wide text-gray-500 mb-2">Last 7 Days</div>
-                      <div className="flex items-end gap-1 h-12">
+                      <div className="flex items-end gap-1">
                         {activityStats.daily_series.map((day) => {
                           const total = day.calls + day.emails;
-                          const heightPct = Math.max(4, (total / maxCount) * 100);
+                          const heightPct = Math.max(8, (total / maxCount) * 100);
                           const isToday = day.date === activityStatsDate;
                           return (
                             <div
@@ -5228,10 +5352,12 @@ export default function ProviderOutreachPage() {
                               className="flex-1 flex flex-col items-center gap-0.5"
                               title={`${day.date}: ${day.calls} calls, ${day.emails} emails`}
                             >
-                              <div
-                                className={`w-full rounded-sm ${isToday ? "bg-primary-500" : "bg-gray-300"}`}
-                                style={{ height: `${heightPct}%` }}
-                              />
+                              <div className="h-10 w-full flex items-end">
+                                <div
+                                  className={`w-full rounded-sm ${isToday ? "bg-primary-500" : "bg-gray-300"}`}
+                                  style={{ height: `${heightPct}%` }}
+                                />
+                              </div>
                               <span className="text-[9px] text-gray-400">
                                 {new Date(day.date + "T12:00:00").toLocaleDateString("en-US", { weekday: "narrow" })}
                               </span>
@@ -7503,6 +7629,11 @@ export default function ProviderOutreachPage() {
           providerName={notesModalProvider.name}
           onClose={() => setNotesModalProvider(null)}
         />
+      )}
+
+      {/* Sequence Conversions Modal */}
+      {showSequenceConvModal && (
+        <SequenceConversionsModal onClose={() => setShowSequenceConvModal(false)} />
       )}
 
       {/* Workflow Guide Modal */}

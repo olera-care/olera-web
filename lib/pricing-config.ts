@@ -585,3 +585,120 @@ const STATE_NAME_TO_CODE: Record<string, string> = {
   "south dakota": "SD", tennessee: "TN", texas: "TX", utah: "UT", vermont: "VT",
   virginia: "VA", washington: "WA", "west virginia": "WV", wisconsin: "WI", wyoming: "WY",
 };
+
+// ---------------------------------------------------------------------------
+// Provider-reported rate units
+// ---------------------------------------------------------------------------
+
+/**
+ * Units a PROVIDER may legitimately report a rate in.
+ *
+ * Superset of `PriceUnit` on purpose. `PriceUnit` is what Olera publishes and
+ * benchmarks against (hour / month / day). Providers additionally bill per
+ * visit or as a flat fee, and those are real business models -- not data
+ * errors. We therefore never coerce a provider's rate to the category default;
+ * we only require that unusual units are handled explicitly rather than
+ * silently rendered as if they were the default.
+ */
+export type RateUnit = PriceUnit | "visit" | "flat";
+
+/** Human suffix for a rate unit, e.g. "$30" + "/hr". */
+export const RATE_UNIT_SUFFIX: Record<RateUnit, string> = {
+  hour: "/hr",
+  day: "/day",
+  month: "/mo",
+  visit: "/visit",
+  flat: "",
+};
+
+/**
+ * Normalize a stored `pricing_details[].rateType` into a RateUnit.
+ *
+ * Accepts the shapes the product has written over time ("per hour", "hourly",
+ * "hour", "/hr", ...). Returns null for anything unrecognized, which callers
+ * must treat as "do not render a derived headline price" rather than guessing.
+ */
+export function normalizeRateType(raw: string | null | undefined): RateUnit | null {
+  if (!raw) return null;
+  const s = String(raw).trim().toLowerCase().replace(/^per\s+/, "").replace(/^\/+/, "");
+  if (/^(hour|hourly|hr|hrs)$/.test(s)) return "hour";
+  if (/^(day|daily)$/.test(s)) return "day";
+  if (/^(month|monthly|mo)$/.test(s)) return "month";
+  if (/^(visit|per-visit|session)$/.test(s)) return "visit";
+  if (/^(flat|flat rate|fixed|one[- ]?time)$/.test(s)) return "flat";
+  return null;
+}
+
+/**
+ * True when a provider's rate unit differs from their category's default.
+ *
+ * Not an error condition. A home-care agency quoting a daily live-in rate is
+ * legitimate. Callers use this to decide whether the unit must be shown
+ * explicitly (it must) and whether the rate may be compared against a
+ * regional benchmark expressed in the category's default unit (it may not).
+ */
+export function isUnusualUnitForCategory(unit: RateUnit, category: string | null | undefined): boolean {
+  if (!category) return true;
+  return unit !== getPricingConfig(category).unit;
+}
+
+/** Parse "$1,234" / "1234" / "" into a number, or null when absent. */
+function parseRate(raw: unknown): number | null {
+  if (raw == null) return null;
+  const n = Number(String(raw).replace(/[^0-9.]/g, ""));
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+export interface ProviderRateSummary {
+  unit: RateUnit;
+  low: number;
+  high: number;
+  /** e.g. "$30-$34/hr" */
+  formatted: string;
+  /** unit differs from the category default -- render the unit explicitly, never benchmark */
+  unusual: boolean;
+}
+
+/**
+ * Summarize a provider's own `pricing_details` rows into one headline range.
+ *
+ * Returns null unless the priced rows are COMPARABLE, meaning every row that
+ * carries a usable number also shares a single rate unit. Mixed units (an
+ * hourly companion rate beside a flat assessment fee) cannot honestly be
+ * collapsed into one range, so we decline rather than invent one.
+ *
+ * Rows with no number are ignored -- an empty rate carrying only a stray
+ * rateType must not create a price.
+ */
+export function summarizeProviderRates(
+  details: Array<{ rate?: unknown; rateMin?: unknown; rateMax?: unknown; rateType?: string | null }> | null | undefined,
+  category: string | null | undefined,
+): ProviderRateSummary | null {
+  if (!Array.isArray(details) || details.length === 0) return null;
+
+  const units = new Set<RateUnit>();
+  const values: number[] = [];
+
+  for (const row of details) {
+    const lo = parseRate(row.rateMin) ?? parseRate(row.rate);
+    const hi = parseRate(row.rateMax) ?? lo;
+    if (lo == null) continue;               // unpriced row -- ignore entirely
+    const unit = normalizeRateType(row.rateType);
+    if (!unit) return null;                 // priced row with an unreadable unit -- refuse to guess
+    units.add(unit);
+    values.push(lo);
+    if (hi != null) values.push(hi);
+  }
+
+  if (values.length === 0) return null;     // nothing priced
+  if (units.size !== 1) return null;        // not comparable -- see doc comment
+
+  const unit = [...units][0];
+  const low = Math.min(...values);
+  const high = Math.max(...values);
+  const suffix = RATE_UNIT_SUFFIX[unit];
+  const money = (n: number) => `$${n.toLocaleString()}`;
+  const formatted = low === high ? `${money(low)}${suffix}` : `${money(low)}-${money(high)}${suffix}`;
+
+  return { unit, low, high, formatted, unusual: isUnusualUnitForCategory(unit, category) };
+}

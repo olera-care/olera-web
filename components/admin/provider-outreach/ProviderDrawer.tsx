@@ -939,6 +939,12 @@ function SavedContactsSection({
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [usingEmail, setUsingEmail] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editType, setEditType] = useState<"email" | "fax" | "phone">("email");
+  const [editValue, setEditValue] = useState("");
+  const [editLabel, setEditLabel] = useState("");
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   // Reset state when provider changes to avoid stale data flash
   useEffect(() => {
@@ -947,6 +953,7 @@ function SavedContactsSection({
     setNewValue("");
     setNewLabel("");
     setSubmitError(null);
+    setEditingId(null);
   }, [provider.provider_id]);
 
   // Fetch contacts on mount / provider change
@@ -1035,6 +1042,54 @@ function SavedContactsSection({
       // Silent fail for delete
     }
   }, []);
+
+  const startEdit = useCallback((contact: SavedContact) => {
+    setEditingId(contact.id);
+    setEditType(contact.type);
+    setEditValue(contact.value);
+    setEditLabel(contact.label || "");
+    setEditError(null);
+  }, []);
+
+  const cancelEdit = useCallback(() => {
+    setEditingId(null);
+    setEditType("email");
+    setEditValue("");
+    setEditLabel("");
+    setEditError(null);
+  }, []);
+
+  const handleSaveEdit = useCallback(async () => {
+    if (!editingId || editSubmitting || !editValue.trim()) return;
+    setEditSubmitting(true);
+    setEditError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/contacts", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contact_id: editingId,
+          type: editType,
+          value: editValue.trim(),
+          label: editLabel.trim() || null,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setContacts((prev) =>
+          prev.map((c) => (c.id === editingId ? data.contact : c))
+        );
+        cancelEdit();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setEditError(data.error || "Failed to save changes");
+      }
+    } catch {
+      setEditError("Network error");
+    } finally {
+      setEditSubmitting(false);
+    }
+  }, [editingId, editType, editValue, editLabel, editSubmitting, cancelEdit]);
 
   return (
     <div>
@@ -1128,36 +1183,110 @@ function SavedContactsSection({
         <p className="text-sm text-gray-400 italic">No saved contacts</p>
       ) : (
         <div className="space-y-2">
-          {contacts.map((contact) => (
-            <div key={contact.id} className="flex items-center justify-between text-sm group">
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-gray-400 w-12">{CONTACT_TYPE_LABELS[contact.type]}</span>
-                  <span className="text-gray-900 truncate">{contact.value}</span>
-                  {contact.label && (
-                    <span className="text-gray-500">· {contact.label}</span>
+          {contacts.map((contact) => {
+            const isEditing = editingId === contact.id;
+
+            if (isEditing) {
+              return (
+                <div key={contact.id} className="p-2 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={editType}
+                      onChange={(e) => setEditType(e.target.value as "email" | "fax" | "phone")}
+                      className="px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                      disabled={editSubmitting}
+                    >
+                      <option value="email">Email</option>
+                      <option value="fax">Fax</option>
+                      <option value="phone">Phone</option>
+                    </select>
+                    <input
+                      type="text"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      placeholder={editType === "email" ? "email@example.com" : "(555) 123-4567"}
+                      className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      disabled={editSubmitting}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleSaveEdit();
+                        }
+                        if (e.key === "Escape") {
+                          e.stopPropagation();
+                          cancelEdit();
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={editLabel}
+                      onChange={(e) => setEditLabel(e.target.value)}
+                      placeholder="Label (e.g., Sales Director)"
+                      className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      disabled={editSubmitting}
+                    />
+                    <button
+                      onClick={handleSaveEdit}
+                      disabled={editSubmitting || !editValue.trim()}
+                      className="px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50"
+                    >
+                      {editSubmitting ? "..." : "Save"}
+                    </button>
+                    <button
+                      onClick={cancelEdit}
+                      disabled={editSubmitting}
+                      className="text-xs text-gray-400 hover:text-gray-600"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  {editError && (
+                    <p className="text-xs text-red-500">{editError}</p>
                   )}
                 </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                {contact.type === "email" && contact.value !== provider.email && (
+              );
+            }
+
+            return (
+              <div key={contact.id} className="flex items-center justify-between text-sm group">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400 w-12">{CONTACT_TYPE_LABELS[contact.type]}</span>
+                    <span className="text-gray-900 truncate">{contact.value}</span>
+                    {contact.label && (
+                      <span className="text-gray-500">· {contact.label}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {contact.type === "email" && contact.value !== provider.email && (
+                    <button
+                      onClick={() => handleUseEmail(contact.value)}
+                      disabled={usingEmail === contact.value}
+                      className="text-xs text-primary-600 hover:text-primary-700 disabled:opacity-50"
+                    >
+                      {usingEmail === contact.value ? "..." : "Use"}
+                    </button>
+                  )}
                   <button
-                    onClick={() => handleUseEmail(contact.value)}
-                    disabled={usingEmail === contact.value}
-                    className="text-xs text-primary-600 hover:text-primary-700 disabled:opacity-50"
+                    onClick={() => startEdit(contact)}
+                    className="text-xs text-gray-400 hover:text-primary-600 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                   >
-                    {usingEmail === contact.value ? "..." : "Use"}
+                    Edit
                   </button>
-                )}
-                <button
-                  onClick={() => handleDelete(contact.id)}
-                  className="text-xs text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-                >
-                  Remove
-                </button>
+                  <button
+                    onClick={() => handleDelete(contact.id)}
+                    className="text-xs text-gray-400 hover:text-red-500 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
@@ -1361,6 +1490,7 @@ const CALL_STATUSES = [
   { value: "new_email", label: "New Email", color: "bg-emerald-100 text-emerald-700" },
   { value: "resend", label: "Resend", color: "bg-teal-100 text-teal-700" },
   { value: "spoke_with", label: "Spoke With", color: "bg-purple-100 text-purple-700" },
+  { value: "note", label: "Note", color: "bg-slate-100 text-slate-600" },
 ] as const;
 
 type CallStatus = (typeof CALL_STATUSES)[number]["value"];
@@ -1395,12 +1525,19 @@ function CallLogSection({
   const [callNotes, setCallNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [currentAdminId, setCurrentAdminId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editStatus, setEditStatus] = useState<CallStatus>("voicemail");
+  const [editNotes, setEditNotes] = useState("");
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
 
   // Reset state when provider changes to avoid stale data flash
   useEffect(() => {
     setLogs([]);
     setCallNotes("");
     setSubmitError(null);
+    setEditingId(null);
   }, [provider.provider_id]);
 
   // Fetch call logs on mount / provider change
@@ -1415,6 +1552,7 @@ function CallLogSection({
         if (res.ok && !cancelled) {
           const data = await res.json();
           setLogs(data.logs || []);
+          setCurrentAdminId(data.current_admin_id || null);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -1461,6 +1599,55 @@ function CallLogSection({
       setSubmitting(false);
     }
   }, [provider.provider_id, selectedStatus, callNotes, submitting, onCallLogged]);
+
+  const startEdit = useCallback((log: CallLogEntry) => {
+    setEditingId(log.id);
+    setEditStatus(log.status);
+    setEditNotes(log.notes || "");
+    setEditError(null);
+  }, []);
+
+  const cancelEdit = useCallback(() => {
+    setEditingId(null);
+    setEditStatus("voicemail");
+    setEditNotes("");
+  }, []);
+
+  const handleSaveEdit = useCallback(async () => {
+    if (!editingId || editSubmitting) return;
+    setEditSubmitting(true);
+    setEditError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/call-logs", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          touchpoint_id: editingId,
+          status: editStatus,
+          notes: editNotes.trim() || null,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Update the log in the list
+        setLogs((prev) =>
+          prev.map((log) => (log.id === editingId ? data.log : log))
+        );
+        // If this was the most recent log, notify parent of status change
+        if (logs[0]?.id === editingId) {
+          onCallLogged?.(provider.provider_id, logs.length, editStatus);
+        }
+        cancelEdit();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setEditError(data.error || "Failed to save changes");
+      }
+    } catch {
+      setEditError("Network error");
+    } finally {
+      setEditSubmitting(false);
+    }
+  }, [editingId, editStatus, editNotes, editSubmitting, logs, provider.provider_id, onCallLogged, cancelEdit]);
 
   return (
     <div>
@@ -1523,9 +1710,68 @@ function CallLogSection({
         <div className="space-y-3 max-h-48 overflow-y-auto">
           {logs.map((log) => {
             const badge = getCallStatusBadge(log.status);
+            const isEditing = editingId === log.id;
+            const canEdit = currentAdminId === log.admin_id;
+
+            if (isEditing) {
+              return (
+                <div key={log.id} className="text-sm p-2 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <select
+                      value={editStatus}
+                      onChange={(e) => setEditStatus(e.target.value as CallStatus)}
+                      className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                      disabled={editSubmitting}
+                    >
+                      {CALL_STATUSES.map((status) => (
+                        <option key={status.value} value={status.value}>
+                          {status.label}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleSaveEdit}
+                      disabled={editSubmitting}
+                      className="px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50"
+                    >
+                      {editSubmitting ? "..." : "Save"}
+                    </button>
+                    <button
+                      onClick={cancelEdit}
+                      disabled={editSubmitting}
+                      className="px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={editNotes}
+                    onChange={(e) => setEditNotes(e.target.value)}
+                    placeholder="Notes..."
+                    className="w-full px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    disabled={editSubmitting}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleSaveEdit();
+                      }
+                      if (e.key === "Escape") {
+                        e.stopPropagation();
+                        cancelEdit();
+                      }
+                    }}
+                  />
+                  {editError && (
+                    <p className="mt-1 text-xs text-red-500">{editError}</p>
+                  )}
+                </div>
+              );
+            }
+
             return (
-              <div key={log.id} className="text-sm">
-                {/* Row 1: Time, status, admin */}
+              <div key={log.id} className="text-sm group">
+                {/* Row 1: Time, status, admin, edit button */}
                 <div className="flex items-center gap-2 mb-1">
                   <span className="text-xs text-gray-400">
                     {formatDate(log.created_at)}
@@ -1536,6 +1782,15 @@ function CallLogSection({
                   <span className="text-xs text-gray-400 ml-auto">
                     {log.admin_name || "Unknown"}
                   </span>
+                  {canEdit && (
+                    <button
+                      onClick={() => startEdit(log)}
+                      className="text-xs text-gray-400 hover:text-primary-600 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                      title="Edit"
+                    >
+                      Edit
+                    </button>
+                  )}
                 </div>
                 {/* Row 2: Full note text */}
                 {log.notes ? (
@@ -1553,22 +1808,16 @@ function CallLogSection({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Notes Section
+// Historical Notes Section (read-only - new notes go through Call Log with "Note" status)
 // ─────────────────────────────────────────────────────────────────────────────
 
-function NotesSection({ provider }: { provider: OutreachProvider }) {
+function HistoricalNotesSection({ provider }: { provider: OutreachProvider }) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newNote, setNewNote] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Reset state when provider changes to avoid stale data flash
   useEffect(() => {
     setNotes([]);
-    setNewNote("");
-    setSubmitError(null);
     setLoading(true);
   }, [provider.provider_id]);
 
@@ -1589,97 +1838,39 @@ function NotesSection({ provider }: { provider: OutreachProvider }) {
     fetchNotes();
   }, [provider.provider_id]);
 
-  const handleSubmit = useCallback(async () => {
-    if (!newNote.trim() || submitting) return;
-    setSubmitting(true);
-    setSubmitError(null);
-    try {
-      const res = await fetch("/api/admin/provider-outreach/notes", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          provider_id: provider.provider_id,
-          note: newNote.trim(),
-        }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setNotes((prev) => [data.note, ...prev]);
-        setNewNote("");
-      } else {
-        setSubmitError("Failed to add note");
-      }
-    } catch {
-      setSubmitError("Network error");
-    } finally {
-      setSubmitting(false);
-    }
-  }, [newNote, provider.provider_id, submitting]);
+  // Don't render section if no historical notes
+  if (!loading && notes.length === 0) {
+    return null;
+  }
 
   return (
-    <div>
-      <SectionHeader>Notes</SectionHeader>
+    <>
+      <div>
+        <SectionHeader>Notes</SectionHeader>
 
-      {/* Add note input */}
-      <div className="mb-5">
-        <textarea
-          ref={textareaRef}
-          value={newNote}
-          onChange={(e) => setNewNote(e.target.value)}
-          placeholder="Add a note..."
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-          rows={2}
-          disabled={submitting}
-          onKeyDown={(e) => {
-            if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-              e.preventDefault();
-              handleSubmit();
-            }
-            // Prevent ESC from bubbling to drawer and closing it while editing
-            if (e.key === "Escape") {
-              e.stopPropagation();
-              // Clear the note and blur the textarea
-              setNewNote("");
-              textareaRef.current?.blur();
-            }
-          }}
-        />
-        <div className="mt-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-gray-400">Ctrl+Enter to submit</span>
-            {submitError && <span className="text-xs text-red-500">{submitError}</span>}
+        {loading ? (
+          <div className="flex items-center justify-center py-4">
+            <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
           </div>
-          <button
-            onClick={handleSubmit}
-            disabled={!newNote.trim() || submitting}
-            className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
-          >
-            {submitting ? "Adding..." : "Add Note"}
-          </button>
-        </div>
-      </div>
-
-      {/* Notes list */}
-      {loading ? (
-        <div className="flex items-center justify-center py-6">
-          <span className="w-5 h-5 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
-        </div>
-      ) : notes.length === 0 ? (
-        <p className="text-sm text-gray-400 italic">No notes yet</p>
-      ) : (
-        <div className="space-y-3 max-h-48 overflow-y-auto">
-          {notes.map((note) => (
-            <div key={note.id} className="text-sm">
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-medium text-gray-700">{note.admin_name || "Unknown"}</span>
-                <span className="text-xs text-gray-400">{formatDate(note.created_at)}</span>
+        ) : (
+          <div className="space-y-3 max-h-48 overflow-y-auto">
+            {notes.map((note) => (
+              <div key={note.id} className="text-sm">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs text-gray-400">{formatDate(note.created_at)}</span>
+                  <span className="inline-flex px-1.5 py-0.5 text-xs font-medium rounded bg-slate-100 text-slate-600">
+                    Note
+                  </span>
+                  <span className="text-xs text-gray-400 ml-auto">{note.admin_name || "Unknown"}</span>
+                </div>
+                <p className="text-gray-600 whitespace-pre-wrap">{note.note}</p>
               </div>
-              <p className="text-gray-600 whitespace-pre-wrap">{note.note}</p>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <SectionDivider />
+    </>
   );
 }
 
@@ -2087,6 +2278,10 @@ function CallExhaustedSection({
 // Actions Section
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Pattern to find the CTA line in email body: [Activate your page →]({claim_url})
+const CTA_PATTERN = /\[Activate your page[^\]]*\]\(\{claim_url\}\)/;
+const CTA_DISPLAY_TEXT = "[Activate your page →]({claim_url})";
+
 function ActionsSection({
   provider,
   onLaunchSequence,
@@ -2155,7 +2350,8 @@ function ActionsSection({
   // Compose email modal state (for customizable nudge emails)
   const [showComposeModal, setShowComposeModal] = useState(false);
   const [composeSubject, setComposeSubject] = useState("");
-  const [composeBody, setComposeBody] = useState("");
+  const [composeBody, setComposeBody] = useState(""); // Text before CTA
+  const [composeClosing, setComposeClosing] = useState(""); // Text after CTA
   const [composeLoading, setComposeLoading] = useState(false);
   const [composeToEmail, setComposeToEmail] = useState("");
   // Track compose mode: "send" = just send email, "resend" = send + move to Alt Channels
@@ -2198,6 +2394,7 @@ function ActionsSection({
     setShowComposeModal(false);
     setComposeSubject("");
     setComposeBody("");
+    setComposeClosing("");
     setComposeLoading(false);
     setComposeToEmail("");
     setComposeMode("send");
@@ -2206,6 +2403,28 @@ function ActionsSection({
     setPreviewHtml("");
     setPreviewLoading(false);
   }, [provider.provider_id]);
+
+  // Parse email body to split around the CTA
+  function parseEmailBody(body: string): { message: string; closing: string } {
+    const match = body.match(CTA_PATTERN);
+    if (match && match.index !== undefined) {
+      const ctaStart = match.index;
+      const ctaEnd = ctaStart + match[0].length;
+      const message = body.slice(0, ctaStart).replace(/\n+$/, "");
+      const closing = body.slice(ctaEnd).replace(/^\n+/, "");
+      return { message, closing };
+    }
+    return { message: body, closing: "" };
+  }
+
+  // Reassemble body from message + CTA + closing
+  function assembleEmailBody(message: string, closing: string): string {
+    const parts = [message.trim(), "", CTA_DISPLAY_TEXT];
+    if (closing.trim()) {
+      parts.push("", closing.trim());
+    }
+    return parts.join("\n");
+  }
 
   // Load default email template for compose modal (send mode - no stage change)
   async function loadComposeTemplate() {
@@ -2218,7 +2437,9 @@ function ActionsSection({
       const data = await res.json();
       if (res.ok) {
         setComposeSubject(data.subject || "");
-        setComposeBody(data.body || "");
+        const { message, closing } = parseEmailBody(data.body || "");
+        setComposeBody(message);
+        setComposeClosing(closing);
         setComposeToEmail(data.to_email || provider.email || "");
         setShowComposeModal(true);
       } else {
@@ -2242,7 +2463,9 @@ function ActionsSection({
       const data = await res.json();
       if (res.ok) {
         setComposeSubject(data.subject || "");
-        setComposeBody(data.body || "");
+        const { message, closing } = parseEmailBody(data.body || "");
+        setComposeBody(message);
+        setComposeClosing(closing);
         setComposeToEmail(data.to_email || provider.email || "");
         setShowComposeModal(true);
       } else {
@@ -2260,13 +2483,14 @@ function ActionsSection({
     setPreviewLoading(true);
     setActionError(null);
     try {
+      const fullBody = assembleEmailBody(composeBody, composeClosing);
       const res = await fetch("/api/admin/provider-outreach/preview-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           provider_id: provider.provider_id,
           custom_subject: composeSubject,
-          custom_body: composeBody,
+          custom_body: fullBody,
         }),
       });
       const data = await res.json();
@@ -3074,30 +3298,43 @@ Questions? support@olera.care or (979) 243-9801`;
                 />
               </div>
 
-              {/* Body field (editable) */}
+              {/* Message field - unified container with locked CTA in middle */}
               <div>
                 <label className="block text-xs font-medium text-gray-500 mb-1">
                   Message
                   <span className="ml-1 font-normal text-gray-400">(supports markdown links)</span>
                 </label>
-                <textarea
-                  value={composeBody}
-                  onChange={(e) => {
-                    setComposeBody(e.target.value);
-                    setPreviewHtml(""); // Clear preview when editing
-                  }}
-                  rows={12}
-                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
-                  placeholder="Email body..."
-                />
-              </div>
-
-              {/* Footer preview (locked) */}
-              <div>
-                <label className="block text-xs font-medium text-gray-400 mb-1">Footer (auto-added)</label>
-                <div className="text-xs text-gray-400 bg-gray-100 px-2 py-1.5 rounded border border-gray-200 italic">
-                  Best, Logan · [Signature with photo] · Manage/Unsubscribe links · PDF attachment
+                <div className="border border-gray-300 rounded overflow-hidden focus-within:ring-1 focus-within:ring-primary-500 focus-within:border-primary-500">
+                  {/* Top: editable text before CTA */}
+                  <textarea
+                    value={composeBody}
+                    onChange={(e) => {
+                      setComposeBody(e.target.value);
+                      setPreviewHtml("");
+                    }}
+                    rows={5}
+                    className="w-full px-2 py-1.5 text-sm border-0 focus:ring-0 resize-none"
+                    placeholder="Email body..."
+                  />
+                  {/* Middle: locked CTA - not editable */}
+                  <div className="px-2 py-1.5 bg-gray-50 text-sm text-gray-500 select-none border-y border-gray-200">
+                    {CTA_DISPLAY_TEXT}
+                  </div>
+                  {/* Bottom: editable text after CTA */}
+                  <textarea
+                    value={composeClosing}
+                    onChange={(e) => {
+                      setComposeClosing(e.target.value);
+                      setPreviewHtml("");
+                    }}
+                    rows={3}
+                    className="w-full px-2 py-1.5 text-sm border-0 focus:ring-0 resize-none"
+                    placeholder="Optional closing text..."
+                  />
                 </div>
+                <p className="mt-1 text-xs text-gray-400">
+                  Footer with signature added automatically
+                </p>
               </div>
             </>
           )}
@@ -3121,10 +3358,11 @@ Questions? support@olera.care or (979) 243-9801`;
           <div className="flex items-center gap-2 pt-1">
             <button
               onClick={() => {
+                const fullBody = assembleEmailBody(composeBody, composeClosing);
                 if (composeMode === "resend") {
-                  handleResendLink(composeSubject, composeBody);
+                  handleResendLink(composeSubject, fullBody);
                 } else {
-                  handleSendClaimLink(composeSubject, composeBody);
+                  handleSendClaimLink(composeSubject, fullBody);
                 }
               }}
               disabled={
@@ -3146,6 +3384,7 @@ Questions? support@olera.care or (979) 243-9801`;
                 setShowComposeModal(false);
                 setActionError(null);
                 setComposeConfirmedCall(false);
+                setComposeClosing("");
                 setShowPreview(false);
                 setPreviewHtml("");
               }}
@@ -3440,20 +3679,7 @@ export function ProviderDrawer({
 
         <SectionDivider />
 
-        {/* Saved Contacts Section */}
-        <SavedContactsSection
-          provider={provider}
-          onUseEmail={(email) => onEmailUpdate?.(provider.provider_id, email)}
-        />
-
-        <SectionDivider />
-
-        {/* Call Log Section */}
-        <CallLogSection provider={provider} onCallLogged={onCallLogged} />
-
-        <SectionDivider />
-
-        {/* Decision Maker Section */}
+        {/* Decision Maker Section - grouped with contacts for discovery workflow */}
         <DecisionMakerSection
           provider={provider}
           onUseEmail={(email) => onEmailUpdate?.(provider.provider_id, email, "decision_maker")}
@@ -3464,6 +3690,19 @@ export function ProviderDrawer({
               : undefined
           }
         />
+
+        <SectionDivider />
+
+        {/* Saved Contacts Section */}
+        <SavedContactsSection
+          provider={provider}
+          onUseEmail={(email) => onEmailUpdate?.(provider.provider_id, email)}
+        />
+
+        <SectionDivider />
+
+        {/* Call Log Section */}
+        <CallLogSection provider={provider} onCallLogged={onCallLogged} />
 
         <SectionDivider />
 
@@ -3491,10 +3730,8 @@ export function ProviderDrawer({
           </>
         )}
 
-        {/* Notes Section */}
-        <NotesSection provider={provider} />
-
-        <SectionDivider />
+        {/* Historical Notes Section (read-only, no new notes - use Call Log instead) */}
+        <HistoricalNotesSection provider={provider} />
 
         {/* Activity Section */}
         <ActivitySection provider={provider} />

@@ -29,11 +29,20 @@ ol.risks li::marker { font-weight: bold; color: #14453f; }
 b.rk { color: #14453f; }
 """
 
+import os
+WORD = os.environ.get("WORD_EXPORT") == "1"
+FIGW = {1: 3.0, 2: 7.2, 3: 7.2}
+
 def figblock(svg, num, cap):
-    return (f'<div class="fig">{svg}</div>'
+    inner = (f'<img src="png/fig{num}.png" style="width:{FIGW[num]}in">' if WORD else svg)
+    return (f'<div class="fig">{inner}</div>'
             f'<p class="caption"><b>Figure {num}.</b> {cap}</p>')
 
 def figwrap(svg, num, cap, width):
+    if WORD:
+        return (f'<div class="figfloat" style="width:{width}in">'
+                f'<img src="png/fig{num}.png" style="width:{width}in">'
+                f'<p class="caption"><b>Figure {num}.</b> {cap}</p></div>')
     return (f'<div class="figwrap" style="width:{width}in">{svg}'
             f'<p class="caption"><b>Figure {num}.</b> {cap}</p></div>')
 
@@ -174,5 +183,6 @@ DOC = ("<!DOCTYPE html><html><head><meta charset='utf-8'><style>" + CSS +
 
 assert "—" not in DOC, "EM DASH IN DOCUMENT"
 assert_no_nested_blocks(DOC)
-open("son.html", "w").write(DOC)
-print("built son.html, %d bytes" % len(DOC))
+out = "son_word.html" if WORD else "son.html"
+open(out, "w").write(DOC)
+print("built %s, %d bytes" % (out, len(DOC)))

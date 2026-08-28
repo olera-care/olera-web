@@ -1063,17 +1063,16 @@ TB_SUPPRESS = {3}
 
 TB_REANCHOR_CAPTION = {
     'image20.png': ["Figure 2. Care establishment requires a coordinated pathway from assessing "
-                    "need through identifying, funding, staffing, executing, and confirming care."],
+                    "need through confirming care."],
 }
 
 TB_REPLACE = {
     87: [],   # market-process caption, cut with its figure
-    1:  ["Figure 1. Unmet eldercare needs can drive a vicious cycle of hospitalization, failed care "
-         "establishment, and premature institutionalization."],
+    1:  ["Figure 1. The vicious cycle of unmet need."],
     10: ["Figure 3. CRP bridges the five remaining risks between demonstrated demand and "
          "commercial sustainability."],
     18: ["Figure 4. What a family sees, what the system does, and what accumulates across a "
-         "county. Shaded elements exist today; the county register is illustrative only."],
+         "county. Shaded elements exist today."],
     83: ["Figure 5. Post-CRP growth flywheel."],
     91: ["Figure 6. Organic traffic growth, 2023–2026."],
 }

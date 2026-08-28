@@ -134,6 +134,22 @@ customers, institutional customers, caregiver participants) used consistently.
 
 ---
 
+## Figure captions, one line each
+
+All six now set on a single rendered line, in both the PDF and the `.docx`. What each dropped is
+drawn in the artwork, so nothing was lost from the record:
+
+| Figure | Was | Now | What carries the dropped text |
+|---|---|---|---|
+| 1 | 3 lines in a 3in float: "Unmet eldercare needs can drive a vicious cycle of hospitalization, failed care establishment, and premature institutionalization." | "The vicious cycle of unmet need." | The figure's own nodes are labelled Unmet Need, Hospital, No Care and Long-Term Care Facility. |
+| 2 | 2 lines: "…from assessing need through identifying, funding, staffing, executing, and confirming care." | "…from assessing need through confirming care." | The six steps are the figure's six labelled nodes. |
+| 4 | 2 lines, ending "…the county register is illustrative only." | Ends "Shaded elements exist today." | The county register's own rail reads ILLUSTRATIVE ONLY, so the caveat still appears on the page. |
+| 3, 5, 6 | already one line | unchanged | |
+
+Table captions 1, 6 and 8 still run to two lines. They were left alone: each carries a
+qualification (the closed-loop claim, the market-concentration purpose, and Table 8's
+paid-month-equivalents footnote) that has nowhere else to live.
+
 ## Verification
 
 - 12 pages in both the PDF and the `.docx`.

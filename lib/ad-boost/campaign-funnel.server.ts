@@ -76,6 +76,8 @@ interface EventRow {
   anonymous_id: string | null;
   visit_id: string | null;
   event_type: string;
+  cta_id: string | null;
+  page_category: string | null;
 }
 
 /** Key a visit. Falls back to anonymous_id when visit_id is absent (older rows). */
@@ -156,7 +158,7 @@ export async function getCampaignFunnels(
   for (let i = 0; i < anonIds.length; i += CHUNK) {
     const { data: events, error: evErr } = await db
       .from("growth_attribution_events")
-      .select("anonymous_id, visit_id, event_type")
+      .select("anonymous_id, visit_id, event_type, cta_id, page_category")
       .in("anonymous_id", anonIds.slice(i, i + CHUNK))
       .neq("event_type", "page_landed")
       .limit(50000);
@@ -167,6 +169,15 @@ export async function getCampaignFunnels(
       if (!key) continue;
       const campaign = visitToCampaign.get(key); // visit guard: same visit only
       if (!campaign) continue;
+
+      // The benefits module logs cta_visible on provider pages for UI that does
+      // not render. Left in, it reported 287 CTA impressions where the true
+      // figure was 48 -- 83% of the column was phantom.
+      if (e.cta_id === "benefits_intake") continue;
+      // A visit that arrived from an ad and then wandered to a benefits or
+      // editorial page would otherwise donate those events to the campaign,
+      // including a benefits lead_created showing up as an ad-driven inquiry.
+      if (e.page_category && e.page_category !== "provider") continue;
       const f = byCampaign.get(campaign);
       if (!f) continue;
       if (e.event_type === "cta_visible") f.cta_visible += 1;

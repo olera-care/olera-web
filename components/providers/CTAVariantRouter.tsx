@@ -44,9 +44,12 @@ function useImpressionTracking(
   surface: "desktop" | "mobile",
   providerSlug: string,
 ) {
-  // The variant we last reported as being on screen, so a resolve that lands
-  // on the same arm does not double-count.
-  const firedVariantRef = useRef<string | null>(null);
+  // What we have already reported, keyed by rendered variant AND whether the
+  // assignment had resolved. Keying on the variant alone silently dropped the
+  // legacy arm: a first-time visitor assigned to legacy fired only the
+  // unresolved event, and the A/B report discards those, so the session
+  // vanished from the experiment entirely.
+  const firedRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     // Don't fire in preview mode (contaminates A/B data)
     if (isCTAPreviewMode()) return;
@@ -68,11 +71,16 @@ function useImpressionTracking(
     //
     // `variant_resolved` keeps the experiment honest. Filter to
     // `variant_resolved: true` for clean A/B arms; use every row for reach.
-    // A first-time visitor assigned to `compare` legitimately produces two
-    // impressions -- they saw legacy, then saw compare.
+    //
+    // A first-time visitor produces two impressions: the legacy default they
+    // actually saw first, then their assigned arm once it resolves. That is
+    // truthful about what was on screen, and consumers that care about reach
+    // count sessions rather than rows, so it does not inflate anything.
     const rendered = variant ?? "legacy";
-    if (firedVariantRef.current === rendered) return;
-    firedVariantRef.current = rendered;
+    const resolved = variant !== null;
+    const dedupeKey = `${rendered}|${resolved}`;
+    if (firedRef.current.has(dedupeKey)) return;
+    firedRef.current.add(dedupeKey);
     // Fire-and-forget POST to the activity tracking endpoint.
     // Using navigator.sendBeacon would be nice but is overkill for an
     // impression that fires on visible render, not page-unload.
@@ -87,7 +95,7 @@ function useImpressionTracking(
         metadata: {
           variant: rendered,
           /** false = fired before the weights fetch resolved, showing the legacy default */
-          variant_resolved: variant !== null,
+          variant_resolved: resolved,
           surface,
           visit_id: getOrCreateVisitId(),
           page_path: `/provider/${providerSlug}`,

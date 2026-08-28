@@ -285,8 +285,9 @@ export async function executeProviderOutreachTask(taskId: string): Promise<Execu
 
     if (shouldUseVariant(template_key) && variantId) {
       // Use variant template for Day 0 email with full layout
+      // Pass "intro" as templateKey since this is a Day 0 (intro) email
       const variantDraft = await getDay0Template(context, variantId);
-      rendered = renderVariantEmail(variantDraft, context);
+      rendered = renderVariantEmail(variantDraft, context, "intro");
     } else {
       // Use standard template
       rendered = renderEmail(template_key, context);

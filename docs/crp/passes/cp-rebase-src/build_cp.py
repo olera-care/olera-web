@@ -69,10 +69,11 @@ def figblock(svg, png, key):
 # The six figures that survive Pass 1, renumbered in document order.
 FIGMAP = {
     'FIG1':   figblock(N.fig1(), 'fig1', 'FIG1'),               # 1, vicious cycle, floated
-    'FIG3':   figblock(N.fig3(), 'fig3', 'FIG3'),               # 2, valley of death
-    'FIG4':   figblock(N.fig4(), 'fig4', 'FIG4'),               # 3, product and county
-    'FIG10B': figblock(N.fig10_flywheel(), 'fig10b', 'FIG10B'), # 4, growth flywheel, floated
-    'FIGXORG': figblock(N.organic(), 'figxorg', 'FIGXORG'),     # 5, organic traffic, floated
+    'FIG2':   figblock(N.fig2(), 'fig2', 'FIG2'),               # 2, care-establishment pathway
+    'FIG3':   figblock(N.fig3(), 'fig3', 'FIG3'),               # 3, valley of death
+    'FIG4':   figblock(N.fig4(), 'fig4', 'FIG4'),               # 4, product and county
+    'FIG10B': figblock(N.fig10_flywheel(), 'fig10b', 'FIG10B'), # 5, growth flywheel, floated
+    'FIGXORG': figblock(N.organic(), 'figxorg', 'FIGXORG'),     # 6, organic traffic, floated
 }
 
 BODY, MANIFEST = C.build(FIGMAP, FIGW)
@@ -89,6 +90,12 @@ json.dump(C.LOG, open('convert_log.json', 'w'), indent=1)
 from collections import Counter
 print('source body items:', len(C.TRUTH))
 print(Counter(k for k, _, _ in MANIFEST))
+# edits.py assigns some items more than once as the passes accumulated, so the last
+# assignment wins. Print the live cross-references so a stale one cannot pass silently.
+import edits as _E
+_refs = sorted({m for v in _E.REPLACE.values()
+                for m in re.findall(r'\((?:Figure|Table) \d+[^)]*\)|Section \d+', v)})
+print('live cross-references:', ' '.join(_refs))
 print('em dash replacements:', len(C.LOG['emdash']))
 print('paragraph splits at a second run-in:', C.LOG['para_splits'])
 print('captions with a double space after the label:', len(C.LOG['caption_norm']))

@@ -4,7 +4,7 @@ import re, subprocess, pymupdf, os
 import figs95 as N
 
 # only the six figures that survive Pass 1 are needed for the Word export
-FIGS = {'fig1': N.fig1(), 'fig3': N.fig3(), 'fig4': N.fig4(),
+FIGS = {'fig1': N.fig1(), 'fig2': N.fig2(), 'fig3': N.fig3(), 'fig4': N.fig4(),
         'fig10b': N.fig10_flywheel(), 'figxorg': N.organic()}
 
 os.makedirs('png', exist_ok=True)

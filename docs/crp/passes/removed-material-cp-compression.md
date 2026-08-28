@@ -1,16 +1,15 @@
 # Removed material, Commercialization Plan compression pass
 
-Every sentence deleted to bring the plan from 21 pages to 12, in document order,
-with the section it came from. Nothing here was paraphrased away: each line was
-either deleted whole or is a sentence removed from a surviving paragraph. The
-reason each was safe to cut is in `cp-compression-change-log.md`.
+Every sentence deleted to bring the plan from 21 pages to 12, in document order, with the
+section it came from. Nothing here was paraphrased away: each line was either deleted whole
+or is a sentence removed from a surviving paragraph. Why each was safe to cut is in
+`cp-compression-change-log.md`.
 
 
 ## Section 1 Statement of Need
 
 - [0] STATEMENT OF NEED - Why does Olera need CRP?
 - [1] The need is growing as Americans live longer with more chronic illness while caregiving capacity falls further behind demand.
-- [3] Olera's Valley of Death (Figure 3).
 - [3] What remains is to complete the pathway from identified need to established care, determine when workforce capacity prevents that pathway from succeeding, measure what happens to families when care is established, and convert the resulting value into sustainable commercial models.
 - [4] Complete and verify the execution and outcomes layer needed to carry families from a care and funding plan through to established care and reliably capture what happens along the way.
 - [5] Deploy the system with families and determine whether care is established, where cases fail, when workforce capacity becomes a constraint, and what it costs to deliver.
@@ -30,7 +29,6 @@ reason each was safe to cut is in `cp-compression-change-log.md`.
 ## Section 2 Value
 
 - [16] VALUE OF THE CRP PROJECT, EXPECTED OUTCOMES, AND IMPACT - What does this CRP create?
-- [17] The platform assesses needs, identifies appropriate care and financial aid, helps execute the administrative and follow-up work required to obtain them, confirms whether care was established, and records where the pathway succeeds or fails (Figure 4).
 - [18] This architecture allows Olera to commercialize provider-facing staffing while preserving broad, free access to CareNavigator and building the evidence needed for future institutional contracting.
 - [19] More than 200 NIH/NSF I-Corps customer-discovery interviews also identified caregiver availability as a recurrent constraint.
 - [20] Current approaches are useful but fragmented.
@@ -40,7 +38,6 @@ reason each was safe to cut is in `cp-compression-change-log.md`.
 - [23] Second, AI-supported execution moves the product from recommending what a family should do toward completing and tracking the work required to establish care.
 - [23] Third, every executed case can produce a structured longitudinal record of the family's needs, resources pursued, administrative barriers, local capacity, care establishment, and subsequent outcomes.
 - [24] The resulting analytics could inform payers and accountable care organizations seeking to reduce avoidable utilization; health systems seeking reliable transitions from referral to care; providers planning service and workforce capacity; public agencies allocating aging resources; researchers studying access and implementation; and communities identifying local gaps.
-- [24] The CRP tests and builds the infrastructure required to create this asset; it does not assume its value in advance (Figure 4, lower register).
 - [25] (4) geographically resolved longitudinal data describing how families move through the eldercare system; and (5) an institutional-buyer evidence package and operating model positioned for subsequent contracting and private investment.
 - [26] The CRP therefore has societal, educational, scientific, and public-health value beyond company revenue.
 - [28] Commercial growth produces measurable societal, educational, scientific, and public-health value.

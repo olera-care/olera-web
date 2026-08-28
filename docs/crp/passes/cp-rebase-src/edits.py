@@ -23,7 +23,6 @@ DROP = {
 
 # Figures cut in Pass 1. Each is listed with what already carries its content.
 DROP_FIGURES = {
-    'image20.png',  # pathway spine: the seven steps are the columns of Figure 3 and the rows of Table 1
     'image6.png',   # two markets: every value is in the two paragraphs above it
     'image7.png',   # IP protections: the four categories are the Protection strategy paragraph
     'image12.png',  # market activation process: the Market selection paragraph carries it
@@ -37,9 +36,10 @@ DROP_FIGURES = {
 # Figure-content tables cut with their figures
 DROP_FIGURE_TABLES = {38, 43}
 
-# Figure 2 names the five remaining risks, so it introduces the list rather than
-# following it. Moving its anchor also closes a page-one break.
-FIG_REANCHOR = {'image18.png': 3}
+# The care-establishment pathway figure sits with the paragraph that references it,
+# on page one. The Valley of Death figure keeps the source's own anchor, after the
+# five risks, which also fills the page-two break.
+FIG_REANCHOR = {'image20.png': 2}
 
 # tables removed outright
 DROP_TABLES = {
@@ -186,7 +186,7 @@ R[1] = ("**The product and its impact.** Older Americans and their families face
         "needs force higher and costlier levels of care.")
 
 R[2] = ("The remaining opportunity is to carry navigation through the full pathway from recognized "
-        "need to established care. Prior work substantially developed the upstream navigation "
+        "need to established care (Figure 2). Prior work substantially developed the upstream navigation "
         "needed to assess needs, identify care, and fund care. The CRP will develop and validate "
         "the ability to staff and execute and track the care plan and outcomes, using a validated "
         "**Caregiver Staffing** product to expand the local workforce available to home-care "
@@ -196,7 +196,7 @@ R[2] = ("The remaining opportunity is to carry navigation through the full pathw
         "Data** layer needed to confirm that care was established and measure what follows from "
         "that pathway.")
 
-R[3] = ("**Olera's Valley of Death (Figure 2).** CareNavigator is deployed nationally, draws "
+R[3] = ("**Olera's Valley of Death (Figure 3).** CareNavigator is deployed nationally, draws "
         "15,500+ visitors per month through organic search at near-zero acquisition cost, and has "
         "demonstrated usability and technology acceptance in peer-reviewed studies.[refs] Caregiver "
         "Staffing has also been tested in prior pilots, where providers hired workers sourced "
@@ -225,7 +225,7 @@ R[17] = ("**The product to be commercialized.** CareNavigator is Olera's family-
          "from recognized need to established care. Families use CareNavigator at no cost. The "
          "platform assesses needs, identifies appropriate care and financial aid, helps execute the "
          "administrative and follow-up work required to obtain them, confirms whether care was "
-         "established, and records where the pathway succeeds or fails (Figure 3).")
+         "established, and records where the pathway succeeds or fails (Figure 4).")
 
 R[18] = ("Caregiver Staffing is a complementary provider-facing product and capacity mechanism. "
          "When an otherwise appropriate care plan cannot be delivered because a provider lacks "
@@ -722,7 +722,7 @@ R[83] = ("**Use of post-CRP capital.** The raise is intentionally larger than th
          "workforce capacity. Expanding CareNavigator generates more care-establishment episodes "
          "and a larger longitudinal evidence base from which institutional contracts can mature. "
          "Private capital therefore serves as the bridge from a CRP-validated model to "
-         "progressively revenue-financed commercial scale (Figure 4).")
+         "progressively revenue-financed commercial scale (Figure 5).")
 
 R[86] = ("**Production model.** Olera produces and operates its software in-house, but the "
          "commercially meaningful unit of production is a functioning local market: the county in "
@@ -968,7 +968,7 @@ R[114] = ("**Staffing and capital as revenue grows.** During the CRP, engineerin
 R[24] = ("At scale, this longitudinal record could become a distinctive commercial and scientific "
          "asset: a county-level empirical map of where eldercare pathways succeed, where they fail, "
          "and what resolves those failures. The CRP tests and builds the infrastructure required to "
-         "create this asset; it does not assume its value in advance (Figure 3, lower register).")
+         "create this asset; it does not assume its value in advance (Figure 4, lower register).")
 
 R[26] = ("**Commercial and non-commercial impact.** Olera's commercial and public-health objectives "
          "reinforce one another: growth means more families can receive support before unmet needs "
@@ -1038,7 +1038,7 @@ R[105] = ("**Institutional CareNavigator: contracts follow outcomes evidence.** 
 
 R[94] = ("**Distribution and route to market.** Olera's distribution advantage is already visible "
          "in organic demand: traffic has grown from approximately 50 visitors per day in 2023 to "
-         "more than 500 per day in 2026 without paid acquisition (Figure 5). Olera also intends to "
+         "more than 500 per day in 2026 without paid acquisition (Figure 6). Olera also intends to "
          "make CareNavigator's domain data and execution capabilities interoperable with search and "
          "general-purpose AI interfaces, allowing those systems to become additional entry points "
          "rather than requiring Olera to own every point of discovery.")
@@ -1056,19 +1056,24 @@ REPLACE = R
 
 # text-box captions attached to figures, keyed by the item that anchors them
 # the caption travels with the re-anchored figure
+# Item 3 carries the pathway caption inline as well as in a text box. The inline copy
+# still has to be stripped, so the text box is kept for the de-duplication match and
+# then suppressed: the caption itself travels to item 2 with the figure.
+TB_SUPPRESS = {3}
+
 TB_REANCHOR_CAPTION = {
-    'image18.png': ["Figure 2. CRP bridges the five remaining risks between demonstrated demand "
-                    "and commercial sustainability."],
+    'image20.png': ["Figure 2. Care establishment requires a coordinated pathway from assessing "
+                    "need through identifying, funding, staffing, executing, and confirming care."],
 }
 
 TB_REPLACE = {
-    3:  [],   # pathway-spine caption, cut with its figure
     87: [],   # market-process caption, cut with its figure
     1:  ["Figure 1. Unmet eldercare needs can drive a vicious cycle of hospitalization, failed care "
          "establishment, and premature institutionalization."],
-    10: [],   # caption travels with the figure to item 3
-    18: ["Figure 3. What a family sees, what the system does, and what accumulates across a "
+    10: ["Figure 3. CRP bridges the five remaining risks between demonstrated demand and "
+         "commercial sustainability."],
+    18: ["Figure 4. What a family sees, what the system does, and what accumulates across a "
          "county. Shaded elements exist today; the county register is illustrative only."],
-    83: ["Figure 4. Post-CRP growth flywheel."],
-    91: ["Figure 5. Organic traffic growth, 2023–2026."],
+    83: ["Figure 5. Post-CRP growth flywheel."],
+    91: ["Figure 6. Organic traffic growth, 2023–2026."],
 }

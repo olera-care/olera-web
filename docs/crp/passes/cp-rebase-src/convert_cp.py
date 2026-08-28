@@ -327,6 +327,8 @@ def build(figmap, figwidth):
             x = dict(x, tb=list(x['tb']) + [c for n in moved_in
                                             for c in E.TB_REANCHOR_CAPTION.get(n, [])])
         runs, side = strip_inline_caption(x, where)
+        if i in E.TB_SUPPRESS:
+            x = dict(x, tb=[])
         floats = [n for n in x['imgs'] if n in FLOAT_RIGHT]
         rest = [n for n in x['imgs'] if n not in FLOAT_RIGHT]
         pre = [n for n in rest if n in BEFORE_ANCHOR or side == 'before']

@@ -3,7 +3,7 @@
 **Date:** 2026-08-28
 **Input:** the rebased plan, 21 pages.
 **Output:** `Olera_CRP_CommercializationPlan_rebased.pdf` and `.docx`, **12 pages each**.
-**Reduction:** 9,489 words to 6,340 (33%); 16 figures to 5; 13 tables to 10.
+**Reduction:** 9,489 words to 6,340 (33%); 16 figures to 6; 13 tables to 10.
 **Method:** deletion, not rewriting. 151 deletions removed 3,399 words of prose. Every deleted
 sentence is listed in `removed-material-cp-compression.md`. `audit_edits.py` re-splits each edited
 paragraph and classifies every surviving sentence: 221 are verbatim or clean truncations, and the
@@ -14,15 +14,19 @@ a middle sentence.
 
 ## 1. Major cuts and consolidations
 
-### Figures: 16 to 5
+### Figures: 16 to 6
 
-Kept: the vicious cycle (Fig 1), the Valley of Death (Fig 2), the product and county figure
-(Fig 3), the growth flywheel (Fig 4), organic traffic (Fig 5). Three of the five float, so they
-cost almost no vertical space.
+Kept: the vicious cycle (Fig 1), the care-establishment pathway (Fig 2), the Valley of Death
+(Fig 3), the product and county figure (Fig 4), the growth flywheel (Fig 5), organic traffic
+(Fig 6). Three of the six float, so they cost almost no vertical space.
+
+The pathway figure was cut in the first compression pass and **restored**: it carries the spine of
+the whole argument, and the seven steps it names are referenced by every later section. It sits on
+page one with the paragraph that references it, and the Valley of Death figure moved down to open
+page two, which closes a 199pt break that had been wasting a quarter of that page.
 
 | Cut | Why it was safe |
 |---|---|
-| Care pathway spine | Its seven steps are the seven columns of Figure 3 and the seven rows of Table 1. |
 | Progression, R&D to commercial scale | The paragraph beneath it said the same thing in the same order; the paragraph is cheaper. |
 | Management capacity | Restated three surrounding paragraphs with no added information. |
 | Two markets | Every value in it (4.68M aides, 760,500 openings, 75% turnover, 35.2M MA, 14.3M ACO) is in the two paragraphs above it, with the citations. |
@@ -83,7 +87,8 @@ unit economics, the named investors, the advisor credentials, and the SBIR histo
 | 1 | **Two sections numbered 9** (Production and Marketing, Revenue Stream); sections ran 1, 2, 3 unnumbered then 4, 5, 7, 9, 9, 11 with no 6, 8 or 10. | Renumbered 1 to 9 in document order. The order already matches SF424's a→g with the Statement of Need first, so only the numbers moved. |
 | 2 | **"Section 10 describes how these activities convert into revenue"** (twice) pointed at the Revenue Stream, which was numbered 9. | Both now point to Section 8. |
 | 3 | **"Section 9" was ambiguous**, used four times for the Revenue Stream and once for Production and Marketing, both numbered 9. | Resolved by the renumbering. |
-| 4 | **Two figures numbered 10**, no Figure 9, two placeholders numbered "Figure X", one figure with no caption at all. | Surviving figures renumbered 1 to 5; every in-text reference updated. |
+| 4 | **Two figures numbered 10**, no Figure 9, two placeholders numbered "Figure X", one figure with no caption at all. | Surviving figures renumbered 1 to 6; every in-text reference updated. |
+| 4b | After restoring the pathway figure, one in-text reference to the product figure still read "(Figure 3)" while its caption read "Figure 4". `edits.py` had accumulated several assignments for the same items across passes, so a superseded value was easy to miss. | Corrected, and `build_cp.py` now prints every live cross-reference on each build so a stale one cannot pass silently. |
 | 5 | **Two tables numbered 4, two numbered 5, no Table 3, one "Table X".** | Surviving tables renumbered 1 to 9; every in-text reference updated. |
 | 6 | **Table 9's milestone column carried the gate column's text.** My own cell edits used post-drop column indices while the edit layer applies before the column drop. | Indices corrected; the two columns now carry different content. |
 | 7 | **Figure 1's caption said unmet needs "drive" a vicious cycle**; the source says "can drive". A hedge had been dropped, strengthening a causal claim. | "can drive" restored. |
@@ -124,7 +129,7 @@ customers, institutional customers, caregiver participants) used consistently.
 | **5** | **The four-advantages table in Section 4 is the only table with no number and no caption.** | The source had it that way. Numbering it shifts every table after it; leaving it unnumbered is also defensible. |
 | **6** | **Terminology variants for the same capabilities.** "Task-based AI Agent Execution" / "AI execution layer" / "AI-supported execution" / "AI-agent execution"; "Analytic Outcomes Data" / "Longitudinal outcomes layer" / "longitudinal care-establishment and outcomes architecture". | Unifying them is rewriting, which you asked me not to do in this pass. |
 | **7** | **The plan now ends on Table 9's caption**, because the closing sentence was truncated in the source and I removed it. | A one-sentence close would be a new sentence, not a cut. |
-| **8** | **Figure 3 is 5.0in tall, the largest single object in the document**, and its bottom third is labelled ILLUSTRATIVE ONLY. | If your own pass needs another half page, that register is the cheapest cut available. I left it because you asked for all three registers. |
+| **8** | **Figure 4 is 5.0in tall, the largest single object in the document**, and its bottom third is labelled ILLUSTRATIVE ONLY. | If your own pass needs another half page, that register is the cheapest cut available. I left it because you asked for all three registers. |
 | **9** | **Section 2's heading** reads "What does CRP create?" after the earlier one-line request, where the rest read naturally with "this". | Trivial, but it is now the only heading phrased that way. |
 
 ---
@@ -134,5 +139,5 @@ customers, institutional customers, caregiver participants) used consistently.
 - 12 pages in both the PDF and the `.docx`.
 - No em dashes.
 - Type: 11pt body, 9.5pt and up inside figures, 9pt tables and captions, 8pt superscript markers only.
-- All 16 figures pass the glyph-box check (`checkfigs.py`): nothing clipped, off the artboard, or overlapping.
+- All figures pass the glyph-box check (`checkfigs.py`): nothing clipped, off the artboard, or overlapping.
 - All section, figure and table numbers and every cross-reference resolve.

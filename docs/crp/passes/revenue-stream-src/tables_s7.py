@@ -20,15 +20,15 @@ T6_INPUTS = """
 
 T7_FIVEYEAR = """
 <table class="dat keep">
-<colgroup><col style="width:28%"><col style="width:14.4%"><col style="width:14.4%"><col style="width:14.4%"><col style="width:14.4%"><col style="width:14.4%"></colgroup>
-<thead><tr><th></th><th class="n">CRP Y1</th><th class="n">CRP Y2</th><th class="n">CRP Y3</th><th class="n">Post-CRP Y4</th><th class="n">Post-CRP Y5</th></tr></thead>
+<colgroup><col style="width:26%"><col style="width:11%"><col style="width:12%"><col style="width:12%"><col style="width:13%"><col style="width:26%"></colgroup>
+<thead><tr><th></th><th class="n">CRP Y1</th><th class="n">CRP Y2</th><th class="n">CRP Y3</th><th class="n">Post-CRP Y4</th><th class="n">Post-CRP Y5&#8211;Y10 potential</th></tr></thead>
 <tbody>
-<tr><td><b>Commercial stage</b></td><td class="n">Build</td><td class="n">Validate free</td><td class="n">Monetize</td><td class="n">Expand</td><td class="n">Scale</td></tr>
-<tr><td><b>Staffing markets</b></td><td class="n">0</td><td class="n">~8 free</td><td class="n">~8 paid</td><td class="n">~15</td><td class="n">~25</td></tr>
-<tr><td><b>Staffing revenue</b></td><td class="n">$0</td><td class="n">$0</td><td class="n">~$120K*</td><td class="n">~$450K</td><td class="n">~$750K</td></tr>
-<tr><td><b>Institutional relationships</b></td><td class="n">0</td><td class="n">0</td><td class="n">0</td><td class="n">~1</td><td class="n">~3</td></tr>
-<tr><td><b>Institutional revenue</b></td><td class="n">$0</td><td class="n">$0</td><td class="n">$0</td><td class="n">~$150K</td><td class="n">~$750K</td></tr>
-<tr class="tot"><td><b>Total commercial revenue</b></td><td class="n">$0</td><td class="n">$0</td><td class="n">~$120K</td><td class="n">~$600K</td><td class="n">~$1.50M</td></tr>
+<tr><td><b>Commercial stage</b></td><td class="n">Build</td><td class="n">Validate free</td><td class="n">Monetize</td><td class="n">Expand</td><td class="n">Scale to national replication</td></tr>
+<tr><td><b>Staffing markets</b></td><td class="n">0</td><td class="n">~8 free</td><td class="n">~8 paid</td><td class="n">~15</td><td class="n">~25 to 500 counties</td></tr>
+<tr><td><b>Staffing revenue</b></td><td class="n">$0</td><td class="n">$0</td><td class="n">~$120K*</td><td class="n">~$450K</td><td class="n">~$0.75M&#8211;$15.0M/yr</td></tr>
+<tr><td><b>Institutional relationships</b></td><td class="n">0</td><td class="n">0</td><td class="n">0</td><td class="n">~1</td><td class="n">~3 to 10+</td></tr>
+<tr><td><b>Institutional revenue</b></td><td class="n">$0</td><td class="n">$0</td><td class="n">$0</td><td class="n">~$150K</td><td class="n">~$0.75M&#8211;$2.5M+/yr</td></tr>
+<tr class="tot"><td><b>Total commercial revenue</b></td><td class="n">$0</td><td class="n">$0</td><td class="n">~$120K</td><td class="n">~$600K</td><td class="n">~$1.5M&#8211;$17.5M+/yr</td></tr>
 </tbody></table>
-<p class="caption"><b>Table 7.</b> Illustrative base case. *Year 3 assumes approximately six paid-month equivalents across the eight CRP markets; the resulting exit Staffing run rate is approximately $240K a year at the same conservative throughput.</p>
+<p class="caption"><b>Table 7.</b> Illustrative base case through post-CRP Year 4. The final column widens Year 5 into a Year 5 to Year 10 replication range whose lower bound is the Year 5 base case charted in Figure 12. *Year 3 assumes approximately six paid-month equivalents across the eight CRP markets; the resulting exit Staffing run rate is approximately $240K a year at the same conservative throughput.</p>
 """

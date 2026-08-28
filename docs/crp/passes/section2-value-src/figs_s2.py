@@ -103,3 +103,119 @@ def fig5():
     for k, s in enumerate(["median time to care", "aid dollars secured", "downstream outcomes"]):
         b.append(_t(X0 + CW * 6 + 10, 40 + k * 14, s, 9.4, GREY, anchor="start"))
     return _wrap(W / 100, H / 100, "".join(b))
+
+
+# ------------------------------------------------------ FIGURE 4 (COMBINED)
+def fig4_combined():
+    """7.2 x 4.15in. One grid, three altitudes.
+
+    The seven pathway columns are fixed down the whole figure and only the
+    altitude changes: one family, the system that serves them, one county.
+    Shaded = exists today, unshaded = built by the CRP, in both the family
+    register and the system register. The county register is drawn entirely in
+    grey and labelled illustrative, because every number in it is hypothetical."""
+    W, H = 720, 415
+    GX, CW, NC = 126, 83, 7
+    RAIL = 110
+    GR = GX + CW * NC
+    def cx(i): return GX + CW * i + CW / 2
+    def colx(i): return GX + CW * i
+    b = []
+
+    steps = ["Assess Needs", "Identify Care", "Fund Care", "Staff Care",
+             "Execute Plan", "Establish Care", "Track Outcomes"]
+    for i, s in enumerate(steps):
+        b.append(_t(cx(i), 16, s, 10.2, TEAL, weight="bold"))
+    b.append(f'<line x1="{GX}" y1="24" x2="{GR}" y2="24" stroke="{TEAL}" stroke-width="1.1"/>')
+    for i in range(1, NC):
+        b.append(f'<line x1="{colx(i)}" y1="28" x2="{colx(i)}" y2="406" '
+                 f'stroke="{RULE}" stroke-width="0.6"/>')
+
+    def rail(y1, y2, name, sub, subbold=False):
+        b.append(_t(RAIL, y1, name, 10.4, TEAL, anchor="end", weight="bold"))
+        b.append(_t(RAIL, y2, sub, 8.8, GREY, anchor="end",
+                    weight="bold" if subbold else "normal"))
+
+    # --- register 1: the family, and what the product says to them ----------
+    # A caregiver with the interface, then the thread across the pathway. The
+    # last three messages are unshaded because the product cannot send them yet.
+    b.append(f'<g fill="none" stroke="{TEAL}" stroke-width="1.5" stroke-linecap="round" '
+             f'stroke-linejoin="round">'
+             f'<circle cx="32" cy="45" r="11"/>'
+             f'<path d="M12 84c0-13.5 9-22.5 20-22.5s20 9 20 22.5"/>'
+             f'<rect x="66" y="33" width="30" height="53" rx="5"/>'
+             f'<path d="M74 47h14M74 56h14M74 65h9"/></g>')
+    rail(100, 111, "One family", "what the app says")
+
+    b.append(f'<line x1="{GX+4}" y1="69" x2="{GR-4}" y2="69" stroke="{RULE}" stroke-width="1"/>')
+    says = [(0, ["Who are you", "caring for?"], True),
+            (1, ["Here is what", "your mother", "needs"], True),
+            (2, ["You may qualify", "for three", "programs"], True),
+            (4, ["Your VA", "application", "was filed"], False),
+            (5, ["Care starts", "Tuesday"], False),
+            (6, ["How has the", "first month", "gone?"], False)]
+    for i, lines, live in says:
+        b.append(f'<rect x="{colx(i)+4}" y="44" width="{CW-8}" height="50" rx="5" '
+                 f'fill="{GFILL if live else "#ffffff"}" stroke="{TEAL}" stroke-width="1.3"/>')
+        y0 = 44 + (50 - (len(lines) - 1) * 11) / 2 + 3.5
+        for k, ln in enumerate(lines):
+            b.append(_t(cx(i), y0 + k * 11, ln, 9.4, INK))
+    b.append(f'<line x1="0" y1="120" x2="{GR}" y2="120" stroke="{RULE}" stroke-width="0.9"/>')
+
+    # --- register 2: the system, and which span each layer covers ------------
+    rail(205, 216, "The system", "what does the work")
+    bands = [
+        (128, 40, 0, 3, GFILL, I_IDENTIFY, "Assessment and matching", "Phase I to IIB",
+         ["Screening and matching over the", "national resource database"]),
+        (176, 40, 2, 6, "#ffffff", I_EXECUTE, "AI execution layer", "CRP",
+         ["Applications, documents, follow-up, intake,", "and confirmation of care"]),
+        (224, 32, 3, 4, "#ffffff", I_STAFF, None, None, None),
+        (264, 30, 0, 7, "#ffffff", I_OUTCOMES, "Longitudinal outcomes layer", "CRP",
+         ["Case status, failure points, care established, and subsequent outcomes"]),
+    ]
+    for y, h, c0, c1, fill, icon, lead, tag, lines in bands:
+        x0, x1 = colx(c0), colx(c1)
+        b.append(_box(x0, y, x1 - x0, h, fill, TEAL))
+        ix = x0 + 7 if lead else x0 + (x1 - x0 - 24) / 2
+        b.append(_icon(ix, y + (h - 24) / 2, icon, scale=1.0, color=TEAL, sw=1.5))
+        if not lead:
+            continue
+        tx = x0 + 34
+        n = 1 + len(lines)
+        y0 = y + (h - (n - 1) * 11) / 2 + 3.5
+        b.append(_t(tx, y0, lead, 9.6, TEAL, anchor="start", weight="bold"))
+        b.append(_t(tx + len(lead) * 5.5 + 10, y0, tag, 8.8, GREY, anchor="start"))
+        for k, ln in enumerate(lines):
+            b.append(_t(tx, y0 + (k + 1) * 11, ln, 9.4, INK, anchor="start"))
+    # the staffing band is one column wide, so its name and qualifier sit beside it
+    b.append(_t(colx(4) + 10, 234, "Caregiver Staffing", 9.6, TEAL, anchor="start", weight="bold"))
+    b.append(_t(colx(4) + 98, 234, "CRP", 8.8, GREY, anchor="start"))
+    b.append(_t(colx(4) + 10, 245, "New caregivers placed with licensed providers,",
+                9.2, GREY, anchor="start", style="italic"))
+    b.append(_t(colx(4) + 10, 256, "only when capacity blocks an appropriate plan",
+                9.2, GREY, anchor="start", style="italic"))
+    b.append(f'<line x1="0" y1="308" x2="{GR}" y2="308" stroke="{RULE}" stroke-width="0.9"/>')
+
+    # --- register 3: what accumulates. Grey throughout: none of it is real ---
+    rail(360, 371, "One county", "ILLUSTRATIVE ONLY", subbold=True)
+    cascade = [(0, 1200, "families", "assessed"), (1, 780, "matched to", "home care"),
+               (2, 510, "funding", "identified"), (4, 390, "applications", "completed"),
+               (5, 281, "care", "established")]
+    for i, n, l1, l2 in cascade:
+        b.append(_t(cx(i), 346, f"{n:,}", 15.0, INK, weight="bold"))
+        w = 68 * n / 1200.0
+        b.append(f'<rect x="{cx(i) - w/2:.1f}" y="354" width="{w:.1f}" height="5" '
+                 f'rx="1" fill="{GREY}"/>')
+        b.append(_t(cx(i), 372, l1, 9.4, GREY))
+        b.append(_t(cx(i), 383, l2, 9.4, GREY))
+    # capacity loss is a branch off the pathway, not a stage in the descent,
+    # and it sits directly beneath the Caregiver Staffing band that resolves it
+    b.append(f'<path d="M{cx(3)} 328 v14" stroke="{RULE}" stroke-width="1.2" '
+             f'marker-end="url(#sagr)"/>')
+    b.append(_t(cx(3), 362, "102 blocked", 9.4, GREY, style="italic"))
+    b.append(_t(cx(3), 373, "by capacity", 9.4, GREY, style="italic"))
+    for k, (a, c) in enumerate([("median time", "to care"), ("aid dollars", "secured"),
+                                ("downstream", "outcomes")]):
+        b.append(_t(cx(6), 340 + k * 24, a, 9.4, GREY))
+        b.append(_t(cx(6), 350 + k * 24, c, 9.4, GREY))
+    return _wrap(W / 100, H / 100, "".join(b))

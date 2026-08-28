@@ -32,19 +32,16 @@ table.dat.keep { break-inside: avoid; page-break-inside: avoid; }
 """
 
 WORD = os.environ.get("WORD_EXPORT") == "1"
-FIGW = {4: 7.2, 5: 7.2}
+FIGW = {4: 7.2}
 
 def figblock(svg, num, cap):
     inner = (f'<img src="png/fig{num}.png" style="width:{FIGW[num]}in">' if WORD else svg)
     return (f'<div class="fig">{inner}</div>'
             f'<p class="caption"><b>Figure {num}.</b> {cap}</p>')
 
-FIG4 = figblock(F.fig4(), 4,
-    "Prior awards built assessment and matching; the CRP builds execution, targeted "
-    "workforce capacity, and the outcomes record.")
-FIG5 = figblock(F.fig5(), 5,
-    "What one county's longitudinal record would contain once the pathway is executed "
-    "and tracked at scale. Illustrative only; not a projection.")
+FIG4 = figblock(F.fig4_combined(), 4,
+    "What a family sees, what the system does, and what accumulates across a county. "
+    "Shaded elements exist today; the county register is illustrative only.")
 
 BODY = f"""
 <h1 class="sechead">2. Value of the CRP Project, Expected Outcomes, and Impact</h1>
@@ -55,7 +52,7 @@ with AI-supported execution workflows and longitudinal outcomes tracking to help
 recognized need to established care. Families use CareNavigator at no cost. The platform assesses
 needs, identifies appropriate care and financial aid, helps execute the administrative and follow-up
 work required to obtain them, confirms whether care was established, and records where the pathway
-succeeds or fails.</p>
+succeeds or fails (Figure 4).</p>
 
 <p class="sec">Caregiver Staffing is a complementary provider-facing product and capacity mechanism.
 When an otherwise appropriate care plan cannot be delivered because a provider lacks workers, Olera
@@ -102,9 +99,8 @@ organizations seeking to reduce avoidable utilization; health systems seeking re
 from referral to care; providers planning service and workforce capacity; public agencies allocating
 aging resources; researchers studying access and implementation; and communities identifying local
 gaps. The CRP tests and builds the infrastructure required to create this asset; it does not assume
-its value in advance.</p>
+its value in advance (Figure 4, lower register).</p>
 
-{FIG5}
 
 <p class="sec"><b>Expected outcomes.</b> Successful completion of the CRP will leave Olera with:
 (1) a verified CareNavigator capable of executing and tracking the pathway from care plan to

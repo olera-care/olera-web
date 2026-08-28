@@ -21,12 +21,34 @@ function getServiceDb() {
 
 function trafficChannel(metadata: Record<string, unknown>) {
   const medium = typeof metadata.utm_medium === "string" ? metadata.utm_medium.toLowerCase() : "";
-  if (metadata.gclid === true || ["cpc", "ppc", "paid", "paid_search"].includes(medium)) return "paid_search";
+  const source = typeof metadata.utm_source === "string" ? metadata.utm_source.toLowerCase() : "";
+
   const referrerClass = classifyReferrer(typeof metadata.referrer === "string" ? metadata.referrer : null);
+
+  // Our own traffic is never a paid channel, even when it lands on a campaign
+  // URL. QA sweeps and admin click-throughs open the tagged link constantly,
+  // and counting them as paid inflates every channel rate we report.
+  if (referrerClass === "olera_internal") return "olera_internal";
+
+  if (metadata.gclid === true || ["cpc", "ppc", "paid", "paid_search"].includes(medium)) return "paid_search";
+
+  // Paid SOCIAL was missing, so every managed Nextdoor arrival fell through to
+  // the referrer check and was filed as "direct" or "referral" -- 140 landings
+  // in the Aug 2026 flights alone. That silently hid the paid-social channel
+  // and polluted direct/referral, which is exactly the comparison the
+  // Nextdoor-vs-Meta budget decision rests on.
+  if (["paid_social", "social_paid", "cpm", "display", "paid-social"].includes(medium)) return "paid_social";
+
+  // Belt and braces: anything we tagged as managed media is paid by definition,
+  // whatever the medium says. Two live flights shipped with no utm_medium at
+  // all, and without this they would classify off their referrer.
+  if (source === "olera_managed") return medium.includes("social") ? "paid_social" : "paid_search";
+
   if (referrerClass === "search") return "organic_search";
   if (referrerClass === "social") return "social";
   if (referrerClass === "ai_chat") return "ai_chat";
-  if (referrerClass === "olera_internal") return "olera_internal";
+  // olera_internal is handled above, before the paid rules, so our own QA
+  // traffic on a campaign URL can never be counted as paid.
   if (referrerClass === "direct") return "direct";
   return "referral";
 }

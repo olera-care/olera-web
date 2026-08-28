@@ -17,6 +17,13 @@ interface InquiryFormProps {
   priceRange?: string | null;
   city?: string | null;
   state?: string | null;
+  /**
+   * Fired the first time the visitor actually touches the form. This is the
+   * desktop analogue of mobile's sheet-open: the card renders already open, so
+   * there is no "opened" moment to measure -- the first keystroke is the
+   * earliest observable sign of intent.
+   */
+  onEngage?: () => void;
 }
 
 export default function InquiryForm({
@@ -30,6 +37,7 @@ export default function InquiryForm({
   priceRange = null,
   city = null,
   state = null,
+  onEngage,
 }: InquiryFormProps) {
   const [email, setEmail] = useState(initialEmail);
   const [honeypot, setHoneypot] = useState("");
@@ -146,7 +154,12 @@ export default function InquiryForm({
       <input
         type="email"
         value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        onChange={(e) => {
+          // Report engagement on the first keystroke rather than on focus:
+          // focus fires from autofill and stray tabbing, typing does not.
+          if (e.target.value) onEngage?.();
+          setEmail(e.target.value);
+        }}
         onKeyDown={handleKeyDown}
         placeholder="Your email address"
         autoComplete="email"

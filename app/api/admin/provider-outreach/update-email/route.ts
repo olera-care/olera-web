@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 import { getLeadByEmail, updateLeadInCampaign } from "@/lib/smartlead";
+import { verifyAndCache, effectiveStatus } from "@/lib/email-verification";
+import { markEmailTrusted, getRecipientDeliveryHistory, isNeverDeliveredMailbox } from "@/lib/email";
 
 /**
  * PATCH /api/admin/provider-outreach/update-email
@@ -28,7 +30,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { provider_id, email, confirm_apollo } = body;
+    const { provider_id, email, confirm_apollo, force } = body;
 
     if (!provider_id) {
       return NextResponse.json({ error: "provider_id is required" }, { status: 400 });
@@ -44,8 +46,122 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
     }
 
+    const trimmedEmail = email.trim().toLowerCase();
+
+    // Check for obvious email errors (typos, invalid TLDs) - catches errors before API call
+    const [, domain] = trimmedEmail.split("@");
+    if (domain) {
+      const parts = domain.split(".");
+      const tld = parts[parts.length - 1];
+      const domainName = parts.slice(0, -1).join(".");
+      const baseDomain = domainName.split(".").pop() || domainName;
+
+      // TLD must be at least 2 characters
+      if (tld.length < 2) {
+        return NextResponse.json(
+          { error: "invalid_format", message: "Invalid domain extension - too short" },
+          { status: 400 }
+        );
+      }
+
+      // Common TLD typos (only include TLDs that are NOT valid country codes)
+      // Valid ccTLDs we must NOT flag: .co (Colombia), .cm (Cameroon), .om (Oman), .ne (Niger)
+      const tldTypos: Record<string, string> = {
+        "con": "com", "cmo": "com", "ocm": "com", "comm": "com", "coom": "com",
+        "nte": "net", "ent": "net", "nett": "net",
+        "ogr": "org", "og": "org", "rg": "org", "orgg": "org",
+        "eud": "edu", "eduu": "edu",
+        "gvo": "gov", "go": "gov", "govv": "gov",
+      };
+      if (tldTypos[tld]) {
+        return NextResponse.json(
+          { error: "invalid_format", message: `Did you mean .${tldTypos[tld]}? (.${tld} is not a valid domain extension)` },
+          { status: 400 }
+        );
+      }
+
+      // Common domain name typos for major providers
+      const domainTypos: Record<string, string> = {
+        "gmial": "gmail", "gmal": "gmail", "gnail": "gmail", "gmil": "gmail",
+        "gmai": "gmail", "gamil": "gmail", "gmali": "gmail", "gmaul": "gmail",
+        "yahooo": "yahoo", "yaho": "yahoo", "yhoo": "yahoo", "yaoo": "yahoo",
+        "hotmal": "hotmail", "hotmai": "hotmail", "hotmial": "hotmail",
+        "outlok": "outlook", "outloo": "outlook", "outlookk": "outlook",
+      };
+      if (domainTypos[baseDomain]) {
+        return NextResponse.json(
+          { error: "invalid_format", message: `Did you mean ${domainTypos[baseDomain]}? (${baseDomain} looks like a typo)` },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Email deliverability check - matches questions/leads/connections security layer
+    // This prevents saving emails that will bounce, protecting sender reputation.
+    // Fails OPEN: verification errors return 'unknown' and we proceed.
+    if (!force) {
+      const raw = await verifyAndCache(trimmedEmail);
+      // Apply role-address reclassification: role_based → valid, role_based_catch_all → risky
+      const verdict = { ...raw, status: effectiveStatus(raw.status, raw.subStatus) };
+
+      if (verdict.status === "invalid") {
+        const checkedAt = raw.checkedAt;
+        const ageInfo = checkedAt
+          ? ` (verified ${new Date(checkedAt).toLocaleDateString()})`
+          : "";
+        return NextResponse.json(
+          {
+            error: "undeliverable",
+            message: `That address can't receive mail — it would bounce${ageInfo}. Try another.`,
+            checkedAt,
+          },
+          { status: 422 },
+        );
+      }
+
+      if (verdict.status === "risky") {
+        const checkedAt = raw.checkedAt;
+        const ageInfo = checkedAt
+          ? ` (verified ${new Date(checkedAt).toLocaleDateString()})`
+          : "";
+        return NextResponse.json(
+          {
+            error: "risky",
+            message:
+              `That looks like a catch-all domain — mail often won't reach a real inbox${ageInfo}, and the cold lane will skip it. Use a named address (e.g. a person's, not info@) if you can.`,
+            checkedAt,
+          },
+          { status: 422 },
+        );
+      }
+    }
+
+    // When forcing past deliverability warning, check if this address has ONLY ever bounced
+    // and never delivered. If so, forcing won't help - the mailbox doesn't exist.
+    if (force) {
+      const forcedHistory = await getRecipientDeliveryHistory(trimmedEmail);
+      if (isNeverDeliveredMailbox(forcedHistory)) {
+        return NextResponse.json(
+          {
+            error: "never_delivered",
+            bounced: forcedHistory.bounced,
+            message:
+              `This address has bounced ${forcedHistory.bounced} time${forcedHistory.bounced === 1 ? "" : "s"} and has ` +
+              `never successfully delivered, so forcing it through would only produce more bounces. ` +
+              `Use a different address for this provider, or reach them by phone.`,
+          },
+          { status: 422 },
+        );
+      }
+      // Mark as trusted so future sends bypass suppression
+      await markEmailTrusted(trimmedEmail, {
+        reason: "admin",
+        note: "force-added via Provider Outreach",
+        createdBy: adminUser.id
+      });
+    }
+
     const db = getServiceClient();
-    const trimmedEmail = email.trim();
 
     // Get current provider data
     const { data: existing } = await db

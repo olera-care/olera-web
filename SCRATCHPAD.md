@@ -7,7 +7,7 @@
 
 ## Current Focus
 
-### 2026-08-28 — Ad Boost paid-media audit: two live campaigns serving zero, five unrecorded Nextdoor flights launching Sep 1 (`steady-planck`)
+### 2026-08-28 — Ad Boost: audit, stage-0 remediation shipped, and the measurement layer is not trustworthy (`steady-planck`, PR #1716)
 
 Audited every live Ad Boost campaign directly in Google Ads and Nextdoor Ads Manager, reconciled against production Supabase, then cross-checked against a second independent audit (Codex) and an architectural review. **No code changed; this session produced findings, a remediation plan and a postmortem.**
 
@@ -20,6 +20,31 @@ Live breakages: **Miracle-Lightstar** (7 days, 0 impressions, $0.00, >90% lost I
 **Landing pages are the untested suspect.** Graceful's directory record says `lower_price=15/upper_price=20` while the live page shows a $37–51/hour header and $30–34/**month** service rows; Miracle-Lightstar shows $200–230/visit against $25–29/hr structured rates. Three-plus generators disagree, so this is a composition defect, not two content typos. Of the pages audited, the two with contradictory pricing have zero inquiries between them and the one clean page belongs to the provider with 3 inquiries and the only confirmed client — suggestive, untested, and it would confound every traffic-quality conclusion in both audits.
 
 **Files:** `docs/POSTMORTEMS.md` (postmortem entry only). Plan published as an artifact (rev2, review draft); markdown at `~/Desktop/adboost-plan-rev2.md`. Skill fix landed outside the repo in `~/.claude/skills/open-dia/SKILL.md`.
+
+**STAGE 0 EXECUTED (all of it).** TJ authorised each call.
+
+- **Five Nextdoor flights paused**, verified server-side after reload (Graceful shows `Active campaigns: 0`, Aug pilot history intact). **~$375 not spending on 1 Sep.**
+- **Miracle-Lightstar $3.57 → $1.67/day.** First save fired a Google `Confirm it's you` re-auth; I stopped rather than pushing through, because the build notes record a re-auth on this account wiping 13 headlines / 4 descriptions / 13 keywords. After TJ signed in it saved clean. **Verified no wipe: 29 keywords and 13 headlines intact.**
+- **Hard platform end dates set on all three 90-day flights** — Miracle 20 Aug→17 Nov, Graceful 20 Aug→17 Nov, Franchil 23 Aug→**21 Nov (my choice, not documented — Franchil's row still has no authorisation on file)**. Previously all three ran with no platform end date, so `flight_end_date` was an Olera field Google had never seen.
+- **Migration 193** (`supabase/migrations/193_fix_home_care_monthly_rate_type.sql`) — three home-care providers stored `rateType: "per month"` against `lib/pricing-config.ts` declaring `unit: "hour"`. Applied and verified: 3 rows changed, metadata key counts preserved (15/10/12), 0 remaining, **re-run changed 0 rows**. Graceful's live page now renders `$30 /hour`. Applied via service-role client, not `db push` (project not linked here and push would have applied other pending migrations); the SQL is idempotent so a later proper run is a safe no-op.
+
+**BIGGER DEFECT FOUND WHILE FIXING PRICING.** `contact_for_pricing` was honoured in the provider dashboard and **never checked on the public page**, so **51 providers who explicitly chose "Contact for pricing" had it overridden by an invented regional market average** — including Pacesetter and Legacy Haven. Shipped: opt-out now wins over every source; explicit `PriceSource` replaces the `isProviderEntered` boolean (which did nothing for Tier 1/2 — `est.` rendered unconditionally, so a real rate carried the same hedge as an invented one); renders **"Provider-reported"** vs **"Typical in this area"**; absent `price_unit` falls back to the CATEGORY default instead of `/mo`; headline derives from provider rows only when units are comparable. **Files:** `lib/pricing-config.ts`, `app/provider/[slug]/page.tsx`, `components/providers/PriceEstimate.tsx`. Unusual units are deliberately NOT errors — daily live-in, per-visit and flat fees are legitimate, so nothing is coerced to the category default.
+
+**Ad Boost coherence gate** (`lib/ad-boost/destination-check.ts` + GET `/api/admin/ad-boost/destination-check`). Validated against known-bad shapes rather than trusted because it passed everything: BLOCKS the real pre-fix Graceful state, mixed units, unreadable units and rates implausible for their stated unit; PASSES a legitimate $320/day live-in with a warning. All 7 current Ad Boost providers pass.
+
+**DIAGNOSIS Q1 ANSWERED — and it kills the premise.** No variable explains why 3 of 11 campaigns produced all 6 inquiries. Every candidate is non-significant (images ≤6 p=0.067, market <200k p=0.093, reviews <2 p=0.135, home care vs AL p=0.214). Two of the strongest say *fewer photos and fewer reviews convert better*, which is the signature of fitting noise to 3 data points. Monte Carlo (200k trials) puts the concentration at **p=0.019**, so campaigns probably do differ, but Franchil's own 3-of-6 is unremarkable (p=0.17). **The binding constraint is power:** baseline is **2.70% click→inquiry**, so at 14–30 clicks/flight P(zero) is 44–68% for a healthy campaign. Used Monte Carlo because chi-square is invalid at expected counts <1 — it said "significant" and would have been wrong to trust.
+
+**$50 vs $300 — I framed this wrong and TJ caught it.** I analysed $50-era data then recommended $500 flights without checking against the live model. Corrected: **$150 Google over 90 days = ~71 clicks, ~1.9 expected inquiries, 15% chance of zero. That works as a product.** The real question is the other $150: **Nextdoor has 134 clicks and 0 inquiries, and P(0 | Google's 2.7%) = 0.027, so we can now reject at p<0.05 that Nextdoor converts as well as Google.** DECISION (TJ): keep $150 Google, fix landing-page + conversion instrumentation, then decide Nextdoor vs Meta with the remaining $150.
+
+**MEASUREMENT LAYER IS NOT TRUSTWORTHY — the main finding of the day.**
+- **Campaign funnel existed all along, just unattributed.** Downstream events carry no UTM (client attaches them only to `page_landed`), but events in a visit share `anonymous_id`+`visit_id`, so the landing lends its campaign to the visit. Built `lib/ad-boost/campaign-funnel.server.ts` + GET `/api/admin/ad-boost/funnel`. Visit guard matters: without it one long session inflated Miracle's `cta_visible` **12 → 178**. Documented limit — same-visit scoping is right for engagement, wrong for conversion (moved Pacesetter 2 → 1), so `lead_created` there is a LOWER BOUND and `countDeliveredByCampaign` stays canonical.
+- **Traffic classifier missed paid social.** `utm_medium=paid_social` fell through, so **all 140 managed Nextdoor landings filed as "direct"/"referral"** — corrupting the exact channel comparison the Nextdoor-vs-Meta call rests on. Fixed. Before: direct 125 / paid_search 97 / referral 24. After: **paid_social 137 / paid_search 109**. My first cut of the fix reclassified 13 internal QA landings as paid; the simulation caught it and `olera_internal` now resolves before any paid rule.
+- **Benefits module does NOT render on provider pages** (TJ confirmed) yet logs **~23,800 phantom `cta_visible`** rows. Two paths: the module fires `benefits_entry_viewed` in a `useEffect` then hits `if (topPrograms.length === 0) return null`, and `BenefitsArmGate` renders children eagerly then hides them for ~40% of sessions. Saved to memory as `project_benefits_module_phantom_impressions` because this has repeatedly misled Claude.
+- **The provider CTA impression under-fires.** `CTAVariantRouter` gates it behind an async variant-weights fetch (`if (!variant) return;`) while the CTA already renders as legacy. **44 visits completed an inquiry with no recorded CTA impression** — proof the metric is broken. I had reported "29% never saw the CTA"; that claim is retracted.
+
+**What IS reliable:** `page_landed` visits (13,759), engagement (390 = **2.8%** of visits), `lead_created`. Paid 4.4% vs organic 6.1% engagement — **the CTA problem is page-wide, not ad-specific**, which means it is not a Nextdoor-vs-Meta question.
+
+**Commits on `steady-planck` / PR #1716:** `12178b8b4` audit+postmortem docs · `fc30fd032` migration 193 · `7e4fc2b4d` contact-for-pricing + provenance + coherence gate · `b60e2c0e7` paid-social classifier · plus the campaign-funnel commit. TypeScript clean on every changed file (remaining tsc errors are pre-existing missing-module errors from the borrowed `node_modules`).
 
 **Next:** stage-0 decisions are time-critical before **1 Sep** — launch-or-pause the five Nextdoor flights (only 2 of 5 have a documented authorization), re-confirm or revert Miracle's $1.67→$3.57/day change against its $150 authorization, correct both providers' comms, set hard platform end dates, and stop displaying hand-typed metrics. One open disagreement to settle first: this plan keeps the bimodal diagnosis **first** (no dependencies, runs on existing data); the architectural review sequenced it last.
 
@@ -4219,6 +4244,10 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Blocked / Needs Input
 
+- **Franchil Google campaign stuck `Pending`** (2026-08-28) — six days past start, ads Eligible, zero impressions. Needs Google support.
+- **Miracle-Lightstar zero-delivery cause still unresolved** — 8 days, 0 impressions, >90% lost IS to rank, every setting inspects clean. Bid-simulator floor test not yet run.
+- **Nextdoor vs Meta for the remaining $150** — deliberately parked until the CTA/instrumentation work lands.
+
 - ~~**Migration Playbook → Notion:**~~ ✅ Done (2026-03-01) — updated via Notion MCP
 - ~~**Top 100 pages from Search Console:**~~ ✅ Done — GSC export analyzed, 0 404 risks found
 - ~~**Editorial content redirect decision:**~~ ✅ Done — all v1.0 content routes now have redirects in `next.config.ts`: `/research-and-press/*` → homepage, `/caregiver-forum/*` → `/`, `/caregiver-relief-network/*` → homepage, `/company/*` → dedicated pages
@@ -4226,6 +4255,16 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Next Up
+
+**Ad Boost — updated 2026-08-28 (`steady-planck`, PR #1716)**
+- 🔴 **Franchil Google still reads `Pending`** six days past its 23 Aug start. Ads read Eligible, nothing serving. Only live campaign not delivering. Escalate to Google support.
+- 🔴 **Franchil has no documented authorisation or flight window.** I set an end date of 21 Nov as a defensible default. Confirm or replace it.
+- 🟡 **Fix the CTA impression gate** in `components/providers/CTAVariantRouter.tsx` — fire on render (CTA already paints as legacy) and attach the variant when it resolves. Until then no CTA optimisation can use impression-based rates.
+- 🟡 **Fix the phantom benefits impressions** — move the fire below the early return and make `BenefitsArmGate` resolve the variant before mounting children.
+- 🟡 **Google conversion actions: 8 feed account-level goals, 1 works.** Switch these 7 from Primary → **Secondary** (reversible, do NOT Remove): Submit lead form (1), Lead form submission A, Connect Form, Pop-up Form, Connect to provider form, Conversion from home page, **Android installs (Google Play)**. Keep `Provider inquiry (lead form)` — it has the only 2 real conversions. Automation could not click through (names are JS-driven, no href); ~2 min by hand.
+- 🟡 **Backfill `utm_medium`** on LumiWell and Edmonds August final URLs.
+- 🟢 **Diagnosis Q2/Q3 not started:** Miracle's auction floor via bid simulator, and the click-to-landing gap via click-ID trace.
+- ⚪ **Decision parked:** remaining $150 → Nextdoor or Meta. Blocked on instrumentation, and the CTA problem is page-wide so it may not be a channel question at all.
 
 **Trust button / bounce rate — updated 2026-08-21 (prune DONE; #1658 still on staging only)**
 - ✅ **DONE 08-21: pruned 129 dead allowlist entries** (676 → 547). Expected 2.28% → ~1.53%. Backup at `~/Desktop/email-overrides-prune-backup-2026-08-21.json`. This was the big win; #1658 alone is only 2.28% → 2.21%.
@@ -4417,6 +4456,15 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Decisions Made
+
+**2026-08-28 — Ad Boost**
+- **Pause all five Sep Nextdoor flights rather than launch.** Only 2 of 5 had a documented authorisation and none were instrumented. Pausing costs $0 and loses a week; spending $375 outside the system produces numbers nobody can reconcile.
+- **Keep $150 Google, park the other $150.** $150 buys ~71 clicks and ~1.9 expected inquiries — a real product. Nextdoor's 0-for-134 now rejects parity with Google at p=0.027, so the second half is not justified until measurement lands.
+- **Stop pushing through a Google re-auth mid-edit.** Build notes record one wiping all campaign assets. Hand to TJ, then verify assets survived.
+- **`contact_for_pricing` wins over every price source.** Publishing a market average to a provider who opted out overrides an explicit decision about their own business.
+- **Do not coerce provider rate units to the category default.** Daily live-in, per-visit and flat fees are legitimate; require explicit handling of unusual units instead.
+- **Diagnosis before building the control system.** It runs on data we already hold and has no dependencies; the architectural review sequenced it last, which contradicted its own endorsement of diagnosing first.
+- **Impression-based rates are unusable on the provider page** (both the benefits and CTA impressions are broken). Engagement-per-landing is the only defensible denominator.
 
 | Date | Decision | Rationale |
 | 2026-08-19 | Reject `oleracare.com` as the cold-outreach sending domain | TJ's Slack reply proposed hooking it up as the immediate fix, but prod data killed it: 5,636 Resend sends/30d at **5.48% bounce**, already past Resend's 4% account threshold, and 93% of that volume is `weekly_analytics_digest` + `question_received`. Adding SmartLead cold-list bounces stacks onto a domain already failing, and the blast radius is the crown-jewel provider notifications. Same org-domain means shared Gmail/Outlook reputation even though Resend uses `send.oleracare.com` for Return-Path. |

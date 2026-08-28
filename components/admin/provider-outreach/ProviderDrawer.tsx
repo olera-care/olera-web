@@ -509,6 +509,8 @@ function ContactSection({
     if (obviousError) {
       // Clear any pending verification
       if (verifyDebounceRef.current) clearTimeout(verifyDebounceRef.current);
+      // Invalidate any in-flight API requests so they don't overwrite our "invalid" status
+      verifyRequestIdRef.current++;
       // Show as invalid immediately without calling API
       setVerificationStatus("invalid");
       setTrustScoreStatus("idle");
@@ -542,6 +544,8 @@ function ContactSection({
     const obviousError = detectObviousEmailError(emailValue);
     if (obviousError) {
       if (verifyDebounceRef.current) clearTimeout(verifyDebounceRef.current);
+      // Invalidate any in-flight API requests
+      verifyRequestIdRef.current++;
       setVerificationStatus("invalid");
       setTrustScoreStatus("idle");
       setEmailError(obviousError);
@@ -815,6 +819,10 @@ function ContactSection({
                     e.stopPropagation(); // Prevent drawer from closing
                     setEditingEmail(false);
                     setEmailValue(provider.email || "");
+                    setEmailError(null);
+                    // Clear pending debounce and invalidate in-flight requests
+                    if (verifyDebounceRef.current) clearTimeout(verifyDebounceRef.current);
+                    verifyRequestIdRef.current++;
                     setVerificationStatus("idle");
                     setTrustScoreStatus("idle");
                   }
@@ -844,6 +852,9 @@ function ContactSection({
                   setEditingEmail(false);
                   setEmailValue(provider.email || "");
                   setEmailError(null);
+                  // Clear pending debounce and invalidate in-flight requests
+                  if (verifyDebounceRef.current) clearTimeout(verifyDebounceRef.current);
+                  verifyRequestIdRef.current++;
                   setVerificationStatus("idle");
                   setTrustScoreStatus("idle");
                 }}
@@ -939,6 +950,9 @@ function ContactSection({
               onClick={() => {
                 setEditingEmail(true);
                 setEmailValue(provider.email || foundEmail?.email || "");
+                // Clear any pending debounce and invalidate in-flight requests
+                if (verifyDebounceRef.current) clearTimeout(verifyDebounceRef.current);
+                verifyRequestIdRef.current++;
                 // Reset verification state when entering edit mode
                 setVerificationStatus("idle");
                 setTrustScoreStatus("idle");

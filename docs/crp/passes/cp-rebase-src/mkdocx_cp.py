@@ -35,7 +35,11 @@ def flatten(html):
     out = []
     i = 0
     while i < len(html):
-        if html.startswith('<div class="figblk">', i):
+        if html.startswith('<div class="refcols">', i):
+            end = _match(html, i)
+            out.append(flatten(html[i + len('<div class="refcols">'):end - 6]))
+            i = end
+        elif html.startswith('<div class="figblk">', i):
             end = _match(html, i)
             out.append(flatten(html[i + len('<div class="figblk">'):end - 6]))
             i = end
@@ -240,6 +244,8 @@ while i < len(blocks):
     if b.startswith('<h1'):
         txt = H.unescape(re.sub(r'<[^>]+>', '', b)).strip()
         p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        if 'refhead' in b:
+            p.paragraph_format.page_break_before = True
         p.paragraph_format.space_before = Pt(11); p.paragraph_format.space_after = Pt(4)
         p.paragraph_format.keep_with_next = True
         r = p.add_run(txt); r.bold = True
@@ -304,10 +310,10 @@ while i < len(blocks):
         p = doc.add_paragraph()
         if 'refs' in cls:
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            p.paragraph_format.left_indent = Inches(0.18)
-            p.paragraph_format.first_line_indent = Inches(-0.18)
-            p.paragraph_format.space_after = Pt(2)
-            add_runs(p, txt, size=9)
+            p.paragraph_format.left_indent = Inches(0.22)
+            p.paragraph_format.first_line_indent = Inches(-0.22)
+            p.paragraph_format.space_after = Pt(4)
+            add_runs(p, txt)
         elif 'modnote' in cls:
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
             p.paragraph_format.space_before = Pt(5)

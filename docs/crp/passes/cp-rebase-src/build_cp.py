@@ -36,6 +36,12 @@ p.clearfix { clear: both; margin: 0; height: 0; line-height: 0; }
 /* a figure and its caption are one indivisible block, as are short tables */
 div.figblk { break-inside: avoid; page-break-inside: avoid; margin: 0; }
 div.figblk table.dat { margin-bottom: 0; }
+h1.sechead.refhead { break-before: page; page-break-before: page; margin-top: 0; }
+/* The references sit alone on the final page, so they carry the full 11pt
+   body size rather than the reduced size used for captions and figures. */
+div.refcols { column-count: 1; }
+p.refs { text-align: left; break-inside: avoid; page-break-inside: avoid; font-size: 11pt; line-height: 1.25; margin: 0 0 4pt 0;
+         text-indent: -16pt; padding-left: 16pt; orphans: 1; widows: 1; }
 ol.risks { margin: 6pt 0 3pt 0; padding: 0 0 0 20pt; }
 ol.risks li { margin: 0 0 3pt 0; text-align: justify; padding-left: 2pt;
               break-inside: avoid; page-break-inside: avoid; }

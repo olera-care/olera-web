@@ -388,6 +388,14 @@ def build(figmap, figwidth):
             emit_floats()
 
     flush_risks()
+    if getattr(E, 'REFERENCES', None):
+        parts.append('<h1 class="sechead refhead">References</h1>')
+        manifest.append(('head', 'References', 'refs'))
+        block = ''.join(f'<p class="refs">{n}. {esc(clean(r, "refs"))}</p>'
+                        for n, r in enumerate(E.REFERENCES, 1))
+        parts.append(f'<div class="refcols">{block}</div>')
+        for n, r in enumerate(E.REFERENCES, 1):
+            manifest.append(('ref', r[:60], f'ref{n}'))
     missing = {k for k in figmap if k not in used}
     assert not missing, f'figures never placed: {missing}'
     return '\n\n'.join(bind_captions(parts)), manifest

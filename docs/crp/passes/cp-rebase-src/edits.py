@@ -118,6 +118,15 @@ TABLE_CELL[90] = {
     (4, 2): 'Direct business development; advisor introductions; targeted outreach to MA plans, MCOs, ACOs, health systems',
 }
 
+# Table 7 (source item 99) carried the revenue-stream section's local marker
+# numbers. Renumber into the document-wide sequence: 75% turnover is the 2025
+# Activated Insights benchmarking report (6); the ~$2,700 replacement cost is
+# the Activated Insights retention brief (14).
+TABLE_CELL[99] = {
+    (4, 3): 'Published benchmark6',
+    (5, 3): 'Published benchmark14',
+}
+
 TABLE_CELL[33][(2, 1)] = ('Pre-scale commercial company · nationally deployed CareNavigator · early '
                           'Caregiver Staffing validation · no significant annual sales')
 TABLE_CELL[33][(8, 1)] = 'NSF I-Corps customer discovery (200+ interviews) · Blackstone Techstars · Texas A&M'
@@ -181,7 +190,7 @@ R[1] = ("**The product and its impact.** Older Americans and their families face
         "intervening while unmet need may still be reversible: among community-dwelling Medicaid "
         "HCBS users, unmet service needs have been associated with substantially greater "
         "emergency-department use (52% vs. 34%) and hospital or rehabilitation stays "
-        "(36% vs. 24%).[refs] CareNavigator therefore targets an upstream, measurable intermediate "
+        "(36% vs. 24%).1 CareNavigator therefore targets an upstream, measurable intermediate "
         "outcome, whether a recognized need successfully reaches established care, before unmet "
         "needs force higher and costlier levels of care.")
 
@@ -198,9 +207,9 @@ R[2] = ("The remaining opportunity is to carry navigation through the full pathw
 
 R[3] = ("**Olera's Valley of Death (Figure 3).** CareNavigator is deployed nationally, draws "
         "15,500+ visitors per month through organic search at near-zero acquisition cost, and has "
-        "demonstrated usability and technology acceptance in peer-reviewed studies.[refs] Caregiver "
+        "demonstrated usability and technology acceptance in peer-reviewed studies.2,3 Caregiver "
         "Staffing has also been tested in prior pilots, where providers hired workers sourced "
-        "through Olera and demonstrated willingness to pay for the service.[cite] Family demand, "
+        "through Olera and demonstrated willingness to pay for the service.4 Family demand, "
         "CareNavigator usability, and basic provider demand for Caregiver Staffing are therefore "
         "substantially de-risked. Five remaining risks must now be retired in sequence:")
 
@@ -267,7 +276,7 @@ R[35] = ("**Core competencies and operating continuity.** Olera's capabilities n
          "the founders and reflect several years of accumulated operating experience. The company "
          "combines software and applied AI engineering, an expert-curated eldercare data "
          "infrastructure, human-centered aging research, digital distribution, family/provider "
-         "operations, and commercialization research. Five peer-reviewed studies established "
+         "operations, and commercialization research. Four peer-reviewed studies established "
          "usability and technology acceptance, and direct family/provider operations continue to "
          "expose the team to the practical barriers between a recommendation and established care.")
 
@@ -293,11 +302,11 @@ R[46] = ("**SBIR/STTR commercialization history.** Olera's SBIR history is one c
          "history questions directly.")
 
 R[51] = ("**Caregiver Staffing addresses an unusually persistent provider problem.** The United "
-         "States employed approximately 4.68 million home health and personal care aides in 2024, "
-         "with roughly 760,500 openings projected each year from 2024–2034; home-care benchmarking "
-         "separately reported 75% median professional-caregiver turnover in 2024.26,27 The problem "
+         "States employed approximately 4.68 million home health and personal care aides in 2025, "
+         "with roughly 760,500 openings projected each year from 2025 to 2035; home-care benchmarking "
+         "separately reported 75% median professional-caregiver turnover in 2024.5,6 The problem "
          "directly constrains growth: 63.3% of surveyed home-care providers reported turning down "
-         "cases because of staffing shortages in 2023.28 Caregiver Staffing therefore addresses "
+         "cases because of staffing shortages in 2023.7 Caregiver Staffing therefore addresses "
          "provider workforce demand regardless of where the underlying client originates, existing "
          "clients, externally generated referrals, growth, turnover replacement, or a capacity "
          "constraint observed through CareNavigator. Non-medical home care is Olera's initial "
@@ -333,7 +342,7 @@ R[59] = ("**This wedge is differentiated from conventional job boards.** Traditi
          "channels primarily compete for workers already searching for caregiver jobs. Recent "
          "recruitment benchmarking found Indeed generated 68% of applications to participating "
          "home-care agencies in Q1 2026, illustrating how concentrated conventional caregiver "
-         "acquisition remains.34 Olera instead builds relationships with universities and applicant "
+         "acquisition remains.13 Olera instead builds relationships with universities and applicant "
          "communities to introduce caregiving as a paid entry pathway into healthcare, while the "
          "licensed provider remains the employer responsible for interviewing, hiring, training, "
          "credentialing, supervision, and employment standards.")
@@ -528,7 +537,7 @@ R[104] = ("The five-year model is an early commercialization case, not the scale
           "and $7.5 million; and 500 counties, 60,000 hires and $15 million. At 500 counties, "
           "60,000 successful provider hires are equivalent in scale to approximately 8% of the "
           "roughly 760,500 annual U.S. home health and personal care aide openings projected by "
-          "BLS.7 Successful hires are not assumed to equal unique new workforce entrants: the CRP "
+          "BLS.5 Successful hires are not assumed to equal unique new workforce entrants: the CRP "
           "will separately measure unique workers recruited, prior workforce status, repeat "
           "placements, retention, and resulting provider capacity.")
 
@@ -539,7 +548,7 @@ R[105] = ("**Institutional CareNavigator: contracts follow outcomes evidence.** 
           "navigation, funding, execution, and ultimately established care; why pathways fail when "
           "they do not; and what happens longitudinally after care is or is not established. This "
           "matters economically because unmet home- and community-based service needs have been "
-          "associated with substantially greater acute-care utilization (Section 1).8 The CRP does "
+          "associated with substantially greater acute-care utilization (Section 1).1 The CRP does "
           "not assume that CareNavigator prevents these downstream events; it generates the "
           "care-establishment and longitudinal evidence needed to determine whether that value "
           "proposition is real.")
@@ -781,13 +790,13 @@ R[104] = ("The five-year model is an early commercialization case, not the scale
           "and $7.5 million; and 500 counties, 60,000 hires and $15 million. At 500 counties, "
           "60,000 successful provider hires are equivalent in scale to approximately 8% of the "
           "roughly 760,500 annual U.S. home health and personal care aide openings projected by "
-          "BLS.7")
+          "BLS.5")
 
 R[107] = ("There is already precedent for organizations responsible for health outcomes to pay for "
           "care-management and coordination infrastructure: CMS's GUIDE Model uses "
           "per-patient-per-month dementia care-management payments for coordination and caregiver "
           "support, and in 2026 the Medicare Shared Savings Program includes 511 ACOs serving 12.6 "
-          "million Traditional Medicare beneficiaries.4-6 These sources establish the buyer class "
+          "million Traditional Medicare beneficiaries.9,10 These sources establish the buyer class "
           "and purchasing logic; they do not establish Olera's future price. Accordingly, the "
           "five-year model treats institutional revenue as evidence-gated contracts rather than "
           "multiplying an unvalidated PMPM across a hypothetical health plan. The base case assumes "
@@ -835,11 +844,10 @@ R[52] = ("**The institutional market is larger but evidence-gated.** Prospective
          "managed-care and managed long-term-services-and-supports organizations, and other "
          "entities exposed to the downstream cost of unmet need. In 2026, 35.2 million people are "
          "enrolled in Medicare Advantage and 14.3 million Medicare beneficiaries receive care "
-         "coordinated through accountable-care arrangements.29,30 CMS's active GUIDE Model further "
+         "coordinated through accountable-care arrangements.8,9 CMS's active GUIDE Model further "
          "validates the purchasing logic: Medicare is already testing and paying for dementia care "
-         "navigation, community-resource connection, and caregiver support with explicit goals of "
-         "reducing hospitalization, delaying nursing-home placement, and reducing Medicare and "
-         "Medicaid expenditures.31")
+         "navigation, community-resource connection, and caregiver support, with the explicit aim of "
+         "delaying nursing-home placement.10")
 
 R[60] = ("**Current and emerging competition.** For Caregiver Staffing, Olera competes across "
          "categories rather than against a single end-to-end incumbent. Provider staffing "
@@ -931,7 +939,7 @@ R[107] = ("There is already precedent for organizations responsible for health o
           "care-management and coordination infrastructure: CMS's GUIDE Model uses "
           "per-patient-per-month dementia care-management payments for coordination and caregiver "
           "support, and in 2026 the Medicare Shared Savings Program includes 511 ACOs serving 12.6 "
-          "million Traditional Medicare beneficiaries.4-6 These sources establish the buyer class "
+          "million Traditional Medicare beneficiaries.9,10 These sources establish the buyer class "
           "and purchasing logic; they do not establish Olera's future price. Accordingly, the "
           "five-year model treats institutional revenue as evidence-gated contracts rather than "
           "multiplying an unvalidated PMPM across a hypothetical health plan.")
@@ -941,7 +949,7 @@ R[58] = ("**Caregiver Staffing's initial workforce wedge is deliberately narrow.
          "provide meaningful patient-care experience. The opportunity is nationally distributed and "
          "continuously replenished: in the most recent cycles, U.S. MD programs reported 54,699 "
          "applicants and NursingCAS reported 75,078 applicants across 282 participating nursing "
-         "schools.32,33 These two pipelines are not the full addressable workforce.")
+         "schools.11,12 These two pipelines are not the full addressable workforce.")
 
 R[87] = ("**Digital product and AI infrastructure.** CareNavigator and Caregiver Staffing are "
          "developed by Olera's internal engineering team, including the founders and full-time "
@@ -1052,6 +1060,45 @@ R[23] = ("**Commercial applications and innovation.** The commercial opportunity
          "family's needs, resources pursued, administrative barriers, local capacity, care "
          "establishment, and subsequent outcomes.")
 
+R[104] = ("The five-year model is an early commercialization case, not the scale ceiling. At the "
+          "same conservative assumptions, 100 active counties produce approximately 12,000 "
+          "successful hires and $3.0 million in annual Staffing revenue; 250 counties, 30,000 hires "
+          "and $7.5 million; and 500 counties, 60,000 hires and $15 million. At 500 counties, "
+          "60,000 successful provider hires are equivalent in scale to approximately 8% of the "
+          "roughly 760,500 annual U.S. home health and personal care aide openings projected by "
+          "BLS.5")
+
+R[23] = ("**Commercial applications and innovation.** The commercial opportunity is not another "
+         "directory, referral marketplace, or staffing channel in isolation. It is an integrated "
+         "infrastructure that carries a family across the care-establishment pathway and creates "
+         "evidence about what happened at every step. AI-supported execution moves the product from "
+         "recommending what a family should do toward completing and tracking the work required to "
+         "establish care, and every executed case produces a structured longitudinal record of the "
+         "pathway.")
+
+R[68] = ("**Protection strategy.** Olera will protect each component of its commercial advantage "
+         "with the form of intellectual-property protection best suited to that asset. The "
+         "principal proprietary assets generated and extended through the CRP include "
+         "CareNavigator's non-public workflow orchestration and execution logic; the structure, "
+         "normalization, quality-control methods, and derived variables that organize Olera's "
+         "provider and financial-aid data; the longitudinal care-establishment and outcomes "
+         "architecture and resulting proprietary datasets; and the methods that connect local "
+         "workforce capacity to care execution. Olera will maintain these as trade secrets through "
+         "role-based technical access, confidentiality obligations, and employee, contractor, and "
+         "partner agreements governing intellectual-property ownership and permitted data use. "
+         "Original source code, interfaces, documentation, and content are protected by copyright, "
+         "while Olera and product branding will be protected through trademark rights and "
+         "registration where commercially appropriate. For CRP-generated inventions with sufficient "
+         "novelty and commercial value, Olera will evaluate patent protection with IP counsel "
+         "before public disclosure.")
+
+R[22] = ("Table 1. Current approaches address portions of the pathway; the CRP integrates them into "
+         "a closed-loop system oriented to confirmed care.")
+R[91] = ("Table 6. Distinct but coordinated acquisition channels concentrate the participants and "
+         "customers each local market requires.")
+R[109] = ("Table 8. Illustrative base case through post-CRP Year 4, with the final column widening "
+          "Year 5 into a Year 5 to Year 10 range. *Six paid-month equivalents in Year 3.")
+
 REPLACE = R
 
 # text-box captions attached to figures, keyed by the item that anchors them
@@ -1076,3 +1123,38 @@ TB_REPLACE = {
     83: ["Figure 5. Post-CRP growth flywheel."],
     91: ["Figure 6. Organic traffic growth, 2023–2026."],
 }
+
+# ---------------------------------------------------------------- bibliography
+# One sequence, numbered by first appearance, merging the two schemes the live
+# document carried (Section 4's 26 to 34 and the Revenue Stream's 1 to 8) and
+# de-duplicating the four sources both cited. `verified` is the date the source
+# was checked against the specific claim it is attached to, not the date it was
+# supplied.
+REFERENCES = [
+ ("Agency for Healthcare Research and Quality. Evidence Map on Home- and Community-Based "
+  "Services and Person-Centered Care for Older Adults. Technical Brief No. 49; 2024."),
+ ("Fan Q, Hoang MN, DuBose L, et al. The Olera.care Digital Caregiving Assistance Platform for "
+  "Dementia Caregivers: Preliminary Evaluation Study. JMIR Aging. 2024;7:e55132."),
+ ("Hoang MN, Kim L, Fisher L, et al. Exploring Informal Caregivers' Perception of the Olera "
+  "Digital Caregiving Assistance Platform for Dementia Care. JMIR Form Res. 2026;10:e92967."),
+ "Olera, Inc. Caregiver Staffing pilot placements and provider fees, 2024 to 2025. Data on file.",
+ ("U.S. Bureau of Labor Statistics. Home Health and Personal Care Aides. Occupational Outlook "
+  "Handbook; 2025 to 2035 projections."),
+ ("Activated Insights. 2025 Benchmarking Report for Home-Based Care; 2025. Median caregiver "
+  "turnover 75.0% in 2024."),
+ ("Activated Insights. 2024 Benchmarking Report for Home-Based Care; 2024. 63.3% of providers "
+  "turned down cases in 2023."),
+ "KFF. Medicare Advantage in 2026: Enrollment Update and Key Trends; 2026.",
+ ("Centers for Medicare and Medicaid Services. 2026 Medicare ACO Initiatives Participation "
+  "Highlights; 2026."),
+ ("Centers for Medicare and Medicaid Services. Guiding an Improved Dementia Experience (GUIDE) "
+  "Model; 2024."),
+ ("Association of American Medical Colleges. U.S. Medical Schools Enroll Record Number of "
+  "Students in 2025; 2025."),
+ ("American Association of Colleges of Nursing. NursingCAS Application Cycle Closes with Most "
+  "Applicants to Date; 2026."),
+ ("Augusta and Home Care Association of America. National Caregiver Recruitment Benchmark "
+  "Report, Q1 2026; 2026."),
+ ("Activated Insights. Caregiver Retention for Home-Based Care; recruiting and training cost up "
+  "to approximately $2,700 per replacement."),
+]

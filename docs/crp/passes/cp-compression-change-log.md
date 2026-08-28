@@ -157,3 +157,14 @@ paid-month-equivalents footnote) that has nowhere else to live.
 - Type: 11pt body, 9.5pt and up inside figures, 9pt tables and captions, 8pt superscript markers only.
 - All figures pass the glyph-box check (`checkfigs.py`): nothing clipped, off the artboard, or overlapping.
 - All section, figure and table numbers and every cross-reference resolve.
+
+---
+
+## Addendum: citation pass and bibliography
+
+All reference markers were renumbered from section-local sequences into one
+document-wide 1 to 14 sequence, and a References section was added on its own
+final page at full 11pt. Three corrections were made to the underlying claims
+(BLS reference years, "five" to "four" peer-reviewed studies, GUIDE goal list),
+and one citation could not be verified (AHRQ Technical Brief No. 49's percentage
+pairs). Full detail in `cp-citation-verification-log.md`.

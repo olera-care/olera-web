@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Build the house-style .docx for the Statement of Need from s2_word.html."""
+"""Build the house-style .docx for the Statement of Need from s3_word.html."""
 import re, html as H
 from docx import Document
 from docx.shared import Inches, Pt, RGBColor
@@ -8,7 +8,7 @@ from docx.oxml.ns import qn
 from docx.oxml import OxmlElement
 
 TEAL = RGBColor(0x14, 0x45, 0x3F); BLACK = RGBColor(0, 0, 0)
-SRC = open('s2_word.html', encoding='utf-8').read()
+SRC = open('s3_word.html', encoding='utf-8').read()
 SRC = SRC.split('<body>', 1)[1].rsplit('</body>', 1)[0]
 
 doc = Document()
@@ -245,5 +245,5 @@ while i < len(blocks):
             add_runs(p, txt)
     i += 1
 
-doc.save('Olera_CRP_Section2_Value.docx')
+doc.save('Olera_CRP_Section3_Company.docx')
 print('saved docx')

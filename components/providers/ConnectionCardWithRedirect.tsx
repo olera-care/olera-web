@@ -18,9 +18,16 @@ export default function ConnectionCardWithRedirect(
   const router = useRouter();
   const { providerCategory, providerCity, providerState, ...cardProps } = props;
 
-  // TODO Phase 1: wire cta_click_public (cta='contact') at the inner ConnectionCard's
-  // form-open / submit-attempt boundaries — that's where the funnel signal lives.
-  // Phase 0 covers post-submit via lead_received in /api/connections/* routes.
+  // Funnel tracking (was "TODO Phase 1", closed 2026-08-28):
+  //   form_engaged  -> cta_engaged   first keystroke in the inquiry form
+  //   form_submitted -> lead_started  submit
+  //   lead_received  -> lead_created  post-submit, in /api/connections/*
+  //
+  // The original TODO asked for a "form-open" boundary. There isn't one on
+  // desktop: this card renders InquiryForm inline and already open, so an
+  // "opened" event would fire on every render and measure nothing. First
+  // keystroke is the earliest observable intent, and is what mobile's
+  // sheet_opened actually stands in for. See use-connection-card.ts.
 
   return (
     <ConnectionCard

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 import { getLeadByEmail, updateLeadInCampaign } from "@/lib/smartlead";
+import { verifyAndCache, effectiveStatus } from "@/lib/email-verification";
+import { markEmailTrusted, getRecipientDeliveryHistory, isNeverDeliveredMailbox } from "@/lib/email";
 
 /**
  * PATCH /api/admin/provider-outreach/update-email
@@ -28,7 +30,7 @@ export async function PATCH(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { provider_id, email, confirm_apollo } = body;
+    const { provider_id, email, confirm_apollo, force } = body;
 
     if (!provider_id) {
       return NextResponse.json({ error: "provider_id is required" }, { status: 400 });
@@ -44,8 +46,74 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
     }
 
-    const db = getServiceClient();
     const trimmedEmail = email.trim();
+
+    // Email deliverability check - matches questions/leads/connections security layer
+    // This prevents saving emails that will bounce, protecting sender reputation.
+    // Fails OPEN: verification errors return 'unknown' and we proceed.
+    if (!force) {
+      const raw = await verifyAndCache(trimmedEmail);
+      // Apply role-address reclassification: role_based → valid, role_based_catch_all → risky
+      const verdict = { ...raw, status: effectiveStatus(raw.status, raw.subStatus) };
+
+      if (verdict.status === "invalid") {
+        const checkedAt = raw.checkedAt;
+        const ageInfo = checkedAt
+          ? ` (verified ${new Date(checkedAt).toLocaleDateString()})`
+          : "";
+        return NextResponse.json(
+          {
+            error: "undeliverable",
+            message: `That address can't receive mail — it would bounce${ageInfo}. Try another.`,
+            checkedAt,
+          },
+          { status: 422 },
+        );
+      }
+
+      if (verdict.status === "risky") {
+        const checkedAt = raw.checkedAt;
+        const ageInfo = checkedAt
+          ? ` (verified ${new Date(checkedAt).toLocaleDateString()})`
+          : "";
+        return NextResponse.json(
+          {
+            error: "risky",
+            message:
+              `That looks like a catch-all domain — mail often won't reach a real inbox${ageInfo}, and the cold lane will skip it. Use a named address (e.g. a person's, not info@) if you can.`,
+            checkedAt,
+          },
+          { status: 422 },
+        );
+      }
+    }
+
+    // When forcing past deliverability warning, check if this address has ONLY ever bounced
+    // and never delivered. If so, forcing won't help - the mailbox doesn't exist.
+    if (force) {
+      const forcedHistory = await getRecipientDeliveryHistory(trimmedEmail);
+      if (isNeverDeliveredMailbox(forcedHistory)) {
+        return NextResponse.json(
+          {
+            error: "never_delivered",
+            bounced: forcedHistory.bounced,
+            message:
+              `This address has bounced ${forcedHistory.bounced} time${forcedHistory.bounced === 1 ? "" : "s"} and has ` +
+              `never successfully delivered, so forcing it through would only produce more bounces. ` +
+              `Use a different address for this provider, or reach them by phone.`,
+          },
+          { status: 422 },
+        );
+      }
+      // Mark as trusted so future sends bypass suppression
+      await markEmailTrusted(trimmedEmail, {
+        reason: "admin",
+        note: "force-added via Provider Outreach",
+        createdBy: adminUser.id
+      });
+    }
+
+    const db = getServiceClient();
 
     // Get current provider data
     const { data: existing } = await db

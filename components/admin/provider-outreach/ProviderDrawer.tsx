@@ -370,6 +370,7 @@ function ContactSection({
   const [trustScoreStatus, setTrustScoreStatus] = useState<TrustScoreStatus>("idle");
   const [trustScoreReason, setTrustScoreReason] = useState("");
   const verifyRequestIdRef = useRef(0);
+  const verifyDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Verify email address
   const verifyEmail = useCallback(async (emailToVerify: string): Promise<VerificationStatus> => {
@@ -443,6 +444,46 @@ function ContactSection({
       setTrustScoreReason(trustResult.reason);
     }
   }, [verifyEmail, fetchTrustScore]);
+
+  // Handler for inline email input change - triggers debounced verification as user types
+  const handleEmailInputChange = useCallback((value: string) => {
+    setEmailValue(value);
+    setEmailError(null);
+
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+    if (!isValidEmail) {
+      // Clear any pending verification and reset state
+      if (verifyDebounceRef.current) clearTimeout(verifyDebounceRef.current);
+      setVerificationStatus("idle");
+      setTrustScoreStatus("idle");
+      setTrustScoreReason("");
+      return;
+    }
+
+    // Debounced verification - starts as user types, so by the time they click Save,
+    // verification is likely already done or in progress
+    if (verifyDebounceRef.current) clearTimeout(verifyDebounceRef.current);
+    verifyDebounceRef.current = setTimeout(() => {
+      verifyAndScore(value.trim());
+    }, 500); // 500ms debounce for typing
+  }, [verifyAndScore]);
+
+  // Handler for inline email input blur - triggers immediate verification (fallback)
+  // This catches cases where user pastes and immediately clicks away
+  const handleEmailInputBlur = useCallback(() => {
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue.trim());
+    if (!isValidEmail) {
+      setVerificationStatus("idle");
+      setTrustScoreStatus("idle");
+      return;
+    }
+    // Cancel any pending debounce and verify immediately
+    if (verifyDebounceRef.current) clearTimeout(verifyDebounceRef.current);
+    // Only verify if not already verified or verifying
+    if (verificationStatus === "idle") {
+      verifyAndScore(emailValue.trim());
+    }
+  }, [emailValue, verificationStatus, verifyAndScore]);
 
   // Reset state when provider changes
   const lastProviderIdRef = useRef<string | null>(null);
@@ -544,8 +585,8 @@ function ContactSection({
     };
   }, [provider.provider_id, provider.email, onEmailUpdate]);
 
-  // Save the found email
-  async function handleSaveFoundEmail() {
+  // Save the found email (with optional force override)
+  async function handleSaveFoundEmail(force = false) {
     if (!foundEmail) return;
     setSavingEmail(true);
     setEmailError(null);
@@ -553,14 +594,19 @@ function ContactSection({
       const res = await fetch("/api/admin/provider-outreach/update-email", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: provider.provider_id, email: foundEmail.email }),
+        body: JSON.stringify({ provider_id: provider.provider_id, email: foundEmail.email, force }),
       });
       if (res.ok) {
         onEmailUpdate?.(foundEmail.email);
         setFoundEmail(null);
       } else {
         const data = await res.json().catch(() => ({}));
-        setEmailError(data.error || "Failed to save");
+        // Handle specific 422 errors with human-readable messages
+        if (data.error === "undeliverable" || data.error === "risky" || data.error === "never_delivered") {
+          setEmailError(data.message || "Email verification failed");
+        } else {
+          setEmailError(data.error || "Failed to save");
+        }
       }
     } catch {
       setEmailError("Network error");
@@ -569,7 +615,8 @@ function ContactSection({
     }
   }
 
-  async function handleSaveEmail() {
+  // Save manually edited email (with optional force override)
+  async function handleSaveEmail(force = false) {
     if (!emailValue.trim()) return;
     setSavingEmail(true);
     setEmailError(null);
@@ -577,14 +624,22 @@ function ContactSection({
       const res = await fetch("/api/admin/provider-outreach/update-email", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ provider_id: provider.provider_id, email: emailValue.trim() }),
+        body: JSON.stringify({ provider_id: provider.provider_id, email: emailValue.trim(), force }),
       });
       if (res.ok) {
         onEmailUpdate?.(emailValue.trim());
         setEditingEmail(false);
+        // Reset verification state on successful save
+        setVerificationStatus("idle");
+        setTrustScoreStatus("idle");
       } else {
         const data = await res.json().catch(() => ({}));
-        setEmailError(data.error || "Failed to save");
+        // Handle specific 422 errors with human-readable messages
+        if (data.error === "undeliverable" || data.error === "risky" || data.error === "never_delivered") {
+          setEmailError(data.message || "Email verification failed");
+        } else {
+          setEmailError(data.error || "Failed to save");
+        }
       }
     } catch {
       setEmailError("Network error");
@@ -648,40 +703,69 @@ function ContactSection({
         <div className="flex items-center justify-between">
           <span className="text-sm text-gray-500 w-16">Email</span>
         {editingEmail ? (
-          <div className="flex items-center gap-2 flex-1 ml-3">
-            <input
-              type="email"
-              value={emailValue}
-              onChange={(e) => setEmailValue(e.target.value)}
-              className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleSaveEmail();
-                if (e.key === "Escape") {
-                  e.stopPropagation(); // Prevent drawer from closing
+          <div className="flex-1 ml-3">
+            <div className="flex items-center gap-2">
+              <input
+                type="email"
+                value={emailValue}
+                onChange={(e) => handleEmailInputChange(e.target.value)}
+                onBlur={handleEmailInputBlur}
+                className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    // If verification shows risky/invalid, force through on Enter
+                    const shouldForce = verificationStatus === "invalid" || verificationStatus === "risky";
+                    handleSaveEmail(shouldForce);
+                  }
+                  if (e.key === "Escape") {
+                    e.stopPropagation(); // Prevent drawer from closing
+                    setEditingEmail(false);
+                    setEmailValue(provider.email || "");
+                    setVerificationStatus("idle");
+                    setTrustScoreStatus("idle");
+                  }
+                }}
+                autoFocus
+              />
+              {/* Save button - changes style based on verification status */}
+              {verificationStatus === "invalid" || verificationStatus === "risky" ? (
+                <button
+                  onClick={() => handleSaveEmail(true)}
+                  disabled={savingEmail || !emailValue.trim()}
+                  className="px-3 py-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 disabled:opacity-50"
+                >
+                  {savingEmail ? "..." : "Save anyway"}
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleSaveEmail(false)}
+                  disabled={savingEmail || !emailValue.trim() || verificationStatus === "verifying"}
+                  className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+                >
+                  {savingEmail ? "..." : "Save"}
+                </button>
+              )}
+              <button
+                onClick={() => {
                   setEditingEmail(false);
                   setEmailValue(provider.email || "");
-                }
-              }}
-              autoFocus
-            />
-            <button
-              onClick={handleSaveEmail}
-              disabled={savingEmail || !emailValue.trim()}
-              className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
-            >
-              {savingEmail ? "..." : "Save"}
-            </button>
-            <button
-              onClick={() => {
-                setEditingEmail(false);
-                setEmailValue(provider.email || "");
-                setEmailError(null);
-              }}
-              className="text-sm text-gray-400 hover:text-gray-600"
-            >
-              Cancel
-            </button>
-            {emailError && <span className="text-xs text-red-500">{emailError}</span>}
+                  setEmailError(null);
+                  setVerificationStatus("idle");
+                  setTrustScoreStatus("idle");
+                }}
+                className="text-sm text-gray-400 hover:text-gray-600"
+              >
+                Cancel
+              </button>
+            </div>
+            {/* Email verification badges */}
+            {(verificationStatus !== "idle" || trustScoreStatus !== "idle") && (
+              <div className="flex items-center gap-3 mt-2">
+                <EmailVerificationBadge status={verificationStatus} showHelperText />
+                <TrustScoreBadge status={trustScoreStatus} reason={trustScoreReason} />
+              </div>
+            )}
+            {emailError && <span className="text-xs text-red-500 mt-1 block">{emailError}</span>}
           </div>
         ) : (
           <div className="flex items-center gap-3 flex-1 ml-3">
@@ -711,7 +795,7 @@ function ContactSection({
                   {/* Save button - changes style based on verification status */}
                   {verificationStatus === "invalid" || verificationStatus === "risky" ? (
                     <button
-                      onClick={handleSaveFoundEmail}
+                      onClick={() => handleSaveFoundEmail(true)}
                       disabled={savingEmail}
                       className="px-2 py-0.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded hover:bg-amber-100 disabled:opacity-50"
                     >
@@ -719,7 +803,7 @@ function ContactSection({
                     </button>
                   ) : (
                     <button
-                      onClick={handleSaveFoundEmail}
+                      onClick={() => handleSaveFoundEmail(false)}
                       disabled={savingEmail || verificationStatus === "verifying"}
                       className="px-2 py-0.5 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
                     >
@@ -761,6 +845,10 @@ function ContactSection({
               onClick={() => {
                 setEditingEmail(true);
                 setEmailValue(provider.email || foundEmail?.email || "");
+                // Reset verification state when entering edit mode
+                setVerificationStatus("idle");
+                setTrustScoreStatus("idle");
+                setTrustScoreReason("");
               }}
               className="ml-auto text-xs text-gray-400 hover:text-gray-600"
             >

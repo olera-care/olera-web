@@ -78,6 +78,109 @@ The CRP support-letter run. Five letters due to the NIH by **September 1**; work
 **Artifact:** https://claude.ai/code/artifact/b9ef5d16-6953-4503-b757-192092cbbda6 — cleaned for team sharing. **No app code touched this session.**
 
 
+### 2026-08-26 (later) — Zardy's campaign was never broken. Cleveland repriced ~2.5x and our standing $2.50 bid cap is now below the floor (`shiny-brahe`)
+
+**Ad Boost, no code.** Ran the diagnosis on Miracle-Lightstar `24151612515` and got a definitive answer from Google's own budget simulator. **Nothing has been changed in Google Ads yet** — budget still `$3.57/day`, Max CPC still `$2.50`, awaiting TJ's call.
+
+**THE ANSWER: the bid is roughly half what the auction now costs.**
+
+| Google's campaign budget simulator (based on real auction data, Aug 22-23) | | | | | |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Budget | Clicks | Cost | Impr. | Top impr. | **Min. bid limit req'd** |
+| $2.37/day | 1 | $4.68 | 26 | 15 | **$5.12** |
+| $1.59/day | 1 | $2.17 | 25 | 14 | **$4.98** |
+
+Current Max CPC bid limit: **$2.50**. Google says entry costs **~$5.00**. His July campaign cleared at **$1.92 avg CPC under the same $2.50 cap** and served 338 impressions. **The Cleveland home-care auction has repriced roughly 2.5x since July.** A cap that comfortably won in July cannot win a single auction now.
+
+**This falsifies the line in the 08-25 call-sheet artifact** that "the August rebuild is the broken artifact, not Cleveland and not the bid." It IS the bid and it IS Cleveland. Five theories died over three days because everyone kept looking *inside* the campaign for a change that happened *outside* it.
+
+**Budget is definitively NOT the constraint.** Google reports `Search lost IS (budget) = 0.00%`, and the simulator projects 25-26 impressions at budgets *below* the current $3.57/day. Any budget increase is wasted motion.
+
+**Everything else verified clean at source** (campaign `24151612515`): campaign/ad group/ad all Eligible; 20 keywords with all five head terms Eligible incl. `"personal care assistance"`; only the shared 98-term negative list attached, and none of the 74 terms captured is a substring of any of his keywords; Max CPC reads `$2.50` at source; geo = Cuyahoga/Lake/Lorain/Medina counties; no device bid adjustments; ad schedule "eligible to show all the time"; languages EN+ES; start 20 Aug, no end date; Google's own Recommendations offer no delivery diagnostic, only generic upsells.
+
+**Decisions made / corrections**
+
+- **Campaign-total budgets no longer exist on this campaign.** The Budget panel offers *only* "average daily budget" — there is no total-budget option to switch back to. **"Rebuild on the July structure" is not executable by editing**, which retires that advice. It is also the same wall as the 08-19 session where seven extension attempts failed server-side.
+- **I was wrong twice in this session and both are worth recording.** First I recommended raising the daily budget $3.57 → $12 while simultaneously citing `lost IS (budget) = 0.00%` — incoherent, and the simulator disproved it outright. Second, I proposed a $4.00 cap from inference; Google's stated floor is **$5.12**, so $4.00 would have failed and looked like a sixth dead theory. **Lesson: open the budget simulator before theorising. It is based on real auction data and it answers the question directly.**
+- **The `>90% lost IS (rank)` figure was read at an all-time date range**, not the flight window. It pointed the right way but was not the evidence I treated it as.
+- **Recommended change (NOT applied, TJ's call):** Max CPC `$2.50 → $5.50`, **leave the daily budget alone**. A budget-increase re-auth (`CAMPAIGN_BUDGET_INCREASE_BEYOND_THRESHOLD`) was triggered before the simulator was consulted and was correctly never completed.
+- **The economics are thin and TJ should decide with eyes open.** At ~$4.68/click his $150 buys roughly **32 clicks** across the flight. July bought 26 clicks for $50. That may not be a deal worth taking, and that is a business call rather than a fix.
+
+**Open risk, unverified:** `olera.care` returns **429 to normal browser user agents** from this machine (homepage and provider pages alike) while returning **200 to AdsBot-Google, AdsBot-Google-Mobile and Googlebot**. Most likely the Vercel firewall challenging a Thailand egress IP (there is a `tj-home-bypass` rule and a "Block Restricted Regions" rule), **not** a global outage — but it cannot be distinguished from this machine. If it were real, every ad dollar across every provider is being spent to land users on a 429. **Test: load any provider page from a US IP or a phone on cellular.**
+
+**Also this session:** the "Five Letters by September 1" artifact was rewritten from a send-sheet into a **collection call sheet** — board of five with channel and what's-new per provider, ordered Hilda → Sandra → Jasmine → Sherry, with Zardy held back until his campaign serves. https://claude.ai/code/artifact/b9ef5d16-6953-4503-b757-192092cbbda6
+
+**Next up**
+
+- **TJ decides on Cleveland**: raise Zardy's cap to $5.50 and spend the $150 at ~$4.68/click, or stop buying Cleveland Google. Nothing changes until he says.
+- **Check the other live campaigns for the same repricing.** If $2.50 is obsolete generally, that reframes the whole Google program and the SOP's "$2.50 max CPC" locked invariant needs rewriting. LumiWell, Edmonds Villa and Graceful all run the same cap.
+- **Verify the 429 from a US IP** before spending anywhere else.
+- **Hilda's Google is still Pending — all ads under review since 23 Aug.** Open the support case; it is past the point where waiting is the right move.
+- Call Zardy today regardless. The call-sheet script holds at zero impressions.
+
+### 2026-08-26 — All five letter-target providers are live on Nextdoor, and the Google budget experiment came back inverted (`shiny-brahe`)
+
+**Ad Boost, no code.** Audited the whole book, then took the five NIH letter-target providers from zero Nextdoor presence to five published campaigns. Also found two letter targets whose Google campaigns have never served an impression while their Olera rows say `live`.
+
+**Published — all Sep 1-7, $75 lifetime, $375 total**
+
+| Provider | Nextdoor ad account | Geo |
+| --- | --- | --- |
+| Zardy · Miracle-Lightstar | `1013333549400458650` | Cleveland OH |
+| Jasmine · Graceful | `1003875747409953896` (existing) | Concord NC |
+| Sandra · Edmonds Villa | `1013334319793439765` | Edmonds WA |
+| Sherry · Pacesetter | `1013334845163570757` | **Dallas GA** (not the Douglasville in her slug) |
+| Hilda · Franchil | `1013335378024728520` | Killeen TX |
+
+All five: Advanced Create, Website visits, Autobid/CPC, all three placements, Special ad category unchecked, tagged `utm_source=olera_managed&utm_medium=paid_social&utm_campaign={stub}-{city}-nextdoor-sep26`. Rating claims only where substantiated (Jasmine and Sandra 5.0★; none for Zardy, Sherry, Hilda). No condition or medical language anywhere.
+
+**THE GOOGLE BUDGET EXPERIMENT IS FALSIFIED, AND IT INVERTED.** Read 08-26: treatment arm **Zardy at $3.57/day = 0 impressions, 0 clicks, $0.00, lost IS (rank) >90%**; control arm **Jasmine held at $1.67/day = 54 impr, 3 clicks, $6.14, lost IS (rank) 60.55%**. The 08-23 prediction was "if Zardy recovers and Jasmine doesn't, budget level is the cause." The opposite happened. Budget level is dead, and so is the planned "convert Graceful to a $150 total" follow-up — Graceful is the one that's fine. Whatever is wrong is specific to campaign `24151612515`.
+
+**Hilda's Google campaign `24166094865` has been "Pending — All ads under review" since 08-23** with 0 impressions, while row `f3ff5374` reads `live`. Two of five letter targets have been told something untrue.
+
+**The Ad Boost metrics are wrong, not just stale.** Google vs the rows: Pacesetter 285 impr / 25 clicks / **$51.82** / **2 conversions** vs 149 / 13 / $27.24 / none (she also overspent her $50 cap); Legacy Haven 341/25/$49.26 vs 172/16/$29.26; Rosemonte 238/18/$41.64 vs 6/0/$0.00; Edmonds Villa 222/14/$33.69 vs 4/0/$0.00. Account-wide across the 14 provider campaigns: **$461.61, 3,771 impr, 218 clicks, 2 conversions**, blended CTR 5.78%, CPC $2.12. Those 2 conversions are entirely Pacesetter's at 8.00% conv rate, which contradicts the SOP's "all six conversion actions read 0.00" — worth one look, not a session.
+
+**Graceful's Nextdoor pilot finals, read at source:** flight **Aug 14-17** (not 14-21), **8,318 impressions, 134 clicks, $50.00 spent, $0.37 CPC, 1.61% CTR, 0 conversions**. The SOP, the ad-boost skill file, and the drafted email to Jasmine all still quote the mid-flight "$35.66 / 101 clicks" figure, and the email says her flight ran to the 21st.
+
+**Decisions made**
+
+- **Nextdoor hard-enforces a $10/day floor.** The wizard refuses to advance below it, and the recommended-cap line is just `$10 × duration` (recalculated live: $400 at 90d → $300 at 30d → $200 at 14d). This killed the approved "$150 over 90 days" structure outright.
+- **Landed on $75 over 7 days = $10.71/day**, after research: Nextdoor publishes $3/$5/$10 daily tiers and mandates no minimum flight length; industry norm is a one-to-two-week test flight. Cut the commitment from $750 to $375 and still buys ~200 clicks each at Graceful's proven CPC. **Extend the winners rather than pre-buying a month for everyone** — Nextdoor allows edit/pause at any time, and the channel has produced 0 contactable leads in its entire history with us.
+- **Corrected an overstatement of my own:** I first argued a low daily budget would kill Nextdoor delivery by analogy to Zardy's dead Google campaign. The analogy is weak. Zardy can't win auctions (eligibility failure); Graceful spent her full cap in 4 days with inventory to spare. Different mechanism.
+- **Per-provider ad accounts under the Olera business**, not one shared account — satisfies the SOP's "never put another provider inside Graceful's account" without needing any provider involvement.
+- **Website-photo scrape unchecked on every new account.** Auto-import would have pulled Zardy's tri-fold flyers with phone numbers and URLs burnt into the pixels.
+
+**Creative review (SOP Phase 1a, done properly)**
+
+- **Zardy has zero authentic photographs.** His hero is `olera.care/images/fallback/home-care-17.jpg`, Olera's own generic stock fallback; the rest are stock models, brochures and flyers. Used his logo as the only honest asset. Photo ask outstanding.
+- **Sandra's ordering has been fixed since 08-20** — her residents-and-caregiver photo is now image[0]. Re-cropped it anyway: the default centre crop framed an empty wheelchair and bare floor rather than the people.
+- **Sherry's 08-20 findings are unfixed.** Hero is still a parking-lot wall; two of six images are clinical stock for a non-medical agency; her only genuine branded headshots are 271×312 and 284×308. Upscaled the 284px one 3.8× — soft but legible. Her landing page also still leads with **1.0★ from one empty review**. Flagged as a real conversion risk; TJ chose to build anyway.
+- **Jasmine's gallery is real but off-message** (facility interiors for an in-home care business). Used her branded headshot instead.
+- **Hilda's set is the best of the five** — three genuine in-home photos. Excluded her two graphics with phone/URL burnt in.
+
+**Mechanics worth keeping**
+
+- **Dia's content blocker was the three-day Nextdoor blocker.** It kills `POST ads.nextdoor.com/v2/api/graphql` — Nextdoor's own API, not just analytics — because the blocklist matches the `ads.` hostname. It is a *component* extension, so `--disable-extensions` does not disable it and there is no pref to flip. **Use Chrome for Nextdoor.** It was also throwing "Google Ads can't work when you're using an ad blocker" on the Google side.
+- **NEXTDOOR SILENTLY DROPS THE CAMPAIGN NAME** when you navigate between wizard steps. Hit four of five builds. The tell is a `Campaign` block on the review screen with no `Name` row — nothing errors and Publish stays enabled. Fix: back to step 1, re-enter, step forward. **It only sticks if the set and the Next click are separate actions**; doing both in one pass fails silently.
+- **Attach the card to the ad account BEFORE opening the campaign wizard.** The wizard caches payment state at mount; the only way to refresh it is a reload, and **the wizard does not persist** — reloading destroys the whole build. "Save and Exit" does not create a server-side draft either. Cost one full rebuild.
+- **Nextdoor account context is GLOBAL across tabs**, not per-tab. An open wizard keeps its own account, which is what misled me. Switching accounts in one tab moves every other tab.
+- **Nextdoor is post-pay, not prepaid** — nothing to fund. Balance accrues against a per-account billing threshold ($50 on Graceful, $10 on Edmonds Villa).
+- **`upload_file` is sandboxed to the workspace root** and cannot intercept the "Add media" native picker directly. The working path: click **Add media** → wait for the **"Select image"** modal → `upload_file` onto its *"Click here or drag and drop"* dropzone. Synthetic drag-and-drop with a constructed `File` does not register. Each image then needs **two** crop confirmations (Newsfeed 1.91:1, then Square for For Sale & Free + Conversations), and a **separate logo upload** is mandatory before publish.
+- **Nextdoor's review screen renders flight times shifted into another timezone** (-11h on Eastern accounts, -14h on Pacific). The stored dates are correct; it trims roughly half a day off the tail.
+- **Wizard defaults are dangerous:** $1,000/day and the entire United States (25M-31M reach). Both must be overridden every time.
+
+**Next up**
+
+- ~~**Diagnose Zardy's `24151612515`**~~ — done, see the 2026-08-26 (later) entry: **the bid is ~half the auction price**; Google's simulator states a $5.12 minimum vs our $2.50 cap. Not a build error. **Hilda's stuck review is still open** and is now a support case.
+- **Fix the Ad Boost metrics** on Pacesetter, Legacy Haven, Rosemonte, Edmonds Villa, plus the five null flights. Enter Graceful's Nextdoor finals on row `354917bf` (8,318 / 134 / $50.00) and **correct her flight dates to Aug 14-17**.
+- **Fix the drafted email to Jasmine** at `~/Desktop/provider-emails-2026-08-21/6-jasmine-graceful-NEXTDOOR-RESULTS.txt` — it says her flight ran "the 14th through the 21st".
+- **No `ad_campaign_requests` rows exist for the five new Nextdoor campaigns.** They are live on the platform and invisible to Olera. Needs direct inserts (TJ runs them; the classifier blocks Claude's DB writes) with `channel='nextdoor'`, the sep26 tags, Sep 1-7, `ad_budget_cents=7500`, `ad_budget_type='lifetime'`.
+- **Read the flights Sep 8.** Extend whoever delivered tagged visitors and questions to a full 30 days at $300; kill the rest.
+- **NIH letters due Sept 1**, five days out. Sherry cannot receive email at her listing address; use `sherrypace2007@gmail.com` or phone.
+- **Correct the SOP and `.claude/commands/ad-boost-setup.md`** — the Graceful Nextdoor baseline quoted there ($35.66 / 101 clicks) is a mid-flight read, and the Nextdoor gotchas above are not captured.
+- Still untouched: three providers sitting in `requested` for 12-33 days (Plattsburgh NY, Little Egg Harbor NJ, Louisville KY), all blocked on photo readiness.
+
+
 ### 2026-08-25 — Ad Boost is now a provider queue with continuous campaign history (`codex/ad-boost-provider-queue`)
 
 Reworked Admin → Ad Boost around one provider rather than one row per ad request. The queue groups campaigns by provider, exposes Google/Meta/Nextdoor at a glance, supports submitted-date sorting, expands multi-campaign providers, and uses a quieter table/card hierarchy that stays compact at tablet widths. The campaign detail page now includes an always-visible, newest-first provider history with platform, flight timing, status, landings, leads, archived state, and direct navigation between campaigns. Pre-test caught and fixed stale form state during sibling-campaign navigation by remounting the editor for the selected request and hiding the previous request while the next one loads. **Files:** `app/admin/ad-boost/page.tsx`, `components/admin/ad-boost-queue.ts`, `app/admin/ad-boost/[id]/page.tsx`, `app/api/admin/ad-boost/route.ts`. **Validation:** TypeScript, targeted ESLint, provider-grouping smoke assertions, schema/index review, and `git diff --check` pass; no migration or cron change. Local visual QA was blocked because this worktree lacks Supabase environment variables. **Commits:** `fc676e9ae`, `f4b424fed`, `a0111f883`. **Next:** use the Vercel preview to verify grouping/expansion, each sort option, the tablet breakpoint, and switching/saving sibling campaigns; do not merge without TJ.
@@ -210,9 +313,9 @@ Both: Maximize Clicks with the $2.50 cap, Search only, EN+ES, AI Max off, $1.67/
 
 **Next up**
 
-- **Monday: read Zardy vs Jasmine.** The whole batch's budget hangs on it. If $3.57 wins, move Jasmine, Sandra and Hilda too — one field each.
-- **Jasmine's Nextdoor numbers** still need entering on row `354917bf` (blocked: Dia's content blocker crashes ads.nextdoor.com — `ERR_BLOCKED_BY_CONTENT_BLOCKER`). Not urgent now the wrap-up is cancelled, and she should get them from TJ directly.
-- **Nextdoor builds ×4** — none exist for anyone. Same browser blocker.
+- ~~**Monday: read Zardy vs Jasmine.**~~ Read 08-26. **Falsified and inverted** — Zardy at $3.57/day served 0, Jasmine at $1.67/day recovered. Budget level is not the cause. See the 2026-08-26 entry.
+- ~~**Jasmine's Nextdoor numbers**~~ — recovered 08-26 at source: **Aug 14-17, 8,318 impr, 134 clicks, $50.00, $0.37 CPC**. Row `354917bf` still needs them entered, and its flight dates corrected from Aug 14-21 to Aug 14-17.
+- ~~**Nextdoor builds ×4**~~ — done 08-26, all five published. Blocker was Dia's content blocker killing Nextdoor's own GraphQL API; Chrome fixes it.
 - **Hilda's launch email is armed** by her `live` status. She has not been told the campaign exists; she answers phone, not email.
 - **NIH support letters due Sept 1** — soft letters (uses the suite, works with us, finds it valuable), explicitly not gated on ad performance. See `project_nih_letters_sept1`. Handoff: https://app.notion.com/p/3c55903a0ffe81c1a18cc95b5caf7a17
 - ~~**Sherry gets a phone call**~~ — done 08-24 by email to her *account* address (`sherrypace2007@gmail.com`, 13/13 delivered) rather than the suppressed listing address. Root cause was a 08-13 complaint, not 08-14; see the 2026-08-24 entry.

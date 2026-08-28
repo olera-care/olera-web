@@ -14,8 +14,8 @@ def fig7():
 
     cols = [
         (LX0, LX1, "BEACHHEAD", "Caregiver Staffing",
-         [("4.35M home health and personal care aides", None),
-          ("766,000 openings projected each year", "arrow"),
+         [("4.68M home health and personal care aides", None),
+          ("760,500 openings a year; 18% growth to 2035", "arrow"),
           ("75% median home-care caregiver turnover", "arrow"),
           ("Recurring provider need to recruit and staff cases", "arrow"),
           ("CRP proves repeatable acquisition, placement,", "arrow"),

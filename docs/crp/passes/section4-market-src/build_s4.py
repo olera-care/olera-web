@@ -62,9 +62,10 @@ risk when unmet needs contribute to avoidable utilization, failed care transitio
 institutional care. Families remain users rather than customers: CareNavigator stays free to them.</p>
 
 <p class="sec"><b>Caregiver Staffing addresses an unusually persistent provider problem.</b> The
-United States employed approximately 4.35 million home health and personal care aides in 2024, with
-roughly 766,000 openings projected each year from 2024&#8211;2034; home-care benchmarking separately
-reported 75% median professional-caregiver turnover in 2024.<sup>26,27</sup> The problem directly
+United States employed approximately 4.68 million home health and personal care aides in 2025, and
+the Bureau of Labor Statistics projects 18% employment growth through 2035 alongside roughly 760,500
+openings each year from 2025 to 2035; home-care benchmarking separately reported 75% median
+professional-caregiver turnover in 2024.<sup>26,27</sup> The problem directly
 constrains growth: 63.3% of surveyed home-care providers reported turning down cases because of
 staffing shortages in 2023.<sup>28</sup> Non-medical home care is therefore Olera's initial provider
 beachhead, with expansion potential across home health, assisted living, hospice, skilled nursing,

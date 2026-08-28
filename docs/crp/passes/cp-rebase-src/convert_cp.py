@@ -198,7 +198,7 @@ def mk_table(grid, no_header):
     ncol = max(len(r) for r in grid)
     grid = [r + [[]] * (ncol - len(r)) for r in grid]
     w = 'width:%.4f%%' % (100.0 / ncol)
-    cls = 'dat keep' if len(grid) <= 5 else 'dat'
+    cls = 'dat keep' if len(grid) <= 4 else 'dat'
     out = [f'<table class="{cls}">',
            '<colgroup>' + ''.join(f'<col style="{w}">' for _ in range(ncol)) + '</colgroup>']
     body = grid

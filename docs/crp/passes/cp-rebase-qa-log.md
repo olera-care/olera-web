@@ -4,7 +4,7 @@
 **Baseline:** `3. Commercialization Plan`, Google Drive fileId `1VutumddG9xH-UO3UBklUKsLvMnw0drwn`,
 `application/vnd.openxmlformats-officedocument.wordprocessingml.document`, 1,011,546 bytes,
 modified `2026-08-28T16:22:24.294Z`.
-**Outputs:** `Olera_CRP_CommercializationPlan_rebased.pdf` (20 pp) and `.docx` (19 pp).
+**Outputs:** `Olera_CRP_CommercializationPlan_rebased.pdf` and `.docx`, 21 pages each.
 **Build:** `cp-rebase-src/` (`inspect_truth.py` → `convert_cp.py` → `build_cp.py` → `diff_cp.py`).
 
 The prior workspace Commercialization Plan was discarded. Nothing was merged forward from it.
@@ -105,6 +105,71 @@ in `cp-rebase-src/convert_log.json`.
 | L4 | The five remaining risks set as a numbered list | the prose introduces them as a sequence, the next paragraph says the order matters, and Figure 3 numbers them 1 to 5. Text unchanged |
 | L5 | Orphan and widow control on paragraphs, list items kept whole | single stranded lines |
 | L6 | Figure 3 re-cut: the red label cleared the terrain line, and the right wall now climbs instead of sitting flat, lifting at Year 3 where the plan's own model starts paid testing | requested |
+
+### Figure typography, rebuilt 2026-08-28
+
+A correction first. Figure sizes in the artwork are SVG user units, and the house
+grid puts 100 units to the inch, so a unit is 0.72pt. Everything the figure code called
+"9.2" was printing at 6.6pt. Measured off the rendered PDF, the figure set ran **5.5pt
+to 8.8pt**, with 5,750 characters below 9pt, not the 7.6 to 9.6pt an earlier note in
+this log implied.
+
+NIH's *Format Attachments* rule is that text "must be 11 points or larger. Smaller text
+in graphics, figures, graphs, diagrams, and charts is acceptable, as long as it is
+legible when the page is viewed at 100%," and NIH's own tips page extends that to
+tables, figure legends and footnotes. The separate type-density rule, no more than 15
+characters per linear inch, carries no figure exemption, and Arial breaches it below
+roughly 9.5pt. That is the floor adopted here.
+
+All sixteen figures were rebuilt against it:
+
+- `figbase.py` declares the type scale in real points and converts, so the code says
+  what the page prints.
+- `measure.py` measures actual Arial advances through the same SVG text path the
+  figures use, and wraps labels to the width they really have. Model error against the
+  rendered PDF is 0.0%.
+- `checkfigs.py` renders every figure alone and reads back real glyph boxes, catching
+  text clipped by the artboard, text past the edge, and boxes drawn on top of each
+  other. All sixteen return zero problems.
+
+Nothing was cut to make room. Where a label could not fit, the figure grew or the label
+wrapped. Two figures changed shape rather than size: the evidence chain packs onto two
+rows because five labels need about 8.5in at 9.5pt, and the local-market process runs
+four boxes then three for the same reason.
+
+| Figure | Was | Now |
+|---|---|---|
+| 1, vicious cycle | 3.00 x 2.26 in | 3.00 x 2.60 in |
+| 2, care pathway | 7.20 x 1.48 | 7.20 x 1.51 |
+| 3, valley of death | 7.20 x 2.18 | 7.20 x 2.94 |
+| 4, product and county | 7.20 x 4.15 | 7.20 x 5.82 |
+| 5, progression | 7.20 x 1.48 | 7.20 x 2.90 |
+| 6, management capacity | 7.20 x 1.22 | 7.20 x 1.84 |
+| 7, two markets | 7.20 x 2.48 | 7.20 x 3.19 |
+| 8, IP protections | 7.20 x 2.96 | 7.20 x 4.34 |
+| 10, financing transition | 7.20 x 2.06 | 7.20 x 2.81 |
+| 10, growth flywheel | 3.36 x 2.29 | 3.68 x 2.68 |
+| X, market process | 7.20 x 0.94 | 7.20 x 2.57 |
+| X, organic traffic | 7.20 x 1.62 | 3.30 x 2.40 |
+| 11, replication economics | 7.20 x 1.94 | 7.20 x 2.30 |
+| evidence chain | 7.20 x 0.42 | 7.20 x 0.90 |
+| 12, revenue by year | 7.20 x 2.24 | 7.20 x 2.53 |
+| 13, stages and gates | 7.20 x 1.34 | 7.20 x 1.60 |
+
+What now prints, measured from the PDF's own text layer:
+
+| Size | What |
+|---|---|
+| 11pt | body text, section headings |
+| 9.5 to 26pt | all figure internals |
+| 9pt | table body, figure and table captions, explicitly permitted |
+| 8pt | superscript reference markers only, 29 characters in the document |
+
+The Word export matches: its text layer contains 8, 9 and 11pt and nothing else.
+Superscripts there are set by explicit size and baseline offset rather than Word's
+`vertAlign`, which would have shrunk them to 4.6pt.
+
+Cost: 19 pages to 21.
 
 ### Author-directed text edits
 

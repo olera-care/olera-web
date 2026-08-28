@@ -130,7 +130,13 @@ def add_runs(par, frag, size=None, color=None, base_bold=False, bold_color=None,
             if not txt: continue
             r = par.add_run(txt)
             r.bold, r.italic = bold, ital
-            if sup: r.font.superscript = True
+            if sup:
+                # w:vertAlign makes Word shrink the run to about 58%, which would
+                # put the reference markers at 4.6pt. Set the size explicitly and
+                # raise the baseline instead, so 8pt is what actually prints.
+                r.font.size = Pt(8)
+                pos = OxmlElement('w:position'); pos.set(qn('w:val'), '7')
+                r._element.get_or_add_rPr().append(pos)
             if size: r.font.size = Pt(size)
             if color is not None: r.font.color.rgb = color
             elif bold and bold_color is not None: r.font.color.rgb = bold_color

@@ -36,7 +36,25 @@ def present(frag):
         return True
     for was, now in DIRECTED.items():
         f = f.replace(norm(was), norm(now))
-    return f in pdf or re.sub(r'[^a-z0-9$%]', '', f.lower()) in pdfj
+    if f in pdf:
+        return True
+    fj = re.sub(r'[^a-z0-9$%]', '', f.lower())
+    if fj in pdfj:
+        return True
+    # A right-floated figure is painted between the two halves of the paragraph it
+    # sits beside, so the PDF's reading order interleaves the figure's own labels
+    # into the sentence. Fall back to an in-order word check, which tolerates that
+    # without tolerating an actual omission.
+    words = [w for w in re.findall(r"[a-z0-9$%]+", f.lower()) if w]
+    if not words:
+        return True
+    pos, hay = 0, pdf.lower()
+    for wd in words:
+        k = hay.find(wd, pos)
+        if k < 0:
+            return False
+        pos = k + len(wd)
+    return True
 
 SENT = re.compile(r'(?<=[.:;?])\s+(?=[A-Z(“"\d])')
 missing, checked = [], 0

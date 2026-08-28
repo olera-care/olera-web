@@ -1,16 +1,14 @@
 # -*- coding: utf-8 -*-
 """Rasterize every figure at 300 dpi for the Word export."""
 import re, subprocess, pymupdf, os
-import figs_son as S1, figs_s2 as S2, figs_s4 as S4, figs_s5 as S5
-import figs_s6 as S6, figs_s7 as S7, figs_s8 as S8
-import figs_live as LV, figs_extra as EX
+import figs95 as N
 
-FIGS = {'fig1': S1.fig1(), 'fig2': S1.fig2(), 'fig3': LV.fig3(),
-        'fig4': S2.fig4_combined(), 'fig5': LV.fig5(), 'fig6': LV.fig6(),
-        'fig7': S4.fig7(), 'fig8': S5.fig8(), 'fig9a': S6.fig9(),
-        'fig10b': S6.fig10(), 'figxproc': EX.market_process(),
-        'figxorg': EX.organic(), 'fig11': S7.fig11(), 'chain': S7.chain(),
-        'fig12': S7.fig12(), 'fig13': S8.fig13()}
+FIGS = {'fig1': N.fig1(), 'fig2': N.fig2(), 'fig3': N.fig3(),
+        'fig4': N.fig4(), 'fig5': N.fig5(), 'fig6': N.fig6(),
+        'fig7': N.fig7(), 'fig8': N.fig8(), 'fig9a': N.fig9(),
+        'fig10b': N.fig10_flywheel(), 'figxproc': N.market_process(),
+        'figxorg': N.organic(), 'fig11': N.fig11(), 'chain': N.chain(),
+        'fig12': N.fig12(), 'fig13': N.fig13()}
 
 os.makedirs('png', exist_ok=True)
 for name, svg in FIGS.items():

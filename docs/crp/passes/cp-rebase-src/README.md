@@ -22,8 +22,18 @@ soffice --headless --convert-to pdf Olera_CRP_CommercializationPlan_rebased.docx
 `live_cp.docx` is the exact file pulled from Drive (fileId `1VutumddG9xH-UO3UBklUKsLvMnw0drwn`,
 modified 2026-08-28T16:22:24Z). Re-pull it and re-run the chain to rebase against a newer version.
 
-`figs_live.py` holds Figures 5 and 6 re-cut to the live document's wording; `figs_extra.py` holds
-the two figures the live document carries only as rasters. Every other figure comes from the
-locked per-section modules, which this directory does not modify.
+`figs95.py` holds the whole figure set, re-fitted so nothing prints below 9.5pt. It rests on:
+
+- `figbase.py`, the type scale declared in real points. An SVG font-size is in user units and
+  the house grid puts 100 units to the inch, so a unit is 0.72pt; declaring points and
+  converting is what stops a figure labelled "9.2" from printing at 6.6pt.
+- `measure.py`, real Arial advances measured through the same SVG text path the figures use,
+  with a greedy wrap built on them. Model error against the rendered PDF is 0.0%.
+- `checkfigs.py`, which renders each figure alone and reads back glyph boxes to catch text
+  clipped by the artboard, text past the edge, and boxes drawn on top of each other. Run it
+  after touching any figure; it should return zero problems.
+
+`figs_live.py` and `figs_extra.py` are kept for the record of the earlier re-cut of Figures 5,
+6 and 3 to the live document's wording. The locked per-section figure modules are unchanged.
 
 Findings and open items: `../cp-rebase-qa-log.md`.

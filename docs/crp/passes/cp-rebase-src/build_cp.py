@@ -1,9 +1,7 @@
 # -*- coding: utf-8 -*-
 """Assemble the rebased Commercialization Plan. Content comes only from live_cp.txt."""
 import os, json, re
-import figs_son as S1, figs_s2 as S2, figs_s3 as S3, figs_s4 as S4
-import figs_s5 as S5, figs_s6 as S6, figs_s7 as S7, figs_s8 as S8
-import figs_extra as EX, figs_live as LV
+import figs95 as N
 import convert_cp as C
 
 WORD = os.environ.get("WORD_EXPORT") == "1"
@@ -23,7 +21,9 @@ h1.sechead { font-size: 11pt; font-weight: bold;
              border-bottom: 1.2pt solid #000; padding-bottom: 2pt;
              break-after: avoid; page-break-after: avoid; }
 h1.sechead:first-child { margin-top: 0; }
-sup { line-height: 0; font-size: 7.5pt; }
+/* superscript reference markers: as large as a superscript can be while
+   still reading as one. The only text in the document under 9.5pt. */
+sup { line-height: 0; font-size: 8pt; vertical-align: 0.42em; }
 div.fig { margin: 5pt 0 2pt 0; text-align: center; break-inside: avoid; page-break-inside: avoid; }
 div.fig svg, div.fig img { display: inline-block; max-width: 100%; }
 /* the three figures the source anchors with wrapSquare, right of the column */
@@ -67,22 +67,22 @@ def figblock(svg, png, key):
     return f'<div class="fig">{inner}</div>'
 
 FIGMAP = {
-    'FIG1':     figblock(S1.fig1(), 'fig1', 'FIG1'),
-    'FIG2':     figblock(S1.fig2(), 'fig2', 'FIG2'),
-    'FIG3':     figblock(LV.fig3(), 'fig3', 'FIG3'),
-    'FIG4':     figblock(S2.fig4_combined(), 'fig4', 'FIG4'),
-    'FIG5':     figblock(LV.fig5(), 'fig5', 'FIG5'),
-    'FIG6':     figblock(LV.fig6(), 'fig6', 'FIG6'),
-    'FIG7':     figblock(S4.fig7(), 'fig7', 'FIG7'),
-    'FIG8':     figblock(S5.fig8(), 'fig8', 'FIG8'),
-    'FIG9A':    figblock(S6.fig9(), 'fig9a', 'FIG9A'),
-    'FIG10B':   figblock(S6.fig10(), 'fig10b', 'FIG10B'),
-    'FIGXPROC': figblock(EX.market_process(), 'figxproc', 'FIGXPROC'),
-    'CHAIN':    figblock(S7.chain(), 'chain', 'CHAIN'),
-    'FIGXORG':  figblock(EX.organic(), 'figxorg', 'FIGXORG'),
-    'FIG11':    figblock(S7.fig11(), 'fig11', 'FIG11'),
-    'FIG12':    figblock(S7.fig12(), 'fig12', 'FIG12'),
-    'FIG13':    figblock(S8.fig13(), 'fig13', 'FIG13'),
+    'FIG1':     figblock(N.fig1(), 'fig1', 'FIG1'),
+    'FIG2':     figblock(N.fig2(), 'fig2', 'FIG2'),
+    'FIG3':     figblock(N.fig3(), 'fig3', 'FIG3'),
+    'FIG4':     figblock(N.fig4(), 'fig4', 'FIG4'),
+    'FIG5':     figblock(N.fig5(), 'fig5', 'FIG5'),
+    'FIG6':     figblock(N.fig6(), 'fig6', 'FIG6'),
+    'FIG7':     figblock(N.fig7(), 'fig7', 'FIG7'),
+    'FIG8':     figblock(N.fig8(), 'fig8', 'FIG8'),
+    'FIG9A':    figblock(N.fig9(), 'fig9a', 'FIG9A'),
+    'FIG10B':   figblock(N.fig10_flywheel(), 'fig10b', 'FIG10B'),
+    'FIGXPROC': figblock(N.market_process(), 'figxproc', 'FIGXPROC'),
+    'CHAIN':    figblock(N.chain(), 'chain', 'CHAIN'),
+    'FIGXORG':  figblock(N.organic(), 'figxorg', 'FIGXORG'),
+    'FIG11':    figblock(N.fig11(), 'fig11', 'FIG11'),
+    'FIG12':    figblock(N.fig12(), 'fig12', 'FIG12'),
+    'FIG13':    figblock(N.fig13(), 'fig13', 'FIG13'),
 }
 
 BODY, MANIFEST = C.build(FIGMAP, FIGW)

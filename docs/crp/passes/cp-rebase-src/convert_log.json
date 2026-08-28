@@ -1,0 +1,238 @@
+{
+ "emdash": [
+  {
+   "where": "#1",
+   "before": " an upstream, measurable intermediate outcome\u2014whether a recognized need successfully reache",
+   "after": " an upstream, measurable intermediate outcome, whether a recognized need successfully reache"
+  },
+  {
+   "where": "#2",
+   "before": "al workforce available to home-care providers\u2014including when insufficient provider capacity",
+   "after": "al workforce available to home-care providers, including when insufficient provider capacity"
+  },
+  {
+   "where": "#2",
+   "before": " would otherwise prevent care establishment\u2014and ",
+   "after": " would otherwise prevent care establishment, and "
+  },
+  {
+   "where": "#51",
+   "before": "ess of where the underlying client originates\u2014existing clients, externally generated referr",
+   "after": "ess of where the underlying client originates, existing clients, externally generated referr"
+  },
+  {
+   "where": "#74",
+   "before": " to an investable commercial inflection point\u2014not to assume that revenue from the limited C",
+   "after": " to an investable commercial inflection point, not to assume that revenue from the limited C"
+  }
+ ],
+ "para_splits": [
+  "#87"
+ ],
+ "caption_norm": [],
+ "dedup_caption": [
+  {
+   "where": "#1",
+   "side": "trailing",
+   "text": "Figure 1. Unmet eldercare needs can drive a vicious cycle of hospitali"
+  },
+  {
+   "where": "#3",
+   "side": "trailing",
+   "text": "Figure 2. Care establishment requires a coordinated pathway from asses"
+  },
+  {
+   "where": "#10",
+   "side": "leading",
+   "text": "Figure 3. CRP bridges the remaining technical, validation, evidence, c"
+  },
+  {
+   "where": "#18",
+   "side": "trailing",
+   "text": "Figure 4. What a family sees, what the system does, and what accumulat"
+  },
+  {
+   "where": "#83",
+   "side": "trailing",
+   "text": "Figure 10. Post-CRP growth flywheel."
+  },
+  {
+   "where": "#87",
+   "side": "trailing",
+   "text": "Figure X. Olera's repeatable process for producing and activating a lo"
+  },
+  {
+   "where": "#91",
+   "side": "trailing",
+   "text": "Figure X. Organic traffic growth, 2023\u20132026."
+  }
+ ],
+ "superscript": [
+  {
+   "where": "#51",
+   "marker": "26,27"
+  },
+  {
+   "where": "#51",
+   "marker": "28"
+  },
+  {
+   "where": "#52",
+   "marker": "29,30"
+  },
+  {
+   "where": "#52",
+   "marker": "31"
+  },
+  {
+   "where": "#58",
+   "marker": "32,33"
+  },
+  {
+   "where": "#59",
+   "marker": "34"
+  },
+  {
+   "where": "#98",
+   "marker": "1-3"
+  },
+  {
+   "where": "table cell",
+   "marker": "1,3",
+   "glued": true
+  },
+  {
+   "where": "table cell",
+   "marker": "2",
+   "glued": true
+  },
+  {
+   "where": "table cell",
+   "marker": "4-6",
+   "glued": true
+  },
+  {
+   "where": "#104",
+   "marker": "7"
+  },
+  {
+   "where": "#105",
+   "marker": "8"
+  },
+  {
+   "where": "#107",
+   "marker": "4-6"
+  }
+ ],
+ "typos": [
+  {
+   "where": "table cell",
+   "was": ".2. New workforce supply",
+   "now": "2. New workforce supply",
+   "note": "stray leading period before list item 2 in the four-advantages table"
+  },
+  {
+   "where": "table cell",
+   "was": ".2. New workforce supply",
+   "now": "2. New workforce supply",
+   "note": "stray leading period before list item 2 in the four-advantages table"
+  },
+  {
+   "where": "#81",
+   "was": "rel-evant",
+   "now": "relevant",
+   "note": "stray hyphen inside a word, a soft-hyphen artifact"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 1 (CRP)Build",
+   "now": "Year 1 (CRP)\\nBuild",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 1 (CRP)Build",
+   "now": "Year 1 (CRP)\\nBuild",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 1 (CRP)Build",
+   "now": "Year 1 (CRP)\\nBuild",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 2 (CRP)Validate free",
+   "now": "Year 2 (CRP)\\nValidate free",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 2 (CRP)Validate free",
+   "now": "Year 2 (CRP)\\nValidate free",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 2 (CRP)Validate free",
+   "now": "Year 2 (CRP)\\nValidate free",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 3 (CRP)Monetize",
+   "now": "Year 3 (CRP)\\nMonetize",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 3 (CRP)Monetize",
+   "now": "Year 3 (CRP)\\nMonetize",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 3 (CRP)Monetize",
+   "now": "Year 3 (CRP)\\nMonetize",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 4 (post-CRP)Expand",
+   "now": "Year 4 (post-CRP)\\nExpand",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 4 (post-CRP)Expand",
+   "now": "Year 4 (post-CRP)\\nExpand",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 4 (post-CRP)Expand",
+   "now": "Year 4 (post-CRP)\\nExpand",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 5 (post-CRP)Scale",
+   "now": "Year 5 (post-CRP)\\nScale",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 5 (post-CRP)Scale",
+   "now": "Year 5 (post-CRP)\\nScale",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 5 (post-CRP)Scale",
+   "now": "Year 5 (post-CRP)\\nScale",
+   "note": "missing line break between the year label and the stage name"
+  }
+ ],
+ "notes": []
+}

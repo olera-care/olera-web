@@ -474,3 +474,34 @@ Also worth keeping: **PIL ignores EXIF orientation and browsers honour it.** A c
 **Lesson**: A pre-flight that asks "is there something here?" will pass every case where there is something wrong here. If the thing being checked is what the customer sees, the check has to be looking at it.
 
 ---
+
+### 2026-08-28: Declared Nextdoor unreachable when the only broken thing was our own browser
+
+**Symptom**: Mid-way through an Ad Boost paid-media audit, Nextdoor Ads Manager would not load. `ads.nextdoor.com` rendered nothing but `Application error: a client-side exception has occurred`, through repeated reloads and three URL variants. I reported the Nextdoor half of the audit as unverifiable, labelled every Nextdoor figure as sourced from our own DB and build notes, and handed the browser back to TJ with an instruction to disable a content blocker and sign in. TJ pushed back: *"I'm absolutely sure you can't boot up Nextdoor... I use ChatGPT Codex to drive a browser to open Nextdoor. Why can we do this on our end?"* He was right. Nextdoor was reachable the whole time.
+
+**Root Cause**: Two failures stacked.
+
+1. **The technical one.** Dia — the browser the `/open-dia` skill drives — ships a built-in content blocker. Blocklists match hostnames beginning `ads.`, so Nextdoor's *advertiser dashboard* is a textbook false positive: the blocker ate the app's own first-party scripts and XHR, React threw, and the generic error boundary rendered. `ERR_BLOCKED_BY_CONTENT_BLOCKER` is a client-side refusal — **our** browser declining to make the request. Vanilla Chromium does not even emit that error string.
+
+2. **The reasoning one, which is the real lesson.** I diagnosed from three console lines and stopped. I never ran `list_network_requests` to see *which* URLs were blocked — the one check that separates "our blocker is eating the app" from "an unrelated third-party script failed." Worse, I treated the browser as a fixed constraint. The MCP is configured `--browserUrl http://127.0.0.1:9222`: **the port is the contract and the browser behind it is a free variable.** Codex isn't doing anything clever — it drives plain Chromium with no blocker. That option was available to me from the first minute and I never considered it, because "the browser" registered as environment rather than as a choice.
+
+A third thing fell out of investigating properly: I had also been wrong about *what* I was driving. `curl` to 9222 returned nothing and no process carried automation flags, because the automation instance had already exited. I had spent the session assuming a browser identity I never verified.
+
+**Fix**: Launched vanilla Chrome on the same port with a dedicated fresh profile, made one tool call, and the MCP reattached with no `/mcp` reconnect (args already matched). Nextdoor's login form rendered immediately; console showed zero `ERR_BLOCKED_BY_CONTENT_BLOCKER` and only benign third-party analytics CORS noise.
+
+What that unlocked was not cosmetic. The audit's entire Nextdoor section had been wrong:
+- Not a per-provider silo requiring separate logins — a single **Olera business with 6 child ad accounts** under one login. A standing "needs its own account + payment method" blocker in Miracle-Lightstar's build notes was stale; the account existed and a campaign was already built in it.
+- The Graceful pilot's recorded numbers were wrong in every field: **$50.00 not $35.66, 134 clicks not 101, Aug 14–17 not Aug 14–21.** It burned the full budget in 4 days, not 8.
+- **Five Nextdoor campaigns are Active for Sep 1–7, fully built with ads and budget, with zero rows in `ad_campaign_requests`.** I had seen their UTM tags in analytics earlier the same session and explicitly dismissed them as "URL previews, not campaigns."
+
+**Time to Resolution**: ~10 minutes once I actually questioned the premise. The first attempt consumed roughly an hour and produced a wrong answer plus a request for TJ to do work that was mine.
+
+**Prevention**:
+
+1. `~/.claude/skills/open-dia/SKILL.md` — new failure mode **"Site loads blank / Application error — ERR_BLOCKED_BY_CONTENT_BLOCKER"** with the copy-paste Chrome-on-9222 launch, and the three traps that cost time: zsh eats an unquoted `--remote-allow-origins=*`; never repoint Chrome at the Dia-written `chrome-profile` dir (Chrome may migrate it and destroy saved sign-ins); a fresh profile has no sessions, which is free when the site was showing a login wall anyway.
+2. Same skill, promoted into **Startup sequence** so it is read before anything breaks: *the port is the contract; the browser behind it is yours to choose.* Dia is the default because its profile holds the sign-ins, not because it is required. Plus: **never assume which browser you're driving** — verify via `curl /json/version` or `navigator.brave`.
+3. Standing diagnostic rule added: **three console lines are not a diagnosis.** Before blaming a site or handing a task back, enumerate blocked requests. First-party app resources blocked ⇒ our blocker. Third-party analytics blocked ⇒ noise, look elsewhere.
+
+**Lesson**: "I can't reach it" is a claim about the tool as often as about the target, and the tool is usually the half you control. Before reporting a capability limit, check whether the constraint is something you chose — a browser, a profile, a port — rather than something you were handed.
+
+---

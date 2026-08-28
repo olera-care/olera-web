@@ -44,19 +44,35 @@ function useImpressionTracking(
   surface: "desktop" | "mobile",
   providerSlug: string,
 ) {
-  const firedRef = useRef(false);
+  // The variant we last reported as being on screen, so a resolve that lands
+  // on the same arm does not double-count.
+  const firedVariantRef = useRef<string | null>(null);
   useEffect(() => {
-    // Don't fire until variant resolves
-    if (!variant) return;
-    // Only fire once per mount
-    if (firedRef.current) return;
     // Don't fire in preview mode (contaminates A/B data)
     if (isCTAPreviewMode()) return;
     // Both responsive routers are mounted so CSS can switch instantly, but
     // only the visible surface is a real impression.
     const desktopVisible = window.matchMedia("(min-width: 768px)").matches;
     if ((surface === "desktop") !== desktopVisible) return;
-    firedRef.current = true;
+
+    // Report what the visitor is ACTUALLY looking at, which is what the two
+    // routers below render: `variant ?? "legacy"`.
+    //
+    // This used to bail out with `if (!variant) return;`, waiting for the
+    // weights fetch in useCTAVariant. That silently lost impressions for
+    // anyone who acted or left first -- and because the hook reads a cached
+    // variant synchronously on RETURN visits, the gap fell almost entirely on
+    // FIRST-TIME visitors, which is most paid traffic. Measured cost: 44
+    // visits completed an inquiry with no impression on record, which is
+    // impossible if the CTA was really never shown.
+    //
+    // `variant_resolved` keeps the experiment honest. Filter to
+    // `variant_resolved: true` for clean A/B arms; use every row for reach.
+    // A first-time visitor assigned to `compare` legitimately produces two
+    // impressions -- they saw legacy, then saw compare.
+    const rendered = variant ?? "legacy";
+    if (firedVariantRef.current === rendered) return;
+    firedVariantRef.current = rendered;
     // Fire-and-forget POST to the activity tracking endpoint.
     // Using navigator.sendBeacon would be nice but is overkill for an
     // impression that fires on visible render, not page-unload.
@@ -69,7 +85,9 @@ function useImpressionTracking(
         event_type: "cta_variant_impression",
         session_id: getOrCreateSessionId(),
         metadata: {
-          variant,
+          variant: rendered,
+          /** false = fired before the weights fetch resolved, showing the legacy default */
+          variant_resolved: variant !== null,
           surface,
           visit_id: getOrCreateVisitId(),
           page_path: `/provider/${providerSlug}`,

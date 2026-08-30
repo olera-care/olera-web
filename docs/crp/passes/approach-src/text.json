@@ -1,0 +1,406 @@
+{
+ "paras": [
+  "APPROACH",
+  "Specific Aim 1: Engineer and technically verify the integrated care-establishment infrastructure. Phase IIB established the front end of CareNavigator: household needs and means, likely benefits and aid, and appropriate services and providers. Aim 1 extends that foundation into the infrastructure required to observe, execute, and learn across the full care-establishment pathway before the system is permitted to act in real-world cases.",
+  "Task 1.1: Build and verify the Care Establishment Model. We will formalize the longitudinal state architecture introduced in Innovation around seven eldercare-specific domains: needs, means, funding, service, execution, capacity, and outcome. Each domain will contain substates, timestamped events, geography, provenance, evidence, ownership of the next action, and explicit terminal states. The Phase IIB eldercare LLM will normalize natural language, uploaded documents, communications, forms, and provider or program responses into this common representation. The reverse process will assemble verified household state into the requirements expected by a specific program or provider. Representative pathways spanning public aid, insurance benefits, home care, assisted living, home health, transportation, and post-discharge coordination will be encoded and audited for whether the model retains every datum required to determine the next administrative action and verify completion. Unsupported states will be explicitly identified rather than inferred.",
+  "Task 1.2: Build and technically verify bounded agent execution. The Care Establishment Model will be coupled to persistent agents that combine LLM reasoning with explicit workflow logic, deterministic permission gates, scheduling, and constrained tools. Tools will include APIs where available, permissioned browser automation for portals, document assembly, email, SMS, fax, scheduling, and later AI-assisted voice. Each workflow will follow an event-driven loop of interpret, plan, permission, act, observe, update, wait or return, and verify or escalate. Consequential actions requiring attestation, legal authority, submission, scheduling, or family choice will require the appropriate human approval. The system will not diagnose, prescribe, place clinical orders, or make clinical decisions. Authorized health information may be used only to extract and execute administrative tasks already defined by the family, provider, or clinician. Representative workflows will be compared with prespecified expected actions, required approvals, payloads, and terminal states. Unsupported or ambiguous workflows will remain human-assisted.",
+  "Task 1.3: Build and verify field learning. Execution will also function as structured field research. When a case encounters missing, stale, or conflicting operational information, the system will retrieve current public information, inspect an available portal, contact the relevant organization through an approved communication channel, or escalate the question to a human navigator. Returned information will be normalized with source, geography, time, and provenance and will enter the production knowledge layer only after the required quality check. We will test whether verified observations are subsequently retrieved and used correctly in comparable cases and whether conflicting observations trigger review rather than silent overwrite.",
+  "Task 1.4: Build and verify Caregiver Staffing infrastructure. Olera's existing student recruitment and provider-facing placement infrastructure will be extended from applicant intake to verified employment. Candidates will be screened for availability and fit and, where within Olera's workflow, identity, enrollment, and background-check status will be verified before provider handoff. Licensed providers retain responsibility for hiring, training, employment, supervision, and any provider-specific screening. Employer-confirmed hours, experience, populations served, evaluations, reliability, and references will accumulate into a longitudinal worker record. The technical test is whether a new entrant can progress from screened applicant to employer-confirmed placement with verification provenance preserved across the pathway.",
+  "Task 1.5: Validate usability, control, and appropriate trust before real-world execution. Under Clemson University IRB oversight, we will preserve the mixed-method stakeholder design developed for the current protocol: 25 family caregivers, 25 service providers, and 25 student workers will complete moderated sessions using standardized non-live cases. Participants will think aloud while completing role-specific tasks. We will record task success, time, errors, and assists, administer the System Usability Scale (SUS) and 12-item Trust in Automation Scale (TIAS), and conduct semi-structured interviews focused on workflow comprehension, permission boundaries, trust, and needed refinements. Quantitative results will be summarized with confidence intervals. Interviews will use a shared codebook, independent coding, discrepancy resolution, and an audit trail, and a joint display will translate quantitative and qualitative findings into engineering changes.",
+  "Potential problems, alternatives, and GO/NO-GO 1. Progression is conditional. A failed technical component narrows the supported automation envelope rather than forcing unsafe generalization: the implicated workflow can be disabled, moved behind additional approval, or handled by a human navigator while it is corrected and reverified. Human protection is overriding. Any unresolved critical privacy, permission, unauthorized-action, or safety failure is a NO-GO for real-world execution. Aim 2 opens only after the integrated system meets prespecified technical criteria, required approvals cannot be bypassed, intended users demonstrate acceptable usability and control, and no critical human-protection issue remains unresolved.",
+  "Specific Aim 2: Test whether the integrated system establishes aid and care and creates value in real markets. Aim 2 moves only the verified automation envelope from Aim 1 into real-world operation. The primary question is no longer whether CareNavigator can identify an appropriate resource, but whether an eligible family episode reaches verified aid or care establishment within 90 days and why pathways succeed, stall, or fail.",
+  "Task 2.1: Activate validation markets through Olera-controlled channels. The number and boundaries of county-centered service areas will be finalized from the sample required for the primary analysis and realistic provider and workforce catchments rather than fixed in advance for convenience. Olera will recruit through channels it already controls. Families will enter through the existing self-service portal, organic search and guidance content, and paid digital acquisition channels previously used by Olera. Providers will enter through the existing provider database and profile-claim flow, supplemented by direct outreach using the same provider infrastructure. Workers will enter through the university and pre-health recruitment pathway that produced more than 900 applicants in the pilot. Every participant or organization will be tagged by market, acquisition channel, cohort, funnel stage, activation, and attributable acquisition cost. If one channel underperforms, effort will shift among demonstrated Olera-controlled channels rather than depend on uncommitted external partners.",
+  "Task 2.2: Execute and instrument real-world care-establishment pathways. CareNavigator will work active cases longitudinally across the verified workflow classes from Aim 1. Caregiver Staffing will activate when a documented workforce barrier prevents a pathway from proceeding or when a participating provider reports an eligible staffing need. The Care Establishment Model will record state transitions, communications, documents, permissions, applications and referrals, responses, delays, denials, escalations, field-learning events, staffing requests, hires, first shifts, service starts, and terminal states. Platform events will be backed by family, provider, program, benefit, service, or employment records where available. Required actions, deviations, external barriers, and human interventions will be retained so that a product failure is distinguishable from a funding restriction, provider refusal, workforce shortage, family choice, or loss to follow-up.",
+  "Task 2.3: Measure verified care establishment and stakeholder value. The primary operational cohort will retain the current design target of approximately 400 index family episodes, subject to final power and recruitment justification before activation. One index episode per household will enter the primary analysis. Success requires the family to confirm that the primary aid or care need documented at intake was actually obtained within 90 days, with source verification where available. A referral, application, benefit approval, provider match, scheduled appointment, or job offer alone is not establishment. Secondary outcomes will include time to establishment and reasons for delay or failure. Provider value will be measured through family connections that become accepted care pathways and staff connections that reach a first completed shift. Worker outcomes will include screening, verification, hire, first shift, hours, and retention when observable.",
+  "Task 2.4: Conduct post-use mixed-methods evaluation and pre-commercial learning. Actual users will be studied after meaningful exposure to the system. Standardized surveys will measure acceptability, appropriateness, feasibility, perceived value, burden, workflow fit, and user experience. A purposive interview sample will span successful, delayed, failed, and unresolved pathways across families, providers, and workers. Provider willingness to pay will be elicited only after sufficient use to form an informed opinion and will be treated as a pricing hypothesis, not commercial proof. Interview transcripts will be analyzed using the framework approach with a shared codebook, independent coding, discrepancy resolution, and an audit trail. A joint display will integrate qualitative mechanisms with platform outcomes, surveys, acquisition cost, and activity-based cost to serve to define the refinements and commercial assumptions carried into Aim 3.",
+  "Analysis, alternatives, and GO/NO-GO 2. The day-90 establishment proportion will be estimated with a 95% confidence interval, with time-to-event methods for time to aid, care, family connection, and staff connection. Family, provider, and worker outcomes will be analyzed separately and by market where sample permits. Unresolved cases remain unresolved. A critical privacy event, unauthorized consequential action, systematic erroneous execution, or predefined serious safety signal pauses the affected workflow immediately for review, correction, any required IRB action, and re-verification. Paid expansion is a NO-GO unless human-protection criteria remain satisfied, verified care establishment meets the prespecified success criterion, stakeholder value is demonstrated, and acquisition and operating evidence support a credible paid test.",
+  "Specific Aim 3: Test whether demonstrated value supports repeatable paid commercial economics. Aim 3 introduces payment only after Aim 2 establishes that the integrated system can produce real-world value. The question is whether that value converts into actual purchasing, retention, repeatable market activation, and economics capable of supporting post-award commercialization.",
+  "Task 3.1: Define and preregister the paid commercial offer. The tested offer will be derived from Olera's prior paid experience, Aim 2 observed provider value and willingness-to-pay data, and structured pricing research. Before the first paid market opens, Olera will prespecify the package or packages, candidate price range, assignment strategy, primary commercial outcome, follow-up horizon, and decision rules. This prevents pricing and success definitions from being changed after conversion is observed.",
+  "Task 3.2: Enter new paid markets and test conversion and replication. The number of county-centered paid markets will be fixed from the final experimental and revenue architecture rather than inherited from a placeholder market count. New markets will be activated using the same Olera-controlled family, provider, and worker acquisition playbooks characterized in Aim 2. We will measure priced offers, paid conversion, time to activation, stakeholder throughput, acquisition cost, and deviations from the market-entry playbook. Rollout will be staged so that implementation lessons from early markets can improve the operating playbook before later markets while prespecified primary commercial comparisons remain intact. Execution by staff beyond the original founders will test whether market entry is transferable rather than tacit founder knowledge.",
+  "Task 3.3: Measure and independently validate commercial economics. Every core economic measure will come from live records. Acquisition cost will include spending on accounts that do not convert. Cost to serve will include technology, communications, screening and verification, support, navigator time, exception handling, and other attributable operating costs. Revenue, retention, cancellations, payment failures, margin, and customer economics will be measured from billing and operating records, with market-level results reported transparently. The independent financial-validation approach already developed for the current plan will be retained where the existing commitment remains applicable, with discrepancies reported rather than silently reconciled. These measurements will directly replace the revenue, conversion, retention, CAC, and serving-cost assumptions used in the Commercialization Plan.",
+  "Task 3.4: Assemble the institutional-buyer evidence package. The final evidence package will combine verified care-establishment outcomes, time-to-care, geographic pathway and capacity analytics, and utilization-linked operational data where lawfully available. External actuarial or economic modeling may estimate the avoided utilization or institutionalization associated with established care using published effect sizes and measured CRP establishment rates, but modeled avoided cost will be labeled as modeled rather than causal proof. The package will specify the population, endpoints, data linkage, comparison design, and follow-up required for a subsequent payer or risk-bearing institutional proof-of-concept.",
+  "Potential problems, alternatives, and final commercial GO/NO-GO. Low conversion will be interpreted against observed value, price, packaging, acquisition, and workflow evidence rather than solved by indiscriminate expansion. Prespecified alternatives will proceed in sequence: correct demonstrated product-value gaps, reduce acquisition or serving cost, repackage or reprice, and retest within the staged rollout. Human-protection boundaries established in Aims 1 and 2 remain unchanged by payment. Commercial scale is a GO only if real purchasing, sustained use, measured economics, and repeatable market activation support it. Otherwise Olera will preserve and publish the evidence and refine, pivot, or stop the unsupported commercial pathway rather than scale a failing model.",
+  "Timetable. The work is deliberately staged so that downstream exposure occurs only after the preceding gate is met. Tasks that can proceed safely in parallel do so, while contingency time is retained for remediation and re-verification.",
+  "Figure X. Three-year task-level timetable. GO/NO-GO gates prevent progression to the next level of human or commercial exposure until prespecified criteria are met."
+ ],
+ "tables": [
+  [
+   [
+    "Measure",
+    "Criterion",
+    "Source"
+   ],
+   [
+    "Care Establishment Model representation",
+    "Prespecified completeness across representative pathways",
+    "Schema audit; Task 1.1"
+   ],
+   [
+    "Agent workflow execution",
+    "\u226590% expected-action agreement; no bypass of required approvals",
+    "Technical test set; Task 1.2"
+   ],
+   [
+    "Field observations with provenance and QA",
+    "100% of persisted operational updates",
+    "Knowledge audit; Task 1.3"
+   ],
+   [
+    "Screened workers reaching employer-confirmed placement",
+    "\u226550%",
+    "Employer confirmation; Task 1.4"
+   ],
+   [
+    "System Usability Scale",
+    "Mean \u226572",
+    "Moderated sessions; Task 1.5"
+   ],
+   [
+    "Trust / permission comprehension",
+    "Mean TIAS \u22655 and no critical control failure",
+    "Moderated sessions; Task 1.5"
+   ],
+   [
+    "Human protection",
+    "No unresolved critical event",
+    "Continuous review; GATE"
+   ]
+  ],
+  [
+   [
+    "Measure",
+    "Criterion",
+    "Source"
+   ],
+   [
+    "Family episodes enrolled",
+    "Target ~400 index episodes; final N fixed by power/feasibility analysis",
+    "Enrollment records; Task 2.1"
+   ],
+   [
+    "Verified care/aid establishment by day 90",
+    "Primary proportion estimated with prespecified precision",
+    "Family confirmation + source records; Task 2.3"
+   ],
+   [
+    "Provider family/staff connections",
+    "Reported with time to accepted pathway / first shift",
+    "Platform + provider/worker records"
+   ],
+   [
+    "Worker retention",
+    "Reported at feasible follow-up intervals",
+    "Employment/worker records"
+   ],
+   [
+    "Acceptability / appropriateness / feasibility",
+    "Mean \u22654.0/5",
+    "Post-use surveys; Task 2.4"
+   ],
+   [
+    "CAC and cost to serve",
+    "Measured on all three stakeholder sides",
+    "Cost ledger; Tasks 2.1-2.4"
+   ],
+   [
+    "Human protection",
+    "No unresolved critical event",
+    "Continuous review; GATE"
+   ]
+  ],
+  [
+   [
+    "Measure",
+    "Criterion",
+    "Source"
+   ],
+   [
+    "Paid conversion",
+    "Prespecified before rollout; reported by offer/market",
+    "Billing + offer records; Tasks 3.1-3.2"
+   ],
+   [
+    "Retention",
+    "Reported at 3, 6, 9, and 12 months as available",
+    "Account-month records; Task 3.3"
+   ],
+   [
+    "CAC / cost to serve / margin",
+    "Measured from live records",
+    "Billing + operating ledger; Task 3.3"
+   ],
+   [
+    "Market replication",
+    "Playbook performance and deviations reported",
+    "Market activation records; Task 3.2"
+   ],
+   [
+    "Independent financial validation",
+    "Delivered where commitment remains applicable",
+    "Task 3.3"
+   ],
+   [
+    "Institutional-buyer evidence package",
+    "Delivered with causal boundaries explicit",
+    "Task 3.4"
+   ]
+  ],
+  [
+   [
+    "Task",
+    "Q1",
+    "Q2",
+    "Q3",
+    "Q4",
+    "Q5",
+    "Q6",
+    "Q7",
+    "Q8",
+    "Q9",
+    "Q10",
+    "Q11",
+    "Q12"
+   ],
+   [
+    "1.1 Care Establishment Model",
+    "\u25cf",
+    "\u25cf",
+    "\u25cf",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "1.2 Agent execution",
+    "",
+    "\u25cf",
+    "\u25cf",
+    "\u25cf",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "1.3 Field learning",
+    "",
+    "",
+    "\u25cf",
+    "\u25cf",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "1.4 Staffing infrastructure",
+    "\u25cf",
+    "\u25cf",
+    "\u25cf",
+    "\u25cf",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "1.5 Controlled user validation",
+    "",
+    "",
+    "",
+    "\u25cf",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "GO/NO-GO 1",
+    "",
+    "",
+    "",
+    "\u25cf",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "2.1 Market activation",
+    "",
+    "",
+    "",
+    "",
+    "\u25cf",
+    "\u25cf",
+    "",
+    "",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "2.2 Real-world execution",
+    "",
+    "",
+    "",
+    "",
+    "\u25cf",
+    "\u25cf",
+    "\u25cf",
+    "\u25cf",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "2.3 Establishment/value",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "\u25cf",
+    "\u25cf",
+    "\u25cf",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "2.4 Post-use mixed methods",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "\u25cf",
+    "\u25cf",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "GO/NO-GO 2",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "\u25cf",
+    "",
+    "",
+    "",
+    ""
+   ],
+   [
+    "3.1 Paid offer/pricing",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "\u25cf",
+    "\u25cf",
+    "",
+    "",
+    ""
+   ],
+   [
+    "3.2 Paid market rollout",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "\u25cf",
+    "\u25cf",
+    "\u25cf",
+    "\u25cf"
+   ],
+   [
+    "3.3 Commercial economics",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "\u25cf",
+    "\u25cf",
+    "\u25cf",
+    "\u25cf"
+   ],
+   [
+    "3.4 Institutional evidence",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "\u25cf",
+    "\u25cf",
+    "\u25cf"
+   ],
+   [
+    "FINAL GO/NO-GO",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "",
+    "\u25cf"
+   ]
+  ]
+ ]
+}

@@ -8001,11 +8001,10 @@ export default function ProviderOutreachPage() {
             );
           }}
           onMoveToBroadcast={(providerId) => {
-            // Redirect to action modal for confirmation (consistent with Not Interested/Archive)
+            // Open action modal to show email health and eligibility before confirming
             const provider = providers.find((p) => p.provider_id === providerId);
             if (provider) {
               setActionModalProvider(provider);
-              setPendingStageMove("broadcast_ready");
               setDrawerProvider(null);
             }
           }}

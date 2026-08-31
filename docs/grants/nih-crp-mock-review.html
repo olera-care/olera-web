@@ -1,0 +1,1029 @@
+<title>CRP Mock Study Section</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Public+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+
+<style>
+:root{
+  --paper:#F6F7F5;
+  --surface:#FFFFFF;
+  --surface-2:#EFF1EE;
+  --ink:#1A1E1C;
+  --ink-2:#4E5754;
+  --ink-3:#7B837F;
+  --rule:#DADEDA;
+  --rule-strong:#B9C0BC;
+  --accent:#7A2E22;
+  --accent-soft:#F0E3E0;
+  --pos:#2F5D45;
+  --pos-soft:#E2EBE5;
+  --warn:#8A6414;
+  --warn-soft:#F2EADA;
+  --shadow:0 1px 2px rgba(26,30,28,.05), 0 8px 24px -16px rgba(26,30,28,.28);
+  --serif:"Newsreader",Georgia,"Times New Roman",serif;
+  --sans:"Public Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#131614;
+    --surface:#1A1E1B;
+    --surface-2:#212623;
+    --ink:#E7EAE6;
+    --ink-2:#A8B1AC;
+    --ink-3:#7E8782;
+    --rule:#2C332F;
+    --rule-strong:#414A45;
+    --accent:#CC7059;
+    --accent-soft:#2E211D;
+    --pos:#7EB295;
+    --pos-soft:#1D2823;
+    --warn:#C9A257;
+    --warn-soft:#2A2419;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#131614;
+  --surface:#1A1E1B;
+  --surface-2:#212623;
+  --ink:#E7EAE6;
+  --ink-2:#A8B1AC;
+  --ink-3:#7E8782;
+  --rule:#2C332F;
+  --rule-strong:#414A45;
+  --accent:#CC7059;
+  --accent-soft:#2E211D;
+  --pos:#7EB295;
+  --pos-soft:#1D2823;
+  --warn:#C9A257;
+  --warn-soft:#2A2419;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.7);
+}
+
+*{box-sizing:border-box}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:16px;
+  line-height:1.62;
+  -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent-soft);color:var(--ink)}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:2px}
+
+/* ---------- shell ---------- */
+.shell{max-width:1240px;margin:0 auto;padding:0 24px 96px;display:grid;grid-template-columns:1fr;gap:0}
+@media(min-width:1080px){
+  .shell{grid-template-columns:216px minmax(0,1fr);column-gap:56px;padding-right:40px}
+}
+.doc{min-width:0;max-width:74ch}
+.doc > * + *{margin-top:0}
+
+/* ---------- masthead ---------- */
+.masthead{border-top:3px solid var(--accent);padding-top:22px;margin-top:34px}
+@media(min-width:1080px){.masthead{grid-column:1/-1}}
+.stamp{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--accent);display:flex;flex-wrap:wrap;gap:14px;align-items:baseline
+}
+.stamp .dot{color:var(--rule-strong)}
+.masthead h1{
+  font-family:var(--serif);font-weight:500;font-size:clamp(2.1rem,5.2vw,3.4rem);
+  line-height:1.06;letter-spacing:-.015em;text-wrap:balance;margin:14px 0 0
+}
+.masthead .sub{
+  font-family:var(--serif);font-style:italic;font-size:clamp(1.05rem,2.4vw,1.35rem);
+  color:var(--ink-2);margin:10px 0 0;max-width:60ch
+}
+.meta{
+  margin-top:26px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+}
+.meta div{padding:12px 18px 13px;border-right:1px solid var(--rule)}
+.meta div:last-child{border-right:0}
+.meta dt{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:0}
+.meta dd{margin:4px 0 0;font-size:14px;font-weight:500;line-height:1.35}
+
+/* ---------- sidebar nav ---------- */
+.rail{display:none}
+@media(min-width:1080px){
+  .rail{display:block;position:sticky;top:0;align-self:start;padding:40px 0 40px;max-height:100vh;overflow-y:auto}
+  .rail::-webkit-scrollbar{width:6px}
+  .rail::-webkit-scrollbar-thumb{background:var(--rule);border-radius:3px}
+}
+.rail h2{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);margin:0 0 12px;font-weight:500}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px;counter-reset:nav}
+.rail a{
+  display:flex;gap:9px;text-decoration:none;color:var(--ink-2);font-size:13px;line-height:1.35;
+  padding:5px 8px 5px 0;border-left:2px solid transparent;padding-left:10px;transition:color .15s,border-color .15s
+}
+.rail a:hover{color:var(--accent);border-left-color:var(--rule-strong)}
+.rail a .n{font-family:var(--mono);font-size:10.5px;color:var(--ink-3);padding-top:2px;min-width:16px}
+.rail .grp{margin-top:16px}
+
+/* ---------- typography ---------- */
+.doc h2{
+  font-family:var(--serif);font-weight:500;font-size:clamp(1.6rem,3.4vw,2.15rem);line-height:1.14;
+  letter-spacing:-.01em;text-wrap:balance;margin:0 0 4px
+}
+.sec{margin-top:64px;scroll-margin-top:20px}
+.sec > .eyebrow{
+  font-family:var(--mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;
+  color:var(--accent);margin:0 0 12px;display:flex;align-items:center;gap:10px
+}
+.sec > .eyebrow::after{content:"";flex:1;height:1px;background:var(--rule)}
+.doc h3{font-family:var(--sans);font-weight:700;font-size:1.06rem;letter-spacing:-.005em;margin:38px 0 10px;text-wrap:balance}
+.doc h4{font-family:var(--mono);font-weight:600;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);margin:26px 0 8px}
+.doc p{margin:0 0 15px;max-width:68ch}
+.doc p.lede{font-family:var(--serif);font-size:1.16rem;line-height:1.56;color:var(--ink-2);max-width:62ch}
+.doc strong{font-weight:700;color:var(--ink)}
+.doc em{font-style:italic}
+ul.plain{list-style:none;margin:0 0 16px;padding:0;display:flex;flex-direction:column;gap:9px;max-width:68ch}
+ul.plain li{padding-left:20px;position:relative}
+ul.plain li::before{content:"";position:absolute;left:2px;top:.72em;width:7px;height:1.5px;background:var(--rule-strong)}
+ul.pos li::before{background:var(--pos);height:2px}
+ul.neg li::before{background:var(--accent);height:2px}
+ol.num{margin:0 0 16px;padding-left:0;list-style:none;counter-reset:o;display:flex;flex-direction:column;gap:11px;max-width:68ch}
+ol.num li{counter-increment:o;padding-left:30px;position:relative}
+ol.num li::before{
+  content:counter(o);position:absolute;left:0;top:.05em;font-family:var(--mono);font-size:11px;
+  color:var(--accent);font-weight:600;padding-top:.28em
+}
+
+/* ---------- callout ---------- */
+.note{
+  background:var(--surface);border:1px solid var(--rule);border-left:3px solid var(--rule-strong);
+  padding:16px 20px;margin:0 0 22px;font-size:14.5px;line-height:1.58;color:var(--ink-2)
+}
+.note .tag{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-3);display:block;margin-bottom:6px}
+.note p{margin:0;max-width:none}
+.note p + p{margin-top:10px}
+.note.hs{border-left-color:var(--warn)}
+.note.hs .tag{color:var(--warn)}
+
+/* ---------- score plate ---------- */
+.plate{
+  background:var(--surface);border:1px solid var(--rule);padding:20px 22px 18px;margin:0 0 26px;
+  display:flex;gap:24px;align-items:flex-start;flex-wrap:wrap;box-shadow:var(--shadow)
+}
+.plate .num{
+  font-family:var(--serif);font-size:4.1rem;line-height:.86;font-weight:400;color:var(--accent);
+  font-variant-numeric:tabular-nums
+}
+.plate .body{flex:1;min-width:210px}
+.plate .label{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3);margin:0 0 5px}
+.plate .word{font-family:var(--serif);font-size:1.32rem;margin:0 0 12px;color:var(--ink)}
+.plate .why{font-size:13.5px;color:var(--ink-2);margin:0;line-height:1.5;max-width:none}
+
+.gauge{display:flex;align-items:flex-end;gap:3px;margin:0 0 8px}
+.gauge span{
+  flex:1;height:9px;background:var(--rule);border-radius:1px;position:relative
+}
+.gauge span.on{background:var(--accent);height:18px}
+.gauge span.past{background:var(--rule-strong)}
+.gauge-scale{display:flex;justify-content:space-between;font-family:var(--mono);font-size:9.5px;color:var(--ink-3);letter-spacing:.06em}
+
+/* ---------- criterion score row ---------- */
+.crit{border-top:1px solid var(--rule);padding-top:18px;margin-top:44px;scroll-margin-top:20px}
+.crit-head{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:6px}
+.crit-head h3{margin:0;font-family:var(--serif);font-weight:500;font-size:1.5rem;letter-spacing:-.01em}
+.crit-score{
+  font-family:var(--mono);font-weight:600;font-size:13px;color:var(--surface);background:var(--accent);
+  padding:3px 9px 2px;letter-spacing:.06em;border-radius:2px
+}
+.crit-bar{display:flex;gap:3px;margin:8px 0 18px;max-width:280px}
+.crit-bar span{flex:1;height:5px;background:var(--rule);border-radius:1px}
+.crit-bar span.on{background:var(--accent)}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;margin:0 0 22px;border:1px solid var(--rule);background:var(--surface)}
+@media(min-width:1080px){.wide .tw{width:min(107ch,calc(100vw - 340px))}}
+table{border-collapse:collapse;width:100%;font-size:13.5px;line-height:1.45}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--rule);vertical-align:top}
+thead th{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--ink-3);font-weight:500;background:var(--surface-2);border-bottom:1px solid var(--rule-strong);white-space:nowrap
+}
+tbody tr:last-child td{border-bottom:0}
+td.n,th.n{font-family:var(--mono);font-variant-numeric:tabular-nums;white-space:nowrap}
+td.sc{font-family:var(--mono);font-weight:600;color:var(--accent);font-size:15px;text-align:center;width:1%}
+caption{caption-side:bottom;text-align:left;padding:10px 14px;font-size:12.5px;color:var(--ink-3);border-top:1px solid var(--rule)}
+
+/* ---------- chips ---------- */
+.chip{
+  display:inline-block;font-family:var(--mono);font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;
+  padding:3px 7px 2px;border-radius:2px;white-space:nowrap;font-weight:500;border:1px solid transparent
+}
+.c-strong{background:var(--pos-soft);color:var(--pos);border-color:var(--pos)}
+.c-mod{background:var(--warn-soft);color:var(--warn);border-color:var(--warn)}
+.c-weak{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.c-flat{background:var(--surface-2);color:var(--ink-3);border-color:var(--rule-strong)}
+
+/* ---------- fix cards ---------- */
+.fix{border:1px solid var(--rule);background:var(--surface);margin:0 0 14px;padding:0}
+.fix > summary{
+  cursor:pointer;list-style:none;padding:13px 18px;display:flex;gap:12px;align-items:baseline;
+  font-weight:600;font-size:14.5px;line-height:1.4
+}
+.fix > summary::-webkit-details-marker{display:none}
+.fix > summary::after{content:"+";margin-left:auto;font-family:var(--mono);color:var(--ink-3);font-weight:400;font-size:15px;flex:none}
+.fix[open] > summary::after{content:"–"}
+.fix > summary:hover{background:var(--surface-2)}
+.fix .id{font-family:var(--mono);font-size:11px;color:var(--accent);font-weight:600;flex:none;padding-top:1px}
+.fix .in{padding:0 18px 16px 18px;border-top:1px solid var(--rule);margin-top:0}
+.fix dl{margin:0;display:grid;grid-template-columns:1fr;gap:0}
+.fix dt{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-3);margin-top:14px}
+.fix dd{margin:4px 0 0;font-size:14px;line-height:1.55;color:var(--ink-2)}
+.fix dd strong{color:var(--ink)}
+
+/* ---------- verdict list ---------- */
+.verdicts{display:flex;flex-direction:column;gap:0;border:1px solid var(--rule);background:var(--surface);margin-bottom:22px}
+.verdict{display:grid;grid-template-columns:1fr;gap:6px;padding:14px 18px;border-bottom:1px solid var(--rule)}
+.verdict:last-child{border-bottom:0}
+@media(min-width:660px){.verdict{grid-template-columns:190px 122px 1fr;gap:16px;align-items:baseline}}
+.verdict .dim{font-weight:600;font-size:14px;line-height:1.35}
+.verdict .txt{font-size:13.5px;color:var(--ink-2);line-height:1.5}
+
+/* ---------- final ---------- */
+.final{
+  margin-top:64px;border:1px solid var(--rule-strong);background:var(--surface);padding:0;box-shadow:var(--shadow)
+}
+.final .top{padding:26px 26px 22px;border-bottom:1px solid var(--rule);display:flex;gap:28px;align-items:center;flex-wrap:wrap}
+.final .big{font-family:var(--serif);font-size:6rem;line-height:.8;color:var(--accent);font-variant-numeric:tabular-nums}
+.final .top .r{flex:1;min-width:200px}
+.final .top .lbl{font-family:var(--mono);font-size:10px;letter-spacing:.17em;text-transform:uppercase;color:var(--ink-3);margin:0 0 6px}
+.final .top .w{font-family:var(--serif);font-size:1.7rem;margin:0 0 14px}
+.final .why{padding:22px 26px 26px}
+.final .why h4{margin-top:0}
+.final .why h4 + p{margin-bottom:20px}
+.final .why > *:last-child{margin-bottom:0}
+
+hr.rule{border:0;border-top:1px solid var(--rule);margin:56px 0 0}
+.foot{margin-top:40px;padding-top:18px;border-top:1px solid var(--rule);font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3);display:flex;gap:16px;flex-wrap:wrap}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="shell">
+
+<header class="masthead">
+  <div class="stamp">
+    <span>Summary Statement</span><span class="dot">/</span>
+    <span>Mock Special Emphasis Panel</span><span class="dot">/</span>
+    <span>Privileged Communication</span>
+  </div>
+  <h1>Commercialization Readiness Pilot</h1>
+  <p class="sub">Independent mock peer review of the Research Strategy and Commercialization Plan, V3.</p>
+  <dl class="meta">
+    <div><dt>Applicant</dt><dd>Olera, Inc.</dd></div>
+    <div><dt>Principal Investigator</dt><dd>Falohun, Tokunbo</dd></div>
+    <div><dt>Prior award referenced</dt><dd>1R44AG074116 (NIA)</dd></div>
+    <div><dt>Materials reviewed</dt><dd>Research Strategy &amp; Commercialization Plan only</dd></div>
+    <div><dt>Overall impact</dt><dd>4 — Very Good</dd></div>
+  </dl>
+</header>
+
+<nav class="rail" aria-label="Contents">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#resume"><span class="n">01</span><span>Resume &amp; Summary of Discussion</span></a></li>
+    <li><a href="#impact"><span class="n">02</span><span>Overall Impact</span></a></li>
+    <li><a href="#criteria"><span class="n">03</span><span>Criterion Critiques</span></a></li>
+    <li><a href="#progress"><span class="n">04</span><span>CRP Progress Report</span></a></li>
+    <li><a href="#commplan"><span class="n">05</span><span>Commercialization Plan</span></a></li>
+    <li><a href="#fundraising"><span class="n">06</span><span>Fundraising Plan</span></a></li>
+    <li><a href="#pmp"><span class="n">07</span><span>Project Management Plan</span></a></li>
+    <li><a href="#humansubjects"><span class="n">08</span><span>Human Subjects Design</span></a></li>
+    <li><a href="#timeline"><span class="n">09</span><span>Study Timeline</span></a></li>
+    <li><a href="#crossdoc"><span class="n">10</span><span>Cross-Document Audit</span></a></li>
+    <li><a href="#claims"><span class="n">11</span><span>Claim–Evidence Test</span></a></li>
+    <li><a href="#retirement"><span class="n">12</span><span>Assumption Retirement</span></a></li>
+    <li><a href="#feasibility"><span class="n">13</span><span>Feasibility Stress Test</span></a></li>
+    <li><a href="#drivers"><span class="n">14</span><span>Score Drivers</span></a></li>
+    <li><a href="#discussion"><span class="n">15</span><span>Discussion &amp; Reader Experience</span></a></li>
+    <li><a href="#scorecard"><span class="n">16</span><span>Final Scorecard</span></a></li>
+    <li class="grp"><a href="#diagnostic"><span class="n">17</span><span>Applicant Diagnostic</span></a></li>
+  </ol>
+</nav>
+
+<main class="doc">
+
+<div class="note" style="margin-top:34px">
+  <span class="tag">Reviewer note on package completeness</span>
+  <p>This mock review was conducted on the <strong>Research Strategy and Commercialization Plan alone.</strong> The Specific Aims page, Human Subjects and Clinical Trials materials, biosketches, letters of support, and all ancillary forms were not supplied and are <strong>assumed competent, internally consistent, and reasonably supportive</strong> of what the two documents signpost.</p>
+  <p>No criterion score was reduced for their absence, and none was raised on the assumption that they carry evidence the supplied documents should themselves contain.</p>
+</div>
+
+<section class="sec wide" id="scorecard-top" style="margin-top:44px">
+  <p class="eyebrow">At a glance</p>
+  <h2>Scores</h2>
+  <div class="plate" style="margin-top:20px">
+    <div class="num">4</div>
+    <div class="body">
+      <p class="label">Overall Impact</p>
+      <p class="word">Very Good</p>
+      <div class="gauge" aria-hidden="true">
+        <span class="past"></span><span class="past"></span><span class="past"></span><span class="on"></span><span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="gauge-scale"><span>1 · Exceptional</span><span>9 · Poor</span></div>
+      <p class="why" style="margin-top:12px">Correct endpoint, disciplined design, credible team — against a commercial ceiling the applicant's own model puts near $3.0M at national saturation, a venture-scale thesis deferred past the award, and a financing plan that does not meet the CRP's central criterion.</p>
+    </div>
+  </div>
+
+  <div class="tw">
+    <table>
+      <thead><tr><th>Criterion</th><th class="n">Score</th><th>Primary reason</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Significance</strong></td><td class="sc">3</td><td>Important, well-documented problem with a correctly chosen endpoint and clean customer/buyer separation; offset by a beachhead modeled at ~$3.0M annually at national saturation, an untested institutional market, an unqualified 3,100-county market count, and willingness-to-pay evidence resting on three customers.</td></tr>
+        <tr><td><strong>Investigator(s)</strong></td><td class="sc">3</td><td>Genuine six-year continuity, complementary expertise, independent study execution at Clemson, safety governance the PI cannot override; offset by concentration of product, engineering, commercialization and go/no-go authority in one person, no named biostatistician, no sales capability during the award.</td></tr>
+        <tr><td><strong>Innovation</strong></td><td class="sc">3</td><td>Care Establishment Model, enforced permission classes, provenance-tracked field learning and supply-side workforce creation are a defensible integration; offset by longitudinal case state being standard in closed-loop referral, a commoditizing agent layer, a named direct competitor, and an untested data moat.</td></tr>
+        <tr><td><strong>Approach</strong></td><td class="sc">5</td><td>Excellent gating architecture, protected denominators, lower-bound decision rule; substantially offset by an Aim 3 endpoint with no sample size, Year 2 and Year 3 arithmetic that does not reconcile, an unsupported recruitment requirement, and no economic success criterion.</td></tr>
+        <tr><td><strong>Environment</strong></td><td class="sc">4</td><td>Real production assets, national data infrastructure, peer-reviewed research capability, owned distribution; offset by 100% SBIR-derived revenue across five years, an operating base described inconsistently, no dedicated finance/compliance function, and unaddressed multi-state licensure.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h4>Additional assessments</h4>
+  <div class="tw">
+    <table>
+      <tbody>
+        <tr><td>Human Subjects design visible in Research Strategy</td><td style="width:1%"><span class="chip c-mod">Adequate · 1 concern</span></td></tr>
+        <tr><td>Study Timeline</td><td><span class="chip c-weak">Concern</span></td></tr>
+        <tr><td>Commercialization Plan</td><td><span class="chip c-mod">Moderate</span></td></tr>
+        <tr><td>Fundraising Plan</td><td><span class="chip c-weak">Weak</span></td></tr>
+        <tr><td>Project Management Plan</td><td><span class="chip c-mod">Moderate</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="sec" id="resume">
+  <p class="eyebrow">01 — Resume and Summary of Discussion</p>
+  <h2>What the panel would say</h2>
+
+  <p class="lede">A mature, well-written application from a team with a genuine six-year execution record, proposing to solve the correct problem and measure the correct endpoint — on a commercial case that does not yet close.</p>
+
+  <p>This CRP application proposes to extend a nationally deployed eldercare navigation platform (CareNavigator) from planning and matching into <strong>execution</strong>: a longitudinal Care Establishment Model that represents an eldercare case as structured state, bounded AI agents that perform the administrative work between a care plan and a confirmed care start, a field-learning layer that captures local operational truth as a byproduct of execution, and a data-directed Caregiver Staffing product that recruits new workers into local provider labor pools where workforce shortage is the binding constraint. Three aims proceed through GO/NO-GO gates: engineer and technically verify the infrastructure (Aim 1); test verified day-90 care establishment across eight free county-centered validation markets (Aim 2); and test paid provider conversion, retention, and unit economics across eight new paid markets while producing a contracting-ready institutional proof-of-concept offer (Aim 3). Approximately $4M is requested over three years.</p>
+
+  <h3>Enthusiasm was substantial and centered on four things</h3>
+  <p>The public-health problem is important, well-documented, and correctly framed: unmet activity-of-daily-living needs independently predict emergency department use, readmission, institutionalization, and mortality, and both sources of caregiving supply are contracting. The endpoint the applicant has chosen — <em>did a recognized need actually reach established care</em> — is the right endpoint, and choosing it over referral counts or eligibility screens is a genuine contribution to a field that habitually measures the easier thing. The team has six years of continuous NIA-supported execution behind it and has shipped a real product with real users rather than a prototype. And the Approach is written with unusual methodological discipline for a small-business application: prespecified control classes for agent actions, denominators explicitly protected against post-hoc narrowing, a lower-confidence-bound decision rule rather than a point-estimate rule, sensitivity analyses under greater-than-planned attrition, a preregistered pricing and conversion plan fixed before the first paid market opens, and an independent safety monitor with authority the product leadership cannot override. Several reviewers observed that this is the rare AI-agent application that specifies what the system is <em>not</em> permitted to do.</p>
+
+  <h3>Concerns concentrated on commercial magnitude and on operational arithmetic</h3>
+  <p>The most serious is that the applicant's own model shows the near-term revenue engine topping out at roughly <strong>$3.0M in annual revenue at 500 active markets</strong> — more than sixty times the CRP's own commercial footprint — with a Year 5 base case of approximately $400K total revenue against a $4M award. The pathway that would justify the market framing (risk-bearing institutions, 35.2M Medicare Advantage lives, GUIDE Model precedent) is explicitly <em>not</em> tested inside the award; Task 3.4 produces a study specification and documented buyer conversations, not outcomes or economic evidence. The Fundraising Plan then asks reviewers to believe that this evidence base supports a $3–5M private round for a company with no prior institutional equity, no term sheets, two named relationships the Research Strategy correctly declines to characterize as commitments, and 100% SBIR-derived revenue in each of the past five years. Against the explicit CRP criterion — <em>does the application support the ability of the SBC to secure third-party funds that equal or exceed the requested NIH funds</em> — the plan does not close.</p>
+
+  <p>A second cluster of concerns is arithmetic and, unlike the first, is fixable. The primary commercial endpoint in Aim 3 (≥20% paid conversion) carries <strong>no sample size and no precision statement</strong>, in an application that computes confidence-interval half-widths to one decimal place for Aim 2. Family recruitment requires 4–6 enrolled index episodes per market per month in eight named counties, while the distribution asset offered as evidence is roughly 15,500 national visits per month spread across "nearly every county" — on the order of five visits per county per month. The staffing revenue model assumes two successful hires per active market per month, roughly a ten- to thirty-fold increase over the only demonstrated data point. Aim 1 asks two-to-three engineers to build a seven-domain longitudinal state model plus permissioned browser automation against state LTSS portals plus document assembly, email, SMS, fax, and scheduling in twelve months. The Commercialization Plan states operations headcount as two full-time personnel in one table and four in another, and states operating capacity as 80 support hours per month against a budgeted consumption of up to 240 support hours per active market-month — a capacity governor that, as written, would prevent any wave from ever opening. And the Aim 3 commercial GO gate is defined on contribution margin <strong>after variable serving costs only</strong>, explicitly excluding customer acquisition and platform cost, so the gate can be passed by a configuration that cannot fund its own market entry.</p>
+
+  <h3>Likely reviewer disagreement</h3>
+  <p>The panel would likely split on whether the Approach's genuine methodological discipline is evidence of a team that will execute well, or a well-constructed frame around a program too large for a ten-person company. It would also split on Innovation: some reviewers will credit the integration of state modeling, bounded execution, provenance-tracked field learning, and supply-side workforce creation as a real architectural contribution; others will note that longitudinal case state is standard in closed-loop referral systems, that agentic execution is commoditizing rapidly, and that the applicant names its own direct competitor for the student-caregiver wedge.</p>
+
+  <p><strong>On balance, strengths and weaknesses are close.</strong> The problem, the endpoint, the team's continuity, and the rigor of the experimental design are real and would carry a strong score on the research side. The commercialization case — which is what a CRP is for — is the weaker half: the beachhead is honestly measured but small, the scale thesis is deferred past the award, and the financing plan is the least substantiated section in either document. Enthusiasm was judged good but not high.</p>
+</section>
+
+<section class="sec" id="impact">
+  <p class="eyebrow">02 — Critique 1, Integrated Primary Reviewer</p>
+  <h2>Overall Impact</h2>
+
+  <p>This is a mature, well-written application from a team with a genuine six-year execution record, proposing to solve the correct problem and measure the correct endpoint. The Research Strategy is disciplined in ways that materially reduce the risk of a self-flattering result: decision rules use lower confidence bounds rather than point estimates, denominators are prespecified and protected against narrowing, pricing and conversion definitions are fixed before the first paid market opens, prior-exposure markets are excluded from the conversion analysis, and human-protection gates are held above commercial gates with an independent monitor the PI cannot override. That is a better-engineered set of commitments than most SBIR applications at this stage offer.</p>
+
+  <p>The application nonetheless does not yet make the CRP case. A CRP award is judged by whether it converts a technically validated asset into something independent capital will finance. Here, the product that will actually be sold during the award — Caregiver Staffing — is modeled by the applicant at approximately $24K of revenue in Year 3, $90K in Year 4, $400K in Year 5, and roughly $3.0M annually at 500 markets, which is national saturation of the model as described. The product that would justify a $4M federal investment and a subsequent private round — institutional CareNavigator contracting with risk-bearing entities — is deliberately excluded from the award's evidence generation, leaving the financing thesis resting on a study specification and a set of buyer conversations. The Fundraising Plan does not bridge that gap; it states two different target raise ranges two paragraphs apart and offers no investor-side validation beyond an advisor's introductions and two relationships the applicant candidly says are not commitments.</p>
+
+  <p>Layered on this is a set of load-bearing operational numbers that do not reconcile. The family recruitment requirement is not supported by the distribution evidence offered. The staffing throughput assumption exceeds demonstrated performance by an order of magnitude and was demonstrated in a setting the county-centered market model does not replicate. The Aim 1 engineering scope is not sized against the engineering capacity described. The Year 3 window cannot accommodate the two-wave paid rollout, a 60-day conversion window, and a six-month retention endpoint. The Aim 3 primary endpoint has no N. And the operations-capacity model contains a direct internal contradiction on both headcount and hours. Individually these are correctable; collectively they are what a skeptical reviewer will point to when arguing that the program is overambitious for the operating base.</p>
+
+  <p>The project is likely to produce real knowledge and a real, honestly measured result. It is less likely, as currently specified, to exert a sustained, powerful influence on the relevant market offering within a horizon that independent capital will underwrite.</p>
+</section>
+
+<section class="sec" id="criteria">
+  <p class="eyebrow">03 — Scored review criteria</p>
+  <h2>Criterion Critiques</h2>
+
+  <div class="crit" id="c-sig">
+    <div class="crit-head"><h3>1 · Significance</h3><span class="crit-score">Score 3</span></div>
+    <div class="crit-bar" aria-hidden="true"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <h4>Strengths</h4>
+    <ul class="plain pos">
+      <li>The unmet need is established with specificity and appropriate citation rather than by assertion: $80,080 annual full-time home care cost, Medicare's exclusion of custodial care, an estimated $58B in unclaimed aid, 63.3% of home-care providers declining cases for lack of staff in 2023, and roughly one-third of older adults with ADL difficulty going without bathing, meals, or medications in a given month.</li>
+      <li>The mechanism linking unmet need to cost is correctly stated and sourced — unmet ADL needs independently predict ED use, readmission, nursing home placement, and mortality — and the applicant does not overreach into a causal claim its own design cannot support.</li>
+      <li>The demand- and supply-side contraction argument (82M over 65 by 2050; family caregivers per adult over 80 falling from more than seven to four; 9.7M direct-care vacancies 2024–2034) establishes urgency credibly and explains why the workforce component is not an optional add-on.</li>
+      <li>Customer, user, and buyer are cleanly separated, and the separation is defended on principle: families are free because payment would gate care establishment; providers participate free because a paid referral gate would create steering incentives and exclude some federally reimbursed providers.</li>
+      <li>The competitive framing correctly identifies fragmentation — not absence — as the failure mode, and names the consequence: responsibility returns to the family between services.</li>
+      <li>Adoption hurdles are named for each stakeholder and each is mapped to a CRP activity.</li>
+    </ul>
+    <h4>Weaknesses</h4>
+    <ul class="plain neg">
+      <li><strong>The commercial magnitude of the beachhead is small, and the application's own model documents it.</strong> At the base case, 500 active markets produce approximately $3.0M in annual revenue; the Year 5 total revenue base case is approximately $400K. Reviewers assessing "sustained, powerful influence on the relevant market offering" will do this arithmetic.</li>
+      <li><strong>The high-magnitude market is described but not tested.</strong> MA enrollment, ACO-attributed lives, and GUIDE precedent establish the segment's size, but the CRP generates no utilization, cost, or comparative outcome evidence — as the Commercialization Plan concedes.</li>
+      <li><strong>The market count is inflated.</strong> "More than 3,100 geographic units" counts every U.S. county, including those the applicant's own selection criteria would eliminate. No qualified market count is offered.</li>
+      <li><strong>The competitive matrix is self-scored and unfalsifiable</strong> — Olera receives a filled circle in all seven columns while every named alternative carries at least one gap.</li>
+      <li><strong>Willingness to pay rests on three customers.</strong> No structured pricing research, no benchmark against staffing-agency fees or job-board cost-per-hire, and no evidence $250 survives when delivery is automated rather than founder-delivered.</li>
+      <li><strong>The neutrality question is raised but not answered.</strong> Providers who pay for Staffing are the same providers who receive free family connections; nothing states whether paying customers receive preference in matching, or what control prevents it.</li>
+      <li><strong>Multi-state operational hurdles are absent.</strong> "Referral-compliance review" appears once, as a cell in a table.</li>
+    </ul>
+  </div>
+
+  <div class="crit" id="c-inv">
+    <div class="crit-head"><h3>2 · Investigator(s)</h3><span class="crit-score">Score 3</span></div>
+    <div class="crit-bar" aria-hidden="true"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <p style="font-size:13.5px;color:var(--ink-3);margin-bottom:16px"><em>Biosketches and letters were not supplied and are assumed adequate; no deduction was taken for their absence.</em></p>
+    <h4>Strengths</h4>
+    <ul class="plain pos">
+      <li>Genuine continuity: Falohun was PI on both prior NIA awards and DuBose was co-investigator across them. This is not a team assembled for a submission.</li>
+      <li>Complementary coverage of the functions the program needs — product/engineering and commercialization (Falohun), research integration and milestone governance (DuBose), independent human-subjects execution and mixed-methods evaluation (Fan/Clemson), senior aging and implementation science (Ory), healthcare-technology commercialization (Qu).</li>
+      <li>Governance is specified rather than implied: named workstream owners, a maintained task board, weekly execution review, quarterly milestone review, a prespecified alternative-strategy trigger, and an explicit rule that product leadership cannot unilaterally override a protocol-defined workflow suspension.</li>
+      <li>Separating study execution (Clemson) from technical development is the right structure and reduces the risk that engineering pressure contaminates outcome ascertainment.</li>
+      <li>The Progress Report is candid: "without a mature commercialization track record, but not without an execution track record." Reviewers respond well to accurate self-assessment.</li>
+    </ul>
+    <h4>Weaknesses</h4>
+    <ul class="plain neg">
+      <li><strong>Concentration of authority in the PI.</strong> Falohun holds product integration, engineering, agent-execution QA, provider commercialization, and final go/no-go authority — which contradicts the claim that responsibility is "divided by demonstrated function."</li>
+      <li><strong>The non-founder-dependence test is under-resourced.</strong> Aim 3's Wave 2 rests on a single existing operations employee to be <em>designated</em> and trained — not a hire, not a person with prior standardized market-activation experience — across four simultaneous new markets.</li>
+      <li><strong>No named statistical leadership,</strong> in a design whose GO gates are statistical. "Independent statistical review" appears only as an unnamed function in a workstream table.</li>
+      <li><strong>No commercial sales capability during the award.</strong> Aim 3 is a paid-conversion experiment run without anyone whose primary job is selling.</li>
+      <li><strong>Team scale versus program scale.</strong> Roughly ten people including part-time staff, against a full agentic infrastructure build, a 440-episode longitudinal study, sixteen market activations, and a three-sided acquisition operation.</li>
+    </ul>
+  </div>
+
+  <div class="crit" id="c-inn">
+    <div class="crit-head"><h3>3 · Innovation</h3><span class="crit-score">Score 3</span></div>
+    <div class="crit-bar" aria-hidden="true"><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <h4>Strengths</h4>
+    <ul class="plain pos">
+      <li><strong>The Care Establishment Model is the right abstraction and is well argued.</strong> Software cannot reliably automate a fragmented pathway unless it can observe what state a case is in, what changed, who owns the next action, and what evidence defines completion. Seven domains with substates, timestamped events, geography, provenance, ownership, and explicit terminal states — with unsupported states identified rather than inferred — is an engineering position, not an AI slogan.</li>
+      <li><strong>The permission architecture is a genuine contribution.</strong> Three prospectively assigned control classes enforced by the workflow engine rather than the LLM; refusal to infer legal decision-making authority from caregiver status; explicit prohibition on circumventing portal authentication or impersonating a user.</li>
+      <li><strong>Field learning with provenance is the most novel element.</strong> Normalizing returned operational facts with source, geography, time and provenance; assigning freshness states to time-sensitive facts; keeping conflicting observations visible until adjudicated — a defensible answer to the fact that local operational truth in eldercare is not on the public web and decays quickly.</li>
+      <li><strong>The supply-side reframing of workforce is a real conceptual move.</strong> Locating where workforce is the binding constraint and targeting <em>new</em> entrants at those deficits is a different mechanism, and the pre-health student pool is a sensible first instance.</li>
+      <li>The longitudinal worker record is a sound, portable asset, and the architecture is correctly described as labor-pool agnostic.</li>
+    </ul>
+    <h4>Weaknesses</h4>
+    <ul class="plain neg">
+      <li><strong>Longitudinal case state is not new.</strong> Closed-loop referral and care-management platforms already model case state longitudinally; the application offers no concrete criterion distinguishing its model from theirs.</li>
+      <li><strong>Agentic execution is commoditizing on the timescale of the award.</strong> Defensibility has to rest on domain data and workflow specificity — which the application argues only in the Commercialization Plan's IP section, not in Innovation.</li>
+      <li><strong>The workforce wedge faces a named direct competitor.</strong> The Commercialization Plan itself lists CareYaya as an emerging student-caregiver model; Innovation 3 does not address the difference.</li>
+      <li><strong>The strongest innovation claim is the least substantiated.</strong> The compounding-data moat is asserted with no estimate of the case volume at which accumulated knowledge measurably improves routing or establishment; Task 1.3 tests retrieval correctness, not outcome improvement.</li>
+      <li>"Eventually AI-assisted voice" appears without scope boundaries in an aim already at capacity.</li>
+    </ul>
+  </div>
+
+  <div class="crit" id="c-app">
+    <div class="crit-head"><h3>4 · Approach</h3><span class="crit-score">Score 5</span></div>
+    <div class="crit-bar" aria-hidden="true"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span><span></span></div>
+    <h4>Strengths</h4>
+    <ul class="plain pos">
+      <li><strong>The gating architecture is well constructed and is the application's best feature.</strong> Progression is conditional at the <em>workflow-class</em> level: a failing class is disabled, moved behind additional approval, or made human-assisted while verified classes proceed. Human protection is explicitly overriding.</li>
+      <li><strong>The primary Aim 2 decision rule is honest and hard to game.</strong> GO requires the <em>lower bound</em> of the 95% CI to exceed 35%, not the point estimate. Precision is computed (±5.0 points at n=400) and re-computed under 15% and 20% loss. Losses are not selectively replaced.</li>
+      <li><strong>Establishment is defined stringently.</strong> A referral, application, benefit approval, provider match, appointment, or job offer is explicitly <em>not</em> establishment. Family-report-only outcomes are flagged with a prespecified corroborated-only sensitivity analysis, and adjudication happens without access to commercial results.</li>
+      <li><strong>Denominators are deliberately protected.</strong> Technical failure stays in the Aim 1 coverage denominator; Aim 2's execution endpoint cannot be improved by narrowing automatable classes; Aim 3 excludes prior-exposure markets and fixes offers, prices, follow-up and analysis rules before the first paid market opens; a market that fails to activate stays in the denominator. Each of these closes a mechanism by which commercial pilots normally flatter themselves.</li>
+      <li><strong>Instrumentation answers the question that matters commercially,</strong> classifying every action as agent-executed, human-assisted, externally blocked, declined or ineligible, and reporting establishment by predominant execution mode — so the panel can see whether the engineered system or human exception handling carried the result.</li>
+      <li>Aim 1 Task 1.5 (n=75 across three stakeholder groups, think-aloud, SUS ≥72, TIAS ≥5, framework analysis with audit trail) is appropriately scaled, and treating misunderstanding of a consequential permission boundary as a design failure is exactly right.</li>
+      <li>The contingency principle — <em>scope narrows before the calendar compresses</em> — is stated, operationalized three ways, and tied to a staffed operating-capacity constraint.</li>
+    </ul>
+    <h4>Weaknesses</h4>
+    <ul class="plain neg">
+      <li><strong>The Aim 3 primary commercial endpoint has no sample size and no precision statement.</strong> "≥20% paid conversion across the prospective Aim 3 cohort" never states how many eligible priced offers that cohort contains. At plausible denominators the interval is wide enough that the gate does not distinguish a viable business from a failed one. This is the most consequential methodological gap in the application.</li>
+      <li><strong>The Aim 2 enrollment arithmetic does not reconcile with wave staging and the gate rule.</strong> 55 episodes per market at 4–6 per market-month is 9–14 months of accrual; Wave 2 opens only after Wave 1 confirmation; enrollment must close ≥90 days before the gate. These three constraints cannot all hold inside Year 2.</li>
+      <li><strong>Aim 1 includes a milestone that Aim 1 cannot produce.</strong> Employer-confirmed placement yield ≥25% requires live operations, which the application elsewhere defines as beginning only after the Aim 1 gate.</li>
+      <li><strong>Aim 1's build scope is not sized against stated engineering capacity.</strong> Twelve months, two engineers plus founder capacity, for a seven-domain state model, bidirectional normalization, an event-driven agent runtime, browser automation against heterogeneous state portals, document/email/SMS/fax/scheduling integrations, field learning with conflict adjudication, and staffing automation — with no component-level estimates.</li>
+      <li><strong>The &gt;70% automation coverage target collides with the applicant's own control classes.</strong> Attestation, identity-proofing and legal-authority actions dominate benefit applications and are human-only by their own rules. Either the target is unreachable or the test set was constructed to make it reachable.</li>
+      <li><strong>The 35% establishment threshold is asserted, not derived</strong> — not from literature, not from provider economics, not from buyer requirements.</li>
+      <li><strong>The primary endpoint's denominator is defined by the applicant's own intake.</strong> Establishment is measured against "the documented primary need at intake," where intake is performed by the system under evaluation, and nothing constrains or externally adjudicates how that need is set.</li>
+      <li><strong>Family recruitment feasibility is not supported.</strong> 4–6 enrolled episodes per market-month against ~15,500 national visits per month across nearly every county. The plan concedes paid acquisition, which eliminates the near-zero-CAC advantage at exactly the point it is needed, and offers no cost-per-enrolled-episode estimate.</li>
+      <li><strong>The 10% attrition assumption is optimistic</strong> for a 90-day caregiver-recruited study with third-party outcome verification; the sensitivity analysis is welcome but the enrollment target is not increased.</li>
+      <li><strong>Year 3 cannot hold the specified Aim 3 sequence.</strong> Six-month retention for Wave 2 customers falls outside the award.</li>
+      <li><strong>The staffing throughput assumption exceeds demonstrated performance by an order of magnitude,</strong> and the demonstrated rate came from a university-concentrated setting eight eldercare-selected counties will not reproduce.</li>
+      <li><strong>Provider-side pathway feasibility is asserted.</strong> The number of already-participating providers in any selected market is unstated, as is the target required for Aim 2 to function.</li>
+      <li><strong>No prespecified economic success criterion.</strong> Every gate is a threshold except the two measures that determine whether the business works.</li>
+      <li>Aim 2's staging is explicitly not a between-market comparison while Aim 3's <em>is</em> the transferability test, and the application does not state how a four-market Wave 2 supports that inference. Table 3 also contains a milestone reading "Delivered where commitment remains applicable," which is not a measurable criterion.</li>
+    </ul>
+  </div>
+
+  <div class="crit" id="c-env">
+    <div class="crit-head"><h3>5 · Environment</h3><span class="crit-score">Score 4</span></div>
+    <div class="crit-bar" aria-hidden="true"><span class="on"></span><span class="on"></span><span class="on"></span><span class="on"></span><span></span><span></span><span></span><span></span><span></span></div>
+    <h4>Strengths</h4>
+    <ul class="plain pos">
+      <li>Past technical feasibility with real production assets: a nationally deployed CareNavigator, 72,000+ curated aid-program and provider records with 578 program guides across all fifty states, an eldercare LLM and multi-agent architecture in production, case-persistence infrastructure, campus recruitment workflow, and an initial placement system — all pre-existing, so the CRP extends rather than builds from nothing.</li>
+      <li>Four peer-reviewed family-caregiver evaluations, two in JMIR venues, demonstrating the company can complete human-subjects work to publication.</li>
+      <li>Clemson provides independent, established capability in epidemiology, mixed-methods evaluation, health-services research, and IRB-governed study execution, with Ory contributing senior aging and implementation expertise.</li>
+      <li>Distribution is real and owned: 50 → 500+ daily visits without paid acquisition, 700+ claimed provider listings, 200+ I-Corps discovery conversations, and a demonstrated student-recruitment channel.</li>
+      <li>The operating model is genuinely centralized — one deployment, provider index, intake, worker application system and communications infrastructure serving every market — the correct architecture for county-level replication.</li>
+      <li>~$5.7M in prior NIA support (2021–2027) indicates sustained federal confidence and established federal administration capability.</li>
+    </ul>
+    <h4>Weaknesses</h4>
+    <ul class="plain neg">
+      <li><strong>Prior SBIR commercialization performance is essentially nil, and the criterion asks about it directly.</strong> Revenue derived from SBIR/STTR funding is 100% for FY2021–FY2025, with one-off pilot fees under 1% in FY2025 and no recurring revenue. "Limited and by design" is honest and partly persuasive, but the record is what it is.</li>
+      <li><strong>The operating base is small for the proposed scope</strong> — and described inconsistently, at two full-time operations personnel in one table and four in another.</li>
+      <li><strong>No dedicated finance, compliance, or regulatory personnel,</strong> for an award of this size with live billing, multi-state worker placement, and PHI-adjacent agent execution.</li>
+      <li><strong>Multi-state operating infrastructure is unaddressed,</strong> including state employment-agency and healthcare-staffing licensure across sixteen markets.</li>
+      <li><strong>The IP position is weak and acknowledged as such.</strong> No patents, no filings planned as a success criterion.</li>
+      <li><strong>Third-party investment readiness is relationship-based, not commitment-based.</strong> No term sheets, no prior institutional equity, no diligence in progress.</li>
+    </ul>
+  </div>
+</section>
+
+<section class="sec" id="progress">
+  <p class="eyebrow">04 — Additional review criteria</p>
+  <h2>CRP Progress Report</h2>
+  <h4>Strengths</h4>
+  <ul class="plain pos">
+    <li>The risk-retirement table is the best-constructed element in either document. It organizes six years of work as a sequence of <em>specific commercialization risks retired by specific evidence</em>, distinguishes NIH-funded from company-funded work, and ends by naming the three remaining risks and assigning each to an aim.</li>
+    <li>The evidence is real and varied: a national curated database at scale; four peer-reviewed evaluations with reported instruments and n (usability 4.57/5; acceptance 5.83/7 at four weeks, n=65; multi-agent 5.73/7, n=31); organic demand growth at near-zero cost; 200+ provider discovery conversations and 700+ claimed listings; 900+ workforce applicants; and first revenue from three of four providers.</li>
+    <li>"Delivery was deliberately manual, to learn the workflow before building the infrastructure that automates it" is a credible and well-timed justification for why the CRP is the right next instrument.</li>
+    <li>The self-assessment is accurate and disciplined, including the explicit refusal to treat early transactions "as proof that commercialization has already occurred."</li>
+    <li>Development status is precisely located: "beyond technical feasibility and initial market discovery, and short of scalable commercial proof."</li>
+  </ul>
+  <h4>Weaknesses</h4>
+  <ul class="plain neg">
+    <li><strong>The Progress Report does not increase confidence in the Aim 2/Aim 3 operating scale.</strong> Every commercial data point is national and diffuse (500 daily visits across nearly every county; 700 listings across 3,100 counties) or single-site and small (900 applicants, 25 placements, 3 paying providers). Nothing demonstrates concentrated performance in a single county-centered market — the unit the entire CRP is built on.</li>
+    <li><strong>Willingness-to-pay evidence is n=3, founder-delivered.</strong> Whether $250 survives automation, a non-founder seller, and a cold market is untested — and is what Aim 3 must measure with a sample size it does not specify.</li>
+    <li><strong>No retention or persistence data from the workforce pilot.</strong> Since the central innovation claim is <em>new, durable</em> supply, the absence of pilot retention data is a material gap in the strongest available evidence.</li>
+    <li><strong>The applicant's own funnel undercuts the milestone framing.</strong> 900 applicants → 100 accepted (11%) → 25 placed. The ≥25% gate sits on the accepted-to-placement denominator, omitting the step where 89% of the loss occurs.</li>
+    <li><strong>The investor-readiness paragraph contains a dangling cross-reference.</strong> "The commercial endpoints in Tables 4 and 5 are the ones those investors said they would need to see" — no such tables exist in the Research Strategy, and the Commercialization Plan's Tables 4 and 5 are something else entirely. The single strongest investor-readiness claim cannot be checked.</li>
+    <li>Placement counts are stated as "25" in one paragraph and "more than 20" in another.</li>
+  </ul>
+</section>
+
+<section class="sec" id="commplan">
+  <p class="eyebrow">05 — Additional review criteria</p>
+  <h2>Commercialization Plan <span class="chip c-mod" style="vertical-align:middle;margin-left:6px">Moderate</span></h2>
+  <h4>Strengths</h4>
+  <ul class="plain pos">
+    <li>The Statement of Need correctly identifies the structure of the Valley of Death for this asset: private investors must underwrite completion and deployment before institutional value is established, while institutional buyers require real-world evidence before they can value the product. Non-dilutive capital is the right instrument for that deadlock.</li>
+    <li>The plan explains why the obvious alternatives are unacceptable rather than merely unattractive — charging families creates the greatest barrier for households already unable to afford care; charging providers for referrals introduces steering incentives and excludes some federally reimbursed providers. Both arguments are commercially and ethically sound.</li>
+    <li>Revenue is honestly and unusually labeled. Nearly every input is tagged as illustrative, a hypothesis, or a planning assumption, and each is assigned to the CRP task that will replace it. Table 7 separates published benchmarks from applicant assumptions in a dedicated column.</li>
+    <li>The Staffing model is bottom-up and auditable, and the arithmetic is internally consistent across all three financial tables.</li>
+    <li>The institutional engine is correctly sequenced behind evidence: no institutional revenue during the CRP, none in the Year 4 proof-of-concept year, one ~$250K relationship in Year 5 as a stated hypothesis. Applicants routinely book payer revenue years earlier; the restraint is credible.</li>
+    <li>The market-acceptance hurdles table maps each commercial uncertainty to the CRP activity that retires it, and the acquisition-channel table distinguishes established base from market-concentration channels for all four audiences.</li>
+    <li>The IP section is intellectually honest — trade secret, copyright, trademark and confidentiality as the instruments; patents explicitly not a success criterion; counsel-reviewed invention disclosure before publication.</li>
+    <li>The financing-continuity paragraph is a real answer to "what if the round is smaller or later," which most plans do not attempt.</li>
+  </ul>
+  <h4>Weaknesses</h4>
+  <ul class="plain neg">
+    <li><strong>The commercial ceiling is the central problem.</strong> 500 active markets yield approximately $3.0M in annual revenue; Year 5 total revenue is approximately $400K. The plan never confronts this directly.</li>
+    <li><strong>The Aim 3 commercial GO gate cannot demonstrate a viable business.</strong> "Positive contribution margin after attributable variable serving costs" excludes acquisition and all fixed platform and engineering cost by construction. At $135 contribution per hire and two hires per market-month, a market generates roughly $270 per month in contribution against an unstated activation cost — and neither CAC nor cost-to-serve carries a threshold anywhere.</li>
+    <li><strong>The variable-cost estimate is thin and excludes media.</strong> 3.5 attributable human hours per successful hire implies roughly six minutes per applicant across screening, verification, handoff and support, given the pilot funnel. Paid acquisition media is not in the figure at all.</li>
+    <li><strong>The Fundraising Plan is the weakest section in either document and is directly on-criterion</strong> — see below.</li>
+    <li><strong>The Statement of Need overclaims what the award retires.</strong> "Evidence risk — does establishing care produce outcomes and economic value institutional buyers care about?" is listed among five risks the CRP bridges; the Research Strategy defers it to a post-award proof-of-concept, and the plan itself later concedes downstream utilization remains a hypothesis.</li>
+    <li><strong>The operations-capacity model is internally contradictory and load-bearing.</strong> Two vs. four operations FTE; "up to 80 productive support hours per month" against "no more than 240 support hours per active market-month." As written, no wave could ever open — and this paragraph is the wave-activation governor cited in both documents.</li>
+    <li><strong>Market count is not qualified,</strong> yet illustrative scenarios run to 500 markets.</li>
+    <li><strong>Pricing has no external benchmark.</strong> The ~$2,700 replacement-cost citation supports the plausibility of a placement fee but says nothing about where the market clears.</li>
+    <li><strong>Presentation defects accumulate in the financial sections:</strong> two tables numbered 4, two numbered 8, an orphan "Table X" whose caption repeats verbatim as the Table 8 caption, a "Table 8. Table 8." duplication, and a paragraph beginning "he post-CRP operating plan."</li>
+    <li><strong>Multi-state licensure, referral compliance, and matching neutrality are unaddressed</strong> beyond a single table cell.</li>
+  </ul>
+</section>
+
+<section class="sec" id="fundraising">
+  <p class="eyebrow">06 — Additional review criteria</p>
+  <h2>Fundraising Plan <span class="chip c-weak" style="vertical-align:middle;margin-left:6px">Weak</span></h2>
+  <h4>Strengths</h4>
+  <ul class="plain pos">
+    <li>Financing readiness is milestone-based rather than calendar-based, and the seven evidence items that would constitute the financing case are enumerated specifically and are the right items.</li>
+    <li>Sequencing is sensible: cultivation from end of Year 2 after technical verification; formal process in Year 3 as conversion, throughput, retention, unit economics and the institutional package mature; the explicit objective of entering post-CRP with financing secured or actively closing.</li>
+    <li>The plan states plainly that a financing process will not depend on hitting a modeled revenue number if measured evidence supports a different configuration.</li>
+    <li>The financing-continuity fallback is concrete and realistic.</li>
+  </ul>
+  <h4>Weaknesses</h4>
+  <ul class="plain neg">
+    <li>No prior institutional equity, no term sheets, no diligence, no committed capital; the two named investor relationships are explicitly characterized as non-commitments.</li>
+    <li>Two inconsistent target raise ranges — "approximately $3–5 million" and, two paragraphs later, "a full $4–6 million round."</li>
+    <li>The raise is not sized from a use-of-funds build; it is asserted and then said to be refinable from CRP outputs.</li>
+    <li><strong>The investment thesis the plan hopes to sell is not the one the CRP validates.</strong> A $3–5M round is underwritten by the institutional/payer opportunity, which the CRP explicitly does not test. What the CRP validates is a staffing business modeled at $3.0M annual revenue at national saturation.</li>
+    <li>No engagement with valuation, dilution, structure, or what a lead investor would require at the Year 3 milestone — despite an advisor with ~30 years of directly relevant experience.</li>
+    <li>The strongest available third-party-validation claim points to nonexistent tables.</li>
+  </ul>
+</section>
+
+<section class="sec" id="pmp">
+  <p class="eyebrow">07 — Additional review criteria</p>
+  <h2>Project Management Plan <span class="chip c-mod" style="vertical-align:middle;margin-left:6px">Moderate</span></h2>
+  <h4>Strengths</h4>
+  <ul class="plain pos">
+    <li>Named owners for every workstream, with authority boundaries stated.</li>
+    <li>A real cadence with a real consequence: weekly execution review, at least quarterly formal milestone review, and a missed milestone triggering the prespecified alternative strategy plus an explicit PI decision "rather than automatic continuation."</li>
+    <li>The governing rule — scope narrows before downstream gates are compressed — is stated and operationalized in three concrete ways.</li>
+    <li>Safety governance is properly insulated: material and critical events escalate to DuBose, Fan/Clemson and the independent safety monitor, and product leadership cannot unilaterally override a protocol-defined suspension. This is the correct structure and is rarely specified this explicitly.</li>
+    <li>The management table successfully translates the experimental timeline into a commercialization decision timeline with a decision or financing gate at each year.</li>
+    <li>Capacity is treated as a gate on expansion rather than an afterthought.</li>
+  </ul>
+  <h4>Weaknesses</h4>
+  <ul class="plain neg">
+    <li><strong>The capacity governor, the plan's best management idea, is stated in numbers that contradict each other</strong> and therefore cannot be applied.</li>
+    <li><strong>Engineering capacity is planned to decline exactly when the plan's own risks peak</strong> — "maintenance and refinement" in Year 2 and "commercial refinement" in Year 3, while Aims 2 and 3 anticipate workflow failures requiring correction and re-verification across sixteen markets.</li>
+    <li>No named Aim 1 component owners or interim technical milestones; the twelve-month build is governed only by the end-of-year gate.</li>
+    <li>No contingency for the failure mode most likely to end the program: Aim 2 accrual falling short.</li>
+    <li>No budget-by-aim or effort allocation is visible, so the panel cannot assess whether ~$4M is distributed sensibly across an engineering-heavy Year 1, a study-heavy Year 2, and a market-heavy Year 3.</li>
+    <li>The Market Operations Lead — the single point of the founder-independence test — has no named backup.</li>
+  </ul>
+</section>
+
+<section class="sec" id="humansubjects">
+  <p class="eyebrow">08 — Additional review criteria</p>
+  <h2>Human Subjects Design Visible in the Research Strategy <span class="chip c-mod" style="vertical-align:middle;margin-left:6px">Adequate · 1 concern</span></h2>
+  <div class="note hs">
+    <span class="tag">Scope of this assessment</span>
+    <p>The full Human Subjects and Clinical Trials materials were <strong>not supplied and were not reviewed.</strong> They are assumed adequate with respect to informed consent, privacy, confidentiality, inclusion, risk minimization, monitoring, and IRB requirements. The findings below address only protections intrinsic to the research design as described, which no separate Human Subjects section could cure.</p>
+  </div>
+  <h4>Strengths</h4>
+  <ul class="plain pos">
+    <li>The protective architecture is built into the research design rather than delegated: three prospectively assigned control classes enforced by the workflow engine; explicit prohibition on inferring legal decision-making authority from caregiver status; required documentation of authority before any consequential execution; information-only behavior where authority is absent or uncertain.</li>
+    <li>Explicit scope limits — the system will not diagnose, prescribe, place clinical orders, or make clinical decisions, and authorized health information may be used only for administrative tasks already defined by the family, provider, or clinician.</li>
+    <li>Browser automation is bounded: user-authorized sessions only; no circumvention of authentication, identity verification, attestations, or terms-enforced user actions; no impersonation where a portal requires personal submission or certification.</li>
+    <li><strong>Harm is defined by administrative consequence rather than software error</strong> — unauthorized external action, submission of materially incorrect information, missed or cancelled access to an intended service, inappropriate disclosure, incorrect representation of authority — with minor recoverable errors tracked separately. This is the correct taxonomy for this intervention class.</li>
+    <li>Sequencing is protective: comprehension under controlled conditions before live authorization, with misunderstanding of a consequential boundary treated as a design failure requiring correction, and Aim 2 a NO-GO for any workflow class with an unresolved critical event or material permission failure.</li>
+    <li>Live monitoring has the right triggers, and resumption requires root-cause review, corrective action, re-verification against the Aim 1 test set, and safety-monitor review.</li>
+    <li>An independent safety monitor designated through Clemson reviews material and critical events with authority the product team cannot override.</li>
+  </ul>
+  <h4>Weaknesses</h4>
+  <ul class="plain neg">
+    <li><strong>Decisional capacity of the older adult is not addressed in the design.</strong> The strategy separates the platform user from the person whose information or benefits are involved and requires documented authority, but does not describe how the system determines the older adult <em>has</em> capacity to grant it, or what happens when capacity is impaired and no legally authorized representative exists. In an eldercare population with substantial dementia prevalence, this is design-level rather than procedural.</li>
+    <li><strong>Remediation of agent-caused harm is undefined.</strong> Detection and suspension are specified; repair is not — particularly where benefit programs impose re-application waiting periods or a denial carries downstream eligibility consequences.</li>
+    <li><strong>The terms-of-service position is asserted rather than analyzed.</strong> Many state benefit portals prohibit automated access outright, regardless of user authorization; whether the representative pathways can be executed within portal terms determines automation coverage and is not examined.</li>
+    <li><strong>Aim 2 begins live consequential execution on the strength of an n=75 controlled-condition study</strong> using non-live cases. Reasonable as a design, but the inferential distance between comprehension of standardized cases and appropriate authorization under real crisis conditions is larger than the application acknowledges.</li>
+  </ul>
+  <p style="font-size:13.5px;color:var(--ink-3);margin-top:18px"><em>All procedural human-subjects matters — consent process, privacy and confidentiality safeguards, inclusion by sex, race, ethnicity and age, IRB review, and the full data and safety monitoring plan — are assumed adequately addressed in the full Human Subjects materials for purposes of this mock review and were not scored.</em></p>
+</section>
+
+<section class="sec" id="timeline">
+  <p class="eyebrow">09 — Additional review criteria</p>
+  <h2>Study Timeline <span class="chip c-weak" style="vertical-align:middle;margin-left:6px">Concern</span></h2>
+  <h4>Strengths</h4>
+  <ul class="plain pos">
+    <li>Three-year, task-level timetable with GO/NO-GO gates placed before each escalation in human or commercial exposure.</li>
+    <li>The contingency principle is stated and operationalized: only gate-passing workflow classes enter Aim 2; Aim 3 does not begin before Aim 2 outcome ascertainment completes; if time is insufficient for both paid waves, Wave 1 completes and is analyzed before Wave 2 opens.</li>
+    <li>Enrollment closes at least 90 days before the Year 2 gate so every index episode completes day-90 ascertainment before paid activation — the right rule.</li>
+    <li>Independent workstreams proceed in parallel where safe, and capacity — not just calendar — gates wave activation.</li>
+  </ul>
+  <h4>Weaknesses</h4>
+  <ul class="plain neg">
+    <li><strong>Year 2 is over-subscribed.</strong> 9–14 months of accrual, plus Wave 2 opening only after Wave 1 confirmation, plus a close 90 days before the year-end gate. No per-wave accrual schedule reconciles these.</li>
+    <li><strong>Year 3 cannot deliver the six-month retention endpoint.</strong> Preregistration follows the Year 2 gate; two sequential waves open with Wave 1 refinements incorporated; conversion allows 60 days from an eligible priced offer. Six-month retention for Wave 2 falls outside the award.</li>
+    <li><strong>Year 1 is not staged internally.</strong> A twelve-month build of this scope with no interim milestones concentrates all schedule risk at a single gate — and the plan's own contingency rule means Year 1 slippage directly shrinks the Aim 2 automation envelope, which shrinks the ≥70% execution denominator, which shrinks the evidence Aim 3 depends on. The cascade is not analyzed.</li>
+    <li>Aim 1's live placement milestone implies real-world staffing operations running concurrently with the pre-gate build year, which the timetable does not show.</li>
+  </ul>
+</section>
+
+<section class="sec wide" id="crossdoc">
+  <p class="eyebrow">10 — Cross-document dependency audit</p>
+  <h2>Cross-Document Consistency Findings</h2>
+
+  <h3>Aligned</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Element</th><th>Finding</th></tr></thead>
+    <tbody>
+      <tr><td>Product names and definitions</td><td>CareNavigator (family-facing, free) and Caregiver Staffing (provider-facing, paid) used identically throughout.</td></tr>
+      <tr><td>Customer / user / buyer classes</td><td>Families free users; providers free participants and paid Staffing customers; risk-bearers evidence-gated paid customers. Consistent across both documents.</td></tr>
+      <tr><td>Geographic unit</td><td>County-centered market with a focal county for attribution and permitted catchment spillover. Defined identically.</td></tr>
+      <tr><td>Prior awards</td><td>1R44AG074116; Impact Scores 20 and 25; ~$5.7M NIA 2021–2027.</td></tr>
+      <tr><td>Workforce pilot funnel</td><td>~900 applicants → 100 accepted → 25 placed. Consistent in four separate places.</td></tr>
+      <tr><td>Traffic</td><td>~50/day in 2023 → 500+/day; 15,500+/month. Internally consistent.</td></tr>
+      <tr><td>Pricing</td><td>$250 base, $150–350 sensitivity, framed as an Aim 3 hypothesis in both documents.</td></tr>
+      <tr><td>Throughput assumption</td><td>2 successful hires per active market-month, 1–5 sensitivity, labeled illustrative in both.</td></tr>
+      <tr><td>Market structure</td><td>8 free Aim 2 markets + 8 new paid Aim 3 markets, two waves of four; Aim 2 markets excluded from the primary conversion analysis.</td></tr>
+      <tr><td>Revenue arithmetic</td><td>2 × 8 × 6 × $250 ≈ $24K Year 3; ≈$48K annualized; $90K Year 4; $400K Year 5; 500 markets ≈ $3.0M. Internally consistent.</td></tr>
+      <tr><td>GO thresholds</td><td>The Commercialization Plan's management table reproduces the Research Strategy gates without drift.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Minor inconsistency</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Element</th><th>Finding</th></tr></thead>
+    <tbody>
+      <tr><td>Workforce placements</td><td>"placed 25 into provider jobs" vs. "placed more than 20 into provider jobs" within the same Progress Report.</td></tr>
+      <tr><td>RS table numbering</td><td>Two tables numbered 1 and two numbered 2; numbering then jumps to Table 6 with no Tables 4–5 present.</td></tr>
+      <tr><td>CP table numbering</td><td>Two tables numbered 4; two numbered 8; an orphan "Table X" whose caption repeats verbatim as the Table 8 caption; a "Table 8. Table 8." duplication.</td></tr>
+      <tr><td>Duplicated sentences</td><td>RS Task 2.3 repeats a full sentence consecutively; Task 3.1 repeats the Aim 2 exclusion twice; Table 3 lists "Paid conversion" as two separate rows.</td></tr>
+      <tr><td>Typographical</td><td>A Commercialization Plan paragraph begins "he post-CRP operating plan is scalable…".</td></tr>
+      <tr><td>Vague milestone</td><td>"Independent financial validation — Delivered where commitment remains applicable."</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Material inconsistency</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Element</th><th>Finding</th><th>Why it matters</th></tr></thead>
+    <tbody>
+      <tr><td><strong>Operations headcount</strong></td><td>"Two full-time family/provider operations personnel" (Table 3) vs. "Four full-time operations personnel" (Section 7).</td><td>Determines whether the capacity governor and the cost-to-serve model are believable.</td></tr>
+      <tr><td><strong>Operations capacity arithmetic</strong></td><td>"Four full-time operations personnel provide up to 80 productive support hours per month" vs. "no more than 240 support hours per active market-month."</td><td>Capacity (80) sits below the budgeted draw for one market-month (240), so no wave could ever open. This paragraph is the wave-activation governor cited in both documents.</td></tr>
+      <tr><td><strong>Fundraising target</strong></td><td>"approximately $3–5 million" vs., two paragraphs later, "a full $4–6 million round."</td><td>The Fundraising Plan is the section the CRP criterion targets most directly.</td></tr>
+      <tr><td><strong>Dangling investor cross-reference</strong></td><td>"The commercial endpoints in Tables 4 and 5 are the ones those investors said they would need to see." No such tables exist in the Research Strategy; the Commercialization Plan's Tables 4 and 5 are unrelated.</td><td>The single strongest third-party-validation claim cannot be checked.</td></tr>
+      <tr><td><strong>Aim 1 milestone requires post-gate operations</strong></td><td>Employer-confirmed placement yield ≥25% is sourced to Task 1.4, while Aim 2 is defined as the point at which real-world operation begins.</td><td>Either the gate does not mean what it says, or the milestone is misplaced.</td></tr>
+      <tr><td><strong>Aim 2 enrollment vs. staging vs. gate</strong></td><td>55 episodes/market at 4–6/market-month, plus Wave 2 after Wave 1 confirmation, plus a close ≥90 days before the Year 2 gate.</td><td>The three constraints cannot simultaneously hold within Year 2.</td></tr>
+      <tr><td><strong>Engineering capacity vs. downstream need</strong></td><td>CP reduces engineering to "maintenance and refinement" (Y2) and "commercial refinement" (Y3), while the RS anticipates workflow correction, re-verification and envelope expansion throughout.</td><td>Under-resources the response to the failures the design expects.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Potential score-driving contradiction</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Element</th><th>Finding</th><th>Score impact</th></tr></thead>
+    <tbody>
+      <tr><td><strong>The Statement of Need claims the CRP retires evidence risk; the Research Strategy says it does not.</strong></td><td>CP Section 1 lists "Evidence risk — does establishing care produce outcomes and economic value institutional buyers care about?" among five risks the CRP bridges. RS Task 3.4 states plainly that "a subsequent payer or risk-bearing proof-of-concept will test whether that outcome changes utilization or total cost," and CP Section 8 concedes downstream utilization remains a hypothesis.</td><td>Significance and Commercialization Plan. A reviewer who reads the Statement of Need first will feel the opening oversold, which colors everything after it.</td></tr>
+      <tr><td><strong>The commercial GO gate can be passed by a non-viable business.</strong></td><td>The Aim 3 gate is contribution margin after <em>variable serving</em> costs, explicitly excluding acquisition and fixed platform cost. No CAC or cost-to-serve threshold exists in either document.</td><td>Approach and Commercialization Plan. Most likely criticism to be voiced first in discussion — the success criteria do not test the question the CRP exists to answer.</td></tr>
+      <tr><td><strong>The validated asset does not support the stated raise.</strong></td><td>The CRP validates a Staffing business modeled at $3.0M/yr at saturation and $400K in Year 5; the Fundraising Plan seeks $3–5M underwritten by an institutional thesis the CRP does not test.</td><td>Overall Impact and Fundraising Plan. Directly on the CRP third-party-funds criterion.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="sec wide" id="claims">
+  <p class="eyebrow">11 — Claim–evidence skepticism test</p>
+  <h2>The Ten Most Consequential Claims</h2>
+  <p>Ratings reflect only evidence present in the two supplied documents. No claim was upgraded on the assumption that unsupplied materials contain stronger evidence, except where the claim is of a type normally substantiated there.</p>
+  <div class="tw"><table>
+    <thead><tr><th class="n">#</th><th>Claim</th><th>Evidence in supplied documents</th><th>Strength</th><th>Remaining uncertainty</th></tr></thead>
+    <tbody>
+      <tr><td class="n">1</td><td>Unmet ADL needs independently predict ED use, readmission, institutionalization and mortality</td><td>Multiple peer-reviewed citations plus AHRQ Evidence Map</td><td><span class="chip c-strong">Strong</span></td><td>Association, not effect of Olera's intervention — correctly not overclaimed</td></tr>
+      <tr><td class="n">2</td><td>Providers face a severe, revenue-limiting workforce constraint</td><td>63.3% declined cases in 2023; ~75% median turnover; up to ~$2,700 per replacement; BLS projections</td><td><span class="chip c-strong">Strong</span></td><td>Whether that pain converts to willingness to pay <em>Olera</em> at a price covering Olera's cost</td></tr>
+      <tr><td class="n">3</td><td>Olera can reach families at meaningful scale at near-zero acquisition cost</td><td>50 → 500+ daily visits, 2023–2026, organic; "nearly every county"</td><td><span class="chip c-mod">Moderate / Weak</span></td><td>~5 visits per county per month cannot supply 4–6 enrolled episodes per market-month; paid acquisition conceded with no cost estimate</td></tr>
+      <tr><td class="n">4</td><td>Providers will pay approximately $250 per successful hire</td><td>Three of four trialing providers paid ~$250; delivery manual and founder-led</td><td><span class="chip c-weak">Weak</span></td><td>n=3; no pricing research; no benchmark; untested when automated and sold by a non-founder</td></tr>
+      <tr><td class="n">5</td><td>Two successful hires per active market per month</td><td>Labeled illustrative; only datum is 25 placements total from a university-concentrated pilot</td><td><span class="chip c-weak">Unsupported</span></td><td>10–30× the demonstrated rate; drives 100% of modeled revenue</td></tr>
+      <tr><td class="n">6</td><td>CareNavigator can agent-execute ≥70% of eligible administrative actions</td><td>None; Phase IIB built planning and matching, not execution</td><td><span class="chip c-weak">Unsupported</span></td><td>The applicant's own human-only control class may consume much of the denominator; no prior automation performance in these portals</td></tr>
+      <tr><td class="n">7</td><td>Caregiver Staffing creates genuinely <em>new</em> workforce supply</td><td>900+ student applicants; annually replenished pool; evening/weekend availability</td><td><span class="chip c-mod">Moderate / Weak</span></td><td>No pilot retention data; no evidence placements persisted; a named incumbent operates the same thesis</td></tr>
+      <tr><td class="n">8</td><td>The accumulated executed-case record is a compounding, defensible moat</td><td>Asserted; no patents; trade-secret and network-effect argument</td><td><span class="chip c-weak">Weak</span></td><td>No estimate of the case volume at which field knowledge measurably improves outcomes; Task 1.3 tests retrieval, not improvement</td></tr>
+      <tr><td class="n">9</td><td>Risk-bearing institutions will purchase CareNavigator</td><td>GUIDE precedent; 35.2M MA enrollees; 14.3M ACO lives; 511 MSSP ACOs</td><td><span class="chip c-mod">Moderate / Unsupported</span></td><td>The CRP generates no utilization, cost, or comparative outcome evidence</td></tr>
+      <tr><td class="n">10</td><td>Completing the CRP makes Olera investable for a $3–5M round</td><td>Two explicitly non-committal relationships; an advisor's introductions; a cross-reference to nonexistent tables</td><td><span class="chip c-weak">Weak</span></td><td>No term sheets, no prior institutional equity; the validated asset is not the asset the raise thesis requires</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section class="sec wide" id="retirement">
+  <p class="eyebrow">12 — Commercial-assumption retirement test</p>
+  <h2>Does the Research Strategy Generate the Evidence the Commercialization Plan Needs?</h2>
+  <div class="tw"><table>
+    <thead><tr><th>Assumption</th><th>Aim / Task</th><th>Success criterion</th><th>Retired?</th><th>Residual uncertainty</th></tr></thead>
+    <tbody>
+      <tr><td>Bounded agents can execute real administrative work safely</td><td>Aim 1 T1.2 → Aim 2 T2.2–2.3</td><td>≥90% agreement, no approval bypass; &gt;70% coverage; ≥70% live execution</td><td><span class="chip c-strong">Yes</span></td><td>Generalization to untested pathways, programs, states and portals</td></tr>
+      <tr><td>Users will authorize consequential agent actions</td><td>Aim 1 T1.5 → Aim 2 T2.2–2.4</td><td>≥90% correct classification; ≥60% authorize ≥1 action</td><td><span class="chip c-strong">Yes</span></td><td>Whether authorization persists after a publicized failure or at scale</td></tr>
+      <tr><td>Care can be established at a commercially meaningful rate</td><td>Aim 2 T2.3</td><td>Lower 95% CI bound &gt;35%</td><td><span class="chip c-strong">Yes, descriptively</span></td><td>No comparator, so no attributable effect; the 35% floor is undefended; the primary need is defined by Olera's own intake</td></tr>
+      <tr><td>Families can be acquired at the required volume and cost</td><td>Aim 2 T2.1</td><td>~440 enrolled; <strong>no CAC threshold</strong></td><td><span class="chip c-mod">Partially</span></td><td>Whether the required rate is achievable at all, and at what cost per enrolled episode</td></tr>
+      <tr><td>Providers can be activated per market</td><td>Aim 2 T2.1–2.2</td><td>No per-market provider target stated</td><td><span class="chip c-weak">Weakly</span></td><td>The number of active providers a functioning market requires is never specified</td></tr>
+      <tr><td>Workers can be recruited per market</td><td>Aim 2 T2.2–2.3</td><td>≥25% qualified-to-hire yield; throughput reported</td><td><span class="chip c-mod">Partially</span></td><td>The gate sits on the narrow denominator, excluding the 11% applicant-to-accepted step where most loss occurs</td></tr>
+      <tr><td><strong>Providers will pay, and at what price</strong></td><td>Aim 3 T3.1–3.2</td><td>≥20% conversion within 60 days</td><td><span class="chip c-weak">Not adequately</span></td><td><strong>No sample size and no precision are specified for the primary commercial endpoint</strong></td></tr>
+      <tr><td><strong>Unit economics support a business</strong></td><td>Aim 3 T3.3</td><td>Positive margin after <em>variable serving costs only</em></td><td><span class="chip c-weak">No</span></td><td>A market generating ~$270/month in contribution against an unmeasured activation cost passes the gate while being unprofitable</td></tr>
+      <tr><td>Revenue retains</td><td>Aim 3 T3.3</td><td>3- and 6-month retention reported, <strong>not gated</strong></td><td><span class="chip c-mod">Partially</span></td><td>6-month retention unachievable for Wave 2; post-CRP retention drives every expansion scenario</td></tr>
+      <tr><td>Market entry is repeatable without the founders</td><td>Aim 3 T3.2 Wave 2</td><td>Both waves activate without founder-dependent execution</td><td><span class="chip c-weak">Weakly</span></td><td>One trained individual across four markets</td></tr>
+      <tr><td><strong>Institutional buyers will purchase</strong></td><td>Aim 3 T3.4</td><td>Offer delivered and presented</td><td><span class="chip c-weak">No, by design</span></td><td>The entire institutional value proposition, which is the basis of the post-CRP raise</td></tr>
+      <tr><td><strong>Olera becomes investable</strong></td><td>Aims 2–3 collectively</td><td>No financing criterion</td><td><span class="chip c-weak">No</span></td><td>Whether the CRP-validated asset supports a $3–5M round</td></tr>
+    </tbody>
+  </table></div>
+  <div class="note" style="margin-top:6px">
+    <span class="tag">Assessment</span>
+    <p>Everything the Research Strategy is designed to retire, it retires well — the technical, safety, authorization and care-establishment assumptions are tested with genuine rigor and protected denominators. <strong>The failure is at the boundary.</strong> The three assumptions on which the Commercialization Plan's financing case actually rests — that providers will pay at a measurable, meaningful rate; that the fully loaded economics work; and that institutional buyers will purchase — are respectively untested for precision, gated on a margin definition that excludes the relevant costs, and deferred past the award entirely. A reviewer asking "will this award make the company financeable?" will find that the aims retire the research risks and leave the financing risk approximately where it started.</p>
+  </div>
+</section>
+
+<section class="sec" id="feasibility">
+  <p class="eyebrow">13 — Feasibility stress test</p>
+  <h2>Can This Program Be Executed?</h2>
+  <div class="verdicts">
+    <div class="verdict"><div class="dim">Family acquisition</div><div><span class="chip c-weak">Weakly supported</span></div><div class="txt">The only distribution evidence is ~15,500 national visits/month across "nearly every county" — roughly five per county per month before eligibility, consent and enrollment. No cost-per-enrolled-episode estimate, no CAC threshold, no contingency for accrual shortfall. The most likely point of program failure.</div></div>
+    <div class="verdict"><div class="dim">Provider acquisition</div><div><span class="chip c-mod">Plausible but vulnerable</span></div><div class="txt">700+ claimed listings and 200+ discovery conversations demonstrate national reach and an owned channel. But no per-market provider target exists, and no evidence of concentrated participation in any single county is offered.</div></div>
+    <div class="verdict"><div class="dim">Workforce acquisition</div><div><span class="chip c-weak">Reach plausible · rate weakly supported</span></div><div class="txt">900+ applicants establishes the pool is reachable. Two hires per market-month across eight markets is 10–30× the demonstrated rate, and the demonstrated rate came from a university-concentrated setting eight eldercare-selected counties will not reproduce.</div></div>
+    <div class="verdict"><div class="dim">Market activation (16)</div><div><span class="chip c-weak">Weakly supported</span></div><div class="txt">Sixteen markets requiring simultaneous three-sided concentration, run by two-to-four operations FTEs, against a capacity model whose own numbers contradict each other. The centralized architecture is the right answer and is why this is not rated implausible.</div></div>
+    <div class="verdict"><div class="dim">Technical workload (Aim 1)</div><div><span class="chip c-weak">Weakly supported</span></div><div class="txt">Seven-domain state model, bidirectional normalization, event-driven agent runtime with deterministic permission enforcement, browser automation against heterogeneous state portals, document/email/SMS/fax/scheduling integrations, field learning with conflict adjudication, and staffing automation — two engineers plus founder capacity, no component estimates, no interim milestones, with voice floated on top. The pre-existing platform is why this is not implausible.</div></div>
+    <div class="verdict"><div class="dim">Human-subjects workload</div><div><span class="chip c-mod">Plausible but vulnerable</span></div><div class="txt">Aim 1's n=75 study is well scaled and Clemson is capable. Aim 2 is the strain: 440 consented longitudinal episodes with 90-day ascertainment, a third-party corroboration hierarchy, purposive interviews across four outcome strata, and post-use surveys on three stakeholder sides — assuming ≤10% attrition.</div></div>
+    <div class="verdict"><div class="dim">Commercial workload (Y3)</div><div><span class="chip c-weak">Weakly supported</span></div><div class="txt">Preregistration after the Year 2 gate, two sequential waves with refinements between, a 60-day conversion window and 3- <em>and 6-month</em> retention do not fit twelve months. No sample size is given for the primary conversion endpoint.</div></div>
+    <div class="verdict"><div class="dim">Program vs. operating base</div><div><span class="chip c-mod">Plausible but vulnerable</span></div><div class="txt">The centralized model, existing platform, owned channels and scope-narrows-first rule are genuine mitigations. The concern is cumulative: each stretch is survivable, but the plan requires all of them to go right simultaneously in an organization of roughly ten people.</div></div>
+  </div>
+</section>
+
+<section class="sec" id="drivers">
+  <p class="eyebrow">14 — Score drivers</p>
+  <h2>What Moves the Score</h2>
+  <h3>Top score-driving strengths</h3>
+  <ol class="num">
+    <li><strong>The endpoint is the right one, and choosing it is a real contribution.</strong> Measuring whether a recognized need reaches <em>established</em> care — with referral, application, approval, match, appointment and job offer all explicitly excluded — is harder and more honest than what this field normally measures, and it is the outcome every stakeholder in the value chain actually cares about.</li>
+    <li><strong>The Approach is engineered against self-deception.</strong> Lower-confidence-bound decision rules; denominators protected against post-hoc narrowing; pricing, offers, exclusions and analysis rules fixed before the first paid market opens; prior-exposure markets excluded; failed markets retained in the denominator; adjudication without access to commercial results. Each closes a specific mechanism by which commercial pilots normally flatter themselves.</li>
+    <li><strong>The permission architecture is materially better than the field standard.</strong> Three prospectively assigned control classes enforced by the workflow engine rather than the LLM; refusal to infer legal authority from caregiver status; explicit prohibition on impersonation and on circumventing authentication; harm defined by administrative consequence; an independent safety monitor whose suspensions the PI cannot override.</li>
+    <li><strong>Six years of continuous, verifiable execution.</strong> A nationally deployed platform, 72,000+ curated records, four peer-reviewed evaluations, organic demand growth at near-zero cost, 700+ claimed listings, 900+ workforce applicants, and first revenue — accumulated under two prior NIA awards by the same team.</li>
+    <li><strong>Unusual honesty about what is and is not known.</strong> Revenue inputs labeled as hypotheses and assigned to the tasks that will replace them; institutional revenue excluded from the CRP and from the first post-CRP year; a Progress Report that refuses to treat early transactions as commercialization.</li>
+  </ol>
+
+  <h3>Top score-driving weaknesses</h3>
+  <ol class="num">
+    <li><strong>The commercial ceiling is small and the application never confronts it.</strong> $400K in Year 5; ~$3.0M annually at 500 markets — national saturation of the model as written.</li>
+    <li><strong>The venture-scale thesis is deferred past the award.</strong> Institutional CareNavigator is what makes the market framing meaningful, and the CRP produces no utilization, cost, or comparative outcome evidence for it.</li>
+    <li><strong>The Aim 3 primary commercial endpoint has no sample size or precision statement,</strong> in a document that computes Aim 2 intervals to one decimal place.</li>
+    <li><strong>The commercial GO gate excludes the costs that determine viability.</strong> The gate can be passed by a business that cannot fund its own market entry.</li>
+    <li><strong>Family recruitment is not supported by the distribution evidence offered,</strong> and it is the foundation of Aim 2.</li>
+    <li><strong>The staffing throughput assumption exceeds demonstrated performance by an order of magnitude,</strong> in a geographic configuration the pilot did not test, and it drives 100% of modeled revenue.</li>
+    <li><strong>The Fundraising Plan does not meet the CRP criterion.</strong> No prior institutional equity, no term sheets, two conflicting target ranges, and a validated asset that does not match the raise thesis.</li>
+    <li><strong>Load-bearing operational arithmetic does not reconcile:</strong> Year 2 enrollment vs. wave staging vs. the 90-day close rule; Year 3 vs. six-month retention; Aim 1 scope vs. two-to-three engineers; operations headcount stated as both two and four; capacity of 80 hours/month against a draw of 240 per market-month; an Aim 1 milestone requiring operations only Aim 2 permits.</li>
+  </ol>
+</section>
+
+<section class="sec" id="discussion">
+  <p class="eyebrow">15 — Reader experience</p>
+  <h2>Likely Discussion Dynamics</h2>
+  <ul class="plain">
+    <li><strong>Opening position (assigned reviewer).</strong> Important problem, correct endpoint, credible team with real continuity, genuinely disciplined design. Enthusiasm for the science; the concerns are commercial and operational, and several are arithmetic rather than conceptual.</li>
+    <li><strong>The pivot.</strong> A reviewer states the revenue ceiling aloud: "$400K in Year 5, $3.0M at 500 markets, and they're asking for $4M." Once said, this reframes the discussion from <em>is this good research</em> to <em>is this a CRP</em>. Everything after it is read through that lens.</li>
+    <li><strong>The second blow.</strong> The Aim 3 endpoint has no N. The contrast with Aim 2's precision analysis makes this look like an application whose research half was engineered and whose commercial half was asserted.</li>
+    <li><strong>The likely defense.</strong> The design discipline is real and unusual; the applicant is honest about what each aim retires; a project that measures what it actually did rather than what it hoped is worth funding even at modest commercial scale; the institutional pathway is large and the CRP is its necessary predicate.</li>
+    <li><strong>The likely counter.</strong> CRP funds commercialization readiness, not another evidence-generation round. If the award ends with a $48K annualized run rate, no institutional evidence, and no committed capital, the company faces the same Valley of Death its own Statement of Need describes.</li>
+    <li><strong>Where the panel splits.</strong> On Innovation, and on whether the operational arithmetic errors signal correctable drafting or genuine over-extension. Reviewers who have watched small teams attempt multi-market operations will read them as the latter.</li>
+    <li><strong>Probable convergence.</strong> Scores clustering at 4, with a plausible drift to 5 if the revenue ceiling and the missing sample size dominate, or to 3–4 if enthusiasm for the endpoint, the safety architecture and the team's record carries the room. The human-protection design is unlikely to be contested and may be explicitly praised.</li>
+  </ul>
+
+  <h3>Reader-experience findings</h3>
+  <p><strong>Primary reviewer — the mental model created.</strong> "A serious, mature company that knows exactly what it does not know, proposing a program roughly twice the size of its operating base." The reader trusts the applicant's characterization of evidence, then spends the second half of the reading working out whether ten people can execute sixteen market activations, a 440-episode study, and a full agentic infrastructure build in thirty-six months.</p>
+  <p><strong>Secondary reviewer — the most memorable issues.</strong> Two hires per market-month against a pilot that produced 25 placements total; $400K in Year 5 against a $4M ask; Aim 2's precision analysis beside Aim 3's absent sample size; the permission architecture, memorable as a <em>strength</em> and likely to be named as such; and the operations-capacity paragraph, where the numbers visibly contradict each other.</p>
+  <p><strong>Discussion-stage panel.</strong> Assuming a competent Specific Aims page, discussion will be dominated by whether the commercial magnitude justifies a CRP, whether sixteen markets are operationally credible at this team size, and whether the CRP retires financing risk or merely relocates it. A competent Aims page cannot change any of these; they arise from the numbers, not the framing.</p>
+  <p><strong>Skeptical reviewer — where belief weakens.</strong> Belief holds through Significance, Innovation and Aim 1 — this reader is impressed by the control-class architecture. It first wavers at Aim 2 Task 2.1, when the recruitment requirement is set against the distribution evidence. It breaks at the Revenue Stream section, at the sentence "500 markets, approximately 12,000 hires and $3.0 million," and does not recover through the Fundraising Plan.</p>
+  <p><strong>Presentation risks (not scored).</strong> Duplicate table numbers, a duplicated caption, an orphan "Table X," duplicated sentences, duplicate rows, and a truncated word opening a paragraph. Individually trivial; in aggregate they signal a document assembled under time pressure, in the sections reviewers read most carefully. The self-scored competitive matrix is a second. And the risk-retirement table — the most persuasive element in either document — is buried on page 14.</p>
+  <p><strong>Substantive reader problems a Specific Aims page cannot cure.</strong> The revenue ceiling; the missing Aim 3 sample size; the Year 2 and Year 3 timeline arithmetic; the contradictory operations-capacity numbers; the contribution-margin definition; and the gap between what the Statement of Need promises the award will retire and what the aims actually retire.</p>
+</section>
+
+<section class="sec" id="scorecard">
+  <p class="eyebrow">16 — Final scorecard</p>
+  <h2>Overall Impact Score</h2>
+  <div class="final">
+    <div class="top">
+      <div class="big">4</div>
+      <div class="r">
+        <p class="lbl">Overall Impact</p>
+        <p class="w">Very Good</p>
+        <div class="gauge" aria-hidden="true">
+          <span class="past"></span><span class="past"></span><span class="past"></span><span class="on"></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+        <div class="gauge-scale"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div>
+      </div>
+    </div>
+    <div class="why">
+      <h4>Why this score</h4>
+      <p>The application does the hard intellectual work correctly. It selects the endpoint the field avoids, builds an experimental architecture that resists self-serving interpretation, specifies human protections at a level of detail genuinely rare for agentic health systems, and is carried by a team with six years of continuous, verifiable delivery. Those properties are worth funding. But a CRP is evaluated on whether the award converts a validated asset into something independent capital will finance, and on that question the application argues against itself: its own model shows the product it will actually sell topping out near $3.0M in annual revenue at national saturation, the pathway that would justify the ask is excluded from the award by design, the commercial gate is defined on a margin measure that omits the costs that determine viability, the primary commercial endpoint has no sample size, and the Fundraising Plan offers relationships rather than commitments and states two different target raise amounts. Around that core sit half a dozen load-bearing operational numbers that do not reconcile.</p>
+      <h4>Why not one point better — 3</h4>
+      <p>A 3 requires the commercialization case to stand alongside the research case. It does not. No reviewer can conclude "high probability of commercialization" from a Year 5 base case of $400K, an untested institutional thesis, an ungated CAC, and a commercial success criterion that excludes acquisition cost. The application would also have to reconcile its own Statement of Need — which claims the CRP retires evidence risk — with Aim 3, which explicitly defers that risk to a post-award proof-of-concept.</p>
+      <h4>Why not one point worse — 5</h4>
+      <p>A 5 would imply the problems are conceptual, and they are not. The endpoint is right, the gating architecture is right, the permission model is better than the field standard, the honesty about what each aim does and does not retire is genuine and unusual, and the refusal to claim causal effects the design cannot support is exactly what reviewers want to see. Nearly every identified defect is a specification or arithmetic failure that could be corrected inside the existing page limits without altering the science. The distance between this application and a competitive one is real but narrow.</p>
+    </div>
+  </div>
+</section>
+
+<hr class="rule">
+
+<section class="sec" id="diagnostic">
+  <p class="eyebrow">17 — Prepared after scores were locked</p>
+  <h2>Final Applicant Diagnostic</h2>
+  <p class="lede">Ordered by expected score movement per unit of page space. Each item states the section, the problem, what a reviewer infers from it, the scoring consequence, and the minimum change that removes it.</p>
+
+  <h3>Must fix — Research Strategy</h3>
+
+  <details class="fix" open><summary><span class="id">RS-1</span><span>Aim 3 has no sample size or precision for the primary commercial endpoint</span></summary>
+  <div class="in"><dl>
+    <dt>Section</dt><dd>Aim 3, Task 3.1 and Table 3</dd>
+    <dt>Problem</dt><dd>"≥20% paid conversion across the prospective Aim 3 cohort" never states how many eligible priced offers the cohort contains, per market or pooled, and gives no precision.</dd>
+    <dt>Reviewer inference</dt><dd><em>"They engineered the research endpoint and asserted the commercial one."</em> In a document that computes Aim 2 half-widths to one decimal, the omission looks deliberate.</dd>
+    <dt>Scoring consequence</dt><dd>Approach and Overall Impact. The most quotable single defect in the application.</dd>
+    <dt>Minimum change</dt><dd>Two to three sentences plus one table row. State expected eligible priced offers per market and pooled N; give the CI half-width at 20% for that N; state the minimum N below which the analysis is reported as descriptive only. Mirror the Aim 2 precision language so the symmetry is visible.</dd>
+  </dl></div></details>
+
+  <details class="fix"><summary><span class="id">RS-2</span><span>Year 2 enrollment, wave staging, and the 90-day close rule do not reconcile</span></summary>
+  <div class="in"><dl>
+    <dt>Section</dt><dd>Aim 2, Task 2.1; Timetable</dd>
+    <dt>Problem</dt><dd>55 episodes/market at 4–6/market-month is 9–14 months of accrual; Wave 2 opens only after Wave 1 confirmation; enrollment must close ≥90 days before the Year 2 gate.</dd>
+    <dt>Reviewer inference</dt><dd><em>"They have not scheduled their own study."</em></dd>
+    <dt>Scoring consequence</dt><dd>Approach and Study Timeline.</dd>
+    <dt>Minimum change</dt><dd>A four-row per-wave accrual schedule (wave, months of accrual, episodes/market-month required, close date) plus one sentence stating the accrual rate that triggers the shortfall contingency and what that contingency is.</dd>
+  </dl></div></details>
+
+  <details class="fix"><summary><span class="id">RS-3</span><span>Aim 1 contains a milestone that only post-gate operations can produce</span></summary>
+  <div class="in"><dl>
+    <dt>Section</dt><dd>Aim 1, Task 1.4 and Table 1</dd>
+    <dt>Problem</dt><dd>Employer-confirmed placement yield ≥25% requires live workers, providers and hiring, while Aim 2 is defined as the point at which live operation begins.</dd>
+    <dt>Reviewer inference</dt><dd><em>"The gate does not mean what they say it means."</em> This undermines confidence in every other gate.</dd>
+    <dt>Scoring consequence</dt><dd>Approach; secondary damage to Human Subjects credibility.</dd>
+    <dt>Minimum change</dt><dd>Either move the yield measure to Aim 2's table, or add one sentence stating that existing non-CRP-gated staffing operations continue during Year 1 and that this milestone measures those operations, not gated CareNavigator execution.</dd>
+  </dl></div></details>
+
+  <details class="fix"><summary><span class="id">RS-4</span><span>Aim 1's build scope is not sized against the stated engineering capacity</span></summary>
+  <div class="in"><dl>
+    <dt>Section</dt><dd>Aim 1, "Execution capacity" and Tasks 1.1–1.4</dd>
+    <dt>Problem</dt><dd>Twelve months, two engineers plus founder capacity, no component-level estimates, no interim milestones, with "eventually AI-assisted voice" floated on top.</dd>
+    <dt>Reviewer inference</dt><dd><em>"Year 1 slips, the automation envelope shrinks, and Aims 2 and 3 measure a smaller system than proposed."</em></dd>
+    <dt>Scoring consequence</dt><dd>Approach, Environment, Study Timeline.</dd>
+    <dt>Minimum change</dt><dd>A compact build inventory — component → engineer-months → quarter completed → interim verification — and one sentence removing AI-assisted voice from the period of performance.</dd>
+  </dl></div></details>
+
+  <details class="fix"><summary><span class="id">RS-5</span><span>The 35% establishment threshold is asserted, not derived</span></summary>
+  <div class="in"><dl>
+    <dt>Section</dt><dd>Aim 2, Task 2.3</dd>
+    <dt>Problem</dt><dd>Characterized as a "commercialization floor" with no derivation from literature, provider economics, or buyer requirements.</dd>
+    <dt>Reviewer inference</dt><dd><em>"Chosen because it can be cleared."</em></dd>
+    <dt>Scoring consequence</dt><dd>Approach; contributes to the impression that commercial thresholds are set for passability.</dd>
+    <dt>Minimum change</dt><dd>Two sentences deriving 35% from something external — the establishment rate below which provider or institutional value does not exist, or the closest available comparator with its limitations stated.</dd>
+  </dl></div></details>
+
+  <details class="fix"><summary><span class="id">RS-6</span><span>The automation-coverage denominator collides with the human-only control class</span></summary>
+  <div class="in"><dl>
+    <dt>Section</dt><dd>Aim 1, Task 1.2 and Table 1</dd>
+    <dt>Problem</dt><dd>&gt;70% coverage is measured against "all required administrative actions," while attestation, identity-proofing and legal-authority actions — which dominate benefit applications — are human-only by the applicant's own rules.</dd>
+    <dt>Reviewer inference</dt><dd><em>"Either the target is unreachable or the test set was built to make it reachable."</em></dd>
+    <dt>Scoring consequence</dt><dd>Approach and Innovation; also weakens Aim 2's ≥70% execution endpoint, which inherits the denominator.</dd>
+    <dt>Minimum change</dt><dd>State the expected human-only share of required actions in the representative pathways; set coverage against the automatable remainder; report the human-only share separately as a structural finding.</dd>
+  </dl></div></details>
+
+  <details class="fix"><summary><span class="id">RS-7</span><span>Family recruitment feasibility is unaddressed</span></summary>
+  <div class="in"><dl>
+    <dt>Section</dt><dd>Aim 2, Task 2.1</dd>
+    <dt>Problem</dt><dd>No cost-per-enrolled-episode estimate, no per-market provider or family target, no accrual-shortfall contingency.</dd>
+    <dt>Reviewer inference</dt><dd><em>"They have not tested whether a single county can supply this."</em></dd>
+    <dt>Scoring consequence</dt><dd>Approach; the feasibility concern most likely to be voiced in discussion.</dd>
+    <dt>Minimum change</dt><dd>Three to four sentences: observed traffic and inquiry volume in a representative candidate county; expected funnel from inquiry to consented episode; estimated paid-acquisition cost per enrolled episode; and the accrual threshold that triggers channel reallocation or market substitution.</dd>
+  </dl></div></details>
+
+  <h3>Must fix — Commercialization Plan</h3>
+
+  <details class="fix" open><summary><span class="id">CP-1</span><span>The commercial GO gate excludes the costs that determine viability</span></summary>
+  <div class="in"><dl>
+    <dt>Section</dt><dd>Section 8 (Revenue Stream); Aim 3 Task 3.3 gate</dd>
+    <dt>Problem</dt><dd>"Positive contribution margin after attributable variable serving costs" explicitly excludes acquisition and fixed platform cost, and no CAC or cost-to-serve threshold exists anywhere.</dd>
+    <dt>Reviewer inference</dt><dd><em>"Their success criterion does not test whether the business works."</em></dd>
+    <dt>Scoring consequence</dt><dd>Approach, Commercialization Plan, Overall Impact. The strongest available criticism and the cheapest to remove.</dd>
+    <dt>Minimum change</dt><dd>Add a fully loaded cost-per-successful-hire including worker and provider acquisition media; add a CAC-payback or contribution-after-acquisition criterion to the Aim 3 gate; state the per-market activation cost the model must cover.</dd>
+  </dl></div></details>
+
+  <details class="fix" open><summary><span class="id">CP-2</span><span>The revenue ceiling is never confronted</span></summary>
+  <div class="in"><dl>
+    <dt>Section</dt><dd>Section 8, Tables 7 and 8</dd>
+    <dt>Problem</dt><dd>$400K in Year 5 and ~$3.0M at 500 markets are presented without comment, against a $4M request.</dd>
+    <dt>Reviewer inference</dt><dd><em>"They either haven't done this arithmetic or hoped we wouldn't."</em></dd>
+    <dt>Scoring consequence</dt><dd>Significance and Overall Impact; the pivot point of the likely discussion.</dd>
+    <dt>Minimum change</dt><dd>One direct paragraph. Either <strong>(a)</strong> reframe Caregiver Staffing as a capacity mechanism and financing bridge whose purpose is to fund and de-risk the institutional pathway rather than to be the commercial thesis, and size the institutional opportunity explicitly; or <strong>(b)</strong> present a defensible expansion case with pricing, attach rate, or multi-product revenue per market that reaches a scale consistent with the ask. Do not leave the number standing alone.</dd>
+  </dl></div></details>
+
+  <details class="fix"><summary><span class="id">CP-3</span><span>Operations headcount and capacity arithmetic contradict each other</span></summary>
+  <div class="in"><dl>
+    <dt>Section</dt><dd>Table 3 and Section 7</dd>
+    <dt>Problem</dt><dd>Two vs. four operations FTE; "up to 80 productive support hours per month" against "no more than 240 support hours per active market-month."</dd>
+    <dt>Reviewer inference</dt><dd><em>"The capacity governor they cite in both documents cannot be applied."</em></dd>
+    <dt>Scoring consequence</dt><dd>Environment, Project Management Plan; also undermines the Research Strategy's wave-activation rule, which cites it.</dd>
+    <dt>Minimum change</dt><dd>Correct headcount to one number; restate capacity as total available hours per month and required hours per active market-month, and show the arithmetic for a four-market wave.</dd>
+  </dl></div></details>
+
+  <details class="fix"><summary><span class="id">CP-4</span><span>The Fundraising Plan does not meet the CRP criterion</span></summary>
+  <div class="in"><dl>
+    <dt>Section</dt><dd>Section 6</dd>
+    <dt>Problem</dt><dd>Two conflicting target ranges ($3–5M; $4–6M); no term sheets or prior institutional equity; a raise thesis underwritten by an opportunity the CRP does not validate; no use-of-funds build.</dd>
+    <dt>Reviewer inference</dt><dd><em>"They cannot show us third-party funds equal to or exceeding the request."</em></dd>
+    <dt>Scoring consequence</dt><dd>Overall Impact and Fundraising Plan, directly on-criterion.</dd>
+    <dt>Minimum change</dt><dd>Fix the range to a single number derived from a stated use-of-funds build. Add the specific metric thresholds a lead investor has indicated would trigger diligence, and name who provided them. Address explicitly why a validated Staffing business plus an institutional proof-of-concept specification is financeable at that size.</dd>
+  </dl></div></details>
+
+  <details class="fix"><summary><span class="id">CP-5</span><span>The Statement of Need overclaims what the award retires</span></summary>
+  <div class="in"><dl>
+    <dt>Section</dt><dd>Section 1, five-risk list and Figure 3</dd>
+    <dt>Problem</dt><dd>"Evidence risk — does establishing care produce outcomes and economic value institutional buyers care about?" is listed as retired by the CRP; the Research Strategy defers it to a post-award proof-of-concept, and Section 8 concedes it is a hypothesis.</dd>
+    <dt>Reviewer inference</dt><dd><em>"The opening section oversold; I should discount the rest."</em> Opening-section overclaims are disproportionately damaging because they set the reading posture.</dd>
+    <dt>Scoring consequence</dt><dd>Significance and Commercialization Plan.</dd>
+    <dt>Minimum change</dt><dd>Rewrite risk #3 as "generate the intermediate-outcome evidence and contracting-ready specification required to <em>run</em> the institutional validation," and state in the same sentence that utilization and cost validation occur post-award.</dd>
+  </dl></div></details>
+
+  <details class="fix"><summary><span class="id">CP-6</span><span>Multi-state licensure, referral compliance, and matching neutrality are unaddressed</span></summary>
+  <div class="in"><dl>
+    <dt>Section</dt><dd>Section 4, strategic alliances and route to market</dd>
+    <dt>Problem</dt><dd>Sixteen markets potentially spanning multiple states, with worker placement and provider payment relationships, and a single table-cell mention of "referral-compliance review."</dd>
+    <dt>Reviewer inference</dt><dd><em>"They have not scoped the compliance surface of their own operating model."</em></dd>
+    <dt>Scoring consequence</dt><dd>Environment and Commercialization Plan.</dd>
+    <dt>Minimum change</dt><dd>One short paragraph: state whether the placement model triggers state employment-agency or healthcare-staffing licensure in the candidate markets and how that is handled; state explicitly that paying Staffing customers receive no preference in family matching, and name the control that enforces it.</dd>
+  </dl></div></details>
+
+  <h3>Cross-document fixes required</h3>
+  <ol class="num">
+    <li><strong>Repair the "Tables 4 and 5" cross-reference</strong> in the Research Strategy's investor-readiness paragraph — the tables it points to do not exist. This is the single strongest third-party-validation claim in the application, and as written it cannot be verified.</li>
+    <li><strong>Renumber all tables in both documents.</strong> Two Table 1s and two Table 2s in the Research Strategy before a jump to Table 6; two Table 4s, two Table 8s, an orphan "Table X" and a "Table 8. Table 8." duplication in the Commercialization Plan.</li>
+    <li><strong>Reconcile the risk lists.</strong> The Statement of Need's five risks and the Progress Report's retired/remaining risks should use the same names in the same order, each mapped to the aim that addresses it, with an explicit note on what is deferred past the award.</li>
+    <li><strong>Fix the placement count</strong> (25 vs. "more than 20") and use one figure throughout.</li>
+    <li><strong>Remove duplicated sentences</strong> in Tasks 2.3 and 3.1, the duplicate rows in Table 3, and the truncated word opening the "Financing continuity" paragraph.</li>
+    <li><strong>Reconcile engineering staffing</strong> between the Research Strategy's added engineer and the Commercialization Plan's Year 2 "maintenance and refinement," which contradicts the workflow correction and envelope expansion the Research Strategy expects.</li>
+    <li><strong>Replace the vague Aim 3 milestone</strong> "Independent financial validation — delivered where commitment remains applicable" with a measurable deliverable and date.</li>
+  </ol>
+
+  <h3>Worth fixing if space permits</h3>
+  <ul class="plain">
+    <li><strong>Qualify the market count.</strong> Replace "more than 3,100" with the number of counties meeting the plan's own selection criteria. A smaller, defended number is more persuasive than a larger, indefensible one.</li>
+    <li><strong>Add pilot retention data</strong> — hours worked, tenure, semester-over-semester persistence. The central innovation claim is <em>durable new supply</em>, and this is the only place it can be evidenced today.</li>
+    <li><strong>Soften the competitive matrix.</strong> Award Olera a partial mark in at least one column and add one sentence on where a named competitor is genuinely stronger.</li>
+    <li><strong>Report the full workforce funnel gate.</strong> Present both applicant-to-hire and accepted-to-hire yields; the honesty will be credited more than the higher number.</li>
+    <li><strong>Add a defended per-market provider target</strong> so Aim 2's provider-side feasibility has a criterion.</li>
+    <li><strong>Address decisional capacity</strong> for cognitively impaired older adults in one sentence in Task 1.2, and remediation of agent-caused harm in one sentence in the Aim 2 monitoring paragraph. Both are design-level and cannot be fully repaired in the Human Subjects section alone.</li>
+    <li><strong>Surface the risk-retirement table.</strong> It is the most persuasive element in either document and sits on page 14.</li>
+  </ul>
+
+  <h3>Do not waste space on</h3>
+  <ul class="plain">
+    <li><strong>Filing or promising patents.</strong> The trade-secret and data-substrate position is coherent; a speculative patent claim would read as reactive without improving the IP score.</li>
+    <li><strong>Additional market-size statistics.</strong> Adding TAM figures deepens rather than fixes the ceiling problem.</li>
+    <li><strong>More literature in Significance.</strong> The unmet-need evidence is the strongest-supported material in the application.</li>
+    <li><strong>Expanding the vicious-cycle narrative or the four-systems framing.</strong> Reviewers accepted the problem on the first page.</li>
+    <li><strong>Additional detail on the field-learning layer.</strong> It is well described and is not where belief is lost.</li>
+    <li><strong>Restating the human-protection architecture.</strong> It is already the best-specified section; further elaboration spends space the fixes above need.</li>
+  </ul>
+</section>
+
+<div class="foot">
+  <span>Mock review · not an NIH document</span>
+  <span>Scored on Research Strategy and Commercialization Plan only</span>
+  <span>All other components assumed adequate and unscored</span>
+</div>
+
+</main>
+</div>

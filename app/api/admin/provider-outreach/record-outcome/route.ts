@@ -275,7 +275,7 @@ export async function POST(request: NextRequest) {
 
           // If we don't have lead_id, look it up by email
           if (!leadId && smartleadData.lead_email) {
-            const lookup = await getLeadByEmail(smartleadData.campaign_id, smartleadData.lead_email);
+            const lookup = await getLeadByEmail(smartleadData.lead_email);
             if (lookup.ok && lookup.data?.id) {
               leadId = lookup.data.id;
             }

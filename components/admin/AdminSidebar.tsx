@@ -44,6 +44,7 @@ const navSections: NavSection[] = [
       // Outreach merged into Connections (direction=outbound toggle)
       // Leads retired — Connections page now handles all lead management
       { label: "Provider Outreach", href: "/admin/provider-outreach" },
+      { label: "City Broadcasts", href: "/admin/city-broadcasts" },
       { label: "Questions", href: "/admin/questions" },
     ],
   },
@@ -85,7 +86,6 @@ const navSections: NavSection[] = [
       // send risk, this one carries who stopped hearing from us. Two halves.
       { label: "Deliverability", href: "/admin/deliverability" },
       { label: "Family Comms", href: "/admin/family-comms" },
-      { label: "City Broadcasts", href: "/admin/city-broadcasts" },
       { label: "Benefits", href: "/admin/benefits" },
       // "Articles" — next to Benefits (also content), "Content" was ambiguous
       { label: "Articles", href: "/admin/content" },

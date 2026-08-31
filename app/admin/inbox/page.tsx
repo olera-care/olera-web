@@ -5,7 +5,12 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import AdminWorkspace from "@/components/admin/AdminWorkspace";
 import AnswerPacketPanel from "@/components/admin/AnswerPacketPanel";
-import { packetNeedsAttention, type AnswerPacket } from "@/lib/family-answers/types";
+import RecheckPanel from "@/components/admin/RecheckPanel";
+import {
+  packetNeedsAttention,
+  type AnswerPacket,
+  type RecheckRecord,
+} from "@/lib/family-answers/types";
 import type { SmsThreadState } from "@/lib/sms/inbox-threads";
 
 /**
@@ -110,6 +115,14 @@ interface ThreadDetail {
   draft: { body: string; updated_by: string | null; updated_at: string } | null;
   /** The most recent researched answer waiting on a human, if the engine has produced one. */
   answerPacket: { jobId: string; packet: AnswerPacket } | null;
+  /**
+   * The recipient's send window, evaluated in THEIR timezone. Drives what the
+   * send button says before it is pressed, so nobody discovers the rule by
+   * having a text held.
+   */
+  quietHours: { allowed: boolean; tz: string; sendAfter: string | null };
+  /** A reply already written and waiting for that window to open. */
+  scheduled: { id: string; body: string; send_after: string; queued_by: string | null } | null;
 }
 
 /** What the draft indicator is currently saying. */
@@ -122,6 +135,33 @@ type DraftState =
 
 function formatPhone(last10: string): string {
   return `(${last10.slice(0, 3)}) ${last10.slice(3, 6)}-${last10.slice(6)}`;
+}
+
+/** Just the clock part, for a button that has to stay narrow. */
+function formatEtTime(iso: string | null): string {
+  if (!iso) return "later";
+  return new Date(iso).toLocaleString("en-US", {
+    timeZone: "America/New_York",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+/**
+ * What time it is where the RECIPIENT is.
+ *
+ * The one number that makes a held send make sense. Admin times anchor to
+ * Eastern everywhere else in this app, and that convention is exactly what
+ * hides the problem here: 6:52am ET reads as an ordinary early morning to
+ * someone in Bangkok reading an Eastern-stamped screen, and says nothing about
+ * the person whose phone is on their nightstand.
+ */
+function formatLocalHour(tz: string): string {
+  return new Date().toLocaleString("en-US", {
+    timeZone: tz,
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 /** Admin surfaces anchor to US Eastern — TJ reads these from other time zones. */
@@ -178,6 +218,14 @@ export default function AdminSmsInboxPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);
+  const [rechecking, setRechecking] = useState(false);
+  /**
+   * Result of the most recent re-check, held in component state rather than
+   * persisted into the packet. It belongs to the text in the box right now: the
+   * moment that text changes it is stale, and a stale check that still looks
+   * authoritative is exactly the problem this feature exists to solve.
+   */
+  const [recheckResult, setRecheckResult] = useState<RecheckRecord | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [draftState, setDraftState] = useState<DraftState>({ kind: "none" });
@@ -246,6 +294,10 @@ export default function AdminSmsInboxPage() {
       setDetailLoading(true);
       setActionError(null);
       setNotice(null);
+      // A re-check belongs to one specific string in one specific thread.
+      // Carrying it across a thread switch would attach a verdict about one
+      // family's message to another family's.
+      setRecheckResult(null);
       try {
         const res = await fetch(`/api/admin/sms-inbox/${phone}`);
         if (!res.ok) throw new Error((await res.json())?.error || "Failed to load thread");
@@ -510,7 +562,11 @@ export default function AdminSmsInboxPage() {
       await Promise.all([loadDetail(selected, { adoptDraft: true }), loadThreads()]);
       // Set AFTER the reload: loadDetail clears `notice`, so setting it first
       // wipes the confirmation before it ever paints.
-      setNotice("Reply sent.");
+      setNotice(
+        data?.scheduled
+          ? `Scheduled for ${formatEt(data.scheduled.sendAfter)} ET, when their quiet hours end.`
+          : "Reply sent.",
+      );
     } catch (err) {
       setActionError(err instanceof Error ? err.message : "Failed to send reply");
     } finally {
@@ -531,6 +587,58 @@ export default function AdminSmsInboxPage() {
       await Promise.all([loadDetail(selected), loadThreads()]);
     } catch (err) {
       setActionError(err instanceof Error ? err.message : "Failed to mark handled");
+    }
+  }
+
+  async function cancelScheduled() {
+    if (!selected || sending) return;
+    setSending(true);
+    setActionError(null);
+    setNotice(null);
+    try {
+      const res = await fetch(`/api/admin/sms-inbox/${selected}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cancel_scheduled" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || "Failed to cancel");
+      await Promise.all([loadDetail(selected, { adoptDraft: true }), loadThreads()]);
+      setNotice("Send canceled. The reply is back in the box.");
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to cancel");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  /**
+   * Attack the text currently in the box.
+   *
+   * The packet's objections describe the draft the ENGINE wrote. Editing that
+   * draft silently invalidates every one of them while the panel goes on
+   * showing the source count, which is the most misleading state the review
+   * surface has. This is the way back to a checked message.
+   */
+  async function recheck() {
+    if (!selected || !reply.trim() || rechecking) return;
+    setRechecking(true);
+    setActionError(null);
+    setNotice(null);
+    setRecheckResult(null);
+    try {
+      const res = await fetch(`/api/admin/sms-inbox/${selected}/recheck`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body: reply.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || "Re-check failed");
+      setRecheckResult(data.recheck as RecheckRecord);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Re-check failed");
+    } finally {
+      setRechecking(false);
     }
   }
 
@@ -878,6 +986,32 @@ export default function AdminSmsInboxPage() {
                     {detail.suppression?.reason === "sms_stop" ? " by texting STOP" : ""}. Replying is
                     blocked — they asked us to stop contacting them.
                   </p>
+                ) : detail.scheduled ? (
+                  /* A committed reply waiting on the clock. It replaces the box
+                     rather than sitting above it: the thread is answered, and a
+                     live textarea here would invite a second reply to a question
+                     that already has one. */
+                  <div className="rounded-lg border border-gray-200 px-3 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-teal-500" />
+                      <span className="text-[13px] font-medium text-gray-900">
+                        Sending {formatEt(detail.scheduled.send_after)} ET
+                      </span>
+                      <button
+                        onClick={cancelScheduled}
+                        disabled={sending}
+                        className="ml-auto text-[11px] text-gray-400 hover:text-red-600 disabled:opacity-40 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    <p className="mt-1.5 text-[11px] text-gray-400">
+                      Held until their quiet hours end. Cancelling puts it back in the box.
+                    </p>
+                    <p className="mt-2 whitespace-pre-wrap text-[13px] leading-relaxed text-gray-600">
+                      {detail.scheduled.body}
+                    </p>
+                  </div>
                 ) : (
                   <>
                     <textarea
@@ -892,6 +1026,12 @@ export default function AdminSmsInboxPage() {
                       <span className="text-[11px] text-gray-400 tabular-nums">
                         {reply.length}/480
                         {segments > 1 ? ` · ${segments} segments` : ""}
+                        {!detail.quietHours.allowed && (
+                          <span className="text-amber-600">
+                            {" · "}
+                            {formatLocalHour(detail.quietHours.tz)} for them
+                          </span>
+                        )}
                       </span>
                       <div className="flex items-center gap-3">
                         <DraftStatus state={draftState} />
@@ -905,15 +1045,37 @@ export default function AdminSmsInboxPage() {
                           </button>
                         )}
                         <button
+                          onClick={recheck}
+                          disabled={!reply.trim() || rechecking || sending}
+                          title="Re-run the adversarial check against this text"
+                          className="text-[12px] font-medium px-2.5 py-1.5 rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {rechecking ? "Checking…" : "Re-check"}
+                        </button>
+                        <button
                           onClick={sendReply}
                           disabled={!reply.trim() || sending}
                           className="text-[13px] font-medium px-3.5 py-1.5 rounded-md bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                         >
-                          {sending ? "Sending…" : "Send text"}
+                          {sending
+                            ? "Sending…"
+                            : detail.quietHours.allowed
+                              ? "Send text"
+                              : `Schedule ${formatEtTime(detail.quietHours.sendAfter)}`}
                         </button>
                       </div>
                     </div>
                   </>
+                )}
+
+                {recheckResult && !detail.scheduled && (
+                  <RecheckPanel
+                    result={recheckResult}
+                    currentDraft={reply}
+                    onUseSuggestion={adoptDraftText}
+                    onDismiss={() => setRecheckResult(null)}
+                    disabled={sending}
+                  />
                 )}
 
                 {actionError && (

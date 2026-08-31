@@ -407,8 +407,8 @@ export const CRON_REGISTRY: CronJob[] = [
   {
     id: "sms-queue-flush",
     name: "SMS queue flush",
-    description: "Drains sms_queue — reactive care-seeker reply-alert texts held outside the recipient's 8am–8pm quiet-hours window. Re-checks opt-out + the daily safety throttle at delivery.",
-    recipientCohort: "Families with a deferred reply-alert SMS whose send window has opened.",
+    description: "Drains sms_queue — reactive care-seeker reply-alert texts AND human replies written from /admin/inbox, both held outside the recipient's 8am–8pm quiet-hours window. Re-checks opt-out at delivery (the daily throttle too, except for human replies, which an immediate send never consulted either). A canceled human reply reopens its thread in the inbox rather than disappearing.",
+    recipientCohort: "Families with a deferred reply-alert SMS or a scheduled admin reply whose send window has opened.",
     audience: "Care seekers",
     fn: "alert",
     schedule: "0 * * * *",

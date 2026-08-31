@@ -38,6 +38,10 @@ import {
  * the checker never pays, so something has to argue the other side.
  *
  * The output is a packet for a human to approve. Nothing here sends anything.
+ *
+ * `recheckDraft` re-runs stages 4 and 5 on demand against a draft a human
+ * rewrote, because the packet's objections only ever describe the draft the
+ * engine produced. See the note above that function.
  */
 
 const RESEARCH_MODEL = "claude-opus-5";
@@ -405,6 +409,147 @@ ${objections.map((o, i) => `${i + 1}. TARGET: ${o.target}\n   OBJECTION: ${o.obj
   return {
     objections: Array.isArray(parsed?.objections) ? parsed!.objections : [],
     draft: typeof parsed?.draft === "string" && parsed.draft.trim() ? parsed.draft.trim() : draftText,
+  };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Re-check — stages 4 and 5, re-run against a draft a human rewrote
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * The adversarial pass in `buildAnswerPacket` attacks the draft the engine
+ * wrote. The moment a reviewer rewrites that draft, every objection in the
+ * packet describes a message that no longer exists, and the replacement ships
+ * with no adversarial coverage at all. That is the most dangerous state in the
+ * whole system: the review surface still shows a reassuring source count, and
+ * every one of those sources is about superseded text.
+ *
+ * It happened on 2026-08-31. The engine's draft was replaced by hand, and the
+ * only way to attack the replacement was to paste it into a browser.
+ *
+ * Claims are the reason this is not simply "call stages 4 and 5 again". Stage 4
+ * takes the draft AND the claims it rests on, and after a rewrite those claims
+ * belong to the old text. Passing them through would have the checker verifying
+ * assertions the message no longer makes while ignoring the ones it now does.
+ * So the re-check re-derives claims FROM the edited draft first, which is a
+ * different question from the one stage 2 answers: not "what is true about this
+ * family's situation" but "what is this specific sentence asserting, and does
+ * the administering agency's own page bear it out".
+ */
+
+/** Pull the factual assertions out of a human-written draft and source each one. */
+async function verifyDraftClaims(
+  draftText: string,
+  question: string,
+): Promise<{ claims: SourcedClaim[]; notes: string }> {
+  const client = anthropic();
+
+  const system = `You verify a text message that a senior-care service is about to send to a family.
+
+Work backwards from the message itself. List every factual assertion it makes: phone numbers, agency names, age and residency rules, income rules, cost, who administers what. For each one, check it against the administering agency's own page and record what that page actually says.
+
+Return ONLY a JSON object:
+{"claims":[{"claim":"the assertion as the message makes it","sourceUrl":"...","sourceLabel":"...","confidence":"primary|secondary|unsourced"}],"notes":"anything the message asserts that you could not source"}
+
+confidence: primary = the administering agency's own page or an official state PDF. secondary = news, aggregator, or third-party summary. unsourced = you could not find it.
+
+Mark a claim "unsourced" honestly rather than reaching for a weak match. An unsourced claim is the single most useful thing you can hand the reviewer, and burying it in a plausible citation is the failure this stage exists to prevent.
+
+A phone number belonging to a DIFFERENT agency than the one under discussion is not unsourced merely because it is absent from the first agency's materials. Find that number's own administering source and judge it there.`;
+
+  const message = await client.messages.create({
+    model: RESEARCH_MODEL,
+    max_tokens: 8000,
+    thinking: { type: "adaptive" },
+    output_config: { effort: "high" },
+    system,
+    tools: [{ type: "web_search_20260209", name: "web_search", max_uses: 8 }],
+    messages: [
+      {
+        role: "user",
+        content: `THE FAMILY ASKED:\n${question}\n\nTHE MESSAGE ABOUT TO BE SENT:\n${draftText}`,
+      },
+    ],
+  });
+
+  const parsed = parseJson<{ claims: SourcedClaim[]; notes: string }>(textOf(message));
+  return {
+    claims: Array.isArray(parsed?.claims) ? parsed!.claims : [],
+    notes: typeof parsed?.notes === "string" ? parsed.notes : "",
+  };
+}
+
+export interface RecheckResult {
+  /** The draft that was checked, verbatim. */
+  draft: string;
+  claims: SourcedClaim[];
+  objections: Objection[];
+  /**
+   * Stage 5's revision. Offered, never applied: on 2026-08-31 three of five
+   * objections were wrong, and the checker's headline objection would have
+   * stripped a verified state helpline out of a message and left the family
+   * with nowhere to call. Adopting this is a human's decision.
+   */
+  suggestedDraft: string;
+  notes: string;
+  at: string;
+  errors?: string[];
+}
+
+/**
+ * Attack a draft a human wrote or edited. Same two adversarial stages the
+ * engine runs, pointed at text the engine did not produce.
+ *
+ * Never throws, for the same reason `buildAnswerPacket` never throws: a partial
+ * result a reviewer can read beats an error toast that leaves them with the
+ * unverified draft they already had.
+ */
+export async function recheckDraft(args: {
+  draft: string;
+  question: string;
+}): Promise<RecheckResult> {
+  const errors: string[] = [];
+  const at = new Date().toISOString();
+  const draftText = args.draft.trim();
+
+  let claims: SourcedClaim[] = [];
+  let notes = "";
+  try {
+    const verified = await verifyDraftClaims(draftText, args.question);
+    claims = verified.claims;
+    notes = verified.notes;
+  } catch (err) {
+    errors.push(`claims: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
+  let raw: RawObjection[] = [];
+  try {
+    raw = await adversarialCheck(draftText, claims);
+  } catch (err) {
+    errors.push(`adversarial: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
+  // No objections is a real result, not an empty one: it means the checker
+  // looked and found nothing, and the reviewer should see that stated rather
+  // than an absence they have to interpret.
+  let objections: Objection[] = [];
+  let suggestedDraft = draftText;
+  try {
+    const rebuttal = await rebut(draftText, raw, claims);
+    objections = rebuttal.objections;
+    suggestedDraft = rebuttal.draft;
+  } catch (err) {
+    errors.push(`rebuttal: ${err instanceof Error ? err.message : String(err)}`);
+  }
+
+  return {
+    draft: draftText,
+    claims,
+    objections,
+    suggestedDraft,
+    notes,
+    at,
+    ...(errors.length ? { errors } : {}),
   };
 }
 

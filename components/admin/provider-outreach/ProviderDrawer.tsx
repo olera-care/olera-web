@@ -681,8 +681,13 @@ function ContactSection({
         body: JSON.stringify({ provider_id: provider.provider_id, email: foundEmail.email, force }),
       });
       if (res.ok) {
+        const data = await res.json().catch(() => ({}));
         onEmailUpdate?.(foundEmail.email);
         setFoundEmail(null);
+        // Warn if SmartLead sync failed (email saved but sequence not updated)
+        if (data.smartleadSynced === false && data.smartleadError) {
+          setEmailError(`Saved, but SmartLead sync failed: ${data.smartleadError}`);
+        }
       } else {
         const data = await res.json().catch(() => ({}));
         // Handle specific errors with human-readable messages
@@ -724,11 +729,16 @@ function ContactSection({
         body: JSON.stringify({ provider_id: provider.provider_id, email: emailValue.trim(), force }),
       });
       if (res.ok) {
+        const data = await res.json().catch(() => ({}));
         onEmailUpdate?.(emailValue.trim());
         setEditingEmail(false);
         // Reset verification state on successful save
         setVerificationStatus("idle");
         setTrustScoreStatus("idle");
+        // Warn if SmartLead sync failed (email saved but sequence not updated)
+        if (data.smartleadSynced === false && data.smartleadError) {
+          setEmailError(`Saved, but SmartLead sync failed: ${data.smartleadError}`);
+        }
       } else {
         const data = await res.json().catch(() => ({}));
         // Handle specific errors with human-readable messages
@@ -1220,7 +1230,12 @@ function SavedContactsSection({
         body: JSON.stringify({ provider_id: provider.provider_id, email }),
       });
       if (res.ok) {
+        const data = await res.json().catch(() => ({}));
         onUseEmail?.(email);
+        // Warn if SmartLead sync failed (logged since no error UI in this context)
+        if (data.smartleadSynced === false && data.smartleadError) {
+          console.warn(`[ProviderDrawer] SmartLead sync failed for ${email}:`, data.smartleadError);
+        }
       }
     } finally {
       setUsingEmail(null);
@@ -1569,7 +1584,12 @@ function DecisionMakerSection({
         }),
       });
       if (res.ok) {
+        const data = await res.json().catch(() => ({}));
         onUseEmail?.(contact.email);
+        // Warn if SmartLead sync failed
+        if (data.smartleadSynced === false && data.smartleadError) {
+          setError(`Saved, but SmartLead sync failed: ${data.smartleadError}`);
+        }
       } else {
         const data = await res.json();
         setError(data.error || "Failed to update");

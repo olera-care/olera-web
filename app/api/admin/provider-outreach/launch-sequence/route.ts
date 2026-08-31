@@ -26,7 +26,7 @@ import {
   selectVariantsForProviders,
   type VariantAssignment,
 } from "@/lib/provider-outreach/variant-testing";
-import { isSmartleadConfigured } from "@/lib/smartlead";
+import { isSmartleadConfigured, getLeadByEmail } from "@/lib/smartlead";
 
 /**
  * POST /api/admin/provider-outreach/launch-sequence
@@ -717,8 +717,20 @@ export async function POST(request: NextRequest) {
               for (const trackingId of report.enrolled_tracking_ids) {
                 const provider = stateProviders.find((p) => p.tracking_id === trackingId);
                 if (provider) {
+                  // Look up lead_id from SmartLead to enable future email syncs
+                  let leadId: number | undefined;
+                  try {
+                    const leadLookup = await getLeadByEmail(provider.email!);
+                    if (leadLookup.ok && leadLookup.data?.id) {
+                      leadId = leadLookup.data.id;
+                    }
+                  } catch (err) {
+                    console.warn(`[launch-sequence] Failed to lookup lead_id for ${provider.email}:`, err);
+                  }
+
                   const smartleadData: ProviderSmartleadData = {
                     campaign_id: report.campaign_id,
+                    lead_id: leadId,
                     lead_email: provider.email!,
                     enrolled_at: new Date().toISOString(),
                     campaign_name: campaignName,

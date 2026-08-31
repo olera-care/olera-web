@@ -146,6 +146,32 @@ export interface AnswerPacket {
   errors?: string[];
 }
 
+/**
+ * One adversarial re-check a human ran against an edited draft, stored on
+ * family_answer_jobs.rechecks.
+ *
+ * The packet's own `objections` are bound to `packet.draft`. A reviewer who
+ * rewrites the draft invalidates all of them at once, and the review surface
+ * goes on displaying a source count that belongs to superseded text. This is
+ * the record that the replacement was attacked too, and by whom.
+ *
+ * Append-only. The history is the point: what got challenged and what the
+ * reviewer did about it says more about the engine than the final draft does.
+ */
+export interface RecheckRecord {
+  at: string;
+  /** Admin email that ran it. */
+  by: string;
+  /** The draft as it stood when checked. */
+  draft: string;
+  claims: SourcedClaim[];
+  objections: Objection[];
+  /** Stage 5's revision. Offered to the reviewer, never applied automatically. */
+  suggestedDraft: string;
+  notes: string;
+  errors?: string[];
+}
+
 /** Characters. Matches the reply box, the sms_drafts CHECK, and Twilio. */
 export const MAX_REPLY_CHARS = 480;
 

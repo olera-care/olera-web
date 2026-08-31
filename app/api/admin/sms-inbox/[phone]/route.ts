@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
 import { createTwilioClient, sendSMS } from "@/lib/twilio";
 import { isPhoneDoNotContact } from "@/lib/do-not-contact";
+import { quietHoursCheck } from "@/lib/sms/quiet-hours";
 
 /**
  * One SMS conversation, and the ability to answer it.
@@ -9,6 +10,11 @@ import { isPhoneDoNotContact } from "@/lib/do-not-contact";
  * GET  /api/admin/sms-inbox/[phone]  — full thread, both directions, plus any saved draft
  * POST /api/admin/sms-inbox/[phone]  — { action: "reply", body } | { action: "mark_handled" }
  *                                    | { action: "save_draft", body } | { action: "discard_draft" }
+ *                                    | { action: "cancel_scheduled" }
+ *
+ * A reply sent outside the recipient's quiet-hours window is QUEUED rather than
+ * refused, and the bookkeeping an immediate send does moves to delivery time.
+ * See `scheduleReply` below.
  *
  * Twilio remains the complete history when available. Durable sms_inbound and
  * email_log rows form the fallback so an outage cannot hide logged outbound
@@ -68,6 +74,88 @@ async function stampAnswerJobSent(
   if (error) console.error("[admin/sms-inbox/phone] answer job stamp failed:", error);
 }
 
+/**
+ * Park a reply in sms_queue until the recipient's window opens.
+ *
+ * Everything an immediate send does at send time, this does too, EXCEPT
+ * claiming the message went out. The thread is marked handled and the draft is
+ * cleared, because the reviewer has finished with it and the box must not
+ * refill with text that is already committed. But the answer job goes to
+ * `queued`, not `sent`: `sent_at` stays NULL until Twilio has actually taken
+ * it, so the draft-vs-sent comparison never counts a message that is still
+ * sitting in a queue, and a scheduled reply that later gets canceled does not
+ * leave a false record of having been answered.
+ *
+ * Returns the job id so the queue row can carry it: the flush needs to know
+ * which job to promote on delivery, and which to reopen on cancel.
+ */
+async function scheduleReply(
+  db: ReturnType<typeof getServiceClient>,
+  args: {
+    last10: string;
+    e164: string;
+    body: string;
+    sendAfter: Date;
+    actor: string;
+    recipientType?: "family" | "provider" | "caregiver";
+    profileId?: string | null;
+  },
+): Promise<{ error?: string }> {
+  const { data: job } = await db
+    .from("family_answer_jobs")
+    .select("id")
+    .eq("phone_last10", args.last10)
+    .eq("status", "ready")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data: queued, error } = await db
+    .from("sms_queue")
+    .insert({
+      to_phone: args.e164,
+      phone_last10: args.last10,
+      body: args.body,
+      // Same email_type an immediate admin reply logs under, so the outbound
+      // ledger cannot tell the difference between a reply sent at 9am and one
+      // written at 6am and held until 8am. It should not be able to.
+      email_type: "admin_reply",
+      recipient_type: args.recipientType ?? null,
+      family_profile_id: args.profileId ?? null,
+      send_after: args.sendAfter.toISOString(),
+      origin: "admin_reply",
+      queued_by: args.actor,
+      answer_job_id: job?.id ?? null,
+    })
+    .select("created_at")
+    .single();
+  if (error) return { error: error.message };
+
+  // Stamp handled_at with the queue row's OWN created_at rather than the app
+  // clock. Cancelling reopens by `handled_at >= created_at`, and a server
+  // running a second behind Postgres would make that comparison miss its own
+  // rows — leaving a thread marked handled with nothing scheduled and no reply
+  // sent. Same value on both sides, no skew to reason about.
+  const handledAt = queued.created_at;
+
+  await Promise.all([
+    db
+      .from("sms_inbound")
+      .update({ handled_at: handledAt, handled_by: args.actor })
+      .eq("phone_last10", args.last10)
+      .is("handled_at", null),
+    db.from("sms_drafts").delete().eq("phone_last10", args.last10),
+    job
+      ? db
+          .from("family_answer_jobs")
+          .update({ status: "queued", sent_body: args.body, sent_by: args.actor })
+          .eq("id", job.id)
+      : Promise.resolve(),
+  ]);
+
+  return {};
+}
+
 function normalizeLast10(raw: string): string | null {
   const digits = (raw || "").replace(/\D/g, "");
   return digits.length >= 10 ? digits.slice(-10) : null;
@@ -90,7 +178,7 @@ export async function GET(
     const db = getServiceClient();
     const e164 = toE164(last10);
 
-    const [inboundRes, dncRes, draftRes, packetRes, outboundLogRes] = await Promise.all([
+    const [inboundRes, dncRes, draftRes, packetRes, outboundLogRes, scheduledRes] = await Promise.all([
       db
         .from("sms_inbound")
         .select("id, from_phone, body, keyword, profile_id, profile_type, display_name, handled_at, created_at")
@@ -121,6 +209,18 @@ export async function GET(
         .eq("recipient", e164)
         .order("created_at", { ascending: true })
         .limit(MAX_THREAD),
+      // A reply already written and waiting for the recipient's window to open.
+      // The thread reads as handled while one of these exists, so the UI has to
+      // be able to say WHY, and to offer a way back out of it.
+      db
+        .from("sms_queue")
+        .select("id, body, send_after, queued_by, created_at")
+        .eq("phone_last10", last10)
+        .eq("origin", "admin_reply")
+        .eq("status", "pending")
+        .order("send_after", { ascending: true })
+        .limit(1)
+        .maybeSingle(),
     ]);
     if (inboundRes.error) {
       console.error("[admin/sms-inbox/phone] inbound load failed:", inboundRes.error);
@@ -138,16 +238,20 @@ export async function GET(
     const resolvedProfileId = identified?.profile_id ?? latestOutbound?.provider_id ?? null;
     let resolvedDisplayName = identified?.display_name ?? null;
     let resolvedProfileType = identified?.profile_type ?? latestOutbound?.recipient_type ?? null;
-    if (!resolvedDisplayName && resolvedProfileId) {
+    // Quiet hours are evaluated in the RECIPIENT's timezone, so the state is
+    // needed on every load, not only when the display name is missing.
+    let recipientState: string | null = null;
+    if (resolvedProfileId) {
       const { data: profile, error: profileError } = await db
         .from("business_profiles")
-        .select("display_name, type")
+        .select("display_name, type, state")
         .eq("id", resolvedProfileId)
         .maybeSingle();
       if (profileError) {
         console.error("[admin/sms-inbox/phone] profile identity load failed:", profileError);
       } else if (profile) {
-        resolvedDisplayName = profile.display_name ?? null;
+        recipientState = profile.state ?? null;
+        resolvedDisplayName ||= profile.display_name ?? null;
         resolvedProfileType ||= profile.type ?? null;
       }
     }
@@ -235,6 +339,25 @@ export async function GET(
       suppressed: Boolean(dncRes.data),
       suppression: dncRes.data ? { reason: dncRes.data.reason, note: dncRes.data.note } : null,
       unhandled: inboundRows.filter((r) => !r.handled_at).length,
+      // Quiet hours, evaluated for THIS recipient so the reply box can say what
+      // pressing the button will actually do before it is pressed.
+      quietHours: (() => {
+        const q = quietHoursCheck({ state: recipientState });
+        return {
+          allowed: q.allowed,
+          tz: q.tz,
+          sendAfter: q.sendAfter ? q.sendAfter.toISOString() : null,
+        };
+      })(),
+      scheduled:
+        scheduledRes.error || !scheduledRes.data
+          ? null
+          : {
+              id: scheduledRes.data.id,
+              body: scheduledRes.data.body,
+              send_after: scheduledRes.data.send_after,
+              queued_by: scheduledRes.data.queued_by,
+            },
       // Our stored copy — the durable record, and the only source if Twilio errors.
       inbound: inboundRows,
       messages,
@@ -357,6 +480,73 @@ export async function POST(
       return NextResponse.json({ success: true, draft: null });
     }
 
+    // Undo a scheduled send. The reply goes back to the draft box rather than
+    // being thrown away: cancelling usually means "I want to change it", not "I
+    // never meant to say that", and making someone retype 400 characters to
+    // edit one phone number is the kind of small tax that stops people editing.
+    if (action === "cancel_scheduled") {
+      const { data: pending } = await db
+        .from("sms_queue")
+        .select("id, body, answer_job_id, created_at")
+        .eq("phone_last10", last10)
+        .eq("origin", "admin_reply")
+        .eq("status", "pending")
+        .order("send_after", { ascending: true })
+        .limit(1)
+        .maybeSingle();
+      if (!pending) {
+        return NextResponse.json({ error: "Nothing is scheduled for this thread." }, { status: 409 });
+      }
+
+      const { error } = await db
+        .from("sms_queue")
+        .update({ status: "canceled", last_error: `canceled by ${user.email ?? admin.id}` })
+        .eq("id", pending.id)
+        // Guard against the flush having delivered it between the read above
+        // and this write: an hourly cron and a human can genuinely collide, and
+        // "canceled" stamped over "sent" would claim a delivered message never
+        // went out.
+        .eq("status", "pending");
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 500 });
+      }
+
+      await Promise.all([
+        // Scoped to what scheduling handled, not the whole thread — earlier
+        // exchanges on this number were answered and must stay answered.
+        db
+          .from("sms_inbound")
+          .update({ handled_at: null, handled_by: null })
+          .eq("phone_last10", last10)
+          .gte("handled_at", pending.created_at),
+        db.from("sms_drafts").upsert(
+          {
+            phone_last10: last10,
+            body: pending.body,
+            updated_by: user.email ?? admin.id,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "phone_last10" },
+        ),
+        pending.answer_job_id
+          ? db
+              .from("family_answer_jobs")
+              .update({ status: "ready", sent_body: null, sent_by: null })
+              .eq("id", pending.answer_job_id)
+          : Promise.resolve(),
+      ]);
+
+      await logAuditAction({
+        adminUserId: admin.id,
+        action: "sms_reply_schedule_canceled",
+        targetType: "phone",
+        targetId: last10,
+        details: {},
+      });
+
+      return NextResponse.json({ success: true, draft: { body: pending.body } });
+    }
+
     if (action === "reply") {
       const text = typeof body?.body === "string" ? body.body.trim() : "";
       if (!text) return NextResponse.json({ error: "Message body is required" }, { status: 400 });
@@ -381,6 +571,27 @@ export async function POST(
         );
       }
 
+      // One scheduled reply per thread. Without this a second click while a
+      // send is parked queues a duplicate, and the family gets the same answer
+      // twice at 8am with no way to tell which one anybody meant.
+      const { data: alreadyScheduled } = await db
+        .from("sms_queue")
+        .select("send_after")
+        .eq("phone_last10", last10)
+        .eq("origin", "admin_reply")
+        .eq("status", "pending")
+        .limit(1)
+        .maybeSingle();
+      if (alreadyScheduled) {
+        return NextResponse.json(
+          {
+            error: "A reply is already scheduled for this thread. Cancel it first to send or edit.",
+            scheduled: { sendAfter: alreadyScheduled.send_after },
+          },
+          { status: 409 },
+        );
+      }
+
       // Carry the thread identity into email_log. Older admin replies omitted
       // both fields, which made the outbound ledger unable to say that Olera,
       // not the family, spoke last.
@@ -398,6 +609,70 @@ export async function POST(
         recipientIdentity?.profile_type === "caregiver"
           ? recipientIdentity.profile_type
           : undefined;
+
+      // Quiet hours. TCPA anchors to the RECIPIENT's clock, and until now this
+      // path was the only one that ignored it: reactive-alerts.ts has deferred
+      // since 2026-06-30, while the reply box a human drives sent whenever it
+      // was clicked. On 2026-08-31 a reply to a GA family was one click from
+      // going out at 6:52am with nothing on screen to say so.
+      //
+      // A crisis reply is exempt and sends immediately. Someone in crisis who
+      // texted us at 3am is awake, has asked for help, and holding a safety
+      // number until 8am to be polite about it would be indefensible.
+      const { data: recipientProfile } = recipientIdentity?.profile_id
+        ? await db
+            .from("business_profiles")
+            .select("state")
+            .eq("id", recipientIdentity.profile_id)
+            .maybeSingle()
+        : { data: null };
+
+      // The crisis read comes from the packet the engine already produced for
+      // this thread (triage stage, cross-checked against the webhook's regex).
+      // Absent a packet we treat the thread as non-crisis: the webhook fires a
+      // crisis acknowledgement of its own the moment one is detected, so the
+      // safety net does not depend on this branch.
+      const { data: crisisJob } = await db
+        .from("family_answer_jobs")
+        .select("packet")
+        .eq("phone_last10", last10)
+        .not("packet", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const isCrisisThread = Boolean(
+        (crisisJob?.packet as { triage?: { isCrisis?: boolean } } | null)?.triage?.isCrisis,
+      );
+
+      const quiet = quietHoursCheck({ state: recipientProfile?.state ?? null });
+
+      if (!quiet.allowed && !isCrisisThread && quiet.sendAfter) {
+        const scheduled = await scheduleReply(db, {
+          last10,
+          e164: toE164(last10),
+          body: text,
+          sendAfter: quiet.sendAfter,
+          actor: user.email ?? admin.id,
+          recipientType: loggedRecipientType,
+          profileId: recipientIdentity?.profile_id ?? null,
+        });
+        if (scheduled.error) {
+          return NextResponse.json({ error: scheduled.error }, { status: 500 });
+        }
+
+        await logAuditAction({
+          adminUserId: admin.id,
+          action: "sms_reply_scheduled",
+          targetType: "phone",
+          targetId: last10,
+          details: { length: text.length, sendAfter: quiet.sendAfter.toISOString(), tz: quiet.tz },
+        });
+
+        return NextResponse.json({
+          success: true,
+          scheduled: { sendAfter: quiet.sendAfter.toISOString(), tz: quiet.tz },
+        });
+      }
 
       const result = await sendSMS({
         to: toE164(last10),

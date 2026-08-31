@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/SC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.047Z
+ * Last updated: 2026-08-31T10:40:13.377Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -562,7 +562,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of age (birth certificate, driver's license, or state ID)",
         "Proof of South Carolina residency (utility bill, lease, or bank statement)",
         "Social Security cards for all household members",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Medical expense receipts (prescriptions, Medicare premiums, doctor visits)",
         "Proof of citizenship or legal residency status",
         "Medicare card if applicable",

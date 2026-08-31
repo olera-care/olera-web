@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.035Z
+ * Last updated: 2026-08-31T10:40:13.367Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -944,7 +944,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Most recent Social Security award letter or benefit statement",
         "Pension or retirement income statements",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. In Missouri your savings do count. For a household with someone 60 or older or disabled the limit is $4,500, and it rises to $4,750 on October 1, 2026.",
         "Proof of Missouri residency (utility bill, lease agreement, or state ID)",
         "Valid photo identification",
         "Rent or mortgage payment receipts",

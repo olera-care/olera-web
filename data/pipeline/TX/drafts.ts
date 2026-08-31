@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TX/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.049Z
+ * Last updated: 2026-08-31T10:40:13.379Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -330,7 +330,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Join the interest list first by calling 2-1-1, then apply for Medicaid when invited, several years wait for home services.",
+        "summary": "Join the interest list first by calling HHSC Interest List Management at 1-877-438-5658, then apply for Medicaid when invited.",
         "steps": [
           {
             "step": 1,
@@ -340,12 +340,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Wait for invitation",
-            "description": "Texas will contact you when services become available in your area. Wait times are typically several years, varying by region and priority level."
+            "description": "Texas will contact you when services become available in your area. As of July 2026 nearly everyone on the STAR+PLUS HCBS interest list had been waiting under a year, though this varies by region and priority level."
           },
           {
             "step": 3,
             "title": "Apply for Medicaid",
-            "description": "When invited, apply online at yourtexasbenefits.com, call 2-1-1, visit your local HHS office, or mail your application."
+            "description": "When invited, apply online at yourtexasbenefits.com, call 2-1-1 and choose option 2, visit your local HHS office, or mail your application."
           },
           {
             "step": 4,
@@ -359,7 +359,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "45 to 90 days once your loved one reaches the top of the Interest List. During this time, the state verifies financial eligibility while your chosen health plan (MCO) completes a required in-home medical assessment.",
-        "waitlist": "Statewide wait of several years for home-based services. While the list is strictly chronological, your loved one may bypass this wait through the \"Money Follows the Person\" policy if they currently reside in a Medicaid-funded nursing home.",
+        "waitlist": "The list moves faster than most people expect. As of July 2026 the state reported 13,519 people on the STAR+PLUS HCBS interest list, and all but 10 of them had been waiting under a year. The list is strictly chronological, which is why the date you call matters. Someone currently living in a Medicaid-funded nursing home may skip the list entirely through the Money Follows the Person policy. Note that the multi-year Texas waiting lists you may have read about belong to different waivers, not this one.",
         "tip": "Apply for basic Medicaid immediately if eligible, you'll get medical coverage while waiting for home services.",
         "urls": [
           {
@@ -377,33 +377,38 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Valid government-issued photo ID",
-        "Social Security card",
-        "Proof of Texas residency (utility bill, lease, or bank statement)",
-        "Social Security award letter or other income proof",
-        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
-        "Property deeds or tax statements",
-        "Vehicle titles and registration",
-        "Life insurance policies with face values",
-        "Pre-need burial contracts or irrevocable burial trusts",
-        "Medical records documenting need for daily assistance",
-        "Physician certification for nursing facility level of care",
-        "Medicare card if you have one",
-        "Investment documents (stocks, bonds, annuities)",
-        "Disability determination letters if under 65"
+        "Your loved one's full name, date of birth, and Social Security number. You can read the number out, you do not need the card.",
+        "Their home address, county, and a phone number where they can be reached",
+        "Their Medicaid number if they already have one. If they do not, say so and the referral still goes through.",
+        "Later, for the financial review: Social Security award letter or other income proof",
+        "Later: bank account details for every account, the bank name, account type, and current balance",
+        "Later: property deeds or tax statements",
+        "Later: vehicle titles and registration",
+        "Later: life insurance policies with face values",
+        "Later: pre-need burial contracts or irrevocable burial trusts",
+        "Later: a physician certification that your loved one needs nursing facility level of care",
+        "Later: Medicare card if they have one",
+        "Later: investment documents (stocks, bonds, annuities)",
+        "Later: disability determination letters if under 65"
       ],
       "contacts": [
         {
-          "label": "Texas 2-1-1",
+          "label": "HHSC Interest List Management (start here)",
+          "phone": "1-877-438-5658",
+          "description": "Adds your loved one to the STAR+PLUS HCBS interest list and records the date you asked, which is the date that counts. If your loved one already has full Medicaid and is enrolled with a STAR+PLUS health plan, call the plan's service coordinator instead. They do not go on the interest list at all.",
+          "hours": null
+        },
+        {
+          "label": "Texas 2-1-1 (or 877-541-7905), option 2",
           "phone": "2-1-1",
-          "description": "Interest list enrollment and general assistance",
+          "description": "State benefits and the status of a Medicaid application. Option 2 reaches the automated benefits line.",
           "hours": "24 hours, 7 days a week"
         },
         {
-          "label": "HHSC Benefits Line",
-          "phone": "1-877-541-7905",
-          "description": "Use this number for specific questions regarding an active Medicaid application, to check your current eligibility status, or to update your address and income information. Alternate: 2-1-1, option 2.",
-          "hours": "Monday–Friday, 8:00 AM–6:00 PM CT"
+          "label": "STAR+PLUS health plan changes",
+          "phone": "877-782-6440",
+          "description": "HHSC line for choosing or changing a STAR+PLUS health plan. It does not handle the interest list.",
+          "hours": null
         }
       ],
       "applicationNotes": [
@@ -454,7 +459,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How long is the waitlist really for home services?",
-          "answer": "Statewide wait of several years for home-based services in most areas, though this varies by region and priority level. Crisis cases or those at immediate risk of nursing home placement may get expedited processing. You can apply for basic Medicaid coverage immediately while waiting for home services. The only major way to bypass the wait is if your loved one is already in a Medicaid-funded nursing home and uses the \"Money Follows the Person\" policy — they can often transition back to the community with STAR+PLUS HCBS waiver services much faster than those waiting at home."
+          "answer": "As of July 2026 the state reported 13,519 people on the STAR+PLUS HCBS interest list, and all but 10 had been waiting under a year. This varies by region and priority level. The multi-year Texas waiting lists you may have heard about belong to other waiver programs, not this one. Crisis cases or those at immediate risk of nursing home placement may get expedited processing. You can apply for basic Medicaid coverage immediately while waiting for home services. The only major way to bypass the wait is if your loved one is already in a Medicaid-funded nursing home and uses the \"Money Follows the Person\" policy — they can often transition back to the community with STAR+PLUS HCBS waiver services much faster than those waiting at home."
         },
         {
           "question": "Can I apply for my loved one who has dementia?",
@@ -489,12 +494,12 @@ export const drafts: PipelineStateDrafts = {
         "hasDocumentChecklist": true,
         "visualTone": "editorial"
       },
-      "phone": "2-1-1",
+      "phone": "1-877-438-5658",
       "sourceUrl": "https://www.hhs.texas.gov/services/health/medicaid-chip/medicaid-chip-members/starplus",
       "contentStatus": "approved",
       "draftedAt": "2026-04-10",
       "reviewedBy": "Cess",
-      "lastVerifiedDate": "2026-05-05"
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "pace-eldercare",
@@ -813,7 +818,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Social Security award letter or benefits statement",
         "Pension or retirement income statements",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. In Texas your savings do count. The limit is $5,000, and one vehicle worth up to $22,000 does not count against it.",
         "Rent receipt or mortgage statement",
         "Utility bills (electric, gas, water)",
         "Medical expense receipts over $35/month (prescriptions, Medicare premiums, medical bills)",
@@ -890,7 +895,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "liheap-energy-assistance",
       "name": "Low-Income Home Energy Assistance Program (LIHEAP)",
       "shortName": "LIHEAP",
-      "tagline": "Get $1,000–$12,600 paid directly to your loved one's utility company to cover heating and cooling bills.",
+      "tagline": "Help paid directly to your loved one's utility company to cover heating and cooling bills.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -903,9 +908,9 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles to pay electric, gas, or propane bills on a fixed income, LIHEAP provides direct payments to utility companies. In Texas, this program is delivered through CEAP (Comprehensive Energy Assistance Program) and covers one-time payments of $1,000 to $12,600 for regular heating and cooling assistance, plus up to $2,400 in crisis situations like shutoff notices.",
-      "savingsRange": "$1,000 – $12,600/year in 2026",
-      "savingsSource": "Texas Department of Housing and Community Affairs CEAP guidelines",
+      "intro": "If your loved one struggles to pay electric, gas, or propane bills on a fixed income, LIHEAP provides direct payments to utility companies. In Texas, this program is delivered through CEAP (Comprehensive Energy Assistance Program) and covers payments toward heating and cooling costs, with a separate year-round crisis benefit of up to $1,800 for situations like a shutoff notice. How much a household gets depends on its income and household size. The most any household can receive in a program year is $12,600, but that ceiling assumes a heating or cooling unit replacement, so most households receive far less.",
+      "savingsRange": "Up to $12,600/year, though most households receive far less",
+      "savingsSource": "10 TAC 6.309(b) and the TDHCA FY2026 Texas LIHEAP State Plan (approved 2025-09-18, Amendment #1 approved 2026-02-18). $12,600 is the annual cap across all components combined, and reaching it requires both utility and crisis assistance plus a heating or cooling unit replacement of up to $9,000. Per component the cap is $1,800 at 0-50% of the federal poverty guidelines, $1,500 at 50-75%, and $1,200 at 75-150%. Year-round crisis assistance is capped at $1,800. Texas publishes no minimum and no typical or average benefit; the $1 minimum shown on the federal form is a reporting artifact, not a floor.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -980,8 +985,8 @@ export const drafts: PipelineStateDrafts = {
         "tip": "If you have an online account with your utility company (like Texas Gas Service), set it up before applying, it speeds up the documentation process.",
         "urls": [
           {
-            "label": "Find Local CEAP Agency",
-            "url": "https://211texas.org"
+            "label": "Find your local CEAP agency (Help for Texans)",
+            "url": "https://www.tdhca.texas.gov/help-for-texans"
           },
           {
             "label": "Official CEAP Information",
@@ -991,7 +996,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Valid government-issued photo ID (Texas driver's license, passport, or state ID)",
-        "Proof of citizenship or legal residency status for all household members",
+        "Proof of citizenship or immigration status for the people in the household. A household with a mix of statuses can still qualify, as long as at least one member is a U.S. citizen, U.S. national, or qualified immigrant. Eligibility and the amount are based on the members who qualify.",
         "Proof of income from last 30 days (pay stubs, Social Security award letter, pension statements)",
         "Most recent electric bill in applicant's name",
         "Most recent gas or propane bill in applicant's name",
@@ -1002,29 +1007,24 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Texas LIHEAP and CEAP inquiries (start here)",
+          "phone": "(877) 399-8939",
+          "description": "TDHCA's line for utility bill payment assistance. Ask them which agency covers your county, or look it up yourself on the Help for Texans page at tdhca.texas.gov. TDHCA does not take applications directly, your local agency does.",
+          "hours": null
+        },
+        {
           "label": "Texas 2-1-1",
           "phone": "2-1-1",
-          "description": "Free statewide helpline to find your local CEAP agency",
+          "description": "Free statewide helpline. It can point you toward a local agency, but the Help for Texans locator is the route TDHCA publishes for this program.",
           "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "LIHEAP National Helpline",
-          "phone": "(877) 399-8939",
-          "description": "Federal helpline for energy assistance programs",
-          "hours": "Monday–Friday, 8:00 AM–6:00 PM CT"
-        },
-        {
-          "label": "Travis County CEAP",
-          "phone": "(512) 584-4120",
-          "description": "Example local agency serving Austin area",
-          "hours": "Mon-Fri 8am-5pm CT"
         }
       ],
       "applicationNotes": [
         "Households facing a life-threatening energy crisis (such as a broken AC in extreme heat or an immediate shutoff) may receive expedited processing within 48 hours, even when standard waitlists are long.",
         "Household size includes everyone living at the address who shares utility bills, not just family members",
         "Benefits are paid directly to your utility company, you won't receive a check or cash payment",
-        "Funding runs out quickly each year, so apply as early as possible when applications open"
+        "Funding runs out quickly each year, so apply as early as possible when applications open",
+        "CEAP has no seasonal application window. The current program period runs October 1, 2025 through September 30, 2027, and crisis assistance is available year round. Individual agencies are a different matter: TDHCA warns that providers \"may be at capacity with their funds, and may not be able to assist all who call them.\" If one agency cannot help, ask whether another in your area can."
       ],
       "relatedPrograms": [
         "Weatherization Assistance Program (WAP)",
@@ -1081,12 +1081,12 @@ export const drafts: PipelineStateDrafts = {
         "hasDocumentChecklist": true,
         "visualTone": "editorial"
       },
-      "phone": "2-1-1",
+      "phone": "(877) 399-8939",
       "sourceUrl": "https://www.tdhca.texas.gov/comprehensive-energy-assistance-program-ceap",
       "contentStatus": "approved",
       "draftedAt": "2026-04-10",
       "reviewedBy": "Cess",
-      "lastVerifiedDate": "2026-05-05"
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "weatherization-assistance-program",

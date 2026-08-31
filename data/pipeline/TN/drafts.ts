@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/TN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.048Z
+ * Last updated: 2026-08-31T10:40:13.379Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -299,7 +299,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security award letters for all household members",
         "Pension or retirement income statements",
         "Pay stubs if anyone still works (most recent 30 days)",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. In Tennessee your savings do count. For a household with someone 60 or older or disabled the limit is $4,500, and it rises to $4,750 on October 1, 2026.",
         "Rent receipts or mortgage statements",
         "Utility bills (electric, gas, water, phone)",
         "Medical expense receipts over $35/month (prescriptions, Medicare premiums, doctor visits)",

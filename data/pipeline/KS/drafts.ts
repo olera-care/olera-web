@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/KS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.029Z
+ * Last updated: 2026-08-31T10:40:13.363Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -745,7 +745,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. In Kansas your savings do count. For a household with someone 60 or older or disabled the limit is $4,500, and it rises to $4,750 on October 1, 2026.",
         "Proof of Kansas residency (utility bill, lease, or state-issued document)",
         "Rent receipts or mortgage statements",
         "Utility bills (electric, gas, water, phone)",

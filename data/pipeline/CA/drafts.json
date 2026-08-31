@@ -706,7 +706,7 @@
       },
       "documentsNeeded": [
         "Social Security award letter or other proof of income",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Medical expense receipts over $35 (prescriptions, insurance premiums, medical transport)",
         "Rent receipt or mortgage statement",
         "Utility bills (electric, gas, water, phone)",
@@ -2109,8 +2109,8 @@
         ]
       },
       "intro": "If your loved one is 65+, disabled, or blind and receives federal SSI (Supplemental Security Income), California automatically provides an additional cash payment called State Supplementary Payment (SSP). This means your loved one gets more money each month, up to $239.94 extra for an individual or $607.83 extra for couples in 2026.\n\nThe total monthly payment becomes $1,206.94 for individuals or $2,057.83 for couples when combining federal SSI and California's SSP supplement. Because SSP follows SSI eligibility automatically, your loved one doesn't need to apply separately, if they qualify for SSI, they get SSP.\n\nTo qualify, your loved one must have very limited income (generally under $1,207/month after disregards) and assets under $2,000 for individuals or $3,000 for couples. The payment is reduced dollar-for-dollar by other countable income, and living arrangements can affect the amount.",
-      "savingsRange": "$2,879-$7,585/year in 2026 (depends on living situation)",
-      "savingsSource": "DHCS SSI/SSP payment standards eff. 2026-01-01: individual SSP $239.94-$632.07/month by living arrangement",
+      "savingsRange": "$239.94/month ($2,879/year) for a single aged or disabled adult living independently in 2026",
+      "savingsSource": "SSA POMS SI 01415.058, California payment standards effective 2026-01-01. The state supplement for a single recipient depends entirely on category and living arrangement: $239.94/month living independently (aged or disabled), $324.32 blind, $368.81 without cooking facilities, $632.07 in non-medical out-of-home care, and $0.00 in some settings. There is no single typical amount and no guaranteed minimum.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -2208,19 +2208,13 @@
           "label": "Social Security Administration",
           "phone": "(800) 772-1213",
           "description": "Apply for SSI/SSP benefits and check application status",
-          "hours": "Mon-Fri 8am-7pm PT"
+          "hours": "Mon-Fri 8am-7pm local time"
         },
         {
           "label": "SSA TTY Line",
           "phone": "(800) 325-0778",
           "description": "TTY service for deaf or hard of hearing",
-          "hours": "Mon-Fri 8am-7pm PT"
-        },
-        {
-          "label": "California CDSS",
-          "phone": "(800) 952-5253",
-          "description": "Questions about California SSP program",
-          "hours": "Mon-Fri 8am-5pm PT"
+          "hours": "Mon-Fri 8am-7pm local time"
         }
       ],
       "applicationNotes": [
@@ -2275,7 +2269,7 @@
       "sourceUrl": "https://www.cdss.ca.gov/inforesources/cdss-programs/ssi-ssp/ssi-ssp-eligibility-summary",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-01"
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "property-tax-postponement",

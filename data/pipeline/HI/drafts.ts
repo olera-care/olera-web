@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/HI/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.026Z
+ * Last updated: 2026-08-31T10:40:13.360Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -857,7 +857,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Hawaii residency (utility bill, lease agreement, or mail)",
         "Social Security award letters or benefit statements",
         "Pay stubs from the last 30 days (if working)",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Rent receipt or mortgage statement",
         "Utility bills (electric, gas, water, phone)",
         "Medical bills and receipts over $35/month",

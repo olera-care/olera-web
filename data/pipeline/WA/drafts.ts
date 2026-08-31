@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-23T08:24:45.947Z
+ * Last updated: 2026-08-31T10:40:13.381Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1630,7 +1630,7 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Coastal Community Action Programs (O3A counties): 360-533-5100",
+            "name": "Coastal Community Action Programs (Grays Harbor and Pacific counties): 360-533-5100",
             "type": "service-area"
           },
           {
@@ -1647,9 +1647,9 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggles to shop or prepare meals safely, Home Delivered Meals can bring nutritionally balanced meals directly to their door. Because this isn't a single statewide program, the provider and cost depend on where your loved one lives, some areas offer meals through Older Americans Act funding with suggested donations around $6.50 per meal, while Medicaid may cover meals completely for qualifying participants.\n\nIn King County, Sound Generations delivers one meal per day with a suggested donation of $6.50. In Clallam, Grays Harbor, Jefferson, and Pacific counties, Coastal Community Action Programs provides meals to homebound seniors. Statewide, Mom's Meals works through Medicaid and Medicare Advantage plans for those who qualify. Because eligibility requirements vary by provider, from income limits to clinical assessments of homebound status, the key first step is identifying which program serves your loved one's area.",
-      "savingsRange": "$950 – $3,300/year in 2026",
-      "savingsSource": "Based on $6.50 suggested donation per meal (Sound Generations) versus typical meal delivery costs",
+      "intro": "If your loved one is 60+ and struggles to shop or prepare meals safely, Home Delivered Meals can bring nutritionally balanced meals directly to their door. Because this isn't a single statewide program, the provider and cost depend on where your loved one lives, some areas offer meals through Older Americans Act funding with suggested donations around $6.50 per meal, while Medicaid may cover meals completely for qualifying participants.\n\nIn King County, Sound Generations delivers one meal per day with a suggested donation of $6.50. In Grays Harbor and Pacific counties, Coastal Community Action Programs provides meals to homebound seniors. Statewide, Mom's Meals works through Medicaid and Medicare Advantage plans for those who qualify. Because eligibility requirements vary by provider, from income limits to clinical assessments of homebound status, the key first step is identifying which program serves your loved one's area.",
+      "savingsRange": "",
+      "savingsSource": "No dollar figure is published statewide. Under the DSHS Senior Nutrition Program Standards meals are offered on a voluntary contribution basis, and no one may be denied a meal for being unable to contribute. Sound Generations suggests $6.50 per meal in King County; Coastal Community Action publishes no suggested amount.",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
@@ -1676,7 +1676,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Identify your local provider",
-            "description": "King County residents contact Sound Generations. Clallam, Grays Harbor, Jefferson, and Pacific counties call Coastal Community Action Programs at 360-533-5100. For Medicaid coverage statewide, contact your loved one's health plan or case manager about Mom's Meals."
+            "description": "King County residents contact Sound Generations. Grays Harbor and Pacific counties call Coastal Community Action Programs at 360-533-5100. For Medicaid coverage statewide, contact your loved one's health plan or case manager about Mom's Meals."
           },
           {
             "step": 2,
@@ -1718,14 +1718,20 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Coastal Community Action Programs",
           "phone": "(360) 533-5100",
-          "description": "Home delivered meals for Clallam, Grays Harbor, Jefferson, and Pacific counties",
+          "description": "Home delivered meals for Grays Harbor and Pacific counties",
           "hours": "Contact for current hours"
         },
         {
           "label": "Sound Generations",
-          "phone": null,
-          "description": "Meals on Wheels for King County residents",
+          "phone": "(206) 448-5767",
+          "description": "Meals on Wheels for King County residents. Toll-free 1-888-308-6325.",
           "hours": "Apply online or contact for phone assistance"
+        },
+        {
+          "label": "Community Living Connections (King County)",
+          "phone": "1-844-348-5464",
+          "description": "Aging and disability entry point for Seattle and King County. Use this if you need more than meals.",
+          "hours": "Business hours"
         },
         {
           "label": "Washington 2-1-1",
@@ -1793,7 +1799,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(360) 533-5100",
       "sourceUrl": "https://app.leg.wa.gov/wac/default.aspx?cite=388-473-0020",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "family-caregiver-support",

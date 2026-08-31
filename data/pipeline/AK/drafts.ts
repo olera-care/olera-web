@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.017Z
+ * Last updated: 2026-08-31T10:40:13.351Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -927,7 +927,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Alaska residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter or pension statements",
         "Pay stubs from last 30 days (if working)",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Rent receipt or mortgage statement",
         "Recent utility bills (electric, gas, water, phone)",
         "Medical bills and receipts over $35/month (for 60+ or disabled)",

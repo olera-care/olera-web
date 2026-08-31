@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-23T08:24:45.935Z
+ * Last updated: 2026-08-31T10:40:13.369Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -640,7 +640,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "snap-food-benefits",
       "name": "NC Food and Nutrition Services (FNS)/SNAP",
       "shortName": "NC SNAP",
-      "tagline": "Monthly grocery benefits for seniors 60+ on fixed incomes, up to $281/month on an EBT card",
+      "tagline": "Monthly grocery benefits for seniors 60+ on fixed incomes, up to $298/month on an EBT card",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -654,9 +654,9 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one is 60+ and struggling to afford groceries on a fixed income, they may qualify for $100–300/month in food benefits through North Carolina's SNAP program. The money comes on an EBT card that works like a debit card at grocery stores, farmers markets, and most food retailers, no cash required, no stigma at checkout.\n\nFor seniors, North Carolina has relaxed income rules (no gross income test, just net income after deductions) and higher asset limits ($4,500 instead of $3,000). Medical expenses over $35/month count as deductions, which often helps seniors qualify who wouldn't otherwise. If your loved one receives SSI and is 65+, they may automatically qualify for Simplified SNAP with 3-year certification periods.\n\nBecause SNAP is federally funded but state-administered, you apply through your local county Department of Social Services office. Processing takes 30 days standard, or 7 days if your loved one has very low income and urgent food needs.",
-      "savingsRange": "$1,400 – $3,400/year in 2026",
-      "savingsSource": "Monthly benefits of $188 average for seniors, up to $281 maximum for single-person household",
-      "savingsVerified": true,
+      "savingsRange": "Up to $298/month ($3,576/year) for one person in FY2026",
+      "savingsSource": "USDA FY2026 maximum monthly allotments, effective Oct 1 2025 through Sep 30 2026: $298 for one person, $546 for two. NCDHHS republishes the same table and notes that most households do not receive the maximum. No official average benefit for North Carolina seniors is published.",
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 60+ (or household with someone 60+)",
@@ -750,7 +750,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security award letter or pension statements for all household members",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Birth certificate or driver's license for identification",
         "Proof of North Carolina residency (utility bill, lease, or mail)",
         "Medical expense receipts from last 3 months (prescriptions, doctor bills, insurance premiums)",
@@ -765,10 +765,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "State SNAP agency (start here)",
+          "label": "NC FNS / EBT Call Center (start here)",
           "phone": "(866) 719-0141",
-          "description": "Apply for SNAP and ask about your application",
-          "hours": null
+          "description": "Questions about your application or benefits, and interpreter help. It cannot take the application itself. In North Carolina you apply online at epass.nc.gov, or in person, by mail or by fax at your county Department of Social Services.",
+          "hours": "Mon-Fri 7:30am-5:30pm ET"
         },
         {
           "label": "NC 2-1-1",
@@ -777,9 +777,9 @@ export const drafts: PipelineStateDrafts = {
           "hours": "24 hours, 7 days a week"
         },
         {
-          "label": "NC DHHS Food and Nutrition Services",
-          "phone": "(919) 855-4800",
-          "description": "State office for SNAP program questions",
+          "label": "NCDHHS Customer Service Center",
+          "phone": "1-800-662-7030",
+          "description": "Ask them to connect you to your county Department of Social Services. Every county office is also listed at ncdhhs.gov/localDSS.",
           "hours": "Mon-Fri 8am-5pm EST"
         }
       ],
@@ -843,7 +843,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://www.ncdhhs.gov/divisions/child-and-family-well-being/food-and-nutrition-services-food-stamps",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "liheap-energy-assistance",
@@ -2562,7 +2562,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "special-assistance-in-home",
       "name": "State-County Special Assistance - In Home",
       "shortName": "Special Assistance In-Home",
-      "tagline": "Up to $1,700/month in cash assistance for North Carolina seniors who need care but want to stay home",
+      "tagline": "Up to $1,862/month in cash assistance for North Carolina seniors who need care but want to stay home",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -2575,9 +2575,9 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one needs the level of care typically provided in an adult care home but wants to stay in their own home, North Carolina's State-County Special Assistance - In Home provides monthly cash payments to make this possible. The program pays up to $1,326/month for basic needs (food, shelter, clothing) or up to $1,700/month for parents with Alzheimer's or dementia.\n\nYour loved one must be 65+ or disabled, with income below federal poverty levels, and a doctor must verify they need adult care home-level care using an FL-2 form. Because this program automatically includes Medicaid eligibility, your loved one gets both cash assistance and healthcare coverage. The state eliminated waitlists in recent years, so eligible applicants get approved without delay.\n\nThis program requires exhausting other Medicaid and community resources first, and includes mandatory case management with monthly contact, quarterly visits, and annual assessments.",
-      "savingsRange": "Up to $16,764/year (basic) or $21,504/year (enhanced care) in 2026",
-      "savingsSource": "NCDHHS 2026 SAIH maximum rates: $1,397/month basic tier, $1,792/month enhanced-care tier; actual payment is the applicable maximum minus countable income, plus a $70 personal-needs allowance",
+      "intro": "If your loved one needs the level of care typically provided in an adult care home but wants to stay in their own home, North Carolina's State-County Special Assistance - In Home provides monthly cash payments to make this possible. The program pays up to $1,467/month for basic needs (food, shelter, clothing) or up to $1,862/month for a parent with Alzheimer's or dementia. That is the ceiling. The actual check is that amount minus your loved one's countable monthly income.\n\nYour loved one must be 65+ or disabled, with income below federal poverty levels, and a doctor must verify they need adult care home-level care using an FL-2 form. Because this program automatically includes Medicaid eligibility, your loved one gets both cash assistance and healthcare coverage. The state eliminated waitlists in recent years, so eligible applicants get approved without delay.\n\nThis program requires exhausting other Medicaid and community resources first, and includes mandatory case management with monthly contact, quarterly visits, and annual assessments.",
+      "savingsRange": "Up to $17,604/year (basic) or $22,344/year (enhanced care) in 2026",
+      "savingsSource": "NCDHHS SAIH Program Manual rev. June 2026 (SA-5300), maintenance amounts effective 2026-01-01: $1,467/month basic ($1,397 rate + $70 personal-needs allowance) and $1,862/month enhanced ($1,792 + $70). Actual payment is the maintenance amount minus total countable monthly income.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -2602,17 +2602,17 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Contact your county Department of Social Services office, processing takes up to 45 days for seniors 65+.",
+        "summary": "Contact your county Department of Social Services office. Apply as soon as you can, because benefits start from the application date. Processing takes up to 45 days for applicants 65+.",
         "steps": [
           {
             "step": 1,
             "title": "Contact your county DSS office",
-            "description": "Call your local Department of Social Services to start the application process. For example, Wake County residents can call Catherine Goldman at 919-250-3835 for information or Tracy Gregory at 919-212-7549 to apply."
+            "description": "Call your local Department of Social Services to start the application. If you do not know which county office to call, call the NCDHHS Customer Service Center at 1-800-662-7030 and ask to be connected, or look your county up in the local DSS directory at ncdhhs.gov."
           },
           {
             "step": 2,
             "title": "Get doctor's FL-2 form completed",
-            "description": "Your loved one's doctor must complete an FL-2 form verifying they need adult care home level of care. For Enhanced rate ($1,700/month), the FL-2 must also verify an Alzheimer's or dementia diagnosis."
+            "description": "Your loved one's doctor must complete an FL-2 form verifying they need adult care home level of care. For the enhanced rate ($1,862/month), the FL-2 must also verify an Alzheimer's or dementia diagnosis. The form can be dated up to 90 days before you apply and must arrive during the review period, so it does not have to be in hand on the day you call."
           },
           {
             "step": 3,
@@ -2627,7 +2627,7 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Up to 45 days for applicants 65+; up to 60 days for applicants 18-64",
         "waitlist": null,
-        "tip": "Start with the FL-2 form early, having your loved one's doctor complete this verification form is often the longest part of the process.",
+        "tip": "Apply first, then chase the FL-2. Your benefits are backdated to the day you apply, so calling DSS before the doctor's form is ready protects money you would otherwise lose.",
         "urls": [
           {
             "label": "NC DHHS Special Assistance Program",
@@ -2636,10 +2636,10 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "FL-2 form completed by your loved one's doctor verifying adult care home level of care",
         "State-issued photo identification (driver's license or ID card)",
         "Social Security award letter or SSI documentation",
         "Proof of all income sources (pensions, retirement, wages, benefits)",
+        "Do not wait for paperwork to call. Your payment start date is the day you apply, not the day the doctor signs. The FL-2 form (the doctor's form confirming adult care home level of care) can arrive afterward, during the review.",
         "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Insurance cards (Medicare, Medicaid, private insurance)",
         "Proof of North Carolina residency (utility bill, lease, voter registration)",
@@ -2652,27 +2652,21 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "NCDHHS Customer Service Center (start here)",
+          "phone": "1-800-662-7030",
+          "description": "Ask them to connect you to your county Department of Social Services, then ask Adult Services about State-County Special Assistance In-Home. Every county DSS is also listed at ncdhhs.gov/divisions/social-services/local-dss-directory.",
+          "hours": "Business hours"
+        },
+        {
           "label": "Wake County Health & Human Services",
           "phone": "919-212-7000",
-          "description": "Main line. Ask for Adult Services about State-County Special Assistance In-Home.",
+          "description": "Main line for Wake County residents only. Ask for Adult Services about State-County Special Assistance In-Home.",
           "hours": "Mon-Fri 8am-5:15pm"
-        },
-        {
-          "label": "Wake County DSS (Information)",
-          "phone": "(919) 250-3835",
-          "description": "Catherine Goldman for State-County Special Assistance information (direct staff line, may change. The main line above always routes.)",
-          "hours": "Business hours"
-        },
-        {
-          "label": "Wake County DSS (Applications)",
-          "phone": "(919) 212-7549",
-          "description": "Tracy Gregory for State-County Special Assistance applications (direct staff line, may change. The main line above always routes.)",
-          "hours": "Business hours"
         },
         {
           "label": "NC 2-1-1",
           "phone": "2-1-1",
-          "description": "Find your local county DSS office and other social services",
+          "description": "United Way helpline. It can look up your county DSS office, but it does not take the application.",
           "hours": "24 hours, 7 days a week"
         }
       ],
@@ -2766,15 +2760,15 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "2-1-1",
+      "phone": "1-800-662-7030",
       "sourceUrl": "https://www.ncdhhs.gov/divisions/social-services/special-assistance/state-and-county-special-assistance-home-residents",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-07-31"
+      "lastVerifiedDate": "2026-08-31"
     }
   ],
   "stateOverview": {
-    "intro": "North Carolina offers 15 programs to help seniors and their families, 12 provide direct financial benefits like monthly payments, reduced bills, or covered services, plus 2 free resources available to anyone. Your loved one could potentially access multiple programs simultaneously, from $281/month in grocery assistance to thousands in yearly savings on Medicare costs and property taxes. The state coordinates many services through county offices, and several programs specifically support family caregivers with respite funding and consultation.\n\nStart by checking the highest-value programs first, Medicare Savings Programs and Long-Term Care Medicaid can save thousands annually, while SNAP provides immediate monthly grocery relief. Most benefit programs have income limits around $2,000-$3,000/month for a single person, but free resources like legal assistance and ombudsman services are available regardless of income.",
+    "intro": "North Carolina offers 15 programs to help seniors and their families, 12 provide direct financial benefits like monthly payments, reduced bills, or covered services, plus 2 free resources available to anyone. Your loved one could potentially access multiple programs simultaneously, from $298/month in grocery assistance to thousands in yearly savings on Medicare costs and property taxes. The state coordinates many services through county offices, and several programs specifically support family caregivers with respite funding and consultation.\n\nStart by checking the highest-value programs first, Medicare Savings Programs and Long-Term Care Medicaid can save thousands annually, while SNAP provides immediate monthly grocery relief. Most benefit programs have income limits around $2,000-$3,000/month for a single person, but free resources like legal assistance and ombudsman services are available regardless of income.",
     "startHere": [
       {
         "name": "NC Medicare Savings Programs (QMB, SLMB, QI)",

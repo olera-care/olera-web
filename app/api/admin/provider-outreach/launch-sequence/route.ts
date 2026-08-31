@@ -26,7 +26,7 @@ import {
   selectVariantsForProviders,
   type VariantAssignment,
 } from "@/lib/provider-outreach/variant-testing";
-import { isSmartleadConfigured } from "@/lib/smartlead";
+import { isSmartleadConfigured, getLeadByEmail, pauseLeadInCampaign } from "@/lib/smartlead";
 
 /**
  * POST /api/admin/provider-outreach/launch-sequence
@@ -497,6 +497,35 @@ export async function POST(request: NextRequest) {
             // Get variant assignment for this provider
             const variantAssignment = variantAssignments.get(preview.provider_id);
 
+            // Pause old SmartLead lead before re-enrollment to prevent duplicate sequences
+            // This handles the case where email changed but SmartLead sync failed
+            if (existingTracking.smartlead_data) {
+              const oldSlData = existingTracking.smartlead_data as {
+                campaign_id?: number;
+                lead_id?: number;
+                lead_email?: string;
+              };
+              if (oldSlData.campaign_id) {
+                try {
+                  let leadId = oldSlData.lead_id;
+                  // If no lead_id stored, try to look it up by email
+                  if (!leadId && oldSlData.lead_email) {
+                    const lookup = await getLeadByEmail(oldSlData.lead_email);
+                    if (lookup.ok && lookup.data?.id) {
+                      leadId = lookup.data.id;
+                    }
+                  }
+                  if (leadId) {
+                    await pauseLeadInCampaign(oldSlData.campaign_id, leadId);
+                    console.log(`[launch-sequence] Paused old lead ${leadId} in campaign ${oldSlData.campaign_id} before re-enrollment`);
+                  }
+                } catch (err) {
+                  // Log but don't block re-enrollment
+                  console.warn(`[launch-sequence] Failed to pause old SmartLead lead:`, err);
+                }
+              }
+            }
+
             // Update to in_sequence with fresh sequence_started_at
             // Clear smartlead_data for fresh enrollment
             // Capture current email_source as sequenced_with_source for accurate conversion tracking
@@ -717,8 +746,20 @@ export async function POST(request: NextRequest) {
               for (const trackingId of report.enrolled_tracking_ids) {
                 const provider = stateProviders.find((p) => p.tracking_id === trackingId);
                 if (provider) {
+                  // Look up lead_id from SmartLead to enable future email syncs
+                  let leadId: number | undefined;
+                  try {
+                    const leadLookup = await getLeadByEmail(provider.email!);
+                    if (leadLookup.ok && leadLookup.data?.id) {
+                      leadId = leadLookup.data.id;
+                    }
+                  } catch (err) {
+                    console.warn(`[launch-sequence] Failed to lookup lead_id for ${provider.email}:`, err);
+                  }
+
                   const smartleadData: ProviderSmartleadData = {
                     campaign_id: report.campaign_id,
+                    lead_id: leadId,
                     lead_email: provider.email!,
                     enrolled_at: new Date().toISOString(),
                     campaign_name: campaignName,

@@ -2999,6 +2999,10 @@ export default function ProviderOutreachPage() {
     loading: boolean;
   } | null>(null);
 
+  // Dedicated broadcast modal (simpler than action modal)
+  const [broadcastModalProvider, setBroadcastModalProvider] = useState<OutreachProvider | null>(null);
+  const [broadcastMoving, setBroadcastMoving] = useState(false);
+
   // Send Claim Link state (for action modal)
   const [sendingClaimLink, setSendingClaimLink] = useState(false);
   const [claimLinkSent, setClaimLinkSent] = useState(false);
@@ -3322,6 +3326,25 @@ export default function ProviderOutreachPage() {
         setEmailHealth({ email: null, delivered: 0, bounced: 0, complained: 0, lastDeliveredAt: null, lastCalledAt: null, eligible: false, reason: "Failed to load", loading: false });
       });
   }, [actionModalProvider]);
+
+  // Fetch email health for dedicated broadcast modal
+  useEffect(() => {
+    if (!broadcastModalProvider) {
+      setEmailHealth(null);
+      return;
+    }
+
+    setEmailHealth({ email: null, delivered: 0, bounced: 0, complained: 0, lastDeliveredAt: null, lastCalledAt: null, eligible: false, reason: null, loading: true });
+
+    fetch(`/api/admin/provider-outreach/email-health?provider_id=${broadcastModalProvider.provider_id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setEmailHealth({ ...data, loading: false });
+      })
+      .catch(() => {
+        setEmailHealth({ email: null, delivered: 0, bounced: 0, complained: 0, lastDeliveredAt: null, lastCalledAt: null, eligible: false, reason: "Failed to load", loading: false });
+      });
+  }, [broadcastModalProvider]);
 
   // Remove provider from outreach (delete tracking row, not the provider itself)
   const handleRemoveFromOutreach = async () => {
@@ -6891,6 +6914,153 @@ export default function ProviderOutreachPage() {
         </div>
       )}
 
+      {/* Dedicated Broadcast Modal - Clean and focused */}
+      {broadcastModalProvider && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+          onClick={() => {
+            if (!broadcastMoving) {
+              setBroadcastModalProvider(null);
+            }
+          }}
+        >
+          <div
+            className="bg-white rounded-xl shadow-xl w-full max-w-sm overflow-hidden"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div className="px-5 py-4 border-b border-gray-100">
+              <h3 className="text-base font-semibold text-gray-900">Move to Broadcast</h3>
+              <p className="text-sm text-gray-500 mt-0.5">{broadcastModalProvider.provider_name}</p>
+            </div>
+
+            {/* Content */}
+            <div className="px-5 py-4">
+              {emailHealth?.loading ? (
+                <div className="flex items-center justify-center py-6">
+                  <span className="w-5 h-5 border-2 border-gray-300 border-t-purple-600 rounded-full animate-spin" />
+                </div>
+              ) : emailHealth ? (
+                <div className="space-y-4">
+                  {/* Eligibility Status */}
+                  <div className={`p-3 rounded-lg ${emailHealth.eligible ? "bg-green-50 border border-green-200" : "bg-amber-50 border border-amber-200"}`}>
+                    <div className="flex items-center gap-2">
+                      {emailHealth.eligible ? (
+                        <>
+                          <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="text-sm font-medium text-green-800">Eligible for broadcast</span>
+                        </>
+                      ) : (
+                        <>
+                          <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                          <span className="text-sm font-medium text-amber-800">{emailHealth.reason || "Not eligible"}</span>
+                        </>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Email Health Indicators */}
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <span className={`w-2 h-2 rounded-full ${emailHealth.delivered > 0 ? "bg-green-500" : "bg-gray-300"}`} />
+                      <span className="text-gray-600">Delivered:</span>
+                      <span className={`font-medium ${emailHealth.delivered > 0 ? "text-green-700" : "text-gray-500"}`}>{emailHealth.delivered}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`w-2 h-2 rounded-full ${emailHealth.bounced === 0 ? "bg-green-500" : "bg-red-500"}`} />
+                      <span className="text-gray-600">Bounces:</span>
+                      <span className={`font-medium ${emailHealth.bounced === 0 ? "text-green-700" : "text-red-700"}`}>{emailHealth.bounced}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`w-2 h-2 rounded-full ${emailHealth.complained === 0 ? "bg-green-500" : "bg-red-500"}`} />
+                      <span className="text-gray-600">Complaints:</span>
+                      <span className={`font-medium ${emailHealth.complained === 0 ? "text-green-700" : "text-red-700"}`}>{emailHealth.complained}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className={`w-2 h-2 rounded-full ${emailHealth.lastCalledAt ? "bg-green-500" : "bg-gray-300"}`} />
+                      <span className="text-gray-600">Called:</span>
+                      <span className={`font-medium ${emailHealth.lastCalledAt ? "text-green-700" : "text-gray-500"}`}>
+                        {emailHealth.lastCalledAt ? "Yes" : "No"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Email */}
+                  {emailHealth.email && (
+                    <div className="pt-2 border-t border-gray-100">
+                      <span className="text-xs text-gray-500">Email: </span>
+                      <span className="text-xs text-gray-700 font-mono">{emailHealth.email}</span>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500 text-center py-4">Unable to check eligibility</p>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="px-5 py-3 bg-gray-50 border-t border-gray-100 flex justify-end gap-2">
+              <button
+                onClick={() => setBroadcastModalProvider(null)}
+                disabled={broadcastMoving}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={async () => {
+                  setBroadcastMoving(true);
+                  try {
+                    const res = await fetch("/api/admin/provider-outreach/update-stage", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        provider_ids: [broadcastModalProvider.provider_id],
+                        stage: "broadcast_ready",
+                      }),
+                    });
+                    if (res.ok) {
+                      showToast("Moved to Broadcast Ready", "success");
+                      markAsRecentlyMoved(broadcastModalProvider.provider_id);
+                      setProviders((prev) => prev.filter((p) => p.provider_id !== broadcastModalProvider.provider_id));
+                      // Update stage counts
+                      const oldStage = broadcastModalProvider.stage;
+                      setStageCounts((prev) => ({
+                        ...prev,
+                        [oldStage]: Math.max(0, (prev[oldStage as keyof typeof prev] || 0) - 1),
+                        broadcast_ready: (prev.broadcast_ready || 0) + 1,
+                      }));
+                      setBroadcastModalProvider(null);
+                      fetchProviders();
+                    } else {
+                      const err = await res.json().catch(() => ({}));
+                      showToast(err.error || "Failed to move provider", "error");
+                    }
+                  } finally {
+                    setBroadcastMoving(false);
+                  }
+                }}
+                disabled={broadcastMoving || !emailHealth || emailHealth.loading || !emailHealth.eligible}
+                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {broadcastMoving ? (
+                  <span className="flex items-center gap-2">
+                    <span className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Moving...
+                  </span>
+                ) : (
+                  "Confirm"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Sequence Confirmation Modal */}
       {showSequenceConfirm && (
         <div
@@ -7999,6 +8169,14 @@ export default function ProviderOutreachPage() {
                 ? { ...prev, call_count: newCallCount, latest_call_status: latestStatus }
                 : prev
             );
+          }}
+          onMoveToBroadcast={(providerId) => {
+            // Open dedicated broadcast modal (simpler than action modal)
+            const provider = providers.find((p) => p.provider_id === providerId);
+            if (provider) {
+              setBroadcastModalProvider(provider);
+              setDrawerProvider(null);
+            }
           }}
         />
       )}

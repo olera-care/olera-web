@@ -12,6 +12,7 @@ import {
 } from "@/lib/provider-outreach";
 import { OUTREACH_STAGES, type OutreachStage } from "../route";
 import { NOT_INTERESTED_REASON_VALUES, type NotInterestedReason } from "@/lib/provider-outreach";
+import { pauseLeadInCampaign, getLeadByEmail } from "@/lib/smartlead";
 
 // PDF attachment cache (survives warm Lambda invocations)
 let cachedPdfAttachment: { filename: string; content: string; encoding: string; type: string } | null = null;
@@ -135,7 +136,7 @@ export async function POST(request: NextRequest) {
     // Get current tracking record
     const { data: tracking, error: trackingError } = await db
       .from("provider_outreach_tracking")
-      .select("id, provider_id, stage, resend_count, due_date, city, state, sequence_started_at, email_source")
+      .select("id, provider_id, stage, resend_count, due_date, city, state, sequence_started_at, email_source, smartlead_data")
       .eq("provider_id", provider_id)
       .single();
 
@@ -256,6 +257,45 @@ export async function POST(request: NextRequest) {
     if (updateError) {
       console.error("[record-outcome] Update error:", updateError);
       return NextResponse.json({ error: "Failed to update tracking record" }, { status: 500 });
+    }
+
+    // ── Pause Smartlead lead when leaving the active sequence ──
+    // This stops the automated sequence from sending more emails
+    // Triggers: re_engage (resend_link, try_fax, etc.), not_interested, or clearEmail (wrong_contact)
+    if (newStage === "re_engage" || newStage === "not_interested" || clearEmail) {
+      const smartleadData = tracking.smartlead_data as {
+        campaign_id?: number;
+        lead_id?: number;
+        lead_email?: string;
+      } | null;
+
+      if (smartleadData?.campaign_id) {
+        try {
+          let leadId = smartleadData.lead_id;
+
+          // If we don't have lead_id, look it up by email
+          if (!leadId && smartleadData.lead_email) {
+            const lookup = await getLeadByEmail(smartleadData.lead_email);
+            if (lookup.ok && lookup.data?.id) {
+              leadId = lookup.data.id;
+            }
+          }
+
+          if (leadId) {
+            const pauseResult = await pauseLeadInCampaign(smartleadData.campaign_id, leadId);
+            if (pauseResult.ok) {
+              console.log(`[record-outcome] Paused Smartlead lead ${leadId} in campaign ${smartleadData.campaign_id} (moving to ${newStage})`);
+            } else {
+              console.warn(`[record-outcome] Failed to pause Smartlead lead: ${pauseResult.error}`);
+            }
+          } else {
+            console.warn(`[record-outcome] No lead_id found for provider ${provider_id}, cannot pause Smartlead`);
+          }
+        } catch (err) {
+          console.error("[record-outcome] Error pausing Smartlead lead:", err);
+          // Non-fatal - continue with the response
+        }
+      }
     }
 
     // ── Clear email if wrong_contact ──

@@ -23,6 +23,7 @@ type OutreachStage =
   | "not_contacted"
   | "in_sequence"
   | "needs_call"
+  | "broadcast_ready"
   | "re_engage"
   | "call_exhausted"
   | "not_interested"
@@ -117,6 +118,8 @@ interface ProviderDrawerProps {
   onClaimLinkSent?: (providerId: string, newResendCount: number) => void;
   // Contact form sent callback (updates contact_form_send_count in local state)
   onContactFormSent?: (providerId: string, newSendCount: number) => void;
+  // Move to broadcast callback
+  onMoveToBroadcast?: (providerId: string) => void;
   // Call logged callback (updates call_count in local state for sorting)
   onCallLogged?: (providerId: string, newCallCount: number, latestStatus: string) => void;
   // Navigation callbacks for prev/next provider
@@ -678,8 +681,13 @@ function ContactSection({
         body: JSON.stringify({ provider_id: provider.provider_id, email: foundEmail.email, force }),
       });
       if (res.ok) {
+        const data = await res.json().catch(() => ({}));
         onEmailUpdate?.(foundEmail.email);
         setFoundEmail(null);
+        // Warn if SmartLead sync failed (email saved but sequence not updated)
+        if (data.smartleadSynced === false && data.smartleadError) {
+          setEmailError(`Saved, but SmartLead sync failed: ${data.smartleadError}`);
+        }
       } else {
         const data = await res.json().catch(() => ({}));
         // Handle specific errors with human-readable messages
@@ -721,11 +729,16 @@ function ContactSection({
         body: JSON.stringify({ provider_id: provider.provider_id, email: emailValue.trim(), force }),
       });
       if (res.ok) {
+        const data = await res.json().catch(() => ({}));
         onEmailUpdate?.(emailValue.trim());
         setEditingEmail(false);
         // Reset verification state on successful save
         setVerificationStatus("idle");
         setTrustScoreStatus("idle");
+        // Warn if SmartLead sync failed (email saved but sequence not updated)
+        if (data.smartleadSynced === false && data.smartleadError) {
+          setEmailError(`Saved, but SmartLead sync failed: ${data.smartleadError}`);
+        }
       } else {
         const data = await res.json().catch(() => ({}));
         // Handle specific errors with human-readable messages
@@ -1217,7 +1230,12 @@ function SavedContactsSection({
         body: JSON.stringify({ provider_id: provider.provider_id, email }),
       });
       if (res.ok) {
+        const data = await res.json().catch(() => ({}));
         onUseEmail?.(email);
+        // Warn if SmartLead sync failed (logged since no error UI in this context)
+        if (data.smartleadSynced === false && data.smartleadError) {
+          console.warn(`[ProviderDrawer] SmartLead sync failed for ${email}:`, data.smartleadError);
+        }
       }
     } finally {
       setUsingEmail(null);
@@ -1566,7 +1584,12 @@ function DecisionMakerSection({
         }),
       });
       if (res.ok) {
+        const data = await res.json().catch(() => ({}));
         onUseEmail?.(contact.email);
+        // Warn if SmartLead sync failed
+        if (data.smartleadSynced === false && data.smartleadError) {
+          setError(`Saved, but SmartLead sync failed: ${data.smartleadError}`);
+        }
       } else {
         const data = await res.json();
         setError(data.error || "Failed to update");
@@ -2487,6 +2510,7 @@ function ActionsSection({
   onOutcomeRecorded,
   onClaimLinkSent,
   onContactFormSent,
+  onMoveToBroadcast,
   onClose,
   activeTab,
 }: {
@@ -2498,6 +2522,7 @@ function ActionsSection({
   onOutcomeRecorded?: (providerId: string, stageChanged: boolean) => void;
   onClaimLinkSent?: (providerId: string, newResendCount: number) => void;
   onContactFormSent?: (providerId: string, newSendCount: number) => void;
+  onMoveToBroadcast?: (providerId: string) => void;
   onClose?: () => void;
   activeTab?: string;
 }) {
@@ -3663,15 +3688,15 @@ Questions? support@olera.care or (979) 243-9801`;
           </button>
         )}
 
-        {/* Send Claim Link - for non-follow-up active stages */}
-        {!isTerminal && !isFollowUp && provider.email && (
+        {/* Send Claim Link - for non-follow-up active stages (excluding call_exhausted which has its own) */}
+        {!isTerminal && !isFollowUp && !isCallExhausted && provider.email && (
           <button onClick={loadComposeTemplate} disabled={composeLoading} className={canLaunch ? outlineBtn : primaryBtn}>
             {composeLoading ? "Loading..." : "Send Claim Link"}
           </button>
         )}
 
-        {/* Contact Form - for non-follow-up, non-terminal stages (supplementary channel, no stage change) */}
-        {!isTerminal && !isFollowUp && (
+        {/* Contact Form - for non-follow-up, non-terminal stages (excluding call_exhausted which has its own order) */}
+        {!isTerminal && !isFollowUp && !isCallExhausted && (
           <button onClick={() => setConfirmAction("contact_form")} className={outlineBtn}>
             Contact Form
           </button>
@@ -3697,10 +3722,24 @@ Questions? support@olera.care or (979) 243-9801`;
           </>
         )}
 
-        {/* Call Exhausted: Resend Claim Link (no stage change) */}
+        {/* Call Exhausted: Send Claim Link (no stage change) */}
         {isCallExhausted && provider.email && (
           <button onClick={loadComposeTemplate} disabled={composeLoading} className={primaryBtn}>
             {composeLoading ? "Loading..." : "Send Claim Link"}
+          </button>
+        )}
+
+        {/* Move to Broadcast - for call-related stages (opens action modal for confirmation) */}
+        {["needs_call", "re_engage", "call_exhausted"].includes(provider.stage) && onMoveToBroadcast && (
+          <button onClick={() => { onMoveToBroadcast(provider.provider_id); onClose?.(); }} className={outlineBtn}>
+            Move to Broadcast
+          </button>
+        )}
+
+        {/* Contact Form for call_exhausted (after Move to Broadcast) */}
+        {isCallExhausted && (
+          <button onClick={() => setConfirmAction("contact_form")} className={outlineBtn}>
+            Contact Form
           </button>
         )}
 
@@ -3762,6 +3801,7 @@ export function ProviderDrawer({
   onOutcomeRecorded,
   onClaimLinkSent,
   onContactFormSent,
+  onMoveToBroadcast,
   onCallLogged,
   onPrevious,
   onNext,
@@ -3812,6 +3852,7 @@ export function ProviderDrawer({
       onOutcomeRecorded={onOutcomeRecorded}
       onClaimLinkSent={onClaimLinkSent}
       onContactFormSent={onContactFormSent}
+      onMoveToBroadcast={onMoveToBroadcast}
       onClose={onClose}
       activeTab={activeTab}
     />

@@ -288,6 +288,34 @@ export const CRON_REGISTRY: CronJob[] = [
     emailTypes: [],
     relatedAdminPath: "/admin/provider-outreach",
   },
+  {
+    id: "provider-outreach-channel-lifecycle",
+    name: "Provider outreach — channel lifecycle",
+    description: "Daily: moves providers from Alternative Channels to Call tab after 7 days without claiming. Ensures providers don't get stuck in re_engage indefinitely.",
+    recipientCohort: "(No recipients — a state-transition job.)",
+    audience: "Providers",
+    fn: "maintenance",
+    schedule: "0 5 * * *",
+    humanSchedule: "Daily at 5:00 AM UTC",
+    path: "/api/cron/provider-outreach-channel-lifecycle",
+    emailTypes: [],
+    relatedAdminPath: "/admin/provider-outreach",
+  },
+  {
+    id: "city-broadcasts",
+    name: "City broadcasts",
+    description:
+      "Sends engagement emails to dormant providers when family activity (questions asked, profiles published) occurs in their city. Shows providers that families are actively looking for care in their area.",
+    recipientCohort: "Dormant providers in cities with recent family activity — eligible if they have an email, haven't bounced, and haven't received a broadcast in 7 days.",
+    audience: "Providers",
+    fn: "outreach",
+    schedule: "*/30 * * * *",
+    humanSchedule: "Every 30 minutes",
+    path: "/api/cron/city-broadcasts",
+    emailTypes: ["city_broadcast_question", "city_broadcast_profile"],
+    successSignal: "Provider claims their profile.",
+    relatedAdminPath: "/admin/city-broadcasts",
+  },
   // NOTE: lead-response-nudge has been replaced by lead-followup-sequence.
   // The old cron code remains at app/api/cron/lead-response-nudge/route.ts for rollback.
   {
@@ -407,8 +435,8 @@ export const CRON_REGISTRY: CronJob[] = [
   {
     id: "sms-queue-flush",
     name: "SMS queue flush",
-    description: "Drains sms_queue — reactive care-seeker reply-alert texts held outside the recipient's 8am–8pm quiet-hours window. Re-checks opt-out + the daily safety throttle at delivery.",
-    recipientCohort: "Families with a deferred reply-alert SMS whose send window has opened.",
+    description: "Drains sms_queue — reactive care-seeker reply-alert texts AND human replies written from /admin/inbox, both held outside the recipient's 8am–8pm quiet-hours window. Re-checks opt-out at delivery (the daily throttle too, except for human replies, which an immediate send never consulted either). A canceled human reply reopens its thread in the inbox rather than disappearing.",
+    recipientCohort: "Families with a deferred reply-alert SMS or a scheduled admin reply whose send window has opened.",
     audience: "Care seekers",
     fn: "alert",
     schedule: "0 * * * *",

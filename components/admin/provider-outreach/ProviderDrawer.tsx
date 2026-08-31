@@ -118,6 +118,8 @@ interface ProviderDrawerProps {
   onClaimLinkSent?: (providerId: string, newResendCount: number) => void;
   // Contact form sent callback (updates contact_form_send_count in local state)
   onContactFormSent?: (providerId: string, newSendCount: number) => void;
+  // Move to broadcast callback
+  onMoveToBroadcast?: (providerId: string) => void;
   // Call logged callback (updates call_count in local state for sorting)
   onCallLogged?: (providerId: string, newCallCount: number, latestStatus: string) => void;
   // Navigation callbacks for prev/next provider
@@ -2488,6 +2490,7 @@ function ActionsSection({
   onOutcomeRecorded,
   onClaimLinkSent,
   onContactFormSent,
+  onMoveToBroadcast,
   onClose,
   activeTab,
 }: {
@@ -2499,6 +2502,7 @@ function ActionsSection({
   onOutcomeRecorded?: (providerId: string, stageChanged: boolean) => void;
   onClaimLinkSent?: (providerId: string, newResendCount: number) => void;
   onContactFormSent?: (providerId: string, newSendCount: number) => void;
+  onMoveToBroadcast?: (providerId: string) => void;
   onClose?: () => void;
   activeTab?: string;
 }) {
@@ -3664,8 +3668,8 @@ Questions? support@olera.care or (979) 243-9801`;
           </button>
         )}
 
-        {/* Send Claim Link - for non-follow-up active stages */}
-        {!isTerminal && !isFollowUp && provider.email && (
+        {/* Send Claim Link - for non-follow-up active stages (excluding call_exhausted which has its own) */}
+        {!isTerminal && !isFollowUp && !isCallExhausted && provider.email && (
           <button onClick={loadComposeTemplate} disabled={composeLoading} className={canLaunch ? outlineBtn : primaryBtn}>
             {composeLoading ? "Loading..." : "Send Claim Link"}
           </button>
@@ -3709,6 +3713,19 @@ Questions? support@olera.care or (979) 243-9801`;
         {["needs_call", "re_engage", "call_exhausted", "not_interested"].includes(provider.stage) && provider.email && onLaunchSequence && (
           <button onClick={() => { onLaunchSequence(provider.provider_id); onClose?.(); }} className={outlineBtn}>
             Start Sequence
+          </button>
+        )}
+
+        {/* Move to Broadcast - for call-related stages (opens action modal for confirmation) */}
+        {["needs_call", "re_engage", "call_exhausted"].includes(provider.stage) && onMoveToBroadcast && (
+          <button
+            onClick={() => { onMoveToBroadcast(provider.provider_id); onClose?.(); }}
+            className="text-purple-700 border-purple-200 bg-purple-50 hover:bg-purple-100 px-3 py-2 text-sm font-medium rounded-lg border transition-colors flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+            </svg>
+            Move to Broadcast
           </button>
         )}
 
@@ -3763,6 +3780,7 @@ export function ProviderDrawer({
   onOutcomeRecorded,
   onClaimLinkSent,
   onContactFormSent,
+  onMoveToBroadcast,
   onCallLogged,
   onPrevious,
   onNext,
@@ -3813,6 +3831,7 @@ export function ProviderDrawer({
       onOutcomeRecorded={onOutcomeRecorded}
       onClaimLinkSent={onClaimLinkSent}
       onContactFormSent={onContactFormSent}
+      onMoveToBroadcast={onMoveToBroadcast}
       onClose={onClose}
       activeTab={activeTab}
     />

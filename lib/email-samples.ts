@@ -62,6 +62,7 @@ import {
   // provider
   providerWeeklyDigestEmail,
   providerProfileCompletionEmail,
+  providerWelcomeEmail,
   coldProviderRankEmail,
   providerLeadDigestEmail,
   providerManagedAdsEmail,
@@ -711,6 +712,35 @@ export const EMAIL_VARIANTS: EmailVariant[] = [
       providerName: "Evergreen Home Care", providerSlug: "evergreen-home-care",
       ctaUrl: `${SAMPLE_LINK}?action=matches`,
       nearbyCount: 3, nearestTown: "Round Rock", careNeed: "home care", timeline: "immediate",
+    }),
+  },
+  {
+    id: "provider_welcome_verified", audience: "provider", group: "Provider · Onboarding",
+    label: "Welcome · no verification needed", subject: "Evergreen Home Care is now yours to manage",
+    emailType: "provider_welcome", cron: "provider-welcome",
+    timing: "Day 0 · first business-hours run after the claim",
+    situation: "The provider just took ownership of their page and has full access already, so the email confirms the claim and points at the dashboard without adding a task.",
+    who: "Claimed within the last 7 days, not yet welcomed, and verified or high-trust (verification not required). About 85% of claims land here.",
+    why: "There is no provider-facing email at claim time otherwise. This is the first thing they hear from us after claiming.",
+    render: () => providerWelcomeEmail({
+      providerName: "Evergreen Home Care",
+      providerSlug: "evergreen-home-care",
+      dashboardUrl: `${SAMPLE_LINK}?action=manage`,
+    }),
+  },
+  {
+    id: "provider_welcome_unverified", audience: "provider", group: "Provider · Onboarding",
+    label: "Welcome · verification still needed", subject: "Evergreen Home Care is now yours to manage",
+    emailType: "provider_welcome", cron: "provider-welcome",
+    timing: "Day 0 · first business-hours run after the claim",
+    situation: "Same moment as the version above, but this provider cannot see family details or reply to inquiries until they verify, so the ask is folded into the welcome instead of promising access they do not have.",
+    who: "Claimed within the last 7 days, not yet welcomed, and still unverified. About 11% of claims land here.",
+    why: "Verification gates Matches and the portal inbox. Asking here beats a separate email a day later that most providers never need.",
+    render: () => providerWelcomeEmail({
+      providerName: "Evergreen Home Care",
+      providerSlug: "evergreen-home-care",
+      dashboardUrl: `${SAMPLE_LINK}?action=manage`,
+      verifyUrl: `${SAMPLE_LINK}?action=settings`,
     }),
   },
   {

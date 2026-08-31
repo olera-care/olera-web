@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NE/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.039Z
+ * Last updated: 2026-08-31T10:40:13.370Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -731,7 +731,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Social Security award letters or benefit statements",
         "Pension or retirement income statements",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. In Nebraska your savings do count. The limit is $25,000 in liquid assets.",
         "Proof of rent or mortgage payments",
         "Recent utility bills (electric, gas, water, phone)",
         "Medical expense receipts over $35/month (unreimbursed)",
@@ -2650,7 +2650,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Choose your application method",
-            "description": "Apply online at dhhs.ne.gov, call 402-471-3121 or (800) 358-8802, or visit your local Nebraska DHHS office."
+            "description": "Apply online through the iServe Nebraska portal at iserve.nebraska.gov, call ACCESSNebraska Economic Assistance at (800) 383-4278, or visit your local Nebraska DHHS office."
           },
           {
             "step": 2,
@@ -2692,15 +2692,15 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Nebraska DHHS AABD Line",
-          "phone": "(402) 471-3121",
-          "description": "Primary application and program questions",
-          "hours": "Business hours"
+          "label": "Nebraska DHHS Economic Assistance, ACCESSNebraska (start here)",
+          "phone": "(800) 383-4278",
+          "description": "Apply for AABD and ask program questions. In Lincoln call (402) 323-3900, in Omaha (402) 595-1258. You can also apply online through the iServe Nebraska portal.",
+          "hours": "Mon-Fri 8:00am-5:00pm Central"
         },
         {
-          "label": "Nebraska DHHS Toll-Free",
-          "phone": "(800) 358-8802",
-          "description": "Statewide benefits information and applications",
+          "label": "Nebraska DHHS Main Switchboard",
+          "phone": "(402) 471-3121",
+          "description": "General department line. It will not answer AABD questions directly, but it can transfer you.",
           "hours": "Business hours"
         },
         {
@@ -2733,7 +2733,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can my loved one keep their house and still get AABD?",
-          "answer": "Yes, the home your loved one lives in typically doesn't count toward the asset limits. However, income and asset limits do apply, and the specific amounts aren't detailed in state materials, contact Nebraska DHHS at (402) 471-3121 for current limits."
+          "answer": "Yes, the home your loved one lives in typically doesn't count toward the asset limits. However, income and asset limits do apply, and the specific amounts aren't detailed in state materials, contact ACCESSNebraska Economic Assistance at (800) 383-4278 for current limits."
         },
         {
           "question": "What happens if my loved one's disability lasts longer than initially expected?",
@@ -2741,7 +2741,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can I apply for AABD on behalf of my elderly loved one?",
-          "answer": "Yes, family members can help with the application process. You can call Nebraska DHHS at (402) 471-3121 to discuss acting as a representative for your loved one, but you'll need proper authorization and documentation of your loved one's need for assistance."
+          "answer": "Yes, family members can help with the application process. You can call ACCESSNebraska Economic Assistance at (800) 383-4278 to discuss acting as a representative for your loved one, but you'll need proper authorization and documentation of your loved one's need for assistance."
         },
         {
           "question": "Does living in assisted living affect AABD payments?",
@@ -2757,11 +2757,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "CurrencyDollar",
-      "phone": "(402) 471-3121",
+      "phone": "(800) 383-4278",
       "sourceUrl": "https://dhhs.ne.gov/Pages/Aged-Blind-or-Disabled.aspx",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "ssad-aged-disabled-services",

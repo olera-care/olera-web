@@ -717,7 +717,7 @@
         "Social Security award letters for all household members",
         "Medical bills and receipts showing out-of-pocket expenses over $35/month",
         "Pension or retirement income statements",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Rent or mortgage statement showing monthly housing costs",
         "Recent utility bills (electricity, gas, water, trash)",
         "Social Security cards or proof of application for all household members",
@@ -830,7 +830,7 @@
             "type": "service-area"
           },
           {
-            "name": "Energy Resource Center (Denver, Boulder, Larimer, Weld)",
+            "name": "Energy Resource Center (Denver metro and Northern Colorado)",
             "type": "service-area"
           },
           {
@@ -878,12 +878,12 @@
           {
             "step": 2,
             "title": "Gather required documents",
-            "description": "Collect current photo ID, income proof for the last 30 days, public assistance letters if applicable, and household member information."
+            "description": "Collect current photo ID, three months of income for everyone 18 or older (or last year's signed tax return), a public assistance letter if you get SNAP, LEAP, TANF, SSI, OAP, AND or COAP, your energy account number, and the names and ages of everyone in the home."
           },
           {
             "step": 3,
             "title": "Submit application online or by phone",
-            "description": "Apply at socgov02.my.site.com/ceoweatherization/s/ or call your regional provider. Denver area: Energy Resource Center (720) 236-1321. Pueblo: email wap@pueblocounty.us."
+            "description": "Apply at socgov02.my.site.com/ceoweatherization/s/, which works statewide, or call your regional provider. Broomfield, Denver, Jefferson and Gilpin: Energy Resource Center (720) 236-1321. Boulder, Larimer and Weld: (970) 617-2801. Pueblo and southeast Colorado: 719-583-6315."
           },
           {
             "step": 4,
@@ -909,22 +909,34 @@
       "documentsNeeded": [
         "Current picture ID (Colorado driver's license/ID expired less than 10 years, passport, military card, or tribal document)",
         "Public assistance award or approval letter (if receiving SNAP, LEAP, TANF, SSI, OAP, AND, or COAP)",
-        "Income documentation for all working household members from the past 30 days (pay stubs, Social Security letters)",
+        "The last three months of income for every person in the home aged 18 or older (pay stubs, Social Security letters), or a signed copy of last year's tax return",
         "Complete household list with names, ages, disabilities, and income sources for all members",
         "Legal presence affidavit if applicable",
         "Landlord Release Form (renters only, must be signed before services can begin)"
       ],
       "contacts": [
         {
-          "label": "Energy Resource Center (Denver, Boulder, Larimer, Weld)",
+          "label": "Colorado Weatherization Assistance Program, statewide (start here)",
+          "phone": "303-866-2100",
+          "description": "Colorado Energy Office, which runs the program statewide. The fastest route is the online application at socgov02.my.site.com/ceoweatherization/s/, which works in any county. This is the general office line, so ask for weatherization.",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Energy Resource Center, Denver Metro",
           "phone": "(720) 236-1321",
-          "description": "Weatherization services for metro Denver area",
+          "description": "Serves Broomfield, Denver, Jefferson, and Gilpin counties",
+          "hours": "Contact for current hours"
+        },
+        {
+          "label": "Energy Resource Center, Northern Colorado",
+          "phone": "(970) 617-2801",
+          "description": "Serves Boulder, Larimer, and Weld counties",
           "hours": "Contact for current hours"
         },
         {
           "label": "Pueblo County Weatherization",
-          "phone": null,
-          "description": "Email: wap@pueblocounty.us for Pueblo County services",
+          "phone": "719-583-6315",
+          "description": "Serves Baca, Bent, Crowley, Custer, Huerfano, Kiowa, Las Animas, Otero, Prowers, and Pueblo counties. Email weatherization@pueblocounty.us.",
           "hours": "Contact for current hours"
         },
         {
@@ -989,10 +1001,11 @@
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "(720) 236-1321",
+      "phone": "303-866-2100",
       "sourceUrl": "https://socgov02.my.site.com/ceoweatherization/s/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "ship-medicare-counseling",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OH/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-23T08:40:32.539Z
+ * Last updated: 2026-08-31T10:40:13.375Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -925,7 +925,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Social Security award letter or pension statements",
         "Pay stubs from last 30 days (if working)",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Rent receipts or mortgage statements",
         "Utility bills (electric, gas, water, phone)",
         "Medical bills and receipts over $35/month",
@@ -1015,7 +1015,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "heap-energy-assistance",
       "name": "Home Energy Assistance Program (HEAP)",
       "shortName": "HEAP",
-      "tagline": "Get $41–$811 applied directly to your loved one's heating bill this winter",
+      "tagline": "A one-time credit applied directly to the account that heats your loved one's home",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1023,8 +1023,8 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": false
       },
       "intro": "If your loved one is struggling with heating bills, Ohio's Home Energy Assistance Program (HEAP) provides one-time assistance of $41–$811 applied directly to their utility or fuel bill. This federally-funded program helps families with household incomes up to $60,590/year for single people or $81,797/year for couples pay for heating costs during the winter months.\n\nBecause HEAP benefits go straight to the utility company or fuel provider, your loved one won't handle any cash, the assistance reduces what they owe on their next bill. Both homeowners and renters qualify, and the program covers all heating sources including natural gas, electric, propane, oil, and even coal or wood. Applications are accepted until May 31, 2026, but benefits aren't applied to bills until after January 1.",
-      "savingsRange": "$41 – $811/year in 2026",
-      "savingsSource": "Ohio HEAP benefit amounts",
+      "savingsRange": "$24 to $441 for the 2025-2026 program year",
+      "savingsSource": "Ohio HEAP State Plan section 2.6. The final 2025-2026 benefit matrix runs $24 to $441. The draft 2026-2027 plan proposes $31 to $546 but is not final. The amount depends on household income and poverty percentage, fuel source, location in the state, and PIPP enrollment.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -1079,12 +1079,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at www.energyhelp.ohio.gov or call 1-800-282-0880 to be connected to your local provider.",
+        "summary": "Apply online through the Ohio Department of Job and Family Services at jfs.ohio.gov/public-assistance/energy-and-community-assistance or call 1-800-282-0880 to be connected to your local provider. Applications for the 2026-2027 heating season are open now, through May 31, 2027.",
         "steps": [
           {
             "step": 1,
             "title": "Choose application method",
-            "description": "Apply online at www.energyhelp.ohio.gov, call 1-800-282-0880 for your local provider, or visit your Area Agency on Aging office."
+            "description": "Apply online at jfs.ohio.gov/public-assistance/energy-and-community-assistance, call 1-800-282-0880 for your local provider, or visit your local Energy Assistance Provider. Mail-in applications now go to your local provider rather than a central address."
           },
           {
             "step": 2,
@@ -1102,17 +1102,17 @@ export const drafts: PipelineStateDrafts = {
             "description": "Benefits are applied directly to your utility bill after January 1, 2026. You'll receive notification when the credit appears."
           }
         ],
-        "processingTime": null,
+        "processingTime": "Up to 12 weeks (about 90 days) for regular HEAP",
         "waitlist": null,
         "tip": "Apply early but know benefits won't show on bills until January 1. If facing shutoff, ask about Crisis LIHEAP for emergency assistance up to $1,200.",
         "urls": [
           {
             "label": "Ohio Energy Help Application",
-            "url": "https://www.energyhelp.ohio.gov"
+            "url": "https://jfs.ohio.gov/public-assistance/energy-and-community-assistance"
           },
           {
             "label": "Ohio HEAP Program Information",
-            "url": "https://development.ohio.gov/individual/energy-assistance/1-home-energy-assistance-program"
+            "url": "https://jfs.ohio.gov/public-assistance/energy-and-community-assistance"
           }
         ]
       },
@@ -1132,20 +1132,8 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "HEAP Statewide Line",
           "phone": "1-800-282-0880",
-          "description": "Connects you to your local energy assistance provider",
+          "description": "Connects you to your local energy assistance provider. Ohio moved these programs from the Department of Development to the Department of Job and Family Services in April 2026, and the application process did not change.",
           "hours": "Business hours, Monday-Friday"
-        },
-        {
-          "label": "Area Agency on Aging Line",
-          "phone": "1-800-860-5799",
-          "description": "Local aging services and HEAP assistance",
-          "hours": "Monday-Friday 9am-5pm"
-        },
-        {
-          "label": "Application Request Line",
-          "phone": "1-800-945-4250",
-          "description": "Request paper application by mail",
-          "hours": "Business hours"
         },
         {
           "label": "TTY for Hearing Impaired",
@@ -1155,10 +1143,13 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Ohio moved its energy assistance programs, including HEAP, from the Department of Development to the Department of Job and Family Services in April 2026. The application process did not change.",
         "Hard deadline: Applications must be received by May 31, 2026, no exceptions for late submissions",
         "Benefits only show on bills after January 1, 2026, even if you apply earlier",
         "If enrolled in PIPP (Percentage of Income Payment Plan), your HEAP benefit is reduced by 75%",
-        "Crisis assistance available for utility shutoffs or broken heating equipment, call immediately for emergency help up to $1,200"
+        "Crisis assistance available for utility shutoffs or broken heating equipment, call immediately for emergency help up to $1,200",
+        "Regular HEAP is a one-time credit to the account serving your home's main heat source, once per heating season. If the home is heated electrically the credit goes to the electric bill; otherwise it goes to the gas, propane, oil or bulk fuel account. It does not credit both.",
+        "Timing: apply for regular HEAP between July 1 and May 31; the credit can post as early as October. The Winter Crisis Program runs November 1 to March 31, and the Summer Crisis Program runs July 1 to September 30."
       ],
       "relatedPrograms": [
         "Weatherization Assistance Program",
@@ -1211,9 +1202,10 @@ export const drafts: PipelineStateDrafts = {
       },
       "icon": "Lightning",
       "phone": "1-800-282-0880",
-      "sourceUrl": "https://development.ohio.gov/individual/energy-assistance/1-home-energy-assistance-program",
+      "sourceUrl": "https://jfs.ohio.gov/public-assistance/energy-and-community-assistance",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "weatherization-assistance-program",
@@ -1345,7 +1337,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Ohio Energy Assistance (ODJFS)",
           "phone": "(800) 282-0880",
-          "description": "Find your local Energy Assistance Provider, who takes weatherization applications. Apply online at energyhelp.ohio.gov.",
+          "description": "Find your local Energy Assistance Provider, who takes weatherization applications. Apply online at jfs.ohio.gov/public-assistance/energy-and-community-assistance.",
           "hours": "Business hours"
         },
         {
@@ -1368,7 +1360,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Ohio moved its energy assistance programs, including HWAP, from the Department of Development to the Department of Job and Family Services in April 2026. Apply through energyhelp.ohio.gov or your local Energy Assistance Provider.",
+        "Ohio moved its energy assistance programs, including HWAP, from the Department of Development to the Department of Job and Family Services in April 2026. Apply through jfs.ohio.gov/public-assistance/energy-and-community-assistance or your local Energy Assistance Provider.",
         "Each county has a different local agency - you cannot apply through a single statewide office",
         "Households with adults 60+, disabilities, children, or high energy bills get priority but others are served by application date",
         "Renters are eligible but may need landlord permission and cooperation for certain improvements",
@@ -1424,7 +1416,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "icon": "Lightning",
       "phone": "(800) 282-0880",
-      "sourceUrl": "https://development.ohio.gov/individual/energy-assistance/6-home-weatherization-assistance-program",
+      "sourceUrl": "https://jfs.ohio.gov/public-assistance/energy-and-community-assistance",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
       "lastVerifiedDate": "2026-08-22"

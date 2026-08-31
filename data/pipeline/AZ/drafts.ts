@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AZ/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.020Z
+ * Last updated: 2026-08-31T10:40:13.354Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -744,7 +744,7 @@ export const drafts: PipelineStateDrafts = {
         "Child care or dependent care cost receipts",
         "Proof of Arizona residency (utility bill, lease agreement, state ID)",
         "Proof of citizenship or lawful immigration status",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Medical expense receipts and bills"
       ],
       "contacts": [

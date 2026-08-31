@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NH/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.040Z
+ * Last updated: 2026-08-31T10:40:13.371Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -822,7 +822,7 @@ export const drafts: PipelineStateDrafts = {
         "Valid government-issued photo ID",
         "Social Security cards for all household members",
         "Most recent Social Security award letter or pension statements",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Proof of monthly expenses (rent/mortgage statement, utility bills)",
         "Medical expense receipts over $35/month (prescriptions, insurance premiums, medical bills)",
         "Proof of New Hampshire residency (utility bill, lease, or mail)",

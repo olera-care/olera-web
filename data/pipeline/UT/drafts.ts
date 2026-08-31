@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/UT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-23T08:24:45.945Z
+ * Last updated: 2026-08-31T10:40:13.380Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -710,7 +710,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Social Security award letters or benefit statements",
         "Pension or retirement income documentation",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. In Utah your savings do count. For a household with someone 60 or older or disabled the limit is $4,500, and it rises to $4,750 on October 1, 2026.",
         "Proof of medical expenses over $35/month (receipts, bills, insurance statements)",
         "Rent receipt or mortgage statement",
         "Utility bills (electric, gas, water, phone)",

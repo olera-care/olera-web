@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/ME/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.033Z
+ * Last updated: 2026-08-31T10:40:13.366Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -316,7 +316,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Maine residency (utility bill, lease, or bank statement)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Pay stubs if still working (last 30 days)",
         "Rent or mortgage payment receipts",
         "Utility bills (electric, gas, water, phone)",

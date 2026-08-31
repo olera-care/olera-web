@@ -690,7 +690,7 @@
         "Proof of age (birth certificate, driver's license, or state ID)",
         "Proof of Mississippi residency (utility bill, lease, or mail)",
         "Social Security award letter or pension statements",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. In Mississippi your savings do count. For a household with someone 60 or older or disabled the limit is $4,500, and it rises to $4,750 on October 1, 2026.",
         "Rent or mortgage payment receipts",
         "Medical expenses receipts if claiming medical deductions",
         "Vehicle registration and titles",
@@ -2010,7 +2010,7 @@
       "id": "respite-voucher-program",
       "name": "Mississippi Respite Voucher Program",
       "shortName": "Respite Vouchers",
-      "tagline": "Get $300 vouchers to pay for temporary care while you take a break from caregiving.",
+      "tagline": "A voucher to pay for temporary care while you take a break from caregiving.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -2023,10 +2023,10 @@
           }
         ]
       },
-      "intro": "If you're caring for a loved one or family member with a significant disability or chronic illness requiring 24-hour care, Mississippi's Respite Voucher Program can help pay for temporary replacement care. You'll get a $300 voucher to hire an in-home care agency, use an adult day center, or pay a private caregiver while you take time for yourself.\n\nThis program has no income or asset limits, if you're providing unpaid care for someone needing round-the-clock assistance, you qualify. After using your initial $300 voucher, you can reapply for additional $290 vouchers approximately every six months. Emergency respite is also available for crisis situations.",
-      "savingsRange": "$300 – $590/year",
-      "savingsSource": "Initial $300 voucher plus $290 repeat voucher available after 6 months",
-      "savingsVerified": true,
+      "intro": "If you're caring for a loved one or family member with a significant disability or chronic illness requiring 24-hour care, Mississippi's Respite Voucher Program can help pay for temporary replacement care. The voucher pays an in-home care agency, an adult day center, or a private caregiver while you take time for yourself.\n\nThis program has no income or asset limits, if you're providing unpaid care for someone needing round-the-clock assistance, you qualify. Mississippi has published different voucher amounts over the years and has taken the program off its website, so ask what is available now when you call. Emergency respite has also been offered in the past for crisis situations.",
+      "savingsRange": "",
+      "savingsSource": "MDHS has published three different amounts and no longer lists this program on its website. The most recent published figure is a one-time $500 voucher per household (MDHS application form, 2023-2024). Earlier flyers list $300 initial, $290 repeat after about six months, and a separate one-time $590 emergency voucher. Call to confirm the program is still running and what it pays.",
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Mississippi resident",
@@ -2066,7 +2066,7 @@
           {
             "step": 4,
             "title": "Receive your voucher",
-            "description": "Once approved, you'll receive a $300 voucher to pay your chosen respite care provider."
+            "description": "Once approved, you receive a voucher toward your chosen respite provider. Ask what the current amount is, because the published figure has changed more than once."
           }
         ],
         "processingTime": null,
@@ -2075,19 +2075,27 @@
         "urls": []
       },
       "documentsNeeded": [
-        "Valid government-issued photo ID",
-        "Proof of Mississippi residency (utility bill, lease, or driver's license)",
-        "Documentation of care recipient's disability or chronic illness (doctor's note or medical records)",
-        "Proof that care recipient requires 24-hour supervision",
-        "Names and contact information for preferred respite care providers (if known)",
-        "Emergency contact information"
+        "Photo ID for both you and the person you care for. The form asks for both.",
+        "Names, dates of birth, addresses, counties, and phone numbers for both of you, plus your relationship",
+        "An email address for you. Payment is handled by email, so this is required.",
+        "The health condition of the person you care for, and whether they need daily assistance",
+        "The name, address, and phone of the respite provider you want to use, if you have picked one. If you have not, staff can help you find one.",
+        "Be ready to answer a short set of questions about your own stress, sleep, health, and isolation as a caregiver",
+        "Note that you pay the provider first and are reimbursed, in the past within 30 business days of sending the invoice",
+        "The voucher cannot pay you as the family caregiver, cannot cover care already provided, and cannot pay medical bills"
       ],
       "contacts": [
         {
           "label": "Mississippi Access to Care (MAC) Center",
           "phone": "(844) 822-4622",
-          "description": "Primary application assistance and program information",
-          "hours": "Business hours (specific hours not specified)"
+          "description": "Mississippi's aging and caregiver helpline. Ask whether the Lifespan Respite voucher is still accepting applications, because the state has stopped publishing it.",
+          "hours": null
+        },
+        {
+          "label": "MDHS Lifespan Respite Team",
+          "phone": null,
+          "description": "Last published intake address: lifespan.respite@mdhs.ms.gov, Division of Aging and Adult Services.",
+          "hours": null
         },
         {
           "label": "Mississippi 2-1-1",
@@ -2100,7 +2108,8 @@
         "This program is separate from Medicaid waivers and has no income, asset, or age restrictions",
         "Vouchers are per household, not per caregiver, if multiple family members share caregiving, you share one voucher",
         "Emergency respite may be available for crisis situations, ask the resource specialist about expedited assistance",
-        "You can reapply for additional vouchers after approximately six months from your initial approval"
+        "You can reapply for additional vouchers after approximately six months from your initial approval",
+        "As of August 2026 the Mississippi Department of Human Services no longer lists the Lifespan Respite Voucher Program on its caregivers page, and the application links published in 2024 return errors. The MAC Center number is still live. Confirm the program is running before counting on it."
       ],
       "relatedPrograms": [
         "Mississippi Elderly & Disabled Waiver",
@@ -2146,7 +2155,8 @@
       "phone": "(844) 822-4622",
       "sourceUrl": "https://www.mdhs.ms.gov/wp-content/uploads/2023/09/Respite-Flyer.pdf",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "central-aaa-reassurance-program",

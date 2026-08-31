@@ -1,18 +1,45 @@
 /**
  * GET /api/admin/city-broadcasts
  *
- * Returns city broadcast events and statistics for the admin dashboard.
+ * Returns provider-level data for the city broadcasts dashboard.
+ * Shows broadcast_ready providers grouped by city with their broadcast history
+ * and claim status.
  *
  * Query params:
- *   - days: Number of days to look back (default: 7)
+ *   - days: Number of days to look back for broadcast stats (default: 7)
+ *   - status: Filter by status (all, claimed, sent, waiting)
  *   - city: Filter by city
- *   - event_type: Filter by event type (question_asked, profile_published)
- *   - limit: Max events to return (default: 100)
- *   - offset: Pagination offset (default: 0)
+ *   - search: Search provider name
  */
 
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+
+interface ProviderBroadcast {
+  provider_id: string;
+  provider_name: string;
+  category: string | null;
+  city: string;
+  state: string | null;
+  phone: string | null;
+  email: string | null;
+  broadcasts_received: number;
+  last_broadcast_at: string | null;
+  last_broadcast_type: "question_asked" | "profile_published" | null;
+  claimed: boolean;
+  claimed_at: string | null;
+  is_conversion: boolean; // True if claimed AFTER receiving first broadcast
+}
+
+interface CityGroup {
+  city: string;
+  state: string | null;
+  pool_count: number;
+  sent_count: number;
+  claimed_count: number;
+  conversion_count: number; // True conversions (claimed after broadcast)
+  providers: ProviderBroadcast[];
+}
 
 export async function GET(req: NextRequest) {
   const user = await getAuthUser();
@@ -26,10 +53,9 @@ export async function GET(req: NextRequest) {
 
   const { searchParams } = new URL(req.url);
   const days = Math.min(parseInt(searchParams.get("days") || "7", 10), 90);
-  const city = searchParams.get("city");
-  const eventType = searchParams.get("event_type");
-  const limit = Math.min(parseInt(searchParams.get("limit") || "100", 10), 500);
-  const offset = parseInt(searchParams.get("offset") || "0", 10);
+  const statusFilter = searchParams.get("status") || "all";
+  const cityFilter = searchParams.get("city") || "";
+  const searchQuery = searchParams.get("search") || "";
 
   const db = getServiceClient();
   const cutoff = new Date();
@@ -37,147 +63,218 @@ export async function GET(req: NextRequest) {
   const cutoffIso = cutoff.toISOString();
 
   try {
-    // Get stats
-    const [todayStats, weekStats, allTimeStats] = await Promise.all([
-      getStats(db, new Date().toISOString().split("T")[0] + "T00:00:00.000Z"),
-      getStats(db, cutoffIso),
-      getStats(db),
-    ]);
+    // Step 1: Get all broadcast_ready providers with their details
+    let trackingQuery = db
+      .from("provider_outreach_tracking")
+      .select("provider_id, city, state, apollo_contact")
+      .eq("stage", "broadcast_ready");
 
-    // Get events with filters
-    let eventsQuery = db
-      .from("city_broadcast_events")
-      .select(`
-        id,
-        event_type,
-        event_id,
-        city,
-        state,
-        category,
-        status,
-        skip_reason,
-        providers_eligible,
-        providers_sent,
-        processed_at,
-        created_at
-      `)
+    if (cityFilter) {
+      trackingQuery = trackingQuery.ilike("city", `%${cityFilter}%`);
+    }
+
+    const { data: trackingRows, error: trackingError } = await trackingQuery;
+
+    if (trackingError) {
+      console.error("[city-broadcasts] Failed to fetch tracking:", trackingError);
+      return NextResponse.json({ error: "Failed to fetch providers" }, { status: 500 });
+    }
+
+    if (!trackingRows || trackingRows.length === 0) {
+      return NextResponse.json({
+        stats: { pool: 0, sent: 0, claimed: 0, conversion: 0 },
+        cities: [],
+      });
+    }
+
+    const providerIds = trackingRows.map((r) => r.provider_id);
+
+    // Step 2: Get provider details from olera-providers
+    const { data: providers } = await db
+      .from("olera-providers")
+      .select("provider_id, provider_name, provider_category, city, state, phone, email")
+      .in("provider_id", providerIds)
+      .or("deleted.is.null,deleted.eq.false");
+
+    const providerMap = new Map(
+      (providers || []).map((p) => [p.provider_id, p])
+    );
+
+    // Step 3: Get broadcast recipients for these providers (within time range)
+    const { data: recipients } = await db
+      .from("city_broadcast_recipients")
+      .select("provider_id, created_at, status, event_id")
+      .in("provider_id", providerIds)
+      .eq("status", "sent")
       .gte("created_at", cutoffIso)
-      .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
+      .order("created_at", { ascending: false });
 
-    if (city) {
-      eventsQuery = eventsQuery.ilike("city", `%${city}%`);
-    }
-    if (eventType) {
-      eventsQuery = eventsQuery.eq("event_type", eventType);
-    }
+    // Get event types for these recipients
+    const eventIds = [...new Set((recipients || []).map((r) => r.event_id))];
+    const { data: events } = eventIds.length > 0
+      ? await db
+          .from("city_broadcast_events")
+          .select("id, event_type")
+          .in("id", eventIds)
+      : { data: [] };
 
-    const { data: events, error: eventsError } = await eventsQuery;
+    const eventTypeMap = new Map(
+      (events || []).map((e) => [e.id, e.event_type])
+    );
 
-    if (eventsError) {
-      console.error("[admin/city-broadcasts] Failed to fetch events:", eventsError);
-      return NextResponse.json({ error: "Failed to fetch events" }, { status: 500 });
-    }
-
-    // Get total count for pagination
-    let countQuery = db
-      .from("city_broadcast_events")
-      .select("id", { count: "exact", head: true })
-      .gte("created_at", cutoffIso);
-
-    if (city) {
-      countQuery = countQuery.ilike("city", `%${city}%`);
-    }
-    if (eventType) {
-      countQuery = countQuery.eq("event_type", eventType);
+    // Group recipients by provider
+    const recipientsByProvider = new Map<string, typeof recipients>();
+    for (const r of recipients || []) {
+      if (!recipientsByProvider.has(r.provider_id)) {
+        recipientsByProvider.set(r.provider_id, []);
+      }
+      recipientsByProvider.get(r.provider_id)!.push(r);
     }
 
-    const { count } = await countQuery;
+    // Step 4: Check which providers have claimed
+    // We track claimed_at to calculate true conversion (claimed AFTER receiving broadcast)
+    const { data: claimedBps } = await db
+      .from("business_profiles")
+      .select("source_provider_id, created_at")
+      .in("source_provider_id", providerIds)
+      .not("account_id", "is", null);
 
-    // Get top cities
-    const { data: topCities } = await db
-      .from("city_broadcast_events")
-      .select("city")
-      .gte("created_at", cutoffIso)
-      .eq("status", "completed");
+    const claimedMap = new Map(
+      (claimedBps || []).map((bp) => [bp.source_provider_id, bp.created_at])
+    );
 
-    const cityCounts: Record<string, number> = {};
-    for (const row of topCities || []) {
-      cityCounts[row.city] = (cityCounts[row.city] || 0) + 1;
+    // Get first broadcast date for each provider (for true conversion calculation)
+    const { data: firstBroadcasts } = await db
+      .from("city_broadcast_recipients")
+      .select("provider_id, created_at")
+      .in("provider_id", providerIds)
+      .eq("status", "sent")
+      .order("created_at", { ascending: true });
+
+    // Map provider to their first broadcast date
+    const firstBroadcastMap = new Map<string, string>();
+    for (const fb of firstBroadcasts || []) {
+      if (!firstBroadcastMap.has(fb.provider_id)) {
+        firstBroadcastMap.set(fb.provider_id, fb.created_at);
+      }
     }
-    const topCitiesList = Object.entries(cityCounts)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 10)
-      .map(([cityName, eventCount]) => ({ city: cityName, events: eventCount }));
+
+    // Step 5: Build provider broadcast data
+    const providerBroadcasts: ProviderBroadcast[] = [];
+
+    for (const tracking of trackingRows) {
+      const provider = providerMap.get(tracking.provider_id);
+      if (!provider) continue;
+
+      // Apply search filter
+      if (searchQuery && !provider.provider_name?.toLowerCase().includes(searchQuery.toLowerCase())) {
+        continue;
+      }
+
+      const broadcasts = recipientsByProvider.get(tracking.provider_id) || [];
+      const lastBroadcast = broadcasts[0]; // Already sorted by created_at desc
+      const claimed = claimedMap.has(tracking.provider_id);
+      const claimedAt = claimedMap.get(tracking.provider_id) || null;
+
+      // Get email from apollo_contact or provider
+      const apolloContact = tracking.apollo_contact as { email?: string } | null;
+      const email = apolloContact?.email || provider.email;
+
+      // Check if this is a "true conversion" - claimed AFTER receiving first broadcast
+      const firstBroadcastAt = firstBroadcastMap.get(tracking.provider_id);
+      const isConversion = !!(claimed && claimedAt && firstBroadcastAt &&
+        new Date(claimedAt) > new Date(firstBroadcastAt));
+
+      const providerData: ProviderBroadcast = {
+        provider_id: tracking.provider_id,
+        provider_name: provider.provider_name || "Unknown",
+        category: provider.provider_category,
+        city: tracking.city || provider.city || "Unknown",
+        state: tracking.state || provider.state,
+        phone: provider.phone,
+        email,
+        broadcasts_received: broadcasts.length,
+        last_broadcast_at: lastBroadcast?.created_at || null,
+        last_broadcast_type: lastBroadcast ? eventTypeMap.get(lastBroadcast.event_id) || null : null,
+        claimed,
+        claimed_at: claimedAt,
+        // True conversion: claimed after receiving at least one broadcast
+        is_conversion: isConversion,
+      };
+
+      // Apply status filter
+      if (statusFilter === "claimed" && !claimed) continue;
+      if (statusFilter === "sent" && broadcasts.length === 0) continue;
+      if (statusFilter === "waiting" && (claimed || broadcasts.length === 0)) continue;
+
+      providerBroadcasts.push(providerData);
+    }
+
+    // Step 6: Group by city+state (to avoid merging different cities with same name)
+    const cityGroups = new Map<string, CityGroup>();
+
+    for (const p of providerBroadcasts) {
+      // Use city+state as key to distinguish "Springfield, IL" from "Springfield, MO"
+      const cityKey = p.state ? `${p.city}, ${p.state}` : p.city;
+      if (!cityGroups.has(cityKey)) {
+        cityGroups.set(cityKey, {
+          city: p.city,
+          state: p.state,
+          pool_count: 0,
+          sent_count: 0,
+          claimed_count: 0,
+          conversion_count: 0,
+          providers: [],
+        });
+      }
+      const group = cityGroups.get(cityKey)!;
+      group.pool_count++;
+      if (p.broadcasts_received > 0) group.sent_count++;
+      if (p.claimed) group.claimed_count++;
+      if (p.is_conversion) group.conversion_count++;
+      group.providers.push(p);
+    }
+
+    // Sort cities by pool count descending
+    const sortedCities = [...cityGroups.values()]
+      .sort((a, b) => b.pool_count - a.pool_count);
+
+    // Sort providers within each city by broadcasts received (desc), then name
+    for (const city of sortedCities) {
+      city.providers.sort((a, b) => {
+        if (b.broadcasts_received !== a.broadcasts_received) {
+          return b.broadcasts_received - a.broadcasts_received;
+        }
+        return a.provider_name.localeCompare(b.provider_name);
+      });
+    }
+
+    // Step 7: Calculate overall stats
+    const totalPool = providerBroadcasts.length;
+    const totalSent = providerBroadcasts.filter((p) => p.broadcasts_received > 0).length;
+    const totalClaimed = providerBroadcasts.filter((p) => p.claimed).length;
+    // True conversion: only count providers who claimed AFTER receiving a broadcast
+    const totalConversions = providerBroadcasts.filter((p) => p.is_conversion).length;
+    const conversion = totalSent > 0 ? Math.round((totalConversions / totalSent) * 1000) / 10 : 0;
 
     return NextResponse.json({
       stats: {
-        today: todayStats,
-        week: weekStats,
-        allTime: allTimeStats,
+        pool: totalPool,
+        sent: totalSent,
+        claimed: totalClaimed,
+        conversions: totalConversions, // True conversions (claimed after broadcast)
+        conversion, // Conversion rate percentage
       },
-      topCities: topCitiesList,
-      events: events || [],
-      pagination: {
-        total: count || 0,
-        limit,
-        offset,
+      cities: sortedCities,
+      filters: {
         days,
+        status: statusFilter,
+        city: cityFilter,
+        search: searchQuery,
       },
     });
   } catch (err) {
-    console.error("[admin/city-broadcasts] Error:", err);
+    console.error("[city-broadcasts] Error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
-
-interface Stats {
-  events: number;
-  completed: number;
-  skipped: number;
-  providersSent: number;
-  providersEligible: number;
-  deliveryRate: number;
-}
-
-async function getStats(
-  db: ReturnType<typeof getServiceClient>,
-  since?: string
-): Promise<Stats> {
-  let query = db
-    .from("city_broadcast_events")
-    .select("status, providers_sent, providers_eligible");
-
-  if (since) {
-    query = query.gte("created_at", since);
-  }
-
-  const { data, error } = await query;
-
-  if (error || !data) {
-    return {
-      events: 0,
-      completed: 0,
-      skipped: 0,
-      providersSent: 0,
-      providersEligible: 0,
-      deliveryRate: 0,
-    };
-  }
-
-  const events = data.length;
-  const completed = data.filter((e) => e.status === "completed").length;
-  const skipped = data.filter((e) => e.status === "skipped").length;
-  const providersSent = data.reduce((sum, e) => sum + (e.providers_sent || 0), 0);
-  const providersEligible = data.reduce((sum, e) => sum + (e.providers_eligible || 0), 0);
-  const deliveryRate = providersEligible > 0 ? (providersSent / providersEligible) * 100 : 0;
-
-  return {
-    events,
-    completed,
-    skipped,
-    providersSent,
-    providersEligible,
-    deliveryRate: Math.round(deliveryRate * 10) / 10,
-  };
 }

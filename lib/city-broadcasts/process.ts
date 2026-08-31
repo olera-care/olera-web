@@ -333,6 +333,7 @@ async function sendBroadcastEmail(
 export async function processPendingEvents(
   maxRuntimeMs: number
 ): Promise<ProcessResult> {
+  const db = getServiceClient();
   const startedAt = Date.now();
   const result: ProcessResult = {
     eventsDetected: 0,
@@ -342,11 +343,52 @@ export async function processPendingEvents(
     providersSkipped: 0,
   };
 
-  // Step 1: Detect new events
+  // Step 1: Process any orphaned pending events from previous runs
+  // This prevents events from getting stuck if the cron timed out mid-processing
+  const { data: orphanedEvents } = await db
+    .from("city_broadcast_events")
+    .select("id, event_type, event_id, city, state, category")
+    .in("status", ["pending", "processing"])
+    .order("created_at", { ascending: true })
+    .limit(BATCH_SIZE);
+
+  for (const orphan of orphanedEvents || []) {
+    if (Date.now() - startedAt > maxRuntimeMs) {
+      result.eventsSkipped++;
+      continue;
+    }
+
+    // We need to reconstruct the DetectedEvent - fetch question text if applicable
+    let questionText: string | undefined;
+    if (orphan.event_type === "question_asked") {
+      const { data: question } = await db
+        .from("provider_questions")
+        .select("question")
+        .eq("id", orphan.event_id)
+        .single();
+      questionText = question?.question;
+    }
+
+    const event: DetectedEvent = {
+      eventType: orphan.event_type as "question_asked" | "profile_published",
+      eventId: orphan.event_id,
+      city: orphan.city,
+      state: orphan.state,
+      category: orphan.category,
+      questionText,
+    };
+
+    const { sent, skipped } = await processEvent(orphan.id, event);
+    result.eventsProcessed++;
+    result.providersSent += sent;
+    result.providersSkipped += skipped;
+  }
+
+  // Step 2: Detect new events
   const newEvents = await detectNewEvents();
   result.eventsDetected = newEvents.length;
 
-  // Step 2: Create broadcast event records for new events
+  // Step 3: Create broadcast event records for new events
   const eventRecords: Array<{ id: string; event: DetectedEvent }> = [];
   for (const event of newEvents) {
     if (Date.now() - startedAt > maxRuntimeMs) break;
@@ -356,7 +398,7 @@ export async function processPendingEvents(
     }
   }
 
-  // Step 3: Process each event
+  // Step 4: Process each new event
   for (const record of eventRecords) {
     if (Date.now() - startedAt > maxRuntimeMs) {
       result.eventsSkipped++;

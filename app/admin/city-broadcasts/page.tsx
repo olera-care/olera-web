@@ -1,71 +1,70 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 /**
  * /admin/city-broadcasts — City Broadcasts Dashboard
  *
- * Shows stats and events for the city broadcasts system, which sends
- * engagement emails to dormant providers when family activity occurs
- * in their city.
+ * Provider-centric view showing which providers are in the broadcast pool,
+ * who has received broadcasts, and who has claimed.
  */
 
-type EventType = "question_asked" | "profile_published";
-type Status = "pending" | "processing" | "completed" | "skipped";
-
-interface BroadcastEvent {
-  id: string;
-  event_type: EventType;
-  event_id: string;
+interface ProviderBroadcast {
+  provider_id: string;
+  provider_name: string;
+  category: string | null;
   city: string;
   state: string | null;
-  category: string | null;
-  status: Status;
-  skip_reason: string | null;
-  providers_eligible: number;
-  providers_sent: number;
-  processed_at: string | null;
-  created_at: string;
+  phone: string | null;
+  email: string | null;
+  broadcasts_received: number;
+  last_broadcast_at: string | null;
+  last_broadcast_type: "question_asked" | "profile_published" | null;
+  claimed: boolean;
+  claimed_at: string | null;
+  is_conversion: boolean;
 }
 
-interface Stats {
-  events: number;
-  completed: number;
-  skipped: number;
-  providersSent: number;
-  providersEligible: number;
-  deliveryRate: number;
+interface CityGroup {
+  city: string;
+  state: string | null;
+  pool_count: number;
+  sent_count: number;
+  claimed_count: number;
+  conversion_count: number;
+  providers: ProviderBroadcast[];
+}
+
+/** Debounce hook for search inputs */
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState(value);
+
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+
+  return debouncedValue;
 }
 
 interface Payload {
   stats: {
-    today: Stats;
-    week: Stats;
-    allTime: Stats;
+    pool: number;
+    sent: number;
+    claimed: number;
+    conversions: number; // True conversions (claimed after broadcast)
+    conversion: number; // Conversion rate percentage
   };
-  topCities: Array<{ city: string; events: number }>;
-  events: BroadcastEvent[];
-  pagination: {
-    total: number;
-    limit: number;
-    offset: number;
+  cities: CityGroup[];
+  filters: {
     days: number;
+    status: string;
+    city: string;
+    search: string;
   };
 }
-
-const EVENT_TYPE_LABELS: Record<EventType, { label: string; cls: string }> = {
-  question_asked: { label: "Question", cls: "bg-blue-50 text-blue-700 ring-1 ring-blue-200" },
-  profile_published: { label: "Profile", cls: "bg-purple-50 text-purple-700 ring-1 ring-purple-200" },
-};
-
-const STATUS_LABELS: Record<Status, { label: string; cls: string }> = {
-  pending: { label: "Pending", cls: "bg-gray-100 text-gray-600" },
-  processing: { label: "Processing", cls: "bg-amber-100 text-amber-700" },
-  completed: { label: "Completed", cls: "bg-green-100 text-green-700" },
-  skipped: { label: "Skipped", cls: "bg-gray-100 text-gray-500" },
-};
 
 function relative(iso: string | null): string {
   if (!iso) return "-";
@@ -78,18 +77,162 @@ function relative(iso: string | null): string {
   return `${days}d ago`;
 }
 
-function Stat({ value, label, detail, tone = "default" }: {
-  value: string | number; label: string; detail?: string; tone?: "default" | "success" | "muted";
+function Stat({
+  value,
+  label,
+  detail,
+  tone = "default",
+}: {
+  value: string | number;
+  label: string;
+  detail?: string;
+  tone?: "default" | "success" | "muted";
 }) {
   return (
     <div className="min-h-20 rounded-xl border border-gray-200 bg-white px-4 py-3">
-      <span className={`block text-2xl font-semibold leading-none tabular-nums ${
-        tone === "success" ? "text-green-600" : tone === "muted" ? "text-gray-400" : "text-gray-950"
-      }`}>
+      <span
+        className={`block text-2xl font-semibold leading-none tabular-nums ${
+          tone === "success"
+            ? "text-green-600"
+            : tone === "muted"
+              ? "text-gray-400"
+              : "text-gray-950"
+        }`}
+      >
         {value}
       </span>
       <span className="mt-2 block text-xs font-semibold text-gray-700">{label}</span>
       {detail && <span className="mt-0.5 block text-[11px] text-gray-400">{detail}</span>}
+    </div>
+  );
+}
+
+function ChevronDown({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+  );
+}
+
+function ProviderRow({ provider }: { provider: ProviderBroadcast }) {
+  const broadcastLabel =
+    provider.last_broadcast_type === "question_asked"
+      ? "Question"
+      : provider.last_broadcast_type === "profile_published"
+        ? "Profile"
+        : null;
+
+  return (
+    <tr className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
+      <td className="px-4 py-2.5">
+        <div className="font-medium text-gray-900">{provider.provider_name}</div>
+        {provider.category && (
+          <div className="text-[11px] text-gray-500">{provider.category}</div>
+        )}
+      </td>
+      <td className="px-4 py-2.5 text-sm text-gray-600">{provider.phone || "-"}</td>
+      <td className="px-4 py-2.5 text-sm text-gray-600 max-w-[200px] truncate" title={provider.email || ""}>
+        {provider.email || "-"}
+      </td>
+      <td className="px-4 py-2.5 text-center">
+        {provider.broadcasts_received > 0 ? (
+          <div>
+            <span className="font-mono text-sm tabular-nums text-gray-700">
+              {provider.broadcasts_received}
+            </span>
+            {broadcastLabel && (
+              <div className="text-[10px] text-gray-400">
+                {broadcastLabel} · {relative(provider.last_broadcast_at)}
+              </div>
+            )}
+          </div>
+        ) : (
+          <span className="text-sm text-gray-400">-</span>
+        )}
+      </td>
+      <td className="px-4 py-2.5 text-center">
+        {provider.is_conversion ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">
+            Converted
+          </span>
+        ) : provider.claimed ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600">
+            Claimed
+          </span>
+        ) : provider.broadcasts_received > 0 ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+            Waiting
+          </span>
+        ) : (
+          <span className="text-sm text-gray-400">-</span>
+        )}
+      </td>
+    </tr>
+  );
+}
+
+function CitySection({ group, defaultExpanded }: { group: CityGroup; defaultExpanded: boolean }) {
+  const [expanded, setExpanded] = useState(defaultExpanded);
+
+  return (
+    <div className="border-b border-gray-200 last:border-b-0">
+      <button
+        type="button"
+        onClick={() => setExpanded(!expanded)}
+        className="flex w-full items-center justify-between px-4 py-3 text-left hover:bg-gray-50"
+      >
+        <div className="flex items-center gap-3">
+          <div>
+            <span className="font-semibold text-gray-900">{group.city}</span>
+            {group.state && <span className="ml-1 text-gray-400">{group.state}</span>}
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600">
+              {group.pool_count} in pool
+            </span>
+            {group.sent_count > 0 && (
+              <span className="rounded-full bg-blue-50 px-2 py-0.5 text-[10px] font-semibold text-blue-700">
+                {group.sent_count} sent
+              </span>
+            )}
+            {group.conversion_count > 0 && (
+              <span className="rounded-full bg-green-50 px-2 py-0.5 text-[10px] font-semibold text-green-700">
+                {group.conversion_count} converted
+              </span>
+            )}
+            {group.claimed_count > group.conversion_count && (
+              <span className="rounded-full bg-gray-50 px-2 py-0.5 text-[10px] font-semibold text-gray-500">
+                {group.claimed_count - group.conversion_count} claimed prior
+              </span>
+            )}
+          </div>
+        </div>
+        <ChevronDown
+          className={`h-4 w-4 text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`}
+        />
+      </button>
+
+      {expanded && (
+        <div className="border-t border-gray-100 bg-gray-50/50">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-[10px] uppercase tracking-wider text-gray-400">
+                <th className="px-4 py-2 font-medium">Provider</th>
+                <th className="px-4 py-2 font-medium">Phone</th>
+                <th className="px-4 py-2 font-medium">Email</th>
+                <th className="px-4 py-2 text-center font-medium">Broadcasts</th>
+                <th className="px-4 py-2 text-center font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {group.providers.map((provider) => (
+                <ProviderRow key={provider.provider_id} provider={provider} />
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }
@@ -102,9 +245,36 @@ export default function CityBroadcastsPage() {
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
 
+  // Local state for inputs (updated immediately for responsive UI)
+  const [searchInput, setSearchInput] = useState(searchParams.get("search") || "");
+  const [cityInput, setCityInput] = useState(searchParams.get("city") || "");
+
+  // Debounced values for API calls (300ms delay)
+  const debouncedSearch = useDebounce(searchInput, 300);
+  const debouncedCity = useDebounce(cityInput, 300);
+
   const days = parseInt(searchParams.get("days") || "7", 10);
-  const city = searchParams.get("city") || "";
-  const eventType = searchParams.get("event_type") || "";
+  const status = searchParams.get("status") || "all";
+
+  // Sync URL when debounced values change
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    if (debouncedSearch) {
+      params.set("search", debouncedSearch);
+    } else {
+      params.delete("search");
+    }
+    if (debouncedCity) {
+      params.set("city", debouncedCity);
+    } else {
+      params.delete("city");
+    }
+    const newUrl = `/admin/city-broadcasts?${params.toString()}`;
+    const currentUrl = `/admin/city-broadcasts?${searchParams.toString()}`;
+    if (newUrl !== currentUrl) {
+      router.push(newUrl);
+    }
+  }, [debouncedSearch, debouncedCity, searchParams, router]);
 
   const updateFilter = useCallback(
     (key: string, value: string) => {
@@ -125,10 +295,13 @@ export default function CityBroadcastsPage() {
     try {
       const params = new URLSearchParams();
       params.set("days", String(days));
-      if (city) params.set("city", city);
-      if (eventType) params.set("event_type", eventType);
+      if (status !== "all") params.set("status", status);
+      if (debouncedCity) params.set("city", debouncedCity);
+      if (debouncedSearch) params.set("search", debouncedSearch);
 
-      const res = await fetch(`/api/admin/city-broadcasts?${params.toString()}`, { cache: "no-store" });
+      const res = await fetch(`/api/admin/city-broadcasts?${params.toString()}`, {
+        cache: "no-store",
+      });
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.error || `HTTP ${res.status}`);
@@ -139,21 +312,18 @@ export default function CityBroadcastsPage() {
     } finally {
       setLoading(false);
     }
-  }, [days, city, eventType]);
+  }, [days, status, debouncedCity, debouncedSearch]);
 
-  useEffect(() => { void load(); }, [load]);
-
-  const filteredEvents = useMemo(() => {
-    if (!data) return [];
-    return data.events;
-  }, [data]);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   return (
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <AdminPageHeader
         title="City Broadcasts"
-        description="Engagement emails to dormant providers when family activity occurs in their city."
-        breadcrumbs={[{ label: "Operations", href: "/admin" }]}
+        description="Providers eligible for city broadcasts when family activity occurs."
+        breadcrumbs={[{ label: "Inbox", href: "/admin" }]}
         actions={
           <button
             type="button"
@@ -177,55 +347,30 @@ export default function CityBroadcastsPage() {
         <>
           {/* Stats */}
           <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <Stat value={data.stats.pool} label="In broadcast pool" detail="broadcast_ready providers" />
             <Stat
-              value={data.stats.today.providersSent}
-              label="Providers reached today"
-              detail={`${data.stats.today.events} events`}
-              tone={data.stats.today.providersSent > 0 ? "success" : "muted"}
+              value={data.stats.sent}
+              label={`Sent broadcasts (${days}d)`}
+              detail="At least 1 broadcast received"
+              tone={data.stats.sent > 0 ? "success" : "muted"}
             />
             <Stat
-              value={data.stats.week.providersSent}
-              label={`Providers reached (${days}d)`}
-              detail={`${data.stats.week.events} events`}
+              value={data.stats.claimed}
+              label="Claimed profiles"
+              detail="Linked to an account"
+              tone={data.stats.claimed > 0 ? "success" : "muted"}
             />
             <Stat
-              value={`${data.stats.week.deliveryRate}%`}
-              label="Delivery rate"
-              detail={`${data.stats.week.providersSent} of ${data.stats.week.providersEligible} eligible`}
-              tone={data.stats.week.deliveryRate >= 80 ? "success" : "default"}
-            />
-            <Stat
-              value={data.stats.allTime.providersSent}
-              label="All-time providers"
-              detail={`${data.stats.allTime.events} total events`}
-              tone="muted"
+              value={`${data.stats.conversion}%`}
+              label="Conversion rate"
+              detail={`${data.stats.conversions} converted of ${data.stats.sent} sent`}
+              tone={data.stats.conversion >= 10 ? "success" : "default"}
             />
           </div>
 
-          {/* Top Cities */}
-          {data.topCities.length > 0 && (
-            <div className="mt-6 rounded-xl border border-gray-200 bg-white px-4 py-3">
-              <h3 className="text-xs font-semibold text-gray-700 mb-2">Top cities this week</h3>
-              <div className="flex flex-wrap gap-2">
-                {data.topCities.map(({ city: cityName, events }) => (
-                  <button
-                    key={cityName}
-                    onClick={() => updateFilter("city", cityName === city ? "" : cityName)}
-                    className={`text-xs px-2.5 py-1 rounded-full transition-colors ${
-                      cityName === city
-                        ? "bg-teal-100 text-teal-800"
-                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                    }`}
-                  >
-                    {cityName} ({events})
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Filters */}
           <div className="mt-6 flex flex-wrap items-center gap-3 rounded-t-xl border border-b-0 border-gray-200 bg-gray-50 px-4 py-3">
+            {/* Days filter */}
             <div className="flex gap-1.5">
               {[7, 14, 30].map((d) => (
                 <button
@@ -242,130 +387,75 @@ export default function CityBroadcastsPage() {
                 </button>
               ))}
             </div>
+
+            {/* Status filter */}
             <div className="flex gap-1.5">
-              <button
-                type="button"
-                onClick={() => updateFilter("event_type", "")}
-                className={`rounded-full px-3 py-1 text-[11px] font-semibold transition-colors ${
-                  !eventType
-                    ? "bg-gray-900 text-white"
-                    : "border border-gray-200 bg-white text-gray-500 hover:border-gray-300"
-                }`}
-              >
-                All types
-              </button>
-              <button
-                type="button"
-                onClick={() => updateFilter("event_type", "question_asked")}
-                className={`rounded-full px-3 py-1 text-[11px] font-semibold transition-colors ${
-                  eventType === "question_asked"
-                    ? "bg-blue-600 text-white"
-                    : "border border-gray-200 bg-white text-gray-500 hover:border-gray-300"
-                }`}
-              >
-                Questions
-              </button>
-              <button
-                type="button"
-                onClick={() => updateFilter("event_type", "profile_published")}
-                className={`rounded-full px-3 py-1 text-[11px] font-semibold transition-colors ${
-                  eventType === "profile_published"
-                    ? "bg-purple-600 text-white"
-                    : "border border-gray-200 bg-white text-gray-500 hover:border-gray-300"
-                }`}
-              >
-                Profiles
-              </button>
-            </div>
-            {city && (
-              <span className="text-[11px] text-gray-500">
-                Filtered to: <strong>{city}</strong>
+              {[
+                { value: "all", label: "All" },
+                { value: "sent", label: "Sent" },
+                { value: "waiting", label: "Waiting" },
+                { value: "claimed", label: "Claimed" },
+              ].map((opt) => (
                 <button
-                  onClick={() => updateFilter("city", "")}
-                  className="ml-1.5 text-gray-400 hover:text-gray-600"
+                  key={opt.value}
+                  type="button"
+                  onClick={() => updateFilter("status", opt.value === "all" ? "" : opt.value)}
+                  className={`rounded-full px-3 py-1 text-[11px] font-semibold transition-colors ${
+                    status === opt.value || (status === "all" && opt.value === "all")
+                      ? opt.value === "claimed"
+                        ? "bg-green-600 text-white"
+                        : opt.value === "sent"
+                          ? "bg-blue-600 text-white"
+                          : opt.value === "waiting"
+                            ? "bg-amber-600 text-white"
+                            : "bg-gray-900 text-white"
+                      : "border border-gray-200 bg-white text-gray-500 hover:border-gray-300"
+                  }`}
                 >
-                  clear
+                  {opt.label}
                 </button>
-              </span>
+              ))}
+            </div>
+
+            {/* Search */}
+            <input
+              type="text"
+              placeholder="Search provider..."
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
+              className="ml-auto rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-700 placeholder:text-gray-400 focus:border-gray-300 focus:outline-none focus:ring-0"
+            />
+
+            {/* City filter */}
+            <input
+              type="text"
+              placeholder="Filter city..."
+              value={cityInput}
+              onChange={(e) => setCityInput(e.target.value)}
+              className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-700 placeholder:text-gray-400 focus:border-gray-300 focus:outline-none focus:ring-0"
+            />
+          </div>
+
+          {/* Cities */}
+          <div className="overflow-hidden rounded-b-xl border border-gray-200 bg-white">
+            {data.cities.length === 0 ? (
+              <div className="px-4 py-10 text-center text-sm text-gray-400">
+                No providers match the current filters.
+              </div>
+            ) : (
+              data.cities.map((group, idx) => (
+                <CitySection
+                  key={group.state ? `${group.city}-${group.state}` : group.city}
+                  group={group}
+                  defaultExpanded={idx === 0}
+                />
+              ))
             )}
           </div>
 
-          {/* Events Table */}
-          <div className="overflow-x-auto rounded-b-xl border border-gray-200 bg-white">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-200 text-left text-[10px] uppercase tracking-wider text-gray-400">
-                  <th className="px-4 py-2.5 font-medium">Type</th>
-                  <th className="px-4 py-2.5 font-medium">City</th>
-                  <th className="px-4 py-2.5 font-medium">Category</th>
-                  <th className="px-4 py-2.5 text-right font-medium">Eligible</th>
-                  <th className="px-4 py-2.5 text-right font-medium">Sent</th>
-                  <th className="px-4 py-2.5 font-medium">Status</th>
-                  <th className="px-4 py-2.5 text-right font-medium">Created</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredEvents.length === 0 && (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-10 text-center text-sm text-gray-400">
-                      No broadcast events in this period.
-                    </td>
-                  </tr>
-                )}
-                {filteredEvents.map((event) => {
-                  const typeStyle = EVENT_TYPE_LABELS[event.event_type];
-                  const statusStyle = STATUS_LABELS[event.status];
-                  return (
-                    <tr key={event.id} className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
-                      <td className="px-4 py-3">
-                        <span className={`inline-block whitespace-nowrap rounded px-2 py-0.5 text-[10px] font-semibold ${typeStyle.cls}`}>
-                          {typeStyle.label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <button
-                          onClick={() => updateFilter("city", event.city)}
-                          className="font-semibold text-gray-900 hover:text-teal-700"
-                        >
-                          {event.city}
-                        </button>
-                        {event.state && (
-                          <span className="ml-1 text-gray-400">{event.state}</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-gray-600">
-                        {event.category || "-"}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono tabular-nums text-gray-500">
-                        {event.providers_eligible}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono tabular-nums text-gray-700">
-                        {event.providers_sent}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-block whitespace-nowrap rounded px-2 py-0.5 text-[10px] font-semibold ${statusStyle.cls}`}>
-                          {statusStyle.label}
-                        </span>
-                        {event.skip_reason && (
-                          <span className="ml-2 text-[10px] text-gray-400" title={event.skip_reason}>
-                            {event.skip_reason.slice(0, 30)}
-                            {event.skip_reason.length > 30 ? "..." : ""}
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-right font-mono text-[11px] tabular-nums text-gray-500">
-                        {relative(event.created_at)}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Pagination info */}
+          {/* Summary */}
           <p className="mt-3 text-[11px] text-gray-400">
-            Showing {filteredEvents.length} of {data.pagination.total} events from the last {days} days.
+            {data.cities.length} cities, {data.stats.pool} providers total.
           </p>
         </>
       )}

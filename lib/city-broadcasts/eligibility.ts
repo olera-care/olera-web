@@ -2,12 +2,19 @@
  * City Broadcasts - Provider Eligibility Checks
  *
  * Determines which providers should receive broadcast emails when family
- * activity occurs in their city. Filters out:
- *   - Providers without email
- *   - Bounced/complained addresses
+ * activity occurs in their city.
+ *
+ * IMPORTANT: Only providers in the 'broadcast_ready' stage are eligible.
+ * Admins must explicitly move providers to this stage after verifying:
+ *   - At least 1 email successfully delivered
+ *   - Zero bounces
+ *   - Zero complaints
+ *   - Admin has called the provider
+ *
+ * Additional filters applied here:
+ *   - Bounced/complained addresses (double-check)
  *   - Recently contacted providers (7 days for broadcasts, 30 days for direct questions)
  *   - Providers with active connections
- *   - Providers in certain stages (archived, not_interested, in_sequence)
  */
 
 import { getServiceClient } from "@/lib/admin";
@@ -34,8 +41,8 @@ export interface EligibilityResult {
   };
 }
 
-/** Stages that should not receive broadcasts */
-const EXCLUDED_STAGES = new Set(["archived", "not_interested", "in_sequence"]);
+/** Only providers in broadcast_ready stage are eligible for city broadcasts */
+const ELIGIBLE_STAGE = "broadcast_ready";
 
 /** Days before a provider can receive another broadcast */
 const BROADCAST_COOLDOWN_DAYS = 7;
@@ -69,11 +76,12 @@ export async function findEligibleProviders(
   };
 
   // Step 1: Find providers in this city from provider_outreach_tracking
-  // The table has denormalized city/state columns
+  // Only providers with stage = 'broadcast_ready' are eligible
   const { data: trackingRows, error: trackingError } = await db
     .from("provider_outreach_tracking")
     .select("provider_id, stage, apollo_contact, city, state")
     .ilike("city", city)
+    .eq("stage", ELIGIBLE_STAGE)
     .limit(limit * 3);
 
   if (trackingError) {
@@ -85,14 +93,8 @@ export async function findEligibleProviders(
     return { eligible: [], excluded };
   }
 
-  // Filter by stage first
-  const validTrackingRows = trackingRows.filter((row) => {
-    if (row.stage && EXCLUDED_STAGES.has(row.stage)) {
-      excluded.excluded_stage++;
-      return false;
-    }
-    return true;
-  });
+  // All tracking rows here are already in broadcast_ready stage
+  const validTrackingRows = trackingRows;
 
   if (validTrackingRows.length === 0) {
     return { eligible: [], excluded };

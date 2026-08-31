@@ -62,6 +62,7 @@ export const OUTREACH_STAGES = [
   "not_contacted",
   "in_sequence",
   "needs_call",  // UI: "Follow Up"
+  "broadcast_ready",  // Eligible for city broadcasts (email verified, admin approved)
   "re_engage",   // Re-engagement waiting period (Alternative Channels)
   "call_exhausted",  // Final call state: manual resolution required
   "not_interested",  // Soft terminal: no outreach, but questions/connections still flow

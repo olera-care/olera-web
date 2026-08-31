@@ -25,6 +25,7 @@ const OUTREACH_STAGES = [
   "not_contacted",
   "in_sequence",
   "needs_call",
+  "broadcast_ready",  // Eligible for city broadcasts (email verified, admin approved)
   "re_engage",
   "call_exhausted",  // Final call state: providers here need manual resolution
   "not_interested",  // Soft terminal: no outreach, but questions/connections flow
@@ -73,6 +74,7 @@ const STAGE_LABELS: Record<OutreachStage, string> = {
   not_contacted: "Not Contacted",
   in_sequence: "In Sequence",
   needs_call: "Follow Up",
+  broadcast_ready: "Broadcast Ready",
   re_engage: "Alternative Channels",
   call_exhausted: "Call",
   not_interested: "Not Interested",
@@ -2983,6 +2985,18 @@ export default function ProviderOutreachPage() {
   const [pendingStageMove, setPendingStageMove] = useState<OutreachStage | null>(null);
   // Not interested reason for action modal stage move
   const [actionNotInterestedReason, setActionNotInterestedReason] = useState("");
+  // Email health for broadcast eligibility
+  const [emailHealth, setEmailHealth] = useState<{
+    email: string | null;
+    delivered: number;
+    bounced: number;
+    complained: number;
+    lastDeliveredAt: string | null;
+    lastCalledAt: string | null;
+    eligible: boolean;
+    reason: string | null;
+    loading: boolean;
+  } | null>(null);
 
   // Send Claim Link state (for action modal)
   const [sendingClaimLink, setSendingClaimLink] = useState(false);
@@ -3287,7 +3301,26 @@ export default function ProviderOutreachPage() {
     setClaimLinkSent(false);
     setPendingClaimLink(false);
     setActionNotInterestedReason("");
+    setEmailHealth(null);
   };
+
+  // Fetch email health when action modal opens (for broadcast eligibility)
+  useEffect(() => {
+    if (!actionModalProvider) return;
+    // Only fetch for stages that can move to broadcast
+    if (!["needs_call", "re_engage", "call_exhausted"].includes(actionModalProvider.stage)) return;
+
+    setEmailHealth({ email: null, delivered: 0, bounced: 0, complained: 0, lastDeliveredAt: null, lastCalledAt: null, eligible: false, reason: null, loading: true });
+
+    fetch(`/api/admin/provider-outreach/email-health?provider_id=${actionModalProvider.provider_id}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setEmailHealth({ ...data, loading: false });
+      })
+      .catch(() => {
+        setEmailHealth({ email: null, delivered: 0, bounced: 0, complained: 0, lastDeliveredAt: null, lastCalledAt: null, eligible: false, reason: "Failed to load", loading: false });
+      });
+  }, [actionModalProvider]);
 
   // Remove provider from outreach (delete tracking row, not the provider itself)
   const handleRemoveFromOutreach = async () => {
@@ -6306,6 +6339,76 @@ export default function ProviderOutreachPage() {
                         </button>
                       )}
                     </div>
+
+                    {/* Move to Broadcast Section - only for call-related stages */}
+                    {["needs_call", "re_engage", "call_exhausted"].includes(actionModalProvider.stage) && actionModalProvider.stage !== "broadcast_ready" && (
+                      <>
+                        <div className="border-t border-gray-100 my-3" />
+                        <p className="text-xs font-medium text-gray-400 uppercase tracking-wide px-1 mb-2">City Broadcasts</p>
+
+                        {/* Email Health Display */}
+                        {emailHealth?.loading ? (
+                          <div className="flex items-center gap-2 text-sm text-gray-500 py-2">
+                            <span className="w-3 h-3 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
+                            Checking email health...
+                          </div>
+                        ) : emailHealth ? (
+                          <div className="bg-gray-50 rounded-lg p-3 mb-3">
+                            <div className="grid grid-cols-2 gap-2 text-xs">
+                              <div className="flex items-center gap-1.5">
+                                <span className={`w-2 h-2 rounded-full ${emailHealth.delivered > 0 ? "bg-green-500" : "bg-gray-300"}`} />
+                                <span className="text-gray-600">Delivered:</span>
+                                <span className={`font-medium ${emailHealth.delivered > 0 ? "text-green-700" : "text-gray-500"}`}>{emailHealth.delivered}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <span className={`w-2 h-2 rounded-full ${emailHealth.bounced === 0 ? "bg-green-500" : "bg-red-500"}`} />
+                                <span className="text-gray-600">Bounces:</span>
+                                <span className={`font-medium ${emailHealth.bounced === 0 ? "text-green-700" : "text-red-700"}`}>{emailHealth.bounced}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <span className={`w-2 h-2 rounded-full ${emailHealth.complained === 0 ? "bg-green-500" : "bg-red-500"}`} />
+                                <span className="text-gray-600">Complaints:</span>
+                                <span className={`font-medium ${emailHealth.complained === 0 ? "text-green-700" : "text-red-700"}`}>{emailHealth.complained}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                <span className={`w-2 h-2 rounded-full ${emailHealth.lastCalledAt ? "bg-green-500" : "bg-gray-300"}`} />
+                                <span className="text-gray-600">Called:</span>
+                                <span className={`font-medium ${emailHealth.lastCalledAt ? "text-green-700" : "text-gray-500"}`}>
+                                  {emailHealth.lastCalledAt ? "Yes" : "No"}
+                                </span>
+                              </div>
+                            </div>
+                            {emailHealth.email && (
+                              <div className="mt-2 pt-2 border-t border-gray-200">
+                                <span className="text-xs text-gray-500">Email: </span>
+                                <span className="text-xs text-gray-700 font-mono">{emailHealth.email}</span>
+                              </div>
+                            )}
+                          </div>
+                        ) : null}
+
+                        {/* Move to Broadcast Button */}
+                        <button
+                          onClick={() => setPendingStageMove("broadcast_ready")}
+                          disabled={actionLoading || !emailHealth || emailHealth.loading || !emailHealth.eligible}
+                          className={`w-full px-3 py-2.5 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+                            emailHealth?.eligible
+                              ? "text-purple-700 border border-purple-200 bg-purple-50 hover:bg-purple-100"
+                              : "text-gray-500 border border-gray-200 bg-gray-50"
+                          }`}
+                        >
+                          <div className="flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
+                            </svg>
+                            Move to Broadcast
+                          </div>
+                        </button>
+                        {emailHealth && !emailHealth.loading && !emailHealth.eligible && emailHealth.reason && (
+                          <p className="text-xs text-amber-600 mt-1.5 text-center">{emailHealth.reason}</p>
+                        )}
+                      </>
+                    )}
                   </>
                 )}
 
@@ -6333,6 +6436,7 @@ export default function ProviderOutreachPage() {
                 <div className={`p-3 rounded-lg border ${
                   pendingStageMove === "not_contacted" ? "bg-gray-50 border-gray-200" :
                   pendingStageMove === "needs_call" ? "bg-amber-50 border-amber-200" :
+                  pendingStageMove === "broadcast_ready" ? "bg-purple-50 border-purple-200" :
                   "bg-gray-50 border-gray-300"
                 }`}>
                   <p className="text-sm font-medium text-gray-900">
@@ -6341,6 +6445,7 @@ export default function ProviderOutreachPage() {
                       : `Move to ${
                           pendingStageMove === "not_contacted" ? "Ready" :
                           pendingStageMove === "needs_call" ? "Follow Up" :
+                          pendingStageMove === "broadcast_ready" ? "Broadcast Ready" :
                           "Not Interested"
                         }`
                     }
@@ -6400,6 +6505,26 @@ export default function ProviderOutreachPage() {
                         <li className="flex items-start gap-2 text-sm text-gray-600">
                           <span className="text-gray-400 mt-0.5">•</span>
                           Use Archive instead for a full system-wide block
+                        </li>
+                      </>
+                    )}
+                    {pendingStageMove === "broadcast_ready" && (
+                      <>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-purple-500 mt-0.5">•</span>
+                          Provider will receive city broadcast emails when family activity occurs in their city
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-purple-500 mt-0.5">•</span>
+                          Broadcasts are sent when families ask questions or publish profiles nearby
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-purple-500 mt-0.5">•</span>
+                          Max 1 broadcast per week to avoid fatigue
+                        </li>
+                        <li className="flex items-start gap-2 text-sm text-gray-600">
+                          <span className="text-purple-500 mt-0.5">•</span>
+                          Email deliverability verified: {emailHealth?.delivered || 0} delivered, {emailHealth?.bounced || 0} bounces
                         </li>
                       </>
                     )}

@@ -211,9 +211,10 @@ export async function PATCH(request: NextRequest) {
     const db = getServiceClient();
 
     // Fetch the existing touchpoint to verify ownership
+    // Include provider_id and created_at so we don't need to re-fetch after update
     const { data: existing, error: fetchError } = await db
       .from("provider_outreach_touchpoints")
-      .select("id, admin_user_id, details")
+      .select("id, provider_id, admin_user_id, details, created_at")
       .eq("id", touchpoint_id)
       .eq("touchpoint_type", "call_attempted")
       .single();
@@ -238,27 +239,26 @@ export async function PATCH(request: NextRequest) {
       ...(notes !== undefined && { notes: notes?.trim() || null }),
     };
 
-    // Update the touchpoint
-    const { data: updated, error: updateError } = await db
+    // Update the touchpoint - no .select() needed since we already have all the data
+    const { error: updateError } = await db
       .from("provider_outreach_touchpoints")
       .update({ details: updatedDetails })
-      .eq("id", touchpoint_id)
-      .select()
-      .single();
+      .eq("id", touchpoint_id);
 
     if (updateError) {
       console.error("[call-logs] Update error:", updateError);
-      return NextResponse.json({ error: "Failed to update call log" }, { status: 500 });
+      return NextResponse.json({ error: `Failed to update call log: ${updateError.message}` }, { status: 500 });
     }
 
+    // Build response from existing data + updated details (no re-fetch needed)
     const log: CallLogEntry = {
-      id: updated.id,
-      provider_id: updated.provider_id,
+      id: existing.id,
+      provider_id: existing.provider_id,
       status: updatedDetails.status as CallStatus || "no_answer",
       notes: updatedDetails.notes || null,
       admin_id: adminUser.id,
       admin_name: adminUser.display_name || null,
-      created_at: updated.created_at,
+      created_at: existing.created_at,
     };
 
     return NextResponse.json({ success: true, log });

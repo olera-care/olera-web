@@ -96,6 +96,7 @@ export async function GET(request: NextRequest) {
       skippedOutsideHours: 0,
       skippedArchived: 0,
       skippedNoEmail: 0,
+      skippedSuppressed: 0,
       errors: 0,
     };
 
@@ -180,8 +181,13 @@ export async function GET(request: NextRequest) {
 
       // Verification gates family details in Matches and the portal inbox, so a
       // provider who still needs it gets the ask folded into this email rather
-      // than a promise the product will not honor.
-      const needsVerification = provider.verification_state === "unverified";
+      // than a promise the product will not honor. Mirror the product's own gate
+      // (app/provider/matches/page.tsx) rather than testing for "unverified":
+      // a claim starts as not_required or unverified, but can move to pending or
+      // rejected inside the 7-day window, and those states are gated too.
+      const vs = provider.verification_state;
+      const hasFullAccess = vs === "verified" || vs === "not_required";
+      const needsVerification = !hasFullAccess;
 
       try {
         if (dryRun) {
@@ -206,7 +212,7 @@ export async function GET(request: NextRequest) {
           ? generateProviderPortalUrl(provider.slug, email, "settings", siteUrl)
           : undefined;
 
-        await sendEmail({
+        const result = await sendEmail({
           to: email,
           subject,
           html: providerWelcomeEmail({
@@ -221,6 +227,28 @@ export async function GET(request: NextRequest) {
           emailLogId: emailLogId ?? undefined,
           recipientProfileId: provider.id,
         });
+
+        // sendEmail RETURNS failures, it does not throw. Stamping without
+        // checking would mark a provider as welcomed when nothing was
+        // delivered, and the 7-day window would then close over them
+        // permanently. Leave them unflagged so the next run retries.
+        if (!result.success) {
+          console.error(
+            `[cron/provider-welcome] Send failed for ${provider.id} (${providerName}): ${result.error}. Left unflagged for retry.`,
+          );
+          counts.errors++;
+          continue;
+        }
+
+        // A deliberate suppression (do-not-contact, bounce, prefs) is not a
+        // failure. Stamp it so we stop reconsidering them every hour, but do
+        // not report it as a send.
+        const suppressed = result.skipped === true;
+        if (suppressed) {
+          console.log(
+            `[cron/provider-welcome] Suppressed for ${provider.id} (${providerName}): ${result.skipReason}. Flagging so it is not retried.`,
+          );
+        }
 
         // Stamp the flag and the stage. If this write fails the email has already
         // gone out, so treat it as an error rather than a send: counting it as a
@@ -247,8 +275,12 @@ export async function GET(request: NextRequest) {
           continue;
         }
 
-        console.log(`[cron/provider-welcome] Sent to: ${providerName} (${email})`);
-        counts.sent++;
+        if (suppressed) {
+          counts.skippedSuppressed++;
+        } else {
+          console.log(`[cron/provider-welcome] Sent to: ${providerName} (${email})`);
+          counts.sent++;
+        }
       } catch (err) {
         console.error(`[cron/provider-welcome] Error for ${provider.id}:`, err);
         counts.errors++;

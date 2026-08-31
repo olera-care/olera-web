@@ -289,6 +289,19 @@ export const CRON_REGISTRY: CronJob[] = [
     relatedAdminPath: "/admin/provider-outreach",
   },
   {
+    id: "provider-outreach-channel-lifecycle",
+    name: "Provider outreach — channel lifecycle",
+    description: "Daily: moves providers from Alternative Channels to Call tab after 7 days without claiming. Ensures providers don't get stuck in re_engage indefinitely.",
+    recipientCohort: "(No recipients — a state-transition job.)",
+    audience: "Providers",
+    fn: "maintenance",
+    schedule: "0 5 * * *",
+    humanSchedule: "Daily at 5:00 AM UTC",
+    path: "/api/cron/provider-outreach-channel-lifecycle",
+    emailTypes: [],
+    relatedAdminPath: "/admin/provider-outreach",
+  },
+  {
     id: "city-broadcasts",
     name: "City broadcasts",
     description:

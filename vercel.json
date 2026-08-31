@@ -153,6 +153,10 @@
       "schedule": "0 14 * * *"
     },
     {
+      "path": "/api/cron/provider-outreach-channel-lifecycle",
+      "schedule": "0 5 * * *"
+    },
+    {
       "path": "/api/cron/city-broadcasts",
       "schedule": "*/30 * * * *"
     }

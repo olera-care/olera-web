@@ -23,6 +23,7 @@ type OutreachStage =
   | "not_contacted"
   | "in_sequence"
   | "needs_call"
+  | "broadcast_ready"
   | "re_engage"
   | "call_exhausted"
   | "not_interested"

@@ -62,6 +62,7 @@ export const OUTREACH_STAGES = [
   "not_contacted",
   "in_sequence",
   "needs_call",  // UI: "Follow Up"
+  "broadcast_ready",  // Eligible for city broadcasts (email verified, admin approved)
   "re_engage",   // Re-engagement waiting period (Alternative Channels)
   "call_exhausted",  // Final call state: manual resolution required
   "not_interested",  // Soft terminal: no outreach, but questions/connections still flow
@@ -518,7 +519,7 @@ export async function GET(request: NextRequest) {
       getStageCounts(db, state).catch((err) => {
         console.error("[provider-outreach] getStageCounts error:", err);
         return {
-          not_contacted: 0, in_sequence: 0, needs_call: 0, re_engage: 0, call_exhausted: 0,
+          not_contacted: 0, in_sequence: 0, needs_call: 0, broadcast_ready: 0, re_engage: 0, call_exhausted: 0,
           not_interested: 0, claimed: 0, archived: 0, needs_email: 0, ready: 0, hidden: 0,
         };
       }),
@@ -1735,6 +1736,7 @@ async function getStageCounts(
     not_contacted: 0,
     in_sequence: 0,
     needs_call: 0,
+    broadcast_ready: 0,  // Eligible for city broadcasts
     re_engage: 0,
     call_exhausted: 0,  // Final call state
     not_interested: 0,  // Soft terminal

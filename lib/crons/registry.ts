@@ -288,6 +288,34 @@ export const CRON_REGISTRY: CronJob[] = [
     emailTypes: [],
     relatedAdminPath: "/admin/provider-outreach",
   },
+  {
+    id: "provider-outreach-channel-lifecycle",
+    name: "Provider outreach — channel lifecycle",
+    description: "Daily: moves providers from Alternative Channels to Call tab after 7 days without claiming. Ensures providers don't get stuck in re_engage indefinitely.",
+    recipientCohort: "(No recipients — a state-transition job.)",
+    audience: "Providers",
+    fn: "maintenance",
+    schedule: "0 5 * * *",
+    humanSchedule: "Daily at 5:00 AM UTC",
+    path: "/api/cron/provider-outreach-channel-lifecycle",
+    emailTypes: [],
+    relatedAdminPath: "/admin/provider-outreach",
+  },
+  {
+    id: "city-broadcasts",
+    name: "City broadcasts",
+    description:
+      "Sends engagement emails to dormant providers when family activity (questions asked, profiles published) occurs in their city. Shows providers that families are actively looking for care in their area.",
+    recipientCohort: "Dormant providers in cities with recent family activity — eligible if they have an email, haven't bounced, and haven't received a broadcast in 7 days.",
+    audience: "Providers",
+    fn: "outreach",
+    schedule: "*/30 * * * *",
+    humanSchedule: "Every 30 minutes",
+    path: "/api/cron/city-broadcasts",
+    emailTypes: ["city_broadcast_question", "city_broadcast_profile"],
+    successSignal: "Provider claims their profile.",
+    relatedAdminPath: "/admin/city-broadcasts",
+  },
   // NOTE: lead-response-nudge has been replaced by lead-followup-sequence.
   // The old cron code remains at app/api/cron/lead-response-nudge/route.ts for rollback.
   {

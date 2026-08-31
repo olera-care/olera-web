@@ -12,13 +12,16 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
-import { getServiceClient } from "@/lib/admin";
-import { requireAdmin } from "@/lib/auth/require-admin";
+import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 
 export async function GET(req: NextRequest) {
-  const { isAdmin, error: authError } = await requireAdmin();
-  if (!isAdmin) {
-    return NextResponse.json({ error: authError || "Unauthorized" }, { status: 401 });
+  const user = await getAuthUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const adminUser = await getAdminUser(user.id);
+  if (!adminUser) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
   const { searchParams } = new URL(req.url);

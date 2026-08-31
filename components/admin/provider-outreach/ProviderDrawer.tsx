@@ -3675,8 +3675,8 @@ Questions? support@olera.care or (979) 243-9801`;
           </button>
         )}
 
-        {/* Contact Form - for non-follow-up, non-terminal stages (supplementary channel, no stage change) */}
-        {!isTerminal && !isFollowUp && (
+        {/* Contact Form - for non-follow-up, non-terminal stages (excluding call_exhausted which has its own order) */}
+        {!isTerminal && !isFollowUp && !isCallExhausted && (
           <button onClick={() => setConfirmAction("contact_form")} className={outlineBtn}>
             Contact Form
           </button>
@@ -3702,10 +3702,24 @@ Questions? support@olera.care or (979) 243-9801`;
           </>
         )}
 
-        {/* Call Exhausted: Resend Claim Link (no stage change) */}
+        {/* Call Exhausted: Send Claim Link (no stage change) */}
         {isCallExhausted && provider.email && (
           <button onClick={loadComposeTemplate} disabled={composeLoading} className={primaryBtn}>
             {composeLoading ? "Loading..." : "Send Claim Link"}
+          </button>
+        )}
+
+        {/* Move to Broadcast - for call-related stages (opens action modal for confirmation) */}
+        {["needs_call", "re_engage", "call_exhausted"].includes(provider.stage) && onMoveToBroadcast && (
+          <button onClick={() => { onMoveToBroadcast(provider.provider_id); onClose?.(); }} className={outlineBtn}>
+            Move to Broadcast
+          </button>
+        )}
+
+        {/* Contact Form for call_exhausted (after Move to Broadcast) */}
+        {isCallExhausted && (
+          <button onClick={() => setConfirmAction("contact_form")} className={outlineBtn}>
+            Contact Form
           </button>
         )}
 
@@ -3713,19 +3727,6 @@ Questions? support@olera.care or (979) 243-9801`;
         {["needs_call", "re_engage", "call_exhausted", "not_interested"].includes(provider.stage) && provider.email && onLaunchSequence && (
           <button onClick={() => { onLaunchSequence(provider.provider_id); onClose?.(); }} className={outlineBtn}>
             Start Sequence
-          </button>
-        )}
-
-        {/* Move to Broadcast - for call-related stages (opens action modal for confirmation) */}
-        {["needs_call", "re_engage", "call_exhausted"].includes(provider.stage) && onMoveToBroadcast && (
-          <button
-            onClick={() => { onMoveToBroadcast(provider.provider_id); onClose?.(); }}
-            className="text-purple-700 border-purple-200 bg-purple-50 hover:bg-purple-100 px-3 py-2 text-sm font-medium rounded-lg border transition-colors flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-            </svg>
-            Move to Broadcast
           </button>
         )}
 

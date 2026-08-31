@@ -362,7 +362,14 @@ export async function flushDueSmsQueue(now?: Date): Promise<FlushResult> {
       emailType: row.email_type,
       recipientType: (row.recipient_type as "family" | undefined) ?? "family",
       recipientLogProfileId: row.family_profile_id ?? undefined,
-      metadata: { reactive: isTransactionalSms(row.email_type), queued: true },
+      // A human answering a question a family asked is transactional by
+      // definition. It is absent from the channel-policy map because the admin
+      // reply path has never consulted that map, so asking the map here would
+      // log every held reply as a proactive nudge in /admin/family-comms.
+      metadata: {
+        reactive: row.origin === "admin_reply" || isTransactionalSms(row.email_type),
+        queued: true,
+      },
     });
 
     if (res.success && !res.skipped) {

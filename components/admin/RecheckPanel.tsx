@@ -30,6 +30,13 @@ export default function RecheckPanel({
   disabled?: boolean;
 }) {
   const stale = result.draft !== currentDraft.trim();
+  /**
+   * A stage that failed did not "find nothing" — it did not look. Without this
+   * an outage in the claims or adversarial stage renders as a teal "checked,
+   * nothing found" over a message nobody actually verified, which is a worse
+   * lie than showing no check at all.
+   */
+  const incomplete = Boolean(result.errors?.length);
   const accepted = result.objections.filter((o) => o.verdict === "accepted");
   const contested = result.objections.filter((o) => o.verdict === "contested");
   const unsourced = result.claims.filter((c) => c.confidence === "unsourced");
@@ -59,14 +66,16 @@ export default function RecheckPanel({
         <span
           className={[
             "h-1.5 w-1.5 shrink-0 rounded-full",
-            accepted.length || unsourced.length ? "bg-amber-500" : "bg-teal-500",
+            incomplete || accepted.length || unsourced.length ? "bg-amber-500" : "bg-teal-500",
           ].join(" ")}
           aria-hidden="true"
         />
         <span className="text-[13px] font-medium text-gray-900">
-          {result.objections.length === 0
-            ? "Checked, nothing found"
-            : `${accepted.length} to fix, ${contested.length} pushed back`}
+          {incomplete
+            ? "Check did not finish"
+            : result.objections.length === 0
+              ? "Checked, nothing found"
+              : `${accepted.length} to fix, ${contested.length} pushed back`}
         </span>
         <button
           onClick={onDismiss}
@@ -77,7 +86,7 @@ export default function RecheckPanel({
       </div>
 
       {/* An empty result is a finding, not a blank. Say it was looked for. */}
-      {result.objections.length === 0 && !unsourced.length && (
+      {!incomplete && result.objections.length === 0 && !unsourced.length && (
         <p className="mt-1.5 text-[11px] text-gray-400">
           {result.claims.length} claim{result.claims.length === 1 ? "" : "s"} checked against source.
         </p>
@@ -95,6 +104,16 @@ export default function RecheckPanel({
               </li>
             ))}
           </ul>
+        </div>
+      )}
+
+      {/* What the verifier could not source at all. Distinct from an unsourced
+          claim: that is an assertion it isolated and failed to stand up, this
+          is ground it could not get to. Both belong in front of the reviewer. */}
+      {result.notes.trim() && (
+        <div className="mt-2 border-t border-gray-100 pt-2">
+          <p className="text-[11px] font-medium text-gray-500">Could not verify</p>
+          <p className="mt-0.5 text-[12px] leading-relaxed text-gray-600">{result.notes}</p>
         </div>
       )}
 
@@ -165,7 +184,8 @@ export default function RecheckPanel({
 
       {result.errors?.length ? (
         <p className="mt-2 border-t border-gray-100 pt-2 text-[11px] text-amber-700">
-          Partial check: {result.errors.join("; ")}
+          {result.errors.length === 3 ? "Nothing was checked" : "Partial check"}:{" "}
+          {result.errors.join("; ")}
         </p>
       ) : null}
     </div>

@@ -62,7 +62,7 @@ export async function POST(
     // will never report.
     const { data: job } = await db
       .from("family_answer_jobs")
-      .select("id, body, packet, rechecks")
+      .select("id, body, rechecks")
       .eq("phone_last10", last10)
       .order("created_at", { ascending: false })
       .limit(1)

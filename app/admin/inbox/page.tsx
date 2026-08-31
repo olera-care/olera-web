@@ -250,6 +250,13 @@ export default function AdminSmsInboxPage() {
   // answer two rapid thread loads out of order, and an older response must not
   // replace the thread the admin is now viewing.
   const detailRequestRef = useRef(0);
+  /**
+   * Guards a re-check against landing on the wrong conversation. The request
+   * takes tens of seconds (web search plus two model calls), which is ample
+   * time to click another thread, and a verdict about one family's message
+   * rendered under another family's is worse than no verdict at all.
+   */
+  const recheckRequestRef = useRef(0);
   // The save currently in flight, so a discard can land AFTER it. Without this a
   // delete can be overtaken by an upsert that was already on the wire, leaving a
   // draft row behind that the UI has already forgotten about.
@@ -296,8 +303,12 @@ export default function AdminSmsInboxPage() {
       setNotice(null);
       // A re-check belongs to one specific string in one specific thread.
       // Carrying it across a thread switch would attach a verdict about one
-      // family's message to another family's.
+      // family's message to another family's. Bumping the ref abandons any
+      // request still on the wire, which is the half that clearing state alone
+      // does not cover: it would otherwise resolve after this and repopulate.
+      recheckRequestRef.current += 1;
       setRecheckResult(null);
+      setRechecking(false);
       try {
         const res = await fetch(`/api/admin/sms-inbox/${phone}`);
         if (!res.ok) throw new Error((await res.json())?.error || "Failed to load thread");
@@ -622,23 +633,27 @@ export default function AdminSmsInboxPage() {
    */
   async function recheck() {
     if (!selected || !reply.trim() || rechecking) return;
+    const requestId = ++recheckRequestRef.current;
+    const forThread = selected;
     setRechecking(true);
     setActionError(null);
     setNotice(null);
     setRecheckResult(null);
     try {
-      const res = await fetch(`/api/admin/sms-inbox/${selected}/recheck`, {
+      const res = await fetch(`/api/admin/sms-inbox/${forThread}/recheck`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ body: reply.trim() }),
       });
       const data = await res.json().catch(() => ({}));
+      if (requestId !== recheckRequestRef.current) return;
       if (!res.ok) throw new Error(data?.error || "Re-check failed");
       setRecheckResult(data.recheck as RecheckRecord);
     } catch (err) {
+      if (requestId !== recheckRequestRef.current) return;
       setActionError(err instanceof Error ? err.message : "Re-check failed");
     } finally {
-      setRechecking(false);
+      if (requestId === recheckRequestRef.current) setRechecking(false);
     }
   }
 

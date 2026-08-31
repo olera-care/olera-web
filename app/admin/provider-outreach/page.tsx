@@ -2808,6 +2808,7 @@ export default function ProviderOutreachPage() {
     not_contacted: 0,
     in_sequence: 0,
     needs_call: 0,
+    broadcast_ready: 0,
     re_engage: 0,
     call_exhausted: 0,
     not_interested: 0,
@@ -3654,6 +3655,7 @@ export default function ProviderOutreachPage() {
           const apiCounts = data.stage_counts;
           setStageCounts({
             ...apiCounts,
+            broadcast_ready: apiCounts.broadcast_ready ?? 0,
             call_confirm: (apiCounts.needs_email ?? 0) + (apiCounts.ready ?? 0),
             done: (apiCounts.claimed ?? 0) + (apiCounts.not_interested ?? 0) + (apiCounts.archived ?? 0) + (apiCounts.hidden ?? 0),
           });
@@ -4012,6 +4014,7 @@ export default function ProviderOutreachPage() {
         not_contacted: 0,
         in_sequence: 0,
         needs_call: 0,
+        broadcast_ready: 0,
         re_engage: 0,
         call_exhausted: 0,
         not_interested: 0,
@@ -6598,6 +6601,7 @@ export default function ProviderOutreachPage() {
                           const stageLabel = pendingStageMove === "not_contacted" ? "Ready" :
                             pendingStageMove === "in_sequence" ? "In Sequence" :
                             pendingStageMove === "needs_call" ? "Follow Up" :
+                            pendingStageMove === "broadcast_ready" ? "Broadcast Ready" :
                             pendingStageMove === "not_interested" ? "Not Interested" :
                             "Alternative Channels";
                           showToast(`Moved to ${stageLabel}`, "success");

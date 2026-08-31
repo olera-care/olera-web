@@ -288,6 +288,21 @@ export const CRON_REGISTRY: CronJob[] = [
     emailTypes: [],
     relatedAdminPath: "/admin/provider-outreach",
   },
+  {
+    id: "city-broadcasts",
+    name: "City broadcasts",
+    description:
+      "Sends engagement emails to dormant providers when family activity (questions asked, profiles published) occurs in their city. Shows providers that families are actively looking for care in their area.",
+    recipientCohort: "Dormant providers in cities with recent family activity — eligible if they have an email, haven't bounced, and haven't received a broadcast in 7 days.",
+    audience: "Providers",
+    fn: "outreach",
+    schedule: "*/30 * * * *",
+    humanSchedule: "Every 30 minutes",
+    path: "/api/cron/city-broadcasts",
+    emailTypes: ["city_broadcast_question", "city_broadcast_profile"],
+    successSignal: "Provider claims their profile.",
+    relatedAdminPath: "/admin/city-broadcasts",
+  },
   // NOTE: lead-response-nudge has been replaced by lead-followup-sequence.
   // The old cron code remains at app/api/cron/lead-response-nudge/route.ts for rollback.
   {

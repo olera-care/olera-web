@@ -54,6 +54,10 @@ const PROVIDER_NOTIFY_FROM_TYPES = new Set<string>([
   // Provider outreach cold sequence (Day 0/3/7/14 emails to unclaimed providers).
   // These go to scraped directory addresses, so they ring-fence to oleracare.com.
   "provider_outreach_sequence",
+  // City broadcasts — engagement emails to dormant providers when family
+  // activity (questions, published profiles) occurs in their city.
+  "city_broadcast_question",
+  "city_broadcast_profile",
 ]);
 
 /**

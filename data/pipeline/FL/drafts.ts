@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-23T09:55:52.071Z
+ * Last updated: 2026-08-31T10:40:13.358Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -840,7 +840,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card for applicant and all household members",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Proof of Florida residency (utility bill, lease, or voter registration)",
         "Medical bills and receipts for out-of-pocket expenses (last 3 months)",
         "Medicare card and premium statements",

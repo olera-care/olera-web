@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.028Z
+ * Last updated: 2026-08-31T10:40:13.362Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -898,7 +898,7 @@ export const drafts: PipelineStateDrafts = {
         "Valid government-issued photo ID (driver's license or state ID)",
         "Social Security cards for all household members",
         "Proof of income from last 30 days (Social Security award letters, pension statements, pay stubs)",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Proof of Illinois residency (utility bill, lease agreement, or state-issued document)",
         "Medical expense receipts and bills (last 3 months) if over $35/month",
         "Rent or mortgage statements",
@@ -1272,7 +1272,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "SHIP Illinois Hotline",
           "phone": "1-800-252-8966",
-          "description": "Schedule counseling appointments and get Medicare questions answered",
+          "description": "Schedule counseling appointments and get Medicare questions answered. For non-urgent questions you can also email Aging.SHIP@illinois.gov.",
           "hours": "Business hours"
         },
         {
@@ -1280,12 +1280,6 @@ export const drafts: PipelineStateDrafts = {
           "phone": "711",
           "description": "For hearing impaired callers",
           "hours": "24/7"
-        },
-        {
-          "label": "SHIP Email",
-          "phone": "Aging.SHIP@illinois.gov",
-          "description": "Email for non-urgent questions and appointment requests",
-          "hours": "Business hours"
         }
       ],
       "applicationNotes": null,

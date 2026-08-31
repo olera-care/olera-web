@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AR/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.019Z
+ * Last updated: 2026-08-31T10:40:13.354Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -720,7 +720,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Most recent Social Security award letter or benefits statement",
         "Pension, VA benefits, or other retirement income statements",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. In Arkansas your savings do count. The limit is $5,500 for one twelve month period every five years, and the lower federal limits apply the rest of the time.",
         "Proof of medical expenses over $35/month (Medicare premium statements, prescription receipts, medical bills)",
         "Rent receipt, mortgage statement, or property tax bill",
         "Utility bills (electric, gas, water, phone) from last month",

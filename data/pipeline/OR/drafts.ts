@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OR/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.045Z
+ * Last updated: 2026-08-31T10:40:13.376Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -689,7 +689,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security award letter or pension statements",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Proof of Oregon residency (utility bill, lease, or state-issued document)",
         "Valid government-issued photo ID",
         "Citizenship documents (birth certificate, passport, or naturalization papers)",

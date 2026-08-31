@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/DE/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.023Z
+ * Last updated: 2026-08-31T10:40:13.357Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -65,7 +65,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Delaware's Medicaid portal or call 1-800-372-2022, processing time not specified but requires clinical assessment for DSHP-Plus.",
+        "summary": "Apply online through the ASSIST portal at assist.dhss.delaware.gov or call Medicaid Customer Relations at (866) 843-7212. For DSHP-Plus, call the Medicaid Central Intake Unit at 1-866-940-8963. Processing time is not published, and DSHP-Plus requires a clinical assessment.",
         "steps": [
           {
             "step": 1,
@@ -75,7 +75,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Submit application",
-            "description": "Complete the Delaware Medicaid application online, call 1-800-372-2022, or visit your local Division of Medicaid & Medical Assistance office."
+            "description": "Complete the Delaware Medicaid application online through ASSIST at assist.dhss.delaware.gov, call Medicaid Customer Relations at (866) 843-7212, or visit your local Division of Medicaid & Medical Assistance office."
           },
           {
             "step": 3,
@@ -121,10 +121,22 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Delaware Medicaid Application Line",
-          "phone": "(800) 372-2022",
-          "description": "Apply by phone and get application assistance",
-          "hours": "Business hours"
+          "label": "Delaware Medicaid Customer Relations (start here)",
+          "phone": "(866) 843-7212",
+          "description": "General Medicaid information, referrals, and help with an application. Apply online through the ASSIST portal at assist.dhss.delaware.gov.",
+          "hours": "Mon-Fri 8:00am-4:30pm"
+        },
+        {
+          "label": "Medicaid Central Intake Unit (long-term and home-based care)",
+          "phone": "1-866-940-8963",
+          "description": "Takes referrals and applications for nursing home or community-based long-term care Medicaid. This is the right line if your loved one needs care at home.",
+          "hours": null
+        },
+        {
+          "label": "Medicaid Health Benefits Manager",
+          "phone": "1-800-996-9969",
+          "description": "Helps you enroll in or change a managed care organization (MCO) and understand your benefits and prescriptions.",
+          "hours": null
         },
         {
           "label": "Division of Medicaid & Medical Assistance",
@@ -170,7 +182,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can my loved one switch MCOs if they don't like their health plan?",
-          "answer": "Contact the Delaware Medicaid office at 1-800-372-2022 to ask about changing MCOs. Availability varies, some plans may have immediate openings while others maintain waitlists."
+          "answer": "Call the Medicaid Health Benefits Manager at 1-800-996-9969 to change your managed care organization. Delaware lets you choose among its participating plans. If you do not pick one within about 90 days, the Health Benefits Manager assigns you to a plan."
         }
       ],
       "layoutIntent": {
@@ -182,11 +194,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "ShieldCheck",
-      "phone": "(800) 372-2022",
+      "phone": "(866) 843-7212",
       "sourceUrl": "https://dhss.delaware.gov/dmma/medicaid.html",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "dsaapd-waivers",
@@ -741,9 +753,9 @@ export const drafts: PipelineStateDrafts = {
     },
     {
       "id": "snap-food-benefits",
-      "name": "Food Stamp Program (SNAP)",
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP",
-      "tagline": "Up to $291/month toward groceries for Delaware seniors on fixed incomes",
+      "tagline": "Up to $298/month toward groceries for Delaware seniors on fixed incomes",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -756,9 +768,9 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling to afford groceries on Social Security or a fixed income, Delaware's expanded SNAP program may provide $100–291/month loaded onto an EBT card for food purchases. Delaware offers higher income limits than most states, up to $2,608/month gross income for a single person (200% of federal poverty level) versus the typical $1,580 limit elsewhere.\n\nBecause Delaware exempts all asset limits for households where everyone is 60+ or disabled, your loved one won't lose benefits for having a modest savings account or owning their home. The program also provides higher deductions for medical expenses over $35/month and shelter costs, which often helps seniors qualify even with Social Security income that seems too high.\n\nSSI recipients automatically qualify without a separate application. Benefits are calculated based on net income after deductions, typically every $100 increase in net income reduces benefits by about $30, so many seniors with Social Security still receive substantial food assistance.",
-      "savingsRange": "$1,200 – $3,492/year in 2026",
-      "savingsSource": "Maximum monthly SNAP benefits: $291 for 1-person household, $535 for 2-person household",
+      "intro": "If your loved one is 60+ and struggling to afford groceries on Social Security or a fixed income, Delaware's expanded SNAP program may provide $100–298/month loaded onto an EBT card for food purchases. Delaware offers higher income limits than most states, up to $2,608/month gross income for a single person (200% of federal poverty level) versus the typical $1,580 limit elsewhere.\n\nBecause Delaware exempts all asset limits for households where everyone is 60+ or disabled, your loved one won't lose benefits for having a modest savings account or owning their home. The program also provides higher deductions for medical expenses over $35/month and shelter costs, which often helps seniors qualify even with Social Security income that seems too high.\n\nSSI recipients automatically qualify without a separate application. Benefits are calculated based on net income after deductions, typically every $100 increase in net income reduces benefits by about $30, so many seniors with Social Security still receive substantial food assistance.",
+      "savingsRange": "Up to $298/month ($3,576/year) for one person in FY2026",
+      "savingsSource": "USDA FY2026 maximum monthly allotments, effective Oct 1 2025 through Sep 30 2026: $298 for one person, $546 for two. Delaware publishes the same table. These are ceilings, and most households receive less.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -813,12 +825,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at mybenefits.delaware.gov or call your local DSS office, decision within 30 days, expedited benefits within 7 days if income is very low.",
+        "summary": "Apply online through the ASSIST portal at assist.dhss.delaware.gov or call your local DSS office, decision within 30 days, expedited benefits within 7 days if income is very low.",
         "steps": [
           {
             "step": 1,
             "title": "Submit application",
-            "description": "Apply online at mybenefits.delaware.gov, call your local DSS office (find yours at dhss.delaware.gov/dss), or visit in person. Online is fastest for most families."
+            "description": "Apply online through the ASSIST portal at assist.dhss.delaware.gov, call your local DSS office (find yours at dhss.delaware.gov/dss), or visit in person. Online is fastest for most families."
           },
           {
             "step": 2,
@@ -860,7 +872,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Rent receipt or mortgage statement",
         "Utility bills (electric, gas, water, phone)",
         "Proof of Delaware residency (utility bill, lease, or voter registration)",
@@ -871,10 +883,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "State SNAP agency (start here)",
-          "phone": "(800) 372-2022",
-          "description": "Apply for SNAP and ask about your application",
-          "hours": null
+          "label": "Delaware DSS Customer Relations (start here)",
+          "phone": "(866) 843-7212",
+          "description": "Questions about SNAP eligibility and an application you have filed. Apply online through the ASSIST portal at assist.dhss.delaware.gov, or at a State Service Center.",
+          "hours": "Mon-Fri 8:00am-4:30pm"
         },
         {
           "label": "Delaware 2-1-1",
@@ -883,8 +895,8 @@ export const drafts: PipelineStateDrafts = {
           "hours": "24 hours, 7 days a week"
         },
         {
-          "label": "Delaware DSS Main Line",
-          "phone": "(302) 255-9500",
+          "label": "Delaware DSS General Inquiries",
+          "phone": "(302) 255-9040",
           "description": "Division of Social Services for SNAP applications and questions",
           "hours": "Mon-Fri 8am-4:30pm EST"
         },
@@ -951,11 +963,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "(800) 372-2022",
+      "phone": "(866) 843-7212",
       "sourceUrl": "https://dhss.delaware.gov/dss/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "liheap-energy-assistance",
@@ -2112,7 +2124,7 @@ export const drafts: PipelineStateDrafts = {
       {
         "name": "Food Stamp Program (SNAP)",
         "programId": "snap-food-benefits",
-        "why": "Provides up to $291/month toward groceries for seniors on fixed incomes."
+        "why": "Provides up to $298/month toward groceries for seniors on fixed incomes."
       }
     ],
     "byNeed": [

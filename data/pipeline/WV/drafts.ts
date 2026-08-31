@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WV/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.053Z
+ * Last updated: 2026-08-31T10:40:13.382Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -696,7 +696,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of West Virginia residency (utility bill, lease, or mail)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Rent receipt or mortgage statement for shelter deduction",
         "Medical expense receipts if over age 60 (helps increase benefits)",
         "Utility bills for heating and cooling costs",

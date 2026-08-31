@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/KY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.030Z
+ * Last updated: 2026-08-31T10:40:13.363Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -491,16 +491,16 @@ export const drafts: PipelineStateDrafts = {
       "id": "medicare-savings-programs-qmb-slmb-qi",
       "name": "Kentucky Medicare Savings Programs (QMB, SLMB, QI)",
       "shortName": "Medicare Savings Programs",
-      "tagline": "If your loved one has Medicare and low income, Kentucky can pay their premiums and out-of-pocket costs, up to thousands per year in savings.",
+      "tagline": "If your loved one has Medicare and low income, Kentucky can pay their premiums and out-of-pocket costs, at least $2,435 a year.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
         "type": "state"
       },
       "intro": "If your Medicare-enrolled loved one struggles with monthly premiums, deductibles, and copays, Kentucky's Medicare Savings Programs can eliminate these costs entirely. The three programs, QMB, SLMB, and QI, cover different portions of Medicare expenses based on your loved one's income level, with potential savings of hundreds to thousands of dollars per year.\n\nThe most comprehensive program, QMB (Qualified Medicare Beneficiary), covers all Medicare premiums, deductibles, and copayments for people with incomes up to $1,325/month for singles or $1,783/month for couples. SLMB and QI programs have higher income limits but only cover Medicare Part B premiums. Because QMB operates like a free Medicare Supplement policy, it provides the greatest financial relief for families dealing with high medical costs.\n\nAll three programs require assets below $9,660 for individuals or $14,470 for couples. Income limits change every April 1st, and the QI program has finite funding that can run out during the year, so applying early matters.",
-      "savingsRange": "$100 – $3,000+/year in 2026",
-      "savingsSource": "Medicare premium and cost-sharing elimination based on program tier",
-      "savingsVerified": false,
+      "savingsRange": "At least $2,435/year in 2026, and more with QMB",
+      "savingsSource": "CMS 2026 Medicare Parts A & B premiums fact sheet. SLMB and QI pay the standard Part B premium of $202.90/month, which is $2,434.80/year. QMB pays that plus Medicare deductibles and cost sharing, including the $283 Part B deductible and the $1,736 Part A hospital deductible per benefit period, so its total value depends on care used and no agency publishes a single figure.",
+      "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
           "Must have Medicare Part A and/or Part B",
@@ -560,17 +560,17 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply through Kentucky Cabinet for Health and Family Services in person or by mail, processing time varies.",
+        "summary": "Apply through Kentucky DCBS by phone at (855) 306-8959, online at kynect.ky.gov, or at a local DCBS office, processing time varies.",
         "steps": [
           {
             "step": 1,
             "title": "Contact Kentucky Medicaid Services",
-            "description": "Call Kentucky Cabinet for Health and Family Services, Department of Medicaid Services. The main office handles Medicare Savings Program applications statewide."
+            "description": "Call Kentucky DCBS at (855) 306-8959, Monday to Friday, 8:00am to 4:30pm Eastern. DCBS takes Medicare Savings Program applications for the whole state on behalf of the Department for Medicaid Services."
           },
           {
             "step": 2,
             "title": "Request application forms",
-            "description": "Ask specifically for Medicare Savings Program application materials. Reference Form MAP16 (Medicare Savings Program Fact Sheet) if needed."
+            "description": "Ask for Form MAP-205, the Application for Medicaid or Medicare Savings Programs. There is no separate Medicare Savings Program application in Kentucky, so the same form covers it."
           },
           {
             "step": 3,
@@ -580,7 +580,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 4,
             "title": "Submit application",
-            "description": "Mail completed application and documents or visit a local CHFS office. Keep copies of everything you submit."
+            "description": "Mail or fax the completed application to the Centralized Mail Room, or bring it to your local DCBS office. Call (855) 306-8959 to find the nearest one. Keep copies of everything you submit."
           },
           {
             "step": 5,
@@ -612,15 +612,15 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Kentucky Cabinet for Health and Family Services",
-          "phone": null,
-          "description": "Department of Medicaid Services - handles Medicare Savings Program applications",
-          "hours": "Business hours"
+          "label": "Kentucky DCBS, kynect benefits (start here)",
+          "phone": "(855) 306-8959",
+          "description": "The Department for Community Based Services takes Medicare Savings Program applications for the whole state. You can also apply online at kynect.ky.gov or at any local DCBS office. The form is MAP-205.",
+          "hours": "Mon-Fri 8:00am-4:30pm ET"
         },
         {
           "label": "Medicare.gov",
           "phone": "(800) 633-4227",
-          "description": "Federal Medicare helpline for general Medicare questions",
+          "description": "Federal Medicare helpline for general Medicare questions. It cannot take a Medicare Savings Program application, because those go through Kentucky.",
           "hours": "24 hours, 7 days a week"
         }
       ],
@@ -679,11 +679,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "Money",
-      "phone": null,
+      "phone": "(855) 306-8959",
       "sourceUrl": "https://chfs.ky.gov/agencies/dms/dpo/epb/Pages/msp.aspx",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "snap-food-benefits",
@@ -807,7 +807,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Social Security award letter or benefit statement",
         "Pension or retirement income statements",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Proof of Kentucky residency (utility bill or lease)",
         "Medicare card and premium statements",
         "Prescription drug plan documents and costs",

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OK/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-23T08:24:45.940Z
+ * Last updated: 2026-08-31T10:40:13.375Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -956,7 +956,7 @@ export const drafts: PipelineStateDrafts = {
         "Valid government-issued photo ID",
         "Most recent Social Security award letter",
         "Pension or retirement income statements (last 30 days)",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Proof of Oklahoma residency (utility bill, lease, or state-issued document)",
         "Medical expense receipts and bills (last 3 months if over $35/month)",
         "Proof of rent or mortgage payments",

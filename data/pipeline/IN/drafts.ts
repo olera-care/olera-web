@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.029Z
+ * Last updated: 2026-08-31T10:40:13.362Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -920,7 +920,7 @@ export const drafts: PipelineStateDrafts = {
         "Government-issued photo ID (driver's license, state ID, or passport)",
         "Social Security award letters for all household members receiving benefits",
         "Proof of any pension or retirement income",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. In Indiana your savings do count. The limit is $5,000.",
         "Proof of residence (utility bill, lease, or mortgage statement)",
         "Medical expense receipts over $35/month for elderly or disabled members",
         "Rent or mortgage payment documentation",

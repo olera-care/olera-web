@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.022Z
+ * Last updated: 2026-08-31T10:40:13.356Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -629,8 +629,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one is struggling to afford groceries on Social Security or a pension, SNAP provides monthly benefits loaded onto an EBT card for food purchases. A single person can receive up to $298 per month, while a two-person household can get up to $546 monthly, the exact amount depends on income after deductions like medical expenses and housing costs.\n\nConnecticut makes SNAP easier for seniors by allowing households with someone 60 or older to skip the strict gross income test and offering a simplified application. Your loved one can use SNAP benefits at grocery stores for food items (not prepared meals, alcohol, or tobacco), making their Social Security check stretch further each month.",
-      "savingsRange": "$298 – $1,789/month in 2026",
-      "savingsSource": "Maximum monthly SNAP allotments by household size",
+      "savingsRange": "Up to $298/month for one person, up to $1,789/month for eight, in FY2026",
+      "savingsSource": "USDA FY2026 maximum monthly allotments, 48 states and DC, effective Oct 1 2025 through Sep 30 2026: $298 for one person rising to $1,789 for eight. These are ceilings, not typical awards. Most households receive less, because the amount depends on income and deductions.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -700,7 +700,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Choose your application method",
-            "description": "Online: portal.ct.gov/Apply (fastest). Phone: Call 2-1-1 or 877-423-4746. In-person: Visit your local DSS office. If you're 60+, ask for the Elderly Simplified Application Project (ESAP) form, it's shorter."
+            "description": "Online: portal.ct.gov/Apply (fastest). Phone: Call 2-1-1 for help finding an office, or DSS at 1-855-626-6632 (Mon-Fri 8am-4pm) once you have applied. In-person: Visit your local DSS office. If you're 60+, ask for the Elderly Simplified Application Project (ESAP) form, it's shorter."
           },
           {
             "step": 2,
@@ -755,20 +755,14 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "DSS Customer Service (start here)",
           "phone": "(855) 626-6632",
-          "description": "General benefits questions and account issues",
-          "hours": "Monday-Friday 8am-4:30pm"
+          "description": "Questions about an application you already filed, and booking your interview. The fastest way to apply is online at connect.ct.gov. Phones close at 4pm; DSS field offices stay open until 4:30pm.",
+          "hours": "Monday-Friday 8am-4pm"
         },
         {
           "label": "Connecticut 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for SNAP applications and all social services",
           "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "CT SNAP Hotline",
-          "phone": "(877) 423-4746",
-          "description": "SNAP-specific questions and application assistance",
-          "hours": "Monday-Friday 8am-4:30pm"
         }
       ],
       "applicationNotes": [
@@ -830,7 +824,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 626-6632",
       "sourceUrl": "https://portal.ct.gov/dss/snap",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "energy-assistance-ceap",

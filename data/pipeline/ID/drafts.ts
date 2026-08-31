@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/ID/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-23T08:40:32.520Z
+ * Last updated: 2026-08-31T10:40:13.361Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -875,7 +875,7 @@ export const drafts: PipelineStateDrafts = {
         "Valid government-issued photo ID card",
         "Social Security cards for all household members",
         "Social Security award letters or pension statements",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. In Idaho your savings do count. The limit is $5,000.",
         "Proof of Idaho residency (utility bill, lease, or state-issued document)",
         "Housing cost documentation (rent receipt, mortgage statement, property tax)",
         "Utility bills (electric, gas, water, phone)",

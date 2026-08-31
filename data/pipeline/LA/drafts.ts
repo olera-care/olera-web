@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/LA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.031Z
+ * Last updated: 2026-08-31T10:40:13.364Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -955,7 +955,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of citizenship or lawful presence status",
         "Social Security award letter or benefits statement",
         "Pension or retirement income statements",
-        "The current balance of any checking or savings account, if you are asked. Most states no longer count savings for SNAP at all.",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Investment account statements if applicable",
         "Life insurance policy documents",
         "Property tax statements if you own real estate",

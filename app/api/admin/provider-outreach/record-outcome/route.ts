@@ -259,9 +259,10 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Failed to update tracking record" }, { status: 500 });
     }
 
-    // ── Pause Smartlead lead when moving to re_engage ──
+    // ── Pause Smartlead lead when leaving the active sequence ──
     // This stops the automated sequence from sending more emails
-    if (newStage === "re_engage" || newStage === "not_interested") {
+    // Triggers: re_engage (resend_link, try_fax, etc.), not_interested, or clearEmail (wrong_contact)
+    if (newStage === "re_engage" || newStage === "not_interested" || clearEmail) {
       const smartleadData = tracking.smartlead_data as {
         campaign_id?: number;
         lead_id?: number;

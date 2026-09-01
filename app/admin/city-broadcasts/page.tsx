@@ -120,6 +120,12 @@ interface Payload {
     conversion: number; // Conversion rate percentage
   };
   cities: CityGroup[];
+  pagination: {
+    page: number;
+    per_page: number;
+    total_cities: number;
+    total_pages: number;
+  };
   filters: {
     days: number;
     status: string;
@@ -128,6 +134,16 @@ interface Payload {
     search: string;
   };
 }
+
+interface BroadcastHistoryRecord {
+  id: string;
+  created_at: string;
+  event_type: "question_asked" | "profile_published";
+  event_city: string;
+  event_category: string | null;
+}
+
+const PAGE_SIZE = 10;
 
 function relative(iso: string | null): string {
   if (!iso) return "-";
@@ -461,6 +477,10 @@ function ProviderRow({
   onToggleSelect: (providerId: string) => void;
   showCheckbox: boolean;
 }) {
+  const [showHistory, setShowHistory] = useState(false);
+  const [history, setHistory] = useState<BroadcastHistoryRecord[] | null>(null);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+
   const broadcastLabel =
     provider.last_broadcast_type === "question_asked"
       ? "Question"
@@ -470,6 +490,30 @@ function ProviderRow({
 
   // Determine if actions are available (only for broadcast_ready providers who haven't claimed)
   const showActions = provider.stage === "broadcast_ready" && !provider.claimed;
+
+  // Fetch history when expanded
+  const toggleHistory = async () => {
+    if (showHistory) {
+      setShowHistory(false);
+      return;
+    }
+
+    setShowHistory(true);
+    if (history !== null) return; // Already fetched
+
+    setLoadingHistory(true);
+    try {
+      const res = await fetch(`/api/admin/city-broadcasts/history?provider_id=${provider.provider_id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setHistory(data.history || []);
+      }
+    } catch {
+      // Silently fail - history is optional
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
 
   // Status badge based on stage and claim status
   const renderStatus = () => {
@@ -514,59 +558,101 @@ function ProviderRow({
     return <span className="text-sm text-gray-400">-</span>;
   };
 
+  const colSpan = showCheckbox ? 7 : 6;
+
   return (
-    <tr className={`border-b border-gray-100 last:border-b-0 hover:bg-gray-50 ${selected ? "bg-blue-50" : ""}`}>
-      {showCheckbox && (
-        <td className="w-10 px-3 py-2.5">
-          {showActions ? (
-            <input
-              type="checkbox"
-              checked={selected}
-              onChange={() => onToggleSelect(provider.provider_id)}
-              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-            />
-          ) : (
-            <span className="block h-4 w-4" />
+    <>
+      <tr className={`border-b border-gray-100 last:border-b-0 hover:bg-gray-50 ${selected ? "bg-blue-50" : ""}`}>
+        {showCheckbox && (
+          <td className="w-10 px-3 py-2.5">
+            {showActions ? (
+              <input
+                type="checkbox"
+                checked={selected}
+                onChange={() => onToggleSelect(provider.provider_id)}
+                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+              />
+            ) : (
+              <span className="block h-4 w-4" />
+            )}
+          </td>
+        )}
+        <td className="px-4 py-2.5">
+          <div className="font-medium text-gray-900">{provider.provider_name}</div>
+          {provider.category && (
+            <div className="text-[11px] text-gray-500">{provider.category}</div>
           )}
         </td>
-      )}
-      <td className="px-4 py-2.5">
-        <div className="font-medium text-gray-900">{provider.provider_name}</div>
-        {provider.category && (
-          <div className="text-[11px] text-gray-500">{provider.category}</div>
-        )}
-      </td>
-      <td className="px-4 py-2.5 text-sm text-gray-600">{provider.phone || "-"}</td>
-      <td className="px-4 py-2.5 text-sm text-gray-600 max-w-[200px] truncate" title={provider.email || ""}>
-        {provider.email || "-"}
-      </td>
-      <td className="px-4 py-2.5 text-center">
-        {provider.broadcasts_received > 0 ? (
-          <div>
-            <span className="font-mono text-sm tabular-nums text-gray-700">
-              {provider.broadcasts_received}
-            </span>
-            {broadcastLabel && (
-              <div className="text-[10px] text-gray-400">
-                {broadcastLabel} · {relative(provider.last_broadcast_at)}
+        <td className="px-4 py-2.5 text-sm text-gray-600">{provider.phone || "-"}</td>
+        <td className="px-4 py-2.5 text-sm text-gray-600 max-w-[200px] truncate" title={provider.email || ""}>
+          {provider.email || "-"}
+        </td>
+        <td className="px-4 py-2.5 text-center">
+          {provider.broadcasts_received > 0 ? (
+            <button
+              type="button"
+              onClick={toggleHistory}
+              className="group text-left hover:bg-gray-100 rounded px-1.5 py-0.5 -mx-1.5 -my-0.5 transition-colors"
+              title="Click to see broadcast history"
+            >
+              <span className="font-mono text-sm tabular-nums text-gray-700 group-hover:text-blue-600">
+                {provider.broadcasts_received}
+              </span>
+              {broadcastLabel && (
+                <div className="text-[10px] text-gray-400">
+                  {broadcastLabel} · {relative(provider.last_broadcast_at)}
+                </div>
+              )}
+            </button>
+          ) : (
+            <span className="text-sm text-gray-400">-</span>
+          )}
+        </td>
+        <td className="px-4 py-2.5 text-center">
+          {renderStatus()}
+        </td>
+        <td className="px-4 py-2.5 text-center">
+          {showActions ? (
+            <ActionsDropdown provider={provider} onAction={onAction} />
+          ) : (
+            <span className="text-gray-300">-</span>
+          )}
+        </td>
+      </tr>
+      {showHistory && (
+        <tr className="bg-blue-50/50">
+          <td colSpan={colSpan} className="px-4 py-3">
+            <div className="text-[11px] font-medium text-gray-500 mb-2">Broadcast History</div>
+            {loadingHistory ? (
+              <div className="text-xs text-gray-400">Loading...</div>
+            ) : history && history.length > 0 ? (
+              <div className="space-y-1.5">
+                {history.map((record) => (
+                  <div key={record.id} className="flex items-center gap-3 text-xs">
+                    <span className={`inline-flex items-center rounded px-1.5 py-0.5 font-medium ${
+                      record.event_type === "question_asked"
+                        ? "bg-purple-100 text-purple-700"
+                        : "bg-blue-100 text-blue-700"
+                    }`}>
+                      {record.event_type === "question_asked" ? "Question" : "Profile"}
+                    </span>
+                    <span className="text-gray-600">
+                      {record.event_city}
+                      {record.event_category && ` · ${record.event_category}`}
+                    </span>
+                    <span className="text-gray-400 ml-auto">
+                      {relative(record.created_at)}
+                    </span>
+                  </div>
+                ))}
               </div>
+            ) : (
+              <div className="text-xs text-gray-400">No broadcast records found</div>
             )}
-          </div>
-        ) : (
-          <span className="text-sm text-gray-400">-</span>
-        )}
-      </td>
-      <td className="px-4 py-2.5 text-center">
-        {renderStatus()}
-      </td>
-      <td className="px-4 py-2.5 text-center">
-        {showActions ? (
-          <ActionsDropdown provider={provider} onAction={onAction} />
-        ) : (
-          <span className="text-gray-300">-</span>
-        )}
-      </td>
-    </tr>
+          </td>
+        </tr>
+      )}
+    </>
   );
 }
 
@@ -879,6 +965,9 @@ export default function CityBroadcastsPage() {
   const [searchInput, setSearchInput] = useState(searchParams.get("search") || "");
   const [cityInput, setCityInput] = useState(searchParams.get("city") || "");
 
+  // Pagination state
+  const [page, setPage] = useState(1);
+
   // Open action confirmation modal
   const handleActionClick = useCallback((providerId: string, action: "not_interested" | "archived") => {
     const provider = data?.cities.flatMap((c) => c.providers).find((p) => p.provider_id === providerId);
@@ -1125,10 +1214,11 @@ export default function CityBroadcastsPage() {
   const status = searchParams.get("status") || "all";
   const doneSub = searchParams.get("done_sub") || "claimed";
 
-  // Clear selection when switching tabs or changing filters
+  // Clear selection and reset page when switching tabs or changing filters
   // This prevents bulk-actioning providers that are no longer visible
   useEffect(() => {
     setSelectedIds(new Set());
+    setPage(1);
   }, [status, doneSub, debouncedSearch, debouncedCity]);
 
   // Sync URL when debounced values change
@@ -1172,6 +1262,8 @@ export default function CityBroadcastsPage() {
         // Load normal data
         const params = new URLSearchParams();
         params.set("days", String(days));
+        params.set("page", String(page));
+        params.set("per_page", String(PAGE_SIZE));
         if (status !== "all") params.set("status", status);
         if (status === "done") params.set("done_sub", doneSub);
         if (debouncedCity) params.set("city", debouncedCity);
@@ -1192,7 +1284,7 @@ export default function CityBroadcastsPage() {
     } finally {
       setLoading(false);
     }
-  }, [days, status, doneSub, debouncedCity, debouncedSearch]);
+  }, [days, status, doneSub, debouncedCity, debouncedSearch, page]);
 
   useEffect(() => {
     void load();
@@ -1517,9 +1609,36 @@ export default function CityBroadcastsPage() {
               ))
             )}
           </div>
-          <p className="mt-3 text-[11px] text-gray-400">
-            {data.cities.length} cities, {data.stats.pool} providers total.
-          </p>
+
+          {/* Pagination */}
+          <div className="mt-4 flex items-center justify-between">
+            <p className="text-[11px] text-gray-400">
+              {data.pagination.total_cities <= PAGE_SIZE
+                ? `${data.pagination.total_cities} cities, ${data.stats.pool} providers total`
+                : `Cities ${(page - 1) * PAGE_SIZE + 1}–${Math.min(page * PAGE_SIZE, data.pagination.total_cities)} of ${data.pagination.total_cities} (${data.stats.pool} providers total)`
+              }
+            </p>
+            {data.pagination.total_pages > 1 && (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page === 1 || loading}
+                  className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.min(data.pagination.total_pages, p + 1))}
+                  disabled={page >= data.pagination.total_pages || loading}
+                  className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
         </>
       )}
 

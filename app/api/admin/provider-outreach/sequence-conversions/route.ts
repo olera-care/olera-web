@@ -70,10 +70,10 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
 
     // Step 1: Get providers who actually received outreach (any channel)
-    // Must have at least one of: sequence_started_at, fax_sent_at, mail_sent_at, or contact_form_send_count > 0
+    // Must have at least one of: sequence_started_at, fax_sent_at, mail_sent_at, contact_form_send_count > 0, or resend_count > 0
     const { data: allTrackingRows, error: outreachError } = await db
       .from("provider_outreach_tracking")
-      .select("provider_id, assigned_to, fax_sent_at, mail_sent_at, sequence_started_at, contact_form_send_count");
+      .select("provider_id, assigned_to, fax_sent_at, mail_sent_at, sequence_started_at, contact_form_send_count, resend_count");
 
     if (outreachError) {
       console.error("[sequence-conversions] Outreach query error:", outreachError);
@@ -82,7 +82,9 @@ export async function GET(request: NextRequest) {
 
     // Filter to only providers who actually received some outreach
     const outreachProviders = (allTrackingRows || []).filter((p) => {
-      return p.sequence_started_at || p.fax_sent_at || p.mail_sent_at || (p.contact_form_send_count && p.contact_form_send_count > 0);
+      return p.sequence_started_at || p.fax_sent_at || p.mail_sent_at ||
+        (p.contact_form_send_count && p.contact_form_send_count > 0) ||
+        (p.resend_count && p.resend_count > 0);
     });
 
     if (outreachProviders.length === 0) {

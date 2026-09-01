@@ -417,10 +417,10 @@ async function getGlobalSequenceConversionStats(db: DB): Promise<{
   rate: number;
 }> {
   // Get providers who actually received outreach (any channel)
-  // Must have at least one of: sequence_started_at, fax_sent_at, mail_sent_at, or contact_form_send_count > 0
+  // Must have at least one of: sequence_started_at, fax_sent_at, mail_sent_at, contact_form_send_count > 0, or resend_count > 0
   const { data: outreachRows, error: outreachError } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id, sequence_started_at, fax_sent_at, mail_sent_at, contact_form_send_count");
+    .select("provider_id, sequence_started_at, fax_sent_at, mail_sent_at, contact_form_send_count, resend_count");
 
   if (outreachError) {
     console.error("[sequence-conversion] Outreach query error:", outreachError);
@@ -434,8 +434,11 @@ async function getGlobalSequenceConversionStats(db: DB): Promise<{
     fax_sent_at: string | null;
     mail_sent_at: string | null;
     contact_form_send_count: number | null;
+    resend_count: number | null;
   }) => {
-    return r.sequence_started_at || r.fax_sent_at || r.mail_sent_at || (r.contact_form_send_count && r.contact_form_send_count > 0);
+    return r.sequence_started_at || r.fax_sent_at || r.mail_sent_at ||
+      (r.contact_form_send_count && r.contact_form_send_count > 0) ||
+      (r.resend_count && r.resend_count > 0);
   });
 
   const outreachProviderIds = new Set(

@@ -3,7 +3,6 @@ import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId, appendTrackingParams } from "@/lib/email";
 import {
   matchesNudgeEmail,
-  providerIncompleteProfileEmail,
 } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
 
@@ -33,7 +32,6 @@ export async function GET(request: NextRequest) {
     ).toISOString();
 
     let familyNudges = 0;
-    let providerNudges = 0;
 
     // ── F3: Family nudge ──────────────────────────────────────────
 
@@ -145,61 +143,21 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // ── P1: Provider incomplete profile ────────────────────────────
-
-    // Providers created 48hrs+ ago with incomplete profiles
-    const { data: providers } = await db
-      .from("business_profiles")
-      .select("id, display_name, email, city, state, metadata, description, care_types, image_url")
-      .eq("type", "organization")
-      .lte("created_at", fortyEightHoursAgo)
-      .limit(200);
-
-    for (const prov of providers || []) {
-      const meta = (prov.metadata || {}) as Record<string, unknown>;
-
-      // Skip if already nudged, no email, or provider is admin-archived
-      if (meta.profile_incomplete_email_sent) continue;
-      if (!prov.email) continue;
-      if (meta.admin_archived === true) continue;
-
-      // Check if profile is incomplete (missing 2+ of: description, care_types, image)
-      let missingFields = 0;
-      if (!prov.description) missingFields++;
-      if (!prov.care_types || (prov.care_types as string[]).length === 0)
-        missingFields++;
-      if (!prov.image_url) missingFields++;
-
-      if (missingFields < 2) continue;
-
-      await sendEmail({
-        to: prov.email,
-        subject: `Families are searching in ${prov.city || prov.state || "your area"} — your profile isn't ready yet`,
-        html: providerIncompleteProfileEmail({
-          providerName: prov.display_name || "there",
-          city: prov.city || prov.state || "your area",
-          profileUrl: `${siteUrl}/provider/profile`,
-        }),
-        emailType: "provider_incomplete_profile",
-        recipientType: "provider",
-        providerId: prov.id,
-      });
-
-      // Mark as sent
-      await db
-        .from("business_profiles")
-        .update({
-          metadata: { ...meta, profile_incomplete_email_sent: true },
-        })
-        .eq("id", prov.id);
-
-      providerNudges++;
-    }
+    // ── P1 (RETIRED 2026-09-01) ─────────────────────────────────────
+    // provider_incomplete_profile used to live here. It asked providers with a
+    // thin profile to finish it, 48h after signup. Retired because the
+    // onboarding profile-preview email now owns that ask, on a tighter trigger
+    // and with a better hook (its own opening line, inherited).
+    //
+    // It had also stopped working long before it was removed. The query had no
+    // lower time bound, so `created_at <= 48h ago` matched every organization
+    // profile ever created (2,169 rows), and `.limit(200)` with no ORDER BY
+    // returned the same arbitrary oldest page every day. Of the 200 it kept
+    // returning, zero were sendable. 145 sends in its life, 6 in its last month.
 
     return NextResponse.json({
       status: "ok",
       familyNudges,
-      providerNudges,
     });
   } catch (err) {
     console.error("[cron/matches-nudge] error:", err);

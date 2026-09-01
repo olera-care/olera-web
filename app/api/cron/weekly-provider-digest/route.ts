@@ -5,6 +5,7 @@ import { providerWeeklyDigestEmail, coldProviderRankEmail, providerProfileComple
 import { classifyTier } from "@/lib/analytics/triage";
 import { generateNotificationUrl, generateProviderPortalUrl, generateCompletionUrl } from "@/lib/claim-tokens";
 import { withCronRun } from "@/lib/crons/run";
+import { isInOnboarding } from "@/lib/crons/onboarding";
 import {
   scanProvidersForPrewarm,
   getProvidersByPlaceIds,
@@ -895,8 +896,16 @@ export async function GET(request: NextRequest) {
       // the cold-first-contact note below (that path requires !account_id). MVP:
       // owner-story gap only; other gaps + a dedicated dormant-claimer source
       // are tracked follow-ups (see plans/completion-carrot-plan.md).
+      // The onboarding profile-preview email makes this exact ask ("families are
+      // searching in your city") within days of the claim. Yielding this ONE rung
+      // while onboarding runs stops the duplicate without muting the digest: the
+      // cascade simply falls through to market rank or the analytics recap, so the
+      // provider still gets their weekly email. Deliberately narrow — the digest is
+      // the best-performing provider email we send, and there is no measured
+      // over-mailing harm that would justify suppressing more than the overlap.
+      const inOnboarding = isInOnboarding(meta);
       let completionUrl: string | null = null;
-      if (!unansweredQuestion && !hasLead && !findFamiliesUrl && bp.claim_state === "claimed") {
+      if (!unansweredQuestion && !hasLead && !findFamiliesUrl && !inOnboarding && bp.claim_state === "claimed") {
         const hasOwnerStory = !!(meta.staff as { name?: string } | undefined)?.name;
         if (!hasOwnerStory) {
           try {

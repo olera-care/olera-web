@@ -6072,6 +6072,41 @@ export function familyNudgeEmail(opts: {
  * Warm onboarding, sets expectations for getting leads.
  */
 /**
+ * Onboarding Email 1: profile preview. Sent ~48h after the welcome email.
+ *
+ * Leads with local demand rather than vanity. "Families are searching in
+ * {city}" is inherited from provider_incomplete_profile, which this email
+ * replaces: that one had the better opening line and mechanics that left it
+ * sending almost nothing. The CTA lands on the provider's own PUBLIC page,
+ * signed in, so the owner sees exactly what a family sees.
+ */
+export function onboardingProfilePreviewEmail(opts: {
+  providerName: string;
+  city: string;
+  profileUrl: string;
+  providerSlug?: string;
+}): string {
+  const name = escapeHtml(opts.providerName);
+  const city = escapeHtml(opts.city);
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Hi there,
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Families are searching for care in ${city} right now. Here is what they see when they find ${name}.
+    </p>
+    <div style="margin:0 0 24px;">${button("Preview your page", opts.profileUrl)}</div>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      You will land on your page exactly as a family does. Photos, the services you offer, and a few words about who you are make the difference between a family reaching out and moving on.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      Anything that looks thin is editable from the same page.
+    </p>
+    ${offRampBlock(opts.providerSlug)}
+  `, `See what families in ${city} see when they find ${name}.`);
+}
+
+/**
  * Onboarding Email 0: welcome. Sent on the first business-hours run after a
  * provider claims their page.
  *

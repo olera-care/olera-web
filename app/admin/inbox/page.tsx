@@ -223,6 +223,28 @@ export default function AdminSmsInboxPage() {
    * authoritative is exactly the problem this feature exists to solve.
    */
   const [recheckResult, setRecheckResult] = useState<RecheckRecord | null>(null);
+  /**
+   * Every draft the reviewer has actually had checked in this thread.
+   *
+   * A button is not a safeguard if nobody presses it. On 2026-08-31 three of
+   * six replies to care seekers went out with no adversarial check at all,
+   * because Re-check is optional and the reviewer simply forgot — not because
+   * the check was weak. The gap was never the checker's quality, it was that
+   * it never ran.
+   *
+   * Checked text is remembered rather than a boolean flag, so editing one word
+   * after a check correctly makes the reply unchecked again.
+   */
+  const [checkedDrafts, setCheckedDrafts] = useState<Set<string>>(new Set());
+  /**
+   * Which send is waiting on a second click because the text is unchecked.
+   *
+   * A passive warning would not have prevented this: the recipient-local time
+   * is already displayed in amber beside the counter and it does not stop
+   * anything. Sending an unverified claim to someone in crisis is worth one
+   * deliberate click, and only ever one, and only when the check was skipped.
+   */
+  const [confirmUnchecked, setConfirmUnchecked] = useState<null | "now" | "default">(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [draftState, setDraftState] = useState<DraftState>({ kind: "none" });
@@ -306,6 +328,10 @@ export default function AdminSmsInboxPage() {
       recheckRequestRef.current += 1;
       setRecheckResult(null);
       setRechecking(false);
+      setCheckedDrafts(new Set());
+      // Without this a confirmation armed on one thread carries to the next,
+      // and the first click there sends unchecked text with no second look.
+      setConfirmUnchecked(null);
       try {
         const res = await fetch(`/api/admin/sms-inbox/${phone}`);
         if (!res.ok) throw new Error((await res.json())?.error || "Failed to load thread");
@@ -516,6 +542,9 @@ export default function AdminSmsInboxPage() {
   const adoptDraftText = useCallback((text: string) => {
     setReply(text);
     setDraftState({ kind: "dirty" });
+    // Same reason as the textarea's onChange: the confirmed text and the text
+    // now in the box are not the same text.
+    setConfirmUnchecked(null);
   }, []);
 
   /**
@@ -540,10 +569,26 @@ export default function AdminSmsInboxPage() {
     if (latestReplyRef.current.trim()) return;
     setReply(text);
     setDraftState({ kind: "dirty" });
+    setConfirmUnchecked(null);
   }, []);
 
   async function sendReply({ now = false }: { now?: boolean } = {}) {
     if (!selected || !reply.trim() || sending) return;
+    // Unchecked text asks once. Crisis threads are exempt: quiet hours already
+    // step aside for them, and a checker round trip is the wrong thing to put
+    // between a person in crisis and an answer.
+    const action = now ? "now" : "default";
+    if (
+      !checkedDrafts.has(reply.trim()) &&
+      !detail?.quietHours.crisisExempt &&
+      confirmUnchecked !== action
+    ) {
+      setConfirmUnchecked(action);
+      setActionError(null);
+      setNotice(null);
+      return;
+    }
+    setConfirmUnchecked(null);
     // Claim the send synchronously — the drain below awaits, and without the
     // flag set first a fast double-click would get two messages past the guard.
     setSending(true);
@@ -647,7 +692,9 @@ export default function AdminSmsInboxPage() {
       const data = await res.json().catch(() => ({}));
       if (requestId !== recheckRequestRef.current) return;
       if (!res.ok) throw new Error(data?.error || "Re-check failed");
-      setRecheckResult(data.recheck as RecheckRecord);
+      const result = data.recheck as RecheckRecord;
+      setRecheckResult(result);
+      setCheckedDrafts((prev) => new Set(prev).add(result.draft.trim()));
     } catch (err) {
       if (requestId !== recheckRequestRef.current) return;
       setActionError(err instanceof Error ? err.message : "Re-check failed");
@@ -1030,7 +1077,12 @@ export default function AdminSmsInboxPage() {
                   <>
                     <textarea
                       value={reply}
-                      onChange={(e) => setReply(e.target.value)}
+                      onChange={(e) => {
+                        setReply(e.target.value);
+                        // Any edit re-opens the question: the text about to be
+                        // sent is not the text that was just confirmed.
+                        setConfirmUnchecked(null);
+                      }}
                       rows={3}
                       maxLength={480}
                       placeholder="Write a reply…"
@@ -1045,6 +1097,9 @@ export default function AdminSmsInboxPage() {
                             {" · "}
                             {detail.quietHours.recipientNow} for them
                           </span>
+                        )}
+                        {reply.trim() && !checkedDrafts.has(reply.trim()) && (
+                          <span className="text-gray-400">{" · not checked"}</span>
                         )}
                       </span>
                       <div className="flex flex-wrap items-center justify-end gap-2">
@@ -1080,7 +1135,11 @@ export default function AdminSmsInboxPage() {
                             title={`It is ${detail.quietHours.recipientNow} where they are`}
                             className="text-[13px] font-medium px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                           >
-                            {sending && sendingNow ? "Sending…" : "Send now"}
+                            {sending && sendingNow
+                              ? "Sending…"
+                              : confirmUnchecked === "now"
+                                ? "Send unchecked?"
+                                : "Send now"}
                           </button>
                         )}
                         <button
@@ -1092,9 +1151,13 @@ export default function AdminSmsInboxPage() {
                             ? detail.quietHours.allowed
                               ? "Sending…"
                               : "Scheduling…"
-                            : detail.quietHours.allowed
-                              ? "Send text"
-                              : `Schedule ${formatEtTime(detail.quietHours.sendAfter)}`}
+                            : confirmUnchecked === "default"
+                              ? detail.quietHours.allowed
+                                ? "Send unchecked?"
+                                : "Schedule unchecked?"
+                              : detail.quietHours.allowed
+                                ? "Send text"
+                                : `Schedule ${formatEtTime(detail.quietHours.sendAfter)}`}
                         </button>
                       </div>
                     </div>

@@ -358,12 +358,39 @@ async function triageFamilyQuestion(args: {
   const key = last10(phone);
   if (!db || !key) return;
   try {
-    const { count } = await db
+    // One open job per phone, but the later messages must JOIN it rather than
+    // vanish. On 2026-08-31 a care seeker texted "No answer stuck", then 92
+    // seconds later "Need clothes need 30 meals cuz 10 is not enough I need
+    // help with everything". The second was dropped here, so the engine
+    // triaged and answered the first — the throwaway status word — while the
+    // message carrying her actual need never became the question.
+    //
+    // Appending keeps the dedupe doing its real job (one research run per
+    // burst, not three) while making that run answer everything she said.
+    const { data: open } = await db
       .from("family_answer_jobs")
-      .select("id", { count: "exact", head: true })
+      .select("id, body, status")
       .eq("phone_last10", key)
-      .in("status", ["pending", "running"]);
-    if (typeof count === "number" && count > 0) return;
+      .in("status", ["pending", "running"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (open) {
+      // Skip a duplicate: Twilio retries a webhook it thinks failed, and the
+      // same text appended twice would read as the family repeating herself.
+      if (open.body.includes(body.trim())) return;
+      const merged = `${open.body}\n${body.trim()}`.slice(0, 2_000);
+      const { error: appendError } = await db
+        .from("family_answer_jobs")
+        .update({ body: merged })
+        .eq("id", open.id);
+      if (appendError) console.error("[sms-webhook] Job append failed:", appendError);
+      // A `running` job has already been handed its body, so this only reaches
+      // the family on a retry. Still worth writing: the alternative is losing
+      // the message entirely, which is what happened before.
+      return;
+    }
 
     const { error } = await db.from("family_answer_jobs").insert({
       phone_last10: key,

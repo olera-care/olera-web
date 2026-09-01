@@ -156,10 +156,35 @@ export async function GET(request: NextRequest) {
           result.skipped++;
         }
 
+        // A packet that owes a draft and has none did not finish, it broke.
+        // On 2026-08-31 the draft stage took a 529 Overloaded from the API and
+        // the job was still stamped `ready` with an empty draft, so the thread
+        // showed "Drafted answer ready" over nothing and the family got no
+        // reply. Sending it back to `pending` lets the existing attempts
+        // mechanism retry it, which is what should have happened at the time:
+        // the failure was transient and a second call would very likely have
+        // worked. No bespoke 529 handling needed, just an honest status.
+        const draftFailed = needsDraft && !packet.triage.isCrisis && !packet.draft.trim();
+        const retriable = draftFailed && (job.attempts ?? 0) < MAX_ATTEMPTS;
+        if (draftFailed) {
+          result.drafted--;
+          if (retriable) result.requeued++;
+          else result.failed++;
+        }
+
         const { data: finalizedJobs, error: finalizeError } = await db
           .from("family_answer_jobs")
           .update({
-            status: packet.triage.isCrisis || needsDraft ? "ready" : "skipped",
+            status: draftFailed
+              ? retriable
+                ? "pending"
+                : "failed"
+              : packet.triage.isCrisis || needsDraft
+                ? "ready"
+                : "skipped",
+            // Keep the partial packet either way. Its triage, facts and claims
+            // are still worth reading, and on the final attempt they are all a
+            // human has to work from.
             packet,
             completed_at: new Date().toISOString(),
             last_error: packet.errors?.join("; ") ?? null,

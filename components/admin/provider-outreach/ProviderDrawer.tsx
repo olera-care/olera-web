@@ -2470,14 +2470,6 @@ function CallExhaustedSection({
         </span>
       </div>
 
-      {/* Instructions */}
-      <div className="p-3 bg-orange-50 rounded-lg mb-4">
-        <p className="text-sm text-orange-800">
-          This provider needs a phone call to verify email and send claim link.
-          Call them, confirm contact info, then send the claim link while on the phone.
-        </p>
-      </div>
-
       {/* Stats */}
       <div className="flex items-center gap-4 text-sm">
         <div className="flex items-center gap-1.5">

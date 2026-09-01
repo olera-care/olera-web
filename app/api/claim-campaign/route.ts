@@ -41,6 +41,8 @@ export async function GET(request: NextRequest) {
   const url = new URL(request.url);
   const token = url.searchParams.get("otk");
   const emailTrackingId = url.searchParams.get("eid");
+  // Claim source for analytics - defaults to "cold_outreach" for backwards compatibility
+  const claimSource = url.searchParams.get("src") || "cold_outreach";
   const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || url.origin;
 
   console.log("[claim-campaign] route hit", { hasToken: !!token });
@@ -505,7 +507,7 @@ export async function GET(request: NextRequest) {
     provider_id: providerKey,
     event_type: "one_click_access",
     metadata: {
-      source: "cold_outreach",
+      source: claimSource,
       email: normalizedEmail,
       email_log_id: emailTrackingId || null,
     },
@@ -521,7 +523,7 @@ export async function GET(request: NextRequest) {
       profile_id: finalProfileId || providerProfile.id,
       event_type: "claim_completed",
       metadata: {
-        source: "cold_outreach",
+        source: claimSource,
       },
     });
     if (claimCompletedErr) {
@@ -574,7 +576,7 @@ export async function GET(request: NextRequest) {
                 details: {
                   old_stage: oldStage,
                   new_stage: "claimed",
-                  source: "cold_outreach_claim",
+                  source: `${claimSource}_claim`,
                   auto_updated: true,
                   ...(reEngageChannel && { re_engage_channel: reEngageChannel }),
                 },
@@ -596,7 +598,7 @@ export async function GET(request: NextRequest) {
         providerName: providerProfile.display_name || actualSlug,
         claimedByEmail: normalizedEmail,
         providerSlug: actualSlug,
-        claimSource: "cold_outreach",
+        claimSource: claimSource,
       });
       await sendSlackAlert(alert.text, alert.blocks);
     } catch (slackErr) {

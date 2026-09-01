@@ -65,7 +65,8 @@ export function renderQuestionBroadcast(ctx: BroadcastTemplateContext): Rendered
     : `Someone is researching ${categoryLabel} options in your area.`;
 
   // Use generateClaimUrl for one-click claiming with signed token
-  const claimUrl = generateClaimUrl(ctx.providerId, ctx.providerSlug, ctx.providerEmail, BASE_URL);
+  // Pass "city_broadcast" source for analytics tracking
+  const claimUrl = generateClaimUrl(ctx.providerId, ctx.providerSlug, ctx.providerEmail, BASE_URL, "city_broadcast");
   const viewListingUrl = `${BASE_URL}/provider/${ctx.providerSlug}`;
   // Use slug-based unsubscribe URL with cold_outreach type (city broadcasts are cold outreach)
   const unsubscribeUrl = `${BASE_URL}/unsubscribe/${ctx.providerSlug}?type=cold_outreach`;
@@ -138,7 +139,8 @@ export function renderProfileBroadcast(ctx: BroadcastTemplateContext): RenderedB
   const preheader = `You're being considered by a family looking for ${categoryLabel}.`;
 
   // Use generateClaimUrl for one-click claiming with signed token
-  const claimUrl = generateClaimUrl(ctx.providerId, ctx.providerSlug, ctx.providerEmail, BASE_URL);
+  // Pass "city_broadcast" source for analytics tracking
+  const claimUrl = generateClaimUrl(ctx.providerId, ctx.providerSlug, ctx.providerEmail, BASE_URL, "city_broadcast");
   const viewListingUrl = `${BASE_URL}/provider/${ctx.providerSlug}`;
   // Use slug-based unsubscribe URL with cold_outreach type (city broadcasts are cold outreach)
   const unsubscribeUrl = `${BASE_URL}/unsubscribe/${ctx.providerSlug}?type=cold_outreach`;

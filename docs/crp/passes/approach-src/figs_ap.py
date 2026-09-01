@@ -12,34 +12,35 @@ import figbase as B
 PALE = "#f4f7f6"
 BAND = "#eaf2ee"
 
-# (label, kind, spec). Quarters are 1-indexed and inclusive.
-#   bar   (first, last)          a work period
-#   bar   (first, last, tick)    a work period with a milestone at the end of `tick`
-#   wave  q                      a set of markets opening at the start of q
-#   gate  q                      a GO/NO-GO at the end of q
+# (label, kind, spec, note). Quarters are 1-indexed and inclusive.
+#   bar   (first, last)   a work period
+#   open  q               markets opening at the start of q
+#   gate  q               a GO/NO-GO at the end of q
+# `note` is optional grey text set after the bar, in the row's unused quarters.
+#
+# Timing follows the Research Strategy of 2026-08-31: Aim 2 runs nine months in
+# eight markets (Q5 to Q7) with ascertainment and analysis in Q8; Aim 3 runs
+# another nine months in eight new markets (Q9 to Q11) opened in two paid waves,
+# with the post-CRP evidence work beginning at the nine-month mark.
 ROWS = [
-    ("1.1 Care Establishment Model",            'bar',  (1, 2)),
-    ("1.4 Staffing infrastructure",             'bar',  (1, 3)),
-    ("1.2 Bounded agent execution",             'bar',  (2, 3)),
-    ("1.3 Field learning",                      'bar',  (2, 3)),
-    ("Integrated verification and remediation", 'bar',  (3, 3)),
-    ("1.5 Recruitment and preparation",         'bar',  (3, 3)),
-    ("1.5 Controlled stakeholder testing",      'bar',  (4, 4)),
-    ("GO/NO-GO 1",                              'gate', 4),
-    ("2.1 Wave 1 markets open, four markets",   'wave', 5),
-    ("2.1 Wave 2 markets open, four markets",   'wave', 6),
-    ("2.2 Enrollment and execution",            'bar',  (5, 7, 7)),
-    ("2.4 Post-use evaluation",                 'bar',  (6, 8)),
-    ("2.3 Day-90 ascertainment and analysis",   'bar',  (8, 8)),
-    ("GO/NO-GO 2",                              'gate', 8),
-    ("3.2 Paid Wave 1 opens, four new markets", 'wave', 9),
-    ("3.2 Measure and refine the playbook",     'bar',  (9, 10)),
-    ("3.2 Paid Wave 2 opens, four new markets", 'wave', 10),
-    ("3.3 Commercial economics",                'bar',  (9, 12)),
-    ("3.4 Institutional evidence package",      'bar',  (10, 12)),
-    ("3.3 Independent financial validation",    'bar',  (12, 12)),
-    ("FINAL GO/NO-GO",                          'gate', 12),
+    ("1.1 Care Establishment Pathway Model",   'bar',  (1, 2),  None),
+    ("1.4 Caregiver Staffing infrastructure",  'bar',  (1, 3),  None),
+    ("1.2 Eldercare AI administration agents", 'bar',  (2, 3),  None),
+    ("1.3 Field learning and closed-loop data",'bar',  (2, 3),  None),
+    ("Integrated verification in staging",     'bar',  (3, 3),  None),
+    ("1.5 Participant recruitment and setup",  'bar',  (3, 3),  None),
+    ("1.5 Usability and acceptance testing",   'bar',  (4, 4),  None),
+    ("GO/NO-GO 1",                             'gate', 4,       None),
+    ("2.1 CareNavigator family episodes",      'bar',  (5, 7),  "about 440 family episodes"),
+    ("2.2 Caregiver Staffing free pilots",     'bar',  (5, 7),  "15 agencies, 150 placements"),
+    ("2.3 Post-use mixed-methods evaluation",  'bar',  (7, 8),  None),
+    ("Outcome ascertainment and analysis",     'bar',  (8, 8),  None),
+    ("GO/NO-GO 2",                             'gate', 8,       None),
+    ("3.1 Paid replication, eight new markets",'bar',  (9, 11), None),
+    ("3.2 Post-CRP evidence package",          'bar',  (12, 12), None),
+    ("FINAL GO/NO-GO",                         'gate', 12,      None),
 ]
+OPENS = {8: (5,), 13: (9, 10)}     # row index -> quarters at which markets open
 
 
 def _diamond(cx, cy, r, fill):
@@ -47,16 +48,21 @@ def _diamond(cx, cy, r, fill):
             f'fill="{fill}"/>')
 
 
-def _flag(x, cy, h, fill):
-    """A right-pointing triangle on a stem: a wave opening at this quarter."""
-    return (f'<rect x="{x}" y="{cy-h/2}" width="1.8" height="{h}" fill="{fill}"/>'
-            f'<path d="M{x+1.8} {cy-h/2} L{x+9.4} {cy} L{x+1.8} {cy+h/2} z" fill="{fill}"/>')
+def _flag(x, cy, h, fill="#ffffff", stroke=TEAL):
+    """A right-pointing flag: markets opening at this quarter.
+
+    Drawn white with a keyline, because every flag sits on top of a bar and a
+    solid one in the palette disappears into it."""
+    return (f'<g fill="{fill}" stroke="{stroke}" stroke-width="0.9" '
+            f'stroke-linejoin="round">'
+            f'<rect x="{x}" y="{cy-h/2}" width="2.2" height="{h}"/>'
+            f'<path d="M{x+2.2} {cy-h/2} L{x+9.8} {cy} L{x+2.2} {cy+h/2} z"/></g>')
 
 
 def timetable(_grid=None):
     S = B.BODY
     W = 730
-    LABW = 214
+    LABW = 250
     NQ = 12
     cw = (W - LABW - 12) / NQ
     x0 = 6 + LABW
@@ -74,7 +80,7 @@ def timetable(_grid=None):
         b.append(_t(x0 + q * cw + cw / 2, 6 + yearh + headh - 4, f"Q{q+1}", S, GREY,
                     weight="bold"))
 
-    for r, (label, kind, spec) in enumerate(ROWS):
+    for r, (label, kind, spec, note) in enumerate(ROWS):
         y = top + r * rh
         cy = y + rh / 2
         gate = kind == 'gate'
@@ -85,23 +91,19 @@ def timetable(_grid=None):
         b.append(_t(12, y + rh - 4.2, label, S, GREEN if gate else INK, anchor="start",
                     weight="bold" if gate else "normal"))
 
-        if kind == 'gate':
+        if gate:
             b.append(_diamond(x0 + spec * cw, cy, 5.0, GREEN))
-        elif kind == 'wave':
-            b.append(_flag(x0 + (spec - 1) * cw + 4, cy, 9.0, TEAL))
-        else:
-            first, last = spec[0], spec[1]
-            bx = x0 + (first - 1) * cw + 3
-            bw = (last - first + 1) * cw - 6
-            b.append(f'<rect x="{bx}" y="{y+3.2}" width="{bw}" height="{rh-6.4}" '
-                     f'rx="2.8" fill="{TEAL}" opacity="0.88"/>')
-            if len(spec) == 3:
-                tx = x0 + spec[2] * cw
-                # a white keyline so the milestone reads against the bar it sits on
-                b.append(f'<rect x="{tx-2.1}" y="{y+1.2}" width="4.2" '
-                         f'height="{rh-2.4}" rx="1.2" fill="#ffffff"/>')
-                b.append(f'<rect x="{tx-1.4}" y="{y+1.9}" width="2.8" '
-                         f'height="{rh-3.8}" rx="1" fill="{GREEN}"/>')
+            continue
+
+        first, last = spec
+        bx = x0 + (first - 1) * cw + 3
+        bw = (last - first + 1) * cw - 6
+        b.append(f'<rect x="{bx}" y="{y+3.2}" width="{bw}" height="{rh-6.4}" '
+                 f'rx="2.8" fill="{TEAL}" opacity="0.88"/>')
+        for q in OPENS.get(r, ()):
+            b.append(_flag(x0 + (q - 1) * cw + 5, cy, 9.4))
+        if note:
+            b.append(_t(bx + bw + 9, y + rh - 4.2, note, S, GREY, anchor="start"))
 
     gy = top + len(ROWS) * rh
     b.append(f'<line x1="6" y1="{gy+1}" x2="{W-6}" y2="{gy+1}" stroke="{RULE}" '
@@ -111,13 +113,12 @@ def timetable(_grid=None):
     b.append(f'<rect x="{lx}" y="{ly-5}" width="18" height="6" rx="2" fill="{TEAL}" '
              f'opacity="0.88"/>')
     b.append(_t(lx + 24, ly, "work period", S, GREY, anchor="start"))
-    lx += 24 + B.w("work period", S) + 22
-    b.append(_flag(lx, ly - 2.4, 9.0, TEAL))
-    b.append(_t(lx + 16, ly, "four markets open", S, GREY, anchor="start"))
-    lx += 16 + B.w("four markets open", S) + 22
-    b.append(f'<rect x="{lx}" y="{ly-8}" width="3.2" height="11" rx="1" fill="{GREEN}"/>')
-    b.append(_t(lx + 10, ly, "enrollment closes", S, GREY, anchor="start"))
-    lx += 10 + B.w("enrollment closes", S) + 22
+    lx += 24 + B.w("work period", S) + 26
+    b.append(f'<rect x="{lx-3}" y="{ly-9}" width="19" height="13" rx="2.8" '
+             f'fill="{TEAL}" opacity="0.88"/>')
+    b.append(_flag(lx + 1.5, ly - 2.6, 9.4))
+    b.append(_t(lx + 22, ly, "markets open", S, GREY, anchor="start"))
+    lx += 22 + B.w("markets open", S) + 26
     b.append(_diamond(lx + 5, ly - 2.4, 5.0, GREEN))
     b.append(_t(lx + 14, ly, "GO/NO-GO gate", S, GREY, anchor="start"))
 

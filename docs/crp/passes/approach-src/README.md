@@ -50,3 +50,15 @@ Four pages with no wasted tails. Getting there took two small adjustments:
 timetable row height at 13 units and table cell padding at 1.9pt. Before those,
 the timetable did not fit the tail of page 4 and pushed onto a fifth page that
 held nothing else.
+
+## Figure 9 is ahead of `text.json`
+
+`figs_ap.py` was rebuilt on 2026-08-31 against
+`2. Research Plan [Most Updated 8.31.26] V2`, whose Approach differs from the
+draft in `orig.docx`: Aim 2 is three tasks running nine months in eight markets
+rather than four tasks, and Aim 3 is two tasks rather than four. `text.json`
+still holds the older draft, so **running `build_ap.py` now produces a document
+whose prose and timetable disagree.** Re-extract the Approach from the 8.31
+Research Strategy before rebuilding the section.
+
+The standalone figure is current: `Figure9_timetable.pdf` and `.png`.

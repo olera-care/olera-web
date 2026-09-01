@@ -402,10 +402,13 @@ async function getGlobalFollowUpsTodayStats(db: DB): Promise<{
 }
 
 /**
- * Get global sequence conversion stats across ALL states.
+ * Get global cold outreach conversion stats across ALL states.
+ * Counts ALL providers in the outreach tracking system who have claimed,
+ * regardless of whether they went through email sequence, fax, or other channels.
+ *
  * Returns:
- *   - sequenced: total providers who ever entered the email sequence (all time)
- *   - claimed: providers who went through the sequence AND claimed their profile
+ *   - sequenced: total providers in cold outreach tracking (all time, all channels)
+ *   - claimed: providers from cold outreach who claimed their profile
  *   - rate: conversion percentage
  */
 async function getGlobalSequenceConversionStats(db: DB): Promise<{
@@ -413,24 +416,23 @@ async function getGlobalSequenceConversionStats(db: DB): Promise<{
   claimed: number;
   rate: number;
 }> {
-  // Get all providers who ever entered the sequence (sequence_started_at is set)
-  const { data: sequencedRows, error: seqError } = await db
+  // Get all providers in cold outreach tracking (any channel - email, fax, contact form, etc.)
+  const { data: outreachRows, error: outreachError } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id")
-    .not("sequence_started_at", "is", null);
+    .select("provider_id");
 
-  if (seqError) {
-    console.error("[sequence-conversion] Sequenced query error:", seqError);
+  if (outreachError) {
+    console.error("[sequence-conversion] Outreach query error:", outreachError);
     return { sequenced: 0, claimed: 0, rate: 0 };
   }
 
-  const sequencedProviderIds = new Set(
-    (sequencedRows || []).map((r: { provider_id: string }) => r.provider_id)
+  const outreachProviderIds = new Set(
+    (outreachRows || []).map((r: { provider_id: string }) => r.provider_id)
   );
 
-  const sequencedCount = sequencedProviderIds.size;
+  const outreachCount = outreachProviderIds.size;
 
-  if (sequencedCount === 0) {
+  if (outreachCount === 0) {
     return { sequenced: 0, claimed: 0, rate: 0 };
   }
 
@@ -443,24 +445,24 @@ async function getGlobalSequenceConversionStats(db: DB): Promise<{
 
   if (claimedError) {
     console.error("[sequence-conversion] Claimed query error:", claimedError);
-    return { sequenced: sequencedCount, claimed: 0, rate: 0 };
+    return { sequenced: outreachCount, claimed: 0, rate: 0 };
   }
 
-  // Count how many sequenced providers have claimed
-  let claimedFromSequenceCount = 0;
+  // Count how many outreach providers have claimed
+  let claimedFromOutreachCount = 0;
   for (const bp of claimedBps || []) {
-    if (sequencedProviderIds.has(bp.source_provider_id)) {
-      claimedFromSequenceCount++;
+    if (outreachProviderIds.has(bp.source_provider_id)) {
+      claimedFromOutreachCount++;
     }
   }
 
-  const rate = sequencedCount > 0
-    ? Math.round((claimedFromSequenceCount / sequencedCount) * 1000) / 10 // One decimal place
+  const rate = outreachCount > 0
+    ? Math.round((claimedFromOutreachCount / outreachCount) * 1000) / 10 // One decimal place
     : 0;
 
   return {
-    sequenced: sequencedCount,
-    claimed: claimedFromSequenceCount,
+    sequenced: outreachCount,
+    claimed: claimedFromOutreachCount,
     rate,
   };
 }

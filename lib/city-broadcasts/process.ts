@@ -333,9 +333,14 @@ async function findNewPoolMembers(): Promise<
 /**
  * Find existing family activity in a city that can be used for new pool member broadcasts.
  * Looks for recent published profiles or questions in the city.
+ *
+ * @param city - City name to search in
+ * @param state - State to filter by (important for disambiguation - e.g., Springfield exists in many states)
+ * @param category - Provider category (optional, used for question attribution)
  */
 async function findExistingActivityForCity(
   city: string,
+  state: string | null,
   category: string | null
 ): Promise<DetectedEvent | null> {
   const db = getServiceClient();
@@ -345,7 +350,7 @@ async function findExistingActivityForCity(
 
   // First, try to find a recent published profile in the city
   // Profile broadcasts don't require category matching, so they're more likely to exist
-  const { data: profiles } = await db
+  let profileQuery = db
     .from("business_profiles")
     .select("id, city, state")
     .ilike("city", city)
@@ -353,6 +358,13 @@ async function findExistingActivityForCity(
     .not("account_id", "is", null) // Has an actual seeker
     .order("created_at", { ascending: false })
     .limit(1);
+
+  // Filter by state if provided (important for city disambiguation)
+  if (state) {
+    profileQuery = profileQuery.ilike("state", state);
+  }
+
+  const { data: profiles } = await profileQuery;
 
   if (profiles && profiles.length > 0) {
     const profile = profiles[0];
@@ -377,11 +389,18 @@ async function findExistingActivityForCity(
 
   // If no published profile, try to find a recent question in the city
   // Questions are linked to providers, so we need to join
-  const { data: providers } = await db
+  let providerQuery = db
     .from("olera-providers")
     .select("provider_id")
     .ilike("city", city)
     .or("deleted.is.null,deleted.eq.false");
+
+  // Filter by state if provided (important for city disambiguation)
+  if (state) {
+    providerQuery = providerQuery.ilike("state", state);
+  }
+
+  const { data: providers } = await providerQuery;
 
   if (providers && providers.length > 0) {
     const providerIds = providers.map((p) => p.provider_id);
@@ -405,7 +424,7 @@ async function findExistingActivityForCity(
         eventType: "question_asked",
         eventId: q.id,
         city,
-        state: null,
+        state,
         category,
         questionText: q.question,
       };
@@ -457,6 +476,7 @@ export async function processNewPoolMembers(
     const firstMember = members[0];
     const activity = await findExistingActivityForCity(
       firstMember.city,
+      firstMember.state,
       firstMember.category
     );
 
@@ -569,8 +589,8 @@ export async function processNewPoolMembers(
         status: "pending",
       });
 
-      // Send the email
-      const result = await sendBroadcastEmail(broadcastEventId, activity, provider);
+      // Send the email (mark as new pool member broadcast)
+      const result = await sendBroadcastEmail(broadcastEventId, activity, provider, true);
       if (result.sent) {
         sent++;
         console.log(`[city-broadcasts] Sent new pool member broadcast to ${provider.name} in ${member.city}`);
@@ -586,11 +606,14 @@ export async function processNewPoolMembers(
 /**
  * Send a broadcast email to a single provider.
  * Exported for use by new pool member processing.
+ *
+ * @param isNewPoolMember - True if this is a new pool member broadcast (default: false)
  */
 export async function sendBroadcastEmail(
   broadcastEventId: string,
   event: DetectedEvent,
-  provider: EligibleProvider
+  provider: EligibleProvider,
+  isNewPoolMember: boolean = false
 ): Promise<{ sent: boolean; error?: string }> {
   const db = getServiceClient();
 
@@ -626,7 +649,7 @@ export async function sendBroadcastEmail(
       event_type: event.eventType,
       city: event.city,
       category: event.category,
-      new_pool_member: true, // Mark as new pool member broadcast
+      new_pool_member: isNewPoolMember,
     },
   });
 

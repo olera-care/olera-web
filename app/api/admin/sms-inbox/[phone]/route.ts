@@ -205,7 +205,8 @@ export async function GET(
     const db = getServiceClient();
     const e164 = toE164(last10);
 
-    const [inboundRes, dncRes, draftRes, packetRes, outboundLogRes, scheduledRes] = await Promise.all([
+    const [inboundRes, dncRes, draftRes, packetRes, outboundLogRes, scheduledRes, crisisExempt] =
+      await Promise.all([
       db
         .from("sms_inbound")
         .select("id, from_phone, body, keyword, profile_id, profile_type, display_name, handled_at, created_at")
@@ -248,10 +249,12 @@ export async function GET(
         .order("send_after", { ascending: true })
         .limit(1)
         .maybeSingle(),
+      // Same read the reply action uses, so the button's label and the
+      // button's behaviour can never disagree. In the parallel batch rather
+      // than awaited after it: this runs on every thread open, and a serial
+      // round trip here is latency paid on the page's hot path for nothing.
+      threadIsCrisis(db, last10),
     ]);
-    // Same read the reply action uses, so the button's label and the button's
-    // behaviour can never disagree.
-    const crisisExempt = await threadIsCrisis(db, last10);
     if (inboundRes.error) {
       console.error("[admin/sms-inbox/phone] inbound load failed:", inboundRes.error);
       return NextResponse.json({ error: inboundRes.error.message }, { status: 500 });

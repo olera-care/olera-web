@@ -207,6 +207,14 @@ export default function AdminSmsInboxPage() {
   const [detailLoading, setDetailLoading] = useState(false);
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);
+  /**
+   * WHICH send is in flight, not merely that one is. With a single button a
+   * boolean was enough; with two, a bare flag puts "Sending…" on the button
+   * that was not pressed — click "Send now" and "Schedule 8:00 AM" is what
+   * animates. That reads as the opposite of what you just chose, at the one
+   * moment you most need to know you overruled the hold correctly.
+   */
+  const [sendingNow, setSendingNow] = useState(false);
   const [rechecking, setRechecking] = useState(false);
   /**
    * Result of the most recent re-check, held in component state rather than
@@ -539,6 +547,7 @@ export default function AdminSmsInboxPage() {
     // Claim the send synchronously — the drain below awaits, and without the
     // flag set first a fast double-click would get two messages past the guard.
     setSending(true);
+    setSendingNow(now);
     setActionError(null);
     setNotice(null);
     // A queued autosave must not fire after the send: the server deletes the
@@ -571,6 +580,7 @@ export default function AdminSmsInboxPage() {
       setActionError(err instanceof Error ? err.message : "Failed to send reply");
     } finally {
       setSending(false);
+      setSendingNow(false);
     }
   }
 
@@ -1070,7 +1080,7 @@ export default function AdminSmsInboxPage() {
                             title={`It is ${detail.quietHours.recipientNow} where they are`}
                             className="text-[13px] font-medium px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                           >
-                            Send now
+                            {sending && sendingNow ? "Sending…" : "Send now"}
                           </button>
                         )}
                         <button
@@ -1078,8 +1088,10 @@ export default function AdminSmsInboxPage() {
                           disabled={!reply.trim() || sending}
                           className="text-[13px] font-medium px-3.5 py-1.5 rounded-md bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                         >
-                          {sending
-                            ? "Sending…"
+                          {sending && !sendingNow
+                            ? detail.quietHours.allowed
+                              ? "Sending…"
+                              : "Scheduling…"
                             : detail.quietHours.allowed
                               ? "Send text"
                               : `Schedule ${formatEtTime(detail.quietHours.sendAfter)}`}

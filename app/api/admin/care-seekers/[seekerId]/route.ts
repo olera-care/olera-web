@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
+import { getEnrichedProgram } from "@/lib/program-data";
 
 /**
  * GET /api/admin/care-seekers/[seekerId]
@@ -74,7 +75,27 @@ export async function GET(
         .select("program_id, state_id, name, short_name, program_type, savings_range, created_at")
         .eq("user_id", account.user_id)
         .order("created_at", { ascending: false });
-      savedPrograms = data ?? [];
+      // Re-read each saved program from the live library rather than trusting
+      // the save-time snapshot. The row freezes name/short_name/savings_range
+      // at the moment the family tapped save, so a benefits fact-check
+      // correction never reached this view: 126 rows across 21 programs carried
+      // a stale name and 107 carried a savings figure that had been deleted
+      // from the library on purpose. Louisiana's "Caregiver Voucher Program" is
+      // the sharpest case — it was reframed to "Paid Family Caregiver through
+      // the Community Choices Waiver", so the old label names nothing real.
+      // Same fix as app/api/saved-programs/enriched/route.ts, so TJ sees what
+      // the family sees. The snapshot stays the fallback when a program has
+      // been removed from the library and it is all we have.
+      savedPrograms = (data ?? []).map((s) => {
+        const program = s.state_id ? getEnrichedProgram(s.state_id, s.program_id) : undefined;
+        if (!program) return s;
+        return {
+          ...s,
+          name: program.name,
+          short_name: program.shortName || program.name,
+          savings_range: program.savingsRange || null,
+        };
+      });
     }
 
     return NextResponse.json({

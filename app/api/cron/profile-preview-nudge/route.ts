@@ -144,17 +144,21 @@ export async function GET(request: NextRequest) {
       const providerName = provider.display_name || "your organization";
 
       try {
-        if (dryRun) {
-          console.log(`[cron/profile-preview-nudge] [DRY RUN] Would send to: ${providerName} (${email})`);
-          counts.sent++;
-          continue;
-        }
-
         // Never assert demand we have not counted. Most providers correctly
         // get the neutral opening because their market genuinely is quiet.
+        // Computed BEFORE the dry-run branch: the whole point of a dry run here
+        // is to see which opening each provider would get.
         const nearbySeekers = countSeekersNear(seekers, provider);
         const cityLabel = provider.city || provider.state || "your area";
         const subject = onboardingProfilePreviewSubject({ providerName, city: cityLabel, nearbySeekers });
+
+        if (nearbySeekers > 0) counts.withLocalDemand++; else counts.withoutLocalDemand++;
+
+        if (dryRun) {
+          console.log(`[cron/profile-preview-nudge] [DRY RUN] ${providerName} (${email}) — ${nearbySeekers} nearby seeker(s) — "${subject}"`);
+          counts.sent++;
+          continue;
+        }
 
         const emailLogId = await reserveEmailLogId({
           to: email,
@@ -227,7 +231,6 @@ export async function GET(request: NextRequest) {
         } else {
           console.log(`[cron/profile-preview-nudge] Sent to: ${providerName} (${email}) — ${nearbySeekers} nearby seeker(s)`);
           counts.sent++;
-          if (nearbySeekers > 0) counts.withLocalDemand++; else counts.withoutLocalDemand++;
         }
       } catch (err) {
         console.error(`[cron/profile-preview-nudge] Error for ${provider.id}:`, err);

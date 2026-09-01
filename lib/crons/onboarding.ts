@@ -88,24 +88,21 @@ function milesBetween(aLat: number, aLng: number, bLat: number, bLng: number): n
 export async function loadActiveSeekers(
   db: { from: (t: string) => any },
 ): Promise<SeekerPoint[]> {
+  // Status filtered in the QUERY, not in JS afterwards. Filtering after a fetch
+  // is what let provider_incomplete_profile silently starve behind a row cap.
   const { data, error } = await db
     .from("business_profiles")
-    .select("city, state, lat, lng, metadata")
+    .select("city, state, lat, lng")
     .eq("type", "family")
     .eq("is_active", true)
-    .not("metadata->care_post", "is", null);
+    .eq("metadata->care_post->>status", "active");
   if (error) {
     // Degrade to "no known demand" → every provider gets the neutral copy.
     // Never let a failed lookup manufacture a demand claim.
     console.error("[onboarding] seeker load failed:", error.message);
     return [];
   }
-  return ((data ?? []) as Array<SeekerPoint & { metadata?: Record<string, unknown> | null }>)
-    .filter((s) => {
-      const cp = (s.metadata ?? {}) as { care_post?: { status?: string } };
-      return cp.care_post?.status === "active";
-    })
-    .map(({ city, state, lat, lng }) => ({ city, state, lat, lng }));
+  return (data ?? []) as SeekerPoint[];
 }
 
 /**

@@ -2027,10 +2027,10 @@ function CallLogSection({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Historical Notes Section (read-only - new notes go through Call Log with "Note" status)
+// Notes Section (shows both historical notes and Call Log notes with status="note")
 // ─────────────────────────────────────────────────────────────────────────────
 
-function HistoricalNotesSection({ provider }: { provider: OutreachProvider }) {
+function NotesSection({ provider }: { provider: OutreachProvider }) {
   const [notes, setNotes] = useState<Note[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -2100,7 +2100,9 @@ function HistoricalNotesSection({ provider }: { provider: OutreachProvider }) {
 function ActivitySection({ provider }: { provider: OutreachProvider }) {
   const questionsCount = provider.questions_count ?? 0;
   const leadsCount = provider.leads_count ?? 0;
-  const emailsSent = provider.resend_count ?? 0;
+  // Use actual email_sent touchpoint count (includes SmartLead + manual sends)
+  // Fall back to resend_count if engagement data not available
+  const emailsSent = provider.engagement?.emails_sent ?? provider.resend_count ?? 0;
   const formsSent = provider.contact_form_send_count ?? 0;
 
   return (
@@ -3959,8 +3961,8 @@ export function ProviderDrawer({
           </>
         )}
 
-        {/* Historical Notes Section (read-only, no new notes - use Call Log instead) */}
-        <HistoricalNotesSection provider={provider} />
+        {/* Notes Section (shows all notes including Call Log notes) */}
+        <NotesSection provider={provider} />
 
         {/* Activity Section */}
         <ActivitySection provider={provider} />

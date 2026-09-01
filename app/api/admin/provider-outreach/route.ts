@@ -787,6 +787,38 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // For OTHER stages (broadcast_ready, re_engage, call_exhausted, not_interested, archived),
+    // populate engagement data so the Activity Section displays correct email counts
+    // This covers providers who may have received emails via SmartLead, manual resends, etc.
+    const stagesWithEngagement = ["in_sequence", "needs_call"];
+    if (!stagesWithEngagement.includes(stage) && providerIds.length > 0) {
+      const { data: touchpoints } = await db
+        .from("provider_outreach_touchpoints")
+        .select("provider_id, touchpoint_type, details")
+        .in("provider_id", providerIds);
+
+      for (const tp of touchpoints || []) {
+        if (!engagementMap.has(tp.provider_id)) {
+          engagementMap.set(tp.provider_id, { emails_sent: 0, opens: 0, clicks: 0, resends: 0 });
+        }
+        const metrics = engagementMap.get(tp.provider_id)!;
+        const details = tp.details as Record<string, unknown> | null;
+
+        switch (tp.touchpoint_type) {
+          case "email_sent":
+            metrics.emails_sent += 1;
+            if (details) {
+              metrics.opens += Number(details.open_count ?? 0);
+              metrics.clicks += Number(details.click_count ?? 0);
+            }
+            break;
+          case "resend_link":
+            metrics.resends += 1;
+            break;
+        }
+      }
+    }
+
     // Join tracking with provider data
     const providerMap = new Map((providerRows || []).map((p) => [p.provider_id, p as ProviderRow]));
     const providers = (trackingRows as TrackingRow[])
@@ -834,8 +866,8 @@ export async function GET(request: NextRequest) {
           // Sequence progress (for in_sequence)
           emails_sent: stage === "in_sequence" ? (emailsSentMap.get(p.provider_id) || 0) : undefined,
           sequence_status: stage === "in_sequence" ? sequenceStatusMap.get(p.provider_id) : undefined,
-          // Engagement data (for in_sequence and needs_call)
-          engagement: (stage === "in_sequence" || stage === "needs_call") ? engagementMap.get(p.provider_id) : undefined,
+          // Engagement data (for all stages - needed for Activity Section)
+          engagement: engagementMap.get(p.provider_id),
           // Generic email warning state (persisted for page refresh)
           generic_email_called_at: t.generic_email_called_at ?? null,
           generic_email_skipped_at: t.generic_email_skipped_at ?? null,

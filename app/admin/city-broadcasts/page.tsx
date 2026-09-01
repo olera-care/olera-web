@@ -709,28 +709,101 @@ export default function CityBroadcastsPage() {
 
       {data && (
         <>
-          {/* Stats */}
-          <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Stat value={data.stats.pool} label="In broadcast pool" detail="broadcast_ready providers" />
-            <Stat
-              value={data.stats.sent}
-              label={`Sent broadcasts`}
-              detail={rangeLabel(dateRange, BROADCAST_DATE_PRESETS)}
-              tone={data.stats.sent > 0 ? "success" : "muted"}
-            />
-            <Stat
-              value={data.stats.claimed}
-              label="Claimed profiles"
-              detail="Linked to an account"
-              tone={data.stats.claimed > 0 ? "success" : "muted"}
-            />
-            <Stat
-              value={`${data.stats.conversion}%`}
-              label="Conversion rate"
-              detail={`${data.stats.conversions} converted of ${data.stats.sent} sent`}
-              tone={data.stats.conversion >= 10 ? "success" : "default"}
-            />
-          </div>
+          {/* Stats - contextual based on current tab */}
+          {status === "done" && doneSub === "not_interested" ? (
+            // Not Interested tab - show simple count
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <Stat
+                value={data.stats.pool}
+                label="Not Interested"
+                detail="Providers marked as not interested"
+                tone="muted"
+              />
+            </div>
+          ) : status === "done" && doneSub === "archived" ? (
+            // Archived tab - show simple count
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <Stat
+                value={data.stats.pool}
+                label="Archived"
+                detail="Providers archived from outreach"
+                tone="muted"
+              />
+            </div>
+          ) : status === "done" && doneSub === "claimed" ? (
+            // Claimed tab - show claimed stats
+            <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <Stat
+                value={data.stats.pool}
+                label="Claimed profiles"
+                detail="Linked to an account"
+                tone={data.stats.pool > 0 ? "success" : "muted"}
+              />
+              <Stat
+                value={data.stats.conversions}
+                label="True conversions"
+                detail="Claimed after receiving broadcast"
+                tone={data.stats.conversions > 0 ? "success" : "muted"}
+              />
+              <Stat
+                value={data.stats.pool - data.stats.conversions}
+                label="Claimed organically"
+                detail="Claimed before any broadcast"
+                tone="default"
+              />
+              <Stat
+                value={data.stats.conversions > 0 ? `${Math.round((data.stats.conversions / data.stats.pool) * 100)}%` : "0%"}
+                label="Broadcast attribution"
+                detail="% of claims from broadcasts"
+                tone={data.stats.conversions > 0 ? "success" : "muted"}
+              />
+            </div>
+          ) : status === "waiting" ? (
+            // Waiting tab - show waiting-specific stats
+            <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <Stat
+                value={data.stats.pool}
+                label="Waiting for response"
+                detail="Received broadcast, not yet claimed"
+                tone={data.stats.pool > 0 ? "default" : "muted"}
+              />
+              <Stat
+                value={data.stats.sent}
+                label="Received broadcasts"
+                detail={rangeLabel(dateRange, BROADCAST_DATE_PRESETS)}
+                tone={data.stats.sent > 0 ? "success" : "muted"}
+              />
+              <Stat
+                value={`${data.stats.conversion}%`}
+                label="Conversion rate"
+                detail={`${data.stats.conversions} converted of ${data.stats.sent} sent`}
+                tone={data.stats.conversion >= 10 ? "success" : "default"}
+              />
+            </div>
+          ) : (
+            // Pool tab - show full funnel stats
+            <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+              <Stat value={data.stats.pool} label="In broadcast pool" detail="broadcast_ready providers" />
+              <Stat
+                value={data.stats.sent}
+                label="Received broadcasts"
+                detail={rangeLabel(dateRange, BROADCAST_DATE_PRESETS)}
+                tone={data.stats.sent > 0 ? "success" : "muted"}
+              />
+              <Stat
+                value={data.stats.claimed}
+                label="Claimed profiles"
+                detail="Linked to an account"
+                tone={data.stats.claimed > 0 ? "success" : "muted"}
+              />
+              <Stat
+                value={`${data.stats.conversion}%`}
+                label="Conversion rate"
+                detail={`${data.stats.conversions} converted of ${data.stats.sent} sent`}
+                tone={data.stats.conversion >= 10 ? "success" : "default"}
+              />
+            </div>
+          )}
 
           {/* Filters */}
           <div className="mt-6 flex flex-wrap items-center gap-3 rounded-t-xl border border-b-0 border-gray-200 bg-gray-50 px-4 py-3">
@@ -738,7 +811,6 @@ export default function CityBroadcastsPage() {
             <div className="flex gap-1.5">
               {[
                 { value: "all", label: "Pool" },
-                { value: "sent", label: "Sent" },
                 { value: "waiting", label: "Waiting" },
                 { value: "done", label: "Done" },
               ].map((opt) => (
@@ -764,11 +836,9 @@ export default function CityBroadcastsPage() {
                     status === opt.value || (status === "all" && opt.value === "all")
                       ? opt.value === "done"
                         ? "bg-green-600 text-white"
-                        : opt.value === "sent"
-                          ? "bg-blue-600 text-white"
-                          : opt.value === "waiting"
-                            ? "bg-amber-600 text-white"
-                            : "bg-gray-900 text-white"
+                        : opt.value === "waiting"
+                          ? "bg-amber-600 text-white"
+                          : "bg-gray-900 text-white"
                       : "border border-gray-200 bg-white text-gray-500 hover:border-gray-300"
                   }`}
                 >

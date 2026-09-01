@@ -78,6 +78,27 @@ interface CityGroup {
   providers: ProviderBroadcast[];
 }
 
+interface ExcludedProvider {
+  provider_id: string;
+  provider_name: string;
+  category: string | null;
+  city: string;
+  state: string | null;
+  email: string;
+  exclusion_reason: "bounced" | "complained";
+  last_bounce_at: string | null;
+  last_complaint_at: string | null;
+}
+
+interface ExcludedPayload {
+  excluded: ExcludedProvider[];
+  stats: {
+    bounced: number;
+    complained: number;
+    total: number;
+  };
+}
+
 /** Debounce hook for search inputs */
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState(value);
@@ -412,6 +433,164 @@ function ProviderRow({
   );
 }
 
+// Excluded provider row with actions
+function ExcludedProviderRow({
+  provider,
+  onFixed,
+  setToast,
+}: {
+  provider: ExcludedProvider;
+  onFixed: () => void;
+  setToast: (toast: { message: string; type: "success" | "error" }) => void;
+}) {
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [newEmail, setNewEmail] = useState(provider.email);
+  const [saving, setSaving] = useState(false);
+
+  const handleUpdateEmail = async () => {
+    if (!newEmail || newEmail === provider.email) return;
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          email: newEmail,
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Failed to update email");
+      }
+      setToast({ message: "Email updated successfully", type: "success" });
+      setShowEmailModal(false);
+      onFixed();
+    } catch (e) {
+      setToast({ message: e instanceof Error ? e.message : "Failed to update", type: "error" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleArchive = async () => {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-stage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_ids: [provider.provider_id],
+          stage: "archived",
+          // Use valid archive reasons from VALID_ARCHIVE_REASONS in update-stage API
+          // complained = they don't want our emails, bounced = wrong contact info
+          reason: provider.exclusion_reason === "complained" ? "provider_requested_no_emails" : "wrong_contact_info",
+        }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Failed to archive");
+      }
+      setToast({ message: "Provider archived", type: "success" });
+      onFixed();
+    } catch (e) {
+      setToast({ message: e instanceof Error ? e.message : "Failed to archive", type: "error" });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const issueDate = provider.last_complaint_at || provider.last_bounce_at;
+
+  return (
+    <>
+      <tr className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
+        <td className="px-4 py-3">
+          <div className="font-medium text-gray-900">{provider.provider_name}</div>
+          {provider.category && (
+            <div className="text-[11px] text-gray-500">{provider.category}</div>
+          )}
+        </td>
+        <td className="px-4 py-3 text-sm text-gray-600">
+          {provider.city}{provider.state && `, ${provider.state}`}
+        </td>
+        <td className="px-4 py-3 text-sm text-gray-600 max-w-[200px] truncate" title={provider.email}>
+          {provider.email}
+        </td>
+        <td className="px-4 py-3">
+          <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+            provider.exclusion_reason === "complained"
+              ? "bg-red-100 text-red-700"
+              : "bg-amber-100 text-amber-700"
+          }`}>
+            {provider.exclusion_reason === "complained" ? "Complained" : "Bounced"}
+          </span>
+        </td>
+        <td className="px-4 py-3 text-xs text-gray-500">
+          {issueDate ? relative(issueDate) : "-"}
+        </td>
+        <td className="px-4 py-3">
+          <div className="flex items-center justify-center gap-2">
+            {provider.exclusion_reason === "bounced" && (
+              <button
+                type="button"
+                onClick={() => setShowEmailModal(true)}
+                disabled={saving}
+                className="rounded-lg bg-blue-600 px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+              >
+                Fix Email
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleArchive}
+              disabled={saving}
+              className="rounded-lg border border-gray-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+            >
+              Archive
+            </button>
+          </div>
+        </td>
+      </tr>
+
+      {/* Update email modal */}
+      {showEmailModal && (
+        <tr>
+          <td colSpan={6} className="p-0">
+            <div className="border-b border-gray-200 bg-blue-50 px-4 py-3">
+              <div className="flex items-center gap-3">
+                <label className="text-xs font-medium text-gray-700">New email:</label>
+                <input
+                  type="email"
+                  value={newEmail}
+                  onChange={(e) => setNewEmail(e.target.value)}
+                  className="flex-1 rounded-lg border border-gray-200 px-3 py-1.5 text-sm focus:border-blue-500 focus:outline-none"
+                  placeholder="Enter new email address"
+                />
+                <button
+                  type="button"
+                  onClick={handleUpdateEmail}
+                  disabled={saving || !newEmail || newEmail === provider.email}
+                  className="rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {saving ? "Saving..." : "Save"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowEmailModal(false)}
+                  className="text-xs text-gray-500 hover:text-gray-700"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
+
 function CitySection({
   group,
   defaultExpanded,
@@ -491,6 +670,7 @@ export default function CityBroadcastsPage() {
   const searchParams = useSearchParams();
 
   const [data, setData] = useState<Payload | null>(null);
+  const [excludedData, setExcludedData] = useState<ExcludedPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
@@ -647,21 +827,36 @@ export default function CityBroadcastsPage() {
     setLoading(true);
     setErr(null);
     try {
-      const params = new URLSearchParams();
-      params.set("days", String(days));
-      if (status !== "all") params.set("status", status);
-      if (status === "done") params.set("done_sub", doneSub);
-      if (debouncedCity) params.set("city", debouncedCity);
-      if (debouncedSearch) params.set("search", debouncedSearch);
+      if (status === "excluded") {
+        // Load excluded providers
+        const res = await fetch("/api/admin/city-broadcasts/excluded", {
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error || `HTTP ${res.status}`);
+        }
+        setExcludedData(await res.json());
+        setData(null);
+      } else {
+        // Load normal data
+        const params = new URLSearchParams();
+        params.set("days", String(days));
+        if (status !== "all") params.set("status", status);
+        if (status === "done") params.set("done_sub", doneSub);
+        if (debouncedCity) params.set("city", debouncedCity);
+        if (debouncedSearch) params.set("search", debouncedSearch);
 
-      const res = await fetch(`/api/admin/city-broadcasts?${params.toString()}`, {
-        cache: "no-store",
-      });
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({}));
-        throw new Error(body.error || `HTTP ${res.status}`);
+        const res = await fetch(`/api/admin/city-broadcasts?${params.toString()}`, {
+          cache: "no-store",
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.error || `HTTP ${res.status}`);
+        }
+        setData(await res.json());
+        setExcludedData(null);
       }
-      setData(await res.json());
     } catch (e) {
       setErr(e instanceof Error ? e.message : "Failed to load");
     } finally {
@@ -707,9 +902,32 @@ export default function CityBroadcastsPage() {
         </div>
       )}
 
+      {/* Stats - contextual based on current tab */}
+      {status === "excluded" && excludedData && (
+        <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-3">
+          <Stat
+            value={excludedData.stats.total}
+            label="Excluded providers"
+            detail="Need attention to receive broadcasts"
+            tone={excludedData.stats.total > 0 ? "muted" : "default"}
+          />
+          <Stat
+            value={excludedData.stats.bounced}
+            label="Bounced emails"
+            detail="Email failed to deliver"
+            tone={excludedData.stats.bounced > 0 ? "muted" : "default"}
+          />
+          <Stat
+            value={excludedData.stats.complained}
+            label="Complained"
+            detail="Marked as spam"
+            tone={excludedData.stats.complained > 0 ? "muted" : "default"}
+          />
+        </div>
+      )}
+
       {data && (
         <>
-          {/* Stats - contextual based on current tab */}
           {status === "done" && doneSub === "not_interested" ? (
             // Not Interested tab - show simple count
             <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -804,101 +1022,151 @@ export default function CityBroadcastsPage() {
               />
             </div>
           )}
+        </>
+      )}
 
-          {/* Filters */}
-          <div className="mt-6 flex flex-wrap items-center gap-3 rounded-t-xl border border-b-0 border-gray-200 bg-gray-50 px-4 py-3">
-            {/* Status filter - main tabs */}
-            <div className="flex gap-1.5">
+      {/* Filters - always show tabs, conditionally show search/city filter */}
+      {(data || excludedData) && (
+        <div className={`mt-6 flex flex-wrap items-center gap-3 ${status === "excluded" ? "rounded-xl" : "rounded-t-xl border-b-0"} border border-gray-200 bg-gray-50 px-4 py-3`}>
+          {/* Status filter - main tabs */}
+          <div className="flex gap-1.5">
+            {[
+              { value: "all", label: "Pool" },
+              { value: "waiting", label: "Waiting" },
+              { value: "done", label: "Done" },
+              { value: "excluded", label: "Excluded" },
+            ].map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  const params = new URLSearchParams(searchParams.toString());
+                  if (opt.value === "all") {
+                    params.delete("status");
+                    params.delete("done_sub");
+                  } else {
+                    params.set("status", opt.value);
+                    if (opt.value === "done") {
+                      params.set("done_sub", "claimed");
+                    } else {
+                      params.delete("done_sub");
+                    }
+                  }
+                  router.push(`/admin/city-broadcasts?${params.toString()}`);
+                }}
+                className={`rounded-full px-3 py-1 text-[11px] font-semibold transition-colors ${
+                  status === opt.value || (status === "all" && opt.value === "all")
+                    ? opt.value === "done"
+                      ? "bg-green-600 text-white"
+                      : opt.value === "waiting"
+                        ? "bg-amber-600 text-white"
+                        : opt.value === "excluded"
+                          ? "bg-red-600 text-white"
+                          : "bg-gray-900 text-white"
+                    : "border border-gray-200 bg-white text-gray-500 hover:border-gray-300"
+                }`}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Done sub-filter - only shown when status=done */}
+          {status === "done" && (
+            <div className="flex gap-1 border-l border-gray-300 pl-3">
               {[
-                { value: "all", label: "Pool" },
-                { value: "waiting", label: "Waiting" },
-                { value: "done", label: "Done" },
+                { value: "claimed", label: "Claimed" },
+                { value: "not_interested", label: "Not Interested" },
+                { value: "archived", label: "Archived" },
               ].map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
                   onClick={() => {
                     const params = new URLSearchParams(searchParams.toString());
-                    if (opt.value === "all") {
-                      params.delete("status");
-                      params.delete("done_sub");
-                    } else {
-                      params.set("status", opt.value);
-                      if (opt.value === "done") {
-                        params.set("done_sub", "claimed");
-                      } else {
-                        params.delete("done_sub");
-                      }
-                    }
+                    params.set("done_sub", opt.value);
                     router.push(`/admin/city-broadcasts?${params.toString()}`);
                   }}
-                  className={`rounded-full px-3 py-1 text-[11px] font-semibold transition-colors ${
-                    status === opt.value || (status === "all" && opt.value === "all")
-                      ? opt.value === "done"
-                        ? "bg-green-600 text-white"
-                        : opt.value === "waiting"
-                          ? "bg-amber-600 text-white"
-                          : "bg-gray-900 text-white"
-                      : "border border-gray-200 bg-white text-gray-500 hover:border-gray-300"
+                  className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-colors ${
+                    doneSub === opt.value
+                      ? opt.value === "claimed"
+                        ? "bg-green-100 text-green-700"
+                        : opt.value === "not_interested"
+                          ? "bg-red-100 text-red-700"
+                          : "bg-gray-200 text-gray-700"
+                      : "text-gray-500 hover:bg-gray-100"
                   }`}
                 >
                   {opt.label}
                 </button>
               ))}
             </div>
+          )}
 
-            {/* Done sub-filter - only shown when status=done */}
-            {status === "done" && (
-              <div className="flex gap-1 border-l border-gray-300 pl-3">
-                {[
-                  { value: "claimed", label: "Claimed" },
-                  { value: "not_interested", label: "Not Interested" },
-                  { value: "archived", label: "Archived" },
-                ].map((opt) => (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => {
-                      const params = new URLSearchParams(searchParams.toString());
-                      params.set("done_sub", opt.value);
-                      router.push(`/admin/city-broadcasts?${params.toString()}`);
-                    }}
-                    className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-colors ${
-                      doneSub === opt.value
-                        ? opt.value === "claimed"
-                          ? "bg-green-100 text-green-700"
-                          : opt.value === "not_interested"
-                            ? "bg-red-100 text-red-700"
-                            : "bg-gray-200 text-gray-700"
-                        : "text-gray-500 hover:bg-gray-100"
-                    }`}
-                  >
-                    {opt.label}
-                  </button>
-                ))}
+          {/* Search and city filter - only for non-excluded tabs */}
+          {status !== "excluded" && (
+            <>
+              <input
+                type="text"
+                placeholder="Search provider..."
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                className="ml-auto rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-700 placeholder:text-gray-400 focus:border-gray-300 focus:outline-none focus:ring-0"
+              />
+              <input
+                type="text"
+                placeholder="Filter city..."
+                value={cityInput}
+                onChange={(e) => setCityInput(e.target.value)}
+                className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-700 placeholder:text-gray-400 focus:border-gray-300 focus:outline-none focus:ring-0"
+              />
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Excluded providers list */}
+      {status === "excluded" && excludedData && (
+        <>
+          <div className="mt-4 overflow-hidden rounded-xl border border-gray-200 bg-white">
+            {excludedData.excluded.length === 0 ? (
+              <div className="px-4 py-10 text-center text-sm text-gray-400">
+                No excluded providers. All broadcast_ready providers have valid emails.
               </div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead className="border-b border-gray-100 bg-gray-50">
+                  <tr className="text-left text-[10px] uppercase tracking-wider text-gray-400">
+                    <th className="px-4 py-3 font-medium">Provider</th>
+                    <th className="px-4 py-3 font-medium">City</th>
+                    <th className="px-4 py-3 font-medium">Email</th>
+                    <th className="px-4 py-3 font-medium">Reason</th>
+                    <th className="px-4 py-3 font-medium">When</th>
+                    <th className="w-24 px-4 py-3 text-center font-medium">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {excludedData.excluded.map((provider) => (
+                    <ExcludedProviderRow
+                      key={provider.provider_id}
+                      provider={provider}
+                      onFixed={() => void load()}
+                      setToast={setToast}
+                    />
+                  ))}
+                </tbody>
+              </table>
             )}
-
-            {/* Search */}
-            <input
-              type="text"
-              placeholder="Search provider..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              className="ml-auto rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-700 placeholder:text-gray-400 focus:border-gray-300 focus:outline-none focus:ring-0"
-            />
-
-            {/* City filter */}
-            <input
-              type="text"
-              placeholder="Filter city..."
-              value={cityInput}
-              onChange={(e) => setCityInput(e.target.value)}
-              className="rounded-full border border-gray-200 bg-white px-3 py-1 text-xs text-gray-700 placeholder:text-gray-400 focus:border-gray-300 focus:outline-none focus:ring-0"
-            />
           </div>
+          <p className="mt-3 text-[11px] text-gray-400">
+            {excludedData.stats.total} excluded providers total.
+          </p>
+        </>
+      )}
 
-          {/* Cities */}
+      {/* Cities list - for non-excluded tabs */}
+      {data && (
+        <>
           <div className="overflow-hidden rounded-b-xl border border-gray-200 bg-white">
             {data.cities.length === 0 ? (
               <div className="px-4 py-10 text-center text-sm text-gray-400">
@@ -915,8 +1183,6 @@ export default function CityBroadcastsPage() {
               ))
             )}
           </div>
-
-          {/* Summary */}
           <p className="mt-3 text-[11px] text-gray-400">
             {data.cities.length} cities, {data.stats.pool} providers total.
           </p>

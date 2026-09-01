@@ -43,7 +43,8 @@ export function renderQuestionBroadcast(ctx: BroadcastTemplateContext): Rendered
   // Use generateClaimUrl for one-click claiming with signed token
   const claimUrl = generateClaimUrl(ctx.providerId, ctx.providerSlug, ctx.providerEmail, BASE_URL);
   const profileUrl = `${BASE_URL}/provider/${ctx.providerSlug}`;
-  const unsubscribeUrl = `${BASE_URL}/providers/unsubscribe?email=${encodeURIComponent(ctx.providerEmail)}&type=city_broadcast`;
+  // Use slug-based unsubscribe URL with cold_outreach type (city broadcasts are cold outreach)
+  const unsubscribeUrl = `${BASE_URL}/unsubscribe/${ctx.providerSlug}?type=cold_outreach`;
 
   const bodyHtml = `
     <p style="font-size:15px;line-height:1.6;color:#374151;margin:0 0 16px;">
@@ -91,7 +92,8 @@ export function renderProfileBroadcast(ctx: BroadcastTemplateContext): RenderedB
   // Use generateClaimUrl for one-click claiming with signed token
   const claimUrl = generateClaimUrl(ctx.providerId, ctx.providerSlug, ctx.providerEmail, BASE_URL);
   const profileUrl = `${BASE_URL}/provider/${ctx.providerSlug}`;
-  const unsubscribeUrl = `${BASE_URL}/providers/unsubscribe?email=${encodeURIComponent(ctx.providerEmail)}&type=city_broadcast`;
+  // Use slug-based unsubscribe URL with cold_outreach type (city broadcasts are cold outreach)
+  const unsubscribeUrl = `${BASE_URL}/unsubscribe/${ctx.providerSlug}?type=cold_outreach`;
 
   const bodyHtml = `
     <p style="font-size:15px;line-height:1.6;color:#374151;margin:0 0 16px;">

@@ -6074,26 +6074,41 @@ export function familyNudgeEmail(opts: {
 /**
  * Onboarding Email 1: profile preview. Sent ~48h after the welcome email.
  *
- * Leads with local demand rather than vanity. "Families are searching in
- * {city}" is inherited from provider_incomplete_profile, which this email
- * replaces: that one had the better opening line and mechanics that left it
- * sending almost nothing. The CTA lands on the provider's own PUBLIC page,
- * signed in, so the owner sees exactly what a family sees.
+ * Two openings, chosen by MEASURED local demand:
+ *   nearbySeekers > 0 -> lead with the real families looking near them
+ *   nearbySeekers = 0 -> lead with the page itself, as a family sees it
+ *
+ * The demand line is never asserted without a count behind it. There are only
+ * ~189 active seekers platform-wide, so most cities genuinely have none, and
+ * telling a provider in a quiet market that families are searching there is a
+ * claim we cannot back. The predecessor email made it unconditionally; that is
+ * the specific thing this fixes.
  */
 export function onboardingProfilePreviewEmail(opts: {
   providerName: string;
   city: string;
   profileUrl: string;
+  /** Active family seekers within 50 miles. 0 selects the neutral opening. */
+  nearbySeekers: number;
   providerSlug?: string;
 }): string {
   const name = escapeHtml(opts.providerName);
   const city = escapeHtml(opts.city);
+  const n = opts.nearbySeekers;
+
+  const opening =
+    n > 1
+      ? `${n} families near ${city} are looking for care right now. Here is what they see when they find ${name}.`
+      : n === 1
+        ? `A family near ${city} is looking for care right now. Here is what they see when they find ${name}.`
+        : `Here is what a family sees when they find ${name} on Olera.`;
+
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
       Hi there,
     </p>
     <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
-      Families are searching for care in ${city} right now. Here is what they see when they find ${name}.
+      ${opening}
     </p>
     <div style="margin:0 0 24px;">${button("Preview your page", opts.profileUrl)}</div>
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
@@ -6103,7 +6118,16 @@ export function onboardingProfilePreviewEmail(opts: {
       Anything that looks thin is editable from the same page.
     </p>
     ${offRampBlock(opts.providerSlug)}
-  `, `See what families in ${city} see when they find ${name}.`);
+  `, n > 0
+       ? `See what families near ${city} see when they find ${name}.`
+       : `See what families see when they find ${name}.`);
+}
+
+/** Subject line for the profile-preview email — matches the opening it will carry. */
+export function onboardingProfilePreviewSubject(opts: { providerName: string; city: string; nearbySeekers: number }): string {
+  if (opts.nearbySeekers > 1) return `${opts.nearbySeekers} families near ${opts.city} are looking for care`;
+  if (opts.nearbySeekers === 1) return `A family near ${opts.city} is looking for care`;
+  return `See what families see when they find ${opts.providerName}`;
 }
 
 /**

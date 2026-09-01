@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail, reserveEmailLogId } from "@/lib/email";
-import { onboardingProfilePreviewEmail } from "@/lib/email-templates";
+import { onboardingProfilePreviewEmail, onboardingProfilePreviewSubject } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
 import { stateToTimezone } from "@/lib/sms/quiet-hours";
 import { generateProviderPortalUrl } from "@/lib/claim-tokens";
-import { ONBOARDING_PREVIEW_DELAY_HOURS } from "@/lib/crons/onboarding";
+import { ONBOARDING_PREVIEW_DELAY_HOURS, loadActiveSeekers, countSeekersNear } from "@/lib/crons/onboarding";
 
 const FALLBACK_TZ = "America/New_York";
 const SEND_START = 9;
@@ -87,11 +87,13 @@ export async function GET(request: NextRequest) {
       skippedNoEmail: 0,
       skippedSuppressed: 0,
       errors: 0,
+      withLocalDemand: 0,
+      withoutLocalDemand: 0,
     };
 
     const { data: providers, error: fetchError } = await db
       .from("business_profiles")
-      .select("id, slug, display_name, email, metadata, account_id, state, city")
+      .select("id, slug, display_name, email, metadata, account_id, state, city, lat, lng")
       .in("type", ["organization", "caregiver"])
       .not("account_id", "is", null)
       .gte("claimed_at", lookbackFrom)
@@ -108,6 +110,11 @@ export async function GET(request: NextRequest) {
     if (!providers?.length) {
       return { status: "ok", message: "No providers needing a profile preview", dry_run: dryRun, ...counts };
     }
+
+    // Measured once per run and reused. Only ~189 families have a live care
+    // post platform-wide, so this is a small read, and it decides whether this
+    // email is allowed to claim local demand at all.
+    const seekers = await loadActiveSeekers(db);
 
     if (providers.length === MAX_PER_RUN) {
       console.warn(
@@ -137,13 +144,21 @@ export async function GET(request: NextRequest) {
       const providerName = provider.display_name || "your organization";
 
       try {
+        // Never assert demand we have not counted. Most providers correctly
+        // get the neutral opening because their market genuinely is quiet.
+        // Computed BEFORE the dry-run branch: the whole point of a dry run here
+        // is to see which opening each provider would get.
+        const nearbySeekers = countSeekersNear(seekers, provider);
+        const cityLabel = provider.city || provider.state || "your area";
+        const subject = onboardingProfilePreviewSubject({ providerName, city: cityLabel, nearbySeekers });
+
+        if (nearbySeekers > 0) counts.withLocalDemand++; else counts.withoutLocalDemand++;
+
         if (dryRun) {
-          console.log(`[cron/profile-preview-nudge] [DRY RUN] Would send to: ${providerName} (${email})`);
+          console.log(`[cron/profile-preview-nudge] [DRY RUN] ${providerName} (${email}) — ${nearbySeekers} nearby seeker(s) — "${subject}"`);
           counts.sent++;
           continue;
         }
-
-        const subject = `Families are searching in ${provider.city || provider.state || "your area"}`;
 
         const emailLogId = await reserveEmailLogId({
           to: email,
@@ -162,8 +177,9 @@ export async function GET(request: NextRequest) {
           subject,
           html: onboardingProfilePreviewEmail({
             providerName,
-            city: provider.city || provider.state || "your area",
+            city: cityLabel,
             profileUrl,
+            nearbySeekers,
             providerSlug: provider.slug,
           }),
           emailType: "profile_preview_nudge",
@@ -213,7 +229,7 @@ export async function GET(request: NextRequest) {
         if (suppressed) {
           counts.skippedSuppressed++;
         } else {
-          console.log(`[cron/profile-preview-nudge] Sent to: ${providerName} (${email})`);
+          console.log(`[cron/profile-preview-nudge] Sent to: ${providerName} (${email}) — ${nearbySeekers} nearby seeker(s)`);
           counts.sent++;
         }
       } catch (err) {

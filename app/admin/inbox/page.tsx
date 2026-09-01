@@ -120,7 +120,13 @@ interface ThreadDetail {
    * send button says before it is pressed, so nobody discovers the rule by
    * having a text held.
    */
-  quietHours: { allowed: boolean; tz: string; sendAfter: string | null };
+  quietHours: {
+    allowed: boolean;
+    crisisExempt: boolean;
+    tz: string;
+    sendAfter: string | null;
+    recipientNow: string;
+  };
   /** A reply already written and waiting for that window to open. */
   scheduled: { id: string; body: string; send_after: string; queued_by: string | null } | null;
 }
@@ -142,23 +148,6 @@ function formatEtTime(iso: string | null): string {
   if (!iso) return "later";
   return new Date(iso).toLocaleString("en-US", {
     timeZone: "America/New_York",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
-/**
- * What time it is where the RECIPIENT is.
- *
- * The one number that makes a held send make sense. Admin times anchor to
- * Eastern everywhere else in this app, and that convention is exactly what
- * hides the problem here: 6:52am ET reads as an ordinary early morning to
- * someone in Bangkok reading an Eastern-stamped screen, and says nothing about
- * the person whose phone is on their nightstand.
- */
-function formatLocalHour(tz: string): string {
-  return new Date().toLocaleString("en-US", {
-    timeZone: tz,
     hour: "numeric",
     minute: "2-digit",
   });
@@ -545,7 +534,7 @@ export default function AdminSmsInboxPage() {
     setDraftState({ kind: "dirty" });
   }, []);
 
-  async function sendReply() {
+  async function sendReply({ now = false }: { now?: boolean } = {}) {
     if (!selected || !reply.trim() || sending) return;
     // Claim the send synchronously — the drain below awaits, and without the
     // flag set first a fast double-click would get two messages past the guard.
@@ -563,7 +552,7 @@ export default function AdminSmsInboxPage() {
       const res = await fetch(`/api/admin/sms-inbox/${selected}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "reply", body: reply.trim() }),
+        body: JSON.stringify({ action: "reply", body: reply.trim(), sendNow: now }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || "Failed to send");
@@ -1044,11 +1033,11 @@ export default function AdminSmsInboxPage() {
                         {!detail.quietHours.allowed && (
                           <span className="text-amber-600">
                             {" · "}
-                            {formatLocalHour(detail.quietHours.tz)} for them
+                            {detail.quietHours.recipientNow} for them
                           </span>
                         )}
                       </span>
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap items-center justify-end gap-2">
                         <DraftStatus state={draftState} />
                         {(draftState.kind === "saved" || reply.length > 0) && (
                           <button
@@ -1067,8 +1056,25 @@ export default function AdminSmsInboxPage() {
                         >
                           {rechecking ? "Checking…" : "Re-check"}
                         </button>
+                        {/* Outside the recipient's window BOTH actions stay on
+                            screen. Weight carries the recommendation, never
+                            availability: scheduling is filled because it is the
+                            right default, and sending is one plain click away
+                            because the reason to overrule a quiet hour is
+                            usually urgency, and hiding the override behind a
+                            caret taxes exactly the case that cannot afford it. */}
+                        {!detail.quietHours.allowed && (
+                          <button
+                            onClick={() => sendReply({ now: true })}
+                            disabled={!reply.trim() || sending}
+                            title={`It is ${detail.quietHours.recipientNow} where they are`}
+                            className="text-[13px] font-medium px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          >
+                            Send now
+                          </button>
+                        )}
                         <button
-                          onClick={sendReply}
+                          onClick={() => sendReply()}
                           disabled={!reply.trim() || sending}
                           className="text-[13px] font-medium px-3.5 py-1.5 rounded-md bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                         >

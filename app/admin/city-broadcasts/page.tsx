@@ -264,6 +264,123 @@ function ActionModal({
   );
 }
 
+// Bulk action confirmation modal
+function BulkActionModal({
+  count,
+  action,
+  onConfirm,
+  onCancel,
+  loading,
+}: {
+  count: number;
+  action: "not_interested" | "archived";
+  onConfirm: (reason: string) => void;
+  onCancel: () => void;
+  loading: boolean;
+}) {
+  const [reason, setReason] = useState("");
+  const reasons = action === "not_interested" ? NOT_INTERESTED_REASONS : ARCHIVE_REASONS;
+  const title = action === "not_interested" ? "Mark as Not Interested" : "Archive Providers";
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
+      <div className="w-full max-w-sm rounded-xl bg-white shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div className="border-b border-gray-100 px-5 py-4">
+          <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+          <p className="mt-0.5 text-sm text-gray-500">
+            {count} provider{count > 1 ? "s" : ""} selected
+          </p>
+        </div>
+
+        <div className="px-5 py-4">
+          <label className="block text-xs font-medium text-gray-700 mb-2">Reason</label>
+          <select
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 focus:border-gray-300 focus:outline-none"
+          >
+            <option value="">Select a reason...</option>
+            {reasons.map((r) => (
+              <option key={r.value} value={r.value}>{r.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex justify-end gap-2 border-t border-gray-100 bg-gray-50 px-5 py-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={loading}
+            className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={() => onConfirm(reason)}
+            disabled={loading || !reason}
+            className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? "..." : `${title} (${count})`}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// Floating bulk action bar
+function BulkActionBar({
+  count,
+  onNotInterested,
+  onArchive,
+  onClear,
+}: {
+  count: number;
+  onNotInterested: () => void;
+  onArchive: () => void;
+  onClear: () => void;
+}) {
+  return (
+    <div className="fixed bottom-6 left-1/2 z-40 -translate-x-1/2 transform">
+      <div className="flex items-center gap-3 rounded-full border border-gray-200 bg-white px-4 py-2 shadow-lg">
+        <span className="text-sm font-medium text-gray-700">
+          {count} selected
+        </span>
+        <div className="h-4 w-px bg-gray-200" />
+        <button
+          type="button"
+          onClick={onNotInterested}
+          className="flex items-center gap-1.5 rounded-full bg-red-100 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-200"
+        >
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+          </svg>
+          Not Interested
+        </button>
+        <button
+          type="button"
+          onClick={onArchive}
+          className="flex items-center gap-1.5 rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-gray-700 hover:bg-gray-200"
+        >
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+          </svg>
+          Archive
+        </button>
+        <div className="h-4 w-px bg-gray-200" />
+        <button
+          type="button"
+          onClick={onClear}
+          className="text-xs text-gray-500 hover:text-gray-700"
+        >
+          Clear
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function ActionsDropdown({
   provider,
   onAction,
@@ -334,9 +451,15 @@ function ActionsDropdown({
 function ProviderRow({
   provider,
   onAction,
+  selected,
+  onToggleSelect,
+  showCheckbox,
 }: {
   provider: ProviderBroadcast;
   onAction: (providerId: string, action: "not_interested" | "archived") => void;
+  selected: boolean;
+  onToggleSelect: (providerId: string) => void;
+  showCheckbox: boolean;
 }) {
   const broadcastLabel =
     provider.last_broadcast_type === "question_asked"
@@ -392,7 +515,21 @@ function ProviderRow({
   };
 
   return (
-    <tr className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
+    <tr className={`border-b border-gray-100 last:border-b-0 hover:bg-gray-50 ${selected ? "bg-blue-50" : ""}`}>
+      {showCheckbox && (
+        <td className="w-10 px-3 py-2.5">
+          {showActions ? (
+            <input
+              type="checkbox"
+              checked={selected}
+              onChange={() => onToggleSelect(provider.provider_id)}
+              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            />
+          ) : (
+            <span className="block h-4 w-4" />
+          )}
+        </td>
+      )}
       <td className="px-4 py-2.5">
         <div className="font-medium text-gray-900">{provider.provider_name}</div>
         {provider.category && (
@@ -595,12 +732,29 @@ function CitySection({
   group,
   defaultExpanded,
   onAction,
+  selectedIds,
+  onToggleSelect,
+  onToggleSelectAll,
+  showCheckbox,
 }: {
   group: CityGroup;
   defaultExpanded: boolean;
   onAction: (providerId: string, action: "not_interested" | "archived") => void;
+  selectedIds: Set<string>;
+  onToggleSelect: (providerId: string) => void;
+  onToggleSelectAll: (providerIds: string[], select: boolean) => void;
+  showCheckbox: boolean;
 }) {
   const [expanded, setExpanded] = useState(defaultExpanded);
+
+  // Get selectable providers (broadcast_ready and not claimed)
+  const selectableProviders = group.providers.filter(
+    (p) => p.stage === "broadcast_ready" && !p.claimed
+  );
+  const selectableIds = selectableProviders.map((p) => p.provider_id);
+  const selectedInCity = selectableIds.filter((id) => selectedIds.has(id));
+  const allSelected = selectableIds.length > 0 && selectedInCity.length === selectableIds.length;
+  const someSelected = selectedInCity.length > 0 && selectedInCity.length < selectableIds.length;
 
   return (
     <div className="border-b border-gray-200 last:border-b-0">
@@ -645,6 +799,22 @@ function CitySection({
           <table className="w-full text-sm">
             <thead>
               <tr className="text-left text-[10px] uppercase tracking-wider text-gray-400">
+                {showCheckbox && (
+                  <th className="w-10 px-3 py-2">
+                    {selectableIds.length > 0 && (
+                      <input
+                        type="checkbox"
+                        checked={allSelected}
+                        ref={(el) => {
+                          if (el) el.indeterminate = someSelected;
+                        }}
+                        onChange={() => onToggleSelectAll(selectableIds, !allSelected)}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                        title={allSelected ? "Deselect all in city" : "Select all in city"}
+                      />
+                    )}
+                  </th>
+                )}
                 <th className="px-4 py-2 font-medium">Provider</th>
                 <th className="px-4 py-2 font-medium">Phone</th>
                 <th className="px-4 py-2 font-medium">Email</th>
@@ -655,7 +825,14 @@ function CitySection({
             </thead>
             <tbody>
               {group.providers.map((provider) => (
-                <ProviderRow key={provider.provider_id} provider={provider} onAction={onAction} />
+                <ProviderRow
+                  key={provider.provider_id}
+                  provider={provider}
+                  onAction={onAction}
+                  selected={selectedIds.has(provider.provider_id)}
+                  onToggleSelect={onToggleSelect}
+                  showCheckbox={showCheckbox}
+                />
               ))}
             </tbody>
           </table>
@@ -684,12 +861,19 @@ export default function CityBroadcastsPage() {
     customTo: "",
   });
 
-  // Action modal state
+  // Action modal state (single provider)
   const [pendingAction, setPendingAction] = useState<{
     provider: ProviderBroadcast;
     action: "not_interested" | "archived";
   } | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Bulk selection state
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [pendingBulkAction, setPendingBulkAction] = useState<{
+    providerIds: string[];
+    action: "not_interested" | "archived";
+  } | null>(null);
 
   // Local state for inputs (updated immediately for responsive UI)
   const [searchInput, setSearchInput] = useState(searchParams.get("search") || "");
@@ -792,6 +976,146 @@ export default function CityBroadcastsPage() {
     }
   }, [pendingAction]);
 
+  // Toggle single provider selection
+  const handleToggleSelect = useCallback((providerId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(providerId)) {
+        next.delete(providerId);
+      } else {
+        next.add(providerId);
+      }
+      return next;
+    });
+  }, []);
+
+  // Toggle all providers in a city
+  const handleToggleSelectAll = useCallback((providerIds: string[], select: boolean) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      for (const id of providerIds) {
+        if (select) {
+          next.add(id);
+        } else {
+          next.delete(id);
+        }
+      }
+      return next;
+    });
+  }, []);
+
+  // Clear all selections
+  const handleClearSelection = useCallback(() => {
+    setSelectedIds(new Set());
+  }, []);
+
+  // Open bulk action modal
+  const handleBulkAction = useCallback((action: "not_interested" | "archived") => {
+    if (selectedIds.size === 0) return;
+    setPendingBulkAction({
+      providerIds: [...selectedIds],
+      action,
+    });
+  }, [selectedIds]);
+
+  // Confirm bulk action with reason
+  const handleBulkActionConfirm = useCallback(async (reason: string) => {
+    if (!pendingBulkAction) return;
+
+    const { providerIds, action } = pendingBulkAction;
+    setActionLoading(true);
+
+    try {
+      const body: Record<string, unknown> = {
+        provider_ids: providerIds,
+        stage: action,
+      };
+
+      if (action === "not_interested") {
+        body.not_interested_reason = reason;
+      } else if (action === "archived") {
+        body.reason = reason;
+      }
+
+      const res = await fetch("/api/admin/provider-outreach/update-stage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const responseBody = await res.json().catch(() => ({}));
+        throw new Error(responseBody.error || `Failed to update providers`);
+      }
+
+      // Remove providers from the current data
+      const removedSet = new Set(providerIds);
+      setData((prev) => {
+        if (!prev) return prev;
+
+        const removedProviders = prev.cities
+          .flatMap((c) => c.providers)
+          .filter((p) => removedSet.has(p.provider_id));
+
+        // Calculate new stats
+        let sentDelta = 0;
+        let claimedDelta = 0;
+        let conversionsDelta = 0;
+
+        for (const p of removedProviders) {
+          if (p.broadcasts_received > 0) sentDelta++;
+          if (p.claimed) claimedDelta++;
+          if (p.is_conversion) conversionsDelta++;
+        }
+
+        const newSent = prev.stats.sent - sentDelta;
+        const newConversions = prev.stats.conversions - conversionsDelta;
+        const newConversion = newSent > 0 ? Math.round((newConversions / newSent) * 1000) / 10 : 0;
+
+        return {
+          ...prev,
+          stats: {
+            ...prev.stats,
+            pool: prev.stats.pool - providerIds.length,
+            sent: newSent,
+            claimed: prev.stats.claimed - claimedDelta,
+            conversions: newConversions,
+            conversion: newConversion,
+          },
+          cities: prev.cities
+            .map((city) => {
+              const cityRemoved = city.providers.filter((p) => removedSet.has(p.provider_id));
+              return {
+                ...city,
+                pool_count: city.pool_count - cityRemoved.length,
+                sent_count: city.sent_count - cityRemoved.filter((p) => p.broadcasts_received > 0).length,
+                claimed_count: city.claimed_count - cityRemoved.filter((p) => p.claimed).length,
+                conversion_count: city.conversion_count - cityRemoved.filter((p) => p.is_conversion).length,
+                providers: city.providers.filter((p) => !removedSet.has(p.provider_id)),
+              };
+            })
+            .filter((city) => city.providers.length > 0),
+        };
+      });
+
+      // Clear selection
+      setSelectedIds(new Set());
+
+      setToast({
+        message: `${providerIds.length} provider${providerIds.length > 1 ? "s" : ""} ${action === "not_interested" ? "marked as Not Interested" : "archived"}`,
+        type: "success",
+      });
+      setPendingBulkAction(null);
+    } catch (e) {
+      setToast({
+        message: e instanceof Error ? e.message : "Failed to update providers",
+        type: "error",
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  }, [pendingBulkAction]);
+
   // Debounced values for API calls (300ms delay)
   const debouncedSearch = useDebounce(searchInput, 300);
   const debouncedCity = useDebounce(cityInput, 300);
@@ -800,6 +1124,12 @@ export default function CityBroadcastsPage() {
   const days = presetToDays(dateRange.preset);
   const status = searchParams.get("status") || "all";
   const doneSub = searchParams.get("done_sub") || "claimed";
+
+  // Clear selection when switching tabs or changing filters
+  // This prevents bulk-actioning providers that are no longer visible
+  useEffect(() => {
+    setSelectedIds(new Set());
+  }, [status, doneSub, debouncedSearch, debouncedCity]);
 
   // Sync URL when debounced values change
   // Note: days is now UI-only state (not synced to URL), so we remove any stale ?days param
@@ -1179,6 +1509,10 @@ export default function CityBroadcastsPage() {
                   group={group}
                   defaultExpanded={idx === 0}
                   onAction={handleActionClick}
+                  selectedIds={selectedIds}
+                  onToggleSelect={handleToggleSelect}
+                  onToggleSelectAll={handleToggleSelectAll}
+                  showCheckbox={status === "all" || status === "waiting"}
                 />
               ))
             )}
@@ -1189,7 +1523,7 @@ export default function CityBroadcastsPage() {
         </>
       )}
 
-      {/* Action confirmation modal */}
+      {/* Action confirmation modal (single provider) */}
       {pendingAction && (
         <ActionModal
           provider={pendingAction.provider}
@@ -1197,6 +1531,27 @@ export default function CityBroadcastsPage() {
           onConfirm={handleActionConfirm}
           onCancel={() => setPendingAction(null)}
           loading={actionLoading}
+        />
+      )}
+
+      {/* Bulk action confirmation modal */}
+      {pendingBulkAction && (
+        <BulkActionModal
+          count={pendingBulkAction.providerIds.length}
+          action={pendingBulkAction.action}
+          onConfirm={handleBulkActionConfirm}
+          onCancel={() => setPendingBulkAction(null)}
+          loading={actionLoading}
+        />
+      )}
+
+      {/* Bulk action bar (floating at bottom) */}
+      {selectedIds.size > 0 && (
+        <BulkActionBar
+          count={selectedIds.size}
+          onNotInterested={() => handleBulkAction("not_interested")}
+          onArchive={() => handleBulkAction("archived")}
+          onClear={handleClearSelection}
         />
       )}
 

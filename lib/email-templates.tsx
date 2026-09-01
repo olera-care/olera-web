@@ -6071,44 +6071,57 @@ export function familyNudgeEmail(opts: {
  * Welcome email sent 24h after provider verification approved.
  * Warm onboarding, sets expectations for getting leads.
  */
+/**
+ * Onboarding Email 0: welcome. Sent on the first business-hours run after a
+ * provider claims their page.
+ *
+ * One email covers every provider. The body only promises what a provider can
+ * actually do the moment they claim, which is manage their page. Seeing family
+ * details and replying to inquiries is gated on verification, so providers who
+ * still need it get that ask folded in here (`verifyUrl` set) rather than a
+ * promise the product will not honor.
+ */
 export function providerWelcomeEmail(opts: {
   providerName: string;
-  recipientName: string;
-  slug: string;
-  profileCompleteness: number;
   dashboardUrl: string;
-  profileUrl: string;
+  /** Set only when the provider is still unverified. Adds the verification ask. */
+  verifyUrl?: string;
+  providerSlug?: string;
 }): string {
-  const completenessLine = opts.profileCompleteness < 100
-    ? `<p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-        Your profile is ${opts.profileCompleteness}% complete. Providers with complete profiles get more inquiries from families.
-      </p>`
+  const name = escapeHtml(opts.providerName);
+
+  const verificationBlock = opts.verifyUrl
+    ? `
+    <div style="margin:0 0 24px;padding:16px 18px;background:#f9fafb;border-radius:6px;">
+      <p style="font-size:15px;color:#374151;margin:0 0 6px;line-height:1.6;font-weight:600;">One quick step</p>
+      <p style="font-size:15px;color:#374151;margin:0 0 14px;line-height:1.6;">
+        Verify ${name} to see full family details and reply to inquiries. It takes about a minute with your work email or LinkedIn.
+      </p>
+      <p style="font-size:15px;margin:0;">${ctaLink("Verify your page", opts.verifyUrl)}</p>
+    </div>`
     : "";
 
-  const completeProfileCta = opts.profileCompleteness < 100
-    ? `<p style="font-size:14px;color:#6b7280;margin:16px 0 0;line-height:1.5;">
-        Want to stand out? ${ctaLink("Complete your profile", opts.profileUrl)} to attract more families.
-      </p>`
-    : "";
+  const capabilityLine = opts.verifyUrl
+    ? `Until then you can update your details, add photos, and help more families discover ${name}.`
+    : `You can update your details, add photos, connect with families, and help more families discover ${name}.`;
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome to Olera</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${escapeHtml(firstName(opts.recipientName, "there"))}, you're all set up and ready to connect with families looking for care from <strong>${escapeHtml(opts.providerName)}</strong>.
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Hi there,
     </p>
-    <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;font-weight:600;">Here's what happens next:</p>
-    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
-      <li>Families browsing Olera will find your listing and can reach out directly</li>
-      <li>You'll get an email notification for each new inquiry</li>
-      <li>Respond promptly — families appreciate timely replies</li>
-    </ul>
-    ${completenessLine}
-    <div style="margin:0 0 24px;">${button("View Your Dashboard", opts.dashboardUrl)}</div>
-    ${completeProfileCta}
-    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a> — we're here to help you succeed.
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Your ${name} page is officially yours to manage.
     </p>
-  `, "You're verified and ready to connect with families");
+    <div style="margin:0 0 24px;">${button("View your page", opts.dashboardUrl)}</div>
+    ${verificationBlock}
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      ${capabilityLine}
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      We will check in along the way with a few short steps to get your page ready for families.
+    </p>
+    ${offRampBlock(opts.providerSlug)}
+  `, `Your ${name} page is officially yours to manage.`);
 }
 
 /**

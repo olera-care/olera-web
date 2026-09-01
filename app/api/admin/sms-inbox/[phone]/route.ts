@@ -156,6 +156,33 @@ async function scheduleReply(
   return {};
 }
 
+/**
+ * Is this thread flagged as a crisis?
+ *
+ * Shared by GET and the reply action deliberately. They previously read it from
+ * different scopes — the rail's `ready` packet versus the newest packet of any
+ * status — so a thread whose job had moved on could show "Schedule 8:00 AM" and
+ * then send immediately on click. A button that does something other than what
+ * it says is worse than either behaviour on its own.
+ *
+ * Crisis is a property of the conversation, not of a job's lifecycle position,
+ * so the broader read is the correct one.
+ */
+async function threadIsCrisis(
+  db: ReturnType<typeof getServiceClient>,
+  last10: string,
+): Promise<boolean> {
+  const { data } = await db
+    .from("family_answer_jobs")
+    .select("packet")
+    .eq("phone_last10", last10)
+    .not("packet", "is", null)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return Boolean((data?.packet as { triage?: { isCrisis?: boolean } } | null)?.triage?.isCrisis);
+}
+
 function normalizeLast10(raw: string): string | null {
   const digits = (raw || "").replace(/\D/g, "");
   return digits.length >= 10 ? digits.slice(-10) : null;
@@ -178,7 +205,8 @@ export async function GET(
     const db = getServiceClient();
     const e164 = toE164(last10);
 
-    const [inboundRes, dncRes, draftRes, packetRes, outboundLogRes, scheduledRes] = await Promise.all([
+    const [inboundRes, dncRes, draftRes, packetRes, outboundLogRes, scheduledRes, crisisExempt] =
+      await Promise.all([
       db
         .from("sms_inbound")
         .select("id, from_phone, body, keyword, profile_id, profile_type, display_name, handled_at, created_at")
@@ -221,6 +249,11 @@ export async function GET(
         .order("send_after", { ascending: true })
         .limit(1)
         .maybeSingle(),
+      // Same read the reply action uses, so the button's label and the
+      // button's behaviour can never disagree. In the parallel batch rather
+      // than awaited after it: this runs on every thread open, and a serial
+      // round trip here is latency paid on the page's hot path for nothing.
+      threadIsCrisis(db, last10),
     ]);
     if (inboundRes.error) {
       console.error("[admin/sms-inbox/phone] inbound load failed:", inboundRes.error);
@@ -343,10 +376,19 @@ export async function GET(
       // pressing the button will actually do before it is pressed.
       quietHours: (() => {
         const q = quietHoursCheck({ state: recipientState });
+        // A crisis reply is never held, so offering to schedule one would be
+        // offering the wrong thing. Collapse the choice back to a single Send.
         return {
-          allowed: q.allowed,
+          allowed: q.allowed || crisisExempt,
+          crisisExempt,
           tz: q.tz,
           sendAfter: q.sendAfter ? q.sendAfter.toISOString() : null,
+          /** Recipient-local clock at load, so the UI can say WHY it is holding. */
+          recipientNow: new Date().toLocaleString("en-US", {
+            timeZone: q.tz,
+            hour: "numeric",
+            minute: "2-digit",
+          }),
         };
       })(),
       scheduled:
@@ -627,26 +669,21 @@ export async function POST(
             .maybeSingle()
         : { data: null };
 
-      // The crisis read comes from the packet the engine already produced for
-      // this thread (triage stage, cross-checked against the webhook's regex).
       // Absent a packet we treat the thread as non-crisis: the webhook fires a
       // crisis acknowledgement of its own the moment one is detected, so the
       // safety net does not depend on this branch.
-      const { data: crisisJob } = await db
-        .from("family_answer_jobs")
-        .select("packet")
-        .eq("phone_last10", last10)
-        .not("packet", "is", null)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      const isCrisisThread = Boolean(
-        (crisisJob?.packet as { triage?: { isCrisis?: boolean } } | null)?.triage?.isCrisis,
-      );
+      const isCrisisThread = await threadIsCrisis(db, last10);
 
       const quiet = quietHoursCheck({ state: recipientProfile?.state ?? null });
 
-      if (!quiet.allowed && !isCrisisThread && quiet.sendAfter) {
+      // Quiet hours are a DEFAULT, not a lock. The reviewer can always overrule
+      // them, and the button that does it is on screen rather than behind a
+      // menu — the moment you need to text someone outside their window is
+      // usually the moment something is urgent, which is the worst possible
+      // time to make the escape hatch cost an extra click to find.
+      const sendNow = body?.sendNow === true;
+
+      if (!quiet.allowed && !isCrisisThread && !sendNow && quiet.sendAfter) {
         const scheduled = await scheduleReply(db, {
           last10,
           e164: toE164(last10),
@@ -720,7 +757,15 @@ export async function POST(
         action: "sms_reply_sent",
         targetType: "phone",
         targetId: last10,
-        details: { length: text.length },
+        details: {
+          length: text.length,
+          // An out-of-window send is a deliberate override of a policy that
+          // exists for the recipient's benefit. Record that it happened and
+          // what the clock said where they are, so it is attributable later.
+          ...(quiet.allowed
+            ? {}
+            : { quietHoursOverride: true, recipientTz: quiet.tz, crisis: isCrisisThread }),
+        },
       });
 
       return NextResponse.json({ success: true });

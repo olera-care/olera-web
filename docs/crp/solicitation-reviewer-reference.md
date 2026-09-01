@@ -71,6 +71,35 @@ THREE AUTHORITATIVE LAYERS: (A) SF424 Application Guide CP instructions = requir
 
 ---
 
+## PART I-C — ALLOWABLE CRP ACTIVITIES [NIH verbatim, from Logan's paste 2026-09-01]
+
+**PROVENANCE WARNING [OURS]:** this list arrived by paste, not from the NOFO PDF, and
+is not yet cross-checked against the notice of funding opportunity itself. It is
+governing for design purposes because it is the mechanism's own definition of what
+it funds, but the exact wording and any IC-specific qualifiers must be verified
+against the NOFO before submission.
+
+### Technical Assistance
+> - Regulatory strategy and submissions
+> - Intellectual property strategy
+> - Manufacturing technical assistance
+> - Other third-party technical assistance (e.g., market research)
+
+### Late-Stage Research and Development
+> - Independent replication or confirmation of key studies
+> - Development and optimization of manufacturing methods
+> - Activities to bring development under Design and Quality Systems Control
+> - Device-, drug-, and biologic-related preclinical product development
+> - Clinical studies and clinical trials, subject to participating-IC requirements
+
+**[OURS]** This list is the binding constraint on Approach architecture. Every CRP
+activity must map to one of these nine categories. Ordinary product development and
+ordinary commercial execution appear nowhere in it. See
+`passes/crp-architecture-first-principles.md` for the mapping and for the activities
+this rules out.
+
+---
+
 ## PART II — RESEARCH STRATEGY REQUIREMENTS [NIH verbatim]
 
 ### II.1 Significance

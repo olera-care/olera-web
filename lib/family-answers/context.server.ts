@@ -150,23 +150,55 @@ export async function assembleFamilyFacts(profileId: string | null): Promise<Fam
   // ── Anything the family stated in the thread ────────────────────────────
   // These outrank everything above. We do not parse them into structured
   // fields — a wrong parse is worse than raw text the drafter can read.
+  //
+  // Except that refusing to parse is not the same as refusing to interpret, and
+  // on 2026-09-01 that gap produced a wrong name. A care seeker sent her
+  // question and then, eleven seconds later, a second text reading only "TJ".
+  // It entered here as a fully trusted fact and was rendered to the drafter
+  // under "VERIFIED — you may rely on them", so the drafter did: it opened the
+  // reply "TJ, in Texas a spouse can't be hired…" and reasoned about her by
+  // that name throughout. Nobody knows who TJ is.
+  //
+  // Provenance answers "how did we learn this", never "does the content mean
+  // what we think". A bare fragment has no meaning of its own to inherit trust
+  // from — its sense lives entirely in the message it is answering, which we do
+  // not track. So fragments stay in the packet, because the next one may be the
+  // whole point, but they are labelled for what they actually are.
   const inbound = Array.isArray(meta.sms_inbound) ? meta.sms_inbound : [];
   const recent = inbound.slice(-6);
   for (const entry of recent) {
     const row = asRecord(entry);
     const body = typeof row.body === "string" ? row.body.trim() : "";
     if (!body) continue;
+    const fragment = isBareFragment(body);
     facts.push({
-      key: "said",
-      label: "Told us directly",
+      key: fragment ? "said_fragment" : "said",
+      label: fragment ? "Sent this on its own" : "Told us directly",
       value: body.slice(0, 400),
       provenance: "stated_in_conversation",
       at: typeof row.at === "string" ? row.at : null,
-      unverified: false,
+      unverified: fragment,
     });
   }
 
   return facts;
+}
+
+/**
+ * A message with too little structure to carry its own meaning.
+ *
+ * "TJ", "60", "yes", "no" — each is a complete answer to a question we did not
+ * record asking, and a complete invitation to invent one. Deliberately narrow:
+ * anything with sentence punctuation or three or more words is left alone,
+ * because over-flagging real answers would push the drafter to hedge things the
+ * family actually told it plainly, and hedging an accurate fact has a cost too.
+ */
+export function isBareFragment(body: string): boolean {
+  const t = body.trim();
+  if (!t) return false;
+  if (t.length > 24) return false;
+  if (/[.!?]/.test(t)) return false;
+  return t.split(/\s+/).filter(Boolean).length <= 2;
 }
 
 /**
@@ -179,7 +211,10 @@ export function renderFactsForPrompt(facts: FamilyFact[]): string {
     return "NOTHING IS KNOWN about this person beyond the message itself. Do not make any claim that depends on their age, income, location, or coverage.";
   }
 
-  const stated = facts.filter((f) => f.provenance === "stated_in_conversation");
+  const stated = facts.filter(
+    (f) => f.provenance === "stated_in_conversation" && f.key !== "said_fragment",
+  );
+  const fragments = facts.filter((f) => f.key === "said_fragment");
   const rest = facts.filter((f) => f.provenance !== "stated_in_conversation");
 
   const lines: string[] = [];
@@ -188,6 +223,19 @@ export function renderFactsForPrompt(facts: FamilyFact[]): string {
     lines.push("VERIFIED — the family stated these to us directly. You may rely on them:");
     for (const f of stated) {
       lines.push(`  - ${f.label}: ${f.value}${f.correctedByFamily ? "  [THEY CORRECTED US ON THIS]" : ""}`);
+    }
+  }
+
+  // Its own section, and worded harder than the unverified block, because the
+  // failure here is not "this might be wrong" but "you will invent what this
+  // means". They did send it; what it refers to is the unknown.
+  if (fragments.length) {
+    lines.push("");
+    lines.push(
+      "MEANING UNKNOWN — they sent these on their own, with nothing around them. They ARE from the family, but a bare word or number answers a question we did not record asking, so you do NOT know what it refers to. Never read one as a name, an age, a yes, or a no. Do not address the person by anything found here. If one of these looks like it matters, ask what it meant:",
+    );
+    for (const f of fragments) {
+      lines.push(`  - ${f.value}`);
     }
   }
 

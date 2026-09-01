@@ -131,6 +131,17 @@ export interface AnswerPacket {
   facts: FamilyFact[];
   /** The proposed reply. Must be <= 480 characters. */
   draft: string;
+  /**
+   * The draft the ENGINE produced, kept when a human has replaced `draft` in
+   * place on an existing packet.
+   *
+   * `sent_body` versus `draft` is the only measurement of whether the engine is
+   * getting better, and silently overwriting `draft` with a hand-written reply
+   * would make a corrected packet look like a packet the engine got right.
+   * Set only on the rare occasions a reviewer edits the stored packet rather
+   * than the reply box.
+   */
+  engineDraft?: string;
   claims: SourcedClaim[];
   objections: Objection[];
   personFactRisks: PersonFactRisk[];

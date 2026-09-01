@@ -3,7 +3,7 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { getAllProgramIds, getEnrichedProgram, getStateSlug } from "@/lib/program-data";
 import { detectCrisis } from "@/lib/sms/crisis";
-import { familyAnswerCategoryNeedsDraft } from "@/lib/sms/inbound-intent";
+import { familyAnswerCategoryNeedsDraft, matchOutcomeReply } from "@/lib/sms/inbound-intent";
 import { assembleFamilyFacts, renderFactsForPrompt, stateFromFacts } from "./context.server";
 import {
   MAX_REPLY_CHARS,
@@ -246,11 +246,56 @@ const DRAFT_RULES = `Drafting rules, all of them hard:
 - No dollar amounts unless the agency's own page states them.
 - No medical advice. Telling someone to contact their care team is fine; telling them what their condition means is not.
 - No em dashes. Use periods or commas.
+- Never open with a name and never address them by name. Any name you think you have was inferred from the thread, not verified, and calling a stranger by the wrong name in a message about their family is worse than using none. A text needs no salutation.
 - If an eligibility claim depends on a fact we have NOT verified, either ask about it or phrase it conditionally. "EHEAP is for households with someone 60 or older, if that's you" costs eight characters and survives our record being wrong.
 - WHEN you are pointing them at an agency, tell them the specific words to say when they call. A person with limited energy should not have to work out how to describe their own situation to an intake worker. This does not apply when you are only asking an orientation question.
 - Warm, direct, no over-apologising. Never call their situation tragic or their problem unfortunate.
 - If the message states NO need at all, a bare link or a photo or a fragment: say what you received, give any fact that is true regardless of why they wrote, ask ONE open question about what is going on, and stop there. KEEP THE WHOLE REPLY UNDER 200 CHARACTERS. Do NOT offer a menu of guesses about their intent, and do not pre-answer a question they have not asked. Anything you explain before they have told you what they need is a guess taking up space, and it is one message away if they ask. People pick from the options they are handed, especially when they are being polite to someone helping them, so a guessed menu can manufacture a wrong answer that then gets confidently solved.
 - Do not promise outcomes, and do not imply we will handle it for them. Olera finds things and points at them. It is not a personal assistant and cannot act on anyone's behalf. "We will see what we can find" is honest. "We will take it from there", "leave it with us", and "we will sort this out" are not.`;
+
+/**
+ * Strip a leading "Name," salutation.
+ *
+ * Belt to the prompt rule below, and the belt is the part that actually holds.
+ * On 2026-09-01 the drafter opened a reply with a name lifted from a two-letter
+ * text, and the same packet also came back at 486 characters against a limit
+ * the rules state as "480 MAXIMUM" in the first line. A model that misses the
+ * most mechanical rule in the list will miss a softer one, so anything we can
+ * enforce without asking, we enforce without asking.
+ *
+ * Unconditional by design: every name we could put here is inferred. The
+ * display_name on these profiles is the literal string "Care Seeker", so there
+ * is no verified name to preserve and nothing is lost by removing all of them.
+ * A text message needs no salutation anyway.
+ */
+const NOT_A_NAME = new Set([
+  // Sentence openers that legitimately take a comma. "Yes, Acworth is covered"
+  // is the shape of a good reply, not a salutation, and stripping its first
+  // word would delete the answer and leave the caveat.
+  "yes", "no", "ok", "okay", "sure", "sorry", "thanks", "hi", "hello", "hey",
+  "well", "so", "but", "and", "or", "also", "actually", "right", "still",
+  "then", "now", "here", "there", "first", "second", "third", "next", "last",
+  "finally", "instead", "meanwhile", "however", "unfortunately", "fortunately",
+  "again", "otherwise", "yet", "though", "although", "since", "because", "if",
+  "when", "while", "after", "before", "once", "unless", "until", "usually",
+  "typically", "generally", "technically", "honestly", "ideally", "briefly",
+  "short", "either", "neither", "both", "meanwhile", "importantly", "good",
+  "great", "understood", "absolutely", "certainly", "possibly", "maybe",
+]);
+
+export function stripSalutation(draft: string): string {
+  const match = draft.match(/^\s*([A-Z][A-Za-z.'’-]{0,14}),\s+/);
+  if (!match) return draft;
+  // Only a token that could plausibly BE a name. Without this the rule is
+  // indiscriminate: it removes discourse markers and affirmatives too, and the
+  // cost of that is high because "Yes," is exactly how a good answer to a
+  // yes-or-no question starts.
+  if (NOT_A_NAME.has(match[1].toLowerCase().replace(/[.'’-]/g, ""))) return draft;
+  const stripped = draft.slice(match[0].length);
+  if (!stripped) return draft;
+  // Re-capitalise so removing "TJ, " does not leave a lowercase opener.
+  return stripped.charAt(0).toUpperCase() + stripped.slice(1);
+}
 
 interface DraftOut {
   draft: string;
@@ -412,6 +457,38 @@ ${objections.map((o, i) => `${i + 1}. TARGET: ${o.target}\n   OBJECTION: ${o.obj
   };
 }
 
+/**
+ * Cut an over-length draft to the limit. One attempt, then give up and flag.
+ *
+ * "480 characters MAXIMUM" is the first line of DRAFT_RULES and the most
+ * mechanical rule in the list, and on 2026-09-01 a draft still came back at
+ * 486. An over-length draft is not a cosmetic problem: the reviewer cannot
+ * adopt it, because the reply box and the send endpoint both cap at 480, so
+ * the packet arrives unusable and the work of five stages is wasted on a
+ * message that physically cannot be sent.
+ *
+ * Retrying is right where truncating is not. Cutting the last 6 characters
+ * mechanically would sever a sentence, and the tail of these drafts is
+ * routinely the question we are asking the family.
+ */
+async function tighten(draftText: string): Promise<string> {
+  const client = anthropic();
+  const message = await client.messages.create({
+    model: DRAFT_MODEL,
+    max_tokens: 2000,
+    system: `This text message is ${draftText.length} characters. It must be ${MAX_REPLY_CHARS} or fewer.
+
+Cut it down. Return ONLY the shortened message, no preamble and no quotes.
+
+Keep, in this order of priority: the phone number, the exact words to say when they call, who decides, and any question you are asking them. Cut hedging, restatement, and background before you cut any of those. Do not add anything new.
+
+${DRAFT_RULES}`,
+    messages: [{ role: "user", content: draftText }],
+  });
+  const out = textOf(message).trim();
+  return out && out.length < draftText.length ? out : draftText;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Re-check — stages 4 and 5, re-run against a draft a human rewrote
 // ─────────────────────────────────────────────────────────────────────────────
@@ -546,7 +623,7 @@ export async function recheckDraft(args: {
     draft: draftText,
     claims,
     objections,
-    suggestedDraft,
+    suggestedDraft: stripSalutation(suggestedDraft),
     notes,
     at,
     ...(errors.length ? { errors } : {}),
@@ -624,7 +701,13 @@ export async function buildAnswerPacket(args: {
   // The webhook catches obvious courtesy-only messages synchronously, but the
   // model is the broader backstop. A "thanks" or unrelated text needs neither
   // four more model calls nor a draft for a human to dismiss.
-  if (!familyAnswerCategoryNeedsDraft(triageResult.category)) {
+  // An outcome reply we could not read is the one short message that must
+  // never be triaged away. It answers a question WE asked, so the family is
+  // waiting on the other side of it, and a two-word reply is exactly what a
+  // model classifies as "thanks" or "unrelated". "No Stuck" was skipped this
+  // way on 2026-08-31 and produced no draft for anyone to act on.
+  const ambiguousOutcome = matchOutcomeReply(args.inbound).ambiguous;
+  if (!ambiguousOutcome && !familyAnswerCategoryNeedsDraft(triageResult.category)) {
     return { ...base, errors: errors.length ? errors : undefined };
   }
 
@@ -655,6 +738,19 @@ export async function buildAnswerPacket(args: {
     }
   }
 
+  // Enforcement, not instruction. Both of these are rules the prompt already
+  // states and the model has already been observed breaking.
+  finalDraft = stripSalutation(finalDraft);
+
+  if (finalDraft.length > MAX_REPLY_CHARS) {
+    try {
+      finalDraft = stripSalutation(await tighten(finalDraft));
+    } catch (err) {
+      errors.push(`tighten: ${err instanceof Error ? err.message : "failed"}`);
+    }
+  }
+  // Still over after one retry: keep it and flag. A too-long draft a human can
+  // edit down beats an empty packet, and packetNeedsAttention gates adoption.
   if (finalDraft.length > MAX_REPLY_CHARS) {
     errors.push(`draft is ${finalDraft.length} chars, over the ${MAX_REPLY_CHARS} limit`);
   }

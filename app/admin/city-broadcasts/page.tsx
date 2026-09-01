@@ -345,16 +345,413 @@ function BulkActionModal({
   );
 }
 
+// Broadcast modal for sending manual broadcasts
+interface BroadcastPreview {
+  provider: {
+    id: string;
+    name: string;
+    email: string;
+    city: string;
+    state: string | null;
+    category: string | null;
+  };
+  email: {
+    subject: string;
+    preheader: string;
+    html: string;
+  };
+}
+
+interface BroadcastSendResult {
+  provider_id: string;
+  provider_name: string;
+  status: "sent" | "skipped" | "failed";
+  reason?: string;
+}
+
+function BroadcastModal({
+  providerIds,
+  providers,
+  onClose,
+  onSuccess,
+}: {
+  providerIds: string[];
+  providers: ProviderBroadcast[];
+  onClose: () => void;
+  onSuccess: (sentCount: number) => void;
+}) {
+  const [step, setStep] = useState<"configure" | "preview" | "sending" | "done">("configure");
+  const [eventType, setEventType] = useState<"question_asked" | "profile_published">("question_asked");
+  const [questionText, setQuestionText] = useState("");
+  const [preview, setPreview] = useState<BroadcastPreview | null>(null);
+  const [loadingPreview, setLoadingPreview] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [results, setResults] = useState<BroadcastSendResult[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  // Get representative provider for preview (first one)
+  const firstProvider = providers.find((p) => providerIds.includes(p.provider_id));
+  const city = firstProvider?.city || "Unknown";
+
+  // Fetch preview for the first provider
+  const loadPreview = async () => {
+    if (!firstProvider) {
+      setError("No provider found. Please close and try again.");
+      return;
+    }
+    setLoadingPreview(true);
+    setError(null);
+
+    try {
+      const params = new URLSearchParams({
+        provider_id: firstProvider.provider_id,
+        event_type: eventType,
+      });
+      if (eventType === "question_asked" && questionText) {
+        params.set("question_text", questionText);
+      }
+
+      const res = await fetch(`/api/admin/city-broadcasts/preview?${params.toString()}`);
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Failed to load preview");
+      }
+      const data = await res.json();
+      setPreview(data);
+      setStep("preview");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to load preview");
+    } finally {
+      setLoadingPreview(false);
+    }
+  };
+
+  // Send broadcasts to all selected providers
+  const sendBroadcasts = async () => {
+    setSending(true);
+    setStep("sending");
+    setError(null);
+
+    try {
+      const res = await fetch("/api/admin/city-broadcasts/send", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_ids: providerIds,
+          event_type: eventType,
+          city,
+          category: firstProvider?.category || null,
+          question_text: eventType === "question_asked" ? questionText : undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || "Failed to send broadcasts");
+      }
+
+      const data = await res.json();
+      setResults(data.results || []);
+      setStep("done");
+      onSuccess(data.summary?.sent || 0);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed to send broadcasts");
+      setStep("preview"); // Go back to preview on error
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4">
+      <div className="w-full max-w-2xl max-h-[90vh] overflow-hidden rounded-xl bg-white shadow-xl flex flex-col" onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div className="border-b border-gray-100 px-5 py-4 flex items-center justify-between">
+          <div>
+            <h3 className="text-base font-semibold text-gray-900">Send Manual Broadcast</h3>
+            <p className="mt-0.5 text-sm text-gray-500">
+              {providerIds.length} provider{providerIds.length > 1 ? "s" : ""} selected
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={sending}
+            className="text-gray-400 hover:text-gray-600 disabled:opacity-50"
+          >
+            <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto px-5 py-4">
+          {error && (
+            <div className="mb-4 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-sm text-red-700">
+              {error}
+            </div>
+          )}
+
+          {step === "configure" && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-2">Broadcast Type</label>
+                <div className="flex gap-3">
+                  <label className={`flex-1 cursor-pointer rounded-lg border-2 p-3 transition-colors ${
+                    eventType === "question_asked" ? "border-purple-500 bg-purple-50" : "border-gray-200 hover:border-gray-300"
+                  }`}>
+                    <input
+                      type="radio"
+                      name="event_type"
+                      value="question_asked"
+                      checked={eventType === "question_asked"}
+                      onChange={() => setEventType("question_asked")}
+                      className="sr-only"
+                    />
+                    <div className="flex items-center gap-2">
+                      <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
+                        eventType === "question_asked" ? "border-purple-500" : "border-gray-300"
+                      }`}>
+                        {eventType === "question_asked" && <div className="h-2 w-2 rounded-full bg-purple-500" />}
+                      </div>
+                      <span className="text-sm font-medium text-gray-900">Question Broadcast</span>
+                    </div>
+                    <p className="mt-1 ml-6 text-xs text-gray-500">
+                      &quot;A family has a question about care in {city}&quot;
+                    </p>
+                  </label>
+                  <label className={`flex-1 cursor-pointer rounded-lg border-2 p-3 transition-colors ${
+                    eventType === "profile_published" ? "border-blue-500 bg-blue-50" : "border-gray-200 hover:border-gray-300"
+                  }`}>
+                    <input
+                      type="radio"
+                      name="event_type"
+                      value="profile_published"
+                      checked={eventType === "profile_published"}
+                      onChange={() => setEventType("profile_published")}
+                      className="sr-only"
+                    />
+                    <div className="flex items-center gap-2">
+                      <div className={`h-4 w-4 rounded-full border-2 flex items-center justify-center ${
+                        eventType === "profile_published" ? "border-blue-500" : "border-gray-300"
+                      }`}>
+                        {eventType === "profile_published" && <div className="h-2 w-2 rounded-full bg-blue-500" />}
+                      </div>
+                      <span className="text-sm font-medium text-gray-900">Profile Broadcast</span>
+                    </div>
+                    <p className="mt-1 ml-6 text-xs text-gray-500">
+                      &quot;A family in {city} added you to their list&quot;
+                    </p>
+                  </label>
+                </div>
+              </div>
+
+              {eventType === "question_asked" && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-2">
+                    Question Text <span className="text-gray-400">(optional)</span>
+                  </label>
+                  <textarea
+                    value={questionText}
+                    onChange={(e) => setQuestionText(e.target.value)}
+                    placeholder="Enter a sample question to display in the email..."
+                    rows={3}
+                    className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm placeholder:text-gray-400 focus:border-gray-300 focus:outline-none"
+                  />
+                  <p className="mt-1 text-[11px] text-gray-400">
+                    If left blank, a generic &quot;has questions&quot; message will be shown.
+                  </p>
+                </div>
+              )}
+
+              <div className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2">
+                <p className="text-xs text-amber-800">
+                  <strong>Note:</strong> Providers with bounced or complained emails will be automatically skipped.
+                  Broadcasts will be tracked and count toward the 7-day cooldown.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {step === "preview" && preview && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wider">Preview for</p>
+                  <p className="text-sm font-medium text-gray-900">{preview.provider.name}</p>
+                </div>
+                <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+                  eventType === "question_asked" ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"
+                }`}>
+                  {eventType === "question_asked" ? "Question" : "Profile"}
+                </span>
+              </div>
+
+              <div className="rounded-lg border border-gray-200 overflow-hidden">
+                <div className="bg-gray-50 px-3 py-2 border-b border-gray-200">
+                  <p className="text-xs text-gray-500">Subject:</p>
+                  <p className="text-sm font-medium text-gray-900">{preview.email.subject}</p>
+                </div>
+                <div className="bg-white p-4 max-h-80 overflow-y-auto">
+                  <iframe
+                    srcDoc={preview.email.html}
+                    title="Email preview"
+                    className="w-full h-64 border-0"
+                    sandbox="allow-same-origin"
+                  />
+                </div>
+              </div>
+
+              {providerIds.length > 1 && (
+                <p className="text-xs text-gray-500 text-center">
+                  This email will be sent to all {providerIds.length} selected providers with their personalized details.
+                </p>
+              )}
+            </div>
+          )}
+
+          {step === "sending" && (
+            <div className="py-8 text-center">
+              <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-purple-600" />
+              <p className="mt-4 text-sm text-gray-600">Sending broadcasts...</p>
+              <p className="text-xs text-gray-400 mt-1">This may take a moment for multiple providers.</p>
+            </div>
+          )}
+
+          {step === "done" && (
+            <div className="space-y-4">
+              <div className="text-center py-4">
+                <div className="inline-flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-3">
+                  <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <h4 className="text-lg font-semibold text-gray-900">Broadcasts Sent</h4>
+                <p className="text-sm text-gray-500 mt-1">
+                  {results.filter((r) => r.status === "sent").length} of {results.length} broadcasts delivered
+                </p>
+              </div>
+
+              {results.length > 0 && (
+                <div className="rounded-lg border border-gray-200 overflow-hidden max-h-48 overflow-y-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 sticky top-0">
+                      <tr className="text-left text-[10px] uppercase tracking-wider text-gray-400">
+                        <th className="px-3 py-2 font-medium">Provider</th>
+                        <th className="px-3 py-2 font-medium text-center">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {results.map((r) => (
+                        <tr key={r.provider_id} className="border-t border-gray-100">
+                          <td className="px-3 py-2 text-gray-900">{r.provider_name}</td>
+                          <td className="px-3 py-2 text-center">
+                            {r.status === "sent" ? (
+                              <span className="inline-flex items-center gap-1 text-green-600">
+                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                                Sent
+                              </span>
+                            ) : r.status === "failed" ? (
+                              <span className="inline-flex items-center gap-1 text-red-500" title={r.reason}>
+                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                                Failed
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-gray-500" title={r.reason}>
+                                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Skipped
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="border-t border-gray-100 bg-gray-50 px-5 py-3 flex justify-between items-center">
+          {step === "configure" && (
+            <>
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={loadPreview}
+                disabled={loadingPreview}
+                className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+              >
+                {loadingPreview ? "Loading..." : "Preview Email"}
+              </button>
+            </>
+          )}
+
+          {step === "preview" && (
+            <>
+              <button
+                type="button"
+                onClick={() => setStep("configure")}
+                className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                onClick={sendBroadcasts}
+                disabled={sending}
+                className="rounded-lg bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+              >
+                Send to {providerIds.length} Provider{providerIds.length > 1 ? "s" : ""}
+              </button>
+            </>
+          )}
+
+          {step === "done" && (
+            <>
+              <div />
+              <button
+                type="button"
+                onClick={onClose}
+                className="rounded-lg bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-black"
+              >
+                Done
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // Floating bulk action bar
 function BulkActionBar({
   count,
   onNotInterested,
   onArchive,
+  onSendBroadcast,
   onClear,
 }: {
   count: number;
   onNotInterested: () => void;
   onArchive: () => void;
+  onSendBroadcast: () => void;
   onClear: () => void;
 }) {
   return (
@@ -363,6 +760,17 @@ function BulkActionBar({
         <span className="text-sm font-medium text-gray-700">
           {count} selected
         </span>
+        <div className="h-4 w-px bg-gray-200" />
+        <button
+          type="button"
+          onClick={onSendBroadcast}
+          className="flex items-center gap-1.5 rounded-full bg-purple-100 px-3 py-1 text-xs font-semibold text-purple-700 hover:bg-purple-200"
+        >
+          <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          Send Broadcast
+        </button>
         <div className="h-4 w-px bg-gray-200" />
         <button
           type="button"
@@ -961,6 +1369,9 @@ export default function CityBroadcastsPage() {
     action: "not_interested" | "archived";
   } | null>(null);
 
+  // Broadcast modal state
+  const [showBroadcastModal, setShowBroadcastModal] = useState(false);
+
   // Local state for inputs (updated immediately for responsive UI)
   const [searchInput, setSearchInput] = useState(searchParams.get("search") || "");
   const [cityInput, setCityInput] = useState(searchParams.get("city") || "");
@@ -1105,6 +1516,12 @@ export default function CityBroadcastsPage() {
       providerIds: [...selectedIds],
       action,
     });
+  }, [selectedIds]);
+
+  // Open broadcast modal
+  const handleOpenBroadcastModal = useCallback(() => {
+    if (selectedIds.size === 0) return;
+    setShowBroadcastModal(true);
   }, [selectedIds]);
 
   // Confirm bulk action with reason
@@ -1285,6 +1702,20 @@ export default function CityBroadcastsPage() {
       setLoading(false);
     }
   }, [days, status, doneSub, debouncedCity, debouncedSearch, page]);
+
+  // Handle broadcast success (defined after load to avoid reference before declaration)
+  const handleBroadcastSuccess = useCallback((sentCount: number) => {
+    if (sentCount > 0) {
+      setToast({
+        message: `${sentCount} broadcast${sentCount > 1 ? "s" : ""} sent successfully`,
+        type: "success",
+      });
+      // Refresh data to show updated broadcast counts
+      void load();
+    }
+    // Clear selection after broadcasting
+    setSelectedIds(new Set());
+  }, [load]);
 
   useEffect(() => {
     void load();
@@ -1670,7 +2101,18 @@ export default function CityBroadcastsPage() {
           count={selectedIds.size}
           onNotInterested={() => handleBulkAction("not_interested")}
           onArchive={() => handleBulkAction("archived")}
+          onSendBroadcast={handleOpenBroadcastModal}
           onClear={handleClearSelection}
+        />
+      )}
+
+      {/* Broadcast modal */}
+      {showBroadcastModal && data && (
+        <BroadcastModal
+          providerIds={[...selectedIds]}
+          providers={data.cities.flatMap((c) => c.providers)}
+          onClose={() => setShowBroadcastModal(false)}
+          onSuccess={handleBroadcastSuccess}
         />
       )}
 

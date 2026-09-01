@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { normalizeUSPhone } from "@/lib/twilio";
 import { smsHelpReply, familyAnswerAckSms } from "@/lib/sms/templates";
 import { detectCrisis, crisisLabel, type CrisisResult } from "@/lib/sms/crisis";
-import { isCourtesyOnlyReply } from "@/lib/sms/inbound-intent";
+import { isCourtesyOnlyReply, matchOutcomeReply } from "@/lib/sms/inbound-intent";
 import { sendReactiveFamilyAlert } from "@/lib/sms/reactive-alerts";
 import { captureOutcome, outcomeFromKeyword } from "@/lib/family-answers/outcome.server";
 import { interpretBenefitsSmsReply } from "@/lib/family-comms/benefits-sms-replies.server";
@@ -358,12 +358,39 @@ async function triageFamilyQuestion(args: {
   const key = last10(phone);
   if (!db || !key) return;
   try {
-    const { count } = await db
+    // One open job per phone, but the later messages must JOIN it rather than
+    // vanish. On 2026-08-31 a care seeker texted "No answer stuck", then 92
+    // seconds later "Need clothes need 30 meals cuz 10 is not enough I need
+    // help with everything". The second was dropped here, so the engine
+    // triaged and answered the first — the throwaway status word — while the
+    // message carrying her actual need never became the question.
+    //
+    // Appending keeps the dedupe doing its real job (one research run per
+    // burst, not three) while making that run answer everything she said.
+    const { data: open } = await db
       .from("family_answer_jobs")
-      .select("id", { count: "exact", head: true })
+      .select("id, body, status")
       .eq("phone_last10", key)
-      .in("status", ["pending", "running"]);
-    if (typeof count === "number" && count > 0) return;
+      .in("status", ["pending", "running"])
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (open) {
+      // Skip a duplicate: Twilio retries a webhook it thinks failed, and the
+      // same text appended twice would read as the family repeating herself.
+      if (open.body.includes(body.trim())) return;
+      const merged = `${open.body}\n${body.trim()}`.slice(0, 2_000);
+      const { error: appendError } = await db
+        .from("family_answer_jobs")
+        .update({ body: merged })
+        .eq("id", open.id);
+      if (appendError) console.error("[sms-webhook] Job append failed:", appendError);
+      // A `running` job has already been handed its body, so this only reaches
+      // the family on a retry. Still worth writing: the alternative is losing
+      // the message entirely, which is what happened before.
+      return;
+    }
 
     const { error } = await db.from("family_answer_jobs").insert({
       phone_last10: key,
@@ -398,6 +425,10 @@ export async function POST(request: NextRequest) {
   const normalizedFrom = normalizeUSPhone(from) ?? from;
   const keyword = (params.Body || "").trim().toUpperCase().replace(/[^A-Z]/g, "");
   const messageBody = (params.Body || "").trim();
+  // The outcome vocabulary is read word by word, not from the collapsed token
+  // above. "No Stuck" collapses to NOSTUCK and matches nothing; read as words
+  // it is a negator against a keyword, which is a human's call, not a guess.
+  const outcome = matchOutcomeReply(messageBody);
   // High-confidence conversational close. Crisis wins even if a message also
   // contains thanks ("thank you, but I want to die" must never be dismissed).
   const courtesyOnly =
@@ -465,10 +496,10 @@ export async function POST(request: NextRequest) {
     //
     // Deliberately AFTER the opt-out/opt-in branches above: "YES" is a TCPA
     // opt-in keyword and must never be read as an outcome instead.
-    if (messageBody && outcomeFromKeyword(keyword)) {
-      const captured = await captureOutcome(last10(normalizedFrom) ?? "", keyword, messageBody);
+    if (messageBody && outcome.keyword && outcomeFromKeyword(outcome.keyword)) {
+      const captured = await captureOutcome(last10(normalizedFrom) ?? "", outcome.keyword, messageBody);
       if (captured.recorded) {
-        await recordInbound(normalizedFrom, messageBody, keyword);
+        await recordInbound(normalizedFrom, messageBody, outcome.keyword);
         if (captured.needsHuman) {
           try {
             const { sendSlackAlert } = await import("@/lib/slack");
@@ -495,7 +526,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (messageBody) {
-      const recorded = await recordInbound(normalizedFrom, messageBody, keyword, true);
+      // outcome.keyword, not the collapsed token: a sentence normalizes to junk
+      // ("I can't find the form" -> ICANTFINDTHEFORM) and must never reach
+      // interpretBenefitsSmsReply as though it were a recognized reply.
+      const recorded = await recordInbound(normalizedFrom, messageBody, outcome.keyword, true);
       if (recorded.structured) return twiml(recorded.response);
       // recordInbound's Slack ping requires a family match. Everyone else —
       // providers, unknown numbers — needs a human told about them here.

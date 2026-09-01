@@ -126,6 +126,10 @@ export default function ProviderOnboardPage() {
         interview: "interview_request",
         claim: "listing_claimed",
         signup: "account_created",
+        // Onboarding profile-preview CTA. Without this the click event files
+        // itself under "profile" while the send is logged as
+        // "profile_preview_nudge", so the two never line up when grouped by type.
+        profile: "profile_preview_nudge",
       };
       fetch("/api/activity/track", {
         method: "POST",

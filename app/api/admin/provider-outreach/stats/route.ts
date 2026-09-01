@@ -416,18 +416,30 @@ async function getGlobalSequenceConversionStats(db: DB): Promise<{
   claimed: number;
   rate: number;
 }> {
-  // Get all providers in cold outreach tracking (any channel - email, fax, contact form, etc.)
+  // Get providers who actually received outreach (any channel)
+  // Must have at least one of: sequence_started_at, fax_sent_at, mail_sent_at, or contact_form_send_count > 0
   const { data: outreachRows, error: outreachError } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id");
+    .select("provider_id, sequence_started_at, fax_sent_at, mail_sent_at, contact_form_send_count");
 
   if (outreachError) {
     console.error("[sequence-conversion] Outreach query error:", outreachError);
     return { sequenced: 0, claimed: 0, rate: 0 };
   }
 
+  // Filter to only providers who actually received some outreach
+  const contactedProviders = (outreachRows || []).filter((r: {
+    provider_id: string;
+    sequence_started_at: string | null;
+    fax_sent_at: string | null;
+    mail_sent_at: string | null;
+    contact_form_send_count: number | null;
+  }) => {
+    return r.sequence_started_at || r.fax_sent_at || r.mail_sent_at || (r.contact_form_send_count && r.contact_form_send_count > 0);
+  });
+
   const outreachProviderIds = new Set(
-    (outreachRows || []).map((r: { provider_id: string }) => r.provider_id)
+    contactedProviders.map((r) => r.provider_id)
   );
 
   const outreachCount = outreachProviderIds.size;

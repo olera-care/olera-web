@@ -69,18 +69,23 @@ export async function GET(request: NextRequest) {
 
     const db = getServiceClient();
 
-    // Step 1: Get all providers in cold outreach tracking (any channel)
-    // Include fax_sent_at, mail_sent_at, and sequence_started_at for attribution
-    const { data: outreachProviders, error: outreachError } = await db
+    // Step 1: Get providers who actually received outreach (any channel)
+    // Must have at least one of: sequence_started_at, fax_sent_at, mail_sent_at, or contact_form_send_count > 0
+    const { data: allTrackingRows, error: outreachError } = await db
       .from("provider_outreach_tracking")
-      .select("provider_id, assigned_to, fax_sent_at, mail_sent_at, sequence_started_at");
+      .select("provider_id, assigned_to, fax_sent_at, mail_sent_at, sequence_started_at, contact_form_send_count");
 
     if (outreachError) {
       console.error("[sequence-conversions] Outreach query error:", outreachError);
       return NextResponse.json({ error: "Failed to fetch outreach data" }, { status: 500 });
     }
 
-    if (!outreachProviders || outreachProviders.length === 0) {
+    // Filter to only providers who actually received some outreach
+    const outreachProviders = (allTrackingRows || []).filter((p) => {
+      return p.sequence_started_at || p.fax_sent_at || p.mail_sent_at || (p.contact_form_send_count && p.contact_form_send_count > 0);
+    });
+
+    if (outreachProviders.length === 0) {
       return NextResponse.json({ providers: [], total: 0, by_source: {}, source_labels: SOURCE_LABELS });
     }
 

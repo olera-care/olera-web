@@ -3,6 +3,30 @@
 import { useCallback, useEffect, useState, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
+import DateRangePopover, {
+  type DateRangeValue,
+  type DateRangePresetOption,
+  rangeLabel,
+} from "@/components/admin/DateRangePopover";
+
+// Custom presets for city broadcasts - just the lookback windows we care about
+const BROADCAST_DATE_PRESETS: DateRangePresetOption[] = [
+  { label: "Last 7 days", value: "7d" },
+  { label: "Last 14 days", value: "14d" },
+  { label: "Last 30 days", value: "30d" },
+  { label: "Last 90 days", value: "90d" },
+];
+
+// Convert DateRangeValue preset to days for API
+function presetToDays(preset: string): number {
+  switch (preset) {
+    case "7d": return 7;
+    case "14d": return 14;
+    case "30d": return 30;
+    case "90d": return 90;
+    default: return 7;
+  }
+}
 
 // Toast notification component
 function Toast({ message, type, onClose }: { message: string; type: "success" | "error"; onClose: () => void }) {
@@ -471,6 +495,15 @@ export default function CityBroadcastsPage() {
   const [err, setErr] = useState<string | null>(null);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
 
+  // Date range state - default to 7 days
+  const initialDays = searchParams.get("days") || "7";
+  const initialPreset = ["7", "14", "30", "90"].includes(initialDays) ? `${initialDays}d` : "7d";
+  const [dateRange, setDateRange] = useState<DateRangeValue>({
+    preset: initialPreset as DateRangeValue["preset"],
+    customFrom: "",
+    customTo: "",
+  });
+
   // Action modal state
   const [pendingAction, setPendingAction] = useState<{
     provider: ProviderBroadcast;
@@ -583,13 +616,16 @@ export default function CityBroadcastsPage() {
   const debouncedSearch = useDebounce(searchInput, 300);
   const debouncedCity = useDebounce(cityInput, 300);
 
-  const days = parseInt(searchParams.get("days") || "7", 10);
+  // Convert date range preset to days
+  const days = presetToDays(dateRange.preset);
   const status = searchParams.get("status") || "all";
   const doneSub = searchParams.get("done_sub") || "claimed";
 
   // Sync URL when debounced values change
+  // Note: days is now UI-only state (not synced to URL), so we remove any stale ?days param
   useEffect(() => {
     const params = new URLSearchParams(searchParams.toString());
+    params.delete("days"); // Remove stale days param - date range is now UI-only state
     if (debouncedSearch) {
       params.set("search", debouncedSearch);
     } else {
@@ -606,19 +642,6 @@ export default function CityBroadcastsPage() {
       router.push(newUrl);
     }
   }, [debouncedSearch, debouncedCity, searchParams, router]);
-
-  const updateFilter = useCallback(
-    (key: string, value: string) => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (value) {
-        params.set(key, value);
-      } else {
-        params.delete(key);
-      }
-      router.push(`/admin/city-broadcasts?${params.toString()}`);
-    },
-    [router, searchParams]
-  );
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -657,14 +680,23 @@ export default function CityBroadcastsPage() {
         description="Providers eligible for city broadcasts when family activity occurs."
         breadcrumbs={[{ label: "Inbox", href: "/admin" }]}
         actions={
-          <button
-            type="button"
-            onClick={() => void load()}
-            disabled={loading}
-            className="inline-flex min-h-9 items-center rounded-full border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-600 hover:border-gray-300 disabled:opacity-50"
-          >
-            {loading && data ? "Refreshing..." : "Refresh"}
-          </button>
+          <div className="flex items-center gap-2">
+            <DateRangePopover
+              value={dateRange}
+              onChange={setDateRange}
+              presets={BROADCAST_DATE_PRESETS}
+              ariaLabel="Broadcast stats lookback"
+              hideCustomRange
+            />
+            <button
+              type="button"
+              onClick={() => void load()}
+              disabled={loading}
+              className="inline-flex min-h-9 items-center rounded-full border border-gray-200 bg-white px-4 text-xs font-semibold text-gray-600 hover:border-gray-300 disabled:opacity-50"
+            >
+              {loading && data ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
         }
       />
 
@@ -682,8 +714,8 @@ export default function CityBroadcastsPage() {
             <Stat value={data.stats.pool} label="In broadcast pool" detail="broadcast_ready providers" />
             <Stat
               value={data.stats.sent}
-              label={`Sent broadcasts (${days}d)`}
-              detail="At least 1 broadcast received"
+              label={`Sent broadcasts`}
+              detail={rangeLabel(dateRange, BROADCAST_DATE_PRESETS)}
               tone={data.stats.sent > 0 ? "success" : "muted"}
             />
             <Stat
@@ -702,24 +734,6 @@ export default function CityBroadcastsPage() {
 
           {/* Filters */}
           <div className="mt-6 flex flex-wrap items-center gap-3 rounded-t-xl border border-b-0 border-gray-200 bg-gray-50 px-4 py-3">
-            {/* Days filter */}
-            <div className="flex gap-1.5">
-              {[7, 14, 30].map((d) => (
-                <button
-                  key={d}
-                  type="button"
-                  onClick={() => updateFilter("days", String(d))}
-                  className={`rounded-full px-3 py-1 text-[11px] font-semibold transition-colors ${
-                    days === d
-                      ? "bg-gray-900 text-white"
-                      : "border border-gray-200 bg-white text-gray-500 hover:border-gray-300"
-                  }`}
-                >
-                  {d}d
-                </button>
-              ))}
-            </div>
-
             {/* Status filter - main tabs */}
             <div className="flex gap-1.5">
               {[

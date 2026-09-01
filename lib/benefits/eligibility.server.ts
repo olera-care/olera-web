@@ -141,7 +141,42 @@ export function resolveSbfRow(
  *  requiring Medicaid first would be factually wrong. */
 export function medicaidGatedName(name: string): boolean {
   if (archetypeOf(name) === "msp") return false;
+  if (isMedicaidDoor(name)) return false;
   return /\bmedicaid\b|\bwaiver\b/i.test(name);
+}
+
+/**
+ * Is this program the Medicaid APPLICATION rather than something that sits on
+ * top of Medicaid?
+ *
+ * The gate below rules a program out when the family says they have no
+ * Medicaid. That is right for a waiver, which you can only join once you are
+ * eligible. It is exactly backwards for base Medicaid itself: not having it is
+ * the whole reason to apply. Until 2026-09-01 the name regex could not tell the
+ * two apart, so every family who answered "no Medicaid" was ruled out of the 25
+ * state Medicaid programs in the library and fell through to food and energy
+ * aid. That is why first-step letters kept opening with SNAP and LIHEAP for
+ * people who had told us they need help paying for care.
+ *
+ * Name-based, like the rest of this module, because `requires_medicaid` is seed
+ * noise in both directions. The two exclusions below are services Medicaid pays
+ * for rather than doors into it, and they do need Medicaid first:
+ *   - Washington's "Medicaid Personal Care (MPC) Program"
+ *   - Oregon's "OPI-M (Medicaid-funded)"
+ * Measured across all 51 states with this predicate (not a reimplementation of
+ * it — the first census used /waiver/i and hid a plural bug): 23 programs open
+ * up, 47 stay gated, and no program with "waiver" in its name opens. This
+ * belongs in the program data eventually; a per-program flag would not need the
+ * exception list.
+ */
+export function isMedicaidDoor(name: string): boolean {
+  // Plural matters: `\bwaiver\b` does not match "Waivers", and most program
+  // names use the plural, which would have opened every "<State> Medicaid HCBS
+  // Waivers" as though it were the Medicaid door.
+  if (/waivers?\b/i.test(name)) return false;
+  if (/medicaid[- ]funded/i.test(name)) return false;
+  if (/personal care/i.test(name)) return false;
+  return /\bmedicaid\b|\bmedical assistance\b|husky health|med-quest|healthnet|soonercare/i.test(name);
 }
 
 /** Parse a bare minimum age out of the draft's own ageRequirement ("65+",
@@ -201,7 +236,11 @@ export function evaluateProgramForFamily(
   const gatedName = medicaidGatedName(program.name);
   const gated = gatedName || sbf?.requires_medicaid === true;
 
-  if (facts.medicaidStatus === "doesNotHave" && gatedName) {
+  // A denial leaves the family without Medicaid just as surely as never having
+  // applied, so a program that genuinely requires it is out of reach either
+  // way. What differs between the two is the letter, not the program.
+  const noMedicaid = facts.medicaidStatus === "doesNotHave" || facts.medicaidStatus === "denied";
+  if (noMedicaid && gatedName) {
     return { ruledOut: true, reason: "Needs Medicaid first", boost: 0 };
   }
   if (sbf?.requires_veteran === true && facts.veteranStatus === "no") {

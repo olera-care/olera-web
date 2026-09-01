@@ -41,6 +41,7 @@ interface ProviderBroadcast {
   claimed: boolean;
   claimed_at: string | null;
   is_conversion: boolean;
+  stage: "broadcast_ready" | "not_interested" | "archived";
 }
 
 interface CityGroup {
@@ -77,6 +78,7 @@ interface Payload {
   filters: {
     days: number;
     status: string;
+    done_sub: string | null;
     city: string;
     search: string;
   };
@@ -298,6 +300,52 @@ function ProviderRow({
         ? "Profile"
         : null;
 
+  // Determine if actions are available (only for broadcast_ready providers who haven't claimed)
+  const showActions = provider.stage === "broadcast_ready" && !provider.claimed;
+
+  // Status badge based on stage and claim status
+  const renderStatus = () => {
+    // Terminal states
+    if (provider.stage === "not_interested") {
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-red-100 px-2 py-0.5 text-[10px] font-semibold text-red-700">
+          Not Interested
+        </span>
+      );
+    }
+    if (provider.stage === "archived") {
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-semibold text-gray-600">
+          Archived
+        </span>
+      );
+    }
+
+    // broadcast_ready stage - show conversion/claimed/waiting
+    if (provider.is_conversion) {
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">
+          Converted
+        </span>
+      );
+    }
+    if (provider.claimed) {
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600">
+          Claimed
+        </span>
+      );
+    }
+    if (provider.broadcasts_received > 0) {
+      return (
+        <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+          Waiting
+        </span>
+      );
+    }
+    return <span className="text-sm text-gray-400">-</span>;
+  };
+
   return (
     <tr className="border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
       <td className="px-4 py-2.5">
@@ -327,24 +375,14 @@ function ProviderRow({
         )}
       </td>
       <td className="px-4 py-2.5 text-center">
-        {provider.is_conversion ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-[10px] font-semibold text-green-700">
-            Converted
-          </span>
-        ) : provider.claimed ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-600">
-            Claimed
-          </span>
-        ) : provider.broadcasts_received > 0 ? (
-          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
-            Waiting
-          </span>
-        ) : (
-          <span className="text-sm text-gray-400">-</span>
-        )}
+        {renderStatus()}
       </td>
       <td className="px-4 py-2.5 text-center">
-        <ActionsDropdown provider={provider} onAction={onAction} />
+        {showActions ? (
+          <ActionsDropdown provider={provider} onAction={onAction} />
+        ) : (
+          <span className="text-gray-300">-</span>
+        )}
       </td>
     </tr>
   );
@@ -493,7 +531,7 @@ export default function CityBroadcastsPage() {
           .find((p) => p.provider_id === provider.provider_id);
 
         // Calculate new stats
-        const newSent = removedProvider?.broadcasts_received ? prev.stats.sent - 1 : prev.stats.sent;
+        const newSent = (removedProvider?.broadcasts_received ?? 0) > 0 ? prev.stats.sent - 1 : prev.stats.sent;
         const newConversions = removedProvider?.is_conversion ? prev.stats.conversions - 1 : prev.stats.conversions;
         const newConversion = newSent > 0 ? Math.round((newConversions / newSent) * 1000) / 10 : 0;
 
@@ -547,6 +585,7 @@ export default function CityBroadcastsPage() {
 
   const days = parseInt(searchParams.get("days") || "7", 10);
   const status = searchParams.get("status") || "all";
+  const doneSub = searchParams.get("done_sub") || "claimed";
 
   // Sync URL when debounced values change
   useEffect(() => {
@@ -588,6 +627,7 @@ export default function CityBroadcastsPage() {
       const params = new URLSearchParams();
       params.set("days", String(days));
       if (status !== "all") params.set("status", status);
+      if (status === "done") params.set("done_sub", doneSub);
       if (debouncedCity) params.set("city", debouncedCity);
       if (debouncedSearch) params.set("search", debouncedSearch);
 
@@ -604,7 +644,7 @@ export default function CityBroadcastsPage() {
     } finally {
       setLoading(false);
     }
-  }, [days, status, debouncedCity, debouncedSearch]);
+  }, [days, status, doneSub, debouncedCity, debouncedSearch]);
 
   useEffect(() => {
     void load();
@@ -680,21 +720,35 @@ export default function CityBroadcastsPage() {
               ))}
             </div>
 
-            {/* Status filter */}
+            {/* Status filter - main tabs */}
             <div className="flex gap-1.5">
               {[
-                { value: "all", label: "All" },
+                { value: "all", label: "Pool" },
                 { value: "sent", label: "Sent" },
                 { value: "waiting", label: "Waiting" },
-                { value: "claimed", label: "Claimed" },
+                { value: "done", label: "Done" },
               ].map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() => updateFilter("status", opt.value === "all" ? "" : opt.value)}
+                  onClick={() => {
+                    const params = new URLSearchParams(searchParams.toString());
+                    if (opt.value === "all") {
+                      params.delete("status");
+                      params.delete("done_sub");
+                    } else {
+                      params.set("status", opt.value);
+                      if (opt.value === "done") {
+                        params.set("done_sub", "claimed");
+                      } else {
+                        params.delete("done_sub");
+                      }
+                    }
+                    router.push(`/admin/city-broadcasts?${params.toString()}`);
+                  }}
                   className={`rounded-full px-3 py-1 text-[11px] font-semibold transition-colors ${
                     status === opt.value || (status === "all" && opt.value === "all")
-                      ? opt.value === "claimed"
+                      ? opt.value === "done"
                         ? "bg-green-600 text-white"
                         : opt.value === "sent"
                           ? "bg-blue-600 text-white"
@@ -708,6 +762,38 @@ export default function CityBroadcastsPage() {
                 </button>
               ))}
             </div>
+
+            {/* Done sub-filter - only shown when status=done */}
+            {status === "done" && (
+              <div className="flex gap-1 border-l border-gray-300 pl-3">
+                {[
+                  { value: "claimed", label: "Claimed" },
+                  { value: "not_interested", label: "Not Interested" },
+                  { value: "archived", label: "Archived" },
+                ].map((opt) => (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => {
+                      const params = new URLSearchParams(searchParams.toString());
+                      params.set("done_sub", opt.value);
+                      router.push(`/admin/city-broadcasts?${params.toString()}`);
+                    }}
+                    className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold transition-colors ${
+                      doneSub === opt.value
+                        ? opt.value === "claimed"
+                          ? "bg-green-100 text-green-700"
+                          : opt.value === "not_interested"
+                            ? "bg-red-100 text-red-700"
+                            : "bg-gray-200 text-gray-700"
+                        : "text-gray-500 hover:bg-gray-100"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Search */}
             <input

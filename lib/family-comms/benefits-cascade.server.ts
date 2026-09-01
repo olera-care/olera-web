@@ -591,7 +591,8 @@ export function benefitsSituationLine(profileMeta: Record<string, any> | null | 
   if (typeof meta.age === "number" && meta.age > 0) parts.push(`age ${meta.age}`);
   const medicaid = meta.medicaid_status as string | undefined;
   if (medicaid === "alreadyHas") parts.push("on Medicaid");
-  else if (medicaid === "doesNotHave") parts.push("not on Medicaid");
+  else if (medicaid === "doesNotHave") parts.push("not on Medicaid, has not applied");
+  else if (medicaid === "denied") parts.push("applied for Medicaid and was denied");
   else if (medicaid === "applying") parts.push("applying for Medicaid");
   else if (medicaid === "notSure") parts.push("Medicaid: not sure");
   const incomeLabels: Record<string, string> = {

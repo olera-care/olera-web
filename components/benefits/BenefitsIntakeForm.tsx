@@ -197,6 +197,8 @@ export default function BenefitsIntakeForm() {
         "not_sure": "notSure",
         "does_not_have": "doesNotHave",
         "no_medicaid": "doesNotHave",
+        "denied": "denied",
+        "was_denied": "denied",
       };
       const mapped = medicaidMap[meta.medicaid_status];
       if (mapped) {

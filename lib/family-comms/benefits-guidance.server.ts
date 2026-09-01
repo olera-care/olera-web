@@ -77,7 +77,7 @@ export interface FamilyBenefitsFacts {
   /** Self-sorted path from metadata.financial_path (the orientation fact). */
   financialPath: FinancialPath | null;
   /** From metadata.medicaid_status or inferred from payment_methods. */
-  medicaidStatus: "alreadyHas" | "applying" | "notSure" | "doesNotHave" | null;
+  medicaidStatus: "alreadyHas" | "applying" | "notSure" | "doesNotHave" | "denied" | null;
   /** From metadata.veteran_status or inferred from payment_methods. */
   veteranStatus: "yes" | "no" | null;
   age: number | null;
@@ -320,7 +320,7 @@ export async function getProgramsForFamily(
 
     // Hard exclusions only on facts we actually hold.
     if (p.requires_veteran === true && facts.veteranStatus === "no") continue;
-    if (p.requires_medicaid && facts.medicaidStatus === "doesNotHave") continue;
+    if (p.requires_medicaid && (facts.medicaidStatus === "doesNotHave" || facts.medicaidStatus === "denied")) continue;
     if (p.min_age != null && facts.age != null && facts.age < p.min_age) continue;
     // Income: exclude only when the band's FLOOR clears the program limit —
     // a held fact, not a guess (Phase 3 real-situation capture). Suppressed
@@ -444,7 +444,8 @@ export function pickQuizQuestion(facts: FamilyBenefitsFacts): QuizAsk | null {
       chips: [
         { label: "Yes, already have it", answer: "alreadyHas" },
         { label: "Applying / not sure", answer: "notSure" },
-        { label: "No", answer: "doesNotHave" },
+        { label: "No, haven't applied", answer: "doesNotHave" },
+        { label: "Applied, was turned down", answer: "denied" },
       ],
     };
   }

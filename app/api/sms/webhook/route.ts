@@ -4,7 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { normalizeUSPhone } from "@/lib/twilio";
 import { smsHelpReply, familyAnswerAckSms } from "@/lib/sms/templates";
 import { detectCrisis, crisisLabel, type CrisisResult } from "@/lib/sms/crisis";
-import { isCourtesyOnlyReply } from "@/lib/sms/inbound-intent";
+import { isCourtesyOnlyReply, matchOutcomeReply } from "@/lib/sms/inbound-intent";
 import { sendReactiveFamilyAlert } from "@/lib/sms/reactive-alerts";
 import { captureOutcome, outcomeFromKeyword } from "@/lib/family-answers/outcome.server";
 import { interpretBenefitsSmsReply } from "@/lib/family-comms/benefits-sms-replies.server";
@@ -398,6 +398,10 @@ export async function POST(request: NextRequest) {
   const normalizedFrom = normalizeUSPhone(from) ?? from;
   const keyword = (params.Body || "").trim().toUpperCase().replace(/[^A-Z]/g, "");
   const messageBody = (params.Body || "").trim();
+  // The outcome vocabulary is read word by word, not from the collapsed token
+  // above. "No Stuck" collapses to NOSTUCK and matches nothing; read as words
+  // it is a negator against a keyword, which is a human's call, not a guess.
+  const outcome = matchOutcomeReply(messageBody);
   // High-confidence conversational close. Crisis wins even if a message also
   // contains thanks ("thank you, but I want to die" must never be dismissed).
   const courtesyOnly =
@@ -465,10 +469,10 @@ export async function POST(request: NextRequest) {
     //
     // Deliberately AFTER the opt-out/opt-in branches above: "YES" is a TCPA
     // opt-in keyword and must never be read as an outcome instead.
-    if (messageBody && outcomeFromKeyword(keyword)) {
-      const captured = await captureOutcome(last10(normalizedFrom) ?? "", keyword, messageBody);
+    if (messageBody && outcome.keyword && outcomeFromKeyword(outcome.keyword)) {
+      const captured = await captureOutcome(last10(normalizedFrom) ?? "", outcome.keyword, messageBody);
       if (captured.recorded) {
-        await recordInbound(normalizedFrom, messageBody, keyword);
+        await recordInbound(normalizedFrom, messageBody, outcome.keyword);
         if (captured.needsHuman) {
           try {
             const { sendSlackAlert } = await import("@/lib/slack");
@@ -495,7 +499,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (messageBody) {
-      const recorded = await recordInbound(normalizedFrom, messageBody, keyword, true);
+      // outcome.keyword, not the collapsed token: a sentence normalizes to junk
+      // ("I can't find the form" -> ICANTFINDTHEFORM) and must never reach
+      // interpretBenefitsSmsReply as though it were a recognized reply.
+      const recorded = await recordInbound(normalizedFrom, messageBody, outcome.keyword, true);
       if (recorded.structured) return twiml(recorded.response);
       // recordInbound's Slack ping requires a family match. Everyone else —
       // providers, unknown numbers — needs a human told about them here.

@@ -3,7 +3,7 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 import { getAllProgramIds, getEnrichedProgram, getStateSlug } from "@/lib/program-data";
 import { detectCrisis } from "@/lib/sms/crisis";
-import { familyAnswerCategoryNeedsDraft } from "@/lib/sms/inbound-intent";
+import { familyAnswerCategoryNeedsDraft, matchOutcomeReply } from "@/lib/sms/inbound-intent";
 import { assembleFamilyFacts, renderFactsForPrompt, stateFromFacts } from "./context.server";
 import {
   MAX_REPLY_CHARS,
@@ -701,7 +701,13 @@ export async function buildAnswerPacket(args: {
   // The webhook catches obvious courtesy-only messages synchronously, but the
   // model is the broader backstop. A "thanks" or unrelated text needs neither
   // four more model calls nor a draft for a human to dismiss.
-  if (!familyAnswerCategoryNeedsDraft(triageResult.category)) {
+  // An outcome reply we could not read is the one short message that must
+  // never be triaged away. It answers a question WE asked, so the family is
+  // waiting on the other side of it, and a two-word reply is exactly what a
+  // model classifies as "thanks" or "unrelated". "No Stuck" was skipped this
+  // way on 2026-08-31 and produced no draft for anyone to act on.
+  const ambiguousOutcome = matchOutcomeReply(args.inbound).ambiguous;
+  if (!ambiguousOutcome && !familyAnswerCategoryNeedsDraft(triageResult.category)) {
     return { ...base, errors: errors.length ? errors : undefined };
   }
 

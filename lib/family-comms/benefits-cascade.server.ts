@@ -399,6 +399,32 @@ export async function selectFirstStepProgram(
 ): Promise<FirstStepPick | null> {
   const excluded = new Set(opts.exclude || []);
 
+  /**
+   * draftFor, with the exclusion re-checked on the far side of the id bridge.
+   *
+   * Every `excluded.has(...)` guard below tests the identifier we were HANDED —
+   * a saved row's program_id, the entry program, a startHere id. But draftFor
+   * falls through to findPipelineDraftFor, which maps waiver-library ids onto
+   * the same pipeline draft. A family holding both forms of one program (they
+   * accumulate: "low-income-home-energy-assistance-program-liheap" and
+   * "liheap-energy-assistance" are the same thing) passes the pre-bridge guard
+   * on the form that is not excluded, and toPick then returns draft.id — the
+   * excluded program.
+   *
+   * That made recompose hand back the exact program the packet ruled out, with
+   * no error, which is the worst outcome for that button: the operator is told
+   * it worked. Found 2026-09-01 in a batch of 51, where 3 recomposed to
+   * themselves — including a Kentucky family whose packet said the program
+   * requires Medicaid and the family had stated they do not have it.
+   *
+   * The pre-bridge guards stay: they are cheap and they short-circuit earlier.
+   */
+  const draftForUnexcluded = (stateAbbrev: string, programId: string): PipelineDraft | null => {
+    const draft = draftFor(stateAbbrev, programId);
+    if (!draft) return null;
+    return excluded.has(draft.id) ? null : draft;
+  };
+
   // Eligibility screen (conservative: unknown facts and unjoined programs
   // always pass). sbf rows load once, only when there are facts to apply.
   const facts = opts.facts && hasEligibilityFacts(opts.facts) ? opts.facts : null;
@@ -445,7 +471,7 @@ export async function selectFirstStepProgram(
   // their own stated facts rule out, which is the exact failure this system
   // exists to prevent.
   if (opts.pin?.programId && opts.pin.stateId && opts.stateAbbrev && !excluded.has(opts.pin.programId)) {
-    const pinnedDraft = draftFor(opts.stateAbbrev, opts.pin.programId);
+    const pinnedDraft = draftForUnexcluded(opts.stateAbbrev, opts.pin.programId);
     if (pinnedDraft && !(opts.pinScreened && screen(pinnedDraft, opts.pin.stateId).ruledOut)) {
       const pinned = toPick(pinnedDraft, opts.stateAbbrev, opts.pin.stateId, "saved");
       if (pinned) return pinned;
@@ -463,7 +489,7 @@ export async function selectFirstStepProgram(
   const entry = parseEntrySourceProgram(account.signup_source);
   if (entry && !excluded.has(entry.programId)) {
     const abbrev = getStateAbbrev(entry.stateId);
-    const draft = draftFor(abbrev, entry.programId);
+    const draft = draftForUnexcluded(abbrev, entry.programId);
     if (draft && !screen(draft, entry.stateId).ruledOut) {
       const pick = toPick(draft, abbrev, entry.stateId, "entry");
       if (pick) return pick;
@@ -507,7 +533,7 @@ export async function selectFirstStepProgram(
     // as the fallback and returns a real ND program, so removing foreign states
     // here routes there instead of misdirecting.
     if (ownAbbrev && abbrev.toUpperCase() !== ownAbbrev) return;
-    const draft = draftFor(abbrev, row.program_id);
+    const draft = draftForUnexcluded(abbrev, row.program_id);
     if (!draft) return;
     const verdict = screen(draft, row.state_id);
     if (verdict.ruledOut) return;
@@ -540,7 +566,7 @@ export async function selectFirstStepProgram(
     if (stateId) {
       for (const s of startHere) {
         if (excluded.has(s.programId)) continue;
-        const draft = draftFor(abbrev, s.programId);
+        const draft = draftForUnexcluded(abbrev, s.programId);
         if (!draft) continue;
         if (screen(draft, stateId).ruledOut) continue;
         const pick = toPick(draft, abbrev, stateId, "state");

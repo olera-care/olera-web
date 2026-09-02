@@ -117,11 +117,11 @@ def ecosystem():
     # the loop that makes the pathway compound
     b.append(f'<path d="M{16 + sw_*6.5} {y+4} v9 H{16 + sw_*0.5} v-9" fill="none" '
              f'stroke="{GREEN}" stroke-width="1.4" marker-end="url(#sag)"/>')
-    b.append(_t(W / 2, y + 25, "each executed case teaches the next: programs, capacity, "
-                "barriers, and what established care", S, GREEN, weight="bold"))
+    b.append(_t(W / 2, y + 25, "each completed case informs the next: programs, capacity, "
+                "barriers, and outcomes", S, GREEN, weight="bold"))
     H = y + 43
-    b.append(_t(16, H, "Dashed: the end-to-end system the first generation is being built "
-                "toward. Solid: running or in build today.", S, GREY, anchor="start",
+    b.append(_t(16, H, "Dashed: the end-to-end system being built toward. "
+                "Solid: running or in build today.", S, GREY, anchor="start",
                 style="italic"))
     H += 6
     return _wrap(W / 100, (H + 6) / 100, "".join(b))

@@ -88,6 +88,16 @@ pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
 pf.space_after = Pt(3); pf.space_before = Pt(0)
 pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
 
+def exact(p, pts):
+    """Pin a paragraph's line box to the PDF's computed line height.
+
+    Word's SINGLE rule is a font-metric height, roughly 1.15 em, while the PDF
+    uses an explicit line-height. Left alone the two drift about half a point a
+    line, which is enough to move a page break by the end of a section."""
+    pf = p.paragraph_format
+    pf.line_spacing_rule = WD_LINE_SPACING.EXACTLY
+    pf.line_spacing = Pt(pts)
+
 def border(p, edge='bottom', sz=10, color='000000'):
     pPr = p.paragraph_format.element.get_or_add_pPr()
     bdr = OxmlElement('w:pBdr'); e = OxmlElement('w:' + edge)
@@ -187,12 +197,17 @@ def add_figure(img, w, cap, floated=False):
     if not floated:
         pi = doc.add_paragraph()
         pi.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        pi.paragraph_format.space_before = Pt(6); pi.paragraph_format.space_after = Pt(2)
+        # LibreOffice adds about 10pt of font leading under an inline image and
+        # ignores an EXACTLY line height on the line that holds it. The block's
+        # own spacing is zeroed to give that back, so the figure occupies the
+        # same height here as in the PDF.
+        pi.paragraph_format.space_before = Pt(0); pi.paragraph_format.space_after = Pt(0)
         pi.paragraph_format.keep_with_next = True
         pi.add_run().add_picture(img, width=Inches(w))
         pc = doc.add_paragraph()
         pc.alignment = WD_ALIGN_PARAGRAPH.LEFT
-        pc.paragraph_format.space_after = Pt(6)
+        pc.paragraph_format.space_after = Pt(1)
+        exact(pc, 10.44)
         add_runs(pc, cap, size=9)
         return
     t = doc.add_table(rows=1, cols=1); t.autofit = False
@@ -243,8 +258,9 @@ def build_table(thtml, keep=False, plain=False):
             cell = tbl.cell(ri, ci); cell.text = ''
             par = cell.paragraphs[0]
             par.alignment = WD_ALIGN_PARAGRAPH.LEFT
-            par.paragraph_format.space_before = Pt(1.5)
-            par.paragraph_format.space_after = Pt(1.5)
+            par.paragraph_format.space_before = Pt(1)
+            par.paragraph_format.space_after = Pt(1)
+            exact(par, 10.44)
             # matches the PDF's `table.dat td b { color: #14453f }`: the bold
             # lead-in is teal, the prose after it stays black
             segments = re.split(r'<br\s*/?>', content, flags=re.I)
@@ -254,6 +270,7 @@ def build_table(thtml, keep=False, plain=False):
                     target.alignment = WD_ALIGN_PARAGRAPH.LEFT
                     target.paragraph_format.space_before = Pt(0)
                     target.paragraph_format.space_after = Pt(1.5)
+                    exact(target, 10.44)
                 bb = is_head or (ci == 0 and content.lstrip().startswith('<b>'))
                 add_runs(target, seg, size=9, color=TEAL if is_head else None,
                          base_bold=bb, bold_color=None if is_head else TEAL)
@@ -346,6 +363,7 @@ while i < len(blocks):
             p.paragraph_format.left_indent = Inches(0.26)
             p.paragraph_format.first_line_indent = Inches(-0.16)
             p.paragraph_format.space_after = Pt(3)
+            exact(p, 13.2)
             r = p.add_run('\u2022  '); r.font.color.rgb = TEAL; r.bold = True
             add_runs(p, li)
 
@@ -364,6 +382,7 @@ while i < len(blocks):
             p.paragraph_format.first_line_indent = Inches(-0.20 if wkt else -0.24)
             p.paragraph_format.space_after = Pt(1 if wkt else 2)
             p.paragraph_format.space_before = Pt(0)
+            exact(p, 12 if (wkt or qs) else 13.2)
             if wkt:
                 # the whole week block stays together, milestone included
                 p.paragraph_format.keep_with_next = True
@@ -395,6 +414,7 @@ while i < len(blocks):
             p.paragraph_format.space_before = Pt(8.5)
             p.paragraph_format.space_after = Pt(0)
             p.paragraph_format.keep_with_next = True
+            exact(p, 12)
             add_runs(p, txt, size=10, color=GREY if q else None,
                      bold_color=GREY if q else TEAL)
         elif 'wkj' in cls:
@@ -402,22 +422,26 @@ while i < len(blocks):
             p.paragraph_format.space_before = Pt(0)
             p.paragraph_format.space_after = Pt(1)
             p.paragraph_format.keep_with_next = True
+            exact(p, 12)
             add_runs(p, txt, size=10, color=GREY if q else TEAL, base_ital=True)
         elif 'wko' in cls:
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
             p.paragraph_format.space_before = Pt(0)
             p.paragraph_format.space_after = Pt(4)
+            exact(p, 10.8)
             add_runs(p, txt, size=9, color=GREY)
             if p.runs: p.runs[0].font.color.rgb = TEAL
         elif 'note' in cls:
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
             p.paragraph_format.space_before = Pt(5)
             p.paragraph_format.space_after = Pt(3)
+            exact(p, 11.4)
             add_runs(p, txt, size=9.5, color=GREY)
             if p.runs: p.runs[0].font.color.rgb = TEAL
         elif 'lede' in cls:
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
             p.paragraph_format.space_after = Pt(9)
+            exact(p, 12)
             add_runs(p, txt, size=10, color=RGBColor(0x5F, 0x6B, 0x64))
         elif 'aim' in cls:
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
@@ -438,11 +462,18 @@ while i < len(blocks):
         elif 'caption' in cls:
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
             p.paragraph_format.space_after = Pt(6)
+            exact(p, 10.44)
             add_runs(p, txt, size=9)
         else:
             p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-            p.paragraph_format.space_before = Pt(8 if 'sec' in cls and 'first-sec' not in cls else 0)
+            p.paragraph_format.space_before = Pt(5 if 'sec' in cls and 'first-sec' not in cls else 0)
             p.paragraph_format.space_after = Pt(3)
+            exact(p, 13.2)
+            # Word and the print renderer round a justified line differently, so a
+            # paragraph can wrap to one more line here than there. With widow
+            # control on, that one line drags two more onto the next page and the
+            # two exports fall out of step; off, each page simply fills.
+            p.paragraph_format.widow_control = False
             add_runs(p, txt)
     i += 1
 

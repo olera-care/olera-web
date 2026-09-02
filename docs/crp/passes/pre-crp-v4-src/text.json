@@ -265,43 +265,43 @@
    [
     "Commercial execution",
     "Reviewers need evidence that the team can sell and deliver.",
-    "Paying provider customers; repeat purchasing; documented revenue/unit economics.",
+    "Paying customers, repeat purchasing, documented revenue and unit economics.",
     "Broader provider base and stronger recurring revenue.",
-    "Olera has demonstrated commercial execution with paying customers and repeat value."
+    "Olera can sell, deliver, and retain paying customers."
    ],
    [
     "Provider network",
     "CareNavigator depends on responsive, accurate provider infrastructure.",
-    "Active providers with updated records and meaningful engagement.",
+    "Active providers with current records and measurable engagement.",
     "Larger, deeper, geographically concentrated network.",
-    "Olera has built and activated a responsive provider substrate supporting navigation."
+    "Olera has activated a responsive provider network that navigation can rely on."
    ],
    [
     "CareNavigator product",
-    "The CRP should begin with a late-stage product, not an early prototype.",
+    "The CRP should begin with a late-stage product, not a prototype.",
     "First-generation end-to-end system; execution agents; safety controls; tracking.",
-    "Full intended first-generation feature set with V&V complete.",
-    "The first-generation CareNavigator exists and has been technically validated for late-stage development."
+    "Full first-generation feature set with V&V complete.",
+    "The first-generation CareNavigator exists and is validated for late-stage development."
    ],
    [
     "Phase IIB evidence",
-    "Reduces technical and feasibility uncertainty, and is the only pre-CRP chance to observe the endpoint the CRP is built on.",
-    "~n=200 study complete or substantially complete with interpretable usability/feasibility evidence, and a count of episodes reaching verified established care.",
-    "Care-establishment rate and time to establishment across enough episodes to be worth reporting.",
-    "Phase IIB provides direct feasibility and usability evidence and a first observed measure of care establishment, supporting CRP advancement."
+    "The only pre-CRP chance to observe the endpoint the CRP is built on.",
+    "~n=200 study complete or nearly so, with usability and feasibility evidence and a count of episodes reaching verified established care.",
+    "Care-establishment rate and time to establishment, across enough episodes to report.",
+    "Phase IIB gives direct feasibility evidence and a first observed measure of care establishment."
    ],
    [
     "Institutional buyers",
-    "Interviews are market research. Only a written, conditional commitment is market pull, and it is what the third Statement of Need question turns on.",
-    "At least one written, milestone-conditional letter from a risk-bearing organization naming the population, the endpoint, the POC size, and the budget it would come from, with convergent interviews behind it.",
-    "More than one such letter, or one that names a price.",
-    "A risk-bearing buyer has stated in writing what it would take to purchase, and under what conditions it would fund a proof of concept."
+    "Interviews are market research. Only a written commitment is market pull, and the third Statement of Need question turns on it.",
+    "One written, milestone-conditional letter from a risk-bearing organization naming population, endpoint, POC size, and budget, with convergent interviews behind it.",
+    "A first paid CareNavigator engagement of any size. Failing that, a second letter, or one that names a price.",
+    "A risk-bearing buyer has stated in writing what it would take to purchase."
    ],
    [
     "Independent financing",
-    "The Fundraising criterion asks whether Olera can secure independent third-party funds equal to or exceeding the NIH request, currently about $4 million. Investor engagement alone does not meet that test.",
-    "Documented third-party interest at or above $4 million, in the forms the NOFO accepts: letters of commitment, letters of intent, or evidence of negotiations.",
-    "A term sheet or signed conditional commitment contingent on CRP milestones.",
+    "The Fundraising criterion asks for independent third-party funds at or above the NIH request, about $4 million. Engagement alone does not meet that test.",
+    "Documented interest at or above $4 million in a form the NOFO accepts: a letter of commitment, a letter of intent, or evidence of negotiations.",
+    "A term sheet or signed commitment contingent on CRP milestones.",
     "Independent investors have engaged in writing against the full post-CRP requirement, conditional on CRP milestones."
    ]
   ]
@@ -335,19 +335,19 @@
     "2",
     "Sep 7-11",
     "Package the offers",
-    "Finalize Client Growth and Staffing offers, pricing, terms, delivery workflow, and target agency list; define what will be measured; instrument provider acquisition so every paying provider records how it reached Olera."
+    "Finalize Client Growth and Staffing offers, pricing, terms, delivery workflow, and target agency list; define what will be measured; instrument provider acquisition so every paying provider records how it reached Olera; finish the institutional-buyer hypothesis and interview guide, which Nashville needs next week; book Nashville meetings."
    ],
    [
     "3",
     "Sep 14-18",
-    "Start selling; start buyer discovery",
-    "Launch concentrated provider outreach; finish institutional-buyer hypothesis/interview guide; book first MA/ACO conversations; draft the letter of intent buyers will eventually be asked to sign."
+    "Start selling; work Nashville",
+    "Launch concentrated provider outreach; work Nashville Healthcare Sessions, September 13 to 15, for agency prospects and first buyer introductions; book first MA/ACO conversations; draft the letter of intent buyers will eventually be asked to sign."
    ],
    [
     "4",
     "Sep 21-25",
     "Lock the pre-CRP product plan",
-    "Freeze first-generation CareNavigator requirements and V&V plan; add care-establishment verification to the study instrumentation so episodes reaching established care can be counted; continue sales; conduct first buyer interviews."
+    "Follow up every Nashville conversation within five days; freeze first-generation CareNavigator requirements and V&V plan; add care-establishment verification to the study instrumentation so episodes reaching established care can be counted; continue sales; conduct first buyer interviews."
    ],
    [
     "5",
@@ -376,44 +376,44 @@
    [
     "9",
     "Oct 26-30",
-    "Month 2 review",
-    "Review traction, CareNavigator development, study progress, buyer discovery, and financing against target/stretch scorecard; decide whether the letter and financing rows are on track or need a different approach."
+    "Month 2 review; book HLTH",
+    "Review traction, CareNavigator development, study progress, buyer discovery, and financing against target/stretch scorecard; decide whether the letter and financing rows are on track or need a different approach; book HLTH meetings with buyers and investors."
    ],
    [
     "10",
     "Nov 2-6",
-    "Use conferences strategically",
-    "Meet targeted investors/buyers; test thesis; capture objections and required evidence; ask for written milestone-conditional interest rather than endorsement; continue sales and V&V."
+    "Prepare the HLTH ask",
+    "Assemble the evidence pack: traction, product state, study progress; finalize the letter of intent and the $4 million financing ask so both are ready to hand over; continue sales and V&V."
    ],
    [
     "11",
     "Nov 9-13",
-    "Convert conversations into commitments",
-    "Follow up within five days; move buyers toward a signed letter of intent; move investors toward documented interest at or above $4 million; record what each declined and why."
+    "Draft the application; lock the HLTH schedule",
+    "Draft Research Strategy and Commercialization Plan from the evidence to date, so HLTH is pitched from a written thesis rather than an improvised one; state the proportionality answer explicitly, why $4 million against the modeled run rate; confirm every HLTH meeting and what each one is being asked for."
    ],
    [
     "12",
     "Nov 16-20",
-    "Draft the application",
-    "Draft Research Strategy and Commercialization Plan from the now-better-supported thesis; state the proportionality answer explicitly, why $4 million against the modeled run rate; identify remaining evidence gaps."
+    "HLTH",
+    "Buyer and investor meetings against the prepared ask; ask for written milestone-conditional interest rather than endorsement; where a buyer raises a small paid pilot, pursue it ahead of the letter; capture objections and the evidence each one would need."
    ],
    [
     "13",
     "Nov 23-27",
-    "Hold the line",
-    "Maintain sales, study execution, buyer follow-up, and evidence capture through the holiday week."
+    "Hold the line; follow up HLTH",
+    "Follow up every HLTH conversation within five days, which falls inside this week and is the one thing that cannot wait; maintain sales, study execution, and evidence capture through the holiday week; start nothing else new."
    ],
    [
     "14",
     "Nov 30-Dec 4",
-    "Prove traction",
-    "Show retention/repeat purchase; consolidate CareNavigator V&V data and the care-establishment count; update economics and buyer evidence."
+    "Convert HLTH; prove traction",
+    "Move buyers toward a signed letter of intent; move investors toward documented interest at or above $4 million; record what each declined and why; show retention and repeat purchase; consolidate CareNavigator V&V data and the care-establishment count."
    ],
    [
     "15",
     "Dec 7-11",
     "Lock the evidence",
-    "Freeze core traction and study numbers; finalize buyer-informed CRP design; close the outstanding letters of intent and financing letters."
+    "Freeze core traction and study numbers; finalize buyer-informed CRP design; close the outstanding letters of intent and financing letters; execute any paid engagement now rather than in January."
    ],
    [
     "16",

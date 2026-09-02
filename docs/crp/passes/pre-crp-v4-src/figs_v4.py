@@ -21,13 +21,13 @@ BARS = [
     ("Institutional-buyer discovery",            3, 11, STEEL),
     ("Letter of intent pursuit",                 8, 15, AMBER),
     ("Independent financing, $4M test",          6, 15, AMBER),
-    ("Application drafting",                    12, 16, GREY),
+    ("Application drafting",                    11, 16, GREY),
     ("Buffer and submission",                   17, 18, GREY),
 ]
 # week -> (label, is a hard deadline)
 GATES = {1: ("Baseline", False), 5: ("Month 1", False), 9: ("Month 2", False),
          16: ("Complete", True), 18: ("Submit", True)}
-FLAGS = {10: "Conferences"}
+FLAGS = {3: "Nashville", 12: "HLTH"}
 HOLIDAYS = (13, 17)
 MONTHS = [("September", 1, 5), ("October", 6, 9), ("November", 10, 13),
           ("December", 14, 17), ("Jan", 18, 18)]

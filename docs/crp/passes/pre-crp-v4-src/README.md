@@ -66,9 +66,39 @@ Three changes to Table 5:
 
 The eighteen weeks were reflowed to serve those rows: the letter of intent drafted
 in Week 3 and first presented in Week 8, investor conversations opened in Week 6
-rather than left to the award period, the care-establishment count added to the
-study instrumentation in Week 4, and the $4 million proportionality answer written
-into the CP in Week 12.
+rather than left to the award period, and the care-establishment count added to the
+study instrumentation in Week 4.
+
+The institutional-buyer stretch is a first paid CareNavigator engagement of any
+size, above the letters. A contract of any value answers the third Statement of
+Need question in a way a letter cannot, and it repairs the two weakest criteria at
+once, commercialization track record and investigator commercialization
+experience. It is on the scorecard so that a buyer conversation drifting toward
+"we could try something small" is recognised as the most valuable thing available
+rather than a distraction from the letter. Weeks 11 and 15 carry it: pursue it
+ahead of the letter when it comes up, and execute it before the December freeze
+rather than in January.
+
+## The two conferences
+
+Confirmed dates, 2026-09-02, and they moved nine weeks:
+
+- **Nashville Healthcare Sessions, September 13 to 15**, falls in Week 3. The
+  buyer interview guide therefore has to be finished in Week 2 rather than Week 3,
+  and Week 4 opens with the follow-up.
+- **HLTH, the week before Thanksgiving**, falls in Week 12, which had been the
+  drafting week. Drafting moves to Week 11, which is better: HLTH is then pitched
+  from a written thesis rather than an improvised one. Weeks 9 and 10 book and
+  prepare the ask, Week 12 is the conference, and Week 14 converts it.
+- HLTH's five-day follow-up window falls inside Week 13, the Thanksgiving week.
+  That week's job says so explicitly, because it is the one thing in that week
+  that cannot wait.
+- **The J.P. Morgan Healthcare Conference** falls in mid-January, after
+  submission. It appears only in the Figure 2 caption, as a constraint on the
+  calendar rather than an activity in the plan.
+
+The proportionality answer, why $4 million against the modeled run rate, moved
+with the drafting to Week 11.
 
 A fourth Table 5 row, platform coupling, was drafted and then removed at Logan's
 instruction, along with its Gantt bar. Two week entries went with it: Week 14's

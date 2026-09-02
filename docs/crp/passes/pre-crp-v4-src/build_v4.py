@@ -45,7 +45,7 @@ table.dat td b { color: #14453f; }
 table.dat tr { break-inside: avoid; page-break-inside: avoid; }
 table.dat tbody tr:last-child td { border-bottom: 1pt solid #14453f; }
 table.dat tbody tr.here td { background: #eef3f1; }
-table.dat td div.ti { text-indent: -7pt; padding-left: 7pt; margin: 0 0 1.5pt 0; }
+table.dat td div.ti { text-indent: -7pt; padding-left: 7pt; margin: 0 0 1pt 0; }
 table.dat td div.ti:last-child { margin-bottom: 0; }
 table.dat.keep { break-inside: avoid; page-break-inside: avoid; }
 span.tag { font-size: 8pt; font-weight: bold; letter-spacing: 0.6pt; color: #14453f; }
@@ -77,9 +77,12 @@ EDITS = [
 DATERANGE = re.compile(r'\b([A-Z][a-z]{2} \d{1,2})-((?:[A-Z][a-z]{2} )?\d{1,2})\b')
 
 GANTT_CAPTION = (
-    'The same eighteen weeks as a schedule, so the overlaps are visible. The letter '
-    'of intent and the financing test start once there is something to show, and '
-    'both have to close before the evidence freezes in Week 15.')
+    'The same eighteen weeks as a schedule, so the overlaps are visible. The two '
+    'conferences are marked: Nashville in Week 3, before there is much to show, and '
+    'HLTH in Week 12, four weeks before the internal deadline and the last chance to '
+    'ask a room for a letter. The J.P. Morgan Healthcare Conference falls in '
+    'mid-January and is a constraint on the calendar rather than an activity in this '
+    'plan.')
 
 CAPTIONS = [
     'The R&amp;D and commercialization program. What each stage does, what it '
@@ -98,7 +101,7 @@ WIDTHS = [[16, 30, 28, 26],
           [15, 28, 30, 27],
           [11, 55, 34],
           [14, 47, 39],
-          [15, 19, 23, 18, 25],
+          [15, 18, 26, 17, 24],
           [7, 12, 21, 60]]
 KEEP = set()
 

@@ -1,5 +1,10 @@
 # Pre-CRP Commercialization and Execution Plan, house style
 
+> **SUPERSEDED.** Superseded on 2026-09-02 by `../pre-crp-memo-src/`, which combines this
+> memo and the week-by-week plan into one integrated document. Kept for
+> provenance: `orig.docx` and `text.json` are still the only verbatim record
+> of Logan's 1 September draft. The build here no longer ships a deliverable.
+
 Source: `Olera_Pre_CRP_Commercialization_Plan.docx` (Logan, 2026-09-01), kept here
 as `orig.docx`. Four pages, PDF and Word both.
 

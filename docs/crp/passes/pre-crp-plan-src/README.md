@@ -1,5 +1,11 @@
 # Week-by-week plan to CRP submission, house style
 
+> **SUPERSEDED.** Superseded on 2026-09-02 by `../pre-crp-memo-src/`, where the week plan is
+> Section 9 of the integrated memo rather than a separate attachment. The
+> weeks were rewritten there: owners removed, milestones added, and every
+> task tagged with the January risk it retires. Kept for provenance; the
+> build here no longer ships a deliverable.
+
 Attachment to `../../Olera_Pre_CRP_Commercialization_and_Execution_Plan.pdf`.
 Two pages, PDF and Word, both.
 

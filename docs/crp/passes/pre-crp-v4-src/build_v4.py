@@ -8,6 +8,7 @@ governs, all listed in EDITS below. Figure 1 is the author's own image, lifted
 out of the source file into media/.
 """
 import json, os, re
+import figs_v4 as FV
 
 WORD = os.environ.get('WORD_EXPORT') == '1'
 
@@ -73,6 +74,12 @@ EDITS = [
 # the eighteen date spans in the week table, all of the form "Aug 31-Sep 4"
 DATERANGE = re.compile(r'\b([A-Z][a-z]{2} \d{1,2})-((?:[A-Z][a-z]{2} )?\d{1,2})\b')
 
+GANTT_CAPTION = (
+    'The same eighteen weeks as a schedule, so the overlaps are visible. Selling, '
+    'the CareNavigator build, and buyer discovery all run through the autumn; the '
+    'letter of intent and the financing test start once there is something to show '
+    'and have to close before the evidence freezes in Week 15.')
+
 CAPTIONS = [
     'The R&amp;D and commercialization program. What each stage does, what it '
     'produces, and what it hands to the stage after it.',
@@ -121,6 +128,16 @@ def stage_cell(c):
     return '<br>'.join(esc(b) for b in bits) + tag
 
 
+def figure(svg, num, caption):
+    """Vector in the PDF, a 300 dpi raster in the Word export. The width has to
+    end the style attribute, because that is what the docx builder matches on."""
+    if WORD:
+        w = float(re.search(r'width="([\d.]+)in"', svg).group(1))
+        svg = f'<img src="png/fig{num}.png" style="width:{w}in">'
+    return (f'<div class="figblk"><div class="fig">{svg}</div>'
+            f'<p class="caption"><b>Figure {num}.</b> {caption}</p></div>')
+
+
 def table(grid, widths, num, caption, keep=False, cell0=None, hererow=None):
     head, rows = grid[0], grid[1:]
     th = ''.join(f'<th style="width:{w}%">{esc(fix(c))}</th>'
@@ -151,6 +168,8 @@ for b in BLOCKS:
                            keep=tnum in KEEP,
                            cell0=stage_cell if tnum == 1 else None,
                            hererow=1 if tnum == 1 else None))
+        if tnum == 6:
+            parts.append(figure(FV.gantt(), 2, GANTT_CAPTION))
         continue
 
     style = b['style']

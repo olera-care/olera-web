@@ -482,19 +482,13 @@
       ],
       "contacts": [
         {
-          "label": "Washington State DSHS",
-          "phone": "Contact information not specified in available sources",
-          "description": "Main agency for MAC Waiver applications and eligibility",
-          "hours": "Contact hours not specified"
-        },
-        {
-          "label": "American Council on Aging",
-          "phone": "Medicaid Eligibility Test available online",
-          "description": "Pre-screening tool to check potential eligibility before applying",
-          "hours": "Online resource available 24/7"
+          "label": "Community Living Connections",
+          "phone": "1-855-567-0252",
+          "hours": "Mon-Fri business hours"
         }
       ],
       "applicationNotes": [
+        "Washington has paused new enrollment in MAC and put a statewide waitlist in place, and the state has not set a date to reopen it. You can still call. Ask to talk through your options and to be added to the waitlist. Confirm the current status on that call, because this can change.",
         "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "The 60-month Look-Back Rule is strictly enforced, any assets given away or sold below fair market value in the past 5 years will trigger a penalty period and delay eligibility",
         "Your primary home is exempt only if your loved one lives in it, intends to return to it, or their spouse/dependent relative lives in it, otherwise it counts toward the $2,000 asset limit",
@@ -544,11 +538,11 @@
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": null,
+      "phone": "1-855-567-0252",
       "sourceUrl": "https://www.law.cornell.edu/regulations/washington/WAC-182-513-1605",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-02"
     },
     {
       "id": "pace-elderly-care",

@@ -2537,6 +2537,11 @@
       ],
       "contacts": [
         {
+          "label": "Nebraska ADRC (statewide toll-free)",
+          "phone": "(844) 843-6364",
+          "hours": "Mon-Fri business hours"
+        },
+        {
           "label": "Northeast Nebraska AAA",
           "phone": null,
           "description": "ADRC services for northeast Nebraska counties",
@@ -2586,10 +2591,11 @@
         "visualTone": "warm"
       },
       "icon": "Signpost",
-      "phone": "800-252-2412",
+      "phone": "(844) 843-6364",
       "sourceUrl": "https://nebraskalegislature.gov/laws/statutes.php?statute=68-1116",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-02"
     },
     {
       "id": "aabd-cash-medical",

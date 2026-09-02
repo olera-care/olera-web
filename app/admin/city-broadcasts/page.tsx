@@ -194,6 +194,133 @@ function ChevronDown({ className }: { className?: string }) {
   );
 }
 
+// Email Templates Preview Section
+interface EmailTemplate {
+  id: string;
+  name: string;
+  description: string;
+  subject: string;
+  preheader: string;
+  html: string;
+}
+
+function EmailTemplatesSection() {
+  const [expanded, setExpanded] = useState(false);
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
+
+  // Fetch templates when expanded
+  useEffect(() => {
+    if (!expanded || loaded) return;
+
+    let cancelled = false;
+    async function fetchTemplates() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch("/api/admin/city-broadcasts/templates");
+        if (!cancelled) {
+          if (res.ok) {
+            const data = await res.json();
+            setTemplates(data.templates || []);
+            setLoaded(true);
+            // Auto-expand first template
+            if (data.templates?.length > 0) {
+              setActiveTemplate(data.templates[0].id);
+            }
+          } else {
+            setError("Failed to load templates");
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          setError("Network error");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchTemplates();
+    return () => {
+      cancelled = true;
+    };
+  }, [expanded, loaded]);
+
+  return (
+    <div className="mt-6 rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+          <span className="text-sm font-semibold text-gray-700">Email Templates</span>
+          <span className="text-xs text-gray-400">(2 templates)</span>
+        </div>
+        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`} />
+      </button>
+
+      {expanded && (
+        <div className="border-t border-gray-100 p-4">
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <span className="w-5 h-5 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+            </div>
+          ) : error ? (
+            <p className="text-sm text-red-500 py-4">{error}</p>
+          ) : (
+            <div className="space-y-4">
+              {/* Template tabs */}
+              <div className="flex gap-2">
+                {templates.map((template) => (
+                  <button
+                    key={template.id}
+                    onClick={() => setActiveTemplate(template.id)}
+                    className={`px-3 py-1.5 text-xs font-medium rounded-lg transition-colors ${
+                      activeTemplate === template.id
+                        ? "bg-teal-600 text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    {template.name}
+                  </button>
+                ))}
+              </div>
+
+              {/* Active template preview */}
+              {templates.map((template) => (
+                activeTemplate === template.id && (
+                  <div key={template.id}>
+                    <div className="mb-3">
+                      <p className="text-xs text-gray-500 mb-1">{template.description}</p>
+                      <p className="text-sm font-medium text-gray-900">
+                        <span className="text-gray-500">Subject:</span> {template.subject}
+                      </p>
+                    </div>
+                    <div className="border border-gray-200 rounded-lg overflow-hidden">
+                      <iframe
+                        srcDoc={template.html}
+                        className="w-full h-[500px] bg-white"
+                        title={`${template.name} preview`}
+                        sandbox="allow-same-origin"
+                      />
+                    </div>
+                  </div>
+                )
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // Reason options for Not Interested action
 const NOT_INTERESTED_REASONS = [
   { value: "declined_explicitly", label: "Declined explicitly" },
@@ -1877,6 +2004,9 @@ export default function CityBroadcastsPage() {
           )}
         </>
       )}
+
+      {/* Email Templates Preview */}
+      <EmailTemplatesSection />
 
       {/* Filters - always show tabs, conditionally show search/city filter */}
       {(data || excludedData) && (

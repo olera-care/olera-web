@@ -862,6 +862,69 @@ export default function BenefitsFamiliesView() {
             </button>
           );
         })}
+        {unjudged > 0 && (
+          <span className="text-[11px] text-gray-400">
+            {unjudged} not checked yet
+          </span>
+        )}
+          {pendingDraftCount > 0 && (
+            <span className="ml-auto flex items-center gap-2">
+              {typeof exportState === "object" && (
+                <span className="text-[11px] font-medium text-emerald-700">
+                  {exportState.downloaded ? "Downloaded" : "Copied"} {exportState.copied} draft
+                  {exportState.copied === 1 ? "" : "s"} ✓{" "}
+                  {exportState.downloaded ? "open the .md file and paste it" : "paste into your AI of choice"}
+                  {exportState.failed > 0 ? ` (${exportState.failed} failed to load)` : ""}
+                </span>
+              )}
+              {exportState === "error" && (
+                <span className="text-[11px] font-medium text-red-600">
+                  Couldn&apos;t build the export. Try again.
+                </span>
+              )}
+              <button
+                onClick={exportPendingDrafts}
+                disabled={exportState === "working"}
+                title="Copies a fact-check prompt covering every pending draft — paste it into ChatGPT or Perplexity to verify phone numbers, program facts, and pick fit"
+                className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                {exportState === "working" ? "Building…" : `Copy AI review prompt (${pendingDraftCount})`}
+              </button>
+              {typeof batchState === "object" && (
+                <span className="text-[11px] font-medium text-emerald-700">
+                  {batchState.unscheduled ? "Unscheduled" : "Scheduled"} {batchState.ok} guidance send
+                  {batchState.ok === 1 ? "" : "s"} ✓
+                  {batchState.skipped > 0 ? ` (${batchState.skipped} skipped)` : ""}
+                </span>
+              )}
+              {draftReadyCount > 0 && (
+                <button
+                  onClick={openBatchModal}
+                  title="Schedule every draft-ready guidance message for one send time — each goes through the same caps and checks as a hand send"
+                  className="rounded-full bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-800"
+                >
+                  Schedule all ({draftReadyCount})
+                </button>
+              )}
+              {scheduledCount > 0 && (
+                <button
+                  onClick={async () => {
+                    if (!window.confirm(`Cancel all ${scheduledCount} scheduled sends? The drafts stay pending.`)) return;
+                    await runBatch(
+                      "navigator_unschedule_all",
+                      families
+                        .filter((f) => f.navigator?.status === "pending" && f.navigator.scheduledAt)
+                        .map((f) => f.profileId),
+                    );
+                  }}
+                  disabled={batchState === "working"}
+                  className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Unschedule all ({scheduledCount})
+                </button>
+              )}
+            </span>
+          )}
       </div>
 
       {/* Schedule-all confirm modal: every draft-ready letter listed with an

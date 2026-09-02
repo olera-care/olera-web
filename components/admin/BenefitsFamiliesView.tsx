@@ -347,7 +347,7 @@ export default function BenefitsFamiliesView() {
     // still unticked-by-default rather than hidden, because the reviewer
     // overriding this deliberately is legitimate and hiding rows is not.
     const holdBack = new Set(
-      (data?.families ?? [])
+      visibleRows
         .filter((f) => {
           const r = f.navigator?.status === "pending" ? f.navigator.packet?.route : null;
           return r === "ask" || r === "recompose";
@@ -568,34 +568,9 @@ export default function BenefitsFamiliesView() {
   // drafts get their own chip — they're committed, not waiting. The AI-review
   // export still covers BOTH: a scheduled letter hasn't sent yet, so a
   // fact-check catching an error before the fire is exactly the point.
-  // World totals — for the truncation banner only. Never on a control.
+  // World totals — for the truncation banner only, never on a control.
   const worldPending = summary.navigatorPending ?? 0;
   const worldDraftReady = summary.navigatorDraftReady ?? 0;
-  // Route counts come off the packet, so they only cover letters the cron has
-  // judged. A pending draft with no packet yet counts toward none of them,
-  // which is honest: we do not know where it goes until it is judged.
-  // Server-side and uncapped, like the two counts above — a tab strip that
-  // mixes capped and uncapped numbers is unreadable.
-  // Loaded-row counts. The batch actions and the export all iterate `families`,
-  // which caps at the newest 500 completions, so these are what those buttons
-  // can actually reach. The tab counts above are the true totals and are
-  // deliberately different numbers -- a button must state what it will do.
-  const loadedPending = families.filter((f) => f.navigator?.status === "pending").length;
-  const loadedDraftReady = families.filter(
-    (f) => f.navigator?.status === "pending" && !f.navigator.scheduledAt,
-  ).length;
-  const loadedScheduled = loadedPending - loadedDraftReady;
-  // Loaded-row counts drive every control: the tabs (so a tab's number matches
-  // the rows it reveals) and the batch actions (so a button states what it will
-  // actually touch).
-  const routeCounts = families.reduce<Record<string, number>>((acc, f) => {
-    const r = f.navigator?.status === "pending" ? f.navigator.packet?.route : null;
-    if (r) acc[r] = (acc[r] ?? 0) + 1;
-    return acc;
-  }, {});
-  const unjudged = families.filter(
-    (f) => f.navigator?.status === "pending" && !f.navigator.packet,
-  ).length;
 
   /** Redacted review context for the AI fact-check prompt — never carries
    *  the family's name or email (the name is passed only so the builder can
@@ -619,7 +594,7 @@ export default function BenefitsFamiliesView() {
   const exportPendingDrafts = async () => {
     setExportState("working");
     try {
-      const pending = families.filter((f) => f.navigator?.status === "pending");
+      const pending = visibleRows.filter((f) => f.navigator?.status === "pending");
       const results = await Promise.all(
         pending.map(async (f) => {
           try {
@@ -688,6 +663,37 @@ export default function BenefitsFamiliesView() {
   // Two independent axes, ANDed. The queue tab says what to do next; the family
   // filter says who it is for.
   const matchesFilter = (f: FamilyRow) => matchesQueue(f) && matchesLife(f);
+
+  // Two scopes, and they are different on purpose.
+  //
+  // FACET rows pass the family axis only, so a tab count answers "how many of
+  // this queue state are Needs help" once a family filter is on. Switching the
+  // family filter re-counts every tab, which is what a faceted control should do.
+  //
+  // VISIBLE rows pass both axes: exactly the list on screen. Every bulk action
+  // and every button label reads from these, so "Schedule all" means all of what
+  // you are looking at. It did not before -- batchRows filtered on pending and
+  // unscheduled and ignored the filter entirely, which was survivable when the
+  // page opened on All and is not now that it opens on Draft ready with a second
+  // axis available. Narrowing to nine rows and scheduling thirty-two is the kind
+  // of surprise that costs a send.
+  const facetRows = families.filter(matchesLife);
+  const visibleRows = families.filter(matchesFilter);
+
+  const isPending = (f: FamilyRow) => f.navigator?.status === "pending";
+  const tabAll = facetRows.length;
+  const tabDraftReady = facetRows.filter((f) => isPending(f) && !f.navigator!.scheduledAt).length;
+  const tabScheduled = facetRows.filter((f) => isPending(f) && !!f.navigator!.scheduledAt).length;
+  const routeCounts = facetRows.reduce<Record<string, number>>((acc, f) => {
+    const r = isPending(f) ? f.navigator?.packet?.route : null;
+    if (r) acc[r] = (acc[r] ?? 0) + 1;
+    return acc;
+  }, {});
+  const unjudged = facetRows.filter((f) => isPending(f) && !f.navigator?.packet).length;
+
+  const actionPending = visibleRows.filter(isPending).length;
+  const actionDraftReady = visibleRows.filter((f) => isPending(f) && !f.navigator!.scheduledAt).length;
+  const actionScheduled = actionPending - actionDraftReady;
   // Prior-window delta only exists for bounded ranges (null = all time).
   const delta = summary.prevCompletions === null ? null : summary.completions - summary.prevCompletions;
   const priorLabel = data.days ? `prior ${data.days}d` : "prior period";
@@ -829,9 +835,9 @@ export default function BenefitsFamiliesView() {
           ] as [QueueFilter, string][]
         ).map(([key, label]) => {
           const count =
-            key === "all" ? families.length
-            : key === "draft_ready" ? loadedDraftReady
-            : key === "scheduled" ? loadedScheduled
+            key === "all" ? tabAll
+            : key === "draft_ready" ? tabDraftReady
+            : key === "scheduled" ? tabScheduled
             : routeCounts[key.slice("route_".length)] ?? 0;
           const on = filter === key;
           return (
@@ -883,7 +889,7 @@ export default function BenefitsFamiliesView() {
             {unjudged} not checked yet
           </span>
         )}
-          {loadedPending > 0 && (
+          {actionPending > 0 && (
             <span className="ml-auto flex items-center gap-2">
               {typeof exportState === "object" && (
                 <span className="text-[11px] font-medium text-emerald-700">
@@ -904,7 +910,7 @@ export default function BenefitsFamiliesView() {
                 title="Copies a fact-check prompt covering every pending draft — paste it into ChatGPT or Perplexity to verify phone numbers, program facts, and pick fit"
                 className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
               >
-                {exportState === "working" ? "Building…" : `Copy AI review prompt (${loadedPending})`}
+                {exportState === "working" ? "Building…" : `Copy AI review prompt (${actionPending})`}
               </button>
               {typeof batchState === "object" && (
                 <span className="text-[11px] font-medium text-emerald-700">
@@ -913,22 +919,22 @@ export default function BenefitsFamiliesView() {
                   {batchState.skipped > 0 ? ` (${batchState.skipped} skipped)` : ""}
                 </span>
               )}
-              {loadedDraftReady > 0 && (
+              {actionDraftReady > 0 && (
                 <button
                   onClick={openBatchModal}
                   title="Schedule every draft-ready guidance message for one send time — each goes through the same caps and checks as a hand send"
                   className="rounded-full bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-800"
                 >
-                  Schedule all ({loadedDraftReady})
+                  Schedule all ({actionDraftReady})
                 </button>
               )}
-              {loadedScheduled > 0 && (
+              {actionScheduled > 0 && (
                 <button
                   onClick={async () => {
-                    if (!window.confirm(`Cancel all ${loadedScheduled} scheduled sends? The drafts stay pending.`)) return;
+                    if (!window.confirm(`Cancel all ${actionScheduled} scheduled sends? The drafts stay pending.`)) return;
                     await runBatch(
                       "navigator_unschedule_all",
-                      families
+                      visibleRows
                         .filter((f) => f.navigator?.status === "pending" && f.navigator.scheduledAt)
                         .map((f) => f.profileId),
                     );
@@ -936,7 +942,7 @@ export default function BenefitsFamiliesView() {
                   disabled={batchState === "working"}
                   className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                 >
-                  Unschedule all ({loadedScheduled})
+                  Unschedule all ({actionScheduled})
                 </button>
               )}
             </span>
@@ -947,10 +953,10 @@ export default function BenefitsFamiliesView() {
           opt-out — this is where pick-fit-flagged drafts get pulled from the
           batch. Bodies are never touched; each letter sends its saved edits. */}
       {batchOpen && (() => {
-        const batchRows = families.filter(
+        const batchRows = visibleRows.filter(
           (f) => f.navigator?.status === "pending" && !f.navigator.scheduledAt,
         );
-        const includedCount = batchRows.length - batchExcluded.size;
+        const includedCount = batchRows.filter((f) => !batchExcluded.has(f.profileId)).length;
         const toggleExcluded = (id: string) => {
           setBatchExcluded((prev) => {
             const next = new Set(prev);
@@ -1076,15 +1082,14 @@ export default function BenefitsFamiliesView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {families.filter(matchesFilter).length === 0 && (
+                {visibleRows.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-4 py-10 text-center text-sm text-gray-400">
                       No families in this status right now.
                     </td>
                   </tr>
                 )}
-                {families
-                  .filter(matchesFilter)
+                {visibleRows
                   .map((f) => (
                   <Fragment key={f.profileId}>
                   <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => toggleExpand(f.profileId)}>

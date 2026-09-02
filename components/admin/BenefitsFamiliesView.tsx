@@ -568,18 +568,34 @@ export default function BenefitsFamiliesView() {
   // drafts get their own chip — they're committed, not waiting. The AI-review
   // export still covers BOTH: a scheduled letter hasn't sent yet, so a
   // fact-check catching an error before the fire is exactly the point.
-  const draftReadyCount = summary.navigatorDraftReady;
-  const scheduledCount = summary.navigatorScheduled;
-  // The AI-review export deliberately covers scheduled drafts too: a scheduled
-  // letter has not fired yet, so catching an error before it does is the point.
-  const pendingDraftCount = summary.navigatorPending;
+  // World totals — for the truncation banner only. Never on a control.
+  const worldPending = summary.navigatorPending ?? 0;
+  const worldDraftReady = summary.navigatorDraftReady ?? 0;
   // Route counts come off the packet, so they only cover letters the cron has
   // judged. A pending draft with no packet yet counts toward none of them,
   // which is honest: we do not know where it goes until it is judged.
   // Server-side and uncapped, like the two counts above — a tab strip that
   // mixes capped and uncapped numbers is unreadable.
-  const routeCounts = summary.navigatorRoutes ?? {};
-  const unjudged = summary.navigatorUnjudged ?? 0;
+  // Loaded-row counts. The batch actions and the export all iterate `families`,
+  // which caps at the newest 500 completions, so these are what those buttons
+  // can actually reach. The tab counts above are the true totals and are
+  // deliberately different numbers -- a button must state what it will do.
+  const loadedPending = families.filter((f) => f.navigator?.status === "pending").length;
+  const loadedDraftReady = families.filter(
+    (f) => f.navigator?.status === "pending" && !f.navigator.scheduledAt,
+  ).length;
+  const loadedScheduled = loadedPending - loadedDraftReady;
+  // Loaded-row counts drive every control: the tabs (so a tab's number matches
+  // the rows it reveals) and the batch actions (so a button states what it will
+  // actually touch).
+  const routeCounts = families.reduce<Record<string, number>>((acc, f) => {
+    const r = f.navigator?.status === "pending" ? f.navigator.packet?.route : null;
+    if (r) acc[r] = (acc[r] ?? 0) + 1;
+    return acc;
+  }, {});
+  const unjudged = families.filter(
+    (f) => f.navigator?.status === "pending" && !f.navigator.packet,
+  ).length;
 
   /** Redacted review context for the AI fact-check prompt — never carries
    *  the family's name or email (the name is passed only so the builder can
@@ -813,9 +829,9 @@ export default function BenefitsFamiliesView() {
           ] as [QueueFilter, string][]
         ).map(([key, label]) => {
           const count =
-            key === "all" ? summary.uniqueFamilies
-            : key === "draft_ready" ? draftReadyCount
-            : key === "scheduled" ? scheduledCount
+            key === "all" ? families.length
+            : key === "draft_ready" ? loadedDraftReady
+            : key === "scheduled" ? loadedScheduled
             : routeCounts[key.slice("route_".length)] ?? 0;
           const on = filter === key;
           return (
@@ -867,7 +883,7 @@ export default function BenefitsFamiliesView() {
             {unjudged} not checked yet
           </span>
         )}
-          {pendingDraftCount > 0 && (
+          {loadedPending > 0 && (
             <span className="ml-auto flex items-center gap-2">
               {typeof exportState === "object" && (
                 <span className="text-[11px] font-medium text-emerald-700">
@@ -888,7 +904,7 @@ export default function BenefitsFamiliesView() {
                 title="Copies a fact-check prompt covering every pending draft — paste it into ChatGPT or Perplexity to verify phone numbers, program facts, and pick fit"
                 className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
               >
-                {exportState === "working" ? "Building…" : `Copy AI review prompt (${pendingDraftCount})`}
+                {exportState === "working" ? "Building…" : `Copy AI review prompt (${loadedPending})`}
               </button>
               {typeof batchState === "object" && (
                 <span className="text-[11px] font-medium text-emerald-700">
@@ -897,19 +913,19 @@ export default function BenefitsFamiliesView() {
                   {batchState.skipped > 0 ? ` (${batchState.skipped} skipped)` : ""}
                 </span>
               )}
-              {draftReadyCount > 0 && (
+              {loadedDraftReady > 0 && (
                 <button
                   onClick={openBatchModal}
                   title="Schedule every draft-ready guidance message for one send time — each goes through the same caps and checks as a hand send"
                   className="rounded-full bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-800"
                 >
-                  Schedule all ({draftReadyCount})
+                  Schedule all ({loadedDraftReady})
                 </button>
               )}
-              {scheduledCount > 0 && (
+              {loadedScheduled > 0 && (
                 <button
                   onClick={async () => {
-                    if (!window.confirm(`Cancel all ${scheduledCount} scheduled sends? The drafts stay pending.`)) return;
+                    if (!window.confirm(`Cancel all ${loadedScheduled} scheduled sends? The drafts stay pending.`)) return;
                     await runBatch(
                       "navigator_unschedule_all",
                       families
@@ -920,7 +936,7 @@ export default function BenefitsFamiliesView() {
                   disabled={batchState === "working"}
                   className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
                 >
-                  Unschedule all ({scheduledCount})
+                  Unschedule all ({loadedScheduled})
                 </button>
               )}
             </span>
@@ -1038,7 +1054,10 @@ export default function BenefitsFamiliesView() {
       {/* Family queue */}
       {data.truncated && (
         <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
-          Long range: showing the newest 500 completions. The counts above cover the whole range.
+          Long range: showing the newest 500 completions, so every count and button on this
+          page covers the {families.length} families loaded here. Across the whole range there
+          are {worldPending} pending drafts, {worldDraftReady} of them unscheduled — narrow the
+          window to reach the rest.
         </p>
       )}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">

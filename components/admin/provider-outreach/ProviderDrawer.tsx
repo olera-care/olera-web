@@ -2341,8 +2341,8 @@ function EmailSendsSection({ provider }: { provider: OutreachProvider }) {
           ) : (
             <div className="space-y-2 max-h-[400px] overflow-y-auto">
               {emails.map((email) => {
-                const isPreviewOpen = previewId === email.email_log_id;
                 const canPreview = !!email.email_log_id;
+                const isPreviewOpen = canPreview && previewId === email.email_log_id;
 
                 return (
                   <div

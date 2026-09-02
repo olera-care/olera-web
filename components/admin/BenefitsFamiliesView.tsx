@@ -169,7 +169,7 @@ type LifecycleStatus =
   | "new"
   | "in_cascade";
 
-type QueueFilter = LifecycleStatus | "all" | "draft_ready" | "scheduled" | `route_${PacketRoute}`;
+type QueueFilter = "all" | "draft_ready" | "scheduled" | `route_${PacketRoute}`;
 
 const QUEUE_FILTERS: QueueFilter[] = [
   "draft_ready",
@@ -185,12 +185,6 @@ const QUEUE_FILTERS: QueueFilter[] = [
 /** Cold opens land on the queue TJ actually works, not on everything. `?status=`
  *  still wins, so a refresh keeps whatever tab he was on. */
 const DEFAULT_FILTER: QueueFilter = "draft_ready";
-
-function filterFromUrl(): QueueFilter {
-  if (typeof window === "undefined") return DEFAULT_FILTER;
-  const status = new URLSearchParams(window.location.search).get("status");
-  return QUEUE_FILTERS.includes(status as QueueFilter) ? (status as QueueFilter) : DEFAULT_FILTER;
-}
 
 /** Family lifecycle is a SECOND dimension, not another value of the first.
  *  "Draft ready + Needs help" is the queue worth working and it was not
@@ -208,10 +202,32 @@ const LIFE_FILTERS: [LifeFilter, string][] = [
   ["resolved", "Resolved"],
 ];
 
+function filterFromUrl(): QueueFilter {
+  if (typeof window === "undefined") return DEFAULT_FILTER;
+  const status = new URLSearchParams(window.location.search).get("status");
+  if (QUEUE_FILTERS.includes(status as QueueFilter)) return status as QueueFilter;
+  // A pre-split link carried lifecycle here and meant "every family in this
+  // state". Widening the tab to All preserves that breadth; lifeFromUrl picks
+  // the lifecycle up on the other axis.
+  return legacyStatusIsLifecycle() ? "all" : DEFAULT_FILTER;
+}
+
+/** Lifecycle used to be a `?status=` value. A link written before the split
+ *  should still land where its author meant, on the family axis, instead of
+ *  silently resetting to Draft ready with the filter dropped. */
+function legacyStatusIsLifecycle(): LifecycleStatus | null {
+  if (typeof window === "undefined") return null;
+  const status = new URLSearchParams(window.location.search).get("status");
+  if (!status || QUEUE_FILTERS.includes(status as QueueFilter)) return null;
+  return LIFE_FILTERS.some(([k]) => k === status) ? (status as LifecycleStatus) : null;
+}
+
+
 function lifeFromUrl(): LifeFilter {
   if (typeof window === "undefined") return "any";
   const v = new URLSearchParams(window.location.search).get("family");
-  return LIFE_FILTERS.some(([k]) => k === v) ? (v as LifeFilter) : "any";
+  if (LIFE_FILTERS.some(([k]) => k === v)) return v as LifeFilter;
+  return legacyStatusIsLifecycle() ?? "any";
 }
 
 interface TimelineEvent {
@@ -238,6 +254,8 @@ interface FamiliesData {
     navigatorPending: number;
     navigatorDraftReady: number;
     navigatorScheduled: number;
+    navigatorRoutes: Record<string, number>;
+    navigatorUnjudged: number;
     stuck: Record<string, number>;
     lifecycle: Record<string, number>;
   };
@@ -558,14 +576,10 @@ export default function BenefitsFamiliesView() {
   // Route counts come off the packet, so they only cover letters the cron has
   // judged. A pending draft with no packet yet counts toward none of them,
   // which is honest: we do not know where it goes until it is judged.
-  const routeCounts = families.reduce<Record<string, number>>((acc, f) => {
-    const r = f.navigator?.status === "pending" ? f.navigator.packet?.route : null;
-    if (r) acc[r] = (acc[r] ?? 0) + 1;
-    return acc;
-  }, {});
-  const unjudged = families.filter(
-    (f) => f.navigator?.status === "pending" && !f.navigator.packet,
-  ).length;
+  // Server-side and uncapped, like the two counts above — a tab strip that
+  // mixes capped and uncapped numbers is unreadable.
+  const routeCounts = summary.navigatorRoutes ?? {};
+  const unjudged = summary.navigatorUnjudged ?? 0;
 
   /** Redacted review context for the AI fact-check prompt — never carries
    *  the family's name or email (the name is passed only so the builder can
@@ -654,7 +668,7 @@ export default function BenefitsFamiliesView() {
         ? f.navigator?.status === "pending" && !f.navigator.scheduledAt
         : filter === "scheduled"
           ? f.navigator?.status === "pending" && !!f.navigator.scheduledAt
-          : f.lifecycle.status === filter;
+          : true;
   // Two independent axes, ANDed. The queue tab says what to do next; the family
   // filter says who it is for.
   const matchesFilter = (f: FamilyRow) => matchesQueue(f) && matchesLife(f);

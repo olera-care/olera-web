@@ -27,6 +27,14 @@ Formatting, with the dash changes listed below.
   paragraph beneath them rather than a second bold line stacked above one.
 - One caption added to each of the six tables. The source had none, and a table
   without a caption is not house style.
+- **Standing work is set in grey.** A task that begins "Continue" is work carried
+  over from an earlier week, and `bullets()` in `build_v4.py` renders it grey.
+  Several weeks are four or five continuation lines around one new item, and in
+  black they buried it. The greyed items also sort to the bottom of each cell, so
+  the week's new work reads first.
+- **Job titles are one idea each.** Two-part titles joined by a semicolon were the
+  least scannable thing in the column. Week 6 keeps its semicolon because both
+  halves are milestones; every other week is a short verb phrase.
 - **The week table's tasks become bullets.** The source writes each week's tasks
   as one semicolon-separated sentence. `bullets()` in `build_v4.py` splits on the
   semicolons, one bullet per clause, with a hanging indent per item so a wrapped

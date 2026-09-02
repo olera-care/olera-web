@@ -297,8 +297,10 @@ def build_table(thtml, keep=False, plain=False):
             # A bulleted cell is a div per item so each one can hang-indent;
             # everything else splits on <br> as before. Word has no <br> that
             # keeps its formatting cleanly, so both become one paragraph per line.
-            tis = re.findall(r'<div class="ti">(.*?)</div>', content, re.S)
-            segments = tis or re.split(r'<br\s*/?>', content, flags=re.I)
+            tis = re.findall(r'<div class="ti([^"]*)">(.*?)</div>', content, re.S)
+            greys = [' cont' in c for c, _ in tis]
+            segments = [t for _, t in tis] or re.split(r'<br\s*/?>', content,
+                                                       flags=re.I)
             for si, seg in enumerate(segments):
                 target = par if si == 0 else cell.add_paragraph()
                 if si:
@@ -312,9 +314,11 @@ def build_table(thtml, keep=False, plain=False):
                     target.paragraph_format.first_line_indent = Inches(-0.097)
                     seg = seg.lstrip('\u2022 ')
                     r = target.add_run('\u2022 ')
-                    r.font.size = Pt(9); r.font.color.rgb = TEAL
+                    r.font.size = Pt(9)
+                    r.font.color.rgb = GREY if greys[si] else TEAL
                 bb = is_head or (ci == 0 and content.lstrip().startswith('<b>'))
-                add_runs(target, seg, size=9, color=TEAL if is_head else None,
+                col = TEAL if is_head else (GREY if tis and greys[si] else None)
+                add_runs(target, seg, size=9, color=col,
                          base_bold=bb, bold_color=None if is_head else TEAL)
             # Word has no table-level break-inside:avoid. keep_with_next on every
             # row but the last is the equivalent, and is what stops Table 2

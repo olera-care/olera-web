@@ -47,6 +47,7 @@ table.dat tbody tr:last-child td { border-bottom: 1pt solid #14453f; }
 table.dat tbody tr.here td { background: #eef3f1; }
 table.dat td div.ti { text-indent: -7pt; padding-left: 7pt; margin: 0 0 1pt 0; }
 table.dat td div.ti:last-child { margin-bottom: 0; }
+table.dat td div.ti.cont { color: #5f6b64; }
 table.dat.keep { break-inside: avoid; page-break-inside: avoid; }
 span.tag { font-size: 8pt; font-weight: bold; letter-spacing: 0.6pt; color: #14453f; }
 span.tag.q { color: #5f6b64; }
@@ -102,7 +103,7 @@ WIDTHS = [[16, 30, 28, 26],
           [11, 55, 34],
           [14, 47, 39],
           [15, 18, 26, 17, 24],
-          [7, 12, 21, 60]]
+          [7, 12, 18, 63]]
 KEEP = set()
 
 STATUS = re.compile(r'^(COMPLETE|WE ARE HERE)$')
@@ -138,8 +139,13 @@ def bullets(cell):
     hanging indent is per item, so a wrapped task lines up under its own text
     rather than under the bullet."""
     items = [i.strip() for i in cell.rstrip('.').split(';') if i.strip()]
-    return ''.join(f'<div class="ti">\u2022 {esc(i[0].upper() + i[1:])}</div>'
-                   for i in items)
+    out = ''
+    for i in items:
+        # work that simply carries on from earlier weeks is set in grey, so the
+        # eye lands on what is new in the week rather than on five "continue" lines
+        cls = 'ti cont' if i.lower().startswith('continue') else 'ti'
+        out += f'<div class="{cls}">\u2022 {esc(i[0].upper() + i[1:])}</div>'
+    return out
 
 
 def figure(svg, num, caption):

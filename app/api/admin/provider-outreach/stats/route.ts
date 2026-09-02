@@ -439,7 +439,7 @@ async function getGlobalSequenceConversionStats(db: DB): Promise<{
     .from("provider_outreach_touchpoints")
     .select("provider_id")
     .in("provider_id", allTrackingProviderIds)
-    .in("touchpoint_type", ["email_sent", "smartlead_enrolled", "sequence_launched", "contact_form_sent"]);
+    .in("touchpoint_type", ["email_sent", "smartlead_enrolled", "sequence_launched", "contact_form_sent", "fax_sent", "mail_sent"]);
 
   const providersWithTouchpoints = new Set(
     (touchpointProviders || []).map((t: { provider_id: string }) => t.provider_id)

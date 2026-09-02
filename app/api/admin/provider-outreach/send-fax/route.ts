@@ -392,6 +392,25 @@ export async function POST(request: NextRequest) {
       // Don't fail — fax was already sent
     }
 
+    // Log touchpoint for conversion attribution
+    const { error: touchpointError } = await db
+      .from("provider_outreach_touchpoints")
+      .insert({
+        provider_id: providerId,
+        touchpoint_type: "fax_sent",
+        details: {
+          fax_id: faxId,
+          to_number: toNumber,
+          provider_name: providerName,
+        },
+        admin_user_id: admin.id,
+      });
+
+    if (touchpointError) {
+      console.error("[send-fax] Failed to log touchpoint:", touchpointError);
+      // Don't fail — fax was already sent
+    }
+
     return NextResponse.json({
       success: true,
       fax_id: faxId,

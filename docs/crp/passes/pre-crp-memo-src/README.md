@@ -1,5 +1,10 @@
 # Pre-CRP R&D, Commercialization, and Execution Plan, house style
 
+> **SUPERSEDED.** Superseded on 2026-09-02 by `../pre-crp-v2-src/`, which is
+> Logan's own regenerated plan put into house style. Kept for provenance, and
+> for `figs_memo.py`, whose ecosystem and pathway figure has no home in the
+> current document. The build here no longer ships a deliverable.
+
 Eight pages, PDF and Word. Replaces the two September drafts kept for provenance
 in `../pre-crp-src/` and `../pre-crp-plan-src/`; neither of those ships a
 deliverable any more.

@@ -485,14 +485,33 @@ export async function selectFirstStepProgram(
     .maybeSingle();
   if (!account?.user_id) return null;
 
-  // 1. Entry-source program page.
+  // 1. Entry-source program page — a CANDIDATE, not a short circuit.
+  //
+  // Landing on a program's page is real intent and it still wins every tie.
+  // What it no longer does is beat a saved program that fits the family
+  // better. It used to return immediately, so the page someone happened to
+  // arrive on outranked everything the eligibility screen knew: an Oregon
+  // family whose saved SNAP scored 20 got a letter about the rental
+  // assistance page they entered through, which scored 8. Reading a page is
+  // weaker evidence than the facts a family typed about themselves, so it is
+  // scored as the tiebreak it is.
   const entry = parseEntrySourceProgram(account.signup_source);
+  let entryCandidate: { pick: FirstStepPick; boost: number; rank: number } | null = null;
   if (entry && !excluded.has(entry.programId)) {
     const abbrev = getStateAbbrev(entry.stateId);
     const draft = draftForUnexcluded(abbrev, entry.programId);
-    if (draft && !screen(draft, entry.stateId).ruledOut) {
-      const pick = toPick(draft, abbrev, entry.stateId, "entry");
-      if (pick) return pick;
+    if (draft) {
+      const verdict = screen(draft, entry.stateId);
+      if (!verdict.ruledOut) {
+        const pick = toPick(draft, abbrev, entry.stateId, "entry");
+        if (pick) {
+          entryCandidate = {
+            pick,
+            boost: verdict.boost,
+            rank: COMPLEXITY_RANK[draft.complexity] ?? 3,
+          };
+        }
+      }
     }
   }
 
@@ -513,7 +532,16 @@ export async function selectFirstStepProgram(
     .order("id", { ascending: true });
 
   const ownAbbrev = opts.stateAbbrev ? opts.stateAbbrev.toUpperCase() : null;
-  const candidates: { pick: FirstStepPick; boost: number; rank: number; idx: number }[] = [];
+  const candidates: {
+    pick: FirstStepPick;
+    boost: number;
+    rank: number;
+    idx: number;
+    isEntry?: boolean;
+  }[] = [];
+  // idx -1 keeps the entry ahead of saved rows on the final tiebreak too,
+  // for the case where boost and complexity are all equal.
+  if (entryCandidate) candidates.push({ ...entryCandidate, idx: -1, isEntry: true });
   (saved || []).forEach((row, idx) => {
     if (!row.program_id || !row.state_id || excluded.has(row.program_id)) return;
     const abbrev = getStateAbbrev(row.state_id);
@@ -555,7 +583,13 @@ export async function selectFirstStepProgram(
   // because it was `medium` and the waiver was `deep`. Families with no
   // eligibility facts have boost 0 across the board and fall straight through
   // to the complexity ordering.
-  candidates.sort((a, b) => b.boost - a.boost || a.rank - b.rank || a.idx - b.idx);
+  candidates.sort(
+    (a, b) =>
+      b.boost - a.boost ||
+      Number(b.isEntry ?? false) - Number(a.isEntry ?? false) ||
+      a.rank - b.rank ||
+      a.idx - b.idx,
+  );
   if (candidates[0]) return candidates[0].pick;
 
   // 3. State fallback: the pipeline's own "start here" list.

@@ -26,6 +26,17 @@ export async function findLocalAAA(
   const { data, error } = await supabase
     .from("sbf_area_agencies")
     .select("*")
+    // The table stopped being AAA-only in migration 199: it now also holds
+    // Community Action Agencies, county senior services and housing offices,
+    // and 2-1-1 lines. This function's whole contract is "the Area Agency on
+    // Aging", and its callers say exactly that to families, so it has to ask
+    // for one. Without the filter Nevada returned "Nevada 2-1-1" as a family's
+    // Area Agency on Aging, and every county match was one alphabetical
+    // accident away from returning a housing office instead.
+    //
+    // migration 199 backfilled all 431 pre-existing rows to this type, so the
+    // filter returns exactly the set this function saw before.
+    .eq("agency_type", "area_agency_on_aging")
     .eq("state_code", stateCode)
     .eq("is_active", true)
     .order("name");

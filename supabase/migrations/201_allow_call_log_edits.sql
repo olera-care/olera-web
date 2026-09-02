@@ -19,7 +19,12 @@ CREATE OR REPLACE FUNCTION provider_outreach_touchpoints_append_only()
 BEGIN
   -- Allow UPDATE and DELETE for call_attempted touchpoints only
   IF OLD.touchpoint_type = 'call_attempted' THEN
-    RETURN OLD;
+    -- DELETE requires returning OLD, UPDATE requires returning NEW
+    IF TG_OP = 'DELETE' THEN
+      RETURN OLD;
+    ELSE
+      RETURN NEW;
+    END IF;
   END IF;
 
   -- Block UPDATE/DELETE for all other touchpoint types (audit integrity)

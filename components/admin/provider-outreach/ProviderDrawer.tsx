@@ -1827,6 +1827,7 @@ function CallLogSection({
     setEditStatus(log.status);
     setEditNotes(log.notes || "");
     setEditError(null);
+    setDeleteConfirmId(null); // Clear any pending delete confirmation
   }, []);
 
   const cancelEdit = useCallback(() => {

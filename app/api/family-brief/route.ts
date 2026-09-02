@@ -146,6 +146,13 @@ export async function GET(request: NextRequest) {
       const { data: agencies } = await db
         .from("sbf_area_agencies")
         .select("name, phone, what_to_say")
+        // The line below names whatever comes back as "your local Area Agency
+        // on Aging", so it has to be one. Since migration 199 the table also
+        // holds Community Action Agencies, county offices and 2-1-1 lines, and
+        // without this filter Nevada's first row alphabetically is "Nevada
+        // 2-1-1" — which would be shown to a family as their Area Agency on
+        // Aging, in those words.
+        .eq("agency_type", "area_agency_on_aging")
         .eq("state_code", facts.state)
         .eq("is_active", true)
         .order("name")

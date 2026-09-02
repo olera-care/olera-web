@@ -1,0 +1,361 @@
+[
+ {
+  "kind": "p",
+  "style": "Title",
+  "text": "Olera Pre-CRP Commercialization Plan"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Working strategy for September 2026\u2013January 2027"
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "Purpose"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The objective before the CRP submission is not to force every Olera revenue activity into the CareNavigator business model. It is to establish four reinforcing facts: (1) Olera can repeatedly acquire customers, deliver value, and generate revenue in a narrow provider beachhead; (2) CareNavigator has a credible path from late-stage R&D to institutional commercialization; (3) real institutional buyers help define the evidence and economics required for adoption; and (4) together, these assets support an investable long-term thesis that Olera can become the infrastructure layer for the care-establishment pathway. The four tracks should reinforce one another while remaining distinct in what their evidence proves."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "1. Strategic architecture"
+ },
+ {
+  "kind": "table",
+  "grid": [
+   [
+    "Track",
+    "Near-term objective",
+    "Evidence by submission",
+    "What it proves"
+   ],
+   [
+    "A. Provider commercialization",
+    "Monetize a narrow provider beachhead through Client Growth and Staffing using company resources.",
+    "Paying providers, repeat purchasing, revenue, retention, acquisition and delivery metrics.",
+    "Olera can sell, deliver, retain customers, and execute commercially."
+   ],
+   [
+    "B. CareNavigator readiness",
+    "Complete the first mature execution-enabled product and generate preliminary verification/validation evidence before CRP.",
+    "Product maturity, workflow V&V, preliminary care-establishment evidence, safety/permission controls.",
+    "CareNavigator is mature enough to enter CRP late-stage R&D."
+   ],
+   [
+    "C. Institutional buyer development",
+    "Work directly with MA plans, ACOs, and other risk-bearing buyers to define the evidence and economics required for adoption.",
+    "Buyer interviews, convergent evidence requirements, ideally letters supporting a post-CRP proof-of-concept conditional on results.",
+    "There is credible market pull and a defined commercialization destination for CareNavigator."
+   ],
+   [
+    "D. Private capital & platform thesis",
+    "Convert traction from Tracks A-C into investor confidence in Olera's ability to own an increasingly valuable care-establishment pathway.",
+    "Investor diligence, support letters where earned, financing conversations, and a capital plan tied to measurable provider, CareNavigator, and buyer milestones.",
+    "Olera has both a credible near-term execution story and a venture-scale reason to finance the post-CRP opportunity."
+   ]
+  ]
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "These tracks should not be conflated. Provider-side revenue is evidence of company commercialization capability and strengthens the provider network; it is not direct evidence that institutional buyers will pay for CareNavigator. CareNavigator must earn its own commercialization case through product maturity, defensible evidence, and direct buyer discovery."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "2. Narrow provider beachhead"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The initial commercial customer segment should be narrow enough to execute quickly. The working beachhead is non-medical home care agencies, with assisted living considered only where the same acquisition and value proposition transfer cleanly. Home health, skilled nursing, and other more medically regulated segments should not be necessary to prove the initial commercial motion."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 2",
+  "text": "Provider Product A \u2014 Olera Pro: Client Growth"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Customer promise: help providers acquire and convert more prospective clients. The product may use managed advertising, Olera/provider landing pages, lead qualification and follow-up, review generation, and SEO/web optimization. These are delivery components, not separate products. The commercial question is whether providers repeatedly pay Olera because the program produces measurable client-acquisition value."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 2",
+  "text": "Provider Product B \u2014 Olera Pro: Staffing"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Customer promise: deliver qualified pre-health student workers who become hires. Olera recruits, screens, onboards, and matches workers to participating providers, with providers paying per successful hire. Staffing should remain a company-funded commercial product rather than a CRP-funded research aim."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "3. Connection to the CareNavigator platform"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The provider products are adjacent to, but not substitutes for, CareNavigator. Olera's free provider records and claimed pages form part of the supply-side infrastructure used by CareNavigator. Commercial engagement can deepen provider relationships, improve record completeness and responsiveness, and demonstrate Olera's ability to activate the provider side of the ecosystem. Organic provider discovery and CareNavigator participation can remain free; optional paid products monetize additional provider value."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The longer-term platform logic is therefore coherent: CareNavigator helps families establish needed care; the provider network supplies the organizations capable of delivering that care; optional provider products help those organizations acquire clients and workforce. The CRP, however, should remain narrowly focused on the late-stage R&D and validation required to commercialize CareNavigator."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "4. CareNavigator commercialization path"
+ },
+ {
+  "kind": "table",
+  "grid": [
+   [
+    "Stage",
+    "CareNavigator state",
+    "Commercial implication"
+   ],
+   [
+    "Phase I/IIB",
+    "Assessment, benefits/program discovery, provider discovery, prior usability/acceptance and platform foundation.",
+    "Core technology and demand foundation established."
+   ],
+   [
+    "Pre-CRP",
+    "Complete first-generation bounded execution capabilities; verify critical workflows; obtain preliminary care-establishment evidence.",
+    "Product is sufficiently mature to justify late-stage CRP R&D."
+   ],
+   [
+    "CRP",
+    "Design/quality controls as appropriate, independent verification/confirmation, rigorous real-world effectiveness validation, and buyer-informed technical assistance.",
+    "Retires the remaining technical/evidentiary risks blocking institutional commercialization."
+   ],
+   [
+    "Post-CRP",
+    "Institutional proof-of-concept with payer/ACO data, followed by contracting and scale using non-SBIR funds.",
+    "Tests utilization/cost impact and supports scaled institutional purchasing."
+   ]
+  ]
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "5. Institutional-buyer development before submission"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The highest-value CareNavigator commercialization work before January is direct discovery with prospective institutional buyers. The goal is not generic letters of enthusiasm. The goal is to determine what a sophisticated buyer would require before funding or contracting for CareNavigator: target population, care-establishment endpoint, comparison design, utilization or cost outcomes, data requirements, evidence threshold, proof-of-concept size, contracting structure, and plausible pricing."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The strongest stretch outcome would be one or more prospective buyers willing to state that, if Olera generates a defined evidence package, they would consider or participate in a paid post-CRP proof-of-concept. Even without such a commitment, repeated convergence across buyer interviews on the required evidence would materially strengthen the CRP design and Commercialization Plan."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "6. Private investors and the long-term platform thesis"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Private investors sit above the three operating tracks rather than inside any one of them. Provider commercialization can unlock the first layer of investor confidence by showing that Olera can sell, deliver value, retain customers, and generate revenue. CareNavigator readiness adds the higher-upside technology thesis. Institutional-buyer development shows that the technology has a credible path to large contracts if the required evidence is produced. Together, these reduce different categories of risk and create the basis for private capital to finance the post-CRP proof-of-concept and scale."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The larger investment thesis is ownership of the care-establishment pathway: the sequence through which an older adult's need is identified, financial and service options are determined, an appropriate provider and workforce capacity are found, administrative steps are completed, and care is actually established. Olera's provider records, provider relationships, family navigation workflows, execution infrastructure, workforce and growth products, and longitudinal pathway data can become complementary assets around that pathway."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The upside is not simply revenue from today's provider products. The strategic opportunity is to become increasingly embedded in a pathway through which substantial healthcare and long-term-care spending is initiated and directed. Demographic aging, longer survival with chronic disease, and constrained caregiver supply can increase the value of infrastructure that makes care establishment more reliable and efficient. This is a long-term investment thesis, not a claim that Olera already owns the pathway or that future market size is guaranteed."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "7. January traction scoreboard"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The financing logic is therefore sequential: provider traction demonstrates commercial execution; CareNavigator evidence demonstrates product value; institutional-buyer engagement demonstrates market pull; and the combination creates a credible case for private investors to fund the post-CRP institutional proof-of-concept and subsequent scale. Investor support should be earned against these milestones rather than treated as a substitute for them."
+ },
+ {
+  "kind": "table",
+  "grid": [
+   [
+    "Dimension",
+    "Minimum",
+    "Target",
+    "Stretch"
+   ],
+   [
+    "Staffing",
+    "Multiple providers pay for successful hires.",
+    "10\u201315 recurring provider customers.",
+    "25 providers averaging ~3 paid hires/month at $250/hire (~$18,750 monthly; ~$225,000 annualized run rate)."
+   ],
+   [
+    "Client Growth",
+    "Several providers pay and receive measurable value.",
+    "10\u201315 recurring customers with measurable delivery.",
+    "25 contracted customers with repeatable acquisition/delivery economics."
+   ],
+   [
+    "Provider network",
+    "Demonstrate a repeatable provider claim/activation motion.",
+    "Growing activated base in the beachhead segment.",
+    "Clear acquisition \u2192 activation \u2192 paid-product funnel with measurable conversion."
+   ],
+   [
+    "CareNavigator buyer discovery",
+    "Several substantive interviews with true target buyers.",
+    "Convergence on evidence requirements and POC structure.",
+    "Multiple buyers expressing conditional interest in a post-CRP proof-of-concept."
+   ],
+   [
+    "CareNavigator readiness",
+    "Core execution product completed and testable.",
+    "Preliminary V&V and care-establishment evidence.",
+    "Evidence and product maturity sufficient to make the CRP's remaining R&D gap narrow and explicit."
+   ],
+   [
+    "Investor support",
+    "Investors understand the milestones and remain engaged.",
+    "Credible support tied to defined milestones.",
+    "Strong letters indicating financing interest conditional on CRP and commercial milestones."
+   ],
+   [
+    "Private capital",
+    "Investors engage with a milestone-based financing thesis.",
+    "Investors recognize provider traction + CareNavigator/buyer progress as a coherent de-risking sequence.",
+    "Credible investor support and a defined post-CRP financing path tied to institutional POC and scale."
+   ]
+  ]
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "These figures are working planning targets, not commitments for the grant. They should be refined with David and TJ after testing operational capacity, pricing, sales-cycle assumptions, and the amount of evidence that would materially change investor and reviewer confidence."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "8. Backward plan to submission"
+ },
+ {
+  "kind": "table",
+  "grid": [
+   [
+    "Period",
+    "Provider commercialization",
+    "CareNavigator / buyers",
+    "Grant/investor output"
+   ],
+   [
+    "September",
+    "Finalize narrow offer(s), pricing, sales workflow, beachhead list, and baseline metrics; begin concentrated selling.",
+    "Complete buyer hypothesis and interview guide; begin MA/ACO buyer discovery; define pre-CRP product completion plan.",
+    "Lock minimum/target/stretch goals, weekly dashboard, and investor milestones tied to the four-track thesis."
+   ],
+   [
+    "October",
+    "Drive first repeatable paid transactions; simplify delivery based on early results.",
+    "Continue buyer discovery; identify convergent evidence requirements; complete critical execution capabilities and V&V planning.",
+    "Translate evidence requirements into revised CRP architecture; begin investor updates using observed provider traction and CareNavigator milestones."
+   ],
+   [
+    "November",
+    "Increase paying-provider count and repeat purchasing; use HLTH strategically for customers/investors.",
+    "Target institutional and investor conversations at HLTH; seek concrete feedback on POC design and decision thresholds.",
+    "Draft buyer-informed Research Strategy and Commercialization Plan; use HLTH to cultivate institutional and investor support around the integrated thesis."
+   ],
+   [
+    "December",
+    "Demonstrate retention/repeat use and credible unit economics; avoid holiday-dependent late rescue plans.",
+    "Consolidate preliminary CareNavigator evidence and buyer requirements; identify post-CRP POC candidates.",
+    "Secure the strongest support letters available; reconcile provider traction, CareNavigator evidence, buyer pull, and post-CRP financing logic."
+   ],
+   [
+    "January",
+    "Report actual traction transparently: customers, revenue, retention, CAC/delivery economics.",
+    "Finalize CareNavigator CRP-entry state and institutional commercialization pathway.",
+    "Submit a proposal grounded in observed traction, buyer-informed R&D requirements, and a credible private-capital path for the post-CRP POC and scale."
+   ]
+  ]
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "9. Evidence discipline for the CRP application"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The application should state precisely what each pre-CRP evidence stream establishes. Provider revenue supports Olera's ability to execute commercially; it should not be presented as proof of CareNavigator institutional willingness to pay. Provider-network activation supports Olera's ability to engage the supply side. CareNavigator preliminary studies support product maturity and the rationale for late-stage validation. Institutional-buyer discovery supports market pull and defines the evidence threshold for post-CRP purchasing. Private-investor engagement should then be presented as a consequence of these risks being retired: investors finance the next stage because commercial execution, product readiness, and buyer pull increasingly converge. The CRP itself should fund only the late-stage R&D and allowable technical assistance needed to close the remaining CareNavigator commercialization gap."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "10. Working Valley of Death statement"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Olera's remaining Valley of Death is not whether families need navigation or whether the company can build a provider audience. It is whether a mature CareNavigator can safely and reliably increase verified care establishment with evidence strong enough for risk-bearing organizations to justify a paid institutional proof-of-concept and subsequent commercialization. Before submission, Olera will independently demonstrate commercial execution in its provider beachhead while using direct institutional-buyer discovery to define the evidence required of CareNavigator. The CRP will then be narrowly directed toward the late-stage R&D and validation needed to produce that evidence."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "11. Decisions to make with David and TJ"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "\u2022 Set minimum, target, and stretch January traction goals based on realistic sales and delivery capacity."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "\u2022 Choose the narrowest provider beachhead and decide whether Client Growth and Staffing should both be pursued or whether one should dominate the four-month sprint."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "\u2022 Define a simple weekly commercialization dashboard: outreach, meetings, offers, conversions, active customers, delivered outcomes, repeat purchasing, revenue, and churn."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "\u2022 Build a prioritized institutional-buyer interview list and define the specific evidence questions each conversation must answer."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "\u2022 Define the CareNavigator product state that must be completed with company/Phase IIB resources before CRP Day 1."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "\u2022 Redesign the CRP Research Strategy only after the buyer evidence requirements and CRP-entry product state are clear."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "\u2022 Define what level of investor support is realistic by January and what observed milestones would make those investors comfortable writing strong letters."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "\u2022 Define the investor thesis explicitly: what evidence from provider commercialization, CareNavigator readiness, and institutional-buyer development must exist by January to justify support now and private financing after CRP."
+ }
+]

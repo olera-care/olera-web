@@ -157,6 +157,106 @@ async function scheduleReply(
 }
 
 /**
+ * The standing facts about a care seeker, for the rail beside the conversation.
+ *
+ * Reviewers were opening a thread and seeing only texts: no idea whether the
+ * person writing was the one who needs care or a daughter three states away, no
+ * location below the state, no sense of how long they had been waiting. Every
+ * reply on 2026-09-01 needed a database query before it could be written, and
+ * the rail meanwhile showed a display name that is the literal string "Care
+ * Seeker" for every family, next to the phone number already in the header.
+ *
+ * Deliberately NOT a summary. A sentence like "60-year-old cancer patient in
+ * Marion County" reads as established when the age came from a form, and that
+ * is precisely how a wrong fact gets acted on — the engine asserted an
+ * age-gated program at someone who was not that age on 2026-08-18, and invented
+ * a name out of a two-character text on 2026-09-01. So each fact is rendered
+ * next to where it came from, and anything we would have to infer is left out.
+ *
+ * `verified` means they told us in the thread. Everything else came off a form
+ * and is often right and sometimes badly wrong.
+ */
+interface SeekerFact {
+  label: string;
+  value: string;
+  verified: boolean;
+}
+
+function buildSeekerContext(
+  profile: {
+    email: string | null;
+    city: string | null;
+    state: string | null;
+    metadata: Record<string, unknown> | null;
+  } | null,
+  inboundRows: { created_at: string; handled_at: string | null }[],
+  outboundCount: number,
+) {
+  const meta = (profile?.metadata ?? {}) as Record<string, unknown>;
+  const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+
+  const facts: SeekerFact[] = [];
+  const push = (label: string, value: string | null, verified = false) => {
+    if (value) facts.push({ label, value, verified });
+  };
+
+  const age = meta.age;
+  push("Age", typeof age === "number" ? String(age) : str(age));
+  push("Household income", str(meta.income_range));
+  push("Timeline", str(meta.timeline));
+  const coverage = Array.isArray(meta.payment_methods)
+    ? (meta.payment_methods as unknown[]).filter((x): x is string => typeof x === "string").join(", ")
+    : null;
+  push("Coverage", coverage);
+  const needs = Array.isArray(meta.care_needs)
+    ? (meta.care_needs as unknown[]).filter((x): x is string => typeof x === "string").join(", ")
+    : null;
+  push("Care needs", needs);
+
+  // The program they are mid-flight on, straight off the cascade rather than
+  // guessed from what we happened to say in the thread.
+  const cascade = (meta.benefits_cascade ?? {}) as Record<string, unknown>;
+  const program = str(cascade.first_step_program_name)
+    ? {
+        name: str(cascade.first_step_program_name)!,
+        firstStepAt: str(cascade.first_step_sms_at) ?? str(cascade.first_step_sent_at),
+        lastReply: str(cascade.last_sms_reply),
+        status: str(cascade.application_status),
+      }
+    : null;
+
+  // county is stored as "Marion, Florida" on some profiles and "Marion" on
+  // others, so appending the state code blindly yields "Marion, Florida, FL".
+  const place = str(meta.county) ?? profile?.city ?? null;
+  const stateCode = profile?.state ?? null;
+  const alreadyNamesState =
+    place && stateCode ? place.toLowerCase().includes(stateCode.toLowerCase()) : false;
+  const location = place
+    ? alreadyNamesState || !stateCode
+      ? place
+      : `${place}, ${stateCode}`
+    : stateCode;
+
+  const sorted = [...inboundRows].sort((a, b) => a.created_at.localeCompare(b.created_at));
+  const oldestUnhandled = sorted.find((r) => !r.handled_at)?.created_at ?? null;
+
+  return {
+    // The one identity signal we actually hold. display_name is "Care Seeker"
+    // for every family, and guessing a name out of an email address is the same
+    // class of inference that produced a reply addressed to the wrong person.
+    email: profile?.email ?? null,
+    /** Who is writing, relative to whoever needs care. Changes how you reply. */
+    relationship: str(meta.relationship_to_recipient),
+    location,
+    facts,
+    program,
+    firstSeenAt: sorted[0]?.created_at ?? null,
+    waitingSince: oldestUnhandled,
+    counts: { them: inboundRows.length, us: outboundCount },
+  };
+}
+
+/**
  * Is this thread flagged as a crisis?
  *
  * Shared by GET and the reply action deliberately. They previously read it from
@@ -274,10 +374,16 @@ export async function GET(
     // Quiet hours are evaluated in the RECIPIENT's timezone, so the state is
     // needed on every load, not only when the display name is missing.
     let recipientState: string | null = null;
+    let seekerProfile: {
+      email: string | null;
+      city: string | null;
+      state: string | null;
+      metadata: Record<string, unknown> | null;
+    } | null = null;
     if (resolvedProfileId) {
       const { data: profile, error: profileError } = await db
         .from("business_profiles")
-        .select("display_name, type, state")
+        .select("display_name, type, state, city, email, metadata")
         .eq("id", resolvedProfileId)
         .maybeSingle();
       if (profileError) {
@@ -286,6 +392,12 @@ export async function GET(
         recipientState = profile.state ?? null;
         resolvedDisplayName ||= profile.display_name ?? null;
         resolvedProfileType ||= profile.type ?? null;
+        seekerProfile = {
+          email: profile.email ?? null,
+          city: profile.city ?? null,
+          state: profile.state ?? null,
+          metadata: (profile.metadata as Record<string, unknown> | null) ?? null,
+        };
       }
     }
 
@@ -372,6 +484,7 @@ export async function GET(
       suppressed: Boolean(dncRes.data),
       suppression: dncRes.data ? { reason: dncRes.data.reason, note: dncRes.data.note } : null,
       unhandled: inboundRows.filter((r) => !r.handled_at).length,
+      seeker: buildSeekerContext(seekerProfile, inboundRows, outboundLogRows.length),
       // Quiet hours, evaluated for THIS recipient so the reply box can say what
       // pressing the button will actually do before it is pressed.
       quietHours: (() => {

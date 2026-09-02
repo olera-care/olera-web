@@ -129,6 +129,26 @@ interface ThreadDetail {
   };
   /** A reply already written and waiting for that window to open. */
   scheduled: { id: string; body: string; send_after: string; queued_by: string | null } | null;
+  /**
+   * Standing facts about the person, for the rail. Facts carry `verified` so
+   * the panel can show where each one came from instead of flattening a form
+   * answer and something they told us into the same confident sentence.
+   */
+  seeker: {
+    email: string | null;
+    relationship: string | null;
+    location: string | null;
+    facts: { label: string; value: string; verified: boolean }[];
+    program: {
+      name: string;
+      firstStepAt: string | null;
+      lastReply: string | null;
+      status: string | null;
+    } | null;
+    firstSeenAt: string | null;
+    waitingSince: string | null;
+    counts: { them: number; us: number };
+  };
 }
 
 /** What the draft indicator is currently saying. */
@@ -194,6 +214,85 @@ function DraftStatus({ state }: { state: DraftState }) {
     <span className="text-[11px] text-gray-500" title={state.by ? `Last saved by ${state.by}` : undefined}>
       Draft saved {formatEt(state.at)}
     </span>
+  );
+}
+
+/**
+ * Standing facts about the care seeker, beside the conversation.
+ *
+ * Every fact is rendered next to where it came from. A form answer and
+ * something they told us in the thread are not the same kind of claim, and
+ * collapsing them into one confident list is how a reviewer ends up acting on
+ * an age nobody verified.
+ *
+ * Ordered by what a reviewer reaches for first, which is not the demographics:
+ * whether the person writing is the one who needs care comes before anything
+ * else, because it changes how the whole reply is written.
+ */
+function SeekerPanel({ seeker }: { seeker: ThreadDetail["seeker"] }) {
+  const waitedDays = seeker.waitingSince
+    ? Math.floor((Date.now() - new Date(seeker.waitingSince).getTime()) / 86_400_000)
+    : null;
+
+  return (
+    <>
+      {seeker.relationship && (
+        <p className="mt-3 text-sm text-gray-900">
+          Writing about{" "}
+          <span className="font-medium">
+            {seeker.relationship.toLowerCase() === "myself"
+              ? "themselves"
+              : seeker.relationship.toLowerCase()}
+          </span>
+        </p>
+      )}
+      {seeker.location && <p className="mt-0.5 text-sm text-gray-500">{seeker.location}</p>}
+      {seeker.email && (
+        <p className="mt-0.5 break-all text-[13px] text-gray-400">{seeker.email}</p>
+      )}
+
+      {/* An unanswered message that is days old is the most actionable thing on
+          this panel, so it is the only part allowed to use colour. */}
+      {waitedDays !== null && waitedDays >= 1 && (
+        <p className="mt-3 text-[13px] font-medium text-amber-700">
+          Waiting {waitedDays} day{waitedDays === 1 ? "" : "s"} for a reply
+        </p>
+      )}
+
+      {seeker.facts.length > 0 && (
+        <dl className="mt-5 space-y-2 text-sm">
+          {seeker.facts.map((f) => (
+            <div key={f.label} className="flex items-baseline justify-between gap-3">
+              <dt className="shrink-0 text-gray-500">{f.label}</dt>
+              <dd className="text-right text-gray-900">
+                {f.value}
+                <span className="ml-1.5 text-[11px] text-gray-400">
+                  {f.verified ? "they told us" : "from a form"}
+                </span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+      )}
+
+      {seeker.program && (
+        <div className="mt-5 border-t border-gray-100 pt-4">
+          <p className="text-[11px] uppercase tracking-wide text-gray-400">In progress</p>
+          <p className="mt-1 text-sm font-medium text-gray-900">{seeker.program.name}</p>
+          <p className="mt-0.5 text-[12px] text-gray-500">
+            {seeker.program.firstStepAt
+              ? `First step sent ${formatEt(seeker.program.firstStepAt)}`
+              : "First step not yet sent"}
+            {seeker.program.lastReply ? ` · they replied ${seeker.program.lastReply}` : ""}
+          </p>
+        </div>
+      )}
+
+      <p className="mt-5 border-t border-gray-100 pt-4 text-[12px] text-gray-400">
+        {seeker.counts.them} from them, {seeker.counts.us} from us
+        {seeker.firstSeenAt ? ` · first wrote ${formatEt(seeker.firstSeenAt)}` : ""}
+      </p>
+    </>
   );
 }
 
@@ -1216,6 +1315,8 @@ export default function AdminSmsInboxPage() {
                 {detail.display_name || formatPhone(detail.phone_last10)}
               </h3>
               <p className="mt-1 text-sm text-gray-500">{formatPhone(detail.phone_last10)}</p>
+
+              <SeekerPanel seeker={detail.seeker} />
 
               <dl className="mt-6 divide-y divide-gray-100 border-y border-gray-100 text-sm">
                 <div className="flex items-center justify-between gap-3 py-3">

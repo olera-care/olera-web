@@ -1,5 +1,9 @@
 # Pre-CRP R&D, Commercialization, and Execution Plan, house style
 
+> **SUPERSEDED.** Superseded on 2026-09-02 by `../pre-crp-v4-src/`, iteration 4
+> of the same plan. Kept for provenance; the build here no longer ships a
+> deliverable.
+
 Source: `Olera_Pre_CRP_Plan_Regenerated.docx` (Logan, 2026-09-02), kept here as
 `orig.docx`. Six pages, PDF and Word.
 

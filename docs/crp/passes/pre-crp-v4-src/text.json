@@ -1,0 +1,443 @@
+[
+ {
+  "kind": "p",
+  "style": "Title",
+  "text": "Olera Pre-CRP R&D, Commercialization, and Execution Plan"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "September 2026 - January 2027"
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "1. Purpose"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The objective before the January 2027 CRP submission is to retire the major weaknesses exposed by our August/September drafting and mock-review process. We have a strong understanding of the problem, a compelling innovation, and a clear vision for modeling the care-establishment pathway and creating solutions for the steps along that pathway."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The next 18 weeks should therefore retire risk and produce evidence before submission: demonstrate that we can commercialize products within the eldercare ecosystem; complete and validate a substantially mature first-generation CareNavigator; use institutional-buyer discovery to refine the CRP research strategy and evidence requirements; and establish an investable post-CRP path."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "2. Strategic Model"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Olera operates within the eldercare ecosystem around a care-establishment pathway that moves an older adult or family from an identified need to established care and measurable outcomes. Failure at any step can return the family to unmet need and the downstream vicious cycle. CareNavigator is the end-to-end product intended to make that full pathway navigable, executable, measurable, and progressively more reliable."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Before CareNavigator reaches full commercial maturity, Olera can commercialize narrower provider products at specific high-value pathway steps. Client Growth addresses the Find Care step by helping providers acquire and convert appropriate clients; Caregiver Staffing addresses the Staff Care step by helping providers recruit and place workers. These products improve the same pathway, create near-term revenue without charging families, demonstrate that the team can commercialize with ecosystem stakeholders, and deepen the provider records, relationships, workflows, and operating knowledge that CareNavigator will ultimately use."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Figure 1. Olera's strategic model: the eldercare ecosystem, care-establishment pathway, provider-product beachheads, CareNavigator, and the vicious cycle of unmet need."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "3. Olera R&D and Commercialization Roadmap"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The CRP is one component of a broader R&D and commercialization program. The near-term work should leave Olera entering CRP with a mature first-generation product, commercial execution evidence, and buyer-informed late-stage R&D objectives."
+ },
+ {
+  "kind": "table",
+  "grid": [
+   [
+    "Stage / Timeframe",
+    "Primary work",
+    "Outcome",
+    "Handoff"
+   ],
+   [
+    "Phase I & II\n2021-2024\nCOMPLETE",
+    "Problem definition; national data; assessment/navigation foundation; provider ecosystem pilots.",
+    "Foundation, data assets, early providers, and core innovation established.",
+    "Completed."
+   ],
+   [
+    "Phase IIB / Pre-CRP\n2024-2026\nWE ARE HERE",
+    "First-generation CareNavigator; ~n=200 family usability/V&V study; provider commercialization along the pathway; institutional-buyer discovery.",
+    "Mature first-generation product + feasibility evidence + commercial execution + buyer-informed CRP plan.",
+    "Ready for CRP Day 1 with a mature product and defensible evidence requirements."
+   ],
+   [
+    "CRP / Late-Stage R&D\n2027-2030",
+    "Second-generation development; design and quality-systems improvement; buyer-informed rigorous real-world validation.",
+    "Defensible evidence that closes remaining technical and commercialization risks for CareNavigator.",
+    "Evidence package supporting post-CRP institutional proof of concept."
+   ],
+   [
+    "Post-CRP / Scale\n2030+",
+    "Paid institutional proof of concept; scale contracts; expand provider products and platform.",
+    "Demonstrated utilization/economic value, revenue scale, and durable infrastructure.",
+    "Scale with non-SBIR capital."
+   ]
+  ]
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "4. Phase IIB / Pre-CRP Objectives"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The remainder of Phase IIB should focus on three parallel objectives. Together they retire the commercial-execution, technical, and commercial-thesis risks that weakened the first CRP draft."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 2",
+  "text": "A. Provider commercialization - retire commercial-execution risk"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Use company resources to commercialize narrow products at identified pathway steps, beginning with non-medical home care agencies. The goal is not to make these provider products the CRP-funded technology. It is to prove that Olera can sell, deliver, retain, and generate revenue with stakeholders in the same ecosystem in which CareNavigator operates."
+ },
+ {
+  "kind": "table",
+  "grid": [
+   [
+    "Product",
+    "Working offer / target",
+    "What it teaches or builds",
+    "Commercial evidence"
+   ],
+   [
+    "Olera Pro Client Growth",
+    "Working hypothesis: ~$100-$150/month; target ~25 agencies. Managed ads, provider pages, lead qualification/conversion, reviews, and SEO.",
+    "Provider acquisition and conversion workflows; richer provider records; demand and referral knowledge.",
+    "Paying accounts, repeat purchasing/retention, revenue, delivery cost."
+   ],
+   [
+    "Olera Pro Staffing",
+    "$250 per successful hire; target ~25 agencies averaging ~3 hires/month.",
+    "Workforce capacity at the Staff Care step; provider staffing demand; student-worker supply and placement workflows.",
+    "Paid hires, repeat purchasing, retention, unit economics."
+   ]
+  ]
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "At the working targets above, the two products could create a meaningful pre-submission revenue run rate. The exact target should be treated as a planning hypothesis until the team locks pricing and the beachhead. The strategic value is broader than the revenue itself: the work retires team execution risk and strengthens the network, records, and operating knowledge required for CareNavigator."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 2",
+  "text": "B. CareNavigator first-generation development - retire technical risk"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Phase IIB should deliver the first end-to-end CareNavigator before CRP Day 1. The system should assess needs, identify care and funding options, construct a plan, execute bounded administrative workflows through permission-gated agents, verify whether care is established, track outcomes, and persist the pathway data needed for learning."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The planned ~n=200 Phase IIB family study should be used primarily to establish usability, feasibility, workflow performance, safety/verification, and whether the first-generation system functions as specified across real navigation episodes. This should retire the basic technical question of whether the product exists and works well enough to justify late-stage development, rather than asking CRP to fund creation of the first functional product."
+ },
+ {
+  "kind": "table",
+  "grid": [
+   [
+    "Pre-CRP period",
+    "CareNavigator work",
+    "Required output"
+   ],
+   [
+    "September",
+    "Lock first-generation requirements; map end-to-end pathway states; define execution-agent boundaries, data capture, verification, and safety controls.",
+    "Frozen first-generation requirements and V&V plan."
+   ],
+   [
+    "October",
+    "Complete core end-to-end engineering and execution workflows; instrument state transitions, actions, exceptions, and outcomes.",
+    "Study-ready first-generation system."
+   ],
+   [
+    "November",
+    "Run/continue ~n=200 family usability and V&V study; resolve critical failures; document workflow performance.",
+    "Usability, feasibility, safety, and workflow evidence."
+   ],
+   [
+    "December",
+    "Freeze evidence; document specifications and remaining technical risks; translate findings into CRP second-generation design and quality-system work.",
+    "Mature first-generation product and CRP-ready technical evidence package."
+   ]
+  ]
+ },
+ {
+  "kind": "p",
+  "style": "Heading 2",
+  "text": "C. Institutional-buyer discovery - retire commercial-thesis risk"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Buyer discovery should test rather than assume the institutional CareNavigator thesis. We need to determine whether Medicare Advantage plans, ACOs, and other risk-bearing organizations view failed care establishment as a sufficiently important and addressable driver of utilization; how they solve the problem today; what alternatives already exist; what economic value successful care establishment could create; what they would pay for; and what evidence would be required before a paid proof of concept."
+ },
+ {
+  "kind": "table",
+  "grid": [
+   [
+    "Question",
+    "What we need to learn before CRP",
+    "Desired output"
+   ],
+   [
+    "Problem and value",
+    "Does improving care establishment matter enough to buyers? What utilization/cost mechanisms matter?",
+    "Validated or rejected value proposition."
+   ],
+   [
+    "Competition",
+    "How is this solved today? Where are existing vendors or internal programs strong or weak?",
+    "Clear differentiation and whitespace."
+   ],
+   [
+    "Economics",
+    "What population, contract structure, price logic, and savings threshold would matter?",
+    "Initial commercial and POC economics."
+   ],
+   [
+    "Evidence",
+    "What endpoints, comparison design, data, sample, follow-up, and decision thresholds would support a post-CRP POC?",
+    "Buyer-informed CRP evidence requirements and POC specification."
+   ]
+  ]
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "5. Private Investors and the Long-Term Thesis"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Private investors would be investing in Olera's full R&D and commercialization program over the next several years for a potentially much longer-term upside. The thesis is that Olera can become infrastructure for the care-establishment pathway within a growing eldercare ecosystem: building the data, provider relationships, workflows, execution tools, and navigation layer that help families move from need to established care while reducing costly downstream failure."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Near-term provider products matter because they can generate revenue now, prove commercial execution, and deepen the network while CareNavigator matures. CareNavigator creates the larger potential upside if better care establishment can be shown to reduce avoidable utilization and create economic value for risk-bearing buyers. Over time, a sufficiently instrumented pathway could also become a platform into which new care-delivery technologies - including automation, AI, and robotics - can be incorporated as the underlying care ecosystem evolves."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The pre-CRP investor objective is therefore not simply to obtain supportive letters. It is to make the thesis diligence-ready: demonstrate execution, show a functioning first-generation CareNavigator, validate institutional demand and evidence requirements, and present a credible financing path from CRP through proof of concept and scale."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "6. Risks to Retire Before the CRP Submission"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "This is the January scorecard. Targets are planning goals, not facts; the final application should only make claims supported by evidence actually achieved."
+ },
+ {
+  "kind": "table",
+  "grid": [
+   [
+    "Risk",
+    "Why it matters",
+    "Target",
+    "Stretch",
+    "What we could say in the CRP if achieved"
+   ],
+   [
+    "Commercial execution",
+    "Reviewers need evidence that the team can sell and deliver.",
+    "Paying provider customers; repeat purchasing; documented revenue/unit economics.",
+    "Broader provider base and stronger recurring revenue.",
+    "Olera has demonstrated commercial execution with paying customers and repeat value."
+   ],
+   [
+    "Provider network",
+    "CareNavigator depends on responsive, accurate provider infrastructure.",
+    "Active providers with updated records and meaningful engagement.",
+    "Larger, deeper, geographically concentrated network.",
+    "Olera has built and activated a responsive provider substrate supporting navigation."
+   ],
+   [
+    "CareNavigator product",
+    "The CRP should begin with a late-stage product, not an early prototype.",
+    "First-generation end-to-end system; execution agents; safety controls; tracking.",
+    "Full intended first-generation feature set with V&V complete.",
+    "The first-generation CareNavigator exists and has been technically validated for late-stage development."
+   ],
+   [
+    "Phase IIB evidence",
+    "Reduces technical and feasibility uncertainty.",
+    "~n=200 study complete or substantially complete with interpretable usability/feasibility evidence.",
+    "Strong usability plus preliminary care-establishment signals.",
+    "Phase IIB provides direct feasibility and usability evidence supporting CRP advancement."
+   ],
+   [
+    "Institutional buyers",
+    "Determines whether the commercialization thesis and CRP evidence plan are real.",
+    "Convergent interviews defining value, endpoints, POC design, and willingness to engage.",
+    "Letters/LOIs supporting a post-CRP POC if milestones are met.",
+    "Institutional-buyer discovery directly informed the CRP evidence plan and post-CRP handoff."
+   ],
+   [
+    "Private investors",
+    "CRP requires a credible path to independent financing.",
+    "Investors diligence the thesis; supportive relationships and financing plan.",
+    "Formal support and credible post-CRP financing interest.",
+    "Independent investors have evaluated the opportunity and support the commercialization path."
+   ]
+  ]
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "7. 18-Week Execution Plan to January 1, 2027"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The weekly plan operationalizes the scorecard above. It should remain simple enough to review every week and change when new evidence changes the plan."
+ },
+ {
+  "kind": "table",
+  "grid": [
+   [
+    "Week",
+    "Dates",
+    "The week's job",
+    "Tasks"
+   ],
+   [
+    "1",
+    "Aug 31-Sep 4",
+    "Decide and set the baseline",
+    "Lock target/stretch goals; choose beachhead emphasis; record baseline provider, product, buyer, and CareNavigator metrics; stand up weekly dashboard."
+   ],
+   [
+    "2",
+    "Sep 7-11",
+    "Package the offers",
+    "Finalize Client Growth and Staffing offers, pricing, terms, delivery workflow, and target agency list; define what will be measured."
+   ],
+   [
+    "3",
+    "Sep 14-18",
+    "Start selling; start buyer discovery",
+    "Launch concentrated provider outreach; finish institutional-buyer hypothesis/interview guide; book first MA/ACO conversations."
+   ],
+   [
+    "4",
+    "Sep 21-25",
+    "Lock the pre-CRP product plan",
+    "Freeze first-generation CareNavigator requirements and V&V plan; continue sales; conduct first buyer interviews."
+   ],
+   [
+    "5",
+    "Sep 28-Oct 2",
+    "Close first customers",
+    "Close first paying provider(s); continue buyer interviews; review Month 1 against scorecard."
+   ],
+   [
+    "6",
+    "Oct 5-9",
+    "Make delivery repeatable",
+    "Standardize delivery from first customers; continue buyer discovery; complete study-ready CareNavigator workflows."
+   ],
+   [
+    "7",
+    "Oct 12-16",
+    "Prove repeat value",
+    "Convert next provider cohort; pursue first repeat purchase/retention evidence; begin/continue family V&V study."
+   ],
+   [
+    "8",
+    "Oct 19-23",
+    "Converge on evidence requirements",
+    "Synthesize buyer interviews; identify convergent endpoints, data requirements, and POC expectations; revise CRP architecture accordingly."
+   ],
+   [
+    "9",
+    "Oct 26-30",
+    "Month 2 review",
+    "Review traction, CareNavigator development, study progress, and buyer discovery against target/stretch scorecard; correct gaps."
+   ],
+   [
+    "10",
+    "Nov 2-6",
+    "Use conferences strategically",
+    "Meet targeted investors/buyers; test thesis; capture objections and required evidence; continue sales and V&V."
+   ],
+   [
+    "11",
+    "Nov 9-13",
+    "Convert conversations into commitments",
+    "Follow up rapidly; seek concrete next steps, diligence, and conditional post-CRP POC interest where warranted."
+   ],
+   [
+    "12",
+    "Nov 16-20",
+    "Draft the application",
+    "Draft Research Strategy and Commercialization Plan from the now-better-supported thesis; identify remaining evidence gaps."
+   ],
+   [
+    "13",
+    "Nov 23-27",
+    "Hold the line",
+    "Maintain sales, study execution, buyer follow-up, and evidence capture through the holiday week."
+   ],
+   [
+    "14",
+    "Nov 30-Dec 4",
+    "Prove traction",
+    "Show retention/repeat purchase; consolidate CareNavigator V&V data; update economics and buyer evidence."
+   ],
+   [
+    "15",
+    "Dec 7-11",
+    "Lock the evidence",
+    "Freeze core traction and study numbers; finalize buyer-informed CRP design; identify final letters/support."
+   ],
+   [
+    "16",
+    "Dec 14-18",
+    "Everything complete",
+    "Complete substantive sections and internal review; assemble letters and supporting materials; finalize scorecard."
+   ],
+   [
+    "17",
+    "Dec 21-25",
+    "Buffer only",
+    "Resolve remaining material gaps; avoid starting new initiatives; proof and reconcile application."
+   ],
+   [
+    "18",
+    "Dec 28-Jan 1",
+    "Wrap up and submit",
+    "Final compliance check; final edits and assembly; submit."
+   ]
+  ]
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "This is a living planning memo. We will review progress weekly and adjust targets, tasks, and the CRP strategy as evidence emerges."
+ }
+]

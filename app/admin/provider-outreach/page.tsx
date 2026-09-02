@@ -4814,7 +4814,7 @@ export default function ProviderOutreachPage() {
       )}
 
       {/* Admin Filter Chips - show on tabs where assignment applies */}
-      {selectedState && ["call_confirm", "in_sequence", "needs_call", "re_engage"].includes(activeTab) && (
+      {selectedState && ["call_confirm", "in_sequence", "needs_call", "re_engage", "call_exhausted"].includes(activeTab) && (
         <AdminFilterChips
           adminCounts={adminCounts}
           totalCount={

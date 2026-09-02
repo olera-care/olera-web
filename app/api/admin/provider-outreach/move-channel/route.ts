@@ -70,6 +70,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Log touchpoint for audit trail
+    const { error: touchpointError } = await db
+      .from("provider_outreach_touchpoints")
+      .insert({
+        provider_id: providerId,
+        touchpoint_type: "channel_changed",
+        details: {
+          new_channel: channel,
+        },
+        admin_user_id: admin.id,
+      });
+
+    if (touchpointError) {
+      console.error("[move-channel] Failed to log touchpoint:", touchpointError);
+      // Don't fail — channel update already succeeded
+    }
+
     return NextResponse.json({ success: true, channel });
   } catch (e) {
     console.error("[move-channel] Error:", e);

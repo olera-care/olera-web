@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NE/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-31T10:40:13.370Z
+ * Last updated: 2026-09-02T03:10:35.697Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2542,6 +2542,11 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Nebraska ADRC (statewide toll-free)",
+          "phone": "(844) 843-6364",
+          "hours": "Mon-Fri business hours"
+        },
+        {
           "label": "Northeast Nebraska AAA",
           "phone": null,
           "description": "ADRC services for northeast Nebraska counties",
@@ -2591,10 +2596,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "Signpost",
-      "phone": "800-252-2412",
+      "phone": "(844) 843-6364",
       "sourceUrl": "https://nebraskalegislature.gov/laws/statutes.php?statute=68-1116",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-02"
     },
     {
       "id": "aabd-cash-medical",

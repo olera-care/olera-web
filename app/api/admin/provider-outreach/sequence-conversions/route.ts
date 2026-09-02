@@ -47,6 +47,12 @@ function getSourceFromTouchpoint(touchpointType: string | null): string {
       return "email_resend"; // Manual resend or nudge email
     case "contact_form_sent":
       return "contact_form";
+    case "fax_sent":
+    case "fax_delivered":
+      return "fax";
+    case "mail_sent":
+    case "mail_delivered":
+      return "direct_mail";
     default:
       return "unknown";
   }
@@ -92,7 +98,7 @@ export async function GET(request: NextRequest) {
       .from("provider_outreach_touchpoints")
       .select("provider_id")
       .in("provider_id", allTrackingProviderIds)
-      .in("touchpoint_type", ["email_sent", "smartlead_enrolled", "sequence_launched", "contact_form_sent"]);
+      .in("touchpoint_type", ["email_sent", "smartlead_enrolled", "sequence_launched", "contact_form_sent", "fax_sent", "mail_sent"]);
 
     const providersWithTouchpoints = new Set(
       (touchpointProviders || []).map((t) => t.provider_id)
@@ -221,7 +227,7 @@ export async function GET(request: NextRequest) {
       .from("provider_outreach_touchpoints")
       .select("provider_id, touchpoint_type, created_at")
       .in("provider_id", providerIds)
-      .in("touchpoint_type", ["smartlead_enrolled", "sequence_launched", "email_sent", "contact_form_sent"])
+      .in("touchpoint_type", ["smartlead_enrolled", "sequence_launched", "email_sent", "contact_form_sent", "fax_sent", "mail_sent"])
       .order("created_at", { ascending: false });
 
     // Build map of provider_id -> array of touchpoints (sorted desc by date)

@@ -229,6 +229,28 @@ export async function POST(request: Request) {
       );
     }
 
+    // Log touchpoint for conversion attribution (if provider is in outreach system)
+    if (oleraProviderId) {
+      const { error: touchpointError } = await db
+        .from("provider_outreach_touchpoints")
+        .insert({
+          provider_id: oleraProviderId,
+          touchpoint_type: "email_sent",
+          details: {
+            trigger: "link_expired_card",
+            action: action || null,
+            action_id: actionId || null,
+            email_type: "link_refresh",
+          },
+          admin_user_id: null, // Provider-initiated, no admin
+        });
+
+      if (touchpointError) {
+        // Don't fail — email was already sent, just log the error
+        console.error("[claim/resend-link] Failed to log touchpoint:", touchpointError);
+      }
+    }
+
     return NextResponse.json({ sent: true, emailHint: maskEmail(onFileEmail) });
   } catch (err) {
     console.error("[claim/resend-link] error:", err);

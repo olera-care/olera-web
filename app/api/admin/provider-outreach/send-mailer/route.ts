@@ -360,6 +360,25 @@ export async function POST(request: NextRequest) {
       // Don't fail -- postcard was already sent
     }
 
+    // Log touchpoint for conversion attribution
+    const { error: touchpointError } = await db
+      .from("provider_outreach_touchpoints")
+      .insert({
+        provider_id: providerId,
+        touchpoint_type: "mail_sent",
+        details: {
+          postcard_id: postcardId,
+          address: rawAddress,
+          provider_name: providerName,
+        },
+        admin_user_id: admin.id,
+      });
+
+    if (touchpointError) {
+      console.error("[send-mailer] Failed to log touchpoint:", touchpointError);
+      // Don't fail -- postcard was already sent
+    }
+
     return NextResponse.json({
       success: true,
       postcard_id: postcardId,

@@ -263,6 +263,12 @@ export async function GET(request: NextRequest) {
     let textableCount = 0;
     let wantsHelp = 0;
     let navigatorPending = 0;
+    // Counted here, not on the client. The client only holds the newest 500
+    // rows, so a count derived from that array undercounts the moment the queue
+    // passes the cap -- and it is the number on the "Schedule all" button. On
+    // 2026-09-02 it read 104 while 173 drafts were genuinely pending.
+    let navigatorDraftReady = 0;
+    let navigatorScheduled = 0;
     const stuckCounts: Record<string, number> = {};
     const lifecycleCounts: Record<string, number> = {};
 
@@ -351,7 +357,11 @@ export async function GET(request: NextRequest) {
       lifecycleCounts[lifecycle.status] = (lifecycleCounts[lifecycle.status] ?? 0) + 1;
 
       const navMeta = readBenefitsNavigator(pMeta);
-      if (navMeta.status === "pending") navigatorPending++;
+      if (navMeta.status === "pending") {
+        navigatorPending++;
+        if (navMeta.scheduled_at) navigatorScheduled++;
+        else navigatorDraftReady++;
+      }
 
       families.push({
         navigator: navMeta.status
@@ -434,6 +444,8 @@ export async function GET(request: NextRequest) {
         textable: textableCount,
         wantsHelp,
         navigatorPending,
+        navigatorDraftReady,
+        navigatorScheduled,
         stuck: stuckCounts,
         lifecycle: lifecycleCounts,
       },

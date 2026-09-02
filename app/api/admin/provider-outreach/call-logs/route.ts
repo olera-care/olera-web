@@ -270,3 +270,71 @@ export async function PATCH(request: NextRequest) {
     );
   }
 }
+
+/**
+ * DELETE /api/admin/provider-outreach/call-logs
+ *
+ * Delete a call log. Only the admin who created it can delete.
+ * Body: { touchpoint_id }
+ */
+export async function DELETE(request: NextRequest) {
+  try {
+    const user = await getAuthUser();
+    if (!user) {
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    const adminUser = await getAdminUser(user.id);
+    if (!adminUser) {
+      return NextResponse.json({ error: "Access denied" }, { status: 403 });
+    }
+
+    const body = await request.json();
+    const { touchpoint_id } = body;
+
+    if (!touchpoint_id) {
+      return NextResponse.json({ error: "touchpoint_id is required" }, { status: 400 });
+    }
+
+    const db = getServiceClient();
+
+    // Fetch the existing touchpoint to verify ownership
+    const { data: existing, error: fetchError } = await db
+      .from("provider_outreach_touchpoints")
+      .select("id, admin_user_id, touchpoint_type")
+      .eq("id", touchpoint_id)
+      .eq("touchpoint_type", "call_attempted")
+      .single();
+
+    if (fetchError || !existing) {
+      return NextResponse.json({ error: "Call log not found" }, { status: 404 });
+    }
+
+    // Only the admin who created the log can delete it
+    if (existing.admin_user_id !== adminUser.id) {
+      return NextResponse.json(
+        { error: "You can only delete your own call logs" },
+        { status: 403 }
+      );
+    }
+
+    // Delete the touchpoint
+    const { error: deleteError } = await db
+      .from("provider_outreach_touchpoints")
+      .delete()
+      .eq("id", touchpoint_id);
+
+    if (deleteError) {
+      console.error("[call-logs] Delete error:", deleteError);
+      return NextResponse.json({ error: `Failed to delete call log: ${deleteError.message}` }, { status: 500 });
+    }
+
+    return NextResponse.json({ success: true, deleted_id: touchpoint_id });
+  } catch (err) {
+    console.error("[call-logs] Error:", err);
+    return NextResponse.json(
+      { error: `Internal server error: ${err instanceof Error ? err.message : String(err)}` },
+      { status: 500 }
+    );
+  }
+}

@@ -1750,6 +1750,8 @@ function CallLogSection({
   const [editNotes, setEditNotes] = useState("");
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Reset state when provider changes to avoid stale data flash
   useEffect(() => {
@@ -1757,6 +1759,7 @@ function CallLogSection({
     setCallNotes("");
     setSubmitError(null);
     setEditingId(null);
+    setDeleteConfirmId(null);
   }, [provider.provider_id]);
 
   // Fetch call logs on mount / provider change
@@ -1867,6 +1870,36 @@ function CallLogSection({
       setEditSubmitting(false);
     }
   }, [editingId, editStatus, editNotes, editSubmitting, logs, provider.provider_id, onCallLogged, cancelEdit]);
+
+  const handleDelete = useCallback(async (logId: string) => {
+    if (deletingId) return;
+    setDeletingId(logId);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/call-logs", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ touchpoint_id: logId }),
+      });
+      if (res.ok) {
+        // Remove from list
+        setLogs((prev) => {
+          const newLogs = prev.filter((log) => log.id !== logId);
+          // Notify parent of new count and status
+          const latestStatus = newLogs[0]?.status || "";
+          onCallLogged?.(provider.provider_id, newLogs.length, latestStatus);
+          return newLogs;
+        });
+        setDeleteConfirmId(null);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to delete call log");
+      }
+    } catch {
+      alert("Network error");
+    } finally {
+      setDeletingId(null);
+    }
+  }, [deletingId, provider.provider_id, onCallLogged]);
 
   return (
     <div>
@@ -2002,13 +2035,42 @@ function CallLogSection({
                     {log.admin_name || "Unknown"}
                   </span>
                   {canEdit && (
-                    <button
-                      onClick={() => startEdit(log)}
-                      className="text-xs text-gray-400 hover:text-primary-600 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-                      title="Edit"
-                    >
-                      Edit
-                    </button>
+                    <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => startEdit(log)}
+                        className="text-xs text-gray-400 hover:text-primary-600"
+                        title="Edit"
+                      >
+                        Edit
+                      </button>
+                      {deleteConfirmId === log.id ? (
+                        <>
+                          <button
+                            onClick={() => handleDelete(log.id)}
+                            disabled={deletingId === log.id}
+                            className="text-xs text-red-600 hover:text-red-700 font-medium"
+                          >
+                            {deletingId === log.id ? "..." : "Confirm"}
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirmId(null)}
+                            className="text-xs text-gray-400 hover:text-gray-600"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => setDeleteConfirmId(log.id)}
+                          className="text-xs text-gray-400 hover:text-red-500"
+                          title="Delete"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
                 {/* Row 2: Full note text */}

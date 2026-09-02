@@ -184,6 +184,108 @@ export async function assembleFamilyFacts(profileId: string | null): Promise<Fam
   return facts;
 }
 
+export interface ThreadTurn {
+  direction: "them" | "us";
+  body: string;
+  at: string;
+}
+
+/**
+ * What has already been said in this thread, both directions.
+ *
+ * The drafter has never had this, and the cost showed on 2026-09-01: a family
+ * told us four referrals had failed her ("none help"), and the draft came back
+ * recommending two of the same four. The facts block carries what she said, but
+ * nothing carried what WE said, so the engine had no way to know it was
+ * repeating advice that had already not worked.
+ *
+ * It also fixes a quieter problem. How long a family's messages are is the best
+ * available signal for how long ours should be, and the drafter could not see
+ * it. One care seeker wrote in four-to-twenty-three character fragments and got
+ * a 397-character reply back; she answered "What".
+ */
+export async function assembleThreadHistory(
+  profileId: string | null,
+  limit = 8,
+): Promise<ThreadTurn[]> {
+  if (!profileId) return [];
+  const db = getServiceClient();
+  if (!db) return [];
+
+  const { data: profile } = await db
+    .from("business_profiles")
+    .select("phone")
+    .eq("id", profileId)
+    .maybeSingle();
+  const digits = String(profile?.phone ?? "").replace(/\D/g, "");
+  if (digits.length < 10) return [];
+  const last10 = digits.slice(-10);
+
+  const [inboundRes, outboundRes] = await Promise.all([
+    db
+      .from("sms_inbound")
+      .select("body, created_at")
+      .eq("phone_last10", last10)
+      .order("created_at", { ascending: false })
+      .limit(limit),
+    db
+      .from("email_log")
+      .select("html_body, created_at, email_type")
+      .eq("channel", "sms")
+      .eq("recipient", `+1${last10}`)
+      // The acknowledgement is the same sentence every time and says nothing
+      // about what we recommended. Left in, it can take two of eight slots and
+      // push out the message that actually named a program.
+      .neq("email_type", "care_seeker_ack")
+      .order("created_at", { ascending: false })
+      .limit(limit),
+  ]);
+
+  const turns: ThreadTurn[] = [
+    ...(inboundRes.data ?? []).map((r: { body: string | null; created_at: string }) => ({
+      direction: "them" as const,
+      body: String(r.body ?? "").trim(),
+      at: r.created_at as string,
+    })),
+    ...(outboundRes.data ?? []).map((r: { html_body: string | null; created_at: string }) => ({
+      direction: "us" as const,
+      // email_log stores SMS bodies as rendered HTML for the shared logger.
+      body: String(r.html_body ?? "")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim(),
+      at: r.created_at as string,
+    })),
+  ].filter((t) => t.body);
+
+  turns.sort((a, b) => a.at.localeCompare(b.at));
+  return turns.slice(-limit);
+}
+
+/**
+ * Render the thread for a model prompt, with the instruction that matters most
+ * stated where it cannot be missed.
+ */
+export function renderThreadForPrompt(turns: ThreadTurn[]): string {
+  if (!turns.length) return "(no earlier messages in this thread)";
+  const lines = turns.map((t) => `  ${t.direction === "them" ? "THEM" : "US  "}: ${t.body}`);
+  const theirs = turns.filter((t) => t.direction === "them");
+  const typical = theirs.length
+    ? Math.round(theirs.reduce((n, t) => n + t.body.length, 0) / theirs.length)
+    : 0;
+  return [
+    "THE CONVERSATION SO FAR, oldest first:",
+    ...lines,
+    "",
+    "Do NOT recommend anything above that they have already told you did not work. Naming it again reads as not having listened, and it costs them another call they cannot afford.",
+    theirs.length
+      ? `They write about ${typical} characters at a time. Answer at a length they can take in. A short reply to a short message is respect, not laziness.`
+      : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+}
+
 /**
  * A message with too little structure to carry its own meaning.
  *

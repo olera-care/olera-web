@@ -402,10 +402,13 @@ async function getGlobalFollowUpsTodayStats(db: DB): Promise<{
 }
 
 /**
- * Get global sequence conversion stats across ALL states.
+ * Get global cold outreach conversion stats across ALL states.
+ * Counts ALL providers in the outreach tracking system who have claimed,
+ * regardless of whether they went through email sequence, fax, or other channels.
+ *
  * Returns:
- *   - sequenced: total providers who ever entered the email sequence (all time)
- *   - claimed: providers who went through the sequence AND claimed their profile
+ *   - sequenced: total providers in cold outreach tracking (all time, all channels)
+ *   - claimed: providers from cold outreach who claimed their profile
  *   - rate: conversion percentage
  */
 async function getGlobalSequenceConversionStats(db: DB): Promise<{
@@ -413,24 +416,58 @@ async function getGlobalSequenceConversionStats(db: DB): Promise<{
   claimed: number;
   rate: number;
 }> {
-  // Get all providers who ever entered the sequence (sequence_started_at is set)
-  const { data: sequencedRows, error: seqError } = await db
+  // Get all providers in outreach tracking with their flags
+  const { data: outreachRows, error: outreachError } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id")
-    .not("sequence_started_at", "is", null);
+    .select("provider_id, sequence_started_at, fax_sent_at, mail_sent_at, contact_form_send_count, resend_count");
 
-  if (seqError) {
-    console.error("[sequence-conversion] Sequenced query error:", seqError);
+  if (outreachError) {
+    console.error("[sequence-conversion] Outreach query error:", outreachError);
     return { sequenced: 0, claimed: 0, rate: 0 };
   }
 
-  const sequencedProviderIds = new Set(
-    (sequencedRows || []).map((r: { provider_id: string }) => r.provider_id)
+  if (!outreachRows || outreachRows.length === 0) {
+    return { sequenced: 0, claimed: 0, rate: 0 };
+  }
+
+  // Get all tracking provider IDs for touchpoint lookup
+  const allTrackingProviderIds = outreachRows.map((r: { provider_id: string }) => r.provider_id);
+
+  // Also check for providers with outreach touchpoints
+  // Some providers might have been contacted but tracking flags weren't set
+  const { data: touchpointProviders } = await db
+    .from("provider_outreach_touchpoints")
+    .select("provider_id")
+    .in("provider_id", allTrackingProviderIds)
+    .in("touchpoint_type", ["email_sent", "smartlead_enrolled", "sequence_launched", "contact_form_sent"]);
+
+  const providersWithTouchpoints = new Set(
+    (touchpointProviders || []).map((t: { provider_id: string }) => t.provider_id)
   );
 
-  const sequencedCount = sequencedProviderIds.size;
+  // Filter to providers who received outreach via tracking flags OR have touchpoints
+  const contactedProviders = (outreachRows || []).filter((r: {
+    provider_id: string;
+    sequence_started_at: string | null;
+    fax_sent_at: string | null;
+    mail_sent_at: string | null;
+    contact_form_send_count: number | null;
+    resend_count: number | null;
+  }) => {
+    const hasTrackingFlags = r.sequence_started_at || r.fax_sent_at || r.mail_sent_at ||
+      (r.contact_form_send_count && r.contact_form_send_count > 0) ||
+      (r.resend_count && r.resend_count > 0);
+    const hasTouchpoints = providersWithTouchpoints.has(r.provider_id);
+    return hasTrackingFlags || hasTouchpoints;
+  });
 
-  if (sequencedCount === 0) {
+  const outreachProviderIds = new Set(
+    contactedProviders.map((r) => r.provider_id)
+  );
+
+  const outreachCount = outreachProviderIds.size;
+
+  if (outreachCount === 0) {
     return { sequenced: 0, claimed: 0, rate: 0 };
   }
 
@@ -443,24 +480,24 @@ async function getGlobalSequenceConversionStats(db: DB): Promise<{
 
   if (claimedError) {
     console.error("[sequence-conversion] Claimed query error:", claimedError);
-    return { sequenced: sequencedCount, claimed: 0, rate: 0 };
+    return { sequenced: outreachCount, claimed: 0, rate: 0 };
   }
 
-  // Count how many sequenced providers have claimed
-  let claimedFromSequenceCount = 0;
+  // Count how many outreach providers have claimed
+  let claimedFromOutreachCount = 0;
   for (const bp of claimedBps || []) {
-    if (sequencedProviderIds.has(bp.source_provider_id)) {
-      claimedFromSequenceCount++;
+    if (outreachProviderIds.has(bp.source_provider_id)) {
+      claimedFromOutreachCount++;
     }
   }
 
-  const rate = sequencedCount > 0
-    ? Math.round((claimedFromSequenceCount / sequencedCount) * 1000) / 10 // One decimal place
+  const rate = outreachCount > 0
+    ? Math.round((claimedFromOutreachCount / outreachCount) * 1000) / 10 // One decimal place
     : 0;
 
   return {
-    sequenced: sequencedCount,
-    claimed: claimedFromSequenceCount,
+    sequenced: outreachCount,
+    claimed: claimedFromOutreachCount,
     rate,
   };
 }

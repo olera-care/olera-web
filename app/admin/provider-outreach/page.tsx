@@ -4736,9 +4736,9 @@ export default function ProviderOutreachPage() {
             type="button"
             onClick={() => setShowSequenceConvModal(true)}
             className="rounded-lg border border-gray-200 bg-white px-4 py-3 hover:border-primary-300 hover:bg-primary-50/50 transition-colors text-left"
-            title="Click to view sequence conversions"
+            title="Click to view outreach conversions"
           >
-            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Sequence Conv.</p>
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Outreach Conv.</p>
             <p className="mt-1 text-2xl font-semibold text-gray-900 tabular-nums">
               {sequenceConversion
                 ? `${sequenceConversion.claimed} / ${sequenceConversion.sequenced}`
@@ -4746,7 +4746,7 @@ export default function ProviderOutreachPage() {
             </p>
             <p className="mt-0.5 text-[11px] text-gray-500">
               {sequenceConversion
-                ? `${sequenceConversion.rate}% claimed from sequence`
+                ? `${sequenceConversion.rate}% claimed from outreach`
                 : "loading..."}
             </p>
           </button>

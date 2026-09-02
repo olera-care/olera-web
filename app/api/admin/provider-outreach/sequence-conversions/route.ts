@@ -4,7 +4,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 /**
  * GET /api/admin/provider-outreach/sequence-conversions
  *
- * Returns providers who claimed after going through the email sequence.
+ * Returns providers who claimed from cold outreach (any channel - email, fax, contact form, etc.).
  *
  * Query params:
  *   - date (optional): Filter by specific claim date (YYYY-MM-DD). If omitted, returns all conversions.
@@ -69,28 +69,56 @@ export async function GET(request: NextRequest) {
 
     const db = getServiceClient();
 
-    // Step 1: Get all providers who went through the sequence (sequence_started_at IS NOT NULL)
-    // Include fax_sent_at and mail_sent_at for attribution
-    const { data: sequencedProviders, error: seqError } = await db
+    // Step 1: Get all providers in outreach tracking with their flags
+    const { data: allTrackingRows, error: outreachError } = await db
       .from("provider_outreach_tracking")
-      .select("provider_id, assigned_to, fax_sent_at, mail_sent_at, sequence_started_at")
-      .not("sequence_started_at", "is", null);
+      .select("provider_id, assigned_to, fax_sent_at, mail_sent_at, sequence_started_at, contact_form_send_count, resend_count");
 
-    if (seqError) {
-      console.error("[sequence-conversions] Sequence query error:", seqError);
-      return NextResponse.json({ error: "Failed to fetch sequence data" }, { status: 500 });
+    if (outreachError) {
+      console.error("[sequence-conversions] Outreach query error:", outreachError);
+      return NextResponse.json({ error: "Failed to fetch outreach data" }, { status: 500 });
     }
 
-    if (!sequencedProviders || sequencedProviders.length === 0) {
+    if (!allTrackingRows || allTrackingRows.length === 0) {
       return NextResponse.json({ providers: [], total: 0, by_source: {}, source_labels: SOURCE_LABELS });
     }
 
-    const sequencedProviderIds = sequencedProviders.map((p) => p.provider_id);
+    // Get all tracking provider IDs for touchpoint lookup
+    const allTrackingProviderIds = allTrackingRows.map((p) => p.provider_id);
+
+    // Step 1b: Also check for providers with outreach touchpoints
+    // Some providers might have been contacted but tracking flags weren't set
+    const { data: touchpointProviders } = await db
+      .from("provider_outreach_touchpoints")
+      .select("provider_id")
+      .in("provider_id", allTrackingProviderIds)
+      .in("touchpoint_type", ["email_sent", "smartlead_enrolled", "sequence_launched", "contact_form_sent"]);
+
+    const providersWithTouchpoints = new Set(
+      (touchpointProviders || []).map((t) => t.provider_id)
+    );
+
+    // Filter to providers who received outreach via tracking flags OR have touchpoints
+    const outreachProviders = allTrackingRows.filter((p) => {
+      // Check tracking flags
+      const hasTrackingFlags = p.sequence_started_at || p.fax_sent_at || p.mail_sent_at ||
+        (p.contact_form_send_count && p.contact_form_send_count > 0) ||
+        (p.resend_count && p.resend_count > 0);
+      // Also check if they have any outreach touchpoints
+      const hasTouchpoints = providersWithTouchpoints.has(p.provider_id);
+      return hasTrackingFlags || hasTouchpoints;
+    });
+
+    if (outreachProviders.length === 0) {
+      return NextResponse.json({ providers: [], total: 0, by_source: {}, source_labels: SOURCE_LABELS });
+    }
+
+    const outreachProviderIds = outreachProviders.map((p) => p.provider_id);
     const assignedToMap = new Map(
-      sequencedProviders.map((p) => [p.provider_id, p.assigned_to])
+      outreachProviders.map((p) => [p.provider_id, p.assigned_to])
     );
     const trackingDataMap = new Map(
-      sequencedProviders.map((p) => [p.provider_id, {
+      outreachProviders.map((p) => [p.provider_id, {
         fax_sent_at: p.fax_sent_at as string | null,
         mail_sent_at: p.mail_sent_at as string | null,
         sequence_started_at: p.sequence_started_at as string | null,
@@ -102,7 +130,7 @@ export async function GET(request: NextRequest) {
     let bpQuery = db
       .from("business_profiles")
       .select("source_provider_id, account_id, created_at")
-      .in("source_provider_id", sequencedProviderIds)
+      .in("source_provider_id", outreachProviderIds)
       .not("account_id", "is", null)
       .order("created_at", { ascending: false });
 
@@ -173,7 +201,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Step 5: Get admin display names for assigned_to
-    const assignedToIds = Array.from(new Set(sequencedProviders.map((p) => p.assigned_to).filter((id): id is string => Boolean(id))));
+    const assignedToIds = Array.from(new Set(outreachProviders.map((p) => p.assigned_to).filter((id): id is string => Boolean(id))));
     let adminNameMap = new Map<string, string>();
 
     if (assignedToIds.length > 0) {

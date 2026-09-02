@@ -7,9 +7,12 @@
  *
  * Query params:
  *   - days: Number of days to look back for broadcast stats (default: 7)
- *   - status: Filter by status (all, claimed, sent, waiting)
+ *   - status: Filter by status (all, sent, waiting, done)
+ *   - done_sub: Sub-filter when status=done (claimed, not_interested, archived)
  *   - city: Filter by city
  *   - search: Search provider name
+ *   - page: Page number for pagination (default: 1)
+ *   - per_page: Cities per page (default: 10, max: 50)
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -29,6 +32,7 @@ interface ProviderBroadcast {
   claimed: boolean;
   claimed_at: string | null;
   is_conversion: boolean; // True if claimed AFTER receiving first broadcast
+  stage: "broadcast_ready" | "not_interested" | "archived";
 }
 
 interface CityGroup {
@@ -54,8 +58,11 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const days = Math.min(parseInt(searchParams.get("days") || "7", 10), 90);
   const statusFilter = searchParams.get("status") || "all";
+  const doneSubFilter = searchParams.get("done_sub") || "claimed"; // For status=done
   const cityFilter = searchParams.get("city") || "";
   const searchQuery = searchParams.get("search") || "";
+  const page = Math.max(1, parseInt(searchParams.get("page") || "1", 10));
+  const perPage = Math.min(50, Math.max(1, parseInt(searchParams.get("per_page") || "10", 10)));
 
   const db = getServiceClient();
   const cutoff = new Date();
@@ -63,11 +70,18 @@ export async function GET(req: NextRequest) {
   const cutoffIso = cutoff.toISOString();
 
   try {
-    // Step 1: Get all broadcast_ready providers with their details
+    // Determine which stage(s) to query based on status filter
+    // "done" tab shows terminal states: claimed (still broadcast_ready but linked), not_interested, archived
+    let stageToQuery: string | string[] = "broadcast_ready";
+    if (statusFilter === "done" && (doneSubFilter === "not_interested" || doneSubFilter === "archived")) {
+      stageToQuery = doneSubFilter;
+    }
+
+    // Step 1: Get providers with their details
     let trackingQuery = db
       .from("provider_outreach_tracking")
-      .select("provider_id, city, state, apollo_contact")
-      .eq("stage", "broadcast_ready");
+      .select("provider_id, city, state, apollo_contact, stage")
+      .eq("stage", stageToQuery);
 
     if (cityFilter) {
       trackingQuery = trackingQuery.ilike("city", `%${cityFilter}%`);
@@ -82,8 +96,9 @@ export async function GET(req: NextRequest) {
 
     if (!trackingRows || trackingRows.length === 0) {
       return NextResponse.json({
-        stats: { pool: 0, sent: 0, claimed: 0, conversion: 0 },
+        stats: { pool: 0, sent: 0, claimed: 0, conversions: 0, conversion: 0 },
         cities: [],
+        pagination: { page: 1, per_page: perPage, total_cities: 0, total_pages: 0 },
       });
     }
 
@@ -200,10 +215,13 @@ export async function GET(req: NextRequest) {
         claimed_at: claimedAt,
         // True conversion: claimed after receiving at least one broadcast
         is_conversion: isConversion,
+        stage: tracking.stage as "broadcast_ready" | "not_interested" | "archived",
       };
 
       // Apply status filter
-      if (statusFilter === "claimed" && !claimed) continue;
+      // For "done" status with claimed sub-filter (or legacy "claimed" status), show only claimed
+      if (((statusFilter === "done" && doneSubFilter === "claimed") || statusFilter === "claimed") && !claimed) continue;
+      // For not_interested/archived sub-filters, we already filtered by stage, so show all
       if (statusFilter === "sent" && broadcasts.length === 0) continue;
       if (statusFilter === "waiting" && (claimed || broadcasts.length === 0)) continue;
 
@@ -249,7 +267,12 @@ export async function GET(req: NextRequest) {
       });
     }
 
-    // Step 7: Calculate overall stats
+    // Step 7: Paginate cities
+    const totalCities = sortedCities.length;
+    const startIndex = (page - 1) * perPage;
+    const paginatedCities = sortedCities.slice(startIndex, startIndex + perPage);
+
+    // Step 8: Calculate overall stats (across ALL cities, not just paginated)
     const totalPool = providerBroadcasts.length;
     const totalSent = providerBroadcasts.filter((p) => p.broadcasts_received > 0).length;
     const totalClaimed = providerBroadcasts.filter((p) => p.claimed).length;
@@ -265,10 +288,17 @@ export async function GET(req: NextRequest) {
         conversions: totalConversions, // True conversions (claimed after broadcast)
         conversion, // Conversion rate percentage
       },
-      cities: sortedCities,
+      cities: paginatedCities,
+      pagination: {
+        page,
+        per_page: perPage,
+        total_cities: totalCities,
+        total_pages: Math.ceil(totalCities / perPage),
+      },
       filters: {
         days,
         status: statusFilter,
+        done_sub: statusFilter === "done" ? doneSubFilter : null,
         city: cityFilter,
         search: searchQuery,
       },

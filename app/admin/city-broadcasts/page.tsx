@@ -194,7 +194,7 @@ function ChevronDown({ className }: { className?: string }) {
   );
 }
 
-// Email Templates Preview Section
+// Email template interface for modal
 interface EmailTemplate {
   id: string;
   name: string;
@@ -204,30 +204,23 @@ interface EmailTemplate {
   html: string;
 }
 
-function EmailTemplatesSection() {
-  const [expanded, setExpanded] = useState(false);
+// Email Templates Modal - shows broadcast email templates
+function EmailTemplatesModal({ onClose }: { onClose: () => void }) {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [loaded, setLoaded] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTemplate, setActiveTemplate] = useState<string | null>(null);
 
-  // Fetch templates when expanded
+  // Fetch templates on mount
   useEffect(() => {
-    if (!expanded || loaded) return;
-
     let cancelled = false;
     async function fetchTemplates() {
-      setLoading(true);
-      setError(null);
       try {
         const res = await fetch("/api/admin/city-broadcasts/templates");
         if (!cancelled) {
           if (res.ok) {
             const data = await res.json();
             setTemplates(data.templates || []);
-            setLoaded(true);
-            // Auto-expand first template
             if (data.templates?.length > 0) {
               setActiveTemplate(data.templates[0].id);
             }
@@ -247,29 +240,53 @@ function EmailTemplatesSection() {
     return () => {
       cancelled = true;
     };
-  }, [expanded, loaded]);
+  }, []);
+
+  // Close on Escape key
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [onClose]);
 
   return (
-    <div className="mt-6 rounded-xl border border-gray-200 bg-white overflow-hidden">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between px-4 py-3 text-left hover:bg-gray-50 transition-colors"
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
+      onClick={(e) => {
+        e.stopPropagation();
+        onClose();
+      }}
+    >
+      <div
+        className="bg-white rounded-xl shadow-xl w-full max-w-3xl max-h-[85vh] flex flex-col overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-center gap-2">
-          <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-          <span className="text-sm font-semibold text-gray-700">Email Templates</span>
-          <span className="text-xs text-gray-400">(2 templates)</span>
+        {/* Header */}
+        <div className="px-6 py-4 border-b border-gray-100 shrink-0">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900">Email Templates</h3>
+              <p className="text-sm text-gray-500 mt-0.5">Broadcast emails sent to providers</p>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-100"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
         </div>
-        <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`} />
-      </button>
 
-      {expanded && (
-        <div className="border-t border-gray-100 p-4">
+        {/* Content */}
+        <div className="px-6 py-5 overflow-y-auto flex-1">
           {loading ? (
-            <div className="flex items-center justify-center py-8">
-              <span className="w-5 h-5 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+            <div className="flex items-center justify-center py-12">
+              <span className="w-6 h-6 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
             </div>
           ) : error ? (
             <p className="text-sm text-red-500 py-4">{error}</p>
@@ -316,7 +333,18 @@ function EmailTemplatesSection() {
             </div>
           )}
         </div>
-      )}
+
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-gray-100 shrink-0 bg-gray-50">
+          <button
+            type="button"
+            onClick={onClose}
+            className="w-full px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          >
+            Close
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1499,6 +1527,9 @@ export default function CityBroadcastsPage() {
   // Broadcast modal state
   const [showBroadcastModal, setShowBroadcastModal] = useState(false);
 
+  // Email templates modal state
+  const [showEmailTemplates, setShowEmailTemplates] = useState(false);
+
   // Local state for inputs (updated immediately for responsive UI)
   const [searchInput, setSearchInput] = useState(searchParams.get("search") || "");
   const [cityInput, setCityInput] = useState(searchParams.get("city") || "");
@@ -1852,7 +1883,19 @@ export default function CityBroadcastsPage() {
     <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
       <AdminPageHeader
         title="City Broadcasts"
-        description="Providers eligible for city broadcasts when family activity occurs."
+        description={
+          <p>
+            Providers eligible for city broadcasts when family activity occurs.{" "}
+            <button
+              type="button"
+              onClick={() => setShowEmailTemplates(true)}
+              className="inline-flex items-center gap-1 whitespace-nowrap font-medium text-primary-700 transition-colors hover:text-primary-800"
+            >
+              View email templates
+              <span aria-hidden="true">&rarr;</span>
+            </button>
+          </p>
+        }
         breadcrumbs={[{ label: "Inbox", href: "/admin" }]}
         actions={
           <div className="flex items-center gap-2">
@@ -2005,8 +2048,6 @@ export default function CityBroadcastsPage() {
         </>
       )}
 
-      {/* Email Templates Preview */}
-      <EmailTemplatesSection />
 
       {/* Filters - always show tabs, conditionally show search/city filter */}
       {(data || excludedData) && (
@@ -2244,6 +2285,11 @@ export default function CityBroadcastsPage() {
           onClose={() => setShowBroadcastModal(false)}
           onSuccess={handleBroadcastSuccess}
         />
+      )}
+
+      {/* Email templates modal */}
+      {showEmailTemplates && (
+        <EmailTemplatesModal onClose={() => setShowEmailTemplates(false)} />
       )}
 
       {/* Toast notification */}

@@ -1,7 +1,7 @@
 # Pre-CRP plan, iteration 4, house style
 
 Source: `Olera_Pre_CRP_RnD_Commercialization_Execution_Plan_Iteration_4.docx`
-(Logan, 2026-09-02), kept here as `orig.docx`. Six pages, PDF and Word.
+(Logan, 2026-09-02), kept here as `orig.docx`. Five pages, PDF and Word.
 
 ```
 export PYTHONPATH=../cp-rebase-src:../statement-of-need-src
@@ -44,7 +44,7 @@ NOFO's three Statement of Need questions and the scored review criteria in
 `../../solicitation-reviewer-reference.md`, and against the 2026-08-21 mock
 review in `../mock-review-2026-08-21.md`.
 
-Four changes to Table 5:
+Three changes to Table 5:
 
 1. **Institutional buyers**: the stretch became the target. Convergent interviews
    are market research; a written, milestone-conditional letter naming population,
@@ -54,19 +54,22 @@ Four changes to Table 5:
    the Fundraising criterion's actual test, third-party funds equal to or
    exceeding the NIH request, currently about $4 million. The target names the
    number and the forms of evidence the NOFO accepts.
-3. **Platform coupling** is a new row. The mock review's principal reservation was
-   that the provider products could be sold without the navigation platform. A
-   larger provider business is ammunition for that reservation unless the link is
-   measured, and nothing in the plan was measuring it.
-4. **Phase IIB evidence** gains a count of episodes reaching verified established
+3. **Phase IIB evidence** gains a count of episodes reaching verified established
    care. Uncontrolled and small, but it is the only pre-CRP observation of the
    endpoint the whole CRP rests on.
 
-The eighteen weeks were reflowed to serve those rows: coupling instrumentation in
-Week 2, the letter of intent drafted in Week 3 and first presented in Week 8,
-investor conversations opened in Week 6 rather than left to the award period, the
-care-establishment count added to the study instrumentation in Week 4, and the
-$4 million proportionality answer written into the CP in Week 12.
+The eighteen weeks were reflowed to serve those rows: the letter of intent drafted
+in Week 3 and first presented in Week 8, investor conversations opened in Week 6
+rather than left to the award period, the care-establishment count added to the
+study instrumentation in Week 4, and the $4 million proportionality answer written
+into the CP in Week 12.
+
+A fourth Table 5 row, platform coupling, was drafted and then removed at Logan's
+instruction, along with its Gantt bar. Two week entries went with it: Week 14's
+"report the coupling measurement", which after the removal reported into nothing,
+and the words "instrument the coupling" from Week 2's job title. Week 2 keeps the
+instrumentation task itself, because recording each customer's acquisition source
+is worth having whether or not it is a tracked risk.
 
 **Figure 2** is new: the same eighteen weeks as a Gantt, so the overlaps are
 visible. Built by `figs_v4.py` in the house figure system; `checkfigs.check` is
@@ -104,14 +107,14 @@ the en dash.
   "Letters/LOIs" and the like. The author's shorthand.
 - **Table 6 splits** across pages 4 and 5 with its header repeating. Held whole
   it would leave about 350pt of white at the foot of page 4.
-- **Figure 2 opens page 6** and leaves the lower half of that page empty. It is
-  3.41in tall with its caption and cannot fit in the 156pt left at the foot of
-  page 5. The row height was raised from 19 to 25 units to use the space it does
-  have.
+- **Figure 2's row height is set by pagination, not preference.** At 25 units the
+  figure opened its own page and left the working note stranded on a sixth; at 19
+  it lands at the foot of page 5 with the note under it and the document ends
+  there. Adding or removing a workstream will move this again.
 
 ## Notes on the two exports
 
-Both are six pages and all six pages begin at the same point. Getting there
+Both are five pages and all five pages begin at the same point. Getting there
 needed four corrections to the Word builder, each one matching a stylesheet rule
 the export had been ignoring:
 

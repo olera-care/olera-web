@@ -75,10 +75,9 @@ EDITS = [
 DATERANGE = re.compile(r'\b([A-Z][a-z]{2} \d{1,2})-((?:[A-Z][a-z]{2} )?\d{1,2})\b')
 
 GANTT_CAPTION = (
-    'The same eighteen weeks as a schedule, so the overlaps are visible. Selling, '
-    'the CareNavigator build, and buyer discovery all run through the autumn; the '
-    'letter of intent and the financing test start once there is something to show '
-    'and have to close before the evidence freezes in Week 15.')
+    'The same eighteen weeks as a schedule, so the overlaps are visible. The letter '
+    'of intent and the financing test start once there is something to show, and '
+    'both have to close before the evidence freezes in Week 15.')
 
 CAPTIONS = [
     'The R&amp;D and commercialization program. What each stage does, what it '

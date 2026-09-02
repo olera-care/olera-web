@@ -416,8 +416,7 @@ async function getGlobalSequenceConversionStats(db: DB): Promise<{
   claimed: number;
   rate: number;
 }> {
-  // Get providers who actually received outreach (any channel)
-  // Must have at least one of: sequence_started_at, fax_sent_at, mail_sent_at, contact_form_send_count > 0, or resend_count > 0
+  // Get all providers in outreach tracking with their flags
   const { data: outreachRows, error: outreachError } = await db
     .from("provider_outreach_tracking")
     .select("provider_id, sequence_started_at, fax_sent_at, mail_sent_at, contact_form_send_count, resend_count");
@@ -427,7 +426,26 @@ async function getGlobalSequenceConversionStats(db: DB): Promise<{
     return { sequenced: 0, claimed: 0, rate: 0 };
   }
 
-  // Filter to only providers who actually received some outreach
+  if (!outreachRows || outreachRows.length === 0) {
+    return { sequenced: 0, claimed: 0, rate: 0 };
+  }
+
+  // Get all tracking provider IDs for touchpoint lookup
+  const allTrackingProviderIds = outreachRows.map((r: { provider_id: string }) => r.provider_id);
+
+  // Also check for providers with email_sent touchpoints
+  // Some providers might have been contacted but tracking flags weren't set
+  const { data: touchpointProviders } = await db
+    .from("provider_outreach_touchpoints")
+    .select("provider_id")
+    .in("provider_id", allTrackingProviderIds)
+    .in("touchpoint_type", ["email_sent", "smartlead_enrolled", "contact_form_sent"]);
+
+  const providersWithTouchpoints = new Set(
+    (touchpointProviders || []).map((t: { provider_id: string }) => t.provider_id)
+  );
+
+  // Filter to providers who received outreach via tracking flags OR have touchpoints
   const contactedProviders = (outreachRows || []).filter((r: {
     provider_id: string;
     sequence_started_at: string | null;
@@ -436,9 +454,11 @@ async function getGlobalSequenceConversionStats(db: DB): Promise<{
     contact_form_send_count: number | null;
     resend_count: number | null;
   }) => {
-    return r.sequence_started_at || r.fax_sent_at || r.mail_sent_at ||
+    const hasTrackingFlags = r.sequence_started_at || r.fax_sent_at || r.mail_sent_at ||
       (r.contact_form_send_count && r.contact_form_send_count > 0) ||
       (r.resend_count && r.resend_count > 0);
+    const hasTouchpoints = providersWithTouchpoints.has(r.provider_id);
+    return hasTrackingFlags || hasTouchpoints;
   });
 
   const outreachProviderIds = new Set(

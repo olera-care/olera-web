@@ -69,8 +69,7 @@ export async function GET(request: NextRequest) {
 
     const db = getServiceClient();
 
-    // Step 1: Get providers who actually received outreach (any channel)
-    // Must have at least one of: sequence_started_at, fax_sent_at, mail_sent_at, contact_form_send_count > 0, or resend_count > 0
+    // Step 1: Get all providers in outreach tracking with their flags
     const { data: allTrackingRows, error: outreachError } = await db
       .from("provider_outreach_tracking")
       .select("provider_id, assigned_to, fax_sent_at, mail_sent_at, sequence_started_at, contact_form_send_count, resend_count");
@@ -80,11 +79,34 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch outreach data" }, { status: 500 });
     }
 
-    // Filter to only providers who actually received some outreach
-    const outreachProviders = (allTrackingRows || []).filter((p) => {
-      return p.sequence_started_at || p.fax_sent_at || p.mail_sent_at ||
+    if (!allTrackingRows || allTrackingRows.length === 0) {
+      return NextResponse.json({ providers: [], total: 0, by_source: {}, source_labels: SOURCE_LABELS });
+    }
+
+    // Get all tracking provider IDs for touchpoint lookup
+    const allTrackingProviderIds = allTrackingRows.map((p) => p.provider_id);
+
+    // Step 1b: Also check for providers with email_sent touchpoints
+    // Some providers might have been contacted but tracking flags weren't set
+    const { data: touchpointProviders } = await db
+      .from("provider_outreach_touchpoints")
+      .select("provider_id")
+      .in("provider_id", allTrackingProviderIds)
+      .in("touchpoint_type", ["email_sent", "smartlead_enrolled", "contact_form_sent"]);
+
+    const providersWithTouchpoints = new Set(
+      (touchpointProviders || []).map((t) => t.provider_id)
+    );
+
+    // Filter to providers who received outreach via tracking flags OR have touchpoints
+    const outreachProviders = allTrackingRows.filter((p) => {
+      // Check tracking flags
+      const hasTrackingFlags = p.sequence_started_at || p.fax_sent_at || p.mail_sent_at ||
         (p.contact_form_send_count && p.contact_form_send_count > 0) ||
         (p.resend_count && p.resend_count > 0);
+      // Also check if they have any outreach touchpoints
+      const hasTouchpoints = providersWithTouchpoints.has(p.provider_id);
+      return hasTrackingFlags || hasTouchpoints;
     });
 
     if (outreachProviders.length === 0) {

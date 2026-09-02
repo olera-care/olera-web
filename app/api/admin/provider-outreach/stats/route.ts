@@ -433,13 +433,13 @@ async function getGlobalSequenceConversionStats(db: DB): Promise<{
   // Get all tracking provider IDs for touchpoint lookup
   const allTrackingProviderIds = outreachRows.map((r: { provider_id: string }) => r.provider_id);
 
-  // Also check for providers with email_sent touchpoints
+  // Also check for providers with outreach touchpoints
   // Some providers might have been contacted but tracking flags weren't set
   const { data: touchpointProviders } = await db
     .from("provider_outreach_touchpoints")
     .select("provider_id")
     .in("provider_id", allTrackingProviderIds)
-    .in("touchpoint_type", ["email_sent", "smartlead_enrolled", "contact_form_sent"]);
+    .in("touchpoint_type", ["email_sent", "smartlead_enrolled", "sequence_launched", "contact_form_sent"]);
 
   const providersWithTouchpoints = new Set(
     (touchpointProviders || []).map((t: { provider_id: string }) => t.provider_id)

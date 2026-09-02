@@ -86,13 +86,13 @@ export async function GET(request: NextRequest) {
     // Get all tracking provider IDs for touchpoint lookup
     const allTrackingProviderIds = allTrackingRows.map((p) => p.provider_id);
 
-    // Step 1b: Also check for providers with email_sent touchpoints
+    // Step 1b: Also check for providers with outreach touchpoints
     // Some providers might have been contacted but tracking flags weren't set
     const { data: touchpointProviders } = await db
       .from("provider_outreach_touchpoints")
       .select("provider_id")
       .in("provider_id", allTrackingProviderIds)
-      .in("touchpoint_type", ["email_sent", "smartlead_enrolled", "contact_form_sent"]);
+      .in("touchpoint_type", ["email_sent", "smartlead_enrolled", "sequence_launched", "contact_form_sent"]);
 
     const providersWithTouchpoints = new Set(
       (touchpointProviders || []).map((t) => t.provider_id)

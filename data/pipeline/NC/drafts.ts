@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-31T10:40:13.369Z
+ * Last updated: 2026-09-02T03:10:35.696Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -544,16 +544,15 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "NC Medicaid Contact Center",
+          "phone": "(888) 245-0179",
+          "hours": "Mon-Fri 8am-5pm ET"
+        },
+        {
           "label": "NC 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline to find your local county DSS office and other services",
           "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "NC Medicaid Customer Service",
-          "phone": "(888) 245-0179",
-          "description": "Questions about Medicaid programs including Medicare Savings Programs",
-          "hours": "Mon-Fri 8am-5pm ET"
         },
         {
           "label": "Medicare.gov",
@@ -634,7 +633,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://medicaid.ncdhhs.gov/providers/programs-and-services/medicare-savings-programs",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-02"
     },
     {
       "id": "snap-food-benefits",
@@ -2487,9 +2486,13 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Mecklenburg County Just1Call",
+          "label": "NCDHHS Customer Service Center",
+          "phone": "1-800-662-7030",
+          "hours": "Mon-Fri 8am-5pm ET"
+        },
+        {
+          "label": "Project C.A.R.E. South Central Office",
           "phone": "704-432-1111",
-          "description": "Intake for Charlotte metro area Project C.A.R.E. services",
           "hours": "Business hours (specific hours not listed)"
         },
         {
@@ -2553,10 +2556,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "HandHeart",
-      "phone": "2-1-1",
+      "phone": "1-800-662-7030",
       "sourceUrl": "https://www.ncdhhs.gov/divisions/aging/project-care-caregiver-alternatives-running-empty",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-02"
     },
     {
       "id": "special-assistance-in-home",

@@ -294,7 +294,11 @@ def build_table(thtml, keep=False, plain=False):
             exact(par, 10.44)
             # matches the PDF's `table.dat td b { color: #14453f }`: the bold
             # lead-in is teal, the prose after it stays black
-            segments = re.split(r'<br\s*/?>', content, flags=re.I)
+            # A bulleted cell is a div per item so each one can hang-indent;
+            # everything else splits on <br> as before. Word has no <br> that
+            # keeps its formatting cleanly, so both become one paragraph per line.
+            tis = re.findall(r'<div class="ti">(.*?)</div>', content, re.S)
+            segments = tis or re.split(r'<br\s*/?>', content, flags=re.I)
             for si, seg in enumerate(segments):
                 target = par if si == 0 else cell.add_paragraph()
                 if si:
@@ -302,6 +306,13 @@ def build_table(thtml, keep=False, plain=False):
                     target.paragraph_format.space_before = Pt(0)
                     target.paragraph_format.space_after = Pt(2.8)
                     exact(target, 10.44)
+                if tis:
+                    target.paragraph_format.space_after = Pt(1.5)
+                    target.paragraph_format.left_indent = Inches(0.097)
+                    target.paragraph_format.first_line_indent = Inches(-0.097)
+                    seg = seg.lstrip('\u2022 ')
+                    r = target.add_run('\u2022 ')
+                    r.font.size = Pt(9); r.font.color.rgb = TEAL
                 bb = is_head or (ci == 0 and content.lstrip().startswith('<b>'))
                 add_runs(target, seg, size=9, color=TEAL if is_head else None,
                          base_bold=bb, bold_color=None if is_head else TEAL)

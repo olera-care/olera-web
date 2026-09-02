@@ -1,7 +1,7 @@
 # Pre-CRP plan, iteration 4, house style
 
 Source: `Olera_Pre_CRP_RnD_Commercialization_Execution_Plan_Iteration_4.docx`
-(Logan, 2026-09-02), kept here as `orig.docx`. Five pages, PDF and Word.
+(Logan, 2026-09-02), kept here as `orig.docx`. Six pages, PDF and Word.
 
 ```
 export PYTHONPATH=../cp-rebase-src:../statement-of-need-src
@@ -27,6 +27,12 @@ Formatting, with the dash changes listed below.
   paragraph beneath them rather than a second bold line stacked above one.
 - One caption added to each of the six tables. The source had none, and a table
   without a caption is not house style.
+- **The week table's tasks become bullets.** The source writes each week's tasks
+  as one semicolon-separated sentence. `bullets()` in `build_v4.py` splits on the
+  semicolons, one bullet per clause, with a hanging indent per item so a wrapped
+  task lines up under its own text rather than under the bullet. Same words, same
+  order. The other tables keep their semicolon lists, which are prose rather than
+  task lists.
 - **Figure 1** is the author's own image, lifted out of `orig.docx` into
   `media/image1.png` and placed full width with its caption underneath. In the
   source the caption sat in the body text with the image above it.
@@ -107,14 +113,13 @@ the en dash.
   "Letters/LOIs" and the like. The author's shorthand.
 - **Table 6 splits** across pages 4 and 5 with its header repeating. Held whole
   it would leave about 350pt of white at the foot of page 4.
-- **Figure 2's row height is set by pagination, not preference.** At 25 units the
-  figure opened its own page and left the working note stranded on a sixth; at 19
-  it lands at the foot of page 5 with the note under it and the document ends
-  there. Adding or removing a workstream will move this again.
+- **Figure 2's row height is set by how much room the last page has.** It has run
+  at 19, 21, 23 and 25 units as the tables around it changed length. Re-check it
+  after any edit that moves the page breaks.
 
 ## Notes on the two exports
 
-Both are five pages and all five pages begin at the same point. Getting there
+Both are six pages and all six pages begin at the same point. Getting there
 needed four corrections to the Word builder, each one matching a stylesheet rule
 the export had been ignoring:
 
@@ -126,6 +131,9 @@ the export had been ignoring:
   `tr { break-inside: avoid }`. Without it Word splits a row across a page break.
 - `repeat_header` sets `w:tblHeader` on the header row, the equivalent of
   `thead { display: table-header-group }`.
+- The cell splitter recognises the bulleted `div class="ti"` items as well as
+  `<br>`, and gives each one a teal bullet run and a hanging indent, because Word
+  has no run-level line break that keeps its formatting cleanly.
 - Header-row paragraphs get `keep_with_next`, so a header cannot be stranded
   alone at the foot of a page.
 

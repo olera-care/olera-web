@@ -45,6 +45,8 @@ table.dat td b { color: #14453f; }
 table.dat tr { break-inside: avoid; page-break-inside: avoid; }
 table.dat tbody tr:last-child td { border-bottom: 1pt solid #14453f; }
 table.dat tbody tr.here td { background: #eef3f1; }
+table.dat td div.ti { text-indent: -7pt; padding-left: 7pt; margin: 0 0 1.5pt 0; }
+table.dat td div.ti:last-child { margin-bottom: 0; }
 table.dat.keep { break-inside: avoid; page-break-inside: avoid; }
 span.tag { font-size: 8pt; font-weight: bold; letter-spacing: 0.6pt; color: #14453f; }
 span.tag.q { color: #5f6b64; }
@@ -127,6 +129,16 @@ def stage_cell(c):
     return '<br>'.join(esc(b) for b in bits) + tag
 
 
+def bullets(cell):
+    """The author writes a week's tasks as one semicolon-separated sentence.
+    One bullet per clause is the same content and is easier to work from. The
+    hanging indent is per item, so a wrapped task lines up under its own text
+    rather than under the bullet."""
+    items = [i.strip() for i in cell.rstrip('.').split(';') if i.strip()]
+    return ''.join(f'<div class="ti">\u2022 {esc(i[0].upper() + i[1:])}</div>'
+                   for i in items)
+
+
 def figure(svg, num, caption):
     """Vector in the PDF, a 300 dpi raster in the Word export. The width has to
     end the style attribute, because that is what the docx builder matches on."""
@@ -137,7 +149,8 @@ def figure(svg, num, caption):
             f'<p class="caption"><b>Figure {num}.</b> {caption}</p></div>')
 
 
-def table(grid, widths, num, caption, keep=False, cell0=None, hererow=None):
+def table(grid, widths, num, caption, keep=False, cell0=None, hererow=None,
+          bulletcol=None):
     head, rows = grid[0], grid[1:]
     th = ''.join(f'<th style="width:{w}%">{esc(fix(c))}</th>'
                  for c, w in zip(head, widths))
@@ -145,9 +158,11 @@ def table(grid, widths, num, caption, keep=False, cell0=None, hererow=None):
     for i, row in enumerate(rows):
         cls = ' class="here"' if hererow is not None and i == hererow else ''
         c0 = cell0(row[0]) if cell0 else esc(fix(row[0]))
-        body += (f'<tr{cls}><td><b>{c0}</b></td>'
-                 + ''.join(f'<td>{esc(fix(c))}</td>' for c in row[1:])
-                 + '</tr>')
+        cells = ''
+        for ci, c in enumerate(row[1:], 1):
+            cells += (f'<td>{bullets(fix(c))}</td>' if ci == bulletcol
+                      else f'<td>{esc(fix(c))}</td>')
+        body += f'<tr{cls}><td><b>{c0}</b></td>{cells}</tr>'
     tc = 'dat keep' if keep else 'dat'
     return (f'<table class="{tc}"><thead><tr>{th}</tr></thead><tbody>{body}</tbody>'
             f'</table><p class="caption"><b>Table {num}.</b> {caption}</p>')
@@ -166,7 +181,8 @@ for b in BLOCKS:
         parts.append(table(b['grid'], WIDTHS[tnum - 1], tnum, cap,
                            keep=tnum in KEEP,
                            cell0=stage_cell if tnum == 1 else None,
-                           hererow=1 if tnum == 1 else None))
+                           hererow=1 if tnum == 1 else None,
+                           bulletcol=3 if tnum == 6 else None))
         if tnum == 6:
             parts.append(figure(FV.gantt(), 2, GANTT_CAPTION))
         continue

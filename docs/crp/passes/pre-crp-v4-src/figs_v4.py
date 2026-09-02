@@ -62,7 +62,7 @@ def gantt():
     y += 13
 
     top = y
-    rowh = 19
+    rowh = 25
     body_h = rowh * len(BARS)
 
     # ---------- holiday columns, behind everything

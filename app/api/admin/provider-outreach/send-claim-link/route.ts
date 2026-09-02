@@ -52,7 +52,8 @@ async function getPdfAttachment(): Promise<typeof cachedPdfAttachment> {
  * POST /api/admin/provider-outreach/send-claim-link
  *
  * Send the claim link email to a provider in any stage.
- * This is a standalone action that doesn't change the provider's stage.
+ * When sent from in_sequence or needs_call, moves the provider to re_engage stage
+ * (Alternative Channels) to stop the SmartLead sequence and allow manual follow-up.
  *
  * Unlike record-outcome (which only works from needs_call stage and has a resend limit),
  * this endpoint allows admins to send the claim link whenever needed.
@@ -240,12 +241,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Update tracking: increment resend_count and set sequence_started_at if needed
+    // Update tracking: increment resend_count, set sequence_started_at if needed,
+    // and move to re_engage stage if currently in_sequence or needs_call
     const currentResendCount = (tracking.resend_count as number) ?? 0;
+    const previousStage = tracking.stage;
+    const shouldChangeStage = previousStage === "in_sequence" || previousStage === "needs_call";
+
     const updateData: Record<string, unknown> = {
       resend_count: currentResendCount + 1,
       updated_at: nowIso,
     };
+
+    // Move to re_engage stage when sending manual email from in_sequence or needs_call
+    // This stops the SmartLead sequence and moves them to Alternative Channels
+    if (shouldChangeStage) {
+      updateData.stage = "re_engage";
+      updateData.stage_changed_at = nowIso;
+      updateData.re_engage_entered_at = nowIso;
+      updateData.re_engage_channel = "re_engage"; // Default channel, admin can change later
+    }
 
     // Set sequence_started_at if not already set, so this provider counts in Sequence Conv.
     // Also set sequenced_with_source for accurate org vs decision-maker conversion tracking.
@@ -260,19 +274,25 @@ export async function POST(request: NextRequest) {
       .eq("id", tracking.id);
 
     if (updateError) {
-      // Non-fatal: log but don't fail the request
-      console.error("[send-claim-link] Failed to update tracking:", updateError);
+      // Log error with details for debugging
+      console.error("[send-claim-link] Failed to update tracking:", updateError, "provider_id:", provider_id);
     }
 
     // Log touchpoints
-    const touchpointRows = [
+    const touchpointRows: Array<{
+      provider_id: string;
+      touchpoint_type: string;
+      details: Record<string, unknown>;
+      admin_user_id: string;
+      created_at: string;
+    }> = [
       {
         provider_id,
         touchpoint_type: "email_sent",
         details: {
           template_key: "nudge",
           trigger: isCustomEmail ? "manual_custom_email" : "manual_send_claim_link",
-          from_stage: tracking.stage,
+          from_stage: previousStage,
           email_log_id: sendResult.emailLogId,
           is_custom: isCustomEmail,
           custom_subject: isCustomEmail ? custom_subject : undefined,
@@ -281,6 +301,22 @@ export async function POST(request: NextRequest) {
         created_at: nowIso,
       },
     ];
+
+    // Log stage_changed touchpoint if we moved to re_engage
+    if (shouldChangeStage && !updateError) {
+      touchpointRows.push({
+        provider_id,
+        touchpoint_type: "stage_changed",
+        details: {
+          old_stage: previousStage,
+          new_stage: "re_engage",
+          reason: "manual_email_sent",
+          trigger: isCustomEmail ? "manual_custom_email" : "manual_send_claim_link",
+        },
+        admin_user_id: adminUser.id,
+        created_at: nowIso,
+      });
+    }
 
     const { error: touchpointError } = await db
       .from("provider_outreach_touchpoints")

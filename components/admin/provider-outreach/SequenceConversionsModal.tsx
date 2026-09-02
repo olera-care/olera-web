@@ -118,7 +118,7 @@ export function SequenceConversionsModal({ onClose }: SequenceConversionsModalPr
                   {total} provider{total !== 1 ? "s" : ""} claimed
                 </h2>
               )}
-              <p className="text-sm text-gray-500 mt-1">from sequence outreach</p>
+              <p className="text-sm text-gray-500 mt-1">from cold outreach</p>
             </div>
             <button
               type="button"
@@ -200,7 +200,7 @@ export function SequenceConversionsModal({ onClose }: SequenceConversionsModalPr
                 </svg>
               </div>
               <p className="text-gray-500">
-                {hasFilter ? "No conversions on this date" : "No sequence conversions yet"}
+                {hasFilter ? "No conversions on this date" : "No outreach conversions yet"}
               </p>
             </div>
           ) : (

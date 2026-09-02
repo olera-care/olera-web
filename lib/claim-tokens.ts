@@ -142,16 +142,23 @@ export function decodeClaimTokenAllowExpired(
  *   - Redirects to /provider dashboard
  *
  * This ensures one-click access for providers clicking any cold outreach email.
+ *
+ * @param source - Optional claim source for analytics (e.g., "city_broadcast", "cold_outreach").
+ *                 Defaults to "cold_outreach" if not specified.
  */
 export function generateClaimUrl(
   providerId: string,
   _providerSlug: string,
   email: string,
-  baseUrl: string = process.env.NEXT_PUBLIC_APP_URL || "https://olera.care"
+  baseUrl: string = process.env.NEXT_PUBLIC_APP_URL || "https://olera.care",
+  source?: string
 ): string {
   const token = generateClaimToken(providerId, email);
   const url = new URL(`${baseUrl}/api/claim-campaign`);
   url.searchParams.set("otk", token);
+  if (source) {
+    url.searchParams.set("src", source);
+  }
   return url.toString();
 }
 

@@ -157,6 +157,206 @@ async function scheduleReply(
 }
 
 /**
+ * The standing facts about a care seeker, for the rail beside the conversation.
+ *
+ * Reviewers were opening a thread and seeing only texts: no idea whether the
+ * person writing was the one who needs care or a daughter three states away, no
+ * location below the state, no sense of how long they had been waiting. Every
+ * reply on 2026-09-01 needed a database query before it could be written, and
+ * the rail meanwhile showed a display name that is the literal string "Care
+ * Seeker" for every family, next to the phone number already in the header.
+ *
+ * Deliberately NOT a summary. A sentence like "60-year-old cancer patient in
+ * Marion County" reads as established when the age came from a form, and that
+ * is precisely how a wrong fact gets acted on — the engine asserted an
+ * age-gated program at someone who was not that age on 2026-08-18, and invented
+ * a name out of a two-character text on 2026-09-01. So each fact is rendered
+ * next to where it came from, and anything we would have to infer is left out.
+ *
+ * `verified` means they told us in the thread. Everything else came off a form
+ * and is often right and sometimes badly wrong.
+ */
+interface SeekerFact {
+  label: string;
+  value: string;
+  verified: boolean;
+}
+
+/**
+ * Turn a stored answer into something a person reads.
+ *
+ * These values are form keys, not language: `under1500`, `personalCare`,
+ * `mobilityHelp`. Rendered raw they make the panel look like a database dump,
+ * and a reviewer has to translate every line before it means anything.
+ */
+const INCOME_LABELS: Record<string, string> = {
+  under1500: "Under $1,500/mo",
+  "1500to3000": "$1,500 – $3,000/mo",
+  "3000to5000": "$3,000 – $5,000/mo",
+  over5000: "Over $5,000/mo",
+};
+
+function humanize(raw: string): string {
+  if (INCOME_LABELS[raw]) return INCOME_LABELS[raw];
+  const spaced = raw
+    .replace(/[_-]+/g, " ")
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
+    .trim()
+    .toLowerCase();
+  return spaced.charAt(0).toUpperCase() + spaced.slice(1);
+}
+
+/**
+ * The programs matched to this family and saved to their plan.
+ *
+ * Answers the question a reviewer actually opens the panel with: what is this
+ * person here for. saved_programs keys on the auth user rather than the profile
+ * or the account, so it takes two hops to reach; without them the panel can say
+ * how many messages someone sent and nothing about what they need.
+ *
+ * Deduplicated because the matcher writes overlapping rows for the same
+ * program: one family carries both "SNAP" and "SNAP Food Benefits", and both
+ * "LIHEAP" and "LIHEAP Energy Assistance".
+ */
+async function fetchSavedPrograms(
+  db: ReturnType<typeof getServiceClient>,
+  accountId: string | null,
+): Promise<string[]> {
+  if (!accountId) return [];
+  try {
+    const { data: account } = await db
+      .from("accounts")
+      .select("user_id")
+      .eq("id", accountId)
+      .maybeSingle();
+    if (!account?.user_id) return [];
+    const { data: rows } = await db
+      .from("saved_programs")
+      .select("name, short_name, created_at")
+      .eq("user_id", account.user_id)
+      .order("created_at", { ascending: true });
+
+    // Some short_names are stored truncated mid-parenthesis — "SHINE (Serving
+    // Health", "Primary Home Care (Community" — so an unclosed bracket is cut
+    // rather than rendered as a dangling fragment.
+    const clean = (raw: string) => {
+      const t = raw.trim();
+      const open = t.lastIndexOf("(");
+      return (open > 0 && !t.includes(")", open) ? t.slice(0, open) : t).trim();
+    };
+    const key = (label: string) => label.toLowerCase().replace(/[^a-z0-9]/g, "");
+
+    const labels = ((rows ?? []) as { name: string | null; short_name: string | null }[])
+      .map((r) => clean(r.short_name || r.name || ""))
+      .filter(Boolean);
+
+    // Keep the shortest form of each program. The matcher writes both "SNAP"
+    // and "SNAP Food Benefits", "LIHEAP" and "LIHEAP Energy Assistance",
+    // "STAR+PLUS" and "STAR+PLUS Waiver" — the same door twice, and the bare
+    // name is the one a family would recognise on the phone. A prefix test,
+    // not a truncated-key match: the short form is often under ten characters,
+    // so comparing fixed-length slices leaves both rows standing.
+    const keys = labels.map(key);
+    const out: string[] = [];
+    const taken = new Set<string>();
+    labels.forEach((label, i) => {
+      const k = keys[i];
+      if (taken.has(k)) return;
+      const shadowed = keys.some((other, j) => j !== i && other.length < k.length && k.startsWith(other));
+      if (shadowed) return;
+      taken.add(k);
+      out.push(label);
+    });
+    return out;
+  } catch (err) {
+    console.error("[admin/sms-inbox/phone] saved programs load failed:", err);
+    return [];
+  }
+}
+
+function buildSeekerContext(
+  profile: {
+    email: string | null;
+    city: string | null;
+    state: string | null;
+    metadata: Record<string, unknown> | null;
+  } | null,
+  inboundRows: { created_at: string; handled_at: string | null }[],
+  outboundCount: number,
+  savedPrograms: string[],
+) {
+  const meta = (profile?.metadata ?? {}) as Record<string, unknown>;
+  const str = (v: unknown) => (typeof v === "string" && v.trim() ? v.trim() : null);
+
+  const facts: SeekerFact[] = [];
+  const push = (label: string, value: string | null, verified = false) => {
+    if (value) facts.push({ label, value, verified });
+  };
+
+  const list = (v: unknown) =>
+    Array.isArray(v)
+      ? (v as unknown[]).filter((x): x is string => typeof x === "string").map(humanize).join(", ") || null
+      : null;
+
+  const age = meta.age;
+  push("Age", typeof age === "number" ? String(age) : str(age));
+  push("Household income", str(meta.income_range) ? humanize(str(meta.income_range)!) : null);
+  push("Timeline", str(meta.timeline) ? humanize(str(meta.timeline)!) : null);
+  push("Coverage", list(meta.payment_methods));
+  push("Care needs", list(meta.care_needs));
+
+  // The program they are mid-flight on, straight off the cascade rather than
+  // guessed from what we happened to say in the thread.
+  const cascade = (meta.benefits_cascade ?? {}) as Record<string, unknown>;
+  const program = str(cascade.first_step_program_name)
+    ? {
+        name: str(cascade.first_step_program_name)!,
+        firstStepAt: str(cascade.first_step_sms_at) ?? str(cascade.first_step_sent_at),
+        lastReply: str(cascade.last_sms_reply),
+        status: str(cascade.application_status),
+      }
+    : null;
+
+  // county is stored as "Marion, Florida" on some profiles and "Marion" on
+  // others, so appending the state code blindly yields "Marion, Florida, FL".
+  const place = str(meta.county) ?? profile?.city ?? null;
+  const stateCode = profile?.state ?? null;
+  const alreadyNamesState =
+    place && stateCode ? place.toLowerCase().includes(stateCode.toLowerCase()) : false;
+  const location = place
+    ? alreadyNamesState || !stateCode
+      ? place
+      : `${place}, ${stateCode}`
+    : stateCode;
+
+  const sorted = [...inboundRows].sort((a, b) => a.created_at.localeCompare(b.created_at));
+  const oldestUnhandled = sorted.find((r) => !r.handled_at)?.created_at ?? null;
+
+  return {
+    // The one identity signal we actually hold. display_name is "Care Seeker"
+    // for every family, and guessing a name out of an email address is the same
+    // class of inference that produced a reply addressed to the wrong person.
+    email: profile?.email ?? null,
+    /** Who is writing, relative to whoever needs care. Changes how you reply. */
+    relationship: str(meta.relationship_to_recipient),
+    location,
+    facts,
+    program,
+    savedPrograms,
+    /** What they said they were here for, when the finder recorded it. */
+    lookingFor: str((meta.benefits_results as Record<string, unknown> | undefined)?.answers &&
+      ((meta.benefits_results as { answers?: Record<string, unknown> }).answers?.careNeed as string))
+      ? humanize(
+          (meta.benefits_results as { answers: { careNeed: string } }).answers.careNeed,
+        )
+      : null,
+    firstSeenAt: sorted[0]?.created_at ?? null,
+    waitingSince: oldestUnhandled,
+    counts: { them: inboundRows.length, us: outboundCount },
+  };
+}
+
+/**
  * Is this thread flagged as a crisis?
  *
  * Shared by GET and the reply action deliberately. They previously read it from
@@ -274,10 +474,17 @@ export async function GET(
     // Quiet hours are evaluated in the RECIPIENT's timezone, so the state is
     // needed on every load, not only when the display name is missing.
     let recipientState: string | null = null;
+    let seekerAccountId: string | null = null;
+    let seekerProfile: {
+      email: string | null;
+      city: string | null;
+      state: string | null;
+      metadata: Record<string, unknown> | null;
+    } | null = null;
     if (resolvedProfileId) {
       const { data: profile, error: profileError } = await db
         .from("business_profiles")
-        .select("display_name, type, state")
+        .select("display_name, type, state, city, email, metadata, account_id")
         .eq("id", resolvedProfileId)
         .maybeSingle();
       if (profileError) {
@@ -286,8 +493,19 @@ export async function GET(
         recipientState = profile.state ?? null;
         resolvedDisplayName ||= profile.display_name ?? null;
         resolvedProfileType ||= profile.type ?? null;
+        seekerAccountId = (profile.account_id as string | null) ?? null;
+        seekerProfile = {
+          email: profile.email ?? null,
+          city: profile.city ?? null,
+          state: profile.state ?? null,
+          metadata: (profile.metadata as Record<string, unknown> | null) ?? null,
+        };
       }
     }
+
+    // After the profile resolves, because it is keyed off the account we just
+    // read. One query, and only when we actually matched someone.
+    const savedPrograms = await fetchSavedPrograms(db, seekerAccountId);
 
     const storedMessages = [
       ...inboundRows.map((row) => ({
@@ -372,6 +590,7 @@ export async function GET(
       suppressed: Boolean(dncRes.data),
       suppression: dncRes.data ? { reason: dncRes.data.reason, note: dncRes.data.note } : null,
       unhandled: inboundRows.filter((r) => !r.handled_at).length,
+      seeker: buildSeekerContext(seekerProfile, inboundRows, outboundLogRows.length, savedPrograms),
       // Quiet hours, evaluated for THIS recipient so the reply box can say what
       // pressing the button will actually do before it is pressed.
       quietHours: (() => {

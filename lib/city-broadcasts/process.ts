@@ -35,6 +35,10 @@ export interface ProcessResult {
   eventsSkipped: number;
   providersSent: number;
   providersSkipped: number;
+  // New pool member broadcasts
+  newPoolMembersFound: number;
+  newPoolMembersSent: number;
+  newPoolMembersSkipped: number;
 }
 
 /**
@@ -254,13 +258,362 @@ export async function processEvent(
   return { sent, skipped };
 }
 
+/** How far back to look for new pool members (24 hours) */
+const NEW_POOL_MEMBER_LOOKBACK_MS = 24 * 60 * 60 * 1000;
+
+/** How far back to look for existing family activity to send to new pool members (30 days) */
+const EXISTING_ACTIVITY_LOOKBACK_DAYS = 30;
+
+/**
+ * Find providers who recently entered broadcast_ready stage and haven't
+ * received any broadcasts yet. These are "new pool members" who should
+ * receive broadcasts about existing family activity in their city.
+ */
+async function findNewPoolMembers(): Promise<
+  Array<{
+    providerId: string;
+    city: string;
+    state: string | null;
+    category: string | null;
+  }>
+> {
+  const db = getServiceClient();
+  const cutoff = new Date(Date.now() - NEW_POOL_MEMBER_LOOKBACK_MS).toISOString();
+
+  // Find providers who recently entered broadcast_ready
+  const { data: recentPoolMembers, error: trackingError } = await db
+    .from("provider_outreach_tracking")
+    .select("provider_id, city, state")
+    .eq("stage", "broadcast_ready")
+    .gte("stage_changed_at", cutoff)
+    .limit(BATCH_SIZE);
+
+  if (trackingError) {
+    console.error("[city-broadcasts] Failed to fetch new pool members:", trackingError);
+    return [];
+  }
+
+  if (!recentPoolMembers || recentPoolMembers.length === 0) {
+    return [];
+  }
+
+  const providerIds = recentPoolMembers.map((r) => r.provider_id);
+
+  // Filter out providers who have already received any broadcast (sent, failed, or skipped)
+  // We check all statuses to avoid retrying on every cron run
+  const { data: alreadyProcessed } = await db
+    .from("city_broadcast_recipients")
+    .select("provider_id")
+    .in("provider_id", providerIds);
+
+  const alreadyProcessedIds = new Set((alreadyProcessed || []).map((r) => r.provider_id));
+
+  // Get provider categories
+  const { data: providers } = await db
+    .from("olera-providers")
+    .select("provider_id, provider_category")
+    .in("provider_id", providerIds)
+    .or("deleted.is.null,deleted.eq.false");
+
+  const categoryMap = new Map(
+    (providers || []).map((p) => [p.provider_id, p.provider_category])
+  );
+
+  return recentPoolMembers
+    .filter((r) => !alreadyProcessedIds.has(r.provider_id))
+    .filter((r) => r.city) // Must have a city
+    .map((r) => ({
+      providerId: r.provider_id,
+      city: r.city,
+      state: r.state || null,
+      category: categoryMap.get(r.provider_id) || null,
+    }));
+}
+
+/**
+ * Find existing family activity in a city that can be used for new pool member broadcasts.
+ * Looks for recent published profiles or questions in the city.
+ *
+ * @param city - City name to search in
+ * @param state - State to filter by (important for disambiguation - e.g., Springfield exists in many states)
+ * @param category - Provider category (optional, used for question attribution)
+ */
+async function findExistingActivityForCity(
+  city: string,
+  state: string | null,
+  category: string | null
+): Promise<DetectedEvent | null> {
+  const db = getServiceClient();
+  const cutoff = new Date(
+    Date.now() - EXISTING_ACTIVITY_LOOKBACK_DAYS * 24 * 60 * 60 * 1000
+  ).toISOString();
+
+  // First, try to find a recent published profile in the city
+  // Profile broadcasts don't require category matching, so they're more likely to exist
+  let profileQuery = db
+    .from("business_profiles")
+    .select("id, city, state")
+    .ilike("city", city)
+    .gte("created_at", cutoff)
+    .not("account_id", "is", null) // Has an actual seeker
+    .order("created_at", { ascending: false })
+    .limit(1);
+
+  // Filter by state if provided (important for city disambiguation)
+  if (state) {
+    profileQuery = profileQuery.ilike("state", state);
+  }
+
+  const { data: profiles } = await profileQuery;
+
+  if (profiles && profiles.length > 0) {
+    const profile = profiles[0];
+    // Find the seeker_activity for this profile
+    const { data: activity } = await db
+      .from("seeker_activity")
+      .select("id")
+      .eq("profile_id", profile.id)
+      .eq("event_type", "profile_published")
+      .limit(1);
+
+    if (activity && activity.length > 0) {
+      return {
+        eventType: "profile_published",
+        eventId: activity[0].id,
+        city: profile.city,
+        state: profile.state || null,
+        category: null,
+      };
+    }
+  }
+
+  // If no published profile, try to find a recent question in the city
+  // Questions are linked to providers, so we need to join
+  let providerQuery = db
+    .from("olera-providers")
+    .select("provider_id")
+    .ilike("city", city)
+    .or("deleted.is.null,deleted.eq.false");
+
+  // Filter by state if provided (important for city disambiguation)
+  if (state) {
+    providerQuery = providerQuery.ilike("state", state);
+  }
+
+  const { data: providers } = await providerQuery;
+
+  if (providers && providers.length > 0) {
+    const providerIds = providers.map((p) => p.provider_id);
+
+    let questionQuery = db
+      .from("provider_questions")
+      .select("id, question, provider_id")
+      .in("provider_id", providerIds)
+      .gte("created_at", cutoff)
+      .order("created_at", { ascending: false })
+      .limit(1);
+
+    // If we have a category, try to match it
+    // But don't require it - any question in the city is better than nothing
+    const { data: questions } = await questionQuery;
+
+    if (questions && questions.length > 0) {
+      const q = questions[0];
+
+      return {
+        eventType: "question_asked",
+        eventId: q.id,
+        city,
+        state,
+        category,
+        questionText: q.question,
+      };
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Process new pool members by sending them broadcasts about existing family activity.
+ */
+export async function processNewPoolMembers(
+  maxRuntimeMs: number,
+  startedAt: number
+): Promise<{ found: number; sent: number; skipped: number }> {
+  const db = getServiceClient();
+  let found = 0;
+  let sent = 0;
+  let skipped = 0;
+
+  const newMembers = await findNewPoolMembers();
+  found = newMembers.length;
+
+  if (found === 0) {
+    return { found, sent, skipped };
+  }
+
+  console.log(`[city-broadcasts] Found ${found} new pool members to process`);
+
+  // Group by city to avoid duplicate lookups
+  const membersByCity = new Map<string, typeof newMembers>();
+  for (const member of newMembers) {
+    const key = member.city.toLowerCase();
+    if (!membersByCity.has(key)) {
+      membersByCity.set(key, []);
+    }
+    membersByCity.get(key)!.push(member);
+  }
+
+  // Process each city
+  for (const [cityKey, members] of membersByCity) {
+    if (Date.now() - startedAt > maxRuntimeMs) {
+      skipped += members.length;
+      continue;
+    }
+
+    // Find existing activity for this city
+    const firstMember = members[0];
+    const activity = await findExistingActivityForCity(
+      firstMember.city,
+      firstMember.state,
+      firstMember.category
+    );
+
+    if (!activity) {
+      // No existing activity in this city - skip these members
+      console.log(`[city-broadcasts] No existing activity in ${firstMember.city}, skipping ${members.length} new members`);
+      skipped += members.length;
+      continue;
+    }
+
+    // Create a broadcast event for this activity (or reuse existing one)
+    // Use a special marker to indicate this is a new-pool-member broadcast
+    const { data: existingEvent } = await db
+      .from("city_broadcast_events")
+      .select("id")
+      .eq("event_id", activity.eventId)
+      .eq("event_type", activity.eventType)
+      .limit(1);
+
+    let broadcastEventId: string;
+    if (existingEvent && existingEvent.length > 0) {
+      broadcastEventId = existingEvent[0].id;
+    } else {
+      const id = await createBroadcastEvent(activity);
+      if (!id) {
+        skipped += members.length;
+        continue;
+      }
+      broadcastEventId = id;
+    }
+
+    // Send to each new pool member in this city
+    for (const member of members) {
+      if (Date.now() - startedAt > maxRuntimeMs) {
+        skipped++;
+        continue;
+      }
+
+      // Get full provider details for sending
+      const { data: providerDetails } = await db
+        .from("olera-providers")
+        .select("provider_id, provider_name, slug, email")
+        .eq("provider_id", member.providerId)
+        .or("deleted.is.null,deleted.eq.false")
+        .single();
+
+      if (!providerDetails) {
+        skipped++;
+        continue;
+      }
+
+      // Get email from tracking or provider
+      const { data: tracking } = await db
+        .from("provider_outreach_tracking")
+        .select("apollo_contact")
+        .eq("provider_id", member.providerId)
+        .single();
+
+      const apolloContact = tracking?.apollo_contact as { email?: string } | null;
+      const email = apolloContact?.email || providerDetails.email;
+
+      if (!email) {
+        skipped++;
+        continue;
+      }
+
+      // Check email hygiene (bounced/complained)
+      const { data: badEmail } = await db
+        .from("email_log")
+        .select("id")
+        .eq("recipient", email.toLowerCase())
+        .or("bounced_at.not.is.null,complained_at.not.is.null")
+        .limit(1);
+
+      if (badEmail && badEmail.length > 0) {
+        skipped++;
+        continue;
+      }
+
+      const provider: EligibleProvider = {
+        provider_id: member.providerId,
+        name: providerDetails.provider_name || "Provider",
+        slug: providerDetails.slug || "",
+        email,
+        city: member.city,
+        state: member.state,
+        category: member.category,
+      };
+
+      // Check if recipient record already exists (avoid duplicates from race conditions)
+      const { data: existingRecipient } = await db
+        .from("city_broadcast_recipients")
+        .select("id")
+        .eq("event_id", broadcastEventId)
+        .eq("provider_id", member.providerId)
+        .limit(1);
+
+      if (existingRecipient && existingRecipient.length > 0) {
+        // Already processed for this event, skip
+        skipped++;
+        continue;
+      }
+
+      // Create recipient record
+      await db.from("city_broadcast_recipients").insert({
+        event_id: broadcastEventId,
+        provider_id: member.providerId,
+        provider_email: email,
+        provider_name: provider.name,
+        status: "pending",
+      });
+
+      // Send the email (mark as new pool member broadcast)
+      const result = await sendBroadcastEmail(broadcastEventId, activity, provider, true);
+      if (result.sent) {
+        sent++;
+        console.log(`[city-broadcasts] Sent new pool member broadcast to ${provider.name} in ${member.city}`);
+      } else {
+        skipped++;
+      }
+    }
+  }
+
+  return { found, sent, skipped };
+}
+
 /**
  * Send a broadcast email to a single provider.
+ * Exported for use by new pool member processing.
+ *
+ * @param isNewPoolMember - True if this is a new pool member broadcast (default: false)
  */
-async function sendBroadcastEmail(
+export async function sendBroadcastEmail(
   broadcastEventId: string,
   event: DetectedEvent,
-  provider: EligibleProvider
+  provider: EligibleProvider,
+  isNewPoolMember: boolean = false
 ): Promise<{ sent: boolean; error?: string }> {
   const db = getServiceClient();
 
@@ -296,6 +649,7 @@ async function sendBroadcastEmail(
       event_type: event.eventType,
       city: event.city,
       category: event.category,
+      new_pool_member: isNewPoolMember,
     },
   });
 
@@ -341,6 +695,9 @@ export async function processPendingEvents(
     eventsSkipped: 0,
     providersSent: 0,
     providersSkipped: 0,
+    newPoolMembersFound: 0,
+    newPoolMembersSent: 0,
+    newPoolMembersSkipped: 0,
   };
 
   // Step 1: Process any orphaned pending events from previous runs
@@ -409,6 +766,15 @@ export async function processPendingEvents(
     result.eventsProcessed++;
     result.providersSent += sent;
     result.providersSkipped += skipped;
+  }
+
+  // Step 5: Process new pool members (providers who recently entered broadcast_ready)
+  // Send them broadcasts about existing family activity in their city
+  if (Date.now() - startedAt < maxRuntimeMs) {
+    const poolMemberResult = await processNewPoolMembers(maxRuntimeMs, startedAt);
+    result.newPoolMembersFound = poolMemberResult.found;
+    result.newPoolMembersSent = poolMemberResult.sent;
+    result.newPoolMembersSkipped = poolMemberResult.skipped;
   }
 
   return result;

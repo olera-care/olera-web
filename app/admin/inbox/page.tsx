@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import AdminWorkspace from "@/components/admin/AdminWorkspace";
 import AnswerPacketPanel from "@/components/admin/AnswerPacketPanel";
 import RecheckPanel from "@/components/admin/RecheckPanel";
@@ -129,6 +129,28 @@ interface ThreadDetail {
   };
   /** A reply already written and waiting for that window to open. */
   scheduled: { id: string; body: string; send_after: string; queued_by: string | null } | null;
+  /**
+   * Standing facts about the person, for the rail. Facts carry `verified` so
+   * the panel can show where each one came from instead of flattening a form
+   * answer and something they told us into the same confident sentence.
+   */
+  seeker: {
+    email: string | null;
+    relationship: string | null;
+    location: string | null;
+    facts: { label: string; value: string; verified: boolean }[];
+    savedPrograms: string[];
+    lookingFor: string | null;
+    program: {
+      name: string;
+      firstStepAt: string | null;
+      lastReply: string | null;
+      status: string | null;
+    } | null;
+    firstSeenAt: string | null;
+    waitingSince: string | null;
+    counts: { them: number; us: number };
+  };
 }
 
 /** What the draft indicator is currently saying. */
@@ -141,6 +163,16 @@ type DraftState =
 
 function formatPhone(last10: string): string {
   return `(${last10.slice(0, 3)}) ${last10.slice(3, 6)}-${last10.slice(6)}`;
+}
+
+/** Date only. The tally line reads as prose, and a timestamp broke it across lines. */
+function formatEtDate(iso: string | null): string {
+  if (!iso) return "";
+  return new Date(iso).toLocaleString("en-US", {
+    timeZone: "America/New_York",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 /** Just the clock part, for a button that has to stay narrow. */
@@ -197,6 +229,120 @@ function DraftStatus({ state }: { state: DraftState }) {
   );
 }
 
+/**
+ * Standing facts about the care seeker, beside the conversation.
+ *
+ * Every fact is rendered next to where it came from. A form answer and
+ * something they told us in the thread are not the same kind of claim, and
+ * collapsing them into one confident list is how a reviewer ends up acting on
+ * an age nobody verified.
+ *
+ * Ordered by what a reviewer reaches for first, which is not the demographics:
+ * whether the person writing is the one who needs care comes before anything
+ * else, because it changes how the whole reply is written.
+ */
+function SeekerPanel({ seeker }: { seeker: ThreadDetail["seeker"] }) {
+  const waitedDays = seeker.waitingSince
+    ? Math.floor((Date.now() - new Date(seeker.waitingSince).getTime()) / 86_400_000)
+    : null;
+  // Provenance moves to a group heading. Tagging every row "from a form"
+  // repeated the same four words down the panel and forced the value column to
+  // wrap around them; said once over the group it carries the same meaning and
+  // leaves the values room to sit on one line.
+  const fromForm = seeker.facts.filter((f) => !f.verified);
+  const toldUs = seeker.facts.filter((f) => f.verified);
+
+  return (
+    <>
+      {seeker.relationship && (
+        <p className="mt-3 text-sm text-gray-900">
+          Writing about{" "}
+          <span className="font-medium">
+            {seeker.relationship.toLowerCase() === "myself"
+              ? "themselves"
+              : seeker.relationship.toLowerCase()}
+          </span>
+        </p>
+      )}
+      {seeker.location && <p className="mt-0.5 text-sm text-gray-500">{seeker.location}</p>}
+      {seeker.email && (
+        <p className="mt-0.5 break-all text-[13px] text-gray-400">{seeker.email}</p>
+      )}
+
+      {/* An unanswered message that is days old is the most actionable thing
+          here, so it is the only part allowed colour. */}
+      {waitedDays !== null && waitedDays >= 1 && (
+        <p className="mt-3 text-[13px] font-medium text-amber-700">
+          Waiting {waitedDays} day{waitedDays === 1 ? "" : "s"} for a reply
+        </p>
+      )}
+
+      <FactGroup heading="From the intake form" facts={fromForm} />
+      <FactGroup heading="They told us" facts={toldUs} />
+
+      {seeker.savedPrograms.length > 0 && (
+        <section className="mt-5 border-t border-gray-100 pt-4">
+          <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+            On their plan
+            <span className="ml-1.5 font-normal tracking-normal normal-case text-gray-400">
+              {seeker.savedPrograms.length}
+            </span>
+          </h4>
+          {seeker.lookingFor && (
+            <p className="mt-1.5 text-[12px] text-gray-500">Came in for {seeker.lookingFor.toLowerCase()}</p>
+          )}
+          <ul className="mt-2 flex flex-wrap gap-1.5">
+            {seeker.savedPrograms.map((p) => (
+              <li
+                key={p}
+                className="rounded border border-gray-200 px-1.5 py-0.5 text-[12px] leading-5 text-gray-700"
+              >
+                {p}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <p className="mt-5 border-t border-gray-100 pt-4 text-[12px] leading-5 text-gray-400">
+        {seeker.counts.them} from them, {seeker.counts.us} from us
+        {seeker.firstSeenAt ? ` · first wrote ${formatEtDate(seeker.firstSeenAt)}` : ""}
+      </p>
+    </>
+  );
+}
+
+/**
+ * One provenance group.
+ *
+ * A fixed label column with everything left-aligned, rather than labels left
+ * and values right. Justifying the two edges left a ragged gutter down the
+ * middle and gave a long value like "Personal care, household tasks, mobility
+ * help" nowhere to wrap except back under itself.
+ */
+function FactGroup({
+  heading,
+  facts,
+}: {
+  heading: string;
+  facts: ThreadDetail["seeker"]["facts"];
+}) {
+  if (!facts.length) return null;
+  return (
+    <section className="mt-5 border-t border-gray-100 pt-4">
+      <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{heading}</h4>
+      <dl className="mt-2 grid grid-cols-[7.25rem_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-[13px]">
+        {facts.map((f) => (
+          <Fragment key={f.label}>
+            <dt className="text-gray-500">{f.label}</dt>
+            <dd className="m-0 text-gray-900">{f.value}</dd>
+          </Fragment>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
 export default function AdminSmsInboxPage() {
   const [threads, setThreads] = useState<Thread[] | null>(null);
   const [truncated, setTruncated] = useState(false);
@@ -245,6 +391,15 @@ export default function AdminSmsInboxPage() {
    * deliberate click, and only ever one, and only when the check was skipped.
    */
   const [confirmUnchecked, setConfirmUnchecked] = useState<null | "now" | "default">(null);
+  /**
+   * The context panel, for every window that is not enormous.
+   *
+   * The pinned rail is gated at 2xl, which is 1536px. A 13-inch MacBook is
+   * 1440px logical, so on that machine the panel could not render at any window
+   * size, and on a half-screen browser it never appeared either. Everything it
+   * knows about a care seeker was built and then shown to nobody.
+   */
+  const [contextOpen, setContextOpen] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [draftState, setDraftState] = useState<DraftState>({ kind: "none" });
@@ -308,6 +463,17 @@ export default function AdminSmsInboxPage() {
 
   useEffect(() => { void loadThreads(); }, [loadThreads]);
 
+  // Escape closes the context panel. Bound once rather than on the panel, so it
+  // works whether focus is in the reply box, the thread list, or the panel.
+  useEffect(() => {
+    if (!contextOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setContextOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [contextOpen]);
+
   /**
    * `adoptDraft` decides whether the saved draft is pulled into the reply box.
    * True when opening a thread (show me what I parked) and after sending (the
@@ -320,6 +486,8 @@ export default function AdminSmsInboxPage() {
       setDetailLoading(true);
       setActionError(null);
       setNotice(null);
+      // A panel opened on one person must not stay open over the next one.
+      setContextOpen(false);
       // A re-check belongs to one specific string in one specific thread.
       // Carrying it across a thread switch would attach a verdict about one
       // family's message to another family's. Bumping the ref abandons any
@@ -888,7 +1056,9 @@ export default function AdminSmsInboxPage() {
         </aside>
 
         {/* ── Conversation ────────────────────────────────────────────── */}
-        <section className={`${selected ? "flex" : "hidden lg:flex"} min-h-0 min-w-0 flex-col bg-white`}>
+        {/* `relative` anchors the context overlay to this column. Without it the
+            overlay resolves against the page and covers the message list too. */}
+        <section className={`${selected ? "flex" : "hidden lg:flex"} relative min-h-0 min-w-0 flex-col bg-white`}>
           {!selected && (
             <div className="flex flex-1 items-center justify-center px-8 text-center">
               <div>
@@ -952,14 +1122,28 @@ export default function AdminSmsInboxPage() {
                   )}
                   </div>
                 </div>
-                {detail.unhandled > 0 && (
+                <div className="flex shrink-0 items-center gap-2">
+                  {/* Beside the person's name rather than in the reply box,
+                      because what it opens is about them, not about the draft.
+                      Hidden once the rail is pinned, so a wide screen does not
+                      show a control for a panel that is already on screen. */}
                   <button
-                    onClick={markHandled}
-                    className="text-[12px] px-2.5 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                    onClick={() => setContextOpen((v) => !v)}
+                    aria-expanded={contextOpen}
+                    aria-controls="seeker-context"
+                    className="rounded-md border border-gray-200 px-2.5 py-1.5 text-[12px] text-gray-700 transition-colors hover:bg-gray-50 2xl:hidden"
                   >
-                    Mark handled
+                    Context
                   </button>
-                )}
+                  {detail.unhandled > 0 && (
+                    <button
+                      onClick={markHandled}
+                      className="text-[12px] px-2.5 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Mark handled
+                    </button>
+                  )}
+                </div>
               </header>
 
               {detail.twilioError && (
@@ -1180,6 +1364,57 @@ export default function AdminSmsInboxPage() {
                 {notice && <p className="mt-2 text-[12px] text-emerald-700">{notice}</p>}
                 </div>
               </div>
+
+              {/* Context, for every width the pinned rail does not reach.
+                  Anchored to the thread column so it covers the conversation
+                  and leaves the message list alone: you read this BEFORE
+                  writing, so nothing is lost by hiding the last message for a
+                  moment, and pushing the thread aside would reflow the text
+                  being read. */}
+              {contextOpen && (
+                <div className="absolute inset-0 z-30 2xl:hidden">
+                  <button
+                    aria-label="Close context"
+                    onClick={() => setContextOpen(false)}
+                    className="absolute inset-0 h-full w-full cursor-default bg-gray-900/20 motion-safe:animate-[ctxScrim_.2s_ease-out]"
+                  />
+                  <aside
+                    id="seeker-context"
+                    aria-label="Care seeker context"
+                    className="absolute inset-y-0 right-0 w-[19.5rem] max-w-[85%] overflow-y-auto border-l border-gray-200 bg-white px-5 pb-6 pt-4 shadow-[-14px_0_34px_-18px_rgba(16,24,40,0.35)] motion-safe:animate-[ctxIn_.26s_cubic-bezier(.32,.72,0,1)]"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <h2 className="text-base font-semibold text-gray-900">Contact</h2>
+                      <button
+                        onClick={() => setContextOpen(false)}
+                        aria-label="Close"
+                        className="-mr-1 rounded p-1 text-gray-400 transition-colors hover:text-gray-700"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="mt-4 flex h-11 w-11 items-center justify-center rounded-full bg-teal-50 text-sm font-semibold text-teal-700">
+                      {(detail.display_name || formatPhone(detail.phone_last10)).slice(0, 1).toUpperCase()}
+                    </div>
+                    <h3 className="mt-3 text-lg font-semibold text-gray-950">
+                      {detail.display_name || formatPhone(detail.phone_last10)}
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">{formatPhone(detail.phone_last10)}</p>
+                    <SeekerPanel seeker={detail.seeker} />
+                    {detail.profile_id && (
+                      <a
+                        href={`/admin/care-seekers/${detail.profile_id}`}
+                        className="mt-5 block rounded-lg bg-gray-900 px-4 py-2.5 text-center text-[13px] font-medium text-white transition-colors hover:bg-gray-800"
+                      >
+                        Open care-seeker record
+                      </a>
+                    )}
+                  </aside>
+                  {/* Named apart from the config's fadeIn, which carries a
+                      translateY that would nudge a full-bleed scrim. */}
+                  <style>{`@keyframes ctxIn{from{transform:translateX(100%)}to{transform:none}}@keyframes ctxScrim{from{opacity:0}to{opacity:1}}`}</style>
+                </div>
+              )}
             </>
           )}
         </section>
@@ -1216,6 +1451,8 @@ export default function AdminSmsInboxPage() {
                 {detail.display_name || formatPhone(detail.phone_last10)}
               </h3>
               <p className="mt-1 text-sm text-gray-500">{formatPhone(detail.phone_last10)}</p>
+
+              <SeekerPanel seeker={detail.seeker} />
 
               <dl className="mt-6 divide-y divide-gray-100 border-y border-gray-100 text-sm">
                 <div className="flex items-center justify-between gap-3 py-3">

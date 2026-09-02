@@ -2,8 +2,12 @@
  * City Broadcasts - Email Templates
  *
  * Two email templates for city broadcasts:
- * 1. Question broadcast: "A family in {city} is looking for {category} care"
+ * 1. Question broadcast: "A family has a question about {category} in {city}"
  * 2. Profile broadcast: "A family just published their profile in {city}"
+ *
+ * These templates are designed to match the high-converting questionReceivedEmail
+ * pattern - making providers feel like they have a question to answer, not just
+ * a profile to claim.
  *
  * Uses polishedLayout() from provider-outreach for consistent Olera branding.
  * Uses generateClaimUrl() for one-click claiming with signed tokens.
@@ -13,6 +17,14 @@ import { polishedLayout } from "@/lib/provider-outreach/email-utils";
 import { generateClaimUrl } from "@/lib/claim-tokens";
 
 const BASE_URL = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+
+/**
+ * Trust introduction matching the direct question email.
+ * Establishes credibility (NIH-backed) before asking for action.
+ */
+function trustIntro(): string {
+  return `<p style="font-size:14px;color:#6b7280;margin:0 0 20px;line-height:1.6;">Olera is an NIH-backed platform helping families find quality senior care providers like you. Families in your area are actively researching care options.</p>`;
+}
 
 export interface BroadcastTemplateContext {
   providerId: string;
@@ -34,111 +46,145 @@ export interface RenderedBroadcastEmail {
 /**
  * Render the question broadcast email.
  * Sent when a family asks a question in a city with dormant providers.
+ *
+ * Designed to match the high-converting questionReceivedEmail pattern:
+ * - Same subject line structure ("A family has a question about...")
+ * - Trust intro (NIH-backed)
+ * - Question in styled box
+ * - "View and respond" CTA (not "Claim your profile")
  */
 export function renderQuestionBroadcast(ctx: BroadcastTemplateContext): RenderedBroadcastEmail {
   const categoryLabel = ctx.category || "care";
-  const subject = `A family in ${ctx.city} is looking for ${categoryLabel}`;
-  const preheader = `Someone just asked a question about ${categoryLabel} in your area.`;
+  const escapedCategory = escapeHtml(categoryLabel);
+  const escapedCity = escapeHtml(ctx.city);
+
+  // Match the direct question email subject pattern
+  const subject = `A family has a question about ${categoryLabel} in ${ctx.city}`;
+  const preheader = ctx.questionText
+    ? `"${truncateQuestion(ctx.questionText, 60)}"`
+    : `Someone is researching ${categoryLabel} options in your area.`;
 
   // Use generateClaimUrl for one-click claiming with signed token
-  const claimUrl = generateClaimUrl(ctx.providerId, ctx.providerSlug, ctx.providerEmail, BASE_URL);
-  const profileUrl = `${BASE_URL}/provider/${ctx.providerSlug}`;
-  const unsubscribeUrl = `${BASE_URL}/providers/unsubscribe?email=${encodeURIComponent(ctx.providerEmail)}&type=city_broadcast`;
+  // Pass "city_broadcast" source for analytics tracking
+  const claimUrl = generateClaimUrl(ctx.providerId, ctx.providerSlug, ctx.providerEmail, BASE_URL, "city_broadcast");
+  const viewListingUrl = `${BASE_URL}/provider/${ctx.providerSlug}`;
+  // Use slug-based unsubscribe URL with cold_outreach type (city broadcasts are cold outreach)
+  const unsubscribeUrl = `${BASE_URL}/unsubscribe/${ctx.providerSlug}?type=cold_outreach`;
+
+  // Build the question display - match the direct email styling
+  // Only show "and asked:" if we have the actual question text
+  const questionSection = ctx.questionText
+    ? `
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      A family is researching ${escapedCategory} options and asked:
+    </p>
+    <div style="background:#f9fafb;padding:16px;border-radius:12px;margin:0 0 16px;">
+      <p style="font-size:15px;color:#111827;margin:0;line-height:1.5;font-style:italic;">&ldquo;${escapeHtml(ctx.questionText)}&rdquo;</p>
+    </div>`
+    : `
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      A family is researching ${escapedCategory} options in your area and has questions.
+    </p>`;
 
   const bodyHtml = `
-    <p style="font-size:15px;line-height:1.6;color:#374151;margin:0 0 16px;">
-      Hi ${ctx.providerName},
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">A family has a question about ${escapedCategory} in ${escapedCity}</h1>
+    ${trustIntro()}
+    ${questionSection}
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      You're listed as a ${escapedCategory} provider in ${escapedCity}. A thoughtful answer helps families see your expertise and builds trust with people actively looking for care.
     </p>
-    <p style="font-size:15px;line-height:1.6;color:#374151;margin:0 0 16px;">
-      A family in <strong>${ctx.city}</strong> just asked a question about ${categoryLabel} providers.
-      ${ctx.questionText ? `They're asking: <em>"${truncateQuestion(ctx.questionText)}"</em>` : ""}
-    </p>
-    <p style="font-size:15px;line-height:1.6;color:#374151;margin:0 0 16px;">
-      You're listed on Olera as a ${categoryLabel} provider in this area.
-      <strong>Claim your free profile</strong> to answer questions directly and connect with families looking for care.
-    </p>
-    <table cellpadding="0" cellspacing="0" style="margin:24px 0;">
+    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
       <tr>
         <td style="background:#198087;border-radius:8px;">
           <a href="${claimUrl}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;">
-            Claim your profile &rarr;
+            View and respond &rarr;
           </a>
         </td>
       </tr>
     </table>
-    <p style="font-size:13px;line-height:1.5;color:#6b7280;margin:0;">
-      It takes about 2 minutes. Once verified, you can respond to families directly.
-    </p>
   `.trim();
 
-  const footerHtml = buildFooter(profileUrl, unsubscribeUrl);
+  const footerHtml = buildFooter(viewListingUrl, unsubscribeUrl);
   const html = polishedLayout(bodyHtml, footerHtml, {
     preheader,
-    categoryLabel: "FAMILIES IN YOUR AREA",
   });
 
   return { subject, preheader, html };
+}
+
+/**
+ * HTML-escape text to prevent XSS in email content.
+ */
+function escapeHtml(text: string): string {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }
 
 /**
  * Render the profile broadcast email.
  * Sent when a family publishes their care-seeker profile in a city.
+ *
+ * Framed as "you're being considered" to create urgency - the provider
+ * feels like they're already on someone's shortlist and need to respond.
  */
 export function renderProfileBroadcast(ctx: BroadcastTemplateContext): RenderedBroadcastEmail {
-  const subject = `A family just published their profile in ${ctx.city}`;
-  const preheader = `Someone in your area is actively looking for care.`;
+  const categoryLabel = ctx.category || "care";
+  const escapedCategory = escapeHtml(categoryLabel);
+  const escapedCity = escapeHtml(ctx.city);
+
+  const subject = `A family in ${ctx.city} added you to their list`;
+  const preheader = `You're being considered by a family looking for ${categoryLabel}.`;
 
   // Use generateClaimUrl for one-click claiming with signed token
-  const claimUrl = generateClaimUrl(ctx.providerId, ctx.providerSlug, ctx.providerEmail, BASE_URL);
-  const profileUrl = `${BASE_URL}/provider/${ctx.providerSlug}`;
-  const unsubscribeUrl = `${BASE_URL}/providers/unsubscribe?email=${encodeURIComponent(ctx.providerEmail)}&type=city_broadcast`;
+  // Pass "city_broadcast" source for analytics tracking
+  const claimUrl = generateClaimUrl(ctx.providerId, ctx.providerSlug, ctx.providerEmail, BASE_URL, "city_broadcast");
+  const viewListingUrl = `${BASE_URL}/provider/${ctx.providerSlug}`;
+  // Use slug-based unsubscribe URL with cold_outreach type (city broadcasts are cold outreach)
+  const unsubscribeUrl = `${BASE_URL}/unsubscribe/${ctx.providerSlug}?type=cold_outreach`;
 
   const bodyHtml = `
-    <p style="font-size:15px;line-height:1.6;color:#374151;margin:0 0 16px;">
-      Hi ${ctx.providerName},
+    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">A family in ${escapedCity} added you to their list</h1>
+    ${trustIntro()}
+    <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
+      A family looking for ${escapedCategory} is comparing providers in your area — and you're on their shortlist.
     </p>
-    <p style="font-size:15px;line-height:1.6;color:#374151;margin:0 0 16px;">
-      A family in <strong>${ctx.city}</strong> just published their care profile on Olera.
-      They're actively searching for providers in your area.
+    <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
+      Introduce yourself and learn more about what they're looking for.
     </p>
-    <p style="font-size:15px;line-height:1.6;color:#374151;margin:0 0 16px;">
-      You're listed as a provider nearby. <strong>Claim your free profile</strong> to show up
-      in their search results and let them reach out to you directly.
-    </p>
-    <table cellpadding="0" cellspacing="0" style="margin:24px 0;">
+    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
       <tr>
         <td style="background:#198087;border-radius:8px;">
           <a href="${claimUrl}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;">
-            Claim your profile &rarr;
+            Connect with them &rarr;
           </a>
         </td>
       </tr>
     </table>
-    <p style="font-size:13px;line-height:1.5;color:#6b7280;margin:0;">
-      It takes about 2 minutes. Once verified, families can find and contact you.
-    </p>
   `.trim();
 
-  const footerHtml = buildFooter(profileUrl, unsubscribeUrl);
+  const footerHtml = buildFooter(viewListingUrl, unsubscribeUrl);
   const html = polishedLayout(bodyHtml, footerHtml, {
     preheader,
-    categoryLabel: "FAMILIES IN YOUR AREA",
   });
 
   return { subject, preheader, html };
 }
 
 /**
- * Build the email footer with profile link and unsubscribe.
+ * Build the email footer with view listing link and unsubscribe.
+ * Matches the offRampBlock pattern from questionReceivedEmail.
  */
-function buildFooter(profileUrl: string, unsubscribeUrl: string): string {
+function buildFooter(viewListingUrl: string, unsubscribeUrl: string): string {
   return `
     <div style="margin-top:24px;padding-top:16px;border-top:1px solid #f3f4f6;">
-      <p style="font-size:12px;color:#6b7280;margin:0 0 8px;">
-        Questions? Just reply - it goes straight to our team.
+      <p style="font-size:13px;color:#9ca3af;margin:0 0 6px;line-height:1.5;">
+        Not the right contact? Please forward this to the appropriate person on your team.
       </p>
       <p style="font-size:12px;color:#9ca3af;margin:0;">
-        <a href="${profileUrl}" style="color:#9ca3af;text-decoration:underline;">View your listing</a>
+        <a href="${viewListingUrl}" style="color:#9ca3af;text-decoration:underline;">View listing</a>
         &middot; <a href="${unsubscribeUrl}" style="color:#9ca3af;text-decoration:underline;">Unsubscribe</a>
       </p>
     </div>

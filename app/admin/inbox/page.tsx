@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowLeft, X } from "lucide-react";
 import AdminWorkspace from "@/components/admin/AdminWorkspace";
@@ -139,6 +139,8 @@ interface ThreadDetail {
     relationship: string | null;
     location: string | null;
     facts: { label: string; value: string; verified: boolean }[];
+    savedPrograms: string[];
+    lookingFor: string | null;
     program: {
       name: string;
       firstStepAt: string | null;
@@ -161,6 +163,16 @@ type DraftState =
 
 function formatPhone(last10: string): string {
   return `(${last10.slice(0, 3)}) ${last10.slice(3, 6)}-${last10.slice(6)}`;
+}
+
+/** Date only. The tally line reads as prose, and a timestamp broke it across lines. */
+function formatEtDate(iso: string | null): string {
+  if (!iso) return "";
+  return new Date(iso).toLocaleString("en-US", {
+    timeZone: "America/New_York",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 /** Just the clock part, for a button that has to stay narrow. */
@@ -233,6 +245,12 @@ function SeekerPanel({ seeker }: { seeker: ThreadDetail["seeker"] }) {
   const waitedDays = seeker.waitingSince
     ? Math.floor((Date.now() - new Date(seeker.waitingSince).getTime()) / 86_400_000)
     : null;
+  // Provenance moves to a group heading. Tagging every row "from a form"
+  // repeated the same four words down the panel and forced the value column to
+  // wrap around them; said once over the group it carries the same meaning and
+  // leaves the values room to sit on one line.
+  const fromForm = seeker.facts.filter((f) => !f.verified);
+  const toldUs = seeker.facts.filter((f) => f.verified);
 
   return (
     <>
@@ -251,48 +269,77 @@ function SeekerPanel({ seeker }: { seeker: ThreadDetail["seeker"] }) {
         <p className="mt-0.5 break-all text-[13px] text-gray-400">{seeker.email}</p>
       )}
 
-      {/* An unanswered message that is days old is the most actionable thing on
-          this panel, so it is the only part allowed to use colour. */}
+      {/* An unanswered message that is days old is the most actionable thing
+          here, so it is the only part allowed colour. */}
       {waitedDays !== null && waitedDays >= 1 && (
         <p className="mt-3 text-[13px] font-medium text-amber-700">
           Waiting {waitedDays} day{waitedDays === 1 ? "" : "s"} for a reply
         </p>
       )}
 
-      {seeker.facts.length > 0 && (
-        <dl className="mt-5 space-y-2 text-sm">
-          {seeker.facts.map((f) => (
-            <div key={f.label} className="flex items-baseline justify-between gap-3">
-              <dt className="shrink-0 text-gray-500">{f.label}</dt>
-              <dd className="text-right text-gray-900">
-                {f.value}
-                <span className="ml-1.5 text-[11px] text-gray-400">
-                  {f.verified ? "they told us" : "from a form"}
-                </span>
-              </dd>
-            </div>
-          ))}
-        </dl>
+      <FactGroup heading="From the intake form" facts={fromForm} />
+      <FactGroup heading="They told us" facts={toldUs} />
+
+      {seeker.savedPrograms.length > 0 && (
+        <section className="mt-5 border-t border-gray-100 pt-4">
+          <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+            On their plan
+            <span className="ml-1.5 font-normal tracking-normal normal-case text-gray-400">
+              {seeker.savedPrograms.length}
+            </span>
+          </h4>
+          {seeker.lookingFor && (
+            <p className="mt-1.5 text-[12px] text-gray-500">Came in for {seeker.lookingFor.toLowerCase()}</p>
+          )}
+          <ul className="mt-2 flex flex-wrap gap-1.5">
+            {seeker.savedPrograms.map((p) => (
+              <li
+                key={p}
+                className="rounded border border-gray-200 px-1.5 py-0.5 text-[12px] leading-5 text-gray-700"
+              >
+                {p}
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
-      {seeker.program && (
-        <div className="mt-5 border-t border-gray-100 pt-4">
-          <p className="text-[11px] uppercase tracking-wide text-gray-400">In progress</p>
-          <p className="mt-1 text-sm font-medium text-gray-900">{seeker.program.name}</p>
-          <p className="mt-0.5 text-[12px] text-gray-500">
-            {seeker.program.firstStepAt
-              ? `First step sent ${formatEt(seeker.program.firstStepAt)}`
-              : "First step not yet sent"}
-            {seeker.program.lastReply ? ` · they replied ${seeker.program.lastReply}` : ""}
-          </p>
-        </div>
-      )}
-
-      <p className="mt-5 border-t border-gray-100 pt-4 text-[12px] text-gray-400">
+      <p className="mt-5 border-t border-gray-100 pt-4 text-[12px] leading-5 text-gray-400">
         {seeker.counts.them} from them, {seeker.counts.us} from us
-        {seeker.firstSeenAt ? ` · first wrote ${formatEt(seeker.firstSeenAt)}` : ""}
+        {seeker.firstSeenAt ? ` · first wrote ${formatEtDate(seeker.firstSeenAt)}` : ""}
       </p>
     </>
+  );
+}
+
+/**
+ * One provenance group.
+ *
+ * A fixed label column with everything left-aligned, rather than labels left
+ * and values right. Justifying the two edges left a ragged gutter down the
+ * middle and gave a long value like "Personal care, household tasks, mobility
+ * help" nowhere to wrap except back under itself.
+ */
+function FactGroup({
+  heading,
+  facts,
+}: {
+  heading: string;
+  facts: ThreadDetail["seeker"]["facts"];
+}) {
+  if (!facts.length) return null;
+  return (
+    <section className="mt-5 border-t border-gray-100 pt-4">
+      <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{heading}</h4>
+      <dl className="mt-2 grid grid-cols-[7.25rem_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-[13px]">
+        {facts.map((f) => (
+          <Fragment key={f.label}>
+            <dt className="text-gray-500">{f.label}</dt>
+            <dd className="m-0 text-gray-900">{f.value}</dd>
+          </Fragment>
+        ))}
+      </dl>
+    </section>
   );
 }
 

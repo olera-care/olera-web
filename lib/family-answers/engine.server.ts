@@ -4,7 +4,14 @@ import Anthropic from "@anthropic-ai/sdk";
 import { getAllProgramIds, getEnrichedProgram, getStateSlug } from "@/lib/program-data";
 import { detectCrisis } from "@/lib/sms/crisis";
 import { familyAnswerCategoryNeedsDraft, matchOutcomeReply } from "@/lib/sms/inbound-intent";
-import { assembleFamilyFacts, renderFactsForPrompt, stateFromFacts } from "./context.server";
+import {
+  assembleFamilyFacts,
+  assembleThreadHistory,
+  renderFactsForPrompt,
+  renderThreadForPrompt,
+  stateFromFacts,
+} from "./context.server";
+import { renderExemplars } from "./exemplars";
 import {
   MAX_REPLY_CHARS,
   type AnswerPacket,
@@ -297,6 +304,31 @@ export function stripSalutation(draft: string): string {
   return stripped.charAt(0).toUpperCase() + stripped.slice(1);
 }
 
+/**
+ * How the reply should SOUND, kept apart from DRAFT_RULES on purpose.
+ *
+ * DRAFT_RULES is about not causing harm: do not assert eligibility, do not
+ * invent a dollar figure, do not give medical advice. This is about being
+ * readable by someone who is exhausted. Mixing them buries the voice guidance
+ * in a safety checklist, and voice is where every draft failed on 2026-09-01 —
+ * not one of them was factually wrong in a way a family noticed, and most of
+ * them had to be rewritten before they could be sent.
+ */
+const VOICE_RULES = `How it should sound:
+- Write the way they write. Short messages get short replies. Someone texting four words is not asking for a paragraph, and a wall of text is how you get "What" back.
+- Use contractions. "That's", "don't", "you're". Writing "That is a lot" instead of "That's a lot" is the single clearest sign a machine wrote it.
+- Use their words, not the agency's. They said docs, so say docs, not documentation. They said caretaker, so do not correct them to caregiver.
+- Answer the person before you answer the problem. If they say they are struggling, the first clause acknowledges that, in plain words. Six words is enough. Then get to the useful part.
+- Never use a heading or a label inside a text message. No "Short version:", no "On the $124:", no bullet points. Say the thing.
+- Do not perform sympathy. "That's a lot" lands. "That must be incredibly difficult for you" does not, and neither does calling anything a journey.
+- ONE door per message. One phone number, one thing to do. If you have three good options, the second and third are a second and third message, after they answer.
+- Give the digits. Never write "call the helpline" or "the number is on your plan" without the number itself in the text. A number behind a link is a number they do not have.
+- Never hand them a decision tree. Do not write "if A, do this; if B, do that" and then ask which one it is. Pick the likeliest door, say what to do, and let the agency sort the rest. The exception is a branch on something they know without thinking, like which town they live in.
+- Lead with what IS possible. If there is a rule against them and an exception for them, the exception goes first. Do not open by telling someone what they cannot have.
+- Weight by likelihood, not by interest. A long-shot program that would be worth a lot still gets one sentence at the end, not the whole message.
+- Correct a mistake as a fact, never as a fault. "Your zip came to us instead of 211", not "you sent it to the wrong number". They are tired and doing their best.
+- If earlier advice failed them, say so once in a short clause and move on. Never re-recommend it, and never explain at length why it did not work.`;
+
 interface DraftOut {
   draft: string;
   personFactRisks: PersonFactRisk[];
@@ -306,6 +338,7 @@ async function draft(
   question: string,
   factsBlock: string,
   researchOut: ResearchOut,
+  threadBlock: string,
 ): Promise<DraftOut> {
   const client = anthropic();
 
@@ -315,6 +348,12 @@ Return ONLY a JSON object:
 {"draft":"the text message","personFactRisks":[{"factKey":"age","why":"the program requires 60+","handling":"asked|conditional|relied_upon"}]}
 
 ${DRAFT_RULES}
+
+${VOICE_RULES}
+
+Replies that worked. These were all sent to real families, and each one is here because a person had to rewrite the engine's version before it could go out. Copy how they sound, not what they say:
+
+${renderExemplars()}
 
 personFactRisks: list every UNVERIFIED fact about this person that your draft depends on, and how you handled it. If you relied on one without asking or hedging, say so honestly with "relied_upon" — that flag is what a human checks first, and hiding it is worse than having it.`;
 
@@ -333,6 +372,8 @@ personFactRisks: list every UNVERIFIED fact about this person that your draft de
         role: "user",
         content: `FAMILY'S QUESTION:
 ${question}
+
+${threadBlock}
 
 WHAT WE KNOW ABOUT THEM:
 ${factsBlock}
@@ -657,6 +698,17 @@ export async function buildAnswerPacket(args: {
   const factsBlock = renderFactsForPrompt(facts);
   const stateCode = stateFromFacts(facts);
 
+  // What has already been said, both directions. Fetched separately from facts
+  // because a failure here must not cost us the packet: a drafter working
+  // without the thread is the behaviour we had until 2026-09-01, which is worse
+  // than today but far better than no draft at all.
+  let threadBlock = "(thread history unavailable)";
+  try {
+    threadBlock = renderThreadForPrompt(await assembleThreadHistory(args.profileId));
+  } catch (err) {
+    errors.push(`thread: ${err instanceof Error ? err.message : "failed"}`);
+  }
+
   let triageResult: TriageResult;
   try {
     triageResult = await triage(args.inbound);
@@ -720,7 +772,7 @@ export async function buildAnswerPacket(args: {
 
   let draftOut: DraftOut = { draft: "", personFactRisks: [] };
   try {
-    draftOut = await draft(triageResult.question, factsBlock, researchOut);
+    draftOut = await draft(triageResult.question, factsBlock, researchOut, threadBlock);
   } catch (err) {
     errors.push(`draft: ${err instanceof Error ? err.message : "failed"}`);
   }

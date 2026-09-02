@@ -91,13 +91,13 @@ export function renderQuestionBroadcast(ctx: BroadcastTemplateContext): Rendered
     ${trustIntro()}
     ${questionSection}
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-      You're listed as a ${escapedCategory} provider in ${escapedCity}. A thoughtful answer helps families see your expertise and builds trust with people actively looking for care.
+      Families like this are actively searching in your area. Make sure your profile stands out.
     </p>
     <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
       <tr>
         <td style="background:#198087;border-radius:8px;">
           <a href="${claimUrl}" style="display:inline-block;padding:14px 28px;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;">
-            View and respond &rarr;
+            Get started &rarr;
           </a>
         </td>
       </tr>

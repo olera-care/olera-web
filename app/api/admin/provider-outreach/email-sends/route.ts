@@ -22,6 +22,9 @@ export interface EmailSendEntry {
   open_count: number;
   click_count: number;
   admin_name: string | null;
+  email_log_id: string | null; // For fetching full HTML content
+  is_custom: boolean; // Whether custom content was used
+  subject: string | null; // Email subject if available
 }
 
 /**
@@ -86,6 +89,10 @@ export async function GET(request: NextRequest) {
         click_count?: number;
         cadence_day?: number;
         sequence_step?: number;    // SmartLead uses this instead of cadence_day
+        email_log_id?: string;     // Reference to email_log table for full HTML
+        is_custom?: boolean;       // Whether custom content was used
+        custom_subject?: string;   // Custom subject if provided
+        subject?: string;          // Subject line
       } | null;
       const adminData = tp.admin_users as { display_name?: string } | null;
 
@@ -113,6 +120,9 @@ export async function GET(request: NextRequest) {
         open_count: details?.open_count ?? 0,
         click_count: details?.click_count ?? 0,
         admin_name: adminData?.display_name || null,
+        email_log_id: details?.email_log_id || null,
+        is_custom: details?.is_custom ?? false,
+        subject: details?.custom_subject || details?.subject || null,
       };
     });
 

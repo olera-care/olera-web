@@ -139,6 +139,26 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "DB update failed" }, { status: 500 });
     }
 
+    // Log touchpoint for delivered status only (returns don't count as successful outreach)
+    if (status === "delivered") {
+      const { error: touchpointError } = await db
+        .from("provider_outreach_touchpoints")
+        .insert({
+          provider_id: tracking.provider_id,
+          touchpoint_type: "mail_delivered",
+          details: {
+            postcard_id: postcardId,
+            status,
+          },
+          admin_user_id: null, // System/webhook event
+        });
+
+      if (touchpointError) {
+        console.error("[postcard-webhook] Failed to log touchpoint:", touchpointError);
+        // Don't fail — tracking was already updated
+      }
+    }
+
     console.log(
       `[postcard-webhook] ${eventType} → ${status} for provider ${tracking.provider_id}`,
     );

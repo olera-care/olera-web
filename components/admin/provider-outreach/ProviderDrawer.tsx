@@ -1750,6 +1750,8 @@ function CallLogSection({
   const [editNotes, setEditNotes] = useState("");
   const [editSubmitting, setEditSubmitting] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   // Reset state when provider changes to avoid stale data flash
   useEffect(() => {
@@ -1757,6 +1759,7 @@ function CallLogSection({
     setCallNotes("");
     setSubmitError(null);
     setEditingId(null);
+    setDeleteConfirmId(null);
   }, [provider.provider_id]);
 
   // Fetch call logs on mount / provider change
@@ -1824,6 +1827,7 @@ function CallLogSection({
     setEditStatus(log.status);
     setEditNotes(log.notes || "");
     setEditError(null);
+    setDeleteConfirmId(null); // Clear any pending delete confirmation
   }, []);
 
   const cancelEdit = useCallback(() => {
@@ -1867,6 +1871,36 @@ function CallLogSection({
       setEditSubmitting(false);
     }
   }, [editingId, editStatus, editNotes, editSubmitting, logs, provider.provider_id, onCallLogged, cancelEdit]);
+
+  const handleDelete = useCallback(async (logId: string) => {
+    if (deletingId) return;
+    setDeletingId(logId);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/call-logs", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ touchpoint_id: logId }),
+      });
+      if (res.ok) {
+        // Remove from list
+        setLogs((prev) => {
+          const newLogs = prev.filter((log) => log.id !== logId);
+          // Notify parent of new count and status
+          const latestStatus = newLogs[0]?.status || "";
+          onCallLogged?.(provider.provider_id, newLogs.length, latestStatus);
+          return newLogs;
+        });
+        setDeleteConfirmId(null);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to delete call log");
+      }
+    } catch {
+      alert("Network error");
+    } finally {
+      setDeletingId(null);
+    }
+  }, [deletingId, provider.provider_id, onCallLogged]);
 
   return (
     <div>
@@ -2002,13 +2036,42 @@ function CallLogSection({
                     {log.admin_name || "Unknown"}
                   </span>
                   {canEdit && (
-                    <button
-                      onClick={() => startEdit(log)}
-                      className="text-xs text-gray-400 hover:text-primary-600 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
-                      title="Edit"
-                    >
-                      Edit
-                    </button>
+                    <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => startEdit(log)}
+                        className="text-xs text-gray-400 hover:text-primary-600"
+                        title="Edit"
+                      >
+                        Edit
+                      </button>
+                      {deleteConfirmId === log.id ? (
+                        <>
+                          <button
+                            onClick={() => handleDelete(log.id)}
+                            disabled={deletingId === log.id}
+                            className="text-xs text-red-600 hover:text-red-700 font-medium"
+                          >
+                            {deletingId === log.id ? "..." : "Confirm"}
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirmId(null)}
+                            className="text-xs text-gray-400 hover:text-gray-600"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => setDeleteConfirmId(log.id)}
+                          className="text-xs text-gray-400 hover:text-red-500"
+                          title="Delete"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
                 {/* Row 2: Full note text */}
@@ -2144,6 +2207,9 @@ interface EmailSendEntry {
   open_count: number;
   click_count: number;
   admin_name: string | null;
+  email_log_id: string | null;
+  is_custom: boolean;
+  subject: string | null;
 }
 
 function EmailSendsSection({ provider }: { provider: OutreachProvider }) {
@@ -2152,6 +2218,11 @@ function EmailSendsSection({ provider }: { provider: OutreachProvider }) {
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Preview state for showing full email HTML
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   // Fetch email history when expanded
   useEffect(() => {
@@ -2193,7 +2264,36 @@ function EmailSendsSection({ provider }: { provider: OutreachProvider }) {
     setLoaded(false);
     setEmails([]);
     setError(null);
+    setPreviewId(null);
+    setPreviewHtml(null);
   }, [provider.provider_id]);
+
+  // Fetch email HTML when preview is requested
+  const handlePreview = useCallback(async (emailLogId: string) => {
+    if (previewId === emailLogId) {
+      // Toggle off
+      setPreviewId(null);
+      setPreviewHtml(null);
+      return;
+    }
+    setPreviewId(emailLogId);
+    setPreviewHtml(null);
+    setPreviewLoading(true);
+    setPreviewError(null);
+    try {
+      const res = await fetch(`/api/admin/emails/${emailLogId}/html`);
+      if (res.ok) {
+        const data = await res.json();
+        setPreviewHtml(data.html_body || null);
+      } else {
+        setPreviewError("Failed to load email");
+      }
+    } catch {
+      setPreviewError("Network error");
+    } finally {
+      setPreviewLoading(false);
+    }
+  }, [previewId]);
 
   // Use actual count from API once loaded, otherwise estimate from provider data
   const emailCount = loaded ? emails.length : (provider.engagement?.emails_sent ?? provider.resend_count ?? 0);
@@ -2239,46 +2339,90 @@ function EmailSendsSection({ provider }: { provider: OutreachProvider }) {
           ) : emails.length === 0 ? (
             <p className="text-sm text-gray-400 italic py-2">No emails sent yet</p>
           ) : (
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {emails.map((email) => (
-                <div
-                  key={email.id}
-                  className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-900">
-                        {email.template_label}
-                      </span>
-                      {(email.open_count > 0 || email.click_count > 0) && (
-                        <div className="flex items-center gap-1.5 text-xs">
-                          {email.open_count > 0 && (
-                            <span className="text-blue-600">{email.open_count} open{email.open_count !== 1 ? "s" : ""}</span>
-                          )}
-                          {email.click_count > 0 && (
-                            <span className="text-green-600">{email.click_count} click{email.click_count !== 1 ? "s" : ""}</span>
+            <div className="space-y-2 max-h-[400px] overflow-y-auto">
+              {emails.map((email) => {
+                const canPreview = !!email.email_log_id;
+                const isPreviewOpen = canPreview && previewId === email.email_log_id;
+
+                return (
+                  <div
+                    key={email.id}
+                    className="py-2 border-b border-gray-50 last:border-0"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-900">
+                            {email.template_label}
+                            {email.is_custom && (
+                              <span className="ml-1.5 text-xs text-purple-600">(Custom)</span>
+                            )}
+                          </span>
+                          {(email.open_count > 0 || email.click_count > 0) && (
+                            <div className="flex items-center gap-1.5 text-xs">
+                              {email.open_count > 0 && (
+                                <span className="text-blue-600">{email.open_count} open{email.open_count !== 1 ? "s" : ""}</span>
+                              )}
+                              {email.click_count > 0 && (
+                                <span className="text-green-600">{email.click_count} click{email.click_count !== 1 ? "s" : ""}</span>
+                              )}
+                            </div>
                           )}
                         </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                          <span>{formatDate(email.sent_at)}</span>
+                          {email.to_email && (
+                            <>
+                              <span className="text-gray-300">·</span>
+                              <span className="truncate">{email.to_email}</span>
+                            </>
+                          )}
+                          {email.admin_name && (
+                            <>
+                              <span className="text-gray-300">·</span>
+                              <span>by {email.admin_name}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      {canPreview && (
+                        <button
+                          onClick={() => handlePreview(email.email_log_id!)}
+                          className={`text-xs px-2 py-1 rounded ${
+                            isPreviewOpen
+                              ? "bg-primary-100 text-primary-700"
+                              : "text-gray-500 hover:text-primary-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          {isPreviewOpen ? "Hide" : "View"}
+                        </button>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
-                      <span>{formatDate(email.sent_at)}</span>
-                      {email.to_email && (
-                        <>
-                          <span className="text-gray-300">·</span>
-                          <span className="truncate">{email.to_email}</span>
-                        </>
-                      )}
-                      {email.admin_name && (
-                        <>
-                          <span className="text-gray-300">·</span>
-                          <span>by {email.admin_name}</span>
-                        </>
-                      )}
-                    </div>
+
+                    {/* Email preview */}
+                    {isPreviewOpen && (
+                      <div className="mt-3 border border-gray-200 rounded-lg overflow-hidden">
+                        {previewLoading ? (
+                          <div className="flex items-center justify-center py-8">
+                            <span className="w-5 h-5 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+                          </div>
+                        ) : previewError ? (
+                          <div className="py-4 px-3 text-sm text-red-500">{previewError}</div>
+                        ) : previewHtml ? (
+                          <iframe
+                            srcDoc={previewHtml}
+                            className="w-full h-[400px] bg-white"
+                            title="Email preview"
+                            sandbox="allow-same-origin"
+                          />
+                        ) : (
+                          <div className="py-4 px-3 text-sm text-gray-400 italic">No content available</div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

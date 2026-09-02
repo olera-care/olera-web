@@ -277,8 +277,27 @@ export function evaluateProgramForFamily(
   }
 
   let boost = 0;
+  // Weight each signal BELOW the one that covers more of the library, so a
+  // boost never outranks a better-covered one on the strength of luck.
+  //
+  // Only 178 of 642 programs (28%) publish an income table this can read, and
+  // the gaps are not random: cash assistance and waivers state eligibility in
+  // tiers and prose, while energy and weatherization publish one clean number.
+  // So a program that cannot earn this boost is usually the LARGER benefit. At
+  // +12 the boost outweighed age (+8, 65% coverage) and every complexity gap,
+  // which meant the letter led with whatever the scraper had parsed best: a
+  // North Carolina family was moved off State-County Special Assistance
+  // ($17,604/yr) onto weatherization, not because she fit it better but
+  // because weatherization publishes $2,608 and Special Assistance publishes
+  // nothing. Coverage is uneven by state too — ND and WI have no income table
+  // at all, so there the signal only ever fired as a tie.
+  //
+  // It stays a real signal where it fires: proof a family sits under a limit
+  // is worth something. It is just worth less than a fact we hold about two
+  // thirds of the library, and far less than the difference between a cash
+  // program and a home retrofit. Absence of a number is not evidence of misfit.
   const ceiling = incomeUsable ? incomeBandCeiling(facts.incomeBand) : null;
-  if (ceiling != null && incomeLimit != null && ceiling <= incomeLimit) boost += 12;
+  if (ceiling != null && incomeLimit != null && ceiling <= incomeLimit) boost += 6;
   const boostMinAge = draftAge ?? sbf?.min_age ?? null;
   if (facts.age != null && boostMinAge != null && facts.age >= boostMinAge) boost += 8;
   if (facts.medicaidStatus === "alreadyHas" && gated) boost += 10;

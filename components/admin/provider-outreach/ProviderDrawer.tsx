@@ -2207,6 +2207,9 @@ interface EmailSendEntry {
   open_count: number;
   click_count: number;
   admin_name: string | null;
+  email_log_id: string | null;
+  is_custom: boolean;
+  subject: string | null;
 }
 
 function EmailSendsSection({ provider }: { provider: OutreachProvider }) {
@@ -2215,6 +2218,11 @@ function EmailSendsSection({ provider }: { provider: OutreachProvider }) {
   const [loading, setLoading] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Preview state for showing full email HTML
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
 
   // Fetch email history when expanded
   useEffect(() => {
@@ -2256,7 +2264,36 @@ function EmailSendsSection({ provider }: { provider: OutreachProvider }) {
     setLoaded(false);
     setEmails([]);
     setError(null);
+    setPreviewId(null);
+    setPreviewHtml(null);
   }, [provider.provider_id]);
+
+  // Fetch email HTML when preview is requested
+  const handlePreview = useCallback(async (emailLogId: string) => {
+    if (previewId === emailLogId) {
+      // Toggle off
+      setPreviewId(null);
+      setPreviewHtml(null);
+      return;
+    }
+    setPreviewId(emailLogId);
+    setPreviewHtml(null);
+    setPreviewLoading(true);
+    setPreviewError(null);
+    try {
+      const res = await fetch(`/api/admin/emails/${emailLogId}/html`);
+      if (res.ok) {
+        const data = await res.json();
+        setPreviewHtml(data.html_body || null);
+      } else {
+        setPreviewError("Failed to load email");
+      }
+    } catch {
+      setPreviewError("Network error");
+    } finally {
+      setPreviewLoading(false);
+    }
+  }, [previewId]);
 
   // Use actual count from API once loaded, otherwise estimate from provider data
   const emailCount = loaded ? emails.length : (provider.engagement?.emails_sent ?? provider.resend_count ?? 0);
@@ -2302,46 +2339,90 @@ function EmailSendsSection({ provider }: { provider: OutreachProvider }) {
           ) : emails.length === 0 ? (
             <p className="text-sm text-gray-400 italic py-2">No emails sent yet</p>
           ) : (
-            <div className="space-y-2 max-h-48 overflow-y-auto">
-              {emails.map((email) => (
-                <div
-                  key={email.id}
-                  className="flex items-start gap-3 py-2 border-b border-gray-50 last:border-0"
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-900">
-                        {email.template_label}
-                      </span>
-                      {(email.open_count > 0 || email.click_count > 0) && (
-                        <div className="flex items-center gap-1.5 text-xs">
-                          {email.open_count > 0 && (
-                            <span className="text-blue-600">{email.open_count} open{email.open_count !== 1 ? "s" : ""}</span>
-                          )}
-                          {email.click_count > 0 && (
-                            <span className="text-green-600">{email.click_count} click{email.click_count !== 1 ? "s" : ""}</span>
+            <div className="space-y-2 max-h-[400px] overflow-y-auto">
+              {emails.map((email) => {
+                const isPreviewOpen = previewId === email.email_log_id;
+                const canPreview = !!email.email_log_id;
+
+                return (
+                  <div
+                    key={email.id}
+                    className="py-2 border-b border-gray-50 last:border-0"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-900">
+                            {email.template_label}
+                            {email.is_custom && (
+                              <span className="ml-1.5 text-xs text-purple-600">(Custom)</span>
+                            )}
+                          </span>
+                          {(email.open_count > 0 || email.click_count > 0) && (
+                            <div className="flex items-center gap-1.5 text-xs">
+                              {email.open_count > 0 && (
+                                <span className="text-blue-600">{email.open_count} open{email.open_count !== 1 ? "s" : ""}</span>
+                              )}
+                              {email.click_count > 0 && (
+                                <span className="text-green-600">{email.click_count} click{email.click_count !== 1 ? "s" : ""}</span>
+                              )}
+                            </div>
                           )}
                         </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                          <span>{formatDate(email.sent_at)}</span>
+                          {email.to_email && (
+                            <>
+                              <span className="text-gray-300">·</span>
+                              <span className="truncate">{email.to_email}</span>
+                            </>
+                          )}
+                          {email.admin_name && (
+                            <>
+                              <span className="text-gray-300">·</span>
+                              <span>by {email.admin_name}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      {canPreview && (
+                        <button
+                          onClick={() => handlePreview(email.email_log_id!)}
+                          className={`text-xs px-2 py-1 rounded ${
+                            isPreviewOpen
+                              ? "bg-primary-100 text-primary-700"
+                              : "text-gray-500 hover:text-primary-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          {isPreviewOpen ? "Hide" : "View"}
+                        </button>
                       )}
                     </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
-                      <span>{formatDate(email.sent_at)}</span>
-                      {email.to_email && (
-                        <>
-                          <span className="text-gray-300">·</span>
-                          <span className="truncate">{email.to_email}</span>
-                        </>
-                      )}
-                      {email.admin_name && (
-                        <>
-                          <span className="text-gray-300">·</span>
-                          <span>by {email.admin_name}</span>
-                        </>
-                      )}
-                    </div>
+
+                    {/* Email preview */}
+                    {isPreviewOpen && (
+                      <div className="mt-3 border border-gray-200 rounded-lg overflow-hidden">
+                        {previewLoading ? (
+                          <div className="flex items-center justify-center py-8">
+                            <span className="w-5 h-5 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+                          </div>
+                        ) : previewError ? (
+                          <div className="py-4 px-3 text-sm text-red-500">{previewError}</div>
+                        ) : previewHtml ? (
+                          <iframe
+                            srcDoc={previewHtml}
+                            className="w-full h-[400px] bg-white"
+                            title="Email preview"
+                            sandbox="allow-same-origin"
+                          />
+                        ) : (
+                          <div className="py-4 px-3 text-sm text-gray-400 italic">No content available</div>
+                        )}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

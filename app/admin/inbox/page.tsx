@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import AdminWorkspace from "@/components/admin/AdminWorkspace";
 import AnswerPacketPanel from "@/components/admin/AnswerPacketPanel";
 import RecheckPanel from "@/components/admin/RecheckPanel";
@@ -344,6 +344,15 @@ export default function AdminSmsInboxPage() {
    * deliberate click, and only ever one, and only when the check was skipped.
    */
   const [confirmUnchecked, setConfirmUnchecked] = useState<null | "now" | "default">(null);
+  /**
+   * The context panel, for every window that is not enormous.
+   *
+   * The pinned rail is gated at 2xl, which is 1536px. A 13-inch MacBook is
+   * 1440px logical, so on that machine the panel could not render at any window
+   * size, and on a half-screen browser it never appeared either. Everything it
+   * knows about a care seeker was built and then shown to nobody.
+   */
+  const [contextOpen, setContextOpen] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [draftState, setDraftState] = useState<DraftState>({ kind: "none" });
@@ -407,6 +416,17 @@ export default function AdminSmsInboxPage() {
 
   useEffect(() => { void loadThreads(); }, [loadThreads]);
 
+  // Escape closes the context panel. Bound once rather than on the panel, so it
+  // works whether focus is in the reply box, the thread list, or the panel.
+  useEffect(() => {
+    if (!contextOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setContextOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [contextOpen]);
+
   /**
    * `adoptDraft` decides whether the saved draft is pulled into the reply box.
    * True when opening a thread (show me what I parked) and after sending (the
@@ -419,6 +439,8 @@ export default function AdminSmsInboxPage() {
       setDetailLoading(true);
       setActionError(null);
       setNotice(null);
+      // A panel opened on one person must not stay open over the next one.
+      setContextOpen(false);
       // A re-check belongs to one specific string in one specific thread.
       // Carrying it across a thread switch would attach a verdict about one
       // family's message to another family's. Bumping the ref abandons any
@@ -987,7 +1009,9 @@ export default function AdminSmsInboxPage() {
         </aside>
 
         {/* ── Conversation ────────────────────────────────────────────── */}
-        <section className={`${selected ? "flex" : "hidden lg:flex"} min-h-0 min-w-0 flex-col bg-white`}>
+        {/* `relative` anchors the context overlay to this column. Without it the
+            overlay resolves against the page and covers the message list too. */}
+        <section className={`${selected ? "flex" : "hidden lg:flex"} relative min-h-0 min-w-0 flex-col bg-white`}>
           {!selected && (
             <div className="flex flex-1 items-center justify-center px-8 text-center">
               <div>
@@ -1051,14 +1075,28 @@ export default function AdminSmsInboxPage() {
                   )}
                   </div>
                 </div>
-                {detail.unhandled > 0 && (
+                <div className="flex shrink-0 items-center gap-2">
+                  {/* Beside the person's name rather than in the reply box,
+                      because what it opens is about them, not about the draft.
+                      Hidden once the rail is pinned, so a wide screen does not
+                      show a control for a panel that is already on screen. */}
                   <button
-                    onClick={markHandled}
-                    className="text-[12px] px-2.5 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                    onClick={() => setContextOpen((v) => !v)}
+                    aria-expanded={contextOpen}
+                    aria-controls="seeker-context"
+                    className="rounded-md border border-gray-200 px-2.5 py-1.5 text-[12px] text-gray-700 transition-colors hover:bg-gray-50 2xl:hidden"
                   >
-                    Mark handled
+                    Context
                   </button>
-                )}
+                  {detail.unhandled > 0 && (
+                    <button
+                      onClick={markHandled}
+                      className="text-[12px] px-2.5 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Mark handled
+                    </button>
+                  )}
+                </div>
               </header>
 
               {detail.twilioError && (
@@ -1279,6 +1317,57 @@ export default function AdminSmsInboxPage() {
                 {notice && <p className="mt-2 text-[12px] text-emerald-700">{notice}</p>}
                 </div>
               </div>
+
+              {/* Context, for every width the pinned rail does not reach.
+                  Anchored to the thread column so it covers the conversation
+                  and leaves the message list alone: you read this BEFORE
+                  writing, so nothing is lost by hiding the last message for a
+                  moment, and pushing the thread aside would reflow the text
+                  being read. */}
+              {contextOpen && (
+                <div className="absolute inset-0 z-30 2xl:hidden">
+                  <button
+                    aria-label="Close context"
+                    onClick={() => setContextOpen(false)}
+                    className="absolute inset-0 h-full w-full cursor-default bg-gray-900/20 motion-safe:animate-[ctxScrim_.2s_ease-out]"
+                  />
+                  <aside
+                    id="seeker-context"
+                    aria-label="Care seeker context"
+                    className="absolute inset-y-0 right-0 w-[19.5rem] max-w-[85%] overflow-y-auto border-l border-gray-200 bg-white px-5 pb-6 pt-4 shadow-[-14px_0_34px_-18px_rgba(16,24,40,0.35)] motion-safe:animate-[ctxIn_.26s_cubic-bezier(.32,.72,0,1)]"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <h2 className="text-base font-semibold text-gray-900">Contact</h2>
+                      <button
+                        onClick={() => setContextOpen(false)}
+                        aria-label="Close"
+                        className="-mr-1 rounded p-1 text-gray-400 transition-colors hover:text-gray-700"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="mt-4 flex h-11 w-11 items-center justify-center rounded-full bg-teal-50 text-sm font-semibold text-teal-700">
+                      {(detail.display_name || formatPhone(detail.phone_last10)).slice(0, 1).toUpperCase()}
+                    </div>
+                    <h3 className="mt-3 text-lg font-semibold text-gray-950">
+                      {detail.display_name || formatPhone(detail.phone_last10)}
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">{formatPhone(detail.phone_last10)}</p>
+                    <SeekerPanel seeker={detail.seeker} />
+                    {detail.profile_id && (
+                      <a
+                        href={`/admin/care-seekers/${detail.profile_id}`}
+                        className="mt-5 block rounded-lg bg-gray-900 px-4 py-2.5 text-center text-[13px] font-medium text-white transition-colors hover:bg-gray-800"
+                      >
+                        Open care-seeker record
+                      </a>
+                    )}
+                  </aside>
+                  {/* Named apart from the config's fadeIn, which carries a
+                      translateY that would nudge a full-bleed scrim. */}
+                  <style>{`@keyframes ctxIn{from{transform:translateX(100%)}to{transform:none}}@keyframes ctxScrim{from{opacity:0}to{opacity:1}}`}</style>
+                </div>
+              )}
             </>
           )}
         </section>

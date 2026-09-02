@@ -15,17 +15,17 @@ NWEEK = 18
 
 # label, first week, last week, colour
 BARS = [
-    ("Provider sales and delivery",              2, 16, GREEN),
-    ("CareNavigator first generation",           1, 10, TEAL),
-    ("Phase IIB family study, n=200",            7, 15, TEAL),
-    ("Institutional-buyer discovery",            3, 11, STEEL),
-    ("Letter of intent pursuit",                 8, 15, AMBER),
-    ("Independent financing, $4M test",          6, 15, AMBER),
-    ("Application drafting",                    11, 16, GREY),
+    ("Provider sales and delivery",              3, 16, GREEN),
+    ("CareNavigator first generation",           2,  6, TEAL),
+    ("Phase IIB family study, n=200",            6, 15, TEAL),
+    ("Institutional-buyer discovery",            2, 12, STEEL),
+    ("Letter of intent pursuit",                10, 15, AMBER),
+    ("Independent financing, $4M test",          3, 15, AMBER),
+    ("Application drafting",                     8, 16, GREY),
     ("Buffer and submission",                   17, 18, GREY),
 ]
 # week -> (label, is a hard deadline)
-GATES = {1: ("Baseline", False), 5: ("Month 1", False), 9: ("Month 2", False),
+GATES = {1: ("Align", False), 5: ("Month 1", False), 9: ("Month 2", False),
          16: ("Complete", True), 18: ("Submit", True)}
 FLAGS = {3: "Nashville", 12: "HLTH"}
 HOLIDAYS = (13, 17)

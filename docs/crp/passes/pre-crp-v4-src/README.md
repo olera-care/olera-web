@@ -79,6 +79,36 @@ rather than a distraction from the letter. Weeks 11 and 15 carry it: pursue it
 ahead of the letter when it comes up, and execute it before the December freeze
 rather than in January.
 
+## Logan's week revision, 2026-09-02
+
+Table 6 replaced with Logan's own revision of the eighteen weeks, from
+`Olera_Pre_CRP_RD_Commercialization_and_Execution_Plan.pdf` of that date.
+Sections 1 to 6 and Table 5 were unchanged in that file and are untouched here;
+a sentence-level comparison confirmed it.
+
+Cleanup only, on the titles and wording:
+
+- Week 2's job was three stacked lines in the source and becomes one: "Prepare
+  the offers, the interviews, and the build".
+- Four titles no longer matched the tasks under them after the revision and were
+  brought back into line: Week 6 becomes "Open the financing conversation; start
+  the study" (delivery standardization is gone from its tasks), Week 8 "Revise
+  the CRP architecture", Week 11 "Draft the application" (the HLTH schedule task
+  is gone), and Week 13 "Hold the line" (the HLTH follow-up task is gone).
+- Week 9's title says "plan HLTH" rather than "book HLTH", matching its task.
+- Ampersands spelled out, sentence case on task text, "CareNav" made
+  "CareNavigator" throughout, "Prep" made "Prepare", "Strategize" made "Plan",
+  "RP/CP" made "Research Strategy and Commercialization Plan".
+
+Figure 2's bars were reflowed to match the revised weeks: CareNavigator first
+generation now 2 to 6, the Phase IIB study 6 to 15, buyer discovery 2 to 12, the
+letter of intent 10 to 15, financing 3 to 15, and drafting 8 to 16. Week 1's
+marker is renamed from "Baseline" to "Align", since the baseline task is gone.
+
+**Open:** the Month 1 diamond still sits at Week 5, but the revision removed
+"Review Month 1 against scorecard" from that week's tasks. Either the marker goes
+or the task comes back.
+
 ## The two conferences
 
 Confirmed dates, 2026-09-02, and they moved nine weeks:

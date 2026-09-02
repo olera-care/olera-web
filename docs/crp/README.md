@@ -20,6 +20,7 @@ for families.
 | `research-strategy.md` | Canonical RS | Drive "2. Research Plan" (`1dWDYwyS…`, mod 08-17 14:04) | GitHub-active — 72h revision target |
 | `commercialization-plan.md` | Canonical CP | Drive "3. Commercialization Plan" (`1Vutumdd…`, mod 08-17 11:20) | GitHub-active |
 | `Olera_Pre_CRP_Commercialization_and_Execution_Plan.pdf` / `.docx` | **The pre-CRP plan**: the four operating tracks (provider commercialization, CareNavigator readiness, institutional-buyer development, private capital), the January traction scoreboard, the backward plan to submission, and the working Valley of Death statement | Logan's draft, 2026-09-01; house-style build in `passes/pre-crp-src/` | live; governs the September to January window |
+| `Olera_Pre_CRP_Week_by_Week_Plan.pdf` / `.docx` | **The eighteen-week plan** to submission: one row per week from 31 Aug 2026 to 1 Jan 2027, with tasks, owners, four checkpoints, and the standing weekly rhythm. Attaches to the pre-CRP plan | derived from the pre-CRP plan; build in `passes/pre-crp-plan-src/` | live |
 | `solicitation-reviewer-reference.md` | Verbatim NOFO/review criteria | solicitation capture | stable |
 | `evidence-ledger.md` | Claim → source → strength → verify? | maintained live | live |
 | `meetings/2026-08-21-david-qu-and-team.md` | Durable context from the David Qu call + team session: the traction-strategy reframe, letters plan, commitments, watch list | transcript, 2026-08-21 | live; newest team decisions |

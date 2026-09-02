@@ -111,8 +111,8 @@ def gantt():
     y += 38
 
     # ---------- legend, wrapped to the artboard rather than trusting one line
-    legend = ("Shaded weeks are holidays. Open diamonds are reviews; solid diamonds "
-              "are the two deadlines.")
+    legend = ("Shaded weeks are holidays. Circles are conferences, open diamonds "
+              "reviews, solid diamonds the two deadlines.")
     lns, sz = B.fit(legend, W - 24, S)
     for i, ln in enumerate(lns):
         b.append(_t(6, y + 8 + i * sz * 1.15, ln, sz, GREY, anchor="start",

@@ -128,6 +128,26 @@ export async function POST(request: NextRequest) {
 
     const existingMap = new Map((existingTracking || []).map((t) => [t.provider_id, t]));
 
+    // ── Validate broadcast_ready can only be reached from call_exhausted ──
+    if (stage === "broadcast_ready") {
+      const invalidProviders: string[] = [];
+      for (const providerId of provider_ids) {
+        const existing = existingMap.get(providerId);
+        if (!existing || existing.stage !== "call_exhausted") {
+          invalidProviders.push(providerId);
+        }
+      }
+      if (invalidProviders.length > 0) {
+        return NextResponse.json(
+          {
+            error: "Move to Broadcast is only available from the Call tab",
+            invalid_providers: invalidProviders,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // ── Clean up pending tasks when moving OUT of in_sequence ──
     // Find providers being moved FROM in_sequence to another stage
     const providersLeavingSequence: string[] = [];

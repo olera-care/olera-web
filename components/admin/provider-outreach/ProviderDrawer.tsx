@@ -3867,22 +3867,15 @@ Questions? support@olera.care or (979) 243-9801`;
           </button>
         )}
 
-        {/* Move to Broadcast - for call-related stages (opens action modal for confirmation) */}
-        {["needs_call", "re_engage", "call_exhausted"].includes(provider.stage) && onMoveToBroadcast && (
+        {/* Move to Broadcast - only for call_exhausted stage */}
+        {provider.stage === "call_exhausted" && onMoveToBroadcast && (
           <button onClick={() => { onMoveToBroadcast(provider.provider_id); onClose?.(); }} className={outlineBtn}>
             Move to Broadcast
           </button>
         )}
 
-        {/* Contact Form for call_exhausted (after Move to Broadcast) */}
-        {isCallExhausted && (
-          <button onClick={() => setConfirmAction("contact_form")} className={outlineBtn}>
-            Contact Form
-          </button>
-        )}
-
-        {/* Start Sequence - for needs_call, re_engage, call_exhausted, or not_interested */}
-        {["needs_call", "re_engage", "call_exhausted", "not_interested"].includes(provider.stage) && provider.email && onLaunchSequence && (
+        {/* Start Sequence - for needs_call, re_engage, or not_interested (not call_exhausted) */}
+        {["needs_call", "re_engage", "not_interested"].includes(provider.stage) && provider.email && onLaunchSequence && (
           <button onClick={() => { onLaunchSequence(provider.provider_id); onClose?.(); }} className={outlineBtn}>
             Start Sequence
           </button>

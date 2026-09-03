@@ -29,7 +29,11 @@ export default function AdminAdBoostPage() {
   const [counts, setCounts] = useState({ active: 0, archived: 0 });
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<"active" | "archived">("active");
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  // Defaults to Live: the campaigns actually spending money are what this page
+  // is opened for. `load` re-applies this per view — Archived never defaults to
+  // Live (archived rows are ended/cancelled), and an active queue with nothing
+  // live falls back to All so the page never opens on an empty list.
+  const [statusFilter, setStatusFilter] = useState<string | null>("live");
   const [sort, setSort] = useState<AdBoostQueueSort>("priority");
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(
     () => new Set(),
@@ -46,7 +50,11 @@ export default function AdminAdBoostPage() {
         throw new Error(j.error || "Failed to load");
       }
       const json = await res.json();
-      setRequests(json.requests as CampaignRequest[]);
+      const rows = json.requests as CampaignRequest[];
+      setRequests(rows);
+      setStatusFilter(
+        view === "active" && rows.some((row) => row.status === "live") ? "live" : null,
+      );
       if (json.counts) setCounts(json.counts);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
@@ -148,7 +156,6 @@ export default function AdminAdBoostPage() {
               type="button"
               onClick={() => {
                 setView(tab.value);
-                setStatusFilter(null);
                 setExpandedProviders(new Set());
               }}
               className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${

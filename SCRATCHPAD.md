@@ -7,7 +7,7 @@
 
 ## Current Focus
 
-### 2026-09-03 — Ad Boost pipeline review, and the queue now opens on Live (`helpful-hopper`, PR #1759)
+### 2026-09-03 — Ad Boost: the campaigns were in markets that do not exist, and the product changed (`helpful-hopper`, PR #1759)
 
 Read the whole Ad Boost pipeline out of production Supabase and reconciled it against attributed traffic. Most of it corroborates the 28 Aug audit; a few things have moved and two gaps are new.
 
@@ -31,6 +31,34 @@ Read the whole Ad Boost pipeline out of production Supabase and reconciled it ag
 New order: **`Live · Needs attention · All │ Requested · Scheduled · Ended`**. The row is two groups, not one list — lenses you work from (the money, the alert, the escape hatch out of any filter) sit left in the always-visible zone; a hairline divider; then the stages you only browse, in funnel order. **The trade:** Live is pulled out of the lifecycle sequence, so the row no longer reads as a funnel left to right. Accepted, because that reading was already interrupted by All and Needs attention sitting in front of it, and this row is a filter control — the pipeline is the table below it. Chip markup factored into `renderStatusChip` so Live and the lifecycle group cannot drift apart, and `shrink-0` added so chips scroll in the rail instead of compressing.
 
 **File:** `app/admin/ad-boost/page.tsx` (both commits). `tsc --noEmit` and `eslint` clean on it — the remaining tsc errors are pre-existing missing-module errors from the borrowed `node_modules`. **Not done, offered:** the selected Live chip is black like the others while `Live` in the rows is green; tying them would make the connection but is a styling call, not a placement one.
+
+**THE ROOT CAUSE WAS WRONG TWICE BEFORE IT HELD, AND THE ANSWER CHANGED THE PRODUCT.** Started on checklist item 1 (is Franchil actually serving) and it turned into a strategy decision.
+
+**Franchil is not serving and never has.** Campaign `24166094865`, built 23 Aug, Enabled, start date passed, $1.67/day, 7 of 10 keywords Eligible, ad Eligible, all 10 RSA assets Eligible, nothing under review despite a stale "All ads under review" chip at campaign level. **0 impressions in 11 days.** Final URL is exactly right (`utm_source=olera_managed&utm_medium=paid_search&utm_campaign=franchil-killeen-90d-aug26`), so the UTM theory is dead. Also ruled out: billing (same account spent $273.15 in-window), paused/future start, keyword approval, and the shared negative list (Graceful carries the identical list and serves). **Incidental:** Edmonds Villa Sep 2026 is Eligible and serving on Google with 6 impressions while Olera still has it `scheduled`.
+
+**Three attempts at the cause. Only the third survives.**
+
+1. *Landing page quality.* Real but not primary. Landing page experience is **Below average on every keyword Google has ever scored in the account** (3 for 3: Graceful `home care agency` QS 4/10; Miracle July `home care near me` QS 2/10 marked **"Rarely shown (low Quality Score)"**; Miracle July `respite care near me` QS 5/10). Ad relevance and expected CTR both range Average to Above average. Landing page never moves off the floor. Account-wide we lose **77.80% of impression share to rank** and 14.07% to budget, so this is a program-wide Ad Rank deficit, not a per-campaign fluke.
+2. *Budget too low.* Falsified by my own table. Graceful runs the **identical $1.67/day** in Concord and serves 178 impressions / 13 clicks. I also misread "Top of page bid (low range)" as the price of a click (it is the price of a *top* placement) and misapplied DFW prices to Killeen and Cleveland. And `lost IS (budget) 0.00%` proves nothing at zero impressions — you cannot be budget-limited if you never win an auction.
+3. **Market selection. This one holds.** Keyword Planner, same keyword, three markets: **Killeen 10 searches/month** with too little auction activity for Google to even report a bid range; **Cleveland 320/month, top-of-page now $2.75** against Miracle's realized $1.89/click in July when it served 295 impressions; **Concord** still cheap enough that Graceful's $1.85/click keeps working. Franchil never had a market. Cleveland repriced above our bid (confirms the 26 Aug finding with Google's own numbers). **We have been buying ads in markets we never priced, and nothing in the setup process checks demand before launch or price after.**
+
+**Stress-tested externally before deciding.** Published the thesis as an artifact (https://claude.ai/code/artifact/e32e3365-88e5-4f6d-a78a-a4060bf8bfca) plus markdown at `~/Desktop/adboost-silence-problem.md`, written to be attacked. One external review came back and landed. Its two best hits, both conceded: I stated `P(zero | healthy) = 58%` as though it were the rate at which shrugging is correct, which reverses the conditional (the defensible form is a **likelihood ratio of 1.7**, very weak evidence); and my negative-keyword exclusion was invalid because a shared list interacts with each campaign's own keyword set. It also correctly flagged that landing page experience feeds Ad Rank, so my "fix delivery before pages" ordering was backwards, and that I priced the media precisely while leaving operator time out of the argument entirely.
+
+**DECISION (TJ): Olera fronts the media.** Ad Boost stops being provider-funded per-provider campaigns and becomes Olera-funded market-level lead generation. A first-principles market page per metro, built from our own provider data, with leads going to fitting providers.
+
+**DECISION (TJ): no price test yet.** Charging before the product delivers would be a bad look. Cost of this is that the reviewer's strongest objection (nobody has been asked to pay, so $0 MRR is not evidence of rejection) stays open longer.
+
+**DECISION: curated shortlist, not blind routing.** TJ flagged the intent mismatch: a family fills a form thinking they asked Olera a question, then a stranger calls. That is exactly A Place for Mom's reputation problem. Resolution is to **move the quality gate before the form** — we curate which agencies appear, the family chooses from the shortlist. Preserves agency, reuses the existing inquiry machinery and conversion definition, and keeps the editorial control TJ wanted. Consequence: ad copy must become market-branded rather than provider-branded, which should also *improve* ad relevance (a Quality Score component) rather than hurt it.
+
+**DFW is the pilot market, and my supply number was wrong.** Demand verified at 5,400/month on the head term versus Killeen's 10. But I quoted "400+ home care providers" from `olera-providers` (the scraped directory). The number that matters for routing is accounts: **109 active DFW `business_profiles`, 54 claimed** (all 54 with email, 32 with phone, 11 verified), concentrated Garland 14 / Irving 8 / Dallas 5 / Plano 4 / McKinney 4. Bench is 54, not 400+. Recommendation is claimed-only for the pilot.
+
+**Pilot pricing is NOT settled.** My $2,000 / 30 days / ~$65 a day figure rests on a $5 CPC that came from the top-of-page misread, and on an invented 5-8% conversion rate when the only measured rate is 2.7%. Honest range is 370 to 800 clicks for $2,000. **Next step is Google's own Forecast tab for the DFW keyword set at $65/day — not run yet.**
+
+**Three of the six checklist items from this morning are now moot** (schedule Assisting Hands, chase stale photo asks, enter the Nextdoor September batch) because they all assumed provider-funded campaigns. Still live and unrelated: **Pacesetter has 2 conversions nobody told them about and their email is suppressed.**
+
+**Open, blocked on TJ:** what to tell the five providers in the requested queue who applied for a product we are stopping (Senior Services 41 days, Assisting Hands 8 days at 100% complete); correcting Franchil and Miracle-Lightstar, who were both emailed that campaigns launched that have never served; whether to end Franchil's Killeen campaign outright.
+
+**Still unverified and ahead of any spend:** the contact path. Nobody has confirmed a family's inquiry actually reaches a provider. The external reviewer's proposed test (replay the contact journey end to end on the landing pages, ~$0 media and a few hours) remains the cheapest thing that could invalidate everything downstream.
 
 **Next, in the order it should be worked:**
 

@@ -482,6 +482,15 @@ export async function POST(request: NextRequest) {
               continue;
             }
 
+            // call_exhausted stage cannot start sequence - use other actions instead
+            if (existingTracking.stage === "call_exhausted") {
+              failedProviders.push({
+                provider_id: preview.provider_id,
+                error: "Cannot start sequence from Call tab - use Send Claim Link or Move to Broadcast instead",
+              });
+              continue;
+            }
+
             // Clean up any stale pending tasks from previous cycle
             // This prevents old Day 7 tasks from firing alongside new Day 0 tasks
             await db

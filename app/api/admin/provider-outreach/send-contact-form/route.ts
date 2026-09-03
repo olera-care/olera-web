@@ -11,7 +11,8 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
  * - Call & Confirm (not_contacted)
  * - In Sequence (in_sequence)
  * - Alternative Channels (re_engage)
- * - Call (call_exhausted)
+ *
+ * NOT available from Call (call_exhausted) - use Send Claim Link or Move to Broadcast instead.
  *
  * For Follow Up (needs_call) tab, use record-outcome with try_contact_form
  * if you want to move the provider to Alternative Channels.
@@ -64,6 +65,14 @@ export async function POST(request: NextRequest) {
 
     if (trackingError || !tracking) {
       return NextResponse.json({ error: "Provider not found in tracking" }, { status: 404 });
+    }
+
+    // call_exhausted stage cannot use contact form - use Send Claim Link or Move to Broadcast instead
+    if (tracking.stage === "call_exhausted") {
+      return NextResponse.json(
+        { error: "Contact form not available from Call tab - use Send Claim Link or Move to Broadcast instead" },
+        { status: 400 }
+      );
     }
 
     // Calculate new count

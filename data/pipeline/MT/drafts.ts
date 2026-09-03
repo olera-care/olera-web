@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-31T10:40:13.368Z
+ * Last updated: 2026-09-03T11:31:11.495Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -216,24 +216,24 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Provider Type 12 enrollment via Optum/Conduent; examples: Summit Independent Living for self-directed",
+            "name": "Statewide through enrolled provider agencies; examples: Summit Independent Living for self-directed",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or taking medications but wants to stay home instead of moving to a nursing home, Montana's CFCS and PCS programs provide paid caregivers through Medicaid. Your loved one gets a personal care attendant who comes to their home, and you can even become their paid caregiver if you're an adult child.\n\nThe program has two tiers: Personal Care Services covers basic assistance with daily activities, while Community First Choice Services adds extras like emergency response systems and community outings for parents who need nursing-home-level care. Because everyone approved for PCS gets automatically reviewed for CFCS, 95% of enrollees end up in the higher tier with more comprehensive services.\n\nIncome limit: $967/month for a single person (2025). Asset limit: $2,000 individual, $3,000 couple. Your loved one must be Medicaid-eligible and demonstrate they need help with activities of daily living through a nurse assessment.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or taking medications but wants to stay home instead of moving to a nursing home, Montana's CFCS and PCS programs provide paid caregivers through Medicaid. Your loved one gets a personal care attendant who comes to their home, and you can even become their paid caregiver if you're an adult child.\n\nThe program has two tiers: Personal Care Services covers basic assistance with daily activities, while Community First Choice Services adds extras like emergency response systems and community outings for parents who need nursing-home-level care. Because everyone approved for PCS gets automatically reviewed for CFCS, 95% of enrollees end up in the higher tier with more comprehensive services.\n\nIncome limit: $994/month for a single person (2025). Asset limit: $2,000 individual, $3,000 couple. Your loved one must be Medicaid-eligible and demonstrate they need help with activities of daily living through a nurse assessment.",
       "savingsRange": "",
       "savingsSource": "Free service through Medicaid",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
-          "Age 65+",
-          "Income below $967/month (single)",
+          "Any age. Montana describes the program as serving seniors and people with disabilities.",
+          "Income below $994/month (single)",
           "Medicaid eligible",
           "Needs help with daily activities",
           "Montana resident"
         ],
-        "ageRequirement": "65+",
+        "ageRequirement": null,
         "incomeTable": null,
         "assetLimits": {
           "individual": 2000,
@@ -267,7 +267,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Contact Medicaid office",
-            "description": "Visit medicaid.mt.gov to find your local office or call for initial screening and Medicaid eligibility confirmation."
+            "description": "Apply for Medicaid at apply.mt.gov or call the Montana Public Assistance Helpline on 1-888-706-1535. Local Office of Public Assistance locations are listed at dphhs.mt.gov/HCSD/OfficeofPublicAssistance."
           },
           {
             "step": 2,
@@ -283,15 +283,10 @@ export const drafts: PipelineStateDrafts = {
             "step": 4,
             "title": "Choose service model",
             "description": "Select self-directed care (you manage and can hire family caregivers through agencies like Summit Independent Living) or agency-based care."
-          },
-          {
-            "step": 5,
-            "title": "Complete Provider Type 12 enrollment",
-            "description": "Enroll through Optum/Conduent system with your chosen provider agency to begin receiving services."
           }
         ],
         "processingTime": null,
-        "waitlist": null,
+        "waitlist": "None. Montana describes CFCS and PCS as entitlement programs: meeting the financial and level-of-care requirements means services are available without a waiting list.",
         "tip": "Everyone approved for PCS gets automatically reviewed for CFCS with additional services, don't apply separately for both tiers.",
         "urls": [
           {
@@ -322,21 +317,19 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Montana DPHHS utilization review contractor, Mountain Pacific (start here)",
-          "phone": "(800) 219-7035",
-          "description": "Montana DPHHS utilization review contractor, Mountain Pacific — Community First Choice/Personal Care Services assessment scheduling",
-          "hours": null
+          "label": "Montana Public Assistance Helpline (start here)",
+          "phone": "(888) 706-1535",
+          "hours": "Mon-Fri 8:00am-5:00pm MT",
+          "description": "Start here if your loved one is not on Medicaid yet, because Medicaid approval comes first. Office of Public Assistance. Apply online at apply.mt.gov."
         },
         {
-          "label": "Montana Medicaid Information",
-          "phone": null,
-          "description": "Visit medicaid.mt.gov for local office contact information",
-          "hours": "Varies by office"
+          "label": "Mountain Pacific, the state assessment contractor",
+          "phone": "(800) 219-7035",
+          "description": "Call this one instead if your loved one is already on Medicaid, to schedule the assessment. Mountain Pacific publishes no hours."
         },
         {
           "label": "Montana 2-1-1",
           "phone": "2-1-1",
-          "description": "Free helpline for all social services and program information",
           "hours": "24 hours, 7 days a week"
         }
       ],
@@ -345,7 +338,8 @@ export const drafts: PipelineStateDrafts = {
         "Spouses, parents, and legal guardians cannot be paid caregivers, only other family members like adult children or ex-spouses",
         "Self-directed option allows you to hire and manage your loved one's caregivers, including family members, through participating agencies",
         "Provider agencies cover specific counties and reservations, onsite visits required for enrollment in your area",
-        "Home equity over $730,000 may affect eligibility unless spouse or disabled child lives in the home"
+        "Home equity over $730,000 may affect eligibility unless spouse or disabled child lives in the home",
+        "A spouse counts as a legally responsible individual. They can be paid as a personal care attendant only under the CFCS tier, only under the Extraordinary Care standard, meaning the care goes beyond what is normally expected of a spouse, and generally capped at 40 hours a week. They cannot be the paid caregiver and the personal representative at the same time. An adult child faces none of these limits. On a PCS-only plan, ask for a re-screening first."
       ],
       "relatedPrograms": [
         "Montana Medicaid",
@@ -403,11 +397,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "(800) 219-7035",
+      "phone": "(888) 706-1535",
       "sourceUrl": "https://medicaidprovider.mt.gov/12",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "pace-comprehensive-care",

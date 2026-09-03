@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/UT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-31T10:40:13.380Z
+ * Last updated: 2026-09-03T11:25:55.893Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1360,7 +1360,7 @@ export const drafts: PipelineStateDrafts = {
     },
     {
       "id": "meals-on-wheels",
-      "name": "Utah Meals on Wheels",
+      "name": "Home-Delivered Meals (Meals on Wheels)",
       "shortName": "Meals on Wheels",
       "tagline": "Free home-delivered meals for parents 60+ who can't shop or cook due to mobility challenges",
       "programType": "benefit",
@@ -1374,7 +1374,7 @@ export const drafts: PipelineStateDrafts = {
             "type": "service-area"
           },
           {
-            "name": "Mountainland Assoc. of Govts (MAG) for Utah/Wasatch/Summit Counties",
+            "name": "Mountainland Assoc. of Govts (MAG) for Utah and Summit Counties",
             "type": "service-area"
           },
           {
@@ -1389,7 +1389,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "intro": "If your loved one is 60+ and struggles to leave home to shop for groceries or cook meals, Utah Meals on Wheels delivers hot, nutritious lunches directly to their door Monday through Friday. Each meal provides one-third of daily nutritional needs and includes protein, vegetables, fruit, grains, and milk, with no income limits or asset tests.\n\nBecause the program requires your loved one to be homebound (unable to leave home without assistance) and have an in-person assessment, delivery is only available within specific service zones that vary by county. The suggested donation is $3.50-$4 per meal but is completely voluntary, no one is denied meals for inability to pay.\n\nDelivery volunteers also provide a daily wellness check during each visit. Some areas offer weekend meals delivered Thursday or Friday, while high-demand counties like Utah County currently have waitlists.",
       "savingsRange": "",
-      "savingsSource": "Free service",
+      "savingsSource": "Free service. Davis County suggests a $3.50 per meal contribution and MAG suggests $4; contributions are voluntary for people 60+.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -1406,7 +1406,9 @@ export const drafts: PipelineStateDrafts = {
         "otherRequirements": [
           "Must live within local program's delivery zone",
           "Cannot drive a vehicle (in some counties like Davis)",
-          "Priority given to isolated individuals"
+          "Priority given to isolated individuals",
+          "Without family or other resources to help with meal preparation (Davis County states this explicitly)",
+          "The person who needs the meals must take part in the call. Counties verify eligibility directly with the applicant, not with a family member."
         ],
         "povertyLevelReference": null
       },
@@ -1417,7 +1419,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Contact your county program",
-            "description": "Call your local Area Agency on Aging: Davis County (801-525-5099), Utah/Wasatch/Summit Counties (801-229-3802), Cache County (435-755-1720), or find others through the state aging office."
+            "description": "Call your local Area Agency on Aging: Davis County (801-525-5050), Utah and Summit Counties (801-229-3802), Wasatch County (435-654-4920), Cache County (435-755-1720), or find others through the state aging office."
           },
           {
             "step": 2,
@@ -1440,7 +1442,11 @@ export const drafts: PipelineStateDrafts = {
         "tip": "Call early in the day, meals aren't left if your loved one isn't home and cancellations must be made by 9am.",
         "urls": [
           {
-            "label": "MAG Utah Meals Referral",
+            "label": "Find your county Area Agency on Aging",
+            "url": "https://daas.utah.gov/locations/"
+          },
+          {
+            "label": "MAG Utah Meals Referral (Utah and Summit Counties)",
             "url": "https://magutah.gov/meals/"
           }
         ]
@@ -1455,28 +1461,49 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Davis County Aging Services",
-          "phone": "(801) 525-5099",
-          "description": "Davis County Meals on Wheels program",
+          "label": "Find the meals program for your county (start here)",
+          "phone": "(801) 538-3910",
+          "hours": "Mon-Fri 8am-5pm MT",
+          "description": "Utah Aging and Adult Services. They point you to the Area Agency on Aging that serves your county. The state office does not take meal applications itself. Toll-free: 1-877-424-4640."
+        },
+        {
+          "label": "Utah Aging and Adult Services (toll-free)",
+          "phone": "1-877-424-4640",
+          "hours": "Mon-Fri 8am-5pm MT"
+        },
+        {
+          "label": "Davis County Aging and Adult Services",
+          "phone": "(801) 525-5050",
+          "hours": "Mon-Fri 8am-5pm MT",
+          "description": "For new meal service, press option 2."
+        },
+        {
+          "label": "MAG Aging - Utah and Summit Counties",
+          "phone": "(801) 229-3802",
           "hours": "Mon-Fri business hours"
         },
         {
-          "label": "MAG Utah Counties",
-          "phone": "(801) 229-3802",
-          "description": "Utah, Wasatch, and Summit counties program",
+          "label": "MAG Aging - Wasatch County",
+          "phone": "(435) 654-4920",
           "hours": "Mon-Fri business hours"
+        },
+        {
+          "label": "Bear River AAA - Box Elder, Cache, Rich Counties",
+          "phone": "(435) 713-1467",
+          "hours": "Mon-Fri business hours",
+          "description": "Information and referral for the Bear River region."
         },
         {
           "label": "Cache County Senior Center",
           "phone": "(435) 755-1720",
-          "description": "Cache County meals program",
-          "hours": "Mon-Fri business hours"
+          "hours": "Mon-Fri business hours",
+          "description": "A congregate meal site, not the Area Agency on Aging."
         },
         {
-          "label": "Utah Division of Aging",
-          "phone": "(801) 538-3910",
-          "description": "Statewide aging services information",
-          "hours": "Mon-Fri 8am-5pm MT"
+          "label": "211 Utah",
+          "phone": "2-1-1",
+          "hours": "Mon-Sun 8:30am-4:45pm MT",
+          "description": "Also 888-826-9790, or text your zip code to 801-845-2211 Mon-Fri."
         }
       ],
       "applicationNotes": [
@@ -1530,7 +1557,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(801) 538-3910",
       "sourceUrl": "https://rules.utah.gov/publicat/code_rtf/r510-104.rtf",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "caregiver-support-program",

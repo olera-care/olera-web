@@ -7,6 +7,34 @@
 
 ## Current Focus
 
+### 2026-09-03 — Ad Boost pipeline review, and the queue now opens on Live (`helpful-hopper`, PR #1759)
+
+Read the whole Ad Boost pipeline out of production Supabase and reconciled it against attributed traffic. Most of it corroborates the 28 Aug audit; a few things have moved and two gaps are new.
+
+**Where the pipeline stands.** 21 campaign rows / 16 providers: **3 live, 1 scheduled, 5 requested, 12 ended, 0 archived.** `plan_status` is NULL on every row — still **zero subscriptions, $0 MRR**. Hand-entered lifetime totals in the DB read $297.67 / 146 clicks / 2,791 impressions against **6 attributed conversions ever** (Franchil 3, Pacesetter 2, Abode 1). Those stored numbers remain wrong per the 28 Aug reconciliation (~$520 actual) — this is the DB's version, not Google's.
+
+**The three live 90-day flights are near-silent, which matches the known platform causes.** Graceful 15 attributed landings (still landing today), **Miracle-Lightstar 1** (last 27 Aug), **Franchil 0** — not one landing, not even an internal preview, in 11 days live. Zero conversions across all three. Franchil's `Pending — all ads under review` and Miracle's 0-impressions/lost-IS-to-rank are the recorded causes; nothing here contradicts them, and Franchil's total absence of even a preview hit is the strongest confirmation yet that it has never served.
+
+**Two gaps that are ours, not Google's.**
+
+- **`flight_end_date` is still NULL on Franchil and Edmonds Villa.** Stage 0 set hard *platform* end dates on all three 90-day flights, but the Olera-side field was never filled for those two. `ad-boost-end-scheduler` rung 1 filters `.not("flight_end_date", "is", null)` (`app/api/cron/ad-boost-end-scheduler/route.ts:83`), so neither will ever auto-end or fire its wrap-up. The cron does count them in its Slack summary, so the gap is visible and has simply not been actioned. Setting the platform date is not the same as setting ours.
+- **Three of twelve ended campaigns never delivered the wrap-up — the one email that carries the subscribe ask.** LumiWell failed `Suppressed: catch-all (risky) on cold lane`; **Pacesetter** failed `Suppressed: prior bounce/complaint on record`; **Graceful's Nextdoor flight has no `ad_boost_promo_complete` row in `email_log` at all** and a null schedule, despite its queued/ready/launched emails all sending to the same provider. Pacesetter is the one that stings: it is one of only two campaigns that ever produced conversions (2), and its provider has never been told. Cause of the Graceful miss is unresolved — most likely rung 2 hit a permanent skip and cleared the slot, but nothing was logged either way, which is itself the defect.
+
+**Requested queue is aging on photos.** Senior Services & Home Care has waited **41 days** in `update_requested` with no follow-up since 5 Aug; Living Angels 23 days, Caring Senior Service 20 days, both the same. Meanwhile **Assisting Hands (Dallas) is 100% complete with photos ready and has sat 8 days** — that is the one that should be scheduled next.
+
+**Nextdoor September batch is still unrepresented in the pipeline.** Five `*-nextdoor-sep26` tags appear in traffic (Edmonds Villa, Franchil, Graceful, Miracle-Lightstar, Pacesetter), one hit each on 26–27 Aug — the signature of setup previews. Those flights are paused per stage 0, so nothing is spending, but there are still **zero rows in `ad_campaign_requests`**, so if any of them is ever unpaused its traffic attributes to nothing. Worth noting on the channel question: Graceful's August Nextdoor flight pulled **128 attributed landings** against 13–23 for a typical Google flight, and converted **0** — consistent with the p<0.05 rejection already on file.
+
+**Shipped: the queue opens on Live.** `/admin/ad-boost` defaulted to All, so 21 campaigns loaded at once and the 3 spending money were buried among 12 ended. `load` now owns the default and re-applies it per view — Archived never defaults to Live, and an active queue with nothing live falls back to All so the page can never open empty. Removed the tab handler's own filter reset so there is a single writer. **File:** `app/admin/ad-boost/page.tsx`. TypeScript clean on the changed file (the remaining tsc errors are pre-existing missing-module errors from the borrowed `node_modules`).
+
+**Next, in the order it should be worked:**
+
+1. Confirm whether Franchil's Google campaign is serving at all, and that its final URL carries `utm_source=olera_managed&utm_campaign=franchil-killeen-90d-aug26` — zero landings could be either.
+2. Set `flight_end_date` on Franchil and Edmonds Villa so auto-end and the wrap-up can fire.
+3. Schedule Assisting Hands (100% complete, photos ready, 8 days waiting).
+4. Reach Pacesetter another way — their email is suppressed and they have 2 conversions nobody has told them about.
+5. Enter the September Nextdoor batch as campaign rows before any of those flights is unpaused.
+6. Chase or close the three stale `update_requested` photo asks, starting with Senior Services at 41 days.
+
 ### 2026-08-28 — Ad Boost: audit, stage-0 remediation shipped, and the measurement layer is not trustworthy (`steady-planck`, PR #1716)
 
 Audited every live Ad Boost campaign directly in Google Ads and Nextdoor Ads Manager, reconciled against production Supabase, then cross-checked against a second independent audit (Codex) and an architectural review. **No code changed; this session produced findings, a remediation plan and a postmortem.**

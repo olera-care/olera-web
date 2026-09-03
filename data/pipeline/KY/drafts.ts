@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/KY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-31T10:40:13.363Z
+ * Last updated: 2026-09-03T11:25:55.875Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -103,7 +103,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Birth certificate or passport for proof of age and citizenship",
         "Proof of Kentucky residency (utility bill, lease, or state-issued document)",
-        "Social Security award letters for all income sources",
+        "Proof of all income: an SSA award letter for Social Security or SSI, plus pension statements, pay stubs or similar records for any other money coming in",
         "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment account statements (stocks, bonds, annuities, trusts)",
         "Property deeds and current tax assessments",
@@ -117,10 +117,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Kynect Customer Service",
+          "label": "DCBS Family Support Call Line",
           "phone": "(855) 306-8959",
           "description": "Kentucky Medicaid applications and questions",
-          "hours": "Mon-Fri 7am-9pm, Sat 9am-4pm ET"
+          "hours": "Mon-Fri 8am-4:30pm ET"
         },
         {
           "label": "Kentucky 2-1-1",
@@ -182,7 +182,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://kynect.ky.gov",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "hcbs-waivers",
@@ -386,7 +386,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Call for intake",
-            "description": "Contact your provider directly, Senior CommUnity Care at (502) 676-7550, or call (800) 807-1301 to verify Medicaid eligibility and get provider contact info."
+            "description": "Contact the PACE organization serving your county directly, or call DAIL on (888) 804-0884 to find it."
           },
           {
             "step": 3,
@@ -422,22 +422,41 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Senior CommUnity Care PACE",
-          "phone": "(502) 676-7550",
-          "description": "Louisville area PACE provider",
-          "hours": "Contact for hours"
+          "label": "Kentucky DAIL PACE line (start here)",
+          "phone": "(888) 804-0884",
+          "description": "pace@ky.gov. DAIL points you to the PACE organization serving your county."
         },
         {
-          "label": "Kentucky Medicaid Verification",
-          "phone": "(800) 807-1301",
-          "description": "Verify Medicaid eligibility and get PACE provider contacts",
-          "hours": "Business hours"
+          "label": "Bluegrass PACE Care",
+          "phone": "(855) 492-0812"
         },
         {
-          "label": "Kentucky Department for Aging",
-          "phone": "(502) 564-6930",
-          "description": "General aging services and program information",
-          "hours": "Mon-Fri 8am-4:30pm ET"
+          "label": "Care Guide Partners",
+          "phone": "(270) 600-2580"
+        },
+        {
+          "label": "BoldAge PACE",
+          "phone": "(270) 494-5401"
+        },
+        {
+          "label": "Horizon PACE",
+          "phone": "(877) 589-3053"
+        },
+        {
+          "label": "LIFE COORDINATED Commonwealth",
+          "phone": "(855) 209-5451"
+        },
+        {
+          "label": "Mountain View PACE",
+          "phone": "(800) 461-3920"
+        },
+        {
+          "label": "Senior CommUnity Care of Kentucky - Jefferson County",
+          "phone": "(502) 676-7550"
+        },
+        {
+          "label": "Senior CommUnity Care of Northern Kentucky",
+          "phone": "(859) 970-2450"
         }
       ],
       "applicationNotes": [
@@ -458,7 +477,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if we live in Kentucky but not in a PACE service area?",
-          "answer": "Kentucky PACE is only available through three regional providers covering about 20 counties total. If your loved one lives outside these service areas, they cannot enroll in PACE. Call (800) 807-1301 to confirm if your county is covered and explore other waiver programs."
+          "answer": "Kentucky has eight PACE organizations, and coverage still does not reach every county. If your loved one lives outside these service areas, they cannot enroll in PACE. Call DAIL on (888) 804-0884, or email pace@ky.gov, to confirm whether your county is covered and to explore other waiver programs."
         },
         {
           "question": "How much will my Medicare-only loved one pay for PACE services?",
@@ -482,10 +501,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "Stethoscope",
-      "phone": "(800) 807-1301",
+      "phone": "(888) 804-0884",
       "sourceUrl": "https://chfs.ky.gov/agencies/dail/Pages/pace.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "medicare-savings-programs-qmb-slmb-qi",
@@ -977,6 +997,11 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "CHFS LIHEAP public inquiry line (start here)",
+          "phone": "(800) 456-3452",
+          "description": "CHFS contracts with Community Action Agencies across the state to receive LIHEAP applications. Find yours at capky.org/network."
+        },
+        {
           "label": "Kentucky 2-1-1",
           "phone": "2-1-1",
           "description": "Information and referral to local Community Action Agencies",
@@ -1037,10 +1062,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "Lightning",
-      "phone": "2-1-1",
+      "phone": "(800) 456-3452",
       "sourceUrl": "https://chfs.ky.gov/agencies/dcbs/dfs/pdb/Pages/liheap.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "weatherization-assistance-program",
@@ -2456,7 +2482,7 @@ export const drafts: PipelineStateDrafts = {
     },
     {
       "id": "senior-meals-program",
-      "name": "State-Funded Senior Meals Program",
+      "name": "Nutrition Program for the Elderly",
       "shortName": "Senior Meals",
       "tagline": "Free daily meals delivered to your loved one's home or at local senior centers throughout Kentucky.",
       "programType": "benefit",
@@ -2513,41 +2539,41 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": null,
-        "waitlist": "Some areas may have waiting lists, availability varies by region",
+        "waitlist": "Kentucky states that some areas may have waiting lists and that not all services are provided in all areas.",
         "tip": "Call during business hours and have your loved one's address ready, services are organized by county and the hotline will route you to the right local office.",
         "urls": []
       },
       "documentsNeeded": [
-        "Valid government-issued photo ID (driver's license, passport, or Permanent Resident Card)",
-        "Proof of age (birth certificate, driver's license, or passport)",
-        "Proof of Kentucky residency (utility bill, lease, or other official document)",
-        "Income documentation for CSFP food boxes if applicable (Social Security award letter, pension statements, or pay stubs)",
-        "Medical documentation if requesting home-delivered meals (physician statement about homebound status may be helpful)"
+        "Nothing is required to make the call. Kentucky publishes no document checklist for senior meals.",
+        "Worth having to hand: your loved one's age, address, and whether they can get out to a meal site",
+        "Whether a doctor has said they are homebound, and any dietary restrictions or food allergies"
       ],
       "contacts": [
         {
-          "label": "Kentucky Area Agencies on Aging Hotline",
+          "label": "Kentucky ADRC and Area Agency on Aging line (start here)",
           "phone": "(877) 925-0037",
-          "description": "Statewide hotline to connect with local meal programs",
-          "hours": "Business hours, Monday-Friday"
+          "description": "Routes you to the Area Agency on Aging and Independent Living for your county. Kentucky publishes no hours for this line."
         },
         {
-          "label": "Boyd County Community Center",
+          "label": "FIVCO ADRC - Boyd, Carter, Elliott, Greenup, Lawrence Counties",
+          "phone": "(606) 929-1366",
+          "hours": "Mon-Fri business hours",
+          "description": "FIVCO asks that home-delivered meal questions come here. Regional AAAIL line: (800) 499-5191."
+        },
+        {
+          "label": "Boyd County Senior Center",
           "phone": "(606) 739-6349",
-          "description": "Local senior meals and nutrition services",
-          "hours": "Call for hours"
+          "hours": "Mon-Fri 8am-1pm"
         },
         {
-          "label": "Carter County Senior Services",
+          "label": "Carter County Senior Center",
           "phone": "(606) 474-4179",
-          "description": "Local senior meals and nutrition services",
-          "hours": "Call for hours"
+          "hours": "Mon-Thu 8am-1pm, Fri 8am-2pm"
         },
         {
-          "label": "Greenup County Senior Services",
+          "label": "Greenup County Senior Center",
           "phone": "(606) 473-6244",
-          "description": "Local senior meals and nutrition services",
-          "hours": "Call for hours"
+          "hours": "Mon-Fri 8am-1pm"
         }
       ],
       "applicationNotes": [
@@ -2601,7 +2627,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(877) 925-0037",
       "sourceUrl": "https://chfs.ky.gov/agencies/dail/Pages/nutrition.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     }
   ],
   "stateOverview": {

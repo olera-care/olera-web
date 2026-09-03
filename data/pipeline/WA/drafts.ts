@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-09-02T03:10:35.710Z
+ * Last updated: 2026-09-03T11:25:55.895Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -310,7 +310,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Washington 2-1-1",
           "phone": "2-1-1",
           "description": "24/7 helpline for all social services and local resources",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-5pm PT"
         },
         {
           "label": "DSHS Community Services",
@@ -682,7 +682,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Washington 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services and benefit programs",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-5pm PT"
         }
       ],
       "applicationNotes": [
@@ -867,7 +867,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Washington 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services and benefit programs",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-5pm PT"
         }
       ],
       "applicationNotes": [
@@ -1093,7 +1093,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Washington 2-1-1",
           "phone": "2-1-1",
           "description": "Free information and referral service for all Washington social services",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-5pm PT"
         }
       ],
       "applicationNotes": [
@@ -1170,7 +1170,7 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Find via county map: https://wapartnership.org/services/energy-assistance-and-weatherization/. Local community action agencies, tribes (e.g., Hoh Tribe), Pierce County program.",
+            "name": "Find via county map: https://fortress.wa.gov/com/liheappublic/map.aspx. Local community action agencies, tribes (e.g., Hoh Tribe), Pierce County program.",
             "type": "service-area"
           }
         ]
@@ -1193,7 +1193,8 @@ export const drafts: PipelineStateDrafts = {
         "otherRequirements": [
           "Reside in Washington state",
           "Household has not received a LIHEAP grant during current program year (October-September)",
-          "Heating or cooling costs as factor in eligibility"
+          "Heating or cooling costs as factor in eligibility",
+          "A shut-off notice is not required for regular LIHEAP. It is only required for year-round crisis assistance."
         ],
         "povertyLevelReference": "150% FPL"
       },
@@ -1204,7 +1205,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Find your local provider",
-            "description": "Visit https://wapartnership.org/services/energy-assistance-and-weatherization/ and use the county map to find your local LIHEAP agency contact information."
+            "description": "Visit https://fortress.wa.gov/com/liheappublic/map.aspx and use the county map to find your local LIHEAP agency contact information."
           },
           {
             "step": 2,
@@ -1228,12 +1229,12 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Varies by provider; applicants notified as soon as possible, but high demand and limited staff cause delays",
-        "waitlist": "High demand may create waitlists or delays, varying by region",
+        "waitlist": "Funding is limited and agencies state that not all eligible households receive assistance. Application windows are set locally: some agencies close for the season months early, some run a single short window, and some reopen early for seniors.",
         "tip": "If facing utility shutoff, contact your local provider immediately and arrange a payment plan with your utility company first, emergency cases may get priority processing.",
         "urls": [
           {
-            "label": "Find Local LIHEAP Provider",
-            "url": "https://wapartnership.org/services/energy-assistance-and-weatherization/"
+            "label": "Find your local energy assistance agency",
+            "url": "https://fortress.wa.gov/com/liheappublic/map.aspx"
           },
           {
             "label": "Washington LIHEAP Information",
@@ -1257,23 +1258,24 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Washington 2-1-1",
+          "label": "Find your local energy assistance agency (start here)",
           "phone": "2-1-1",
-          "description": "General information and referrals to local services",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-5pm PT",
+          "description": "Also 1-877-211-9274. Application windows are set locally and differ across the state, so ask when yours opens. The search directory at search.wa211.org is available anytime."
         },
         {
-          "label": "Local Provider Finder",
-          "phone": null,
-          "description": "Use online county map to find your specific LIHEAP agency contact",
-          "hours": "Visit https://wapartnership.org/services/energy-assistance-and-weatherization/"
+          "label": "Washington State Department of Commerce - LIHEAP",
+          "phone": "(360) 725-2857",
+          "description": "LIHEAP@commerce.wa.gov. Commerce does not determine eligibility, award grants, or schedule appointments; it can tell you which agency serves you."
         }
       ],
       "applicationNotes": [
+        "Timing as of September 2026: the program year runs October 1 to September 30 and the 2026-27 season starts October 1, 2026. Windows are set locally and vary a lot, and some agencies open early for seniors, so call your local agency now to ask when yours opens. Year-round crisis assistance runs regardless.",
         "No central state application exists, you must contact and follow your specific local provider's process",
         "Documentation requirements vary by provider, always call ahead to confirm what you need to avoid appointment delays",
         "Program year runs October through September, you cannot reapply until the next program year even if circumstances change",
-        "Emergency cases facing utility disconnection may receive priority processing, contact your local provider immediately"
+        "Emergency cases facing utility disconnection may receive priority processing, contact your local provider immediately",
+        "If your loved one's income is above the LIHEAP limit, ask the same agency about the State Home Energy Assistance Program (SHEAP), which reaches households up to 80% of area median income."
       ],
       "relatedPrograms": [
         "Weatherization Assistance Program",
@@ -1324,10 +1326,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": null,
+      "phone": "2-1-1",
       "sourceUrl": "https://www.commerce.wa.gov/community-opportunities/liheap/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "weatherization-assistance-program",
@@ -1731,7 +1734,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Washington 2-1-1",
           "phone": "2-1-1",
           "description": "Help finding local meal programs and other services",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-5pm PT"
         }
       ],
       "applicationNotes": [
@@ -1885,7 +1888,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Washington 2-1-1",
           "phone": "2-1-1",
           "description": "General helpline for all social services and resources",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-5pm PT"
         }
       ],
       "applicationNotes": [
@@ -2057,7 +2060,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Washington 2-1-1",
           "phone": "2-1-1",
           "description": "General information about social services and local SCSEP providers",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-5pm PT"
         }
       ],
       "applicationNotes": [
@@ -2865,7 +2868,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Washington 2-1-1",
           "phone": "2-1-1",
           "description": "Help finding local HEN providers in other counties",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-5pm PT"
         }
       ],
       "applicationNotes": [

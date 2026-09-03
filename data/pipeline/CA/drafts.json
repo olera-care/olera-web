@@ -589,9 +589,9 @@
         ]
       },
       "intro": "If your loved one is 60+ and struggling with grocery costs, CalFresh provides monthly funds loaded onto an EBT card for food purchases. Benefits range from a minimum of $24/month up to $298/month for individuals, depending on income and expenses like medical costs and housing.\n\nBecause seniors get special eligibility rules, your loved one may qualify even if the full household wouldn't. Seniors can form their own separate household for CalFresh purposes, use net income after medical and housing deductions, and face no asset limits in most cases. The program also covers prepared meals at participating restaurants statewide through the Restaurant Meals Program.\n\nSSI/SSP recipients can receive CalFresh in addition to their cash benefits, but they are not automatically income-eligible, they must apply and meet the same income rules as everyone else. Your loved one won't face work requirements, and all out-of-pocket medical expenses over $35 count as deductions to lower their countable income.",
-      "savingsRange": "$288 – $3,576/year in 2026",
-      "savingsSource": "Based on minimum $24/month to maximum $298/month individual benefits",
-      "savingsVerified": true,
+      "savingsRange": "$24 - $298/month for one person (FY2026 limits)",
+      "savingsSource": "FY2026 California limits: maximum $298/month for one person, $1,789 for eight. The $24 minimum is the federal floor and applies only to eligible one- and two-person households. Actual benefit depends on household size and the benefit calculation.",
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 60+",
@@ -706,8 +706,8 @@
       },
       "documentsNeeded": [
         "Social Security award letter or other proof of income",
-        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
-        "Medical expense receipts over $35 (prescriptions, insurance premiums, medical transport)",
+        "The current balance of any checking or savings accounts. In California, if gross monthly income is at or below the state limit ($2,610 for one person in 2026), savings do not count at all. Above that limit an older or disabled household can still qualify, but savings then count against a $4,500 limit.",
+        "Out-of-pocket medical expenses totalling more than $35 in a month, if a household member is 60 or older or meets the SNAP disability rules. Only costs your household actually paid count; anything covered by Medi-Cal or other insurance does not.",
         "Rent receipt or mortgage statement",
         "Utility bills (electric, gas, water, phone)",
         "California driver's license or state ID",
@@ -720,23 +720,23 @@
       ],
       "contacts": [
         {
-          "label": "CalFresh Application Hotline",
+          "label": "CalFresh Benefits Helpline (start here)",
           "phone": "(877) 847-3663",
-          "description": "Statewide application assistance and questions",
-          "hours": "Business hours, varies by county"
+          "description": "CDSS lists this line for information on how to apply in your county. It does not complete an application. Apply online at BenefitsCal.com or through your county office. CDSS publishes no hours for this line."
         },
         {
           "label": "California 2-1-1",
           "phone": "2-1-1",
-          "description": "Free referral service for all social services including CalFresh",
-          "hours": "24 hours, 7 days a week"
+          "hours": "24 hours, 7 days a week",
+          "description": "Covers more than 98% of California's population."
         }
       ],
       "applicationNotes": [
         "Seniors and disabled individuals can form separate households for CalFresh even if living with family, which often increases benefits",
-        "All medical expenses over $35 per month count as deductions, keep receipts for prescriptions, insurance premiums, and medical transportation",
+        "Out-of-pocket medical expenses above $35 a month count as a deduction when a household member is 60 or older or meets the SNAP disability rules. Keep receipts for what you paid yourself; insurance-covered costs do not count.",
         "SSI/SSP recipients can receive CalFresh alongside their cash benefits, but they are not automatically income-eligible, they must apply separately and meet the same income and asset rules as everyone else",
-        "Expedited processing (3 days) is available for households with very low income and resources"
+        "Expedited processing (3 days) is available for households with very low income and resources",
+        "People aged 60 through 64 are exempt from SNAP work registration but are still subject to the ABAWD time limit as of June 1, 2026, unless another exemption applies. Counties must screen for exemptions. The time limit stops the month of the 65th birthday."
       ],
       "relatedPrograms": [
         "Commodity Supplemental Food Program (CSFP)",
@@ -792,7 +792,7 @@
       "sourceUrl": "https://www.cdss.ca.gov/calfresh",
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "liheap-energy-assistance",

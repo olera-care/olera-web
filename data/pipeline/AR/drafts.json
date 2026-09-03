@@ -1016,18 +1016,18 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Six CAAs cover entire state: https://www.acaaa.org/",
+            "name": "Five WAP provider organizations cover all 75 counties",
             "type": "service-area"
           },
           {
-            "name": "Examples: Better Community Development (BCD), CADC, CSCDC",
+            "name": "BCD, BRAD, CADC, C-SCDC and CRDC",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your loved one struggles with high energy bills and earns less than $23,760/year (or $32,040 for a couple), they may qualify for free home weatherization services. Arkansas provides professional energy audits, insulation installation, heating system repairs, and window sealing, all at no cost to reduce monthly utility bills permanently.\n\nThe program covers everything from attic insulation to furnace tune-ups to storm window installation. Because all work is performed by state-certified contractors using Department of Energy standards, the improvements typically last 15-20 years. Priority goes to households with seniors over 60, people with disabilities, or families receiving SSI.\n\nAll 75 Arkansas counties are served through six Community Action Agencies, but funding is limited so there may be a waitlist. Renters can qualify if their landlord signs a permission agreement.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
+      "intro": "If your loved one struggles with high energy bills and earns less than $31,300/year (or $42,300 for a couple), they may qualify for free home weatherization services. Arkansas provides professional energy audits, insulation installation, heating system repairs, and window sealing, all at no cost to reduce monthly utility bills permanently.\n\nThe program covers everything from attic insulation to furnace tune-ups to storm window installation. Because all work is performed by state-certified contractors using Department of Energy standards, the improvements typically last 15-20 years. Priority goes to households with seniors over 60, people with disabilities, or families receiving SSI.\n\nAll 75 Arkansas counties are served through five community-based organizations, but funding is limited so there may be a waitlist. Renters can qualify if their landlord signs a permission agreement.",
+      "savingsRange": "About $5,000 in home improvements per household",
+      "savingsSource": "Arkansas Energy Office: an average grant of $5,000 is awarded for each home, with no client contribution required. This is the value of the work, not a cash payment.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -1040,43 +1040,46 @@
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 1980
+            "monthlyLimit": 2608
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 2670
+            "monthlyLimit": 3525
           },
           {
             "householdSize": 3,
-            "monthlyLimit": 3360
+            "monthlyLimit": 4442
           },
           {
             "householdSize": 4,
-            "monthlyLimit": 4050
+            "monthlyLimit": 5358
           },
           {
             "householdSize": 5,
-            "monthlyLimit": 4740
+            "monthlyLimit": 6275
           },
           {
             "householdSize": 6,
-            "monthlyLimit": 5430
+            "monthlyLimit": 7192
           },
           {
             "householdSize": 7,
-            "monthlyLimit": 6122
+            "monthlyLimit": 8108
           },
           {
             "householdSize": 8,
-            "monthlyLimit": 6815
+            "monthlyLimit": 9025
           }
         ],
         "assetLimits": null,
         "functionalRequirement": null,
         "otherRequirements": [
           "Households receiving SSI are automatically eligible regardless of income",
+          "Households receiving or eligible for LIHEAP are also categorically eligible, as are households certified under a HUD means-tested program or receiving Title IV/XVI cash assistance in the past 12 months",
           "Renters must obtain landlord signature on Lessor Agreement form",
-          "Must provide 12 months of utility bills showing energy usage"
+          "Must provide 12 months of utility bills showing energy usage",
+          "A home cannot be weatherized again within 15 years. Homes eligible for re-weatherization had their previous work completed before 7/1/2011",
+          "Eligibility expires 12 months from certification if the energy audit has not started, and subgrantees re-certify eligibility every 12 months"
         ],
         "povertyLevelReference": "200% FPL"
       },
@@ -1087,7 +1090,7 @@
           {
             "step": 1,
             "title": "Find your local Community Action Agency",
-            "description": "Visit https://www.acaaa.org/ to locate the CAA serving your county, or call the Arkansas Energy Office at the Arkansas Department of Energy and Environment."
+            "description": "Use the county map at adeq.state.ar.us/energy/assistance/wappd.aspx to find the weatherization provider for your county, then call that agency. The Arkansas Energy Office (501-682-0744) can point you to it but does not process applications."
           },
           {
             "step": 2,
@@ -1116,12 +1119,12 @@
           }
         ],
         "processingTime": "Timeline varies by region and current workload, energy audit scheduled after eligibility determination",
-        "waitlist": "Possible due to limited funding, priority given to elderly, disabled, and households with children under 7",
+        "waitlist": "Possible due to limited funding. Priority is scored on points: high energy burden above 6.9% of income counts double, then elderly 60+, a household member receiving disability benefits, a child under 19, and high electricity use.",
         "tip": "If your loved one receives SSI, mention this upfront as it makes them automatically eligible regardless of other income.",
         "urls": [
           {
-            "label": "Arkansas Community Action Agencies Directory",
-            "url": "https://www.acaaa.org/"
+            "label": "Find your county weatherization provider",
+            "url": "https://www.adeq.state.ar.us/energy/assistance/wappd.aspx"
           },
           {
             "label": "Arkansas Energy Office WAP Information",
@@ -1132,7 +1135,7 @@
       "documentsNeeded": [
         "Social Security cards for all household members",
         "Proof of income from last 30 days (pay stubs, Social Security award letters, pension statements)",
-        "If unemployed: Employment Office statement showing benefits received or no claim filed",
+        "If any adult 18 or older in the household has no source of income: a Claims History from the Unemployment Office. Bank statements are not accepted as proof of income.",
         "Employer income statements or verification letters",
         "12 months of electric bills showing usage and costs",
         "12 months of gas or propane bills showing usage and costs",
@@ -1143,22 +1146,40 @@
       ],
       "contacts": [
         {
-          "label": "Arkansas Community Action Association",
-          "phone": null,
-          "description": "Directory of all local Community Action Agencies statewide",
-          "hours": "Visit https://www.acaaa.org/ for local contact info"
+          "label": "Find the weatherization provider for your county (start here)",
+          "phone": "(501) 682-0744",
+          "hours": "Mon-Fri 8:00am-4:30pm CT",
+          "description": "Arkansas Energy Office. Five organizations deliver weatherization across all 75 counties. Use the county map at adeq.state.ar.us/energy/assistance/wappd.aspx to find yours, then call that agency to apply. The Arkansas Energy Office does not process applications."
         },
         {
-          "label": "Arkansas Energy Office",
-          "phone": null,
-          "description": "State oversight of weatherization program",
-          "hours": "Visit https://www.adeq.state.ar.us/energy/assistance/wap.aspx"
+          "label": "Arkansas Energy Office (toll-free)",
+          "phone": "(888) 233-0326",
+          "hours": "Mon-Fri 8:00am-4:30pm CT"
         },
         {
-          "label": "Arkansas 2-1-1",
-          "phone": "2-1-1",
-          "description": "Free referral service to connect with local Community Action Agencies",
-          "hours": "24 hours, 7 days a week"
+          "label": "BCD - Arkansas, Ashley, Bradley, Chicot, Cleveland, Desha, Drew, Grant, Jefferson, Lee, Lincoln, Monroe, Phillips, Prairie",
+          "phone": "(501) 379-1535",
+          "hours": "Mon-Fri business hours"
+        },
+        {
+          "label": "BRAD - Baxter, Boone, Clay, Fulton, Independence, Izard, Lawrence, Marion, Newton, Randolph, Searcy, Sharp, Stone, Van Buren",
+          "phone": "(870) 202-1347",
+          "hours": "Mon-Fri business hours"
+        },
+        {
+          "label": "CADC - Calhoun, Clark, Columbia, Dallas, Garland, Hempstead, Hot Spring, Howard, Lafayette, Little River, Lonoke, Miller, Montgomery, Nevada, Ouachita, Pike, Polk, Pulaski, Saline, Sevier, Union",
+          "phone": "(501) 776-8446",
+          "hours": "Mon-Fri business hours"
+        },
+        {
+          "label": "C-SCDC - Benton, Carroll, Conway, Crawford, Franklin, Johnson, Logan, Madison, Perry, Pope, Scott, Sebastian, Washington, Yell",
+          "phone": "(479) 785-2303",
+          "hours": "Mon-Fri business hours"
+        },
+        {
+          "label": "CRDC - Cleburne, Craighead, Crittenden, Cross, Faulkner, Greene, Jackson, Mississippi, Poinsett, St. Francis, White, Woodruff",
+          "phone": "(870) 333-5127",
+          "hours": "Mon-Fri business hours"
         }
       ],
       "applicationNotes": [
@@ -1188,7 +1209,7 @@
         },
         {
           "question": "What happens if my loved one's income changes after they apply?",
-          "answer": "Income is checked at application time only. If your loved one receives a small Social Security increase or pension adjustment after applying, it won't affect their eligibility or services already approved."
+          "answer": "Your income is verified when you apply, and the agency re-certifies eligibility every 12 months. If the energy audit has not started within 12 months of certification, the application expires and you need to re-apply. Ask your provider where you are in the queue."
         },
         {
           "question": "How long do I have to wait for the actual work to begin?",
@@ -1216,10 +1237,11 @@
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "2-1-1",
+      "phone": "(501) 682-0744",
       "sourceUrl": "https://www.adeq.state.ar.us/energy/assistance/wap.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "senior-medicare-patrol-ship",

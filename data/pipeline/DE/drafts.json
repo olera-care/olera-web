@@ -197,9 +197,9 @@
     },
     {
       "id": "dsaapd-waivers",
-      "name": "Division of Services for Aging and Adults with Physical Disabilities (DSAAPD) Waivers",
-      "shortName": "DSAAPD Waivers",
-      "tagline": "Home care services that let your loved one avoid nursing home placement while getting daily help with bathing, dressing, and mobility.",
+      "name": "DSAAPD In-Home Support and Aging Services",
+      "shortName": "DSAAPD Aging Services",
+      "tagline": "State-funded help at home for older Delawareans: personal care, self-directed attendant services, assistive devices, and an emergency response system.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -209,42 +209,24 @@
           {
             "name": "Delaware Aging & Disability Resource Center (ADRC)",
             "type": "service-area"
-          },
-          {
-            "name": "Joining Generations",
-            "type": "service-area"
           }
         ]
       },
-      "intro": "If your loved one needs nursing home-level care but wants to stay in their own home, Delaware's DSAAPD waivers can provide personal care services, case management, and assistive devices, all covered by Medicaid. Your loved one gets help with daily activities like bathing, dressing, toileting, and medication management from trained caregivers who come to their home.\n\nBecause this is a Medicaid waiver program, your loved one must first qualify for Medicaid and meet nursing home level of care requirements (needing daily help with multiple activities of daily living). The program covers Delaware residents age 60+ or younger adults 18-59 who meet stricter financial and medical criteria. Services include personal care attendants, respite care for family caregivers, assistive devices like shower chairs and ramps, and case management to coordinate all care.",
+      "intro": "If your loved one needs help at home, Delaware's Division of Services for Aging and Adults with Physical Disabilities runs a set of state-funded services you can ask about without being on Medicaid first. Those include personal care services, self-directed attendant services where your loved one chooses and manages their own caregiver, assistive devices, and a personal emergency response system. There is also respite support for family caregivers through the Lifespan Respite Program.\n\nThe single front door is the Delaware Aging and Disability Resource Center, and it takes calls at any hour. The ADRC is deliberately open to everyone: no matter your loved one's income or where in Delaware they live, and whether you are the person who needs help or a family member calling on their behalf.\n\nIf it turns out your loved one needs the fuller Medicaid long-term care package, that is Diamond State Health Plan Plus, and the ADRC can hand you off to the Medicaid Central Intake Unit for it. Delaware folded its old elderly and disabled waiver into Diamond State Health Plan Plus in 2012, so there is no separate DSAAPD waiver to apply for any more.",
       "savingsRange": "",
-      "savingsSource": "Free service",
+      "savingsSource": "Free to ask. Funding for assistive devices is limited and available only when no other payment option exists.",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
-          "Age 60+ (or 18-59 with stricter criteria)",
-          "Medicaid eligible",
-          "Needs nursing home level of care",
-          "Delaware resident living at home"
+          "Delaware resident",
+          "Age 60+ for aging services; self-directed attendant services are open from age 18 with a disability",
+          "Needs help with daily activities at home",
+          "No Medicaid enrolment needed to ask. Financial and functional criteria apply to individual services."
         ],
         "ageRequirement": "60+",
         "incomeTable": null,
-        "assetLimits": {
-          "individual": 2000,
-          "couple": null,
-          "countedAssets": [
-            "Bank accounts",
-            "CDs",
-            "Property other than residence",
-            "Whole life insurance",
-            "401K accounts"
-          ],
-          "exemptAssets": [
-            "Primary residence"
-          ],
-          "homeEquityCap": null
-        },
-        "functionalRequirement": "Must need nursing home level of care (requiring daily assistance with activities like bathing, dressing, mobility, toileting, feeding, or health maintenance)",
+        "assetLimits": null,
+        "functionalRequirement": "Needs help with activities of daily living at home. Nursing-home level of care is not required for these state-funded services; that threshold belongs to Diamond State Health Plan Plus.",
         "otherRequirements": [
           "Delaware resident living in own home or apartment",
           "Medicaid eligible",
@@ -254,27 +236,22 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 800-223-9074 for intake, processing time varies but you must qualify for Medicaid first.",
+        "summary": "Call the Delaware ADRC on 1-800-223-9074, any hour. Nothing is needed for the first call.",
         "steps": [
           {
             "step": 1,
-            "title": "Call DSAAPD intake line",
-            "description": "Call 800-223-9074 (DSAAPD or Joining Generations) to start the referral process through Delaware's Aging & Disability Resource Center."
+            "title": "Call the Delaware ADRC",
+            "description": "Call 1-800-223-9074, at any hour, or email DelawareADRC@delaware.gov. Explain what your loved one needs help with. Nothing needs to be gathered first."
           },
           {
             "step": 2,
-            "title": "Apply for Medicaid",
-            "description": "Complete Medicaid application since waiver eligibility requires Medicaid qualification, this is handled through Division of Medicaid and Medical Assistance (DMMA)."
+            "title": "Options counselling",
+            "description": "The ADRC talks through what is available, which may be a DSAAPD state-funded service, a community program, or Medicaid long-term care. They help complete applications and gather documents at that point."
           },
           {
             "step": 3,
-            "title": "Clinical assessment",
-            "description": "Undergo functional assessment to determine if your loved one meets nursing home level of care requirements for activities like bathing, dressing, and mobility."
-          },
-          {
-            "step": 4,
-            "title": "Service planning",
-            "description": "Work with case manager to develop care plan and arrange personal care attendants, assistive devices, and other covered services."
+            "title": "If Medicaid long-term care is the right fit",
+            "description": "The ADRC hands you off to the Medicaid Central Intake Unit on 1-866-940-8963 for Diamond State Health Plan Plus. If your loved one is already enrolled in a plan, ask for their care coordinator instead of starting a new application."
           }
         ],
         "processingTime": null,
@@ -282,47 +259,43 @@
         "tip": "Start the Medicaid application process early, waiver services can't begin until Medicaid eligibility is confirmed.",
         "urls": [
           {
-            "label": "DSAAPD Official Site",
-            "url": "https://www.dhss.delaware.gov/dsaapd"
+            "label": "DSAAPD in-home support",
+            "url": "https://dhss.delaware.gov/dsaapd/division-of-services-for-aging-and-adults-with-physical-disabilities/in-home-support-to-help-you-live-independently/"
+          },
+          {
+            "label": "Delaware ADRC",
+            "url": "https://dhss.delaware.gov/dsaapd/division-of-services-for-aging-and-adults-with-physical-disabilities/adrc/"
+          },
+          {
+            "label": "Diamond State Health Plan Plus",
+            "url": "https://dhss.delaware.gov/dmma/home/medicaid/dshp-plus/"
           }
         ]
       },
       "documentsNeeded": [
-        "Social Security cards for all household members",
-        "Medicare card",
-        "Proof of Delaware residency (utility bill, lease, or state-issued document)",
-        "Most recent Social Security award letter",
-        "Pension or retirement income statements",
-        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
-        "Investment documents (stocks, bonds, annuities)",
-        "Property documents (deeds, tax statements)",
-        "Life insurance policies with face values",
-        "Vehicle titles and registration",
-        "Medical records documenting functional impairments",
-        "Physician documentation of need for daily care assistance",
-        "Documentation of current medical conditions and medications",
-        "Proof of any irrevocable trusts if assets exceed limits"
+        "Nothing at all for the first call. The ADRC says it is there for you whatever your income or situation.",
+        "Worth having to hand: what your loved one struggles with day to day, and who helps now",
+        "Their age, county, and whether they are already on Medicaid or in a health plan"
       ],
       "contacts": [
         {
-          "label": "DSAAPD Intake Line",
-          "phone": "(800) 223-9074",
-          "description": "Primary number for waiver program information and referrals",
-          "hours": "Business hours"
+          "label": "Delaware Aging and Disability Resource Center (ADRC) (start here)",
+          "phone": "1-800-223-9074",
+          "hours": "24 hours a day, 7 days a week",
+          "description": "DelawareADRC@delaware.gov. TDD (302) 424-7141. The ADRC is DSAAPD's single front door for aging, disability and caregiving services, whatever your income."
         },
         {
-          "label": "Delaware Aging & Disability Resource Center",
-          "phone": "(800) 223-9074",
-          "description": "Statewide referral and information center",
-          "hours": "Business hours"
+          "label": "Medicaid Central Intake Unit (for Diamond State Health Plan Plus)",
+          "phone": "1-866-940-8963",
+          "hours": "Mon-Fri 8:00am-4:30pm",
+          "description": "Takes referrals and applications for nursing home or community-based long-term care Medicaid."
         }
       ],
       "applicationNotes": [
-        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
-        "Ages 18-59 face stricter financial and medical criteria than applicants 60 and older",
-        "If assets exceed $2,000, you may need to establish an irrevocable trust before qualifying",
-        "Different waivers available (Elderly & Disabled, Assisted Living, Acquired Brain Injury), intake will determine which fits your loved one's needs",
-        "Assisted living waiver coverage requires the facility to be licensed and offer covered services"
+        "Nothing is needed for the first call. The ADRC states it is there for you no matter your income or situation.",
+        "Delaware folded its elderly and disabled waiver, assisted living waiver and acquired brain injury waiver into Diamond State Health Plan Plus in 2012. There is no separate DSAAPD waiver to apply for.",
+        "If your loved one is already enrolled in a Medicaid managed care plan, their plan care coordinator may be the faster route than a new application.",
+        "Kent and Sussex ADRC callers can also ask about PACE, which operates in Delaware under the name LIFE."
       ],
       "relatedPrograms": [
         "Delaware Medicaid",
@@ -374,11 +347,11 @@
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "(800) 223-9074",
+      "phone": "1-800-223-9074",
       "sourceUrl": "https://www.dhss.delaware.gov/dsaapd",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "pace-comprehensive-care",
@@ -493,25 +466,25 @@
       ],
       "contacts": [
         {
-          "label": "PACE Your LIFE",
-          "phone": null,
-          "description": "Delaware PACE provider serving specific regions",
-          "hours": "Contact via email: info@paceyourlifemwv.com"
+          "label": "Saint Francis LIFE - New Castle County (start here)",
+          "phone": "1-302-660-3380",
+          "hours": "Mon-Fri 8:00am-4:30pm",
+          "description": "Referral line. Centers in Wilmington (1072 Justison St, 302-660-3351) and Newark (30 Executive Dr, 302-661-7400). Toll-free 1-833-883-7573. 24/7 on-call for enrolled participants."
         },
         {
-          "label": "Saint Francis LIFE",
-          "phone": null,
-          "description": "Trinity Health PACE serving specific Delaware zip codes",
-          "hours": "Contact provider directly for service area and enrollment information"
+          "label": "PACE Your LIFE - Kent and Sussex Counties",
+          "phone": "(302) 865-3565",
+          "hours": "Mon-Fri 8:00am-5:00pm",
+          "description": "21 West Clarke Ave, Suite 1010, Milford. Toll-free 1-833-722-3302, TTY 711. Evening and weekend on-call available."
         },
         {
-          "label": "Delaware 2-1-1",
-          "phone": "2-1-1",
-          "description": "Free helpline for all Delaware health and social services",
+          "label": "Delaware Aging and Disability Resource Center",
+          "phone": "1-800-223-9074",
           "hours": "24 hours, 7 days a week"
         }
       ],
       "applicationNotes": [
+        "Delaware has exactly two PACE organizations, and locally the model is called LIFE (Living Independence for the Elderly). Saint Francis LIFE covers New Castle County; PACE Your LIFE covers Kent and Sussex. Note that the state Medicaid page still says PACE is being developed, which is out of date.",
         "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must be living in the community at enrollment, if your loved one is already in a nursing home, they may not qualify for PACE",
         "PACE is all-or-nothing: once enrolled, your loved one must receive all services exclusively through the PACE organization and cannot use other providers",
@@ -568,11 +541,11 @@
         "visualTone": "editorial"
       },
       "icon": "Stethoscope",
-      "phone": null,
+      "phone": "1-302-660-3380",
       "sourceUrl": "https://www.law.cornell.edu/regulations/delaware/16-Del-Admin-Code-SS-20000-20775",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-18"
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "qmb-slmb-medicare-help",

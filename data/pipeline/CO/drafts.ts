@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-31T10:40:13.356Z
+ * Last updated: 2026-09-03T11:25:55.868Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -141,7 +141,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Colorado 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline connecting to local resources and assistance",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Hours vary by region; the online directory at 211colorado.org is available anytime"
         }
       ],
       "applicationNotes": [
@@ -295,7 +295,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Contact your local Health First Colorado office",
-            "description": "Call your regional Colorado Department of Health Care Policy and Financing (HCPF) office or contact a certified Health First Colorado provider to begin the application process."
+            "description": "Call the Health First Colorado Member Contact Center on 1-800-221-3943 to apply for Medicaid, then contact the Case Management Agency for your county for the waiver screening and assessment. Find your agency at hcpf.colorado.gov/CMA."
           },
           {
             "step": 2,
@@ -316,7 +316,20 @@ export const drafts: PipelineStateDrafts = {
         "processingTime": "Not specified, varies by case complexity and required assessments",
         "waitlist": "Possible regional variations in wait times but specific timeframes not documented",
         "tip": "Gather medical documentation showing your loved one's need for daily assistance before applying, this speeds up the nursing facility level of care assessment.",
-        "urls": []
+        "urls": [
+          {
+            "label": "Find your Case Management Agency",
+            "url": "https://hcpf.colorado.gov/CMA"
+          },
+          {
+            "label": "Elderly, Blind and Disabled (EBD) Waiver",
+            "url": "https://hcpf.colorado.gov/elderly-blind-disabled-waiver-ebd"
+          },
+          {
+            "label": "Apply for Health First Colorado",
+            "url": "https://www.healthfirstcolorado.gov/apply-now/"
+          }
+        ]
       },
       "documentsNeeded": [
         "Birth certificate",
@@ -335,16 +348,15 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Colorado Benefits Hotline",
-          "phone": "(855) 264-2683",
-          "description": "Health First Colorado application and benefits questions",
-          "hours": "Mon-Fri 8am-5pm MT"
+          "label": "Health First Colorado Member Contact Center (start here)",
+          "phone": "(800) 221-3943",
+          "hours": "Mon-Fri 8am-4:30pm MT",
+          "description": "State Relay 711. Phone applications are taken Mon-Fri 8am-4pm. Closed the third Thursday of each month from 2pm to 4:30pm. Waiver screening itself is done by the Case Management Agency for your county: find yours at hcpf.colorado.gov/CMA."
         },
         {
           "label": "Colorado 2-1-1",
           "phone": "2-1-1",
-          "description": "Free referral service for all social services and local HCPF offices",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Hours vary by region; the online directory at 211colorado.org is available anytime"
         }
       ],
       "applicationNotes": [
@@ -352,7 +364,8 @@ export const drafts: PipelineStateDrafts = {
         "The 60-month Look-Back Rule applies, assets given away or sold below fair market value within 5 years can create a penalty period of ineligibility",
         "Income test uses only your loved one's individual income, not household income, this can make elderly loved ones on fixed incomes eligible even in higher-income households",
         "Multiple HCBS waivers exist in Colorado, make sure you're applying for the EBD (Elderly, Blind, and Disabled) waiver, not developmental disabilities or other specialized waivers",
-        "Home equity cannot exceed $1,130,000, homes worth more may disqualify applicants regardless of other assets"
+        "Home equity cannot exceed $1,130,000, homes worth more may disqualify applicants regardless of other assets",
+        "Colorado has capped HCBS service hours since 2026. Annual soft caps took effect April 1, 2026, a 56-hour weekly limit per caregiver took effect July 1, 2026, and the homemaker limit for a legally responsible person fell from 10 hours to 7 hours a week on April 1, 2026. Each has an exceptions process, so ask your Case Management Agency about it rather than assuming the cap is final."
       ],
       "relatedPrograms": [
         "Health First Colorado (Colorado Medicaid)",
@@ -404,11 +417,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "(855) 264-2683",
+      "phone": "(800) 221-3943",
       "sourceUrl": "https://www.healthfirstcolorado.com",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "pace-comprehensive-elderly-care",
@@ -748,7 +761,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Colorado 2-1-1",
           "phone": "2-1-1",
           "description": "Free 24/7 helpline to find your local county human services office, where applications are filed.",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Hours vary by region; the online directory at 211colorado.org is available anytime"
         },
         {
           "label": "EBT Card Customer Service",
@@ -948,7 +961,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Colorado 2-1-1",
           "phone": "2-1-1",
           "description": "Free referral service to find your local weatherization provider",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Hours vary by region; the online directory at 211colorado.org is available anytime"
         }
       ],
       "applicationNotes": [
@@ -1237,7 +1250,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Colorado 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline to find your local Case Management Agency",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Hours vary by region; the online directory at 211colorado.org is available anytime"
         },
         {
           "label": "Community Connections (Southwest Colorado)",
@@ -1440,7 +1453,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Colorado 2-1-1",
           "phone": "2-1-1",
           "description": "General social services helpline for program referrals",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Hours vary by region; the online directory at 211colorado.org is available anytime"
         },
         {
           "label": "U.S. Department of Labor SCSEP",
@@ -1599,7 +1612,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Colorado 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services including legal aid referrals",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Hours vary by region; the online directory at 211colorado.org is available anytime"
         }
       ],
       "applicationNotes": null,
@@ -1899,7 +1912,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Colorado 2-1-1 (finds your county human services office)",
           "phone": "2-1-1",
           "description": "Old Age Pension applications go through your own county's human services department. 2-1-1 connects you to the right county office; you can also apply online at Colorado PEAK (peak.colorado.gov).",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Hours vary by region; the online directory at 211colorado.org is available anytime"
         }
       ],
       "applicationNotes": [
@@ -2082,7 +2095,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Colorado 2-1-1",
           "phone": "2-1-1",
           "description": "General benefits information and county office referrals",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Hours vary by region; the online directory at 211colorado.org is available anytime"
         }
       ],
       "applicationNotes": [

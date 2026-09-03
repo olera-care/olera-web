@@ -659,9 +659,9 @@
         ]
       },
       "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card for food purchases. Benefits range from $298/month for a single person up to $1,789+ for larger households, based on income and expenses. Because your loved one is over 60, they qualify for higher asset limits ($4,250 instead of $2,750) and can deduct uncapped medical expenses over $35/month.\n\nThe application requires detailed financial documentation, but Kansas allows authorized representatives to apply on behalf of elderly loved ones who have mobility issues. Processing typically takes 30 days, though expedited approval within 7 days is available for households with very low income and less than $100 in liquid assets.\n\nYou'll apply through your loved one's county DCF office, either online through the Kansas Benefits Portal or by phone. Social Security and pension income count toward eligibility, but the program excludes the primary home and retirement savings when calculating assets.",
-      "savingsRange": "$298 – $1,789/month in 2026",
-      "savingsSource": "Maximum SNAP allotments for household sizes 1-8, October 2025-September 2026",
-      "savingsVerified": true,
+      "savingsRange": "$298/month maximum for one person (FY2026 limits)",
+      "savingsSource": "FY2026 federal SNAP maximums for the 48 contiguous states: $298/month for a one-person household rising to $1,789 for eight, plus $218 for each additional person. The minimum for eligible one- and two-person households is $24. Actual benefit depends on household size and the benefit calculation.",
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 60+",
@@ -746,7 +746,7 @@
         "Social Security cards for all household members",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "The current balance of any checking or savings accounts. Every state asks about this. In Kansas your savings do count. For a household with someone 60 or older or disabled the limit is $4,500, and it rises to $4,750 on October 1, 2026.",
+        "The current balance of any checking or savings accounts. Kansas does apply a resource limit, $4,500 for a household with someone 60 or older or disabled and $3,000 otherwise. It does not apply at all to household members who receive SSI or TANF, and a household where everyone receives SSI or TANF is categorically eligible.",
         "Proof of Kansas residency (utility bill, lease, or state-issued document)",
         "Rent receipts or mortgage statements",
         "Utility bills (electric, gas, water, phone)",
@@ -759,22 +759,31 @@
       ],
       "contacts": [
         {
-          "label": "Kansas DCF Customer Service",
+          "label": "Kansas DCF Benefits Assistance (start here)",
           "phone": "1-888-369-4777",
-          "description": "General questions about SNAP benefits and applications",
-          "hours": "Mon-Fri 8am-5pm CT"
+          "description": "Answers food assistance questions and will mail you a paper application. It cannot take the application itself. Apply online at dcfapp.kees.ks.gov, on form ES-3100.6, or at a DCF Service Center. DCF publishes no hours for this line."
+        },
+        {
+          "label": "Kansas DCF Customer Service",
+          "phone": "1-833-765-2003",
+          "description": "Office of Client Services, for complaints and service issues."
         },
         {
           "label": "Kansas 2-1-1",
           "phone": "2-1-1",
-          "description": "Free helpline for all social services and benefit programs",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 7am-7pm CT",
+          "description": "United Way of the Plains. The online directory at 211Kansas.org is available anytime."
         },
         {
-          "label": "USDA SNAP Hotline",
+          "label": "USDA SNAP Toll-free Information Number",
           "phone": "1-800-221-5689",
-          "description": "National SNAP information and complaints",
-          "hours": "Mon-Fri 9am-5pm ET"
+          "description": "National information line. It does not take applications; states do."
+        },
+        {
+          "label": "USDA National Hunger Hotline",
+          "phone": "1-866-348-6479",
+          "hours": "Mon-Fri 8am-8pm ET",
+          "description": "1-866-3-HUNGRY, operated by Hunger Free America."
         }
       ],
       "applicationNotes": [
@@ -837,7 +846,7 @@
       "sourceUrl": "https://www.dcf.ks.gov/services/ees/Pages/Food/FoodAssistance.aspx",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "liheap-energy-assistance",

@@ -1039,18 +1039,18 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local contracted agencies; examples: CMCA (cmca.us), Ameren participating agencies",
+            "name": "19 contracted agencies statewide; find yours in the state directory at dss.mo.gov",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your loved one struggles to pay heating or cooling bills on a fixed income, LIHEAP provides direct payments to their energy company. The program pays $153 to $495 toward regular heating costs, plus up to $800 for winter emergencies and $300 for summer cooling crises.\n\nYour loved one qualifies if their gross monthly income is below $2,839 for a single person or $3,713 for a couple (2025 limits), and they have $3,000 or less in countable assets like bank accounts and investments. Because priority goes to households with someone age 60+ or disabled, older adults get earlier application windows starting October 1.\n\nBecause funding is limited and distributed first-come, first-served within priority groups, applying early in the season maximizes your loved one's chances of receiving assistance before funds run out.",
-      "savingsRange": "$153 – $800/year in 2025",
-      "savingsSource": "Regular heating assistance ranges $153-$495; crisis assistance up to $800 winter, $300 summer",
+      "intro": "If your loved one struggles to pay heating or cooling bills on a fixed income, LIHEAP provides direct payments to their energy company. The program pays $153 to $495 toward regular heating costs, plus up to $800 for winter emergencies and $300 for summer cooling crises.\n\nYour loved one qualifies if their gross monthly income is below $2,840 for a single person or $3,714 for a couple (2025 limits), and they have $3,000 or less in countable assets like bank accounts and investments. Because priority goes to households with someone age 60+ or disabled, older adults get earlier application windows starting October 1.\n\nBecause funding is limited and distributed first-come, first-served within priority groups, applying early in the season maximizes your loved one's chances of receiving assistance before funds run out.",
+      "savingsRange": "$153 - $1,595/year (FY2026)",
+      "savingsSource": "Missouri DSS FY2026: Energy Assistance is a single payment set by fuel type, from $153 for kerosene to $495 for tank propane. Crisis payments are additive on top of it, up to $800 winter and $300 summer, so $1,595 is the ceiling for a household that receives all three.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
-          "Income below $2,839/month (single) or $3,713/month (couple)",
+          "Income below $2,840/month (single) or $3,714/month (couple)",
           "Assets under $3,000",
           "Missouri resident",
           "U.S. citizen or legal resident"
@@ -1059,15 +1059,15 @@
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 2839
+            "monthlyLimit": 2840
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 3713
+            "monthlyLimit": 3714
           },
           {
             "householdSize": 3,
-            "monthlyLimit": 4587
+            "monthlyLimit": 4588
           },
           {
             "householdSize": 4,
@@ -1098,7 +1098,8 @@
           "Missouri resident",
           "U.S. citizen or legally admitted for permanent residence",
           "Be responsible for paying the utility bill",
-          "Provide Social Security numbers for all household members"
+          "Provide Social Security numbers for all household members",
+          "Crisis assistance requires evidence of a disconnection risk: a termination notice with a date, a final bill showing the account is closed, a propane or fuel oil tank below 20%, a cash-on-delivery or prepaid-electric account about to run out, or another fuel source about to run out."
         ],
         "povertyLevelReference": "60% of state median income"
       },
@@ -1109,12 +1110,12 @@
           {
             "step": 1,
             "title": "Find your local agency",
-            "description": "Use the agency finder on your utility company's website (like Ameren.com) or contact the Energy Assistance Line at (573) 200-6655 to locate your nearest contracted agency."
+            "description": "Open the state list of contracted agencies at dss.mo.gov/fsd/energy-assistance/pdf/liheap-contracted-agencies.pdf and find your county, then send your application to that agency. The Family Support Division Information Center (855-373-4636) can mail you an application."
           },
           {
             "step": 2,
             "title": "Check priority periods",
-            "description": "Elderly (60+) and disabled households can apply starting October 1 or November 1. All other households start December 1. Apply as early as possible since funds are limited."
+            "description": "For the Energy Assistance payment, households with someone 60 or older or disabled apply on or after October 1; all other households on or after November 1. December 1 is when non-priority households can start Winter Crisis, not Energy Assistance. Right now, in September, only Summer Crisis is open and it closes September 30. If your loved one never received Energy Assistance this year they can still apply for Summer Crisis, using the full application."
           },
           {
             "step": 3,
@@ -1132,48 +1133,49 @@
             "description": "Agencies process applications after program start dates. If approved, payments go directly to your energy supplier."
           }
         ],
-        "processingTime": "Eligibility notifications and payments begin after October 1 for priority households, with exact timing varying by local agency",
+        "processingTime": "Missouri DSS reviews applications within about 30 business days. Crisis requests move faster: the fuel supplier is contacted and a pledge made within about two days.",
         "waitlist": "Funds are limited and distributed first-come, first-served within priority periods. Programs may exhaust funding before all eligible applicants receive assistance",
         "tip": "SNAP recipients still need to apply separately for LIHEAP and must provide utility bills and Social Security numbers",
         "urls": [
           {
-            "label": "Missouri Department of Social Services Energy Assistance",
-            "url": "https://dss.mo.gov/fsd/energy-assistance"
+            "label": "Missouri LIHEAP program page",
+            "url": "https://mydss.mo.gov/utility-assistance/liheap"
           },
           {
-            "label": "Ameren LIHEAP Information",
-            "url": "https://www.ameren.com/bill/assistance/liheap"
+            "label": "Where to send your application (contracted agency by county)",
+            "url": "https://dss.mo.gov/fsd/energy-assistance/pdf/liheap-contracted-agencies.pdf"
           }
         ]
       },
       "documentsNeeded": [
-        "Valid government-issued photo ID",
-        "Proof of Missouri residency (utility bill, lease, or state-issued document)",
-        "Proof of U.S. citizenship or legal residency for all household members",
-        "Social Security cards for all household members",
-        "Pay stubs or income statements from the month prior to application",
-        "Most recent electric bill",
-        "Most recent gas or heating fuel bill",
-        "Investment account statements",
-        "Retirement account statements",
-        "Social Security award letters for all recipients",
-        "Pension or other retirement income statements"
+        "A completed, signed and dated application",
+        "Proof of a Social Security number for everyone in the household (the card, an award letter, or a W-2)",
+        "Copies of your heating and cooling bills for every fuel source you use, including any disconnection notice",
+        "Proof of all income from last month for everyone in the household. Households already receiving SNAP do not need to provide income proof.",
+        "For anyone with self-employment income last month: the most recent federal Form 1040 including Schedule 1"
       ],
       "contacts": [
         {
-          "label": "Energy Assistance Line",
+          "label": "Family Support Division Information Center (start here)",
+          "phone": "(855) 373-4636",
+          "hours": "Mon-Fri 8:00am-5:00pm CT",
+          "description": "855-FSD-INFO. Answers questions, provides a translator on request, and will mail you a paper application. Applications are filed with the contracted agency for your county. As of September 2026 only Summer Crisis assistance is open, and it closes September 30."
+        },
+        {
+          "label": "Central Missouri Community Action - Audrain, Boone, Callaway, Cole, Cooper, Howard, Moniteau and Osage Counties only",
           "phone": "(573) 200-6655",
-          "description": "Option 1 for application status, Option 2 for crisis assistance",
-          "hours": "Business hours"
+          "hours": "Mon-Fri business hours",
+          "description": "Option 1 for application status, option 2 if you are without power or about to be."
         },
         {
           "label": "Missouri 2-1-1",
           "phone": "2-1-1",
-          "description": "Free helpline for all social services and local agency referrals",
-          "hours": "24 hours, 7 days a week"
+          "hours": "24 hours, 7 days a week",
+          "description": "Phone is staffed around the clock; chat and text are Mon-Fri 9am-5pm."
         }
       ],
       "applicationNotes": [
+        "Timing as of September 2026: Energy Assistance and Winter Crisis both closed May 31, 2026. Summer Crisis is open until September 30, 2026. Energy Assistance for the next program year is expected to reopen October 1 for households with someone 60 or older or disabled, but Missouri has not published FY2027 dates or a form yet.",
         "Priority households (age 60+, disabled, families with children) have earlier application windows starting October 1 or November 1",
         "Crisis assistance for disconnection notices or emergency situations may be processed more quickly than regular heating assistance",
         "Income is calculated based on the month prior to application, so September income counts for October applications",
@@ -1221,11 +1223,11 @@
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "(573) 200-6655",
+      "phone": "(855) 373-4636",
       "sourceUrl": "https://dss.mo.gov/fsd/energy-assistance",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "weatherization-assistance-program",

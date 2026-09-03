@@ -983,7 +983,7 @@
       "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
-      "tagline": "Free home energy upgrades including insulation, windows, and HVAC repairs if your loved one's income is below $2,500/month",
+      "tagline": "Free home energy upgrades including insulation, windows, and HVAC repairs if your loved one's income is below $2,660/month",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -991,12 +991,12 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Nevada Housing Division, HELP of Southern Nevada, Nevada Rural Housing, CSA Reno, RND Council NV",
+            "name": "Nevada Housing Division, HELP of Southern Nevada, Rural Nevada Development Corporation, CSA Reno",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your loved one struggles with high heating or cooling bills, Nevada's Weatherization Assistance Program provides free home energy upgrades, no cost to homeowners or renters with landlord approval. Eligible homes receive insulation, window replacements, duct sealing, and potentially new HVAC systems, water heaters, or refrigerators based on an energy audit.\n\nYour loved one qualifies if household income is at or below 200% of the federal poverty level (roughly $2,500/month for one person). Priority goes to households with elderly or disabled members. Because the program covers all materials and labor at no cost, families typically save hundreds of dollars annually on utility bills after improvements are completed.\n\nThe program operates through regional nonprofits across Nevada, you'll need to contact the provider serving your loved one's area for an application and energy audit to determine which upgrades are cost-effective for their specific home.",
+      "intro": "If your loved one struggles with high heating or cooling bills, Nevada's Weatherization Assistance Program provides free home energy upgrades, no cost to homeowners or renters with landlord approval. Eligible homes receive insulation, window replacements, duct sealing, and potentially new HVAC systems, water heaters, or refrigerators based on an energy audit.\n\nYour loved one qualifies if household income is at or below 200% of the federal poverty level (roughly $2,660/month for one person). Priority goes to households with elderly or disabled members. Because the program covers all materials and labor at no cost, families typically save hundreds of dollars annually on utility bills after improvements are completed.\n\nThe program operates through regional nonprofits across Nevada, you'll need to contact the provider serving your loved one's area for an application and energy audit to determine which upgrades are cost-effective for their specific home.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1011,35 +1011,35 @@
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 2152
+            "monthlyLimit": 2660
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 2907
+            "monthlyLimit": 3607
           },
           {
             "householdSize": 3,
-            "monthlyLimit": 3663
+            "monthlyLimit": 4553
           },
           {
             "householdSize": 4,
-            "monthlyLimit": 4418
+            "monthlyLimit": 5500
           },
           {
             "householdSize": 5,
-            "monthlyLimit": 5173
+            "monthlyLimit": 6447
           },
           {
             "householdSize": 6,
-            "monthlyLimit": 5928
+            "monthlyLimit": 7393
           },
           {
             "householdSize": 7,
-            "monthlyLimit": 6684
+            "monthlyLimit": 8340
           },
           {
             "householdSize": 8,
-            "monthlyLimit": 7439
+            "monthlyLimit": 9287
           }
         ],
         "assetLimits": null,
@@ -1058,7 +1058,7 @@
           {
             "step": 1,
             "title": "Find your regional provider",
-            "description": "Southern Nevada: Call HELP of Southern Nevada at (702) 369-4357. Northern Nevada: Call CSA Reno at (775) 786-6023. Rural areas: Call Nevada Rural Housing Authority at (775) 887-1795."
+            "description": "Southern Nevada: Call HELP of Southern Nevada at (702) 795-0575. Northern Nevada: Call CSA Reno at (775) 786-6023. Rural areas: Call Rural Nevada Development Corporation at (866) 404-5204."
           },
           {
             "step": 2,
@@ -1081,8 +1081,8 @@
             "description": "If approved, licensed contractors perform all work at no cost, typically insulation, air sealing, window/door replacement, and HVAC work as needed."
           }
         ],
-        "processingTime": "Applications reviewed in order received; no statewide timeline specified, varies by provider",
-        "waitlist": "Processing is order-based which may create delays during high-demand periods",
+        "processingTime": "Varies by provider. Rural Nevada Development Corporation states a determination within 30 days of receiving a complete application and all supporting documents.",
+        "waitlist": "CSA ranks applications on a priority-points basis rather than purely first-come. Ask your regional provider where you sit.",
         "tip": "Gather all required documents before applying, incomplete applications cause delays in processing.",
         "urls": [
           {
@@ -1090,47 +1090,50 @@
             "url": "https://housing.nv.gov/programs/weatherization/"
           },
           {
-            "label": "CSA Reno Weatherization Application",
-            "url": "https://csareno.org/weatherization"
+            "label": "CSA Reno Weatherization",
+            "url": "https://csareno.org/program/home-weatherization-assistance/"
           }
         ]
       },
       "documentsNeeded": [
         "Social Security cards for all household members",
         "Valid unexpired photo ID for all adults 18 and older",
-        "Four most recent pay stubs for all working household members",
-        "Social Security benefit statements or pension statements",
-        "Self-employment tax returns and bank statements if applicable",
-        "Two current months of bank statements for all accounts",
-        "Last 12 months of gas and electric utility bills (all pages)",
-        "Current utility bills showing account status",
-        "Notarized zero income form if anyone has no income",
-        "Statement of crisis if applying for emergency weatherization"
+        "Proof of earned income covering at least the past 30 days (pay stubs, or bank statements showing wage direct deposits)",
+        "For unearned income: a benefit award letter, or three months of statements",
+        "A copy of your power and/or gas bill",
+        "Signed Notice of Rights and Obligations",
+        "Homeowners: a deed or tax bill showing ownership",
+        "Renters: a Weatherization Service Agreement and an Owner’s Investment Form signed by the landlord",
+        "Certification of Zero Income form if anyone in the household has no income"
       ],
       "contacts": [
         {
-          "label": "Nevada Housing Division Weatherization",
+          "label": "Nevada Housing Division - Las Vegas (start here)",
           "phone": "(702) 486-4311",
-          "description": "Statewide program oversight and general information",
-          "hours": "Monday-Friday, business hours"
+          "hours": "Mon-Fri business hours",
+          "description": "General weatherization questions. Applications are filed with the regional provider for your county, not the state office. Toll-free alternate: (888) 486-8775."
         },
         {
-          "label": "HELP of Southern Nevada",
-          "phone": "(702) 369-4357",
-          "description": "Las Vegas and Southern Nevada weatherization services",
-          "hours": "Contact for current hours"
-        },
-        {
-          "label": "CSA Reno Weatherization",
+          "label": "CSA - Carson City, Washoe, Churchill, Douglas, Lyon, Storey",
           "phone": "(775) 786-6023",
-          "description": "Washoe County and Reno area weatherization services",
-          "hours": "Monday-Friday, business hours"
+          "hours": "Mon-Fri business hours"
+        },
+        {
+          "label": "HELP of Southern Nevada - City of Las Vegas, Henderson, Southern Rural Clark",
+          "phone": "(702) 795-0575",
+          "hours": "Contact for current hours",
+          "description": "Ask for a Weatherization representative."
+        },
+        {
+          "label": "Rural Nevada Development Corporation - North Las Vegas, Northern Rural Clark, Elko, Esmeralda, Eureka, Humboldt, Lander, Lincoln, Mineral, Nye, Pershing, White Pine",
+          "phone": "(866) 404-5204",
+          "hours": "Mon-Fri business hours",
+          "description": "RNDC uses a 150% federal poverty level limit rather than 200%."
         },
         {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
-          "description": "Free helpline for all social services and program referrals",
-          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
+          "hours": "Mon-Fri 9am-9pm PT, closed weekends"
         }
       ],
       "applicationNotes": [
@@ -1164,7 +1167,7 @@
         },
         {
           "question": "Which regional provider should we contact if we're not sure about our service area?",
-          "answer": "Call the Nevada Housing Division at (702) 486-4311 first, they can direct you to the correct regional provider. Generally: HELP of Southern Nevada covers Las Vegas area, CSA Reno covers Washoe County, and Nevada Rural Housing covers rural areas."
+          "answer": "Call the Nevada Housing Division at (702) 486-4311 first, they can direct you to the correct regional provider. Generally: HELP of Southern Nevada covers Las Vegas area, CSA Reno covers Carson City, Washoe, Churchill, Douglas, Lyon and Storey, and Rural Nevada Development Corporation covers North Las Vegas plus the rural counties."
         },
         {
           "question": "What happens if my loved one's income changes after they're approved?",
@@ -1191,7 +1194,8 @@
       "phone": "(702) 486-4311",
       "sourceUrl": "https://housing.nv.gov/programs/weatherization/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "ship-medicare-counseling",
@@ -2708,7 +2712,7 @@
           {
             "step": 1,
             "title": "Contact your regional ADSD office",
-            "description": "Call (775) 687-4210 for statewide intake or find your local office at adsd.nv.gov. Request the OCL Program Application for COPE."
+            "description": "Call the ADSD regional office nearest you: Carson City (775) 687-4210, Las Vegas (702) 486-3545, Reno (775) 687-0800, or Elko (775) 738-1966. There is no statewide COPE line. Request the OCL Program Application for COPE."
           },
           {
             "step": 2,
@@ -2718,7 +2722,7 @@
           {
             "step": 3,
             "title": "Submit application",
-            "description": "Submit by phone, mail, or in-person to your nearest ADSD office. Carson City: 1550 College Parkway. Las Vegas: 2460 Professional Court, Suite 110. Henderson: 2831 St. Rose Parkway, Suite 200."
+            "description": "Submit by phone, mail, or in-person to your nearest ADSD office. Carson City: 1550 E College Parkway. Las Vegas: 7150 Pollock Drive. Reno: 10375 Professional Circle. Elko: 1010 Ruby Vista Drive, Suite 104."
           },
           {
             "step": 4,
@@ -2759,20 +2763,35 @@
       ],
       "contacts": [
         {
-          "label": "ADSD Statewide COPE Line",
+          "label": "ADSD Carson City Regional Office (start here)",
           "phone": "(775) 687-4210",
-          "description": "Main number for COPE applications and questions",
-          "hours": "Monday-Friday business hours"
+          "hours": "Mon-Fri business hours",
+          "description": "COPE intake is regional. Call the ADSD office nearest you and ask for the OCL Program Application, or email CBCSouthIntake@adsd.nv.gov."
+        },
+        {
+          "label": "ADSD Las Vegas Regional Office",
+          "phone": "(702) 486-3545",
+          "hours": "Mon-Fri business hours"
+        },
+        {
+          "label": "ADSD Reno Regional Office",
+          "phone": "(775) 687-0800",
+          "hours": "Mon-Fri business hours"
+        },
+        {
+          "label": "ADSD Elko Regional Office",
+          "phone": "(775) 738-1966",
+          "hours": "Mon-Fri business hours"
         },
         {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
-          "description": "Free 24/7 helpline for all social services and aging programs",
-          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
+          "hours": "Mon-Fri 9am-9pm PT, closed weekends",
+          "description": "Free helpline for social services and aging programs."
         }
       ],
       "applicationNotes": [
-        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. The application asks for total monthly gross income and total resources on its face, and ADSD may request written verification, so have those figures ready. If the office needs something specific it sends a written list with a due date.",
         "This is a non-Medicaid program, you can apply even if your loved one doesn't qualify for Medicaid yet",
         "Some regions have waitlists while others can start services immediately, ask about current availability in your area",
         "Family members (excluding spouses and guardians) may be paid to provide some care services, but confirm eligibility rules",
@@ -2832,7 +2851,7 @@
       "sourceUrl": "https://adsd.nv.gov/Programs/Seniors/COPE/COPE_Prog/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "tap-taxi-assistance",

@@ -380,27 +380,67 @@ Meetings → row → **Log meeting outcome**
 
 ## PR3 — Client success
 
-**Objective** Carry the provider from the meeting to an actual first hire. **Owner** User Success Manager.
-**Completion criteria** Terms accepted, profile complete, staffing need recorded, candidates visible.
+**Objective** Carry the provider from the meeting to a first hire: profile updated, terms understood,
+account set up and ready for the first student to arrive.
+**Owner** User Success Manager. **Users** User Success Manager, provider.
+**Completion criteria** Profile updated · terms email sent and acknowledged · setup meeting held · the
+account ready to receive a candidate.
 
-**① User journey / technology**
+> **Almost none of this is built.** PR3 runs by hand today. The block below describes how it should work;
+> every missing piece is on the deferred build list at the end of this document. Nothing here is blocked
+> on that — it is blocked on someone doing it consistently.
 
-| Actor | Sees / does | Surface |
-|---|---|---|
-| Provider | Receives the follow-up; accepts terms; signs in; completes the profile; states the need | Email · magic link · portal · forms |
-| User Success Manager | Sends the follow-up; chases answers; drives completion; captures the need | Clients queue · step board · templates |
+### What client success is
 
-**② Human SOP** — send the follow-up the same day as the meeting · chase at three and seven days · get the
-standard hiring questions answered · verify the provider can actually sign in and see the board · record
-the staffing need against the client within a day · never let a converted provider face an empty board.
+**The ongoing relationship function, from the moment a provider converts.** It is not onboarding, which
+ends, and it is not support, which waits to be asked. It is one person owning the client from the meeting
+through the first hire and every hire after — the profile, the terms, the account setup, the interviews,
+the placements, the six-shift threshold, the invoice, and the next staffing need.
 
-**③ System / handoff**
+One role holds it across both sides of MedJobs. Chantel is the User Success Manager today.
+
+### ① User journey / technology
+
+| # | What happens | Where | Built? |
+|---|---|---|---|
+| 1 | **The Sales Lead names the handoff in the meeting** — *"our user success team will follow up with you on next steps."* The provider leaves expecting the next contact, and expecting it from someone else | In the meeting | Human |
+| 2 | **Logging the meeting outcome alerts the User Success Manager** that a converted provider is waiting on them | — | **Not built — B4** |
+| 3 | **She reads the whole record before making contact** — the outreach history, what they said in the reply, the meeting notes and anything promised | Provider drawer timeline (Exhibit **N**) | Exists |
+| 4 | **She sends the terms email** — more detail on how the program works and what it costs | Email, by hand | Manual |
+| 5 | **She gets the profile updated** — what a good caregiver looks like here, shifts needed, headcount | Provider portal · chased by hand | Partly |
+| 6 | **She books the setup meeting** for the next week or two | Calendly, by hand | Manual |
+| 7 | **The setup meeting happens** — the account is configured and ready for the first student | In the meeting | Human |
+| 8 | **Everything after this is recorded against the client** — every meeting, touchpoint, interview, hire, six-shift confirmation, invoice | — | **Not built — B5** |
+
+### ② Human SOP
+
+1. **The Sales Lead names the handoff in the room.** A warm introduction to a named function beats a cold
+   email from a stranger a week later.
+2. **Read the record before you write.** The meeting notes tell you what they asked for and what was
+   promised. Opening with something they said is the difference between a follow-up and a form letter.
+3. **Send the terms email within one business day of the meeting**, while it is still fresh for them.
+4. **Land three things, in this order:** profile updated · terms understood · setup meeting booked.
+   Chase each until it is done rather than sending one email and waiting.
+5. **Book the setup meeting one to two weeks out.** It is the readiness check — the last chance to catch a
+   half-finished account before a student is looking at it.
+6. **Write down every touchpoint.** Until the client record exists, keep it on the row so the history
+   stays in one place.
+7. **Do not hand a client to the marketplace until the account is ready.** A provider looking at
+   candidates with an incomplete profile gets bad matches and blames the matching.
+
+### ③ System / handoff
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Terms acceptance, profile answers, demand profile, roles and headcount | converted → active client | terms accepted · profile completed · staffing need recorded | Staffing need recorded | **User Success Manager → Portal** — the need drives matching |
+| Terms sent and acknowledged · profile answers and demand profile · setup meeting held · every touchpoint after conversion | converted → active client, account ready | handoff received · terms email sent · profile completed · setup meeting held · client note added | The account is ready and a staffing need is recorded | **User Success Manager → the Portal.** The staffing need drives matching; the client stays hers from here on |
 
-**Communications** Post-meeting details email · agreement · reminders · welcome on first authentication.
+**Communications** The post-meeting terms email · profile reminders · the setup meeting invitation ·
+everything after it, from the same person.
+
+### Exhibits
+
+None. There is no client success surface to photograph yet — the work happens in email, in Calendly, and
+in the provider row. **B4** and **B5** are what would make this stage visible.
 
 ---
 
@@ -710,11 +750,14 @@ toward and the gap stays visible.
 | **B1** | PR2 | **The Meetings tab holds only booked meetings.** Email back-and-forth about timing belongs with the rest of the email work, not in a tab that otherwise means *a meeting exists* | *Finding a time* is a hand-set state inside Meetings. Works, but muddies the tab |
 | **B2** | PR2 | **A no-show re-enters outreach automatically.** A missed meeting is not a decline — the row should drop into a fresh call-and-email sequence, effectively a custom re-engagement campaign, rather than closing or sitting still | The outcome logs a no-show and opens Calendly to rebook. Nothing catches the row if the rebook does not happen |
 | **B3** | PR-OUT · PR2 | **A custom campaign any operator can launch on a single row** — pick the emails and calls, set the days, start it. Needed for no-show recovery and for any bespoke follow-up | *Launch custom cadence* exists in the reply modal; not available as a general action from a row |
-| **B4** | ST3–ST7 | **Channel attribution.** Know which of the five university channels produced a student | Channels are not modelled as distinct entities |
-| **B5** | ST8 | **Application source capture.** Ask a student how they heard about MedJobs | Nothing records it |
-| **B6** | QUAL | **Written qualification criteria**, then a vetting step that applies them | Today "live" means profile complete and active — a completeness check, not a qualification decision |
-| **B7** | MA4 | **Shift verification.** Some reliable way to confirm six shifts were worked, and a view of which placements are approaching the threshold | No shift or hours-worked concept exists anywhere |
-| **B8** | MA5 | **Billing on the six-shift trigger** — invoice raised against a confirmed threshold, payment recorded | Two legacy billing paths, neither matching the model |
+| **B4** | PR3 | **An alert when a meeting converts.** Logging *Interested / went well* should put the client in front of the User Success Manager, with the meeting notes attached. Today nothing tells her a provider is waiting | Not built |
+| **B5** | PR3 | **A client record — the client tab.** One place holding everything after conversion: freeform notes for every meeting and touchpoint, plus the interviews, hires, six-shift confirmations, invoices and payments against that client. This is the User Success Manager's working surface and it does not exist | Not built. An MVP — notes and a timeline on the client — would carry the stage until the full record is built |
+| **B6** | ST3–ST7 | **Channel attribution.** Know which of the five university channels produced a student | Channels are not modelled as distinct entities |
+| **B7** | ST8 | **Application source capture.** Ask a student how they heard about MedJobs | Nothing records it |
+| **B8** | QUAL | **Written qualification criteria**, then a vetting step that applies them | Today "live" means profile complete and active — a completeness check, not a qualification decision |
+| **B9** | MA4 | **Shift verification.** Some reliable way to confirm six shifts were worked, and a view of which placements are approaching the threshold | No shift or hours-worked concept exists anywhere |
+| **B10** | MA5 | **Billing on the six-shift trigger** — invoice raised against a confirmed threshold, payment recorded | Two legacy billing paths, neither matching the model |
+
 
 **How to use this list.** Nothing here blocks running the operating system by hand today. Each item is a
 place where a human is currently doing something the system should do, or where the system records

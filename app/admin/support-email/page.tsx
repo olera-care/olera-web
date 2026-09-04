@@ -510,18 +510,24 @@ export default function SupportEmailPage() {
           </div>
         </div>
       ) : mailbox && (
-        <div className={`grid min-h-0 flex-1 lg:grid-cols-[340px_minmax(0,1fr)] ${detail ? "2xl:grid-cols-[340px_minmax(0,1fr)_320px]" : ""}`}>
-            <section className={`${selected ? "hidden lg:flex" : "flex"} min-h-0 flex-col border-r border-gray-200 bg-white`}>
+        <div className={`grid min-h-0 min-w-0 flex-1 grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] ${detail ? "2xl:grid-cols-[340px_minmax(0,1fr)_320px]" : ""}`}>
+            <section className={`${selected ? "hidden lg:flex" : "flex"} min-h-0 min-w-0 flex-col border-r border-gray-200 bg-white`}>
               <div className="border-b border-gray-200 px-4 pb-3 pt-5">
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <h1 className="truncate text-xl font-semibold tracking-tight text-gray-950">Support Email</h1>
                       <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${mailbox.sync_status === "error" ? "bg-rose-50 text-rose-700" : mailbox.sync_status === "backfilling" ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>
                         {mailbox.sync_status === "error" ? "Needs attention" : mailbox.sync_status === "backfilling" ? "Catching up" : "Live"}
                       </span>
                     </div>
                     <p className="mt-1 text-xs leading-5 text-gray-500">Support conversations and their next move.</p>
+                    {mailbox.sync_status === "backfilling" && mailbox.full_sync_complete && (
+                      <p className="mt-1 text-xs leading-5 text-amber-700">Catching up on older Gmail changes. Read and archive updates may leave the conversation count unchanged.</p>
+                    )}
+                    {mailbox.last_sync_at && (
+                      <p className="mt-1 text-[11px] leading-4 text-gray-400">Last sync progress: <time dateTime={mailbox.last_sync_at} title={new Date(mailbox.last_sync_at).toLocaleString()}>{relative(mailbox.last_sync_at)}</time></p>
+                    )}
                   </div>
                   <button onClick={() => void syncNow()} disabled={syncing} className="shrink-0 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50">
                     {syncing ? "Syncing…" : "Sync"}

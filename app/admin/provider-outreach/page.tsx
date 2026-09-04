@@ -2937,6 +2937,12 @@ export default function ProviderOutreachPage() {
     by_admin: Array<{ admin_id: string | null; display_name: string; count: number }>;
   }>({ total: 0, by_admin: [] });
 
+  // Global call exhausted stats (across all states)
+  const [globalCallExhausted, setGlobalCallExhausted] = useState<{
+    total: number;
+    by_admin: Array<{ admin_id: string | null; display_name: string; count: number }>;
+  }>({ total: 0, by_admin: [] });
+
   // Global sequence conversion stats (all time)
   const [sequenceConversion, setSequenceConversion] = useState<{
     sequenced: number;
@@ -3795,6 +3801,25 @@ export default function ProviderOutreachPage() {
     fetchGlobalFollowUps();
     // Refresh every 5 minutes
     const interval = setInterval(fetchGlobalFollowUps, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Effect: fetch global call exhausted stats on mount
+  useEffect(() => {
+    const fetchGlobalCallExhausted = async () => {
+      try {
+        const res = await fetch("/api/admin/provider-outreach/stats?metric=call_exhausted");
+        if (res.ok) {
+          const data = await res.json();
+          setGlobalCallExhausted(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch global call exhausted stats:", err);
+      }
+    };
+    fetchGlobalCallExhausted();
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchGlobalCallExhausted, 5 * 60 * 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -4731,7 +4756,7 @@ export default function ProviderOutreachPage() {
         </div>
 
         {/* Stat Boxes */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
           <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Number of states you've added for outreach work">
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Active States</p>
             <p className="mt-1 text-2xl font-semibold text-gray-900">{globalStats.totalStates}</p>
@@ -4753,6 +4778,15 @@ export default function ProviderOutreachPage() {
             <p className="mt-0.5 text-[11px] text-gray-500">
               {globalFollowUpsToday.by_admin.length > 0
                 ? globalFollowUpsToday.by_admin.map(a => `${a.display_name}: ${a.count}`).join(" · ")
+                : "none pending"}
+            </p>
+          </div>
+          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Providers in call stage across all states">
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Calls</p>
+            <p className="mt-1 text-2xl font-semibold text-gray-900">{globalCallExhausted.total}</p>
+            <p className="mt-0.5 text-[11px] text-gray-500">
+              {globalCallExhausted.by_admin.length > 0
+                ? globalCallExhausted.by_admin.map(a => `${a.display_name}: ${a.count}`).join(" · ")
                 : "none pending"}
             </p>
           </div>

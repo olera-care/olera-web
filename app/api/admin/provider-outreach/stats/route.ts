@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     const dateTo = searchParams.get("date_to");
 
     // State is required for all metrics except global ones
-    const globalMetrics = ["claimed", "follow_ups_today", "sequence_conversion"];
+    const globalMetrics = ["claimed", "follow_ups_today", "call_exhausted", "sequence_conversion"];
     if (!state && !globalMetrics.includes(metric)) {
       return NextResponse.json({ error: "State parameter is required for this metric" }, { status: 400 });
     }
@@ -58,6 +58,12 @@ export async function GET(request: NextRequest) {
     // Global follow-ups due today (no state filter)
     if (metric === "follow_ups_today") {
       const stats = await getGlobalFollowUpsTodayStats(db);
+      return NextResponse.json(stats);
+    }
+
+    // Global call exhausted stats (no state filter)
+    if (metric === "call_exhausted") {
+      const stats = await getGlobalCallExhaustedStats(db);
       return NextResponse.json(stats);
     }
 
@@ -380,6 +386,94 @@ async function getGlobalFollowUpsTodayStats(db: DB): Promise<{
   }
 
   console.log("[follow-ups-today-global] Final count after exclusions:", totalCount);
+
+  // Convert to sorted array
+  const byAdmin: Array<{ admin_id: string | null; display_name: string; count: number }> = [];
+  for (const [adminId, count] of countMap.entries()) {
+    byAdmin.push({
+      admin_id: adminId === "unassigned" ? null : adminId,
+      display_name: adminId === "unassigned" ? "Unassigned" : (adminNameMap.get(adminId) || adminId),
+      count,
+    });
+  }
+
+  // Sort: highest count first, unassigned last
+  byAdmin.sort((a, b) => {
+    if (a.admin_id === null && b.admin_id !== null) return 1;
+    if (a.admin_id !== null && b.admin_id === null) return -1;
+    return b.count - a.count;
+  });
+
+  return { total: totalCount, by_admin: byAdmin };
+}
+
+/**
+ * Get global call exhausted stats across ALL states.
+ * Returns total count and breakdown by admin.
+ */
+async function getGlobalCallExhaustedStats(db: DB): Promise<{
+  total: number;
+  by_admin: Array<{ admin_id: string | null; display_name: string; count: number }>;
+}> {
+  // Get admin display names for lookup
+  const { data: admins } = await db
+    .from("admin_users")
+    .select("id, display_name");
+
+  const adminNameMap = new Map(
+    (admins || []).map((a: { id: string; display_name: string | null }) => [a.id, a.display_name || a.id])
+  );
+
+  // Query ALL call_exhausted providers across ALL states
+  // Exclude admin_hidden providers to match the Call tab
+  const { data: trackingRows, error } = await db
+    .from("provider_outreach_tracking")
+    .select("provider_id, assigned_to")
+    .eq("stage", "call_exhausted")
+    .not("admin_hidden", "is", true);
+
+  if (error) {
+    console.error("[call-exhausted-global] Query error:", error);
+    return { total: 0, by_admin: [] };
+  }
+
+  if (!trackingRows || trackingRows.length === 0) {
+    return { total: 0, by_admin: [] };
+  }
+
+  // Get claimed providers (have account_id in business_profiles)
+  const { data: claimedBps } = await db
+    .from("business_profiles")
+    .select("source_provider_id")
+    .not("source_provider_id", "is", null)
+    .not("account_id", "is", null);
+
+  const claimedProviderIds = new Set(
+    (claimedBps || []).map((bp: { source_provider_id: string }) => bp.source_provider_id).filter(Boolean)
+  );
+
+  // Get system-archived providers
+  const { data: archivedBps } = await db
+    .from("business_profiles")
+    .select("source_provider_id")
+    .not("source_provider_id", "is", null)
+    .filter("metadata->>admin_archived", "eq", "true");
+
+  const archivedProviderIds = new Set(
+    (archivedBps || []).map((bp: { source_provider_id: string }) => bp.source_provider_id).filter(Boolean)
+  );
+
+  // Count by assigned_to, excluding claimed and system-archived
+  const countMap = new Map<string, number>();
+  let totalCount = 0;
+  for (const row of trackingRows) {
+    if (claimedProviderIds.has(row.provider_id)) continue;
+    if (archivedProviderIds.has(row.provider_id)) continue;
+
+    const key = row.assigned_to || "unassigned";
+    countMap.set(key, (countMap.get(key) || 0) + 1);
+    totalCount++;
+  }
 
   // Convert to sorted array
   const byAdmin: Array<{ admin_id: string | null; display_name: string; count: number }> = [];

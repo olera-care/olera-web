@@ -7,7 +7,7 @@ export const maxDuration = 300;
 
 /**
  * Resumable Gmail worker. Every run does two things in this order:
- *  1. catches up from Gmail's history cursor (new mail never waits behind backfill)
+ *  1. drains bounded Gmail history chunks within a time budget
  *  2. imports one bounded full-history page until no page token remains
  *
  * Pub/Sub is the low-latency nudge, but this scheduled poll is also the recovery
@@ -41,12 +41,14 @@ export async function GET(request: NextRequest) {
       .select("*")
       .not("encrypted_refresh_token", "is", null);
     if (error) throw error;
-    const summary = { mailboxes: 0, historyImported: 0, historyDeleted: 0, labelsUpdated: 0, skippedLocked: 0, backfillImported: 0, backfillsComplete: 0, errors: 0 };
+    const summary = { historyChunks: 0, catchingUp: 0, mailboxes: 0, historyImported: 0, historyDeleted: 0, labelsUpdated: 0, skippedLocked: 0, backfillImported: 0, backfillsComplete: 0, errors: 0 };
     for (const raw of mailboxes ?? []) {
       const mailbox = raw as SupportMailboxRow;
       summary.mailboxes += 1;
       try {
         const result = await syncSupportMailbox(db, mailbox);
+        summary.historyChunks += result.history.chunks;
+        if (result.history.hasMore) summary.catchingUp += 1;
         summary.historyImported += result.history.imported;
         summary.historyDeleted += result.history.deleted;
         summary.labelsUpdated += result.history.labelsUpdated;
@@ -65,10 +67,8 @@ export async function GET(request: NextRequest) {
         summary.errors += 1;
         const message = err instanceof Error ? err.message : String(err);
         console.error(`[support-email] sync failed for ${mailbox.email}:`, err);
-        await Promise.all([
-          db.from("support_mailboxes").update({ sync_status: "error", last_error: message, updated_at: new Date().toISOString() }).eq("id", mailbox.id),
-          db.from("support_email_events").update({ error: message }).eq("mailbox_email", mailbox.email).is("processed_at", null),
-        ]);
+        await db.from("support_email_events").update({ error: message })
+          .eq("mailbox_email", mailbox.email).is("processed_at", null);
       }
     }
     const result = { ok: summary.errors === 0, ...summary };

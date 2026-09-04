@@ -284,6 +284,18 @@ export default function SupportEmailPage() {
 
   useEffect(() => { void loadList(); }, [loadList]);
 
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState === "visible") void loadList();
+    };
+    const timer = setInterval(refresh, 15_000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [loadList]);
+
   const markThreadRead = useCallback(async (id: string) => {
     if (markingReadRef.current.has(id)) return;
     markingReadRef.current.add(id);
@@ -394,12 +406,9 @@ export default function SupportEmailPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Sync failed");
-      const stillCatchingUp = data.results?.some((result: { history?: { hasMore?: boolean }; skipped?: string }) =>
-        result.history?.hasMore || result.skipped === "already_syncing",
-      );
-      setNotice(stillCatchingUp
-        ? "Gmail is catching up safely in the background. You can keep working."
-        : "Gmail is caught up.");
+      setNotice(data.queued
+        ? "Gmail sync requested. This inbox will refresh automatically."
+        : "Gmail sync finished.");
       await loadList();
     } catch (err) {
       setError(mailboxSyncMessage(err instanceof Error ? err.message : "Sync failed"));

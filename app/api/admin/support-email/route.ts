@@ -1,6 +1,7 @@
 import { after, NextRequest, NextResponse } from "next/server";
 import { getAdminUser, getAuthUser, getServiceClient } from "@/lib/admin";
 import { syncSupportMailbox, type SupportMailboxRow } from "@/lib/support-email/sync.server";
+import { diagnoseSupportGmail } from "@/lib/support-email/diagnostics.server";
 
 export const maxDuration = 300;
 
@@ -28,6 +29,9 @@ export async function GET(request: NextRequest) {
   if ("response" in auth) return auth.response;
   try {
     const db = getServiceClient();
+    if (request.nextUrl.searchParams.get("diagnostics") === "true") {
+      return NextResponse.json(await diagnoseSupportGmail(db), { headers: { "Cache-Control": "no-store" } });
+    }
     const countOnly = request.nextUrl.searchParams.get("count_only") === "true";
     if (countOnly) {
       const { count, error } = await db

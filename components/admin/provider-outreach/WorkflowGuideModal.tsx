@@ -105,8 +105,11 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
               <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs">2</span>
               In Sequence
             </h4>
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
               <p className="text-sm text-gray-500 italic">No action required — automated email sequence runs here.</p>
+              <p className="text-sm text-gray-700">
+                <strong>Optional:</strong> If you have no Follow Up providers to work on, you can proactively call providers still in sequence. If they&apos;ve received 2+ emails but haven&apos;t claimed, give them a call to check if they&apos;re receiving the emails.
+              </p>
             </div>
           </section>
 

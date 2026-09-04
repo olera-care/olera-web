@@ -679,27 +679,100 @@ here is a provider.
 
 ## ST2 — Advisor meeting held
 
-**Objective** Secure agreement to reach students. **Owner** Sales Lead.
-**Completion criteria** Outcome recorded, agreed channels captured, relationship handed on.
+**Objective** Hold the meeting, agree which of the five activation channels are open to us, and hand the
+User Success Manager a plan she can act on without asking again.
+**Owner** Sales Lead. **Users** Sales Lead, advising office.
+**Completion criteria** Outcome logged, the agreed channels and their named contacts written down, and the
+relationship handed to the User Success Manager.
 
-**① User journey / technology**
+> **This meeting is not a sale. It is a channel-planning session.** The provider meeting ends in a
+> commercial agreement; this one ends in a route to students. The advisor already believes pre-health
+> students want caregiving hours — what we do not know is how their campus actually reaches those
+> students. The meeting exists to find out, and the output is the ST3–ST7 plan.
 
-| Actor | Sees / does | Surface |
-|---|---|---|
-| Advisor | Books, attends, agrees to specific channels | Scheduling · video |
-| Sales Lead | Prepares; runs the meeting; records what was agreed | Meetings queue · drawer · log meeting modal |
+### ① User journey / technology
 
-**② Human SOP** — ask for specific channels, not general partnership · record which of the five were agreed ·
-capture permissions granted, especially for professor access · hand off with the agreed channels attached.
+| # | What happens | Where | Exhibit |
+|---|---|---|---|
+| 1 | **Someone books the 30-minute slot.** Usually the Admin Team does it — live on the confirming call, or from a reply that names a time | Calendly — `Student Caregiver Program` | **L** |
+| 2 | The booking lands the row in **Meetings**, under **NEEDS LOGGING** once the time has passed | [`olera.care/admin/medjobs/in-basket?tab=meetings`](https://olera.care/admin/medjobs/in-basket?tab=meetings) | **M** |
+| 3 | Hold the meeting and work the five channels | Video | — |
+| 4 | **Log meeting outcome** — the same modal and the same three outcomes as the provider side | Row → **Log meeting outcome** | **N** |
 
-**③ System / handoff**
+**Advisors book the same event as providers** — the 30-minute *Student Caregiver Program* slot, one link
+for both funnels. The invite copy carries over unchanged, which reads acceptably to an advising office;
+the event slug in the URL does not. See the deferred list.
+
+### ② Human SOP
+
+1. **Read the row before the call.** The timeline carries the pre-flight call, every send, and what they
+   said when they replied. Advisors notice when you already know what they told the last person.
+2. **Open by naming what students get**, not what we want. Hours, a letter, and experience that
+   strengthens a med, PA or nursing application. That is the advisor's job, which makes it the meeting's
+   common ground.
+3. **Then work the five channels in order.** This is the body of the meeting. Take each one, ask whether
+   it exists on their campus, and get the specifics the User Success Manager needs to use it.
+4. **Ask for their read, not just their permission.** *"Which of these actually reaches pre-health
+   students here?"* An advisor will tell you the job board is dead and the listserv is everything, and
+   that saves the User Success Manager a month.
+5. **Get a name for every open channel.** A channel with no named contact is not a channel.
+6. **Ask what they need from us to make it easy** — ready-to-send copy, a flyer, a date. Then send it
+   within two days, while the meeting is still warm.
+7. **Log the outcome the same day**, with the channel plan in the notes. A meeting held and unlogged is a
+   row that stops moving.
+
+**The five channels — what to ask, and what a usable answer looks like**
+
+| | Channel | Ask | The answer the User Success Manager needs |
+|---|---|---|---|
+| **ST3** | University job board | Is there a board pre-health students actually check? Who posts, and does it need approval? | The board, the posting route, and who approves |
+| **ST4** | Student organisations | Which orgs reach these students — pre-med, pre-nursing, AMSA chapters? Who runs them this term? | Org names and current officers, with a warm introduction where they will make one |
+| **ST5** | Campus events | Which fairs or events are worth attending, and what are the deadlines and costs? | Event, date, registration deadline, who books the table |
+| **ST6** | Advisor listservs | Do you email these students directly? Would you send something for us? | Which list, who sends it, how often they are willing, and the copy they want |
+| **ST7** | Professors and class visits | Which professors teach the courses these students take? Would an introduction be welcome? | Named professors, and explicitly whether we may approach them |
+
+> **Permission is the deliverable on ST6 and ST7.** A listserv send and a class visit both happen on
+> someone else's authority. Write down who granted it and what exactly they agreed to, because the User
+> Success Manager will be acting on it weeks later without having been in the room.
+
+**Meeting outcomes and what each does to the row**
+
+| Outcome | What happens |
+|---|---|
+| **Interested / went well** | Logs the meeting and launches the activation sequence |
+| **No-show / reschedule** | Logs a no-show and opens Calendly to rebook |
+| **Not interested** | Sends a polite closing note and stops outreach |
+
+**When the advisor skips the meeting.** Some advisors do not want a call. They reply to the outreach by
+simply telling us what to do — post it here, email this officer, send me copy for the listserv. **Take the
+advice and act on it.** A channel the advisor handed us is worth more than the meeting that would have
+produced it, and refusing to move until they sit down for thirty minutes is how the relationship gets
+lost.
+
+Two things still hold in that case:
+
+1. **Capture it exactly as if it came from a meeting** — the channel, the named contact, the permission,
+   in the notes on the row — so the User Success Manager inherits the same plan either way.
+2. **Keep pushing for the meeting, gently.** Not to unlock the channels; those are already running. A
+   relationship with a named advisor is what makes the second term easier than the first, and the natural
+   moment to ask is when you report results back: *here is what your listserv produced — can we take
+   thirty minutes to talk about the spring?*
+
+Today the row has nowhere to sit in that state — channels agreed, no meeting held. See the deferred list.
+
+### ③ System / handoff
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Outcome, agreed channels, permissions, contacts offered | engaged → active partner | `meeting_held` · distribution agreed · permission granted | Outcome recorded | **Sales Lead → User Success Manager** — appears in the partners queue |
+| Booked time · attendee · outcome · the channel plan and permissions, as notes · named contacts offered | engaged → meeting scheduled → active partner · closed | meeting scheduled — row moved to Meetings · meeting held · outcome logged · activation launched | Outcome logged | **Sales Lead → User Success Manager.** *Interested / went well* launches activation and hands over the channel plan; the other two close the row |
 
-**Communications** Confirmation · reminder · post-meeting thank-you with the agreed asks.
+The channel plan is the handoff. It travels as prose in the meeting notes, which is enough to work from
+and not enough to report on — nothing counts how many campuses opened a listserv, or which channel
+produced the students who applied. Structured capture is on the deferred list, alongside the attribution
+it would make possible.
 
+**Communications** Booking confirmation and reminder from Calendly · the post-meeting note with the
+ready-to-send copy and flyer the advisor asked for · the results-back note that carries the next ask.
 ---
 
 ## ST3–ST7 — University activation
@@ -936,11 +1009,14 @@ toward and the gap stays visible.
 | **B3** | PR-OUT · PR2 | **A custom campaign any operator can launch on a single row** — pick the emails and calls, set the days, start it. Needed for no-show recovery and for any bespoke follow-up | *Launch custom cadence* exists in the reply modal; not available as a general action from a row |
 | **B4** | PR3 | **An alert when a meeting converts.** Logging *Interested / went well* should put the client in front of the User Success Manager, with the meeting notes attached. Today nothing tells her a provider is waiting | Not built |
 | **B5** | PR3 | **A client record — the client tab.** One place holding everything after conversion: freeform notes for every meeting and touchpoint, plus the interviews, hires, six-shift confirmations, invoices and payments against that client. This is the User Success Manager's working surface and it does not exist | Not built. An MVP — notes and a timeline on the client — would carry the stage until the full record is built |
-| **B6** | ST3–ST7 | **Channel attribution.** Know which of the five university channels produced a student | Channels are not modelled as distinct entities |
-| **B7** | ST8 | **Application source capture.** Ask a student how they heard about MedJobs | Nothing records it |
-| **B8** | QUAL | **Written qualification criteria**, then a vetting step that applies them | Today "live" means profile complete and active — a completeness check, not a qualification decision |
-| **B9** | MA4 | **Shift verification.** Some reliable way to confirm six shifts were worked, and a view of which placements are approaching the threshold | No shift or hours-worked concept exists anywhere |
-| **B10** | MA5 | **Billing on the six-shift trigger** — invoice raised against a confirmed threshold, payment recorded | Two legacy billing paths, neither matching the model |
+| **B6** | ST2 | **Structured channel capture on the partner row.** Which of the five channels were agreed, the named contact for each, and the permission granted — as fields, not prose. This is what makes ST3–ST7 reportable, and what channel attribution has to hang on | The channel plan lives in the meeting notes. Workable for one operator, unreportable across campuses |
+| **B7** | ST2 | **A state for _channels agreed, no meeting yet_.** Some advisors skip the meeting and simply direct us. That row is a live partner and should still carry an open ask for a relationship meeting | No such state. The row either sits in Meetings without a meeting, or looks the same as one that never engaged |
+| **B8** | ST2 | **A partner-facing booking event.** Advisors book the provider's Calendly event; the slug `home-care-agency-manager-interview` is visible in the URL an advisor clicks | One event serves both funnels. The body copy carries over fine; the slug does not |
+| **B9** | ST3–ST7 | **Channel attribution.** Know which of the five university channels produced a student | Channels are not modelled as distinct entities |
+| **B10** | ST8 | **Application source capture.** Ask a student how they heard about MedJobs | Nothing records it |
+| **B11** | QUAL | **Written qualification criteria**, then a vetting step that applies them | Today "live" means profile complete and active — a completeness check, not a qualification decision |
+| **B12** | MA4 | **Shift verification.** Some reliable way to confirm six shifts were worked, and a view of which placements are approaching the threshold | No shift or hours-worked concept exists anywhere |
+| **B13** | MA5 | **Billing on the six-shift trigger** — invoice raised against a confirmed threshold, payment recorded | Two legacy billing paths, neither matching the model |
 
 
 **How to use this list.** Nothing here blocks running the operating system by hand today. Each item is a

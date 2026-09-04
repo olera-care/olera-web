@@ -1,68 +1,116 @@
 # MedJobs 2.0 — Master Implementation Matrix
 
-> **Purpose:** take the operating-system diagram, zoom into any box, and see everything required for that
-> box to function. One block per stage. **Framework:** [`../00-OPERATING-SYSTEM.md`](../00-OPERATING-SYSTEM.md).
->
-> **Every block carries the same three layers:**
-> **① User journey / technology** — what each user sees and does ·
-> **② Human SOP** — what the responsible person does ·
-> **③ System / handoff** — what is recorded, what fires next, who picks it up, and what is logged.
+> One block per stage of the operating system in [`../00-OPERATING-SYSTEM.md`](../00-OPERATING-SYSTEM.md).
+> Each block carries the same three layers: **① user journey / technology** — what each user sees and does ·
+> **② human SOP** — what the responsible person does · **③ system / handoff** — what is recorded, what
+> fires next, and who picks it up.
 >
 > **Roles:** Admin Team · Sales Lead (Logan) · User Success Manager (Chantel) · Portal.
-> **Status:** intended design plus what the repository shows. Every "existing" line is a claim to verify.
-> **Validation key:** ☐ not started · ◐ in progress · ✅ validated · ⚠️ incomplete · 🗑 stale · ✖ missing
+> Screens referenced as **Exhibits** live in [`exhibits/`](exhibits/).
 
 ---
 
-## Scan table
+## PR1 — Target list built and pre-flight complete
 
-| Stage | Objective | Owner | Biggest known gap |
+**Objective** Add a university site so the system loads every matching provider from the Olera directory
+into the In Basket, then complete pre-flight research on each one — phone, email, address, decision maker —
+confirmed by a pre-flight call.
+**Owner** Admin Team. **Users** Admin Team.
+**Completion criteria** Contact details confirmed on the call, and the row launched into outreach — or
+three unsuccessful call attempts, and the row archived.
+
+> **PR1 is not just the list.** It is the list *built and worked through pre-flight.* A site whose
+> providers are loaded but un-researched has not completed PR1.
+
+### ① User journey / technology
+
+**Actor: Admin Team.** Two screens carry the whole stage.
+
+| # | What they do | Where | Exhibit |
 |---|---|---|---|
-| **PR1** Target list built | Verified, contactable providers in the service area | Admin Team | — |
-| **PR-OUT** Provider outbound | Move a prospect to a booked meeting | Admin Team | Engagement data depends on the Smartlead webhook secret |
-| **PR2** Provider meeting held | Convert, and capture what was promised | Sales Lead | — |
-| **PR3** Client success | Carry the provider to a first hire | User Success Manager | "Client" has three definitions |
-| **ST1** Target advisors | Named university stakeholders per site | Admin Team | — |
-| **ST-OUT** University outbound | Move a stakeholder to a booked meeting | Admin Team | — |
-| **ST2** Advisor meeting held | Secure agreement to reach students | Sales Lead | — |
-| **ST3–ST7** University activation | Circulate the opportunity through five channels | User Success Manager | Channels are not modelled, so none is measurable |
-| **ST8** Application submitted | Capture an application complete enough to assess | Portal | No source attribution |
-| **QUAL** Portal vets application | Produce a qualified candidate pool | Portal | **Qualification criteria do not exist** |
-| **MA1** Candidate intro | Put fitting candidates in front of the client | Portal · USM | — |
-| **MA2** Interview held | A held interview, confirmed by both sides | Portal · USM | — |
-| **MA3** Hire confirmed | A recorded placement | Portal · USM | — |
-| **MA4** 6+ shifts confirmed | Verify real work happened | User Success Manager | **No implementation of any kind** |
-| **MA5** Bill issued and collected | Money in, reconcilable | User Success Manager | **Two legacy paths, neither matches the model** |
+| 1 | Open the Sites tab and review active university territories | [`olera.care/admin/medjobs/sites`](https://olera.care/admin/medjobs/sites) | **A** |
+| 2 | Click **+ Add Site** and pick a university. The picker shows how many directory providers fall in that service area — that is how many Provider Prospects the site will generate | Same page, Add Site modal | **B** |
+| 3 | Go to the In Basket, Providers tab. The site's providers are waiting there for pre-flight research | [`olera.care/admin/medjobs/in-basket`](https://olera.care/admin/medjobs/in-basket) | **C** |
+| 4 | Open a provider row. The drawer holds the research panel — business name, phone, email, address, fax, contact form, decision makers, research notes — with **Fill from Website** and a **source** link | In Basket → provider drawer | **E** |
+| 5 | Click **Call to Confirm**, work the suggested script, and log the outcome | Drawer → Log Pre-Flight outcome modal | **D** |
+| 6 | Launch outreach once contact details are confirmed | Drawer → **Launch outreach →** | **E** |
 
----
+**What the system does on its own:** adding a site pulls the matching providers out of the Olera directory
+and places them in the In Basket as rows awaiting pre-flight research. Nobody builds the list by hand.
 
-## PR1 — Target list built
+### ② Human SOP
 
-**Objective** Every provider in the service area identified, verified as a real operating agency, and made
-contactable. **Owner** Admin Team. **Users** Admin Team.
-**Completion criteria** Required contact fields present on the row; the row is cleared to launch.
+**For a given site, work every provider on it.**
 
-**① User journey / technology**
+1. **Do the desk research first.** Fill in whatever phone, email and address you can find yourself — from
+   the provider's website, the source link on the row, or **Fill from Website**. Do not call a row you
+   have not looked at.
+2. **Call every provider on the site.** The call confirms the research; research alone does not complete
+   pre-flight.
+3. **Use the suggested script** shown in the log modal: *"Hi, this is \[your name\] from Dr. DuBose's
+   office, calling about his Student Caregiver Program for \[University\] students. I'd like to send your
+   team an email with the details, and wanted to check first on the best address to send it to."*
+4. **Log the outcome, every time.**
 
-| Actor | Sees / does | Surface |
-|---|---|---|
-| Admin Team | Site's provider list; verifies each; adds phone, email, address, decision-maker | Sites · prospect list · prospect drawer · enrichment |
+   | Outcome | What it means | What happens to the row |
+   |---|---|---|
+   | **Confirmed contact info** | Reached someone; email and decision maker verified | Pre-flight passes — launch outreach |
+   | **No answer** | Nobody picked up | Stays in pre-flight — call again |
+   | **Voicemail** | Message left | Stays in pre-flight — call again |
+   | **Not interested** | They do not want the information | Row closes; no outreach |
 
-**② Human SOP** — verify the agency is real, operating, non-medical home care, and in the service area ·
-research contact details and a named decision-maker · time-box each row · park what cannot be found, with
-the reason · report batch-level data defects rather than fixing them one at a time.
+5. **Update the record from the call.** A corrected email address or a named decision maker learned on the
+   phone goes onto the row immediately, while you have it.
+6. **Three attempts, then archive.** If three calls fail to confirm the contact details, archive the
+   provider and move on.
 
-**③ System / handoff**
+*The modal also carries an **Override & launch outreach** escape hatch for a row you are confident about
+without a confirming call. Use it deliberately, not as the default.*
+
+### ③ System / handoff
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Agency identity, address, phone, email, contacts, research notes | prospect → cleared | target added · contact added · prospect verified | Required fields complete | Stays with Admin Team → PR-OUT |
+| Business name · phone · email · address · fax · contact form · decision makers · research notes · call outcome and notes | loaded → in pre-flight → confirmed · archived · closed | site added · providers loaded · contact added or updated · pre-flight call logged (confirmed / no answer / voicemail / not interested) · outreach launched · archived | Contact details confirmed on a call | **Launch outreach → PR-OUT.** Not confirmed → the row stays in pre-flight for another attempt. Three failed attempts → archived |
 
-**Communications** None outbound at this stage.
-**Existing** Sites and service-area computation · virtual provider prospects · materialize endpoint ·
-catchment audit · contact enrichment · pre-flight checklist.
-**Gaps** Confirm whether the checklist's required fields match what outbound actually needs.
-**Validation** ☐ UI ☐ SOP ☐ events ☐ handoff
+Every call — including the ones nobody answered — writes to the row's timeline with the caller's name and
+the time, so the attempt count is visible rather than remembered.
+
+**Communications** None outbound at this stage. The pre-flight call is the only contact, and it uses the
+script in the log modal.
+
+### Exhibits
+
+> **Screens are dropped into [`exhibits/`](exhibits/).** Each is captioned with the URL so a reader can go
+> and stand in the same place in the product.
+
+**Exhibit A — Sites.** Active university territories, each showing when it was added, its stakeholder
+count, and its research state. `olera.care/admin/medjobs/sites`
+
+![Exhibit A — MedJobs Sites](exhibits/A-sites.png)
+
+**Exhibit B — Add Site.** The university picker, showing the number of directory providers in each
+catchment — the size of the prospect list the site will generate. Universities already added are greyed
+out. `olera.care/admin/medjobs/sites` → **+ Add Site**
+
+![Exhibit B — Add Site modal](exhibits/B-add-site.png)
+
+**Exhibit C — In Basket, Providers tab.** The site's providers waiting for pre-flight, with queue counts
+across Providers, Partners, Calls, Emails, Meetings and Follow-up.
+`olera.care/admin/medjobs/in-basket`
+
+![Exhibit C — In Basket, Providers tab](exhibits/C-in-basket-providers.png)
+
+**Exhibit D — Log Pre-Flight outcome.** The suggested script and the four outcomes, with the notes field
+and the override. In Basket → provider row → **Call to Confirm**
+
+![Exhibit D — Log Pre-Flight outcome modal](exhibits/D-log-preflight.png)
+
+**Exhibit E — Provider drawer.** The research panel with its confirmation ticks, decision makers, the
+three actions — Call to Confirm, Launch outreach, Launch activation — research notes, and the timeline of
+past attempts. In Basket → provider row
+
+![Exhibit E — Provider research drawer](exhibits/E-provider-drawer.png)
 
 ---
 
@@ -89,10 +137,6 @@ rather than sending collateral · log every outcome, always.
 | Sends, opens, clicks, replies, bounces, call outcomes, notes | prospect → in outreach → engaged | `email_sent` · `email_opened` · `email_clicked` · `email_replied` · `email_bounced` · call outcome · `meeting_scheduled` | Meeting booked | **Admin Team → Sales Lead** — appears in the meetings queue with the timeline attached |
 
 **Communications** Cold sequence (Smartlead) · call script · booking link · meeting confirmation.
-**Existing** Smartlead bridge, sequence and lead refresh, webhook ingestion · cadence sequencer · Calls,
-Emails and Follow-up queues · four log modals · Calendly and its webhook.
-**Gaps** Engagement events require the Smartlead webhook secret to be set; without it the queues are blind.
-**Validation** ☐ UI ☐ SOP ☐ comms ☐ events ☐ handoff
 
 ---
 
@@ -119,9 +163,6 @@ context, not just a status change.
 | Outcome, notes, commitments made | engaged → converted / declined / follow-up | `meeting_held` · outcome · note added · stage change | Outcome recorded | **Sales Lead → User Success Manager** — appears in the clients queue |
 
 **Communications** Confirmation · reminder · post-meeting details email with the agreement.
-**Existing** Meetings queue · drawer timeline · log meeting modal · Calendly webhook.
-**Gaps** Confirm the outcome can be recorded in under a minute, and that commitments survive the handoff.
-**Validation** ☐ UI ☐ SOP ☐ comms ☐ events ☐ handoff
 
 ---
 
@@ -148,11 +189,6 @@ the staffing need against the client within a day · never let a converted provi
 | Terms acceptance, profile answers, demand profile, roles and headcount | converted → active client | terms accepted · profile completed · staffing need recorded | Staffing need recorded | **User Success Manager → Portal** — the need drives matching |
 
 **Communications** Post-meeting details email · agreement · reminders · welcome on first authentication.
-**Existing** Clients queue · business-profile step boards · provider portal · eligibility screener ·
-internship agreement modal · magic link.
-**Gaps** "Client" resolves to three different flags — signed agreement, pilot terms, eligibility screener.
-Until one wins, the entry condition into MA1 is ambiguous and the conversion rate has no stable denominator.
-**Validation** ☐ UI ☐ SOP ☐ comms ☐ events ☐ handoff
 
 ---
 
@@ -177,9 +213,6 @@ capture subtype, since it drives the copy · target 15–25 named humans per sit
 | Name, title, subtype, department, contacts, rationale | prospect | target added · contact added | Contactable | Stays with Admin Team → ST-OUT |
 
 **Communications** None at this stage.
-**Existing** Partner prospects · partner sourcing · source-partners endpoint · subtype model.
-**Gaps** Confirm subtype coverage matches the five channels we now run.
-**Validation** ☐ UI ☐ SOP ☐ events ☐ handoff
 
 ---
 
@@ -205,10 +238,6 @@ provider side · respect professor permission gating.
 | Sends, engagement, replies, call outcomes | prospect → in outreach → engaged | `email_sent` · `email_replied` · call outcome · `meeting_scheduled` | Meeting booked | **Admin Team → Sales Lead** |
 
 **Communications** Subtype-aware sequences · call script · booking link.
-**Existing** Shared outreach machinery · subtype-aware templates · professor permission dependency ·
-bulk professors action.
-**Gaps** Confirm the copy reflects the current five-channel ask.
-**Validation** ☐ UI ☐ SOP ☐ comms ☐ events ☐ handoff
 
 ---
 
@@ -234,9 +263,6 @@ capture permissions granted, especially for professor access · hand off with th
 | Outcome, agreed channels, permissions, contacts offered | engaged → active partner | `meeting_held` · distribution agreed · permission granted | Outcome recorded | **Sales Lead → User Success Manager** — appears in the partners queue |
 
 **Communications** Confirmation · reminder · post-meeting thank-you with the agreed asks.
-**Existing** Meetings queue · distribution evidence · partner activation · partner portal.
-**Gaps** Agreed channels are not captured as structured data, so ST3–ST7 start without a defined scope.
-**Validation** ☐ UI ☐ SOP ☐ comms ☐ events ☐ handoff
 
 ---
 
@@ -267,12 +293,6 @@ report results back to the partner so they share again · re-check org leadershi
 | Channel, date, partner, reach estimate, asset used | partner active → distributing | channel activated · distribution recorded | A student follows the link | **→ Portal (ST8)** |
 
 **Communications** Ready-to-send copy per channel · the flyer as the shared asset · results-back note.
-**Existing** Partner portal with activate, colleague, event and message routes · distribution evidence ·
-job postings · flyer asset.
-**Gaps** The five channels are **not modelled as distinct entities**, so distribution cannot be attributed
-per channel and we cannot tell which of the five produces students. This is the single highest-value
-instrumentation gap on the student side.
-**Validation** ☐ UI ☐ SOP ☐ comms ☐ events ☐ handoff
 
 ---
 
@@ -298,11 +318,6 @@ help, not a reminder · one further nudge at day three, then leave it · log why
 | Eligibility answers, availability, documents, video, terms acceptance | started → submitted | student eligibility completed · application started · application submitted | Submission | **→ QUAL** |
 
 **Communications** Confirmation · resume-your-application nudge · submission acknowledgement.
-**Existing** Public page · student eligibility screener · `apply` and `apply-partial` · document, photo and
-video upload · student agreement.
-**Gaps** **Nothing records how the student heard about MedJobs**, so ST3–ST7 cannot be evaluated from the
-student side either. Confirm a partial application can actually be resumed.
-**Validation** ☐ UI ☐ SOP ☐ comms ☐ events ☐ handoff
 
 ---
 
@@ -327,13 +342,11 @@ override · feed recurring failure reasons back into the application.
 |---|---|---|---|---|
 | Criteria evaluated, decision, reason, reviewer | submitted → qualified / not qualified | qualification decision · went live | Qualified | **→ MA1** |
 
+> **Note.** The qualification criteria do not exist yet. What the product does today is check that a
+> profile is *complete and active*, which is a completeness check, not a qualification decision. The
+> criteria have to be written before this stage can be built, delegated, or explained to a provider.
+
 **Communications** Outcome message · you're-live message · what-to-expect-next.
-**Existing** Student eligibility model · go-live route · candidates board. Today "live" effectively means
-*profile complete and active*, which is a completeness check, not a qualification decision.
-**Gaps** **The qualification criteria do not exist.** Nothing is written down that says what makes a
-student qualified, so the step cannot be automated, delegated, audited, or explained to a provider.
-Writing them is the prerequisite to auditing this stage at all.
-**Validation** ☐ criteria written ☐ UI ☐ SOP ☐ comms ☐ events ☐ handoff
 
 ---
 
@@ -360,10 +373,6 @@ has not logged in within three days · if nobody fits, that is a supply brief, n
 | Candidates surfaced, viewed, match basis | qualified → introduced | candidates viewed | Invite sent | **→ MA2** |
 
 **Communications** New-match notification to the provider · nudge if the board is untouched.
-**Existing** Candidates board · candidate cards with match lines · job match logic · invite route ·
-go-live notification to providers in the area.
-**Gaps** Confirm the match line reflects the recorded staffing need rather than generic availability.
-**Validation** ☐ UI ☐ SOP ☐ comms ☐ events ☐ handoff
 
 ---
 
@@ -390,10 +399,6 @@ by phone · never let a held interview sit without a next step.
 | Invite, acceptance, scheduled time, held confirmation | introduced → interviewing | interview invited · accepted · held | Held and confirmed | **→ MA3** |
 
 **Communications** Invitation · acceptance · calendar file · reminder · post-interview prompt to both sides.
-**Existing** Interviews route and quick-invite · claim-interview for both parties · interview calendar ·
-`.ics` · token validation.
-**Gaps** Confirm the two-sided handshake and that a no-show has a defined state.
-**Validation** ☐ UI ☐ SOP ☐ comms ☐ events ☐ handoff
 
 ---
 
@@ -420,11 +425,6 @@ record the start date, because it is the clock MA4 runs on.
 | Offer, agreement signature, acceptance, start date | interviewing → hired | offer made · accepted · hire confirmed | Confirmed | **→ MA4** |
 
 **Communications** Offer notification · acceptance confirmation to both sides · start-of-work note.
-**Existing** Placements record with offered / accepted / confirmed states · internship agreement modal ·
-offer and accept surfaces on both sides.
-**Gaps** Confirm a start date is captured — without it MA4 has no clock. Confirm the entry condition from
-PR3 is unambiguous once "Client" is defined.
-**Validation** ☐ UI ☐ SOP ☐ comms ☐ events ☐ handoff
 
 ---
 
@@ -456,10 +456,6 @@ see which placements are approaching the threshold, and chase the confirmation.
 | Shift count, confirmation source, confirmed-at, confirmer | hired → threshold met | six shifts confirmed | Threshold met | **→ MA5** |
 
 **Communications** Confirmation request · confirmation acknowledgement to both sides.
-**Existing** **None.**
-**Gaps** Everything: the mechanism, the data model, the UI on both sides, the SOP, the events, and the
-trigger into billing. Nothing downstream of here can run until this is decided.
-**Validation** ✖ missing
 
 ---
 
@@ -484,10 +480,7 @@ and the confirmed shift count · track invoiced against collected weekly · chas
 |---|---|---|---|---|
 | Amount, basis, invoice date, payment date, method | threshold met → billed → collected | bill issued · payment collected | Payment received | **→ ongoing support** |
 
+> **Note.** The billing technology that exists today — a subscription checkout, a billing portal, and
+> stubbed per-placement fee fields — implements a different model. None of it bills after six shifts.
+
 **Communications** Invoice · receipt · reminder.
-**Existing** A legacy subscription path — checkout, billing portal, Stripe webhook — and stubbed fee fields
-on the placement record. **Neither implements bill-after-six-shifts.** Treat the subscription path as stale
-unless the audit finds it supports the current model.
-**Gaps** The fee, the payer and the trigger are all still open. Until they are decided, no billing
-technology should be built — but manual invoicing can start immediately once MA4 produces a confirmation.
-**Validation** 🗑 legacy path likely stale ☐ manual process defined

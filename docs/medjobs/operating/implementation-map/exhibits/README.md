@@ -34,6 +34,9 @@ with its URL so a reader can open the same place in the product.
 | `Z-agreement.png` | Student Caregiver Program Agreement | Linked from the landing page |
 | `AA-job-board.png` | Job board — Recommended for you | `/portal/medjobs/jobs` |
 | `AB-application-portal.png` | Application portal — completeness + Go Live | `/portal/medjobs` |
+| `AC-request-interview.png` | Request an interview modal | Provider page → Request interview |
+| `AD-interviews-empty.png` | Student interviews calendar, empty | `/portal/medjobs/interviews` |
+| `AE-interviews-pending.png` | Same calendar with a pending request | `/portal/medjobs/interviews` |
 
 ## Conventions
 

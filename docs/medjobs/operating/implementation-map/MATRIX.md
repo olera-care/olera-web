@@ -1077,138 +1077,286 @@ student appears on.
 
 ## MA1 — Candidate intro
 
-**Objective** Put candidates who fit the staffing need in front of the client. **Owner** Portal, driven by
-the USM. **Completion criteria** The client has seen candidates and can act on them.
+**Objective** Put a qualified candidate in front of the providers who can hire them, in a form a provider
+will actually open, and keep telling the student where the work is until they are hired.
+**Owner** Portal, User Success Manager on exceptions. **Users** Provider, student.
+**Completion criteria** The provider has seen the candidate, and the student knows who is hiring and how
+to reach them.
 
-**① User journey / technology**
+> **Assume nobody logs in.** A provider will not create an account to look at a candidate, and a student
+> will not check a job board every day waiting for work to appear. Everything in this stage has to land in
+> an inbox or on a phone and be usable there.
 
-| Actor | Sees / does | Surface |
-|---|---|---|
-| Provider | Browses candidates with a match line explaining the fit | Candidate board · candidate detail |
-| Student | Is visible; may be invited | Student portal |
-| User Success Manager | Confirms the client is looking; intervenes if not | Client view |
+### ① User journey / technology
 
-**② Human SOP** — check every active client has candidates to look at · call, do not email, a client who
-has not logged in within three days · if nobody fits, that is a supply brief, not a client problem.
+**To the provider — the candidate, as an attachment.** The intro email carries **the candidate's profile
+as a PDF** as well as a link. The PDF is the point: it opens on a phone, it forwards to whoever actually
+does the hiring, and it needs no login. The link is for the provider who wants more. Our send path already
+supports attachments — it sends calendar invites that way today — so this is a PDF renderer and a template
+change, not new infrastructure.
 
-**③ System / handoff**
+**To the student — three channels, and the board is the least of them.**
+
+| | Channel | What it carries | Why it matters |
+|---|---|---|---|
+| **1** | **SMS** | A link to the opportunity, or the profile PDF | The one channel a student reads within the hour. The most important of the three |
+| **2** | **Email** | The fuller message — who is hiring, where, what the role is | Carries detail SMS cannot, and survives being read later |
+| **3** | **The phone** | The student calling providers directly, off the QUAL call list | The most effective of all, and the one we most under-support |
+| — | The job board | Everything, browsable | Real and worth having, but a display surface. Most students will not go looking |
+
+An SMS stack already exists in the product — consent handling, quiet hours, a send queue and a flush job —
+so student SMS is a matter of consent capture and message types on an existing pipeline, not a new
+channel from nothing.
+
+### ② Human SOP
+
+1. **Send to the provider in the form they will open** — PDF attached, link included, no login asked for.
+2. **Do not rely on the board.** If a qualified student has not been introduced anywhere this week, that is
+   a push we failed to send, not a student who failed to look.
+3. **Watch the students who are qualified and not yet hired.** That list is the whole job at this stage.
+4. **Keep the call list current.** A student calling a provider who is no longer hiring wastes the one
+   thing we are trying to build.
+
+### ③ System / handoff
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Candidates surfaced, viewed, match basis | qualified → introduced | candidates viewed | Invite sent | **→ MA2** |
+| Which providers were sent which candidate · PDF generated and attached · SMS and email sends to the student · opens and replies | qualified → introduced | candidate intro sent · profile PDF generated · student notified by SMS and email | An interview is requested | **→ MA2** |
 
-**Communications** New-match notification to the provider · nudge if the board is untouched.
+**Communications** Candidate intro email to the provider, PDF attached · student SMS with the link or PDF
+· student email with the detail · the QUAL call list behind the student's own calls.
 
 ---
 
 ## MA2 — Interview held
 
-**Objective** An interview that actually happens, confirmed by both sides. **Owner** Portal, driven by the
-USM. **Completion criteria** Both parties confirm it was held.
+**Objective** Get a real interview onto two real calendars, then confirm it happened.
+**Owner** Portal. **Users** Student, provider, User Success Manager on exceptions.
+**Completion criteria** Both sides firm, a calendar invite on both calendars, and a recorded answer to
+*did it happen?*
 
-**① User journey / technology**
+> **The key endpoint is the calendar invite.** Everything before it is scheduling admin; everything after
+> it depends on it. When both parties are firm, an invite should appear on both calendars — and when its
+> time has passed, both should be asked whether the meeting actually took place. That answer is the
+> instrumentation the whole match half of the funnel runs on.
 
-| Actor | Sees / does | Surface |
+### ① User journey / technology
+
+Requests go both ways, and both are built.
+
+| # | What happens | Where | Exhibit |
+|---|---|---|---|
+| 1 | The student opens a provider's opportunity page and clicks **Request interview** | Provider page · `?ctx=medjobs-student` | **AC** |
+| 2 | **Request an interview** — format (**Video · Phone · In person**), a date and time, **Offer another time**, and a note to introduce themselves | Same page | **AC** |
+| 3 | Providers can request an interview of a candidate the same way, from the other direction | Provider surfaces | — |
+| 4 | The request emails the other party as **proposed**, and lands on the student's **Interviews** calendar as **Pending** | [`olera.care/portal/medjobs/interviews`](https://olera.care/portal/medjobs/interviews) | **AD**, **AE** |
+| 5 | On confirmation, both parties are emailed and a calendar file is attached to each | Automatic | — |
+| 6 | The interview happens | Video, phone, or on site | — |
+| 7 | **Both sides are asked whether it happened.** Not built | — | — |
+
+**What is already there.** The scheduling loop runs end to end: interviews carry a real state machine —
+*proposed · confirmed · completed · cancelled · no-show · rescheduled* — proposals email the other side,
+confirmations email both sides, and a calendar file is generated and attached on confirmation. The
+student's calendar colour-codes **Confirmed · Pending · Past**.
+
+**What is missing is narrower than it looks.**
+
+| | What we want | Where it stands |
 |---|---|---|
-| Provider | Invites, proposes times, attends, confirms | Invite flow · calendar |
-| Student | Receives the invitation, accepts, attends | Interview flow · calendar |
-| User Success Manager | Chases both handshakes; follows up the day after | Interview view |
+| **1** | A real **Google Calendar event** on both calendars when both are firm — one both sides can see, update and cancel | A calendar file is attached to the confirmation email. Enough for an RSVP, not a shared event |
+| **2** | The **did-it-happen loop** — after the scheduled time, email both sides and record the answer | Not built. `completed` and `no_show` exist as states and nothing sets them |
 
-**② Human SOP** — confirm with both sides 24 hours before · follow up within one day of every interview,
-by phone · never let a held interview sit without a next step.
+### ② Human SOP
 
-**③ System / handoff**
+1. **Chase the proposal that has sat unanswered.** A pending request nobody confirmed is the single most
+   common place a match dies.
+2. **Confirm by hand when a provider will not use the system** — and put the invite on the calendar anyway.
+3. **Ask the student first** whether the interview happened. They answer faster, and it is their outcome.
+4. **Record a no-show as a no-show.** It is a different problem from a hire that did not happen, and only
+   one of them is the student's.
+
+### ③ System / handoff
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Invite, acceptance, scheduled time, held confirmation | introduced → interviewing | interview invited · accepted · held | Held and confirmed | **→ MA3** |
+| Format, proposed times, notes · who proposed and who confirmed · the calendar invite · the answer to *did it happen* | proposed → confirmed → completed · cancelled · no-show · rescheduled | interview proposed · interview confirmed · invite sent · interview completed · no-show | Interview confirmed held | **→ MA3** |
 
-**Communications** Invitation · acceptance · calendar file · reminder · post-interview prompt to both sides.
+**Communications** Proposal email to the other party · confirmation email to both, with the invite ·
+reminder before the interview · **the did-it-happen email to both sides afterwards**.
+
+### Exhibits
+
+**Exhibit AC — Request an interview.** From the student's side, on the provider's opportunity page —
+*"Request a time to speak with Oak about opportunities."* **Format** (Video · Phone · In person), a date
+and time with **Offer another time**, and an optional note: *"Introduce yourself briefly or mention what
+interests you about this role."* Behind it, the opportunity itself — what you'd do, when, and *"Counts
+toward your 120 patient-care hours."*
+`olera.care/provider/…?ctx=medjobs-student`
+
+![Exhibit AC — Request an interview](exhibits/AC-request-interview.png)
+
+**Exhibit AD — The student's interview calendar, empty.** *"View and manage your scheduled interviews with
+the families you're matching with,"* with the month grid and the legend that carries the whole state
+model: **Confirmed · Pending · Past**.
+`olera.care/portal/medjobs/interviews`
+
+![Exhibit AD — Interviews calendar, empty](exhibits/AD-interviews-empty.png)
+
+**Exhibit AE — The same calendar after a request.** The requested interview sits on its date — *Oak,
+8:30a* — in the amber of **Pending**, waiting on the provider to confirm. This is the state the follow-up
+in the SOP above is chasing.
+
+![Exhibit AE — Interviews calendar with a pending request](exhibits/AE-interviews-pending.png)
 
 ---
 
 ## MA3 — Hire confirmed
 
-**Objective** A recorded placement both parties agree to. **Owner** Portal, driven by the USM.
-**Completion criteria** Placement recorded as confirmed, with the agreement signed.
+**Objective** Find out whether the interview produced a job, and if it did not, find out why.
+**Owner** User Success Manager. **Users** Student, provider.
+**Completion criteria** A recorded answer either way, with a reason when the answer is no.
 
-**① User journey / technology**
+> **A hire we did not hear about is a hire we cannot bill for.** This stage exists because nobody tells us
+> on their own. The provider hires and moves on; the student starts work and moves on. Every placement we
+> know about is one we went and asked for.
 
-| Actor | Sees / does | Surface |
+### ① User journey / technology
+
+Nothing is built. What should run, after the interview:
+
+| # | What happens | Channel |
 |---|---|---|
-| Provider | Makes the offer and signs the agreement | Offer flow · agreement modal |
-| Student | Sees the offer and accepts | Offer view |
-| User Success Manager | Walks a first-time client through it; confirms both sides see the same state | Client and candidate views |
+| 1 | A cadence opens on the **student** — did the interview happen, and did they offer you the job? | SMS first, then email |
+| 2 | If the student does not answer, it becomes a **call task** in the daily queue | Phone |
+| 3 | The **provider** is emailed the same question, more lightly | Email |
+| 4 | The answer is recorded against the placement, with a **reason when it is no** | — |
 
-**② Human SOP** — walk the first offer personally · confirm the student understood what they accepted ·
-record the start date, because it is the clock MA4 runs on.
+**Ask the student first, every time.** They reply faster, it is their outcome, and it costs a provider
+nothing.
 
-**③ System / handoff**
+**Instrument the no.** A hire that did not happen is the most useful signal in the funnel — the interview
+was a formality, the schedule did not work, the student went quiet, the provider was not really hiring.
+Without a reason field this stage produces a number nobody can act on.
+
+### ② Human SOP
+
+1. **Open the cadence the day after the interview**, while both sides still remember it.
+2. **Student first, by SMS.** One question, answerable in four words.
+3. **Escalate to a call** when two touches go unanswered.
+4. **Ask the provider once**, by email, and do not chase them further — the monthly list call picks up what
+   they did not answer.
+5. **Record the reason for every no.** A blank reason is a lost lesson.
+
+### ③ System / handoff
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Offer, agreement signature, acceptance, start date | interviewing → hired | offer made · accepted · hire confirmed | Confirmed | **→ MA4** |
+| Interview outcome · hired or not · start date · the reason when not · which channel got the answer | interviewed → hired · not hired | hire confirmed · hire not confirmed with reason | Hire confirmed | **→ MA4** |
 
-**Communications** Offer notification · acceptance confirmation to both sides · start-of-work note.
+**Communications** Post-interview SMS to the student · follow-up email · the call task when neither lands ·
+a single email to the provider.
 
 ---
 
 ## MA4 — Six or more shifts worked, confirmed
 
-**Objective** Verify the placement produced real work. **Owner** User Success Manager.
-**Completion criteria** Six shifts confirmed by an agreed method, with a recorded result and timestamp.
+**Objective** Establish that the placement actually stuck — six shifts worked — because that is the point
+we bill.
+**Owner** User Success Manager. **Users** Student, provider on the monthly list call.
+**Completion criteria** Six shifts confirmed and recorded against the placement.
 
-> **This is the commercial threshold of the entire model and it has no implementation.** No shift or
-> hours-worked concept exists anywhere in MedJobs. The only related value is a 120-hour threshold on the
-> placement record, which backs the service guarantee rather than the bill. Everything below is a design
-> to decide, not a workflow to audit.
+> **Chase the student, not the provider.** The student knows what they worked and answers a text. The
+> provider is the customer, and asking them to do our record-keeping every week is how we become annoying
+> before we become useful.
 
-**① User journey / technology** — undecided. The three plausible shapes:
+### ① User journey / technology
 
-| Option | Who confirms | Effort | Trust |
-|---|---|---|---|
-| Provider attestation | Provider clicks to confirm six shifts | Lowest | Depends on the provider |
-| Student log | Student records shifts as worked | Moderate | Cross-checkable against the provider |
-| Manual confirmation | USM asks both sides and records the answer | Highest | Highest, and does not scale |
+There are two ways to get this number, and they are not equally likely to work.
 
-**② Human SOP** — undefined until the mechanism is chosen. Whatever the mechanism, the USM must be able to
-see which placements are approaching the threshold, and chase the confirmation.
+| | Approach | What it asks of the student |
+|---|---|---|
+| **1** | **Comms** — SMS and email asking how many shifts they have worked, on a rhythm until the answer is six | Reply to a text |
+| **2** | **Logging** — a place in the portal for the student to log shifts or hours as they go | Remember to log, every time |
 
-**③ System / handoff**
+**Comms first.** A logging surface is more precise and worth building eventually; a text a student answers
+is worth more than a form they do not fill in. Build the comms rhythm, and let logging follow if the
+volume ever justifies it.
+
+**SMS is the channel.** Same stack as MA1 and MA3 — consent, quiet hours, a queue that already runs.
+
+**The provider side is a list, not a cadence.** Once a month, or once a quarter, the User Success Manager
+takes the client's students and runs down them on a call: still working, how many shifts, any problems.
+One conversation confirms what a dozen emails would not, and it is a relationship touchpoint rather than
+an interruption. This is the same call that keeps MA3 honest.
+
+### ② Human SOP
+
+1. **Text the student on a rhythm** from their start date until the answer reaches six.
+2. **Never ask the provider week to week.** Their confirmation comes on the list call.
+3. **Run the list call monthly per client** — every student placed with them, top to bottom.
+4. **Record the confirmation and where it came from** — the student, the provider, or both.
+5. **Escalate a placement that stalls before six.** A student who stopped after two shifts is a problem
+   worth understanding while it is still fixable.
+
+### ③ System / handoff
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Shift count, confirmation source, confirmed-at, confirmer | hired → threshold met | six shifts confirmed | Threshold met | **→ MA5** |
+| Shifts worked and the date each was confirmed · who confirmed it · the list-call record per client | hired → working → threshold met | shift count updated · six shifts confirmed | Six confirmed | **→ MA5** |
 
-**Communications** Confirmation request · confirmation acknowledgement to both sides.
+Today there is no concept of a shift anywhere in the product. The only trace of the threshold is the
+number behind the guarantee.
+
+**Communications** Student SMS on a rhythm · the same question by email · the monthly client list call.
 
 ---
 
 ## MA5 — Bill issued and collected
 
-**Objective** Invoice against the confirmed threshold and collect. **Owner** User Success Manager.
-**Completion criteria** Payment received and reconcilable.
+**Objective** Turn a confirmed placement into an invoice, and the invoice into money.
+**Owner** User Success Manager. **Users** Client.
+**Completion criteria** Invoice issued against a confirmed six-shift placement, and payment recorded.
 
-**① User journey / technology**
+> **Manual first, deliberately.** At current volume the User Success Manager raising an invoice by hand is
+> not a stopgap — it is the right answer, and it is how we learn what the automated version should do.
 
-| Actor | Sees / does | Surface |
-|---|---|---|
-| Provider | Sees what they owe and why, and pays | **Undefined** |
-| User Success Manager | Issues the invoice, tracks it, chases it | **Undefined** |
+### ① User journey / technology
 
-**② Human SOP** — manual invoicing is acceptable for the first placements · reference the signed agreement
-and the confirmed shift count · track invoiced against collected weekly · chase at fourteen days.
+| # | What happens | Now | Eventually |
+|---|---|---|---|
+| 1 | Six shifts are confirmed in MA4 | Recorded by hand | Recorded against the placement |
+| 2 | The bill is raised | The User Success Manager raises it | **A button on the client record** — confirm the student hit six, and the invoice issues |
+| 3 | The invoice is sent and tracked | By hand | Against the client, with its status |
+| 4 | Payment is recorded | By hand | Automatically, against the placement |
 
-**③ System / handoff**
+**Where the button lives.** On the client tab — the client record described in PR3 and still unbuilt. That
+record is what makes this stage automatable: it already needs to hold every meeting, hire, interview and
+six-shift confirmation for a client, so the invoice belongs on it too. Build that, and MA5 becomes one
+click on a row that already exists.
+
+**The rest is already visible.** Once the client record carries placements and their thresholds, most of
+this stage automates itself — the confirmation is the trigger, the invoice is the consequence, and the
+human is only there for the exceptions.
+
+### ② Human SOP
+
+1. **Raise the invoice as soon as six is confirmed**, not on a billing day. The confirmation is the event.
+2. **Bill against the placement, not the client** — one invoice per student, so a dispute is about one
+   student.
+3. **Record payment where the placement lives**, so the client record stays the single account of what
+   happened.
+4. **Raise a billing question on the monthly list call**, not by email. The call already exists.
+
+### ③ System / handoff
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Amount, basis, invoice date, payment date, method | threshold met → billed → collected | bill issued · payment collected | Payment received | **→ ongoing support** |
+| Placement billed · amount · invoice issued and sent · payment received | threshold met → invoiced → paid | invoice issued · payment recorded | Payment recorded | **Complete.** The client record carries the history |
 
-> **Note.** The billing technology that exists today — a subscription checkout, a billing portal, and
-> stubbed per-placement fee fields — implements a different model. None of it bills after six shifts.
+Two legacy billing paths exist in the product, neither matching this model, and the Stripe path for
+placements is stubbed.
 
-**Communications** Invoice · receipt · reminder.
+**Communications** Invoice · receipt · payment reminder · the billing conversation on the list call.
 
 ---
 
@@ -1239,8 +1387,16 @@ toward and the gap stays visible.
 | **B17** | ST8 | **Application source capture.** Ask a student how they heard about MedJobs | Nothing records it |
 | **B18** | QUAL | **The call list to the student.** On qualifying, email the student every provider hiring near them — name, area, and phone number — with a clear instruction to call and say they are cleared to interview. Providers should start hearing from students directly | Not built. The nearest thing fires when a *provider* accepts terms, names one provider, and offers a link rather than a number |
 | **B19** | QUAL | **Written qualification criteria**, then a vetting step that applies them. The catchment broadcast already tells providers a candidate is *ready to interview* — until criteria exist and are enforced, that sentence is unbacked, and it goes out under our name | Today "live" means the student pressed a button. Nothing is required, and nothing is checked |
-| **B20** | MA4 | **Shift verification.** Some reliable way to confirm six shifts were worked, and a view of which placements are approaching the threshold | No shift or hours-worked concept exists anywhere |
-| **B21** | MA5 | **Billing on the six-shift trigger** — invoice raised against a confirmed threshold, payment recorded | Two legacy billing paths, neither matching the model |
+| **B20** | MA1 | **The candidate profile as a PDF, attached to the intro email.** A provider should be able to read a candidate on their phone and forward it to whoever hires, without an account. The link stays, alongside it | Not built. The send path already supports attachments — it sends calendar files that way today |
+| **B21** | MA1 | **Student SMS.** Qualified students who are not yet hired need a push, not a board — a text with the opportunity link or the profile PDF, backed by an email | Not built for students. The SMS stack itself exists: consent, quiet hours, a queue and a flush job |
+| **B22** | MA2 | **A real calendar event when both sides are firm** — on both calendars, updatable and cancellable by either | A calendar file is attached to the confirmation email. Good enough to RSVP, not a shared event |
+| **B23** | MA2 | **The did-it-happen loop.** After the scheduled time, ask both sides whether the interview took place and record it. This is the instrumentation the whole match half depends on | Not built. `completed` and `no_show` exist as states and nothing ever sets them |
+| **B24** | MA3 | **A post-interview cadence to confirm the hire** — student first by SMS, escalating to a call task, with one email to the provider | Not built. Nothing asks, so nothing is known |
+| **B25** | MA3 | **A reason recorded on every hire that did not happen.** The most useful signal in the funnel, and currently uncollected | Not built |
+| **B26** | MA4 | **A shift-count rhythm to the student by SMS**, running from their start date until the answer reaches six. Comms before a logging surface — a text they answer beats a form they do not | Not built |
+| **B27** | MA3 · MA4 | **The monthly client list call.** The User Success Manager runs every student placed with a client, top to bottom, confirming work and shifts. Providers confirm here rather than in a cadence | A practice to establish, not code. Needs the client record (B5) to run from |
+| **B28** | MA4 | **A shift count on the placement, and a view of who is approaching six.** The record B26 writes into, and the queue the User Success Manager works from | No concept of a shift exists anywhere in the product. The only trace of the threshold is the number behind the guarantee |
+| **B29** | MA5 | **Billing on the six-shift trigger** — a button on the client record that confirms the threshold and issues the invoice against that placement, then records payment. Manual by hand until volume justifies it | Two legacy billing paths, neither matching the model, and the placements Stripe path is stubbed. Needs the client record (B5) |
 
 
 **How to use this list.** Nothing here blocks running the operating system by hand today. Each item is a

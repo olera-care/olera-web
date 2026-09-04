@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AR/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-09-03T11:25:55.866Z
+ * Last updated: 2026-09-03T12:34:27.886Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1185,6 +1185,12 @@ export const drafts: PipelineStateDrafts = {
           "label": "CRDC - Cleburne, Craighead, Crittenden, Cross, Faulkner, Greene, Jackson, Mississippi, Poinsett, St. Francis, White, Woodruff",
           "phone": "(870) 333-5127",
           "hours": "Mon-Fri business hours"
+        },
+        {
+          "label": "Arkansas 2-1-1 (Benton, Madison and Washington counties only)",
+          "phone": "2-1-1",
+          "hours": "24 hours, 7 days a week",
+          "description": "Arkansas 211 is run by Hark at Excellerate Foundation and serves only Benton, Madison and Washington counties. It cannot help elsewhere in the state. Alternate number (866) 489-6983."
         }
       ],
       "applicationNotes": [

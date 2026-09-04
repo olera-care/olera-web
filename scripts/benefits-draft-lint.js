@@ -134,7 +134,14 @@ const programFor = (stateId, programId) => {
 // The leading \b must not sit before an optional "(", or the match starts at the
 // first digit and reports "888) 233-0326" instead of "(888) 233-0326".
 const PHONE_RE = /(?:\b\d-\d-\d\b|\b1-\d{3}-[\dA-Z][\dA-Z-]{4,}\b|\(\d{3}\)\s?\d{3}[-.\s]\d{4}|\b\d{3}[-.\s]\d{3}[-.\s]\d{4}\b)/g;
-const normPhone = (s) => String(s || '').replace(/[^\dA-Za-z]/g, '').toUpperCase();
+// Strips punctuation AND a leading US country code, so "1-888-711-1151" in prose
+// matches "(888) 711-1151" on the contact list. Without the country-code strip,
+// stale-phone-in-text fired on five correctly-patched letters on 2026-09-03
+// purely because the letter voice writes 1-800-xxx and the pipeline writes (800) xxx.
+const normPhone = (s) => {
+  const raw = String(s || '').replace(/[^\dA-Za-z]/g, '').toUpperCase();
+  return /^1\d{10}$/.test(raw) ? raw.slice(1) : raw;
+};
 
 /** A value that a family could actually dial. Prose in a phone field renders as
  *  "Call X at Contact information not specified in available sources." */

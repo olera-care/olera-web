@@ -1180,6 +1180,12 @@
           "label": "CRDC - Cleburne, Craighead, Crittenden, Cross, Faulkner, Greene, Jackson, Mississippi, Poinsett, St. Francis, White, Woodruff",
           "phone": "(870) 333-5127",
           "hours": "Mon-Fri business hours"
+        },
+        {
+          "label": "Arkansas 2-1-1 (Benton, Madison and Washington counties only)",
+          "phone": "2-1-1",
+          "hours": "24 hours, 7 days a week",
+          "description": "Arkansas 211 is run by Hark at Excellerate Foundation and serves only Benton, Madison and Washington counties. It cannot help elsewhere in the state. Alternate number (866) 489-6983."
         }
       ],
       "applicationNotes": [

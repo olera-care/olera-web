@@ -1,4 +1,5 @@
 import sys, os, re, markdown, html as ihtml
+import figs
 
 # House style: 11pt Arial on a 7.5in column, teal #14453f for structure, a rule
 # under each section head, 9pt tables with a teal header rule and no zebra, and
@@ -68,6 +69,14 @@ tbody tr:last-child td { border-bottom:1pt solid var(--teal); }
 .toc li { margin:0 0 2pt; }
 .toc a { color:var(--ink); }
 figure { margin:5pt 0 6pt; break-inside:avoid; page-break-inside:avoid; }
+/* Process figures float into the text so a run of tables is broken up rather
+   than merely interrupted. Headings clear them so a float cannot escape into
+   the next stage. */
+figure.fw { float:right; width:2.5in; margin:2pt 0 6pt 14pt; }
+figure.fw svg { display:block; width:100%; height:auto; }
+figure.fw figcaption { font-size:8.5pt; line-height:1.14; }
+h1,h2,h3 { clear:both; }
+table { clear:both; }
 /* The screenshots are 640px wide. Capping the plate at 6.6in keeps them
    near 97 dpi rather than the 85 dpi a full 7.5in column would give. */
 figure img { display:block; max-width:6.6in; max-height:8.2in; margin:0 auto; }
@@ -121,6 +130,14 @@ def build(src, out, title, subtitle, notoc=''):
                   _figure, body, flags=re.S)
     # any exhibit image the swap did not catch still gets the figure wrapper
     body = re.sub(r'<p>(<img\b[^>]*>)</p>', r'<figure>\1</figure>', body)
+
+    # <!--FIG name--> becomes the floated process figure of that name
+    def _fig(m):
+        fn, cap = figs.FIGURES[m.group(1)]
+        return (f'<figure class="fw">{fn()}'
+                f'<figcaption><strong>{cap.split(".")[0]}.</strong>'
+                f'{cap.split(".", 1)[1]}</figcaption></figure>')
+    body = re.sub(r'<!--FIG (\w+)-->', _fig, body)
 
     toc = '' if notoc else (md.toc if md.toc.count('<li>') > 2 else '')
     toc = re.sub(r'\A\s*<div class="toc">\s*', '', toc)

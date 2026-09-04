@@ -1,7 +1,7 @@
 # MedJobs 2.0 Master Implementation Matrix, house style
 
 Source: `MATRIX.md` (Logan, 2026-09-04), with `md2html.py` and `html2pdf.mjs`
-from the same hand. 38 pages, down from 57.
+from the same hand. 39 pages, down from 57.
 
 ```
 ./build.sh
@@ -39,6 +39,37 @@ a colon before `or`, a comma splice, `see the deferred list` wanting a full stop
 rather than a colon, and a comma that landed inside a quotation mark. The build
 asserts every fix still matches, so a future edit to `MATRIX.md` that strands one
 fails loudly rather than silently skipping it.
+
+### Gendered pronouns
+
+Eight, all removed. Four were `She` opening consecutive rows of the PR3 steps
+table, where the row above already names the User Success Manager, so they became
+`They`. The rest: `the client stays hers` became `theirs`, `a plan she can act on`
+became `they`, `Nothing tells her` became `them`, and the quoted call script's
+`calling about his Student Caregiver Program` became `the Student Caregiver
+Program`, since the same sentence already says whose office is calling.
+
+### Process figures
+
+Five, floated right so the text wraps around them, placed where a long run of
+tables needed breaking up. They are drawn in `figs.py` at 100 units to the inch,
+the same scale as the house figure system, so 13.19 units is 9.5pt on the page.
+
+| Figure | Where | What it shows |
+|---|---|---|
+| Pre-flight | PR1 human SOP | One call, four outcomes, the three-strike rule |
+| The outreach cadence | PR-OUT | Three emails and two calls over seven days |
+| The completeness ladder | ST8 | Days 1, 3, 5, 7, then 21, 35, 49, 63 |
+| Interview states | MA2 | proposed, confirmed, completed, and the three exits |
+| The fulfilment chain | MA4 | MA1 to MA5, and the gate the invoice waits behind |
+
+Placement is a `<!--FIG name-->` comment in `MATRIX.md`, expanded by
+`md2html.py`, so the source stays readable and the drawings stay in code.
+Headings and tables `clear: both`, so a float cannot escape into the next stage.
+
+Every figure is drawn from the document's own text, not invented: the cadence is
+the one named in PR-OUT, the ladder is the schedule named in ST8, and the
+interview states are the ones the MA2 handoff table lists.
 
 ### The look
 

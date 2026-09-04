@@ -107,6 +107,8 @@ and places them in the In Basket as rows awaiting pre-flight research. Nobody bu
 
 ### ② Human SOP
 
+<!--FIG preflight-->
+
 **For a given site, work every provider on it.**
 
 1. **Do the desk research first.** Fill in whatever phone, email and address you can find yourself — from
@@ -115,7 +117,7 @@ and places them in the In Basket as rows awaiting pre-flight research. Nobody bu
 2. **Call every provider on the site.** The call confirms the research; research alone does not complete
    pre-flight.
 3. **Use the suggested script** shown in the log modal: *"Hi, this is \[your name\] from Dr. DuBose's
-   office, calling about his Student Caregiver Program for \[University\] students. I'd like to send your
+   office, calling about the Student Caregiver Program for \[University\] students. I'd like to send your
    team an email with the details, and wanted to check first on the best address to send it to."*
 4. **Log the outcome, every time.**
 
@@ -211,6 +213,8 @@ finished cadence that drops the row into Follow-up.
 | 5 | **Call provider**, work the day's script, log the outcome | Row → **Log call** | **H** |
 | 6 | Check replies. **Check for reply** shows the provider's actual message and the ways to respond | Emails → row → **Check for reply** | **J** |
 | 7 | When a cadence finishes with no meeting, the row appears in **Follow-up** for triage | In Basket → Follow-up | — |
+
+<!--FIG cadence-->
 
 **The cadence.** Day 0 intro email · Day 3 follow-up email and a check-in call · Day 5 call · Day 7 final
 email. Cold email sends from a dedicated outreach domain. Scheduled sends and calls appear in the drawer's
@@ -412,10 +416,10 @@ One role holds it across both sides of MedJobs. Chantel is the User Success Mana
 |---|---|---|---|
 | 1 | **The Sales Lead names the handoff in the meeting** — *"our user success team will follow up with you on next steps."* The provider leaves expecting the next contact, and expecting it from someone else | In the meeting | Human |
 | 2 | **Logging the meeting outcome alerts the User Success Manager** that a converted provider is waiting on them | — | **Not built — B4** |
-| 3 | **She reads the whole record before making contact** — the outreach history, what they said in the reply, the meeting notes and anything promised | Provider drawer timeline (Exhibit **N**) | Exists |
-| 4 | **She sends the terms email** — more detail on how the program works and what it costs | Email, by hand | Manual |
-| 5 | **She gets the profile updated** — what a good caregiver looks like here, shifts needed, headcount | Provider portal · chased by hand | Partly |
-| 6 | **She books the setup meeting** for the next week or two | Calendly, by hand | Manual |
+| 3 | **They read the whole record before making contact** — the outreach history, what they said in the reply, the meeting notes and anything promised | Provider drawer timeline (Exhibit **N**) | Exists |
+| 4 | **They send the terms email** — more detail on how the program works and what it costs | Email, by hand | Manual |
+| 5 | **They get the profile updated** — what a good caregiver looks like here, shifts needed, headcount | Provider portal · chased by hand | Partly |
+| 6 | **They book the setup meeting** for the next week or two | Calendly, by hand | Manual |
 | 7 | **The setup meeting happens** — the account is configured and ready for the first student | In the meeting | Human |
 | 8 | **Everything after this is recorded against the client** — every meeting, touchpoint, interview, hire, six-shift confirmation, invoice | — | **Not built — B5** |
 
@@ -439,7 +443,7 @@ One role holds it across both sides of MedJobs. Chantel is the User Success Mana
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Terms sent and acknowledged · profile answers and demand profile · setup meeting held · every touchpoint after conversion | converted → active client, account ready | handoff received · terms email sent · profile completed · setup meeting held · client note added | The account is ready and a staffing need is recorded | **User Success Manager → the Portal.** The staffing need drives matching; the client stays hers from here on |
+| Terms sent and acknowledged · profile answers and demand profile · setup meeting held · every touchpoint after conversion | converted → active client, account ready | handoff received · terms email sent · profile completed · setup meeting held · client note added | The account is ready and a staffing need is recorded | **User Success Manager → the Portal.** The staffing need drives matching; the client stays theirs from here on |
 
 **Communications** The post-meeting terms email · profile reminders · the setup meeting invitation ·
 everything after it, from the same person.
@@ -646,7 +650,7 @@ here is a provider.
 ## ST2 — Advisor meeting held
 
 **Objective** Hold the meeting, agree which of the five activation channels are open to us, and hand the
-User Success Manager a plan she can act on without asking again.
+User Success Manager a plan they can act on without asking again.
 **Owner** Sales Lead. **Users** Sales Lead, advising office.
 **Completion criteria** Outcome logged, the agreed channels and their named contacts written down, and the
 relationship handed to the User Success Manager.
@@ -891,6 +895,8 @@ Deliberately short. If this list grows, the system has failed.
 4. **Check both entry paths after any change to the assets.** The QR code and the email link must each
    carry a student all the way through.
 
+<!--FIG nudges-->
+
 **The nudge ladder — built and running.** A daily job emails every student under 100% completeness, naming
 what they are missing, on a fixed schedule: **days 1, 3, 5, 7, then 21, 35, 49, 63** — eight nudges over
 roughly six weeks, then it stops. It will not send twice within twenty hours.
@@ -1073,6 +1079,8 @@ is consent capture and message types on a running pipeline, not a new channel.
 
 ## MA2 — Interview held
 
+<!--FIG interview-->
+
 **Objective** Get a real interview onto two real calendars, then confirm it happened.
 **Owner** Portal. **Users** Student, provider, User Success Manager on exceptions.
 **Completion criteria** Both sides firm, a calendar invite on both calendars, and a recorded answer to
@@ -1200,6 +1208,8 @@ a single email to the provider.
 
 ## MA4 — Six or more shifts worked, confirmed
 
+<!--FIG billing-->
+
 **Objective** Establish that the placement actually stuck — six shifts worked — because that is the point
 we bill.
 **Owner** User Success Manager. **Users** Student, provider on the monthly list call.
@@ -1301,7 +1311,7 @@ and the gap stays visible.
 | **B1** | PR2 | **The Meetings tab holds only booked meetings.** Timing back-and-forth belongs with the email work | *Finding a time* is a hand-set state inside Meetings. Works, but muddies the tab |
 | **B2** | PR2 | **A no-show re-enters outreach automatically.** A missed meeting is not a decline | The outcome opens Calendly to rebook. Nothing catches the row if the rebook never happens |
 | **B3** | PR-OUT · PR2 | **A custom campaign any operator can launch on a single row** — pick the emails and calls, set the days, start it | *Launch custom cadence* exists in the reply modal, not as a general action from a row |
-| **B4** | PR3 | **An alert when a meeting converts**, putting the client in front of the User Success Manager with the meeting notes attached | Not built. Nothing tells her a provider is waiting |
+| **B4** | PR3 | **An alert when a meeting converts**, putting the client in front of the User Success Manager with the meeting notes attached | Not built. Nothing tells them a provider is waiting |
 | **B5** | PR3 | **The client record.** One place holding everything after conversion — notes on every touchpoint, plus the interviews, hires, six-shift confirmations and invoices against that client. **The most blocked item here: PR3, MA4 and MA5 all wait on it** | Not built. An MVP — notes and a timeline — would carry the stage |
 | **B6** | ST2 | **Structured channel capture at the meeting** — which channels were agreed, the named contact for each, the permission granted, as fields rather than prose | The plan lives in the meeting notes. Workable for one operator, unreportable across campuses |
 | **B7** | ST2 | **A state for _channels agreed, no meeting yet_**, carrying an open ask for a relationship meeting | No such state. The row either sits in Meetings without a meeting or looks like one that never engaged |

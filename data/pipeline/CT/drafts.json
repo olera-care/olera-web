@@ -2,8 +2,8 @@
   "state": "CT",
   "stateName": "Connecticut",
   "draftedAt": "2026-04-13T21:50:19.519Z",
-  "total": 10,
-  "successful": 10,
+  "total": 9,
+  "successful": 9,
   "programs": [
     {
       "id": "husky-health-medicaid-seniors",
@@ -64,12 +64,12 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at portal.ct.gov/HUSKY or call 1-877-284-4911 for enrollment assistance.",
+        "summary": "Apply online at portal.ct.gov/HUSKY or call DSS on 1-855-626-6632, Monday, Tuesday, Thursday and Friday, 7:30am to 4:30pm.",
         "steps": [
           {
             "step": 1,
             "title": "Choose your application method",
-            "description": "Apply online at portal.ct.gov/HUSKY or www.accesshealthct.com, or call Connecticut Health Care Referrals at 1-877-284-4911 for phone assistance."
+            "description": "Apply online at portal.ct.gov/HUSKY, or call DSS on 1-855-626-6632. Do not use Access Health CT: Connecticut scopes it to children, pregnant women, and adults under 65."
           },
           {
             "step": 2,
@@ -79,7 +79,7 @@
           {
             "step": 3,
             "title": "Complete the application",
-            "description": "Fill out the full application through Access Health CT or directly with the Department of Social Services. Be specific about what type of coverage you need (standard health coverage vs. long-term care)."
+            "description": "Fill out the full application with the Department of Social Services. Be specific about what type of coverage you need (standard health coverage vs. long-term care)."
           },
           {
             "step": 4,
@@ -99,10 +99,6 @@
           {
             "label": "HUSKY Health Application Portal",
             "url": "https://portal.ct.gov/HUSKY"
-          },
-          {
-            "label": "Access Health CT",
-            "url": "https://www.accesshealthct.com"
           }
         ]
       },
@@ -125,22 +121,21 @@
       ],
       "contacts": [
         {
-          "label": "Connecticut Health Care Referrals",
-          "phone": "(877) 284-4911",
-          "description": "HUSKY Health inquiries and enrollment assistance",
-          "hours": "Business hours"
+          "label": "DSS Client Information Line and Benefits Center (start here)",
+          "phone": "(855) 626-6632",
+          "hours": "Mon, Tue, Thu, Fri 7:30am-4:30pm ET",
+          "description": "1-855-6-CONNECT. This is the line Connecticut publishes for people over 65, blind, or with a disability who want to apply for or renew HUSKY C, the Medicare Savings Program, or MED-Connect."
+        },
+        {
+          "label": "Connecticut Home Care Program for Elders",
+          "phone": "(800) 445-5394",
+          "hours": "Mon-Fri 8am-4pm ET",
+          "description": "Press option 4 for referrals, option 2 for financial eligibility. Considers both Medicaid and state-funded home care pathways."
         },
         {
           "label": "Connecticut 2-1-1",
           "phone": "2-1-1",
-          "description": "Free helpline for all social services and benefit programs",
           "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "Department of Social Services",
-          "phone": "(855) 626-6632",
-          "description": "General DSS customer service line",
-          "hours": "Mon-Fri 7am-6pm ET"
         }
       ],
       "applicationNotes": [
@@ -193,7 +188,7 @@
         },
         {
           "question": "What happens if my loved one's income is slightly over the limit?",
-          "answer": "Your loved one may still qualify through a spend-down process, where they pay their excess income toward medical bills each month. The exact amount depends on how much they're over the limit. Call 1-877-284-4911 to discuss spend-down options."
+          "answer": "Your loved one may still qualify through a spend-down process, where they pay their excess income toward medical bills each month. The exact amount depends on how much they're over the limit. Call DSS on 1-855-626-6632 to discuss spend-down options."
         },
         {
           "question": "Can I apply for HUSKY Health C and Medicare Savings Programs at the same time?",
@@ -229,11 +224,11 @@
         "visualTone": "editorial"
       },
       "icon": "Stethoscope",
-      "phone": "(877) 284-4911",
+      "phone": "(855) 626-6632",
       "sourceUrl": "https://portal.ct.gov/HUSKY/How-to-Qualify",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "chcpe-medicare-savings",
@@ -364,7 +359,7 @@
       "contacts": [
         {
           "label": "CT Department of Social Services",
-          "phone": "1-855-626-6632",
+          "phone": "1-800-445-5394",
           "description": "CHCPE applications and general program information",
           "hours": "Mon-Fri 8am-4:30pm ET"
         },
@@ -438,173 +433,11 @@
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "1-855-626-6632",
+      "phone": "1-800-445-5394",
       "sourceUrl": "https://portal.ct.gov/dss/health-and-home-care/connecticut-home-care-program-for-elders/connecticut-home-care-program-for-elders-chcpe",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-07"
-    },
-    {
-      "id": "pace-comprehensive-care",
-      "name": "Program of All-Inclusive Care for the Elderly (CT PACE)",
-      "shortName": "CT PACE",
-      "tagline": "Your loved one gets all medical care, medications, and support services through one coordinated team, no copays, no provider juggling.",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false
-      },
-      "intro": "If your loved one needs nursing home-level care but wants to stay home, CT PACE provides everything through one team: doctors, specialists, medications, therapy, transportation, even adult day care. Because PACE coordinates all services, your loved one never bounces between providers or pays copays for covered care.\n\nYour loved one must be 55+ and medically qualify for nursing home care, but there are no income limits. If they have Medicaid, it's completely free. Without Medicaid, they pay a monthly premium but still get zero copays for all PACE services. The catch: PACE is only available in specific areas of Connecticut, not statewide.\n\nOnce enrolled, PACE becomes your loved one's sole healthcare provider, they can't use outside doctors for covered services. But they can leave PACE anytime if it's not working.",
-      "savingsRange": "",
-      "savingsSource": "Comprehensive medical service coverage",
-      "savingsVerified": false,
-      "structuredEligibility": {
-        "summary": [
-          "Age 55+",
-          "Nursing home level of care",
-          "Live in PACE service area",
-          "Can live safely at home with support"
-        ],
-        "ageRequirement": "55+",
-        "incomeTable": null,
-        "assetLimits": null,
-        "functionalRequirement": "Must be certified as needing nursing facility level of care, a clinical assessment of whether your loved one needs daily help with bathing, dressing, medication management, or other essential activities",
-        "otherRequirements": [
-          "Must live in a PACE organization service area",
-          "Must be able to live safely in the community with PACE services",
-          "Cannot be enrolled in Medicare Advantage or Medicare prescription drug plan",
-          "Cannot be receiving hospice services"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "phone",
-        "summary": "Contact your local PACE organization directly, they handle everything from eligibility screening to enrollment.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Find your local PACE organization",
-            "description": "Use the online eligibility test at medicaidlongtermcare.org or contact Connecticut's Department of Social Services to locate PACE programs in your area."
-          },
-          {
-            "step": 2,
-            "title": "Call for initial screening",
-            "description": "The PACE organization will do a phone screening to check basic eligibility, age, location, and preliminary care needs assessment."
-          },
-          {
-            "step": 3,
-            "title": "Schedule comprehensive assessment",
-            "description": "If initially eligible, PACE's interdisciplinary team conducts an in-person evaluation to determine if your loved one meets nursing facility level of care."
-          },
-          {
-            "step": 4,
-            "title": "Complete enrollment",
-            "description": "Once approved, PACE develops a comprehensive care plan within 30 days and begins coordinating all services."
-          }
-        ],
-        "processingTime": "Comprehensive assessment and care plan development within 30 days of enrollment",
-        "waitlist": null,
-        "tip": "Ask specifically about Medicare Advantage, your loved one must disenroll from any Medicare Advantage plan before joining PACE.",
-        "urls": [
-          {
-            "label": "Eligibility Test",
-            "url": "https://medicaidlongtermcare.org"
-          },
-          {
-            "label": "National PACE Directory",
-            "url": "https://www.npaonline.org"
-          }
-        ]
-      },
-      "documentsNeeded": [
-        "Medicare card",
-        "Medicaid card (if enrolled)",
-        "Social Security card",
-        "Valid government-issued photo ID or driver's license",
-        "Proof of Connecticut residency (utility bill or lease agreement)",
-        "List of current medications with dosages",
-        "Medical records from primary care doctor",
-        "Recent hospital discharge summaries (if applicable)",
-        "Documentation of current health conditions and diagnoses",
-        "Insurance cards for any supplemental coverage",
-        "Power of attorney documents (if family member is applying)",
-        "Guardian or conservatorship papers (if applicable)"
-      ],
-      "contacts": [
-        {
-          "label": "Connecticut 2-1-1",
-          "phone": "2-1-1",
-          "description": "24/7 helpline for social services, can help locate PACE programs in your area",
-          "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "National PACE Association",
-          "phone": "(703) 535-1565",
-          "description": "National organization with Connecticut PACE program directory",
-          "hours": "Mon-Fri 9am-5pm ET"
-        }
-      ],
-      "applicationNotes": [
-        "You cannot be enrolled in both PACE and Medicare Advantage, your loved one must choose one or the other",
-        "If your loved one has Medicaid, Connecticut may place a lien on their estate to recover PACE costs after death",
-        "PACE is not available everywhere in Connecticut, service area availability varies significantly by region",
-        "Your loved one can leave PACE at any time, but re-enrollment is not guaranteed if they want to return later"
-      ],
-      "relatedPrograms": [
-        "Connecticut Home Care Program for Elders",
-        "Money Follows the Person",
-        "Connecticut Medicaid Waiver Programs",
-        "Medicare Extra Help"
-      ],
-      "contentSections": [],
-      "faqs": [
-        {
-          "question": "Can my loved one keep seeing their current doctor after joining PACE?",
-          "answer": "No. PACE becomes your loved one's sole healthcare provider for all covered services. They must use PACE doctors, specialists, and facilities. This is the trade-off for coordinated care with no copays."
-        },
-        {
-          "question": "What happens if my loved one lives outside a PACE service area?",
-          "answer": "They cannot enroll. PACE is only available where PACE organizations operate, which is not statewide in Connecticut. Contact 2-1-1 to check if PACE serves your loved one's zip code."
-        },
-        {
-          "question": "How much does PACE cost if my loved one doesn't have Medicaid?",
-          "answer": "Non-Medicaid participants pay a monthly premium, but the exact amount varies by PACE organization and isn't publicly listed. Contact your local PACE program for current rates. Once enrolled, there are no deductibles or copays."
-        },
-        {
-          "question": "Can I apply for PACE while my loved one is still in the hospital?",
-          "answer": "Yes. Hospital discharge planners often help initiate PACE applications. The key is proving your loved one can live safely in the community with PACE services, even if they currently need hospital-level care."
-        },
-        {
-          "question": "What if my loved one's care needs increase after they're enrolled?",
-          "answer": "PACE continuously adjusts services as needs change, that's the program's strength. The interdisciplinary team reassesses regularly and adds services like more home care hours or adult day care without additional paperwork."
-        },
-        {
-          "question": "Does PACE cover my loved one's spouse who doesn't need nursing home-level care?",
-          "answer": "No. Each spouse must qualify individually. If only one spouse meets the nursing facility level of care requirement, only that spouse can enroll in PACE."
-        },
-        {
-          "question": "Can my loved one use Medicare Advantage and PACE together?",
-          "answer": "Absolutely not. Your loved one must disenroll from any Medicare Advantage plan, Medicare prepayment plan, or Medicare prescription drug plan before joining PACE. They cannot be in both programs simultaneously."
-        },
-        {
-          "question": "What happens to my loved one's estate if they have Medicaid and use PACE?",
-          "answer": "Connecticut may place a lien or claim against your loved one's estate (including their home) to recover PACE costs paid by Medicaid. This is part of Medicaid estate recovery rules, not specific to PACE."
-        }
-      ],
-      "layoutIntent": {
-        "aboutHighlight": "coverage",
-        "eligibilityDisplay": "simple-list",
-        "applyDisplay": "step-journey",
-        "hasLocationFinder": true,
-        "hasDocumentChecklist": true,
-        "visualTone": "editorial"
-      },
-      "icon": "Stethoscope",
-      "phone": "2-1-1",
-      "sourceUrl": "https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "snap-food-benefits",

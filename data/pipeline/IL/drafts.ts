@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-31T10:40:13.362Z
+ * Last updated: 2026-09-03T11:25:55.873Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1183,11 +1183,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "(877) 411-9276",
+      "phone": "1-833-711-0374",
       "sourceUrl": "https://dceo.illinois.gov/communityservices/homeweatherization.html",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-07"
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "ship-medicare-counseling",
@@ -1270,10 +1270,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "SHIP Illinois Hotline",
+          "label": "Illinois Senior HelpLine (SHIP counseling)",
           "phone": "1-800-252-8966",
           "description": "Schedule counseling appointments and get Medicare questions answered. For non-urgent questions you can also email Aging.SHIP@illinois.gov.",
-          "hours": "Business hours"
+          "hours": "Mon-Fri 8:30am-5:00pm CT"
         },
         {
           "label": "TDD/Relay Service",
@@ -1315,7 +1315,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-252-8966",
       "sourceUrl": "https://ilaging.illinois.gov/ship.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "ccp-home-delivered-meals",
@@ -1440,9 +1441,15 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "DuPage Senior Citizens Council",
+          "label": "Illinois Senior HelpLine (start here)",
+          "phone": "(800) 252-8966",
+          "hours": "Mon-Fri 8:30am-5:00pm CT",
+          "description": "Routes you to the Care Coordination Unit for your county."
+        },
+        {
+          "label": "DuPage County Department of Community Services (DuPage County only)",
           "phone": "(800) 942-9412",
-          "description": "Care coordination for DuPage County residents",
+          "description": "Main intake: (630) 407-6500.",
           "hours": "Mon-Fri 8:30am-4:30pm CT"
         },
         {
@@ -1537,7 +1544,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://ilaging.illinois.gov/programs/ccp.html",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "community-care-program",
@@ -1594,7 +1601,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Call the Senior HelpLine",
-            "description": "Contact Illinois Department on Aging at (800) 252-8966 or TTY (888) 206-1327. They'll connect you to your local Area Agency on Aging."
+            "description": "Contact Illinois Department on Aging at (800) 252-8966 or TTY 711. They'll connect you to your local Area Agency on Aging."
           },
           {
             "step": 2,
@@ -1643,7 +1650,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "label": "TTY Line",
-          "phone": "(888) 206-1327",
+          "phone": "711",
           "description": "For hearing impaired callers",
           "hours": "Business hours"
         }
@@ -1686,7 +1693,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 252-8966",
       "sourceUrl": "https://ilaging.illinois.gov/programs/ccp.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "scsep-employment-training",
@@ -1958,7 +1966,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "label": "TTY Line",
-          "phone": "1-888-206-1327",
+          "phone": "711",
           "description": "For hearing impaired callers",
           "hours": "Business hours"
         },
@@ -2006,7 +2014,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-252-8966",
       "sourceUrl": "https://ilga.gov/Documents/legislation/ilcs/documents/002001050K4.04.htm",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "legal-assistance-seniors",
@@ -2115,6 +2124,11 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Prairie State Legal Services - Legal Assistance for Older Adults (start here)",
+          "phone": "(888) 965-7757",
+          "hours": "Mon-Fri 9am-1pm CT"
+        },
+        {
           "label": "Prairie State Legal Services (Northern IL)",
           "phone": "(815) 965-2134",
           "description": "Serves Northern Illinois except Cook County",
@@ -2171,11 +2185,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "Scales",
-      "phone": "(800) 252-8966",
+      "phone": "(888) 965-7757",
       "sourceUrl": "https://ilaging.illinois.gov/programs/legalassistance.html",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-18"
+      "lastVerifiedDate": "2026-09-03"
     }
   ],
   "stateOverview": {

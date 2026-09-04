@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-31T10:40:13.364Z
+ * Last updated: 2026-09-03T11:25:55.876Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1002,7 +1002,7 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Local: Councils on Aging, senior centers, AgeSpan, LifePath, Access Care Partners; statewide coordination via Executive Office of Elder Affairs",
+            "name": "Local: Councils on Aging, senior centers, AgeSpan, LifePath, Access Care Partners; statewide coordination via Executive Office of Aging and Independence",
             "type": "service-area"
           }
         ]
@@ -1116,7 +1116,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-243-4636",
       "sourceUrl": "https://www.mass.gov/info-details/serving-the-health-insurance-needs-of-everyone-shine-program",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "meals-on-wheels",
@@ -1888,7 +1889,7 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Centralized administration through Commonwealth of Massachusetts Executive Office of Elder Affairs",
+            "name": "Centralized administration through Commonwealth of Massachusetts Executive Office of Aging and Independence",
             "type": "service-area"
           },
           {
@@ -2111,7 +2112,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 243-4636",
       "sourceUrl": "https://www.prescriptionadvantagema.org",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "home-modification-loan",
@@ -2345,14 +2347,14 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "MassAbility Home Care Program",
+            "name": "Executive Office of Aging and Independence Home Care Program",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your loved one is 60+ and needs daily help with bathing, dressing, or medication management, Massachusetts Home Care Program provides in-home assistance based on their assessed needs. Your loved one pays a sliding-scale co-payment of $10–141/month based on income, while the program covers the rest.\n\nThe program serves Massachusetts residents living at home who need functional assistance but don't qualify for nursing home care. MassHealth members automatically meet financial eligibility requirements. Non-MassHealth members must have income below $2,982/month for individuals in 2026.\n\nServices are determined through a comprehensive in-home assessment and may include personal care assistance, homemaking support, medication reminders, and meal preparation help. Processing takes 3–4 months from application to service start, and some areas may have waitlists depending on funding availability.",
+      "intro": "If your loved one is 60+ and needs daily help with bathing, dressing, or medication management, Massachusetts Home Care Program provides in-home assistance based on their assessed needs. Your loved one pays a sliding-scale co-payment of $10–141/month based on income, while the program covers the rest.\n\nThe program serves Massachusetts residents living at home who need functional assistance but don't qualify for nursing home care. MassHealth members automatically meet financial eligibility requirements. Non-MassHealth members must have income below $2,982/month for individuals in 2026.\n\nServices are determined through a comprehensive in-home assessment and may include personal care assistance, homemaking support, medication reminders, and meal preparation help. The Executive Office of Aging and Independence does not publish a processing time or a waitlist for this program, so ask your Aging Services Access Point on funding availability.",
       "savingsRange": "",
-      "savingsSource": "Subsidized in-home care service with income-based co-payments",
+      "savingsSource": "Subsidized in-home care with income-based co-payments. Mass.gov CY2026: the income guideline is under $2,982/month, with monthly co-payments of $10-$141 for one person and $14-$199 for two, rising to a percentage of service cost above that.",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
@@ -2384,12 +2386,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Call MassAbility at 617-204-3853 or start online referral, expect 3–4 months processing time including in-home assessment.",
+        "summary": "Call MassOptions at 1-800-243-4636 to reach the Aging Services Access Point for your area, which handles the in-home assessment.",
         "steps": [
           {
             "step": 1,
-            "title": "Contact MassAbility",
-            "description": "Call MassAbility Home Care Program at 617-204-3853 or MassAbility Connect at 617-204-3665. You can also start an online referral for Home Care Assistance Program (HCAP) at Mass.gov."
+            "title": "Contact MassOptions",
+            "description": "Call MassOptions at 1-800-243-4636. They route you to one of the 23 Aging Services Access Points (ASAPs) across the state, which take Home Care Program referrals for people 60 and older."
           },
           {
             "step": 2,
@@ -2412,13 +2414,17 @@ export const drafts: PipelineStateDrafts = {
             "description": "If approved, receive a care plan detailing specific services, hours, and your monthly co-payment. Services typically begin after plan approval and provider assignment."
           }
         ],
-        "processingTime": "3–4 months from application to service start",
-        "waitlist": "May have waitlist depending on funding availability or regional demand",
+        "processingTime": "Not published by the Executive Office of Aging and Independence. Ask your ASAP for a current timeline.",
+        "waitlist": "No waitlist is published for the Home Care Program. Ask your ASAP about current availability.",
         "tip": "Apply even if you're unsure about financial eligibility, MassHealth members often qualify automatically, and the functional assessment happens regardless of income.",
         "urls": [
           {
-            "label": "Online HCAP Referral",
+            "label": "Home Care Program (Aging and Independence)",
             "url": "https://www.mass.gov/info-details/home-care-program"
+          },
+          {
+            "label": "Find your regional Aging Services Access Point",
+            "url": "https://www.mass.gov/info-details/find-your-regional-aging-services-access-point-asap"
           }
         ]
       },
@@ -2439,21 +2445,14 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "MassAbility Home Care Program",
-          "phone": "(617) 204-3853",
-          "description": "Primary application and eligibility line",
-          "hours": "Monday-Friday 8:30am-5pm ET"
-        },
-        {
-          "label": "MassAbility Connect",
-          "phone": "(617) 204-3665",
-          "description": "General information and referrals",
-          "hours": "Monday-Friday 8:30am-5pm ET"
+          "label": "MassOptions (start here)",
+          "phone": "(800) 243-4636",
+          "hours": "Mon-Fri 9:00am-5:00pm ET",
+          "description": "The statewide front door for the Executive Office of Aging and Independence Home Care Program, which serves people 60 and older. They connect you to the Aging Services Access Point for your area. Interpreter services in 100+ languages."
         },
         {
           "label": "Massachusetts 2-1-1",
           "phone": "2-1-1",
-          "description": "24/7 helpline for all social services and aging resources",
           "hours": "24 hours, 7 days a week"
         }
       ],
@@ -2514,7 +2513,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can I apply on behalf of my elderly loved one?",
-          "answer": "Yes, family members can initiate the application process by calling 617-204-3853. However, your loved one will need to participate in the in-home assessment, and you'll need power of attorney or guardianship documentation to make decisions on their behalf if they cannot participate fully."
+          "answer": "Yes, family members can initiate the application process by calling 1-800-243-4636. However, your loved one will need to participate in the in-home assessment, and you'll need power of attorney or guardianship documentation to make decisions on their behalf if they cannot participate fully."
         },
         {
           "question": "What happens if my loved one's needs increase after enrollment?",
@@ -2542,10 +2541,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "(617) 204-3853",
+      "phone": "(800) 243-4636",
       "sourceUrl": "https://www.mass.gov/info-details/home-care-program",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "ecop-home-care",

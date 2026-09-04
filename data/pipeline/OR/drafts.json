@@ -22,14 +22,14 @@
           }
         ]
       },
-      "intro": "If your loved one is 60+ or has a qualifying disability and needs help with bathing, dressing, or other daily activities but earns too much for regular Medicaid, Oregon's OPI-M program may help. This Medicaid-funded program covers in-home care services like personal care, adult day care, home modifications, and emergency response systems for people with higher incomes, up to $5,217/month for individuals in 2025.\n\nUnlike nursing home Medicaid, OPI-M is designed to help your loved one stay in their own home or with family. Because it accepts income up to 400% of the Federal Poverty Level, many families who couldn't afford private care but earned too much for standard Medicaid programs can qualify. Your loved one gets 24 months of continuous coverage even if their income changes, and one team coordinates all their long-term care services.",
+      "intro": "If your loved one is 60+ or has a qualifying disability and needs help with bathing, dressing, or other daily activities but earns too much for regular Medicaid, Oregon's OPI-M program may help. This Medicaid-funded program covers in-home care services like personal care, adult day care, home modifications, and emergency response systems for people with higher incomes, up to $5,320/month for individuals in 2025.\n\nUnlike nursing home Medicaid, OPI-M is designed to help your loved one stay in their own home or with family. Because it accepts income up to 400% of the Federal Poverty Level, many families who couldn't afford private care but earned too much for standard Medicaid programs can qualify. Your loved one gets 24 months of continuous coverage even if their income changes, and one team coordinates all their long-term care services.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 60+ or 18-59 with qualifying disability",
-          "Income below $5,217/month (individual)",
+          "Income below $5,320/month (individual)",
           "Oregon resident",
           "Needs help with daily activities",
           "Lives at home (not facility)"
@@ -38,11 +38,11 @@
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 5217
+            "monthlyLimit": 5320
           }
         ],
         "assetLimits": {
-          "individual": null,
+          "individual": 103645,
           "couple": null,
           "countedAssets": [
             "Bank accounts",
@@ -59,7 +59,7 @@
         "functionalRequirement": "Must score at Service Priority Levels 1-18, which means needing help with daily activities like transferring, mobility, eating, toileting, bathing, or dressing. No nursing home level of care required.",
         "otherRequirements": [
           "Must live in own home or with family (not assisted living or adult foster homes)",
-          "Cannot receive other Medicaid long-term care services at the same time",
+          "Cannot receive other Medicaid long-term care services at the same time. Being enrolled in Medicaid or the Oregon Health Plan does not by itself rule OPI-M out.",
           "For ages 18-59: Must have qualifying physical disability meeting Social Security standards"
         ],
         "povertyLevelReference": "400% FPL"
@@ -71,7 +71,7 @@
           {
             "step": 1,
             "title": "Contact your local ADRC",
-            "description": "Find your local Aging and Disability Resource Connection through Oregon DHS seniors-disabilities services. They'll schedule a functional assessment to determine your Service Priority Level."
+            "description": "Call or visit your local Aging and People with Disabilities (APD) or Area Agency on Aging (AAA) office, which schedules the functional assessment that sets the Service Priority Level. The ADRC (855-673-2372) can help you find it."
           },
           {
             "step": 2,
@@ -122,15 +122,13 @@
       ],
       "contacts": [
         {
-          "label": "Oregon DHS Customer Service",
-          "phone": "1-855-673-2525",
-          "description": "General questions about Oregon benefits and services",
-          "hours": "Mon-Fri 7am-6pm PT"
+          "label": "Aging and Disability Resource Connection (ADRC) of Oregon (start here)",
+          "phone": "(855) 673-2372",
+          "description": "Options counselling and routing. They can talk through OPI-M and point you to the local Aging and People with Disabilities or Area Agency on Aging office, which is where the assessment happens. Hours vary by local ADRC."
         },
         {
           "label": "2-1-1 Oregon",
           "phone": "2-1-1",
-          "description": "Free helpline to find local ADRC offices and other social services",
           "hours": "24 hours, 7 days a week"
         }
       ],
@@ -138,8 +136,8 @@
         "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You cannot apply directly for OPI-M, you must first be assessed and approved for services through your local ADRC",
         "If your loved one receives other Medicaid long-term care services like SPPC or APD Waiver, they cannot also receive OPI-M, you must choose one program",
-        "For couples, only the applicant's income counts toward the $5,217 limit, but there's no spousal income allowance to protect the spouse's finances",
-        "Asset limits are higher than standard Medicaid but the exact dollar amount varies, it's equivalent to six months of Medicaid nursing facility costs in your area"
+        "For couples, only the applicant's income counts toward the $5,320 limit, but there's no spousal income allowance to protect the spouse's finances",
+        "Asset limits are higher than standard Medicaid but the exact dollar amount varies, it's equivalent to six months of Medicaid nursing facility costs, set as one statewide figure"
       ],
       "relatedPrograms": [
         "SPPC (State Plan Personal Care)",
@@ -150,7 +148,7 @@
       "faqs": [
         {
           "question": "Can my loved one receive OPI-M and other Medicaid long-term care services at the same time?",
-          "answer": "No. Your loved one cannot receive OPI-M simultaneously with other Medicaid long-term care services like SPPC, APD Waiver, or Healthier Oregon services. You must choose which program best fits their needs. Contact your local ADRC to compare options."
+          "answer": "Not at the same time as other Medicaid long-term care services like SPPC, the APD Waiver, or Healthier Oregon services. Being on Medicaid or the Oregon Health Plan is different: ODHS says some people with Medicaid or OHP can also get OPI-M. Contact your local APD or AAA office to compare options."
         },
         {
           "question": "What if my loved one lives in assisted living or adult foster care?",
@@ -161,7 +159,7 @@
           "answer": "Yes, but they must meet Social Security disability standards for physical disabilities. The program excludes people with only intellectual/developmental disabilities or mental health/substance use disorders unless they meet specific additional criteria. Contact your ADRC for a disability determination."
         },
         {
-          "question": "What happens if my loved one's income goes over $5,217 after they're enrolled?",
+          "question": "What happens if my loved one's income goes over $5,320 after they're enrolled?",
           "answer": "Your loved one keeps their OPI-M coverage for 24 months even if their income or assets change. This continuous coverage period protects against temporary income fluctuations, but you'll need to reapply after 24 months."
         },
         {
@@ -174,7 +172,7 @@
         },
         {
           "question": "What's the difference between OPI-M and regular Medicaid long-term care?",
-          "answer": "OPI-M accepts much higher incomes (up to $5,217/month vs. about $1,000 for regular Medicaid) and higher asset limits, but requires Oregon residency and specific living arrangements. It also doesn't require nursing home level of care, just needing help with daily activities."
+          "answer": "OPI-M accepts much higher incomes (up to $5,320/month vs. about $1,000 for regular Medicaid) and higher asset limits, but requires Oregon residency and specific living arrangements. It also doesn't require nursing home level of care, just needing help with daily activities."
         },
         {
           "question": "Will my loved one's home count against the asset limit?",
@@ -190,11 +188,11 @@
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "1-855-673-2525",
+      "phone": "(855) 673-2372",
       "sourceUrl": "https://www.oregon.gov/odhs/providers-partners/seniors-disabilities",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "pace-elderly-care",
@@ -593,43 +591,48 @@
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 2608
+            "monthlyLimit": 2660
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 3526
+            "monthlyLimit": 3607
           },
           {
             "householdSize": 3,
-            "monthlyLimit": 4442
+            "monthlyLimit": 4554
           },
           {
             "householdSize": 4,
-            "monthlyLimit": 5358
+            "monthlyLimit": 5500
           },
           {
             "householdSize": 5,
-            "monthlyLimit": 6276
+            "monthlyLimit": 6447
           },
           {
             "householdSize": 6,
-            "monthlyLimit": 7192
+            "monthlyLimit": 7394
           },
           {
             "householdSize": 7,
-            "monthlyLimit": 8108
+            "monthlyLimit": 8340
+          },
+          {
+            "householdSize": 8,
+            "monthlyLimit": 9287
           }
         ],
         "assetLimits": {
-          "individual": null,
-          "couple": null,
+          "individual": 4500,
+          "couple": 4500,
           "countedAssets": [
-            "Retirement accounts (401k, IRA, pension)"
+            "Liquid assets from lottery or gambling winnings above the state limit"
           ],
           "exemptAssets": [
             "Your home",
             "One vehicle",
             "Bank accounts",
+            "Retirement accounts",
             "Personal belongings"
           ],
           "homeEquityCap": null
@@ -684,7 +687,7 @@
       },
       "documentsNeeded": [
         "Social Security award letter or pension statements",
-        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
+        "The current balance of any checking or savings accounts. In Oregon most households are approved with no asset test at all, but a limit ($4,500 when someone in the home is 60 or older or has a disability) still applies in a few situations, so bring the numbers.",
         "Proof of Oregon residency (utility bill, lease, or state-issued document)",
         "Valid government-issued photo ID",
         "Citizenship documents (birth certificate, passport, or naturalization papers)",
@@ -699,25 +702,24 @@
       ],
       "contacts": [
         {
-          "label": "State SNAP agency (start here)",
-          "phone": "(800) 723-3638",
-          "description": "Apply for SNAP and ask about your application",
-          "hours": null
+          "label": "Apply for SNAP by phone (start here)",
+          "phone": "(800) 699-9075",
+          "hours": "Mon-Fri 7am-6pm PT",
+          "description": "ODHS ONE Customer Service Center. You can apply, renew, or ask about your application on this line. ODHS notes wait times are longer than usual on its new phone system."
+        },
+        {
+          "label": "Aging and Disability Resource Connection (ADRC) of Oregon",
+          "phone": "(855) 673-2372",
+          "description": "ODHS recommends this as the best first call for older adults and people with disabilities. Hours vary by local ADRC."
         },
         {
           "label": "Oregon 2-1-1",
           "phone": "2-1-1",
-          "description": "Free 24/7 helpline for SNAP and other social services",
           "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "Oregon Department of Human Services",
-          "phone": "1-855-503-FOOD",
-          "description": "SNAP application assistance and questions",
-          "hours": "Mon-Fri 8am-5pm PT"
         }
       ],
       "applicationNotes": [
+        "Since June 1, 2026 Oregon requires a SNAP interview for every household, including households where all adults are 60 or older with no earned income. Those households were previously exempt, so this may be their first interview at renewal.",
         "Households with all members 65+ in Clackamas, Columbia, Multnomah, and Washington counties can receive benefits as direct deposit or check instead of EBT card",
         "If your loved one lives with you but buys food separately, they may still be counted as one household, household definition affects benefit amounts",
         "Work requirements now apply statewide and affect about 37,000 Oregonians, able-bodied adults 18-64 without disabilities or children may only receive 3 months of benefits unless working",
@@ -737,7 +739,7 @@
         },
         {
           "question": "My loved one's Social Security is $2,100/month, can they still qualify in Oregon?",
-          "answer": "Yes, they may still qualify because Oregon uses 200% of federal poverty level ($2,608/month for one person). Plus, if your loved one is 60+, out-of-pocket medical expenses reduce their countable income. Medical deductions for prescription costs, Medicare premiums, and doctor copays could bring them under the income limit."
+          "answer": "Yes, they may still qualify because Oregon uses 200% of federal poverty level ($2,660/month for one person). Plus, if your loved one is 60+, out-of-pocket medical expenses reduce their countable income. Medical deductions for prescription costs, Medicare premiums, and doctor copays could bring them under the income limit."
         },
         {
           "question": "Can I shop for groceries using my loved one's SNAP benefits?",
@@ -773,11 +775,11 @@
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "(800) 723-3638",
+      "phone": "(800) 699-9075",
       "sourceUrl": "https://www.oregon.gov/odhs/food/pages/snap.aspx",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "liheap-energy-assistance",
@@ -2240,7 +2242,7 @@
         },
         {
           "question": "How do I find the income limit for my loved one's county?",
-          "answer": "Income limits are 50% of Area Median Income, which varies by county and household size. Contact your local homeless prevention program through OHCS at (503) 986-2000 for exact dollar amounts in your area."
+          "answer": "Call 2-1-1, or text your zip code to 898211, to be connected to the local community action agency that runs homeless prevention in your county. Oregon Housing and Community Services funds those agencies but does not provide services directly and cannot take your application."
         },
         {
           "question": "Can I apply on behalf of my elderly loved one?",
@@ -2272,11 +2274,11 @@
         "visualTone": "editorial"
       },
       "icon": "HouseLine",
-      "phone": "(503) 986-2000",
+      "phone": "(800) 453-5511",
       "sourceUrl": "https://secure.sos.state.or.us/oard/displayDivisionRules.action?selectedDivision=3636",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-11"
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "senior-tuition-audit",

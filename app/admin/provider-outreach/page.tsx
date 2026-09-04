@@ -323,6 +323,8 @@ interface OutreachProvider {
   email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
   // Whether email has been manually overridden/trusted
   is_email_overridden?: boolean;
+  // Admin who locked this email as confirmed
+  email_locked_by?: string | null;
   // Generic email warning state (persisted for page refresh)
   generic_email_called_at?: string | null;
   generic_email_skipped_at?: string | null;
@@ -8082,6 +8084,17 @@ export default function ProviderOutreachPage() {
             // Update drawer provider too
             setDrawerProvider((prev) =>
               prev && prev.provider_id === providerId ? { ...prev, fax_number: fax } : prev
+            );
+          }}
+          onEmailLockToggle={(providerId, lockedBy) => {
+            setProviders((prev) =>
+              prev.map((p) =>
+                p.provider_id === providerId ? { ...p, email_locked_by: lockedBy } : p
+              )
+            );
+            // Update drawer provider too
+            setDrawerProvider((prev) =>
+              prev && prev.provider_id === providerId ? { ...prev, email_locked_by: lockedBy } : prev
             );
           }}
           onLaunchSequence={(providerId) => {

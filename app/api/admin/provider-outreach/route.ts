@@ -89,6 +89,7 @@ interface ProviderRow {
   phone: string | null;
   website: string | null;
   slug: string | null;
+  email_locked_by: string | null;
 }
 
 // Apollo contact structure stored in JSONB
@@ -199,6 +200,8 @@ export interface OutreachProvider {
   email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
   // Whether email has been manually overridden/trusted (from email_overrides table)
   is_email_overridden?: boolean;
+  // Admin who locked this email as confirmed (simple visual indicator)
+  email_locked_by?: string | null;
   // Generic email warning state (persisted for page refresh)
   generic_email_called_at?: string | null;
   generic_email_skipped_at?: string | null;
@@ -673,7 +676,7 @@ export async function GET(request: NextRequest) {
     const providerIds = trackingRows.map((t) => t.provider_id);
     const { data: providerRows, error: provError } = await db
       .from("olera-providers")
-      .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug")
+      .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug, email_locked_by")
       .in("provider_id", providerIds)
       .or("deleted.is.null,deleted.eq.false");
 
@@ -917,6 +920,8 @@ export async function GET(request: NextRequest) {
           generic_email_skipped_at: t.generic_email_skipped_at ?? null,
           // Apollo.io decision-maker enrichment
           apollo_contact: t.apollo_contact ?? null,
+          // Email lock indicator
+          email_locked_by: p.email_locked_by ?? null,
         };
       })
       .filter((p): p is OutreachProvider => p !== null)
@@ -1016,7 +1021,7 @@ async function getNotContactedProviders(
   // Step 4: Get all providers in this state (we need to display them anyway)
   let providerQuery = db
     .from("olera-providers")
-    .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug")
+    .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug, email_locked_by")
     .eq("state", state)
     .or("deleted.is.null,deleted.eq.false");
 
@@ -1084,6 +1089,8 @@ async function getNotContactedProviders(
         apollo_contact: tracking?.apollo_contact ?? null,
         // Email source: 'organization' or 'decision_maker'
         email_source: (tracking?.email_source as "organization" | "decision_maker") ?? "organization",
+        // Email lock indicator
+        email_locked_by: p.email_locked_by ?? null,
       };
     });
 
@@ -1138,7 +1145,7 @@ async function getClaimedProviders(
   const providers = await batchedInQuery<ProviderRow>(
     db,
     "olera-providers",
-    "provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug",
+    "provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug, email_locked_by",
     "provider_id",
     claimedProviderIds,
     { state, city: city || undefined, notDeleted: true }
@@ -1220,6 +1227,8 @@ async function getClaimedProviders(
         // Generic email warning state (not applicable for claimed)
         generic_email_called_at: null,
         generic_email_skipped_at: null,
+        // Email lock indicator
+        email_locked_by: p.email_locked_by ?? null,
       };
     })
     .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
@@ -1264,7 +1273,7 @@ async function getHiddenProviders(
   const providerIds = trackingRows.map((t) => t.provider_id);
   const { data: providerRows, error: provError } = await db
     .from("olera-providers")
-    .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug")
+    .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug, email_locked_by")
     .in("provider_id", providerIds)
     .or("deleted.is.null,deleted.eq.false");
 
@@ -1330,6 +1339,8 @@ async function getHiddenProviders(
         generic_email_skipped_at: t.generic_email_skipped_at ?? null,
         // Apollo.io decision-maker enrichment
         apollo_contact: t.apollo_contact ?? null,
+        // Email lock indicator
+        email_locked_by: p.email_locked_by ?? null,
       };
     })
     .filter((p): p is OutreachProvider => p !== null)
@@ -1375,7 +1386,7 @@ async function getArchivedProviders(
     // Get provider details
     const { data: providerRows } = await db
       .from("olera-providers")
-      .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug")
+      .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug, email_locked_by")
       .in("provider_id", trackingProviderIds);
 
     const providerMap = new Map((providerRows || []).map((p) => [p.provider_id, p as ProviderRow]));
@@ -1432,6 +1443,8 @@ async function getArchivedProviders(
         generic_email_skipped_at: t.generic_email_skipped_at ?? null,
         // Apollo.io decision-maker enrichment
         apollo_contact: t.apollo_contact ?? null,
+        // Email lock indicator
+        email_locked_by: p.email_locked_by ?? null,
       });
     }
   }
@@ -1451,7 +1464,7 @@ async function getArchivedProviders(
     // Get provider details from olera-providers, filtered by state
     let providerQuery = db
       .from("olera-providers")
-      .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug")
+      .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug, email_locked_by")
       .in("provider_id", adminArchivedSourceIds)
       .eq("state", state)
       .or("deleted.is.null,deleted.eq.false");
@@ -1536,6 +1549,8 @@ async function getArchivedProviders(
           // Generic email warning state (not applicable for system-archived)
           generic_email_called_at: null,
           generic_email_skipped_at: null,
+          // Email lock indicator
+          email_locked_by: p.email_locked_by ?? null,
         });
       }
     }
@@ -1559,7 +1574,7 @@ async function searchProviders(
   // Get all providers in this state matching the search term
   const { data: providers, error: provError } = await db
     .from("olera-providers")
-    .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug")
+    .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug, email_locked_by")
     .eq("state", state)
     .or("deleted.is.null,deleted.eq.false")
     .ilike("provider_name", `%${search}%`)
@@ -1778,6 +1793,8 @@ async function searchProviders(
       apollo_contact: tracking?.apollo_contact ?? null,
       // Email source: 'organization' or 'decision_maker'
       email_source: (tracking?.email_source as "organization" | "decision_maker") ?? "organization",
+      // Email lock indicator
+      email_locked_by: p.email_locked_by ?? null,
     };
   });
 

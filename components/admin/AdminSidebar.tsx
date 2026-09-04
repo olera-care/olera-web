@@ -132,11 +132,14 @@ const STAKEHOLDERS_KEY = "stakeholders";
 // anchor (where a prospecting pass starts), then the In Basket daily work
 // queue, then Stats — the analytic hub that links out to the full list pages
 // (Prospects, Calls, Emails, Meetings, Clients, Partners, Candidates, and Logs
-// — whose routes still exist, just no longer in the sidebar).
+// — whose routes still exist, just no longer in the sidebar). SOP closes the
+// list: the implementation matrix, which describes how every one of the other
+// three is meant to be worked.
 const medjobsItems: NavItem[] = [
   { label: "Sites",     href: "/admin/medjobs/sites" },
   { label: "In Basket", href: "/admin/medjobs/in-basket" },
   { label: "Stats",     href: "/admin/medjobs/stats" },
+  { label: "SOP",       href: "/admin/medjobs/sop" },
 ];
 
 /** Map nav-item href → sidebar-counts response key. Only In Basket and Sites
@@ -145,6 +148,7 @@ const COUNTS_KEY: Record<string, string | null> = {
   "/admin/medjobs/in-basket": "in_basket",
   "/admin/medjobs/sites":     "sites",
   "/admin/medjobs/stats":     null,
+  "/admin/medjobs/sop":       null,
 };
 
 interface CountEntry {

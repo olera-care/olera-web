@@ -79,6 +79,9 @@ export interface CampaignRequest {
    *  answered, which is NOT the same as an answer of "no". */
   provider_reported_outcome?: "client" | "talking" | "no" | null;
   provider_reported_outcome_at?: string | null;
+  /** Migration 204. Non-null = automated provider email is held while this campaign is under experiment. */
+  provider_comms_paused_at?: string | null;
+  provider_comms_paused_reason?: string | null;
   /** Paid plan lifecycle from Stripe (Phase 2). NULL = never subscribed. */
   plan_status?: "active" | "past_due" | "canceled" | null;
   /** Subscribed self-serve plan in whole USD (75/150/300). Historical/custom values may also exist. */

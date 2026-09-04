@@ -9,10 +9,91 @@ export function gmailOAuthRedirectUri(origin: string): string {
 }
 
 export class GmailApiError extends Error {
-  constructor(message: string, public status: number, public body: string) {
-    super(message);
+  readonly reasons: string[];
+  constructor(message: string, public status: number, public body: string, public retryAfterMs = 0) {
+    const reasons = gmailErrorReasons(body);
+    super(`${message} (HTTP ${status}${reasons.length ? `: ${reasons.join(", ")}` : ""})`);
     this.name = "GmailApiError";
+    this.reasons = reasons;
+    this.retryAfterMs = Math.max(retryAfterMs, quotaWindowDelay(body));
   }
+}
+
+function quotaWindowDelay(body: string): number {
+  try {
+    const details = JSON.parse(body).error?.details;
+    if (!Array.isArray(details)) return 0;
+    for (const detail of details) {
+      const metadata = detail.metadata;
+      if (detail.reason !== "RATE_LIMIT_EXCEEDED" ||
+        metadata?.service !== "gmail.googleapis.com" ||
+        metadata.quota_unit !== "1/min/{project}/{user}") continue;
+      const start = Number(metadata.window_start_time) * 1_000;
+      if (Number.isFinite(start) && start <= Date.now() && Date.now() - start < 60_000) {
+        return start + 61_000 - Date.now();
+      }
+    }
+  } catch { /* Not every Gmail error includes quota window metadata. */ }
+  return 0;
+}
+
+// The current Gmail per-user quota is 6,000 units/minute, with message
+// reads costing 20 units. Reserve slots before concurrent callers await them
+// so a ten-message import batch cannot burst past the mailbox limit. Leave
+// 25% headroom for other instances/admin activity; server backoff still wins.
+const gmailReadSlots = new Map<string, { nextAt: number; cooldownUntil: number }>();
+function gmailReadCost(path: string): number {
+  if (path.startsWith("/history?")) return 2;
+  if (path === "/profile") return 1;
+  if (path.startsWith("/messages?")) return 5;
+  if (path.startsWith("/threads/")) return 40;
+  return 20; // Message, attachment, and draft reads.
+}
+
+async function paceGmailRead(accessToken: string, path: string, deadline: number): Promise<void> {
+  const now = Date.now();
+  for (const [token, slot] of gmailReadSlots) {
+    if (slot.nextAt < now - 60_000 && slot.cooldownUntil < now) gmailReadSlots.delete(token);
+  }
+  const slot = gmailReadSlots.get(accessToken) ?? { nextAt: now, cooldownUntil: 0 };
+  gmailReadSlots.set(accessToken, slot);
+  const at = Math.max(now, slot.nextAt, slot.cooldownUntil);
+  if (at >= deadline) throw new Error("Gmail read quota wait exceeded request budget");
+  slot.nextAt = at + Math.ceil(gmailReadCost(path) * 60_000 / 4_500);
+  if (at > now) await new Promise(resolve => setTimeout(resolve, at - now));
+  // Another in-flight read may discover a server cooldown while this one
+  // was queued. Honor it before issuing the request.
+  if (slot.cooldownUntil > Date.now()) {
+    if (slot.cooldownUntil >= deadline) throw new Error("Gmail read quota wait exceeded request budget");
+    await new Promise(resolve => setTimeout(resolve, slot.cooldownUntil - Date.now()));
+  }
+}
+
+function gmailErrorReasons(body: string): string[] {
+  try {
+    const parsed = JSON.parse(body);
+    const candidates: unknown[] = typeof parsed.error === "string"
+      ? [parsed.error]
+      : (parsed.error?.errors ?? []).map((error: { reason?: unknown }) => error.reason);
+    // Persist machine-readable codes, never an arbitrary response body that
+    // could echo message contents or authentication details.
+    return [...new Set(candidates.filter((reason): reason is string =>
+      typeof reason === "string" && /^[a-zA-Z][a-zA-Z0-9_.-]{0,79}$/.test(reason)))];
+  } catch { return []; }
+}
+
+function retryAfterMs(header: string | null): number {
+  if (!header) return 0;
+  const seconds = Number(header);
+  if (Number.isFinite(seconds)) return Math.max(0, seconds * 1_000);
+  const timestamp = Date.parse(header);
+  return Number.isFinite(timestamp) ? Math.max(0, timestamp - Date.now()) : 0;
+}
+
+function canRetryGmailRead(error: GmailApiError): boolean {
+  return [429, 500, 502, 503, 504].includes(error.status) ||
+    (error.status === 403 && error.reasons.some(reason =>
+      ["rateLimitExceeded", "userRateLimitExceeded"].includes(reason)));
 }
 
 interface GmailHeader { name: string; value: string }
@@ -126,9 +207,12 @@ export async function gmailAccessToken(refreshToken: string): Promise<string> {
 
 async function gmailRequest<T>(accessToken: string, path: string, init: RequestInit = {}): Promise<T> {
   const method = (init.method ?? "GET").toUpperCase();
-  const maxAttempts = method === "GET" ? 3 : 1;
+  const maxAttempts = method === "GET" ? 4 : 1;
+  const deadline = Date.now() + 60_000;
   let lastError: unknown;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    let delay = 1_000 * 2 ** (attempt - 1) + Math.floor(Math.random() * 1_000);
+    if (method === "GET") await paceGmailRead(accessToken, path, deadline);
     try {
       const res = await fetch(`${GMAIL_API}${path}`, {
         ...init,
@@ -137,19 +221,27 @@ async function gmailRequest<T>(accessToken: string, path: string, init: RequestI
           ...(init.body ? { "Content-Type": "application/json" } : {}),
           ...(init.headers ?? {}),
         },
-        signal: AbortSignal.timeout(30_000),
+        signal: AbortSignal.timeout(Math.min(30_000, Math.max(1, deadline - Date.now()))),
       });
       const body = await res.text();
       if (res.ok) return (body ? JSON.parse(body) : {}) as T;
-      const error = new GmailApiError(`Gmail API ${path} failed`, res.status, body);
-      if (![429, 500, 502, 503, 504].includes(res.status) || attempt === maxAttempts) throw error;
+      const error = new GmailApiError(`Gmail API ${path} failed`, res.status, body, retryAfterMs(res.headers.get("Retry-After")));
+      if (!canRetryGmailRead(error) || attempt === maxAttempts) throw error;
       lastError = error;
+      delay = Math.max(delay, error.retryAfterMs);
+      if (method === "GET" && (error.status === 403 || error.status === 429)) {
+        const slot = gmailReadSlots.get(accessToken)!;
+        slot.cooldownUntil = Math.max(slot.cooldownUntil, Date.now() + delay);
+      }
     } catch (error) {
       if (error instanceof GmailApiError) throw error;
       lastError = error;
       if (attempt === maxAttempts) throw error;
     }
-    await new Promise((resolve) => setTimeout(resolve, 250 * 2 ** (attempt - 1)));
+    // Leave a long server-requested cooldown to a later worker invocation;
+    // never shorten it to fit this request's bounded retry window.
+    if (Date.now() + delay >= deadline) throw lastError;
+    await new Promise((resolve) => setTimeout(resolve, delay));
   }
   throw lastError;
 }
@@ -168,14 +260,21 @@ export function watchGmail(accessToken: string, topicName: string) {
   });
 }
 
-export function listGmailMessages(accessToken: string, pageToken?: string | null, maxResults = 100) {
+export function listGmailMessages(accessToken: string, pageToken?: string | null, maxResults = 100, query?: string) {
   const params = new URLSearchParams({ maxResults: String(maxResults), includeSpamTrash: "true" });
   if (pageToken) params.set("pageToken", pageToken);
+  if (query) params.set("q", query);
   return gmailRequest<{
     messages?: Array<{ id: string; threadId: string }>;
     nextPageToken?: string;
     resultSizeEstimate?: number;
   }>(accessToken, `/messages?${params}`);
+}
+
+/** Read sync metadata only: no subjects, participants, headers, or bodies. */
+export function getGmailMessageSyncMetadata(accessToken: string, messageId: string) {
+  return gmailRequest<Pick<GmailMessage, "id" | "threadId" | "internalDate" | "labelIds">>(accessToken,
+    `/messages/${encodeURIComponent(messageId)}?format=metadata&fields=id,threadId,internalDate,labelIds`);
 }
 
 export function getGmailMessage(accessToken: string, messageId: string) {

@@ -590,7 +590,7 @@ function extractCoverageItems(program: WaiverProgram): { label: string; icon: Ph
     [/personal attendant|attendant service|in-home care/i, "Personal attendants", "attendant"],
     [/home modification|adaptive aid|home repair/i, "Home modifications", "modification"],
     [/dental/i, "Dental care", "dental"],
-    [/vision/i, "Vision care", "vision"],
+    [/\bvision\b/i, "Vision care", "vision"],
     [/transport/i, "Transportation", "transport"],
     [/prescription|medication/i, "Prescriptions", "prescription"],
     [/medical equipment|wheelchair|durable medical/i, "Medical equipment", "equipment"],

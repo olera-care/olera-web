@@ -16,6 +16,7 @@ type SkipReason =
   | "missing_campaign"
   | "missing_email"
   | "unknown_campaign"
+  | "comms_paused"
   | "already_sent"
   | "send_failed";
 
@@ -48,7 +49,9 @@ export async function sendAdBoostLeadDeliveredEmail(opts: {
 
   const { data: campaign, error: campaignError } = await db
     .from("ad_campaign_requests")
-    .select("id, provider_slug, provider_id, display_name, status, deleted_at")
+    .select(
+      "id, provider_slug, provider_id, display_name, status, deleted_at, provider_comms_paused_at, provider_comms_paused_reason",
+    )
     .eq("campaign_tag", campaignTag)
     .is("deleted_at", null)
     .neq("status", "cancelled")
@@ -61,6 +64,18 @@ export async function sendAdBoostLeadDeliveredEmail(opts: {
   }
   if (!campaign) {
     return { sent: false, skipped: "unknown_campaign" };
+  }
+
+  // A campaign under active experiment does not congratulate the provider. This email
+  // says "your campaign brought in a new family" — true, but the wrong thing to send
+  // about a campaign whose settings we changed this week and whose result we do not
+  // yet understand. The lead itself is unaffected: it still lands in the provider's
+  // Olera inbox and still triggers the lead-alert SMS. Only this email is withheld.
+  if (campaign.provider_comms_paused_at) {
+    console.log(
+      `[ad-boost/lead-email] paused for ${campaignTag}: ${campaign.provider_comms_paused_reason ?? "no reason recorded"}`,
+    );
+    return { sent: false, skipped: "comms_paused" };
   }
 
   const { data: existing, error: existingError } = await db

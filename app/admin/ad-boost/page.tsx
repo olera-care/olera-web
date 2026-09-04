@@ -29,10 +29,20 @@ export default function AdminAdBoostPage() {
   const [counts, setCounts] = useState({ active: 0, archived: 0 });
   const [error, setError] = useState<string | null>(null);
   const [view, setView] = useState<"active" | "archived">("active");
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
+  // Defaults to Live: the campaigns actually spending money are what this page
+  // is opened for. `load` re-applies this per view — Archived never defaults to
+  // Live (archived rows are ended/cancelled), and an active queue with nothing
+  // live falls back to All so the page never opens on an empty list.
+  const [statusFilter, setStatusFilter] = useState<string | null>("live");
   const [sort, setSort] = useState<AdBoostQueueSort>("priority");
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(
     () => new Set(),
+  );
+  // Tweaks whose review date has passed that nobody has come back to. The point of the
+  // case log is that the system asks rather than the operator remembering, so an overdue
+  // review has to appear on the page you land on, not only on the campaign you open.
+  const [overdueByRequest, setOverdueByRequest] = useState<Map<string, number>>(
+    () => new Map(),
   );
 
   const load = useCallback(async () => {
@@ -46,8 +56,28 @@ export default function AdminAdBoostPage() {
         throw new Error(j.error || "Failed to load");
       }
       const json = await res.json();
-      setRequests(json.requests as CampaignRequest[]);
+      const rows = json.requests as CampaignRequest[];
+      setRequests(rows);
+      setStatusFilter(
+        view === "active" && rows.some((row) => row.status === "live") ? "live" : null,
+      );
       if (json.counts) setCounts(json.counts);
+
+      // Non-blocking: a failure here should dim the badges, never the queue.
+      try {
+        const od = await fetch("/api/admin/ad-boost/case?overdue=1");
+        if (od.ok) {
+          const odJson = await od.json();
+          const tally = new Map<string, number>();
+          for (const row of (odJson.overdue ?? []) as Array<{ request_id: string | null }>) {
+            if (!row.request_id) continue;
+            tally.set(row.request_id, (tally.get(row.request_id) ?? 0) + 1);
+          }
+          setOverdueByRequest(tally);
+        }
+      } catch {
+        // Leave the map empty; the queue still works without badges.
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     }
@@ -71,6 +101,15 @@ export default function AdminAdBoostPage() {
     statusCounts.set(r.status, (statusCounts.get(r.status) ?? 0) + 1);
   }
   const statusChips = Object.keys(STATUS_LABELS).filter((st) => statusCounts.has(st));
+  // Chip order is priority, not lifecycle. `.filterRail` scrolls horizontally
+  // once the toolbar is narrower than its chips, so leftmost is the only
+  // position guaranteed to stay visible — which is where the two lenses this
+  // page is opened for belong: Live (the default, and the campaigns actually
+  // spending money) then Needs attention. All follows as the escape hatch out
+  // of whatever filter you're in. The remaining lifecycle stages are browsed,
+  // not worked, so they sit past the divider in funnel order.
+  const showLiveChip = statusChips.includes("live");
+  const lifecycleChips = statusChips.filter((st) => st !== "live");
   const nextActionById = useMemo(
     () => new Map((requests ?? []).map((request) => [request.id, getAdBoostNextAction(request)])),
     [requests],
@@ -92,6 +131,24 @@ export default function AdminAdBoostPage() {
   );
   const visibleCampaignCount =
     providerGroups?.reduce((count, group) => count + group.requests.length, 0) ?? 0;
+
+  /** One lifecycle-status chip. Shared so Live can be hoisted out of the
+   *  lifecycle group without the markup drifting between the two call sites. */
+  const renderStatusChip = (status: string) => (
+    <button
+      key={status}
+      type="button"
+      onClick={() => setStatusFilter(statusFilter === status ? null : status)}
+      className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+        statusFilter === status ? "bg-gray-800 text-white" : "text-gray-500 hover:bg-gray-100"
+      }`}
+    >
+      {STATUS_LABELS[status] ?? status}
+      <span className={statusFilter === status ? "ml-1 text-white/60" : "ml-1 text-gray-400"}>
+        {statusCounts.get(status)}
+      </span>
+    </button>
+  );
 
   const toggleProvider = (providerId: string) => {
     setExpandedProviders((current) => {
@@ -148,7 +205,6 @@ export default function AdminAdBoostPage() {
               type="button"
               onClick={() => {
                 setView(tab.value);
-                setStatusFilter(null);
                 setExpandedProviders(new Set());
               }}
               className={`flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
@@ -176,24 +232,12 @@ export default function AdminAdBoostPage() {
       <div className={`${styles.filterToolbar} mb-3 flex items-center justify-between gap-3`}>
         <div className={styles.filterRail}>
           <div className={`${styles.filterList} flex items-center gap-1.5`}>
-            {(statusChips.length > 1 || attentionCount > 0) && (
-              <button
-                type="button"
-                onClick={() => setStatusFilter(null)}
-                className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                  statusFilter === null
-                    ? "bg-gray-800 text-white"
-                    : "text-gray-500 hover:bg-gray-100"
-                }`}
-              >
-                All
-              </button>
-            )}
+            {showLiveChip && renderStatusChip("live")}
             {attentionCount > 0 && (
               <button
                 type="button"
                 onClick={() => setStatusFilter(statusFilter === "attention" ? null : "attention")}
-                className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
                   statusFilter === "attention"
                     ? "bg-amber-600 text-white"
                     : "text-amber-700 hover:bg-gray-100"
@@ -205,23 +249,23 @@ export default function AdminAdBoostPage() {
                 </span>
               </button>
             )}
-            {statusChips.map((status) => (
+            {(statusChips.length > 1 || attentionCount > 0) && (
               <button
-                key={status}
                 type="button"
-                onClick={() => setStatusFilter(statusFilter === status ? null : status)}
-                className={`rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
-                  statusFilter === status
+                onClick={() => setStatusFilter(null)}
+                className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
+                  statusFilter === null
                     ? "bg-gray-800 text-white"
                     : "text-gray-500 hover:bg-gray-100"
                 }`}
               >
-                {STATUS_LABELS[status] ?? status}
-                <span className={statusFilter === status ? "ml-1 text-white/60" : "ml-1 text-gray-400"}>
-                  {statusCounts.get(status)}
-                </span>
+                All
               </button>
-            ))}
+            )}
+            {lifecycleChips.length > 0 && (
+              <span aria-hidden className="mx-1 h-4 w-px shrink-0 bg-gray-200" />
+            )}
+            {lifecycleChips.map((status) => renderStatusChip(status))}
           </div>
         </div>
 
@@ -274,6 +318,7 @@ export default function AdminAdBoostPage() {
             expanded={expandedProviders.has(group.providerId)}
             statusFilter={statusFilter}
             nextActionById={nextActionById}
+            overdueByRequest={overdueByRequest}
             onToggle={() => toggleProvider(group.providerId)}
             onChanged={load}
           />
@@ -288,6 +333,7 @@ function ProviderGroupRow({
   expanded,
   statusFilter,
   nextActionById,
+  overdueByRequest,
   onToggle,
   onChanged,
 }: {
@@ -295,6 +341,7 @@ function ProviderGroupRow({
   expanded: boolean;
   statusFilter: string | null;
   nextActionById: Map<string, AdBoostNextAction>;
+  overdueByRequest: Map<string, number>;
   onToggle: () => void;
   onChanged: () => void;
 }) {
@@ -312,6 +359,13 @@ function ProviderGroupRow({
   const allPreLaunch = group.requests.every((campaign) =>
     PRE_LAUNCH_STATUSES.has(campaign.status),
   );
+  // Summed across the provider's flights: the row represents the provider, and a review
+  // left open on an earlier flight is still open.
+  const overdueCount = group.requests.reduce(
+    (total, campaign) => total + (overdueByRequest.get(campaign.id) ?? 0),
+    0,
+  );
+  const commsPaused = group.requests.some((campaign) => !!campaign.provider_comms_paused_at);
 
   return (
     <div className="border-b border-gray-100 last:border-b-0">
@@ -323,6 +377,22 @@ function ProviderGroupRow({
           >
             {name}
           </Link>
+          {overdueCount > 0 && (
+            <span
+              className="ml-2 whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800"
+              title={`${overdueCount} change${overdueCount === 1 ? "" : "s"} past its review date`}
+            >
+              {overdueCount} review{overdueCount === 1 ? "" : "s"} due
+            </span>
+          )}
+          {commsPaused && (
+            <span
+              className="ml-2 whitespace-nowrap rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-semibold text-gray-700"
+              title={request.provider_comms_paused_reason ?? "Automated provider email is paused for this campaign"}
+            >
+              Provider email paused
+            </span>
+          )}
           <p className={`${styles.wideMeta} mt-0.5 flex-wrap items-center gap-1.5 text-xs text-gray-400`}>
             <span>{group.latestRequest.completeness_at_submit ?? "—"}% complete</span>
             {hasHistory && (

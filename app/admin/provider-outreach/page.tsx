@@ -2781,6 +2781,10 @@ export default function ProviderOutreachPage() {
   const recentlyMovedRef = useRef<Set<string>>(new Set());
   const recentlyMovedTimersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
+  // AbortController to cancel in-flight fetch requests when tab/state changes
+  // Prevents race conditions where stale responses overwrite newer data
+  const fetchAbortControllerRef = useRef<AbortController | null>(null);
+
   // Helper to mark a provider as recently moved (auto-clears after 30 seconds)
   // Extended from 5s to 30s to account for database replication lag
   const markAsRecentlyMoved = useCallback((providerId: string) => {
@@ -3630,6 +3634,14 @@ export default function ProviderOutreachPage() {
       return;
     }
 
+    // Abort any in-flight request to prevent race conditions
+    // (e.g., user rapidly switching tabs)
+    if (fetchAbortControllerRef.current) {
+      fetchAbortControllerRef.current.abort();
+    }
+    const abortController = new AbortController();
+    fetchAbortControllerRef.current = abortController;
+
     setLoadingProviders(true);
 
     try {
@@ -3647,7 +3659,9 @@ export default function ProviderOutreachPage() {
         params.set("assigned_to", selectedAdminFilter);
       }
 
-      const res = await fetch(`/api/admin/provider-outreach?${params}`);
+      const res = await fetch(`/api/admin/provider-outreach?${params}`, {
+        signal: abortController.signal,
+      });
       if (res.ok) {
         const data = await res.json();
         let filteredProviders = data.providers || [];
@@ -3712,10 +3726,18 @@ export default function ProviderOutreachPage() {
         showToast(err.error || "Failed to fetch providers", "error");
       }
     } catch (err) {
+      // Don't show error for aborted requests (user switched tabs)
+      if (err instanceof Error && err.name === "AbortError") {
+        return;
+      }
       console.error("Failed to fetch providers:", err);
       showToast("Failed to fetch providers", "error");
     } finally {
-      setLoadingProviders(false);
+      // Only clear loading if this request wasn't superseded by a newer one
+      // (prevents aborted request's finally from hiding spinner for active request)
+      if (fetchAbortControllerRef.current === abortController) {
+        setLoadingProviders(false);
+      }
     }
   }, [selectedState, activeTab, activeDoneSubTab, selectedAdminFilter]);
 

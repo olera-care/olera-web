@@ -241,19 +241,39 @@ async function enrichWithEmailVerification(
 
   if (emails.length === 0) return providers;
 
-  // Fetch verification statuses and overrides in parallel
-  const [{ data: verifications }, { data: overrides }] = await Promise.all([
-    db.from("email_verifications").select("email, status").in("email", emails),
-    db.from("email_overrides").select("email").in("email", emails),
-  ]);
+  // Build lookup maps using batched queries to avoid URL length limits
+  const statusMap = new Map<string, "valid" | "invalid" | "risky" | "unknown">();
+  const overrideSet = new Set<string>();
 
-  // Build lookup maps
-  const statusMap = new Map(
-    (verifications || []).map((v) => [v.email.toLowerCase(), v.status as "valid" | "invalid" | "risky" | "unknown"])
+  // Run all batches in parallel for better performance
+  const batchResults = await Promise.all(
+    Array.from({ length: Math.ceil(emails.length / IN_CLAUSE_BATCH_SIZE) }, (_, i) => {
+      const batch = emails.slice(i * IN_CLAUSE_BATCH_SIZE, (i + 1) * IN_CLAUSE_BATCH_SIZE);
+      return Promise.all([
+        db.from("email_verifications").select("email, status").in("email", batch),
+        db.from("email_overrides").select("email").in("email", batch),
+      ]);
+    })
   );
-  const overrideSet = new Set(
-    (overrides || []).map((o) => o.email.toLowerCase())
-  );
+
+  // Process all batch results
+  for (const [verificationsResult, overridesResult] of batchResults) {
+    if (verificationsResult.error) {
+      console.error("[enrichWithEmailVerification] Verifications query error:", verificationsResult.error);
+    } else {
+      for (const v of verificationsResult.data || []) {
+        statusMap.set(v.email.toLowerCase(), v.status as "valid" | "invalid" | "risky" | "unknown");
+      }
+    }
+
+    if (overridesResult.error) {
+      console.error("[enrichWithEmailVerification] Overrides query error:", overridesResult.error);
+    } else {
+      for (const o of overridesResult.data || []) {
+        overrideSet.add(o.email.toLowerCase());
+      }
+    }
+  }
 
   // Enrich providers
   return providers.map((p) => {
@@ -270,6 +290,7 @@ async function enrichWithEmailVerification(
  * Enrich providers with questions count and leads count.
  * Questions: linked by slug in provider_questions.provider_id
  * Leads: linked via business_profiles.id -> connections.to_profile_id
+ * Uses batching to avoid URL length limits with large provider lists.
  */
 async function enrichWithQuestionsAndLeads(
   db: ReturnType<typeof getServiceClient>,
@@ -285,52 +306,75 @@ async function enrichWithQuestionsAndLeads(
   // Get provider_ids for business_profile lookup (to get leads)
   const providerIds = providers.map((p) => p.provider_id).filter(Boolean);
 
-  // Parallel queries: questions by slug, business_profiles by source_provider_id
-  const [questionsResult, bpResult] = await Promise.all([
-    slugs.length > 0
-      ? db
-          .from("provider_questions")
-          .select("provider_id")
-          .in("provider_id", slugs)
-      : Promise.resolve({ data: [] }),
-    providerIds.length > 0
-      ? db
-          .from("business_profiles")
-          .select("id, source_provider_id")
-          .in("source_provider_id", providerIds)
-      : Promise.resolve({ data: [] }),
+  // Batch queries to avoid URL length limits
+  const questionCounts = new Map<string, number>();
+  const bpIdByProviderId = new Map<string, string>();
+
+  // Run questions and business_profiles batches in parallel for better performance
+  const [questionsResults, bpResults] = await Promise.all([
+    // Query questions in batches
+    Promise.all(
+      Array.from({ length: Math.ceil(slugs.length / IN_CLAUSE_BATCH_SIZE) }, (_, i) => {
+        const batch = slugs.slice(i * IN_CLAUSE_BATCH_SIZE, (i + 1) * IN_CLAUSE_BATCH_SIZE);
+        return db.from("provider_questions").select("provider_id").in("provider_id", batch);
+      })
+    ),
+    // Query business_profiles in batches
+    Promise.all(
+      Array.from({ length: Math.ceil(providerIds.length / IN_CLAUSE_BATCH_SIZE) }, (_, i) => {
+        const batch = providerIds.slice(i * IN_CLAUSE_BATCH_SIZE, (i + 1) * IN_CLAUSE_BATCH_SIZE);
+        return db.from("business_profiles").select("id, source_provider_id").in("source_provider_id", batch);
+      })
+    ),
   ]);
 
-  // Count questions per slug
-  const questionCounts = new Map<string, number>();
-  for (const q of questionsResult.data || []) {
-    const slug = q.provider_id;
-    questionCounts.set(slug, (questionCounts.get(slug) || 0) + 1);
+  // Process questions results
+  for (const { data, error } of questionsResults) {
+    if (error) {
+      console.error("[enrichWithQuestionsAndLeads] Questions query error:", error);
+      continue;
+    }
+    for (const q of data || []) {
+      const slug = q.provider_id;
+      questionCounts.set(slug, (questionCounts.get(slug) || 0) + 1);
+    }
   }
 
-  // Map provider_id -> business_profile.id
-  const bpIdByProviderId = new Map<string, string>();
-  for (const bp of bpResult.data || []) {
-    if (bp.source_provider_id && bp.id) {
-      bpIdByProviderId.set(bp.source_provider_id, bp.id);
+  // Process business_profiles results
+  for (const { data, error } of bpResults) {
+    if (error) {
+      console.error("[enrichWithQuestionsAndLeads] Business profiles query error:", error);
+      continue;
+    }
+    for (const bp of data || []) {
+      if (bp.source_provider_id && bp.id) {
+        bpIdByProviderId.set(bp.source_provider_id, bp.id);
+      }
     }
   }
 
   // Get business profile IDs that exist
   const bpIds = [...bpIdByProviderId.values()];
 
-  // Query leads (connections with type = 'inquiry')
-  let leadCounts = new Map<string, number>();
+  // Query leads (connections with type = 'inquiry') in parallel batches
+  const leadCounts = new Map<string, number>();
   if (bpIds.length > 0) {
-    const { data: connections } = await db
-      .from("connections")
-      .select("to_profile_id")
-      .in("to_profile_id", bpIds)
-      .eq("type", "inquiry");
+    const connectionsResults = await Promise.all(
+      Array.from({ length: Math.ceil(bpIds.length / IN_CLAUSE_BATCH_SIZE) }, (_, i) => {
+        const batch = bpIds.slice(i * IN_CLAUSE_BATCH_SIZE, (i + 1) * IN_CLAUSE_BATCH_SIZE);
+        return db.from("connections").select("to_profile_id").in("to_profile_id", batch).eq("type", "inquiry");
+      })
+    );
 
-    for (const c of connections || []) {
-      const bpId = c.to_profile_id;
-      leadCounts.set(bpId, (leadCounts.get(bpId) || 0) + 1);
+    for (const { data, error } of connectionsResults) {
+      if (error) {
+        console.error("[enrichWithQuestionsAndLeads] Connections query error:", error);
+        continue;
+      }
+      for (const c of data || []) {
+        const bpId = c.to_profile_id;
+        leadCounts.set(bpId, (leadCounts.get(bpId) || 0) + 1);
+      }
     }
   }
 

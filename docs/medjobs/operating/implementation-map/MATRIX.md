@@ -777,32 +777,94 @@ ready-to-send copy and flyer the advisor asked for · the results-back note that
 
 ## ST3–ST7 — University activation
 
-**Objective** Circulate the MedJobs opportunity through five parallel channels until students apply.
+**Objective** Turn the channel plan agreed in ST2 into five live channels at that university, then keep
+each one alive.
 **Owner** User Success Manager, with the Sales Lead where a physician in the room changes the answer.
-**Completion criteria** Each agreed channel is live, and its distribution is recorded.
+**Users** User Success Manager, advisor, org officers, professors, students.
+**Completion criteria** Every agreed channel is either live and recorded, or explicitly marked as not
+available at this university — and every live channel has its next maintenance task queued.
 
-**① User journey / technology**
+> **This stage does not close.** Every stage before it ends in an outcome: a meeting, a conversion, a
+> decision. Activation ends in a standing commitment. A job board posting expires, org officers graduate,
+> a career fair moves, a listserv only sends when someone remembers to send it. **Each channel is two
+> motions — secure it once, then keep it alive** — and the second motion is the one that decides whether a
+> university produces students in the spring as well as the fall.
 
-| Channel | Who acts | Student sees | Surface |
-|---|---|---|---|
-| **ST3** University job board | USM posts; advisor approves | A posting on a board they already check | Job postings · opportunity model |
-| **ST4** Student org relationships | USM + Sales Lead build; officer shares | A post in their group chat or a mention at a meeting | Partner portal · flyer |
-| **ST5** Campus events | USM + Sales Lead run | A table, a talk, a QR code | Partner portal event route |
-| **ST6** Advisor listservs | USM supplies copy; advisor sends | An email from a trusted sender | Partner portal message route |
-| **ST7** Professor outreach + class visits | USM + Sales Lead, once permitted | An in-class introduction | Professor gating · bulk professors |
+> **There is no generic version of this stage.** What runs at each university is whatever ST2 established
+> is open there. One campus is a dead job board and a listserv that reaches everyone; the next is three
+> student orgs and a professor who will give us ten minutes of a class. The plan is university-specific,
+> and the User Success Manager works it per row, not per channel.
 
-**② Human SOP** — activate every agreed channel within two weeks of ST2 · supply ready-to-send copy so the
-partner only has to forward · record distribution evidence on the partner row with a rough reach estimate ·
-report results back to the partner so they share again · re-check org leadership each term.
+### ① User journey / technology
 
-**③ System / handoff**
+| Channel | Who acts | What the student sees |
+|---|---|---|
+| **ST3** University job board | USM posts; the advisor or the board's owner approves | A posting on a board they already check |
+| **ST4** Student organisations | USM builds the relationship; an officer shares it | A post in their group chat, or a mention at a meeting |
+| **ST5** Campus events | USM and Sales Lead attend | A table, a talk, a QR code |
+| **ST6** Advisor listservs | USM supplies the copy; the advisor sends it | An email from a sender they already trust |
+| **ST7** Professors and class visits | USM and Sales Lead, once permitted | An introduction in a class they are sitting in |
+
+**The advisor follow-up tab** — the surface this stage needs and does not have. On the partner row, beside
+the research and timeline panels: the five channels as a checklist, each one **secured**, **not yet**, or
+**not available here**, with the named contact and the date it went live. A university's whole activation
+state readable in one glance, and answerable across universities — *which campuses have a live listserv?*
+
+Once a channel is checked off, **it queues its own maintenance task.** Those tasks land in the same daily
+queues the Admin Team already works, so keeping a channel alive is ordinary daily work rather than
+something the User Success Manager has to remember. None of this is built — see the deferred list.
+
+### ② Human SOP
+
+1. **Work the plan from ST2, not a template.** The row tells you which channels are open at this
+   university and who agreed to each. A channel nobody agreed to is not on your list.
+2. **Activate every agreed channel within two weeks of the meeting.** The advisor is warmest immediately
+   after; a month later you are re-introducing yourself.
+3. **Supply ready-to-send copy for anything a partner sends.** The advisor should have to forward, not
+   write. This is the single largest determinant of whether ST6 actually happens.
+4. **Mark a channel *not available here* out loud.** A dead job board recorded as dead is useful; a dead
+   job board left blank looks like work nobody did.
+5. **Record the distribution when it happens** — the channel, the date, the asset used, and a rough reach
+   estimate — on the partner row.
+6. **Report results back to the partner.** *Your listserv produced eleven applications.* It is the reason
+   they send the second one, and it is the natural moment to ask for the next thing.
+7. **Never let a secured channel go unwatched.** Every live channel carries a next check date. Working
+   that date is the job; the table below is what each one actually needs.
+8. **Re-check the whole row each term.** Officers graduate, advisors move, boards get rebuilt. A row that
+   was fully activated in September is not necessarily activated in January.
+
+**What securing and maintaining each channel actually means**
+
+| | Channel | Secured means | Maintaining means | Rhythm |
+|---|---|---|---|---|
+| **ST3** | University job board | The listing is live and visible to students | Check the listing is still up and has not expired or been archived; repost or renew it when it has | Every few months |
+| **ST4** | Student organisations | An officer has shared it once | Refresh the relationship before it goes cold, and re-establish it with the new officers when leadership turns over | Ongoing, and every term |
+| **ST5** | Campus events | We are registered for a specific event on a specific date | Confirm the event is still scheduled and still on our date; rebook when it moves, and get on the next one after it passes | Before each event, then re-book |
+| **ST6** | Advisor listservs | The advisor has agreed to send, and has our copy | Remind the advisor to send it, with fresh copy ready each time. The send happens because we asked | Each agreed send |
+| **ST7** | Professors and class visits | A professor has agreed to an introduction or a visit | Follow up and email professors — its own kind of work, with its own record of who was contacted, who agreed, and which class was visited | Per professor, then per term |
+
+> **Each of these carries specifics the table cannot hold.** Which board, which officer, which fair and
+> its registration deadline, which list and when it goes out, which professor and which course. That
+> detail belongs on the row, against the channel — which is exactly what the follow-up tab is for.
+
+**ST7 is its own workstream.** Professor outreach behaves less like a channel and more like a second,
+smaller outreach funnel: a list of named professors, a permission state on each, an email that needs
+following up, and a class visit to schedule once someone says yes. It is scoped and named separately when
+we get to it; noted here so it is not mistaken for a checkbox.
+
+### ③ System / handoff
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Channel, date, partner, reach estimate, asset used | partner active → distributing | channel activated · distribution recorded | A student follows the link | **→ Portal (ST8)** |
+| Per channel: secured / not yet / not available · named contact · date live · next check date · distribution date, asset used and reach estimate | partner active → distributing → maintained | channel activated · distribution recorded · maintenance task completed · channel lapsed | A student follows the link | **→ Portal (ST8).** The partner row stays open and keeps producing |
 
-**Communications** Ready-to-send copy per channel · the flyer as the shared asset · results-back note.
+Every other stage in this map hands a row on and lets it go. This one keeps it. The University Success
+Manager's working state is the set of partner rows with live channels and the dates each is next due —
+which is why the follow-up tab and its queued tasks are the difference between five universities and
+fifty.
 
+**Communications** Ready-to-send copy per channel · the flyer as the shared asset · the listserv reminder
+to the advisor · the results-back note · the professor email sequence.
 ---
 
 ## ST8 — Student application submitted
@@ -1009,14 +1071,17 @@ toward and the gap stays visible.
 | **B3** | PR-OUT · PR2 | **A custom campaign any operator can launch on a single row** — pick the emails and calls, set the days, start it. Needed for no-show recovery and for any bespoke follow-up | *Launch custom cadence* exists in the reply modal; not available as a general action from a row |
 | **B4** | PR3 | **An alert when a meeting converts.** Logging *Interested / went well* should put the client in front of the User Success Manager, with the meeting notes attached. Today nothing tells her a provider is waiting | Not built |
 | **B5** | PR3 | **A client record — the client tab.** One place holding everything after conversion: freeform notes for every meeting and touchpoint, plus the interviews, hires, six-shift confirmations, invoices and payments against that client. This is the User Success Manager's working surface and it does not exist | Not built. An MVP — notes and a timeline on the client — would carry the stage until the full record is built |
-| **B6** | ST2 | **Structured channel capture on the partner row.** Which of the five channels were agreed, the named contact for each, and the permission granted — as fields, not prose. This is what makes ST3–ST7 reportable, and what channel attribution has to hang on | The channel plan lives in the meeting notes. Workable for one operator, unreportable across campuses |
+| **B6** | ST2 | **Structured channel capture at the meeting.** Which of the five channels were agreed, the named contact for each, and the permission granted — as fields, not prose. This is what B9 displays, what B10 schedules against, and what B12 attributes to | The channel plan lives in the meeting notes. Workable for one operator, unreportable across campuses |
 | **B7** | ST2 | **A state for _channels agreed, no meeting yet_.** Some advisors skip the meeting and simply direct us. That row is a live partner and should still carry an open ask for a relationship meeting | No such state. The row either sits in Meetings without a meeting, or looks the same as one that never engaged |
 | **B8** | ST2 | **A partner-facing booking event.** Advisors book the provider's Calendly event; the slug `home-care-agency-manager-interview` is visible in the URL an advisor clicks | One event serves both funnels. The body copy carries over fine; the slug does not |
-| **B9** | ST3–ST7 | **Channel attribution.** Know which of the five university channels produced a student | Channels are not modelled as distinct entities |
-| **B10** | ST8 | **Application source capture.** Ask a student how they heard about MedJobs | Nothing records it |
-| **B11** | QUAL | **Written qualification criteria**, then a vetting step that applies them | Today "live" means profile complete and active — a completeness check, not a qualification decision |
-| **B12** | MA4 | **Shift verification.** Some reliable way to confirm six shifts were worked, and a view of which placements are approaching the threshold | No shift or hours-worked concept exists anywhere |
-| **B13** | MA5 | **Billing on the six-shift trigger** — invoice raised against a confirmed threshold, payment recorded | Two legacy billing paths, neither matching the model |
+| **B9** | ST3–ST7 | **The advisor follow-up tab.** On the partner row: the five channels as a checklist — secured, not yet, or not available here — each with its named contact and the date it went live. One glance for a university's activation state, and an answerable question across universities | Not built. Activation state lives in meeting notes and in the User Success Manager's head |
+| **B10** | ST3–ST7 | **Maintenance tasks that queue themselves.** Securing a channel should schedule its next check into the same daily queues the Admin Team already works — the board re-check, the listserv reminder, the event date, the officer refresh each term | Not built. Every channel stays alive only for as long as someone remembers it |
+| **B11** | ST3–ST7 | **A professor record for ST7.** Named professors against a university, each with a permission state, an email follow-up, and the class visit it produced. Closer to a small outreach funnel than a checkbox | Not built, and not yet scoped. Named here so it is not mistaken for one more channel |
+| **B12** | ST3–ST7 | **Channel attribution.** Know which of the five university channels produced a student | Channels are not modelled as distinct entities |
+| **B13** | ST8 | **Application source capture.** Ask a student how they heard about MedJobs | Nothing records it |
+| **B14** | QUAL | **Written qualification criteria**, then a vetting step that applies them | Today "live" means profile complete and active — a completeness check, not a qualification decision |
+| **B15** | MA4 | **Shift verification.** Some reliable way to confirm six shifts were worked, and a view of which placements are approaching the threshold | No shift or hours-worked concept exists anywhere |
+| **B16** | MA5 | **Billing on the six-shift trigger** — invoice raised against a confirmed threshold, payment recorded | Two legacy billing paths, neither matching the model |
 
 
 **How to use this list.** Nothing here blocks running the operating system by hand today. Each item is a

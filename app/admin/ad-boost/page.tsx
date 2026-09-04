@@ -38,6 +38,12 @@ export default function AdminAdBoostPage() {
   const [expandedProviders, setExpandedProviders] = useState<Set<string>>(
     () => new Set(),
   );
+  // Tweaks whose review date has passed that nobody has come back to. The point of the
+  // case log is that the system asks rather than the operator remembering, so an overdue
+  // review has to appear on the page you land on, not only on the campaign you open.
+  const [overdueByRequest, setOverdueByRequest] = useState<Map<string, number>>(
+    () => new Map(),
+  );
 
   const load = useCallback(async () => {
     setError(null);
@@ -56,6 +62,22 @@ export default function AdminAdBoostPage() {
         view === "active" && rows.some((row) => row.status === "live") ? "live" : null,
       );
       if (json.counts) setCounts(json.counts);
+
+      // Non-blocking: a failure here should dim the badges, never the queue.
+      try {
+        const od = await fetch("/api/admin/ad-boost/case?overdue=1");
+        if (od.ok) {
+          const odJson = await od.json();
+          const tally = new Map<string, number>();
+          for (const row of (odJson.overdue ?? []) as Array<{ request_id: string | null }>) {
+            if (!row.request_id) continue;
+            tally.set(row.request_id, (tally.get(row.request_id) ?? 0) + 1);
+          }
+          setOverdueByRequest(tally);
+        }
+      } catch {
+        // Leave the map empty; the queue still works without badges.
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     }
@@ -296,6 +318,7 @@ export default function AdminAdBoostPage() {
             expanded={expandedProviders.has(group.providerId)}
             statusFilter={statusFilter}
             nextActionById={nextActionById}
+            overdueByRequest={overdueByRequest}
             onToggle={() => toggleProvider(group.providerId)}
             onChanged={load}
           />
@@ -310,6 +333,7 @@ function ProviderGroupRow({
   expanded,
   statusFilter,
   nextActionById,
+  overdueByRequest,
   onToggle,
   onChanged,
 }: {
@@ -317,6 +341,7 @@ function ProviderGroupRow({
   expanded: boolean;
   statusFilter: string | null;
   nextActionById: Map<string, AdBoostNextAction>;
+  overdueByRequest: Map<string, number>;
   onToggle: () => void;
   onChanged: () => void;
 }) {
@@ -334,6 +359,13 @@ function ProviderGroupRow({
   const allPreLaunch = group.requests.every((campaign) =>
     PRE_LAUNCH_STATUSES.has(campaign.status),
   );
+  // Summed across the provider's flights: the row represents the provider, and a review
+  // left open on an earlier flight is still open.
+  const overdueCount = group.requests.reduce(
+    (total, campaign) => total + (overdueByRequest.get(campaign.id) ?? 0),
+    0,
+  );
+  const commsPaused = group.requests.some((campaign) => !!campaign.provider_comms_paused_at);
 
   return (
     <div className="border-b border-gray-100 last:border-b-0">
@@ -345,6 +377,22 @@ function ProviderGroupRow({
           >
             {name}
           </Link>
+          {overdueCount > 0 && (
+            <span
+              className="ml-2 whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800"
+              title={`${overdueCount} change${overdueCount === 1 ? "" : "s"} past its review date`}
+            >
+              {overdueCount} review{overdueCount === 1 ? "" : "s"} due
+            </span>
+          )}
+          {commsPaused && (
+            <span
+              className="ml-2 whitespace-nowrap rounded-full bg-gray-200 px-2 py-0.5 text-[10px] font-semibold text-gray-700"
+              title={request.provider_comms_paused_reason ?? "Automated provider email is paused for this campaign"}
+            >
+              Provider email paused
+            </span>
+          )}
           <p className={`${styles.wideMeta} mt-0.5 flex-wrap items-center gap-1.5 text-xs text-gray-400`}>
             <span>{group.latestRequest.completeness_at_submit ?? "—"}% complete</span>
             {hasHistory && (

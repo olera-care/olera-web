@@ -27,6 +27,8 @@ ul,ol { margin:3pt 0 4pt; padding-left:17pt; }
 li { margin:0 0 3pt; text-align:left; }
 li::marker { color:var(--teal); }
 li > ul, li > ol { margin-top:3pt; }
+p.obj { break-after:avoid; page-break-after:avoid; }
+ul.facts { break-inside:avoid; page-break-inside:avoid; }
 strong { font-weight:700; }
 hr { border:0; border-top:0.6pt solid var(--rule); margin:9pt 0; }
 a { color:var(--teal); text-decoration:none; }
@@ -138,6 +140,15 @@ def build(src, out, title, subtitle, notoc=''):
                 f'<figcaption><strong>{cap.split(".")[0]}.</strong>'
                 f'{cap.split(".", 1)[1]}</figcaption></figure>')
     body = re.sub(r'<!--FIG (\w+)-->', _fig, body)
+
+    # A stage opens with an objective and three facts under it. Keep that
+    # header together: the list must not split, and it must not part from the
+    # paragraph above it. Tagging both here rather than with a positional
+    # selector, because two stages put a floated figure between h2 and p.
+    body = re.sub(
+        r'<p>(<strong>Objective</strong>.*?)</p>\s*<ul>\s*<li><strong>Owner</strong>',
+        r'<p class="obj">\1</p>\n<ul class="facts">\n<li><strong>Owner</strong>',
+        body, flags=re.S)
 
     toc = '' if notoc else (md.toc if md.toc.count('<li>') > 2 else '')
     toc = re.sub(r'\A\s*<div class="toc">\s*', '', toc)

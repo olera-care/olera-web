@@ -1,7 +1,7 @@
 # MedJobs 2.0 Master Implementation Matrix, house style
 
 Source: `MATRIX.md` (Logan, 2026-09-04), with `md2html.py` and `html2pdf.mjs`
-from the same hand. 39 pages, down from 57.
+from the same hand. 40 pages, down from 57.
 
 ```
 ./build.sh
@@ -57,7 +57,7 @@ the same scale as the house figure system, so 13.19 units is 9.5pt on the page.
 
 | Figure | Where | What it shows |
 |---|---|---|
-| Pre-flight | PR1 human SOP | One call, four outcomes, the three-strike rule |
+| Pre-flight | PR1 procedure | One call, four outcomes, the three-strike rule |
 | The outreach cadence | PR-OUT | Three emails and two calls over seven days |
 | The completeness ladder | ST8 | Days 1, 3, 5, 7, then 21, 35, 49, 63 |
 | Interview states | MA2 | proposed, confirmed, completed, and the three exits |
@@ -118,3 +118,21 @@ A second check compares `MATRIX.md` against `MATRIX.house.md` directly: 9 words
 changed and 27 added, which is exactly the 17 `None` cells, the 30 exhibit
 letters gaining a period, and the capitalisation that follows the hand-corrected
 full stops.
+
+## 2026-09-04, second pass
+
+Two changes Logan asked for after reading it.
+
+- **The word "human" is gone.** The layer-2 heading is `② Procedure`, which says
+  the same thing without setting people against software. The two `Built?` cells
+  that read Human now read Manual, matching every other by-hand row.
+- **Owner, users and completion criteria are a bullet list**, lifted out of the
+  opening paragraph where they were bold run-ins. The objective stays as prose.
+  Each bullet is one source line: `dedash.py` reads a whole-line list item, but a
+  wrapped continuation line would be taken for a paragraph and lose its em dash.
+  `md2html.py` tags the pair `p.obj` and `ul.facts` so the header cannot split
+  across a page; a positional selector would miss the two stages that put a
+  floated figure between the heading and the objective.
+
+The document grew by one page, so the stage jump targets in
+`app/admin/medjobs/sop/page.tsx` moved with it.

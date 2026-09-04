@@ -23,6 +23,8 @@ ul,ol { margin:3pt 0 4pt; padding-left:17pt; }
 li { margin:0 0 3pt; text-align:left; }
 li::marker { color:var(--teal); }
 li > ul, li > ol { margin-top:3pt; }
+p.obj { break-after:avoid; page-break-after:avoid; }
+ul.facts { break-inside:avoid; page-break-inside:avoid; }
 strong { font-weight:700; }
 hr { border:0; border-top:0.6pt solid var(--rule); margin:9pt 0; }
 a { color:var(--teal); text-decoration:none; }
@@ -87,7 +89,7 @@ figcaption strong:first-child { color:var(--teal); }
 @page { size: Letter; }
 </style></head><body>
 <div class="doc-title">MedJobs 2.0 Master Implementation Matrix</div>
-<div class="doc-sub">Stage by stage: user journey, human SOP, system handoff &#183; 4 September 2026</div>
+<div class="doc-sub">Stage by stage: user journey, procedure, system handoff &#183; 4 September 2026</div>
 <div class="toc"><div class="toc-h">Contents</div><ul>
 <li><a href="#pr1-target-list-built-and-pre-flight-complete">PR1: Target list built and pre-flight complete</a></li>
 <li><a href="#pr-out-outbound-work">PR-OUT: Outbound work</a></li>
@@ -175,14 +177,17 @@ PROVIDER RECEIVES                               STUDENT RECEIVES
   Value before any fee is charged                 Caregiving experience
   Ongoing value from that worker                  A path to a strong recommendation
 </code></pre>
-<p>Each stage below is set out in three layers: what the user does and what the technology does, the human procedure behind it, and what the system records and hands on. Anything the document describes that does not exist yet is named as such and carried in the deferred build list at the end.</p>
+<p>Each stage below is set out in three layers: what the user does and what the technology does, the procedure behind it, and what the system records and hands on. Anything the document describes that does not exist yet is named as such and carried in the deferred build list at the end.</p>
 <hr />
 <h2 id="pr1-target-list-built-and-pre-flight-complete">PR1: Target list built and pre-flight complete</h2>
-<p><strong>Objective</strong> Add a university site so the system loads every matching provider from the Olera directory into
+<p class="obj"><strong>Objective</strong> Add a university site so the system loads every matching provider from the Olera directory into
 the In Basket, then complete pre-flight research on each one (phone, email, address, decision maker) confirmed
-by a pre-flight call. <strong>Owner</strong> Admin Team. <strong>Users</strong> Admin Team. <strong>Completion criteria</strong> Contact details
-confirmed on the call, and the row launched into outreach, or three unsuccessful call attempts, and the row
-archived.</p>
+by a pre-flight call.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Admin Team.</li>
+<li><strong>Users</strong> Admin Team.</li>
+<li><strong>Completion criteria</strong> Contact details confirmed on the call, and the row launched into outreach, or three unsuccessful call attempts, and the row archived.</li>
+</ul>
 <blockquote>
 <p><strong>PR1 is not just the list.</strong> It is the list <em>built and worked through pre-flight.</em> A site whose
 providers are loaded but un-researched has not completed PR1.</p>
@@ -238,7 +243,7 @@ providers are loaded but un-researched has not completed PR1.</p>
 </tbody>
 </table>
 <p><strong>What the system does on its own:</strong> adding a site pulls the matching providers out of the Olera directory and places them in the In Basket as rows awaiting pre-flight research. Nobody builds the list by hand.</p>
-<h3 id="2-human-sop">② Human SOP</h3>
+<h3 id="2-procedure">② Procedure</h3>
 <figure class="fw"><svg viewBox="0 0 250 158" width="2.5in" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif"><defs><marker id="a" markerWidth="7" markerHeight="5.4" refX="6.5" refY="2.7" orient="auto"><path d="M0,0 L7,2.7 L0,5.4 z" fill="#14453f"/></marker></defs><rect x="55" y="6" width="140" height="20" rx="3" fill="#e8f1ec" stroke="#14453f" stroke-width="1.1"/><text x="125" y="20" font-size="13.19" fill="#14453f" text-anchor="middle" font-weight="bold" font-style="normal">Call the provider</text><line x1="125" y1="27" x2="125" y2="39" stroke="#14453f" stroke-width="1.2" marker-end="url(#a)"/><rect x="4" y="41" width="112" height="18" rx="3" fill="#fff" stroke="#1a7f4e" stroke-width="1.0"/><text x="60" y="53.6" font-size="13.19" fill="#1a7f4e" text-anchor="middle" font-weight="bold" font-style="normal">Confirmed</text><line x1="118" y1="50" x2="130" y2="50" stroke="#1a7f4e" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="53.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Launch outreach</text><rect x="4" y="63" width="112" height="18" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.0"/><text x="60" y="75.6" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">No answer</text><line x1="118" y1="72" x2="130" y2="72" stroke="#5f6b64" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="75.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Call again</text><rect x="4" y="85" width="112" height="18" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.0"/><text x="60" y="97.6" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Voicemail</text><line x1="118" y1="94" x2="130" y2="94" stroke="#5f6b64" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="97.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Call again</text><rect x="4" y="107" width="112" height="18" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.0"/><text x="60" y="119.6" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Not interested</text><line x1="118" y1="116" x2="130" y2="116" stroke="#5f6b64" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="119.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Close the row</text><rect x="4" y="131" width="242" height="21" rx="3" fill="#f4f7f6" stroke="#b9c4bd" stroke-width="1"/><text x="125" y="145" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Three failed calls, then archive</text></svg><figcaption><strong>Pre-flight.</strong> One call, four outcomes, and the three-strike rule that closes a row nobody answers.</figcaption></figure>
 
 <p><strong>For a given site, work every provider on it.</strong></p>
@@ -335,10 +340,12 @@ looks like on a row. Then <strong>DECISION MAKERS</strong>, three actions (<stro
 read from</strong>: one entry per attempt, with the operator's name and how long ago. In Basket → provider row</figcaption></figure>
 <hr />
 <h2 id="pr-out-outbound-work">PR-OUT: Outbound work</h2>
-<p><strong>Objective</strong> Launch the call-and-email campaign on a provider that has cleared pre-flight, then work the
-queues it generates until the provider books a meeting or the row runs out. <strong>Owner</strong> Admin Team. <strong>Users</strong>
-Admin Team, provider. <strong>Completion criteria</strong> A meeting on the Sales Lead's calendar, or a recorded terminal
-outcome, or a finished cadence that drops the row into Follow-up.</p>
+<p class="obj"><strong>Objective</strong> Launch the call-and-email campaign on a provider that has cleared pre-flight, then work the queues it generates until the provider books a meeting or the row runs out.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Admin Team.</li>
+<li><strong>Users</strong> Admin Team, provider.</li>
+<li><strong>Completion criteria</strong> A meeting on the Sales Lead's calendar, or a recorded terminal outcome, or a finished cadence that drops the row into Follow-up.</li>
+</ul>
 <blockquote>
 <p><strong>The cadence is shorter than the protocol says.</strong> Graize's written protocol calls this the <em>D0–30
 campaign</em>. What is shipped is <strong>3 emails and 2 calls over 7 days</strong>: Day 0 · Day 3 · Day 5 · Day 7.
@@ -403,7 +410,7 @@ Either the protocol or the cadence should change; flagged rather than reconciled
 <figure class="fw"><svg viewBox="0 0 250 146" width="2.5in" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif"><defs><marker id="a" markerWidth="7" markerHeight="5.4" refX="6.5" refY="2.7" orient="auto"><path d="M0,0 L7,2.7 L0,5.4 z" fill="#14453f"/></marker></defs><text x="4" y="16" font-size="13.19" fill="#5f6b64" text-anchor="start" font-weight="bold" font-style="normal">OUTREACH, 7 DAYS</text><line x1="34" y1="24" x2="34" y2="44" stroke="#b9c4bd" stroke-width="1"/><circle cx="34" cy="32" r="3.4" fill="#14453f"/><text x="28" y="35.5" font-size="13.19" fill="#14453f" text-anchor="end" font-weight="bold" font-style="normal">Day 0</text><text x="44" y="35.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Intro email</text><line x1="34" y1="44" x2="34" y2="77" stroke="#b9c4bd" stroke-width="1"/><circle cx="34" cy="52" r="3.4" fill="#14453f"/><text x="28" y="55.5" font-size="13.19" fill="#14453f" text-anchor="end" font-weight="bold" font-style="normal">Day 3</text><text x="44" y="55.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Follow-up email</text><text x="44" y="68.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Check-in call</text><line x1="34" y1="77" x2="34" y2="97" stroke="#b9c4bd" stroke-width="1"/><circle cx="34" cy="85" r="3.4" fill="#14453f"/><text x="28" y="88.5" font-size="13.19" fill="#14453f" text-anchor="end" font-weight="bold" font-style="normal">Day 5</text><text x="44" y="88.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Call</text><line x1="34" y1="97" x2="34" y2="117" stroke="#b9c4bd" stroke-width="1"/><circle cx="34" cy="105" r="3.4" fill="#14453f"/><text x="28" y="108.5" font-size="13.19" fill="#14453f" text-anchor="end" font-weight="bold" font-style="normal">Day 7</text><text x="44" y="108.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Final email</text><rect x="4" y="119" width="242" height="21" rx="3" fill="#e8f1ec" stroke="#1a7f4e" stroke-width="1.1"/><text x="125" y="133" font-size="13.19" fill="#1a7f4e" text-anchor="middle" font-weight="bold" font-style="normal">A reply stops the sequence</text></svg><figcaption><strong>The outreach cadence.</strong> Three emails and two calls over seven days, and any reply ends it.</figcaption></figure>
 
 <p><strong>The cadence.</strong> Day 0 intro email · Day 3 follow-up email and a check-in call · Day 5 call · Day 7 final email. Cold email sends from a dedicated outreach domain. Scheduled sends and calls appear in the drawer's <strong>UPCOMING</strong> list with their dates, so the row's whole future is visible before it happens.</p>
-<h3 id="2-human-sop_1">② Human SOP</h3>
+<h3 id="2-procedure_1">② Procedure</h3>
 <ol>
 <li><strong>Launch only rows that cleared pre-flight.</strong> The override writes itself to the timeline with your
    name on it. Use it deliberately.</li>
@@ -482,7 +489,7 @@ Either the protocol or the cadence should change; flagged rather than reconciled
 </table>
 <blockquote>
 <p><strong>A real reply stops the cadence automatically.</strong> The timeline records <em>"Reply received to [address] 
-cadence stopped,"</em> so the next move is a human one. The out-of-office option exists precisely because
+cadence stopped,"</em> so the next move is a manual one. The out-of-office option exists precisely because
 an auto-reply should not count as one.</p>
 </blockquote>
 <h3 id="3-system-handoff_1">③ System / handoff</h3>
@@ -529,7 +536,12 @@ Behind it, the <strong>Emails</strong> tab grouped by state: <em>THEY REPLIED (9
 <code>olera.care/admin/medjobs/in-basket?tab=replies</code> → row → <strong>Check for reply</strong></figcaption></figure>
 <hr />
 <h2 id="pr2-provider-meeting-held">PR2: Provider meeting held</h2>
-<p><strong>Objective</strong> Hold the meeting, convert the provider, and capture what was promised. <strong>Owner</strong> Sales Lead. <strong>Users</strong> Sales Lead, provider. <strong>Completion criteria</strong> Outcome logged and the relationship handed to the User Success Manager.</p>
+<p class="obj"><strong>Objective</strong> Hold the meeting, convert the provider, and capture what was promised.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Sales Lead.</li>
+<li><strong>Users</strong> Sales Lead, provider.</li>
+<li><strong>Completion criteria</strong> Outcome logged and the relationship handed to the User Success Manager.</li>
+</ul>
 <h3 id="1-user-journey-technology_2">① User journey / technology</h3>
 <table>
 <thead>
@@ -574,7 +586,7 @@ the design. Sending the link and waiting is the slower fallback.</p>
 back and forth by email. Ideally the Meetings tab would hold only booked meetings. See the deferred
 list. Left as-is for now.</p>
 </blockquote>
-<h3 id="2-human-sop_2">② Human SOP</h3>
+<h3 id="2-procedure_2">② Procedure</h3>
 <ol>
 <li><strong>Read the row before the call.</strong> The timeline shows every email, reply and call that produced this
    meeting, including what they said when they replied.</li>
@@ -645,7 +657,12 @@ calendar</strong> and the state chip <em>"Replied: they replied · meeting booke
 through every reply and send. Meetings → row → <strong>Log meeting outcome</strong></figcaption></figure>
 <hr />
 <h2 id="pr3-client-success">PR3: Client success</h2>
-<p><strong>Objective</strong> Carry the provider from the meeting to a first hire: profile updated, terms understood, account set up and ready for the first student to arrive. <strong>Owner</strong> User Success Manager. <strong>Users</strong> User Success Manager, provider. <strong>Completion criteria</strong> Profile updated · terms email sent and acknowledged · setup meeting held · the account ready to receive a candidate.</p>
+<p class="obj"><strong>Objective</strong> Carry the provider from the meeting to a first hire: profile updated, terms understood, account set up and ready for the first student to arrive.</p>
+<ul class="facts">
+<li><strong>Owner</strong> User Success Manager.</li>
+<li><strong>Users</strong> User Success Manager, provider.</li>
+<li><strong>Completion criteria</strong> Profile updated · terms email sent and acknowledged · setup meeting held · the account ready to receive a candidate.</li>
+</ul>
 <blockquote>
 <p><strong>Almost none of this is built.</strong> PR3 runs by hand today. The block below describes how it should work;
 every missing piece is on the deferred build list at the end of this document. Nothing here is blocked
@@ -672,7 +689,7 @@ placements, the six-shift threshold, the invoice, and the next staffing need.</p
 <td>1</td>
 <td><strong>The Sales Lead names the handoff in the meeting</strong>: <em>"our user success team will follow up with you on next steps."</em> The provider leaves expecting the next contact, and expecting it from someone else</td>
 <td>In the meeting</td>
-<td>Human</td>
+<td>Manual</td>
 </tr>
 <tr>
 <td>2</td>
@@ -708,7 +725,7 @@ placements, the six-shift threshold, the invoice, and the next staffing need.</p
 <td>7</td>
 <td><strong>The setup meeting happens</strong>: the account is configured and ready for the first student</td>
 <td>In the meeting</td>
-<td>Human</td>
+<td>Manual</td>
 </tr>
 <tr>
 <td>8</td>
@@ -718,7 +735,7 @@ placements, the six-shift threshold, the invoice, and the next staffing need.</p
 </tr>
 </tbody>
 </table>
-<h3 id="2-human-sop_3">② Human SOP</h3>
+<h3 id="2-procedure_3">② Procedure</h3>
 <ol>
 <li><strong>The Sales Lead names the handoff in the room.</strong> A warm introduction to a named function beats a cold
    email from a stranger a week later.</li>
@@ -761,7 +778,12 @@ placements, the six-shift threshold, the invoice, and the next staffing need.</p
 provider row. <strong>B4</strong> and <strong>B5</strong> are what would make this stage visible.</p>
 <hr />
 <h2 id="st1-target-advisors">ST1: Target advisors</h2>
-<p><strong>Objective</strong> Produce a verified list of university offices for a site, each with the email outreach needs, waiting in the In Basket to be confirmed by a call. <strong>Owner</strong> Admin Team. <strong>Users</strong> Admin Team. <strong>Completion criteria</strong> Offices generated as prospects, each verified and tagged, waiting in the Partners tab.</p>
+<p class="obj"><strong>Objective</strong> Produce a verified list of university offices for a site, each with the email outreach needs, waiting in the In Basket to be confirmed by a call.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Admin Team.</li>
+<li><strong>Users</strong> Admin Team.</li>
+<li><strong>Completion criteria</strong> Offices generated as prospects, each verified and tagged, waiting in the Partners tab.</li>
+</ul>
 <blockquote>
 <p><strong>The office is the prospect, not the person.</strong> An advising office with an email is what outreach needs.
 Named advisors are optional, and worth adding only when they have their own contact details. The
@@ -813,7 +835,7 @@ opposite of provider prospecting, and deliberate: offices outlast the people in 
 </table>
 <p>The site card tracks progress across the three subtypes, <strong>Advising ✓ · Orgs ✓ · Dept heads ☐</strong>, with
 <strong>Research needed</strong> until the first one is done. The wizard autosaves as you work.</p>
-<h3 id="2-human-sop_4">② Human SOP</h3>
+<h3 id="2-procedure_4">② Procedure</h3>
 <ol>
 <li><strong>Work one site through all three subtypes</strong> (advising, then orgs, then departments) rather than
    half-finishing several sites.</li>
@@ -866,10 +888,12 @@ and <strong>Continue to Student orgs →</strong>.</figcaption></figure>
 site cards still needing research. <code>olera.care/admin/medjobs/in-basket?tab=partner_book</code></figcaption></figure>
 <hr />
 <h2 id="st-out-university-outbound">ST-OUT: University outbound</h2>
-<p><strong>Objective</strong> Confirm the advising office by phone, launch the call-and-email campaign, then work the queues
-it generates until the office books a meeting or the row runs out. <strong>Owner</strong> Admin Team. <strong>Users</strong> Admin Team,
-advising office. <strong>Completion criteria</strong> A meeting on the Sales Lead's calendar, or a recorded terminal
-outcome, or a finished cadence that drops the row into Follow-up.</p>
+<p class="obj"><strong>Objective</strong> Confirm the advising office by phone, launch the call-and-email campaign, then work the queues it generates until the office books a meeting or the row runs out.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Admin Team.</li>
+<li><strong>Users</strong> Admin Team, advising office.</li>
+<li><strong>Completion criteria</strong> A meeting on the Sales Lead's calendar, or a recorded terminal outcome, or a finished cadence that drops the row into Follow-up.</li>
+</ul>
 <blockquote>
 <p><strong>Same machinery, different cadence.</strong> ST-OUT runs on the same pre-flight call, the same Calls and
 Emails queues, and the same log modals as the provider side. What differs is the campaign: the partner
@@ -939,7 +963,7 @@ Emails send from <code>partnerships@findmedjobs.co</code>, a dedicated outreach 
 <p><strong>Recipients.</strong> The general office contact always; any advisor added in ST1 with their own email as a
 selectable extra, which is why ST1 accepts only advisors who have one. <strong>Launch activation →</strong> sits beside
 Launch outreach as the second cadence, run once a row has engaged.</p>
-<h3 id="2-human-sop_5">② Human SOP</h3>
+<h3 id="2-procedure_5">② Procedure</h3>
 <ol>
 <li><strong>Call before you launch.</strong> The row is a prospect, not a confirmed address. The pre-flight call exists
    to verify the email actually reaches the office and to find the person who decides.</li>
@@ -1006,7 +1030,12 @@ worked side by side in the same tab with the same modal, which is why the row sh
 <code>olera.care/admin/medjobs/in-basket?tab=replies</code> → row → <strong>Check for reply</strong></figcaption></figure>
 <hr />
 <h2 id="st2-advisor-meeting-held">ST2: Advisor meeting held</h2>
-<p><strong>Objective</strong> Hold the meeting, agree which of the five activation channels are open to us, and hand the User Success Manager a plan they can act on without asking again. <strong>Owner</strong> Sales Lead. <strong>Users</strong> Sales Lead, advising office. <strong>Completion criteria</strong> Outcome logged, the agreed channels and their named contacts written down, and the relationship handed to the User Success Manager.</p>
+<p class="obj"><strong>Objective</strong> Hold the meeting, agree which of the five activation channels are open to us, and hand the User Success Manager a plan they can act on without asking again.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Sales Lead.</li>
+<li><strong>Users</strong> Sales Lead, advising office.</li>
+<li><strong>Completion criteria</strong> Outcome logged, the agreed channels and their named contacts written down, and the relationship handed to the User Success Manager.</li>
+</ul>
 <blockquote>
 <p><strong>This meeting is not a sale. It is a channel-planning session.</strong> The provider meeting ends in a
 commercial agreement; this one ends in a route to students. The advisor already believes pre-health
@@ -1053,7 +1082,7 @@ is the ST3–ST7 plan.</p>
 <p><strong>Advisors book the same event as providers</strong>: the 30-minute <em>Student Caregiver Program</em> slot, one link for
 both funnels. The invite copy carries over unchanged, which reads acceptably to an advising office; the event
 slug in the URL does not. See the deferred list.</p>
-<h3 id="2-human-sop_6">② Human SOP</h3>
+<h3 id="2-procedure_6">② Procedure</h3>
 <ol>
 <li><strong>Read the row before the call.</strong> Advisors notice when you already know what they told the last person.</li>
 <li><strong>Open by naming what students get</strong>, not what we want: hours, a letter, and experience that
@@ -1176,11 +1205,12 @@ possible.</p>
 <p><strong>Communications</strong> Booking confirmation and reminder from Calendly · the post-meeting note with the ready-to-send copy and flyer the advisor asked for · the results-back note that carries the next ask.</p>
 <hr />
 <h2 id="st3st7-university-activation">ST3–ST7: University activation</h2>
-<p><strong>Objective</strong> Turn the channel plan agreed in ST2 into five live channels at that university, then keep each
-one alive. <strong>Owner</strong> User Success Manager, with the Sales Lead where a physician in the room changes the
-answer. <strong>Users</strong> User Success Manager, advisor, org officers, professors, students. <strong>Completion criteria</strong>
-Every agreed channel is either live and recorded, or explicitly marked as not available at this university:
-and every live channel has its next maintenance task queued.</p>
+<p class="obj"><strong>Objective</strong> Turn the channel plan agreed in ST2 into five live channels at that university, then keep each one alive.</p>
+<ul class="facts">
+<li><strong>Owner</strong> User Success Manager, with the Sales Lead where a physician in the room changes the answer.</li>
+<li><strong>Users</strong> User Success Manager, advisor, org officers, professors, students.</li>
+<li><strong>Completion criteria</strong> Every agreed channel is either live and recorded, or explicitly marked as not available at this university: and every live channel has its next maintenance task queued.</li>
+</ul>
 <blockquote>
 <p><strong>This stage does not close.</strong> Every stage before it ends in an outcome. Activation ends in a standing
 commitment: postings expire, officers graduate, a career fair moves, a listserv only sends when someone
@@ -1234,7 +1264,7 @@ campuses have a live listserv?</em></p>
 <p>A channel checked off <strong>queues its own maintenance task</strong>, into the same daily queues the Admin Team already
 works, so keeping a channel alive is ordinary daily work rather than something to remember. None of this is
 built; see the deferred list.</p>
-<h3 id="2-human-sop_7">② Human SOP</h3>
+<h3 id="2-procedure_7">② Procedure</h3>
 <ol>
 <li><strong>Work the plan from ST2, not a template.</strong> The row tells you which channels are open at this
    university and who agreed to each. A channel nobody agreed to is not on your list.</li>
@@ -1335,10 +1365,12 @@ and its queued tasks are the difference between five universities and fifty.</p>
 <p><strong>Communications</strong> Ready-to-send copy per channel · the flyer as the shared asset · the listserv reminder to the advisor · the results-back note · the professor email sequence.</p>
 <hr />
 <h2 id="st8-student-application-submitted">ST8: Student application submitted</h2>
-<p><strong>Objective</strong> Carry a student from the QR code on a flyer to a live application, without a human in the
-middle. <strong>Owner</strong> Portal. <strong>Users</strong> Student, User Success Manager only when the system cannot finish the job.
-<strong>Completion criteria</strong> The student is live: visible on the board, and the providers in their catchment have
-been told they are ready to interview.</p>
+<p class="obj"><strong>Objective</strong> Carry a student from the QR code on a flyer to a live application, without anyone in the middle.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Portal.</li>
+<li><strong>Users</strong> Student, User Success Manager only when the system cannot finish the job.</li>
+<li><strong>Completion criteria</strong> The student is live: visible on the board, and the providers in their catchment have been told they are ready to interview.</li>
+</ul>
 <blockquote>
 <p><strong>This stage should run itself.</strong> Every other stage is an operator working a queue. This one is a
 student alone with a website at eleven at night. The system screens them, takes the application, chases
@@ -1421,12 +1453,12 @@ enforcing it is on the deferred list.</p>
    candidate is ready to interview. This fires on the <strong>first</strong> go-live only, runs in the background so a failure can never block the student, and is capped so a single go-live cannot blast an entire catchment.</li>
 </ol>
 <p>That second one is where this stage runs into QUAL. Going live <em>is</em> the qualification event as the system
-currently behaves: the broadcast says the candidate is ready, and no human decided that. Whether that is right
+currently behaves: the broadcast says the candidate is ready, and nobody decided that. Whether that is right
 is QUAL's question, not this stage's. See that stage and the deferred list.</p>
-<h3 id="2-human-sop_8">② Human SOP</h3>
+<h3 id="2-procedure_8">② Procedure</h3>
 <p>Deliberately short. If this list grows, the system has failed.</p>
 <ol>
-<li><strong>Watch the stall, not the student.</strong> The ladder handles the individual; what needs a human is the
+<li><strong>Watch the stall, not the student.</strong> The ladder handles the individual; what needs attention is the
    pattern. A campus where half the applications stop at the same section is a broken question or a broken upload, not eight unmotivated students.</li>
 <li><strong>Log why students stall</strong>, so the pattern is visible at all.</li>
 <li><strong>Intervene by hand only when the system cannot</strong>: a document that will not upload, a student whose
@@ -1490,11 +1522,13 @@ percentage, a stage label, and every section scored from Profile Overview throug
 <code>olera.care/portal/medjobs</code></figcaption></figure>
 <hr />
 <h2 id="qual-portal-vets-the-application">QUAL: Portal vets the application</h2>
-<p><strong>Objective</strong> Turn a completed application into a qualified candidate, and put that candidate in front of the
-providers who can hire them, from both directions at once. <strong>Owner</strong> Portal. <strong>Users</strong> Student, providers in
-the student's catchment, User Success Manager on exceptions. <strong>Completion criteria</strong> The student is on the
-board, every hiring provider in their area has been told they are ready to interview, and the student has been
-given the list and the phone numbers to call them.</p>
+<p class="obj"><strong>Objective</strong> Turn a completed application into a qualified candidate, and put that candidate in front of the
+providers who can hire them, from both directions at once.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Portal.</li>
+<li><strong>Users</strong> Student, providers in the student's catchment, User Success Manager on exceptions.</li>
+<li><strong>Completion criteria</strong> The student is on the board, every hiring provider in their area has been told they are ready to interview, and the student has been given the list and the phone numbers to call them.</li>
+</ul>
 <blockquote>
 <p><strong>Qualification happens at go-live, whether or not anyone decided it.</strong> The moment a student presses Go
 Live, the system tells providers a candidate is <em>ready to interview</em>. That is a qualification claim made
@@ -1573,7 +1607,7 @@ to interview, are you hiring?"</em> has met the candidate. The first is a notifi
 placement starting.</p>
 </blockquote>
 <p><strong>What exists today is a near-miss.</strong> A student-facing email already fires when a <em>provider</em> accepts terms, telling live students <em>"a caregiver job near you is open."</em> Right idea, pointed the wrong way: triggered by the provider rather than the student qualifying, one provider rather than the list, and a link to click rather than a number to call.</p>
-<h3 id="2-human-sop_9">② Human SOP</h3>
+<h3 id="2-procedure_9">② Procedure</h3>
 <p>Deliberately short, for the same reason as ST8: this stage should be a system, not a queue.</p>
 <ol>
 <li><strong>Handle exceptions, not cases.</strong> A student the rules would reject who is obviously right, or the
@@ -1610,7 +1644,12 @@ providers near them with phone numbers</strong> · the outcome message and what 
 <p>Both surfaces this stage produces are shown under ST8: <strong>AB</strong> for Go Live, and <strong>AA</strong> for the board the student appears on.</p>
 <hr />
 <h2 id="ma1-candidate-intro">MA1: Candidate intro</h2>
-<p><strong>Objective</strong> Put a qualified candidate in front of the providers who can hire them, in a form a provider will actually open, and keep telling the student where the work is until they are hired. <strong>Owner</strong> Portal, User Success Manager on exceptions. <strong>Users</strong> Provider, student. <strong>Completion criteria</strong> The provider has seen the candidate, and the student knows who is hiring and how to reach them.</p>
+<p class="obj"><strong>Objective</strong> Put a qualified candidate in front of the providers who can hire them, in a form a provider will actually open, and keep telling the student where the work is until they are hired.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Portal, User Success Manager on exceptions.</li>
+<li><strong>Users</strong> Provider, student.</li>
+<li><strong>Completion criteria</strong> The provider has seen the candidate, and the student knows who is hiring and how to reach them.</li>
+</ul>
 <blockquote>
 <p><strong>Assume nobody logs in.</strong> A provider will not create an account to look at a candidate, and a student
 will not check a job board every day waiting for work to appear. Everything in this stage has to land in
@@ -1660,7 +1699,7 @@ a renderer and a template change, not new infrastructure.</p>
 </table>
 <p>An SMS stack already exists (consent handling, quiet hours, a send queue and a flush job) so student SMS is
 consent capture and message types on a running pipeline, not a new channel.</p>
-<h3 id="2-human-sop_10">② Human SOP</h3>
+<h3 id="2-procedure_10">② Procedure</h3>
 <ol>
 <li><strong>Send to the provider in the form they will open</strong>: PDF attached, link included, no login asked for.</li>
 <li><strong>Do not rely on the board.</strong> If a qualified student has not been introduced anywhere this week, that is
@@ -1695,7 +1734,12 @@ consent capture and message types on a running pipeline, not a new channel.</p>
 <h2 id="ma2-interview-held">MA2: Interview held</h2>
 <figure class="fw"><svg viewBox="0 0 250 182" width="2.5in" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif"><defs><marker id="a" markerWidth="7" markerHeight="5.4" refX="6.5" refY="2.7" orient="auto"><path d="M0,0 L7,2.7 L0,5.4 z" fill="#14453f"/></marker></defs><rect x="62" y="6" width="126" height="19" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.2"/><text x="125" y="19" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">proposed</text><line x1="125" y1="26" x2="125" y2="36" stroke="#5f6b64" stroke-width="1.2" marker-end="url(#a)"/><rect x="62" y="39" width="126" height="19" rx="3" fill="#fff" stroke="#14453f" stroke-width="1.2"/><text x="125" y="52" font-size="13.19" fill="#14453f" text-anchor="middle" font-weight="bold" font-style="normal">confirmed</text><line x1="125" y1="59" x2="125" y2="69" stroke="#14453f" stroke-width="1.2" marker-end="url(#a)"/><rect x="62" y="72" width="126" height="19" rx="3" fill="#e8f1ec" stroke="#1a7f4e" stroke-width="1.2"/><text x="125" y="85" font-size="13.19" fill="#1a7f4e" text-anchor="middle" font-weight="bold" font-style="normal">completed</text><text x="4" y="112" font-size="13.19" fill="#5f6b64" text-anchor="start" font-weight="normal" font-style="normal">Also from confirmed:</text><rect x="4" y="118" width="78" height="17" rx="3" fill="#fff" stroke="#b9c4bd" stroke-width="1.0"/><text x="43" y="129.6" font-size="12.398599999999998" fill="#5f6b64" text-anchor="middle" font-weight="normal" font-style="normal">cancelled</text><rect x="4" y="138" width="78" height="17" rx="3" fill="#fff" stroke="#b9c4bd" stroke-width="1.0"/><text x="43" y="149.6" font-size="12.398599999999998" fill="#5f6b64" text-anchor="middle" font-weight="normal" font-style="normal">no-show</text><rect x="4" y="158" width="78" height="17" rx="3" fill="#fff" stroke="#b9c4bd" stroke-width="1.0"/><text x="43" y="169.6" font-size="12.398599999999998" fill="#5f6b64" text-anchor="middle" font-weight="normal" font-style="normal">rescheduled</text></svg><figcaption><strong>Interview states.</strong> Two of the three ways out of confirmed are failures worth recording.</figcaption></figure>
 
-<p><strong>Objective</strong> Get a real interview onto two real calendars, then confirm it happened. <strong>Owner</strong> Portal. <strong>Users</strong> Student, provider, User Success Manager on exceptions. <strong>Completion criteria</strong> Both sides firm, a calendar invite on both calendars, and a recorded answer to <em>did it happen?</em></p>
+<p class="obj"><strong>Objective</strong> Get a real interview onto two real calendars, then confirm it happened.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Portal.</li>
+<li><strong>Users</strong> Student, provider, User Success Manager on exceptions.</li>
+<li><strong>Completion criteria</strong> Both sides firm, a calendar invite on both calendars, and a recorded answer to <em>did it happen?</em>.</li>
+</ul>
 <blockquote>
 <p><strong>The key endpoint is the calendar invite.</strong> Everything before it is scheduling admin; everything after
 depends on it. When both parties are firm an invite should appear on both calendars, and when its time
@@ -1784,7 +1828,7 @@ Pending · Past</strong>.</p>
 </tr>
 </tbody>
 </table>
-<h3 id="2-human-sop_11">② Human SOP</h3>
+<h3 id="2-procedure_11">② Procedure</h3>
 <ol>
 <li><strong>Chase the proposal that has sat unanswered.</strong> A pending request nobody confirmed is the single most
    common place a match dies.</li>
@@ -1827,7 +1871,12 @@ the amber of <strong>Pending</strong>, waiting on the provider to confirm. This 
 is chasing.</figcaption></figure>
 <hr />
 <h2 id="ma3-hire-confirmed">MA3: Hire confirmed</h2>
-<p><strong>Objective</strong> Find out whether the interview produced a job, and if it did not, find out why. <strong>Owner</strong> User Success Manager. <strong>Users</strong> Student, provider. <strong>Completion criteria</strong> A recorded answer either way, with a reason when the answer is no.</p>
+<p class="obj"><strong>Objective</strong> Find out whether the interview produced a job, and if it did not, find out why.</p>
+<ul class="facts">
+<li><strong>Owner</strong> User Success Manager.</li>
+<li><strong>Users</strong> Student, provider.</li>
+<li><strong>Completion criteria</strong> A recorded answer either way, with a reason when the answer is no.</li>
+</ul>
 <blockquote>
 <p><strong>A hire we did not hear about is a hire we cannot bill for.</strong> This stage exists because nobody tells us
 on their own. The provider hires and moves on; the student starts work and moves on. Every placement we
@@ -1870,7 +1919,7 @@ know about is one we went and asked for.</p>
 <p><strong>Instrument the no.</strong> A hire that did not happen is the most useful signal in the funnel: the interview was a
 formality, the schedule did not work, the student went quiet, the provider was not really hiring. Without a
 reason field, this stage produces a number nobody can act on.</p>
-<h3 id="2-human-sop_12">② Human SOP</h3>
+<h3 id="2-procedure_12">② Procedure</h3>
 <ol>
 <li><strong>Open the cadence the day after the interview</strong>, while both sides still remember it.</li>
 <li><strong>Student first, by SMS.</strong> One question, answerable in four words.</li>
@@ -1905,9 +1954,13 @@ reason field, this stage produces a number nobody can act on.</p>
 <h2 id="ma4-six-or-more-shifts-worked-confirmed">MA4: Six or more shifts worked, confirmed</h2>
 <figure class="fw"><svg viewBox="0 0 250 186" width="2.5in" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif"><defs><marker id="a" markerWidth="7" markerHeight="5.4" refX="6.5" refY="2.7" orient="auto"><path d="M0,0 L7,2.7 L0,5.4 z" fill="#14453f"/></marker></defs><rect x="4" y="6" width="242" height="20" rx="3" fill="#fff" stroke="#14453f" stroke-width="1.0"/><text x="14" y="19.6" font-size="13.19" fill="#14453f" text-anchor="start" font-weight="bold" font-style="normal">MA1</text><text x="50" y="19.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Candidate intro</text><line x1="125" y1="27" x2="125" y2="35" stroke="#14453f" stroke-width="1.2" marker-end="url(#a)"/><rect x="4" y="38" width="242" height="20" rx="3" fill="#fff" stroke="#14453f" stroke-width="1.0"/><text x="14" y="51.6" font-size="13.19" fill="#14453f" text-anchor="start" font-weight="bold" font-style="normal">MA2</text><text x="50" y="51.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Interview held</text><line x1="125" y1="59" x2="125" y2="67" stroke="#14453f" stroke-width="1.2" marker-end="url(#a)"/><rect x="4" y="70" width="242" height="20" rx="3" fill="#fff" stroke="#14453f" stroke-width="1.0"/><text x="14" y="83.6" font-size="13.19" fill="#14453f" text-anchor="start" font-weight="bold" font-style="normal">MA3</text><text x="50" y="83.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Hire confirmed</text><line x1="125" y1="91" x2="125" y2="99" stroke="#14453f" stroke-width="1.2" marker-end="url(#a)"/><rect x="4" y="102" width="242" height="20" rx="3" fill="#e8f1ec" stroke="#b8860b" stroke-width="1.4"/><text x="14" y="115.6" font-size="13.19" fill="#b8860b" text-anchor="start" font-weight="bold" font-style="normal">MA4</text><text x="50" y="115.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Six shifts worked</text><line x1="125" y1="123" x2="125" y2="131" stroke="#b8860b" stroke-width="1.2" marker-end="url(#a)"/><rect x="4" y="134" width="242" height="20" rx="3" fill="#e8f1ec" stroke="#1a7f4e" stroke-width="1.4"/><text x="14" y="147.6" font-size="13.19" fill="#1a7f4e" text-anchor="start" font-weight="bold" font-style="normal">MA5</text><text x="50" y="147.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Bill issued</text><rect x="4" y="158" width="242" height="22" rx="3" fill="#f4f7f6" stroke="#b8860b" stroke-width="1.2" stroke-dasharray="4 3"/><text x="125" y="173" font-size="13.19" fill="#b8860b" text-anchor="middle" font-weight="bold" font-style="normal">No invoice before six shifts</text></svg><figcaption><strong>The fulfilment chain.</strong> Every stage before MA4 is unpaid work; the six-shift confirmation is what releases the invoice.</figcaption></figure>
 
-<p><strong>Objective</strong> Establish that the placement actually stuck, six shifts worked, because that is the point we
-bill. <strong>Owner</strong> User Success Manager. <strong>Users</strong> Student, provider on the monthly list call. <strong>Completion
-criteria</strong> Six shifts confirmed and recorded against the placement.</p>
+<p class="obj"><strong>Objective</strong> Establish that the placement actually stuck, six shifts worked, because that is the point we
+bill.</p>
+<ul class="facts">
+<li><strong>Owner</strong> User Success Manager.</li>
+<li><strong>Users</strong> Student, provider on the monthly list call.</li>
+<li><strong>Completion criteria</strong> Six shifts confirmed and recorded against the placement.</li>
+</ul>
 <blockquote>
 <p><strong>Chase the student, not the provider.</strong> The student knows what they worked and answers a text. The
 provider is the customer, and asking them to do our record-keeping every week is how we become annoying
@@ -1919,7 +1972,7 @@ until the answer is six, asks the student to reply to a text. <strong>Logging</s
 as they go, asks them to remember, every time.</p>
 <p><strong>Comms first.</strong> A logging surface is more precise and worth building eventually, but a text a student answers beats a form they do not fill in. SMS is the channel, on the same stack as MA1 and MA3.</p>
 <p><strong>The provider side is a list, not a cadence.</strong> Monthly or quarterly, the User Success Manager runs the client's students down on a call: still working, how many shifts, any problems. One conversation confirms what a dozen emails would not, and it is a touchpoint rather than an interruption. It is the same call that keeps MA3 honest.</p>
-<h3 id="2-human-sop_13">② Human SOP</h3>
+<h3 id="2-procedure_13">② Procedure</h3>
 <ol>
 <li><strong>Text the student on a rhythm</strong> from their start date until the answer reaches six.</li>
 <li><strong>Never ask the provider week to week.</strong> Their confirmation comes on the list call.</li>
@@ -1953,7 +2006,12 @@ as they go, asks them to remember, every time.</p>
 <p><strong>Communications</strong> Student SMS on a rhythm · the same question by email · the monthly client list call.</p>
 <hr />
 <h2 id="ma5-bill-issued-and-collected">MA5: Bill issued and collected</h2>
-<p><strong>Objective</strong> Turn a confirmed placement into an invoice, and the invoice into money. <strong>Owner</strong> User Success Manager. <strong>Users</strong> Client. <strong>Completion criteria</strong> Invoice issued against a confirmed six-shift placement, and payment recorded.</p>
+<p class="obj"><strong>Objective</strong> Turn a confirmed placement into an invoice, and the invoice into money.</p>
+<ul class="facts">
+<li><strong>Owner</strong> User Success Manager.</li>
+<li><strong>Users</strong> Client.</li>
+<li><strong>Completion criteria</strong> Invoice issued against a confirmed six-shift placement, and payment recorded.</li>
+</ul>
 <blockquote>
 <p><strong>Manual first, deliberately.</strong> At current volume the User Success Manager raising an invoice by hand is
 not a stopgap: it is the right answer, and it is how we learn what the automated version should do.</p>
@@ -1998,8 +2056,8 @@ not a stopgap: it is the right answer, and it is how we learn what the automated
 <p><strong>Where the button lives.</strong> On the client record described in PR3 and still unbuilt. That record already needs
 to hold every meeting, hire, interview and six-shift confirmation for a client, so the invoice belongs on it
 too. Build it, and MA5 becomes one click on a row that already exists: the confirmation is the trigger, the
-invoice the consequence, and the human is there only for exceptions.</p>
-<h3 id="2-human-sop_14">② Human SOP</h3>
+invoice the consequence, and the team is there only for exceptions.</p>
+<h3 id="2-procedure_14">② Procedure</h3>
 <ol>
 <li><strong>Raise the invoice as soon as six is confirmed</strong>, not on a billing day. The confirmation is the event.</li>
 <li><strong>Bill against the placement, not the client</strong>: one invoice per student, so a dispute is about one

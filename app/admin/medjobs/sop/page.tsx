@@ -26,25 +26,25 @@ interface Stage {
 /** Page numbers are positions in the built PDF. Rebuilding the matrix can move
  *  them: docs/medjobs/matrix-src/README.md says how to re-derive them. */
 const PROVIDER: Stage[] = [
-  { code: "PR1", title: "Target list built and pre-flight complete", page: 2 },
-  { code: "PR-OUT", title: "Outbound work", page: 6 },
-  { code: "PR2", title: "Provider meeting held", page: 10 },
-  { code: "PR3", title: "Client success", page: 12 },
+  { code: "PR1", title: "Target list built and pre-flight complete", page: 3 },
+  { code: "PR-OUT", title: "Outbound work", page: 7 },
+  { code: "PR2", title: "Provider meeting held", page: 11 },
+  { code: "PR3", title: "Client success", page: 13 },
 ];
 const UNIVERSITY: Stage[] = [
-  { code: "ST1", title: "Target advisors", page: 14 },
-  { code: "ST-OUT", title: "University outbound", page: 17 },
-  { code: "ST2", title: "Advisor meeting held", page: 20 },
-  { code: "ST3–ST7", title: "University activation", page: 22 },
-  { code: "ST8", title: "Student application submitted", page: 24 },
+  { code: "ST1", title: "Target advisors", page: 15 },
+  { code: "ST-OUT", title: "University outbound", page: 18 },
+  { code: "ST2", title: "Advisor meeting held", page: 22 },
+  { code: "ST3–ST7", title: "University activation", page: 23 },
+  { code: "ST8", title: "Student application submitted", page: 25 },
 ];
 const PORTAL: Stage[] = [
-  { code: "QUAL", title: "Portal vets the application", page: 29 },
-  { code: "MA1", title: "Candidate intro", page: 31 },
-  { code: "MA2", title: "Interview held", page: 31 },
-  { code: "MA3", title: "Hire confirmed", page: 34 },
-  { code: "MA4", title: "Six or more shifts worked, confirmed", page: 35 },
-  { code: "MA5", title: "Bill issued and collected", page: 36 },
+  { code: "QUAL", title: "Portal vets the application", page: 31 },
+  { code: "MA1", title: "Candidate intro", page: 32 },
+  { code: "MA2", title: "Interview held", page: 33 },
+  { code: "MA3", title: "Hire confirmed", page: 35 },
+  { code: "MA4", title: "Six or more shifts worked, confirmed", page: 36 },
+  { code: "MA5", title: "Bill issued and collected", page: 37 },
 ];
 
 const GROUPS: { heading: string; note: string; stages: Stage[] }[] = [
@@ -110,7 +110,7 @@ export default function MedJobsSopPage() {
         </button>
         <button
           type="button"
-          onClick={() => setPage(38)}
+          onClick={() => setPage(39)}
           className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
         >
           Deferred build list

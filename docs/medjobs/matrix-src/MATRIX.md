@@ -73,7 +73,7 @@ PROVIDER RECEIVES                               STUDENT RECEIVES
   Ongoing value from that worker                  A path to a strong recommendation
 ```
 
-Each stage below is set out in three layers: what the user does and what the technology does, the human procedure behind it, and what the system records and hands on. Anything the document describes that does not exist yet is named as such and carried in the deferred build list at the end.
+Each stage below is set out in three layers: what the user does and what the technology does, the procedure behind it, and what the system records and hands on. Anything the document describes that does not exist yet is named as such and carried in the deferred build list at the end.
 
 ---
 
@@ -82,9 +82,10 @@ Each stage below is set out in three layers: what the user does and what the tec
 **Objective** Add a university site so the system loads every matching provider from the Olera directory
 into the In Basket, then complete pre-flight research on each one — phone, email, address, decision maker —
 confirmed by a pre-flight call.
-**Owner** Admin Team. **Users** Admin Team.
-**Completion criteria** Contact details confirmed on the call, and the row launched into outreach — or
-three unsuccessful call attempts, and the row archived.
+
+- **Owner** Admin Team.
+- **Users** Admin Team.
+- **Completion criteria** Contact details confirmed on the call, and the row launched into outreach — or three unsuccessful call attempts, and the row archived.
 
 > **PR1 is not just the list.** It is the list *built and worked through pre-flight.* A site whose
 > providers are loaded but un-researched has not completed PR1.
@@ -105,7 +106,7 @@ three unsuccessful call attempts, and the row archived.
 **What the system does on its own:** adding a site pulls the matching providers out of the Olera directory
 and places them in the In Basket as rows awaiting pre-flight research. Nobody builds the list by hand.
 
-### ② Human SOP
+### ② Procedure
 
 <!--FIG preflight-->
 
@@ -192,9 +193,10 @@ In Basket → provider row
 
 **Objective** Launch the call-and-email campaign on a provider that has cleared pre-flight, then work the
 queues it generates until the provider books a meeting or the row runs out.
-**Owner** Admin Team. **Users** Admin Team, provider.
-**Completion criteria** A meeting on the Sales Lead's calendar — or a recorded terminal outcome, or a
-finished cadence that drops the row into Follow-up.
+
+- **Owner** Admin Team.
+- **Users** Admin Team, provider.
+- **Completion criteria** A meeting on the Sales Lead's calendar — or a recorded terminal outcome, or a finished cadence that drops the row into Follow-up.
 
 > **The cadence is shorter than the protocol says.** Graize's written protocol calls this the *D0–30
 > campaign*. What is shipped is **3 emails and 2 calls over 7 days** — Day 0 · Day 3 · Day 5 · Day 7.
@@ -220,7 +222,7 @@ finished cadence that drops the row into Follow-up.
 email. Cold email sends from a dedicated outreach domain. Scheduled sends and calls appear in the drawer's
 **UPCOMING** list with their dates, so the row's whole future is visible before it happens.
 
-### ② Human SOP
+### ② Procedure
 
 1. **Launch only rows that cleared pre-flight.** The override writes itself to the timeline with your
    name on it. Use it deliberately.
@@ -256,7 +258,7 @@ email. Cold email sends from a dedicated outreach domain. Scheduled sends and ca
 | **Not interested** | Sends a polite closing note and stops outreach |
 
 > **A real reply stops the cadence automatically.** The timeline records *"Reply received to \[address\] —
-> cadence stopped,"* so the next move is a human one. The out-of-office option exists precisely because
+> cadence stopped,"* so the next move is a manual one. The out-of-office option exists precisely because
 > an auto-reply should not count as one.
 
 ### ③ System / handoff
@@ -315,8 +317,10 @@ respond. Behind it, the **Emails** tab grouped by state — *THEY REPLIED (9)*.
 ## PR2 — Provider meeting held
 
 **Objective** Hold the meeting, convert the provider, and capture what was promised.
-**Owner** Sales Lead. **Users** Sales Lead, provider.
-**Completion criteria** Outcome logged and the relationship handed to the User Success Manager.
+
+- **Owner** Sales Lead.
+- **Users** Sales Lead, provider.
+- **Completion criteria** Outcome logged and the relationship handed to the User Success Manager.
 
 ### ① User journey / technology
 
@@ -334,7 +338,7 @@ respond. Behind it, the **Emails** tab grouped by state — *THEY REPLIED (9)*.
 > back and forth by email. Ideally the Meetings tab would hold only booked meetings — see the deferred
 > list. Left as-is for now.
 
-### ② Human SOP
+### ② Procedure
 
 1. **Read the row before the call.** The timeline shows every email, reply and call that produced this
    meeting — including what they said when they replied.
@@ -393,9 +397,10 @@ Meetings → row → **Log meeting outcome**
 
 **Objective** Carry the provider from the meeting to a first hire: profile updated, terms understood,
 account set up and ready for the first student to arrive.
-**Owner** User Success Manager. **Users** User Success Manager, provider.
-**Completion criteria** Profile updated · terms email sent and acknowledged · setup meeting held · the
-account ready to receive a candidate.
+
+- **Owner** User Success Manager.
+- **Users** User Success Manager, provider.
+- **Completion criteria** Profile updated · terms email sent and acknowledged · setup meeting held · the account ready to receive a candidate.
 
 > **Almost none of this is built.** PR3 runs by hand today. The block below describes how it should work;
 > every missing piece is on the deferred build list at the end of this document. Nothing here is blocked
@@ -414,16 +419,16 @@ One role holds it across both sides of MedJobs. Chantel is the User Success Mana
 
 | # | What happens | Where | Built? |
 |---|---|---|---|
-| 1 | **The Sales Lead names the handoff in the meeting** — *"our user success team will follow up with you on next steps."* The provider leaves expecting the next contact, and expecting it from someone else | In the meeting | Human |
+| 1 | **The Sales Lead names the handoff in the meeting** — *"our user success team will follow up with you on next steps."* The provider leaves expecting the next contact, and expecting it from someone else | In the meeting | Manual |
 | 2 | **Logging the meeting outcome alerts the User Success Manager** that a converted provider is waiting on them | — | **Not built — B4** |
 | 3 | **They read the whole record before making contact** — the outreach history, what they said in the reply, the meeting notes and anything promised | Provider drawer timeline (Exhibit **N**) | Exists |
 | 4 | **They send the terms email** — more detail on how the program works and what it costs | Email, by hand | Manual |
 | 5 | **They get the profile updated** — what a good caregiver looks like here, shifts needed, headcount | Provider portal · chased by hand | Partly |
 | 6 | **They book the setup meeting** for the next week or two | Calendly, by hand | Manual |
-| 7 | **The setup meeting happens** — the account is configured and ready for the first student | In the meeting | Human |
+| 7 | **The setup meeting happens** — the account is configured and ready for the first student | In the meeting | Manual |
 | 8 | **Everything after this is recorded against the client** — every meeting, touchpoint, interview, hire, six-shift confirmation, invoice | — | **Not built — B5** |
 
-### ② Human SOP
+### ② Procedure
 
 1. **The Sales Lead names the handoff in the room.** A warm introduction to a named function beats a cold
    email from a stranger a week later.
@@ -459,9 +464,10 @@ in the provider row. **B4** and **B5** are what would make this stage visible.
 
 **Objective** Produce a verified list of university offices for a site, each with the email outreach
 needs, waiting in the In Basket to be confirmed by a call.
-**Owner** Admin Team. **Users** Admin Team.
-**Completion criteria** Offices generated as prospects, each verified and tagged, waiting in the Partners
-tab.
+
+- **Owner** Admin Team.
+- **Users** Admin Team.
+- **Completion criteria** Offices generated as prospects, each verified and tagged, waiting in the Partners tab.
 
 > **The office is the prospect, not the person.** An advising office with an email is what outreach needs.
 > Named advisors are optional, and worth adding only when they have their own contact details. The
@@ -482,7 +488,7 @@ Three subtypes are worked in turn for each site: **Advising** → **Student orgs
 The site card tracks progress across the three subtypes — **Advising ✓ · Orgs ✓ · Dept heads ☐** — with
 **Research needed** until the first one is done. The wizard autosaves as you work.
 
-### ② Human SOP
+### ② Procedure
 
 1. **Work one site through all three subtypes** — advising, then orgs, then departments — rather than
    half-finishing several sites.
@@ -542,9 +548,10 @@ the site cards still needing research.
 
 **Objective** Confirm the advising office by phone, launch the call-and-email campaign, then work the
 queues it generates until the office books a meeting or the row runs out.
-**Owner** Admin Team. **Users** Admin Team, advising office.
-**Completion criteria** A meeting on the Sales Lead's calendar — or a recorded terminal outcome, or a
-finished cadence that drops the row into Follow-up.
+
+- **Owner** Admin Team.
+- **Users** Admin Team, advising office.
+- **Completion criteria** A meeting on the Sales Lead's calendar — or a recorded terminal outcome, or a finished cadence that drops the row into Follow-up.
 
 > **Same machinery, different cadence.** ST-OUT runs on the same pre-flight call, the same Calls and
 > Emails queues, and the same log modals as the provider side. What differs is the campaign: the partner
@@ -574,7 +581,7 @@ bump**. Emails send from `partnerships@findmedjobs.co`, a dedicated outreach dom
 selectable extra — which is why ST1 accepts only advisors who have one. **Launch activation →** sits
 beside Launch outreach as the second cadence, run once a row has engaged.
 
-### ② Human SOP
+### ② Procedure
 
 1. **Call before you launch.** The row is a prospect, not a confirmed address. The pre-flight call exists
    to verify the email actually reaches the office and to find the person who decides.
@@ -651,9 +658,10 @@ here is a provider.
 
 **Objective** Hold the meeting, agree which of the five activation channels are open to us, and hand the
 User Success Manager a plan they can act on without asking again.
-**Owner** Sales Lead. **Users** Sales Lead, advising office.
-**Completion criteria** Outcome logged, the agreed channels and their named contacts written down, and the
-relationship handed to the User Success Manager.
+
+- **Owner** Sales Lead.
+- **Users** Sales Lead, advising office.
+- **Completion criteria** Outcome logged, the agreed channels and their named contacts written down, and the relationship handed to the User Success Manager.
 
 > **This meeting is not a sale. It is a channel-planning session.** The provider meeting ends in a
 > commercial agreement; this one ends in a route to students. The advisor already believes pre-health
@@ -673,7 +681,7 @@ relationship handed to the User Success Manager.
 for both funnels. The invite copy carries over unchanged, which reads acceptably to an advising office;
 the event slug in the URL does not. See the deferred list.
 
-### ② Human SOP
+### ② Procedure
 
 1. **Read the row before the call.** Advisors notice when you already know what they told the last person.
 2. **Open by naming what students get**, not what we want: hours, a letter, and experience that
@@ -741,10 +749,10 @@ ready-to-send copy and flyer the advisor asked for · the results-back note that
 
 **Objective** Turn the channel plan agreed in ST2 into five live channels at that university, then keep
 each one alive.
-**Owner** User Success Manager, with the Sales Lead where a physician in the room changes the answer.
-**Users** User Success Manager, advisor, org officers, professors, students.
-**Completion criteria** Every agreed channel is either live and recorded, or explicitly marked as not
-available at this university — and every live channel has its next maintenance task queued.
+
+- **Owner** User Success Manager, with the Sales Lead where a physician in the room changes the answer.
+- **Users** User Success Manager, advisor, org officers, professors, students.
+- **Completion criteria** Every agreed channel is either live and recorded, or explicitly marked as not available at this university — and every live channel has its next maintenance task queued.
 
 > **This stage does not close.** Every stage before it ends in an outcome. Activation ends in a standing
 > commitment: postings expire, officers graduate, a career fair moves, a listserv only sends when someone
@@ -774,7 +782,7 @@ A channel checked off **queues its own maintenance task**, into the same daily q
 already works — so keeping a channel alive is ordinary daily work rather than something to remember. None
 of this is built; see the deferred list.
 
-### ② Human SOP
+### ② Procedure
 
 1. **Work the plan from ST2, not a template.** The row tells you which channels are open at this
    university and who agreed to each. A channel nobody agreed to is not on your list.
@@ -829,11 +837,12 @@ to the advisor · the results-back note · the professor email sequence.
 
 ## ST8 — Student application submitted
 
-**Objective** Carry a student from the QR code on a flyer to a live application, without a human in the
+**Objective** Carry a student from the QR code on a flyer to a live application, without anyone in the
 middle.
-**Owner** Portal. **Users** Student, User Success Manager only when the system cannot finish the job.
-**Completion criteria** The student is live — visible on the board, and the providers in their catchment
-have been told they are ready to interview.
+
+- **Owner** Portal.
+- **Users** Student, User Success Manager only when the system cannot finish the job.
+- **Completion criteria** The student is live — visible on the board, and the providers in their catchment have been told they are ready to interview.
 
 > **This stage should run itself.** Every other stage is an operator working a queue. This one is a
 > student alone with a website at eleven at night. The system screens them, takes the application, chases
@@ -879,14 +888,14 @@ parts providers actually use to decide who to interview.
    catchment.
 
 That second one is where this stage runs into QUAL. Going live *is* the qualification event as the system
-currently behaves: the broadcast says the candidate is ready, and no human decided that. Whether that is
+currently behaves: the broadcast says the candidate is ready, and nobody decided that. Whether that is
 right is QUAL's question, not this stage's — see that stage and the deferred list.
 
-### ② Human SOP
+### ② Procedure
 
 Deliberately short. If this list grows, the system has failed.
 
-1. **Watch the stall, not the student.** The ladder handles the individual; what needs a human is the
+1. **Watch the stall, not the student.** The ladder handles the individual; what needs attention is the
    pattern. A campus where half the applications stop at the same section is a broken question or a broken
    upload, not eight unmotivated students.
 2. **Log why students stall**, so the pattern is visible at all.
@@ -962,10 +971,10 @@ Verification.
 
 **Objective** Turn a completed application into a qualified candidate, and put that candidate in front of
 the providers who can hire them — from both directions at once.
-**Owner** Portal. **Users** Student, providers in the student's catchment, User Success Manager on
-exceptions.
-**Completion criteria** The student is on the board, every hiring provider in their area has been told
-they are ready to interview, and the student has been given the list and the phone numbers to call them.
+
+- **Owner** Portal.
+- **Users** Student, providers in the student's catchment, User Success Manager on exceptions.
+- **Completion criteria** The student is on the board, every hiring provider in their area has been told they are ready to interview, and the student has been given the list and the phone numbers to call them.
 
 > **Qualification happens at go-live, whether or not anyone decided it.** The moment a student presses Go
 > Live, the system tells providers a candidate is *ready to interview*. That is a qualification claim made
@@ -999,7 +1008,7 @@ terms, telling live students *"a caregiver job near you is open."* Right idea, p
 triggered by the provider rather than the student qualifying, one provider rather than the list, and a
 link to click rather than a number to call.
 
-### ② Human SOP
+### ② Procedure
 
 Deliberately short, for the same reason as ST8 — this stage should be a system, not a queue.
 
@@ -1030,9 +1039,10 @@ student appears on.
 
 **Objective** Put a qualified candidate in front of the providers who can hire them, in a form a provider
 will actually open, and keep telling the student where the work is until they are hired.
-**Owner** Portal, User Success Manager on exceptions. **Users** Provider, student.
-**Completion criteria** The provider has seen the candidate, and the student knows who is hiring and how
-to reach them.
+
+- **Owner** Portal, User Success Manager on exceptions.
+- **Users** Provider, student.
+- **Completion criteria** The provider has seen the candidate, and the student knows who is hiring and how to reach them.
 
 > **Assume nobody logs in.** A provider will not create an account to look at a candidate, and a student
 > will not check a job board every day waiting for work to appear. Everything in this stage has to land in
@@ -1057,7 +1067,7 @@ today — so this is a renderer and a template change, not new infrastructure.
 An SMS stack already exists — consent handling, quiet hours, a send queue and a flush job — so student SMS
 is consent capture and message types on a running pipeline, not a new channel.
 
-### ② Human SOP
+### ② Procedure
 
 1. **Send to the provider in the form they will open** — PDF attached, link included, no login asked for.
 2. **Do not rely on the board.** If a qualified student has not been introduced anywhere this week, that is
@@ -1082,9 +1092,10 @@ is consent capture and message types on a running pipeline, not a new channel.
 <!--FIG interview-->
 
 **Objective** Get a real interview onto two real calendars, then confirm it happened.
-**Owner** Portal. **Users** Student, provider, User Success Manager on exceptions.
-**Completion criteria** Both sides firm, a calendar invite on both calendars, and a recorded answer to
-*did it happen?*
+
+- **Owner** Portal.
+- **Users** Student, provider, User Success Manager on exceptions.
+- **Completion criteria** Both sides firm, a calendar invite on both calendars, and a recorded answer to *did it happen?*.
 
 > **The key endpoint is the calendar invite.** Everything before it is scheduling admin; everything after
 > depends on it. When both parties are firm an invite should appear on both calendars, and when its time
@@ -1117,7 +1128,7 @@ email both sides, and a calendar file is attached on confirmation. The student's
 | **1** | A real **Google Calendar event** on both calendars when both are firm — one both sides can see, update and cancel | A calendar file is attached to the confirmation email. Enough for an RSVP, not a shared event |
 | **2** | The **did-it-happen loop** — after the scheduled time, email both sides and record the answer | Not built. `completed` and `no_show` exist as states and nothing sets them |
 
-### ② Human SOP
+### ② Procedure
 
 1. **Chase the proposal that has sat unanswered.** A pending request nobody confirmed is the single most
    common place a match dies.
@@ -1162,8 +1173,10 @@ in the SOP above is chasing.
 ## MA3 — Hire confirmed
 
 **Objective** Find out whether the interview produced a job, and if it did not, find out why.
-**Owner** User Success Manager. **Users** Student, provider.
-**Completion criteria** A recorded answer either way, with a reason when the answer is no.
+
+- **Owner** User Success Manager.
+- **Users** Student, provider.
+- **Completion criteria** A recorded answer either way, with a reason when the answer is no.
 
 > **A hire we did not hear about is a hire we cannot bill for.** This stage exists because nobody tells us
 > on their own. The provider hires and moves on; the student starts work and moves on. Every placement we
@@ -1186,7 +1199,7 @@ Nothing is built. What should run, after the interview:
 was a formality, the schedule did not work, the student went quiet, the provider was not really hiring.
 Without a reason field, this stage produces a number nobody can act on.
 
-### ② Human SOP
+### ② Procedure
 
 1. **Open the cadence the day after the interview**, while both sides still remember it.
 2. **Student first, by SMS.** One question, answerable in four words.
@@ -1212,8 +1225,10 @@ a single email to the provider.
 
 **Objective** Establish that the placement actually stuck — six shifts worked — because that is the point
 we bill.
-**Owner** User Success Manager. **Users** Student, provider on the monthly list call.
-**Completion criteria** Six shifts confirmed and recorded against the placement.
+
+- **Owner** User Success Manager.
+- **Users** Student, provider on the monthly list call.
+- **Completion criteria** Six shifts confirmed and recorded against the placement.
 
 > **Chase the student, not the provider.** The student knows what they worked and answers a text. The
 > provider is the customer, and asking them to do our record-keeping every week is how we become annoying
@@ -1233,7 +1248,7 @@ client's students down on a call: still working, how many shifts, any problems. 
 what a dozen emails would not, and it is a touchpoint rather than an interruption. It is the same call
 that keeps MA3 honest.
 
-### ② Human SOP
+### ② Procedure
 
 1. **Text the student on a rhythm** from their start date until the answer reaches six.
 2. **Never ask the provider week to week.** Their confirmation comes on the list call.
@@ -1258,8 +1273,10 @@ number behind the guarantee.
 ## MA5 — Bill issued and collected
 
 **Objective** Turn a confirmed placement into an invoice, and the invoice into money.
-**Owner** User Success Manager. **Users** Client.
-**Completion criteria** Invoice issued against a confirmed six-shift placement, and payment recorded.
+
+- **Owner** User Success Manager.
+- **Users** Client.
+- **Completion criteria** Invoice issued against a confirmed six-shift placement, and payment recorded.
 
 > **Manual first, deliberately.** At current volume the User Success Manager raising an invoice by hand is
 > not a stopgap — it is the right answer, and it is how we learn what the automated version should do.
@@ -1276,9 +1293,9 @@ number behind the guarantee.
 **Where the button lives.** On the client record described in PR3 and still unbuilt. That record already
 needs to hold every meeting, hire, interview and six-shift confirmation for a client, so the invoice
 belongs on it too. Build it, and MA5 becomes one click on a row that already exists — the confirmation is
-the trigger, the invoice the consequence, and the human is there only for exceptions.
+the trigger, the invoice the consequence, and the team is there only for exceptions.
 
-### ② Human SOP
+### ② Procedure
 
 1. **Raise the invoice as soon as six is confirmed**, not on a billing day. The confirmation is the event.
 2. **Bill against the placement, not the client** — one invoice per student, so a dispute is about one

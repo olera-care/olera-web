@@ -26,6 +26,15 @@ Includes:
 - Critical files reference
 - Open architectural decisions / unverified assumptions
 
+### `MedJobs_Operating_System_Walkthrough_Summary.pdf` / `.docx`
+**Audience:** The team and anyone reading the operating-system diagram.
+**Voice:** Plain, structural, two pages.
+
+Companion to the MedJobs operating-system diagram. Covers the operating unit, the
+provider and university pipelines, the seven portal milestones, why the six-shift
+threshold is the commercial bar, what still needs building, and the scaling
+principle. House-style build in `walkthrough-src/`.
+
 ## Source of truth
 
 The markdown files in this directory are the **source of truth**. When the system evolves, update these documents.

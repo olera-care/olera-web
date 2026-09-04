@@ -1,0 +1,200 @@
+[
+ {
+  "kind": "p",
+  "style": "Title",
+  "text": "MedJobs Operating System"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Walkthrough Summary & Reader Guide"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Companion to the MedJobs operating-system diagram | September 4, 2026"
+ },
+ {
+  "kind": "table",
+  "grid": [
+   [
+    "How to use this guide. The diagram is the primary operating model. This summary explains what each part is intended to accomplish, where ownership changes hands, and which parts of the workflow still need to be strengthened or instrumented."
+   ]
+  ]
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "1. The Operating Unit"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "MedJobs is designed to operate one university and its surrounding provider service area at a time. Within that local unit, the team develops two coordinated pipelines: a provider pipeline that identifies organizations with staffing needs and a university/student pipeline that creates a qualified pool of students interested in paid caregiving work. The two sides converge in the MedJobs portal for matching, hiring, shift confirmation, and billing."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "2. Provider Side: Prospect \u2192 Meeting \u2192 Client Success"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Target list and outbound work. The Admin Team builds the provider target list and manages outbound activity through the CRM, including calls, emails, scripts, follow-up, and meeting scheduling. The immediate objective of this work is to place a qualified provider meeting on Logan\u2019s calendar."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Founder meeting. The Admin Team hands the relationship to Logan for the provider meeting. Logan introduces the program, confirms that the provider is active and has a staffing need, and works toward provider interest in using MedJobs."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Client Success. Once the provider is interested, Logan hands the relationship to Chantel / Client Success. Client Success owns follow-up questions, profile completion, required staffing information, and the touch points needed to move the provider toward its first successful hire. This post-meeting stage is currently an important source of falloff and needs stronger CRM workflows and dedicated ownership."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "3. University & Student Side: Access \u2192 Distribution \u2192 Applications"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Advisor prospecting and outbound. The Admin Team identifies university career and health-professions advisors, loads prospects into the CRM, and conducts outbound work with the goal of securing access to the university. A meeting with Logan is the preferred early relationship-building path, although an advisor may sometimes provide access to distribution channels directly by email without a meeting."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Advisor meeting and handoff. Logan meets with advisors when possible to introduce MedJobs and secure buy-in. The central ask is simple: help circulate the MedJobs opportunity to relevant students. Once access is established, ongoing university activation should move to a University Success function rather than remain dependent on founder follow-up."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "University activation. The team should work multiple distribution channels at each university: university job boards, student organizations, campus or career events, advisor listservs/newsletters, and professor outreach. These channels distribute the MedJobs opportunity and drive students to the application. The walkthrough emphasized that student-organization distribution can be especially powerful, while job boards can provide effective passive acquisition."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Application. Students reach the MedJobs application through links or QR codes distributed through these channels. Application intake should occur directly through the portal."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "4. Portal: Vet \u2192 Match \u2192 Confirm Value \u2192 Bill"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The portal is intended to remove manual work from the middle and lower funnel. It should manage the student application, apply qualification criteria, create a filtered candidate pool, support provider access to qualified candidates, and instrument the major fulfillment milestones."
+ },
+ {
+  "kind": "table",
+  "grid": [
+   [
+    "Stage",
+    "Milestone",
+    "Operating intent"
+   ],
+   [
+    "1",
+    "Application submitted",
+    "Student applies through the MedJobs portal."
+   ],
+   [
+    "2",
+    "Application vetted",
+    "Portal applies a defined qualification decision tree. Only qualified applicants enter the candidate pool."
+   ],
+   [
+    "3",
+    "Candidate introduced",
+    "Qualified candidates are surfaced to relevant providers. This may include browsing through the portal/job board and, over time, more targeted candidate introductions."
+   ],
+   [
+    "4",
+    "Interview held",
+    "MedJobs should facilitate and confirm that interviews actually occur. Calendar integration or triggered calendar invitations were identified as a promising mechanism because manual calendar invitations worked well previously."
+   ],
+   [
+    "5",
+    "Hire confirmed",
+    "Portal communications should follow up with both provider and student until the hire is confirmed and the system record is updated."
+   ],
+   [
+    "6",
+    "6+ shifts worked confirmed",
+    "MedJobs should verify that the student has worked at least six shifts before charging the provider. The exact verification mechanism remains to be designed and could involve automated communications, provider confirmation, student logging, or a combination."
+   ],
+   [
+    "7",
+    "Bill issued and collected",
+    "Once 6+ shifts are confirmed, MedJobs can issue the provider invoice and collect payment. This connects the fee directly to demonstrated value rather than charging for an introduction, interview, or nominal hire."
+   ]
+  ]
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "5. Why the Six-Shift Threshold Matters"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The proposed commercial bar is intentionally downstream of the hire. A provider would not pay simply because MedJobs produced an interview or even because a student initially accepted a job. The goal is to charge only after MedJobs confirms that the student has worked at least six shifts. This makes the sales proposition lower risk for the provider and ties MedJobs\u2019 fee to a point at which the placement has generated meaningful operating value. The exact method for confirming six shifts is still an open design problem and should be treated as a priority for the portal and communications workflow."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "6. What Needs to Be Built or Strengthened Next"
+ },
+ {
+  "kind": "p",
+  "style": "List Bullet",
+  "text": "Provider Client Success: Build the post-meeting CRM workflow and ownership model from provider interest through profile completion and first hire."
+ },
+ {
+  "kind": "p",
+  "style": "List Bullet",
+  "text": "University Success: Create a repeatable process for activating job boards, student organizations, events, advisor communications, and professor outreach after university access is secured."
+ },
+ {
+  "kind": "p",
+  "style": "List Bullet",
+  "text": "Portal application vetting: Finalize the qualification decision tree and automate as much screening as practical so only qualified students enter the candidate pool."
+ },
+ {
+  "kind": "p",
+  "style": "List Bullet",
+  "text": "Candidate introduction: Improve how qualified candidates are surfaced to relevant providers beyond passive browsing alone."
+ },
+ {
+  "kind": "p",
+  "style": "List Bullet",
+  "text": "Interview instrumentation: Create a reliable way to facilitate and confirm interviews, with calendar integration identified as a strong candidate."
+ },
+ {
+  "kind": "p",
+  "style": "List Bullet",
+  "text": "Hire and shift confirmation: Build communications and portal states that reliably confirm hiring and the six-shift commercial threshold."
+ },
+ {
+  "kind": "p",
+  "style": "List Bullet",
+  "text": "Automated billing trigger: Once the six-shift threshold is verified, connect that event to invoice generation and payment collection."
+ },
+ {
+  "kind": "p",
+  "style": "Heading 1",
+  "text": "7. Operating Principle for Scale"
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "The immediate goal is to make this full operating loop work reliably in one university/service area. The walkthrough\u2019s scaling thesis is that the human roles are relatively bounded: Admin Team prospecting/outbound, founder or sales-lead meetings, Client/University Success, and technical ownership of the portal. If the portal absorbs the manual coordination in application screening, matching, interview/hire tracking, shift confirmation, and billing, the same operating model could then be replicated across additional university/service areas with progressively less founder effort."
+ },
+ {
+  "kind": "p",
+  "style": "Normal",
+  "text": "Bottom line: MedJobs succeeds when the team can repeatedly turn provider staffing needs and university access into qualified student applications, confirmed hires, six or more completed shifts, and collected revenue through a workflow that is increasingly managed by the CRM and portal rather than manual founder coordination."
+ }
+]

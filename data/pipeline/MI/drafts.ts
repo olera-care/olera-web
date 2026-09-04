@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MI/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-22T10:37:49.034Z
+ * Last updated: 2026-09-04T09:57:48.364Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -113,21 +113,18 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Social Security award letters for applicant and spouse",
-        "Current Medicaid card or proof of Medicaid eligibility",
-        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
-        "Medicare card if they have one (Medicare is not required for this program)",
-        "Investment account statements (stocks, bonds, annuities)",
-        "Property deeds and current tax assessments",
-        "Vehicle titles and registration documents",
-        "Life insurance policies with cash values",
-        "Pre-paid burial contracts or funeral arrangements",
-        "Medical records supporting need for care (recent hospital discharge summaries, physician assessments)",
-        "List of current medications and medical equipment",
-        "Proof of Michigan residency (utility bill or lease agreement)",
-        "Birth certificate or passport for age verification",
-        "Disability determination letter (if under age 65)",
-        "Documentation of any asset transfers in the last 60 months"
+        "Proof of identity and age: birth certificate, passport, or state-issued photo ID",
+        "Proof of citizenship and residency: Social Security card, and proof of Michigan residency (utility bill, lease agreement, or tax statement)",
+        "Income documentation: recent award letters for Social Security (SSI/SSDI), pension statements, or pay stubs for all household members",
+        "Bank statements (checking, savings) for the last 3 months",
+        "Investment account statements (stocks, bonds, mutual funds)",
+        "Property deeds and tax assessments for any real estate owned other than the primary residence",
+        "Vehicle registrations (if owning more than one vehicle)",
+        "Life insurance policies, specifically those with cash surrender value",
+        "Irrevocable burial or funeral contracts",
+        "Insurance information: Medicare card (Parts A and B) and any other health insurance cards",
+        "Medical documentation: recent hospital discharge summaries, a list of current diagnoses, and a list of all medications",
+        "Legal documents: Power of Attorney (POA), guardianship, or representative payee documents if you are applying on your loved one's behalf"
       ],
       "contacts": [
         {
@@ -171,11 +168,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens if my loved one's Social Security income is $2,990 per month?",
-          "answer": "They would not qualify because the 2025 gross income limit is $2,982 per month. Even $8 over the limit disqualifies them. The income limit is based on gross Social Security before any deductions for Medicare premiums."
+          "answer": "For 2026, the gross monthly income limit for the MI Choice Waiver is $2,982. If your loved one is over this limit, they do not automatically qualify for this specific waiver. However, Michigan is a 'medically needy' state. This means your loved one may be able to 'spend down' their excess income by applying qualifying medical expenses toward that limit to become eligible. Contact your local MI Choice Waiver agency or a benefits counselor to see if a spend-down strategy could work for your loved one's specific situation."
         },
         {
           "question": "Can I apply for MI Choice Waiver if my loved one is already in a nursing home?",
-          "answer": "No, MI Choice Waiver is only for people living in the community or their own home. If your loved one is in a nursing home and wants to transition home, they would need to move out first, then apply for community-based services."
+          "answer": "Yes. While MI Choice Waiver is designed for those living in the community, you can apply while your loved one is in a nursing home if they want to transition back to the community. Contact your local MI Choice Waiver agency to discuss the 'nursing facility transition' process. They can help coordinate a move back to an appropriate community setting, such as a private home, apartment, or assisted living facility, provided the participant can be safely supported there."
         },
         {
           "question": "How long is the waitlist really?",
@@ -191,7 +188,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can my loved one get both MI Choice Waiver and PACE services?",
-          "answer": "No, these are alternative programs that cannot be combined. PACE provides more comprehensive medical care integration, while MI Choice Waiver offers more flexibility in service providers. You'll need to choose one program that better fits your loved one's needs."
+          "answer": "No, you cannot be enrolled in both programs simultaneously. MI Choice Waiver and PACE (Program of All-Inclusive Care for the Elderly) are both comprehensive programs designed to help individuals avoid nursing home placement. Because they both provide coordinated, long-term care services, they are alternatives to one another. You should discuss both options with your local Area Agency on Aging or a benefits counselor to determine which program best aligns with your loved one's specific medical needs and preferred care providers."
         },
         {
           "question": "What happens if my loved one's needs increase after enrollment?",
@@ -209,15 +206,15 @@ export const drafts: PipelineStateDrafts = {
       "icon": "House",
       "phone": null,
       "sourceUrl": "https://www.michigan.gov/mdhhs/assistance-programs/healthcare/seniors/michoicewaiver",
-      "contentStatus": "pipeline-draft",
+      "contentStatus": "approved",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-07"
+      "lastVerifiedDate": "2026-07-14"
     },
     {
       "id": "health-link-program",
-      "name": "MI Health Link Program",
-      "shortName": "MI Health Link",
-      "tagline": "If your loved one has both Medicare and Medicaid in qualifying Michigan counties, one coordinated plan covers all their medical care and home services.",
+      "name": "MI Coordinated Health (MICH)",
+      "shortName": "MI Coordinated Health",
+      "tagline": "If your loved one has both Medicare and Medicaid, one coordinated plan covers all their medical care and home services.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -225,12 +222,12 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "ICO-specific providers (e.g., HAP for Macomb/Wayne, DWMHA for Wayne)",
+            "name": "MI Coordinated Health participating health plans (service areas vary)",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your loved one has both Medicare and Medicaid and lives in one of 25 qualifying Michigan counties, MI Health Link combines all their benefits into one coordinated plan. Instead of managing separate Medicare and Medicaid providers, your loved one gets one card, one care coordinator, and one team managing everything from doctor visits to prescription drugs to home care services.\n\nThe program covers medical services, behavioral health, pharmacy (replacing Medicare Part D with no co-pays or deductibles on covered medications), home and community-based services including personal care, nursing home care, and transportation. Your loved one's care coordinator helps arrange appointments, connects providers, and ensures all services work together.\n\nMI Health Link is only available in specific counties: Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, Macomb, St. Joseph, Van Buren, Wayne, and all 15 Upper Peninsula counties. Eligible individuals receive enrollment letters from Michigan ENROLLS with plan options, and if no choice is made, they're automatically assigned to a plan.",
+      "intro": "If your loved one has both Medicare and Medicaid, MI Coordinated Health (MICH) combines all their benefits into one coordinated plan. Instead of managing separate Medicare and Medicaid providers, your loved one gets one care coordinator and one team handling everything from doctor visits to prescriptions to home care services.\n\nMICH replaced the MI Health Link program on January 1, 2026. MICH plans operate under a Medicare Advantage framework, so coverage is tied to a specific plan's provider network and service area. Check the plan's provider directory before enrolling to confirm your loved one's doctors are included.\n\nEnrollment is managed by the state. If your loved one is eligible for both Medicare and Medicaid, they will receive an enrollment packet from Michigan ENROLLS listing their plan options. Once enrolled, a Care Coordinator contacts them to assess their health and support needs, and handles the paperwork from there.\n\nIf your loved one is currently enrolled in MI Choice, PACE, or a similar program, they must leave that program before joining MICH. Speak with a benefits counselor or their current care coordinator first so their services continue without a gap in care.",
       "savingsRange": "",
       "savingsSource": "Free service coordination",
       "savingsVerified": false,
@@ -238,94 +235,100 @@ export const drafts: PipelineStateDrafts = {
         "summary": [
           "Age 21+",
           "Both full Medicare and Medicaid",
-          "Live in 25 qualifying counties",
-          "Cannot be in hospice or MI Choice"
+          "Live in a participating MICH plan service area",
+          "Assets under $9,950 (single applicant)",
+          "Cannot be in hospice, PACE, or MI Choice"
         ],
         "ageRequirement": "21+",
         "incomeTable": null,
         "assetLimits": {
-          "individual": null,
+          "individual": 9950,
           "couple": null,
-          "countedAssets": [],
-          "exemptAssets": [],
+          "countedAssets": [
+            "Bank accounts (checking and savings)",
+            "Stocks, bonds, and certificates of deposit (CDs)",
+            "Real estate other than the primary residence"
+          ],
+          "exemptAssets": [
+            "Primary residence (if your loved one intends to return to it)",
+            "One vehicle",
+            "Household goods and personal belongings"
+          ],
           "homeEquityCap": 730000
         },
         "functionalRequirement": "For home and community-based services, must meet Nursing Facility Level of Care (a clinical assessment of whether your loved one needs daily help with activities like bathing, dressing, or medication management)",
         "otherRequirements": [
           "Enrolled in both full Medicare (Parts A, B, and D) and full Medicaid benefits",
-          "Live in Barry, Berrien, Branch, Calhoun, Cass, Kalamazoo, Macomb, St. Joseph, Van Buren, Wayne, or any Upper Peninsula county",
+          "Live in the service area of a participating MI Coordinated Health plan",
           "Cannot be in a state-operated veteran's home",
           "Cannot be enrolled in hospice, PACE, or MI Choice programs",
-          "People with Medicaid spend-down are not eligible"
+          "People with Medicaid spend-down are not eligible",
+          "When only one spouse is applying, spousal impoverishment rules may protect a larger portion of the couple's combined assets for the non-applicant spouse"
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Eligible individuals receive enrollment letters from Michigan ENROLLS with plan options, or can contact their health plan directly.",
+        "summary": "Eligible individuals receive an enrollment packet from Michigan ENROLLS with plan options. You can also contact a MICH health plan directly to discuss enrollment.",
         "steps": [
           {
             "step": 1,
-            "title": "Wait for enrollment letter",
-            "description": "If you're eligible, you'll receive a letter from Michigan ENROLLS with Integrated Care Organization (ICO) options for your county."
+            "title": "Receive your enrollment letter",
+            "description": "If your loved one is eligible for both Medicare and Medicaid, they will receive an enrollment packet from Michigan ENROLLS. This letter outlines their health plan options."
           },
           {
             "step": 2,
-            "title": "Choose a plan or get auto-assigned",
-            "description": "Review the ICO options and select one. If you don't choose, you'll be automatically assigned to a plan."
+            "title": "Choose your plan",
+            "description": "Choose a participating health plan when the letter arrives. If you do nothing, your loved one may be automatically assigned to a plan if they are eligible."
           },
           {
             "step": 3,
-            "title": "Complete required forms",
-            "description": "Submit Authorization to Disclose Protected Health Information (DCH-1183) and Behavioral Health Consent Form (MDHHS-5515)."
-          },
-          {
-            "step": 4,
-            "title": "Provide documentation",
-            "description": "Submit proof of Medicare and Medicaid enrollment, county residency, and complete Level of Care Determination (LOCD) if requesting home care services."
+            "title": "Work with your care coordinator",
+            "description": "Once enrolled, your loved one is assigned a Care Coordinator. They will conduct a comprehensive assessment of health and support needs, and handle the necessary paperwork such as consent forms and level-of-care assessments during this time."
           }
         ],
         "processingTime": "Varies by enrollment phase and region",
         "waitlist": null,
-        "tip": "If your loved one is currently in MI Choice or PACE, they must disenroll from those programs before joining MI Health Link.",
+        "tip": "If your loved one is currently in a MI Choice or PACE program, they must disenroll before joining MI Coordinated Health. Speak with a benefits counselor or their current care coordinator before making changes so their services continue without interruption.",
         "urls": [
           {
-            "label": "Michigan MDHHS Integrated Care",
-            "url": "https://www.michigan.gov/mdhhs/doing-business/providers/integrated"
+            "label": "Michigan MI Coordinated Health",
+            "url": "https://www.michigan.gov/mdhhs/doing-business/providers/mi-coordinated-health/information-for-health-plans-and-providers"
           }
         ]
       },
-      "documentsNeeded": [
-        "Medicare card (Parts A, B, and D)",
-        "Medicaid card or enrollment verification",
-        "Proof of residency in eligible county (utility bill, lease, or state-issued document)",
-        "Authorization to Disclose Protected Health Information (DCH-1183)",
-        "Behavioral Health Consent Form (MDHHS-5515)",
-        "Level of Care Determination (LOCD) documentation if requesting home and community-based services",
-        "Documentation from current MI Choice or PACE program if disenrolling",
-        "Valid government-issued photo ID",
-        "Social Security card",
-        "Birth certificate or other proof of age"
-      ],
+      "documentsNeeded": null,
       "contacts": [
         {
           "label": "Michigan ENROLLS",
+          "phone": "1-800-975-7630",
+          "description": "Enrollment, opting out, and plan changes. TTY: 1-888-263-5897",
+          "hours": null
+        },
+        {
+          "label": "MI Community, Home, and Health Ombudsman",
           "phone": null,
-          "description": "Enrollment and plan selection assistance",
-          "hours": "Contact through official channels"
+          "description": "Independent advocacy and problem solving for MICH enrollees",
+          "hours": null
+        },
+        {
+          "label": "Michigan Medicare/Medicaid Assistance Program (MMAP)",
+          "phone": "1-800-803-7174",
+          "description": "Free, unbiased counseling to help you understand your options under MICH",
+          "hours": null
         },
         {
           "label": "Michigan 2-1-1",
           "phone": "2-1-1",
-          "description": "Free helpline for all social services including MI Health Link information",
+          "description": "General social service referrals. Not a direct line for MICH enrollment",
           "hours": "24 hours, 7 days a week"
         }
       ],
       "applicationNotes": [
-        "Moving out of your eligible county terminates enrollment - you must enroll in a new plan if moving to another MI Health Link county",
-        "The program replaces your Medicare Part D prescription drug plan, so you cannot keep separate drug coverage",
-        "If your loved one is in a nursing home, they will still pay their patient pay amount under MI Health Link",
-        "Auto-assignment happens if no plan choice is made during the enrollment window - it's better to actively choose"
+        "Moving outside your plan's service area terminates enrollment. Contact Michigan ENROLLS as soon as you know about a move so coverage continues without a gap",
+        "MICH plans include Medicare prescription drug coverage, so your loved one cannot keep a separate Part D plan",
+        "If your loved one is in a nursing home, they will still pay their patient pay amount under MICH",
+        "Auto-assignment happens if no plan choice is made during the enrollment window, so it is better to actively choose"
       ],
       "relatedPrograms": [
         "MI Choice Waiver Program",
@@ -336,24 +339,24 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my loved one keep their current doctors under MI Health Link?",
-          "answer": "It depends on whether their doctors are in the Integrated Care Organization's network. Each ICO has its own provider network, so check with the specific plan before enrolling. Your loved one may need to switch providers or the plan may need to approve out-of-network care."
+          "question": "Can my loved one keep their current doctors under MI Coordinated Health?",
+          "answer": "It depends on whether their doctors are in the network of the specific MICH plan you choose. Since MICH plans operate as Medicare Advantage plans, you should check the plan's provider directory before enrolling. If their current doctor isn't in the network, you may need to switch or see if the plan offers out-of-network options."
         },
         {
-          "question": "What happens if my loved one moves from Wayne County to a non-eligible county?",
-          "answer": "Their MI Health Link enrollment will terminate when they move out of an eligible county. They'll receive notice of termination and return to regular Medicare and Medicaid coverage. If they move to another eligible county, they can enroll in that county's available ICO plans."
+          "question": "What happens if my loved one moves outside their plan's service area?",
+          "answer": "MICH coverage is tied to specific service areas. If your loved one moves outside of these areas, their MICH enrollment will be terminated, and they will transition back to Original Medicare and traditional Medicaid. You should contact Michigan ENROLLS as soon as you know about a move to ensure coverage continues without a gap."
         },
         {
-          "question": "Can my loved one be in MI Health Link and MI Choice at the same time?",
-          "answer": "No. Your loved one must disenroll from MI Choice, PACE, or hospice before joining MI Health Link. These programs cannot run simultaneously. If they prefer MI Choice services, they should stay in that program rather than switch."
+          "question": "Can my loved one be in MI Coordinated Health and MI Choice at the same time?",
+          "answer": "Generally, no. MICH is an integrated program that replaces separate Medicare and Medicaid managed care plans. If your loved one is enrolled in a specialized program like PACE or receives services through a MI Choice waiver, they typically must disenroll from those before joining MICH. Because these programs provide specific, coordinated care, consult with a benefits counselor before making any changes."
         },
         {
-          "question": "How do I choose between the different ICO plans in my loved one's county?",
-          "answer": "Compare the provider networks, care coordination approaches, and additional services offered by each ICO. The enrollment letter from Michigan ENROLLS should include plan comparison information. You can also contact each plan directly to ask about their providers and services."
+          "question": "How do I choose between the different MICH plans available to my loved one?",
+          "answer": "Compare the provider networks, care coordination approaches, and additional services offered by each plan. The enrollment packet from Michigan ENROLLS should include plan comparison information. You can also contact each plan directly to ask about their providers and services."
         },
         {
           "question": "What if my loved one needs nursing home care after enrolling?",
-          "answer": "MI Health Link covers nursing home care, and the integrated approach means the same care coordinator who managed their home services will coordinate their nursing home placement and care. Your loved one will pay their usual patient pay amount to the nursing home."
+          "answer": "MI Coordinated Health covers nursing home care, and the integrated approach means the same care coordinator who managed their home services will coordinate their nursing home placement and care. Your loved one will pay their usual patient pay amount to the nursing home."
         },
         {
           "question": "Can I apply for my loved one who has dementia?",
@@ -361,7 +364,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens to my loved one's Medicare Part D coverage?",
-          "answer": "MI Health Link replaces Medicare Part D prescription drug coverage. Your loved one cannot keep their separate Part D plan and will get prescription coverage through the ICO with no co-pays or deductibles on covered medications. This is typically better coverage than standalone Part D."
+          "answer": "MI Coordinated Health includes Medicare prescription drug coverage. Your loved one cannot keep their separate Part D plan and will get prescription coverage through their MICH plan with no co-pays or deductibles on covered medications. This is typically better coverage than standalone Part D."
         },
         {
           "question": "Is there a deadline to enroll or can my loved one join anytime?",
@@ -373,14 +376,15 @@ export const drafts: PipelineStateDrafts = {
         "eligibilityDisplay": "simple-list",
         "applyDisplay": "step-journey",
         "hasLocationFinder": true,
-        "hasDocumentChecklist": true,
+        "hasDocumentChecklist": false,
         "visualTone": "editorial"
       },
       "icon": "Signpost",
-      "phone": "2-1-1",
-      "sourceUrl": "https://www.michigan.gov/mdhhs/doing-business/providers/integrated",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "phone": "1-800-975-7630",
+      "sourceUrl": "https://www.michigan.gov/mdhhs/doing-business/providers/mi-coordinated-health/information-for-health-plans-and-providers",
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-07-14"
     },
     {
       "id": "options",
@@ -497,8 +501,9 @@ export const drafts: PipelineStateDrafts = {
       "icon": "Compass",
       "phone": "(800) 803-7174",
       "sourceUrl": "https://www.michigan.gov/mdhhs/inside-mdhhs/newsroom/2025/08/22/mi-options",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-07-14"
     },
     {
       "id": "senior-project-fresh",
@@ -511,7 +516,7 @@ export const drafts: PipelineStateDrafts = {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your loved one is 60+ and lives in Michigan on a limited income, they may qualify for $25 in fresh produce coupons through Senior Project Fresh. Because the program runs from May through October, your loved one can use these digital coupons at farmers markets and roadside stands for Michigan-grown fruits, vegetables, herbs, mushrooms, and honey.\n\nBecause each eligible household member can apply separately, a couple could receive up to $50 in coupons. Income limit: $2,322/month for a single person or $3,151/month for a couple (2024 limits). The program also includes free nutrition counseling.\n\nThe program transitioned to a fully digital system in 2025 through the Healthy Together platform, no more paper coupons. Applications open May 1st each year and coupons expire October 31st.",
+      "intro": "If your loved one is 60+ and lives in Michigan on a limited income, they may qualify for $25 in benefits to spend on fresh, locally grown produce at participating farmers markets and roadside stands.\n\nTo be eligible, they must be 60 or older (or 55+ and a member of a federally recognized tribe or urban tribal group in Michigan) and have a household income at or below 185% of the Federal Poverty Guidelines, approximately $29,526 annually for a one-person household or $40,034 for a two-person household.\n\nThe program runs from May 1 through October 31, and benefits are loaded directly onto a digital card through the Healthy Together platform, so there are no paper coupons to manage. You can apply through the Healthy Together website or mobile app. If your loved one needs help with the application, they can contact their local Area Agency on Aging or Commission on Aging.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -620,7 +625,7 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can I apply for my loved one if they can't do it themselves?",
-          "answer": "Yes, you can use a proxy to apply and pick up coupons for your loved one. The proxy must be at least 18 years old, provide identification, and have written approval from your loved one using form MDHHS-6011."
+          "answer": "Yes. If your loved one is unable to apply themselves, you can assist them as a 'proxy.' Because the program is now fully digital through the Healthy Together platform, you can help them navigate the online application or mobile app. You will need to use their account information to register, and you can then assist them with managing the benefits on their digital card. If you are shopping on their behalf at a farmers market, simply ensure you have their card and PIN."
         },
         {
           "question": "What happens if we miss the October 31st deadline?",
@@ -642,8 +647,9 @@ export const drafts: PipelineStateDrafts = {
       "icon": "BowlFood",
       "phone": null,
       "sourceUrl": "https://www.michigan.gov/mdhhs/adult-child-serv/adults-and-seniors/acls/special-programs/senior-project-freshmarket-fresh",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-07-14"
     },
     {
       "id": "michigan-micafe-food-access",
@@ -787,8 +793,9 @@ export const drafts: PipelineStateDrafts = {
       "icon": "Signpost",
       "phone": "(877) 664-2233",
       "sourceUrl": "https://elderlawofmi.org/micafe",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-07-14"
     },
     {
       "id": "senior-companion-program",
@@ -823,7 +830,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one needs companionship and help with daily activities like light housekeeping, meal preparation, or getting to appointments, Senior Companion Program connects them with trained volunteers age 55+ who provide one-on-one support. Because companions are matched locally and serve 15-20 hours per week, your loved one gets consistent help from someone who understands their generation and challenges.\n\nYour loved one can receive this support whether they live independently, with family, in assisted living, or even nursing homes. The program serves adults 21+ with disabilities, chronic conditions, dementia, or social isolation across 73 of Michigan's 83 counties. There's no cost to families, volunteers receive a small tax-exempt stipend, but recipients pay nothing.",
+      "intro": "The Senior Companion Program connects older adults (age 55 and older) who wish to serve as volunteers with individuals who need extra support to maintain their independence. Senior Companions provide friendship, emotional support, and assistance with daily tasks to help your loved one remain at home.\n\nBecause the program is administered regionally, availability, specific service focus, and the exact populations served (which may include older adults, adults with disabilities, or those facing social isolation) can vary depending on the local agency in your county. This is a volunteer-led effort, distinct from professional, private companion care services that charge hourly fees.\n\nWhile the program is free to those receiving services, it is best to contact your local Area Agency on Aging or the Michigan Association of Foster Grandparent and Senior Companion Programs to confirm whether a program is active in your specific county and to understand the referral process.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -837,11 +844,11 @@ export const drafts: PipelineStateDrafts = {
         "ageRequirement": "21+ (care recipient)",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Your loved one must have special needs such as developmental disabilities, mental illness, frail health, dementia, physical or visual impairments, or experience loneliness and isolation",
+        "functionalRequirement": "The program serves frail older adults and adults with disabilities who need person-to-person support. Volunteers typically help with activities like grocery shopping, transportation to medical appointments, meal preparation, or simply providing socialization to combat loneliness.",
         "otherRequirements": [
-          "Must live in one of the 73 counties served by the program",
-          "Referred through local non-profit agencies or health organizations",
-          "Home/care setting must pass pre-screening"
+          "Administration: the program is administered regionally. You will need to contact your local Area Agency on Aging or the agency serving your specific county to find availability in your area",
+          "Referral: while many participants are referred by family members, health organizations, or social service agencies, the program is a volunteer-led initiative, not a standard medical service",
+          "Setting: Senior Companions primarily serve clients living independently in the community. Check with your local program administrator regarding their policies on serving individuals in assisted living or nursing home facilities"
         ],
         "povertyLevelReference": null
       },
@@ -851,23 +858,23 @@ export const drafts: PipelineStateDrafts = {
         "steps": [
           {
             "step": 1,
-            "title": "Contact your regional provider",
-            "description": "Call the provider serving your county: CCSEM Oakland/Macomb at (248) 537-3300, Family Service Agency of Mid Michigan at (810) 257-3769, or Milestone Senior Services at (269) 382-0515."
+            "title": "Find your local provider",
+            "description": "Contact your local Area Agency on Aging or visit the Michigan Association of Foster Grandparent and Senior Companion Programs website (https://mafgscp.org/) to identify the office serving your county."
           },
           {
             "step": 2,
-            "title": "Complete intake assessment",
-            "description": "Provider will assess your loved one's needs and living situation. They'll also conduct a home visit or site pre-screening to ensure compatibility."
+            "title": "Request an intake assessment",
+            "description": "The local agency will evaluate your loved one's needs to see if they are a match for the program's services."
           },
           {
             "step": 3,
-            "title": "Get matched with a volunteer",
-            "description": "Provider matches your loved one with a trained Senior Companion based on personality, interests, and care needs. Volunteers complete FBI background checks and ongoing training."
+            "title": "Matching",
+            "description": "If eligible, the program will work to match your loved one with a trained Senior Companion. Volunteers undergo rigorous background checks and training."
           },
           {
             "step": 4,
-            "title": "Begin companion services",
-            "description": "Companion visits 15-20 hours per week providing companionship, light assistance, and transportation to appointments."
+            "title": "Begin services",
+            "description": "Once matched, the volunteer typically provides 15 to 20 hours of service per week, offering socialization, assistance with daily tasks, and companionship to help your loved one maintain their independence."
           }
         ],
         "processingTime": null,
@@ -900,6 +907,12 @@ export const drafts: PipelineStateDrafts = {
           "phone": "(517) 373-8230",
           "description": "General information about programs for seniors",
           "hours": "Mon-Fri 8am-5pm ET"
+        },
+        {
+          "label": "Michigan Department of Health & Human Services (Aging Services)",
+          "phone": "(517) 373-8230",
+          "description": "Can direct you to the Area Agency on Aging in your region, the primary administrative hub for senior services in your county",
+          "hours": "Monday to Friday, 8:00 AM to 5:00 PM ET"
         }
       ],
       "applicationNotes": [
@@ -921,11 +934,11 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one lives in assisted living or a nursing home?",
-          "answer": "Senior Companions can visit your loved one in assisted living, nursing homes, adult day care, or group homes. The facility must approve the visits, but many welcome additional companionship for residents."
+          "answer": "The Senior Companion Program is primarily focused on helping individuals remain independent in their own homes or community settings. While some local programs may have specific partnerships, it is not designed to operate in all nursing homes or assisted living facilities. You must contact the program provider serving your specific county to confirm whether they have the capacity to serve your loved one in their specific residence."
         },
         {
           "question": "How do I know if my county has Senior Companion services?",
-          "answer": "The program operates in 73 of Michigan's 83 counties. Call the Michigan Aging & Adult Services line at (517) 373-8230 to find out which provider serves your area, or try contacting the regional providers directly."
+          "answer": "The Senior Companion Program is managed regionally. There is no single statewide office that maintains a live list of all active county programs. To see if service is available in your area, contact your local Area Agency on Aging (AAA). They are the central hub for senior services and can immediately confirm whether there is an active Senior Companion program in your county."
         },
         {
           "question": "What exactly will the companion do during their visits?",
@@ -951,8 +964,9 @@ export const drafts: PipelineStateDrafts = {
       "icon": "HandHeart",
       "phone": "(248) 537-3300",
       "sourceUrl": "https://www.michigan.gov/mdhhs/adult-child-serv/adults-and-seniors/acls/special-programs",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "contentStatus": "approved",
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-07-14"
     }
   ],
   "stateOverview": {

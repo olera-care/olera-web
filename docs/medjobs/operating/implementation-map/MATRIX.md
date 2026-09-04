@@ -446,25 +446,85 @@ in the provider row. **B4** and **B5** are what would make this stage visible.
 
 ## ST1 — Target advisors
 
-**Objective** Named university stakeholders identified per site. **Owner** Admin Team.
-**Completion criteria** Named humans with contact details and a stated reason they are the right person.
+**Objective** Produce a verified list of university offices to approach for a site, each with the email
+outreach needs, sitting in the In Basket ready to be confirmed by a call.
+**Owner** Admin Team. **Users** Admin Team.
+**Completion criteria** Offices generated as prospects, each verified and tagged, waiting in the Partners
+tab.
 
-**① User journey / technology**
+> **The office is the prospect, not the person.** An advising office with an email is what outreach needs.
+> Named advisors are optional, and only worth adding when they have their own contact details. This is the
+> opposite of how provider prospecting works, and it is deliberate — offices outlast the people in them.
 
-| Actor | Sees / does | Surface |
-|---|---|---|
-| Admin Team | Builds the stakeholder list by subtype; enriches; records why each is right | Partner prospects · partner sourcing |
+### ① User journey / technology
 
-**② Human SOP** — work advising pages, org directories, department pages · check org rosters are current ·
-capture subtype, since it drives the copy · target 15–25 named humans per site.
+Three subtypes are worked in turn for each site: **Advising** → **Student orgs** → **Departments**.
 
-**③ System / handoff**
+| # | What they do | Where | Exhibit |
+|---|---|---|---|
+| 1 | On the site card, click **Find partners ✦** — *"Find partners with AI for this university"* | [`olera.care/admin/medjobs/sites`](https://olera.care/admin/medjobs/sites) | **O** |
+| 2 | **Step 1 · Find offices.** The goal is stated on screen: *gather a few pages that name an advising office and show its email/phone — pre-health first, then nursing/allied, then career services.* **Suggest links** proposes office pages; **predefined searches** open Google for you and check themselves off as you go; anything found by hand can be pasted in. Kept links carry forward | Research modal | **P** |
+| 3 | **Step 2 · Verify offices.** Each candidate office gets a name, a **tag**, an email, a phone and an optional website, then a **Verified — this office is correct and ready** tick. Advisors can be added underneath, but only with their own email or phone. A counter reads *N of M verified* | Research modal | **Q** |
+| 4 | **Step 3 · Generate.** The verified offices become prospects — *"They're in your In-Basket for \[University\]. Next: confirm each advising office by a quick call, then launch outreach."* Then **Continue to Student orgs →**, and later Departments | Research modal | **R** |
+| 5 | The offices appear in the **Partners** tab, each showing its university and its tag | [`olera.care/admin/medjobs/in-basket?tab=partner_book`](https://olera.care/admin/medjobs/in-basket?tab=partner_book) | **S** |
+
+The site card tracks progress across the three subtypes — **Advising ✓ · Orgs ✓ · Dept heads ☐** — with
+**Research needed** until the first one is done. The wizard autosaves as you work.
+
+### ② Human SOP
+
+1. **Work one site through all three subtypes** — advising, then student orgs, then departments — rather
+   than half-finishing several sites.
+2. **Use Suggest links first, then the predefined searches.** They open Google for the exact query and
+   check themselves off, so the ground gets covered without keeping a list in your head.
+3. **Prefer the office with the clearest published email.** Pre-health advising first, then nursing and
+   allied health, then career services.
+4. **Tag every office.** The tag is what makes the outreach copy correct later.
+5. **Add an advisor only when they have their own contact.** A named person with no direct email adds
+   nothing outreach can use.
+6. **Tick verified only when you would send to that address today.** The tick is the gate — an unverified
+   office is not a prospect.
+7. **Then confirm by a quick call before launching**, exactly as with providers. Generating a prospect is
+   not the same as knowing the address is live.
+
+### ③ System / handoff
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Name, title, subtype, department, contacts, rationale | prospect | target added · contact added | Contactable | Stays with Admin Team → ST-OUT |
+| Office name · tag · email · phone · website · source link · optional advisors · verified flag · the research links kept | researched → prospect | research started · links kept · office verified · prospects generated · stakeholder added to site | Offices generated | Stays with the Admin Team → **ST-OUT**, via the Partners tab |
 
-**Communications** None at this stage.
+**Communications** None at this stage. The confirming call and the outreach that follows are ST-OUT.
+
+### Exhibits
+
+**Exhibit O — Find partners.** The entry point on the site card, alongside the research-progress badges
+and **See stakeholders →**. `olera.care/admin/medjobs/sites`
+
+![Exhibit O — Find partners on the site card](exhibits/O-find-partners.png)
+
+**Exhibit P — Research · step 1, Find offices.** Subtype tabs across the top (**Advising** · Student orgs ·
+Departments), the three steps beneath, the goal stated in plain language, **Suggest links**, and the
+predefined searches with **Open all**, an add-by-hand field, and a kept-links list.
+
+![Exhibit P — Research, find offices](exhibits/P-research-find-offices.png)
+
+**Exhibit Q — Research · step 2, Verify offices.** *"The advising office is the prospect. Confirm each
+one's email and tag — that's all outreach needs."* Each office carries a tag, email, phone and optional
+website, an advisors section, and the **Verified** tick. Footer counts *1 of 3 verified*.
+
+![Exhibit Q — Research, verify offices](exhibits/Q-research-verify-offices.png)
+
+**Exhibit R — Research · step 3, Generate.** Confirmation that the offices were created and are waiting in
+the In Basket, with the next action named — *confirm each advising office by a quick call, then launch
+outreach* — and **Continue to Student orgs →**.
+
+![Exhibit R — Research, generate](exhibits/R-research-generate.png)
+
+**Exhibit S — Partners tab.** The generated offices as prospects, each with its university and tag, above
+the site cards still needing research.
+`olera.care/admin/medjobs/in-basket?tab=partner_book`
+
+![Exhibit S — Partners tab](exhibits/S-partners-tab.png)
 
 ---
 

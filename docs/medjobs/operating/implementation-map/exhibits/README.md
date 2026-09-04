@@ -20,6 +20,11 @@ with its URL so a reader can open the same place in the product.
 | `L-calendly-booking.png` | Calendly booking page the provider sees | Calendly · Student Caregiver Program |
 | `M-meetings-tab.png` | In Basket · Meetings tab | `/admin/medjobs/in-basket?tab=meetings` |
 | `N-log-meeting.png` | Log meeting outcome — three outcomes | Meetings → row → Log meeting outcome |
+| `O-find-partners.png` | Find partners on the site card | `/admin/medjobs/sites` |
+| `P-research-find-offices.png` | Research step 1 — find offices | Site card → Find partners |
+| `Q-research-verify-offices.png` | Research step 2 — verify offices | Research modal |
+| `R-research-generate.png` | Research step 3 — generate prospects | Research modal |
+| `S-partners-tab.png` | In Basket · Partners tab | `/admin/medjobs/in-basket?tab=partner_book` |
 
 ## Conventions
 

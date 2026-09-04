@@ -17,6 +17,12 @@ Fixed the worker's one-history-record-per-run bottleneck: process bounded batche
 
 **Next:** QA the updated preview, then merge/promote only when TJ requests it; verify new mail arrives and the backlog clears after rollout. Stable preview: `https://olera-web-git-codex-support-email-sync-throughput-olera.vercel.app/admin/support-email`.
 
+### 2026-09-04 — Personal Codex open-dia skill installed (`codex/open-dia-session`)
+
+Adapted Claude's `~/.claude/skills/open-dia/SKILL.md` into the personal Codex skill at `~/.codex/skills/open-dia/SKILL.md`. Invoke with `$open-dia` or “Open Dia and…” followed by a browsing task. Codex uses its installed CUA desktop controls to access the active Dia window/profile; it does not attach to Claude's separate persistent automation profile. The skill covers navigation, page reading, screenshots, flow audits, account verification, authentication handoff, and authorization for consequential actions. Claude's configuration was unchanged.
+
+**Validation:** Skill validator passed before and after installation. Live Dia smoke test opened example.com in a new tab, read its accessibility tree, followed the IANA link, and captured the resulting page; the test tab was closed afterward. The skill appeared in Codex's available-skills catalog on the next turn. No application code changed; this PR saves session context only, and the installed personal skill remains outside the repo. **Next:** Use the skill on a requested browsing task; DevTools network inspection and exact viewport emulation were not tested or added.
+
 ### 2026-08-28 — Ad Boost: audit, stage-0 remediation shipped, and the measurement layer is not trustworthy (`steady-planck`, PR #1716)
 
 Audited every live Ad Boost campaign directly in Google Ads and Nextdoor Ads Manager, reconciled against production Supabase, then cross-checked against a second independent audit (Codex) and an architectural review. **No code changed; this session produced findings, a remediation plan and a postmortem.**

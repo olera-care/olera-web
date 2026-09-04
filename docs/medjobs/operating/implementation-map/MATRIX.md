@@ -869,27 +869,141 @@ to the advisor · the results-back note · the professor email sequence.
 
 ## ST8 — Student application submitted
 
-**Objective** Capture an application complete enough to assess. **Owner** Portal, supported by the USM.
-**Completion criteria** A submitted application with everything qualification needs.
+**Objective** Carry a student from the QR code on a flyer to a live application, without a human in the
+middle.
+**Owner** Portal. **Users** Student, User Success Manager only when the system cannot finish the job.
+**Completion criteria** The student is live — visible on the board, and the providers in their catchment
+have been told they are ready to interview.
 
-**① User journey / technology**
+> **This stage should run itself.** Every other stage in this map is an operator working a queue. This one
+> is a student alone with a website at eleven at night. The system screens them, takes the application,
+> chases the parts they left blank, decides when they are ready, and tells the providers. The User Success
+> Manager exists here for the cases the system cannot resolve, not as a step in the flow.
 
-| Actor | Sees / does | Surface |
+> **The assets below are final in form, not in content.** The flyer, the landing page, the eligibility
+> check, the agreement and the portal all work end to end and are shown here as the shipped journey. Every
+> one of them needs another pass, and the journey needs a QA sweep from both entry points. See the
+> deferred list.
+
+### ① User journey / technology
+
+| # | What happens | Where | Exhibit |
+|---|---|---|---|
+| 1 | The student sees the flyer — on a board, in a listserv email, at a table — and scans the **QR code** | Print and PDF, ST3–ST7 | **X** |
+| 2 | It lands them on the student page, and the **eligibility check** opens on top of it: *2 quick questions*, starting with *"Where are you headed?"* — Med school · Nursing · PA · PT/OT · Public health · Still exploring | [`olera.care/medjobs/families`](https://olera.care/medjobs/families) | **Y** |
+| 3 | They read the **Student Caregiver Program Agreement** — what the program is, who employs them, the one-time $50 fee, the term commitment — and accept it on signing up | Linked from the landing page | **Z** |
+| 4 | Signed in, they land on the board: **Recommended for you**, filtered by campus and care type, every card gated behind **Complete profile to apply** | [`olera.care/portal/medjobs/jobs`](https://olera.care/portal/medjobs/jobs) | **AA** |
+| 5 | They work the application — availability, commitment, why they want to do this, screening questions, experience, certifications, skills, resume, and the verification documents — against a **Profile completeness** meter that names every remaining section | [`olera.care/portal/medjobs`](https://olera.care/portal/medjobs) | **AB** |
+| 6 | The system chases what they left blank on a fixed ladder of nudges | Automatic — daily cron | — |
+| 7 | Once the baseline is met, they **Go Live** | Portal → **Go Live** | **AB** |
+
+**The baseline for going live.** The point at which an application is complete enough to be worth a
+provider's time:
+
+| | What it is | Where it lives today |
 |---|---|---|
-| Student | Lands, screens in, applies, uploads documents and video, reads the agreement | Public page · screener · application · uploads |
-| User Success Manager | Sees stalled applications and nudges them | Candidates queue |
+| **1** | An intro video | Verification · `video_intro_url` |
+| **2** | A driver's licence | Verification · document and expiry |
+| **3** | Car insurance | Verification · document and expiry |
+| **4** | Their weekly availability | Weekly Availability |
+| **5** | Their answers to the screening questions | Screening Questions |
 
-**② Human SOP** — touch every started-but-unfinished application within 24 hours · nudge with an offer of
-help, not a reminder · one further nudge at day three, then leave it · log why students stall.
+Everything else on the profile — experience, certifications, skills, resume, the personal statement —
+makes a student more attractive to a provider. These five are what make them assessable at all. **The list
+is a starting position and should be revisited** once we have seen which parts providers actually use when
+they decide who to interview.
 
-**③ System / handoff**
+> **Nothing is required to go live today.** The Go Live review lists the sections a student has not
+> finished under the heading *"Recommended but not required,"* and it excludes the verification section
+> entirely — which is where the video, the licence and the insurance are. A student can go live at 5%.
+> The baseline above is the intent; enforcing it is on the deferred list.
+
+**What going live does.** Two things, and the second one is already built:
+
+1. **The student becomes visible** — active on the board, matchable by providers in their area.
+2. **Every provider we are actively working in that student's campus catchment is emailed** that a new
+   candidate is ready to interview. This fires on the **first** go-live only, runs in the background so a
+   failure can never block the student, and is capped so a single go-live cannot blast an entire
+   catchment.
+
+That second one is where this stage runs into QUAL. Going live *is* the qualification event as the system
+currently behaves: the broadcast says the candidate is ready, and no human decided that. Whether that is
+right is QUAL's question, not this stage's — see that stage and the deferred list.
+
+### ② Human SOP
+
+Deliberately short. If this list grows, the system has failed.
+
+1. **Watch the stall, not the student.** The nudge ladder handles the individual. What needs a human is
+   the pattern — a campus where half the applications stop at the same section is a broken question or a
+   broken upload, not eight unmotivated students.
+2. **Log why students stall**, so the pattern is visible at all.
+3. **Intervene by hand only when the system cannot** — a document that will not upload, a student whose
+   circumstances do not fit the form.
+4. **Check both entry paths after any change to the assets.** The QR code and the email link must both
+   land somewhere that carries a student all the way through.
+
+**The nudge ladder — built and running.** A daily job emails every student under 100% completeness, naming
+what they are missing, on a fixed schedule: **days 1, 3, 5, 7, then 21, 35, 49, 63** — eight nudges over
+roughly six weeks, then it stops. It will not send twice within twenty hours.
+
+> **The ladder measures a different thing than Go Live does.** It treats **100% completeness** as done and
+> sends *"Your MedJobs profile is live!"* at that point — while the button that actually makes a student
+> live requires nothing at all. So a student can be live on the board at 5% and still receive emails
+> telling them their profile is incomplete, and a student can reach 100%, be told they are live, and never
+> have pressed Go Live — which means no provider was ever told about them. Two definitions of *live*, in
+> two places, disagreeing. On the deferred list.
+
+### ③ System / handoff
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Eligibility answers, availability, documents, video, terms acceptance | started → submitted | student eligibility completed · application started · application submitted | Submission | **→ QUAL** |
+| Eligibility answers · agreement acceptance · availability and commitment · screening answers · experience, certifications, skills, resume · verification documents and expiries · completeness per section | started → in progress → live | student eligibility completed · application started · nudge sent · profile activated · catchment providers notified | Go Live | **→ QUAL.** The student appears on the board and the catchment hears about them |
 
-**Communications** Confirmation · resume-your-application nudge · submission acknowledgement.
+Nothing here records **how the student found us** — which flyer, which listserv, which class visit. Until
+it does, ST3–ST7 cannot be told apart from each other by results, only by effort.
 
+**Communications** Welcome and account-created emails · the profile-incomplete nudge ladder · the
+activation email · the candidate-ready broadcast to catchment providers.
+
+### Exhibits
+
+**Exhibit X — The flyer.** The asset every activation channel shares: what the student gets — paid work,
+healthcare experience that counts, references and a recommendation letter, coaching from Dr. DuBose's team
+— the four-step *How to join*, who can join, the one-time $50 fee, and the **QR code** that starts the
+whole funnel.
+
+![Exhibit X — Student flyer](exhibits/X-flyer.png)
+
+**Exhibit Y — Landing page and eligibility check.** *"Get real healthcare experience — paid caregiving
+jobs for college students pursuing careers in medicine and nursing,"* with **Apply Now** and the jobs
+board beneath. Over it, **ELIGIBILITY CHECK · 2 QUICK QUESTIONS** — *"Where are you headed?"* — which
+routes the student and captures their track before anything else is asked of them.
+`olera.care/medjobs/families`
+
+![Exhibit Y — Landing page with eligibility check](exhibits/Y-landing-eligibility.png)
+
+**Exhibit Z — Student Caregiver Program Agreement.** Written to the student in plain language: what the
+program is, that **the agency is their employer and Olera is not**, the one-time $50 application fee and
+what it buys, how matching and offers work, what they must finish before a first shift, and the
+one-academic-term commitment. Footed *"Draft for review. Not legally binding yet."*
+
+![Exhibit Z — Student Caregiver Program Agreement](exhibits/Z-agreement.png)
+
+**Exhibit AA — The job board.** **Recommended for you** — *"based on your profile, these are the best
+matches near you"* — with campus and care-type filters, a map, and a running job count. Every card and the
+banner above them say the same thing: **Complete profile to apply.**
+`olera.care/portal/medjobs/jobs`
+
+![Exhibit AA — Job board](exhibits/AA-job-board.png)
+
+**Exhibit AB — The application portal.** The student's own profile: **Weekly Availability**, **Availability
+& Commitment**, **Why I Want to Be a Caregiver**, each with its own empty state and edit control. On the
+right, **Not live yet** over the **Go Live** button, and **Profile completeness** — a percentage, a stage
+label, and every section scored, from Profile Overview through Verification.
+`olera.care/portal/medjobs`
+
+![Exhibit AB — Application portal](exhibits/AB-application-portal.png)
 ---
 
 ## QUAL — Portal vets the application
@@ -1078,10 +1192,14 @@ toward and the gap stays visible.
 | **B10** | ST3–ST7 | **Maintenance tasks that queue themselves.** Securing a channel should schedule its next check into the same daily queues the Admin Team already works — the board re-check, the listserv reminder, the event date, the officer refresh each term | Not built. Every channel stays alive only for as long as someone remembers it |
 | **B11** | ST3–ST7 | **A professor record for ST7.** Named professors against a university, each with a permission state, an email follow-up, and the class visit it produced. Closer to a small outreach funnel than a checkbox | Not built, and not yet scoped. Named here so it is not mistaken for one more channel |
 | **B12** | ST3–ST7 | **Channel attribution.** Know which of the five university channels produced a student | Channels are not modelled as distinct entities |
-| **B13** | ST8 | **Application source capture.** Ask a student how they heard about MedJobs | Nothing records it |
-| **B14** | QUAL | **Written qualification criteria**, then a vetting step that applies them | Today "live" means profile complete and active — a completeness check, not a qualification decision |
-| **B15** | MA4 | **Shift verification.** Some reliable way to confirm six shifts were worked, and a view of which placements are approaching the threshold | No shift or hours-worked concept exists anywhere |
-| **B16** | MA5 | **Billing on the six-shift trigger** — invoice raised against a confirmed threshold, payment recorded | Two legacy billing paths, neither matching the model |
+| **B13** | ST8 | **A pass over every student-facing asset.** The flyer, the landing page, the eligibility check, the agreement and the portal are all final in form and placeholder in content. Includes real empty states throughout, and confirming the application portal asks for what we actually want | All shipped and working end to end. None of it has had a content pass |
+| **B14** | ST8 | **Entry-path QA, from the QR code and from email.** Both must carry a student from first contact to a submitted application with no dead end, on a phone as well as a laptop | Untested as a journey. The pieces work individually |
+| **B15** | ST8 | **A defined and enforced go-live baseline** — intro video, driver's licence, car insurance, weekly availability, screening answers. The list itself to be revisited once we see what providers use to decide | Nothing is required. The Go Live review calls every unfinished section *"recommended but not required"* and skips the verification section entirely, which is where three of the five live |
+| **B16** | ST8 | **One definition of _live_.** The Go Live button sets the student active and notifies the catchment; the nudge cron independently treats 100% completeness as live and emails the student to say so | Two definitions in two places. A student can be live on the board at 5% and still be nudged, or reach 100%, be told they are live, and have had no provider told about them |
+| **B17** | ST8 | **Application source capture.** Ask a student how they heard about MedJobs | Nothing records it |
+| **B18** | QUAL | **Written qualification criteria**, then a vetting step that applies them | Today "live" means profile complete and active — a completeness check, not a qualification decision |
+| **B19** | MA4 | **Shift verification.** Some reliable way to confirm six shifts were worked, and a view of which placements are approaching the threshold | No shift or hours-worked concept exists anywhere |
+| **B20** | MA5 | **Billing on the six-shift trigger** — invoice raised against a confirmed threshold, payment recorded | Two legacy billing paths, neither matching the model |
 
 
 **How to use this list.** Nothing here blocks running the operating system by hand today. Each item is a

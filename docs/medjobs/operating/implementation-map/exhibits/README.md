@@ -29,6 +29,11 @@ with its URL so a reader can open the same place in the product.
 | `U-partner-preflight.png` | Log Pre-Flight outcome — partner script + four outcomes | Partner drawer → Call to Confirm |
 | `V-partner-launch-outreach.png` | Confirm outreach plan — 5 emails + 1 call | Partner drawer → Launch outreach → |
 | `W-check-for-reply.png` | Check for reply, and the Emails tab | Emails → row → Check for reply |
+| `X-flyer.png` | Student flyer with the QR code | Print / PDF — ST3–ST7 asset |
+| `Y-landing-eligibility.png` | Student landing page + eligibility check | `/medjobs/families` |
+| `Z-agreement.png` | Student Caregiver Program Agreement | Linked from the landing page |
+| `AA-job-board.png` | Job board — Recommended for you | `/portal/medjobs/jobs` |
+| `AB-application-portal.png` | Application portal — completeness + Go Live | `/portal/medjobs` |
 
 ## Conventions
 

@@ -2086,7 +2086,8 @@ async function getStageCounts(
  * Get counts of providers per assigned admin for the current stage.
  * Used for the filter chip row in the UI.
  *
- * For needs_call (Follow Up) stage, only counts providers with due_date <= today.
+ * For needs_call (Follow Up) stage, counts ALL providers regardless of due_date
+ * to match the displayed provider list which includes upcoming due dates.
  */
 interface AdminCounts {
   [adminId: string]: {
@@ -2132,19 +2133,14 @@ async function getAdminCounts(
   }
 
   // For active stages: query tracking table (exclude hidden providers)
-  let query = db
+  // Note: For needs_call, we count ALL providers (including upcoming due dates)
+  // to match the displayed provider list. The UI groups by due date sections.
+  const query = db
     .from("provider_outreach_tracking")
     .select("assigned_to")
     .eq("state", state)
     .eq("stage", stage)
     .or("admin_hidden.is.null,admin_hidden.eq.false");
-
-  // For needs_call (Follow Up), only count providers with due_date <= today
-  if (stage === "needs_call") {
-    // Use Central Time (business timezone) to avoid UTC timezone mismatches
-  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
-    query = query.lte("due_date", today);
-  }
 
   const { data: trackingRows, error } = await query;
 

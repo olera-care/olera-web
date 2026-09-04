@@ -77,14 +77,15 @@ script in the log modal.
 
 **Exhibit A — Sites.** `olera.care/admin/medjobs/sites`
 
-Header **MedJobs · Sites** with **+ Add Site** top right. A 30-day counter above the list — *"1 sites
-added, down 67% vs. prior 30 days"* — over a sparkline. Then: *"Active university territories. Click a
+Header **MedJobs · Sites** with **+ Add Site** top right. A 30-day counter above the list — *sites added,
+with the change against the prior 30 days* — over a sparkline. Then: *"Active university territories. Click a
 site to see its stakeholders. Operational work for each site lives in In Basket."*
 
 Each site is a card: university name, city and state, **Added Nd ago · N stakeholders**, a row of research
 badges (**Research needed** · Advising ✓ · Orgs ✓ · Dept heads ☐), a **Research sources (N)** expander, and
-two buttons — **Find partners ✦** and **See stakeholders →**. Live sites at capture: Utah, Wisconsin-Madison,
-Florida, Florida State, Indiana Bloomington. The sidebar shows **Sites 7** and **In Basket 131/162**.
+two buttons — **Find partners ✦** and **See stakeholders →**. Live sites include Utah, Wisconsin-Madison,
+Florida, Florida State and Indiana Bloomington. The sidebar carries running **Sites** and **In Basket**
+counts.
 
 ![Exhibit A — MedJobs Sites](exhibits/A-sites.png)
 
@@ -106,18 +107,18 @@ catchment commits the Admin Team to pre-flighting 152 rows.
 
 **Exhibit C — In Basket, Providers tab.** `olera.care/admin/medjobs/in-basket`
 
-Header **MedJobs · In Basket** over three cards: **QUEUED** (186 — 152 unread · 34 read), **LOGS COMPLETED
-TODAY** (253 — 19 calls · 1 meeting · 1 reply · 34 emails · 198 other), and **STREAK** (1 day —
-*"Consecutive business days hitting 50 logs. Weekends skipped."*).
+Header **MedJobs · In Basket** over three cards: **QUEUED** (total, split unread / read), **LOGS COMPLETED
+TODAY** (total, broken out by calls · meetings · replies · emails · other), and **STREAK** —
+*"Consecutive business days hitting 50 logs. Weekends skipped."*
 
 A search box — *by name, organization, or email* — with **All sites** and **All types** filters. Then the
-tab row with live counts: **Providers 15/23** · Partners 3/3 · Calls 0/134 · Emails 134/159 · Meetings 1 ·
-Follow-up 8/10.
+tab row, each tab carrying a live worked/total count: **Providers** · Partners · Calls · Emails ·
+Meetings · Follow-up.
 
 Below, one card per provider: business name, **\[University\] · Provider**, and **Last activity Nm ago**.
-At capture the queue was Arizona State University providers — Amada Senior Care, Hart2Heart, Visiting
-Angels, A Caring Hand for Mom, Simple Living Assisted Home Care, Thrive Home Care Services, HomeWell Care
-Services, Freedomcare.
+The queue is filtered to one site at a time — an Arizona State University run reads Amada Senior Care,
+Hart2Heart, Visiting Angels, A Caring Hand for Mom, Simple Living Assisted Home Care, Thrive Home Care
+Services, HomeWell Care Services, Freedomcare.
 
 ![Exhibit C — In Basket, Providers tab](exhibits/C-in-basket-providers.png)
 
@@ -153,9 +154,10 @@ Three actions: **📞 Call to Confirm** · **Launch outreach →** · **Launch a
 **RESEARCH NOTES** — *"Source of contact info, agency character, hiring activity, anything else worth
 remembering."*
 
-Then **TIMELINE · PAST ACTIVITY**, one entry per attempt with the operator's name and age. At capture:
-*"Reached on the phone. 3rd attempt for this provider and spoke with \[name\], she gave email \[address\]"*
-— Grazy, 1h ago; and *"Called — voicemail / message left. Row now awaiting callback."* — Grazy, 11d ago.
+Then **TIMELINE · PAST ACTIVITY**, one entry per attempt with the operator's name and how long ago. A
+worked row reads like *"Reached on the phone. 3rd attempt for this provider and spoke with \[name\], she
+gave email \[address\]"* — Grazy, 1h ago; above *"Called — voicemail / message left. Row now awaiting
+callback."* — Grazy, 11d ago.
 **This is the attempt count the three-strikes rule is counted from.**
 
 ![Exhibit E — Provider research drawer](exhibits/E-provider-drawer.png)

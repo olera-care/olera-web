@@ -79,19 +79,23 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
             </h4>
             <div className="bg-gray-50 rounded-lg p-4 space-y-3">
               <p className="text-sm text-gray-700">
-                <strong>Purpose:</strong> Confirm emails are valid before sequence starts.
+                <strong>Purpose:</strong> Find emails for providers who don&apos;t have one, and confirm emails for those who do. Once confirmed, start the sequence.
               </p>
               <div className="text-sm text-gray-700">
                 <strong>Process:</strong>
                 <ol className="list-decimal list-inside mt-1 space-y-1 ml-2">
-                  <li>Find email using web scraper → Apollo → own research</li>
-                  <li>Call to confirm the email is correct</li>
-                  <li><span className="font-semibold text-primary-700">Minimum 3 call attempts</span> before marking as confirmed</li>
+                  <li>Find email using web scraper and online research. <span className="text-gray-500">(Apollo can be used as a last resort when other methods fail.)</span></li>
+                  <li>Call to confirm the email is correct — <span className="font-semibold">this is the most important step.</span></li>
+                  <li><span className="font-semibold text-primary-700">Minimum 3 call attempts.</span> All calls must be logged.</li>
                 </ol>
               </div>
-              <p className="text-sm text-gray-700">
-                <strong>To confirm:</strong> Click the blue checkmark — but only after proper due diligence. Notes should support the confirmation.
-              </p>
+              <div className="text-sm text-gray-700">
+                <strong>After confirmation:</strong>
+                <ol className="list-decimal list-inside mt-1 space-y-1 ml-2">
+                  <li>If you&apos;re speaking with a decision maker (or someone with access to the email), send an instant email — customize it based on your conversation.</li>
+                  <li>Start the sequence for the provider.</li>
+                </ol>
+              </div>
             </div>
           </section>
 

@@ -9,7 +9,7 @@ const compiled = ts.transpileModule(readFileSync('lib/support-email/sync.server.
 }).outputText;
 const ACTIVE = '__olera_support_sync_active__';
 
-function fixture({ pages = [], failAt = -1, failCursor = null, stepMs = 0, mailbox = {} } = {}) {
+function fixture({ pages = [], failAt = -1, failCursor = null, stepMs = 0, mailbox = {}, tables = {} } = {}) {
   let now = Date.now();
   const row = {
     id: 'mailbox', email: 'support@example.com', encrypted_refresh_token: 'encrypted',
@@ -24,11 +24,16 @@ function fixture({ pages = [], failAt = -1, failCursor = null, stepMs = 0, mailb
     const q = {
       select() { return q; }, update(value) { payload = value; return q; },
       eq(key, value) { filters.push([key, value]); return q; },
-      in() { return q; }, order() { return q; }, limit() { return q; },
+      in(key, values) { filters.push([key, values]); return q; }, order() { return q; }, limit() { return q; },
       single() { return q; }, maybeSingle() { return q; },
       then(resolve, reject) {
         try {
-          if (table !== 'support_mailboxes') return Promise.resolve({ data: [], error: null }).then(resolve, reject);
+          if (table !== 'support_mailboxes') {
+            const selected = (tables[table] ?? []).filter(item => filters.every(([key, value]) =>
+              Array.isArray(value) ? value.includes(item[key]) : item[key] === value));
+            if (payload) selected.forEach(item => Object.assign(item, payload));
+            return Promise.resolve({ data: selected.map(item => ({ ...item })), error: null }).then(resolve, reject);
+          }
           if (!filters.every(([key, value]) => row[key] === value)) return Promise.resolve({ data: null, error: null }).then(resolve, reject);
           if (payload?.gmail_history_id === failCursor) return Promise.resolve({ data: null, error: new Error('checkpoint failed') }).then(resolve, reject);
           if (payload) {
@@ -73,7 +78,7 @@ function fixture({ pages = [], failAt = -1, failCursor = null, stepMs = 0, mailb
       throw new Error(`Unexpected import: ${name}`);
     },
   });
-  return { run: () => exports.syncSupportMailbox(db, { ...row }), row, calls, checkpoints, messageIds, GmailApiError, pages };
+  return { run: () => exports.syncSupportMailbox(db, { ...row }), row, calls, checkpoints, messageIds, GmailApiError, pages, gmail };
 }
 
 (async () => {
@@ -143,5 +148,37 @@ function fixture({ pages = [], failAt = -1, failCursor = null, stepMs = 0, mailb
   assert.equal(f.row.full_sync_complete, true, 'empty recovery scan completes in same worker');
   assert.equal(f.row.last_error, null);
 
-  console.log('Support sync: 10 regression scenarios passed (drain, checkpoints, budgets, leases, atomic records, cursor recovery).');
+  // Changes to the same message must retain their event order. Explicitly
+  // marking a handled thread unread reopens it; merely reading it afterward
+  // must not undo that operator intent.
+  const message = { id: 'row', gmail_message_id: 'm1', thread_id: 'thread', mailbox_id: 'mailbox',
+    gmail_label_ids: ['INBOX'], direction: 'in', internal_date: '2026-09-01T00:00:00Z' };
+  const thread = { id: 'thread', gmail_label_ids: ['INBOX'], state: 'handled', last_message_at: message.internal_date };
+  const unread = { id: '11', labelsAdded: [{ message: { id: 'm1' }, labelIds: ['UNREAD'] }] };
+  const read = { id: '12', labelsRemoved: [{ message: { id: 'm1' }, labelIds: ['UNREAD'] }] };
+  f = fixture({ pages: [{ history: [unread, read], historyId: '99' }, { history: [read], historyId: '99' }],
+    tables: { support_email_messages: [message], support_email_threads: [thread] } });
+  await f.run();
+  assert.equal(thread.state, 'needs_reply', 'read-after-unread must retain the reopened state');
+  assert.equal(thread.unread, false);
+
+  // A rejected import must wait for its siblings before releasing the lease.
+  f = fixture({ pages: [{ history: [record('11', 2)], historyId: '99' }] });
+  let finishSibling;
+  const sibling = new Promise(resolve => { finishSibling = resolve; });
+  f.gmail.getGmailMessage = async (_token, id) => {
+    if (id === 'm0') throw new Error('full payload failed');
+    await sibling;
+    return { labelIds: ['DRAFT'] };
+  };
+  f.gmail.getGmailMessageMetadata = async () => { throw new Error('metadata failed'); };
+  const failedRun = assert.rejects(f.run, /metadata failed/);
+  await new Promise(resolve => setImmediate(resolve));
+  const leaseWhileSiblingPending = f.row.last_error;
+  finishSibling();
+  await failedRun;
+  assert.equal(leaseWhileSiblingPending, ACTIVE, 'lease cannot be released while another import is pending');
+  assert.equal(f.row.gmail_history_id, '10');
+
+  console.log('Support sync: 12 regression scenarios passed (drain, checkpoints, budgets, leases, atomic records, cursor recovery, label order, failed concurrent imports).');
 })().catch(error => { console.error(error); process.exitCode = 1; });

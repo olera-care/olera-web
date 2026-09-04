@@ -211,6 +211,8 @@ export default function SupportEmailPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
   const listRequestRef = useRef(0);
+  const listInFlightRef = useRef<number | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
   const detailRequestRef = useRef(0);
   const markingReadRef = useRef<Set<string>>(new Set());
   const threadsRef = useRef<Thread[] | null>(null);
@@ -243,11 +245,15 @@ export default function SupportEmailPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const loadList = useCallback(async () => {
+  const loadList = useCallback(async (background = false) => {
+    // A timer must not supersede a still-pending filter/action refresh. On a
+    // slow connection that would discard every response and freeze the list.
+    if (background && listInFlightRef.current !== null) return;
     const requestId = ++listRequestRef.current;
+    listInFlightRef.current = requestId;
     const scopeKey = JSON.stringify({ view, query, category, dateWindow, priority, sort });
     try {
-      setError(null);
+      if (!background) setError(null);
       const params = new URLSearchParams({ view });
       if (query) params.set("q", query);
       if (category !== "all") params.set("category", category);
@@ -255,7 +261,7 @@ export default function SupportEmailPage() {
       if (unreadOnly) params.set("unread", "true");
       if (priority !== "all") params.set("priority", priority);
       if (sort === "oldest") params.set("sort", "oldest");
-      const res = await fetch(`/api/admin/support-email?${params}`);
+      const res = await fetch(`/api/admin/support-email?${params}`, { signal: AbortSignal.timeout(30_000) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not load support email");
       if (requestId !== listRequestRef.current) return;
@@ -270,15 +276,22 @@ export default function SupportEmailPage() {
         ? [retainedSelected, ...nextThreads]
         : nextThreads;
       listScopeRef.current = scopeKey;
+      setRefreshError(null);
       setMailboxes(data.mailboxes ?? []);
       setThreads(threadsRef.current);
       setTotal(data.total ?? 0);
     } catch (err) {
       if (requestId !== listRequestRef.current) return;
+      if (background) {
+        setRefreshError("Inbox refresh paused. Showing the last loaded conversations; retrying automatically.");
+        return;
+      }
       threadsRef.current = [];
       setThreads([]);
       setTotal(0);
-      setError(err instanceof Error ? err.message : "Could not load support email");
+      setRefreshError(err instanceof Error ? err.message : "Could not load support email");
+    } finally {
+      if (listInFlightRef.current === requestId) listInFlightRef.current = null;
     }
   }, [category, dateWindow, priority, query, sort, unreadOnly, view]);
 
@@ -286,7 +299,7 @@ export default function SupportEmailPage() {
 
   useEffect(() => {
     const refresh = () => {
-      if (document.visibilityState === "visible") void loadList();
+      if (document.visibilityState === "visible") void loadList(true);
     };
     const timer = setInterval(refresh, 15_000);
     document.addEventListener("visibilitychange", refresh);
@@ -467,6 +480,7 @@ export default function SupportEmailPage() {
 
   return (
     <AdminWorkspace>
+      {refreshError && <div role="status" className="shrink-0 border-b border-amber-100 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">{refreshError}</div>}
       {mailbox && !mailbox.full_sync_complete && (
         <div className="flex shrink-0 flex-col gap-1 border-b border-amber-100 bg-amber-50/60 px-4 py-2 text-xs text-amber-900 sm:flex-row sm:items-center sm:justify-between">
           <span className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-amber-500" /><strong>{mailbox.full_sync_messages_imported.toLocaleString()}</strong> imported · History is still syncing</span>
@@ -486,7 +500,7 @@ export default function SupportEmailPage() {
         </div>
       )}
 
-      {!mailbox && !error ? (
+      {!mailbox && !error && !refreshError ? (
         <div className="flex flex-1 items-center justify-center px-6 py-16 text-center">
           <div>
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-teal-50 text-xl text-teal-700">✦</div>

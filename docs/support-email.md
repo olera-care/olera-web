@@ -41,4 +41,4 @@ If `support@olera.care` is an alias, connect the underlying mailbox and set `GMA
 
 ## Regression checks
 
-Run `node scripts/check-support-email-sync.cjs` to exercise chunk draining, cursor checkpoints, time limits, overlapping workers, bulk records, and expired Gmail cursors without live credentials.
+Run `node scripts/check-support-email-sync.cjs` to exercise chunk draining, cursor checkpoints, time limits, overlapping workers, bulk records, expired Gmail cursors, label event order, and failed concurrent imports without live credentials. Run `node scripts/check-support-email-polling.cjs` to verify refresh failures, slow requests, retry recovery, and action-error preservation against synthetic inbox data.

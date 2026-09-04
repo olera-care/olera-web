@@ -368,7 +368,11 @@ export async function importGmailMessage(db: SupabaseClient, mailbox: SupportMai
 
 async function inBatches<T>(values: T[], size: number, fn: (value: T) => Promise<void>) {
   for (let i = 0; i < values.length; i += size) {
-    await Promise.all(values.slice(i, i + size).map(fn));
+    // Promise.all rejects before its siblings finish. Releasing the mailbox
+    // lease at that point lets a new worker overlap those still-active writes.
+    const results = await Promise.allSettled(values.slice(i, i + size).map(fn));
+    const failed = results.find((result) => result.status === "rejected");
+    if (failed?.status === "rejected") throw failed.reason;
   }
 }
 
@@ -587,17 +591,23 @@ export async function syncMailboxHistory(db: SupabaseClient, mailbox: SupportMai
     const page = await listGmailHistory(accessToken, mailbox.gmail_history_id, null, HISTORY_PAGE_SIZE);
     const histories: NonNullable<typeof page.history> = [];
     let changedMessages = 0;
+    const includedMessageIds = new Set<string>();
     for (const record of page.history ?? []) {
-      const recordSize = new Set([
+      const recordIds = new Set([
         ...(record.messages ?? []).map((message) => message.id),
         ...(record.messagesAdded ?? []).map((change) => change.message.id),
         ...(record.messagesDeleted ?? []).map((change) => change.message.id),
         ...(record.labelsAdded ?? []).map((change) => change.message.id),
         ...(record.labelsRemoved ?? []).map((change) => change.message.id),
-      ]).size;
-      if (histories.length && changedMessages + recordSize > HISTORY_MESSAGE_BUDGET) break;
+      ]);
+      // Preserve workflow transitions when the same message changes again.
+      // Collapsing UNREAD added then removed would leave a handled thread
+      // closed, even though the explicit unread action should reopen it.
+      if (histories.length && (changedMessages + recordIds.size > HISTORY_MESSAGE_BUDGET ||
+        [...recordIds].some((id) => includedMessageIds.has(id)))) break;
       histories.push(record);
-      changedMessages += recordSize;
+      changedMessages += recordIds.size;
+      recordIds.forEach((id) => includedMessageIds.add(id));
     }
     for (const history of histories) {
       const hasTypedChanges = Boolean(

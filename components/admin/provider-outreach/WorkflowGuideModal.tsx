@@ -165,13 +165,28 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
             </h4>
             <div className="bg-gray-50 rounded-lg p-4 space-y-3">
               <p className="text-sm text-gray-700">
-                <strong>Purpose:</strong> Final touch point after Alternative Channels (after 7-day wait).
+                <strong>Purpose:</strong> Final touchpoint after Alternative Channels (after 7-day wait). Confirm we have the right email.
               </p>
               <p className="text-sm text-gray-700">
-                <span className="font-semibold text-primary-700">Minimum 2 final call attempts.</span>
+                <span className="font-semibold text-primary-700">Minimum 2 call attempts.</span>
+              </p>
+              <div className="text-sm text-gray-700">
+                <strong>Main goal:</strong> Move the provider to City Broadcast. Before moving, confirm these conditions are met:
+                <ul className="list-disc list-inside mt-1 space-y-0.5 ml-2 text-gray-600">
+                  <li>At least one email has been delivered</li>
+                  <li>No complaints on the email</li>
+                  <li>No bounces on the email</li>
+                  <li>All calls are logged — valid calls, not voicemails or no-answers</li>
+                </ul>
+              </div>
+              <p className="text-sm text-gray-700">
+                <strong>Need to change email?</strong> Edit the email, send a resend link, and confirm it&apos;s delivered before moving to Broadcast.
               </p>
               <p className="text-sm text-gray-700">
-                After attempts: Mark as <strong>Not Interested</strong> or <strong>Archive</strong> based on the situation.
+                <strong>Not interested?</strong> If the provider says they&apos;re not interested, mark as <strong>Not Interested</strong>.
+              </p>
+              <p className="text-sm text-gray-700">
+                <strong>Out of business, closed, or angry?</strong> Mark as <strong>Archive</strong>.
               </p>
             </div>
           </section>

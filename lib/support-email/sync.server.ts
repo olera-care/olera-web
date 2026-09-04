@@ -338,6 +338,9 @@ export async function importGmailMessage(db: SupabaseClient, mailbox: SupportMai
     // A message can disappear between history/list and get (trash emptied,
     // draft replaced). It must not poison the rest of an otherwise valid page.
     if (err instanceof GmailApiError && err.status === 404) return null;
+    // A different representation cannot fix credentials or quota exhaustion.
+    // In particular, do not immediately double requests after rate limiting.
+    if (err instanceof GmailApiError && [401, 403, 429].includes(err.status)) throw err;
     // Some real Gmail messages contain MIME payloads that Gmail's own
     // `format=full` renderer cannot return. Preserve their headers, labels,
     // thread identity, and cursor position through the metadata representation
@@ -505,14 +508,6 @@ async function applyGmailLabelChanges(
       if (error) throw error;
     }
   }
-  console.log("[support-email] applied Gmail label changes", {
-    mailbox: mailbox.email,
-    deltas: ids.length,
-    matchedMessages: rows.length,
-    missingMessages: ids.length - found.size,
-    messageUpdateGroups: messageUpdates.size,
-    threadUpdateGroups: threadUpdates.size,
-  });
   return rows.length;
 }
 
@@ -670,15 +665,6 @@ export async function syncMailboxHistory(db: SupabaseClient, mailbox: SupportMai
     updated_at: new Date().toISOString(),
   }).eq("id", mailbox.id);
   if (cursorError) throw cursorError;
-  console.log("[support-email] history chunk", {
-    mailbox: mailbox.email,
-    from: mailbox.gmail_history_id,
-    to: finalHistoryId,
-    hasMore,
-    fullMessages: fullMessageIds.size,
-    labelsUpdated,
-    deleted,
-  });
   return { imported, deleted, labelsUpdated, historyId: finalHistoryId, hasMore };
 }
 
@@ -699,16 +685,16 @@ export async function syncSupportMailbox(db: SupabaseClient, mailbox: SupportMai
   if (claimError) throw claimError;
   if (!claimed) return skippedSync(current);
   const activeMailbox = claimed as SupportMailboxRow;
+  const history = {
+    imported: 0, deleted: 0, labelsUpdated: 0,
+    historyId: activeMailbox.gmail_history_id,
+    hasMore: true, restartedFullSync: false, chunks: 0,
+  };
   try {
     const drainDeadline = Date.now() + HISTORY_DRAIN_MS;
     if (!activeMailbox.encrypted_refresh_token) throw new Error(`Mailbox ${activeMailbox.email} is not connected`);
     const refreshToken = decryptGmailToken(activeMailbox.encrypted_refresh_token);
     const accessToken = await gmailAccessToken(refreshToken);
-    const history = {
-      imported: 0, deleted: 0, labelsUpdated: 0,
-      historyId: activeMailbox.gmail_history_id,
-      hasMore: true, restartedFullSync: false, chunks: 0,
-    };
     do {
       const previousCursor = history.historyId;
       const chunk = await syncMailboxHistory(db, { ...activeMailbox, gmail_history_id: previousCursor }, accessToken);
@@ -719,6 +705,11 @@ export async function syncSupportMailbox(db: SupabaseClient, mailbox: SupportMai
       history.hasMore = chunk.hasMore;
       history.restartedFullSync = Boolean(chunk.restartedFullSync);
       history.chunks += 1;
+      // Per-chunk/per-label logging exhausted the runtime's log allowance
+      // before the actual failure. Keep checkpoints durable but logs sparse.
+      if (history.chunks % 25 === 0) {
+        console.log("[support-email] sync progress", { mailboxId: activeMailbox.id, ...history });
+      }
       if (chunk.hasMore && chunk.historyId === previousCursor) {
         throw new Error("Gmail history returned more changes without advancing its cursor");
       }
@@ -763,8 +754,13 @@ export async function syncSupportMailbox(db: SupabaseClient, mailbox: SupportMai
       updated_at: new Date().toISOString(),
     }).eq("id", activeMailbox.id);
     if (finalError) throw finalError;
+    console.log("[support-email] sync completed", { mailboxId: activeMailbox.id, ...history });
     return { history, backfill, refreshedVoicemails, watchRenewed };
   } catch (error) {
+    console.error("[support-email] sync interrupted", {
+      mailboxId: activeMailbox.id, ...history,
+      error: error instanceof Error ? error.message : String(error),
+    });
     // Only the worker that acquired the lease reports failure. Callers must
     // not overwrite a lock owned by another run when a pre-claim read fails.
     await db.from("support_mailboxes").update({

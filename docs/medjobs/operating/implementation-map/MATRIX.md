@@ -1,15 +1,5 @@
 # MedJobs 2.0 — Master Implementation Matrix
 
-> One block per stage of the operating system in [`../00-OPERATING-SYSTEM.md`](../00-OPERATING-SYSTEM.md).
-> Each block carries the same three layers: **① user journey / technology** — what each user sees and does ·
-> **② human SOP** — what the responsible person does · **③ system / handoff** — what is recorded, what
-> fires next, and who picks it up.
->
-> **Roles:** Admin Team · Sales Lead (Logan) · User Success Manager (Chantel) · Portal.
-> Screens referenced as **Exhibits** live in [`exhibits/`](exhibits/).
-
----
-
 ## PR1 — Target list built and pre-flight complete
 
 **Objective** Add a university site so the system loads every matching provider from the Olera directory

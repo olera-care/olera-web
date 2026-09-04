@@ -530,26 +530,150 @@ the site cards still needing research.
 
 ## ST-OUT — University outbound
 
-**Objective** Move a stakeholder to a booked meeting. **Owner** Admin Team.
-**Completion criteria** Advisor meeting booked, or a recorded terminal outcome.
+**Objective** Confirm the advising office by phone, launch the call-and-email campaign, then work the
+queues it generates until the office books a meeting or the row runs out.
+**Owner** Admin Team. **Users** Admin Team, advising office.
+**Completion criteria** A meeting on the Sales Lead's calendar — or a recorded terminal outcome, or a
+finished cadence that drops the row into Follow-up.
 
-**① User journey / technology**
+> **Same machinery, different cadence.** ST-OUT runs on the same pre-flight call, the same Calls and
+> Emails queues, and the same log modals as the provider side. What differs is the campaign: the partner
+> cadence is **5 emails and 1 call**, and every email is meeting-first — the ask is a conversation with
+> Dr. DuBose, not a service. Providers get **3 emails and 2 calls**. Nobody should have to remember which;
+> the launch modal states it before anything sends.
 
-| Actor | Sees / does | Surface |
-|---|---|---|
-| Stakeholder | Receives subtype-appropriate outreach; replies or books | Email · phone · scheduling |
-| Admin Team | Launches, calls, triages, books | Partners queue · Calls · Emails · log modals |
+### ① User journey / technology
 
-**② Human SOP** — use the subtype's tone and ask · keep the ask small and specific · same reply SLA as the
-provider side · respect professor permission gating.
+**Actors: Admin Team and the advising office.** Confirm, then launch, then work the queues daily.
 
-**③ System / handoff**
+| # | What happens | Where | Exhibit |
+|---|---|---|---|
+| 1 | Open the office in the **Partners** tab. The drawer's **RESEARCH** panel states the sequence plainly — *"Check the info, call to confirm, then launch outreach"* — over the office name, general email, general phone, and an **ADVISORS** list | In Basket → Partners → row | **T** |
+| 2 | **Call to Confirm.** **Log Pre-Flight outcome** opens with the day's script and the four outcomes | Drawer → **Call to Confirm** | **U** |
+| 3 | On *Confirmed contact info*, pre-flight passes and the row unlocks for outreach. *No answer* and *Voicemail* leave it in pre-flight to try again; *Not interested* closes it | Automatic | **U** |
+| 4 | **Launch outreach →.** **Confirm outreach plan** opens with the whole campaign laid out — a launch summary, the recipients as checkboxes, and every day expandable to the actual email the office will receive | Drawer → **Launch outreach →** | **V** |
+| 5 | **Start outreach.** Day 0 sends; the rest queue via the send engine, and the drawer's **UPCOMING** shows *Outreach queued* with its date | Automatic | **T** |
+| 6 | Work the **Calls** and **Emails** tabs daily — the same queues the provider rows sit in, worked the same way | [`olera.care/admin/medjobs/in-basket`](https://olera.care/admin/medjobs/in-basket) | **W** |
+| 7 | Check replies. **Check for reply** quotes their actual message and offers the ways to respond | Emails → row → **Check for reply** | **W** |
+| 8 | When a cadence finishes with no meeting, the row appears in **Follow-up** for triage | In Basket → Follow-up | — |
+
+**The shipped partner cadence — 5 emails, 1 call**
+
+The launch modal's own summary: *5 emails + 1 call across the cadence below.* Day 0 is the **intro email
+(meeting-first)** — it names Dr. DuBose, links the flyer and the program PDF, and asks for a conversation
+with the advisors students turn to. Day 3 is a **one-line bump**. Emails send from
+`partnerships@findmedjobs.co`, a dedicated outreach domain, not the brand domain.
+
+**Recipients.** The general office contact is always a recipient. Any advisor added in ST1 with their own
+email becomes a selectable recipient alongside it — which is the whole reason ST1 only accepts advisors
+who have one.
+
+**Launch activation →** sits beside Launch outreach in the drawer. It is the second cadence, run once a
+row has engaged — the same button, and the same distinction, as on the provider side.
+
+### ② Human SOP
+
+1. **Call before you launch.** The row is a prospect, not a confirmed address. The pre-flight call exists
+   to verify the email actually reaches the office and to find the person who decides.
+2. **Use the suggested script.** It leads with Dr. DuBose's office, names the program, and asks one thing:
+   the best address to send the details to. Nothing is being sold on this call.
+3. **Log the outcome, every time**, including the calls nobody answered. No answer and voicemail keep the
+   row in pre-flight; the override exists for offices you are confident about without a confirming call,
+   and it writes the override to the timeline with your name on it.
+4. **Read the plan before starting.** Confirm the recipients, expand Day 0, and check the merge fields
+   resolved — the university name and office name are substituted into the subject and the body, and a
+   wrong substitution is visible here and nowhere later.
+5. **Keep the research notes honest.** The panel says where the office came from — *"AI-sourced advising
+   office from Location and Hours"* — and tells you to confirm by phone before sending. Update it with
+   what the call actually established.
+6. **Answer every reply within one business day** — same day for anything mentioning a time.
+7. **Do not hand-email a row mid-cadence.** Reply through the row so the cadence stops cleanly.
+8. **Respect permission gating on professors.** Class visits and listserv posts happen because someone
+   agreed to them; the ask on this cadence is a meeting, not a distribution.
+
+**Pre-flight outcomes and what each does to the row**
+
+| Outcome | What happens |
+|---|---|
+| **Confirmed contact info** | Reached someone and verified the email or decision maker — pre-flight passes |
+| **No answer** | Nobody answered. Stays in pre-flight — try again later |
+| **Voicemail** | Left a message. Stays in pre-flight — try again later |
+| **Not interested** | They don't want information. Closes the row — no outreach |
+
+**Reply handling — what each option does**
+
+| Option | What happens |
+|---|---|
+| **✎ Launch custom cadence** | Compose your own emails and calls for a bespoke response |
+| **↻ OOO reply — restart last cadence** | Auto-reply, not a real answer. Resumes the cadence and puts the row back to pending |
+| **📅 Book a meeting** | Opens the Calendly booking page and marks a meeting scheduled |
+| **Not interested** | Sends a polite closing note and stops outreach |
+
+**Launch activation cadence** appears in this list too, on rows that have not been activated yet. Once a
+row is enrolled, the option drops out — the timeline shows *"Activation launched — enrolled in the
+activation cadence"* and the remaining choices are the four above.
+
+> **A real reply stops the cadence automatically.** The timeline records *"Reply received to \[address\] —
+> cadence stopped,"* so the next move is a human one. The out-of-office option exists precisely because an
+> auto-reply should not count as one.
+
+### ③ System / handoff
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Sends, engagement, replies, call outcomes | prospect → in outreach → engaged | `email_sent` · `email_replied` · call outcome · `meeting_scheduled` | Meeting booked | **Admin Team → Sales Lead** |
+| Pre-flight call outcome and notes · recipients launched · sends, opens, replies · call outcomes · scheduled sends and calls | prospect → researched → outreach sent → cold · replied · closed · cadence finished | initial contact added · row moved from Prospect to Researched · reached on the phone · pending tasks superseded — stage advanced · outreach queued · outreach email sent (with open state) · reply received — cadence stopped · activation launched | A meeting is booked | **Admin Team → Sales Lead.** The row appears in the Meetings queue with its full timeline. No meeting and the cadence finishes → the row drops to **Follow-up** |
 
-**Communications** Subtype-aware sequences · call script · booking link.
+The drawer carries the same **NEXT STEP** panel and **state chip** as the provider side — *They replied ·
+\[address\]* over **Reply now** and **Call**, or *Replied — they replied · your move*. **UPCOMING** lists
+what is still scheduled; **PAST ACTIVITY** lists what happened, each entry stamped with the operator and
+how long ago, with older events collapsed behind **Show all past activity**.
+
+Opens, replies and bounces only reach these queues if the send engine's webhook is wired. Without it the
+Emails and Follow-up tabs look empty rather than broken.
+
+**Communications** Pre-flight confirming call · Day 0 intro email (meeting-first) with flyer and program
+PDF · Day 3 one-line bump · the remaining cadence emails · the cadence call · the reply the office sends
+back.
+
+### Exhibits
+
+**Exhibit T — Partner drawer.** **RESEARCH** states the sequence — *"Check the info, call to confirm, then
+launch outreach"* — over the office name, general email and general phone, with **ADVISORS (0)** and the
+rule beneath it: *"Anyone with an email becomes a selectable recipient at launch, alongside the general
+office contact."* Three actions: **Call to Confirm** · **Launch outreach →** · **Launch activation →**.
+**Research notes** records where the office came from. **TIMELINE** shows *Outreach queued* under
+**UPCOMING**, and the row's history under **PAST ACTIVITY**.
+`olera.care/admin/medjobs/in-basket?tab=partner_book` → row
+
+![Exhibit T — Partner drawer](exhibits/T-partner-drawer.png)
+
+**Exhibit U — Log Pre-Flight outcome.** The **SUGGESTED SCRIPT** — Dr. DuBose's office, the program, and
+one ask: the best address to send the details to — then the four outcomes with their consequences stated
+on each, a notes field prompting *"What did they confirm? Anything useful for outreach copy?"*, and
+**Override & launch outreach** for rows that do not need the call.
+Partner drawer → **Call to Confirm**
+
+![Exhibit U — Log Pre-Flight outcome](exhibits/U-partner-preflight.png)
+
+**Exhibit V — Confirm outreach plan.** **LAUNCH SUMMARY** reads *"5 emails + 1 call across the cadence
+below."* **RECIPIENTS (1)** lists the general contact with its address and phone. **CADENCE** opens Day 0 —
+*intro email (meeting-first)* — to the full email: To, From `partnerships@findmedjobs.co`, the subject,
+the body the office will actually read, the variables that were substituted, and the program PDF. Day 3 is
+a *one-line bump*. Footer reads *"5 email + 1 call ready"* against **Start outreach**.
+Partner drawer → **Launch outreach →**
+
+![Exhibit V — Confirm outreach plan](exhibits/V-partner-launch-outreach.png)
+
+**Exhibit W — Check for reply, and the Emails tab.** The reply quoted at the top, then the ways to respond
+— *Launch custom cadence*, *OOO reply — restart last cadence*, *Book a meeting*, *Not interested*. Behind
+it the **Emails** tab grouped by state — *THEY REPLIED (7)* over *PENDING REPLY (96)* — and the drawer's
+**NEXT STEP** panel: *They replied · \[address\]* over **Reply now** and **Call**. The timeline shows the
+sends, the reply that stopped the cadence, and the activation launch. **This queue is shared:** provider
+and partner rows are worked side by side in the same tab with the same modal, which is why the row shown
+here is a provider.
+`olera.care/admin/medjobs/in-basket?tab=replies` → row → **Check for reply**
+
+![Exhibit W — Check for reply](exhibits/W-check-for-reply.png)
 
 ---
 

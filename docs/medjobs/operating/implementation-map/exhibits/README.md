@@ -25,6 +25,10 @@ with its URL so a reader can open the same place in the product.
 | `Q-research-verify-offices.png` | Research step 2 — verify offices | Research modal |
 | `R-research-generate.png` | Research step 3 — generate prospects | Research modal |
 | `S-partners-tab.png` | In Basket · Partners tab | `/admin/medjobs/in-basket?tab=partner_book` |
+| `T-partner-drawer.png` | Partner drawer — research, actions, timeline | In Basket → Partners → row |
+| `U-partner-preflight.png` | Log Pre-Flight outcome — partner script + four outcomes | Partner drawer → Call to Confirm |
+| `V-partner-launch-outreach.png` | Confirm outreach plan — 5 emails + 1 call | Partner drawer → Launch outreach → |
+| `W-check-for-reply.png` | Check for reply, and the Emails tab | Emails → row → Check for reply |
 
 ## Conventions
 

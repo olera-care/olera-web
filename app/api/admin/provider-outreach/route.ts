@@ -89,6 +89,7 @@ interface ProviderRow {
   phone: string | null;
   website: string | null;
   slug: string | null;
+  email_locked_by: string | null;
 }
 
 // Apollo contact structure stored in JSONB
@@ -199,6 +200,8 @@ export interface OutreachProvider {
   email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
   // Whether email has been manually overridden/trusted (from email_overrides table)
   is_email_overridden?: boolean;
+  // Admin who locked this email as confirmed (simple visual indicator)
+  email_locked_by?: string | null;
   // Generic email warning state (persisted for page refresh)
   generic_email_called_at?: string | null;
   generic_email_skipped_at?: string | null;
@@ -241,19 +244,39 @@ async function enrichWithEmailVerification(
 
   if (emails.length === 0) return providers;
 
-  // Fetch verification statuses and overrides in parallel
-  const [{ data: verifications }, { data: overrides }] = await Promise.all([
-    db.from("email_verifications").select("email, status").in("email", emails),
-    db.from("email_overrides").select("email").in("email", emails),
-  ]);
+  // Build lookup maps using batched queries to avoid URL length limits
+  const statusMap = new Map<string, "valid" | "invalid" | "risky" | "unknown">();
+  const overrideSet = new Set<string>();
 
-  // Build lookup maps
-  const statusMap = new Map(
-    (verifications || []).map((v) => [v.email.toLowerCase(), v.status as "valid" | "invalid" | "risky" | "unknown"])
+  // Run all batches in parallel for better performance
+  const batchResults = await Promise.all(
+    Array.from({ length: Math.ceil(emails.length / IN_CLAUSE_BATCH_SIZE) }, (_, i) => {
+      const batch = emails.slice(i * IN_CLAUSE_BATCH_SIZE, (i + 1) * IN_CLAUSE_BATCH_SIZE);
+      return Promise.all([
+        db.from("email_verifications").select("email, status").in("email", batch),
+        db.from("email_overrides").select("email").in("email", batch),
+      ]);
+    })
   );
-  const overrideSet = new Set(
-    (overrides || []).map((o) => o.email.toLowerCase())
-  );
+
+  // Process all batch results
+  for (const [verificationsResult, overridesResult] of batchResults) {
+    if (verificationsResult.error) {
+      console.error("[enrichWithEmailVerification] Verifications query error:", verificationsResult.error);
+    } else {
+      for (const v of verificationsResult.data || []) {
+        statusMap.set(v.email.toLowerCase(), v.status as "valid" | "invalid" | "risky" | "unknown");
+      }
+    }
+
+    if (overridesResult.error) {
+      console.error("[enrichWithEmailVerification] Overrides query error:", overridesResult.error);
+    } else {
+      for (const o of overridesResult.data || []) {
+        overrideSet.add(o.email.toLowerCase());
+      }
+    }
+  }
 
   // Enrich providers
   return providers.map((p) => {
@@ -270,6 +293,7 @@ async function enrichWithEmailVerification(
  * Enrich providers with questions count and leads count.
  * Questions: linked by slug in provider_questions.provider_id
  * Leads: linked via business_profiles.id -> connections.to_profile_id
+ * Uses batching to avoid URL length limits with large provider lists.
  */
 async function enrichWithQuestionsAndLeads(
   db: ReturnType<typeof getServiceClient>,
@@ -285,52 +309,75 @@ async function enrichWithQuestionsAndLeads(
   // Get provider_ids for business_profile lookup (to get leads)
   const providerIds = providers.map((p) => p.provider_id).filter(Boolean);
 
-  // Parallel queries: questions by slug, business_profiles by source_provider_id
-  const [questionsResult, bpResult] = await Promise.all([
-    slugs.length > 0
-      ? db
-          .from("provider_questions")
-          .select("provider_id")
-          .in("provider_id", slugs)
-      : Promise.resolve({ data: [] }),
-    providerIds.length > 0
-      ? db
-          .from("business_profiles")
-          .select("id, source_provider_id")
-          .in("source_provider_id", providerIds)
-      : Promise.resolve({ data: [] }),
+  // Batch queries to avoid URL length limits
+  const questionCounts = new Map<string, number>();
+  const bpIdByProviderId = new Map<string, string>();
+
+  // Run questions and business_profiles batches in parallel for better performance
+  const [questionsResults, bpResults] = await Promise.all([
+    // Query questions in batches
+    Promise.all(
+      Array.from({ length: Math.ceil(slugs.length / IN_CLAUSE_BATCH_SIZE) }, (_, i) => {
+        const batch = slugs.slice(i * IN_CLAUSE_BATCH_SIZE, (i + 1) * IN_CLAUSE_BATCH_SIZE);
+        return db.from("provider_questions").select("provider_id").in("provider_id", batch);
+      })
+    ),
+    // Query business_profiles in batches
+    Promise.all(
+      Array.from({ length: Math.ceil(providerIds.length / IN_CLAUSE_BATCH_SIZE) }, (_, i) => {
+        const batch = providerIds.slice(i * IN_CLAUSE_BATCH_SIZE, (i + 1) * IN_CLAUSE_BATCH_SIZE);
+        return db.from("business_profiles").select("id, source_provider_id").in("source_provider_id", batch);
+      })
+    ),
   ]);
 
-  // Count questions per slug
-  const questionCounts = new Map<string, number>();
-  for (const q of questionsResult.data || []) {
-    const slug = q.provider_id;
-    questionCounts.set(slug, (questionCounts.get(slug) || 0) + 1);
+  // Process questions results
+  for (const { data, error } of questionsResults) {
+    if (error) {
+      console.error("[enrichWithQuestionsAndLeads] Questions query error:", error);
+      continue;
+    }
+    for (const q of data || []) {
+      const slug = q.provider_id;
+      questionCounts.set(slug, (questionCounts.get(slug) || 0) + 1);
+    }
   }
 
-  // Map provider_id -> business_profile.id
-  const bpIdByProviderId = new Map<string, string>();
-  for (const bp of bpResult.data || []) {
-    if (bp.source_provider_id && bp.id) {
-      bpIdByProviderId.set(bp.source_provider_id, bp.id);
+  // Process business_profiles results
+  for (const { data, error } of bpResults) {
+    if (error) {
+      console.error("[enrichWithQuestionsAndLeads] Business profiles query error:", error);
+      continue;
+    }
+    for (const bp of data || []) {
+      if (bp.source_provider_id && bp.id) {
+        bpIdByProviderId.set(bp.source_provider_id, bp.id);
+      }
     }
   }
 
   // Get business profile IDs that exist
   const bpIds = [...bpIdByProviderId.values()];
 
-  // Query leads (connections with type = 'inquiry')
-  let leadCounts = new Map<string, number>();
+  // Query leads (connections with type = 'inquiry') in parallel batches
+  const leadCounts = new Map<string, number>();
   if (bpIds.length > 0) {
-    const { data: connections } = await db
-      .from("connections")
-      .select("to_profile_id")
-      .in("to_profile_id", bpIds)
-      .eq("type", "inquiry");
+    const connectionsResults = await Promise.all(
+      Array.from({ length: Math.ceil(bpIds.length / IN_CLAUSE_BATCH_SIZE) }, (_, i) => {
+        const batch = bpIds.slice(i * IN_CLAUSE_BATCH_SIZE, (i + 1) * IN_CLAUSE_BATCH_SIZE);
+        return db.from("connections").select("to_profile_id").in("to_profile_id", batch).eq("type", "inquiry");
+      })
+    );
 
-    for (const c of connections || []) {
-      const bpId = c.to_profile_id;
-      leadCounts.set(bpId, (leadCounts.get(bpId) || 0) + 1);
+    for (const { data, error } of connectionsResults) {
+      if (error) {
+        console.error("[enrichWithQuestionsAndLeads] Connections query error:", error);
+        continue;
+      }
+      for (const c of data || []) {
+        const bpId = c.to_profile_id;
+        leadCounts.set(bpId, (leadCounts.get(bpId) || 0) + 1);
+      }
     }
   }
 
@@ -362,24 +409,22 @@ async function enrichWithNotesCount(
 
   if (providerIds.length === 0) return providers;
 
-  // Query notes in batches to avoid URL length limits
+  // Query notes in parallel batches to avoid URL length limits
   const notesCounts = new Map<string, number>();
 
-  for (let i = 0; i < providerIds.length; i += IN_CLAUSE_BATCH_SIZE) {
-    const batch = providerIds.slice(i, i + IN_CLAUSE_BATCH_SIZE);
+  const batchResults = await Promise.all(
+    Array.from({ length: Math.ceil(providerIds.length / IN_CLAUSE_BATCH_SIZE) }, (_, i) => {
+      const batch = providerIds.slice(i * IN_CLAUSE_BATCH_SIZE, (i + 1) * IN_CLAUSE_BATCH_SIZE);
+      return db.from("provider_outreach_notes").select("provider_id").in("provider_id", batch);
+    })
+  );
 
-    const { data: notesRows, error } = await db
-      .from("provider_outreach_notes")
-      .select("provider_id")
-      .in("provider_id", batch);
-
+  // Process all batch results
+  for (const { data: notesRows, error } of batchResults) {
     if (error) {
       console.error("[enrichWithNotesCount] Query error:", error);
-      // Continue with other batches, don't fail entirely
       continue;
     }
-
-    // Count notes per provider
     for (const row of notesRows || []) {
       const count = notesCounts.get(row.provider_id) || 0;
       notesCounts.set(row.provider_id, count + 1);
@@ -408,19 +453,23 @@ async function enrichWithCallStats(
 
   if (providerIds.length === 0) return providers;
 
-  // Query call_attempted touchpoints in batches
+  // Query call_attempted touchpoints in parallel batches
   const callStats = new Map<string, { count: number; latestStatus: string | null; latestAt: string | null }>();
 
-  for (let i = 0; i < providerIds.length; i += IN_CLAUSE_BATCH_SIZE) {
-    const batch = providerIds.slice(i, i + IN_CLAUSE_BATCH_SIZE);
+  const batchResults = await Promise.all(
+    Array.from({ length: Math.ceil(providerIds.length / IN_CLAUSE_BATCH_SIZE) }, (_, i) => {
+      const batch = providerIds.slice(i * IN_CLAUSE_BATCH_SIZE, (i + 1) * IN_CLAUSE_BATCH_SIZE);
+      return db
+        .from("provider_outreach_touchpoints")
+        .select("provider_id, details, created_at")
+        .in("provider_id", batch)
+        .eq("touchpoint_type", "call_attempted")
+        .order("created_at", { ascending: false });
+    })
+  );
 
-    const { data: touchpoints, error } = await db
-      .from("provider_outreach_touchpoints")
-      .select("provider_id, details, created_at")
-      .in("provider_id", batch)
-      .eq("touchpoint_type", "call_attempted")
-      .order("created_at", { ascending: false });
-
+  // Process all batch results
+  for (const { data: touchpoints, error } of batchResults) {
     if (error) {
       console.error("[enrichWithCallStats] Query error:", error);
       continue;
@@ -460,6 +509,43 @@ async function enrichWithCallStats(
       latest_call_status: stats?.latestStatus || undefined,
     };
   });
+}
+
+/**
+ * Run all enrichment functions in parallel for better performance.
+ * Each enrichment is independent (adds different fields based on provider IDs),
+ * so they can safely run concurrently.
+ */
+async function enrichProvidersParallel(
+  db: ReturnType<typeof getServiceClient>,
+  providers: OutreachProvider[]
+): Promise<OutreachProvider[]> {
+  if (providers.length === 0) return providers;
+
+  // Run all enrichments in parallel - they're independent of each other
+  const [withEmail, withQuestions, withNotes, withCalls] = await Promise.all([
+    enrichWithEmailVerification(db, providers),
+    enrichWithQuestionsAndLeads(db, providers),
+    enrichWithNotesCount(db, providers),
+    enrichWithCallStats(db, providers),
+  ]);
+
+  // Merge all enrichment results into final provider objects
+  // Each enrichment adds its own fields, so we merge them by index
+  return providers.map((p, i) => ({
+    ...p,
+    // From enrichWithEmailVerification
+    email_verification_status: withEmail[i].email_verification_status,
+    is_email_overridden: withEmail[i].is_email_overridden,
+    // From enrichWithQuestionsAndLeads
+    questions_count: withQuestions[i].questions_count,
+    leads_count: withQuestions[i].leads_count,
+    // From enrichWithNotesCount
+    notes_count: withNotes[i].notes_count,
+    // From enrichWithCallStats
+    call_count: withCalls[i].call_count,
+    latest_call_status: withCalls[i].latest_call_status,
+  }));
 }
 
 /**
@@ -539,10 +625,7 @@ export async function GET(request: NextRequest) {
     // If search is provided, search across ALL stages and return flat results
     if (search) {
       const searchResults = await searchProviders(db, state, search);
-      const withEmail = await enrichWithEmailVerification(db, searchResults);
-      const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
-      const withNotes = await enrichWithNotesCount(db, withQuestions);
-      const enriched = await enrichWithCallStats(db, withNotes);
+      const enriched = await enrichProvidersParallel(db, searchResults);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats, is_search: true });
     }
 
@@ -550,22 +633,18 @@ export async function GET(request: NextRequest) {
       // Special case: providers NOT in tracking OR with stage = not_contacted
       // email_filter allows splitting into "Needs Email" and "Ready" tabs
       const providers = await getNotContactedProviders(db, state, city, emailFilter);
-      const withEmail = await enrichWithEmailVerification(db, providers);
-      const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
-      const withNotes = await enrichWithNotesCount(db, withQuestions);
-      const enriched = await enrichWithCallStats(db, withNotes);
-      // Compute admin counts from the providers list (includes display_name for filter chips)
-      const computedAdminCounts = await computeAdminCountsFromProviders(db, providers);
+      // Run enrichment and admin counts computation in parallel
+      const [enriched, computedAdminCounts] = await Promise.all([
+        enrichProvidersParallel(db, providers),
+        computeAdminCountsFromProviders(db, providers),
+      ]);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: computedAdminCounts, follow_ups_today: followUpsTodayStats });
     }
 
     if (stage === "claimed") {
       // Special case: "Claimed" shows ACTUAL claimed providers (from business_profiles)
       const providers = await getClaimedProviders(db, state, city);
-      const withEmail = await enrichWithEmailVerification(db, providers);
-      const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
-      const withNotes = await enrichWithNotesCount(db, withQuestions);
-      const enriched = await enrichWithCallStats(db, withNotes);
+      const enriched = await enrichProvidersParallel(db, providers);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
@@ -582,20 +661,14 @@ export async function GET(request: NextRequest) {
     // When querying "hidden", show admin_hidden providers for recovery
     if (stage === "hidden") {
       const providers = await getHiddenProviders(db, state, city);
-      const withEmail = await enrichWithEmailVerification(db, providers);
-      const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
-      const withNotes = await enrichWithNotesCount(db, withQuestions);
-      const enriched = await enrichWithCallStats(db, withNotes);
+      const enriched = await enrichProvidersParallel(db, providers);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
     // When querying "archived", use special function that merges tracking + system-wide archived
     if (stage === "archived") {
       const providers = await getArchivedProviders(db, state, city);
-      const withEmail = await enrichWithEmailVerification(db, providers);
-      const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
-      const withNotes = await enrichWithNotesCount(db, withQuestions);
-      const enriched = await enrichWithCallStats(db, withNotes);
+      const enriched = await enrichProvidersParallel(db, providers);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
@@ -629,7 +702,7 @@ export async function GET(request: NextRequest) {
     const providerIds = trackingRows.map((t) => t.provider_id);
     const { data: providerRows, error: provError } = await db
       .from("olera-providers")
-      .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug")
+      .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug, email_locked_by")
       .in("provider_id", providerIds)
       .or("deleted.is.null,deleted.eq.false");
 
@@ -873,15 +946,14 @@ export async function GET(request: NextRequest) {
           generic_email_skipped_at: t.generic_email_skipped_at ?? null,
           // Apollo.io decision-maker enrichment
           apollo_contact: t.apollo_contact ?? null,
+          // Email lock indicator
+          email_locked_by: p.email_locked_by ?? null,
         };
       })
       .filter((p): p is OutreachProvider => p !== null)
       .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
 
-    const withEmail = await enrichWithEmailVerification(db, providers);
-    const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
-    const withNotes = await enrichWithNotesCount(db, withQuestions);
-    const enriched = await enrichWithCallStats(db, withNotes);
+    const enriched = await enrichProvidersParallel(db, providers);
     return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
   } catch (err) {
     console.error("[provider-outreach] Error:", err);
@@ -972,7 +1044,7 @@ async function getNotContactedProviders(
   // Step 4: Get all providers in this state (we need to display them anyway)
   let providerQuery = db
     .from("olera-providers")
-    .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug")
+    .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug, email_locked_by")
     .eq("state", state)
     .or("deleted.is.null,deleted.eq.false");
 
@@ -1040,6 +1112,8 @@ async function getNotContactedProviders(
         apollo_contact: tracking?.apollo_contact ?? null,
         // Email source: 'organization' or 'decision_maker'
         email_source: (tracking?.email_source as "organization" | "decision_maker") ?? "organization",
+        // Email lock indicator
+        email_locked_by: p.email_locked_by ?? null,
       };
     });
 
@@ -1094,7 +1168,7 @@ async function getClaimedProviders(
   const providers = await batchedInQuery<ProviderRow>(
     db,
     "olera-providers",
-    "provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug",
+    "provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug, email_locked_by",
     "provider_id",
     claimedProviderIds,
     { state, city: city || undefined, notDeleted: true }
@@ -1176,6 +1250,8 @@ async function getClaimedProviders(
         // Generic email warning state (not applicable for claimed)
         generic_email_called_at: null,
         generic_email_skipped_at: null,
+        // Email lock indicator
+        email_locked_by: p.email_locked_by ?? null,
       };
     })
     .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
@@ -1220,7 +1296,7 @@ async function getHiddenProviders(
   const providerIds = trackingRows.map((t) => t.provider_id);
   const { data: providerRows, error: provError } = await db
     .from("olera-providers")
-    .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug")
+    .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug, email_locked_by")
     .in("provider_id", providerIds)
     .or("deleted.is.null,deleted.eq.false");
 
@@ -1286,6 +1362,8 @@ async function getHiddenProviders(
         generic_email_skipped_at: t.generic_email_skipped_at ?? null,
         // Apollo.io decision-maker enrichment
         apollo_contact: t.apollo_contact ?? null,
+        // Email lock indicator
+        email_locked_by: p.email_locked_by ?? null,
       };
     })
     .filter((p): p is OutreachProvider => p !== null)
@@ -1331,7 +1409,7 @@ async function getArchivedProviders(
     // Get provider details
     const { data: providerRows } = await db
       .from("olera-providers")
-      .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug")
+      .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug, email_locked_by")
       .in("provider_id", trackingProviderIds);
 
     const providerMap = new Map((providerRows || []).map((p) => [p.provider_id, p as ProviderRow]));
@@ -1388,6 +1466,8 @@ async function getArchivedProviders(
         generic_email_skipped_at: t.generic_email_skipped_at ?? null,
         // Apollo.io decision-maker enrichment
         apollo_contact: t.apollo_contact ?? null,
+        // Email lock indicator
+        email_locked_by: p.email_locked_by ?? null,
       });
     }
   }
@@ -1407,7 +1487,7 @@ async function getArchivedProviders(
     // Get provider details from olera-providers, filtered by state
     let providerQuery = db
       .from("olera-providers")
-      .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug")
+      .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug, email_locked_by")
       .in("provider_id", adminArchivedSourceIds)
       .eq("state", state)
       .or("deleted.is.null,deleted.eq.false");
@@ -1492,6 +1572,8 @@ async function getArchivedProviders(
           // Generic email warning state (not applicable for system-archived)
           generic_email_called_at: null,
           generic_email_skipped_at: null,
+          // Email lock indicator
+          email_locked_by: p.email_locked_by ?? null,
         });
       }
     }
@@ -1515,7 +1597,7 @@ async function searchProviders(
   // Get all providers in this state matching the search term
   const { data: providers, error: provError } = await db
     .from("olera-providers")
-    .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug")
+    .select("provider_id, provider_name, provider_category, city, state, address, zipcode, email, phone, website, slug, email_locked_by")
     .eq("state", state)
     .or("deleted.is.null,deleted.eq.false")
     .ilike("provider_name", `%${search}%`)
@@ -1734,6 +1816,8 @@ async function searchProviders(
       apollo_contact: tracking?.apollo_contact ?? null,
       // Email source: 'organization' or 'decision_maker'
       email_source: (tracking?.email_source as "organization" | "decision_maker") ?? "organization",
+      // Email lock indicator
+      email_locked_by: p.email_locked_by ?? null,
     };
   });
 
@@ -2025,7 +2109,8 @@ async function getStageCounts(
  * Get counts of providers per assigned admin for the current stage.
  * Used for the filter chip row in the UI.
  *
- * For needs_call (Follow Up) stage, only counts providers with due_date <= today.
+ * For needs_call (Follow Up) stage, counts ALL providers regardless of due_date
+ * to match the displayed provider list which includes upcoming due dates.
  */
 interface AdminCounts {
   [adminId: string]: {
@@ -2071,19 +2156,14 @@ async function getAdminCounts(
   }
 
   // For active stages: query tracking table (exclude hidden providers)
-  let query = db
+  // Note: For needs_call, we count ALL providers (including upcoming due dates)
+  // to match the displayed provider list. The UI groups by due date sections.
+  const query = db
     .from("provider_outreach_tracking")
     .select("assigned_to")
     .eq("state", state)
     .eq("stage", stage)
     .or("admin_hidden.is.null,admin_hidden.eq.false");
-
-  // For needs_call (Follow Up), only count providers with due_date <= today
-  if (stage === "needs_call") {
-    // Use Central Time (business timezone) to avoid UTC timezone mismatches
-  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
-    query = query.lte("due_date", today);
-  }
 
   const { data: trackingRows, error } = await query;
 

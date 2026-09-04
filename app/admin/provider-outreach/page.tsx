@@ -323,6 +323,8 @@ interface OutreachProvider {
   email_verification_status?: "valid" | "invalid" | "risky" | "unknown" | null;
   // Whether email has been manually overridden/trusted
   is_email_overridden?: boolean;
+  // Admin who locked this email as confirmed
+  email_locked_by?: string | null;
   // Generic email warning state (persisted for page refresh)
   generic_email_called_at?: string | null;
   generic_email_skipped_at?: string | null;
@@ -2781,6 +2783,10 @@ export default function ProviderOutreachPage() {
   const recentlyMovedRef = useRef<Set<string>>(new Set());
   const recentlyMovedTimersRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
+  // AbortController to cancel in-flight fetch requests when tab/state changes
+  // Prevents race conditions where stale responses overwrite newer data
+  const fetchAbortControllerRef = useRef<AbortController | null>(null);
+
   // Helper to mark a provider as recently moved (auto-clears after 30 seconds)
   // Extended from 5s to 30s to account for database replication lag
   const markAsRecentlyMoved = useCallback((providerId: string) => {
@@ -2899,9 +2905,6 @@ export default function ProviderOutreachPage() {
   const [conversionLoading, setConversionLoading] = useState(false);
   const [conversionError, setConversionError] = useState(false);
 
-  // Email source comparison (org vs Apollo decision-maker)
-  const [emailSourceExpanded, setEmailSourceExpanded] = useState(false);
-
   // Daily activity stats
   const [activityStatsExpanded, setActivityStatsExpanded] = useState(false);
   const [activityStatsDate, setActivityStatsDate] = useState(() =>
@@ -2927,6 +2930,12 @@ export default function ProviderOutreachPage() {
 
   // Global follow-ups due today (across all states)
   const [globalFollowUpsToday, setGlobalFollowUpsToday] = useState<{
+    total: number;
+    by_admin: Array<{ admin_id: string | null; display_name: string; count: number }>;
+  }>({ total: 0, by_admin: [] });
+
+  // Global call exhausted stats (across all states)
+  const [globalCallExhausted, setGlobalCallExhausted] = useState<{
     total: number;
     by_admin: Array<{ admin_id: string | null; display_name: string; count: number }>;
   }>({ total: 0, by_admin: [] });
@@ -3630,6 +3639,14 @@ export default function ProviderOutreachPage() {
       return;
     }
 
+    // Abort any in-flight request to prevent race conditions
+    // (e.g., user rapidly switching tabs)
+    if (fetchAbortControllerRef.current) {
+      fetchAbortControllerRef.current.abort();
+    }
+    const abortController = new AbortController();
+    fetchAbortControllerRef.current = abortController;
+
     setLoadingProviders(true);
 
     try {
@@ -3647,7 +3664,9 @@ export default function ProviderOutreachPage() {
         params.set("assigned_to", selectedAdminFilter);
       }
 
-      const res = await fetch(`/api/admin/provider-outreach?${params}`);
+      const res = await fetch(`/api/admin/provider-outreach?${params}`, {
+        signal: abortController.signal,
+      });
       if (res.ok) {
         const data = await res.json();
         let filteredProviders = data.providers || [];
@@ -3712,10 +3731,18 @@ export default function ProviderOutreachPage() {
         showToast(err.error || "Failed to fetch providers", "error");
       }
     } catch (err) {
+      // Don't show error for aborted requests (user switched tabs)
+      if (err instanceof Error && err.name === "AbortError") {
+        return;
+      }
       console.error("Failed to fetch providers:", err);
       showToast("Failed to fetch providers", "error");
     } finally {
-      setLoadingProviders(false);
+      // Only clear loading if this request wasn't superseded by a newer one
+      // (prevents aborted request's finally from hiding spinner for active request)
+      if (fetchAbortControllerRef.current === abortController) {
+        setLoadingProviders(false);
+      }
     }
   }, [selectedState, activeTab, activeDoneSubTab, selectedAdminFilter]);
 
@@ -3774,6 +3801,25 @@ export default function ProviderOutreachPage() {
     return () => clearInterval(interval);
   }, []);
 
+  // Effect: fetch global call exhausted stats on mount
+  useEffect(() => {
+    const fetchGlobalCallExhausted = async () => {
+      try {
+        const res = await fetch("/api/admin/provider-outreach/stats?metric=call_exhausted");
+        if (res.ok) {
+          const data = await res.json();
+          setGlobalCallExhausted(data);
+        }
+      } catch (err) {
+        console.error("Failed to fetch global call exhausted stats:", err);
+      }
+    };
+    fetchGlobalCallExhausted();
+    // Refresh every 5 minutes
+    const interval = setInterval(fetchGlobalCallExhausted, 5 * 60 * 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   // Effect: fetch sequence conversion stats on mount
   useEffect(() => {
     const fetchSequenceConversion = async () => {
@@ -3816,9 +3862,9 @@ export default function ProviderOutreachPage() {
   }, [emailStatsExpanded, claimsDashboard]);
 
   // Effect: fetch sequence conversion stats when any analytics section is expanded
-  // (Outreach Funnel, Sequence Conv., and Email Source all use the same API data)
+  // (Outreach Funnel and Sequence Conv. use the same API data)
   useEffect(() => {
-    const needsData = statsExpanded || conversionExpanded || emailSourceExpanded;
+    const needsData = statsExpanded || conversionExpanded;
     if (!needsData || conversionStats || !selectedState) return;
 
     const fetchConversionStats = async () => {
@@ -3840,7 +3886,7 @@ export default function ProviderOutreachPage() {
       }
     };
     fetchConversionStats();
-  }, [statsExpanded, conversionExpanded, emailSourceExpanded, conversionStats, selectedState]);
+  }, [statsExpanded, conversionExpanded, conversionStats, selectedState]);
 
   // Effect: fetch activity stats when section is expanded or date changes
   useEffect(() => {
@@ -4707,7 +4753,7 @@ export default function ProviderOutreachPage() {
         </div>
 
         {/* Stat Boxes */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-4">
           <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Number of states you've added for outreach work">
             <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Active States</p>
             <p className="mt-1 text-2xl font-semibold text-gray-900">{globalStats.totalStates}</p>
@@ -4729,6 +4775,15 @@ export default function ProviderOutreachPage() {
             <p className="mt-0.5 text-[11px] text-gray-500">
               {globalFollowUpsToday.by_admin.length > 0
                 ? globalFollowUpsToday.by_admin.map(a => `${a.display_name}: ${a.count}`).join(" · ")
+                : "none pending"}
+            </p>
+          </div>
+          <div className="rounded-lg border border-gray-200 bg-white px-4 py-3" title="Providers in call stage across all states">
+            <p className="text-xs font-medium uppercase tracking-wide text-gray-500">Calls</p>
+            <p className="mt-1 text-2xl font-semibold text-gray-900">{globalCallExhausted.total}</p>
+            <p className="mt-0.5 text-[11px] text-gray-500">
+              {globalCallExhausted.by_admin.length > 0
+                ? globalCallExhausted.by_admin.map(a => `${a.display_name}: ${a.count}`).join(" · ")
                 : "none pending"}
             </p>
           </div>
@@ -4903,32 +4958,6 @@ export default function ProviderOutreachPage() {
               {conversionStats && conversionStats.totals.in_sequence > 0 && (
                 <span className="text-xs text-gray-400">
                   ({conversionStats.totals.rate}%)
-                </span>
-              )}
-            </button>
-
-            <span className="text-gray-300">|</span>
-
-            {/* Email Source toggle (Apollo vs Org) */}
-            <button
-              type="button"
-              onClick={() => setEmailSourceExpanded(!emailSourceExpanded)}
-              className={`flex items-center gap-1.5 text-sm font-medium transition-colors ${
-                emailSourceExpanded ? "text-gray-900" : "text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              <svg
-                className={`w-3.5 h-3.5 transform transition-transform ${emailSourceExpanded ? "rotate-90" : ""}`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-              <span>Email Source</span>
-              {conversionStats?.by_email_source && (
-                <span className="text-xs text-gray-400">
-                  (Apollo {conversionStats.by_email_source.decision_maker.rate}%)
                 </span>
               )}
             </button>
@@ -5174,113 +5203,6 @@ export default function ProviderOutreachPage() {
                 </div>
               ) : (
                 <div className="text-sm text-gray-500">No sequence data yet. Start a sequence to see conversion stats.</div>
-              )}
-            </div>
-          )}
-
-          {/* Email Source expanded content (Apollo vs Org comparison) */}
-          {emailSourceExpanded && (
-            <div className="mt-3 p-3 bg-gray-50 rounded-lg">
-              {conversionLoading ? (
-                <div className="text-sm text-gray-500">Loading email source data...</div>
-              ) : conversionError ? (
-                <div className="flex items-center gap-3 text-sm">
-                  <span className="text-red-600">Failed to load data</span>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setConversionStats(null);
-                      setConversionError(false);
-                    }}
-                    className="text-teal-700 hover:underline"
-                  >
-                    Retry
-                  </button>
-                </div>
-              ) : conversionStats?.by_email_source ? (
-                <div className="space-y-4">
-                  <div className="text-sm font-medium text-gray-700">Which email type converts better?</div>
-                  <div className="grid grid-cols-2 gap-4">
-                    {/* Organization Email Stats */}
-                    <div className="bg-white border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                          <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                          </svg>
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">Organization Emails</div>
-                          <div className="text-xs text-gray-500">info@, contact@, etc.</div>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Sequenced</span>
-                          <span className="font-medium text-gray-900 tabular-nums">{conversionStats.by_email_source.organization.in_sequence}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Claimed</span>
-                          <span className="font-medium text-emerald-600 tabular-nums">{conversionStats.by_email_source.organization.claimed}</span>
-                        </div>
-                        <div className="flex justify-between text-sm border-t border-gray-100 pt-2 mt-2">
-                          <span className="text-gray-700 font-medium">Conversion</span>
-                          <span className="font-semibold text-gray-900 tabular-nums text-lg">{conversionStats.by_email_source.organization.rate}%</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Decision-Maker (Apollo) Email Stats */}
-                    <div className="bg-white border border-purple-200 rounded-lg p-4">
-                      <div className="flex items-center gap-2 mb-3">
-                        <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                          <svg className="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                          </svg>
-                        </div>
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">Apollo Decision-Makers</div>
-                          <div className="text-xs text-gray-500">Personal emails, addressed by name</div>
-                        </div>
-                      </div>
-                      <div className="space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Sequenced</span>
-                          <span className="font-medium text-gray-900 tabular-nums">{conversionStats.by_email_source.decision_maker.in_sequence}</span>
-                        </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-gray-600">Claimed</span>
-                          <span className="font-medium text-emerald-600 tabular-nums">{conversionStats.by_email_source.decision_maker.claimed}</span>
-                        </div>
-                        <div className="flex justify-between text-sm border-t border-gray-100 pt-2 mt-2">
-                          <span className="text-gray-700 font-medium">Conversion</span>
-                          <span className="font-semibold text-purple-700 tabular-nums text-lg">{conversionStats.by_email_source.decision_maker.rate}%</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Insight line */}
-                  {conversionStats.by_email_source.organization.in_sequence > 0 && conversionStats.by_email_source.decision_maker.in_sequence > 0 && (
-                    <div className="text-sm text-gray-600 bg-white border border-gray-200 rounded-lg p-3">
-                      {conversionStats.by_email_source.decision_maker.rate > conversionStats.by_email_source.organization.rate ? (
-                        <span>
-                          <span className="font-medium text-purple-700">Apollo decision-makers convert {conversionStats.by_email_source.decision_maker.rate - conversionStats.by_email_source.organization.rate}% better</span>
-                          {" "}than organization emails. Personalized outreach pays off.
-                        </span>
-                      ) : conversionStats.by_email_source.organization.rate > conversionStats.by_email_source.decision_maker.rate ? (
-                        <span>
-                          <span className="font-medium text-blue-700">Organization emails convert {conversionStats.by_email_source.organization.rate - conversionStats.by_email_source.decision_maker.rate}% better</span>
-                          {" "}than Apollo decision-makers.
-                        </span>
-                      ) : (
-                        <span>Both email types have the same conversion rate.</span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <div className="text-sm text-gray-500">No email source data yet. Start sequences to compare org vs Apollo performance.</div>
               )}
             </div>
           )}
@@ -8060,6 +7982,17 @@ export default function ProviderOutreachPage() {
             // Update drawer provider too
             setDrawerProvider((prev) =>
               prev && prev.provider_id === providerId ? { ...prev, fax_number: fax } : prev
+            );
+          }}
+          onEmailLockToggle={(providerId, lockedBy) => {
+            setProviders((prev) =>
+              prev.map((p) =>
+                p.provider_id === providerId ? { ...p, email_locked_by: lockedBy } : p
+              )
+            );
+            // Update drawer provider too
+            setDrawerProvider((prev) =>
+              prev && prev.provider_id === providerId ? { ...prev, email_locked_by: lockedBy } : prev
             );
           }}
           onLaunchSequence={(providerId) => {

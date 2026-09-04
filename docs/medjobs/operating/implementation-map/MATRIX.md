@@ -1008,31 +1008,71 @@ label, and every section scored, from Profile Overview through Verification.
 
 ## QUAL — Portal vets the application
 
-**Objective** Produce a qualified candidate pool a provider can trust. **Owner** Portal, exceptions to USM.
-**Completion criteria** A decision recorded against defined criteria, and the student told the outcome.
+**Objective** Turn a completed application into a qualified candidate, and put that candidate in front of
+the providers who can hire them — from both directions at once.
+**Owner** Portal. **Users** Student, providers in the student's catchment, User Success Manager on
+exceptions.
+**Completion criteria** The student is on the board, every hiring provider in their area has been told
+they are ready to interview, and the student has been given the list and the phone numbers to call them.
 
-**① User journey / technology**
+> **Qualification happens at go-live, whether or not anyone decided it.** The moment a student presses Go
+> Live, the system tells providers a candidate is *ready to interview*. That message is a qualification
+> claim, made on our name, with no criteria behind it — because none are written and nothing is required
+> to go live. Everything below describes the stage as it should work; the criteria are the missing piece
+> the rest of it hangs on. See ST8 and the deferred list.
 
-| Actor | Sees / does | Surface |
+### ① User journey / technology
+
+| # | What happens | Where | Exhibit |
+|---|---|---|---|
+| 1 | The student goes live | Portal → **Go Live** | **AB** |
+| 2 | **They appear on the board** — matchable, filterable by campus and care type, visible to providers looking for student caregivers | [`olera.care/portal/medjobs/jobs`](https://olera.care/portal/medjobs/jobs) | **AA** |
+| 3 | **Every provider we are working in that student's campus catchment is emailed** — *"Ready for interview: a student caregiver candidate near \[campus\]"* — with a link to the profile | Automatic, on first go-live | — |
+| 4 | **The student is emailed the providers who are hiring near them, with phone numbers**, and told to call | Not built | — |
+| 5 | Providers start hearing from students who have met our bar | Phone | — |
+
+**Both directions matter, and only one of them is built.**
+
+| Direction | What it is | Where it stands |
 |---|---|---|
-| Student | Learns whether they qualified and what happens next | Portal · email |
-| User Success Manager | Reviews outcomes and handles exceptions | Candidates view |
+| **Us → providers** | On first go-live, providers being actively worked in the student's campus catchment get *a candidate is ready to interview*, with a link to the profile. Runs in the background so a failure never blocks the student, and is capped so one go-live cannot blast a whole catchment | **Built and running** |
+| **Us → student** | A list of every provider hiring near them — name, area, and **the phone number** — and a clear instruction: call them, tell them you are available to interview | **Not built.** This is the important half |
 
-**② Human SOP** — review every borderline case rather than letting it sit · record the reason for any
-override · feed recurring failure reasons back into the application.
+> **The student calling is the point.** A provider who receives an email about a candidate may open it. A
+> provider who picks up the phone to a pre-health student saying *"I'm in the Olera Student Caregiver
+> Program, I'm cleared to interview, are you hiring?"* has met the candidate. The first is a notification;
+> the second is a placement starting. Everything we do earlier in the funnel exists to produce that call.
 
-**③ System / handoff**
+**What exists today is a near-miss, not the thing.** There is already a student-facing email that fires
+when a *provider* accepts terms, telling live students *"a caregiver job near you is open"* with a link to
+that one provider. It is the right idea pointed the wrong way: triggered by the provider rather than by
+the student qualifying, one provider rather than the list, and a link to click rather than a number to
+call.
+
+### ② Human SOP
+
+Deliberately short, for the same reason as ST8 — this stage should be a system, not a queue.
+
+1. **Handle exceptions, not cases.** A student the rules would reject who is obviously right, or the
+   reverse. Record the reason for every override.
+2. **Feed failure reasons back into the application.** A criterion that keeps failing honest applicants is
+   a badly written criterion.
+3. **Watch what happens after the list goes out** — whether students actually call, and what providers say
+   when they do. That is the fastest signal we have about whether our bar means anything.
+
+### ③ System / handoff
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Criteria evaluated, decision, reason, reviewer | submitted → qualified / not qualified | qualification decision · went live | Qualified | **→ MA1** |
+| Criteria evaluated · decision and reason · reviewer on an override · which providers were notified · the call list sent to the student | submitted → qualified · not qualified | qualification decision · profile activated · catchment providers notified · call list sent to student | Qualified and both broadcasts sent | **→ MA1.** The candidate is live, the providers know, and the student is calling |
 
-> **Note.** The qualification criteria do not exist yet. What the product does today is check that a
-> profile is *complete and active*, which is a completeness check, not a qualification decision. The
-> criteria have to be written before this stage can be built, delegated, or explained to a provider.
+**Communications** The candidate-ready email to catchment providers · **the call list to the student —
+hiring providers near them with phone numbers** · the outcome message and what to expect next.
 
-**Communications** Outcome message · you're-live message · what-to-expect-next.
+### Exhibits
 
+Both surfaces this stage produces are shown under ST8: **AB** for Go Live, and **AA** for the board the
+student appears on.
 ---
 
 ## MA1 — Candidate intro
@@ -1197,9 +1237,10 @@ toward and the gap stays visible.
 | **B15** | ST8 | **A defined and enforced go-live baseline** — intro video, driver's licence, car insurance, weekly availability, screening answers. The list itself to be revisited once we see what providers use to decide | Nothing is required. The Go Live review calls every unfinished section *"recommended but not required"* and skips the verification section entirely, which is where three of the five live |
 | **B16** | ST8 | **One definition of _live_.** The Go Live button sets the student active and notifies the catchment; the nudge cron independently treats 100% completeness as live and emails the student to say so | Two definitions in two places. A student can be live on the board at 5% and still be nudged, or reach 100%, be told they are live, and have had no provider told about them |
 | **B17** | ST8 | **Application source capture.** Ask a student how they heard about MedJobs | Nothing records it |
-| **B18** | QUAL | **Written qualification criteria**, then a vetting step that applies them | Today "live" means profile complete and active — a completeness check, not a qualification decision |
-| **B19** | MA4 | **Shift verification.** Some reliable way to confirm six shifts were worked, and a view of which placements are approaching the threshold | No shift or hours-worked concept exists anywhere |
-| **B20** | MA5 | **Billing on the six-shift trigger** — invoice raised against a confirmed threshold, payment recorded | Two legacy billing paths, neither matching the model |
+| **B18** | QUAL | **The call list to the student.** On qualifying, email the student every provider hiring near them — name, area, and phone number — with a clear instruction to call and say they are cleared to interview. Providers should start hearing from students directly | Not built. The nearest thing fires when a *provider* accepts terms, names one provider, and offers a link rather than a number |
+| **B19** | QUAL | **Written qualification criteria**, then a vetting step that applies them. The catchment broadcast already tells providers a candidate is *ready to interview* — until criteria exist and are enforced, that sentence is unbacked, and it goes out under our name | Today "live" means the student pressed a button. Nothing is required, and nothing is checked |
+| **B20** | MA4 | **Shift verification.** Some reliable way to confirm six shifts were worked, and a view of which placements are approaching the threshold | No shift or hours-worked concept exists anywhere |
+| **B21** | MA5 | **Billing on the six-shift trigger** — invoice raised against a confirmed threshold, payment recorded | Two legacy billing paths, neither matching the model |
 
 
 **How to use this list.** Nothing here blocks running the operating system by hand today. Each item is a

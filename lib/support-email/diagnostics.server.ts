@@ -35,11 +35,13 @@ export async function diagnoseSupportGmail(db: SupabaseClient) {
       for (const id of ids.slice(0, 5)) {
         const message = await getGmailMessageSyncMetadata(token, id);
         samples.push({ id, internalDate: message.internalDate
-          ? new Date(Number(message.internalDate)).toISOString() : null, stored: storedIds.has(id) });
+          ? new Date(Number(message.internalDate)).toISOString() : null,
+          labels: message.labelIds ?? [], stored: storedIds.has(id) });
       }
       const records = history?.history ?? [];
       results.push({
         mailboxId: mailbox.id, email: mailbox.email, syncStatus: mailbox.sync_status,
+        connectedGmailAddress: profile.emailAddress,
         storedCursor: mailbox.gmail_history_id, gmailCursor: profile.historyId,
         gmailMessages: profile.messagesTotal, latestStoredAt: latestStored.data?.[0]?.internal_date ?? null,
         recentSampleSize: ids.length, recentSampleMissing: ids.filter(id => !storedIds.has(id)).length,

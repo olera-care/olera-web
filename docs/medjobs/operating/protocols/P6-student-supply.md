@@ -1,6 +1,6 @@
 # P6 · Student Supply
 
-> **Owner:** Ces
+> **Owner:** Sess
 > **Goal:** turn flyer impressions into **live, vetted candidates** a Client would actually interview.
 > **The measure that matters:** live candidates per active Client (**H4**), target ≥ 5:1.
 
@@ -20,7 +20,7 @@ Vetted + activated
 LIVE CANDIDATE  →  invited to interview  →  hired
 ```
 
-**Every stage is human-shepherded in 1.0.** Logan is explicit that we should not skip this: *"It would be
+**Every stage is human-shepherded in 2.0.** Logan is explicit that we should not skip this: *"It would be
 amazing if this whole system ran on its own… You don't have to get there yet."* Students who are hand-held
 through the application complete it; students who are left alone do not.
 
@@ -69,7 +69,7 @@ Check daily. **A stalled application is recoverable for about 48 hours and then 
 > *"Hey \[name\] — saw you started the Olera application. Anything I can help with? Takes about 10 minutes
 > and there are agencies near campus hiring right now."*
 
-**Do not automate this in 1.0.** The manual nudge is also the fastest way to learn *why* students stall — and
+**Do not automate this in 2.0.** The manual nudge is also the fastest way to learn *why* students stall — and
 that reason is worth more right now than the saved minutes.
 
 ---
@@ -136,7 +136,7 @@ provider in front of nothing.
 
 ---
 
-## 7. Weekly rhythm — Ces
+## 7. Weekly rhythm — Sess
 
 | | |
 |---|---|

@@ -32,10 +32,10 @@ is worse than no rate.
 
 | # | Rate | Definition | Source | Owner | Wk-4 target |
 |---|---|---|---|---|---|
-| **R1** | **Prospect → meeting booked** | Meetings booked ÷ prospects with a launched cadence | CRM: Meetings tab vs. cadence launches | Graize | **≥ 8%** |
-| **R2** | **Booked → held** | Meetings held ÷ meetings booked | `meeting_held` vs `meeting_scheduled` touchpoints | Graize/Chantel | **≥ 70%** |
+| **R1** | **Prospect → meeting booked** | Meetings booked ÷ prospects with a launched cadence | CRM: Meetings tab vs. cadence launches | Grazy | **≥ 8%** |
+| **R2** | **Booked → held** | Meetings held ÷ meetings booked | `meeting_held` vs `meeting_scheduled` touchpoints | Grazy/Chantel | **≥ 70%** |
 | **R3** | **Held → Client** | Clients ÷ meetings held | Client flag (**pending C2**) vs `meeting_held` | Chantel | **≥ 60%** |
-| **R4** | **Partner contacted → distributing** | Partners with distribution evidence ÷ partners contacted | `distribution_confirmed` touchpoints | Ces | **≥ 20%** |
+| **R4** | **Partner contacted → distributing** | Partners with distribution evidence ÷ partners contacted | `distribution_confirmed` touchpoints | Sess | **≥ 20%** |
 | **R5** | **Live candidate → interview invited** | Candidates with ≥1 invite ÷ live candidates | `interviews` table vs live candidate count | Chantel | **≥ 30%** |
 
 **Calibration warning.** These targets are estimates, not history. Logan's ~100% meeting-held-to-Client
@@ -71,13 +71,13 @@ real problems; they have opposite fixes.
 
 | Counter | Owner | Weekly target (1 site) | Source |
 |---|---|---|---|
-| Prospects materialized | Graize | 40 | Providers tab |
-| Prospects pre-flight cleared | Graize | 40 | Pre-Flight Checklist |
-| Cold emails sent | Graize | 100–125 | Smartlead / `email_sent` touchpoints |
-| Calls attempted | Graize | 40 | `call_*` touchpoints |
-| Partner contacts | Ces | 8 | Partners tab |
-| Student applications started | Ces | 5 | Signups |
-| Candidates activated | Ces | 3 | Candidates tab |
+| Prospects materialized | Grazy | 40 | Providers tab |
+| Prospects pre-flight cleared | Grazy | 40 | Pre-Flight Checklist |
+| Cold emails sent | Grazy | 100–125 | Smartlead / `email_sent` touchpoints |
+| Calls attempted | Grazy | 40 | `call_*` touchpoints |
+| Partner contacts | Sess | 8 | Partners tab |
+| Student applications started | Sess | 5 | Signups |
+| Candidates activated | Sess | 3 | Candidates tab |
 | Meetings held | Chantel | 3 | `meeting_held` |
 | Clients activated | Chantel | 1–2 | Client flag |
 | Interviews scheduled | Chantel | 3 | `interviews` |

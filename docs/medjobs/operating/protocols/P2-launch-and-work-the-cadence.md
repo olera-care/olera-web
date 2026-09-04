@@ -1,8 +1,8 @@
 # P2 · Launch & Work the Cadence
 
-> **Owner:** Graize
+> **Owner:** Grazy
 > **Starts when:** a row clears the P1 launch gate. **Ends when:** a reply, a meeting, or the cadence runs out.
-> **Derived from:** Graize's protocol Step 3, plus the deliverability rails in `../../EMAIL_LAUNCH_PLAN.md`.
+> **Derived from:** Grazy's protocol Step 3, plus the deliverability rails in `../../EMAIL_LAUNCH_PLAN.md`.
 
 ---
 
@@ -83,7 +83,7 @@ send collateral without a time attached — that is how a warm lead cools.
 | After new mailboxes finish warmup | +10–20/day/week, ceiling ~40–50/day/mailbox | Per `../../EMAIL_LAUNCH_PLAN.md §3` |
 | Calls | No cap | Calls do not damage a domain |
 
-**Kill-switch — Esther watches, Graize obeys:**
+**Kill-switch — Esther watches, Grazy obeys:**
 
 | Signal | Threshold | Action |
 |---|---|---|
@@ -115,7 +115,7 @@ costs a week.
 | Mon | Materialize 40 prospects (P1); launch cleared rows up to the cap |
 | Tue–Fri | Calls to zero daily; launch newly cleared rows |
 | Wed | Follow-up tab triage (P7) |
-| Fri | Report volume + findings; flag data defects to Ces |
+| Fri | Report volume + findings; flag data defects to Sess |
 
 **Weekly targets (one site):** 100–125 emails sent · 40 calls attempted · **3 meetings booked**.
 

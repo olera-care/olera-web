@@ -66,10 +66,10 @@ quiet for ordinary reasons; two follow-ups is not pestering, it is professionali
 | 3.2 | They complete the eligibility screener | Demand profile captured — shift shape, PRN, coverage needs |
 | 3.3 | The pilot agreement is signed | On file (before their first interview, per the soft ask) |
 | 3.4 | They can log in and see the board | Verified by you, not assumed — magic-link and role bugs are known jank |
-| 3.5 | Their demand profile reaches Ces | Roles, count, shift types — **within 1 day.** This is the demand signal supply needs |
+| 3.5 | Their demand profile reaches Sess | Roles, count, shift types — **within 1 day.** This is the demand signal supply needs |
 
 **Check the board before you celebrate.** If they log in to an empty candidate list, this conversion is
-already at risk. Coordinate with Ces before sending the welcome — a Client whose first impression is an
+already at risk. Coordinate with Sess before sending the welcome — a Client whose first impression is an
 empty board is the hardest kind to win back.
 
 ---
@@ -90,7 +90,7 @@ empty board is the hardest kind to win back.
 | Stall | Why it happens | Fix |
 |---|---|---|
 | Client never logs in | Life. Email is easy to ignore | Call them. Do not send a third email |
-| Client browses, never invites | Nobody fits, or they are unsure how | Ask which. If nobody fits, that is a supply brief for Ces |
+| Client browses, never invites | Nobody fits, or they are unsure how | Ask which. If nobody fits, that is a supply brief for Sess |
 | Interview scheduled, never held | Two-sided handshake | Confirm with both sides 24h before |
 | Interview held, nothing happens | The single biggest post-meeting leak | **Call within 1 day.** *"How did it go?"* |
 | Offer made, student silent | Student is deciding, or cash-anxious | Call the student. Understand the hesitation — it is data |
@@ -147,7 +147,7 @@ collected retroactively.** It costs one extra question in a call you are already
 | Mon | Review replies; plan the week's meetings |
 | Tue | Metrics review; report R2, R3, R5 |
 | Wed | **Client check-ins.** Every active Client hears from a human. Confirm each has candidates to look at |
-| Thu | Pipeline review with Graize |
+| Thu | Pipeline review with Grazy |
 | Fri | Placement + billing sweep; post-placement check-ins logged |
 
 **Weekly targets (one site):** 3 meetings held · 1–2 Clients activated · every Client contacted ·
@@ -161,6 +161,6 @@ collected retroactively.** It costs one extra question in a call you are already
 |---|---|
 | Anything about price or contract terms | Logan, always |
 | A Client asking to hire outside the platform | Logan — non-circumvention, and the terms cover it |
-| A Client with no candidates to look at | Ces, urgently — this is a churn event in progress |
+| A Client with no candidates to look at | Sess, urgently — this is a churn event in progress |
 | A student or Client with a safety or conduct concern | Logan, immediately |
 | Portal or magic-link failure | Esther → TJ, with screen/click/expected/actual |

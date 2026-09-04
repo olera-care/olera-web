@@ -1,8 +1,8 @@
 # P7 · Follow-up, Re-engage, Archive
 
-> **Owner:** Graize
+> **Owner:** Grazy
 > **Starts when:** a cadence finishes with no meeting. **Ends when:** the row is re-engaged or archived.
-> **Derived from:** Graize's protocol Steps 5–6 — the strongest part of the original — corrected per **C4**.
+> **Derived from:** Grazy's protocol Steps 5–6 — the strongest part of the original — corrected per **C4**.
 
 ---
 
@@ -10,7 +10,7 @@
 
 > **If a prospect is in the Follow-up tab, there is no active campaign running.**
 
-Graize's system rule, and it is correct. The system enforces it automatically through cadence supersession.
+Grazy's system rule, and it is correct. The system enforces it automatically through cadence supersession.
 Your job is to make sure nothing **sits** in Follow-up untriaged. A row in Follow-up has no next action until
 you give it one — that is the whole reason the tab exists.
 
@@ -71,7 +71,7 @@ it. Something has genuinely changed since the first sequence — you have more s
 has hired one. Lead with that.
 
 **When to stop:** after a re-engagement cadence finishes with no activity, **archive**. Endless re-engagement
-of a dead row is how a queue silts up and a domain gets burned. Graize's original is right: *"continue only
+of a dead row is how a queue silts up and a domain gets burned. Grazy's original is right: *"continue only
 when there are meaningful activity signals."*
 
 ---
@@ -98,7 +98,7 @@ Most cold prospects archive; that is what cold outreach is.
 
 ---
 
-## 6. Weekly rhythm — Graize
+## 6. Weekly rhythm — Grazy
 
 | | |
 |---|---|

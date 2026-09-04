@@ -46,14 +46,14 @@ fix-now / fix-later / won't-fix and hands the fix-nows to TJ.
 **What happened**
 
 - MedJobs strategy meeting: Logan, TJ, Chantel, Esther. Full walkthrough of the funnel and the live system.
-- Graize's provider outreach protocol received — the first written description of how the MVP is actually run.
+- Grazy's provider outreach protocol received — the first written description of how the MVP is actually run.
 - This operating workspace created as the single source of truth for commercializing MedJobs.
 
 **State of play**
 
 - The system is built and has produced ~$6,000 through manual operation. It is not currently *running* as an
   operating model — no live cadence, no owned queues, no metrics.
-- Four people named as the execution pod: Chantel, Esther, Graize, Ces.
+- Four people named as the execution pod: Chantel, Esther, Grazy, Sess.
 - Jan 5 CRP submission needs demonstrated customer traction and revenue. ~17 weeks.
 
 **Decisions**
@@ -72,7 +72,7 @@ readiness sprint without them; it stops at Day 4 without C1 (price) and C2 (Clie
 
 | Date | Protocol | Change | Driven by |
 |---|---|---|---|
-| 2026-09-04 | P1–P7 | Initial version, derived from Graize's protocol + the strategy meeting + the shipped system | Workspace creation |
+| 2026-09-04 | P1–P7 | Initial version, derived from Grazy's protocol + the strategy meeting + the shipped system | Workspace creation |
 | 2026-09-04 | P1 | Pre-flight calls **enrich** rather than **gate** the campaign launch (was: 3 attempts then archive) | C3 / D-003 |
 | 2026-09-04 | P3, P7 | "Not interested" logs a decline, never Archive — Archive auto-revives on inbound reply | C4 / D-004 |
 | 2026-09-04 | P3 | Reply SLA: 1 business day; meeting requests same day | O-7 / D-005 |

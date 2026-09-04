@@ -23,6 +23,15 @@
 | Shipped code — `lib/medjobs/placements.ts:20` | **$100** | **Both parties** (provider *and* student) | Authorize at offer, capture at confirm |
 | `../PROVIDER_FUNNEL_BUILD_PLAN.md` build log | $100 — *with its own open note: "confirm if $100 total was intended"* | Both | Same |
 | Meeting (Logan, same session) | **$0** | — | "I took out all paywalls, because right now we're pre-pilot" |
+| Master funnel (Section 2, MA5 → MA6) | — | Provider | **After 6+ shifts worked** — the bill is not issued until the placement has stuck |
+
+**A fourth variable appeared with the master funnel: the billing *trigger*.** Gating the invoice on
+**6+ shifts worked** is a commercially strong promise — *you pay once it has actually worked* — but nothing
+in the product tracks shifts. The only work-volume concept that exists is `hours_threshold = 120` on the
+placement record, which backs the guarantee, not the bill. Shipped code bills at hire confirmation; the
+meeting described monthly billing in arrears. Three different triggers, none of them shift-based.
+**Decide the trigger and the amount together** — and if shifts are the trigger, someone has to build shift
+capture, which is net-new work nobody has scoped.
 
 **Why it blocks:** Chantel cannot answer "how much does this cost?" on a call, which is the exact thing she
 asked for in the meeting. The Jan 5 CRP submission needs *revenue*, and revenue needs a number that a
@@ -35,7 +44,7 @@ student is not implied by anything Logan said in the meeting; it appears only in
 
 **Owner:** Logan (with TJ). **Needed by:** before the first conversion meeting of the operational sprint.
 **Recommendation:** ship the provider-paid, post-hire model Logan described ($250/hire, invoiced monthly),
-set the student fee to $0 for 1.0, and treat "does a student ever pay" as an experiment (`E-7`), not a default.
+set the student fee to $0 for 2.0, and treat "does a student ever pay" as an experiment (`E-7`), not a default.
 Post-hire provider-only billing is also the easiest thing to say out loud on a cold call: *you pay when you hire.*
 
 ---
@@ -79,7 +88,7 @@ the current operating model, and it happens before the cheapest channel is ever 
 **Also:** the system has **no attempt counter**. "3 attempts" is untracked and unenforceable today — it lives
 in the operator's head.
 
-**Owner:** Graize + Esther. **Recommendation (adopted in `protocols/P1`, reversible):** pre-flight calls
+**Owner:** Grazy + Esther. **Recommendation (adopted in `protocols/P1`, reversible):** pre-flight calls
 *enrich* the record; they do not *gate* the campaign. If required contact fields are present, launch. Calls
 continue in parallel as cadence call-days. Archive only via the Follow-up rules in `protocols/P7`. If this
 is wrong, the counter-evidence will show up as a bad reply/complaint rate within two weeks — which is
@@ -123,10 +132,10 @@ complaint-rate risk in `../EMAIL_LAUNCH_PLAN.md §5` arriving by our own hand.
   webhook.
 
 **Why it matters now:** it decides which surface the pod opens every morning, who owns the provider queue,
-and whether Graize's protocol keeps running where it runs today.
+and whether Grazy's protocol keeps running where it runs today.
 
 **Owner:** Esther (proposal) → Logan + TJ (decision). **Needed by:** the Tuesday Sept 8 session.
-**Recommendation:** **decide the target, but do not migrate during the sprint.** MedJobs 1.0 runs where it
+**Recommendation:** **decide the target, but do not migrate during the sprint.** MedJobs 2.0 runs where it
 runs today. Re-platforming the provider queue mid-sprint would cost the pod its only working pipeline for
 the sake of an architecture that has no proven operating model behind it yet. Ship the operating model
 first; move it second.
@@ -166,11 +175,17 @@ minimum board size; recommendation is **8 live candidates**.
 Current primary tabs: **Providers · Partners · Calls · Emails · Meetings · Follow-up**
 (`lib/student-outreach/tab-config.ts`). Costs every new intern an hour. Fixed in `protocols/README.md`.
 
-### C8 — Founder-in-the-loop: both positions are Logan's 🟡
+### C8 — Founder-in-the-loop: is Logan the closer permanently, or temporarily? 🟠
 
 *"Put me in front of advisors, student orgs, students and providers"* and *"one of the most useful things I
 could do would be to completely step back"* — same meeting, both sincere. The conversion meeting converts at
 ~100% **because it is him**, and his calendar is therefore the throughput ceiling of the entire model.
+
+**The master funnel raised the stakes on this.** Section 2 of the operating plan puts Logan at **PR2**
+(the provider meeting) and **ST2** (the advisor meeting) as standing roles, not transitional ones. That is a
+coherent design — the meeting converts because of who he is — but it makes his calendar the ceiling on how
+many sites we can run, and it is a different business at scale than one where the meeting is transferable.
+The two readings need reconciling before we build stage protocols on top of either.
 
 **Owner:** Logan. **Recommendation:** don't pick a side, sequence it. **Logan runs every conversion meeting
 in Weeks 1–2. Chantel co-attends every one. From Week 3, Chantel runs the meeting with Logan on the call.
@@ -198,10 +213,10 @@ credential as the primary moat). Logged so nobody re-opens it; revisit only if a
 | **O-6** | Where is Diana's flyer? The meeting says the current one is *"terrible but functional"* and hers went through 3 iterations and *worked*. | Logan | Supply-side throughput, from the first partner meeting | Recover it Day 1; if unrecoverable, it becomes experiment E-4 |
 | **O-7** | Reply SLA — an interested provider went **30 days** unanswered. What is the commitment? | Pod | Nothing; adopt and move | Adopt now: **inbound reply answered within 1 business day; meeting-request replies same day.** Written into `protocols/P3` |
 | **O-8** | Who owns the shared support inbox, and does it surface in the CRM? Chantel: *"I should be able to log in and see all of that."* | Esther | Chantel's daily throughput | Assign a human owner this week; system unification is a separate build |
-| **O-9** | Does the pod hire interns for 1.0, how many, and paid or credit? Logan wants student interns doing the grunt work in exchange for research authorship. | Logan | Scale phase, not the sprint | Decide at the Gate review, not before — hiring into a broken process multiplies the breakage |
+| **O-9** | Does the pod hire interns for 2.0, how many, and paid or credit? Logan wants student interns doing the grunt work in exchange for research authorship. | Logan | Scale phase, not the sprint | Decide at the Gate review, not before — hiring into a broken process multiplies the breakage |
 | **O-10** | What research data must be captured **from the first placement**? 500 placed students with satisfaction data is the CareFleet/NIH evidence base — retroactive collection is impossible. | Logan | Nothing today; everything in 12 months | Add three fields to the post-placement check-in in Week 1. Cheap now, unrecoverable later |
-| **O-11** | Does provider cold outreach continue at current intensity while MedJobs runs? **Chantel asked this in the meeting and it was not answered.** | Logan + TJ | Chantel's and Graize's weekly hours | Answer it at the Tuesday session; an unanswered capacity question defaults to both, badly |
-| **O-12** | Canonical name spellings. The transcript renders **Graize** as "Gracie"/"Grazy" and **Ces** as "Seth"/"Sess"/"CES". | Pod | Nothing, but it will confuse every future reader of the source docs | Confirm spellings; this workspace uses **Chantel · Esther · Graize · Ces** |
+| **O-11** | Does provider cold outreach continue at current intensity while MedJobs runs? **Chantel asked this in the meeting and it was not answered.** | Logan + TJ | Chantel's and Grazy's weekly hours | Answer it at the Tuesday session; an unanswered capacity question defaults to both, badly |
+| **O-12** | Canonical name spellings. The transcript renders **Grazy** as "Gracie"/"Grazy" and **Sess** as "Seth"/"Sess"/"CES". | Pod | Nothing, but it will confuse every future reader of the source docs | Confirm spellings; this workspace uses **Chantel · Esther · Grazy · Sess** |
 
 ---
 

@@ -8,19 +8,19 @@
 
 | # | Protocol | Owner | Covers |
 |---|---|---|---|
-| [P1](P1-prospect-to-preflight.md) | Prospect → Pre-Flight | Ces (data) → Graize | Site setup, provider data quality, materialization, the launch gate |
-| [P2](P2-launch-and-work-the-cadence.md) | Launch & work the cadence | Graize | Campaign launch, the call queue, volume caps, deliverability rails |
-| [P3](P3-reply-triage-and-meetings.md) | Reply triage → booked meeting | Graize → Chantel | Reply SLA, classification, booking, disposition |
+| [P1](P1-prospect-to-preflight.md) | Prospect → Pre-Flight | Sess (data) → Grazy | Site setup, provider data quality, materialization, the launch gate |
+| [P2](P2-launch-and-work-the-cadence.md) | Launch & work the cadence | Grazy | Campaign launch, the call queue, volume caps, deliverability rails |
+| [P3](P3-reply-triage-and-meetings.md) | Reply triage → booked meeting | Grazy → Chantel | Reply SLA, classification, booking, disposition |
 | [P4](P4-conversion-and-accounts.md) | Meeting → Client → placement → billing | Chantel | The conversion meeting, onboarding, interviews, offers, invoicing |
-| [P5](P5-partner-recruitment.md) | Partner recruitment | Ces | Advisors, student orgs, department heads, flyer distribution |
-| [P6](P6-student-supply.md) | Student supply | Ces | Applications, completion, vetting, going live |
-| [P7](P7-followup-reengage-archive.md) | Follow-up, re-engage, archive | Graize | The end-of-cadence triage — Graize's Steps 5–6, corrected |
+| [P5](P5-partner-recruitment.md) | Partner recruitment | Sess | Advisors, student orgs, department heads, flyer distribution |
+| [P6](P6-student-supply.md) | Student supply | Sess | Applications, completion, vetting, going live |
+| [P7](P7-followup-reengage-archive.md) | Follow-up, re-engage, archive | Grazy | The end-of-cadence triage — Grazy's Steps 5–6, corrected |
 
 ---
 
 ## The nine rules that apply to every protocol
 
-1. **One clear next action per row, always.** Graize's golden rule, and the one that governs everything else.
+1. **One clear next action per row, always.** Grazy's golden rule, and the one that governs everything else.
 2. **Log every outcome.** If it is not logged, it did not happen. Above ~5 live relationships human memory
    fails — *"as soon as it's above 5 people, you get fucked."*
 3. **Inbound within 1 business day.** Meeting requests same day. This is the failure that cost us a live
@@ -37,7 +37,7 @@
 
 ## Where things actually live in the admin UI
 
-Graize's protocol uses names that predate the current UI. This table is the translation — it saves every new
+Grazy's protocol uses names that predate the current UI. This table is the translation — it saves every new
 operator an hour (see conflict **C7**).
 
 | You are looking for | It is here |

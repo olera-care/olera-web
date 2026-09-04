@@ -1,6 +1,6 @@
 # Source — MedJobs Provider Outreach Workflow (draft)
 
-> **Author:** Graize · **Received:** 2026-09-04 · **Status:** verbatim source, superseded in practice by `../protocols/`
+> **Author:** Grazy — the source PDF is signed "Graize" · **Received:** 2026-09-04 · **Status:** verbatim source, superseded in practice by `../protocols/`
 > **Original:** `MEDJOBS_Process_Workflow.pdf` (uploaded to the 2026-09-04 session; not committed — binary)
 >
 > This is the admin-authored protocol from the person operating the MVP daily. It is the

@@ -17,7 +17,7 @@ metrics, experiments, decisions, and iteration history, from MVP through early s
 
 | File | What it is for | Owner | Updated |
 |---|---|---|---|
-| [`00-EXECUTIVE-OPERATING-PLAN.md`](00-EXECUTIVE-OPERATING-PLAN.md) | **Layer 1.** What MedJobs 1.0 is, the operating model, the pod, metrics, path to scale, founder decisions | Pod | On strategy change |
+| [`00-EXECUTIVE-OPERATING-PLAN.md`](00-EXECUTIVE-OPERATING-PLAN.md) | **Layer 1.** What MedJobs 2.0 is, the operating model, the pod, metrics, path to scale, founder decisions | Pod | On strategy change |
 | [`01-EXECUTION-PLAYBOOK.md`](01-EXECUTION-PLAYBOOK.md) | **Layer 2.** The seven stages, the ten-day readiness sprint, the operating week, failure triage, handoff contracts | Pod | Weekly |
 | [`02-ROLES-AND-CADENCE.md`](02-ROLES-AND-CADENCE.md) | Who owns what, a week in each person's life, the daily zero-out, meeting cadence, absence coverage | Pod | On team change |
 | [`03-METRICS.md`](03-METRICS.md) | North star, the five rates, the four health signals, sources, targets, the weekly pack | Esther | Weekly |
@@ -27,18 +27,18 @@ metrics, experiments, decisions, and iteration history, from MVP through early s
 | [`07-OPEN-DECISIONS-AND-CONFLICTS.md`](07-OPEN-DECISIONS-AND-CONFLICTS.md) | **Where sources disagree, named explicitly** + open questions and their owners | Pod | On discovery |
 | [`08-ITERATION-LOG.md`](08-ITERATION-LOG.md) | Jank log, weekly entries, protocol change history — the memory of the model | Esther | Weekly |
 | [`protocols/`](protocols/) | **P1–P7.** The SOPs. What an intern is handed on day one | Lane owners | On change |
-| [`sources/`](sources/) | Distilled primary material — the meeting and Graize's protocol | — | On new input |
+| [`sources/`](sources/) | Distilled primary material — the meeting and Grazy's protocol | — | On new input |
 
 ---
 
 ## The one-paragraph version
 
-MedJobs 1.0 is an **operated placement service** that puts pre-health university students into paid caregiver
+MedJobs 2.0 is an **operated placement service** that puts pre-health university students into paid caregiver
 jobs at non-medical home care agencies, **one university catchment at a time**. It has already run manually
 end to end and made ~$6,000; what is unproven is running it **without a founder in every step**. Two funnels
 — providers on the demand side, partners and students on the supply side — meet in one marketplace and
-produce one billing event: a **confirmed placement**. Four people own it: **Graize** (demand), **Chantel**
-(conversion and accounts), **Ces** (supply and data), **Esther** (the system). The target is proving the
+produce one billing event: a **confirmed placement**. Four people own it: **Grazy** (demand), **Chantel**
+(conversion and accounts), **Sess** (supply and data), **Esther** (the system). The target is proving the
 model on one site well enough to pass six gates, then repeating it on two more, then delegating it to
 interns. **January 5** — the CRP submission needing customer traction and revenue — is the date everything
 works backward from.
@@ -55,7 +55,7 @@ works backward from.
    another source, it goes in `07-` before anything changes.
 4. **Decisions carry a reversal condition.** A decision you cannot revisit honestly is a belief.
 5. **Findings are worth as much as conversions.** Surface breaks; never work around them silently.
-6. **One clear next action per row, always.** Graize's rule, and the one everything else serves.
+6. **One clear next action per row, always.** Grazy's rule, and the one everything else serves.
 
 ---
 

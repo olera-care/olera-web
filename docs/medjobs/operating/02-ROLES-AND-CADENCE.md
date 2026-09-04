@@ -8,7 +8,7 @@
 
 ## 1. The pod
 
-| | Chantel | Esther | Graize | Ces |
+| | Chantel | Esther | Grazy | Sess |
 |---|---|---|---|---|
 | **Lane** | Conversion & Accounts | The System | Demand Pipeline | Supply & Data |
 | **Owns** | Meeting → Client → placement → billing | CRM integrity, deliverability, metrics | Prospect → pre-flight → cadence → booked meeting | Data quality, partners, students |
@@ -19,7 +19,7 @@
 
 **Why these assignments** — from the meeting, not from titles:
 
-- **Graize** is already producing meetings with no founder involvement: *"She's good, because I'm getting
+- **Grazy** is already producing meetings with no founder involvement: *"She's good, because I'm getting
   meetings. I'm not doing anything. She's doing it all."* She also wrote the existing operating protocol.
   She owns the top of the funnel because she is already the person who makes it move.
 - **Chantel** asked for the concrete commercial terms — *"the pricing and things a little bit straightforward,
@@ -27,7 +27,7 @@
   Esther is fixing. She has explicitly **not** been pitching MedJobs on calls yet; that changes here.
 - **Esther** proposed the system architecture split and was asked to take first crack at it. She has worked
   on both the MedJobs and cold-outreach systems, which makes her the only person who can keep them honest.
-- **Ces** carries the verification discipline the benefits pipeline runs on (*"verified by Ces"*). Supply
+- **Sess** carries the verification discipline the benefits pipeline runs on (*"verified by Sess"*). Supply
   quality is a verification problem before it is a marketing one, and bad catchment data is the top upstream
   failure class in the whole funnel.
 
@@ -78,13 +78,13 @@ decisions with Esther · deliverability infrastructure.
 | **Mon** | Review the weekend's replies; plan the week's meetings |
 | **Tue** | Metrics review; report conversion rates and name the biggest leak in her lane |
 | **Wed** | Client check-ins — every active Client hears from a human weekly. Confirm each has candidates to look at |
-| **Thu** | Pipeline review with Graize: every open reply and booked meeting, out loud |
+| **Thu** | Pipeline review with Grazy: every open reply and booked meeting, out loud |
 | **Fri** | Placement + billing sweep: any hires this week? Invoiced? Post-placement check-ins logged? |
 
 **Weekly targets (one site):** 3 meetings held · 1–2 Clients activated · every Client contacted · 100% of
 replies inside SLA.
 
-### Graize — Demand Pipeline
+### Grazy — Demand Pipeline
 
 | | |
 |---|---|
@@ -94,17 +94,17 @@ replies inside SLA.
 | **Tue** | Metrics review; report top-of-funnel rates |
 | **Wed** | Follow-up tab triage per `P7` — re-engage on activity, archive on silence |
 | **Thu** | Pipeline review with Chantel |
-| **Fri** | Data-quality findings → Ces; protocol findings → the iteration log |
+| **Fri** | Data-quality findings → Sess; protocol findings → the iteration log |
 
 **Weekly targets (one site):** 40 prospects pre-flighted · 100–125 cold emails sent · 40 calls attempted ·
 3 meetings booked.
 
-### Ces — Supply & Data
+### Sess — Supply & Data
 
 | | |
 |---|---|
 | **Daily AM (20 min)** | New student applications: complete, verify, activate. Partner replies answered |
-| **Mon** | Data-quality pass on the week's prospect batch **before** Graize works it |
+| **Mon** | Data-quality pass on the week's prospect batch **before** Grazy works it |
 | **Tue** | Metrics review; report candidate and partner counts |
 | **Wed** | Supply/demand balance with Chantel: live candidates per active client. **This number predicts churn** |
 | **Thu** | Partner outreach block — calls, emails, meetings with advisors and org leaders |
@@ -135,13 +135,13 @@ The single ritual that keeps the model alive. **Every queue, every day, empty or
 
 | Queue | Owner | "Empty" means |
 |---|---|---|
-| **Calls** | Graize | Every call due today attempted and logged |
-| **Emails** | Chantel (provider) · Ces (partner/student) | Every inbound answered or dispositioned |
+| **Calls** | Grazy | Every call due today attempted and logged |
+| **Emails** | Chantel (provider) · Sess (partner/student) | Every inbound answered or dispositioned |
 | **Meetings** | Chantel | Today's confirmed, tomorrow's prepped, held ones logged |
-| **Follow-up** | Graize | Every finished cadence triaged: re-engage or archive |
-| **Providers** | Graize | Every new prospect pre-flighted or parked with a reason |
-| **Partners** | Ces | Every partner reply answered |
-| **Candidates** | Ces | Every new application shepherded or activated |
+| **Follow-up** | Grazy | Every finished cadence triaged: re-engage or archive |
+| **Providers** | Grazy | Every new prospect pre-flighted or parked with a reason |
+| **Partners** | Sess | Every partner reply answered |
+| **Candidates** | Sess | Every new application shepherded or activated |
 
 **"Explained" is a legitimate outcome.** *"Six calls left, I ran out of day, they're first tomorrow"* is fine.
 *Silence* is not. The failure mode is not a full queue — it is a queue nobody looked at.
@@ -156,7 +156,7 @@ TJ proposed 3×/week to start. Concretely:
 |---|---|---|---|---|
 | **Week plan** | Mon, async in-channel | Pod | 15 min | Targets for the week; blockers named |
 | **Metrics review** | **Tue** | Pod (+ TJ) | 45 min | The pack, the biggest leak, one experiment on and one off |
-| **Pipeline review** | Thu | Graize + Chantel | 20 min | Every open reply and booked meeting |
+| **Pipeline review** | Thu | Grazy + Chantel | 20 min | Every open reply and booked meeting |
 | **Founder sync** | Thu or Fri | Pod + Logan + TJ | 30 min | Open decisions, university relationships, escalations |
 | **Gate review** | Monthly | Pod + Logan + TJ | 60 min | `04-SCALE-GATES.md`, against evidence |
 
@@ -177,9 +177,9 @@ one day.
 
 | Away | Covered by | What actually has to happen |
 |---|---|---|
-| Chantel | Graize | Replies answered inside SLA; meetings not left unconfirmed. Bookings may pause; **replies may not** |
-| Graize | Ces | Calls tab worked; cadence launches may pause |
-| Ces | Chantel | Student applications shepherded; partner outreach may pause |
+| Chantel | Grazy | Replies answered inside SLA; meetings not left unconfirmed. Bookings may pause; **replies may not** |
+| Grazy | Sess | Calls tab worked; cadence launches may pause |
+| Sess | Chantel | Student applications shepherded; partner outreach may pause |
 | Esther | Chantel | Metrics pack may slip a week; queue-debt scan may not |
 
 **The rule:** *inbound never waits for the person who owns it.* A reply, a student application, or a

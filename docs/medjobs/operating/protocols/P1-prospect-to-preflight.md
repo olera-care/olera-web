@@ -1,12 +1,12 @@
 # P1 · Prospect → Pre-Flight
 
-> **Owners:** Ces (site data) → Graize (prospecting and pre-flight)
+> **Owners:** Sess (site data) → Grazy (prospecting and pre-flight)
 > **Ends when:** the row has the contact information needed to launch a cadence.
-> **Derived from:** Graize's protocol Steps 1–2, corrected per **C3** and **D-003**.
+> **Derived from:** Grazy's protocol Steps 1–2, corrected per **C3** and **D-003**.
 
 ---
 
-## 1. Site setup — Ces, once per site
+## 1. Site setup — Sess, once per site
 
 Do this before anyone prospects. Bad data at this stage poisons every metric downstream, and it is the
 cheapest thing in the whole funnel to fix here.
@@ -27,13 +27,13 @@ directory defect, not a data-entry chore, and it will recur on every future site
 
 ---
 
-## 2. Materialize — Graize, weekly
+## 2. Materialize — Grazy, weekly
 
 Provider prospects surface **virtually** until you start work on them; materializing creates the actual
 outreach row.
 
 1. Open the **Providers** tab, filtered to your Site.
-2. Pick the week's batch (target **40**), preferring rows Ces has already enriched.
+2. Pick the week's batch (target **40**), preferring rows Sess has already enriched.
 3. Materialize them. Each becomes a row at `prospect` status.
 4. Sanity-check the batch: right city, right business type, no duplicates.
 
@@ -42,7 +42,7 @@ rows make every queue count lie.
 
 ---
 
-## 3. Pre-flight the row — Graize
+## 3. Pre-flight the row — Grazy
 
 **Goal: make the row contactable.** Nothing more.
 
@@ -65,7 +65,7 @@ Website, Google Business Profile, state licensing directory, the Olera listing. 
 
 ### 3.2 Pre-flight call — optional, valuable, **not a gate**
 
-> ⚠️ **This is where this protocol departs from Graize's original.** The original required a completed
+> ⚠️ **This is where this protocol departs from Grazy's original.** The original required a completed
 > pre-flight call before launch and archived after three unanswered attempts. That deletes providers who have
 > a valid email and were never emailed once. See **C3** and **D-003**.
 >
@@ -107,7 +107,7 @@ Launch when **all required fields are present**. That is the entire gate.
 | Required fields complete | **Launch** (P2) |
 | Missing email, findable | Keep researching — this is the one field genuinely worth chasing |
 | Missing email, not findable after ~10 minutes | Park with a reason. Revisit only if a contact form or phone route opens |
-| Wrong business type / closed | **Wrong contact**. Tell Ces — it is a data defect, and it usually has siblings |
+| Wrong business type / closed | **Wrong contact**. Tell Sess — it is a data defect, and it usually has siblings |
 | They already said no | **Not interested**. Never Archive |
 
 **Time-box the row.** Roughly 10 minutes of research; if the email is still not findable, park it and move
@@ -115,7 +115,7 @@ on. Forty contactable providers beat twelve perfect ones.
 
 ---
 
-## 5. Daily rhythm — Graize
+## 5. Daily rhythm — Grazy
 
 | | |
 |---|---|
@@ -129,7 +129,7 @@ on. Forty contactable providers beat twelve perfect ones.
 
 | Situation | To | Why |
 |---|---|---|
-| >30% of a batch fails the audit | Ces → Esther | Catchment or directory defect |
+| >30% of a batch fails the audit | Sess → Esther | Catchment or directory defect |
 | The checklist blocks launch on a field you cannot find | Esther | Possibly the wrong gate |
 | Providers appearing in more than one system's outreach | Esther → TJ | Double-emailing risk — see **C5** |
-| A row is clearly a facility, not home care | Ces | Data class error; check the batch |
+| A row is clearly a facility, not home care | Sess | Data class error; check the batch |

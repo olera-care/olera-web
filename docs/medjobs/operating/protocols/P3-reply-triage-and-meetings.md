@@ -1,8 +1,8 @@
 # P3 · Reply Triage → Booked Meeting
 
-> **Owners:** Graize (triage) → Chantel (commercial replies and bookings)
+> **Owners:** Grazy (triage) → Chantel (commercial replies and bookings)
 > **Starts when:** any inbound signal. **Ends when:** a meeting is booked, or the row is dispositioned.
-> **Derived from:** Graize's protocol Step 4, plus **D-004** (disposition), **D-005** (SLA), **D-006** (book, don't send).
+> **Derived from:** Grazy's protocol Step 4, plus **D-004** (disposition), **D-005** (SLA), **D-006** (book, don't send).
 
 **This is the highest-leverage protocol in the workspace.** Everything upstream exists to produce a reply;
 everything downstream depends on what we do with it in the first 24 hours.
@@ -39,11 +39,11 @@ failing — usually it means the queue was not zeroed out, or nobody knew whose 
 | "How much?" / "How does it work?" | **Interested** | Answer briefly, **then propose times** | Chantel |
 | "Send me information" | **Interested** | Send the one-pager **with two times in the same message** | Chantel |
 | "Yes, let's meet" / "Tuesday works" | **They want to meet** | Book it. Confirm in writing | Chantel |
-| "Talk to \[someone else\]" | **Redirected to another contact** | Add the new contact; restart appropriately | Graize |
-| "Not right now" / "We're fully staffed" | **Not interested** | Terminal. **Never Archive** | Graize |
-| "Remove me" / "Stop emailing" | **DNC** | Terminal, permanent, no exceptions | Graize |
+| "Talk to \[someone else\]" | **Redirected to another contact** | Add the new contact; restart appropriately | Grazy |
+| "Not right now" / "We're fully staffed" | **Not interested** | Terminal. **Never Archive** | Grazy |
+| "Remove me" / "Stop emailing" | **DNC** | Terminal, permanent, no exceptions | Grazy |
 | Auto-reply / out of office | No classification | Leave the cadence running | — |
-| Bounce | System-handled | Fix the address or mark wrong contact | Graize |
+| Bounce | System-handled | Fix the address or mark wrong contact | Grazy |
 
 ---
 
@@ -133,7 +133,7 @@ Content and follow-up: **P4**.
 | | |
 |---|---|
 | **AM (Chantel)** | Emails tab → every provider reply answered or booked. Meetings tab → today confirmed, tomorrow prepped |
-| **AM (Ces)** | Partner and student replies (P5, P6) |
+| **AM (Sess)** | Partner and student replies (P5, P6) |
 | **Continuous** | Meeting requests answered same day |
 | **Zero-out** | Every inbound answered or dispositioned. **Nothing carries overnight unexplained** |
 

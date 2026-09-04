@@ -1,6 +1,6 @@
 # P5 · Partner Recruitment
 
-> **Owner:** Ces
+> **Owner:** Sess
 > **Goal:** university stakeholders who put the program in front of students, repeatedly.
 > **Runs in parallel with the provider funnel from week one — never after it.**
 > **Companion spec:** `../../PARTNER_RECRUITMENT_SYSTEM.md` (engineering).
@@ -115,7 +115,7 @@ becomes twelve, and it is a far cheaper channel than cold outreach.
 
 ---
 
-## 7. Weekly rhythm — Ces
+## 7. Weekly rhythm — Sess
 
 | Day | What |
 |---|---|
@@ -136,4 +136,4 @@ becomes twelve, and it is a far cheaper channel than cold outreach.
 | A partner wants to talk to a physician | **Logan.** This is exactly what he is for — *"put me in front of advisors, student orgs, students"* |
 | A university asks for a formal agreement or MOU | Logan |
 | A department head refuses professor access | Log it; work the other subtypes |
-| Distribution happening but no applications arriving | Ces → the flyer is the problem (**E-4**), not the partner |
+| Distribution happening but no applications arriving | Sess → the flyer is the problem (**E-4**), not the partner |

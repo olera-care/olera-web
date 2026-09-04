@@ -1,6 +1,6 @@
 # Scale Gates & the Next-Stage Plan
 
-> **When is MedJobs 1.0 working well enough to scale, and what does scaling actually mean?**
+> **When is MedJobs 2.0 working well enough to scale, and what does scaling actually mean?**
 >
 > The premise: **scaling a broken process multiplies the breakage.** Every gate below is measured on **one
 > site** and must hold for **two consecutive weeks**. The two-week hold is the whole point — one good week is
@@ -82,7 +82,7 @@ opinion.
 
 | Outcome | Meaning | Next |
 |---|---|---|
-| **All six pass** | 1.0 works | Begin Stage 1 |
+| **All six pass** | 2.0 works | Begin Stage 1 |
 | **Five of six** | Close, one weak spot | Four weeks focused on the failing gate. **Do not start Stage 1** |
 | **Fewer than five** | The model is not proven | Diagnose whether it is protocol, people, product, or market. Fix the class, not the symptom |
 | **A regresses** | Discipline decayed | Stop scaling. Reliability first, always |
@@ -145,7 +145,7 @@ Automation queue, in the order operating reality is likely to demand it:
 **The rule: automate only what has been done manually enough times to be boring.** Anything still being
 figured out stays human. Premature automation of an unsettled process cements the wrong process.
 
-**Also at this stage:** revisit the adjacent products that 1.0 deliberately deferred — direct-to-family
+**Also at this stage:** revisit the adjacent products that 2.0 deliberately deferred — direct-to-family
 hiring (D23) and agency caregiver pools (D24). Logan: *"it's a few lines of code difference."* The code may
 be; the operating model is a separate build, and it gets its own gates.
 
@@ -157,7 +157,7 @@ be; the operating model is a separate build, and it gets its own gates.
 |---|---|
 | More prospects per site | Site depth is capped by supply, not by prospect count. More cold email into a supply-starved site just burns domain reputation |
 | More cold email volume | Governed by warmup and the H3 thresholds, not by ambition |
-| More products | MedJobs 1.0 is not proven. Ads and Benefits are separate efforts with separate gates |
+| More products | MedJobs 2.0 is not proven. Ads and Benefits are separate efforts with separate gates |
 | More founders in the loop | The opposite direction from Gate F |
 | More sites before Gate C | A site with clients and no candidates is a churn machine, and it churns the hardest-won relationships we have |
 

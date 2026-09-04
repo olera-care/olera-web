@@ -14,7 +14,7 @@ is built). They are peers and must stay consistent — same vocabulary, same sta
 ## Operating layer
 
 ### [`operating/`](operating/)
-**Audience:** the execution pod (Chantel, Esther, Graize, Ces) + founders.
+**Audience:** the execution pod (Chantel, Esther, Grazy, Sess) + founders.
 
 The single source of truth for commercializing MedJobs: the executive operating plan, the execution
 playbook, roles and ownership, protocols P1–P7, metrics, experiments, decisions, scale gates, and iteration

@@ -7,7 +7,7 @@ conflict, `../07-OPEN-DECISIONS-AND-CONFLICTS.md` names the conflict; where a co
 | File | What | Received |
 |---|---|---|
 | `2026-09-04-strategy-meeting-distillation.md` | Decision-bearing distillation of the MedJobs strategy meeting (Logan, TJ, Chantel, Esther) | 2026-09-04 |
-| `graize-outreach-protocol-v0.1.md` | Graize's provider outreach workflow — the first written description of how the MVP is actually run | 2026-09-04 |
+| `graize-outreach-protocol-v0.1.md` | Grazy's provider outreach workflow — the first written description of how the MVP is actually run | 2026-09-04 |
 
 ## Why these are distilled rather than committed raw
 

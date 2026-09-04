@@ -15,13 +15,13 @@
 
 ## Decided
 
-### D-001 · 2026-09-04 · Pod · MedJobs 1.0 scope is one site, provider + supply + marketplace, ending at a billed placement
+### D-001 · 2026-09-04 · Pod · MedJobs 2.0 scope is one site, provider + supply + marketplace, ending at a billed placement
 
 **Status:** PROPOSED — needs Logan's confirmation.
 
 **Reasoning:** the model has already been proven manually end to end (~$6,000). What is unproven is running
 it without the founder in every step. Scoping to one site keeps the variable count low enough to learn from.
-Out of scope for 1.0: direct-to-family (D23), agency pools (D24), multi-city, ads.
+Out of scope for 2.0: direct-to-family (D23), agency pools (D24), multi-city, ads.
 
 **Reverses if:** the Jan 5 requirement forces breadth over depth — in which case say so explicitly and accept
 that no site gets proven.
@@ -45,7 +45,7 @@ the constraint has moved and demand becomes the gate.
 
 ### D-003 · 2026-09-04 · Pod · Pre-flight calls enrich the record; they do not gate the campaign
 
-**Status:** PROPOSED — Graize + Esther to confirm.
+**Status:** PROPOSED — Grazy + Esther to confirm.
 
 **Reasoning:** the protocol archives a prospect after 3 unanswered pre-flight calls, before any email is
 sent. That deletes providers who have a valid email and were never contacted through the cheapest channel,
@@ -128,7 +128,7 @@ These are the blockers. Each is detailed in `07-OPEN-DECISIONS-AND-CONFLICTS.md`
 
 | ID | Decision | Owner | Needed by | Recommendation |
 |---|---|---|---|---|
-| **C1** | Price, payer, billing timing | Logan + TJ | Before the first conversion meeting | $250/hire, provider-only, invoiced monthly in arrears; student fee $0 for 1.0 |
+| **C1** | Price, payer, billing timing | Logan + TJ | Before the first conversion meeting | $250/hire, provider-only, invoiced monthly in arrears; student fee $0 for 2.0 |
 | **C2** | What defines a Client | TJ + Logan | Day 3 | Pilot-terms acceptance is the single definition; the screener writes it; eligibility stays the product's feature gate underneath |
 | **O-1** | Site #1 | Logan | Day 1 | Where Logan already has an advisor relationship, not the biggest school |
 | **C5** | Does the provider pipeline stay in MedJobs? | Logan + TJ | Tuesday session | Decide the target; don't migrate now (D-008) |

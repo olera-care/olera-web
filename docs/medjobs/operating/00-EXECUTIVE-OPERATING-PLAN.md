@@ -1,349 +1,255 @@
-# MedJobs 1.0 — Executive Operating Plan
+# MedJobs 2.0 — Executive Operating Plan
 
-> **Layer 1 of 2.** This is the whole strategy in one sitting (~12 minutes). The step-by-step is
-> `01-EXECUTION-PLAYBOOK.md`; the daily SOPs are `protocols/`.
+> **Layer 1 of 2.** The whole strategy in one sitting. The step-by-step is `01-EXECUTION-PLAYBOOK.md`;
+> the daily SOPs are `protocols/`.
 >
-> **Audience:** Chantel, Esther, Graize, Ces — plus Logan and TJ.
-> **Status:** Draft v1.0, 2026-09-04. Built from the 2026-09-04 strategy meeting and Graize's
-> operating protocol. **Six items in `07-OPEN-DECISIONS-AND-CONFLICTS.md` must close before this plan
+> **Audience:** Chantel, Esther, Grazy, Sess — plus Logan and TJ.
+> **Status:** Draft, 2026-09-04. Built from the 2026-09-04 strategy meeting and Grazy's operating protocol. **Six items in `07-OPEN-DECISIONS-AND-CONFLICTS.md` must close before this plan
 > can run at full speed** — most importantly the price (C1) and the definition of a Client (C2).
 
 ---
 
-## 1. What MedJobs 1.0 is, and why Olera is doing it
+## 1. What MedJobs 2.0 is, and why Olera is doing it
 
-> **How to read Sections 1–3.** Three labels run through them and they mean different things:
-> **[Known]** — established by the working MVP, Graize's protocol, or the 4 September meeting.
-> **[Proposed]** — the operating model we are choosing for 1.0. Change it deliberately, not by drift.
-> **[Assumption]** — not yet verified. Testing it is part of the pod's job, and saying so when it turns
-> out wrong is the other part.
+**MedJobs 2.0 is an operated placement service that connects pre-medical and pre-nursing students with
+paid, part-time caregiving work at eldercare providers — one university and one surrounding service area
+at a time.**
 
-**MedJobs 1.0 is an operated placement service that connects pre-medical and pre-nursing students with
-paid, part-time caregiving work at home care agencies — running one university and one service area at a
-time.** [Proposed]
+The first generation ran by hand and produced real hires and roughly $6,000 in revenue. MedJobs 2.0 is the
+same service rebuilt to run on a system and a team instead of on founder effort.
 
-Say it to a provider in one sentence:
+**To providers:** we deliver screened, motivated student caregivers who want the work, and we charge only
+when a hire is made.
 
-> *"We run a student caregiver program with \[University\]. We recruit and screen pre-medical and
-> pre-nursing students who want real caregiving experience, and we put them in front of you to interview.
-> You pay when you hire."*
+**To students:** we offer paid, part-time caregiving work that builds genuine caregiving experience and
+creates the relationships behind a strong recommendation for medical or nursing school.
 
-Say it to a student in one sentence:
+### The problem on each side
 
-> *"Paid, part-time caregiving work that provides real caregiving experience, strengthens your medical or
-> nursing school application, and creates opportunities for strong letters of recommendation."*
+**Providers cannot reliably hire or keep caregivers.** Job boards send a highly variable caliber of
+applicant and push agencies to compete mainly on wage and hours offered — a contest a small agency rarely
+wins. Staffing agencies solve part of the labor problem, but they cost enough to take a real bite out of
+the margin on every shift they fill.
 
-### The problem it solves
+**Students cannot reliably find work that is worth more to them than its wage.** They need paid,
+part-time work, genuine caregiving experience, and strong letters of recommendation before they apply to
+medical or nursing school. The work exists close by, but no agency markets to a sophomore.
 
-| Side | What they need | Why it is unsolved today |
-|---|---|---|
-| **Home care agencies** | Dependable caregivers they can hire and keep. A shift they cannot cover puts the client relationship at risk. | Job boards deliver a highly variable caliber of applicant and push agencies to compete mainly on wage and hours offered — a contest a small agency rarely wins. Staffing agencies solve part of the labor problem, but they cost significantly more and can materially reduce the margin on every shift they fill. |
-| **Pre-medical and pre-nursing students** | Paid, part-time work that also builds real caregiving experience and produces the strong letters of recommendation they need before they apply. | The work exists close by, but no agency markets to a sophomore, and students have no reliable route to a job that is worth more to them than its wage. |
-
-*Basis:* the student side is **[Known]** — it is what the manual pilot sold and what students responded to.
-The provider side as stated is **[Proposed]** — it matches what providers told Logan in the pilot, but we
-have not tested the wage-competition framing in a live call. Chantel and Graize should listen for it and
-correct this table from real conversations.
-
-### The opportunity is geographic
+### The geographic opportunity
 
 Within roughly a 60-minute drive of almost any university in the country, both sides already exist:
+eldercare providers who need dependable workers, and pre-medical and pre-nursing students who need paid
+part-time work, caregiving experience, and letters of recommendation. They sit near one another and do not
+reliably connect.
 
-- eldercare providers who need dependable workers, and
-- pre-medical and pre-nursing students who need paid part-time work, caregiving experience, and letters
-  of recommendation.
-
-They sit near one another and do not reliably connect. **[Assumption]** — the 60-minute figure is a
-planning assumption for how wide a service area to draw around a university, not a measured radius. The
-first site will tell us whether it is too generous.
+That is the whole opportunity, and it repeats a few thousand times across the country.
 
 ### What MedJobs does
 
 MedJobs is the operator that deliberately brings the two sides together. We recruit and screen the
 students, introduce them to providers, run the hiring process, and **earn a fee only when a hire actually
-happens and value has been created.** [Known — this is exactly what ran manually.]
+happens and value has been created.**
 
-Olera has one structural advantage worth naming plainly: **a physician founder who can open doors with
-universities and pre-health communities** more readily than a generic staffing startup. [Known] That is an
-advantage in getting *access*. It is not by itself a business — and the whole point of 1.0 is to convert
-that access into a process the pod can run. Section 3 treats the handoff away from founder-dependent
-access as a design problem, not an afterthought.
+Olera has one structural advantage worth naming plainly: a physician founder who can open doors with
+universities and pre-health communities more readily than a generic staffing startup. That is an advantage
+in getting *access*. It is not by itself a business — converting that access into a process the team can
+run is what Section 2 is for.
 
 ### Why Olera is doing this
 
-MedJobs already worked once, manually, end to end — roughly **$6,000** of real hires. [Known] What is
-unproven is whether that MVP can become a **second-generation commercial product that operates, and
-eventually scales, without founder effort behind every step.** [Assumption] That is the actual test of 1.0.
+The service already worked once, by hand. What is unproven is whether it can become a second-generation
+commercial product that operates, and eventually scales, without founder effort behind every step. That is
+the test.
 
 Succeeding at it is worth more to Olera than the revenue alone:
 
 - **It proves we can execute commercially** with providers and the other eldercare stakeholders our
-  broader CareNavigator vision will eventually serve. Right now that is a claim; MedJobs makes it a record.
+  broader CareNavigator vision will eventually serve. Today that is a claim; MedJobs makes it a record.
 - **It makes Olera more investable.** Meaningful monthly revenue, shown to replicate across more than one
   university and service area, is the evidence both federal funders such as NIA and private investors
   actually ask for.
 - **It reduces our dependence on outside money.** Real revenue offsets burn, which buys the company room
   to choose its next financing rather than need it.
 
-**The near-term date is January 5** — the CRP submission, which needs demonstrated customer traction and
-revenue. MedJobs is one of two paths carrying it, so the pod has roughly **17 weeks**. The April 15 grant
-report is a separate obligation on the same four people; this plan is written for a pod that is not doing
-only MedJobs.
+The near-term date is **January 5** — the CRP submission, which needs demonstrated customer traction and
+revenue. MedJobs is one of two paths carrying it, so the team has roughly **17 weeks**.
 
 ### Two sides, kept in balance
 
-The demand side (providers) and the supply side (students) are independent pipelines that have to arrive
-at the same university and service area at the same time. A provider with no candidates to interview stops
-engaging. A student with no employer to interview with moves on.
+The provider side and the student side are independent pipelines that have to arrive at the same
+university and service area at the same time. A provider with no candidates to interview stops engaging.
+A student with no employer to interview with moves on.
 
-**Keeping them in step and balanced is the actual operating discipline of MedJobs 1.0.**
-
----
-
-## 2. The four operational truths
-
-Four things we believe about how this business behaves. Everything in Sections 3 onward is built on them,
-so if one of them turns out to be wrong, the operating model changes — not just a tactic.
-
-### Truth 1 — The cold provider funnel exists to book the meeting
-
-Every outbound activity — the email sequence, the call script, reply handling, the one-pager, the
-follow-up — is a **mechanism in service of one objective: moving a qualified provider prospect to a booked
-meeting.** The funnel is therefore designed and measured around that single conversion, and a prospect who
-is warm but unbooked is not yet a success.
-
-*Basis:* Logan has taken roughly ten providers into that meeting and converted essentially all of them
-[Known, but a small founder-run sample]. **[Assumption]** that the rate holds at volume, and that it holds
-when someone other than Logan runs the meeting. Section 3 makes that handoff explicit so we find out early.
-
-### Truth 2 — We can sign providers faster than we can supply them
-
-Stated plainly: **we can potentially sign providers faster than we can supply them with qualified student
-candidates and successful hires.** [Known — the build plan is blunt that throughput is ultimately gated by
-student supply, and an empty candidate board is listed as a structural, high-severity failure.]
-
-**The operational implication is the important part:** provider acquisition cannot be scaled independently
-of student recruitment and placement capacity. Adding provider volume without matching student supply does
-not produce more hires — it produces converted customers with nothing to look at, which is the most
-expensive kind of churn we can manufacture. So the two pipelines are planned together, and student supply
-gates how many conversion meetings we book. [Proposed]
-
-### Truth 3 — Response speed is the product, across the whole lifecycle
-
-Fast, disciplined response is not a sales-funnel virtue. It is required at **every** stage:
-
-```
-cold prospect → meeting → conversion → active customer → placement
-    → customer success / support → repeat use
-```
-
-*Basis:* an interested provider emailed on 5 August and had not been answered by 4 September [Known]. The
-standard we are replacing it with is one business day, and same day for anything involving a meeting or an
-interview [Proposed].
-
-**This is why the operating model needs explicit customer-success ownership, not just sales ownership.**
-Most of that lifecycle sits *after* the sale, and the meeting names both the gap and the standard — the
-prior operator, Diana, who *"would have been responding the next hour."* In 1.0 Chantel holds closing and
-customer success together. **[Assumption]** that one person can hold both up to roughly 15 active
-customers; past that the model expects customer success to separate into its own role, and Section 3 marks
-where that seam falls.
-
-### Truth 4 — The CRM is the operating system, not a sales tool
-
-Above roughly five live relationships, human memory fails. Logan: *"as soon as it's above 5 people, you get
-fucked."* [Known] So everything is recorded in the CRM or it did not happen.
-
-Treat it as the operating layer for the whole lifecycle rather than a pipeline for deals. At every stage it
-holds the entity, its stage, its owner, the next action, the response clock, and the record of every
-handoff. That is what lets four people hold sixty relationships — and, just as importantly, it is what
-makes the work transferable to someone who was not in the room when it started. [Proposed]
+**Keeping them in step and balanced is the actual operating discipline of MedJobs 2.0.**
 
 ---
 
-## 3. The MedJobs funnel and the pod that manages it
+## 2. The MedJobs funnel and the pod that manages it
 
-The roles only make sense once you can see the system they operate. So: the funnel first, the people
-second.
+This is the master architecture: how we acquire providers, how we acquire students, where the two sides
+meet, how a match becomes a collected fee, and who owns each stage.
 
-### 3.1 The operating system, end to end
-
-Two pipelines meet in the middle, produce a hire, and then loop. The CRM sits underneath all of it.
-
-*Stage codes:* **PR** = provider side · **ST** = student side · **MA** = the match · **LP** = the loop.
-They label stages of the funnel. They are not the same thing as the protocols in `protocols/`, which are
-numbered P1–P7 and describe how to *do* the work.
+### 2.1 The operating system, end to end
 
 ```
-      ┌────────────────────────────────────────────────┐
-      │   SITE  ·  one university + one service area   │
-      └───────────────────────┬────────────────────────┘
- ┌────────────────────────────┴────────────────────────────┐
- ▼                                                         ▼
-PROVIDER SIDE — demand                                    STUDENT SIDE — supply
-─────────────────────────────                             ─────────────────────────────
-PR1  Target list built                                    ST1  University access opened
-       Ces (data) → Graize                                       Logan (doors) → Ces
- │                                                         │
- ▼                                                         ▼
-PR2  Prospect made contactable                            ST2  Partners worked
-       Graize                                                    Ces
- │                                                         │
- ▼                                                         ▼
-PR3  Outbound worked                                      ST3  Partner distributing
-       Graize        ┐ no response                               Ces
- │                    │ → re-engage                        │
- ▼                    ┘   or retire                        ▼
-PR4  Response handled                                     ST4  Student applies
-       Graize → Chantel                                          Ces
- │                                                         │
- ▼                                                         ▼
-PR5  Meeting held                                         ST5  Screened + activated
-       Logan → Chantel                                           Ces
- │                                                         │
- ▼                                                         ▼
-PR6  Converted to customer                                ST6  Live candidate pool
-       Chantel                                                   Ces
- │                                                         │
- ▼                                                         │
-PR7  Staffing need captured                                │
-       Chantel                                             │
- │                                                         │
- └────────────────────────────┬────────────────────────────┘
-                              ▼
-            ┌──────────────────────────────────┐
-            │  THE MATCH                       │
-            │  MA1  Candidate introduced       │
-            │  MA2  Interview held             │   Chantel
-            │  MA3  Offer → accepted           │
-            │  MA4  HIRE CONFIRMED         ★   │
-            └─────────────────┬────────────────┘
-                              ▼
-            ┌──────────────────────────────────┐
-            │  MA5  Billed and collected       │   Chantel
-            │  MA6  Customer success           │   (→ dedicated CS
-            │       day 1 · 7 · 30 · 90        │      owner at scale)
-            └─────────────────┬────────────────┘
-            ┌─────────────────┴─────────────────┐
-            ▼                                   ▼
-            LP1  Repeat staffing need           LP2  Student outcomes
-                 → re-enters at PR7                  experience · letter · referral
-                 Chantel                             → feeds ST4 via peer referral
-                                                     Ces
- ═════════════════════════════════════════════════════════════════════════════
-  SYSTEM LAYER — the CRM        owner: Esther
-  For every entity at every stage: current stage · owner · next action ·
-  response clock · full touchpoint history · handoff record · outcome.
-  Work surfaces: Providers · Partners · Calls · Emails · Meetings · Follow-up.
-  Records of record: outreach rows · interviews · placements · weekly metrics.
- ═════════════════════════════════════════════════════════════════════════════
+┌──────────────────────────────────────────────────────────────┐
+│  SITE 1                                                      │
+│  ONE UNIVERSITY + ONE SURROUNDING SERVICE AREA OF PROVIDERS  │
+└─────────────────────────┬────────────────────────────────────┘
+  ┌───────────────────────┴───────────────────────┐
+  ▼                                               ▼
+PROVIDER SIDE                                   STUDENT / UNIVERSITY SIDE
+────────────────────────────────────────────    ────────────────────────────────────────────
+PR1  Target list built                          ST1  Target advisors
+     Grazy                                           Grazy · Sess · Admin
+  │                                               │
+  ▼                                               ▼
+     Outbound work                                   Outbound work
+     Grazy                                           Grazy · Sess · Admin
+  │                                               │
+  ╞══ HANDOFF   Grazy → Logan                     ╞══ HANDOFF   Grazy/Sess → Logan
+  ▼                                               ▼
+PR2  Meeting held                               ST2  Advisor meeting held
+     Logan                                           Logan
+  │                                               │
+  ╞══ HANDOFF   Logan → Chantel                   ╞══ HANDOFF   Logan → Chantel
+  ▼                                               ▼
+PR3  Converted to customer                           University activation —
+     Chantel                                         four parallel channels
+  │                                               │
+  │                                               ├── ST3  University job board
+  │                                               │         Chantel · Logan as needed
+  │                                               ├── ST4  Student org relationships
+  │                                               │         Chantel + Logan
+  │                                               ├── ST5  Campus events
+  │                                               │         Chantel + Logan
+  │                                               ├── ST6  Flyer circulated
+  │                                               │         Chantel
+  │                                               ▼
+  │                                             ST7  Application submitted
+  │                                                  System
+  │                                               │
+  └───────────────────────┬───────────────────────┘
+                          ▼
+  ┌───────────────────────┬──────────────────────────────────────────────────────────────┐
+  │  MATCH / FULFILLMENT                                                                 │
+  │                                                                                      │
+  │   MA1  Candidate intro                   ┌──────────────────────────────┐            │
+  │    │                                     │ SPANS EVERY MA STAGE         │            │
+  │    ▼                                     │                              │            │
+  │   MA2  Interview held                    │ Technology / portal          │            │
+  │    │                                     │   Chantel + Esther           │            │
+  │    ▼                                     │                              │            │
+  │   MA3  Offer accepted                    │ Customer success             │            │
+  │    │                                     │   Chantel                    │            │
+  │    ▼                                     │                              │            │
+  │   MA4  Hire confirmed                    │ Student success              │            │
+  │    │                                     │   Chantel                    │            │
+  │    ▼                                     │                              │            │
+  │   MA5  6+ shifts worked confirmed   †    └──────────────────────────────┘            │
+  │    │                                                                                 │
+  │    ▼                                                                                 │
+  │   MA6  Bill issued and collected    †                                                │
+  │                                                                                      │
+  └───────────────────────┬──────────────────────────────────────────────────────────────┘
+  ┌───────────────────────┴───────────────────────┐
+  ▼                                               ▼
+PROVIDER RECEIVES                               STUDENT RECEIVES
+────────────────────────────────────────────    ────────────────────────────────────────────
+  A hire that sticks                              Experience
+  → a new staffing need                           Pay
+  → re-enters MATCH at MA1                        Recommendation
+  │
+  └─►  REPEAT REVENUE LOOP — every new staffing need re-enters at MA1,
+       with no new acquisition cost
 ```
 
-*Basis:* stages PR1–PR6, ST1–ST6 and MA1–MA4 are **[Known]** — they exist in the shipped system and in Graize's
-protocol. MA5 (billing) is **[Known]** as a step but not yet automated. MA6, LP1 and LP2 are **[Proposed]** —
-they were done informally in the manual pilot and have never been run as defined stages with owners.
+**† Two things in the Match sequence are new** and are not yet in the protocol or the product — see §2.4.
 
-### 3.2 Provider side — what each stage means
+### 2.2 How to read it
 
-| Stage | Done when — and what records it | Owner | Hands to | Stage metric |
-|---|---|---|---|---|
-| **PR1 Target list built** | Providers in the service area verified as real, operating home care agencies; contact fields filled | **Ces** | Graize | Providers verified per week |
-| **PR2 Prospect contactable** | Required contact details present on the row (pre-flight checklist complete) | **Graize** | — | Prospects cleared per week |
-| **PR3 Outbound worked** | Sequence launched and every call attempt logged | **Graize** | — | Emails sent · calls attempted |
-| **PR4 Response handled** | Every reply classified and answered inside the response standard | **Graize** → **Chantel** | Chantel, on anything commercial | Reply rate · response-time breaches |
-| **PR5 Meeting held** | Meeting occurred and its outcome is logged | **Logan** → **Chantel** | Chantel | Booked → held rate |
-| **PR6 Converted to customer** | Terms accepted, agreement on file, provider can log in and see candidates | **Chantel** | Ces, with the staffing need | Held → converted rate |
-| **PR7 Staffing need captured** | Roles, headcount and shift needs recorded against the customer | **Chantel** | The match | Open roles per customer |
+**One site is the unit of operation.** Everything above happens inside one university and its surrounding
+service area. We prove the model there before we open a second one.
 
-**No-response path.** A prospect who never engages does not sit in limbo: the finished sequence is triaged
-weekly into re-engagement or retirement. Owner **Graize**; detail in `protocols/P7`.
+**Both sides run the same three-part shape:** build a target list, work it, and hold a meeting that
+converts. The provider side converts into a paying customer; the university side converts into
+distribution — access to the students.
 
-### 3.3 Student side — what each stage means
+**Three handoffs carry the whole system**, and they are the places it will break:
 
-| Stage | Done when — and what records it | Owner | Hands to | Stage metric |
-|---|---|---|---|---|
-| **ST1 University access opened** | Named advisors, student-organisation leaders and department heads identified for the site | **Logan** (doors) → **Ces** | Ces | Named contacts per site |
-| **ST2 Partners worked** | Every partner contacted and every reply answered | **Ces** | — | Partner contacts per week |
-| **ST3 Partner distributing** | Partner has actually shared the program, and the evidence is recorded | **Ces** | — | Contacted → distributing rate |
-| **ST4 Student applies** | Application started, and every start followed up | **Ces** | — | Applications started |
-| **ST5 Screened + activated** | Application complete, details verified, profile live | **Ces** | The match | Started → live rate |
-| **ST6 Live candidate pool** | Enough live candidates for a provider to have a real choice | **Ces** | Chantel | Live candidates per active customer |
-
-### 3.4 The match, the money, and the loop
-
-| Stage | Done when — and what records it | Owner | Hands to | Stage metric |
-|---|---|---|---|---|
-| **MA1 Candidate introduced** | Customer has been shown candidates who fit the staffing need | **Chantel** | — | Customers browsing / inviting |
-| **MA2 Interview held** | Interview happened, confirmed with both sides | **Chantel** | — | Invited → held rate |
-| **MA3 Offer accepted** | Offer made, agreement signed, student accepted | **Chantel** | — | Interview → offer → accept |
-| **MA4 Hire confirmed ★** | Placement recorded — **the north star and the billing trigger** | **Chantel** | — | **Confirmed placements** |
-| **MA5 Billed and collected** | Invoice issued and payment received | **Chantel** | — | Invoiced vs. collected |
-| **MA6 Customer success** | Day 1 / 7 / 30 / 90 check-ins done with both sides and logged | **Chantel** *(CS owner at scale)* | — | Check-ins on time · satisfaction |
-| **LP1 Repeat staffing need** | Customer raises a new need and re-enters at PR7 | **Chantel** | The match | Repeat hires per customer |
-| **LP2 Student outcomes** | Hours, experience and letter recorded; referrals invited | **Ces** | Feeds ST4 | Retention at 90 days · referrals |
-
-**Where customer success begins:** at **MA4**, the moment of the hire — not at the first problem. In 1.0
-Chantel owns it alongside closing. Watch MA6 as volume grows: when check-ins start slipping, that is the
-signal to separate customer success into its own role (Truth 3).
-
-### 3.5 What requires a founder, and what does not
-
-| Founder work — **Logan** | Pod work — everything else |
-|---|---|
-| Opening university doors (ST1) | Building and working both pipelines |
-| Conversion meetings (PR5) — **Weeks 1–2, then handed over** | Every stage from PR1 to LP2 |
-| Price, contract terms, anything a university signs | Running the meeting from Week 3 (Chantel, with Logan) |
-| Deciding the open items in Section 10 | Running it alone from Week 5 (Chantel) |
-
-The two founder-held stages are deliberately the two that require relationships we cannot yet transfer.
-**Both have a scheduled handoff**, because a model that needs Logan at ST1 and PR5 forever is not a business —
-it is the founder one-off we are trying to stop building. The handoff is measured, not assumed
-(**Gate F**, Section 8).
-
-### 3.6 The pod
-
-Four owners, mapped straight onto the funnel above. Detail in `02-ROLES-AND-CADENCE.md`.
-
-| Owner | Stages they own | The one number they are judged on |
+| Handoff | Where | What has to pass across it |
 |---|---|---|
-| **Ces** | **PR1** · **ST1–ST6** · **LP2** — data quality in, students in | **Live candidates per active customer** |
-| **Graize** | **PR2–PR4** and the no-response loop — cold prospect to booked meeting | **Meetings booked per week** |
-| **Chantel** | **PR5–PR7** · **MA1–MA6** · **LP1** — meeting through hire, billing and customer success | **Confirmed placements** |
-| **Esther** | **The system layer** — CRM integrity, response clocks, deliverability, the weekly metrics | **Zero overdue work + a weekly number we trust** |
+| **Grazy → Logan** | PR2 · ST2 | A booked meeting with real context on what the prospect said |
+| **Logan → Chantel** | after PR2 · ST2 | A converted customer, or an activated university, with what was promised |
+| **Chantel → System** | ST7 · MA1 | A staffing need and a candidate pool the system can match |
 
-**Why these four, from the evidence rather than the org chart.** Graize is already producing booked
-meetings without founder help, and wrote the protocol the pod runs on. Chantel asked for the concrete
-commercial terms — that is the closer's instinct — and she is the one who named the fragmentation Esther
-is fixing. Esther proposed the system split and was asked to take the first crack at it. Ces carries the
-verification discipline the benefits pipeline runs on, and supply quality is a verification problem before
-it is a marketing one. [Known]
+**Founder involvement is concentrated at the two meetings**, PR2 and ST2, where a physician in the room
+changes the outcome. Everything before those meetings is prospecting; everything after is operations.
 
-**The three seams to watch**, because handoffs are where operating models fail — not lanes:
+**The system does the repeatable work.** Application intake, CRM tracking, candidate surfacing, and the
+record of every stage sit in the technology layer rather than in anyone's memory.
 
-| Seam | What must pass across it | Fails as |
-|---|---|---|
-| **Ces → Graize** (PR1→PR2) | Verified providers with usable contact details | Wasted outbound on bad data |
-| **Graize → Chantel** (PR4→PR5) | A booked meeting with context on what the provider said | A cold meeting, or a warm lead going quiet |
-| **Chantel → Ces** (PR6→ST6) | The staffing need, within a day of conversion | A customer looking at candidates who do not fit |
+**The loop is the business.** A single hire is a fee. A provider who keeps coming back is a customer, and
+every subsequent need re-enters at MA1 with no new acquisition cost. Sites compound; individual hires do not.
 
-**No designated pod lead.** Logan explicitly left this open: *"some groups of 3 to 4 don't need a leader."*
-The pod coordinates through the funnel above rather than through a person. **[Proposed]** — if the pod
-stalls twice on the same seam, that is the signal to appoint one, and not before.
+### 2.3 Ownership at a glance
+
+| Owner | Owns | Picks up at | Hands off at |
+|---|---|---|---|
+| **Grazy · Sess · Admin** | Target lists and outbound on both sides | PR1 · ST1 | The booked meeting |
+| **Logan** | The provider meeting and the advisor meeting | PR2 · ST2 | Conversion / activation |
+| **Chantel** | Everything after conversion — university activation, the whole Match sequence, customer success, student success | PR3 · ST3–ST6 | — |
+| **Esther** | Technology, portal, CRM integrity, with Chantel | Spans every stage | — |
+| **System** | Application intake, CRM tracking, stage records | ST7, and underneath all of it | — |
+
+### 2.4 What this architecture decides, and what it leaves open
+
+Three things in the diagram are genuine changes rather than descriptions of what exists. They are worth
+settling before we build the stage-level protocols on top of them.
+
+**1 · Billing now waits for the placement to stick (MA5 → MA6).** "6+ shifts worked confirmed" gating the
+bill is a new rule. Nothing in the product tracks shifts today, and the shipped code bills at hire
+confirmation, not after a work threshold. It is a strong commercial promise — *you pay once it has
+actually worked* — and it delays revenue and requires shift capture we do not currently have. It also adds
+a fourth variable to the open pricing question: not just the amount and the payer, but the trigger.
+Flagged as **C1** in `07-OPEN-DECISIONS-AND-CONFLICTS.md`.
+
+**2 · Logan is the closer at both meetings, indefinitely.** The diagram puts the founder at PR2 and ST2 as
+a standing role. An earlier draft had him handing the provider meeting to Chantel from Week 3. Both are
+defensible — the meeting converts because of who he is — but they are different businesses at scale, and
+his calendar is then the ceiling on how many sites we can run. Flagged as **C8**.
+
+**3 · Chantel's load is the largest single risk in this design.** She owns PR3, all four university
+channels, all six Match stages, customer success, and student success. The diagram makes that visible on
+purpose. It is workable for one site and it will not survive three. The natural first split is customer
+success and student success into a dedicated role — the "Diana" role named in the strategy meeting.
+
+**Also worth noting:** ST3–ST6 are drawn as parallel channels rather than a sequence, because that is how
+university activation actually behaves — a job board posting, an org relationship, an event, and a flyer
+all run at once and feed the same application pipeline. We do not yet know which of the four produces
+students most efficiently, and that is one of the first things the pod should measure.
+
+### 2.5 What comes next
+
+Once this architecture is agreed, each PR, ST, and MA stage gets built out into an operating protocol
+covering objective, owner, inputs, actions, CRM requirements, completion criteria, handoff, response-time
+expectation, metric, and failure modes. That work is deliberately not in this draft.
 
 ---
 
-## 4. How we make the MVP operational — the first ten working days
+## 3. How we make the MVP operational — the first ten working days
 
 The system is built. It is not *running*. Ten days to make it run. Day-level detail is in
 `01-EXECUTION-PLAYBOOK.md §2`.
 
 **Day 0 — unblock (TJ + Logan, half a day).** Five things, none of them optional, all of them small:
 verify the Smartlead webhook secret is set (without it the Emails and Follow-up tabs are blind and half of
-Graize's protocol is inoperable); confirm migration `103_medjobs_placements` is applied; start mailbox
+Grazy's protocol is inoperable); confirm migration `103_medjobs_placements` is applied; start mailbox
 warmup (2–4 week lead time — the longest pole in the plan); **name Site #1**; and **answer C1 and C2 —
 the price and the definition of a Client.** Nothing downstream is honest until those two are settled.
 
-**Days 1–3 — load the site.** Ces audits the service-area provider list and fixes the data. Graize materializes the
-first 40 prospects and clears pre-flight. Ces builds the partner list — advisors, pre-health org leaders,
+**Days 1–3 — load the site.** Sess audits the service-area provider list and fixes the data. Grazy materializes the
+first 40 prospects and clears pre-flight. Sess builds the partner list — advisors, pre-health org leaders,
 department heads. Esther stands up the metrics sheet and the daily zero-out. Chantel drafts the concrete
 collateral she asked for: a one-page provider explainer with the actual price on it.
 
@@ -361,7 +267,7 @@ a metrics sheet with real numbers in it.
 
 ---
 
-## 5. What is protocol and what is experiment
+## 4. What is protocol and what is experiment
 
 The single most common failure of a young operating model is standardizing the wrong half — freezing the
 message before it works, while leaving the mechanics to improvisation. So:
@@ -383,7 +289,7 @@ because we do not yet know which ones work.
 
 ---
 
-## 6. What we measure from day one
+## 5. What we measure from day one
 
 Full definitions, sources and targets in `03-METRICS.md`. The pod tracks **one north star, five funnel
 rates, and four health signals** — and nothing else, on purpose.
@@ -393,10 +299,10 @@ number that is simultaneously revenue, product proof, and grant evidence.
 
 | The five rates | Owner | Week-4 target |
 |---|---|---|
-| Prospect → meeting booked | Graize | ≥ 8% |
-| Meeting booked → meeting held | Graize/Chantel | ≥ 70% |
+| Prospect → meeting booked | Grazy | ≥ 8% |
+| Meeting booked → meeting held | Grazy/Chantel | ≥ 70% |
 | Meeting held → Client | Chantel | ≥ 60% |
-| Partner contacted → distributing | Ces | ≥ 20% |
+| Partner contacted → distributing | Sess | ≥ 20% |
 | Live candidate → interview invited | Chantel | ≥ 30% |
 
 **The four health signals** (Esther, weekly): queue debt (anything overdue >48h) · reply SLA breaches ·
@@ -408,7 +314,7 @@ owns is decoration.
 
 ---
 
-## 7. How we learn — the feedback loops
+## 6. How we learn — the feedback loops
 
 | Loop | When | Who | Output |
 |---|---|---|---|
@@ -424,7 +330,7 @@ five real breaks in a week has had a good week even with zero conversions.
 
 ---
 
-## 8. When we are allowed to scale
+## 7. When we are allowed to scale
 
 Scaling a broken process multiplies the breakage. Six gates, all measured on **one site**, all held for
 **two consecutive weeks** — the two-week hold is what separates a working system from a good week.
@@ -444,7 +350,7 @@ gate that proves the *operating model* works rather than the people.
 
 ---
 
-## 9. How we scale once the gates pass
+## 8. How we scale once the gates pass
 
 Three stages, each gated by the previous. Detail in `04-SCALE-GATES.md §3`.
 
@@ -471,7 +377,7 @@ more than its size suggests.
 
 ---
 
-## 10. What the founders still have to decide
+## 9. What the founders still have to decide
 
 Six blockers, in the order they bite. The pod can start today; it cannot finish without these.
 
@@ -489,7 +395,7 @@ Plus the fast technical unblocks that only TJ can do: webhook secret (**O-3**), 
 
 ---
 
-## 11. The honest risks
+## 10. The honest risks
 
 | Risk | Why it is real | What we do about it |
 |---|---|---|
@@ -502,7 +408,7 @@ Plus the fast technical unblocks that only TJ can do: webhook secret (**O-3**), 
 
 ---
 
-## 12. What good looks like on January 5
+## 11. What good looks like on January 5
 
 Not a forecast — the target the operating model is designed to hit:
 

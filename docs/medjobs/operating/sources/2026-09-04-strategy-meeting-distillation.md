@@ -6,7 +6,8 @@
 >
 > Quotes are lightly cleaned of transcription artifacts. Speaker attribution is preserved because
 > several items below are one person's position, not a group decision. Automatic transcription
-> mangled two names: **"Gracie"/"Grazy" = Graize**, **"Seth"/"Sess"/"CES" = Ces**.
+> mangled two names: **"Gracie" / "Graize" = Grazy**, **"Seth" / "CES" = Sess**. Quotes below use the
+> canonical spellings.
 
 ---
 
@@ -105,14 +106,14 @@ He also said paywalls are currently **off**: *"I took out all paywalls, because 
 
 ## 8. Team and ownership signals
 
-- **Graize is already producing meetings.** Logan: *"Graize has those… She's good, because I'm getting
+- **Grazy is already producing meetings.** Logan: *"Grazy has those… She's good, because I'm getting
   meetings. I'm not doing anything. She's doing it all."*
 - **Chantel has not been pitching MedJobs.** Chantel: *"I haven't specifically talked about MedJobs on really
   any new calls. Sometimes I do add it in an email if they mention hiring is a problem… but I haven't led
   with MedJobs."* She asked for concrete collateral first: *"we need something tangible to send… the pricing
   and things a little bit straightforward, rather than just the idea."*
 - **Esther takes the system.** She proposed the split above and was asked to *"take a first crack"* at it.
-- **Esther's staffing sketch, which Logan endorsed:** *"Maybe Graize, since she already handles that, takes
+- **Esther's staffing sketch, which Logan endorsed:** *"Maybe Grazy, since she already handles that, takes
   over getting the providers in, and then maybe Chantel and yourself, Logan, close the loop on getting them
   to either onboard in MedJobs or ads. And then once we test that out, we can find interns that would scale
   the different routes."*
@@ -120,7 +121,7 @@ He also said paywalls are currently **off**: *"I took out all paywalls, because 
   towards? I feel like everyone has side projects… I'm just not sure where everything sits."* — This
   workspace is the answer to that question for MedJobs.
 - **The pod may not need a designated leader.** Logan: *"I'm observing how you guys operate in your pod right
-  now with Ces and Graize, and some groups of 3 to 4 don't need a leader… I want to see where y'all's
+  now with Sess and Grazy, and some groups of 3 to 4 don't need a leader… I want to see where y'all's
   talents and passions would take this."*
 
 ## 9. The founder-dependency tension (stated by Logan, both directions, in the same meeting)
@@ -147,7 +148,7 @@ Tracked as **C8**.
 | The student flyer is weak | *"It's a terrible flyer, but it's a functional flyer."* Diana's 3-iteration version is better and needs recovering |
 | Nothing survives past ~5 concurrent relationships without a system | *"As soon as it's above 5 people, you get fucked"* |
 
-## 11. Ambition, for calibration (not a 1.0 target)
+## 11. Ambition, for calibration (not a 2.0 target)
 
 Logan's run-rate arithmetic: ~3 hires/county/month × several hundred university catchments at $250+
 ≈ **$3M/year**, against ~3,000 US universities. Nearer-term: *"I think we're going to need to get to 4th gen

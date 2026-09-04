@@ -48,13 +48,13 @@ easier sell *"because it's concrete."* Nobody has tested it, and it changes ever
 | **Variable** | Opening line only. A: current listing/claim opener. B: staffing-first — *"we run a student caregiver program with \[University\]"* |
 | **Measure** | Conversation-to-meeting rate |
 | **Sample** | 30 connected calls per arm |
-| **Confound to control** | Graize's delivery is producing meetings today; hold the *caller* constant within each arm |
+| **Confound to control** | Grazy's delivery is producing meetings today; hold the *caller* constant within each arm |
 
 ### E-2 · Cold email subject line and opener
 
 | | |
 |---|---|
-| **Owner** | Graize |
+| **Owner** | Grazy |
 | **Variable** | Subject line, one at a time |
 | **Measure** | Open rate, then reply rate |
 | **Sample** | 100 sends per arm |
@@ -80,7 +80,7 @@ becomes a straight A/B; if not, it becomes a design task first.
 
 | | |
 |---|---|
-| **Owner** | Ces |
+| **Owner** | Sess |
 | **Variable** | Creative, one version at a time |
 | **Measure** | Applications per distribution event (needs the attribution field from `03-METRICS.md §7`) |
 | **Sample** | 3 distribution events per version |
@@ -89,7 +89,7 @@ becomes a straight A/B; if not, it becomes a design task first.
 
 | | |
 |---|---|
-| **Owner** | Ces |
+| **Owner** | Sess |
 | **Variable** | Subtype: pre-health advisor vs. student org leader vs. department head |
 | **Measure** | Contacted → distributing rate, and time to first application |
 | **Sample** | 10 contacts per subtype |
@@ -99,7 +99,7 @@ becomes a straight A/B; if not, it becomes a design task first.
 
 | | |
 |---|---|
-| **Owner** | Ces |
+| **Owner** | Sess |
 | **Variable** | Lead benefit — paid work vs. clinical hours vs. the recommendation letter |
 | **Measure** | Application start rate, then completion rate |
 | **Sample** | 50 flyer impressions per arm (approximate; measurement here is genuinely weak) |
@@ -114,7 +114,7 @@ at all. The build plan flags it as *"the one seam where the student could balk."
 | **Owner** | Logan |
 | **Variable** | Student fee: $0 vs. a nominal amount |
 | **Measure** | Offer → accept rate |
-| **Recommendation** | **$0 for 1.0.** Do not run this experiment until supply is comfortably above Gate C — testing a fee against the cash-poor side while starved for supply risks the one input we cannot replace |
+| **Recommendation** | **$0 for 2.0.** Do not run this experiment until supply is comfortably above Gate C — testing a fee against the cash-poor side while starved for supply risks the one input we cannot replace |
 
 ### E-8 · The "3 attempts then archive" threshold
 
@@ -123,7 +123,7 @@ enrich rather than gate. Once the mechanics are settled, the *number* is a legit
 
 | | |
 |---|---|
-| **Owner** | Graize |
+| **Owner** | Grazy |
 | **Variable** | Call attempts before deprioritizing: 2 / 3 / 5 |
 | **Measure** | Meetings booked per operator hour |
 | **Note** | The system has **no attempt counter** — this needs either a manual tally or a small build first |
@@ -132,7 +132,7 @@ enrich rather than gate. Once the mechanics are settled, the *number* is a legit
 
 | | |
 |---|---|
-| **Owner** | Graize |
+| **Owner** | Grazy |
 | **Variable** | Add one channel: contact form / LinkedIn / fax |
 | **Measure** | Response rate per hour invested |
 | **Note** | Fax (D18), snail mail (D19) and LinkedIn/DM (D20) have **no send UI**. Manual-only until then, which is fine for an experiment and not fine for a protocol |

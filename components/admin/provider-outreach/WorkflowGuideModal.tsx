@@ -204,22 +204,14 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
               <div className="text-sm text-amber-900">
                 <strong>Mark as Not Interested when:</strong>
                 <ul className="list-disc list-inside mt-1 space-y-1 ml-2">
-                  <li>Provider explicitly declines (soft refusal)</li>
+                  <li>Provider explicitly declines — they say they&apos;re not interested in Olera, the outreach, or claiming their account</li>
                   <li>Temporarily closed</li>
-                  <li>All attempts exhausted with no claim:
-                    <ul className="list-disc list-inside ml-4 mt-1 text-amber-800">
-                      <li>Call &amp; Confirm: 3 calls</li>
-                      <li>Email sequence completed</li>
-                      <li>Follow Up: 2 calls</li>
-                      <li>Alternative Channels: 7-day wait</li>
-                      <li>Call (final): 2 calls</li>
-                      <li className="font-semibold">Total: 7+ calls minimum</li>
-                    </ul>
-                  </li>
+                  <li>In the Call tab but conditions for Broadcast don&apos;t pass (e.g., bounces, complaints)</li>
+                  <li>All attempts exhausted (7+ calls across all stages) — they keep not answering, calls go to voicemail, and there&apos;s no other way to verify the email</li>
                 </ul>
               </div>
               <p className="text-sm text-amber-800 italic">
-                Notes must support the decision — document decline or all attempts made.
+                Notes and call logs must support the decision — document the decline or all attempts made.
               </p>
             </div>
           </section>

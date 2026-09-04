@@ -188,7 +188,7 @@ finished cadence that drops the row into Follow-up.
 | 4 | Open the row. The drawer's **NEXT STEP** panel names the state and offers the actions that fit it | Calls → row | **I** |
 | 5 | **Call provider**, work the day's script, log the outcome | Row → **Log call** | **H** |
 | 6 | Check replies. **Check for reply** shows the provider's actual message and the ways to respond | Emails → row → **Check for reply** | **J** |
-| 7 | When a cadence finishes with no meeting, the row appears in **Follow-up** for triage | In Basket → Follow-up | **K** |
+| 7 | When a cadence finishes with no meeting, the row appears in **Follow-up** for triage | In Basket → Follow-up | — |
 
 **The shipped provider cadence — 3 emails, 2 calls**
 
@@ -298,11 +298,6 @@ respond. Behind it, the **Emails** tab grouped by state — *THEY REPLIED (9)*.
 
 ![Exhibit J — Check for reply modal](exhibits/J-check-for-reply.png)
 
-**Exhibit K — Follow-up tab.** *Not yet captured.* Rows whose cadence finished without a meeting, waiting
-to be re-engaged or retired. `olera.care/admin/medjobs/in-basket` → **Follow-up**
-
-![Exhibit K — Follow-up tab](exhibits/K-followup-tab.png)
-
 ---
 
 ## PR2 — Provider meeting held
@@ -315,10 +310,18 @@ to be re-engaged or retired. `olera.care/admin/medjobs/in-basket` → **Follow-u
 
 | # | What happens | Where | Exhibit |
 |---|---|---|---|
-| 1 | The provider opens the booking link and picks a time. The page carries the Sales Lead's name, a 30-minute slot, and the program pitch in his own words | Calendly — `Student Caregiver Program` | **L** |
-| 2 | The booking lands the row in **Meetings**, which splits into **FINDING A TIME** (coordinating) and **NEEDS LOGGING** (*"Meeting time has passed — log the outcome to move the row forward"*) | [`olera.care/admin/medjobs/in-basket?tab=meetings`](https://olera.care/admin/medjobs/in-basket?tab=meetings) | **M** |
+| 1 | **Someone books the 30-minute slot.** Usually the Admin Team does it — live on a call, or from an email that names a time. The provider can book themselves from the link in the signature, but most bookings are made for them | Calendly — `Student Caregiver Program` | **L** |
+| 2 | The booking lands the row in **Meetings**, under **NEEDS LOGGING** once the time has passed — *"log the outcome to move the row forward"* | [`olera.care/admin/medjobs/in-basket?tab=meetings`](https://olera.care/admin/medjobs/in-basket?tab=meetings) | **M** |
 | 3 | Open the row. **NEXT STEP** reads *"On the calendar"* with a single action, and the state chip reads *"Replied — they replied · meeting booked"* | Meetings → row | **N** |
 | 4 | Hold the meeting, then **Log meeting outcome**. The modal confirms what was booked and who attended, then offers three outcomes | Row → **Log meeting outcome** | **N** |
+
+> **Booking is an Admin Team action first.** The fastest path to a booked meeting is the operator putting
+> it in the calendar during the call, or off the back of a reply that offers a time. Sending the link and
+> waiting is the slower fallback, not the design.
+
+> **"Finding a time" is a holding state, not a meeting.** The Admin Team sets it when a provider is going
+> back and forth by email about when to meet. **Ideally the Meetings tab holds only booked meetings** and
+> that coordination lives with the rest of the email work — see the deferred list. Left as-is for now.
 
 ### ② Human SOP
 
@@ -329,13 +332,15 @@ to be re-engaged or retired. `olera.care/admin/medjobs/in-basket` → **Follow-u
 3. **Log the outcome the same day.** A meeting held and unlogged is a row that stops moving.
 4. **Write down what was promised** in the notes — a note on its own logs the meeting.
 5. **Rebook a no-show once, warmly.** The option opens Calendly for you; people miss meetings.
+6. **A no-show that cannot be rebooked goes back into outreach.** It is not a decline. The row should
+   re-enter a call-and-email sequence rather than sit in Meetings or close — see the deferred list.
 
 **Meeting outcomes and what each does to the row**
 
 | Outcome | What happens |
 |---|---|
 | **Interested / went well** | Logs the meeting and launches the activation sequence |
-| **No-show / reschedule** | Logs a no-show and opens Calendly to rebook |
+| **No-show / reschedule** | Logs a no-show and opens Calendly to rebook. *Ideally, a no-show that is not immediately rebooked drops the row into a fresh call-and-email sequence — not yet built* |
 | **Not interested** | Sends a polite closing note and stops outreach |
 
 ### ③ System / handoff
@@ -356,9 +361,10 @@ strengthens their med, PA, and nursing applications* — over a date and time pi
 
 ![Exhibit L — Calendly booking page](exhibits/L-calendly-booking.png)
 
-**Exhibit M — Meetings tab.** Two groups: **NEEDS LOGGING**, with *"Meeting time has passed — log the
-outcome to move the row forward,"* and **FINDING A TIME** for rows still coordinating. The tab count reads
-worked over total. `olera.care/admin/medjobs/in-basket?tab=meetings`
+**Exhibit M — Meetings tab.** **NEEDS LOGGING** carries meetings whose time has passed — *"log the outcome
+to move the row forward."* **FINDING A TIME** below it holds rows still coordinating by email, a state the
+Admin Team sets by hand. The tab count reads worked over total.
+`olera.care/admin/medjobs/in-basket?tab=meetings`
 
 ![Exhibit M — Meetings tab](exhibits/M-meetings-tab.png)
 
@@ -690,3 +696,27 @@ and the confirmed shift count · track invoiced against collected weekly · chas
 > stubbed per-placement fee fields — implements a different model. None of it bills after six shifts.
 
 **Communications** Invoice · receipt · reminder.
+
+---
+
+# Deferred build list
+
+Things this document describes as they **should** work, which do not work that way yet. Written down here
+rather than softened in the stages above, so the document reads as the operating system we are building
+toward and the gap stays visible.
+
+| # | Stage | What we want | Where it stands |
+|---|---|---|---|
+| **B1** | PR2 | **The Meetings tab holds only booked meetings.** Email back-and-forth about timing belongs with the rest of the email work, not in a tab that otherwise means *a meeting exists* | *Finding a time* is a hand-set state inside Meetings. Works, but muddies the tab |
+| **B2** | PR2 | **A no-show re-enters outreach automatically.** A missed meeting is not a decline — the row should drop into a fresh call-and-email sequence, effectively a custom re-engagement campaign, rather than closing or sitting still | The outcome logs a no-show and opens Calendly to rebook. Nothing catches the row if the rebook does not happen |
+| **B3** | PR-OUT · PR2 | **A custom campaign any operator can launch on a single row** — pick the emails and calls, set the days, start it. Needed for no-show recovery and for any bespoke follow-up | *Launch custom cadence* exists in the reply modal; not available as a general action from a row |
+| **B4** | ST3–ST7 | **Channel attribution.** Know which of the five university channels produced a student | Channels are not modelled as distinct entities |
+| **B5** | ST8 | **Application source capture.** Ask a student how they heard about MedJobs | Nothing records it |
+| **B6** | QUAL | **Written qualification criteria**, then a vetting step that applies them | Today "live" means profile complete and active — a completeness check, not a qualification decision |
+| **B7** | MA4 | **Shift verification.** Some reliable way to confirm six shifts were worked, and a view of which placements are approaching the threshold | No shift or hours-worked concept exists anywhere |
+| **B8** | MA5 | **Billing on the six-shift trigger** — invoice raised against a confirmed threshold, payment recorded | Two legacy billing paths, neither matching the model |
+
+**How to use this list.** Nothing here blocks running the operating system by hand today. Each item is a
+place where a human is currently doing something the system should do, or where the system records
+something less precisely than the model needs. They get scoped and prioritised after the map is complete —
+not one at a time as they surface.

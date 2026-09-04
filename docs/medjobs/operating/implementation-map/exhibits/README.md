@@ -17,7 +17,6 @@ with its URL so a reader can open the same place in the product.
 | `H-log-call.png` | Log call — day script + five outcomes | Calls → row → Call provider |
 | `I-outreach-drawer.png` | Provider drawer during outreach — NEXT STEP, upcoming, past | Calls → row |
 | `J-check-for-reply.png` | Check for reply — the reply and five responses | Emails → row → Check for reply |
-| `K-followup-tab.png` | In Basket · Follow-up tab *(not yet captured)* | `/admin/medjobs/in-basket` → Follow-up |
 | `L-calendly-booking.png` | Calendly booking page the provider sees | Calendly · Student Caregiver Program |
 | `M-meetings-tab.png` | In Basket · Meetings tab | `/admin/medjobs/in-basket?tab=meetings` |
 | `N-log-meeting.png` | Log meeting outcome — three outcomes | Meetings → row → Log meeting outcome |

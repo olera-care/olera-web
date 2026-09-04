@@ -71,34 +71,92 @@ script in the log modal.
 
 ### Exhibits
 
-> **Screens are dropped into [`exhibits/`](exhibits/).** Each is captioned with the URL so a reader can go
-> and stand in the same place in the product.
+> Each exhibit is transcribed from the live admin, so the screen can be navigated from this page.
+> Captured screenshots drop into [`exhibits/`](exhibits/) and replace the placeholder blocks below.
+> Real contact details are redacted here; they are visible in the product.
 
-**Exhibit A — Sites.** Active university territories, each showing when it was added, its stakeholder
-count, and its research state. `olera.care/admin/medjobs/sites`
+**Exhibit A — Sites.** `olera.care/admin/medjobs/sites`
+
+Header **MedJobs · Sites** with **+ Add Site** top right. A 30-day counter above the list — *"1 sites
+added, down 67% vs. prior 30 days"* — over a sparkline. Then: *"Active university territories. Click a
+site to see its stakeholders. Operational work for each site lives in In Basket."*
+
+Each site is a card: university name, city and state, **Added Nd ago · N stakeholders**, a row of research
+badges (**Research needed** · Advising ✓ · Orgs ✓ · Dept heads ☐), a **Research sources (N)** expander, and
+two buttons — **Find partners ✦** and **See stakeholders →**. Live sites at capture: Utah, Wisconsin-Madison,
+Florida, Florida State, Indiana Bloomington. The sidebar shows **Sites 7** and **In Basket 131/162**.
 
 ![Exhibit A — MedJobs Sites](exhibits/A-sites.png)
 
-**Exhibit B — Add Site.** The university picker, showing the number of directory providers in each
-catchment — the size of the prospect list the site will generate. Universities already added are greyed
-out. `olera.care/admin/medjobs/sites` → **+ Add Site**
+**Exhibit B — Add Site.** `olera.care/admin/medjobs/sites` → **+ Add Site**
+
+Modal titled **Add Site**: *"Activate a university territory. The counts below show how many non-medical
+home care providers in our directory match each catchment — i.e. how many Provider Prospects this Site
+will generate."*
+
+A **University** field — *Pick a university…* — opens a searchable list, each option carrying its provider
+count: *University of Texas at Austin (Austin, TX) — 83 in catchment* · *Texas A&M University (College
+Station, TX) — 28* · *University of Houston / Rice (Houston, TX) — 152* · *University of Georgia (Athens,
+GA) — 19*. Universities already live are greyed out and marked **— added**.
+
+**This is where the size of the prospect list is decided.** Picking a university with 152 providers in
+catchment commits the Admin Team to pre-flighting 152 rows.
 
 ![Exhibit B — Add Site modal](exhibits/B-add-site.png)
 
-**Exhibit C — In Basket, Providers tab.** The site's providers waiting for pre-flight, with queue counts
-across Providers, Partners, Calls, Emails, Meetings and Follow-up.
-`olera.care/admin/medjobs/in-basket`
+**Exhibit C — In Basket, Providers tab.** `olera.care/admin/medjobs/in-basket`
+
+Header **MedJobs · In Basket** over three cards: **QUEUED** (186 — 152 unread · 34 read), **LOGS COMPLETED
+TODAY** (253 — 19 calls · 1 meeting · 1 reply · 34 emails · 198 other), and **STREAK** (1 day —
+*"Consecutive business days hitting 50 logs. Weekends skipped."*).
+
+A search box — *by name, organization, or email* — with **All sites** and **All types** filters. Then the
+tab row with live counts: **Providers 15/23** · Partners 3/3 · Calls 0/134 · Emails 134/159 · Meetings 1 ·
+Follow-up 8/10.
+
+Below, one card per provider: business name, **\[University\] · Provider**, and **Last activity Nm ago**.
+At capture the queue was Arizona State University providers — Amada Senior Care, Hart2Heart, Visiting
+Angels, A Caring Hand for Mom, Simple Living Assisted Home Care, Thrive Home Care Services, HomeWell Care
+Services, Freedomcare.
 
 ![Exhibit C — In Basket, Providers tab](exhibits/C-in-basket-providers.png)
 
-**Exhibit D — Log Pre-Flight outcome.** The suggested script and the four outcomes, with the notes field
-and the override. In Basket → provider row → **Call to Confirm**
+**Exhibit D — Log Pre-Flight outcome.** In Basket → provider row → **Call to Confirm**
+
+Modal titled **Log Pre-Flight outcome**, subtitled with the business name and the number being called.
+A **SUGGESTED SCRIPT** panel carries the call opener verbatim. Four outcomes, each with its consequence
+written underneath:
+
+- **Confirmed contact info** — *"Reached someone and verified the email / decision maker. Pre-Flight passes."*
+- **No answer** — *"Nobody answered. Stays in Pre-Flight — try again later."*
+- **Voicemail** — *"Left a message. Stays in Pre-Flight — try again later."*
+- **Not interested** — *"They don't want information. Closes the row — no outreach."*
+
+Then **Notes (optional)** — *"What did they confirm? Anything useful for outreach copy?"* — and three
+buttons: **Override & launch outreach**, **Cancel**, **Log call**.
 
 ![Exhibit D — Log Pre-Flight outcome modal](exhibits/D-log-preflight.png)
 
-**Exhibit E — Provider drawer.** The research panel with its confirmation ticks, decision makers, the
-three actions — Call to Confirm, Launch outreach, Launch activation — research notes, and the timeline of
-past attempts. In Basket → provider row
+**Exhibit E — Provider drawer.** In Basket → provider row
+
+Right-hand drawer headed with the business name and **\[University\] · Provider**. A **RESEARCH** section
+instructs: *"Check the info, call to confirm, then launch outreach."*
+
+**BUSINESS NAME**, then **GENERAL CONTACT** with a **source ↗** link and **+ Fill from Website**. Five
+fields, each with a state marker — ✓ **PHONE**, ✓ **EMAIL**, ✓ **ADDRESS** (street, city, state, ZIP),
+— **FAX**, — **CONTACT FORM**. The ticks are what "pre-flight complete" looks like on a row.
+
+**DECISION MAKERS (0)** with **+ Add decision maker**: *"People at this agency. Anyone with an email
+becomes a selectable recipient at launch, alongside the general contact."*
+
+Three actions: **📞 Call to Confirm** · **Launch outreach →** · **Launch activation →**. Below,
+**RESEARCH NOTES** — *"Source of contact info, agency character, hiring activity, anything else worth
+remembering."*
+
+Then **TIMELINE · PAST ACTIVITY**, one entry per attempt with the operator's name and age. At capture:
+*"Reached on the phone. 3rd attempt for this provider and spoke with \[name\], she gave email \[address\]"*
+— Grazy, 1h ago; and *"Called — voicemail / message left. Row now awaiting callback."* — Grazy, 11d ago.
+**This is the attempt count the three-strikes rule is counted from.**
 
 ![Exhibit E — Provider research drawer](exhibits/E-provider-drawer.png)
 

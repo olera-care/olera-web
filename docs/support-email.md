@@ -19,8 +19,10 @@ If `support@olera.care` is an alias, connect the underlying mailbox and set `GMA
 
 ## Operating model
 
-- New Gmail history is processed before each historical page, so an old mailbox never delays current support.
-- The worker imports 100 historical messages per 5-minute run until Gmail returns no next page. There is no date cutoff. That is up to 28,800 historical messages per day without letting the backfill monopolize a serverless run.
+- Each worker drains Gmail history for up to three minutes, saving its cursor after every successful chunk. Chunks contain up to 100 changed messages, except that a single bulk Gmail record stays atomic even when larger. A backlog no longer throttles the worker to one change every five minutes.
+- A six-minute mailbox lease covers the entire worker, including history checkpoints, backfill, and watch renewal. Expired leases recover after a terminated worker; handled errors release the lease immediately.
+- Manual **Sync** requests run in the background with the same five-minute server limit as cron. The visible inbox refreshes every 15 seconds. Cron summaries include processed history chunks and mailboxes still catching up.
+- When time remains after incremental sync, the worker imports 100 historical messages per 5-minute run until Gmail returns no next page. There is no date cutoff. That is up to 28,800 historical messages per day without letting the backfill monopolize a serverless run.
 - Pub/Sub provides the prompt notification. The 5-minute cron is also the mandatory recovery poll for missed notifications.
 - Gmail is the transport source of truth. Supabase owns assignment, triage, Olera identity links, agent recommendations, and audit history.
 - Agent output is advisory. Sends, archives, unsubscribes, escalations, and Do Not Contact writes require an explicit admin action.
@@ -36,3 +38,7 @@ If `support@olera.care` is an alias, connect the underlying mailbox and set `GMA
 4. Send from Olera and confirm Gmail Sent plus the admin thread both show the reply.
 5. Archive from Gmail and confirm the Olera state catches up on the next sync.
 6. Confirm obvious bulk mail lands in **Noise**, while family/provider support remains in **Needs attention**.
+
+## Regression checks
+
+Run `node scripts/check-support-email-sync.cjs` to exercise chunk draining, cursor checkpoints, time limits, overlapping workers, bulk records, expired Gmail cursors, label event order, and failed concurrent imports without live credentials. Run `node scripts/check-support-email-polling.cjs` to verify refresh failures, slow requests, retry recovery, and action-error preservation against synthetic inbox data.

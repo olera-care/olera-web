@@ -211,6 +211,8 @@ export default function SupportEmailPage() {
   const [notice, setNotice] = useState<string | null>(null);
   const [syncing, setSyncing] = useState(false);
   const listRequestRef = useRef(0);
+  const listInFlightRef = useRef<number | null>(null);
+  const [refreshError, setRefreshError] = useState<string | null>(null);
   const detailRequestRef = useRef(0);
   const markingReadRef = useRef<Set<string>>(new Set());
   const threadsRef = useRef<Thread[] | null>(null);
@@ -243,11 +245,15 @@ export default function SupportEmailPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const loadList = useCallback(async () => {
+  const loadList = useCallback(async (background = false) => {
+    // A timer must not supersede a still-pending filter/action refresh. On a
+    // slow connection that would discard every response and freeze the list.
+    if (background && listInFlightRef.current !== null) return;
     const requestId = ++listRequestRef.current;
+    listInFlightRef.current = requestId;
     const scopeKey = JSON.stringify({ view, query, category, dateWindow, priority, sort });
     try {
-      setError(null);
+      if (!background) setError(null);
       const params = new URLSearchParams({ view });
       if (query) params.set("q", query);
       if (category !== "all") params.set("category", category);
@@ -255,7 +261,7 @@ export default function SupportEmailPage() {
       if (unreadOnly) params.set("unread", "true");
       if (priority !== "all") params.set("priority", priority);
       if (sort === "oldest") params.set("sort", "oldest");
-      const res = await fetch(`/api/admin/support-email?${params}`);
+      const res = await fetch(`/api/admin/support-email?${params}`, { signal: AbortSignal.timeout(30_000) });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Could not load support email");
       if (requestId !== listRequestRef.current) return;
@@ -270,19 +276,38 @@ export default function SupportEmailPage() {
         ? [retainedSelected, ...nextThreads]
         : nextThreads;
       listScopeRef.current = scopeKey;
+      setRefreshError(null);
       setMailboxes(data.mailboxes ?? []);
       setThreads(threadsRef.current);
       setTotal(data.total ?? 0);
     } catch (err) {
       if (requestId !== listRequestRef.current) return;
+      if (background) {
+        setRefreshError("Inbox refresh paused. Showing the last loaded conversations; retrying automatically.");
+        return;
+      }
       threadsRef.current = [];
       setThreads([]);
       setTotal(0);
-      setError(err instanceof Error ? err.message : "Could not load support email");
+      setRefreshError(err instanceof Error ? err.message : "Could not load support email");
+    } finally {
+      if (listInFlightRef.current === requestId) listInFlightRef.current = null;
     }
   }, [category, dateWindow, priority, query, sort, unreadOnly, view]);
 
   useEffect(() => { void loadList(); }, [loadList]);
+
+  useEffect(() => {
+    const refresh = () => {
+      if (document.visibilityState === "visible") void loadList(true);
+    };
+    const timer = setInterval(refresh, 15_000);
+    document.addEventListener("visibilitychange", refresh);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener("visibilitychange", refresh);
+    };
+  }, [loadList]);
 
   const markThreadRead = useCallback(async (id: string) => {
     if (markingReadRef.current.has(id)) return;
@@ -394,12 +419,9 @@ export default function SupportEmailPage() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Sync failed");
-      const stillCatchingUp = data.results?.some((result: { history?: { hasMore?: boolean }; skipped?: string }) =>
-        result.history?.hasMore || result.skipped === "already_syncing",
-      );
-      setNotice(stillCatchingUp
-        ? "Gmail is catching up safely in the background. You can keep working."
-        : "Gmail is caught up.");
+      setNotice(data.queued
+        ? "Gmail sync requested. This inbox will refresh automatically."
+        : "Gmail sync finished.");
       await loadList();
     } catch (err) {
       setError(mailboxSyncMessage(err instanceof Error ? err.message : "Sync failed"));
@@ -458,6 +480,7 @@ export default function SupportEmailPage() {
 
   return (
     <AdminWorkspace>
+      {refreshError && <div role="status" className="shrink-0 border-b border-amber-100 bg-amber-50 px-4 py-2.5 text-sm text-amber-800">{refreshError}</div>}
       {mailbox && !mailbox.full_sync_complete && (
         <div className="flex shrink-0 flex-col gap-1 border-b border-amber-100 bg-amber-50/60 px-4 py-2 text-xs text-amber-900 sm:flex-row sm:items-center sm:justify-between">
           <span className="flex items-center gap-2"><span className="h-1.5 w-1.5 rounded-full bg-amber-500" /><strong>{mailbox.full_sync_messages_imported.toLocaleString()}</strong> imported · History is still syncing</span>
@@ -477,7 +500,7 @@ export default function SupportEmailPage() {
         </div>
       )}
 
-      {!mailbox && !error ? (
+      {!mailbox && !error && !refreshError ? (
         <div className="flex flex-1 items-center justify-center px-6 py-16 text-center">
           <div>
           <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-teal-50 text-xl text-teal-700">✦</div>
@@ -487,18 +510,24 @@ export default function SupportEmailPage() {
           </div>
         </div>
       ) : mailbox && (
-        <div className={`grid min-h-0 flex-1 lg:grid-cols-[340px_minmax(0,1fr)] ${detail ? "2xl:grid-cols-[340px_minmax(0,1fr)_320px]" : ""}`}>
-            <section className={`${selected ? "hidden lg:flex" : "flex"} min-h-0 flex-col border-r border-gray-200 bg-white`}>
+        <div className={`grid min-h-0 min-w-0 flex-1 grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] ${detail ? "2xl:grid-cols-[340px_minmax(0,1fr)_320px]" : ""}`}>
+            <section className={`${selected ? "hidden lg:flex" : "flex"} min-h-0 min-w-0 flex-col border-r border-gray-200 bg-white`}>
               <div className="border-b border-gray-200 px-4 pb-3 pt-5">
                 <div className="mb-4 flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <h1 className="truncate text-xl font-semibold tracking-tight text-gray-950">Support Email</h1>
                       <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${mailbox.sync_status === "error" ? "bg-rose-50 text-rose-700" : mailbox.sync_status === "backfilling" ? "bg-amber-50 text-amber-700" : "bg-emerald-50 text-emerald-700"}`}>
                         {mailbox.sync_status === "error" ? "Needs attention" : mailbox.sync_status === "backfilling" ? "Catching up" : "Live"}
                       </span>
                     </div>
                     <p className="mt-1 text-xs leading-5 text-gray-500">Support conversations and their next move.</p>
+                    {mailbox.sync_status === "backfilling" && mailbox.full_sync_complete && (
+                      <p className="mt-1 text-xs leading-5 text-amber-700">Catching up on older Gmail changes. Read and archive updates may leave the conversation count unchanged.</p>
+                    )}
+                    {mailbox.last_sync_at && (
+                      <p className="mt-1 text-[11px] leading-4 text-gray-400">Last sync progress: <time dateTime={mailbox.last_sync_at} title={new Date(mailbox.last_sync_at).toLocaleString()}>{relative(mailbox.last_sync_at)}</time></p>
+                    )}
                   </div>
                   <button onClick={() => void syncNow()} disabled={syncing} className="shrink-0 rounded-lg border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50">
                     {syncing ? "Syncing…" : "Sync"}

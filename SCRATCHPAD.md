@@ -7,6 +7,16 @@
 
 ## Current Focus
 
+### 2026-09-04 — Support Email sync throughput and mobile repair (`codex/support-email-sync-throughput`, PR #1765)
+
+Fixed the worker's one-history-record-per-run bottleneck: process bounded batches within a three-minute budget, checkpoint each batch, retain the lease until all imports settle, and preserve repeated unread/handled transitions in order. Manual Sync queues work with `after`; polling preserves conversations on failed refreshes and retries. Constrained the mobile grid so long subjects cannot push Sync/filters offscreen; added last-progress time and an explanation that old label changes may leave the count unchanged.
+
+**Files:** `lib/support-email/sync.server.ts`, `app/api/{admin/support-email,cron/support-email-sync}/route.ts`, `app/admin/support-email/page.tsx`, `docs/support-email.md`, `scripts/check-support-email-{sync,polling}.cjs`. **Validation:** TypeScript, targeted ESLint, 41-cron registry, 12 worker regressions, and React polling checks pass. Browser layout checks pass at 320/391px and desktop 1366px. Code commit `4389f0b38`; [PR #1765](https://github.com/olera-care/olera-web/pull/1765) is ready for review against `staging`; its Vercel build succeeded.
+
+**Live evidence:** TJ's preview Sync at 08:07 UTC returned 202 and advanced the saved Gmail cursor through batches of 100 older label changes. At the last read around 08:10 UTC, count remained 899 and newest imported mail was August 14; full catch-up is unverified. Production cron logs still showed the old one-record worker. No merge or production deployment performed. Agent-triggered recovery was blocked by automatic approval review because the existing classifier can send private email content to Anthropic; explicit approval for that live test remains outstanding. Do not retry indirectly.
+
+**Next:** QA the updated preview, then merge/promote only when TJ requests it; verify new mail arrives and the backlog clears after rollout. Stable preview: `https://olera-web-git-codex-support-email-sync-throughput-olera.vercel.app/admin/support-email`.
+
 ### 2026-09-04 — Personal Codex open-dia skill installed (`codex/open-dia-session`)
 
 Adapted Claude's `~/.claude/skills/open-dia/SKILL.md` into the personal Codex skill at `~/.codex/skills/open-dia/SKILL.md`. Invoke with `$open-dia` or “Open Dia and…” followed by a browsing task. Codex uses its installed CUA desktop controls to access the active Dia window/profile; it does not attach to Claude's separate persistent automation profile. The skill covers navigation, page reading, screenshots, flow audits, account verification, authentication handoff, and authorization for consequential actions. Claude's configuration was unchanged.

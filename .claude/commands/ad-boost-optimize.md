@@ -15,6 +15,8 @@ Input: $ARGUMENTS — provider name(s), Google campaign ID(s), or nothing.
 
 Sweep mode is the default and the one that should run on a cadence. **Targeted mode is not "sweep mode with a filter"** — a sweep triages the book and moves on, a targeted run does not stop at "negatives look fine," it keeps digging until the number is explained. If a sweep flags a campaign as anomalous, the follow-up is a targeted run on that one.
 
+**This command maintains. It does not diagnose.** When a campaign's number cannot be explained from the Phase 2 read — zero impressions on an Eligible campaign, a flight that converted and a rebuild that did not, a provider whose two flights disagree — stop and run **`/ad-boost-audit`** on it. That command reads internal data and Google together, across flights, and writes case files. This one only reads what a sweep needs.
+
 **A bare invocation always sweeps.** No arguments means sweep — do not ask TJ which campaigns he meant, do not narrow it, just run the book. An attached screenshot alone does **not** switch modes here: it is context, not a target list. (This deliberately differs from `/ad-boost-setup`, where a screenshot of the Requested queue *does* pick the providers — that command acts on a queue, this one acts on everything serving.) Only an explicitly named provider or campaign ID in the text switches to targeted mode.
 
 If arguments name a provider with more than one campaign (a revived flight 2, or a provider running two cities), list them and ask which — do not guess and do not do both silently.
@@ -30,17 +32,29 @@ Canonical references (read if uncertain, don't re-derive):
 - Notion SOP: "SOP — Managed Ads (Ad Boost): Google Ads Campaign Setup (any provider)" (id `38d5903a-0ffe-818f-a75b-db0951f7b178`).
 - Memory: `project_managed_ads_setup_sop`, `project_adboost_outcome_blindness`.
 
-## The one thing this command exists to prevent
+## Read this before harvesting a single negative
 
-Phrase match with close variants pulls competitor-brand and wrong-category queries hard. Nobody clicks a generic ad after searching a specific company by name, so CTR collapses → Quality Score follows → the campaign loses its auctions to Ad Rank → it underspends its $50 and delivers nothing. Measured on HomeWell: 119 search terms over a full flight, ~55 local competitor brands, ~20 senior-living communities, ~15 wrong-category, 4 out-of-market cities. **Every one of the 4 clicks on named terms ($9.23 of $33 spent) was wasted.**
+This command's original thesis was that category-adjacent and competitor-brand queries are waste, and that negatives are "the only lever that compounds." That thesis was measured on one campaign (HomeWell, 119 terms, 4 named clicks, zero leads) and then rolled across the whole home-care book as a 98-term shared list between 2 and 23 August 2026.
 
-Negatives are the only lever that compounds. Everything else on this page is diagnosis in service of that.
+**The 4 September audit found the opposite pattern, and the rule below replaces the old one.**
+
+- Every inquiry in the program's history came from a campaign running **six or fewer** negatives during its flight. No campaign running 48 or more has produced one. At the earlier rate, P(zero across the 105 clicks in the high-negatives group) ≈ 1%.
+- Franchil's June flight — the best result ever, 3 inquiries at ~$12 on 124 impressions — served almost entirely on `rosewood villas killeen`, `nursing homes killeen`, `assisted living killeen tx`, `memory care killeen tx`, `visiting angels killeen tx`. Exactly the buckets this command used to negate on sight. **Its 3 conversions came from those 16 clicks.** The shared list, applied to the August rebuild, removed that query pool; the campaign served 1 impression in 12 days.
+- HomeWell — the campaign the list was built from — produced zero leads *before* it had any negatives. Wrong-category traffic did not cause that zero.
+
+**The rule now:** a search term is not waste because it names a competitor or a different care category. It is waste only if it is *unambiguously not a family seeking care*. That means jobseeker terms (`jobs`, `hiring`, `careers`, `salary`, `resume`, `become a caregiver`, `certification`, `training`, `visa`, `sponsorship`) and nothing else by default. A family searching "nursing homes killeen" is in crisis and open to any answer; a family searching "visiting angels" is comparison shopping and may well take the second option they see. **Both are leads.**
+
+Negating a category or a competitor is a hypothesis, not a hygiene step. It gets logged as a `tweak` in `ad_campaign_log` with an expected signal and a review date, like any other change, and it gets reversed if the review says it cost impressions without saving money.
+
+**The list this command built still exists** (`provider managed ads negative keywords`, sharedSetId `12134249254`, 98 terms, on 9 campaigns as of 4 Sep). Do not attach it to anything new. Do not add to it. Removing it from the 8 campaigns still carrying it is a pending decision that waits on Franchil's 7 Sep review.
 
 ## Do NOT thrash
 
 $50 ÷ ~$2.00 CPC = ~25 clicks per flight. At ~3% landing conversion that is **~0.7 expected leads**, so **roughly half of correctly-built campaigns will show zero leads and nothing is wrong.** Zero leads is not a signal. Zero *clicks* with impressions is a signal. Know the difference before touching anything.
 
-Never change keywords and negatives in the same pass — the read becomes unattributable. Sequence is fixed: **negatives → wait 48h → re-read CTR → only then consider a keyword rebuild.**
+Never change keywords and negatives in the same pass — the read becomes unattributable. Sequence is fixed: **negatives → wait 48h → re-read CTR → only then consider a keyword rebuild.** The one exception is a campaign at zero impressions, where there is nothing to attribute anyway; there, restore the prior flight's proven configuration in one move and log it as such.
+
+**Every change this command makes is a `tweak` in `ad_campaign_log`** — `POST /api/admin/ad-boost/case` with `expected_signal` and `review_after`, or the database rejects it. Reading Google and not writing the case is the same mistake as reading Google and not writing the numbers back. The overdue-review badge on `/admin/ad-boost` is what makes the 48h re-read actually happen.
 
 ## Phase 0 — Browser up (`/open-dia`, FIRST ACTION of every sweep)
 
@@ -98,7 +112,7 @@ order by flight_end_date asc nulls last;
 
 **Days-in-flight is measured from `flight_start_date`, never `created_at`.** `created_at` is when the provider requested, which routinely runs weeks ahead of launch (Legacy Haven requested Jul 1 for a Jul 6 flight). Using it silently misprioritizes the whole sweep. If `flight_start_date` is null on a live row, that is itself a data gap worth reporting.
 
-Then map each row to its Google campaign ID. **The registry lives at the bottom of `/ad-boost-setup` Phase 2** (HomeWell `24052308622` · Legacy Haven `24062146484` · Miracle-Lightstar `23998344651` · Impact `23998367469` · Abode `23981427299` · Rosemonte `24126008389`). Anything not listed: read `/aw/campaigns?ocid=984737409`, match on campaign name `{Provider} – {City} – {Mon YYYY}`, and **write the new ID back into that table in `ad-boost-setup.md`** so the next sweep doesn't re-derive it.
+Then map each row to its Google campaign ID. **The registry lives at the bottom of `/ad-boost-setup` Phase 2** (HomeWell `24052308622` · Legacy Haven `24062146484` · Miracle-Lightstar Jul `23998344651` · **Miracle-Lightstar Aug `24151612515`** · Impact `23998367469` · Abode `23981427299` · Rosemonte `24126008389` · **Franchil Jun `23961292547`** · **Franchil Aug `24166094865`** · **Graceful Aug `24162206362`** · **Edmonds Aug `24094557242`** · **Edmonds Sep `24176699440`**; bold ones verified 4 Sep 2026). **A provider can have more than one ID.** Franchil and Miracle each have two campaign objects, and the case that explains the current one usually lives in the previous one — read both. Anything not listed: read `/aw/campaigns?ocid=984737409`, match on campaign name `{Provider} – {City} – {Mon YYYY}`, and **write the new ID back into that table in `ad-boost-setup.md`** so the next sweep doesn't re-derive it.
 
 Prioritize the list:
 
@@ -110,7 +124,7 @@ Prioritize the list:
 | Launched <3 days ago | Skip, no data yet |
 | `status='scheduled'` but not actually serving | Not an optimization problem — check the launch, then hand to `/ad-boost-setup` |
 
-**Flag assisted-living / senior-living providers separately** (Rosemonte today). The shared home-care negative list contains `"assisted living"`, `"senior living"`, `"retirement community"` — their core intent. Never apply it to them; they get campaign-level negatives built from the opposite direction (home-care terms, home-care brands, brokers).
+**Note which campaigns still carry the shared list** — `Level` column reads `List` on their Negative keywords page. As of 4 Sep that is 9 campaigns; Franchil Aug had it detached. Assisted-living providers (Rosemonte, Edmonds) never had it, because it negates `"assisted living"` — and that same reasoning, that a list can negate a campaign's actual intent, is what the 4 Sep audit found had happened to the home-care campaigns too. Treat the list as a suspect on every campaign carrying it, not as protection.
 
 ## Phase 2 — Per-campaign read (gather before judging)
 
@@ -137,29 +151,31 @@ Do not guess Google Ads URLs. That direct-URL table exists because the in-app na
 
 ## Phase 3 — Diagnose
 
-| Symptom | Real cause | Fix |
+| Symptom | First thing to check | Then |
 |---|---|---|
-| High lost IS (rank), low CTR | Brand / wrong-category matching tanking Quality Score | Negatives (Phase 4) |
-| "Eligible (Limited) — Missing enough relevant keywords" | Too few live keywords; some drawing 0 impressions | Rebuild keyword set — **but only after a negatives pass has had 48h** |
-| Badly underspending the $50, lost IS (budget) low | Losing auctions, not a budget problem | Negatives first, then consider the CPC cap |
+| **Impressions ~0 on an Eligible campaign** | Does it carry the shared negative list, and did the *previous* flight serve on queries that list now blocks? Read the prior flight's search terms at All time | If yes: that is the cause. Detach the list, restore the prior flight's earning keywords, log the tweak. If the prior flight has no such terms: `/ad-boost-audit` |
+| High lost IS (rank) everywhere | This is the account baseline — 72–89% on every home-care campaign that has ever served, 77.8% account-wide. It is not a per-campaign fault | Do not reach for negatives. Landing page experience is Below average on 4 of the 5 keywords Google has ever scored; that is the rank drag, and it is a page problem, not a keyword problem |
+| Low CTR with named terms that look off-category | Did the campaign that converted have the same pattern? Franchil June's 12.90% CTR — best ever — came from exactly this traffic | Do not negate on sight. If CTR is genuinely collapsing, `/ad-boost-audit` before touching anything |
+| "Eligible (Limited) — Missing enough relevant keywords" | Too few live keywords; some drawing 0 impressions | Rebuild from the **previous flight's per-keyword impressions**, never from a template. Franchil Aug was rebuilt from June's zero-impression terms |
 | Underspending with lost IS (budget) high | Actually budget-constrained | Leave it. $50 is the locked intro spend |
 | Zero leads, clean campaign, clicks landing | Just the $50 math (~0.7 expected leads) | **Nothing.** Do not thrash |
-| Clicks but no leads across several flights | Landing-page conversion, not ads | Out of scope — that is a provider-page problem, report it |
-| Impressions ~0 across the board | Geo, schedule, or disapproved ads | Check ad status + location settings before anything else |
+| Clicks but no leads across several flights | Landing page, or the lead arrived and nobody followed up | Read the inquiry threads — `connections` rows for the provider — before blaming the page. Four of four inquiries in program history were read by the provider within a day; one was never answered |
+| Disapproved ad / policy | Ad status on `/aw/ads?campaignId=` | Fix the asset. The only case where the ad itself is the cause |
 
 **Mid-flight CTR is a leading indicator, not a verdict.** HomeWell read 1.04% at day 5 and finished the flight at 3.03%. The *waste pattern* in the search terms is the durable signal; CTR recovers on its own sometimes. Harvest on the terms, not on the CTR number.
 
 ## Phase 4 — Harvest negatives (the actual work)
 
-Sort every search term into: **provider's own brand** (never negate — cheapest, highest-intent traffic they get) · **local competitor brands** · **senior-living / wrong-category** · **government / nonprofit / info-seeking** (`council on aging`, `office on aging`) · **out-of-market cities** · **legitimate**.
+Sort every search term into: **provider's own brand** (never negate) · **jobseeker** (negate — the only bucket that is waste by definition) · **out-of-market cities** (negate only if the geo radius is right and the term is genuinely outside it) · **competitor brands** (do **not** negate by default; see the section above) · **adjacent care category** (do **not** negate by default; this is where Franchil's conversions came from) · **legitimate**.
+
+The old buckets negated the middle two on sight. That is now a logged hypothesis with a review date, not a default.
 
 Rules, all non-negotiable:
 
 - **Always phrase match, never broad.** Broad would kill the live `"home health aide {city}"` keyword.
 - **A phrase negative blocks any query containing it.** Negating `"home health"` kills the live `"home health aide {city}"`. Negate the specific variants instead: `"home health care"`, `"home health {city}"`, `"home health agencies"`, and the branded ones.
-- **Local competitor brands → campaign level.** They only ever surface here, which is why this sweep is recurring and per-campaign rather than one-time.
-- **Nationally reusable terms → the shared list** (`provider managed ads negative keywords`, sharedSetId `12134249254`, 97 terms as of 2026-07-30). Adding here helps every campaign, including future ones.
-- If the shared list isn't attached to a campaign, attach it: Negative keywords page → Add → "Use negative keyword list". **Home-care providers only.**
+- **Everything goes at campaign level.** The shared list (`12134249254`, 98 terms) is frozen: do not add to it, do not attach it to anything. A per-campaign negative can be reviewed and reversed against that campaign's own numbers; a shared one changes nine campaigns at once and cannot be attributed.
+- **Never negate a term the previous flight got a click on.** Read the prior flight's search terms at All time before writing anything.
 
 **TJ gate:** present the proposed negative list per campaign — grouped by bucket, with the live keywords it was checked against — and get his go before pasting. A wrong phrase negative silently kills a live keyword and you will not notice for days. Everything else in this command is read-only and needs no gate.
 
@@ -190,7 +206,7 @@ Every metric read in Phase 2 has a real column. **Reading Google and not writing
 |---|---|
 | `ad_clicks`, `ad_impressions` | The CLICKS column in `/admin/ad-boost` — which reads `ad_clicks ?? ad_landings ?? 0`, so a number there does **not** mean Google data is stored; it may be our own UTM-cookie landings. Also the provider receipt (`lib/ad-boost/receipts.server.ts`) |
 | `ad_spend_cents` | Receipt spend line; wrap-up and end-of-flight emails |
-| `ad_clicks` / `ad_spend_cents` > 0 | **Fires the traction email.** `lib/ad-boost/admin-communications.ts` gates it on exactly this. A live campaign with unwritten metrics sits on "Watching metrics" forever and the provider hears nothing |
+| `ad_clicks` / `ad_spend_cents` > 0 | **Makes the traction email eligible.** `lib/ad-boost/admin-communications.ts` gates it on exactly this. **Check `provider_comms_paused_at` first** — a campaign under experiment has provider email paused (migration 204) and must not be told it has traction until the review says it does |
 | `flight_start_date`, `flight_end_date` | Days-in-flight for the next sweep's prioritization; auto-end scheduler |
 
 Write via **`POST /api/admin/ad-boost`** (the route exports GET, POST, DELETE — **there is no PATCH handler**, a PATCH 405s) or the `/admin/ad-boost` UI. **Cents, not dollars** — $33.02 is `3302`.
@@ -205,14 +221,18 @@ Body rules the route enforces, all of which 400 if you get them wrong:
 
 **Backfill `flight_start_date` whenever it is null** while you are already writing. As of the 2026-08-14 sweep every live row had it null, forcing dates to be reconstructed from `admin_note` prose.
 
-Then append a dated narrative line to `admin_note`:
+Then write the narrative to **`ad_campaign_log`**, not `admin_note`:
 
 ```
-[2026-08-14 harvest] 47 terms read · CTR 3.03% · avg CPC $2.36
-· +18 campaign negatives (12 local brands, 6 wrong-category) · +3 to shared list
+POST /api/admin/ad-boost/case
+{ request_id, google_campaign_id, campaign_tag,
+  entry_type: "check_in",
+  summary: "Sweep: 47 terms read · CTR 3.03% · avg CPC $2.36",
+  detail: "...visibility ratio, what was and was not negated, and why...",
+  metrics_snapshot: { impressions, clicks, ctr, cost, lost_is_rank, lost_is_budget } }
 ```
 
-**`admin_note` has no append — the PATCH handler replaces it wholesale.** Read the current value, concatenate, write the whole thing back. Blind-writing destroys every prior note including the ones TJ wrote by hand.
+Any negative added is a **separate `tweak` entry** with `before_state`/`after_state`, an `expected_signal`, and `review_after` 48h out. The route and a DB CHECK both reject a tweak without those. `admin_note` is legacy — it is one text blob that was written at setup and never updated, which is how two months of per-campaign facts went unconnected. Read it for history; do not write to it.
 
 Keep the split clean: **numbers go in columns, narrative goes in the note.** The note explains what was done and why; it should not be the only place a metric exists. **Record final numbers before any revive** — flight 1 and flight 2 blend inside a revived campaign and become unseparable.
 

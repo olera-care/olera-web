@@ -46,33 +46,36 @@ PROVIDER SIDE                                   STUDENT / UNIVERSITY SIDE
 ────────────────────────────────────────────    ────────────────────────────────────────────
 PR1  TARGET LIST BUILT                          ST1  TARGET ADVISORS
      Admin Team                                      Admin Team
+  │                                               │
   ▼                                               ▼
      OUTBOUND WORK                                   OUTBOUND WORK
      Admin Team                                      Admin Team
+  │                                               │
   ╞═══ HANDOFF   Admin Team → Logan               ╞═══ HANDOFF   Admin Team → Logan
   ▼                                               ▼
 PR2  MEETING HELD                               ST2  ADVISOR MEETING HELD
      Logan                                           Logan
+  │                                               │
   ╞═══ HANDOFF   Logan → Chantel                  ╞═══ HANDOFF   Logan → Chantel
   ▼                                               ▼
 PR3  CLIENT SUCCESS                                  UNIVERSITY SUCCESS MANAGEMENT
-     Chantel                                         Chantel, with Logan where he
-  │                                                  adds value
-  │  Follow-up questions                          │
-  │  Follow-up profile completion                 ├── ST3  UNIVERSITY JOB BOARD
-  │  Follow-up to first hire                      │         Chantel · Logan as needed
-  │                                               ├── ST4  STUDENT ORG RELATIONSHIPS
-  │                                               │         Chantel + Logan
-  │                                               ├── ST5  CAMPUS EVENTS
-  │                                               │         Chantel + Logan
-  │                                               │   all three circulate the MedJobs
-  │                                               │   opportunity and flyer to students
+     Chantel                                      │
+  │  Follow-up questions                          ├── ST3  UNIVERSITY JOB BOARD
+  │  Follow-up profile completion                 ├── ST4  STUDENT ORG RELATIONSHIPS
+  │  Follow-up to first hire                      ├── ST5  CAMPUS EVENTS
+  │                                               ├── ST6  ADVISOR LISTSERVS
+  │                                               ├── ST7  PROFESSOR OUTREACH + CLASS VISITS
+  │                                               │
+  │                                               │   Chantel owns all five; Logan joins on
+  │                                               │   ST4, ST5 and ST7. All five circulate
+  │                                               │   the MedJobs opportunity to students
+  │                                               │
   └───────────────────────┬───────────────────────┘
                           ▼
 ┌─────────────────────────┬────────────────────────────────────────────────────────────────┐
 │  PORTAL    manages the flow from student application through fulfillment                 │
 │   from PROVIDER SIDE                    from STUDENT / UNIVERSITY SIDE                   │
-│   active client with a staffing need    ST7  STUDENT APPLICATION SUBMITTED               │
+│   active client with a staffing need    ST8  STUDENT APPLICATION SUBMITTED               │
 │            │                                  │                                          │
 │            │                                  ▼                                          │
 │            │                            PORTAL VETS APPLICATION                          │
@@ -80,7 +83,6 @@ PR3  CLIENT SUCCESS                                  UNIVERSITY SUCCESS MANAGEME
 │            │                                  │                                          │
 │            │                                  ▼                                          │
 │            │                            QUALIFIED CANDIDATE                              │
-│            │                                  │                                          │
 │            └───────────────┬──────────────────┘                                          │
 │                            ▼                                                             │
 │              ┌─────────────────────────────────────┐                                     │
@@ -95,7 +97,6 @@ PR3  CLIENT SUCCESS                                  UNIVERSITY SUCCESS MANAGEME
 │              │    ▼                                │     had real value, so              │
 │              │   MA5  BILL ISSUED AND COLLECTED    │     Olera charges                   │
 │              └──────────────────┬──────────────────┘                                     │
-│                                 │                                                        │
 └─────────────────────────┬────────────────────────────────────────────────────────────────┘
   ┌───────────────────────┴───────────────────────┐
   ▼                                               ▼
@@ -118,7 +119,7 @@ fulfillment.
 | **Admin Team** | Target lists and outbound work on both sides | PR1 · ST1 | Logan, at the booked meeting |
 | **Logan** | The provider meeting and the advisor meeting | PR2 · ST2 | Chantel |
 | **Chantel** | Client success on the provider side; university success management and its three channels | PR3 · after ST2 | The Portal |
-| **Portal** | Application intake, vetting against the qualification criteria, and the match and fulfillment sequence | ST7 | — |
+| **Portal** | Application intake, vetting against the qualification criteria, and the match and fulfillment sequence | ST8 | — |
 
 The two handoff chains, stated plainly:
 
@@ -129,9 +130,16 @@ The two handoff chains, stated plainly:
 an actual first hire: the follow-up questions, the profile completion, and the follow-through until a
 student is working. A provider who signs and is then left alone does not become a customer.
 
-**ST3, ST4 and ST5 run in parallel, not in sequence.** University activation is a job board posting, an
-organization relationship, and a campus event running at once. The flyer is the shared asset all three
-push out; it is not a stage of its own.
+**ST3 through ST7 run in parallel, not in sequence.** University activation is five channels working at
+once — the university job board, student organization relationships, campus events, advisor listservs, and
+professor outreach with class visits. Chantel owns all five; Logan joins on student organizations, campus
+events, and professor outreach, where a physician founder in the room changes the answer. **The flyer is
+the shared asset every channel pushes out, not a stage of its own** — all five circulate the same MedJobs
+opportunity, and a student who applies may have seen it through any of them.
+
+One dependency worth naming: **professor outreach is usually gated on department-head permission.** ST7
+tends to follow a department relationship rather than starting one, which is why it sits alongside the
+other channels rather than ahead of them.
 
 ### 2.3 When Olera earns the right to charge
 
@@ -159,7 +167,7 @@ building the stage protocols on top of it.
 
 ### 2.5 What comes next
 
-Once this architecture is settled, we work through **PR1–PR3, ST1–ST7 and MA1–MA5** one stage at a time
+Once this architecture is settled, we work through **PR1–PR3, ST1–ST8 and MA1–MA5** one stage at a time
 and define, for each: objective, owner, inputs, actions, outputs, completion criteria, Portal and CRM
 requirements, handoff, response-time expectation, metric, and escalation. That work deliberately is not in
 this draft.

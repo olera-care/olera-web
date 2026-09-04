@@ -147,9 +147,12 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
               <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs">4</span>
               Alternative Channels
             </h4>
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
               <p className="text-sm text-gray-700">
-                Providers moved here after using fax, contact form, or direct mail. Wait for response before next action.
+                Providers move here after being contacted via resend email, fax, contact form, or direct mail.
+              </p>
+              <p className="text-sm text-gray-700">
+                <strong>Wait 7 days</strong> for the provider to respond or claim. If they don&apos;t claim within 7 days, the system automatically moves them to the Call tab.
               </p>
             </div>
           </section>

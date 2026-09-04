@@ -57,10 +57,16 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
             </h4>
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2">
               <p className="text-sm text-amber-900">
-                <strong>Take detailed notes</strong> on every call/action — so anyone can pick up where you left off.
+                <strong>Log every call.</strong> Every single call must be logged. Add notes to capture context — what was discussed, who you spoke with, next steps. Good notes mean anyone can pick up where you left off.
               </p>
               <p className="text-sm text-amber-900">
-                <strong>Every call is a conversion opportunity</strong> — if a provider shows high interest AND you&apos;re speaking with a decision maker (someone with email access), send the claim link instantly and try to convert them on the call.
+                <strong>Every call is a conversion opportunity.</strong> If a provider shows high interest AND you&apos;re speaking with a decision maker (someone with email access), send the claim link instantly and try to convert them on the call.
+              </p>
+              <p className="text-sm text-amber-900">
+                <strong>No sequence without a call.</strong> A provider should never enter the email sequence without being called first. Confirm the email is correct before starting.
+              </p>
+              <p className="text-sm text-amber-900">
+                <strong>If something is unclear, ask.</strong> Don&apos;t guess or assume — ask for clarification before taking action.
               </p>
             </div>
           </section>

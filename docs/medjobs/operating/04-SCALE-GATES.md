@@ -26,6 +26,18 @@ Not a forecast — the target the operating model is designed to hit:
 
 ---
 
+## 0.5 The gate before these gates
+
+The six gates below govern **opening a second site.** A separate, earlier gate governs **raising volume
+on the first one**: the *MedJobs 2.0 Minimum Operating System Ready* gate in
+[`09-TECH-READINESS.md`](09-TECH-READINESS.md) §10. It asks whether the technology can reliably carry the
+entities we already acquire before we acquire more of them.
+
+Order matters. Passing the scale gates on a site whose downstream technology silently drops people would
+tell us nothing worth knowing.
+
+---
+
 ## 1. The gates
 
 All six. Not five. A gate that is "basically passed" is not passed.

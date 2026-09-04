@@ -121,13 +121,13 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
             </h4>
             <div className="bg-gray-50 rounded-lg p-4 space-y-3">
               <p className="text-sm text-gray-700">
-                <strong>Purpose:</strong> Convert providers OR get corrected emails.
+                <strong>Purpose:</strong> Follow up with providers who completed the email sequence and convert them.
               </p>
               <p className="text-sm text-gray-700">
-                <strong>Goal:</strong> Get provider to claim on the call. <span className="font-semibold text-primary-700">Minimum 2 follow-up attempts.</span>
+                <strong>Goal:</strong> Convert the provider. Use the resend button to send the claim link — either while you have them on the phone or immediately after. Customize the email based on your conversation. <span className="font-semibold text-primary-700">Minimum 2 follow-up attempts.</span>
               </p>
               <div className="text-sm text-gray-700">
-                <strong>If provider prefers alternative channels:</strong>
+                <strong>Alternative channels:</strong> If the provider prefers a different method, use any of these:
                 <ul className="list-disc list-inside mt-1 space-y-0.5 ml-2 text-gray-600">
                   <li>Resend link (email)</li>
                   <li>Fax</li>
@@ -136,7 +136,7 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
                 </ul>
               </div>
               <p className="text-sm text-gray-700">
-                <strong>Wrong email?</strong> Change email → move back to Ready.
+                <strong>Wrong email?</strong> Change the email, then send the resend link or use an alternative channel — this moves the provider to Alternative Channels.
               </p>
             </div>
           </section>

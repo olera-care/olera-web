@@ -50,9 +50,8 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
         {/* Content */}
         <div className="px-6 py-5 overflow-y-auto">
           {/* General Rules */}
-          <section className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center text-xs">★</span>
+          <section className="mb-8">
+            <h4 className="text-base font-semibold text-gray-900 mb-4">
               General Rules
             </h4>
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2">
@@ -72,9 +71,9 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
           </section>
 
           {/* Call & Confirm */}
-          <section className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs">1</span>
+          <section className="mb-8">
+            <h4 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-3">
+              <span className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-sm">1</span>
               Call &amp; Confirm
             </h4>
             <div className="bg-gray-50 rounded-lg p-4 space-y-3">
@@ -100,9 +99,9 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
           </section>
 
           {/* In Sequence */}
-          <section className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs">2</span>
+          <section className="mb-8">
+            <h4 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-3">
+              <span className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-sm">2</span>
               In Sequence
             </h4>
             <div className="bg-gray-50 rounded-lg p-4 space-y-3">
@@ -114,9 +113,9 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
           </section>
 
           {/* Follow Up */}
-          <section className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs">3</span>
+          <section className="mb-8">
+            <h4 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-3">
+              <span className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-sm">3</span>
               Follow Up
             </h4>
             <div className="bg-gray-50 rounded-lg p-4 space-y-3">
@@ -142,9 +141,9 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
           </section>
 
           {/* Alternative Channels */}
-          <section className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs">4</span>
+          <section className="mb-8">
+            <h4 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-3">
+              <span className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-sm">4</span>
               Alternative Channels
             </h4>
             <div className="bg-gray-50 rounded-lg p-4 space-y-3">
@@ -158,9 +157,9 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
           </section>
 
           {/* Call */}
-          <section className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-orange-100 text-orange-700 flex items-center justify-center text-xs">5</span>
+          <section className="mb-8">
+            <h4 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-3">
+              <span className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-sm">5</span>
               Call
             </h4>
             <div className="bg-gray-50 rounded-lg p-4 space-y-3">
@@ -192,16 +191,16 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
           </section>
 
           {/* Not Interested */}
-          <section className="mb-6">
-            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs">!</span>
+          <section className="mb-8">
+            <h4 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-3">
+              <span className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-sm">6</span>
               Not Interested (Soft Terminal)
             </h4>
-            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
-              <p className="text-sm text-amber-900">
+            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+              <p className="text-sm text-gray-700">
                 <strong>Effect:</strong> Stops cold outreach only. Provider can still receive questions, leads, and other engagement.
               </p>
-              <div className="text-sm text-amber-900">
+              <div className="text-sm text-gray-700">
                 <strong>Mark as Not Interested when:</strong>
                 <ul className="list-disc list-inside mt-1 space-y-1 ml-2">
                   <li>Provider explicitly declines — they say they&apos;re not interested in Olera, the outreach, or claiming their account</li>
@@ -210,7 +209,7 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
                   <li>All attempts exhausted (7+ calls across all stages) — they keep not answering, calls go to voicemail, and there&apos;s no other way to verify the email</li>
                 </ul>
               </div>
-              <p className="text-sm text-amber-800 italic">
+              <p className="text-sm text-gray-500 italic">
                 Notes and call logs must support the decision — document the decline or all attempts made.
               </p>
             </div>
@@ -218,15 +217,15 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
 
           {/* Archived */}
           <section>
-            <h4 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-3 flex items-center gap-2">
-              <span className="w-5 h-5 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs">✕</span>
+            <h4 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-3">
+              <span className="w-6 h-6 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-sm">7</span>
               Archived (Hard Terminal)
             </h4>
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 space-y-3">
-              <p className="text-sm text-red-900">
+            <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+              <p className="text-sm text-gray-700">
                 <strong>Effect:</strong> Complete system block. Provider stops receiving ALL communication — emails, questions, leads, everything.
               </p>
-              <div className="text-sm text-red-900">
+              <div className="text-sm text-gray-700">
                 <strong>Archive only when:</strong>
                 <ul className="list-disc list-inside mt-1 space-y-1 ml-2">
                   <li>Angry provider / threatening legal action</li>
@@ -234,7 +233,7 @@ export function WorkflowGuideModal({ onClose }: WorkflowGuideModalProps) {
                   <li>Invalid provider (doesn&apos;t offer senior care services)</li>
                 </ul>
               </div>
-              <p className="text-sm text-red-800 font-medium">
+              <p className="text-sm text-gray-500 italic">
                 ⚠️ Use with caution — this is irreversible in normal workflow.
               </p>
             </div>

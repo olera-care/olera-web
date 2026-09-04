@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { withCronRun } from "@/lib/crons/run";
 import { syncSupportMailbox, type SupportMailboxRow } from "@/lib/support-email/sync.server";
+import { diagnoseSupportGmail } from "@/lib/support-email/diagnostics.server";
 
 export const maxDuration = 300;
 
@@ -15,8 +16,14 @@ export const maxDuration = 300;
  */
 export async function GET(request: NextRequest) {
   const authHeader = request.headers.get("authorization");
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  // Explicit diagnostic mode has no cron bookkeeping or mailbox writes.
+  if (request.nextUrl.searchParams.get("diagnostics") === "true") {
+    return NextResponse.json(await diagnoseSupportGmail(getServiceClient()), {
+      headers: { "Cache-Control": "no-store" },
+    });
   }
   return withCronRun("support-email-sync", async () => {
     const db = getServiceClient();

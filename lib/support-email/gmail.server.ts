@@ -204,14 +204,21 @@ export function watchGmail(accessToken: string, topicName: string) {
   });
 }
 
-export function listGmailMessages(accessToken: string, pageToken?: string | null, maxResults = 100) {
+export function listGmailMessages(accessToken: string, pageToken?: string | null, maxResults = 100, query?: string) {
   const params = new URLSearchParams({ maxResults: String(maxResults), includeSpamTrash: "true" });
   if (pageToken) params.set("pageToken", pageToken);
+  if (query) params.set("q", query);
   return gmailRequest<{
     messages?: Array<{ id: string; threadId: string }>;
     nextPageToken?: string;
     resultSizeEstimate?: number;
   }>(accessToken, `/messages?${params}`);
+}
+
+/** Read sync metadata only: no subjects, participants, headers, or bodies. */
+export function getGmailMessageSyncMetadata(accessToken: string, messageId: string) {
+  return gmailRequest<Pick<GmailMessage, "id" | "threadId" | "internalDate" | "labelIds">>(accessToken,
+    `/messages/${encodeURIComponent(messageId)}?format=metadata&fields=id,threadId,internalDate,labelIds`);
 }
 
 export function getGmailMessage(accessToken: string, messageId: string) {

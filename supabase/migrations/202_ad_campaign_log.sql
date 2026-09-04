@@ -83,6 +83,13 @@ CREATE TABLE IF NOT EXISTS ad_campaign_log (
   )
 );
 
+-- Admin-only, same as ad_campaign_requests (migration 104): RLS on, no policies.
+-- The server API reads and writes with the service-role client, which bypasses RLS.
+-- Everything else — including the anon key that ships in the browser — gets nothing.
+-- This table holds provider names, spend, and candid internal assessments; it must
+-- not be readable through PostgREST.
+ALTER TABLE ad_campaign_log ENABLE ROW LEVEL SECURITY;
+
 CREATE INDEX IF NOT EXISTS ad_campaign_log_request_idx
   ON ad_campaign_log (request_id, occurred_at DESC);
 

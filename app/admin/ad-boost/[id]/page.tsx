@@ -20,6 +20,7 @@ import {
   fmtDateOnly,
   fmtMetricsAge,
 } from "@/components/admin/AdBoostShared";
+import AdBoostCaseTimeline from "@/components/admin/AdBoostCaseTimeline";
 import { etInputToUtcIso, toEtInputValue, formatEt } from "@/lib/eastern-time";
 import {
   type AdBoostAttentionLevel,
@@ -538,6 +539,13 @@ function Detail({
           View provider record ↗
         </Link>
       </div>
+
+      {/* What actually happened to this campaign, in order. Sits above the
+          provider's other flights: the case first, then the wider history. */}
+      <AdBoostCaseTimeline
+        requestId={request.id}
+        campaignTag={request.campaign_tag}
+      />
 
       {providerCampaigns.length > 1 && (
         <CampaignHistory

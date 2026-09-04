@@ -38,12 +38,14 @@ export interface SupportMailboxRow {
 // Gmail threads still import concurrently.
 const threadImports = new Map<string, Promise<unknown>>();
 const MAX_TRANSCRIPT_BYTES = 500_000;
-const SYNC_LEASE_MS = 4 * 60 * 1_000;
+const SYNC_LEASE_MS = 6 * 60 * 1_000;
 const ACTIVE_SYNC_LEASE = "__olera_support_sync_active__";
-// The limit is the number of Gmail history *records*, not changed messages. A
-// single batch archive can put 1,000+ message label changes in one record, so a
-// page must contain exactly one atomic record to keep every worker bounded.
-const HISTORY_PAGE_SIZE = 1;
+// Fetch several records, then process a prefix bounded by changed messages.
+// A bulk operation is one atomic record and must never be split across cursors.
+const HISTORY_PAGE_SIZE = 100;
+const HISTORY_MESSAGE_BUDGET = 100;
+const HISTORY_DRAIN_MS = 180_000;
+const MAX_HISTORY_CHUNKS = 500;
 
 function isTranscriptAttachment(attachment: NormalizedGmailMessage["attachments"][number]): boolean {
   return /\.(?:srt|txt|vtt)$/i.test(attachment.filename) ||
@@ -366,7 +368,11 @@ export async function importGmailMessage(db: SupabaseClient, mailbox: SupportMai
 
 async function inBatches<T>(values: T[], size: number, fn: (value: T) => Promise<void>) {
   for (let i = 0; i < values.length; i += size) {
-    await Promise.all(values.slice(i, i + size).map(fn));
+    // Promise.all rejects before its siblings finish. Releasing the mailbox
+    // lease at that point lets a new worker overlap those still-active writes.
+    const results = await Promise.allSettled(values.slice(i, i + size).map(fn));
+    const failed = results.find((result) => result.status === "rejected");
+    if (failed?.status === "rejected") throw failed.reason;
   }
 }
 
@@ -568,7 +574,6 @@ export async function backfillMailboxPage(db: SupabaseClient, mailbox: SupportMa
     full_sync_complete: complete,
     full_sync_messages_imported: Number(mailbox.full_sync_messages_imported ?? 0) + imported,
     last_sync_at: new Date().toISOString(),
-    last_error: null,
     updated_at: new Date().toISOString(),
   }).eq("id", mailbox.id);
   if (error) throw error;
@@ -584,7 +589,26 @@ export async function syncMailboxHistory(db: SupabaseClient, mailbox: SupportMai
   let hasMore = false;
   try {
     const page = await listGmailHistory(accessToken, mailbox.gmail_history_id, null, HISTORY_PAGE_SIZE);
-    const histories = page.history ?? [];
+    const histories: NonNullable<typeof page.history> = [];
+    let changedMessages = 0;
+    const includedMessageIds = new Set<string>();
+    for (const record of page.history ?? []) {
+      const recordIds = new Set([
+        ...(record.messages ?? []).map((message) => message.id),
+        ...(record.messagesAdded ?? []).map((change) => change.message.id),
+        ...(record.messagesDeleted ?? []).map((change) => change.message.id),
+        ...(record.labelsAdded ?? []).map((change) => change.message.id),
+        ...(record.labelsRemoved ?? []).map((change) => change.message.id),
+      ]);
+      // Preserve workflow transitions when the same message changes again.
+      // Collapsing UNREAD added then removed would leave a handled thread
+      // closed, even though the explicit unread action should reopen it.
+      if (histories.length && (changedMessages + recordIds.size > HISTORY_MESSAGE_BUDGET ||
+        [...recordIds].some((id) => includedMessageIds.has(id)))) break;
+      histories.push(record);
+      changedMessages += recordIds.size;
+      recordIds.forEach((id) => includedMessageIds.add(id));
+    }
     for (const history of histories) {
       const hasTypedChanges = Boolean(
         history.messagesAdded?.length || history.messagesDeleted?.length ||
@@ -604,7 +628,7 @@ export async function syncMailboxHistory(db: SupabaseClient, mailbox: SupportMai
         for (const message of history.messages ?? []) fullMessageIds.add(message.id);
       }
     }
-    hasMore = Boolean(page.nextPageToken);
+    hasMore = Boolean(page.nextPageToken) || histories.length < (page.history?.length ?? 0);
     finalHistoryId = hasMore
       ? histories.at(-1)?.id ?? mailbox.gmail_history_id
       : page.historyId ?? histories.at(-1)?.id ?? mailbox.gmail_history_id;
@@ -619,7 +643,6 @@ export async function syncMailboxHistory(db: SupabaseClient, mailbox: SupportMai
         full_sync_complete: false,
         full_sync_messages_imported: 0,
         sync_status: "backfilling",
-        last_error: "Gmail history cursor expired; full history resync started.",
         updated_at: new Date().toISOString(),
       }).eq("id", mailbox.id);
       if (resetError) throw resetError;
@@ -644,7 +667,6 @@ export async function syncMailboxHistory(db: SupabaseClient, mailbox: SupportMai
   const { error: cursorError } = await db.from("support_mailboxes").update({
     gmail_history_id: finalHistoryId,
     last_sync_at: new Date().toISOString(),
-    last_error: null,
     updated_at: new Date().toISOString(),
   }).eq("id", mailbox.id);
   if (cursorError) throw cursorError;
@@ -677,54 +699,87 @@ export async function syncSupportMailbox(db: SupabaseClient, mailbox: SupportMai
   if (claimError) throw claimError;
   if (!claimed) return skippedSync(current);
   const activeMailbox = claimed as SupportMailboxRow;
-  if (!activeMailbox.encrypted_refresh_token) throw new Error(`Mailbox ${activeMailbox.email} is not connected`);
-  const refreshToken = decryptGmailToken(activeMailbox.encrypted_refresh_token);
-  const accessToken = await gmailAccessToken(refreshToken);
-  const history = await syncMailboxHistory(db, activeMailbox, accessToken);
-  // syncMailboxHistory may have reset the persisted backfill after Gmail
-  // expired its history cursor. Mirror that reset locally in this same worker
-  // run instead of letting the stale mailbox object skip recovery.
-  const backfillMailbox = history.restartedFullSync
-    ? {
-        ...activeMailbox,
-        gmail_history_id: history.historyId,
-        full_sync_page_token: null,
-        full_sync_complete: false,
-        full_sync_messages_imported: 0,
+  try {
+    const drainDeadline = Date.now() + HISTORY_DRAIN_MS;
+    if (!activeMailbox.encrypted_refresh_token) throw new Error(`Mailbox ${activeMailbox.email} is not connected`);
+    const refreshToken = decryptGmailToken(activeMailbox.encrypted_refresh_token);
+    const accessToken = await gmailAccessToken(refreshToken);
+    const history = {
+      imported: 0, deleted: 0, labelsUpdated: 0,
+      historyId: activeMailbox.gmail_history_id,
+      hasMore: true, restartedFullSync: false, chunks: 0,
+    };
+    do {
+      const previousCursor = history.historyId;
+      const chunk = await syncMailboxHistory(db, { ...activeMailbox, gmail_history_id: previousCursor }, accessToken);
+      history.imported += chunk.imported;
+      history.deleted += chunk.deleted;
+      history.labelsUpdated += chunk.labelsUpdated;
+      history.historyId = chunk.historyId;
+      history.hasMore = chunk.hasMore;
+      history.restartedFullSync = Boolean(chunk.restartedFullSync);
+      history.chunks += 1;
+      if (chunk.hasMore && chunk.historyId === previousCursor) {
+        throw new Error("Gmail history returned more changes without advancing its cursor");
       }
-    : activeMailbox;
-  const backfill = await backfillMailboxPage(db, backfillMailbox, accessToken);
-  // Earlier releases intentionally recognized voicemails with a fast subject
-  // rule, which left the operating brief generic. Revisit a small bounded batch
-  // on each worker run so existing history becomes transcript-aware without a
-  // costly one-shot mailbox reclassification.
-  const refreshedVoicemails = history.hasMore ? 0 : await refreshStaleVoicemails(db, activeMailbox, accessToken);
-  const expirationMs = activeMailbox.watch_expiration ? new Date(activeMailbox.watch_expiration).getTime() : 0;
-  const topic = process.env.GMAIL_PUBSUB_TOPIC;
-  let watchRenewed = false;
-  if (topic && expirationMs < Date.now() + 48 * 60 * 60 * 1000) {
-    const watched = await watchGmail(accessToken, topic);
-    const { error: watchError } = await db.from("support_mailboxes").update({
-      watch_expiration: new Date(Number(watched.expiration)).toISOString(),
+    } while (history.hasMore && !history.restartedFullSync &&
+      Date.now() < drainDeadline && history.chunks < MAX_HISTORY_CHUNKS);
+    // syncMailboxHistory may have reset the persisted backfill after Gmail
+    // expired its history cursor. Mirror that reset locally in this same worker
+    // run instead of letting the stale mailbox object skip recovery.
+    const backfillMailbox = history.restartedFullSync
+      ? {
+          ...activeMailbox,
+          gmail_history_id: history.historyId,
+          full_sync_page_token: null,
+          full_sync_complete: false,
+          full_sync_messages_imported: 0,
+        }
+      : activeMailbox;
+    const backfill = Date.now() < drainDeadline
+      ? await backfillMailboxPage(db, backfillMailbox, accessToken)
+      : { imported: 0, complete: backfillMailbox.full_sync_complete };
+    // Earlier releases intentionally recognized voicemails with a fast subject
+    // rule, which left the operating brief generic. Revisit a small bounded batch
+    // on each worker run so existing history becomes transcript-aware without a
+    // costly one-shot mailbox reclassification.
+    const refreshedVoicemails = history.hasMore || Date.now() >= drainDeadline ? 0 : await refreshStaleVoicemails(db, activeMailbox, accessToken);
+    const expirationMs = activeMailbox.watch_expiration ? new Date(activeMailbox.watch_expiration).getTime() : 0;
+    const topic = process.env.GMAIL_PUBSUB_TOPIC;
+    let watchRenewed = false;
+    if (topic && expirationMs < Date.now() + 48 * 60 * 60 * 1000) {
+      const watched = await watchGmail(accessToken, topic);
+      const { error: watchError } = await db.from("support_mailboxes").update({
+        watch_expiration: new Date(Number(watched.expiration)).toISOString(),
+        updated_at: new Date().toISOString(),
+      }).eq("id", activeMailbox.id);
+      if (watchError) throw watchError;
+      watchRenewed = true;
+    }
+    const { error: finalError } = await db.from("support_mailboxes").update({
+      sync_status: history.hasMore || !backfill.complete ? "backfilling" : "connected",
+      last_sync_at: new Date().toISOString(),
+      last_error: null,
       updated_at: new Date().toISOString(),
     }).eq("id", activeMailbox.id);
-    if (watchError) throw watchError;
-    watchRenewed = true;
+    if (finalError) throw finalError;
+    return { history, backfill, refreshedVoicemails, watchRenewed };
+  } catch (error) {
+    // Only the worker that acquired the lease reports failure. Callers must
+    // not overwrite a lock owned by another run when a pre-claim read fails.
+    await db.from("support_mailboxes").update({
+      sync_status: "error",
+      last_error: error instanceof Error ? error.message : String(error),
+      updated_at: new Date().toISOString(),
+    }).eq("id", activeMailbox.id).eq("last_error", ACTIVE_SYNC_LEASE);
+    throw error;
   }
-  const { error: finalError } = await db.from("support_mailboxes").update({
-    sync_status: history.hasMore || !backfill.complete ? "backfilling" : "connected",
-    last_sync_at: new Date().toISOString(),
-    last_error: null,
-    updated_at: new Date().toISOString(),
-  }).eq("id", activeMailbox.id);
-  if (finalError) throw finalError;
-  return { history, backfill, refreshedVoicemails, watchRenewed };
 }
 
 function skippedSync(mailbox: SupportMailboxRow) {
   return {
     skipped: "already_syncing" as const,
-    history: { imported: 0, deleted: 0, labelsUpdated: 0, historyId: mailbox.gmail_history_id, hasMore: true },
+    history: { imported: 0, deleted: 0, labelsUpdated: 0, historyId: mailbox.gmail_history_id, hasMore: true, chunks: 0 },
     backfill: { imported: 0, complete: mailbox.full_sync_complete },
     refreshedVoicemails: 0,
     watchRenewed: false,

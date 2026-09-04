@@ -7,6 +7,16 @@
 
 ## Current Focus
 
+### 2026-09-04 — Support sync still unresolved; retry diagnostics in PR #1771
+
+- Follow-up branch `codex/support-sync-retry-errors`, PR #1771 targets staging. Previous #1765 is already in production via #1768; do not repeat its merge or treat its cursor progress as complete recovery.
+- Read-only production checks at 16:44 ICT: 37,431 stored messages; newest August 14 at 00:48:36 UTC; 355 pending events. Cursor advanced to 3649735, below last queued target 3674230. Runs at 16:25, 16:30, 16:35, and 16:40 failed. The 16:20 run completed but reprocessed existing mail. UI count 899 agrees with stale backend data.
+- #1771 fixes confirmed transport gaps: exponential backoff and Retry-After for transient GET failures including Gmail 403 rate-limit reasons, no metadata fallback for auth/quota errors, safe HTTP status/reason in stored errors, sparse progress/interruption logs. Exact production Gmail HTTP cause remains unknown; existing logs were saturated before failure. Do not claim rate limiting is confirmed.
+- Added authenticated read-only source comparison at GET `/api/admin/support-email?diagnostics=true` and cron route diagnostics with bearer secret. Reads Gmail profile, recent IDs/dates/labels and stored presence only; never invokes sync, classifier, checkpoint/lease writes, or cron recording. Tests verify both auth gates and read-only behavior.
+- Checks pass: full Next build, TypeScript, targeted ESLint, 41 cron registrations, 15 worker scenarios, transport and diagnostic regressions. Preview commit 14dff7bb7 passed Vercel. No production deployment of #1771 and no merge authorized for this follow-up.
+- Live verification blocked: CLI diagnostic requests receive Vercel 429 before app; authenticated browser navigation is blocked by Dia (`ERR_BLOCKED_BY_CLIENT`). Direct Gmail for support@olera.care requires Google “Verify it’s you”; asked TJ to complete it in the opened Chrome tab. Admin preview basic Google sign-in as tj@olera.care succeeded. Do not bypass these controls or extract credentials.
+- Prior automatic approval review rejected manually running the full sync because the existing classifier sends private email content to Anthropic. No later approval was granted. Read-only diagnostics are independently authorized; do not trigger the classifier as a workaround. Next: compare Gmail recent source messages to stored mail after user verification, establish the remaining root cause, then verify a completed catch-up before claiming resolution.
+
 ### 2026-09-04 — Ad Boost: we broke the campaigns ourselves, and Ad Boost now has a case log (`helpful-hopper` #1759, `adboost-case-log` #1767)
 
 **Yesterday's headline was wrong and is retracted.** "The campaigns were in markets that do not exist" described one Keyword Planner query, scoped to the *August* keyword set in *Killeen city*. Franchil's June campaign served 124 impressions and produced 3 inquiries in that same city. TJ caught it. Today went back to ground truth in Google Ads, campaign by campaign, and the answer is operator error in at least two distinct forms.

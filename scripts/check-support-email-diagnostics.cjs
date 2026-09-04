@@ -35,7 +35,7 @@ function load(path, mocks, extra = {}) {
       assert.equal(size, 20); assert.equal(q, 'newer_than:30d');
       return { messages: [{ id: 'new' }, { id: 'old' }] };
     },
-    getGmailMessageSyncMetadata: async id => ({ id, internalDate: '1788480000000' }),
+    getGmailMessageSyncMetadata: async (_token, id) => ({ id, internalDate: '1788480000000' }),
   };
   const diagnostic = load('lib/support-email/diagnostics.server.ts', {
     './crypto.server': { decryptGmailToken: () => 'private-refresh' }, './gmail.server': gmail,
@@ -66,5 +66,24 @@ function load(path, mocks, extra = {}) {
   delete env.CRON_SECRET;
   assert.equal((await route.GET(req('Bearer undefined'))).options.status, 401);
   assert.equal(called, 1);
+  let user = null;
+  let admin = null;
+  const adminRoute = load('app/api/admin/support-email/route.ts', {
+    'next/server': { NextResponse: { json: (body, options) => ({ body, options }) } },
+    '@/lib/admin': { getAuthUser: async () => user, getAdminUser: async () => admin,
+      getServiceClient: () => db },
+    '@/lib/support-email/sync.server': { syncSupportMailbox() { throw new Error('diagnostics must not run sync'); } },
+    '@/lib/support-email/diagnostics.server': { diagnoseSupportGmail: async () => { called++; return result; } },
+  });
+  const adminRequest = { nextUrl: new URL('https://preview.example/api/admin/support-email?diagnostics=true') };
+  assert.equal((await adminRoute.GET(adminRequest)).options.status, 401);
+  user = { id: 'operator' };
+  assert.equal((await adminRoute.GET(adminRequest)).options.status, 403);
+  assert.equal(called, 1);
+  admin = { id: 'admin' };
+  const adminResponse = await adminRoute.GET(adminRequest);
+  assert.equal(adminResponse.body.readOnly, true);
+  assert.equal(adminResponse.options.headers['Cache-Control'], 'no-store');
+  assert.equal(called, 2);
   console.log('Support diagnostics: read-only database/source probe, missing-mail comparison, secret exclusion, authorization, and no sync/cron writes pass.');
 })().catch(error => { console.error(error); process.exitCode = 1; });

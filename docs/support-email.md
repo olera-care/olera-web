@@ -46,3 +46,9 @@ If `support@olera.care` is an alias, connect the underlying mailbox and set `GMA
 Run `node scripts/check-support-email-sync.cjs` to exercise chunk draining, cursor checkpoints, time limits, overlapping workers, bulk records, expired Gmail cursors, label event order, and failed concurrent imports without live credentials. Run `node scripts/check-support-email-polling.cjs` to verify refresh failures, slow requests, retry recovery, and action-error preservation against synthetic inbox data.
 
 Run `node scripts/check-support-email-gmail.cjs` for transport-level rate-limit recovery, permanent permission failures, numeric/date `Retry-After`, retry deadlines, safe error details, and prevention of automatic write replay. All HTTP responses and clocks are synthetic.
+
+## Read-only sync diagnostics
+
+Authenticated admins can GET `/api/admin/support-email?diagnostics=true`. The cron route also accepts `?diagnostics=true` with the configured cron bearer secret. Both paths return an uncached comparison of the connected Gmail address, history cursors, latest stored date, and a small recent-message sample. The sample contains IDs, dates, labels, and whether each message is stored; it excludes subjects, bodies, and credentials.
+
+The probe only reads Gmail and database records. It does not run the sync worker, classifier, cron tracking, or checkpoint writes. Run `node scripts/check-support-email-diagnostics.cjs` to verify both authorization gates, missing-mail comparisons, credential exclusion, and the absence of database writes or worker calls. A changing cursor alone does not prove recovery: compare recent source messages with stored messages and verify that scheduled runs finish successfully.

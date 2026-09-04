@@ -7,9 +7,9 @@ import AdminPageHeader from "@/components/admin/AdminPageHeader";
  * MedJobs · SOP — the implementation matrix, readable inside the admin panel.
  *
  * Every stage from PR1 to MA5 in three layers: what the user does and what the
- * technology does, the human procedure behind it, and what the system records
- * and hands on. The index jumps the embedded reader to a stage rather than
- * making anyone scroll thirty-nine pages to find one.
+ * technology does, the procedure behind it, and what the system records and
+ * hands on. Two ways in: the titled index above, and a jump bar sitting on the
+ * reader so a step is one click away from the system map you just read.
  *
  * The PDF comes from /api/admin/medjobs/sop, which is admin-guarded, so this
  * page shows nothing to a signed-out visitor.
@@ -47,6 +47,11 @@ const PORTAL: Stage[] = [
   { code: "MA5", title: "Bill issued and collected", page: 37 },
 ];
 
+/** The system map — every stage, both sides and the portal, on one page. It is
+ *  what the jump bar is for: read the map, then go straight to a step. */
+const SYSTEM_PAGE = 2;
+const DEFERRED_PAGE = 39;
+
 const GROUPS: { heading: string; note: string; stages: Stage[] }[] = [
   { heading: "Provider side", note: "Prospect to meeting to client success", stages: PROVIDER },
   { heading: "University side", note: "Access to distribution to applications", stages: UNIVERSITY },
@@ -54,13 +59,15 @@ const GROUPS: { heading: string; note: string; stages: Stage[] }[] = [
 ];
 
 export default function MedJobsSopPage() {
-  const [page, setPage] = useState(1);
+  // Open on the system map rather than the title page: the index above already
+  // does what a table of contents does, and the map is what the jump bar is for.
+  const [page, setPage] = useState(SYSTEM_PAGE);
 
   return (
     <div>
       <AdminPageHeader
         title="SOP"
-        description="MedJobs 2.0 Master Implementation Matrix. Every stage in three layers: user journey and technology, the human procedure, and the system handoff."
+        description="MedJobs 2.0 Master Implementation Matrix. Every stage in three layers: user journey and technology, the procedure, and the system handoff."
         actions={
           <a
             href={SOP_URL}
@@ -100,26 +107,31 @@ export default function MedJobsSopPage() {
         ))}
       </div>
 
-      <div className="mb-4 flex flex-wrap items-center gap-2">
-        <button
-          type="button"
-          onClick={() => setPage(1)}
-          className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-        >
-          Front page
-        </button>
-        <button
-          type="button"
-          onClick={() => setPage(39)}
-          className="rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-50"
-        >
-          Deferred build list
-        </button>
-        <p className="text-xs text-gray-500">
-          Anything the matrix describes that does not work that way yet is named
-          as such and collected in the deferred list.
-        </p>
+      {/* Jump bar. The index above carries the titles; this sits on the reader
+          so a step is one click from the system map, without scrolling back up.
+          Codes only, in document order, with the two sides and the portal kept
+          apart by a rule. */}
+      <div className="mb-3 flex flex-wrap items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2">
+        <Jump label="System" page={SYSTEM_PAGE} current={page} onJump={setPage}
+              title="The whole flow on one page" />
+        {GROUPS.map((group) => (
+          <span key={group.heading} className="flex flex-wrap items-center gap-1.5">
+            <span className="mx-1 h-4 w-px bg-gray-200" aria-hidden />
+            {group.stages.map((stage) => (
+              <Jump key={stage.code} label={stage.code} page={stage.page}
+                    current={page} onJump={setPage} title={stage.title} />
+            ))}
+          </span>
+        ))}
+        <span className="mx-1 h-4 w-px bg-gray-200" aria-hidden />
+        <Jump label="Deferred" page={DEFERRED_PAGE} current={page} onJump={setPage}
+              title="Everything the matrix describes that does not work that way yet" />
       </div>
+
+      <p className="mb-3 text-xs text-gray-500">
+        Anything the matrix describes that does not work that way yet is named as
+        such and collected in the deferred list.
+      </p>
 
       {/* The key remounts the iframe on a jump: a changed hash alone does not
           move an already-loaded PDF viewer. */}
@@ -130,5 +142,38 @@ export default function MedJobsSopPage() {
         className="h-[calc(100vh-22rem)] min-h-[32rem] w-full rounded-lg border border-gray-200 bg-gray-50"
       />
     </div>
+  );
+}
+
+/** One chip in the jump bar. The title attribute carries the stage name, which
+ *  the bar has no room for. */
+function Jump({
+  label,
+  page,
+  current,
+  onJump,
+  title,
+}: {
+  label: string;
+  page: number;
+  current: number;
+  onJump: (page: number) => void;
+  title: string;
+}) {
+  const active = current === page;
+  return (
+    <button
+      type="button"
+      title={title}
+      aria-current={active ? "page" : undefined}
+      onClick={() => onJump(page)}
+      className={`rounded-md border px-2 py-1 text-xs font-medium tabular-nums transition-colors ${
+        active
+          ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+          : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+      }`}
+    >
+      {label}
+    </button>
   );
 }

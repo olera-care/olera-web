@@ -307,27 +307,68 @@ to be re-engaged or retired. `olera.care/admin/medjobs/in-basket` → **Follow-u
 
 ## PR2 — Provider meeting held
 
-**Objective** Convert the provider and capture what was promised. **Owner** Sales Lead.
-**Completion criteria** Outcome recorded and the relationship handed to the User Success Manager.
+**Objective** Hold the meeting, convert the provider, and capture what was promised.
+**Owner** Sales Lead. **Users** Sales Lead, provider.
+**Completion criteria** Outcome logged and the relationship handed to the User Success Manager.
 
-**① User journey / technology**
+### ① User journey / technology
 
-| Actor | Sees / does | Surface |
-|---|---|---|
-| Provider | Books, receives confirmation and reminder, attends | Scheduling · email · video |
-| Sales Lead | Reads the prospect's history beforehand; records the outcome after | Meetings queue · entity drawer · log meeting modal |
+| # | What happens | Where | Exhibit |
+|---|---|---|---|
+| 1 | The provider opens the booking link and picks a time. The page carries the Sales Lead's name, a 30-minute slot, and the program pitch in his own words | Calendly — `Student Caregiver Program` | **L** |
+| 2 | The booking lands the row in **Meetings**, which splits into **FINDING A TIME** (coordinating) and **NEEDS LOGGING** (*"Meeting time has passed — log the outcome to move the row forward"*) | [`olera.care/admin/medjobs/in-basket?tab=meetings`](https://olera.care/admin/medjobs/in-basket?tab=meetings) | **M** |
+| 3 | Open the row. **NEXT STEP** reads *"On the calendar"* with a single action, and the state chip reads *"Replied — they replied · meeting booked"* | Meetings → row | **N** |
+| 4 | Hold the meeting, then **Log meeting outcome**. The modal confirms what was booked and who attended, then offers three outcomes | Row → **Log meeting outcome** | **N** |
 
-**② Human SOP** — read the timeline before the call · run the standard structure and close with the soft
-agreement ask · record the outcome the same day · write down anything promised in the room · hand off with
-context, not just a status change.
+### ② Human SOP
 
-**③ System / handoff**
+1. **Read the row before the call.** The timeline shows every email, reply and call that produced this
+   meeting — including what they said when they replied.
+2. **Run the standard structure** and close with the soft agreement ask: *no rush to sign, we just need it
+   before you interview your first student.*
+3. **Log the outcome the same day.** A meeting held and unlogged is a row that stops moving.
+4. **Write down what was promised** in the notes — a note on its own logs the meeting.
+5. **Rebook a no-show once, warmly.** The option opens Calendly for you; people miss meetings.
+
+**Meeting outcomes and what each does to the row**
+
+| Outcome | What happens |
+|---|---|
+| **Interested / went well** | Logs the meeting and launches the activation sequence |
+| **No-show / reschedule** | Logs a no-show and opens Calendly to rebook |
+| **Not interested** | Sends a polite closing note and stops outreach |
+
+### ③ System / handoff
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Outcome, notes, commitments made | engaged → converted / declined / follow-up | `meeting_held` · outcome · note added · stage change | Outcome recorded | **Sales Lead → User Success Manager** — appears in the clients queue |
+| Booked time · attendee name and address · outcome · notes and commitments | engaged → meeting scheduled → converted · closed | meeting scheduled — row moved to Meetings · meeting held · outcome logged · activation launched | Outcome logged | **Sales Lead → User Success Manager.** *Interested / went well* launches activation and moves the relationship on; the other two close the row |
 
-**Communications** Confirmation · reminder · post-meeting details email with the agreement.
+**Communications** Booking confirmation and reminder from Calendly · the post-meeting details email with
+the agreement · a polite closing note when the answer is no.
+
+### Exhibits
+
+**Exhibit L — The booking page.** What the provider sees: **Student Caregiver Program**, 30 minutes, the
+Sales Lead's name, and the pitch — *hands-on caregiving hours, recommendation letters, and experience that
+strengthens their med, PA, and nursing applications* — over a date and time picker.
+`calendly.com/…/home-care-agency-manager-interview`
+
+![Exhibit L — Calendly booking page](exhibits/L-calendly-booking.png)
+
+**Exhibit M — Meetings tab.** Two groups: **NEEDS LOGGING**, with *"Meeting time has passed — log the
+outcome to move the row forward,"* and **FINDING A TIME** for rows still coordinating. The tab count reads
+worked over total. `olera.care/admin/medjobs/in-basket?tab=meetings`
+
+![Exhibit M — Meetings tab](exhibits/M-meetings-tab.png)
+
+**Exhibit N — Log meeting outcome.** A **BOOKED** panel confirming the calendar entry and the attendee,
+then the three outcomes with their consequences, and a notes field. Behind it the drawer shows **NEXT
+STEP · On the calendar** and the state chip *"Replied — they replied · meeting booked,"* over a timeline
+that runs back through every reply and send.
+Meetings → row → **Log meeting outcome**
+
+![Exhibit N — Log meeting outcome](exhibits/N-log-meeting.png)
 
 ---
 

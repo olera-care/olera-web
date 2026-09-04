@@ -3,7 +3,7 @@
 Screens from the live admin, referenced from [`../MATRIX.md`](../MATRIX.md). Each exhibit is captioned
 with its URL so a reader can open the same place in the product.
 
-## Expected files
+## Files
 
 | File | Screen | URL |
 |---|---|---|
@@ -15,7 +15,9 @@ with its URL so a reader can open the same place in the product.
 
 ## Conventions
 
-- **PNG**, full-window, at the width you captured it. No cropping needed — the page scales them.
+- **PNG**, full-window. The page scales them; no resizing needed.
+- **Crop the browser bookmarks bar out** before committing. The current set was cropped to keep the
+  address bar and drop the bookmarks row, which carried personal accounts.
 - **Name the file for the exhibit letter**, so the reference in `MATRIX.md` keeps working.
 - **Check for anything you would not want outside the company** before committing — provider names and
   phone numbers are real data.

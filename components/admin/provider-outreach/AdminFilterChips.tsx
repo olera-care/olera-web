@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { getAdminColor } from "@/lib/provider-outreach/admin-colors";
 
 export interface AdminCount {
@@ -54,23 +54,53 @@ export function AdminFilterChips({
   // Calculate total assigned count (sum of all admin counts, excluding unassigned)
   const totalAssignedCount = adminIds.reduce((sum, id) => sum + adminCounts[id].count, 0);
 
-  // Load persisted selection on mount, validate it exists in current adminCounts
+  // Track which tab we've initialized to prevent re-running restore logic on every fetch
+  const initializedTabRef = useRef<string | null>(null);
+
+  // Restore persisted selection when switching tabs, validate current selection on data changes
   useEffect(() => {
-    const stored = localStorage.getItem(`provider-outreach-filter-${tabKey}`);
-    if (stored !== null) {
-      const value = stored === "null" ? null : stored;
-      // Only allow selecting existing admins with assignments, or null for combined view
-      // Don't allow "unassigned" anymore since we're focused on assigned work
-      const isValidSelection = value === null || (value !== "unassigned" && value in adminCounts && adminCounts[value].count > 0);
-      if (isValidSelection && value !== selectedAdminId) {
-        onSelect(value);
-      } else if (!isValidSelection && selectedAdminId !== null) {
-        // Invalid selection (admin no longer exists or has 0 count), reset to combined view
-        localStorage.removeItem(`provider-outreach-filter-${tabKey}`);
-        onSelect(null);
+    const isInitialLoad = initializedTabRef.current !== tabKey;
+
+    if (isInitialLoad) {
+      // First render for this tab - restore from localStorage
+      initializedTabRef.current = tabKey;
+
+      const stored = localStorage.getItem(`provider-outreach-filter-${tabKey}`);
+      if (stored !== null) {
+        const value = stored === "null" ? null : stored;
+        const isValidSelection = value === null ||
+          (value !== "unassigned" && value in adminCounts && adminCounts[value].count > 0);
+
+        if (isValidSelection && value !== selectedAdminId) {
+          onSelect(value);
+        } else if (!isValidSelection) {
+          // Stored selection is invalid, clear it
+          localStorage.removeItem(`provider-outreach-filter-${tabKey}`);
+          // Only reset if current selection is also invalid
+          if (selectedAdminId !== null) {
+            const currentIsValid = selectedAdminId !== "unassigned" &&
+              selectedAdminId in adminCounts &&
+              adminCounts[selectedAdminId].count > 0;
+            if (!currentIsValid) {
+              onSelect(null);
+            }
+          }
+        }
+      }
+    } else {
+      // Subsequent renders (e.g., after fetch) - just validate current selection
+      if (selectedAdminId !== null) {
+        const isValid = selectedAdminId !== "unassigned" &&
+          selectedAdminId in adminCounts &&
+          adminCounts[selectedAdminId].count > 0;
+        if (!isValid) {
+          // Current selection is no longer valid, reset to combined view
+          localStorage.removeItem(`provider-outreach-filter-${tabKey}`);
+          onSelect(null);
+        }
       }
     }
-  }, [tabKey, adminCounts]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [tabKey, adminCounts, selectedAdminId, onSelect]);
 
   // Persist selection changes
   const handleSelect = (adminId: string | null) => {

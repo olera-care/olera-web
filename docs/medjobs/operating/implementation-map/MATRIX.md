@@ -173,8 +173,8 @@ queues it generates until the provider books a meeting or the row runs out.
 finished cadence that drops the row into Follow-up.
 
 > **The cadence is shorter than the protocol says.** Graize's written protocol calls this the *D0–30
-> campaign*. What is shipped runs **Day 0 · Day 3 · Day 5 · Day 7**. Either the protocol or the cadence
-> should change; flagged rather than reconciled.
+> campaign*. What is shipped is **3 emails and 2 calls over 7 days** — Day 0 · Day 3 · Day 5 · Day 7.
+> Either the protocol or the cadence should change; flagged rather than reconciled.
 
 ### ① User journey / technology
 
@@ -182,108 +182,124 @@ finished cadence that drops the row into Follow-up.
 
 | # | What happens | Where | Exhibit |
 |---|---|---|---|
-| 1 | Click **Launch outreach →** on a cleared row. A modal previews the whole sequence — each email with its day and subject, each call day with its script — and carries a **Reply manually in Smartlead** link | In Basket → provider drawer | **E**, **F** |
-| 2 | Day 0 intro email sends; Day 3, 5 and 7 queue behind it | Automatic | — |
-| 3 | Work the **Calls** tab — the calls due today, across every site | [`olera.care/admin/medjobs/in-basket`](https://olera.care/admin/medjobs/in-basket) → Calls | **G** |
-| 4 | Log the call outcome from the row | Calls → **Log call** | **H** |
-| 5 | Watch the **Emails** tab — replies, opens, clicks and bounces landing back from the send engine | In Basket → Emails | **I** |
-| 6 | Classify every reply and answer it | Emails → reply modal | **J** |
+| 1 | Click **Launch outreach →** on a cleared row. **Confirm outreach plan** opens with the whole campaign laid out — a launch summary, the recipients as checkboxes, and every day expandable to the actual email the provider will receive | In Basket → provider drawer | **E**, **F** |
+| 2 | **Start outreach.** Day 0 sends; the rest queue via the send engine | Automatic | — |
+| 3 | Work the **Calls** tab — calls grouped by the day they are due, each row with a click-to-dial number | [`olera.care/admin/medjobs/in-basket?tab=calls`](https://olera.care/admin/medjobs/in-basket?tab=calls) | **G** |
+| 4 | Open the row. The drawer's **NEXT STEP** panel names the state and offers the actions that fit it | Calls → row | **I** |
+| 5 | **Call provider**, work the day's script, log the outcome | Row → **Log call** | **H** |
+| 6 | Check replies. **Check for reply** shows the provider's actual message and the ways to respond | Emails → row → **Check for reply** | **J** |
 | 7 | When a cadence finishes with no meeting, the row appears in **Follow-up** for triage | In Basket → Follow-up | **K** |
 
-**The shipped provider cadence**
+**The shipped provider cadence — 3 emails, 2 calls**
 
 | Day | What fires |
 |---|---|
 | **0** | Intro email |
-| **3** | Follow-up email **and** a check-in call — *"Did you get our email Monday?"* |
+| **3** | Light follow-up email **and** a check-in call |
 | **5** | Call attempt |
 | **7** | Final follow-up email |
+
+Cold email sends from a dedicated outreach domain, not the brand domain. Scheduled sends and calls appear
+in the drawer's **UPCOMING** list with their dates, so the row's whole future is visible before it happens.
 
 ### ② Human SOP
 
 1. **Launch only rows that cleared pre-flight.** The override exists for rows you are confident about
-   without a confirming call; it is not the default.
-2. **Read the sequence preview before launching.** Confirm the recipient — the general contact, plus any
-   decision makers added during pre-flight — and that the subjects read correctly for this site.
-3. **Work the Calls tab to zero every day.** It is the highest-value half hour in the day; an email is a
-   lottery ticket, a call is a conversation.
-4. **Call the rows that clicked first.** A provider who clicked and did nothing is the warmest row in the
-   queue.
-5. **Answer every reply within one business day** — same day for anything mentioning a time. Replies are
-   answered in Gmail; the classification is logged here.
-6. **Book the meeting rather than explaining the program.** The reply that asks for detail still gets two
-   specific times attached.
-7. **Log every outcome, every time**, including the calls nobody answered. The row's history is the only
-   record of how hard it was worked.
-8. **Do not hand-email a row mid-cadence.** You will collide with the sequence. Use the reply path.
+   without a confirming call, and it writes *"Pre-Flight overridden — outreach unlocked manually"* to the
+   timeline with your name on it. Use it deliberately.
+2. **Read the plan before starting.** Confirm the recipients — untick anyone who should not receive it —
+   and expand Day 0 to check the merge fields resolved. The modal shows exactly what the provider will
+   see, including the flyer link and the program PDF.
+3. **Work the Calls tab to zero every day.** Calls are grouped by due date; the count next to the date is
+   the day's workload.
+4. **Read the NEXT STEP panel before dialling.** It tells you where the row actually is — awaiting reply,
+   next call in N days, or they replied and it is your move.
+5. **Use the day's script.** The log modal shows the script for the cadence day you are on, so a Day 3
+   call opens with a different line than a Day 5 one.
+6. **Answer every reply within one business day** — same day for anything mentioning a time.
+7. **Log every outcome, every time**, including the calls nobody answered. A note on its own logs the call.
+8. **Do not hand-email a row mid-cadence.** Reply through the row so the cadence stops cleanly.
 
 **Call outcomes and what each does to the row**
 
 | Outcome | What happens |
 |---|---|
-| **Confirmed / spoke** | Logs the call. The cadence keeps running |
 | **Interested** | They want to move forward — launches the activation sequence |
 | **📅 Meeting booked** | Opens the Calendly booking page and marks a meeting scheduled |
 | **No answer** | Marks this call done; the next cadence call stays scheduled |
 | **Voicemail** | Message left; the next cadence call stays scheduled |
 | **Not interested** | Closes the row and cancels remaining outreach |
 
-**Reply classifications and what each does to the row**
+**Reply handling — what each option does**
 
-| Classification | What happens |
+| Option | What happens |
 |---|---|
-| **They replied** | Generic reply or question. The cadence continues; respond through Gmail and log the update here |
-| **They want to meet** | Reply with the Calendly link — already in the signature — so they book directly. Row moves to **Meetings** |
-| **Meeting is booked** | Calendly booked it, or you added it yourself. Row moves to **Meetings** |
-| **Redirected to another contact** | They pointed us elsewhere. Add the new contact; the cadence to the original recipient stops |
-| **Not interested** | Polite decline. Row closes; the cadence stops and it leaves the active workflow |
+| **Launch activation cadence** | Runs the standard activation sequence toward a meeting |
+| **✎ Launch custom cadence** | Compose your own emails and calls for a bespoke response |
+| **↻ OOO reply — restart last cadence** | Auto-reply, not a real answer. Resumes the cadence and puts the row back to pending |
+| **📅 Book a meeting** | Opens the Calendly booking page and marks a meeting scheduled |
+| **Not interested** | Sends a polite closing note and stops outreach |
+
+> **A real reply stops the cadence automatically.** The timeline records *"Reply received to \[address\] —
+> cadence stopped,"* so the next move is a human one. The out-of-office option exists precisely because
+> an auto-reply should not count as one.
 
 ### ③ System / handoff
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Sends · opens · clicks · replies · bounces · call outcomes and notes · redirected contacts | cleared → in outreach → engaged · closed · cadence finished | outreach launched · email sent · opened · clicked · replied · bounced · call logged (each outcome) · meeting scheduled · row closed | A meeting is booked | **Admin Team → Sales Lead.** The row appears in the Meetings queue with its full timeline. No meeting and the cadence finishes → the row drops to **Follow-up** for re-engage-or-retire triage |
+| Recipients launched · sends, opens, replies · call outcomes and notes · scheduled sends and calls | researched → outreach sent → cold · replied · closed · cadence finished | outreach launched · row moved from Researched to Outreach Sent · outreach email sent (with open state) · called — no answer / voicemail / reached · reply received — cadence stopped · pre-flight overridden | A meeting is booked | **Admin Team → Sales Lead.** The row appears in the Meetings queue with its full timeline. No meeting and the cadence finishes → the row drops to **Follow-up** for re-engage-or-retire triage |
 
-Opens, clicks, replies and bounces only reach these queues if the send engine's webhook is wired. Without
-it the Emails and Follow-up tabs look empty rather than broken — worth confirming before concluding that
-nobody is engaging.
+The drawer carries a **state chip** above the timeline — *Cold — 1 email sent, never opened · awaiting
+their callback*, or *Replied — they replied · your move* — so the row's position is legible without
+reading the history. **UPCOMING** lists what is still scheduled; **PAST ACTIVITY** lists what happened,
+each entry stamped with the operator and how long ago.
+
+Opens, replies and bounces only reach these queues if the send engine's webhook is wired. Without it the
+Emails and Follow-up tabs look empty rather than broken.
 
 **Communications** Day 0 intro email · Day 3 follow-up email · Day 3 check-in call · Day 5 call ·
-Day 7 final email. Replies are answered in Gmail; the send engine carries the sequence.
+Day 7 final email · the reply the provider sends back.
 
 ### Exhibits
 
-> **Not yet captured.** Six screens complete this stage. Each placeholder names the file it wants; drop the
-> PNGs into [`exhibits/`](exhibits/) and they replace the blocks below.
-
-**Exhibit F — Launch outreach.** The sequence preview before launch: each email by day with its subject,
-each call day with its script, the recipient list, and the **Reply manually in Smartlead** link.
+**Exhibit F — Confirm outreach plan.** The launch review: a **LAUNCH SUMMARY** (*"3 emails + 2 calls across
+the cadence below"*), **RECIPIENTS** as checkboxes with the address and phone each will be reached on, and
+**CADENCE** with every day expandable. Day 0 opens to the full email — To, From, subject, the body the
+provider will actually see, the variables that were substituted, and the program PDF. Footer reads
+*"3 email + 2 call ready"* against **Start outreach**.
 In Basket → provider drawer → **Launch outreach →**
 
-![Exhibit F — Launch outreach modal](exhibits/F-launch-outreach.png)
+![Exhibit F — Confirm outreach plan](exhibits/F-launch-outreach.png)
 
-**Exhibit G — Calls tab.** The calls due today across sites, in the order they should be worked.
-`olera.care/admin/medjobs/in-basket` → **Calls**
+**Exhibit G — Calls tab.** Calls grouped by due date with the day's count beside it, each row carrying the
+provider, its contact type, its site, and a click-to-dial number.
+`olera.care/admin/medjobs/in-basket?tab=calls`
 
 ![Exhibit G — Calls tab](exhibits/G-calls-tab.png)
 
-**Exhibit H — Log call.** The six outcomes with their consequences, and the notes field.
-Calls → row → **Log call**
+**Exhibit I — The drawer during outreach.** **NEXT STEP** names the state — *"Awaiting reply to outreach
+cadence · Next call in 4d"* — over the actions that fit it: **Call provider**, **Check for reply to
+provider**, **Launch activation**, and a link out to the send engine. Below, the state chip, then
+**UPCOMING** (queued emails and scheduled calls with dates) and **PAST ACTIVITY**.
+Calls → row
+
+![Exhibit I — Provider drawer during outreach](exhibits/I-outreach-drawer.png)
+
+**Exhibit H — Log call.** The day's script at the top — *DAY 3 SCRIPT* — then the five outcomes with their
+consequences, and a notes field where a note on its own logs the call.
+Calls → row → **Call provider**
 
 ![Exhibit H — Log call modal](exhibits/H-log-call.png)
 
-**Exhibit I — Emails tab.** Replies, opens, clicks and bounces coming back from the send engine.
-`olera.care/admin/medjobs/in-basket` → **Emails**
+**Exhibit J — Check for reply.** The provider's actual reply quoted at the top, then the five ways to
+respond. Behind it, the **Emails** tab grouped by state — *THEY REPLIED (9)*.
+`olera.care/admin/medjobs/in-basket?tab=replies` → row → **Check for reply**
 
-![Exhibit I — Emails tab](exhibits/I-emails-tab.png)
+![Exhibit J — Check for reply modal](exhibits/J-check-for-reply.png)
 
-**Exhibit J — Reply classifier.** The five classifications and what each does to the row.
-Emails → row → log reply
-
-![Exhibit J — Reply classifier modal](exhibits/J-reply-classifier.png)
-
-**Exhibit K — Follow-up tab.** Rows whose cadence finished without a meeting, waiting to be re-engaged or
-retired. `olera.care/admin/medjobs/in-basket` → **Follow-up**
+**Exhibit K — Follow-up tab.** *Not yet captured.* Rows whose cadence finished without a meeting, waiting
+to be re-engaged or retired. `olera.care/admin/medjobs/in-basket` → **Follow-up**
 
 ![Exhibit K — Follow-up tab](exhibits/K-followup-tab.png)
 

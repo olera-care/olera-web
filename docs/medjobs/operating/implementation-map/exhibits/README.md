@@ -12,11 +12,11 @@ with its URL so a reader can open the same place in the product.
 | `C-in-basket-providers.png` | MedJobs · In Basket, Providers tab | `/admin/medjobs/in-basket` |
 | `D-log-preflight.png` | Log Pre-Flight outcome modal | In Basket → provider row → Call to Confirm |
 | `E-provider-drawer.png` | Provider research drawer with timeline | In Basket → provider row |
-| `F-launch-outreach.png` | Launch outreach — sequence preview | Provider drawer → Launch outreach → |
+| `F-launch-outreach.png` | Confirm outreach plan — recipients + cadence | Provider drawer → Launch outreach → |
 | `G-calls-tab.png` | In Basket · Calls tab | `/admin/medjobs/in-basket` → Calls |
-| `H-log-call.png` | Log call modal — six outcomes | Calls → row → Log call |
-| `I-emails-tab.png` | In Basket · Emails tab | `/admin/medjobs/in-basket` → Emails |
-| `J-reply-classifier.png` | Reply classifier — five classifications | Emails → row → log reply |
+| `H-log-call.png` | Log call — day script + five outcomes | Calls → row → Call provider |
+| `I-outreach-drawer.png` | Provider drawer during outreach — NEXT STEP, upcoming, past | Calls → row |
+| `J-check-for-reply.png` | Check for reply — the reply and five responses | Emails → row → Check for reply |
 | `K-followup-tab.png` | In Basket · Follow-up tab | `/admin/medjobs/in-basket` → Follow-up |
 
 ## Conventions

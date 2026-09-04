@@ -1,16 +1,26 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 import AdminWorkspace from "@/components/admin/AdminWorkspace";
+import AnswerPacketPanel from "@/components/admin/AnswerPacketPanel";
+import RecheckPanel from "@/components/admin/RecheckPanel";
+import {
+  packetNeedsAttention,
+  type AnswerPacket,
+  type RecheckRecord,
+} from "@/lib/family-answers/types";
+import type { SmsThreadState } from "@/lib/sms/inbox-threads";
 
 /**
- * SMS inbox — every inbound text, and the ability to answer it.
+ * SMS conversation directory — every inbound text plus logged family texts
+ * Olera sent before a reply, and the ability to answer them.
  *
  * Two panes: threads on the left, conversation + reply box on the right.
- * The thread body comes from Twilio (complete, both directions); our own
- * sms_inbound rows supply identity and the handled/unhandled state.
+ * Twilio supplies the complete thread when available; sms_inbound and the
+ * outbound email_log ledger supply identity, silent-recipient visibility, and
+ * a durable bidirectional fallback.
  *
  * Replies autosave as drafts (sms_drafts, one row per thread). The reply box
  * used to be pure component state, wiped on every thread switch and lost on
@@ -32,11 +42,54 @@ interface Thread {
   last_body: string;
   last_keyword: string | null;
   last_at: string;
+  last_direction: "in" | "out";
+  last_email_type: string | null;
+  last_outbound_status: string | null;
+  last_outbound_delivered_at: string | null;
+  last_outbound_clicked_at: string | null;
   unhandled: number;
+  /** Oldest qualifying family reply still waiting for a human. */
+  oldest_promised_reply_at: string | null;
   total: number;
+  inbound_count: number;
+  outbound_count: number;
   suppressed: boolean;
   has_draft: boolean;
+  state: SmsThreadState;
 }
+
+type InboxMode = "needs_reply" | "awaiting_family" | "all";
+
+const THREAD_STATE_PRESENTATION: Record<
+  SmsThreadState,
+  { label: string; className: string; title?: string }
+> = {
+  needs_reply: {
+    label: "needs Olera reply",
+    className: "bg-emerald-50 text-emerald-700",
+  },
+  awaiting_family: {
+    label: "awaiting family",
+    className: "bg-blue-50 text-blue-700",
+  },
+  self_served: {
+    label: "clicked plan",
+    className: "bg-teal-50 text-teal-700",
+    title: "The latest outbound text's plan link was opened",
+  },
+  opted_out: {
+    label: "opted out",
+    className: "bg-amber-50 text-amber-700",
+  },
+  delivery_failed: {
+    label: "delivery failed",
+    className: "bg-red-50 text-red-700",
+  },
+  handled: {
+    label: "handled",
+    className: "bg-gray-100 text-gray-500",
+  },
+};
 
 interface ThreadMessage {
   sid: string;
@@ -60,6 +113,44 @@ interface ThreadDetail {
   inbound: { id: number; body: string; created_at: string; handled_at: string | null }[];
   twilioError: string | null;
   draft: { body: string; updated_by: string | null; updated_at: string } | null;
+  /** The most recent researched answer waiting on a human, if the engine has produced one. */
+  answerPacket: { jobId: string; packet: AnswerPacket } | null;
+  /**
+   * The recipient's send window, evaluated in THEIR timezone. Drives what the
+   * send button says before it is pressed, so nobody discovers the rule by
+   * having a text held.
+   */
+  quietHours: {
+    allowed: boolean;
+    crisisExempt: boolean;
+    tz: string;
+    sendAfter: string | null;
+    recipientNow: string;
+  };
+  /** A reply already written and waiting for that window to open. */
+  scheduled: { id: string; body: string; send_after: string; queued_by: string | null } | null;
+  /**
+   * Standing facts about the person, for the rail. Facts carry `verified` so
+   * the panel can show where each one came from instead of flattening a form
+   * answer and something they told us into the same confident sentence.
+   */
+  seeker: {
+    email: string | null;
+    relationship: string | null;
+    location: string | null;
+    facts: { label: string; value: string; verified: boolean }[];
+    savedPrograms: string[];
+    lookingFor: string | null;
+    program: {
+      name: string;
+      firstStepAt: string | null;
+      lastReply: string | null;
+      status: string | null;
+    } | null;
+    firstSeenAt: string | null;
+    waitingSince: string | null;
+    counts: { them: number; us: number };
+  };
 }
 
 /** What the draft indicator is currently saying. */
@@ -72,6 +163,26 @@ type DraftState =
 
 function formatPhone(last10: string): string {
   return `(${last10.slice(0, 3)}) ${last10.slice(3, 6)}-${last10.slice(6)}`;
+}
+
+/** Date only. The tally line reads as prose, and a timestamp broke it across lines. */
+function formatEtDate(iso: string | null): string {
+  if (!iso) return "";
+  return new Date(iso).toLocaleString("en-US", {
+    timeZone: "America/New_York",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+/** Just the clock part, for a button that has to stay narrow. */
+function formatEtTime(iso: string | null): string {
+  if (!iso) return "later";
+  return new Date(iso).toLocaleString("en-US", {
+    timeZone: "America/New_York",
+    hour: "numeric",
+    minute: "2-digit",
+  });
 }
 
 /** Admin surfaces anchor to US Eastern — TJ reads these from other time zones. */
@@ -118,19 +229,182 @@ function DraftStatus({ state }: { state: DraftState }) {
   );
 }
 
+/**
+ * Standing facts about the care seeker, beside the conversation.
+ *
+ * Every fact is rendered next to where it came from. A form answer and
+ * something they told us in the thread are not the same kind of claim, and
+ * collapsing them into one confident list is how a reviewer ends up acting on
+ * an age nobody verified.
+ *
+ * Ordered by what a reviewer reaches for first, which is not the demographics:
+ * whether the person writing is the one who needs care comes before anything
+ * else, because it changes how the whole reply is written.
+ */
+function SeekerPanel({ seeker }: { seeker: ThreadDetail["seeker"] }) {
+  const waitedDays = seeker.waitingSince
+    ? Math.floor((Date.now() - new Date(seeker.waitingSince).getTime()) / 86_400_000)
+    : null;
+  // Provenance moves to a group heading. Tagging every row "from a form"
+  // repeated the same four words down the panel and forced the value column to
+  // wrap around them; said once over the group it carries the same meaning and
+  // leaves the values room to sit on one line.
+  const fromForm = seeker.facts.filter((f) => !f.verified);
+  const toldUs = seeker.facts.filter((f) => f.verified);
+
+  return (
+    <>
+      {seeker.relationship && (
+        <p className="mt-3 text-sm text-gray-900">
+          Writing about{" "}
+          <span className="font-medium">
+            {seeker.relationship.toLowerCase() === "myself"
+              ? "themselves"
+              : seeker.relationship.toLowerCase()}
+          </span>
+        </p>
+      )}
+      {seeker.location && <p className="mt-0.5 text-sm text-gray-500">{seeker.location}</p>}
+      {seeker.email && (
+        <p className="mt-0.5 break-all text-[13px] text-gray-400">{seeker.email}</p>
+      )}
+
+      {/* An unanswered message that is days old is the most actionable thing
+          here, so it is the only part allowed colour. */}
+      {waitedDays !== null && waitedDays >= 1 && (
+        <p className="mt-3 text-[13px] font-medium text-amber-700">
+          Waiting {waitedDays} day{waitedDays === 1 ? "" : "s"} for a reply
+        </p>
+      )}
+
+      <FactGroup heading="From the intake form" facts={fromForm} />
+      <FactGroup heading="They told us" facts={toldUs} />
+
+      {seeker.savedPrograms.length > 0 && (
+        <section className="mt-5 border-t border-gray-100 pt-4">
+          <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+            On their plan
+            <span className="ml-1.5 font-normal tracking-normal normal-case text-gray-400">
+              {seeker.savedPrograms.length}
+            </span>
+          </h4>
+          {seeker.lookingFor && (
+            <p className="mt-1.5 text-[12px] text-gray-500">Came in for {seeker.lookingFor.toLowerCase()}</p>
+          )}
+          <ul className="mt-2 flex flex-wrap gap-1.5">
+            {seeker.savedPrograms.map((p) => (
+              <li
+                key={p}
+                className="rounded border border-gray-200 px-1.5 py-0.5 text-[12px] leading-5 text-gray-700"
+              >
+                {p}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      <p className="mt-5 border-t border-gray-100 pt-4 text-[12px] leading-5 text-gray-400">
+        {seeker.counts.them} from them, {seeker.counts.us} from us
+        {seeker.firstSeenAt ? ` · first wrote ${formatEtDate(seeker.firstSeenAt)}` : ""}
+      </p>
+    </>
+  );
+}
+
+/**
+ * One provenance group.
+ *
+ * A fixed label column with everything left-aligned, rather than labels left
+ * and values right. Justifying the two edges left a ragged gutter down the
+ * middle and gave a long value like "Personal care, household tasks, mobility
+ * help" nowhere to wrap except back under itself.
+ */
+function FactGroup({
+  heading,
+  facts,
+}: {
+  heading: string;
+  facts: ThreadDetail["seeker"]["facts"];
+}) {
+  if (!facts.length) return null;
+  return (
+    <section className="mt-5 border-t border-gray-100 pt-4">
+      <h4 className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">{heading}</h4>
+      <dl className="mt-2 grid grid-cols-[7.25rem_minmax(0,1fr)] gap-x-3 gap-y-1.5 text-[13px]">
+        {facts.map((f) => (
+          <Fragment key={f.label}>
+            <dt className="text-gray-500">{f.label}</dt>
+            <dd className="m-0 text-gray-900">{f.value}</dd>
+          </Fragment>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
 export default function AdminSmsInboxPage() {
   const [threads, setThreads] = useState<Thread[] | null>(null);
   const [truncated, setTruncated] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
-  const [unhandledOnly, setUnhandledOnly] = useState(true);
+  const [inboxMode, setInboxMode] = useState<InboxMode>("needs_reply");
   const [selected, setSelected] = useState<string | null>(null);
   const [detail, setDetail] = useState<ThreadDetail | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [reply, setReply] = useState("");
   const [sending, setSending] = useState(false);
+  /**
+   * WHICH send is in flight, not merely that one is. With a single button a
+   * boolean was enough; with two, a bare flag puts "Sending…" on the button
+   * that was not pressed — click "Send now" and "Schedule 8:00 AM" is what
+   * animates. That reads as the opposite of what you just chose, at the one
+   * moment you most need to know you overruled the hold correctly.
+   */
+  const [sendingNow, setSendingNow] = useState(false);
+  const [rechecking, setRechecking] = useState(false);
+  /**
+   * Result of the most recent re-check, held in component state rather than
+   * persisted into the packet. It belongs to the text in the box right now: the
+   * moment that text changes it is stale, and a stale check that still looks
+   * authoritative is exactly the problem this feature exists to solve.
+   */
+  const [recheckResult, setRecheckResult] = useState<RecheckRecord | null>(null);
+  /**
+   * Every draft the reviewer has actually had checked in this thread.
+   *
+   * A button is not a safeguard if nobody presses it. On 2026-08-31 three of
+   * six replies to care seekers went out with no adversarial check at all,
+   * because Re-check is optional and the reviewer simply forgot — not because
+   * the check was weak. The gap was never the checker's quality, it was that
+   * it never ran.
+   *
+   * Checked text is remembered rather than a boolean flag, so editing one word
+   * after a check correctly makes the reply unchecked again.
+   */
+  const [checkedDrafts, setCheckedDrafts] = useState<Set<string>>(new Set());
+  /**
+   * Which send is waiting on a second click because the text is unchecked.
+   *
+   * A passive warning would not have prevented this: the recipient-local time
+   * is already displayed in amber beside the counter and it does not stop
+   * anything. Sending an unverified claim to someone in crisis is worth one
+   * deliberate click, and only ever one, and only when the check was skipped.
+   */
+  const [confirmUnchecked, setConfirmUnchecked] = useState<null | "now" | "default">(null);
+  /**
+   * The context panel, for every window that is not enormous.
+   *
+   * The pinned rail is gated at 2xl, which is 1536px. A 13-inch MacBook is
+   * 1440px logical, so on that machine the panel could not render at any window
+   * size, and on a half-screen browser it never appeared either. Everything it
+   * knows about a care seeker was built and then shown to nobody.
+   */
+  const [contextOpen, setContextOpen] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [draftState, setDraftState] = useState<DraftState>({ kind: "none" });
+  /** Narrow-window home for the packet. The rail only exists at 2xl. */
+  const [sheetOpen, setSheetOpen] = useState(false);
 
   // The reply text last known to be on the server for the OPEN thread. Edits are
   // measured against this, so adopting a loaded draft into the box doesn't
@@ -150,6 +424,13 @@ export default function AdminSmsInboxPage() {
   // answer two rapid thread loads out of order, and an older response must not
   // replace the thread the admin is now viewing.
   const detailRequestRef = useRef(0);
+  /**
+   * Guards a re-check against landing on the wrong conversation. The request
+   * takes tens of seconds (web search plus two model calls), which is ample
+   * time to click another thread, and a verdict about one family's message
+   * rendered under another family's is worse than no verdict at all.
+   */
+  const recheckRequestRef = useRef(0);
   // The save currently in flight, so a discard can land AFTER it. Without this a
   // delete can be overtaken by an upsert that was already on the wire, leaving a
   // draft row behind that the UI has already forgotten about.
@@ -182,6 +463,17 @@ export default function AdminSmsInboxPage() {
 
   useEffect(() => { void loadThreads(); }, [loadThreads]);
 
+  // Escape closes the context panel. Bound once rather than on the panel, so it
+  // works whether focus is in the reply box, the thread list, or the panel.
+  useEffect(() => {
+    if (!contextOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setContextOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [contextOpen]);
+
   /**
    * `adoptDraft` decides whether the saved draft is pulled into the reply box.
    * True when opening a thread (show me what I parked) and after sending (the
@@ -194,6 +486,20 @@ export default function AdminSmsInboxPage() {
       setDetailLoading(true);
       setActionError(null);
       setNotice(null);
+      // A panel opened on one person must not stay open over the next one.
+      setContextOpen(false);
+      // A re-check belongs to one specific string in one specific thread.
+      // Carrying it across a thread switch would attach a verdict about one
+      // family's message to another family's. Bumping the ref abandons any
+      // request still on the wire, which is the half that clearing state alone
+      // does not cover: it would otherwise resolve after this and repopulate.
+      recheckRequestRef.current += 1;
+      setRecheckResult(null);
+      setRechecking(false);
+      setCheckedDrafts(new Set());
+      // Without this a confirmation armed on one thread carries to the next,
+      // and the first click there sends unchecked text with no second look.
+      setConfirmUnchecked(null);
       try {
         const res = await fetch(`/api/admin/sms-inbox/${phone}`);
         if (!res.ok) throw new Error((await res.json())?.error || "Failed to load thread");
@@ -349,16 +655,27 @@ export default function AdminSmsInboxPage() {
     setDetailLoading(false);
   }, [cancelPendingDraftSave, loadThreads, reply, saveDraft, selected]);
 
-  // Desktop inboxes are work surfaces, not landing pages. Open the first
-  // actionable row so the flexible pane is useful immediately; mobile keeps
-  // the familiar list-first navigation.
+  // Desktop inboxes are work surfaces, not landing pages. Keep the detail pane
+  // aligned with the active filter: retaining a Needs-reply conversation after
+  // switching to Awaiting makes the tab lie about what is on screen. Mobile
+  // keeps the familiar list-first navigation.
   useEffect(() => {
-    if (selected || !threads?.length || window.innerWidth < 1024) return;
-    const candidate = unhandledOnly
-      ? threads.find((thread) => thread.unhandled > 0 || thread.has_draft)
-      : threads[0];
-    if (candidate) openThread(candidate.phone_last10);
-  }, [openThread, selected, threads, unhandledOnly]);
+    if (!threads?.length || window.innerWidth < 1024) return;
+
+    const belongsToMode = (thread: Thread) =>
+      inboxMode === "all" || thread.state === inboxMode;
+    const activeThread = selected
+      ? threads.find((thread) => thread.phone_last10 === selected)
+      : null;
+    if (activeThread && belongsToMode(activeThread)) return;
+
+    const candidate = threads.find(belongsToMode);
+    if (candidate) {
+      openThread(candidate.phone_last10);
+    } else if (selected) {
+      closeThread();
+    }
+  }, [closeThread, inboxMode, openThread, selected, threads]);
 
   async function discardDraft() {
     if (!selected) return;
@@ -389,11 +706,61 @@ export default function AdminSmsInboxPage() {
     }
   }
 
-  async function sendReply() {
+  /** Explicit "use this draft" — always wins, overwrites whatever is in the box. */
+  const adoptDraftText = useCallback((text: string) => {
+    setReply(text);
+    setDraftState({ kind: "dirty" });
+    // Same reason as the textarea's onChange: the confirmed text and the text
+    // now in the box are not the same text.
+    setConfirmUnchecked(null);
+  }, []);
+
+  /**
+   * Silent pre-fill for a packet with nothing flagged, so the common case is
+   * edit-a-word-and-send rather than click-then-edit-then-send.
+   *
+   * Guarded on the box being empty: a pre-fill must never overwrite something
+   * a human was in the middle of typing, and a parked draft is a deliberate
+   * act that outranks a suggestion.
+   */
+  const autoFillDraftText = useCallback((text: string) => {
+    // Two guards, and the first one is the load-bearing one.
+    //
+    // draftBaselineRef holds the draft loaded from the server, and it is a
+    // SYNCHRONOUS ref write inside loadDetail. latestReplyRef is updated in an
+    // effect, and child effects run before parent effects — so on the render
+    // where a thread opens, the panel's auto-fill fires while latestReplyRef
+    // still holds the previous thread's value. Reading only that ref would let
+    // a clean packet silently overwrite a reply someone had parked, which is
+    // the one thing drafts exist to prevent.
+    if (draftBaselineRef.current.trim()) return;
+    if (latestReplyRef.current.trim()) return;
+    setReply(text);
+    setDraftState({ kind: "dirty" });
+    setConfirmUnchecked(null);
+  }, []);
+
+  async function sendReply({ now = false }: { now?: boolean } = {}) {
     if (!selected || !reply.trim() || sending) return;
+    // Unchecked text asks once. Crisis threads are exempt: quiet hours already
+    // step aside for them, and a checker round trip is the wrong thing to put
+    // between a person in crisis and an answer.
+    const action = now ? "now" : "default";
+    if (
+      !checkedDrafts.has(reply.trim()) &&
+      !detail?.quietHours.crisisExempt &&
+      confirmUnchecked !== action
+    ) {
+      setConfirmUnchecked(action);
+      setActionError(null);
+      setNotice(null);
+      return;
+    }
+    setConfirmUnchecked(null);
     // Claim the send synchronously — the drain below awaits, and without the
     // flag set first a fast double-click would get two messages past the guard.
     setSending(true);
+    setSendingNow(now);
     setActionError(null);
     setNotice(null);
     // A queued autosave must not fire after the send: the server deletes the
@@ -407,7 +774,7 @@ export default function AdminSmsInboxPage() {
       const res = await fetch(`/api/admin/sms-inbox/${selected}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "reply", body: reply.trim() }),
+        body: JSON.stringify({ action: "reply", body: reply.trim(), sendNow: now }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || "Failed to send");
@@ -417,11 +784,16 @@ export default function AdminSmsInboxPage() {
       await Promise.all([loadDetail(selected, { adoptDraft: true }), loadThreads()]);
       // Set AFTER the reload: loadDetail clears `notice`, so setting it first
       // wipes the confirmation before it ever paints.
-      setNotice("Reply sent.");
+      setNotice(
+        data?.scheduled
+          ? `Scheduled for ${formatEt(data.scheduled.sendAfter)} ET, when their quiet hours end.`
+          : "Reply sent.",
+      );
     } catch (err) {
       setActionError(err instanceof Error ? err.message : "Failed to send reply");
     } finally {
       setSending(false);
+      setSendingNow(false);
     }
   }
 
@@ -441,14 +813,103 @@ export default function AdminSmsInboxPage() {
     }
   }
 
+  async function cancelScheduled() {
+    if (!selected || sending) return;
+    setSending(true);
+    setActionError(null);
+    setNotice(null);
+    try {
+      const res = await fetch(`/api/admin/sms-inbox/${selected}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "cancel_scheduled" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || "Failed to cancel");
+      await Promise.all([loadDetail(selected, { adoptDraft: true }), loadThreads()]);
+      setNotice("Send canceled. The reply is back in the box.");
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to cancel");
+    } finally {
+      setSending(false);
+    }
+  }
+
+  /**
+   * Attack the text currently in the box.
+   *
+   * The packet's objections describe the draft the ENGINE wrote. Editing that
+   * draft silently invalidates every one of them while the panel goes on
+   * showing the source count, which is the most misleading state the review
+   * surface has. This is the way back to a checked message.
+   */
+  async function recheck() {
+    if (!selected || !reply.trim() || rechecking) return;
+    const requestId = ++recheckRequestRef.current;
+    const forThread = selected;
+    setRechecking(true);
+    setActionError(null);
+    setNotice(null);
+    setRecheckResult(null);
+    try {
+      const res = await fetch(`/api/admin/sms-inbox/${forThread}/recheck`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ body: reply.trim() }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (requestId !== recheckRequestRef.current) return;
+      if (!res.ok) throw new Error(data?.error || "Re-check failed");
+      const result = data.recheck as RecheckRecord;
+      setRecheckResult(result);
+      setCheckedDrafts((prev) => new Set(prev).add(result.draft.trim()));
+    } catch (err) {
+      if (requestId !== recheckRequestRef.current) return;
+      setActionError(err instanceof Error ? err.message : "Re-check failed");
+    } finally {
+      if (requestId === recheckRequestRef.current) setRechecking(false);
+    }
+  }
+
   // A parked draft counts as needing you, the same as an unanswered text —
   // otherwise a draft written on an already-handled thread is invisible in the
   // default view, which is most of the inbox. The `draft` chip says why the row
   // is here when `N new` doesn't.
-  const visible = (threads ?? []).filter((t) =>
-    unhandledOnly ? t.unhandled > 0 || t.has_draft : true,
+  const responseDeadlineMs = 48 * 60 * 60 * 1000;
+  const isResponseOverdue = (t: Thread) =>
+    t.unhandled > 0 &&
+    !t.suppressed &&
+    Boolean(t.oldest_promised_reply_at) &&
+    Date.now() - new Date(t.oldest_promised_reply_at as string).getTime() > responseDeadlineMs;
+  const visible = (threads ?? [])
+    .filter((thread) =>
+      inboxMode === "all"
+        ? true
+        : inboxMode === "needs_reply"
+          ? thread.state === "needs_reply"
+          : thread.state === "awaiting_family",
+    )
+    .sort((a, b) => {
+      // A promised response that is already late must not sit below a newer
+      // conversation. Within each group, preserve newest-thread ordering.
+      const overdueDelta =
+        inboxMode === "needs_reply"
+          ? Number(isResponseOverdue(b)) - Number(isResponseOverdue(a))
+          : 0;
+      return overdueDelta || new Date(b.last_at).getTime() - new Date(a.last_at).getTime();
+    });
+  const needsReplyCount = (threads ?? []).filter((thread) => thread.state === "needs_reply").length;
+  const awaitingFamilyCount = (threads ?? []).filter(
+    (thread) => thread.state === "awaiting_family",
+  ).length;
+  const overdueThreadCount = (threads ?? []).filter(isResponseOverdue).length;
+  // The packet the rail will actually render. Derived once so the header can
+  // never claim "Drafted answer" over a panel that was suppressed away.
+  const railPacket =
+    detail?.answerPacket && !detail.suppressed ? detail.answerPacket.packet : null;
+  const selectedThread = (threads ?? []).find(
+    (thread) => thread.phone_last10 === selected,
   );
-  const totalUnhandled = (threads ?? []).reduce((s, t) => s + t.unhandled, 0);
   // GSM-7 single segment is 160 chars; longer bodies split and bill per segment.
   const segments = reply.length === 0 ? 0 : Math.ceil(reply.length / 160);
   const recordHref = detail?.profile_id
@@ -461,35 +922,43 @@ export default function AdminSmsInboxPage() {
 
   return (
     <AdminWorkspace>
-      <div className={`grid min-h-0 flex-1 lg:grid-cols-[340px_minmax(0,1fr)] ${detail ? "2xl:grid-cols-[340px_minmax(0,1fr)_320px]" : ""}`}>
+      <div className={`grid min-h-0 flex-1 lg:grid-cols-[340px_minmax(0,1fr)] ${detail ? (detail.answerPacket ? "2xl:grid-cols-[340px_minmax(0,1fr)_400px]" : "2xl:grid-cols-[340px_minmax(0,1fr)_320px]") : ""}`}>
         {/* ── Thread list ─────────────────────────────────────────────── */}
         <aside className={`${selected ? "hidden lg:flex" : "flex"} min-h-0 flex-col border-r border-gray-200 bg-white`}>
           <header className="border-b border-gray-200 px-4 pb-3 pt-5">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h1 className="text-xl font-semibold tracking-tight text-gray-950">Messages</h1>
-                <p className="mt-1 text-xs leading-5 text-gray-500">Texts sent to Olera&rsquo;s number.</p>
+                <p className="mt-1 text-xs leading-5 text-gray-500">Texts to and from Olera.</p>
               </div>
-              <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${totalUnhandled > 0 ? "bg-amber-500" : "bg-emerald-500"}`} aria-hidden="true" />
+              <span className={`mt-1 h-2 w-2 shrink-0 rounded-full ${needsReplyCount > 0 ? "bg-amber-500" : "bg-emerald-500"}`} aria-hidden="true" />
             </div>
             <div className="mt-4 flex items-center gap-2">
-            {(["unhandled", "all"] as const).map((mode) => {
-              const on = (mode === "unhandled") === unhandledOnly;
-              return (
-                <button
-                  key={mode}
-                  onClick={() => setUnhandledOnly(mode === "unhandled")}
-                  className={[
-                    "rounded-full px-3 py-1.5 text-xs transition-colors",
-                    on ? "bg-gray-900 font-medium text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900",
-                  ].join(" ")}
-                >
-                  {mode === "unhandled" ? "Needs reply" : "All"}
-                </button>
-              );
-            })}
+              {(["needs_reply", "awaiting_family", "all"] as const).map((mode) => {
+                const on = mode === inboxMode;
+                return (
+                  <button
+                    key={mode}
+                    onClick={() => setInboxMode(mode)}
+                    className={[
+                      "rounded-full px-3 py-1.5 text-xs transition-colors",
+                      on ? "bg-gray-900 font-medium text-white" : "border border-gray-200 text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+                    ].join(" ")}
+                  >
+                    {mode === "needs_reply" ? "Needs reply" : mode === "awaiting_family" ? "Awaiting" : "All"}
+                  </button>
+                );
+              })}
               <span className="ml-auto text-[11px] text-gray-400">
-                {totalUnhandled > 0 ? `${totalUnhandled} awaiting reply` : "All caught up"}
+                {inboxMode === "needs_reply"
+                  ? overdueThreadCount > 0
+                    ? `${overdueThreadCount} past 48h`
+                    : needsReplyCount > 0
+                      ? `${needsReplyCount} need reply`
+                      : "All caught up"
+                  : inboxMode === "awaiting_family"
+                    ? `${awaitingFamilyCount} waiting`
+                    : `${threads?.length ?? 0} conversations`}
               </span>
             </div>
           </header>
@@ -512,7 +981,11 @@ export default function AdminSmsInboxPage() {
           )}
           {threads !== null && visible.length === 0 && !listError && (
             <p className="px-3 py-6 text-[13px] text-gray-500">
-              {unhandledOnly ? "Nothing waiting on you." : "No messages yet."}
+              {inboxMode === "needs_reply"
+                ? "Nothing waiting on you."
+                : inboxMode === "awaiting_family"
+                  ? "No conversations are awaiting a family response."
+                  : "No messages yet."}
             </p>
           )}
 
@@ -540,21 +1013,31 @@ export default function AdminSmsInboxPage() {
                     </span>
                     <span className="text-[11px] text-gray-400 shrink-0">{relative(t.last_at)}</span>
                   </div>
-                  <p className="text-[12px] text-gray-500 truncate mt-0.5">{t.last_body}</p>
+                  <p className="text-[12px] text-gray-500 truncate mt-0.5">
+                    {t.last_direction === "out" && (
+                      <span className="font-medium text-gray-400">Sent: </span>
+                    )}
+                    {t.last_body}
+                  </p>
                   <div className="flex items-center gap-1.5 mt-1">
                     {t.profile_type && (
                       <span className="text-[10px] uppercase tracking-wide text-gray-500 bg-gray-100 rounded px-1 py-px">
                         {t.profile_type}
                       </span>
                     )}
-                    {t.suppressed && (
-                      <span className="text-[10px] uppercase tracking-wide text-amber-700 bg-amber-50 rounded px-1 py-px">
-                        opted out
-                      </span>
-                    )}
-                    {t.unhandled > 0 && (
-                      <span className="text-[10px] text-emerald-700 bg-emerald-50 rounded px-1 py-px">
-                        {t.unhandled} new
+                    <span
+                      className={`rounded px-1 py-px text-[10px] ${THREAD_STATE_PRESENTATION[t.state].className}`}
+                      title={THREAD_STATE_PRESENTATION[t.state].title}
+                    >
+                      {THREAD_STATE_PRESENTATION[t.state].label}
+                      {t.state === "needs_reply" && t.unhandled > 1 ? ` · ${t.unhandled} new` : ""}
+                    </span>
+                    {isResponseOverdue(t) && (
+                      <span
+                        className="rounded bg-red-50 px-1 py-px text-[10px] font-medium text-red-700"
+                        title={`Olera promised a reply within 48 hours; oldest unanswered family message arrived ${formatEt(t.oldest_promised_reply_at)}`}
+                      >
+                        48h overdue
                       </span>
                     )}
                     {t.has_draft && (
@@ -573,7 +1056,9 @@ export default function AdminSmsInboxPage() {
         </aside>
 
         {/* ── Conversation ────────────────────────────────────────────── */}
-        <section className={`${selected ? "flex" : "hidden lg:flex"} min-h-0 min-w-0 flex-col bg-white`}>
+        {/* `relative` anchors the context overlay to this column. Without it the
+            overlay resolves against the page and covers the message list too. */}
+        <section className={`${selected ? "flex" : "hidden lg:flex"} relative min-h-0 min-w-0 flex-col bg-white`}>
           {!selected && (
             <div className="flex flex-1 items-center justify-center px-8 text-center">
               <div>
@@ -627,16 +1112,38 @@ export default function AdminSmsInboxPage() {
                     {formatPhone(detail.phone_last10)}
                     {detail.profile_type ? ` · ${detail.profile_type}` : " · not in our records"}
                   </p>
+                  {selectedThread && (
+                    <span
+                      className={`mt-1 inline-block rounded px-1.5 py-0.5 text-[10px] ${THREAD_STATE_PRESENTATION[selectedThread.state].className}`}
+                      title={THREAD_STATE_PRESENTATION[selectedThread.state].title}
+                    >
+                      {THREAD_STATE_PRESENTATION[selectedThread.state].label}
+                    </span>
+                  )}
                   </div>
                 </div>
-                {detail.unhandled > 0 && (
+                <div className="flex shrink-0 items-center gap-2">
+                  {/* Beside the person's name rather than in the reply box,
+                      because what it opens is about them, not about the draft.
+                      Hidden once the rail is pinned, so a wide screen does not
+                      show a control for a panel that is already on screen. */}
                   <button
-                    onClick={markHandled}
-                    className="text-[12px] px-2.5 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                    onClick={() => setContextOpen((v) => !v)}
+                    aria-expanded={contextOpen}
+                    aria-controls="seeker-context"
+                    className="rounded-md border border-gray-200 px-2.5 py-1.5 text-[12px] text-gray-700 transition-colors hover:bg-gray-50 2xl:hidden"
                   >
-                    Mark handled
+                    Context
                   </button>
-                )}
+                  {detail.unhandled > 0 && (
+                    <button
+                      onClick={markHandled}
+                      className="text-[12px] px-2.5 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      Mark handled
+                    </button>
+                  )}
+                </div>
               </header>
 
               {detail.twilioError && (
@@ -697,17 +1204,69 @@ export default function AdminSmsInboxPage() {
               {/* ── Reply ───────────────────────────────────────────── */}
               <div className="shrink-0 border-t border-gray-200 bg-white px-5 py-3.5">
                 <div className="mx-auto w-full max-w-3xl">
+                {/* On narrow windows the rail does not exist, so the packet
+                    becomes a sheet reached from here. It must never sit inline
+                    above the reply box again: at ~700px it evicted the very
+                    conversation it is meant to be judged against. */}
+                {detail.answerPacket && !detail.suppressed && (
+                  <button
+                    onClick={() => setSheetOpen(true)}
+                    className="mb-2.5 flex w-full items-center gap-2 rounded-lg border border-gray-200 px-3 py-2 text-left transition-colors hover:bg-gray-50 2xl:hidden"
+                  >
+                    <span
+                      className={`h-1.5 w-1.5 shrink-0 rounded-full ${packetNeedsAttention(detail.answerPacket.packet) ? "bg-amber-500" : "bg-teal-500"}`}
+                      aria-hidden="true"
+                    />
+                    <span className="text-[13px] text-gray-900">
+                      {detail.answerPacket.packet.triage.isCrisis
+                        ? "Flagged as a crisis"
+                        : "Drafted answer ready"}
+                    </span>
+                    <span className="ml-auto text-[11px] text-gray-400">Review</span>
+                  </button>
+                )}
                 {detail.suppressed ? (
                   <p className="text-[13px] text-amber-800 bg-amber-50 border border-amber-100 rounded-md px-3 py-2.5">
                     This number opted out
                     {detail.suppression?.reason === "sms_stop" ? " by texting STOP" : ""}. Replying is
                     blocked — they asked us to stop contacting them.
                   </p>
+                ) : detail.scheduled ? (
+                  /* A committed reply waiting on the clock. It replaces the box
+                     rather than sitting above it: the thread is answered, and a
+                     live textarea here would invite a second reply to a question
+                     that already has one. */
+                  <div className="rounded-lg border border-gray-200 px-3 py-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-teal-500" />
+                      <span className="text-[13px] font-medium text-gray-900">
+                        Sending {formatEt(detail.scheduled.send_after)} ET
+                      </span>
+                      <button
+                        onClick={cancelScheduled}
+                        disabled={sending}
+                        className="ml-auto text-[11px] text-gray-400 hover:text-red-600 disabled:opacity-40 transition-colors"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                    <p className="mt-1.5 text-[11px] text-gray-400">
+                      Held until their quiet hours end. Cancelling puts it back in the box.
+                    </p>
+                    <p className="mt-2 whitespace-pre-wrap text-[13px] leading-relaxed text-gray-600">
+                      {detail.scheduled.body}
+                    </p>
+                  </div>
                 ) : (
                   <>
                     <textarea
                       value={reply}
-                      onChange={(e) => setReply(e.target.value)}
+                      onChange={(e) => {
+                        setReply(e.target.value);
+                        // Any edit re-opens the question: the text about to be
+                        // sent is not the text that was just confirmed.
+                        setConfirmUnchecked(null);
+                      }}
                       rows={3}
                       maxLength={480}
                       placeholder="Write a reply…"
@@ -717,8 +1276,17 @@ export default function AdminSmsInboxPage() {
                       <span className="text-[11px] text-gray-400 tabular-nums">
                         {reply.length}/480
                         {segments > 1 ? ` · ${segments} segments` : ""}
+                        {!detail.quietHours.allowed && (
+                          <span className="text-amber-600">
+                            {" · "}
+                            {detail.quietHours.recipientNow} for them
+                          </span>
+                        )}
+                        {reply.trim() && !checkedDrafts.has(reply.trim()) && (
+                          <span className="text-gray-400">{" · not checked"}</span>
+                        )}
                       </span>
-                      <div className="flex items-center gap-3">
+                      <div className="flex flex-wrap items-center justify-end gap-2">
                         <DraftStatus state={draftState} />
                         {(draftState.kind === "saved" || reply.length > 0) && (
                           <button
@@ -730,15 +1298,64 @@ export default function AdminSmsInboxPage() {
                           </button>
                         )}
                         <button
-                          onClick={sendReply}
+                          onClick={recheck}
+                          disabled={!reply.trim() || rechecking || sending}
+                          title="Re-run the adversarial check against this text"
+                          className="text-[12px] font-medium px-2.5 py-1.5 rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        >
+                          {rechecking ? "Checking…" : "Re-check"}
+                        </button>
+                        {/* Outside the recipient's window BOTH actions stay on
+                            screen. Weight carries the recommendation, never
+                            availability: scheduling is filled because it is the
+                            right default, and sending is one plain click away
+                            because the reason to overrule a quiet hour is
+                            usually urgency, and hiding the override behind a
+                            caret taxes exactly the case that cannot afford it. */}
+                        {!detail.quietHours.allowed && (
+                          <button
+                            onClick={() => sendReply({ now: true })}
+                            disabled={!reply.trim() || sending}
+                            title={`It is ${detail.quietHours.recipientNow} where they are`}
+                            className="text-[13px] font-medium px-3 py-1.5 rounded-md border border-gray-200 text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                          >
+                            {sending && sendingNow
+                              ? "Sending…"
+                              : confirmUnchecked === "now"
+                                ? "Send unchecked?"
+                                : "Send now"}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => sendReply()}
                           disabled={!reply.trim() || sending}
                           className="text-[13px] font-medium px-3.5 py-1.5 rounded-md bg-primary-600 text-white hover:bg-primary-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                         >
-                          {sending ? "Sending…" : "Send text"}
+                          {sending && !sendingNow
+                            ? detail.quietHours.allowed
+                              ? "Sending…"
+                              : "Scheduling…"
+                            : confirmUnchecked === "default"
+                              ? detail.quietHours.allowed
+                                ? "Send unchecked?"
+                                : "Schedule unchecked?"
+                              : detail.quietHours.allowed
+                                ? "Send text"
+                                : `Schedule ${formatEtTime(detail.quietHours.sendAfter)}`}
                         </button>
                       </div>
                     </div>
                   </>
+                )}
+
+                {recheckResult && !detail.scheduled && (
+                  <RecheckPanel
+                    result={recheckResult}
+                    currentDraft={reply}
+                    onUseSuggestion={adoptDraftText}
+                    onDismiss={() => setRecheckResult(null)}
+                    disabled={sending}
+                  />
                 )}
 
                 {actionError && (
@@ -747,6 +1364,57 @@ export default function AdminSmsInboxPage() {
                 {notice && <p className="mt-2 text-[12px] text-emerald-700">{notice}</p>}
                 </div>
               </div>
+
+              {/* Context, for every width the pinned rail does not reach.
+                  Anchored to the thread column so it covers the conversation
+                  and leaves the message list alone: you read this BEFORE
+                  writing, so nothing is lost by hiding the last message for a
+                  moment, and pushing the thread aside would reflow the text
+                  being read. */}
+              {contextOpen && (
+                <div className="absolute inset-0 z-30 2xl:hidden">
+                  <button
+                    aria-label="Close context"
+                    onClick={() => setContextOpen(false)}
+                    className="absolute inset-0 h-full w-full cursor-default bg-gray-900/20 motion-safe:animate-[ctxScrim_.2s_ease-out]"
+                  />
+                  <aside
+                    id="seeker-context"
+                    aria-label="Care seeker context"
+                    className="absolute inset-y-0 right-0 w-[19.5rem] max-w-[85%] overflow-y-auto border-l border-gray-200 bg-white px-5 pb-6 pt-4 shadow-[-14px_0_34px_-18px_rgba(16,24,40,0.35)] motion-safe:animate-[ctxIn_.26s_cubic-bezier(.32,.72,0,1)]"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <h2 className="text-base font-semibold text-gray-900">Contact</h2>
+                      <button
+                        onClick={() => setContextOpen(false)}
+                        aria-label="Close"
+                        className="-mr-1 rounded p-1 text-gray-400 transition-colors hover:text-gray-700"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                    <div className="mt-4 flex h-11 w-11 items-center justify-center rounded-full bg-teal-50 text-sm font-semibold text-teal-700">
+                      {(detail.display_name || formatPhone(detail.phone_last10)).slice(0, 1).toUpperCase()}
+                    </div>
+                    <h3 className="mt-3 text-lg font-semibold text-gray-950">
+                      {detail.display_name || formatPhone(detail.phone_last10)}
+                    </h3>
+                    <p className="mt-1 text-sm text-gray-500">{formatPhone(detail.phone_last10)}</p>
+                    <SeekerPanel seeker={detail.seeker} />
+                    {detail.profile_id && (
+                      <a
+                        href={`/admin/care-seekers/${detail.profile_id}`}
+                        className="mt-5 block rounded-lg bg-gray-900 px-4 py-2.5 text-center text-[13px] font-medium text-white transition-colors hover:bg-gray-800"
+                      >
+                        Open care-seeker record
+                      </a>
+                    )}
+                  </aside>
+                  {/* Named apart from the config's fadeIn, which carries a
+                      translateY that would nudge a full-bleed scrim. */}
+                  <style>{`@keyframes ctxIn{from{transform:translateX(100%)}to{transform:none}}@keyframes ctxScrim{from{opacity:0}to{opacity:1}}`}</style>
+                </div>
+              )}
             </>
           )}
         </section>
@@ -755,9 +1423,27 @@ export default function AdminSmsInboxPage() {
         {detail && (
           <aside className="hidden min-h-0 flex-col border-l border-gray-200 bg-white 2xl:flex">
             <header className="border-b border-gray-200 px-5 py-4">
-              <h2 className="text-base font-semibold text-gray-900">Contact</h2>
+              <h2 className="text-base font-semibold text-gray-900">
+                {railPacket
+                  ? railPacket.triage.isCrisis
+                    ? "Flagged message"
+                    : "Drafted answer"
+                  : "Contact"}
+              </h2>
             </header>
             <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+              {/* The answer sits beside the conversation, so the question it is
+                  answering stays on screen while you judge it. */}
+              {railPacket && (
+                <div className="mb-6 border-b border-gray-100 pb-6">
+                  <AnswerPacketPanel
+                    packet={railPacket}
+                    disabled={sending}
+                    onUseDraft={adoptDraftText}
+                    onAutoFill={autoFillDraftText}
+                  />
+                </div>
+              )}
               <div className="flex h-11 w-11 items-center justify-center rounded-full bg-teal-50 text-sm font-semibold text-teal-700">
                 {(detail.display_name || formatPhone(detail.phone_last10)).slice(0, 1).toUpperCase()}
               </div>
@@ -765,6 +1451,8 @@ export default function AdminSmsInboxPage() {
                 {detail.display_name || formatPhone(detail.phone_last10)}
               </h3>
               <p className="mt-1 text-sm text-gray-500">{formatPhone(detail.phone_last10)}</p>
+
+              <SeekerPanel seeker={detail.seeker} />
 
               <dl className="mt-6 divide-y divide-gray-100 border-y border-gray-100 text-sm">
                 <div className="flex items-center justify-between gap-3 py-3">
@@ -792,6 +1480,41 @@ export default function AdminSmsInboxPage() {
           </aside>
         )}
       </div>
+
+      {/* Narrow-window packet. A sheet rather than a swapped view, so the
+          conversation stays behind it — losing the question is the exact
+          failure this redesign exists to fix. */}
+      {railPacket && sheetOpen && (
+        <div className="fixed inset-0 z-40 flex flex-col justify-end 2xl:hidden">
+          <button
+            aria-label="Close"
+            onClick={() => setSheetOpen(false)}
+            className="absolute inset-0 bg-gray-900/20 motion-safe:animate-[fadeIn_.2s_ease-out]"
+          />
+          <div className="relative max-h-[80vh] overflow-y-auto rounded-t-2xl bg-white px-5 pb-6 pt-3 shadow-2xl motion-safe:animate-[sheetUp_.24s_cubic-bezier(.32,.72,0,1)]">
+            <div className="mx-auto mb-4 h-1 w-9 rounded-full bg-gray-200" aria-hidden="true" />
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="text-base font-semibold text-gray-900">Drafted answer</h2>
+              <button
+                onClick={() => setSheetOpen(false)}
+                className="text-[12px] text-gray-400 transition-colors hover:text-gray-700"
+              >
+                Close
+              </button>
+            </div>
+            <AnswerPacketPanel
+              packet={railPacket}
+              disabled={sending}
+              onUseDraft={(t) => {
+                adoptDraftText(t);
+                setSheetOpen(false);
+              }}
+              onAutoFill={autoFillDraftText}
+            />
+          </div>
+          <style>{`@keyframes sheetUp{from{transform:translateY(12px);opacity:.6}to{transform:none;opacity:1}}@keyframes fadeIn{from{opacity:0}to{opacity:1}}`}</style>
+        </div>
+      )}
     </AdminWorkspace>
   );
 }

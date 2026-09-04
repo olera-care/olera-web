@@ -52,12 +52,14 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import {
   findEmail,
   normalizeWebsite,
-  discoverWebsiteByName,
   CostTracker,
   type ProviderContext,
 } from "../lib/medjobs/outreach-enrichment";
 import { verifyAndCache, effectiveStatus } from "../lib/email-verification";
-import { sendDeferredNotificationsForProvider } from "../lib/admin/send-deferred-notifications";
+import {
+  collectQuestionTargets,
+  enrichOneTarget,
+} from "../lib/provider-email-enrichment";
 
 // ---------------------------------------------------------------------------
 // CLI
@@ -89,29 +91,16 @@ const SERVICE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 // Target shape — a provider to enrich + how to write its email back.
 // ---------------------------------------------------------------------------
 
-interface NotifyOutcome {
-  summary: string;
-  questionsSent: number;
-  duplicatesSuppressed: number;
-}
-
+/**
+ * A --city / --outreach target. --questions does NOT use this shape: it runs
+ * through lib/provider-email-enrichment, which owns website discovery and the
+ * held-question flush.
+ */
 interface Target {
   id: string; // provider_id (directory) or student_outreach.id (outreach)
   ctx: ProviderContext;
   /** Persist a found+verified email for this target. */
   write: (db: SupabaseClient, email: string) => Promise<void>;
-  /**
-   * No website AND no place_id on file — the finder has nothing to resolve, so
-   * look the business up by name first. Only set in --questions mode, where the
-   * cohort is fixed by demand rather than by having a scrapeable site.
-   */
-  discover?: boolean;
-  /**
-   * Fires after a successful write. In --questions mode this flushes the
-   * questions that were held BECAUSE the provider had no email — the whole
-   * point of the run.
-   */
-  onWritten?: (db: SupabaseClient, email: string) => Promise<NotifyOutcome>;
 }
 
 function hasEmail(v: unknown): boolean {
@@ -159,112 +148,6 @@ async function collectDirectoryTargets(db: SupabaseClient): Promise<Target[]> {
         if (error) throw new Error(error.message);
       },
     }));
-}
-
-/**
- * QUESTIONS mode — the cohort War Room's provider_contactability probe flags:
- * providers holding UNANSWERED questions that we cannot email. Unlike --city
- * this does NOT require a website on file; roughly half the cohort has only a
- * place_id, which resolveWebsite() turns into a site via Google Places, and the
- * handful with neither get a name lookup first.
- */
-async function collectQuestionTargets(db: SupabaseClient): Promise<Target[]> {
-  const from = new Date(Date.now() - QUESTION_DAYS * 86_400_000).toISOString();
-
-  // Distinct provider pages holding a pending (unanswered) question.
-  const slugs = new Set<string>();
-  let offset = 0;
-  const PAGE = 1000;
-  while (true) {
-    const { data, error } = await db
-      .from("provider_questions")
-      .select("provider_id")
-      .eq("status", "pending")
-      .gte("created_at", from)
-      .order("id", { ascending: true })
-      .range(offset, offset + PAGE - 1);
-    if (error) throw new Error(`provider_questions fetch: ${error.message}`);
-    if (!data || data.length === 0) break;
-    for (const row of data) {
-      const slug = (row as { provider_id: string | null }).provider_id;
-      if (slug) slugs.add(slug);
-    }
-    if (data.length < PAGE) break;
-    offset += data.length;
-  }
-
-  // Resolve to live directory rows, keeping only the unreachable ones.
-  const slugList = Array.from(slugs);
-  const rows: Record<string, unknown>[] = [];
-  const CHUNK = 200;
-  for (let i = 0; i < slugList.length; i += CHUNK) {
-    const { data, error } = await db
-      .from("olera-providers")
-      .select("provider_id, provider_name, slug, email, website, place_id, city, state, deleted")
-      .in("slug", slugList.slice(i, i + CHUNK));
-    if (error) throw new Error(`olera-providers fetch: ${error.message}`);
-    rows.push(...(data ?? []));
-  }
-
-  return rows
-    .filter((r) => !r.deleted && !hasEmail(r.email))
-    .map((r) => {
-      const slug = r.slug as string;
-      const providerId = r.provider_id as string;
-      const website = normalizeWebsite(r.website as string);
-      return {
-        id: slug,
-        discover: !website && !r.place_id,
-        ctx: {
-          name: (r.provider_name as string) || null,
-          website,
-          place_id: (r.place_id as string) || null,
-          city: (r.city as string) || null,
-          state: (r.state as string) || null,
-        },
-        write: async (client: SupabaseClient, email: string) => {
-          const { error } = await client
-            .from("olera-providers")
-            .update({ email })
-            .eq("slug", slug);
-          if (error) throw new Error(error.message);
-          // Keep a claimed account's address in step with the directory, the
-          // same way the admin directory edit does.
-          await client
-            .from("business_profiles")
-            .update({ email })
-            .eq("source_provider_id", providerId)
-            .is("email", null);
-        },
-        onWritten: async (client: SupabaseClient, email: string): Promise<NotifyOutcome> => {
-          if (NO_NOTIFY) return { summary: "notify skipped (--no-notify)", questionsSent: 0, duplicatesSuppressed: 0 };
-          const { data: bp } = await client
-            .from("business_profiles")
-            .select("id, slug, metadata")
-            .eq("source_provider_id", providerId)
-            .limit(1)
-            .maybeSingle();
-          const profileMeta = ((bp?.metadata as Record<string, unknown>) || {});
-          const providerSlug = (bp?.slug as string) || slug;
-          // Questions can be filed under any of the provider's identifiers.
-          const variants = [slug, providerId].filter((v) => v && v !== providerSlug) as string[];
-          const res = await sendDeferredNotificationsForProvider({
-            profileId: (bp?.id as string) || "",
-            email,
-            providerName: (r.provider_name as string) || "Provider",
-            providerSlug,
-            additionalSlugVariants: variants,
-            leadsUnsubscribed: !!profileMeta.leads_unsubscribed,
-            maxQuestions: MAX_QUESTIONS,
-          });
-          return {
-            summary: `sent ${res.questionEmailsSent} question email(s), suppressed ${res.questionDuplicatesSuppressed} repeat(s)`,
-            questionsSent: res.questionEmailsSent,
-            duplicatesSuppressed: res.questionDuplicatesSuppressed,
-          };
-        },
-      } satisfies Target;
-    });
 }
 
 async function collectOutreachTargets(db: SupabaseClient): Promise<Target[]> {
@@ -341,6 +224,90 @@ async function pool<T>(items: T[], n: number, worker: (item: T, i: number) => Pr
   await Promise.all(runners);
 }
 
+
+/**
+ * --questions: delegate to the shared library so this script and
+ * app/api/cron/enrich-question-providers can never disagree about which
+ * addresses are acceptable.
+ */
+async function runQuestionsMode(db: SupabaseClient): Promise<void> {
+  const { targets, totalUnreachable } = await collectQuestionTargets(db, {
+    days: QUESTION_DAYS,
+    limit: Number.isFinite(LIMIT) ? LIMIT : undefined,
+  });
+  console.log(
+    `Targets (no email, website optional): ${totalUnreachable}` +
+      (targets.length !== totalUnreachable ? ` → capped to ${targets.length} via --limit` : ""),
+  );
+  console.log(
+    `  ${targets.filter((t) => !t.ctx.website).length} have no website on file ` +
+      `(resolved via place_id / name lookup)\n` +
+      `  newest question first, so a capped run works the freshest inflow\n` +
+      `  on write: flush up to ${MAX_QUESTIONS} held question(s) each, repeats deduped` +
+      `${NO_NOTIFY ? " — DISABLED via --no-notify" : ""}`,
+  );
+
+  console.log("\nSample targets:");
+  for (const t of targets.slice(0, 8)) {
+    console.log(
+      `  • ${t.name ?? "(unnamed)"} — ${t.ctx.website ?? (t.ctx.place_id ? "(via place_id)" : "(name lookup)")}`,
+    );
+  }
+
+  if (!APPLY) {
+    console.log(
+      `\n[DRY RUN] No network calls, no writes, NO question emails. Spend ceiling ` +
+        `$${(targets.length * 0.012).toFixed(2)} if every target misses the scrape.\n` +
+        `Re-run with --apply to enrich.\n`,
+    );
+    return;
+  }
+
+  const cost = new CostTracker();
+  const stats = { found: 0, written: 0, dropped: 0, empty: 0, sent: 0, deduped: 0, errors: 0 };
+  let done = 0;
+  await pool(targets, CONCURRENCY, async (t) => {
+    const out = await enrichOneTarget(db, t, {
+      cost,
+      verify: !NO_VERIFY,
+      notify: !NO_NOTIFY,
+      maxQuestions: MAX_QUESTIONS,
+    });
+    if (out.error) {
+      stats.errors++;
+      console.log(`\n  [error] ${out.slug}: ${out.error}`);
+    } else if (!out.found) {
+      stats.empty++;
+    } else {
+      stats.found++;
+      if (out.written) {
+        stats.written++;
+        stats.sent += out.questionsSent;
+        stats.deduped += out.duplicatesSuppressed;
+        console.log(
+          `\n  [wrote] ${t.name}: ${out.email} (${out.source}) → sent ${out.questionsSent}, suppressed ${out.duplicatesSuppressed}`,
+        );
+      } else {
+        stats.dropped++;
+      }
+    }
+    done++;
+    if (done % 5 === 0 || done === targets.length) {
+      process.stdout.write(`  ${done}/${targets.length} | written ${stats.written} | ${cost.summary()}\r`);
+    }
+  });
+
+  console.log(`\n\nDone.`);
+  console.log(`  Emails found:         ${stats.found}`);
+  console.log(`  Dropped undeliverable:${stats.dropped}`);
+  console.log(`  No email found:       ${stats.empty}`);
+  console.log(`  WRITTEN:              ${stats.written}`);
+  console.log(`  Question emails sent: ${stats.sent}`);
+  console.log(`  Repeat Qs suppressed: ${stats.deduped}`);
+  console.log(`  Errors:               ${stats.errors}`);
+  console.log(`  ${cost.summary()}\n`);
+}
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
@@ -368,11 +335,15 @@ async function main() {
       : "outreach (student_outreach, kind=provider)";
   console.log(`\nEmail enrichment — mode: ${mode}\n`);
 
-  let targets = CITY
-    ? await collectDirectoryTargets(db)
-    : QUESTIONS
-      ? await collectQuestionTargets(db)
-      : await collectOutreachTargets(db);
+  // --questions runs through lib/provider-email-enrichment, the same code the
+  // weekly cron uses. Keeping a second copy here is what let the raw-verdict
+  // bug survive in this script while the send path had already been corrected.
+  if (QUESTIONS) {
+    await runQuestionsMode(db);
+    return;
+  }
+
+  let targets = CITY ? await collectDirectoryTargets(db) : await collectOutreachTargets(db);
   const totalBeforeLimit = targets.length;
   if (Number.isFinite(LIMIT)) targets = targets.slice(0, LIMIT);
 
@@ -419,10 +390,6 @@ async function main() {
 
   await pool(targets, CONCURRENCY, async (t) => {
     try {
-      if (t.discover) {
-        const found = await discoverWebsiteByName(t.ctx.name, t.ctx.city, t.ctx.state, cost);
-        t.ctx = { ...t.ctx, website: found.website, place_id: found.placeId };
-      }
       const res = await findEmail(t.ctx, cost);
       if (!res.email) {
         stats.empty++;
@@ -455,18 +422,6 @@ async function main() {
         if (ok) {
           await t.write(db, res.email);
           stats.written++;
-          if (t.onWritten) {
-            try {
-              const outcome = await t.onWritten(db, res.email);
-              stats.questionsSent += outcome.questionsSent;
-              stats.duplicatesSuppressed += outcome.duplicatesSuppressed;
-              console.log(`\n  [notify] ${t.ctx.name}: ${outcome.summary}`);
-            } catch (notifyErr) {
-              // The email is written and durable — a failed flush is recoverable
-              // on the next run, so never fail the enrichment over it.
-              console.log(`\n  [notify-failed] ${t.ctx.name}: ${(notifyErr as Error).message}`);
-            }
-          }
         }
       }
     } catch (err) {

@@ -10,10 +10,12 @@
  * owns and dims (and links) the ones another automation runs.
  *
  * DRIFT GUARD: timings and gates here are hand-authored mirrors of the real
- * ladder in app/api/cron/family-comms-coordinator/route.ts and the send path
- * in lib/family-comms/benefits-navigator-send.server.ts. If you change a time
- * band, gate, or rung order there, update the matching step here (grep for
- * "journey.ts" — both files carry a pointer comment).
+ * entry + delivery paths in components/providers/BenefitsDiscoveryModule*,
+ * components/waiver-library/ProgramBenefitsCard.tsx,
+ * app/api/benefits/save-results/route.ts,
+ * app/api/cron/family-comms-coordinator/route.ts, and
+ * lib/family-comms/benefits-navigator-send.server.ts. If you change a gate,
+ * CTA, time band, or rung order there, update the matching step here.
  *
  * Pure data + pure functions, client-safe (the detail page imports directly).
  */
@@ -44,6 +46,10 @@ export interface JourneyStep {
   emailSampleId?: string;
   /** Exact text sample selected by the family-journey preview link. */
   smsSampleId?: string;
+  /** Public/admin experience that lets an operator inspect this non-message step. */
+  experienceUrl?: string;
+  /** CTA label for experienceUrl. Defaults to "View experience". */
+  experienceLabel?: string;
 }
 
 export interface CommsJourney {
@@ -63,44 +69,57 @@ const BENEFITS_CASCADE: CommsJourney = {
   title: "Benefits cascade — the family's sequence",
   ordering: "time",
   description:
-    "One guidance journey across the channels a family chose: results arrive first, the daily coordinator drafts B1 and sends B2, and the hourly scheduler (or TJ's button) fires the approved first step. Text replies update the same living plan.",
+    "One guidance journey from the family's results CTA through the channels they choose: contact capture creates or updates their living plan, results arrive for a new family, the daily coordinator drafts B1 and sends B2, and the hourly scheduler (or TJ's button) fires the approved first step. Text replies update the same plan.",
   steps: [
     {
-      key: "intake_results",
-      title: "Results email delivered (when email is provided)",
-      timing: "Day 0 · New-family intake completed",
+      key: "results_cta",
+      title: "Results CTA submitted → contact captured",
+      timing: "Day 0 · Immediately before results delivery",
       description:
-        "A new family completes the benefits finder with an email. Olera identifies the strongest matches, adds them to the family's private plan, and emails the living /m plan link.",
+        "After seeing a benefits prompt on a program, provider, or editorial page, the family enters an email and submits the surface's results CTA — for example, “Email me my matches,” “Save my matches,” or “Check my eligibility.” The shared save-results path stores their matches and creates or updates the private living plan that every later message points back to; a phone is an optional second channel on supported surfaces.",
+      ownerNote: "Public benefits experience · funnel signals: cta_engaged + benefits_completed",
+      gate: "A valid email is required for the results email; an optional phone only receives the companion text when entered with the SMS disclosure",
+      traits: ["Conversion", "Contact capture"],
+      experienceUrl: "/benefits/texas/star-plus-medicaid-hcbs",
+      experienceLabel: "View example CTA",
+    },
+    {
+      key: "intake_results",
+      title: "Context-aware results email delivered (new email family)",
+      timing: "Day 0 · Results CTA completed",
+      description:
+        "A new family submits one of the benefits capture surfaces with an email. A specific program-page entry continues with that exact program, its general requirements, and its guide; a broad finder, provider, or editorial entry receives an honest plan-ready receipt. Olera also saves the requested program separately from ranked suggestions so it is not lost or mislabeled as an eligibility match.",
       emailType: "benefits_results_saved",
       emailSampleId: "benefits_results_saved",
       ownedBy: "benefits-results-texts",
+      gate: "New families with a valid email only; an email address never establishes eligibility. A returning account updates its plan without receiving a duplicate welcome-results email",
     },
     {
       key: "intake_results_sms",
-      title: "Results link texted (optional)",
+      title: "Care-team question + plan texted (optional)",
       timing: "Day 0 · When a phone is provided",
       description:
-        "A new family who enters a phone under the SMS disclosure immediately receives the same living /m plan link. That choice is stored as sms_consent for the later navigator and check-in, so the text thread does not break after Day 0.",
+        "A family who enters a phone under the SMS disclosure receives a bounded question from Olera's care team plus the same living /m plan link. New families can receive it with their initial results; a family on the program-page email path can also add a phone during post-submit enrichment. The care team promises to reply within 48 hours when the family responds, and stores sms_consent for the later navigator and check-in.",
       smsType: "benefits_results_sms",
       smsSampleId: "sms_benefits_match",
       ownedBy: "benefits-results-texts",
-      gate: "Requires a valid phone entered with the SMS disclosure; skipped when no phone is provided",
+      gate: "Requires a valid phone entered with the SMS disclosure. Initial save-results delivery is new-family only; post-submit phone enrichment can send the same results text to a returning family",
     },
     {
       key: "b1_draft",
       title: "B1 · Navigator guidance drafted",
       timing: "Intake +2–10d",
       description:
-        "The coordinator composes personal TJ-signed first-step guidance: an email when available and a reply-enabled text for consented families. It parks the draft in /admin/benefits for review.",
+        "The coordinator composes personal first-step guidance: an email when available and a reply-enabled text for consented families. It parks the draft in /admin/benefits for review.",
       ownedBy: "family-comms-coordinator",
-      gate: "Draft only — nothing reaches the family until TJ approves it in the queue",
+      gate: "Draft only — nothing reaches the family until the care team approves it in the queue",
     },
     {
       key: "b1_send",
       title: "B1 · First step sent (email and/or text)",
-      timing: "When TJ sends, or at the scheduled hour",
+      timing: "When the care team sends, or at the scheduled hour",
       description:
-        "TJ's Send-as-TJ button and the hourly scheduler run one shared send path. Email families receive the reviewed letter; consented text families receive the first step in the same thread. Text-only families keep moving without being forced into email.",
+        "The care team's send button and the hourly scheduler run one shared send path. Email families receive the reviewed letter; consented text families receive the first step in the same thread. Text-only families keep moving without being forced into email.",
       emailType: "benefits_first_step",
       smsType: "benefits_first_step_sms",
       emailSampleId: "benefits_first_step",
@@ -191,9 +210,9 @@ const HELP_CASCADE_LADDER: CommsJourney = {
       key: "b1_draft",
       title: "B1 · Navigator draft (benefits cascade)",
       timing: "Benefits intake +2–10d",
-      description: "Composes the TJ-signed first-step letter into the /admin/benefits queue — see the Benefits cascade sequence below for the full journey.",
+      description: "Composes the reviewed first-step letter into the /admin/benefits queue — see the Benefits cascade sequence below for the full journey.",
       ownedBy: "family-comms-coordinator",
-      gate: "Composes a draft; the send is TJ-gated and fired by the navigator scheduler",
+      gate: "Composes a draft; the send is care-team-gated and fired by the navigator scheduler",
     },
     {
       key: "b2",
@@ -426,11 +445,21 @@ export const AD_BOOST_PROVIDER_JOURNEY: CommsJourney = {
 
 /**
  * Provider outreach journey — the claim funnel from enrollment through
- * follow-up channels to re-engagement cycles.
+ * follow-up channels to terminal states.
  *
- * DRIFT GUARD: mirrors the provider-outreach-send 4-email cadence (Day 0/3/5/7),
- * the provider-outreach-sequence-check stage transitions, and the follow-up channel
- * queue in /admin/provider-outreach. Channel progression and Cycle 2 are manual.
+ * DRIFT GUARD: mirrors the actual /admin/provider-outreach tabs:
+ *   - Call & Confirm → In Sequence → Follow Up → Alternative Channels → Call
+ *   - Terminal states: Claimed, Not Interested, Archived, Hidden
+ *
+ * The 4-email cadence is Day 0/3/5/7 via provider-outreach-send cron.
+ * Follow Up offers multiple manual channels: resend link, fax, postcard, contact form.
+ *
+ * MINIMUM ATTEMPTS (documented in WorkflowGuideModal.tsx):
+ *   - Call & Confirm: 3 calls minimum before confirming email
+ *   - Follow Up: 2 calls minimum
+ *   - Alternative Channels: 7-day wait
+ *   - Call (final): 2 calls minimum
+ *   - Total: 7+ calls minimum before marking Not Interested
  */
 export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
   key: "provider_outreach_journey",
@@ -438,59 +467,153 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
   ordering: "time",
   audienceLabel: "Provider journey",
   description:
-    "One outreach journey from enrollment to claim: provider-outreach-send fires the 4-email " +
-    "sequence (Day 0/3/5/7), the sequence check moves non-claimers to Follow Up, and manual " +
-    "channels (fax, direct mail) offer alternative touchpoints. LinkedIn discovery helps admins " +
-    "find contact info. Admins can fix emails inline and send claim links at any stage.",
+    "Full outreach journey from enrollment to claim. Providers start in Call & Confirm (Needs Email or Ready), " +
+    "where admins find emails and verify them via phone (minimum 3 call attempts). After confirmation, " +
+    "admin launches the 4-email sequence (Day 0/3/5/7). Non-claimers move to Follow Up for manual channels " +
+    "(2 call attempts minimum). After fax/postcard/contact form, providers wait in Alternative Channels " +
+    "(7-day wait), then move to Call tab for final attempts (2 calls minimum). " +
+    "Total: 7+ calls before terminal. Terminal states: Claimed (success), Not Interested (soft exit), " +
+    "Archived (hard exit), Hidden (admin-hidden, restorable).",
   steps: [
-    // ── Email Sequence ──────────────────────────────────────────────────
+    // ── Call & Confirm ──────────────────────────────────────────────────
+    // This phase combines the old "Needs Email" and "Ready" states. The goal is
+    // to find an email, verify it via phone calls, and confirm before launching.
+    {
+      key: "needs_email",
+      phase: "Call & Confirm",
+      title: "Provider in Needs Email queue",
+      timing: "Entry point · No email on file",
+      description:
+        "Provider is enrolled in outreach but has no email address. " +
+        "Admin can find email via website scraping (auto-runs when drawer opens) or Apollo decision-maker lookup. " +
+        "Once email is found and saved, provider moves to Ready within the same tab.",
+      ownerNote: "Call & Confirm tab (Needs Email section) in /admin/provider-outreach",
+      traits: ["Entry point"],
+    },
+    {
+      key: "email_discovered",
+      phase: "Call & Confirm",
+      title: "Email discovered",
+      timing: "Auto or manual · Scraping, Perplexity, or Apollo",
+      description:
+        "Admin finds provider's email via website scraping (generic org email), Perplexity AI analysis, " +
+        "or Apollo lookup (decision-maker email). Apollo contacts show name, title, and LinkedIn. " +
+        "Email source is tracked: 'organization' vs 'decision_maker' for conversion analysis. " +
+        "Email verification badge shows deliverability status (valid/risky/invalid).",
+      ownerNote: "Inline discovery in Call & Confirm tab",
+      traits: ["Auto + Manual", "Discovery"],
+    },
+    {
+      key: "provider_ready",
+      phase: "Call & Confirm",
+      title: "Provider in Ready queue",
+      timing: "After email found",
+      description:
+        "Provider has email and is ready to receive outreach. Admin calls to verify the email is correct. " +
+        "Call Script is available for phone outreach. Optionally upgrade to decision-maker via Apollo.",
+      ownerNote: "Call & Confirm tab (Ready section) in /admin/provider-outreach",
+      traits: ["Staging area"],
+    },
+    {
+      key: "call_to_verify",
+      phase: "Call & Confirm",
+      title: "Call to verify email",
+      timing: "Manual · Minimum 3 call attempts",
+      description:
+        "Admin calls provider to verify the email address is correct before launching sequence. " +
+        "MINIMUM 3 CALL ATTEMPTS required before marking as confirmed. Each call is a conversion opportunity — " +
+        "if speaking with a decision maker who shows high interest, send claim link immediately. " +
+        "Take detailed notes on every call so anyone can pick up where you left off.",
+      ownerNote: "Call workflow in Call & Confirm tab",
+      traits: ["Manual", "Min 3 calls", "Notes required"],
+      gate: "Requires 3 call attempts documented in notes before confirming",
+    },
+    {
+      key: "admin_confirms",
+      phase: "Call & Confirm",
+      title: "Admin confirms email",
+      timing: "Manual · After due diligence",
+      description:
+        "Admin clicks the blue checkmark to confirm the email is correct. Only confirm after proper due diligence — " +
+        "notes should support the confirmation (3+ call attempts documented). This sets confirmed_at " +
+        "and marks the provider ready for sequence launch. Unconfirm is available to reset.",
+      ownerNote: "Confirm button in Call & Confirm tab",
+      traits: ["Manual", "Checkpoint", "Notes-backed"],
+    },
+    {
+      key: "sequence_launched",
+      phase: "Call & Confirm",
+      title: "Sequence launched",
+      timing: "Manual · Batch select + Launch",
+      description:
+        "Admin selects confirmed providers and launches sequence via batch action. Preview shows exact emails. " +
+        "Provider moves to In Sequence, 4 email tasks are scheduled (Day 0/3/5/7), " +
+        "and SmartLead fires the emails automatically. Assignee is tracked for attribution.",
+      ownerNote: "Batch launch via /api/admin/provider-outreach/launch-sequence",
+      ownedBy: "provider-outreach-send",
+      traits: ["Manual", "Batch", "Preview available"],
+    },
+    // ── Email Sequence (In Sequence) ────────────────────────────────────
+    {
+      key: "in_sequence_tracking",
+      phase: "In Sequence",
+      title: "Provider in automated sequence",
+      timing: "Days 0-7 · Automated",
+      description:
+        "No action required — automated email sequence runs here. Provider receives 4 emails over 7 days. " +
+        "Progress badge shows X/4. Admin can view email history, find Apollo decision-maker, " +
+        "or reset to Ready with new email if needed.",
+      ownerNote: "In Sequence tab in /admin/provider-outreach",
+      traits: ["Automated", "Tracking"],
+    },
     {
       key: "intro_email",
-      phase: "Email Sequence",
-      title: "Visibility email sent",
-      timing: "Day 0 · Provider enrolled",
+      phase: "In Sequence",
+      title: "Day 0: Visibility email",
+      timing: "Day 0 · Immediate",
       description:
-        "Provider is added to outreach sequence. First email: families can see " +
-        "them on Olera but can't reach them — no one would see the message.",
+        "First email: 'Families in [city] can see [provider] on Olera.' " +
+        "Explains that families can find them but can't reach them yet.",
       emailType: "provider_outreach_sequence",
       emailSampleId: "provider_outreach_intro",
       ownedBy: "provider-outreach-send",
     },
     {
       key: "followup_email",
-      phase: "Email Sequence",
-      title: "Page Control email",
+      phase: "In Sequence",
+      title: "Day 3: Page Control email",
       timing: "Day 3",
       description:
-        "Follow-up about page ownership: public info gets stale, " +
-        "no one at the facility can update pricing, availability, photos.",
+        "Second email: 'Who updates [provider]'s page?' " +
+        "Ownership angle — public info gets stale, no one can update pricing/photos.",
       emailType: "provider_outreach_sequence",
       emailSampleId: "provider_outreach_followup",
       ownedBy: "provider-outreach-send",
     },
     {
       key: "demand_loss_email",
-      phase: "Email Sequence",
-      title: "FOMO email",
+      phase: "In Sequence",
+      title: "Day 5: FOMO email",
       timing: "Day 5",
       description:
-        "Urgency angle: families sent questions and leads to other providers " +
-        "this week — theirs would go unanswered.",
+        "Third email: 'Families' questions are going to other providers.' " +
+        "Urgency angle — families sent inquiries this week that went unanswered.",
       emailType: "provider_outreach_sequence",
       emailSampleId: "provider_outreach_demand_loss",
       ownedBy: "provider-outreach-send",
     },
     {
       key: "final_email",
-      phase: "Email Sequence",
-      title: "Free Ad email",
-      timing: "Day 7",
+      phase: "In Sequence",
+      title: "Day 7: Free Ad email",
+      timing: "Day 7 · Final automated email",
       description:
-        "Incentive offer: we'll set up and run their first ad for free " +
-        "so more families find them.",
+        "Fourth and final email: 'We'll run [provider]'s first ad on us.' " +
+        "Incentive offer — free ad setup to drive more family views.",
       emailType: "provider_outreach_sequence",
       emailSampleId: "provider_outreach_final",
       ownedBy: "provider-outreach-send",
+      traits: ["Final automated email"],
     },
     // ── Follow Up ───────────────────────────────────────────────────────
     {
@@ -499,34 +622,96 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
       title: "Provider enters Follow Up queue",
       timing: "Day 7+ · No claim",
       description:
-        "Sequence complete without a claim. Provider moves to needs_call stage " +
-        "with reason: clicked_not_claimed (engaged) or sequence_exhausted (no engagement).",
+        "Sequence complete without a claim. Provider moves to Follow Up (needs_call stage) " +
+        "with reason badge: Replied (hot lead), Clicked (engaged but didn't claim), " +
+        "Sequence done (no engagement), Bounced (email failed). " +
+        "Sorted by priority: Replied first, then Clicked, then others. Due date assigned.",
       ownedBy: "provider-outreach-sequence-check",
       gate: "Only if provider hasn't claimed by end of sequence",
     },
     {
+      key: "follow_up_calls",
+      phase: "Follow Up",
+      title: "Follow-up call attempts",
+      timing: "Manual · Minimum 2 call attempts",
+      description:
+        "Admin calls provider to convert them on the phone. Goal is to get provider to claim during the call. " +
+        "MINIMUM 2 FOLLOW-UP ATTEMPTS required. Call Script available: 'Did you get the emails we sent? " +
+        "Families in [city] are trying to reach you.' If provider prefers alternative channels, use them.",
+      ownerNote: "Call workflow in Follow Up tab",
+      traits: ["Manual", "Min 2 calls", "Conversion focus"],
+    },
+    {
+      key: "resend_claim_link",
+      phase: "Follow Up",
+      title: "Resend Claim Link",
+      timing: "Manual · Up to 2 times",
+      description:
+        "Admin clicks 'Resend Claim Link' to send the nudge email with a fresh claim URL. " +
+        "Limited to 2 resends per provider. Uses the 'nudge' template via Resend (not SmartLead). " +
+        "Provider moves to Alternative Channels after sending.",
+      emailType: "provider_outreach_sequence",
+      ownerNote: "Inline action in Follow Up tab; moves to Alternative Channels",
+      traits: ["Manual", "Max 2 resends"],
+    },
+    {
+      key: "contact_form_attempt",
+      phase: "Follow Up",
+      title: "Contact form submitted",
+      timing: "Manual · When website has contact form",
+      description:
+        "Admin clicks 'Contact Form', system auto-finds the form URL on provider's website. " +
+        "Admin copies the pre-written claim message, opens the form, submits manually, then confirms. " +
+        "Submission count tracked in Activity. Provider moves to Alternative Channels.",
+      ownerNote: "Manual submission through provider's website contact form",
+      traits: ["Manual", "Conditional"],
+      gate: "Requires provider website with discoverable contact form",
+    },
+    {
       key: "fax_attempt",
       phase: "Follow Up",
-      title: "Fax sent inline",
+      title: "Fax sent",
       timing: "Manual · When fax number available",
       description:
-        "Admin clicks 'Fax' in Follow Up, enters/confirms fax number in modal, " +
-        "and fax is sent immediately via Telnyx. Provider then moves to Alternative Channels for tracking.",
+        "Admin clicks 'Send Fax', system auto-finds fax number from website or admin enters manually. " +
+        "Fax is sent via Telnyx with QR code for tracking. Provider moves to Alternative Channels.",
       ownerNote: "Inline send from Follow Up tab; tracked in Alternative Channels",
       traits: ["Manual", "Conditional", "Has cost"],
       gate: "Requires valid fax number (auto-discovered or manually entered)",
     },
     {
+      key: "directmail_attempt",
+      phase: "Follow Up",
+      title: "Postcard sent",
+      timing: "Manual · When address available",
+      description:
+        "Admin clicks 'Send Postcard', system auto-finds address or admin enters manually. " +
+        "Postcard is sent via PostGrid. Provider moves to Alternative Channels for delivery tracking.",
+      ownerNote: "Inline send from Follow Up tab; tracked in Alternative Channels",
+      traits: ["Manual", "Conditional", "Has cost"],
+      gate: "Requires valid mailing address",
+    },
+    {
       key: "fix_email",
       phase: "Follow Up",
       title: "Email fixed inline",
-      timing: "Manual · Fix Email button",
+      timing: "Manual · When email bounced or wrong",
       description:
-        "Admin clicks 'Fix Email' to update a bounced or incorrect email address inline. " +
-        "Provider stays in Follow Up (not moved to Needs Email), and admin can immediately send a claim link.",
+        "Admin updates a bounced or incorrect email address inline. If wrong email discovered during call, " +
+        "change email and move back to Ready (Call & Confirm tab) for fresh sequence.",
       ownerNote: "Inline editing in Follow Up tab",
-      traits: ["Manual"],
-      gate: "Used when email bounced or contact info was wrong",
+      traits: ["Manual", "Recovery"],
+    },
+    {
+      key: "apollo_discovery",
+      phase: "Follow Up",
+      title: "Apollo decision-maker found",
+      timing: "Manual · Find Apollo button",
+      description:
+        "Admin clicks 'Find Apollo' to discover decision-maker contact (name, title, email, LinkedIn). " +
+        "If found, admin can use the decision-maker email and reset to Ready for a fresh sequence.",
+      ownerNote: "Discovery tool in Follow Up tab",
+      traits: ["Manual", "Discovery"],
     },
     {
       key: "linkedin_discovery",
@@ -535,48 +720,141 @@ export const PROVIDER_OUTREACH_JOURNEY: CommsJourney = {
       timing: "Manual · Find LinkedIn button",
       description:
         "Admin clicks 'Find LinkedIn' to discover provider's LinkedIn page from their website. " +
-        "LinkedIn is a discovery tool for manual outreach, not a channel providers are moved to.",
-      ownerNote: "Discovery tool in Follow Up tab",
+        "LinkedIn is a discovery tool for manual outreach — admin messages directly on LinkedIn.",
+      ownerNote: "Discovery tool in Follow Up tab; not an automated channel",
       traits: ["Manual", "Discovery"],
       gate: "Requires provider website; admins manually reach out via LinkedIn",
     },
     {
-      key: "fax_discovery",
+      key: "reset_to_ready",
       phase: "Follow Up",
-      title: "Fax number discovered",
-      timing: "Manual · Find Fax button",
+      title: "Reset to Ready",
+      timing: "Manual · After fixing email or finding Apollo",
       description:
-        "Admin clicks 'Find Fax' to discover provider's fax number from their website. " +
-        "Once found, the fax channel becomes available for that provider.",
-      ownerNote: "Discovery tool in Follow Up tab",
-      traits: ["Manual", "Discovery"],
-      gate: "Requires provider website; found fax is saved to provider record",
+        "Admin resets provider back to Ready (Call & Confirm tab), typically after finding a better email via Apollo. " +
+        "Provider can then be enrolled in a fresh sequence with the new contact.",
+      ownerNote: "Recovery action in Follow Up tab",
+      traits: ["Manual", "Recovery"],
     },
-    {
-      key: "directmail_attempt",
-      phase: "Follow Up",
-      title: "Direct mail sent inline",
-      timing: "Manual · When address available",
-      description:
-        "Admin clicks 'Direct Mail' in Follow Up, enters/confirms mailing address in modal, " +
-        "and postcard is sent immediately via PostGrid. Provider then moves to Alternative Channels for tracking.",
-      ownerNote: "Inline send from Follow Up tab; tracked in Alternative Channels",
-      traits: ["Manual", "Conditional", "Has cost"],
-      gate: "Requires valid mailing address",
-    },
-    // ── Alternative Channels (End of Funnel) ────────────────────────────
+    // ── Alternative Channels ────────────────────────────────────────────
     {
       key: "alternative_channels_tracking",
       phase: "Alternative Channels",
-      title: "Tracking delivery status",
-      timing: "After fax/direct mail sent from Follow Up",
+      title: "Delivery status tracking",
+      timing: "After resend link/fax/postcard/contact form · 7-day wait",
       description:
-        "Provider arrives here after fax or direct mail was sent from Follow Up. " +
-        "This tab is tracking-only: shows delivery status (queued → sent → delivered). " +
-        "Admin can Archive or mark Not Interested. This is the end of the outreach funnel.",
-      ownerNote: "Tracking-only tab; no further outreach actions",
-      traits: ["Tracking", "Terminal"],
-      gate: "End of funnel — provider either claims, is archived, or marked not interested",
+        "Provider arrives here after any action from Follow Up: resend claim link, fax, postcard, or contact form. " +
+        "Shows channel used (Fax/Contact Form/Direct Mail) and days waiting. " +
+        "Delivery status tracking: Fax (queued → sent → delivered → QR scanned), Postcard (queued → sent). " +
+        "WAIT 7 DAYS for response before moving to Call tab. Warning appears after 30 days.",
+      ownerNote: "Alternative Channels tab; awaiting provider response",
+      traits: ["Tracking", "7-day wait"],
+      gate: "Wait 7 days before moving to Call tab",
+    },
+    {
+      key: "move_to_call",
+      phase: "Alternative Channels",
+      title: "Move to Call tab",
+      timing: "Automated · After 7-day wait",
+      description:
+        "After 7 days in Alternative Channels with no response, provider automatically moves to Call tab " +
+        "via the daily lifecycle cron. Admins can also manually batch-move providers earlier if needed. " +
+        "Claimed providers are excluded from auto-move.",
+      ownedBy: "provider-outreach-channel-lifecycle",
+      traits: ["Automated", "7-day trigger"],
+    },
+    // ── Call (Final Touch) ──────────────────────────────────────────────
+    {
+      key: "call_exhausted_entry",
+      phase: "Call",
+      title: "Provider enters Call queue",
+      timing: "After Alternative Channels · 7-day wait completed",
+      description:
+        "Provider has completed email sequence, Follow Up attempts, and waited in Alternative Channels. " +
+        "This is the final touch point. Admin makes final call attempts to convert or close out.",
+      ownerNote: "Call tab in /admin/provider-outreach",
+      traits: ["Final stage"],
+    },
+    {
+      key: "final_call_attempts",
+      phase: "Call",
+      title: "Final call attempts",
+      timing: "Manual · Minimum 2 call attempts",
+      description:
+        "Admin makes final call attempts. MINIMUM 2 FINAL CALL ATTEMPTS required. " +
+        "Call Script available: 'We've reached out a few times about your Olera page — " +
+        "[city] families are looking for [care type] and their messages aren't getting to you.' " +
+        "Send claim link during call if speaking with decision maker. After attempts exhausted, " +
+        "mark as Not Interested or Archive based on the situation.",
+      ownerNote: "Final call workflow in Call tab",
+      traits: ["Manual", "Min 2 calls", "Final"],
+      gate: "After attempts: mark Not Interested (soft) or Archive (hard) based on response",
+    },
+    {
+      key: "send_claim_link_call",
+      phase: "Call",
+      title: "Send Claim Link",
+      timing: "Manual · During or after call",
+      description:
+        "Admin sends claim link email during the call when speaking with a decision maker. " +
+        "Same as Follow Up resend but available in Call tab for final push.",
+      emailType: "provider_outreach_sequence",
+      ownerNote: "Inline action in Call tab",
+      traits: ["Manual", "Conversion"],
+    },
+    // ── Terminal States ─────────────────────────────────────────────────
+    {
+      key: "provider_claimed",
+      phase: "Done",
+      title: "Provider claims listing",
+      timing: "Any time · Provider clicks claim link",
+      description:
+        "Provider clicks claim link from any email, fax, or postcard. They complete onboarding " +
+        "and gain access to their dashboard. Success state — outreach complete.",
+      ownerNote: "Claimed sub-tab in Done tab",
+      traits: ["Success", "Terminal"],
+    },
+    {
+      key: "marked_not_interested",
+      phase: "Done",
+      title: "Marked Not Interested",
+      timing: "Manual · After all attempts exhausted",
+      description:
+        "SOFT TERMINAL — stops cold outreach only. Provider can still receive family questions, leads, " +
+        "and other engagement through the platform. Mark as Not Interested when: " +
+        "(1) Provider explicitly declines (soft refusal), (2) Temporarily closed, " +
+        "(3) All attempts exhausted with no claim (7+ calls total: 3 in Call & Confirm, 2 in Follow Up, " +
+        "7-day Alternative Channels wait, 2 in Call). Notes must support the decision.",
+      ownerNote: "Not Interested sub-tab in Done tab; soft terminal state",
+      traits: ["Soft terminal", "Notes required"],
+      gate: "Requires documented decline OR 7+ calls across all stages",
+    },
+    {
+      key: "archived",
+      phase: "Done",
+      title: "Provider archived",
+      timing: "Manual · For serious issues only",
+      description:
+        "HARD TERMINAL — complete system block. Provider stops receiving ALL communication: " +
+        "emails, questions, leads, connections, everything. Archive ONLY when: " +
+        "(1) Angry provider / threatening legal action, (2) Permanently closed / out of business, " +
+        "(3) Invalid provider (doesn't offer senior care services). " +
+        "Use with caution — this is irreversible in normal workflow. Unarchive requires admin confirmation.",
+      ownerNote: "Archived sub-tab in Done tab; hard terminal state",
+      traits: ["Hard terminal", "System-wide block", "Irreversible"],
+      gate: "Only for angry/legal, permanently closed, or invalid providers",
+    },
+    {
+      key: "hidden",
+      phase: "Done",
+      title: "Provider hidden",
+      timing: "Manual · Admin hides from view",
+      description:
+        "Admin-hidden providers that don't fit other categories. Hidden providers are removed from " +
+        "active queues but can be restored to Ready via the 'Unhide' action. " +
+        "Use for temporary exclusions or data cleanup.",
+      ownerNote: "Hidden sub-tab in Done tab; restorable",
+      traits: ["Soft terminal", "Restorable"],
     },
   ],
 };

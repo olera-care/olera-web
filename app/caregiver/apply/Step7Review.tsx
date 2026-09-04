@@ -133,17 +133,11 @@ export default function Step7Review({
   onBack: () => void;
 }) {
   const [conductChecks, setConductChecks] = useState<boolean[]>(new Array(CONDUCT_ITEMS.length + 1).fill(false));
-  const [cardNumber, setCardNumber] = useState("");
-  const [cardExpiry, setCardExpiry] = useState("");
-  const [cardCvc, setCardCvc] = useState("");
-  const [cardZip, setCardZip] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [aboutExpanded, setAboutExpanded] = useState(false);
 
-  const allConductChecked = conductChecks.every(Boolean);
-  const paymentFilled = cardNumber.length >= 15 && cardExpiry.length >= 4 && cardCvc.length >= 3;
-  const canSubmit = true; // TODO: re-enable when Stripe is live → allConductChecked && paymentFilled
+  const canSubmit = true; // TODO: re-enable when Stripe is live → conductChecks.every(Boolean)
 
   const toggleConduct = (index: number) => {
     setConductChecks((prev) => {
@@ -592,7 +586,7 @@ export default function Step7Review({
           </div>
           {background.legalName && <Field label="Legal name" value={background.legalName} />}
           {!background.submitted && (
-            <p className="text-xs text-gray-400 mt-2">The background check will run after payment is processed below.</p>
+            <p className="text-xs text-gray-400 mt-2">The background check will run after your application is reviewed and the fee is paid.</p>
           )}
         </ReviewCard>
 
@@ -632,61 +626,21 @@ export default function Step7Review({
 
         {/* ── Payment section ── */}
         <div className="bg-white rounded-2xl border border-gray-200 shadow-xs p-5 sm:p-7">
-          <h3 className="text-base font-semibold text-gray-900 mb-1">Pay for your background check</h3>
+          <h3 className="text-base font-semibold text-gray-900 mb-1">Background check fee</h3>
           <p className="text-sm text-gray-400 mb-5">
             One-time fee of <span className="font-semibold text-gray-700">$34.99</span>. Covers your background check and identity verification.
           </p>
 
-          <div className="space-y-3">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">Card number</label>
-              <input
-                type="text"
-                value={cardNumber}
-                onChange={(e) => setCardNumber(e.target.value.replace(/\D/g, "").slice(0, 16))}
-                placeholder="4242 4242 4242 4242"
-                className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-              />
+          <div className="rounded-xl border border-dashed border-gray-300 bg-gray-50 p-4">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <svg className="w-4 h-4 flex-shrink-0 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
+              </svg>
+              You&apos;ll enter payment securely through Stripe after your application is reviewed.
             </div>
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Expiration</label>
-                <input
-                  type="text"
-                  value={cardExpiry}
-                  onChange={(e) => setCardExpiry(e.target.value.replace(/[^\d/]/g, "").slice(0, 5))}
-                  placeholder="MM/YY"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">CVC</label>
-                <input
-                  type="text"
-                  value={cardCvc}
-                  onChange={(e) => setCardCvc(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                  placeholder="123"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Billing ZIP</label>
-                <input
-                  type="text"
-                  value={cardZip}
-                  onChange={(e) => setCardZip(e.target.value.replace(/\D/g, "").slice(0, 5))}
-                  placeholder="77001"
-                  className="w-full px-4 py-3 rounded-xl border border-gray-300 text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 mt-4 text-xs text-gray-400">
-            <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16.5 10.5V6.75a4.5 4.5 0 1 0-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 0 0 2.25-2.25v-6.75a2.25 2.25 0 0 0-2.25-2.25H6.75a2.25 2.25 0 0 0-2.25 2.25v6.75a2.25 2.25 0 0 0 2.25 2.25Z" />
-            </svg>
-            Your card will only be charged once when you submit. We use Stripe for secure payment processing.
+            <p className="text-xs text-gray-400 mt-2">
+              No card details are collected on this page.
+            </p>
           </div>
         </div>
 
@@ -733,7 +687,7 @@ export default function Step7Review({
             Ready to make a difference?
           </h2>
           <p className="text-sm text-gray-500 mb-6">
-            Submit your application and pay $34.99 for the background check. You&apos;ll hear back within 3 business days.
+            Submit your application to get started. We&apos;ll review it and send you a secure link to pay the $34.99 background-check fee. You&apos;ll hear back within 3 business days.
           </p>
           <button
             type="button"
@@ -748,7 +702,7 @@ export default function Step7Review({
             Start caring, start earning
           </button>
           <p className="text-xs text-gray-400 mt-3">
-            By clicking, you authorize a $34.99 charge for the background check.
+            No charge today — we&apos;ll send a secure payment link after reviewing your application.
           </p>
         </div>
       </div>

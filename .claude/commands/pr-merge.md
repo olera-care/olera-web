@@ -135,10 +135,26 @@ app/privacy/page.tsx
 app/terms/page.tsx
 ```
 
-For each critical file that exists on the PR branch:
+For each critical file, ask what the PR **changes since the merge base** — not how its tip compares to staging:
 ```
-git diff origin/staging..origin/<pr-branch> -- <file>
+MB=$(git merge-base origin/staging origin/<pr-branch>)
+git --literal-pathspecs diff --name-only $MB..origin/<pr-branch> -- <file>
 ```
+
+> **Do not use the two-dot form `git diff origin/staging..origin/<pr-branch>`.** It compares tip
+> to tip, so on a branch that is *behind* staging it reports staging's newer work as though the
+> PR deleted it. On 2026-08-28 this reported **31 changed files for a one-file docs PR**, including
+> unrelated work merged an hour earlier, and flagged a live indicator as disappearing. A PR cannot
+> regress a file it does not touch. Use `$MB..` (above) or the three-dot `origin/staging...origin/<pr-branch>`.
+
+> **`--literal-pathspecs` is a git-level flag, not a `diff` flag.** Written as `git diff --literal-pathspecs`
+> it errors out, and a `&&`/`||` wrapper around it then silently misreports every file. It must come
+> before the subcommand: `git --literal-pathspecs diff`. Required for bracket paths like
+> `app/provider/[slug]/page.tsx`, which glob away without it.
+
+> **Deleted markdown bullets do not match `^-[^-]`.** In a diff the line reads `-- **item`, the diff
+> marker plus the bullet's own hyphen, so that pattern reports zero deletions on a diff that has them.
+> Use `grep '^-' | grep -v '^---'`.
 
 If the diff is non-empty, the PR **will change this file**. Classify:
 
@@ -153,9 +169,13 @@ If the diff is non-empty, the PR **will change this file**. Classify:
 For any critical file the PR would change (from Step 2), show a brief comparison of key indicators:
 
 ```bash
-# Example: check if Footer still has discovery zone
+# "after merge" must be the MERGED tree, NOT the PR branch tip. On a branch that is
+# behind staging, the tip lacks staging's newer work, so every indicator added to
+# staging since the branch point reads as a regression that merging would not cause.
+TREE=$(git merge-tree --write-tree origin/staging origin/<pr-branch> | head -1)
+
 git show origin/staging:<file> | grep -c "pattern"  # current staging
-git show origin/<pr-branch>:<file> | grep -c "pattern"  # after merge
+git show "$TREE:<file>"        | grep -c "pattern"  # after merge
 ```
 
 **Indicators to check per file:**

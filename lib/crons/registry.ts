@@ -84,6 +84,20 @@ export const CRON_REGISTRY: CronJob[] = [
     relatedAdminPath: "/admin/activity?actor=providers",
   },
   {
+    id: "profile-preview-nudge",
+    name: "Onboarding: Profile preview",
+    description: "Onboarding Email 1. Sent 48h after the welcome email. Leads with local family demand and shows the provider their own public page so they can fill the gaps. Replaces the retired provider_incomplete_profile job.",
+    recipientCohort: "Providers who received the welcome email 48+ hours ago and have not been sent this yet.",
+    audience: "Providers",
+    fn: "nudge",
+    schedule: "0 * * * *",
+    humanSchedule: "Hourly, on the hour (business hours only: Mon-Fri 9am-5pm provider local)",
+    path: "/api/cron/profile-preview-nudge",
+    emailTypes: ["profile_preview_nudge"],
+    successSignal: "Provider opens their public page and fills a gap (photos, services, owner story).",
+    relatedAdminPath: "/admin/verification",
+  },
+  {
     id: "verification-reminders",
     name: "Verification reminders",
     description: "Nudges providers who claimed a listing but haven't finished verification: a 7-day reminder, then a 21-day final notice (claim revoked at 30 days).",
@@ -193,16 +207,16 @@ export const CRON_REGISTRY: CronJob[] = [
   },
   {
     id: "provider-welcome",
-    name: "Provider welcome",
-    description: "24h follow-up welcome email to newly verified providers. Warm onboarding with tips on getting leads and completing their profile.",
-    recipientCohort: "Providers verified 23–25 hours ago who haven't received the welcome email yet.",
+    name: "Onboarding: Welcome",
+    description: "Onboarding Email 0. Sent on the first business-hours run after a provider claims their page, with no verification required. Providers who are still unverified get the verification ask folded into the same email. Sets lifecycle_stage to 'onboarding'.",
+    recipientCohort: "Providers who claimed within the last 7 days and have not been welcomed yet.",
     audience: "Providers",
     fn: "nudge",
     schedule: "0 * * * *",
-    humanSchedule: "Hourly, on the hour",
+    humanSchedule: "Hourly, on the hour (business hours only: Mon-Fri 9am-5pm provider local)",
     path: "/api/cron/provider-welcome",
     emailTypes: ["provider_welcome"],
-    successSignal: "Provider returns to their dashboard.",
+    successSignal: "Provider visits their dashboard.",
     relatedAdminPath: "/admin/verification",
   },
   {
@@ -264,7 +278,7 @@ export const CRON_REGISTRY: CronJob[] = [
   {
     id: "provider-outreach-send",
     name: "Provider outreach — scheduled sends",
-    description: "Every 15 minutes: scans for due provider outreach email tasks (Day 0/3/7/14 cadence) and sends them via Resend through oleracare.com.",
+    description: "Every 15 minutes: scans for due provider outreach email tasks (Day 0/3/5/7 cadence) and sends them via Resend through oleracare.com.",
     recipientCohort: "Unclaimed providers in the outreach sequence with a due email task.",
     audience: "Providers",
     fn: "outreach",
@@ -287,6 +301,34 @@ export const CRON_REGISTRY: CronJob[] = [
     path: "/api/cron/provider-outreach-sequence-check",
     emailTypes: [],
     relatedAdminPath: "/admin/provider-outreach",
+  },
+  {
+    id: "provider-outreach-channel-lifecycle",
+    name: "Provider outreach — channel lifecycle",
+    description: "Daily: moves providers from Alternative Channels to Call tab after 7 days without claiming. Ensures providers don't get stuck in re_engage indefinitely.",
+    recipientCohort: "(No recipients — a state-transition job.)",
+    audience: "Providers",
+    fn: "maintenance",
+    schedule: "0 5 * * *",
+    humanSchedule: "Daily at 5:00 AM UTC",
+    path: "/api/cron/provider-outreach-channel-lifecycle",
+    emailTypes: [],
+    relatedAdminPath: "/admin/provider-outreach",
+  },
+  {
+    id: "city-broadcasts",
+    name: "City broadcasts",
+    description:
+      "Sends engagement emails to dormant providers when family activity (questions asked, profiles published) occurs in their city. Shows providers that families are actively looking for care in their area.",
+    recipientCohort: "Dormant providers in cities with recent family activity — eligible if they have an email, haven't bounced, and haven't received a broadcast in 7 days.",
+    audience: "Providers",
+    fn: "outreach",
+    schedule: "*/30 * * * *",
+    humanSchedule: "Every 30 minutes",
+    path: "/api/cron/city-broadcasts",
+    emailTypes: ["city_broadcast_question", "city_broadcast_profile"],
+    successSignal: "Provider claims their profile.",
+    relatedAdminPath: "/admin/city-broadcasts",
   },
   // NOTE: lead-response-nudge has been replaced by lead-followup-sequence.
   // The old cron code remains at app/api/cron/lead-response-nudge/route.ts for rollback.
@@ -319,6 +361,42 @@ export const CRON_REGISTRY: CronJob[] = [
     emailTypes: ["stale_conversation"],
     successSignal: "One or both parties resume the conversation.",
     relatedAdminPath: "/admin/connections",
+  },
+  {
+    id: "family-answers",
+    name: "Family answers engine",
+    description:
+      "Researches the benefits questions families text us and writes a review packet for a human to approve. Five stages: triage, research over Olera's library then the web, draft, an adversarial check by an independent model, and a rebuttal round. Sends nothing — the only automated message in this flow is the acknowledgement the Twilio webhook already sent.",
+    recipientCohort:
+      "(no recipients — writes drafts for human review; families who texted a free-form question)",
+    audience: "Care seekers",
+    fn: "maintenance",
+    schedule: "*/5 * * * *",
+    humanSchedule: "Every 5 minutes",
+    path: "/api/cron/family-answers",
+    emailTypes: [],
+    successSignal:
+      "A packet a human can check: sourced claims, the drafter-vs-checker disagreements, and the unverified person-facts the draft leans on.",
+    relatedAdminPath: "/admin/inbox",
+  },
+  {
+    id: "family-answer-followup",
+    name: "Family answer outcome check",
+    description:
+      "Seven days after we send a researched benefits answer, asks whether it got the family anywhere. HELPED or NOTYET, so the answer is machine-readable rather than another message needing a human. Skips families who already replied, threads with a question still in flight, and anyone opted out.",
+    recipientCohort:
+      "Families who received a researched answer 7+ days ago and have not replied since.",
+    audience: "Care seekers",
+    fn: "nudge",
+    schedule: "0 14 * * *",
+    humanSchedule: "Daily, 14:00 UTC (~10 AM ET)",
+    path: "/api/cron/family-answer-followup",
+    emailTypes: [],
+    channels: ["sms"],
+    smsTypes: ["family_answer_followup"],
+    successSignal:
+      "A recorded outcome. Without it the engine is outcome-blind and every quality judgement rests on how good the drafts look.",
+    relatedAdminPath: "/admin/inbox",
   },
 
   // ── Care seekers ───────────────────────────────────────────────────
@@ -357,22 +435,22 @@ export const CRON_REGISTRY: CronJob[] = [
   {
     id: "matches-nudge",
     name: "Matches nudge",
-    description: "Two jobs per run — F3: nudges families with 2+ initiated conversations one of which is quiet 48h+, Matches not yet active (once only). P1: nudges providers 48h+ post-signup with an incomplete profile.",
-    recipientCohort: "Families with a quiet conversation and Matches inactive (F3); providers 48h+ post-signup with an incomplete profile (P1).",
+    description: "F3: nudges families with 2+ initiated conversations one of which is quiet 48h+, Matches not yet active (once only). The provider incomplete-profile job was retired 2026-09-01 — the onboarding profile-preview email owns that ask now.",
+    recipientCohort: "Families with a quiet conversation and Matches inactive (F3).",
     audience: "Care seekers",
     fn: "nudge",
     schedule: "0 14 * * *",
     humanSchedule: "Daily, 14:00 UTC (~9–10 AM ET)",
     path: "/api/cron/matches-nudge",
-    emailTypes: ["matches_nudge", "provider_incomplete_profile"],
-    successSignal: "Family activates Matches / provider completes their profile.",
+    emailTypes: ["matches_nudge"],
+    successSignal: "Family activates Matches.",
     relatedAdminPath: "/admin/activity?actor=families",
   },
   {
     id: "sms-queue-flush",
     name: "SMS queue flush",
-    description: "Drains sms_queue — reactive care-seeker reply-alert texts held outside the recipient's 8am–8pm quiet-hours window. Re-checks opt-out + the daily safety throttle at delivery.",
-    recipientCohort: "Families with a deferred reply-alert SMS whose send window has opened.",
+    description: "Drains sms_queue — reactive care-seeker reply-alert texts AND human replies written from /admin/inbox, both held outside the recipient's 8am–8pm quiet-hours window. Re-checks opt-out at delivery (the daily throttle too, except for human replies, which an immediate send never consulted either). A canceled human reply reopens its thread in the inbox rather than disappearing.",
+    recipientCohort: "Families with a deferred reply-alert SMS or a scheduled admin reply whose send window has opened.",
     audience: "Care seekers",
     fn: "alert",
     schedule: "0 * * * *",
@@ -480,6 +558,23 @@ export const CRON_REGISTRY: CronJob[] = [
     relatedAdminPath: "/admin/benefits",
   },
   {
+    id: "benefits-navigator-packets",
+    name: "Benefits navigator — packet builder",
+    description:
+      "Builds the routing verdict for pending first-step letters, replacing the manual copy-paste review loop. Five gates in order: do we hold enough facts to pick at all, is the program the right FIRST call (judged by two independent models), does the letter break an honesty rail, is the program cleared, does the draft lint. Writes the verdict onto the draft and sends nothing. Rebuilds only when the letter itself changes, never on a clock — fit verdicts vary run to run, so a scheduled rebuild would silently reroute letters nobody touched.",
+    recipientCohort:
+      "(no recipients — writes verdicts for the review queue; every pending navigator draft whose letter changed since its last packet)",
+    audience: "Care seekers",
+    fn: "maintenance",
+    schedule: "25 * * * *",
+    humanSchedule: "Hourly at :25, but DORMANT until BENEFITS_PACKETS_ENABLED=1. Each packet is up to three model calls, so switching it on is a spend decision. Until then every run returns immediately without touching a model.",
+    path: "/api/cron/benefits-navigator-packets",
+    emailTypes: [],
+    successSignal:
+      "Every pending letter carries a current verdict, so the queue explains why each one is waiting and a clean letter is not held behind its batch.",
+    relatedAdminPath: "/admin/benefits",
+  },
+  {
     id: "benefits-navigator-scheduler",
     name: "Benefits navigator — scheduled sends",
     description:
@@ -576,6 +671,42 @@ export const CRON_REGISTRY: CronJob[] = [
   },
 
   // ── Data & maintenance ─────────────────────────────────────────────
+  {
+    id: "deliverability-watch",
+    name: "Deliverability watch (account risk)",
+    description:
+      "Recomputes the 30-day account-wide bounce and complaint rates and posts to Slack when either crosses a threshold — Resend's warning line, 87.5% of the hard limit, or back down again. Alerts on STATE CHANGE ONLY, never on a schedule, so the notifications channel does not learn to ignore it. Rate definitions match /api/admin/automations exactly (complaints over delivered, bounces over sent) so the alert and the panel can never disagree. Prior state is read from this job's own last cron_runs row, so there is no extra table. Never alerts by email: an email alert about email deliverability cannot arrive when it matters.",
+    recipientCohort: "Internal only — Slack #notifications.",
+    audience: "Internal",
+    fn: "alert",
+    schedule: "0 12 * * *",
+    humanSchedule: "Daily, 12:00 UTC (~8:00 AM ET)",
+    path: "/api/cron/deliverability-watch",
+    emailTypes: [],
+    // Sends nothing outbound — it posts to Slack. Without this, jobChannels()
+    // derives ["email"] from fn:"alert" and the console would imply it mails people.
+    channels: [],
+    successSignal:
+      "A threshold crossing reaches Slack within a day, and the run summary's alerted flag is true. alerted:false with a non-null alertError means the webhook is misconfigured and the account is unwatched.",
+    relatedAdminPath: "/admin/automations",
+  },
+  {
+    id: "enrich-question-providers",
+    name: "Provider email top-up (unanswered questions)",
+    description:
+      "Finds a contact email for providers holding an unanswered question that Olera cannot email, then flushes the questions that were held BECAUSE the address was missing. Scrapes the provider's site first and only falls back to Perplexity on a miss; writes only addresses that pass verification, judged on effectiveStatus so deliverable role inboxes (info@, admissions@) are not discarded. Targets are ordered newest-question-first and capped per run, so each week works the roughly ten pages a day that newly enter the cohort rather than retrying the long tail that has no findable address. About 15% of attempts yield a usable email.",
+    recipientCohort:
+      "Providers whose address this run discovers — each gets up to 2 held question notifications, deduped by question text.",
+    audience: "Providers",
+    fn: "outreach",
+    schedule: "10 15 * * 2",
+    humanSchedule: "Weekly, Tuesdays 15:10 UTC (~11:10 AM ET)",
+    path: "/api/cron/enrich-question-providers",
+    emailTypes: ["question_received"],
+    successSignal:
+      "The War Room provider_contactability count stops drifting back up; a written address is followed by the provider claiming their page.",
+    relatedAdminPath: "/admin/questions",
+  },
   {
     id: "war-room-discovery",
     name: "War Room autonomous discovery",

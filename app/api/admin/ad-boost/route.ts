@@ -50,7 +50,7 @@ const AD_BOOST_EMAIL_TYPES = [
 ];
 
 const ROW_SELECT =
-  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ended_at, ended_reason, ad_budget_cents, ad_budget_type, ad_spend_cents, ad_clicks, ad_impressions, flight_start_date, flight_end_date, queued_email_sent_at, requested_email_sent_at, profile_reminder_email_sent_at, promotion_email_sent_at, launched_email_sent_at, launched_email_scheduled_at, traction_email_sent_at, promo_complete_email_sent_at, promo_complete_email_scheduled_at, provider_reported_outcome, provider_reported_outcome_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at, photo_readiness_status, photo_review_note, photo_reviewed_at, photo_reviewed_by, photo_update_requested_at, photo_update_submitted_at, photo_nudge_email_sent_at, photo_reminder_email_sent_at, photo_ready_email_sent_at";
+  "id, provider_id, provider_slug, display_name, requested_setup_week, completeness_at_submit, status, channel, intended_monthly_budget, campaign_tag, admin_note, created_at, updated_at, deleted_at, ended_at, ended_reason, ad_budget_cents, ad_budget_type, ad_spend_cents, ad_clicks, ad_impressions, metrics_updated_at, flight_start_date, flight_end_date, queued_email_sent_at, requested_email_sent_at, profile_reminder_email_sent_at, promotion_email_sent_at, launched_email_sent_at, launched_email_scheduled_at, traction_email_sent_at, promo_complete_email_sent_at, promo_complete_email_scheduled_at, provider_reported_outcome, provider_reported_outcome_at, plan_status, plan_value, stripe_customer_id, stripe_subscription_id, subscribed_at, photo_readiness_status, photo_review_note, photo_reviewed_at, photo_reviewed_by, photo_update_requested_at, photo_update_submitted_at, photo_nudge_email_sent_at, photo_reminder_email_sent_at, photo_ready_email_sent_at, provider_comms_paused_at, provider_comms_paused_reason";
 
 export async function GET(request: NextRequest) {
   const user = await getAuthUser();
@@ -115,9 +115,29 @@ export async function GET(request: NextRequest) {
     if (!row) {
       return NextResponse.json({ error: "Not found" }, { status: 404 });
     }
+    // The detail page is campaign-scoped for editing, but provider continuity
+    // belongs here too. Fetch every request for the same provider (including
+    // archived rows) so operators can move between current and past campaigns
+    // without returning to the queue.
+    const { data: providerCampaignRows, error: providerCampaignError } = await db
+      .from("ad_campaign_requests")
+      .select(ROW_SELECT)
+      .eq("provider_id", row.provider_id)
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (providerCampaignError) {
+      console.error("[admin/ad-boost] provider campaign history failed:", providerCampaignError);
+      return NextResponse.json({ error: providerCampaignError.message }, { status: 500 });
+    }
+
+    const providerCampaigns = providerCampaignRows?.length ? providerCampaignRows : [row];
+    const campaignTags = providerCampaigns.map(
+      (campaign) => campaign.campaign_tag || campaign.id,
+    );
     const tag = row.campaign_tag || row.id;
-    const [delivered, leads, receipt, communicationResult, profileResult] = await Promise.all([
-      countDeliveredByCampaign(db, [tag]),
+    const [delivered, adLandings, leads, receipt, communicationResult, profileResult] = await Promise.all([
+      countDeliveredByCampaign(db, campaignTags),
+      countAdLandingsByCampaign(db, campaignTags),
       listLeadsByCampaign(db, tag),
       getCampaignReceipt(db, row),
       db
@@ -187,13 +207,21 @@ export async function GET(request: NextRequest) {
       const providerIdVariants = [row.provider_slug, row.provider_id];
       const [stats, questions] = await Promise.all([
         getCampaignStats(db, { providerIdVariants, since }),
-        getCampaignQuestions(db, { providerIdVariants, since }),
+        getCampaignQuestions(db, {
+          providerIdVariants,
+          since,
+          campaignTag: row.campaign_tag || row.id,
+        }),
       ]);
       campaignStats = { ...stats, questions, since };
     }
 
     return NextResponse.json({
-      request: { ...row, delivered: delivered[tag] ?? 0 },
+      request: {
+        ...row,
+        delivered: delivered[tag] ?? 0,
+        ad_landings: adLandings[tag] ?? 0,
+      },
       leads,
       communications: communicationResult.data ?? [],
       campaignStats,
@@ -205,6 +233,14 @@ export async function GET(request: NextRequest) {
         week: receipt.week,
       },
       profileImages,
+      providerCampaigns: providerCampaigns.map((campaign) => {
+        const campaignTag = campaign.campaign_tag || campaign.id;
+        return {
+          ...campaign,
+          delivered: delivered[campaignTag] ?? 0,
+          ad_landings: adLandings[campaignTag] ?? 0,
+        };
+      }),
     });
   }
 
@@ -304,6 +340,7 @@ export async function GET(request: NextRequest) {
   // (per-row getCampaignQuestions would be N round-trips). Pre-launch rows
   // read 0 and the UI renders a dash.
   const questionsByRequestId: Record<string, number> = {};
+  const questionTopicsByRequestId: Record<string, Set<string>> = {};
   {
     type ListRow = {
       id: string;
@@ -325,6 +362,9 @@ export async function GET(request: NextRequest) {
           new Date(r.flight_start_date || r.requested_setup_week || r.created_at).toISOString(),
         ]),
       );
+      const tagByRequest = new Map(
+        launched.map((r) => [r.id, r.campaign_tag || r.id]),
+      );
       const variantToRequestIds = new Map<string, string[]>();
       for (const r of launched) {
         for (const v of [r.provider_slug, r.provider_id]) {
@@ -336,17 +376,32 @@ export async function GET(request: NextRequest) {
       }
       const minSince = [...sinceByRequest.values()].sort()[0];
       const { data: qRows } = await db
-        .from("provider_questions")
-        .select("provider_id, status, created_at")
+        .from("provider_question_asks")
+        .select("provider_id, question_id, utm_source, utm_campaign, created_at")
         .in("provider_id", [...variantToRequestIds.keys()])
         .gte("created_at", minSince)
         .limit(5000);
-      for (const q of (qRows ?? []) as Array<{
+      type AskRow = {
         provider_id: string | null;
-        status: string;
+        question_id: string;
+        utm_source: string | null;
+        utm_campaign: string | null;
         created_at: string;
-      }>) {
-        if (!q.provider_id || q.status === "archived" || q.status === "rejected") continue;
+      };
+      const rawAsks = (qRows ?? []) as AskRow[];
+      const questionIds = [...new Set(rawAsks.map((ask) => ask.question_id))];
+      const { data: topicRows } = questionIds.length > 0
+        ? await db.from("provider_questions").select("id, status").in("id", questionIds)
+        : { data: [] as Array<{ id: string; status: string }> };
+      const manageableQuestionIds = new Set(
+        (topicRows ?? [])
+          .filter((topic) => topic.status !== "archived" && topic.status !== "rejected")
+          .map((topic) => topic.id),
+      );
+      const asksByRequest = new Map<string, AskRow[]>();
+      for (const q of rawAsks) {
+        if (!q.provider_id) continue;
+        if (!manageableQuestionIds.has(q.question_id)) continue;
         // Compare as epochs, not strings — Postgres returns "+00:00"-suffixed
         // timestamps while `since` is Z-format, and mixed-format lexicographic
         // comparison misjudges boundary rows.
@@ -354,9 +409,23 @@ export async function GET(request: NextRequest) {
         for (const requestId of variantToRequestIds.get(q.provider_id) ?? []) {
           const since = sinceByRequest.get(requestId);
           if (since && qAt >= new Date(since).getTime()) {
-            questionsByRequestId[requestId] = (questionsByRequestId[requestId] ?? 0) + 1;
+            const asks = asksByRequest.get(requestId) ?? [];
+            asks.push(q);
+            asksByRequest.set(requestId, asks);
           }
         }
+      }
+      for (const request of launched) {
+        const asks = asksByRequest.get(request.id) ?? [];
+        const campaignTag = tagByRequest.get(request.id);
+        const tagged = asks.filter(
+          (ask) => ask.utm_source === "olera_managed" && ask.utm_campaign === campaignTag,
+        );
+        const attributed = tagged.length > 0 ? tagged : asks;
+        questionsByRequestId[request.id] = attributed.length;
+        questionTopicsByRequestId[request.id] = new Set(
+          attributed.map((ask) => ask.question_id),
+        );
       }
     }
   }
@@ -366,6 +435,7 @@ export async function GET(request: NextRequest) {
     delivered: delivered[r.campaign_tag || r.id] ?? 0,
     ad_landings: adLandings[r.campaign_tag || r.id] ?? 0,
     questions_received: questionsByRequestId[r.id] ?? 0,
+    question_topics: questionTopicsByRequestId[r.id]?.size ?? 0,
     communication_summary: communicationSummaryByRequest.get(r.id) ?? { by_type: {}, last: null },
   }));
 
@@ -599,6 +669,16 @@ export async function POST(request: NextRequest) {
         update[field] = v;
       }
     }
+  }
+  // Any metric touched — including cleared back to null — is a fresh reading of
+  // the ad dashboard, so it re-dates all three. Without this the figures have
+  // no age and a week-old snapshot is indistinguishable from this morning's.
+  if (
+    body.ad_spend_cents !== undefined ||
+    body.ad_clicks !== undefined ||
+    body.ad_impressions !== undefined
+  ) {
+    update.metrics_updated_at = new Date().toISOString();
   }
 
   // Launch-email schedule (UTC ISO; the admin UI collects it as US Eastern).
@@ -860,8 +940,24 @@ export async function POST(request: NextRequest) {
   // "Getting activity" should mean observable campaign activity, not merely
   // that an operator opened the metrics form and saved zero/partial values.
   // Impressions alone are not shown in the traction email; spend or clicks are.
-  const hasMeaningfulTraction =
-    (data.ad_spend_cents ?? 0) > 0 || (data.ad_clicks ?? 0) > 0;
+  //
+  // Measured landings count too, and they are the signal that does not go
+  // stale. Operator-entered figures are a snapshot of whenever someone last
+  // opened the ad dashboard: Rosemonte and Edmonds both had 0 typed on Aug 14
+  // and then took 10 and 3 real ad-driven landings over the following days,
+  // which under a typed-only gate is indistinguishable from a dead campaign.
+  //
+  // Evaluated lazily — countAdLandingsByCampaign scans the managed-traffic
+  // slice of provider_activity, and this PATCH also serves status flips, notes
+  // and photo review, none of which need it.
+  const typedTraction = (data.ad_spend_cents ?? 0) > 0 || (data.ad_clicks ?? 0) > 0;
+  const tractionEmailDue =
+    data.status === "live" &&
+    metricsWereSaved &&
+    (typedTraction ||
+      ((await countAdLandingsByCampaign(db, [data.campaign_tag || data.id]))[
+        data.campaign_tag || data.id
+      ] ?? 0) > 0);
   const lifecycleSends: Array<Promise<unknown>> = [];
 
   if (
@@ -888,7 +984,7 @@ export async function POST(request: NextRequest) {
     lifecycleSends.push(sendAdBoostLifecycleEmail({ request: data, kind: "launched" }));
   }
 
-  if (data.status === "live" && metricsWereSaved && hasMeaningfulTraction) {
+  if (tractionEmailDue) {
     lifecycleSends.push(sendAdBoostLifecycleEmail({ request: data, kind: "traction" }));
   }
 

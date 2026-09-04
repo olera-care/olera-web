@@ -476,23 +476,42 @@ export function adBoostTractionEmail(opts: {
   spendCents?: number | null;
   questionsReceived?: number | null;
   questionsUnanswered?: number | null;
+  questionTopics?: number | null;
+  unansweredQuestionTopics?: number | null;
 }): string {
   const spend = opts.spendCents != null ? `$${(opts.spendCents / 100).toFixed(2)}` : null;
   const costPerClick =
     opts.spendCents != null && opts.spendCents > 0 && opts.clicks != null && opts.clicks > 0
       ? `$${(opts.spendCents / 100 / opts.clicks).toFixed(2)}`
       : "—";
+  // The ad-platform row is hand-copied from the Google/Meta/Nextdoor dashboard
+  // and only appears when there is something real in it. This email can now be
+  // triggered by measured landings alone, so a campaign that is demonstrably
+  // delivering may still carry 0 typed clicks and $0 typed spend — printing
+  // "0 Ad clicks / $0.00 Ad spend" under a headline that says the campaign is
+  // getting activity reads as broken, and to the provider it looks like we are
+  // reporting failure while calling it traction. Same rule the provider's own
+  // boost view already applies (BoostCampaignViews: render clicks only when
+  // > 0). The visitors/questions/leads row carries the message on its own.
+  const hasPlatformFigures =
+    (opts.clicks ?? 0) > 0 || (opts.spendCents ?? 0) > 0;
+  // Only rule between the two rows when there IS a second row, otherwise the
+  // line doubles up against the table's own bottom border.
+  const rowRule = hasPlatformFigures ? "border-bottom:1px solid #e5e7eb;" : "";
   const questionsReceived = opts.questionsReceived ?? 0;
   const questionsUnanswered = opts.questionsUnanswered ?? 0;
-  const hasUnansweredQuestions = questionsUnanswered > 0 && Boolean(opts.questionsUrl);
+  const questionTopics = opts.questionTopics ?? questionsReceived;
+  const unansweredQuestionTopics = opts.unansweredQuestionTopics ?? questionsUnanswered;
+  const hasUnansweredQuestions = unansweredQuestionTopics > 0 && Boolean(opts.questionsUrl);
   const primaryCtaLabel = hasUnansweredQuestions
-    ? `Answer ${questionsUnanswered.toLocaleString()} ${questionsUnanswered === 1 ? "question" : "questions"}`
+    ? `Answer ${unansweredQuestionTopics.toLocaleString()} ${unansweredQuestionTopics === 1 ? "question" : "questions"}`
     : "View performance";
   const primaryCtaUrl = hasUnansweredQuestions ? opts.questionsUrl! : opts.ctaUrl;
+  const visitorCount = `${opts.visitors.toLocaleString()} ${opts.visitors === 1 ? "visitor" : "visitors"}`;
   const preheader =
     questionsReceived > 0
-      ? `${opts.visitors.toLocaleString()} visitors and ${questionsReceived.toLocaleString()} questions so far.`
-      : `${opts.visitors.toLocaleString()} visitors and ${opts.leads.toLocaleString()} leads so far.`;
+      ? `${visitorCount} and ${questionsReceived.toLocaleString()} ${questionsReceived === 1 ? "question" : "questions"} so far.`
+      : `${visitorCount} and ${opts.leads.toLocaleString()} ${opts.leads === 1 ? "lead" : "leads"} so far.`;
 
   return layout(
     `
@@ -501,20 +520,22 @@ export function adBoostTractionEmail(opts: {
     <p style="font-size:15px;color:#374151;margin:0 0 18px;line-height:1.65;">Here&rsquo;s the early signal from the Find Families campaign for ${escapeHtml(opts.providerName)}.</p>
     <table width="100%" cellpadding="0" cellspacing="0" style="border:1px solid #e5e7eb;border-radius:10px;margin:0 0 20px;">
       <tr>
-        <td style="padding:14px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+        <td style="padding:14px;${rowRule}border-right:1px solid #e5e7eb;">
           <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.visitors.toLocaleString()}</p>
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Visitors</p>
         </td>
-        <td style="padding:14px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
+        <td style="padding:14px;${rowRule}border-right:1px solid #e5e7eb;">
           <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${questionsReceived.toLocaleString()}</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Questions</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Question taps${questionTopics < questionsReceived ? ` &middot; ${questionTopics.toLocaleString()} topics` : ""}</p>
         </td>
-        <td style="padding:14px;border-bottom:1px solid #e5e7eb;">
+        <td style="padding:14px;${rowRule}">
           <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.leads.toLocaleString()}</p>
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Leads</p>
         </td>
       </tr>
-      <tr>
+      ${
+        hasPlatformFigures
+          ? `<tr>
         <td style="padding:14px;border-right:1px solid #e5e7eb;">
           <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">${opts.clicks != null ? opts.clicks.toLocaleString() : "—"}</p>
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Ad clicks</p>
@@ -527,11 +548,13 @@ export function adBoostTractionEmail(opts: {
           <p style="font-size:16px;font-weight:700;color:#111827;margin:0;">${costPerClick}</p>
           <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Cost / click</p>
         </td>
-      </tr>
+      </tr>`
+          : ""
+      }
     </table>
     <p style="font-size:15px;color:#374151;margin:0 0 26px;line-height:1.65;">${
-      questionsUnanswered > 0
-        ? `${questionsUnanswered.toLocaleString()} ${questionsUnanswered === 1 ? "question is" : "questions are"} waiting for your response. Every answer stays on your page, builds trust, and helps future families. We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test.`
+      unansweredQuestionTopics > 0
+        ? `${unansweredQuestionTopics.toLocaleString()} ${unansweredQuestionTopics === 1 ? "question is" : "questions are"} waiting for your response. Every answer stays on your page, builds trust, and helps future families. We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test.`
         : questionsReceived > 0
           ? "Your answers stay on your page, build trust, and help future families. We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test."
         : "We&rsquo;ll keep watching the campaign and use this signal to recommend the right monthly plan after the promotional test."
@@ -572,6 +595,7 @@ export function adBoostPromoCompleteEmail(opts: {
   impressions?: number | null;
   saves?: number | null;
   questionsReceived?: number | null;
+  questionTopics?: number | null;
   clientOutcomes?: number | null;
   /**
    * One-tap campaign-outcome URLs. Present only for zero-lead flights, where
@@ -665,7 +689,7 @@ export function adBoostPromoCompleteEmail(opts: {
         </td>
         <td style="padding:14px;border-bottom:1px solid #e5e7eb;border-right:1px solid #e5e7eb;">
           <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${(opts.questionsReceived ?? 0).toLocaleString()}</p>
-          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Questions</p>
+          <p style="font-size:12px;color:#6b7280;margin:4px 0 0;">Question taps${(opts.questionTopics ?? opts.questionsReceived ?? 0) < (opts.questionsReceived ?? 0) ? ` &middot; ${(opts.questionTopics ?? 0).toLocaleString()} topics` : ""}</p>
         </td>
         <td style="padding:14px;border-bottom:1px solid #e5e7eb;">
           <p style="font-size:20px;font-weight:700;color:#111827;margin:0;">${opts.leads.toLocaleString()}</p>
@@ -1723,81 +1747,136 @@ function stripEmDashes(text: string): string {
 
 /** Subject for the intake results email (benefits_results_saved). */
 export function benefitsResultsSavedSubject(opts: {
-  matchCount: number;
-  /** "Your mom's" / "Your" — pre-built by the caller's relationship helper. */
-  possessive: string;
   stateName: string;
+  requestedProgramName?: string;
 }): string {
-  return opts.matchCount > 0
-    ? `${opts.possessive} ${opts.matchCount} care benefit ${opts.matchCount === 1 ? "match" : "matches"} in ${opts.stateName}`
-    : `Care benefit programs in ${opts.stateName}`;
+  return opts.requestedProgramName
+    ? `What to check for ${stripEmDashes(opts.requestedProgramName)}`
+    : `Your ${stripEmDashes(opts.stateName)} benefits plan is ready`;
 }
 
 /**
- * Intake results email (benefits_results_saved) — the Day-0 welcome that
- * delivers real value up front: the top-5 matched programs as a starter list,
- * CTA to the full /m plan. Extracted from app/api/benefits/save-results so the
- * sample registry renders the LIVE template (drift-proof). The caller builds
- * the hero line and program rows (relationship phrasing + savings copy stay
- * with the route's helpers).
+ * Intake results email (benefits_results_saved), with two honest Day-0 shapes:
+ * a program-aware continuation when the family arrived through a specific
+ * benefits guide, and a general plan receipt for broad finder/provider/article
+ * entries. The old "strongest matches" list is deliberately gone: an email
+ * capture does not establish eligibility, and a specific program request
+ * should not be replaced by whatever else the care-need filter happened to rank.
  */
 export function benefitsResultsSavedEmail(opts: {
   /** First name, or "there". */
   greetingName: string;
-  /** Pre-built hero sentence; may contain <strong>. */
-  heroLine: string;
-  /** Top matches (max 5 for inbox scannability). Empty for the zero-state. */
-  programs: { name: string; url: string; savings: string | null }[];
+  stateName: string;
+  careLabel: string;
+  familyPhrase: string;
+  /** Other programs in the plan. These never replace the requested program. */
+  relatedPrograms: { name: string; url: string }[];
   /** Tracked CTA to the family's /m plan (or /portal fallback). */
   matchesUrl: string;
   matchCount: number;
+  requestedProgram?: {
+    name: string;
+    shortName: string;
+    url: string;
+    tagline: string | null;
+    eligibilityFactors: string[];
+    applicationSummary: string | null;
+  };
 }): string {
-  const programsHtml = opts.programs
+  const greetingName = escapeHtml(stripEmDashes(opts.greetingName));
+  const stateName = escapeHtml(stripEmDashes(opts.stateName));
+  const careLabel = escapeHtml(stripEmDashes(opts.careLabel));
+  const familyPhrase = escapeHtml(stripEmDashes(opts.familyPhrase));
+  const matchesUrl = escapeHtml(opts.matchesUrl);
+  const relatedProgramsHtml = opts.relatedPrograms
     .map(
       (p) => `
-              <a href="${p.url}" style="display: block; text-decoration: none; color: inherit; border-top: 1px solid #f3f4f6; padding: 16px 0;">
-                <div style="font-family: 'Caslon', 'Playfair Display', Georgia, serif; font-size: 17px; font-weight: 600; color: #111827; margin-bottom: 4px;">
-                  ${p.name}
-                </div>
-                ${p.savings ? `<div style="font-size: 13px; color: #047857; font-weight: 500;">${p.savings}</div>` : ""}
-              </a>
-            `,
+        <a href="${escapeHtml(p.url)}" style="display:block;color:#374151;text-decoration:none;border-top:1px solid #eef1f0;padding:11px 0;font-size:14px;line-height:1.4;">
+          ${escapeHtml(stripEmDashes(p.name))} <span style="color:${BRAND_COLOR};">&rarr;</span>
+        </a>`,
     )
     .join("");
-  return `
-<div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 560px; margin: 0 auto; padding: 32px 24px; color: #111827; background: #ffffff;">
 
-  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 16px; color: #6b7280;">
-    Hi ${opts.greetingName},
-  </p>
+  if (opts.requestedProgram) {
+    const program = opts.requestedProgram;
+    const shortName = escapeHtml(stripEmDashes(program.shortName));
+    const programName = escapeHtml(stripEmDashes(program.name));
+    const programUrl = escapeHtml(program.url);
+    const eligibilityHtml = program.eligibilityFactors
+      .map(
+        (factor) =>
+          `<tr><td style="padding:5px 8px 5px 0;color:${BRAND_COLOR};vertical-align:top;">&#10003;</td><td style="padding:5px 0;font-size:15px;color:#374151;line-height:1.45;">${escapeHtml(stripEmDashes(factor))}</td></tr>`,
+      )
+      .join("");
+    const ctaLabel = program.shortName.length <= 28
+      ? `See my ${shortName} next step &rarr;`
+      : "See eligibility and next steps &rarr;";
+    const relatedCopy = opts.relatedPrograms.length > 0
+      ? `We also saved ${opts.relatedPrograms.length === 1 ? "one program" : `${opts.relatedPrograms.length} programs`} that may help with related costs or care. These are additional options, not replacements for ${shortName}.`
+      : `Your Olera plan keeps ${shortName} and your next steps in one place.`;
 
-  <h1 style="font-family: 'Caslon', 'Playfair Display', Georgia, serif; font-size: 24px; line-height: 1.3; margin: 0 0 16px; color: #111827; font-weight: 700;">
-    ${opts.heroLine}
-  </h1>
-
-  ${
-    opts.programs.length > 0
-      ? `
-  <p style="font-size: 15px; line-height: 1.6; margin: 0 0 24px; color: #6b7280;">
-    We added the strongest ${opts.programs.length} matches to your private Olera plan. Tap any program to see eligibility and how to apply:
-  </p>
-
-  <div style="margin: 0 0 32px;">
-    ${programsHtml}
-  </div>
-  `
-      : ""
+    return layout(
+      `
+        <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.6;">Hi ${greetingName},</p>
+        <p style="font-size:12px;color:${BRAND_COLOR};font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin:0 0 8px;">The program you were looking into</p>
+        <h1 style="font-family:'Caslon','Playfair Display',Georgia,serif;font-size:28px;line-height:1.2;margin:0 0 16px;color:#111827;font-weight:700;">
+          You were checking ${shortName}. Start here.
+        </h1>
+        <p style="font-size:15px;line-height:1.6;margin:0 0 20px;color:#4b5563;">
+          You asked Olera to help you understand whether ${programName} could help ${familyPhrase} with ${careLabel}.
+        </p>
+        ${
+          program.tagline
+            ? `<p style="font-size:15px;line-height:1.6;margin:0 0 22px;color:#4b5563;">${escapeHtml(stripEmDashes(program.tagline))}</p>`
+            : ""
+        }
+        <div style="background:#eef8f6;border-radius:12px;padding:18px 20px;margin:0 0 22px;">
+          <p style="font-size:14px;font-weight:700;color:#1f4f4c;margin:0 0 8px;">What we can tell you now</p>
+          <p style="font-size:14px;line-height:1.55;color:#365f5c;margin:0 ${eligibilityHtml ? "0 10px" : "0"};">
+            We can't determine eligibility from an email address alone. This program generally looks at:
+          </p>
+          ${eligibilityHtml ? `<table width="100%" cellpadding="0" cellspacing="0">${eligibilityHtml}</table>` : ""}
+        </div>
+        ${
+          program.applicationSummary
+            ? `<p style="font-size:15px;line-height:1.6;color:#4b5563;margin:0 0 22px;">${escapeHtml(stripEmDashes(program.applicationSummary))}</p>`
+            : ""
+        }
+        <div style="margin:0 0 12px;">
+          <a href="${programUrl}" style="display:inline-block;background:#111827;color:#ffffff;padding:14px 24px;text-decoration:none;border-radius:999px;font-weight:600;font-size:15px;">${ctaLabel}</a>
+        </div>
+        <p style="font-size:13px;line-height:1.55;color:#6b7280;margin:0 0 28px;">
+          The guide includes the requirements, how to apply, and what to have ready.
+        </p>
+        <h2 style="font-family:'Caslon','Playfair Display',Georgia,serif;font-size:20px;line-height:1.3;color:#111827;margin:0 0 8px;">Other help we saved</h2>
+        <p style="font-size:14px;line-height:1.55;color:#6b7280;margin:0 0 10px;">${relatedCopy}</p>
+        ${relatedProgramsHtml}
+        <p style="font-size:13px;line-height:1.55;margin:16px 0 0;"><a href="${matchesUrl}" style="color:${BRAND_COLOR};font-weight:600;text-decoration:none;">See everything in my Olera plan &rarr;</a></p>
+        <p style="font-size:12px;color:#9ca3af;margin:28px 0 0;line-height:1.6;border-top:1px solid #eef1f0;padding-top:16px;">Olera gives families a clearer starting point for care benefits. We never sell your info.</p>
+      `,
+      `The requirements and next step for ${program.shortName}.`,
+    );
   }
 
-  <a href="${opts.matchesUrl}" style="display: inline-block; background: #111827; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 999px; font-weight: 600; font-size: 15px;">
-    Open my Olera plan →
-  </a>
+  const planSummary = opts.matchCount > 0
+    ? `We saved ${opts.matchCount} ${opts.matchCount === 1 ? "program" : "programs"} in ${stateName} that may help with ${careLabel} for ${familyPhrase}. This is a starting list, not an eligibility decision.`
+    : `We created your private Olera plan. We don't have a strong ${stateName} program to suggest yet, but we'll keep looking for help with ${careLabel}.`;
 
-  <p style="font-size: 12px; color: #9ca3af; margin: 40px 0 0; line-height: 1.6; border-top: 1px solid #f3f4f6; padding-top: 20px;">
-    Olera helps families find care benefits they're eligible for in their state. We never sell your info.
-  </p>
-</div>
-          `;
+  return layout(
+    `
+      <p style="font-size:15px;color:#6b7280;margin:0 0 16px;line-height:1.6;">Hi ${greetingName},</p>
+      <h1 style="font-family:'Caslon','Playfair Display',Georgia,serif;font-size:28px;line-height:1.2;margin:0 0 16px;color:#111827;font-weight:700;">Your ${stateName} benefits plan is ready.</h1>
+      <p style="font-size:15px;line-height:1.6;margin:0 0 24px;color:#4b5563;">${planSummary}</p>
+      <div style="background:#eef8f6;border-radius:12px;padding:18px 20px;margin:0 0 24px;">
+        <p style="font-size:14px;font-weight:700;color:#1f4f4c;margin:0 0 6px;">What happens next</p>
+        <p style="font-size:14px;line-height:1.55;color:#365f5c;margin:0;">Open any program to see what it covers, the requirements it generally checks, and how to apply.</p>
+      </div>
+      <a href="${matchesUrl}" style="display:inline-block;background:#111827;color:#ffffff;padding:14px 24px;text-decoration:none;border-radius:999px;font-weight:600;font-size:15px;">Review my benefits plan &rarr;</a>
+      ${relatedProgramsHtml ? `<div style="margin:28px 0 0;"><p style="font-size:13px;color:#6b7280;margin:0 0 4px;">Starting points in your plan</p>${relatedProgramsHtml}</div>` : ""}
+      <p style="font-size:12px;color:#9ca3af;margin:28px 0 0;line-height:1.6;border-top:1px solid #eef1f0;padding-top:16px;">Olera gives families a clearer starting point for care benefits. We never sell your info.</p>
+    `,
+    `Your ${opts.stateName} benefits plan and next steps are ready.`,
+  );
 }
 
 /**
@@ -5206,6 +5285,15 @@ interface FollowupEmailOpts {
   manageListingUrl?: string;
   /** Magic link URL to provider settings/lead preferences */
   settingsUrl?: string;
+  /**
+   * Self-report URLs for connection status buttons (single leads only).
+   * When provided, adds a section asking providers to report their connection status.
+   */
+  connectionStatusUrls?: {
+    connected: string;
+    notAFit: string;
+    noCapacity: string;
+  };
 }
 
 /**
@@ -5216,6 +5304,73 @@ function followupFooterBlock(opts: FollowupEmailOpts): string {
   return opts.manageListingUrl && opts.settingsUrl
     ? providerOffRampBlock(opts.manageListingUrl, opts.settingsUrl)
     : offRampBlock(opts.providerSlug);
+}
+
+/**
+ * Build the CTA section for follow-up emails.
+ *
+ * For single leads with verified providers (connectionStatusUrls provided):
+ * 4 stacked buttons:
+ * 1. Message [Name] (primary)
+ * 2. Already connected (secondary)
+ * 3. Not a good fit (secondary)
+ * 4. No capacity (secondary)
+ *
+ * For multiple leads or unverified providers:
+ * - Two buttons: "Message [families/Name]" + "Decline [leads/lead]"
+ */
+function buildFollowupCtaSection(opts: {
+  viewUrl: string;
+  messageButtonText: string;
+  declineButtonText: string;
+  connectionStatusUrls?: FollowupEmailOpts["connectionStatusUrls"];
+}): string {
+  // If we have self-report URLs, show 4 stacked buttons
+  if (opts.connectionStatusUrls) {
+    const urls = opts.connectionStatusUrls;
+    return `
+      <table cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 24px;">
+        <tr>
+          <td style="padding-bottom:10px;">
+            <a href="${opts.viewUrl}" style="display:block;text-align:center;padding:14px 24px;background:${BRAND_COLOR};color:#fff;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;">
+              ${opts.messageButtonText}
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-bottom:10px;">
+            <a href="${urls.connected}" style="display:block;text-align:center;padding:12px 24px;background:#fff;border:1px solid #d1d5db;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
+              Already connected
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-bottom:10px;">
+            <a href="${urls.notAFit}" style="display:block;text-align:center;padding:12px 24px;background:#fff;border:1px solid #d1d5db;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
+              Not a good fit
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <a href="${urls.noCapacity}" style="display:block;text-align:center;padding:12px 24px;background:#fff;border:1px solid #d1d5db;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
+              No capacity
+            </a>
+          </td>
+        </tr>
+      </table>
+    `;
+  }
+
+  // Default: two-button layout (multiple leads or unverified)
+  return `
+    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
+      <tr>
+        <td style="padding-right:12px;">${button(opts.messageButtonText, opts.viewUrl)}</td>
+        <td>${button(opts.declineButtonText, opts.viewUrl)}</td>
+      </tr>
+    </table>
+  `;
 }
 
 /**
@@ -5491,7 +5646,7 @@ export function providerFollowupDay1Email(opts: FollowupEmailOpts): string {
 }
 
 /**
- * Day 3 Follow-up: "Still waiting, replying is effortless"
+ * Day 3 Follow-up: Short and direct.
  * Light signature. Sent 3 days after initial email.
  */
 export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
@@ -5506,59 +5661,40 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
 
   const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
 
-  // Build pronoun contraction ("She's", "He's", "They're" - NOT "They's")
-  const pronounContraction = pronouns.pronoun === "They"
-    ? "They're"
-    : `${pronouns.pronoun}'s`;
-
   // Build preheader
-  const preheader = "A quick reply is all it takes.";
+  const preheader = hasName ? `${safeFamilyName} is still hoping to hear back.` : "Still hoping to hear back.";
 
-  // Build greeting - use full provider name (not firstName) since most are businesses
+  // Build greeting
   const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
 
   let bodyHtml: string;
   if (isMultiple) {
     const leadsListHtml = opts.leads.map((l) => {
       const name = firstName(l.familyName, "A family");
-      const daysText = l.daysSinceInquiry === 1 ? "1 day ago" : `${l.daysSinceInquiry} days ago`;
-      return `<li style="margin:0 0 8px;padding:0;"><strong>${escapeHtml(name)}</strong> <span style="color:#9ca3af;">· reached out ${daysText}</span></li>`;
+      return `<li style="margin:0 0 6px;padding:0;">${escapeHtml(name)}</li>`;
     }).join("");
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        A few days ago, these families reached out looking for care. They haven't heard back yet:
+        These families reached out a few days ago and are still hoping to hear back:
       </p>
       <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:14px;line-height:1.6;">
         ${leadsListHtml}
-      </ul>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Getting in touch is quick — open their requests and you can message them directly from your dashboard in under a minute. No forms, no fees. They're real families hoping someone gets back to them.
-      </p>`;
+      </ul>`;
   } else {
-    // Single lead - new copy
+    // Single lead - very short
     const familyRef = hasName ? safeFamilyName : "A family";
     const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
     const recipientRef = lead.careRecipient ? ` for ${escapeHtml(lead.careRecipient)}` : "";
     const cityRef = hasCity ? ` in ${escapeHtml(lead.city!)}` : "";
 
-    // Line 2: Simple, consistent copy for everyone (no complex detection needed)
-    const familyRefLower = hasName ? escapeHtml(familyRef) : escapeHtml(familyRef.toLowerCase());
-    const line2 = `That's really all this is — ${familyRefLower} trying to find the right care, hoping the people ${pronouns.pronounLower} contacted will get back to ${pronouns.object}. No middleman, no fee, just ${pronouns.object} and you.`;
-
     bodyHtml = `
-      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        A few days ago, ${escapeHtml(familyRef)} reached out about ${careTypeRef}${recipientRef}${cityRef}, and out of everyone nearby, ${pronouns.pronounLower} chose you.
-      </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-        ${line2}
-      </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Whenever you have a moment: if it feels like a fit, send ${pronouns.object} a message. And if it's not, a quick decline lets ${pronouns.object} know, so ${pronouns.pronounLower} can keep looking without wondering. Either one is a real help to ${pronouns.object}.
+      <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.5;">
+        ${escapeHtml(familyRef)} reached out a few days ago about ${careTypeRef}${recipientRef}${cityRef}. ${pronouns.pronoun}'s still hoping to hear back.
       </p>`;
   }
 
-  // Build buttons - both route to same URL (auto-login magic link)
+  // Build buttons
   const messageButtonText = isMultiple
     ? "Message families →"
     : (hasName ? `Message ${escapeHtml(safeFamilyName)} →` : "Message the family →");
@@ -5567,22 +5703,25 @@ export function providerFollowupDay3Email(opts: FollowupEmailOpts): string {
     ? "Decline leads →"
     : "Decline lead →";
 
+  // Build CTA section
+  const ctaSection = buildFollowupCtaSection({
+    viewUrl: opts.viewUrl,
+    messageButtonText,
+    declineButtonText,
+    connectionStatusUrls: !isMultiple ? opts.connectionStatusUrls : undefined,
+  });
+
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
     ${bodyHtml}
-    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
-      <tr>
-        <td style="padding-right:12px;">${button(messageButtonText, opts.viewUrl)}</td>
-        <td>${button(declineButtonText, opts.viewUrl)}</td>
-      </tr>
-    </table>
+    ${ctaSection}
     ${loganLightSignature()}
     ${followupFooterBlock(opts)}
   `, preheader);
 }
 
 /**
- * Day 5 Follow-up (formerly Day 6): "One last note" - Final outreach
+ * Day 5 Follow-up (formerly Day 6): Final outreach - short and direct.
  * HEAVY signature with photo. Last chance before sequence ends.
  */
 export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
@@ -5592,73 +5731,51 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
 
   const safeFamilyName = firstName(lead.familyName, "");
   const hasName = safeFamilyName.length > 0;
-  const hasCity = !!lead.city;
   const hasCareType = !!lead.careType;
 
   const pronouns = getPronounsFromCareRecipient(lead.careRecipient);
 
-  // Build pronoun contraction ("she's", "he's", "they're" - NOT "they's")
-  const pronounContractionLower = pronouns.pronounLower === "they"
-    ? "they're"
-    : `${pronouns.pronounLower}'s`;
-
-  // Build preheader - dynamic pronoun
-  const preheader = `Message ${pronouns.object} if it's a fit, or decline if it's not.`;
+  // Build preheader
+  const preheader = hasName
+    ? `Last note about ${safeFamilyName}.`
+    : "Last note about this request.";
 
   // Build greeting
   const greeting = `Hi ${escapeHtml(opts.providerName || "there")},`;
 
-  // Reference for family name (used multiple times)
-  const familyRef = hasName ? safeFamilyName : "the family";
+  // Reference for family name
+  const familyRef = hasName ? safeFamilyName : "this family";
 
   let bodyHtml: string;
   if (isMultiple) {
-    // Multiple leads - keep simpler copy
     const leadsListHtml = opts.leads.map((l) => {
       const name = firstName(l.familyName, "A family");
-      const careInfo = l.careType ? escapeHtml(l.careType.toLowerCase()) : "care";
-      const cityInfo = l.city ? ` in ${escapeHtml(l.city)}` : "";
-      return `<li style="margin:0 0 8px;padding:0;"><strong>${escapeHtml(name)}</strong> — ${careInfo}${cityInfo}</li>`;
+      const careInfo = l.careType ? ` — ${escapeHtml(l.careType.toLowerCase())}` : "";
+      return `<li style="margin:0 0 6px;padding:0;">${escapeHtml(name)}${careInfo}</li>`;
     }).join("");
 
     bodyHtml = `
       <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        We'll keep this short — it's the last time we'll reach out about these requests.
+        Last note about these requests:
       </p>
       <ul style="margin:0 0 20px;padding:0 0 0 20px;color:#374151;font-size:14px;line-height:1.6;">
         ${leadsListHtml}
-      </ul>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-        They reached out about a week ago and haven't heard back yet. If you've been meaning to get to it, there's still time. A quick message from you could be just what they're hoping for.
-      </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-        And if it's not a fit, no problem at all. Just decline the leads and let us know why — we'll share that with them so they can keep looking.
-      </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Either way, thanks for taking a look.
-      </p>`;
+      </ul>`;
   } else {
-    // Single lead - new copy
+    // Single lead - very short
     const careTypeRef = hasCareType ? escapeHtml(lead.careType!.toLowerCase()) : "care";
     const recipientRef = lead.careRecipient ? ` for ${escapeHtml(lead.careRecipient)}` : "";
-    const cityRef = hasCity ? ` in ${escapeHtml(lead.city!)}` : "";
 
     bodyHtml = `
-      <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">
-        We'll keep this short — it's the last time we'll reach out about ${escapeHtml(familyRef)}.
+      <p style="font-size:15px;color:#374151;margin:0 0 12px;line-height:1.5;">
+        Last note about ${escapeHtml(familyRef)}.
       </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-        ${pronouns.pronoun} reached out about a week ago, looking for ${careTypeRef}${recipientRef}${cityRef}, and hasn't heard back yet. If you've been meaning to get to it, there's still time. A quick message from you could be just what ${pronounContractionLower} hoping for.
-      </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-        And if it's not a fit, no problem at all. Just decline the lead and let us know why — we'll share that with ${escapeHtml(familyRef)} so ${pronouns.pronounLower} can keep looking.
-      </p>
-      <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
-        Either way, thanks for taking a look.
+      <p style="font-size:14px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
+        ${pronouns.pronoun} reached out about a week ago looking for ${careTypeRef}${recipientRef}.
       </p>`;
   }
 
-  // Build buttons - both route to same URL (auto-login magic link)
+  // Build buttons
   const messageButtonText = isMultiple
     ? "Message families →"
     : (hasName ? `Message ${escapeHtml(safeFamilyName)} →` : "Message the family →");
@@ -5667,15 +5784,18 @@ export function providerFollowupDay6Email(opts: FollowupEmailOpts): string {
     ? "Decline leads →"
     : "Decline lead →";
 
+  // Build CTA section
+  const ctaSection = buildFollowupCtaSection({
+    viewUrl: opts.viewUrl,
+    messageButtonText,
+    declineButtonText,
+    connectionStatusUrls: !isMultiple ? opts.connectionStatusUrls : undefined,
+  });
+
   return layout(`
     <p style="font-size:15px;color:#374151;margin:0 0 16px;line-height:1.5;">${greeting}</p>
     ${bodyHtml}
-    <table cellpadding="0" cellspacing="0" style="margin:0 0 24px;">
-      <tr>
-        <td style="padding-right:12px;">${button(messageButtonText, opts.viewUrl)}</td>
-        <td>${button(declineButtonText, opts.viewUrl)}</td>
-      </tr>
-    </table>
+    ${ctaSection}
     ${loganHeavySignature()}
     ${followupFooterBlock(opts)}
   `, preheader);
@@ -5951,44 +6071,92 @@ export function familyNudgeEmail(opts: {
  * Welcome email sent 24h after provider verification approved.
  * Warm onboarding, sets expectations for getting leads.
  */
+/**
+ * Onboarding Email 1: profile preview. Sent ~48h after the welcome email.
+ *
+ * Leads with local demand rather than vanity. "Families are searching in
+ * {city}" is inherited from provider_incomplete_profile, which this email
+ * replaces: that one had the better opening line and mechanics that left it
+ * sending almost nothing. The CTA lands on the provider's own PUBLIC page,
+ * signed in, so the owner sees exactly what a family sees.
+ */
+export function onboardingProfilePreviewEmail(opts: {
+  providerName: string;
+  city: string;
+  profileUrl: string;
+  providerSlug?: string;
+}): string {
+  const name = escapeHtml(opts.providerName);
+  const city = escapeHtml(opts.city);
+  return layout(`
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Hi there,
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Families are searching for care in ${city} right now. Here is what they see when they find ${name}.
+    </p>
+    <div style="margin:0 0 24px;">${button("Preview your page", opts.profileUrl)}</div>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      You will land on your page exactly as a family does. Photos, the services you offer, and a few words about who you are make the difference between a family reaching out and moving on.
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      Anything that looks thin is editable from the same page.
+    </p>
+    ${offRampBlock(opts.providerSlug)}
+  `, `See what families in ${city} see when they find ${name}.`);
+}
+
+/**
+ * Onboarding Email 0: welcome. Sent on the first business-hours run after a
+ * provider claims their page.
+ *
+ * One email covers every provider. The body only promises what a provider can
+ * actually do the moment they claim, which is manage their page. Seeing family
+ * details and replying to inquiries is gated on verification, so providers who
+ * still need it get that ask folded in here (`verifyUrl` set) rather than a
+ * promise the product will not honor.
+ */
 export function providerWelcomeEmail(opts: {
   providerName: string;
-  recipientName: string;
-  slug: string;
-  profileCompleteness: number;
   dashboardUrl: string;
-  profileUrl: string;
+  /** Set only when the provider is still unverified. Adds the verification ask. */
+  verifyUrl?: string;
+  providerSlug?: string;
 }): string {
-  const completenessLine = opts.profileCompleteness < 100
-    ? `<p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.5;">
-        Your profile is ${opts.profileCompleteness}% complete. Providers with complete profiles get more inquiries from families.
-      </p>`
+  const name = escapeHtml(opts.providerName);
+
+  const verificationBlock = opts.verifyUrl
+    ? `
+    <div style="margin:0 0 24px;padding:16px 18px;background:#f9fafb;border-radius:6px;">
+      <p style="font-size:15px;color:#374151;margin:0 0 6px;line-height:1.6;font-weight:600;">One quick step</p>
+      <p style="font-size:15px;color:#374151;margin:0 0 14px;line-height:1.6;">
+        Verify ${name} to see full family details and reply to inquiries. It takes about a minute with your work email or LinkedIn.
+      </p>
+      <p style="font-size:15px;margin:0;">${ctaLink("Verify your page", opts.verifyUrl)}</p>
+    </div>`
     : "";
 
-  const completeProfileCta = opts.profileCompleteness < 100
-    ? `<p style="font-size:14px;color:#6b7280;margin:16px 0 0;line-height:1.5;">
-        Want to stand out? ${ctaLink("Complete your profile", opts.profileUrl)} to attract more families.
-      </p>`
-    : "";
+  const capabilityLine = opts.verifyUrl
+    ? `Until then you can update your details, add photos, and help more families discover ${name}.`
+    : `You can update your details, add photos, connect with families, and help more families discover ${name}.`;
 
   return layout(`
-    <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Welcome to Olera</h1>
-    <p style="font-size:15px;color:#6b7280;margin:0 0 20px;line-height:1.5;">
-      Hi ${escapeHtml(firstName(opts.recipientName, "there"))}, you're all set up and ready to connect with families looking for care from <strong>${escapeHtml(opts.providerName)}</strong>.
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Hi there,
     </p>
-    <p style="font-size:14px;color:#374151;margin:0 0 12px;line-height:1.5;font-weight:600;">Here's what happens next:</p>
-    <ul style="font-size:14px;color:#6b7280;margin:0 0 20px;padding-left:20px;line-height:1.8;">
-      <li>Families browsing Olera will find your listing and can reach out directly</li>
-      <li>You'll get an email notification for each new inquiry</li>
-      <li>Respond promptly — families appreciate timely replies</li>
-    </ul>
-    ${completenessLine}
-    <div style="margin:0 0 24px;">${button("View Your Dashboard", opts.dashboardUrl)}</div>
-    ${completeProfileCta}
-    <p style="font-size:13px;color:#9ca3af;margin:24px 0 0;line-height:1.5;">
-      Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a> — we're here to help you succeed.
+    <p style="font-size:15px;color:#374151;margin:0 0 20px;line-height:1.65;">
+      Your ${name} page is officially yours to manage.
     </p>
-  `, "You're verified and ready to connect with families");
+    <div style="margin:0 0 24px;">${button("View your page", opts.dashboardUrl)}</div>
+    ${verificationBlock}
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      ${capabilityLine}
+    </p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">
+      We will check in along the way with a few short steps to get your page ready for families.
+    </p>
+    ${offRampBlock(opts.providerSlug)}
+  `, `Your ${name} page is officially yours to manage.`);
 }
 
 /**
@@ -6353,9 +6521,52 @@ export function staleConversationProviderEmail(opts: {
   familyName: string;
   daysSinceLastMessage: number;
   viewUrl: string;
+  /**
+   * Self-report URLs for connection status buttons (verified providers only).
+   * When provided, adds a section asking providers to report their connection status.
+   */
+  connectionStatusUrls?: {
+    connected: string;
+    notAFit: string;
+    noCapacity: string;
+  };
 }): string {
   const safeFamilyName = firstName(opts.familyName, "a family");
   const daysText = opts.daysSinceLastMessage === 1 ? "1 day" : `${opts.daysSinceLastMessage} days`;
+
+  // Build button section - 4 stacked buttons if self-report URLs provided
+  const buttonSection = opts.connectionStatusUrls
+    ? `<table cellpadding="0" cellspacing="0" style="width:100%;margin:0 0 24px;">
+        <tr>
+          <td style="padding-bottom:10px;">
+            <a href="${opts.viewUrl}" style="display:block;text-align:center;padding:14px 24px;background:${BRAND_COLOR};color:#fff;border-radius:8px;font-size:15px;font-weight:600;text-decoration:none;">
+              Send a follow-up
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-bottom:10px;">
+            <a href="${opts.connectionStatusUrls.connected}" style="display:block;text-align:center;padding:12px 24px;background:#fff;border:1px solid #d1d5db;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
+              Already connected
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding-bottom:10px;">
+            <a href="${opts.connectionStatusUrls.notAFit}" style="display:block;text-align:center;padding:12px 24px;background:#fff;border:1px solid #d1d5db;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
+              Not a good fit
+            </a>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <a href="${opts.connectionStatusUrls.noCapacity}" style="display:block;text-align:center;padding:12px 24px;background:#fff;border:1px solid #d1d5db;color:#374151;border-radius:8px;font-size:14px;font-weight:500;text-decoration:none;">
+              No capacity
+            </a>
+          </td>
+        </tr>
+      </table>`
+    : `<div style="margin:0 0 24px;">${button("Send a Follow-up", opts.viewUrl)}</div>`;
 
   return layout(`
     <h1 style="font-size:22px;font-weight:700;color:#111827;margin:0 0 8px;">Continue your conversation?</h1>
@@ -6365,7 +6576,7 @@ export function staleConversationProviderEmail(opts: {
     <p style="font-size:14px;color:#6b7280;margin:0 0 24px;line-height:1.5;">
       A quick follow-up can restart the conversation. Even a simple "Any updates on your care search?" shows you're still interested in helping.
     </p>
-    <div style="margin:0 0 24px;">${button("Send a Follow-up", opts.viewUrl)}</div>
+    ${buttonSection}
     <p style="font-size:13px;color:#9ca3af;margin:0;line-height:1.5;">
       Questions? <a href="${BASE_URL}/contact" style="color:#9ca3af;text-decoration:underline;">Contact us</a>
     </p>

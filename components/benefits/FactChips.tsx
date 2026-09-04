@@ -42,6 +42,7 @@ const MEDICAID_LABELS: Record<string, string> = {
   applying: "Applying for Medicaid",
   notSure: "Medicaid: not sure",
   doesNotHave: "No Medicaid yet",
+  denied: "Medicaid denied",
 };
 
 const INCOME_LABELS: Record<string, string> = {

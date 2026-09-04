@@ -345,7 +345,8 @@ export function renderEmail(
  */
 export function renderVariantEmail(
   variantDraft: { subject: string; body: string },
-  context: TemplateContext
+  context: TemplateContext,
+  templateKey: ProviderOutreachTemplateKey = "nudge"
 ): RenderedEmail {
   // Build substitution variables for footer
   const vars = buildVars(context);
@@ -354,9 +355,9 @@ export function renderVariantEmail(
   const bodyHtml = bodyToPolishedHtml(variantDraft.body);
   const footerHtml = composePolishedFooterHtml(vars);
 
-  // Wrap in polished layout with Day 0 category label
+  // Wrap in polished layout with appropriate category label
   const html = polishedLayout(bodyHtml, footerHtml, {
-    categoryLabel: getCategoryLabel("intro"),
+    categoryLabel: getCategoryLabel(templateKey),
   });
 
   // Build plain text version
@@ -384,17 +385,27 @@ export function previewEmail(
   templateKey: ProviderOutreachTemplateKey;
   context: TemplateContext;
   rawBody: string;
+  editableBody: string;
 } {
   const rendered = renderEmail(templateKey, context);
   const template = getTemplate(templateKey, context);
   const vars = buildVars(context);
   const rawBody = substituteVars(template.body, vars);
 
+  // For compose modal: substitute all vars EXCEPT claim_url
+  // The claim_url will be substituted on the backend when sending
+  // This keeps the editable body clean (no ugly long URLs)
+  const editableVars = { ...vars };
+  delete editableVars.claim_url;
+  // Replace {claim_url} placeholder with a friendly marker
+  const editableBody = substituteVars(template.body, editableVars);
+
   return {
     ...rendered,
     templateKey,
     context,
     rawBody,
+    editableBody,
   };
 }
 

@@ -276,16 +276,15 @@ function BenefitsOutcomeInner() {
             <div className="rounded-xl border border-gray-200 p-5 mb-4">
               {phoneStatus === "done" ? (
                 <p className="text-sm text-gray-600 text-center py-1">
-                  Done. We just texted your results link. TJ will text your next step from that
-                  same number, and you can always text back.
+                  Done. We texted your plan and received your help request. Reply to the text
+                  with what you&apos;d like help with first.
                 </p>
               ) : (
                 <>
                   <p className="text-sm font-semibold text-gray-900 mb-1">Prefer texts?</p>
                   <p className="text-sm text-gray-500 mb-3">
-                    We&apos;ll text your results link now. Then TJ from Olera will follow up by
-                    text from this same number. You can text back anytime and a real person
-                    will answer.
+                    We&apos;ll text your plan now. Olera&apos;s care team will ask what you&apos;d like
+                    help with first and reply within 48 hours.
                   </p>
                   <div className="flex gap-2">
                     <input

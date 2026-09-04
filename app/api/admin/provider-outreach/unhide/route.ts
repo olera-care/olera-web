@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Already visible? Return success (idempotent)
-    if (tracking.admin_hidden !== true) {
+    if (!tracking.admin_hidden) {
       return NextResponse.json({
         success: true,
         provider_id,

@@ -13,6 +13,7 @@ import {
   type BenefitsApplicationStatus,
 } from "@/lib/family-comms/benefits-cascade.server";
 import { readBenefitsNavigator } from "@/lib/family-comms/benefits-navigator.server";
+import type { PacketRoute } from "@/lib/benefits/navigator-packet";
 
 /**
  * GET /api/admin/benefits/families?from=<ISO>&to=<ISO>
@@ -45,6 +46,15 @@ interface FamilyRow {
     scheduleFailed: boolean;
     /** Picked program's short name — lets batch UIs list drafts reviewably. */
     firstStep: string | null;
+    /** The packet's verdict, summarised for the row. Null until the
+     *  benefits-navigator-packets cron has judged this letter. */
+    packet: {
+      route: PacketRoute;
+      /** First hold, for the row's sub-label. Full list rides the per-family GET. */
+      topHold: string | null;
+      holdCount: number;
+      builtAt: string;
+    } | null;
   } | null;
   /** Latest real inbound SMS (non-keyword) — the row's 💬 chip. */
   inboundText: { at: string; body: string | null } | null;
@@ -252,7 +262,6 @@ export async function GET(request: NextRequest) {
     let situationCompleteCount = 0;
     let textableCount = 0;
     let wantsHelp = 0;
-    let navigatorPending = 0;
     const stuckCounts: Record<string, number> = {};
     const lifecycleCounts: Record<string, number> = {};
 
@@ -341,7 +350,6 @@ export async function GET(request: NextRequest) {
       lifecycleCounts[lifecycle.status] = (lifecycleCounts[lifecycle.status] ?? 0) + 1;
 
       const navMeta = readBenefitsNavigator(pMeta);
-      if (navMeta.status === "pending") navigatorPending++;
 
       families.push({
         navigator: navMeta.status
@@ -351,6 +359,14 @@ export async function GET(request: NextRequest) {
               scheduledAt: navMeta.scheduled_at ?? null,
               scheduleFailed: Boolean(navMeta.schedule_failed_reason),
               firstStep: navMeta.pick?.shortName ?? null,
+              packet: navMeta.packet
+                ? {
+                    route: navMeta.packet.route,
+                    topHold: navMeta.packet.holds[0] ?? null,
+                    holdCount: navMeta.packet.holds.length,
+                    builtAt: navMeta.packet.builtAt,
+                  }
+                : null,
             }
           : null,
         inboundText: lastText?.at ? { at: lastText.at, body: lastText.body ?? null } : null,
@@ -401,6 +417,48 @@ export async function GET(request: NextRequest) {
       return b.completedAt.localeCompare(a.completedAt);
     });
 
+    // ── Queue counts, uncapped ────────────────────────────────────────────
+    // The 500-row event fetch above is a DISPLAY cap. Counts derived from it
+    // undercount the moment the queue passes 500 -- and draftReady is the
+    // number on the "Schedule all" button, so a short count silently puts real
+    // drafts out of reach. Same reason windowCount exists for completions.
+    // A narrow JSON projection keeps this cheap: three scalars per row, never
+    // the whole metadata blob.
+    const { data: navRows } = await db
+      .from("business_profiles")
+      .select(
+        "id, nav_status:metadata->benefits_navigator->>status, nav_sched:metadata->benefits_navigator->>scheduled_at, nav_route:metadata->benefits_navigator->packet->>route",
+      )
+      .not("metadata->benefits_navigator", "is", null);
+
+    // A bounded window counts only families whose completion falls inside it,
+    // so pull that window's profile ids WITHOUT the display cap.
+    let windowIds: Set<string> | null = null;
+    if (since || until) {
+      const { data: idRows } = await bounded(
+        db.from("seeker_activity").select("profile_id").eq("event_type", "benefits_completed"),
+      );
+      windowIds = new Set(
+        (idRows ?? []).map((r) => r.profile_id as string | null).filter((v): v is string => !!v),
+      );
+    }
+
+    let navigatorDraftReady = 0;
+    let navigatorScheduled = 0;
+    let navigatorPendingAll = 0;
+    let navigatorUnjudged = 0;
+    const routeCounts: Record<string, number> = {};
+    for (const row of navRows ?? []) {
+      const r = row as { id: string; nav_status: string | null; nav_sched: string | null; nav_route: string | null };
+      if (windowIds && !windowIds.has(r.id)) continue;
+      if (r.nav_status !== "pending") continue;
+      navigatorPendingAll++;
+      if (r.nav_sched) navigatorScheduled++;
+      else navigatorDraftReady++;
+      if (r.nav_route) routeCounts[r.nav_route] = (routeCounts[r.nav_route] ?? 0) + 1;
+      else navigatorUnjudged++;
+    }
+
     return NextResponse.json({
       days,
       // The row fetch caps at 500 — flag it so the client can say so instead
@@ -415,7 +473,12 @@ export async function GET(request: NextRequest) {
         situationComplete: situationCompleteCount,
         textable: textableCount,
         wantsHelp,
-        navigatorPending,
+        // Uncapped, unlike navigatorPending which is scoped to the fetched rows.
+        navigatorPending: navigatorPendingAll,
+        navigatorDraftReady,
+        navigatorScheduled,
+        navigatorRoutes: routeCounts,
+        navigatorUnjudged,
         stuck: stuckCounts,
         lifecycle: lifecycleCounts,
       },

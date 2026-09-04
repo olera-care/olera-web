@@ -1,0 +1,311 @@
+.page {
+  container-name: ad-boost-page;
+  container-type: inline-size;
+}
+
+.introDetail {
+  display: none;
+}
+
+.filterToolbar {
+  flex-wrap: nowrap;
+}
+
+.filterRail {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filterRail::-webkit-scrollbar {
+  display: none;
+}
+
+.filterList {
+  width: max-content;
+  flex-wrap: nowrap;
+}
+
+.sortControl {
+  flex: 0 0 auto;
+}
+
+.queueHeader {
+  display: none;
+}
+
+.queueRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 40px;
+  gap: 8px 10px;
+  min-height: 116px;
+  padding: 12px 10px 12px 14px;
+}
+
+.campaignRow {
+  background: rgb(249 250 251 / 0.7);
+}
+
+.identityCell {
+  min-width: 0;
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.wideMeta,
+.widePlatform,
+.wideStatus,
+.wideNext,
+.wideMetric,
+.wideSubmitted,
+.wideActionIcons,
+.wideActionError {
+  display: none;
+}
+
+.compactMeta {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 5px;
+  margin-top: 3px;
+  overflow: hidden;
+  color: rgb(156 163 175);
+  font-size: 11px;
+  line-height: 1.25;
+  white-space: nowrap;
+}
+
+.compactMeta > * {
+  flex: 0 0 auto;
+}
+
+.compactPlatforms {
+  display: inline-flex;
+  min-width: 0;
+  flex-wrap: nowrap;
+}
+
+.compactWork {
+  min-width: 0;
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.compactWorkLine {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.compactNextMove {
+  min-width: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compactWorkDetail {
+  display: block;
+  margin-top: 2px;
+  overflow: hidden;
+  color: rgb(156 163 175);
+  font-size: 11px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.compactMetrics {
+  display: grid;
+  max-width: 240px;
+  grid-column: 1 / -1;
+  grid-row: 3;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.compactMetric {
+  min-width: 0;
+  color: rgb(55 65 81);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.compactMetricValue {
+  display: block;
+}
+
+.compactMetricLabel {
+  display: block;
+  margin-top: 1px;
+  color: rgb(156 163 175);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.compactMetricMuted {
+  color: rgb(209 213 219);
+}
+
+.compactMetricEmphasized {
+  color: rgb(15 118 110);
+  font-weight: 600;
+}
+
+.actionCell {
+  min-width: 0;
+  grid-column: 2;
+  grid-row: 1;
+  align-self: center;
+  justify-self: end;
+}
+
+.campaignActions {
+  position: relative;
+  min-width: 0;
+}
+
+.compactActionMenu {
+  position: relative;
+}
+
+.compactActionMenu > summary::-webkit-details-marker {
+  display: none;
+}
+
+.compactActionMenu > summary::marker {
+  content: "";
+}
+
+.inlineLabel {
+  color: rgb(156 163 175);
+}
+
+@container ad-boost-page (min-width: 640px) {
+  .queueRow {
+    grid-template-columns: minmax(150px, 1.05fr) minmax(205px, 1.45fr) 150px 42px;
+    gap: 14px;
+    min-height: 84px;
+    padding: 10px 10px 10px 14px;
+    align-items: center;
+  }
+
+  .campaignRow {
+    min-height: 90px;
+    padding-left: 24px;
+  }
+
+  .identityCell {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .compactWork {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .compactMetrics {
+    max-width: none;
+    grid-column: 3;
+    grid-row: 1;
+    text-align: right;
+  }
+
+  .actionCell {
+    grid-column: 4;
+    grid-row: 1;
+  }
+}
+
+@container ad-boost-page (min-width: 1040px) {
+  .introDetail {
+    display: inline;
+  }
+
+  .queueHeader,
+  .queueRow {
+    grid-template-columns: minmax(145px, 1.45fr) 95px 100px minmax(120px, 1.15fr) 52px 64px 44px 90px 48px;
+    gap: 8px;
+  }
+
+  .queueHeader {
+    display: grid;
+  }
+
+  .queueRow {
+    min-height: 0;
+    padding: 14px 12px;
+  }
+
+  .campaignRow {
+    min-height: 0;
+    padding: 12px 12px 12px 24px;
+  }
+
+  .identityCell,
+  .actionCell {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .compactMeta,
+  .compactWork,
+  .compactMetrics,
+  .compactActionMenu {
+    display: none;
+  }
+
+  .wideMeta {
+    display: flex;
+  }
+
+  .widePlatform,
+  .wideNext,
+  .wideMetric,
+  .wideSubmitted {
+    display: block;
+  }
+
+  .wideStatus,
+  .wideActionIcons {
+    display: flex;
+  }
+
+  .wideMetric > * {
+    text-align: right;
+  }
+
+  .wideActionIcons {
+    justify-content: flex-end;
+  }
+
+  .wideActionError {
+    position: absolute;
+    top: 40px;
+    right: 0;
+    z-index: 20;
+    display: block;
+    width: 208px;
+    border: 1px solid rgb(254 202 202);
+    border-radius: 8px;
+    background: white;
+    padding: 8px 10px;
+    color: rgb(220 38 38);
+    font-size: 11px;
+    line-height: 1.35;
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  }
+
+  .inlineLabel {
+    display: none;
+  }
+}

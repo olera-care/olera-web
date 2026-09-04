@@ -69,6 +69,10 @@
       "schedule": "0 * * * *"
     },
     {
+      "path": "/api/cron/profile-preview-nudge",
+      "schedule": "0 * * * *"
+    },
+    {
       "path": "/api/cron/provider-dormant",
       "schedule": "0 15 * * *"
     },
@@ -113,6 +117,10 @@
       "schedule": "0 17 * * *"
     },
     {
+      "path": "/api/cron/benefits-navigator-packets",
+      "schedule": "25 * * * *"
+    },
+    {
       "path": "/api/cron/benefits-navigator-scheduler",
       "schedule": "10 * * * *"
     },
@@ -131,6 +139,30 @@
     {
       "path": "/api/cron/war-room-discovery",
       "schedule": "30 10 * * *"
+    },
+    {
+      "path": "/api/cron/deliverability-watch",
+      "schedule": "0 12 * * *"
+    },
+    {
+      "path": "/api/cron/enrich-question-providers",
+      "schedule": "10 15 * * 2"
+    },
+    {
+      "path": "/api/cron/family-answers",
+      "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/cron/family-answer-followup",
+      "schedule": "0 14 * * *"
+    },
+    {
+      "path": "/api/cron/provider-outreach-channel-lifecycle",
+      "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/city-broadcasts",
+      "schedule": "*/30 * * * *"
     }
   ]
 }

@@ -289,141 +289,135 @@ export function getDefaultQA(
  */
 export function getSuggestedQuestions(
   category: ProfileCategory | null
-): string[] {
-  switch (category) {
-    case "home_care_agency":
-      return [
-        "Can I meet the caregiver before they start?",
-        "What happens if my caregiver calls in sick?",
-        "Do you have a minimum number of hours per visit?",
-        "Are your caregivers background-checked?",
-        "Can caregivers help with medication reminders?",
-        "What are your hourly rates?",
-        "Will the same caregiver come each time?",
-        "Can you help with bathing and other personal care?",
-      ];
+): SuggestedQuestion[] {
+  return SUGGESTED_QUESTION_SETS[category || "default"] || SUGGESTED_QUESTION_SETS.default;
+}
 
-    case "home_health_agency":
-      return [
-        "Does Medicare cover your services?",
-        "How quickly can a nurse start visiting?",
-        "Can you coordinate with my doctor's office?",
-        "What happens after my insurance authorization ends?",
-        "Do you offer physical therapy at home?",
-        "Do you accept my insurance plan?",
-        "Can you provide skilled nursing like wound care or injections?",
-        "Is care available on evenings and weekends?",
-      ];
+export interface SuggestedQuestion {
+  key: string;
+  text: string;
+}
 
-    case "hospice_agency":
-      return [
-        "Is hospice really free for families?",
-        "Can my loved one stay at home for hospice?",
-        "How quickly can services start?",
-        "What support do you offer family caregivers?",
-        "What if my loved one improves — can they leave hospice?",
-      ];
+const sq = (key: string, text: string): SuggestedQuestion => ({ key, text });
 
-    case "assisted_living":
-      return [
-        "Can I tour the community before deciding?",
-        "What's included in the monthly cost?",
-        "How do you handle medical emergencies?",
-        "Can residents bring their own furniture?",
-        "What activities and outings do you offer?",
-        "Do you accept Medicaid or long-term care insurance?",
-        "What care is included, and what costs extra?",
-        "Can you accommodate special diets or food preferences?",
-      ];
+const SUGGESTED_QUESTION_SETS: Record<string, SuggestedQuestion[]> = {
+  home_care_agency: [
+    sq("caregiver_meet_first", "Can I meet the caregiver before they start?"),
+    sq("caregiver_backup", "What happens if my caregiver calls in sick?"),
+    sq("minimum_visit_hours", "Do you have a minimum number of hours per visit?"),
+    sq("caregiver_background_checks", "Are your caregivers background-checked?"),
+    sq("medication_reminders", "Can caregivers help with medication reminders?"),
+    sq("hourly_rates", "What are your hourly rates?"),
+    sq("consistent_caregiver", "Will the same caregiver come each time?"),
+    sq("personal_care_help", "Can you help with bathing and other personal care?"),
+  ],
+  home_health_agency: [
+    sq("medicare_coverage", "Does Medicare cover your services?"),
+    sq("nurse_start_time", "How quickly can a nurse start visiting?"),
+    sq("doctor_coordination", "Can you coordinate with my doctor's office?"),
+    sq("insurance_authorization_end", "What happens after my insurance authorization ends?"),
+    sq("home_physical_therapy", "Do you offer physical therapy at home?"),
+    sq("insurance_plan_acceptance", "Do you accept my insurance plan?"),
+    sq("skilled_nursing_services", "Can you provide skilled nursing like wound care or injections?"),
+    sq("evening_weekend_availability", "Is care available on evenings and weekends?"),
+  ],
+  hospice_agency: [
+    sq("hospice_family_cost", "Is hospice really free for families?"),
+    sq("hospice_at_home", "Can my loved one stay at home for hospice?"),
+    sq("service_start_time", "How quickly can services start?"),
+    sq("family_caregiver_support", "What support do you offer family caregivers?"),
+    sq("leave_hospice_if_improved", "What if my loved one improves — can they leave hospice?"),
+  ],
+  assisted_living: [
+    sq("community_tour", "Can I tour the community before deciding?"),
+    sq("monthly_cost_inclusions", "What's included in the monthly cost?"),
+    sq("medical_emergencies", "How do you handle medical emergencies?"),
+    sq("resident_furniture", "Can residents bring their own furniture?"),
+    sq("activities_outings", "What activities and outings do you offer?"),
+    sq("medicaid_ltc_insurance", "Do you accept Medicaid or long-term care insurance?"),
+    sq("included_care_extra_costs", "What care is included, and what costs extra?"),
+    sq("special_diets", "Can you accommodate special diets or food preferences?"),
+  ],
+  memory_care: [
+    sq("dementia_safety", "How do you keep residents with dementia safe?"),
+    sq("staff_resident_ratio", "What's the staff-to-resident ratio?"),
+    sq("outdoor_access", "Can my parent still go outside?"),
+    sq("sundowning_support", "How do you handle sundowning behavior?"),
+    sq("caregiver_training", "What training do your caregivers receive?"),
+    sq("dementia_progression", "What happens as my parent's dementia progresses?"),
+    sq("family_updates", "How do you keep families updated on day-to-day changes?"),
+    sq("memory_care_monthly_cost", "What's the monthly cost for memory care?"),
+  ],
+  nursing_home: [
+    sq("medicare_medicaid_stay", "Does Medicare or Medicaid cover the stay?"),
+    sq("visiting_hours", "Can I visit anytime?"),
+    sq("staff_patient_ratio", "What's the staff-to-patient ratio?"),
+    sq("changing_care_needs", "How do you handle a change in care needs?"),
+    sq("rehab_long_term_transition", "What are the options for rehab-to-long-term transitions?"),
+    sq("medicare_quality_rating", "What is this facility's Medicare quality rating?"),
+    sq("fall_infection_prevention", "How do you prevent falls and infections?"),
+    sq("private_rooms", "Are private rooms available?"),
+  ],
+  independent_living: [
+    sq("monthly_fee_inclusions", "What's included in the monthly fee?"),
+    sq("future_care_options", "Are there options if I need more help later?"),
+    sq("social_activities", "What social activities are available?"),
+    sq("pets_allowed", "Can I bring my pet?"),
+    sq("waitlist", "Is there a waitlist?"),
+    sq("affordable_options", "Are there income-based or affordable options?"),
+    sq("floor_plans", "What apartment sizes and floor plans are available?"),
+    sq("meals_housekeeping_transport", "Are meals, housekeeping, and transportation included?"),
+  ],
+  inpatient_hospice: [
+    sq("inpatient_hospice_fit", "When is inpatient hospice the right choice?"),
+    sq("family_overnight", "Can family stay overnight?"),
+    sq("inpatient_hospice_medicare", "Is this covered by Medicare?"),
+    sq("pain_management", "How is pain managed for patients?"),
+    sq("family_support", "What support do you offer the family?"),
+  ],
+  rehab_facility: [
+    sq("average_stay", "How long does the average stay last?"),
+    sq("typical_day", "What does a typical day look like?"),
+    sq("rehab_insurance", "Will insurance cover my rehab stay?"),
+    sq("therapy_visiting", "Can family visit during therapy hours?"),
+    sq("transition_home", "What's the transition plan for going home?"),
+  ],
+  adult_day_care: [
+    sq("opening_hours", "What hours are you open?"),
+    sq("transportation", "Do you offer transportation?"),
+    sq("special_dietary_needs", "Can you accommodate special dietary needs?"),
+    sq("day_activities", "What activities do participants do during the day?"),
+    sq("medicaid_va_benefits", "Do you accept Medicaid or VA benefits?"),
+  ],
+  wellness_center: [
+    sq("senior_programs", "What programs do you offer for seniors?"),
+    sq("referral_required", "Do I need a referral to join?"),
+    sq("group_classes", "Are group classes available?"),
+    sq("first_visit", "What does a first visit look like?"),
+  ],
+  private_caregiver: [
+    sq("weekend_availability", "Are you available on weekends?"),
+    sq("bathing_personal_care", "Can you help with bathing and personal care?"),
+    sq("dementia_experience", "Do you have experience with dementia patients?"),
+    sq("rates", "What are your rates?"),
+    sq("references", "Can you provide references?"),
+  ],
+  default: [
+    sq("services_provided", "What services do you provide?"),
+    sq("rates_pricing", "What are your rates or pricing?"),
+    sq("start_time", "How quickly can you get started?"),
+    sq("insurance_medicaid", "Do you accept insurance or Medicaid?"),
+  ],
+};
 
-    case "memory_care":
-      return [
-        "How do you keep residents with dementia safe?",
-        "What's the staff-to-resident ratio?",
-        "Can my parent still go outside?",
-        "How do you handle sundowning behavior?",
-        "What training do your caregivers receive?",
-        "What happens as my parent's dementia progresses?",
-        "How do you keep families updated on day-to-day changes?",
-        "What's the monthly cost for memory care?",
-      ];
+const SUGGESTED_QUESTION_BY_KEY = new Map(
+  Object.values(SUGGESTED_QUESTION_SETS).flat().map((question) => [question.key, question.text]),
+);
 
-    case "nursing_home":
-      return [
-        "Does Medicare or Medicaid cover the stay?",
-        "Can I visit anytime?",
-        "What's the staff-to-patient ratio?",
-        "How do you handle a change in care needs?",
-        "What are the options for rehab-to-long-term transitions?",
-        "What is this facility's Medicare quality rating?",
-        "How do you prevent falls and infections?",
-        "Are private rooms available?",
-      ];
-
-    case "independent_living":
-      return [
-        "What's included in the monthly fee?",
-        "Are there options if I need more help later?",
-        "What social activities are available?",
-        "Can I bring my pet?",
-        "Is there a waitlist?",
-        "Are there income-based or affordable options?",
-        "What apartment sizes and floor plans are available?",
-        "Are meals, housekeeping, and transportation included?",
-      ];
-
-    case "inpatient_hospice":
-      return [
-        "When is inpatient hospice the right choice?",
-        "Can family stay overnight?",
-        "Is this covered by Medicare?",
-        "How is pain managed for patients?",
-        "What support do you offer the family?",
-      ];
-
-    case "rehab_facility":
-      return [
-        "How long does the average stay last?",
-        "What does a typical day look like?",
-        "Will insurance cover my rehab stay?",
-        "Can family visit during therapy hours?",
-        "What's the transition plan for going home?",
-      ];
-
-    case "adult_day_care":
-      return [
-        "What hours are you open?",
-        "Do you offer transportation?",
-        "Can you accommodate special dietary needs?",
-        "What activities do participants do during the day?",
-        "Do you accept Medicaid or VA benefits?",
-      ];
-
-    case "wellness_center":
-      return [
-        "What programs do you offer for seniors?",
-        "Do I need a referral to join?",
-        "Are group classes available?",
-        "What does a first visit look like?",
-      ];
-
-    case "private_caregiver":
-      return [
-        "Are you available on weekends?",
-        "Can you help with bathing and personal care?",
-        "Do you have experience with dementia patients?",
-        "What are your rates?",
-        "Can you provide references?",
-      ];
-
-    default:
-      return [
-        "What services do you provide?",
-        "What are your rates or pricing?",
-        "How quickly can you get started?",
-        "Do you accept insurance or Medicaid?",
-      ];
-  }
+/** Server-side guard against a caller attaching an arbitrary topic key. */
+export function isValidSuggestedQuestion(key: string | null, text: string): boolean {
+  if (!key) return false;
+  return SUGGESTED_QUESTION_BY_KEY.get(key) === text;
 }
 
 // ============================================================

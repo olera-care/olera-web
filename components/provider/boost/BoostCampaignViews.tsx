@@ -183,8 +183,12 @@ export function CampaignReceiptBlock({ receipt }: { receipt: CampaignReceiptData
   }
   if (engagement.questionsReceived > 0) {
     rows.push({
-      label: "Asked you a question",
+      label: "Question taps",
       value: engagement.questionsReceived.toLocaleString(),
+      sub:
+        engagement.questionTopics < engagement.questionsReceived
+          ? `${engagement.questionTopics.toLocaleString()} unique ${engagement.questionTopics === 1 ? "topic" : "topics"}`
+          : undefined,
     });
   }
   if (rows.length === 0 && outcomes.client === 0 && outcomes.talking === 0) return null;

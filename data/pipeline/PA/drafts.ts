@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/PA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.721Z
+ * Last updated: 2026-08-31T10:40:13.376Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -118,7 +118,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Pennsylvania residency (utility bill, lease, or state-issued document)",
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property deeds and tax statements for real estate owned",
         "Retirement account statements (401k, IRA, pension)",
         "Life insurance policies with cash values",
@@ -143,6 +143,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "CHC is mandatory managed care, it replaces prior waiver programs like Aging and Attendant Care waivers",
         "Even if your loved one is dual eligible, they still need to meet functional eligibility requirements through the FED assessment",
         "LIFE program is an alternative for ages 55+ in served areas, you can opt out of CHC to choose LIFE instead",
@@ -594,7 +595,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card or proof of Part A entitlement",
         "Pay stubs for last 3 months (if working)",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, annuities)",
         "Birth certificate or other proof of age",
         "Social Security card",
@@ -621,6 +622,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Automatic Screening: Your County Assistance Office (CAO) will screen you for all tiers of Healthy Horizons. If you do not qualify for QMB, they will automatically check your eligibility for SLMB and QI.",
         "Spousal Income & Assets: If you are married, your spouse's income and resources are included in the calculation, even if they are not applying themselves. This is a common factor that can impact eligibility.",
         "QI Exclusivity: If you qualify for the QI program, you cannot receive full-scope Medicaid coverage at the same time. QI only provides assistance with your Medicare Part B premium.",
@@ -817,7 +819,7 @@ export const drafts: PipelineStateDrafts = {
         "Dates of birth for all household members",
         "Social Security award letters or benefit statements",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Current rent receipt or mortgage statement",
         "Utility bills (electric, gas, water, phone)",
         "Medical expense receipts and bills (last 3 months)",
@@ -829,22 +831,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Central PA Food Bank SNAP Hotline",
-          "phone": "(877) 999-5964",
-          "description": "SNAP application assistance and questions",
-          "hours": "Monday-Friday, business hours"
-        },
-        {
-          "label": "PA Department of Human Services",
-          "phone": "2-1-1",
-          "description": "Find your local County Assistance Office and get general benefit information",
-          "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "COMPASS Helpline",
+          "label": "COMPASS Helpline (start here)",
           "phone": "(800) 692-7462",
-          "description": "Technical help with online applications",
-          "hours": "Monday-Friday 8am-5pm"
+          "description": "Pennsylvania takes SNAP applications online at COMPASS, or on paper in person or by mail at your county assistance office. There is no phone application line. This helpline is who to call when the online application gives you trouble, and they can tell you which county assistance office is yours.",
+          "hours": "8:30 a.m. to 4:45 p.m., Monday to Friday"
         },
         {
           "label": "PA Department of Human Services Statewide Customer Service Center",
@@ -909,12 +899,13 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "(877) 999-5964",
+      "phone": "(800) 692-7462",
       "sourceUrl": "https://www.pa.gov/agencies/dhs/resources/snap/snap-older-adults",
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
       "reviewedBy": "Cecille Chavez",
-      "reviewedAt": "2026-06-17"
+      "reviewedAt": "2026-06-17",
+      "lastVerifiedDate": "2026-08-23"
     },
     {
       "id": "ship-medicare-counseling",
@@ -1663,12 +1654,12 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "SNAP (Supplemental Nutrition Assistance Program)",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Quick financial relief with up to $300/month for groceries, and eligibility often indicates qualification for other programs."
       },
       {
         "name": "SHIP (State Health Insurance Assistance Program)",
-        "programId": "ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free for everyone and can immediately identify Medicare cost savings your loved one may be missing."
       }
     ],

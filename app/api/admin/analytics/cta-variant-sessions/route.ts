@@ -138,6 +138,12 @@ export async function GET(request: NextRequest) {
       if (typeof sid !== "string" || !sid) continue;
       // Filter to this variant's events only.
       if (row.metadata?.variant !== variant) continue;
+      // Exclude impressions fired before the weights fetch resolved. Those
+      // report the legacy default because that is genuinely what was on
+      // screen, so counting them here would inflate the legacy arm with
+      // sessions that may have been assigned elsewhere. Rows written before
+      // this flag existed carry no `variant_resolved` and stay included.
+      if (row.metadata?.variant_resolved === false) continue;
 
       let stage: CTASessionRow["furthest_stage"] | null = null;
       if (row.event_type === "cta_variant_impression") {

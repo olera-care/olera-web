@@ -3,11 +3,35 @@
 import { useState, useRef, useEffect } from "react";
 import { getPricingConfig, type PricingTier } from "@/lib/pricing-config";
 
+/**
+ * Where a displayed price came from.
+ *
+ * This replaces the old `isProviderEntered` boolean, which conflated two
+ * different questions (is it theirs? should we hedge it?) and, for Tier 1/2,
+ * did not actually change the rendering at all -- "est." was emitted
+ * unconditionally, so a provider's real published rate carried the same hedge
+ * as a market average we invented.
+ *
+ *   provider_reported  — the provider's own published rate. Show it plainly.
+ *   regional_estimate  — a state/metro benchmark. Must be labelled as such.
+ *   contact_only       — provider chose not to publish. Show no number.
+ */
+export type PriceSource = "provider_reported" | "regional_estimate" | "contact_only";
+
+/** " in Concord, NC" / " in Concord" / "" — mirrors locSuffix in pricing-config. */
+function locSuffixFor(city?: string, state?: string): string {
+  if (city && state) return ` in ${city}, ${state}`;
+  if (city) return ` in ${city}`;
+  return "";
+}
+
 interface PriceEstimateProps {
   priceRange: string;
   /** Provider category — enables category-specific disclaimers */
   category?: string;
-  /** Override: treat price as provider-entered (skips "est." for Tier 3) */
+  /** Where the number came from. Drives the label and whether it is hedged. */
+  source?: PriceSource;
+  /** @deprecated Use `source`. Retained so existing callers keep compiling. */
   isProviderEntered?: boolean;
   /** Provider name — when supplied, the disclaimer + coverage tooltip are parameterized with it for SEO uniqueness. */
   providerName?: string;
@@ -20,11 +44,17 @@ interface PriceEstimateProps {
 export default function PriceEstimate({
   priceRange,
   category,
+  source,
   isProviderEntered,
   providerName,
   city,
   state,
 }: PriceEstimateProps) {
+  // Prefer the explicit source; fall back to the legacy boolean for callers
+  // that have not been migrated yet.
+  const priceSource: PriceSource =
+    source ?? (isProviderEntered ? "provider_reported" : "regional_estimate");
+  const isProviderPrice = priceSource === "provider_reported";
   const [showTooltip, setShowTooltip] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
@@ -48,7 +78,7 @@ export default function PriceEstimate({
   }, [showTooltip]);
 
   // Tier 3 (Nursing Home / Hospice): lead with coverage, price secondary
-  if (tier === 3 && !isProviderEntered) {
+  if (tier === 3 && !isProviderPrice) {
     return (
       <div className="relative inline-flex items-center gap-1.5" ref={ref}>
         <p className="text-sm text-gray-500 font-medium leading-snug">
@@ -79,13 +109,18 @@ export default function PriceEstimate({
   }
 
   // Tier 1 & 2 (and Tier 3 with provider-entered prices): show price + disclaimer
-  const disclaimer = config?.disclaimer(copyCtx) ?? "Price is an estimate and may vary.";
+  const baseDisclaimer = config?.disclaimer(copyCtx) ?? "Price is an estimate and may vary.";
+  const disclaimer = isProviderPrice
+    ? `Reported by ${providerName ?? "this provider"}. ${baseDisclaimer}`
+    : `This is a typical range for similar care${locSuffixFor(city, state)}, not a rate from ${providerName ?? "this provider"}. ${baseDisclaimer}`;
   const coverageNote = config?.coverageNote ? config.coverageNote(copyCtx) : null;
 
   return (
     <div className="relative inline-flex items-center gap-1.5" ref={ref}>
       <p className="text-lg font-semibold text-gray-900">{priceRange}</p>
-      <span className="text-xs text-gray-400 font-normal self-center">est.</span>
+      <span className="text-xs text-gray-400 font-normal self-center">
+        {isProviderPrice ? "Provider-reported" : "Typical in this area"}
+      </span>
 
       {/* Info button with proper 44px touch target (visually small icon) */}
       <button

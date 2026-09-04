@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T09:02:41.382Z
+ * Last updated: 2026-09-03T11:25:55.870Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -77,7 +77,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Call your local ADRC for a waitlist screening",
-            "description": "Call the statewide Elder Helpline at 1-800-96-ELDER (1-800-963-5337). They route you to the Aging and Disability Resource Center (ADRC) for your county. The ADRC does a telephonic screening that assigns a priority score from 1 to 7 based on frailty. Scores of 4 or higher (or 'imminent risk' at 7) are released from the waitlist faster."
+            "description": "Call the statewide Elder Helpline at 1-800-963-5337 (1-800-963-5337). They route you to the Aging and Disability Resource Center (ADRC) for your county. The ADRC does a telephonic screening that assigns a priority score from 1 to 7 based on frailty. Scores of 4 or higher (or 'imminent risk' at 7) are released from the waitlist faster."
           },
           {
             "step": 2,
@@ -128,7 +128,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Elder Helpline (start here)",
           "phone": "1-800-963-5337",
-          "description": "Statewide entry point (1-800-96-ELDER). Routes to your local ADRC for the waitlist screening. Email Medwaiver@elderaffairs.org for general program questions.",
+          "description": "Statewide entry point (1-800-963-5337). Routes to your local ADRC for the waitlist screening. Email Medwaiver@elderaffairs.org for general program questions.",
           "hours": "Monday-Friday, 8am-5pm local time"
         },
         {
@@ -399,7 +399,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Proof of Florida residency in PACE service area (utility bill, lease, or driver's license)",
         "Social Security award letter or pension statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "List of current medications with dosages",
         "Names and contact information for current doctors",
         "Recent medical records or hospital discharge summaries",
@@ -428,6 +428,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "PACE is voluntary enrollment, your loved one can disenroll at any time and return to regular Medicare",
         "The program works best for people with complex medical needs who want to avoid nursing home placement",
         "If your loved one doesn't qualify for Medicaid initially, they may still enroll and pay privately while PACE assists with Medicaid planning",
@@ -618,7 +619,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Medicare card showing Part A (and Part B for SLMB/QI applications)",
         "Social Security award letter or most recent Social Security statement",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment statements (stocks, bonds, annuities, retirement accounts)",
         "Proof of Florida residency (utility bill, lease agreement, or state-issued document)",
         "Birth certificate or passport for age verification",
@@ -651,6 +652,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Florida SHINE (the state Medicare counseling program, via the Department of Elder Affairs) can screen for the right MSP category and help with the DCF application for free.",
         "QI program funding is finite, even if you meet all requirements, you may be denied if annual funds are exhausted, so apply early in the calendar year",
         "Income limits include a $20 general exclusion for unearned income, meaning your loved one can have $20 more in unearned income and still qualify",
@@ -838,7 +840,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card for applicant and all household members",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Proof of Florida residency (utility bill, lease, or voter registration)",
         "Medical bills and receipts for out-of-pocket expenses (last 3 months)",
         "Medicare card and premium statements",
@@ -943,7 +945,7 @@ export const drafts: PipelineStateDrafts = {
       "id": "liheap-energy-assistance",
       "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
       "shortName": "LIHEAP Energy Assistance",
-      "tagline": "Get $400–$2,000 toward your loved one's electric and gas bills if household income is under $2,679/month for one person.",
+      "tagline": "Get help with your energy bill toward your loved one's electric and gas bills if household income is under $2,679/month for one person.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -968,9 +970,9 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one struggles with high electric or gas bills, LIHEAP provides one-time payments of $400–$2,000 directly to their utility company. The maximum benefit reaches $2,000 for those in a crisis, such as facing disconnection. The payment amount depends on household income, size, and whether they need heating or cooling assistance.\n\nYour loved one qualifies if their gross household income is at or below $2,679/month for one person, $3,504 for two people, or higher limits for larger households. They automatically qualify if they already receive SNAP, SSI, or TANF. LIHEAP is active in all 67 Florida counties; you apply through the agency designated for your loved one's specific county. Heating assistance generally runs through March 31, and cooling assistance opens April 1.\n\nThe program prioritizes households with seniors 60+, children under 5, or disabled members. Because funding is limited, applications often pause when money runs out, so apply as early as possible when the program opens.",
+      "intro": "If your loved one struggles with high electric or gas bills, LIHEAP provides a one-time payment set by your county, generally $200 to $700 for heating or cooling help directly to their utility company. Year-round crisis help is capped at $1,000 per household per program year, resetting each October 1 for those in a crisis, such as facing disconnection. The payment amount depends on household income, size, and whether they need heating or cooling assistance.\n\nYour loved one qualifies if their gross household income is at or below $2,679/month for one person, $3,504 for two people, or higher limits for larger households. They automatically qualify if they already receive SNAP, SSI, or TANF. LIHEAP is active in all 67 Florida counties; you apply through the agency designated for your loved one's specific county. Heating assistance generally runs through March 31, and cooling assistance opens April 1.\n\nThe program prioritizes households with seniors 60+, children under 5, or disabled members. Because funding is limited, applications often pause when money runs out, so apply as early as possible when the program opens.",
       "savingsRange": "Varies by county and available funding",
-      "savingsSource": "FloridaCommerce: benefit amounts vary by county and funding; assistance may be available more than once a year",
+      "savingsSource": "FloridaCommerce: benefit amounts vary by county and funding. The draft FFY2027 state plan sets heating and cooling awards at $200-$700 and caps year-round crisis help at $1,000 per program year. A household can receive Home Energy help once per year; crisis help can repeat up to that cap.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -1077,33 +1079,38 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "2-1-1 (provider locator)",
+          "label": "Find your county LIHEAP provider (start here)",
           "phone": "2-1-1",
-          "description": "Ask for your county's LIHEAP provider agency's number — the county provider takes the application, not 2-1-1",
-          "hours": "24 hours, 7 days a week"
+          "hours": "24 hours, 7 days a week",
+          "description": "FloridaCommerce says to call your local LIHEAP provider first, because their caseworkers take the application. 2-1-1 locates that provider. The statewide online application at floridaliheap.com is closed as of September 2026 and is expected to reopen around October 1."
         },
         {
-          "label": "Economic Opportunities Council (Indian River/Okeechobee)",
-          "phone": "(772) 567-8000",
-          "description": "LIHEAP applications for Indian River and Okeechobee counties",
-          "hours": "Mon-Fri 8am-5pm"
+          "label": "Economic Opportunities Council of Indian River County",
+          "phone": "(772) 562-4177",
+          "hours": "Mon-Fri 8am-5pm",
+          "description": "Okeechobee office: (863) 357-2240."
         },
         {
-          "label": "Palm Beach Community Action",
+          "label": "Palm Beach County Community Action",
           "phone": "(561) 355-4792",
-          "description": "Utility assistance for Palm Beach County residents",
+          "hours": "Mon-Fri 8am-5pm",
+          "description": "Appointment line: (833) 273-9455."
+        },
+        {
+          "label": "Osceola County Council on Aging (Osceola Generations)",
+          "phone": "(407) 846-8532",
           "hours": "Mon-Fri 8am-5pm"
         },
         {
-          "label": "Osceola Generations",
-          "phone": "(407) 593-1900",
-          "description": "LIHEAP and energy assistance for Osceola County",
-          "hours": "Mon-Fri 8am-5pm"
+          "label": "Hillsborough County Social Services",
+          "phone": "(813) 272-5220",
+          "hours": "Mon-Fri 8am-5pm",
+          "description": "Press 2."
         }
       ],
       "applicationNotes": [
         "Applications go through your county's LIHEAP provider agency (community action agency or county human services). Find yours in the FloridaCommerce provider directory at floridajobs.org.",
-        "Crisis assistance up to $2,000 requires proof of emergency like a disconnection notice and may be processed faster than regular assistance",
+        "Year-round crisis assistance, capped at $1,000 per program year, requires proof of an emergency such as a disconnection notice and may be processed faster than regular assistance",
         "You must report ALL household incomes, even for non-citizens or roommates who share the utility bill",
         "Some counties require you to pay your current utility bill before the LIHEAP benefit is awarded",
         "Benefits are typically limited to one payment per heating season and one per cooling season"
@@ -1126,7 +1133,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How much will my loved one actually receive?",
-          "answer": "Assistance ranges from a $400 minimum up to a $2,000 maximum, with the highest amounts reserved for crisis situations such as a disconnection notice. The exact amount depends on household income, size, fuel type, and whether it's for heating or cooling. The payment goes directly to the utility company, not to your loved one."
+          "answer": "Heating and cooling awards generally run $200 to $700, and year-round crisis help is capped at $1,000 per program year. Amounts vary by county and available funding. The exact amount depends on household income, size, fuel type, and whether it's for heating or cooling. The payment goes directly to the utility company, not to your loved one."
         },
         {
           "question": "Can my loved one get LIHEAP if they're already receiving SNAP or SSI?",
@@ -1142,7 +1149,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How often can my loved one receive LIHEAP assistance?",
-          "answer": "Most counties allow one payment per heating season and one per cooling season per year. However, if your loved one faces a utility emergency with disconnection notice, they may qualify for additional crisis assistance up to $2,000."
+          "answer": "Most counties allow one payment per heating season and one per cooling season per year. However, if your loved one faces a utility emergency with disconnection notice, they may qualify for crisis assistance, capped at $1,000 per program year."
         },
         {
           "question": "Does my loved one's house or car count against the income limits?",
@@ -1162,7 +1169,160 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://floridaliheap.com",
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-07-31"
+      "lastVerifiedDate": "2026-09-03"
+    },
+    {
+      "id": "eheap-emergency-home-energy-elderly",
+      "name": "EHEAP (Emergency Home Energy Assistance for the Elderly Program)",
+      "shortName": "EHEAP Energy Emergencies",
+      "tagline": "Emergency help for households with someone 60 or older when heating or cooling fails, including repair or replacement of the equipment.",
+      "programType": "benefit",
+      "complexity": "medium",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": true
+      },
+      "intro": "If your loved one is 60 or older and their home has become dangerously hot or cold, EHEAP is the program built for that moment. It helps low-income Florida households with at least one person age 60 or older who are facing a home energy emergency, and it is administered through Area Agencies on Aging and local Aging and Disability Resource Centers rather than the county agency that handles regular utility assistance.\n\nThe important difference from LIHEAP is what the money can do. LIHEAP pays down a utility bill. EHEAP responds to the emergency itself, and its described uses include repairs or replacement of existing heating and cooling equipment, not only the bill. Some regions also provide fans, portable units, blankets, or space heaters. A household can qualify for a benefit in each season, and the cooling season runs April 1 through September 30 while the heating season runs October 1 through March 31.\n\nEligibility rests on three things: someone in the home is 60 or older, the household income is at or below 60 percent of Florida's State Median Income, and there is a documented home energy emergency. Most program descriptions frame that emergency around a past due bill, a shut off notice, or being out of fuel, so a household whose equipment has failed should describe the situation and any health impact clearly when they call. The local agency makes the determination.\n\nBenefit amounts, and how many benefits a household can receive per season, are set by FloridaCommerce and vary by region and by available funding. Ask the local agency what applies in your loved one's county rather than planning around a figure you read elsewhere.",
+      "savingsRange": "",
+      "savingsSource": "Amounts are set by FloridaCommerce and vary by region and funding",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "At least one household member age 60 or older",
+          "Household income at or below 60 percent of Florida's State Median Income",
+          "A documented home energy emergency, such as a past due bill, a shut off notice, no fuel, or failed heating or cooling equipment",
+          "Florida resident",
+          "Responsible for the home's heating or cooling costs"
+        ],
+        "ageRequirement": "60 or older for at least one member of the household",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
+        "otherRequirements": [
+          "The cooling season runs April 1 through September 30 and the heating season runs October 1 through March 31",
+          "Applications are handled by the Area Agency on Aging or Aging and Disability Resource Center for the county, not by the county LIHEAP office",
+          "HVAC repair and replacement can be limited by the availability of participating vendors in the area"
+        ],
+        "povertyLevelReference": "60 percent of State Median Income"
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call the statewide Elder Helpline, which routes to the Aging and Disability Resource Center for your loved one's county. That agency screens for EHEAP and takes the application.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call the Elder Helpline",
+            "description": "Call 1-800-963-5337 (1-800-963-5337). This is the Florida Department of Elder Affairs statewide line and it connects to the Aging and Disability Resource Center serving your loved one's county."
+          },
+          {
+            "step": 2,
+            "title": "Describe the emergency plainly",
+            "description": "Say what has failed and what it means for the household. If the heat or cooling is not working, say so directly, and mention any medical condition that the temperature is affecting. Ask them to screen the household for EHEAP by name."
+          },
+          {
+            "step": 3,
+            "title": "Gather documents",
+            "description": "Have proof of income for everyone in the home, photo ID, Social Security numbers, the most recent utility bill, and any shut off or past due notice ready before the appointment."
+          },
+          {
+            "step": 4,
+            "title": "Complete the application with the local agency",
+            "description": "The local provider verifies eligibility and arranges the benefit. Payments go to the utility or the vendor rather than to the household."
+          }
+        ],
+        "processingTime": "EHEAP is an emergency program and local agencies aim to act quickly, but timing depends on the agency, the season, and available funding.",
+        "waitlist": "Funding is limited and allocated by region. If a local agency has exhausted its funds, ask when the next cycle opens and whether LIHEAP crisis assistance or weatherization can help in the meantime.",
+        "tip": "EHEAP and LIHEAP are separate programs with separate applications. A household turned down for one, or already helped by one, should still ask about the other.",
+        "urls": [
+          {
+            "label": "Florida Department of Elder Affairs, EHEAP",
+            "url": "https://elderaffairs.org/programs-and-services/emergency-home-energy-assistance-for-the-elderly-program/"
+          },
+          {
+            "label": "Find your Aging and Disability Resource Center",
+            "url": "https://elderaffairs.org/resources/aging-and-disability-resource-centers-adrcs/"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Proof of income for all household members",
+        "Photo ID for the applicant",
+        "Social Security numbers for all household members",
+        "The most recent home energy bill",
+        "Any past due notice, shut off notice, or documentation of the equipment failure",
+        "Proof of age for the household member who is 60 or older"
+      ],
+      "contacts": [
+        {
+          "label": "Florida Elder Helpline (start here)",
+          "phone": "1-800-963-5337",
+          "description": "Statewide Department of Elder Affairs line, 1-800-963-5337. Routes to the Aging and Disability Resource Center for your county, which screens for EHEAP and takes the application.",
+          "hours": null
+        },
+        {
+          "label": "2-1-1",
+          "phone": "2-1-1",
+          "description": "Backup routing if the Elder Helpline cannot be reached, and a source for other local emergency cooling and utility help",
+          "hours": "24 hours, 7 days a week"
+        }
+      ],
+      "applicationNotes": [
+        "EHEAP runs through the aging network, so the entry point is the Elder Helpline or the local Aging and Disability Resource Center rather than the county LIHEAP provider.",
+        "Described uses include repair or replacement of existing heating and cooling equipment, which is what separates EHEAP from bill-only assistance. Availability of participating HVAC vendors can still limit what a region can deliver.",
+        "Some regions also supply fans, portable cooling units, blankets, or space heaters.",
+        "Benefit maximums and the number of benefits per season are set by FloridaCommerce and differ by region. Confirm with the local agency rather than quoting a figure.",
+        "A household can be eligible for both EHEAP and LIHEAP. They are separate applications through different agencies."
+      ],
+      "relatedPrograms": [
+        "LIHEAP (Low-Income Home Energy Assistance Program)",
+        "Weatherization Assistance Program (WAP)",
+        "Elder Options"
+      ],
+      "contentSections": [],
+      "faqs": [
+        {
+          "question": "My loved one's air conditioner is running but not cooling. Is that an emergency for EHEAP?",
+          "answer": "It may be. The program's described uses include repairs and replacement of existing cooling equipment, so failed equipment is within what EHEAP can address. Most official descriptions frame the qualifying emergency around a past due bill or a shut off notice, so the local agency makes the call. When you phone, state plainly that the cooling is not working and describe any medical condition the heat is affecting, so the health impact is on the record."
+        },
+        {
+          "question": "How is EHEAP different from LIHEAP?",
+          "answer": "LIHEAP is the broader energy assistance program open to low-income households of any age, and it pays toward the utility bill. EHEAP is for households with someone 60 or older who are in an energy emergency, and it can go beyond the bill to repair or replace heating and cooling equipment. They are separate applications and run through different agencies, so a household may be able to use both."
+        },
+        {
+          "question": "Who actually takes the application?",
+          "answer": "The Area Agency on Aging or the Aging and Disability Resource Center serving the county, sometimes through a local senior services partner. Calling the statewide Elder Helpline at 1-800-963-5337 is the reliable way to reach the right one, because the provider differs by county."
+        },
+        {
+          "question": "When can my loved one apply for cooling help?",
+          "answer": "The cooling season runs April 1 through September 30, and the heating season runs October 1 through March 31. A household may receive a benefit in each season, subject to the limits and funding set for the region."
+        },
+        {
+          "question": "How much will EHEAP pay?",
+          "answer": "The maximum is set by FloridaCommerce and varies by region and by the funding a local agency has left. Published figures differ from county to county, so ask the local agency what applies rather than planning around a number found online."
+        },
+        {
+          "question": "Does my loved one need to own their home?",
+          "answer": "No. The requirement is that the household is responsible for the home's heating or cooling costs. Renters can qualify, though work on equipment owned by a landlord may need the landlord's cooperation."
+        },
+        {
+          "question": "Can I apply on behalf of my parent?",
+          "answer": "Yes, family members routinely help with the call and the paperwork. Bring the household's income documentation and identification, and expect the agency to want to verify details with the person who is 60 or older."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "simple-list",
+        "applyDisplay": "phone-cta",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "warm"
+      },
+      "icon": "Lightning",
+      "phone": "1-800-963-5337",
+      "sourceUrl": "https://elderaffairs.org/programs-and-services/emergency-home-energy-assistance-for-the-elderly-program/",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-08-18",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "weatherization-assistance-program",
@@ -1293,26 +1453,31 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
+        "Photo identification (driver license, state ID, or similar)",
+        "Proof of income for all household members, covering the 12 months before you apply",
         "Social Security cards for all household members",
-        "Valid photo ID for all household members",
-        "Verification of ALL household income from last 12 months (last 4 pay stubs, unemployment benefits, retirement/pension statements, VA benefits, Social Security/SSI letters, TANF documentation, rental/business income)",
-        "Proof of disability documentation if claiming disabled household member",
-        "Proof of home ownership (property tax statements, warranty deed, or certificate of title) OR landlord written consent for renters",
-        "Most recent complete electric bill (all pages, not payment stubs or shut-off notices)",
-        "Proof of citizenship or legal residency for Miami-Dade County applicants"
+        "A recent utility bill (electric, gas, propane)",
+        "Proof of home ownership, or written landlord authorization if renting",
+        "Documentation of disability, being 60 or older, or a child in the home"
       ],
       "contacts": [
         {
-          "label": "WAP Manager (statewide)",
-          "phone": "(850) 717-8523",
-          "description": "Coreine Rainford, Florida Department of Commerce, general statewide questions. Alt: (850) 717-8467. Email wxadmin@cfcaa.org.",
-          "hours": "Business hours"
+          "label": "Florida Department of Commerce (start here)",
+          "phone": "(850) 245-7105",
+          "description": "Applications only happen through the weatherization office for your county, never online and never at the state. Call to be pointed to yours, or look it up at floridajobs.org/WAPHelp. Details at www.floridajobs.org/WAPHelp.",
+          "hours": "Mon-Fri, business hours"
         },
         {
-          "label": "Central Florida Community Action",
+          "label": "Find your county's weatherization office",
           "phone": null,
-          "description": "Email wxadmin@cfcaa.org. Serves central Florida counties.",
-          "hours": "Business hours"
+          "description": "State directory covering all 67 counties, with a phone number for each. Details at www.floridajobs.org/WAPHelp.",
+          "hours": null
+        },
+        {
+          "label": "FloridaCommerce Bureau of Economic Self-Sufficiency, public inquiries",
+          "phone": "(850) 717-8450",
+          "description": "State-level questions about energy and weatherization assistance.",
+          "hours": "Mon-Fri, business hours"
         }
       ],
       "applicationNotes": [
@@ -1423,13 +1588,13 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "(850) 717-8523",
+      "phone": "(850) 245-7105",
       "sourceUrl": "https://www.floridajobs.org/business-growth-and-partnerships/business-development/weatherization-assistance-program",
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
       "reviewedBy": "TJ",
       "reviewedAt": "2026-04-20",
-      "lastVerifiedDate": "2026-04-20"
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "shine-medicare-counseling",
@@ -1567,7 +1732,7 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local ADRCs (find via 1-800-96-ELDER)",
+            "name": "Local ADRCs (find via 1-800-963-5337)",
             "type": "service-area"
           },
           {
@@ -1609,7 +1774,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Call the Elder Helpline",
-            "description": "Call 1-800-96-ELDER (1-800-963-5337) to find your local Aging and Disability Resource Center (ADRC). Available Monday-Friday 8am-5pm ET."
+            "description": "Call 1-800-963-5337 (1-800-963-5337) to find your local Aging and Disability Resource Center (ADRC). Available Monday-Friday 8am-5pm ET."
           },
           {
             "step": 2,
@@ -1655,7 +1820,7 @@ export const drafts: PipelineStateDrafts = {
       "contacts": [
         {
           "label": "Florida Elder Helpline",
-          "phone": "1-800-96-ELDER",
+          "phone": "1-800-963-5337",
           "description": "Statewide helpline to find your local ADRC and Meals on Wheels program",
           "hours": "Mon-Fri 8am-5pm local time"
         }
@@ -1720,7 +1885,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "1-800-96-ELDER",
+      "phone": "1-800-963-5337",
       "sourceUrl": "https://elderaffairs.org/programs-and-services/food-assistance/",
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
@@ -1776,7 +1941,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Call the Elder Helpline",
-            "description": "Call 1-800-96-ELDER (1-800-963-5337) and ask to be connected to your local Area Agency on Aging (AAA) for ADI respite services."
+            "description": "Call 1-800-963-5337 (1-800-963-5337) and ask to be connected to your local Area Agency on Aging (AAA) for ADI respite services."
           },
           {
             "step": 2,
@@ -2003,7 +2168,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Proof of unemployment status (unemployment benefits letter, termination notice, or signed statement)",
         "Income verification for all household members (Social Security award letters, pension statements, or tax returns)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Proof of residence (utility bill, lease agreement, or mortgage statement)",
         "Veterans DD-214 form (if claiming veteran priority)",
         "Disability documentation (if claiming disability priority)",
@@ -2276,14 +2441,14 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "Florida's HCE Program recognizes that family members are often the best caregivers, but that the costs of caring for a senior can add up quickly. Rather than sending a stranger into your home, this program provides you — the live-in caregiver — with a monthly check (starting at $160) to help cover the costs of food, medical supplies, and basic needs. It's a way for the state to support the incredible work you're already doing to keep your loved one out of a nursing home.\n\nTo qualify in 2026, the senior must meet specific clinical and financial criteria. Clinically, they must be certified as needing a Nursing Home Level of Care, and they must live in a private home with a caregiver who is willing and able to provide or coordinate their care. Financially, the senior's gross monthly income must be under $2,829, and their countable assets must be under $2,000 for an individual or $3,000 for a couple. All participants receive a basic monthly subsidy of $160, and additional special subsidies may be authorized for medical supplies, home health aide services, or nutritional supplements.\n\nBecause HCE is a state-funded program and not an entitlement, most areas use a Statewide Pre-Enrollment List (Apply early!). Unlike standard waitlists, placement on this list is determined by the senior's frailty and risk score rather than the date of their application. To begin the process and determine if your loved one qualifies for a full assessment, call the statewide Elder Helpline at 1-800-963-5337 for a preliminary phone screening.",
-      "savingsRange": "$160/month",
-      "savingsSource": "Basic monthly caregiver subsidy (special subsidies may add more)",
-      "savingsVerified": false,
+      "intro": "Florida's HCE Program recognizes that family members are often the best caregivers, but that the costs of caring for a senior can add up quickly. Rather than sending a stranger into your home, this program provides you — the live-in caregiver — with a monthly check (starting at $160) to help cover the costs of food, medical supplies, and basic needs. It's a way for the state to support the incredible work you're already doing to keep your loved one out of a nursing home.\n\nTo qualify in 2026, the senior must meet specific clinical and financial criteria. Clinically, they must be certified as needing a Nursing Home Level of Care, and they must live in a private home with a caregiver who is willing and able to provide or coordinate their care. Financially, the senior's gross monthly income must be under $2,982, and their countable assets must be under $2,000 for an individual or $3,000 for a couple. All participants receive a basic monthly subsidy of $160, and additional special subsidies may be authorized for medical supplies, home health aide services, or nutritional supplements.\n\nBecause HCE is a state-funded program and not an entitlement, most areas use a Statewide Pre-Enrollment List (Apply early!). Unlike standard waitlists, placement on this list is determined by the senior's frailty and risk score rather than the date of their application. To begin the process and determine if your loved one qualifies for a full assessment, call the statewide Elder Helpline at 1-800-963-5337 for a preliminary phone screening.",
+      "savingsRange": "$160/month basic subsidy, paid to the caregiver",
+      "savingsSource": "2026 DOEA Home Care for the Elderly handbook, Chapter 11: \"The basic subsidy amount is a standard $160,\" paid to the caregiver. Special subsidies are separate and have no published amount.",
+      "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
           "Age 60+",
-          "Income below ~$2,829/month",
+          "Income below ~$2,982/month",
           "Assets under ~$2,000",
           "Live-in adult caregiver required",
           "At nursing home level of care need"
@@ -2292,7 +2457,7 @@ export const drafts: PipelineStateDrafts = {
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 2829
+            "monthlyLimit": 2982
           }
         ],
         "assetLimits": {
@@ -2305,19 +2470,19 @@ export const drafts: PipelineStateDrafts = {
             "Other real estate"
           ],
           "exemptAssets": [
-            "Primary home (if your loved one or spouse/dependent lives there, equity under $752,000 in 2026)",
+            "Primary home (if your loved one or spouse/dependent lives there)",
             "One vehicle of any value",
             "Irrevocable burial contracts (any amount) or designated burial fund up to $2,500",
             "Life insurance policies with total face value under $2,500"
           ],
-          "homeEquityCap": 752000
+          "homeEquityCap": null
         },
         "functionalRequirement": "Must be certified as needing Nursing Home Level of Care via the 701B Comprehensive Assessment conducted by a state-certified DOEA assessor. Your loved one must require daily help with Activities of Daily Living (ADLs) such as bathing, dressing, eating, or transferring. Significant cognitive impairments such as Alzheimer's or related dementias also meet the requirement when constant supervision is needed for safety.",
         "otherRequirements": [
           "Florida resident with intent to remain",
           "Lives with an approved adult caregiver (age 18+) in a private, family-type home",
-          "Caregiver must pass a Level 2 background check (fingerprinting) and be determined willing and able to provide or coordinate care",
-          "If income exceeds $2,829/month, a Qualified Income Trust (QIT) must be established to maintain eligibility"
+          "Caregiver must be determined willing and able to provide or coordinate care. A Level II background screening is required only for caregivers who are not related to the person receiving care.",
+          "Income and assets may be met by self-declaration, or by receiving SSI, or by QMB or SLMB benefits. Enrolment in SSI, QMB or SLMB is one route, not a prerequisite."
         ],
         "povertyLevelReference": null
       },
@@ -2328,7 +2493,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Contact your local ADRC",
-            "description": "Call your regional Aging and Disability Resource Center or Department of Elder Affairs contractor. They will schedule a 701B assessment to determine if your loved one meets nursing home level of care."
+            "description": "Call your regional Aging and Disability Resource Center or Department of Elder Affairs contractor. They will start with a 701S screening. If funding is not available your loved one goes on the Assessed Priority Consumer List, and the fuller 701B assessment happens after release from that list."
           },
           {
             "step": 2,
@@ -2338,7 +2503,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Caregiver assessment",
-            "description": "The live-in caregiver must be assessed for willingness and ability to provide care, meet age requirements (18+), and pass background screening per state rules."
+            "description": "The live-in caregiver must be assessed for willingness and ability to provide care, meet age requirements (18+), and pass a Level II background screening if they are not related to the person receiving care."
           },
           {
             "step": 4,
@@ -2352,7 +2517,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ],
         "processingTime": "Not specified, varies by local provider and caseload",
-        "waitlist": "Potential waitlist due to priority-based allocation and funding limits",
+        "waitlist": "When funding is not available, applicants are placed on the Assessed Priority Consumer List (APCL). Priority is imminent risk first, then people aging out of the children's programs, then by frailty score. Coming off the list and re-applying loses any priority already accrued.",
         "tip": "Have your caregiver's identification and willingness confirmation ready, the program cannot serve anyone living alone.",
         "urls": [
           {
@@ -2365,7 +2530,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of age (birth certificate or passport)",
         "Florida residency documents (utility bill, lease, or state-issued ID)",
         "Social Security award letter or pension statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property deeds or tax statements if applicable",
         "Vehicle titles and registration",
@@ -2379,19 +2544,19 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Elder Helpline",
+          "label": "Elder Helpline (start here)",
           "phone": "1-800-963-5337",
-          "description": "Statewide helpline for elder services and local ADRC referrals",
-          "hours": "Business hours Monday-Friday"
+          "description": "Routes to the Aging and Disability Resource Center for your area, which handles HCE screening. Hours vary by local ADRC; some regions publish their own Elder Helpline number."
         },
         {
           "label": "Department of Elder Affairs",
           "phone": "(850) 414-2000",
-          "description": "Main office for program information and contractor directory",
-          "hours": "Mon-Fri 8am-5pm ET"
+          "description": "State office. TDD 850-414-2001."
         }
       ],
       "applicationNotes": [
+        "HCE is state general revenue rather than a Medicaid waiver, and the 2026 handbook sets no legally responsible individual restriction. A spouse or adult child living in the home can be the approved caregiver and receive the subsidy. Extraordinary Care approval, which Medicaid waivers require of a spouse, does not apply here.",
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "SSI, QMB, or SLMB recipients automatically meet financial eligibility, bring award letters to speed processing",
         "The caregiver assessment is required even for adult children, they must demonstrate ability and commitment to provide ongoing support",
         "Priority is given based on greatest need and risk factors, having no other support systems may increase priority",
@@ -2450,7 +2615,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-963-5337",
       "sourceUrl": "https://elderaffairs.org/programs-services/home-care-for-the-elderly/",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "cce-community-care-elderly",
@@ -2535,7 +2701,7 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Elder Helpline (start here)",
           "phone": "1-800-963-5337",
-          "description": "Statewide entry point (1-800-96-ELDER). Routes to your loved one's local CCE provider for screening and assessment.",
+          "description": "Statewide entry point (1-800-963-5337). Routes to your loved one's local CCE provider for screening and assessment.",
           "hours": "Monday-Friday 8:00 AM-5:00 PM ET"
         },
         {
@@ -2676,12 +2842,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 1-800-96-ELDER for screening and assessment, processing varies but expect 30+ days for full approval.",
+        "summary": "Call 1-800-963-5337 for screening and assessment, processing varies but expect 30+ days for full approval.",
         "steps": [
           {
             "step": 1,
             "title": "Initial Contact",
-            "description": "Call 1-800-96-ELDER (1-800-963-5337) or the Elder Helpline at 1-800-262-2243 for initial screening and to determine if your loved one lives in the Elder Options service area."
+            "description": "Call 1-800-963-5337 (1-800-963-5337) or the Elder Helpline at 1-800-262-2243 for initial screening and to determine if your loved one lives in the Elder Options service area."
           },
           {
             "step": 2,
@@ -2724,7 +2890,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicaid card if already enrolled",
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Proof of any other income (pensions, retirement, wages)",
         "Property deeds or mortgage statements",
         "Vehicle titles and registration",
@@ -2738,7 +2904,7 @@ export const drafts: PipelineStateDrafts = {
       "contacts": [
         {
           "label": "Elder Options Main Line",
-          "phone": "1-800-96-ELDER",
+          "phone": "1-800-963-5337",
           "description": "Primary intake and screening for Elder Options services. If your call routes to voicemail, leave a message; Elder Options returns calls in the order received, even during business hours.",
           "hours": "Monday-Friday 8am-5pm ET"
         },
@@ -2756,6 +2922,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Elder Options serves 16 specific counties in North Central Florida (Alachua, Bradford, Citrus, Columbia, Dixie, Gilchrist, Hamilton, Hernando, Lafayette, Lake, Levy, Marion, Putnam, Sumter, Suwannee, Union); other Florida counties have different ADRC providers with separate applications",
         "Financial eligibility through DCF and medical eligibility through CARES are separate processes, both must be completed for approval",
         "Services are not guaranteed even if eligible, depends on funding availability and current waitlists in your area",
@@ -2811,7 +2978,7 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "1-800-96-ELDER",
+      "phone": "1-800-963-5337",
       "sourceUrl": "https://agingresources.org/",
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
@@ -3345,12 +3512,12 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "LIHEAP (Low-Income Home Energy Assistance Program)",
-        "programId": "florida-liheap",
+        "programId": "liheap-energy-assistance",
         "why": "Provides immediate financial relief of $400–$2,000 toward utility bills."
       },
       {
         "name": "SHINE (Serving Health Insurance Needs of Elders)",
-        "programId": "florida-shine",
+        "programId": "shine-medicare-counseling",
         "why": "Free expert help navigating all Medicare and insurance questions, available to every Florida senior."
       }
     ],
@@ -3378,9 +3545,10 @@ export const drafts: PipelineStateDrafts = {
         "need": "Utility bills and home costs",
         "programs": [
           "LIHEAP (Low-Income Home Energy Assistance Program)",
-          "Weatherization Assistance Program (WAP)"
+          "Weatherization Assistance Program (WAP)",
+          "EHEAP (Emergency Home Energy Assistance for the Elderly Program)"
         ],
-        "description": "Financial assistance and free home improvements to reduce energy costs."
+        "description": "Financial assistance and free home improvements to reduce energy costs, plus emergency help for households with someone 60 or older when heating or cooling fails."
       },
       {
         "need": "Food and daily support",

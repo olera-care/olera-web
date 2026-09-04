@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/WY/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T03:19:50.959Z
+ * Last updated: 2026-08-22T10:37:49.054Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -490,12 +490,12 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Low Income Energy Assistance Program (LIHEAP)",
-        "programId": "wyoming-liheap",
+        "programId": "liheap-energy-assistance",
         "why": "Wyoming winters are expensive, this covers up to $2,176 in heating bills for qualifying families."
       },
       {
         "name": "Wyoming Tax Refund for Elderly & Disabled",
-        "programId": "wyoming-elderly-disabled-tax-refund",
+        "programId": "tax-refund-elderly-disabled",
         "why": "Provides $250–900 annually to help with property taxes and utilities for Wyoming seniors."
       },
       {

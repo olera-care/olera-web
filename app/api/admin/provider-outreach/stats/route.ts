@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     const dateTo = searchParams.get("date_to");
 
     // State is required for all metrics except global ones
-    const globalMetrics = ["claimed", "follow_ups_today", "sequence_conversion"];
+    const globalMetrics = ["claimed", "follow_ups_today", "call_exhausted", "sequence_conversion"];
     if (!state && !globalMetrics.includes(metric)) {
       return NextResponse.json({ error: "State parameter is required for this metric" }, { status: 400 });
     }
@@ -58,6 +58,12 @@ export async function GET(request: NextRequest) {
     // Global follow-ups due today (no state filter)
     if (metric === "follow_ups_today") {
       const stats = await getGlobalFollowUpsTodayStats(db);
+      return NextResponse.json(stats);
+    }
+
+    // Global call exhausted stats (no state filter)
+    if (metric === "call_exhausted") {
+      const stats = await getGlobalCallExhaustedStats(db);
       return NextResponse.json(stats);
     }
 
@@ -402,10 +408,101 @@ async function getGlobalFollowUpsTodayStats(db: DB): Promise<{
 }
 
 /**
- * Get global sequence conversion stats across ALL states.
+ * Get global call exhausted stats across ALL states.
+ * Returns total count and breakdown by admin.
+ */
+async function getGlobalCallExhaustedStats(db: DB): Promise<{
+  total: number;
+  by_admin: Array<{ admin_id: string | null; display_name: string; count: number }>;
+}> {
+  // Get admin display names for lookup
+  const { data: admins } = await db
+    .from("admin_users")
+    .select("id, display_name");
+
+  const adminNameMap = new Map(
+    (admins || []).map((a: { id: string; display_name: string | null }) => [a.id, a.display_name || a.id])
+  );
+
+  // Query ALL call_exhausted providers across ALL states
+  // Exclude admin_hidden providers to match the Call tab
+  const { data: trackingRows, error } = await db
+    .from("provider_outreach_tracking")
+    .select("provider_id, assigned_to")
+    .eq("stage", "call_exhausted")
+    .not("admin_hidden", "is", true);
+
+  if (error) {
+    console.error("[call-exhausted-global] Query error:", error);
+    return { total: 0, by_admin: [] };
+  }
+
+  if (!trackingRows || trackingRows.length === 0) {
+    return { total: 0, by_admin: [] };
+  }
+
+  // Get claimed providers (have account_id in business_profiles)
+  const { data: claimedBps } = await db
+    .from("business_profiles")
+    .select("source_provider_id")
+    .not("source_provider_id", "is", null)
+    .not("account_id", "is", null);
+
+  const claimedProviderIds = new Set(
+    (claimedBps || []).map((bp: { source_provider_id: string }) => bp.source_provider_id).filter(Boolean)
+  );
+
+  // Get system-archived providers
+  const { data: archivedBps } = await db
+    .from("business_profiles")
+    .select("source_provider_id")
+    .not("source_provider_id", "is", null)
+    .filter("metadata->>admin_archived", "eq", "true");
+
+  const archivedProviderIds = new Set(
+    (archivedBps || []).map((bp: { source_provider_id: string }) => bp.source_provider_id).filter(Boolean)
+  );
+
+  // Count by assigned_to, excluding claimed and system-archived
+  const countMap = new Map<string, number>();
+  let totalCount = 0;
+  for (const row of trackingRows) {
+    if (claimedProviderIds.has(row.provider_id)) continue;
+    if (archivedProviderIds.has(row.provider_id)) continue;
+
+    const key = row.assigned_to || "unassigned";
+    countMap.set(key, (countMap.get(key) || 0) + 1);
+    totalCount++;
+  }
+
+  // Convert to sorted array
+  const byAdmin: Array<{ admin_id: string | null; display_name: string; count: number }> = [];
+  for (const [adminId, count] of countMap.entries()) {
+    byAdmin.push({
+      admin_id: adminId === "unassigned" ? null : adminId,
+      display_name: adminId === "unassigned" ? "Unassigned" : (adminNameMap.get(adminId) || adminId),
+      count,
+    });
+  }
+
+  // Sort: highest count first, unassigned last
+  byAdmin.sort((a, b) => {
+    if (a.admin_id === null && b.admin_id !== null) return 1;
+    if (a.admin_id !== null && b.admin_id === null) return -1;
+    return b.count - a.count;
+  });
+
+  return { total: totalCount, by_admin: byAdmin };
+}
+
+/**
+ * Get global cold outreach conversion stats across ALL states.
+ * Counts ALL providers in the outreach tracking system who have claimed,
+ * regardless of whether they went through email sequence, fax, or other channels.
+ *
  * Returns:
- *   - sequenced: total providers who ever entered the email sequence (all time)
- *   - claimed: providers who went through the sequence AND claimed their profile
+ *   - sequenced: total providers in cold outreach tracking (all time, all channels)
+ *   - claimed: providers from cold outreach who claimed their profile
  *   - rate: conversion percentage
  */
 async function getGlobalSequenceConversionStats(db: DB): Promise<{
@@ -413,24 +510,58 @@ async function getGlobalSequenceConversionStats(db: DB): Promise<{
   claimed: number;
   rate: number;
 }> {
-  // Get all providers who ever entered the sequence (sequence_started_at is set)
-  const { data: sequencedRows, error: seqError } = await db
+  // Get all providers in outreach tracking with their flags
+  const { data: outreachRows, error: outreachError } = await db
     .from("provider_outreach_tracking")
-    .select("provider_id")
-    .not("sequence_started_at", "is", null);
+    .select("provider_id, sequence_started_at, fax_sent_at, mail_sent_at, contact_form_send_count, resend_count");
 
-  if (seqError) {
-    console.error("[sequence-conversion] Sequenced query error:", seqError);
+  if (outreachError) {
+    console.error("[sequence-conversion] Outreach query error:", outreachError);
     return { sequenced: 0, claimed: 0, rate: 0 };
   }
 
-  const sequencedProviderIds = new Set(
-    (sequencedRows || []).map((r: { provider_id: string }) => r.provider_id)
+  if (!outreachRows || outreachRows.length === 0) {
+    return { sequenced: 0, claimed: 0, rate: 0 };
+  }
+
+  // Get all tracking provider IDs for touchpoint lookup
+  const allTrackingProviderIds = outreachRows.map((r: { provider_id: string }) => r.provider_id);
+
+  // Also check for providers with outreach touchpoints
+  // Some providers might have been contacted but tracking flags weren't set
+  const { data: touchpointProviders } = await db
+    .from("provider_outreach_touchpoints")
+    .select("provider_id")
+    .in("provider_id", allTrackingProviderIds)
+    .in("touchpoint_type", ["email_sent", "smartlead_enrolled", "sequence_launched", "contact_form_sent", "fax_sent", "mail_sent"]);
+
+  const providersWithTouchpoints = new Set(
+    (touchpointProviders || []).map((t: { provider_id: string }) => t.provider_id)
   );
 
-  const sequencedCount = sequencedProviderIds.size;
+  // Filter to providers who received outreach via tracking flags OR have touchpoints
+  const contactedProviders = (outreachRows || []).filter((r: {
+    provider_id: string;
+    sequence_started_at: string | null;
+    fax_sent_at: string | null;
+    mail_sent_at: string | null;
+    contact_form_send_count: number | null;
+    resend_count: number | null;
+  }) => {
+    const hasTrackingFlags = r.sequence_started_at || r.fax_sent_at || r.mail_sent_at ||
+      (r.contact_form_send_count && r.contact_form_send_count > 0) ||
+      (r.resend_count && r.resend_count > 0);
+    const hasTouchpoints = providersWithTouchpoints.has(r.provider_id);
+    return hasTrackingFlags || hasTouchpoints;
+  });
 
-  if (sequencedCount === 0) {
+  const outreachProviderIds = new Set(
+    contactedProviders.map((r) => r.provider_id)
+  );
+
+  const outreachCount = outreachProviderIds.size;
+
+  if (outreachCount === 0) {
     return { sequenced: 0, claimed: 0, rate: 0 };
   }
 
@@ -443,24 +574,24 @@ async function getGlobalSequenceConversionStats(db: DB): Promise<{
 
   if (claimedError) {
     console.error("[sequence-conversion] Claimed query error:", claimedError);
-    return { sequenced: sequencedCount, claimed: 0, rate: 0 };
+    return { sequenced: outreachCount, claimed: 0, rate: 0 };
   }
 
-  // Count how many sequenced providers have claimed
-  let claimedFromSequenceCount = 0;
+  // Count how many outreach providers have claimed
+  let claimedFromOutreachCount = 0;
   for (const bp of claimedBps || []) {
-    if (sequencedProviderIds.has(bp.source_provider_id)) {
-      claimedFromSequenceCount++;
+    if (outreachProviderIds.has(bp.source_provider_id)) {
+      claimedFromOutreachCount++;
     }
   }
 
-  const rate = sequencedCount > 0
-    ? Math.round((claimedFromSequenceCount / sequencedCount) * 1000) / 10 // One decimal place
+  const rate = outreachCount > 0
+    ? Math.round((claimedFromOutreachCount / outreachCount) * 1000) / 10 // One decimal place
     : 0;
 
   return {
-    sequenced: sequencedCount,
-    claimed: claimedFromSequenceCount,
+    sequenced: outreachCount,
+    claimed: claimedFromOutreachCount,
     rate,
   };
 }

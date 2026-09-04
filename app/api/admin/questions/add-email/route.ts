@@ -3,7 +3,7 @@ import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/l
 import { sendDeferredNotificationsForProvider } from "@/lib/admin/send-deferred-notifications";
 import { generateProviderSlug } from "@/lib/slugify";
 import { verifyAndCache, effectiveStatus } from "@/lib/email-verification";
-import { markEmailTrusted } from "@/lib/email";
+import { markEmailTrusted, getRecipientDeliveryHistory, isNeverDeliveredMailbox } from "@/lib/email";
 
 /**
  * POST /api/admin/questions/add-email
@@ -238,6 +238,25 @@ export async function POST(request: NextRequest) {
     // suppression. Without this, a prior bounce on this address would still skip
     // the send here, which is the "override just retries and rejects" bug.
     if (force && effectiveEmail) {
+      // ...unless the receiving server has already rejected this exact address and
+      // never once accepted it. Human knowledge that the inbox "is real" cannot
+      // make a mailbox that has only ever bounced start delivering, and trusting
+      // it here would re-open the same bypass the Trust button now refuses.
+      // Fails open: no history, or a lookup error, still trusts as before.
+      const forcedHistory = await getRecipientDeliveryHistory(effectiveEmail);
+      if (isNeverDeliveredMailbox(forcedHistory)) {
+        return NextResponse.json(
+          {
+            error: "never_delivered",
+            bounced: forcedHistory.bounced,
+            message:
+              `This address has bounced ${forcedHistory.bounced} time${forcedHistory.bounced === 1 ? "" : "s"} and has ` +
+              `never successfully delivered, so forcing it through would only produce more bounces. ` +
+              `Use a different address for this provider, or reach them by phone.`,
+          },
+          { status: 422 },
+        );
+      }
       await markEmailTrusted(effectiveEmail, { reason: "admin", note: "force-added via Questions tab", createdBy: adminUser.id });
     }
 

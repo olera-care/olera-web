@@ -89,6 +89,7 @@ export async function GET(request: NextRequest) {
       let query = db
         .from("provider_questions")
         .select("id, provider_id, asker_name, asker_email, question, answer, status, created_at, metadata")
+        .is("canonical_question_id", null)
         .order("created_at", { ascending: false });
 
       // Apply tab filter

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MO/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.519Z
+ * Last updated: 2026-09-03T11:25:55.879Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -120,7 +120,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Missouri residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter or other income statements",
         "Pension or retirement income documentation",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements) for non-exempt property",
         "Life insurance policies with face and cash values",
@@ -151,6 +151,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Asset limits apply strictly to seniors, many miss exemptions like primary home equity limits and burial fund exclusions",
         "Spend-down allows qualification even with higher income if medical expenses are substantial, keep all medical receipts",
         "Different MO HealthNet programs have different rules, Medicare Savings Programs have higher asset limits ($7,560 single) but require separate applications",
@@ -215,7 +216,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 373-9994",
       "sourceUrl": "https://mydss.mo.gov/healthcare/apply",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "structured-family-caregiving-waiver",
@@ -314,7 +316,7 @@ export const drafts: PipelineStateDrafts = {
         "Licensed healthcare professional's diagnosis of Alzheimer's disease or related dementia disorder",
         "Documentation proving full-time shared household residence with primary caregiver",
         "Most recent Social Security award letter or benefits statement",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property documents if homeowner (deeds, tax statements showing equity value)",
         "Vehicle titles and registration documents",
         "Life insurance policies with cash values",
@@ -340,6 +342,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must already have a live-in caregiving arrangement, this program pays existing caregivers, not new placements",
         "Blind Pension Medicaid recipients are specifically excluded from this waiver program",
         "Cannot combine with other Missouri HCBS waiver services, choosing this waiver means giving up other waiver options",
@@ -508,7 +511,7 @@ export const drafts: PipelineStateDrafts = {
         "Hospital discharge summaries if applicable",
         "Current medication list and prescription bottles",
         "Social Security award letter or benefits statement",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment account statements",
         "Property deeds or tax assessments",
         "Vehicle titles and registration",
@@ -543,6 +546,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Only three PACE organizations serve Missouri, you must live in their specific service areas to enroll",
         "Most participants need both Medicare and Medicaid for full coverage, private pay costs approximately $7,000+ per month",
         "Cannot be enrolled in Medicare Advantage, Medicare prescription drug plans, or hospice while in PACE",
@@ -725,7 +729,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card showing Part A enrollment",
         "Social Security award letters for all household members",
         "Most recent pay stubs (if working)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment statements (stocks, bonds, retirement accounts)",
         "Property tax statements or deed for real estate owned",
         "Vehicle titles and registration",
@@ -750,6 +754,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI program has limited funding and is awarded first-come, first-served, apply early in the year for best chances",
         "SLMB2 cannot be active at the same time as MO HealthNet insurance, unlike other MSP tiers",
         "Income limits change every April when federal poverty levels are announced, recheck eligibility annually",
@@ -939,7 +944,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Most recent Social Security award letter or benefit statement",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings accounts. Every state asks about this. In Missouri your savings do count. For a household with someone 60 or older or disabled the limit is $4,500, and it rises to $4,750 on October 1, 2026.",
         "Proof of Missouri residency (utility bill, lease agreement, or state ID)",
         "Valid photo identification",
         "Rent or mortgage payment receipts",
@@ -1018,7 +1023,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 373-4636",
       "sourceUrl": "https://mydss.mo.gov/food-assistance/apply-for-snap",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -1032,18 +1038,18 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Local contracted agencies; examples: CMCA (cmca.us), Ameren participating agencies",
+            "name": "19 contracted agencies statewide; find yours in the state directory at dss.mo.gov",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your loved one struggles to pay heating or cooling bills on a fixed income, LIHEAP provides direct payments to their energy company. The program pays $153 to $495 toward regular heating costs, plus up to $800 for winter emergencies and $300 for summer cooling crises.\n\nYour loved one qualifies if their gross monthly income is below $2,839 for a single person or $3,713 for a couple (2025 limits), and they have $3,000 or less in countable assets like bank accounts and investments. Because priority goes to households with someone age 60+ or disabled, older adults get earlier application windows starting October 1.\n\nBecause funding is limited and distributed first-come, first-served within priority groups, applying early in the season maximizes your loved one's chances of receiving assistance before funds run out.",
-      "savingsRange": "$153 – $800/year in 2025",
-      "savingsSource": "Regular heating assistance ranges $153-$495; crisis assistance up to $800 winter, $300 summer",
+      "intro": "If your loved one struggles to pay heating or cooling bills on a fixed income, LIHEAP provides direct payments to their energy company. The program pays $153 to $495 toward regular heating costs, plus up to $800 for winter emergencies and $300 for summer cooling crises.\n\nYour loved one qualifies if their gross monthly income is below $2,840 for a single person or $3,714 for a couple (2025 limits), and they have $3,000 or less in countable assets like bank accounts and investments. Because priority goes to households with someone age 60+ or disabled, older adults get earlier application windows starting October 1.\n\nBecause funding is limited and distributed first-come, first-served within priority groups, applying early in the season maximizes your loved one's chances of receiving assistance before funds run out.",
+      "savingsRange": "$153 - $1,595/year (FY2026)",
+      "savingsSource": "Missouri DSS FY2026: Energy Assistance is a single payment set by fuel type, from $153 for kerosene to $495 for tank propane. Crisis payments are additive on top of it, up to $800 winter and $300 summer, so $1,595 is the ceiling for a household that receives all three.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
-          "Income below $2,839/month (single) or $3,713/month (couple)",
+          "Income below $2,840/month (single) or $3,714/month (couple)",
           "Assets under $3,000",
           "Missouri resident",
           "U.S. citizen or legal resident"
@@ -1052,15 +1058,15 @@ export const drafts: PipelineStateDrafts = {
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 2839
+            "monthlyLimit": 2840
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 3713
+            "monthlyLimit": 3714
           },
           {
             "householdSize": 3,
-            "monthlyLimit": 4587
+            "monthlyLimit": 4588
           },
           {
             "householdSize": 4,
@@ -1091,7 +1097,8 @@ export const drafts: PipelineStateDrafts = {
           "Missouri resident",
           "U.S. citizen or legally admitted for permanent residence",
           "Be responsible for paying the utility bill",
-          "Provide Social Security numbers for all household members"
+          "Provide Social Security numbers for all household members",
+          "Crisis assistance requires evidence of a disconnection risk: a termination notice with a date, a final bill showing the account is closed, a propane or fuel oil tank below 20%, a cash-on-delivery or prepaid-electric account about to run out, or another fuel source about to run out."
         ],
         "povertyLevelReference": "60% of state median income"
       },
@@ -1102,12 +1109,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Find your local agency",
-            "description": "Use the agency finder on your utility company's website (like Ameren.com) or contact the Energy Assistance Line at (573) 200-6655 to locate your nearest contracted agency."
+            "description": "Open the state list of contracted agencies at dss.mo.gov/fsd/energy-assistance/pdf/liheap-contracted-agencies.pdf and find your county, then send your application to that agency. The Family Support Division Information Center (855-373-4636) can mail you an application."
           },
           {
             "step": 2,
             "title": "Check priority periods",
-            "description": "Elderly (60+) and disabled households can apply starting October 1 or November 1. All other households start December 1. Apply as early as possible since funds are limited."
+            "description": "For the Energy Assistance payment, households with someone 60 or older or disabled apply on or after October 1; all other households on or after November 1. December 1 is when non-priority households can start Winter Crisis, not Energy Assistance. Right now, in September, only Summer Crisis is open and it closes September 30. If your loved one never received Energy Assistance this year they can still apply for Summer Crisis, using the full application."
           },
           {
             "step": 3,
@@ -1125,49 +1132,49 @@ export const drafts: PipelineStateDrafts = {
             "description": "Agencies process applications after program start dates. If approved, payments go directly to your energy supplier."
           }
         ],
-        "processingTime": "Eligibility notifications and payments begin after October 1 for priority households, with exact timing varying by local agency",
+        "processingTime": "Missouri DSS reviews applications within about 30 business days. Crisis requests move faster: the fuel supplier is contacted and a pledge made within about two days.",
         "waitlist": "Funds are limited and distributed first-come, first-served within priority periods. Programs may exhaust funding before all eligible applicants receive assistance",
         "tip": "SNAP recipients still need to apply separately for LIHEAP and must provide utility bills and Social Security numbers",
         "urls": [
           {
-            "label": "Missouri Department of Social Services Energy Assistance",
-            "url": "https://dss.mo.gov/fsd/energy-assistance"
+            "label": "Missouri LIHEAP program page",
+            "url": "https://mydss.mo.gov/utility-assistance/liheap"
           },
           {
-            "label": "Ameren LIHEAP Information",
-            "url": "https://www.ameren.com/bill/assistance/liheap"
+            "label": "Where to send your application (contracted agency by county)",
+            "url": "https://dss.mo.gov/fsd/energy-assistance/pdf/liheap-contracted-agencies.pdf"
           }
         ]
       },
       "documentsNeeded": [
-        "Valid government-issued photo ID",
-        "Proof of Missouri residency (utility bill, lease, or state-issued document)",
-        "Proof of U.S. citizenship or legal residency for all household members",
-        "Social Security cards for all household members",
-        "Pay stubs or income statements from the month prior to application",
-        "Most recent electric bill",
-        "Most recent gas or heating fuel bill",
-        "Bank statements for all accounts (last 3 months)",
-        "Investment account statements",
-        "Retirement account statements",
-        "Social Security award letters for all recipients",
-        "Pension or other retirement income statements"
+        "A completed, signed and dated application",
+        "Proof of a Social Security number for everyone in the household (the card, an award letter, or a W-2)",
+        "Copies of your heating and cooling bills for every fuel source you use, including any disconnection notice",
+        "Proof of all income from last month for everyone in the household. Households already receiving SNAP do not need to provide income proof.",
+        "For anyone with self-employment income last month: the most recent federal Form 1040 including Schedule 1"
       ],
       "contacts": [
         {
-          "label": "Energy Assistance Line",
+          "label": "Family Support Division Information Center (start here)",
+          "phone": "(855) 373-4636",
+          "hours": "Mon-Fri 8:00am-5:00pm CT",
+          "description": "855-FSD-INFO. Answers questions, provides a translator on request, and will mail you a paper application. Applications are filed with the contracted agency for your county. As of September 2026 only Summer Crisis assistance is open, and it closes September 30."
+        },
+        {
+          "label": "Central Missouri Community Action - Audrain, Boone, Callaway, Cole, Cooper, Howard, Moniteau and Osage Counties only",
           "phone": "(573) 200-6655",
-          "description": "Option 1 for application status, Option 2 for crisis assistance",
-          "hours": "Business hours"
+          "hours": "Mon-Fri business hours",
+          "description": "Option 1 for application status, option 2 if you are without power or about to be."
         },
         {
           "label": "Missouri 2-1-1",
           "phone": "2-1-1",
-          "description": "Free helpline for all social services and local agency referrals",
-          "hours": "24 hours, 7 days a week"
+          "hours": "24 hours, 7 days a week",
+          "description": "Phone is staffed around the clock; chat and text are Mon-Fri 9am-5pm."
         }
       ],
       "applicationNotes": [
+        "Timing as of September 2026: Energy Assistance and Winter Crisis both closed May 31, 2026. Summer Crisis is open until September 30, 2026. Energy Assistance for the next program year is expected to reopen October 1 for households with someone 60 or older or disabled, but Missouri has not published FY2027 dates or a form yet.",
         "Priority households (age 60+, disabled, families with children) have earlier application windows starting October 1 or November 1",
         "Crisis assistance for disconnection notices or emergency situations may be processed more quickly than regular heating assistance",
         "Income is calculated based on the month prior to application, so September income counts for October applications",
@@ -1215,10 +1222,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "(573) 200-6655",
+      "phone": "(855) 373-4636",
       "sourceUrl": "https://dss.mo.gov/fsd/energy-assistance",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "weatherization-assistance-program",
@@ -1960,7 +1968,7 @@ export const drafts: PipelineStateDrafts = {
         "Most recent Social Security award letter",
         "Pay stubs from last 30 days (if any recent employment)",
         "Unemployment benefits statement (if receiving)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "SNAP benefits award letter (if receiving)",
         "Housing assistance documentation (if receiving)",
         "Veterans benefits statements (if applicable)",
@@ -2040,7 +2048,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(573) 526-4542",
       "sourceUrl": "https://health.mo.gov/seniors/senioremployment/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "legal-services-eastern-missouri-older-adults",
@@ -2395,7 +2404,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card",
         "Medicare Part D plan enrollment card",
         "Social Security award letters for all household members",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Pay stubs or employment income statements",
         "Pension or retirement income statements",
         "Tax returns from most recent year",
@@ -2419,6 +2428,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Major change in 2017: You can no longer qualify for MoRx with Medicare Part D alone, you must also be eligible for MO HealthNet",
         "If your loved one has MO HealthNet with a spenddown, they must meet the spenddown at least once per year to activate MoRx prescription assistance",
         "Automatic enrollment happens if your loved one is already receiving both Medicare and MO HealthNet, no separate MoRx application needed"
@@ -2467,7 +2477,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 373-4636",
       "sourceUrl": "https://mydss.mo.gov/mhd/morx-general-faqs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "property-tax-credit-circuit-breaker",
@@ -2740,7 +2751,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of U.S. citizenship or qualified alien status",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -2770,6 +2781,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must be enrolled in Missouri Medicaid (MO HealthNet) before applying for ADW - apply for both simultaneously if needed",
         "The 60-month look-back period means any asset transfers below fair market value in the past 5 years will result in penalty periods",
         "Your home is only exempt if your spouse, minor child, or disabled adult child lives there - otherwise it counts toward asset limits",
@@ -2828,7 +2840,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(866) 835-3505",
       "sourceUrl": "https://dss.mo.gov/mhd/waivers/1915c-home-and-community-waivers/aged-and-disabled.htm",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "silp-senior-independent-living",
@@ -2985,7 +2998,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Medicare Savings Program (MSP)",
-        "programId": "medicare-savings-program-msp",
+        "programId": "medicare-savings-program",
         "why": "If your loved one has Medicare but limited income, this covers premiums and reduces medical costs immediately."
       },
       {
@@ -2995,7 +3008,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Missouri State Health Insurance Assistance Program (Missouri SHIP)",
-        "programId": "missouri-state-health-insurance-assistance-program-missouri-ship",
+        "programId": "missouri-ship",
         "why": "Free expert help finding all Medicare savings your loved one qualifies for, no income limits."
       }
     ],

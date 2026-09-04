@@ -101,11 +101,12 @@ export async function GET(request: NextRequest) {
     .select("id", { count: "exact", head: true })
     .eq("event_type", "lead_received");
   let questionsAskedQuery = db
-    .from("provider_questions")
+    .from("provider_question_asks")
     .select("id", { count: "exact", head: true });
   let questionsAnsweredQuery = db
     .from("provider_questions")
     .select("id", { count: "exact", head: true })
+    .is("canonical_question_id", null)
     .not("answered_at", "is", null)
     .not("answer", "is", null)
     .neq("answer", "");

@@ -22,7 +22,7 @@ export function SmsConsentDisclosure({
   const about =
     audience === "provider"
       ? "your business on Olera (such as new family inquiries and account notices)"
-      : "your care search (such as provider replies and updates)";
+      : "your care search (such as guidance from Olera's care team, provider replies, and updates)";
   return (
     <p className={`text-[12px] leading-relaxed text-gray-400 ${className}`}>
       If you add your phone, you agree to receive text messages from Olera about{" "}

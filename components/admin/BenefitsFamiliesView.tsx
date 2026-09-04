@@ -11,6 +11,12 @@ import {
   type ReviewItem,
   type ReviewPick,
 } from "@/lib/benefits/navigator-review-prompt";
+import NavigatorPacketPanel from "@/components/admin/NavigatorPacketPanel";
+import {
+  ROUTE_LABEL,
+  type NavigatorPacket,
+  type PacketRoute,
+} from "@/lib/benefits/navigator-packet";
 import { etInputToUtcIso, toEtInputValue, formatEt } from "@/lib/eastern-time";
 import { useUrlDateRangeState } from "@/hooks/useUrlDateRangeState";
 
@@ -95,6 +101,13 @@ interface FamilyRow {
     scheduledAt: string | null;
     scheduleFailed: boolean;
     firstStep: string | null;
+    /** Verdict summary. Null until the packet cron has judged this letter. */
+    packet: {
+      route: PacketRoute;
+      topHold: string | null;
+      holdCount: number;
+      builtAt: string;
+    } | null;
   } | null;
   /** Latest real inbound SMS — the 💬 chip (webhook writes metadata.sms_inbound). */
   inboundText: { at: string; body: string | null } | null;
@@ -127,7 +140,7 @@ interface NavigatorDetail {
   status?: "pending" | "sent" | "dismissed";
   subject?: string;
   body?: string;
-  /** TJ-voiced companion text; {link} placeholder is replaced at send. */
+  /** Care-team companion text; {link} placeholder is replaced at send. */
   sms?: string | null;
   /** Saved in-drawer edits — preferred over the AI originals everywhere. */
   edited_subject?: string;
@@ -142,6 +155,8 @@ interface NavigatorDetail {
   sent_at?: string;
   /** Full pickSnapshot from metadata — the letter's verifiable claims. */
   pick?: ReviewPick;
+  /** The computed routing verdict, rendered above the letter in the drawer. */
+  packet?: NavigatorPacket;
 }
 
 type LifecycleStatus =
@@ -154,27 +169,65 @@ type LifecycleStatus =
   | "new"
   | "in_cascade";
 
-type QueueFilter = LifecycleStatus | "all" | "draft_ready" | "scheduled";
+type QueueFilter = "all" | "draft_ready" | "scheduled" | `route_${PacketRoute}`;
 
 const QUEUE_FILTERS: QueueFilter[] = [
-  "all",
   "draft_ready",
   "scheduled",
-  "needs_help",
-  "stalled",
-  "acting",
-  "returned",
-  "new",
-  "in_cascade",
-  "working",
-  "resolved",
+  "route_review",
+  "route_recompose",
+  "route_auto",
+  "route_ask",
+  "all",
 ];
 
 /** Read the active queue filter from the URL so a refresh lands back on it. */
+/** Cold opens land on the queue TJ actually works, not on everything. `?status=`
+ *  still wins, so a refresh keeps whatever tab he was on. */
+const DEFAULT_FILTER: QueueFilter = "draft_ready";
+
+/** Family lifecycle is a SECOND dimension, not another value of the first.
+ *  "Draft ready + Needs help" is the queue worth working and it was not
+ *  expressible while one control carried both axes. */
+type LifeFilter = LifecycleStatus | "any";
+const LIFE_FILTERS: [LifeFilter, string][] = [
+  ["any", "Any"],
+  ["needs_help", "Needs help"],
+  ["stalled", "Stalled"],
+  ["acting", "Acting"],
+  ["returned", "Returned"],
+  ["new", "New"],
+  ["in_cascade", "In cascade"],
+  ["working", "Working"],
+  ["resolved", "Resolved"],
+];
+
 function filterFromUrl(): QueueFilter {
-  if (typeof window === "undefined") return "all";
+  if (typeof window === "undefined") return DEFAULT_FILTER;
   const status = new URLSearchParams(window.location.search).get("status");
-  return QUEUE_FILTERS.includes(status as QueueFilter) ? (status as QueueFilter) : "all";
+  if (QUEUE_FILTERS.includes(status as QueueFilter)) return status as QueueFilter;
+  // A pre-split link carried lifecycle here and meant "every family in this
+  // state". Widening the tab to All preserves that breadth; lifeFromUrl picks
+  // the lifecycle up on the other axis.
+  return legacyStatusIsLifecycle() ? "all" : DEFAULT_FILTER;
+}
+
+/** Lifecycle used to be a `?status=` value. A link written before the split
+ *  should still land where its author meant, on the family axis, instead of
+ *  silently resetting to Draft ready with the filter dropped. */
+function legacyStatusIsLifecycle(): LifecycleStatus | null {
+  if (typeof window === "undefined") return null;
+  const status = new URLSearchParams(window.location.search).get("status");
+  if (!status || QUEUE_FILTERS.includes(status as QueueFilter)) return null;
+  return LIFE_FILTERS.some(([k]) => k === status) ? (status as LifecycleStatus) : null;
+}
+
+
+function lifeFromUrl(): LifeFilter {
+  if (typeof window === "undefined") return "any";
+  const v = new URLSearchParams(window.location.search).get("family");
+  if (LIFE_FILTERS.some(([k]) => k === v)) return v as LifeFilter;
+  return legacyStatusIsLifecycle() ?? "any";
 }
 
 interface TimelineEvent {
@@ -198,6 +251,11 @@ interface FamiliesData {
     situationComplete: number;
     textable: number;
     wantsHelp: number;
+    navigatorPending: number;
+    navigatorDraftReady: number;
+    navigatorScheduled: number;
+    navigatorRoutes: Record<string, number>;
+    navigatorUnjudged: number;
     stuck: Record<string, number>;
     lifecycle: Record<string, number>;
   };
@@ -249,8 +307,15 @@ export default function BenefitsFamiliesView() {
   const setFilter = useCallback((next: QueueFilter) => {
     setFilterState(next);
     const url = new URL(window.location.href);
-    if (next === "all") url.searchParams.delete("status");
-    else url.searchParams.set("status", next);
+    url.searchParams.set("status", next);
+    window.history.replaceState(window.history.state, "", url);
+  }, []);
+  const [life, setLifeState] = useState<LifeFilter>(lifeFromUrl);
+  const setLife = useCallback((next: LifeFilter) => {
+    setLifeState(next);
+    const url = new URL(window.location.href);
+    if (next === "any") url.searchParams.delete("family");
+    else url.searchParams.set("family", next);
     window.history.replaceState(window.history.state, "", url);
   }, []);
   // "What's working" breakdown — collapsed by default; the family queue below
@@ -275,7 +340,21 @@ export default function BenefitsFamiliesView() {
   >("idle");
 
   const openBatchModal = () => {
-    setBatchExcluded(new Set());
+    // Pre-exclude anything the packet says must not send as written. Batch
+    // scheduling used to treat every draft-ready letter as equivalent; a
+    // letter routed `recompose` names a program the family's own facts rule
+    // out, and one routed `ask` was a guess we should not have made. Both are
+    // still unticked-by-default rather than hidden, because the reviewer
+    // overriding this deliberately is legitimate and hiding rows is not.
+    const holdBack = new Set(
+      visibleRows
+        .filter((f) => {
+          const r = f.navigator?.status === "pending" ? f.navigator.packet?.route : null;
+          return r === "ask" || r === "recompose";
+        })
+        .map((f) => f.profileId),
+    );
+    setBatchExcluded(holdBack);
     setBatchTime(nextEasternMorning());
     setBatchState("idle");
     setBatchOpen(true);
@@ -334,12 +413,13 @@ export default function BenefitsFamiliesView() {
   const navigatorAction = useCallback(
     async (
       profileId: string,
-      action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule",
+      action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule" | "navigator_build_packet",
       subject?: string,
       letter?: string,
       sms?: string,
       testEmail?: string,
       scheduledAt?: string,
+      overridePacket?: boolean,
     ): Promise<boolean> => {
       setCaseBusy(true);
       setCaseError(null);
@@ -347,10 +427,33 @@ export default function BenefitsFamiliesView() {
         const res = await fetch(`/api/admin/benefits/families/${profileId}`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ action, subject, body: letter, sms, testEmail, scheduledAt }),
+          body: JSON.stringify({ action, subject, body: letter, sms, testEmail, scheduledAt, overridePacket }),
         });
-        const d = await res.json().catch(() => null);
-        if (!res.ok) {
+        let d = await res.json().catch(() => null);
+        // The facts gate blocks server-side on the program record, which the
+        // client cannot evaluate: clearance is read from the deployed pipeline
+        // bundle, not from anything the queue fetches. So unlike the packet
+        // gate, there is nothing to confirm BEFORE the request. Confirm on the
+        // way back instead, naming the server's reason, and only then retry
+        // with the override. Without this the block is a dead end: the message
+        // says "send anyway if you disagree" and offers no way to do it.
+        if (res.status === 409 && action === "navigator_send" && !overridePacket && d?.error) {
+          if (!window.confirm(`${d.error}\n\nSend it anyway?`)) {
+            setCaseError(d.error);
+            return false;
+          }
+          const retry = await fetch(`/api/admin/benefits/families/${profileId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ action, subject, body: letter, sms, testEmail, scheduledAt, overridePacket: true }),
+          });
+          const rd = await retry.json().catch(() => null);
+          if (!retry.ok) {
+            setCaseError(rd?.error || "That didn't go through. Try again.");
+            return false;
+          }
+          d = rd;
+        } else if (!res.ok) {
           setCaseError(d?.error || "That didn't go through. Try again.");
           return false;
         }
@@ -465,11 +568,9 @@ export default function BenefitsFamiliesView() {
   // drafts get their own chip — they're committed, not waiting. The AI-review
   // export still covers BOTH: a scheduled letter hasn't sent yet, so a
   // fact-check catching an error before the fire is exactly the point.
-  const pendingDraftCount = families.filter((f) => f.navigator?.status === "pending").length;
-  const scheduledCount = families.filter(
-    (f) => f.navigator?.status === "pending" && f.navigator.scheduledAt,
-  ).length;
-  const draftReadyCount = pendingDraftCount - scheduledCount;
+  // World totals — for the truncation banner only, never on a control.
+  const worldPending = summary.navigatorPending ?? 0;
+  const worldDraftReady = summary.navigatorDraftReady ?? 0;
 
   /** Redacted review context for the AI fact-check prompt — never carries
    *  the family's name or email (the name is passed only so the builder can
@@ -493,7 +594,7 @@ export default function BenefitsFamiliesView() {
   const exportPendingDrafts = async () => {
     setExportState("working");
     try {
-      const pending = families.filter((f) => f.navigator?.status === "pending");
+      const pending = visibleRows.filter((f) => f.navigator?.status === "pending");
       const results = await Promise.all(
         pending.map(async (f) => {
           try {
@@ -547,14 +648,52 @@ export default function BenefitsFamiliesView() {
       setExportState("error");
     }
   };
-  const matchesFilter = (f: FamilyRow) =>
+  const matchesLife = (f: FamilyRow) => life === "any" || f.lifecycle.status === life;
+  const matchesQueue = (f: FamilyRow) =>
     filter === "all"
       ? true
-      : filter === "draft_ready"
+      : filter.startsWith("route_")
+        ? f.navigator?.status === "pending" &&
+          f.navigator.packet?.route === filter.slice("route_".length)
+        : filter === "draft_ready"
         ? f.navigator?.status === "pending" && !f.navigator.scheduledAt
         : filter === "scheduled"
           ? f.navigator?.status === "pending" && !!f.navigator.scheduledAt
-          : f.lifecycle.status === filter;
+          : true;
+  // Two independent axes, ANDed. The queue tab says what to do next; the family
+  // filter says who it is for.
+  const matchesFilter = (f: FamilyRow) => matchesQueue(f) && matchesLife(f);
+
+  // Two scopes, and they are different on purpose.
+  //
+  // FACET rows pass the family axis only, so a tab count answers "how many of
+  // this queue state are Needs help" once a family filter is on. Switching the
+  // family filter re-counts every tab, which is what a faceted control should do.
+  //
+  // VISIBLE rows pass both axes: exactly the list on screen. Every bulk action
+  // and every button label reads from these, so "Schedule all" means all of what
+  // you are looking at. It did not before -- batchRows filtered on pending and
+  // unscheduled and ignored the filter entirely, which was survivable when the
+  // page opened on All and is not now that it opens on Draft ready with a second
+  // axis available. Narrowing to nine rows and scheduling thirty-two is the kind
+  // of surprise that costs a send.
+  const facetRows = families.filter(matchesLife);
+  const visibleRows = families.filter(matchesFilter);
+
+  const isPending = (f: FamilyRow) => f.navigator?.status === "pending";
+  const tabAll = facetRows.length;
+  const tabDraftReady = facetRows.filter((f) => isPending(f) && !f.navigator!.scheduledAt).length;
+  const tabScheduled = facetRows.filter((f) => isPending(f) && !!f.navigator!.scheduledAt).length;
+  const routeCounts = facetRows.reduce<Record<string, number>>((acc, f) => {
+    const r = isPending(f) ? f.navigator?.packet?.route : null;
+    if (r) acc[r] = (acc[r] ?? 0) + 1;
+    return acc;
+  }, {});
+  const unjudged = facetRows.filter((f) => isPending(f) && !f.navigator?.packet).length;
+
+  const actionPending = visibleRows.filter(isPending).length;
+  const actionDraftReady = visibleRows.filter((f) => isPending(f) && !f.navigator!.scheduledAt).length;
+  const actionScheduled = actionPending - actionDraftReady;
   // Prior-window delta only exists for bounded ranges (null = all time).
   const delta = summary.prevCompletions === null ? null : summary.completions - summary.prevCompletions;
   const priorLabel = data.days ? `prior ${data.days}d` : "prior period";
@@ -680,109 +819,144 @@ export default function BenefitsFamiliesView() {
         )}
       </div>
 
-      {/* Lifecycle filter */}
-      <div className="flex flex-wrap items-center gap-1.5">
+      {/* Queue tabs — what to do next. Underlined rather than pills: pills are
+          the universal language for multi-select and this is single-select.
+          Fixed order, never hidden at zero, so the positions can be learned. */}
+      <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-gray-200">
         {(
           [
-            ["all", "All"],
             ["draft_ready", "Draft ready"],
             ["scheduled", "Scheduled"],
-            ["needs_help", "Needs help"],
-            ["stalled", "Stalled"],
-            ["acting", "Acting"],
-            ["returned", "Returned"],
-            ["new", "New"],
-            ["in_cascade", "In cascade"],
-            ["working", "Working"],
-            ["resolved", "Resolved"],
+            ["route_review", ROUTE_LABEL.review],
+            ["route_recompose", ROUTE_LABEL.recompose],
+            ["route_auto", "Cleared"],
+            ["route_ask", ROUTE_LABEL.ask],
+            ["all", "All"],
           ] as [QueueFilter, string][]
         ).map(([key, label]) => {
           const count =
-            key === "all" ? families.length
-            : key === "draft_ready" ? draftReadyCount
-            : key === "scheduled" ? scheduledCount
-            : summary.lifecycle?.[key] ?? 0;
-          if (key !== "all" && count === 0 && filter !== key) return null;
+            key === "all" ? tabAll
+            : key === "draft_ready" ? tabDraftReady
+            : key === "scheduled" ? tabScheduled
+            : routeCounts[key.slice("route_".length)] ?? 0;
+          const on = filter === key;
           return (
             <button
               key={key}
               onClick={() => setFilter(key)}
-              className={`rounded-full px-3 py-1.5 text-xs font-medium transition-colors ${
-                filter === key ? "bg-gray-900 text-white" : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+              aria-current={on ? "page" : undefined}
+              className={`relative -mb-px flex items-baseline gap-1.5 border-b-2 pb-2.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-2 ${
+                on
+                  ? "border-gray-900 font-semibold text-gray-900"
+                  : "border-transparent font-medium text-gray-500 hover:text-gray-800"
               }`}
             >
-              {label} <span className={filter === key ? "text-gray-300" : "text-gray-400"}>{count}</span>
+              {label}
+              <span className={`text-xs tabular-nums ${on ? "text-gray-500" : "text-gray-400"}`}>{count}</span>
             </button>
           );
         })}
-        {pendingDraftCount > 0 && (
-          <span className="ml-auto flex items-center gap-2">
-            {typeof exportState === "object" && (
-              <span className="text-[11px] font-medium text-emerald-700">
-                {exportState.downloaded ? "Downloaded" : "Copied"} {exportState.copied} draft
-                {exportState.copied === 1 ? "" : "s"} ✓{" "}
-                {exportState.downloaded ? "open the .md file and paste it" : "paste into your AI of choice"}
-                {exportState.failed > 0 ? ` (${exportState.failed} failed to load)` : ""}
-              </span>
-            )}
-            {exportState === "error" && (
-              <span className="text-[11px] font-medium text-red-600">
-                Couldn&apos;t build the export. Try again.
-              </span>
-            )}
+      </div>
+
+      {/* Family state — a SECOND axis, ANDed with the tab above. This is what
+          makes "Draft ready + Needs help" askable. */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className="mr-1 text-[11px] font-semibold uppercase tracking-wider text-gray-400">Family</span>
+        {LIFE_FILTERS.map(([key, label]) => {
+          const count = key === "any" ? null : summary.lifecycle?.[key] ?? 0;
+          if (key !== "any" && count === 0 && life !== key) return null;
+          const on = life === key;
+          return (
             <button
-              onClick={exportPendingDrafts}
-              disabled={exportState === "working"}
-              title="Copies a fact-check prompt covering every pending draft — paste it into ChatGPT or Perplexity to verify phone numbers, program facts, and pick fit"
-              className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              key={key}
+              onClick={() => setLife(key)}
+              aria-pressed={on}
+              className={`flex items-baseline gap-1.5 rounded px-2.5 py-1 text-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gray-900 focus-visible:ring-offset-1 ${
+                on
+                  ? "bg-emerald-50 font-semibold text-emerald-800"
+                  : "border border-gray-200 font-medium text-gray-600 hover:bg-gray-50"
+              }`}
             >
-              {exportState === "working" ? "Building…" : `Copy AI review prompt (${pendingDraftCount})`}
+              {label}
+              {count !== null && (
+                <span className={`tabular-nums ${on ? "text-emerald-700/70" : "text-gray-400"}`}>{count}</span>
+              )}
             </button>
-            {typeof batchState === "object" && (
-              <span className="text-[11px] font-medium text-emerald-700">
-                {batchState.unscheduled ? "Unscheduled" : "Scheduled"} {batchState.ok} guidance send
-                {batchState.ok === 1 ? "" : "s"} ✓
-                {batchState.skipped > 0 ? ` (${batchState.skipped} skipped)` : ""}
-              </span>
-            )}
-            {draftReadyCount > 0 && (
-              <button
-                onClick={openBatchModal}
-                title="Schedule every draft-ready guidance message for one send time — each goes through the same caps and checks as a hand send"
-                className="rounded-full bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-800"
-              >
-                Schedule all ({draftReadyCount})
-              </button>
-            )}
-            {scheduledCount > 0 && (
-              <button
-                onClick={async () => {
-                  if (!window.confirm(`Cancel all ${scheduledCount} scheduled sends? The drafts stay pending.`)) return;
-                  await runBatch(
-                    "navigator_unschedule_all",
-                    families
-                      .filter((f) => f.navigator?.status === "pending" && f.navigator.scheduledAt)
-                      .map((f) => f.profileId),
-                  );
-                }}
-                disabled={batchState === "working"}
-                className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
-              >
-                Unschedule all ({scheduledCount})
-              </button>
-            )}
+          );
+        })}
+        {unjudged > 0 && (
+          <span className="text-[11px] text-gray-400">
+            {unjudged} not checked yet
           </span>
         )}
+          {actionPending > 0 && (
+            <span className="ml-auto flex items-center gap-2">
+              {typeof exportState === "object" && (
+                <span className="text-[11px] font-medium text-emerald-700">
+                  {exportState.downloaded ? "Downloaded" : "Copied"} {exportState.copied} draft
+                  {exportState.copied === 1 ? "" : "s"} ✓{" "}
+                  {exportState.downloaded ? "open the .md file and paste it" : "paste into your AI of choice"}
+                  {exportState.failed > 0 ? ` (${exportState.failed} failed to load)` : ""}
+                </span>
+              )}
+              {exportState === "error" && (
+                <span className="text-[11px] font-medium text-red-600">
+                  Couldn&apos;t build the export. Try again.
+                </span>
+              )}
+              <button
+                onClick={exportPendingDrafts}
+                disabled={exportState === "working"}
+                title="Copies a fact-check prompt covering every pending draft — paste it into ChatGPT or Perplexity to verify phone numbers, program facts, and pick fit"
+                className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+              >
+                {exportState === "working" ? "Building…" : `Copy AI review prompt (${actionPending})`}
+              </button>
+              {typeof batchState === "object" && (
+                <span className="text-[11px] font-medium text-emerald-700">
+                  {batchState.unscheduled ? "Unscheduled" : "Scheduled"} {batchState.ok} guidance send
+                  {batchState.ok === 1 ? "" : "s"} ✓
+                  {batchState.skipped > 0 ? ` (${batchState.skipped} skipped)` : ""}
+                </span>
+              )}
+              {actionDraftReady > 0 && (
+                <button
+                  onClick={openBatchModal}
+                  title="Schedule every draft-ready guidance message for one send time — each goes through the same caps and checks as a hand send"
+                  className="rounded-full bg-gray-900 px-3 py-1.5 text-xs font-medium text-white hover:bg-gray-800"
+                >
+                  Schedule all ({actionDraftReady})
+                </button>
+              )}
+              {actionScheduled > 0 && (
+                <button
+                  onClick={async () => {
+                    if (!window.confirm(`Cancel all ${actionScheduled} scheduled sends? The drafts stay pending.`)) return;
+                    await runBatch(
+                      "navigator_unschedule_all",
+                      visibleRows
+                        .filter((f) => f.navigator?.status === "pending" && f.navigator.scheduledAt)
+                        .map((f) => f.profileId),
+                    );
+                  }}
+                  disabled={batchState === "working"}
+                  className="rounded-full border border-gray-300 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Unschedule all ({actionScheduled})
+                </button>
+              )}
+            </span>
+          )}
       </div>
 
       {/* Schedule-all confirm modal: every draft-ready letter listed with an
           opt-out — this is where pick-fit-flagged drafts get pulled from the
           batch. Bodies are never touched; each letter sends its saved edits. */}
       {batchOpen && (() => {
-        const batchRows = families.filter(
+        const batchRows = visibleRows.filter(
           (f) => f.navigator?.status === "pending" && !f.navigator.scheduledAt,
         );
-        const includedCount = batchRows.length - batchExcluded.size;
+        const includedCount = batchRows.filter((f) => !batchExcluded.has(f.profileId)).length;
         const toggleExcluded = (id: string) => {
           setBatchExcluded((prev) => {
             const next = new Set(prev);
@@ -813,6 +987,14 @@ export default function BenefitsFamiliesView() {
                     <span className="min-w-0 flex-1 truncate text-xs text-gray-700">
                       {f.email || f.displayName || f.profileId}
                     </span>
+                    {f.navigator?.packet && f.navigator.packet.route !== "auto" && (
+                      <span
+                        className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-semibold ${ROUTE_CHIP[f.navigator.packet.route]}`}
+                        title={f.navigator.packet.topHold ?? ""}
+                      >
+                        {ROUTE_LABEL[f.navigator.packet.route]}
+                      </span>
+                    )}
                     <span className="shrink-0 text-[11px] text-gray-400">
                       {f.navigator?.firstStep || "—"}{f.state ? ` · ${f.state}` : ""}
                     </span>
@@ -878,7 +1060,10 @@ export default function BenefitsFamiliesView() {
       {/* Family queue */}
       {data.truncated && (
         <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg px-3 py-2">
-          Long range: showing the newest 500 completions. The counts above cover the whole range.
+          Long range: showing the newest 500 completions, so every count and button on this
+          page covers the {families.length} families loaded here. Across the whole range there
+          are {worldPending} pending drafts, {worldDraftReady} of them unscheduled — narrow the
+          window to reach the rest.
         </p>
       )}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -897,15 +1082,14 @@ export default function BenefitsFamiliesView() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
-                {families.filter(matchesFilter).length === 0 && (
+                {visibleRows.length === 0 && (
                   <tr>
                     <td colSpan={5} className="px-4 py-10 text-center text-sm text-gray-400">
                       No families in this status right now.
                     </td>
                   </tr>
                 )}
-                {families
-                  .filter(matchesFilter)
+                {visibleRows
                   .map((f) => (
                   <Fragment key={f.profileId}>
                   <tr className="hover:bg-gray-50 cursor-pointer" onClick={() => toggleExpand(f.profileId)}>
@@ -986,18 +1170,49 @@ export default function BenefitsFamiliesView() {
                               ⚠ Schedule blocked
                             </span>
                           ) : f.navigator.scheduledAt ? (
+                            <>
+                              <span
+                                className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800"
+                                title={`Sends automatically around ${formatEt(f.navigator.scheduledAt)}`}
+                              >
+                                ⏱ Scheduled
+                              </span>
+                              {/* A scheduled letter whose packet says it must not
+                                  send still shows that. Scheduling can precede the
+                                  packet, and "Scheduled" alone would hide a pick
+                                  the family's own facts rule out. */}
+                              {(f.navigator.packet?.route === "recompose" ||
+                                f.navigator.packet?.route === "ask") && (
+                                <span
+                                  className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${ROUTE_CHIP[f.navigator.packet.route]}`}
+                                  title={f.navigator.packet.topHold ?? ""}
+                                >
+                                  {ROUTE_LABEL[f.navigator.packet.route]}
+                                </span>
+                              )}
+                            </>
+                          ) : f.navigator.packet ? (
                             <span
-                              className="rounded-full bg-blue-100 px-2 py-0.5 text-[10px] font-semibold text-blue-800"
-                              title={`Sends automatically around ${formatEt(f.navigator.scheduledAt)}`}
+                              className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${ROUTE_CHIP[f.navigator.packet.route]}`}
+                              title={
+                                f.navigator.packet.holdCount > 0
+                                  ? f.navigator.packet.topHold ?? ""
+                                  : "Clean on every gate"
+                              }
                             >
-                              ⏱ Scheduled
+                              {ROUTE_LABEL[f.navigator.packet.route]}
+                              {f.navigator.packet.holdCount > 1 && (
+                                <span className="ml-1 font-normal opacity-70">
+                                  {f.navigator.packet.holdCount}
+                                </span>
+                              )}
                             </span>
                           ) : (
                             <span
-                              className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800"
-                              title="Navigator guidance is drafted and waiting for your review"
+                              className="rounded-full bg-gray-100 px-2 py-0.5 text-[10px] font-semibold text-gray-500"
+                              title="Drafted. The packet cron has not judged this letter yet."
                             >
-                              ✍ Draft ready
+                              ✍ Not yet checked
                             </span>
                           ))}
                       </span>
@@ -1023,8 +1238,8 @@ export default function BenefitsFamiliesView() {
                           reviewContext={reviewContextFor(f)}
                           familyLabel={f.displayName || f.email || "this family"}
                           hasEmail={!!f.email}
-                          onNavigator={(action, subject, letter, sms, testEmail, scheduledAt) =>
-                            navigatorAction(f.profileId, action, subject, letter, sms, testEmail, scheduledAt)
+                          onNavigator={(action, subject, letter, sms, testEmail, scheduledAt, overridePacket) =>
+                            navigatorAction(f.profileId, action, subject, letter, sms, testEmail, scheduledAt, overridePacket)
                           }
                           onAction={(action, text) => caseAction(f.profileId, action, text)}
                           onDelete={() => deleteFamily(f.profileId, f.displayName || f.email || "this family")}
@@ -1065,12 +1280,13 @@ function NavigatorDraftEditor({
   textable: boolean;
   busy: boolean;
   onNavigator: (
-    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule",
+    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule" | "navigator_build_packet",
     subject?: string,
     letter?: string,
     sms?: string,
     testEmail?: string,
     scheduledAt?: string,
+    overridePacket?: boolean,
   ) => Promise<boolean>;
 }) {
   // Saved edits win over the AI originals — reopening a row after a save
@@ -1118,6 +1334,7 @@ function NavigatorDraftEditor({
     }
   });
   const [testState, setTestState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [packetBusy, setPacketBusy] = useState(false);
   // Copy a single-draft fact-check prompt (with TJ's in-place edits) for
   // pasting into an external AI before sending.
   const [copyState, setCopyState] = useState<"idle" | "copied" | "error">("idle");
@@ -1150,6 +1367,34 @@ function NavigatorDraftEditor({
   };
   return (
     <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+      {/* The verdict sits ABOVE the letter: whether this is the right letter
+          for this family is the question you ask before reading the prose. */}
+      {navigator.packet && <NavigatorPacketPanel packet={navigator.packet} />}
+      {/* Building the verdict was cron-only, which meant an env var, a redeploy
+          and a secret in a URL. One letter, one click, on the admin session. */}
+      <div className="mb-3 flex items-center gap-2">
+        <button
+          type="button"
+          disabled={packetBusy}
+          onClick={async () => {
+            setPacketBusy(true);
+            await onNavigator("navigator_build_packet");
+            setPacketBusy(false);
+          }}
+          className="rounded-lg border border-amber-300 bg-white px-3 py-1.5 text-xs font-medium text-amber-800 hover:bg-amber-50 disabled:opacity-50"
+        >
+          {packetBusy
+            ? "Reading the letter…"
+            : navigator.packet
+              ? "Rebuild verdict"
+              : "Build verdict"}
+        </button>
+        <span className="text-[11px] text-amber-700/70">
+          {packetBusy
+            ? "Two models judge the pick. Takes up to a minute."
+            : "Judges whether this is the right program for this family."}
+        </span>
+      </div>
       <div className="mb-2 flex items-center justify-between">
         <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-amber-700">
           ✍ Navigator guidance — waiting for you
@@ -1206,9 +1451,24 @@ function NavigatorDraftEditor({
             const quietHoursNote = !hasEmail && textable
               ? " Outside the family’s texting hours, it will stay pending and send in their next window."
               : "";
-            if (window.confirm(`Send this ${channelCopy} to ${familyLabel}? It goes out under your name.${hasEmail ? " Email replies land in the support inbox." : ""}${quietHoursNote}${scheduledNote}`)) {
-              onNavigator("navigator_send", subject, letter, sms.trim() || undefined);
+            if (!window.confirm(`Send this ${channelCopy} to ${familyLabel}? It goes out under your name.${hasEmail ? " Email replies land in the support inbox." : ""}${quietHoursNote}${scheduledNote}`)) {
+              return;
             }
+            // The packet says this letter should not go as written. Ask a
+            // second time, naming the reason, and only then override. The
+            // server refuses without this flag, so a stray click cannot send.
+            const blocked = navigator.packet?.route;
+            let override = false;
+            if (blocked === "recompose" || blocked === "ask") {
+              const reason = navigator.packet?.holds[0] ?? "";
+              override = window.confirm(
+                blocked === "recompose"
+                  ? `This letter's program was ruled out.\n\n${reason}\n\nSend it anyway?`
+                  : `We do not know enough about this family to pick a program for them.\n\n${reason}\n\nSend it anyway?`,
+              );
+              if (!override) return;
+            }
+            onNavigator("navigator_send", subject, letter, sms.trim() || undefined, undefined, undefined, override);
           }}
           disabled={busy || letter.trim().length < 40}
           className="rounded-lg bg-gray-900 px-4 py-1.5 text-xs font-semibold text-white disabled:opacity-40"
@@ -1238,12 +1498,20 @@ function NavigatorDraftEditor({
         <button
           onClick={() => {
             const recomposeNote = navigator.scheduled_at ? " This also cancels the scheduled send." : "";
-            if (window.confirm(`Re-draft this letter from current program data? Your edits to this draft, including saved edits, will be discarded.${recomposeNote}`)) {
+            // The same button does two different jobs, so it has to say which.
+            // On a `recompose` verdict the current program is excluded and the
+            // letter comes back about something else entirely; otherwise it is
+            // the fact-check loop and the program stays put.
+            const ruledOut = navigator.packet?.route === "recompose";
+            const prompt = ruledOut
+              ? `The verdict ruled out ${navigator.pick?.shortName ?? "this program"} for this family, so re-drafting will pick a DIFFERENT program. Your edits to this draft, including saved edits, will be discarded.${recomposeNote}`
+              : `Re-draft this letter from current program data? Same program, today's facts. Your edits to this draft, including saved edits, will be discarded.${recomposeNote}`;
+            if (window.confirm(prompt)) {
               onNavigator("navigator_recompose");
             }
           }}
           disabled={busy}
-          title="Re-drafts the letter from today's program data — use after fact-check corrections deploy, so stale phone numbers and figures don't need hand-editing"
+          title="Re-drafts the letter. After a `recompose` verdict it excludes the ruled-out program and picks another; otherwise it re-drafts the same program against today's data, so corrected phone numbers and figures don't need hand-editing"
           className="rounded-lg border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-600 disabled:opacity-40"
         >
           {busy ? "Working…" : "Recompose"}
@@ -1397,6 +1665,14 @@ function BreakdownRow({ label, count, total }: { label: React.ReactNode; count: 
   );
 }
 
+/** Route chip colours. One saturated element per row; the route IS the state. */
+const ROUTE_CHIP: Record<PacketRoute, string> = {
+  ask: "bg-violet-100 text-violet-800",
+  recompose: "bg-rose-100 text-rose-800",
+  review: "bg-amber-100 text-amber-800",
+  auto: "bg-emerald-100 text-emerald-800",
+};
+
 const LIFECYCLE_CHIP: Record<LifecycleStatus, { label: string; className: string }> = {
   needs_help: { label: "Needs help", className: "bg-amber-100 text-amber-800" },
   stalled: { label: "Stalled", className: "bg-rose-50 text-rose-700" },
@@ -1517,12 +1793,13 @@ function CasePanel({
   familyLabel: string;
   hasEmail: boolean;
   onNavigator: (
-    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule",
+    action: "navigator_send" | "navigator_dismiss" | "navigator_test" | "navigator_recompose" | "navigator_save" | "navigator_schedule" | "navigator_unschedule" | "navigator_build_packet",
     subject?: string,
     letter?: string,
     sms?: string,
     testEmail?: string,
     scheduledAt?: string,
+    overridePacket?: boolean,
   ) => Promise<boolean>;
   onAction: (action: string, text?: string) => void;
   onDelete: () => void;

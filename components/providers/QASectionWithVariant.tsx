@@ -6,7 +6,7 @@ import { isPreviewMode } from "@/lib/analytics/preview-mode";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
 import { useIntakeVariant } from "@/hooks/use-intake-variant";
 import type { ProviderCardData } from "@/lib/types/provider";
-import type { SimilarProviderForMulti } from "@/lib/provider-utils";
+import type { SimilarProviderForMulti, SuggestedQuestion } from "@/lib/provider-utils";
 
 interface QAEntry {
   id?: string;
@@ -17,6 +17,8 @@ interface QAEntry {
   status?: "pending" | "approved" | "answered";
   created_at?: string;
   answered_at?: string;
+  suggestion_key?: string | null;
+  asked_count?: number | null;
 }
 
 interface QASectionWithVariantProps {
@@ -31,7 +33,7 @@ interface QASectionWithVariantProps {
   providerCity?: string;
   providerState?: string;
   questions?: QAEntry[];
-  suggestedQuestions?: string[];
+  suggestedQuestions?: SuggestedQuestion[];
   /** Normalized-question → times-asked tally for this provider (passthrough). */
   suggestionStats?: Record<string, number>;
   hasBenefitsData: boolean;

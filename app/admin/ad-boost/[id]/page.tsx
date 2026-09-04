@@ -9,6 +9,7 @@ import {
   type CampaignLead,
   type CampaignCommunication,
   STATUSES,
+  STATUS_LABELS,
   CHANNELS,
   StatusBadge,
   PhotoReadinessBadge,
@@ -17,7 +18,9 @@ import {
   utmUrl,
   fmtTimestamp,
   fmtDateOnly,
+  fmtMetricsAge,
 } from "@/components/admin/AdBoostShared";
+import AdBoostCaseTimeline from "@/components/admin/AdBoostCaseTimeline";
 import { etInputToUtcIso, toEtInputValue, formatEt } from "@/lib/eastern-time";
 import {
   type AdBoostAttentionLevel,
@@ -35,7 +38,13 @@ import {
 type ProviderViewStats = {
   visitors: number;
   leads: number;
-  questions?: { received: number; unanswered: number };
+  questions?: {
+    received: number;
+    unanswered: number;
+    uniqueReceived: number;
+    uniqueUnanswered: number;
+    attribution: "campaign_utm" | "time_window";
+  };
   since: string;
 };
 
@@ -48,7 +57,12 @@ type ReceiptRollup = {
     ctr: number | null;
     cpcCents: number | null;
   };
-  engagement: { visitors: number; saves: number; questionsReceived: number };
+  engagement: {
+    visitors: number;
+    saves: number;
+    questionsReceived: number;
+    questionTopics: number;
+  };
   outcomes: { client: number; talking: number; no: number; unanswered: number };
   expectedLeads: number | null;
 };
@@ -64,6 +78,7 @@ export default function AdBoostDetailPage() {
   const [campaignStats, setCampaignStats] = useState<ProviderViewStats | null>(null);
   const [receipt, setReceipt] = useState<ReceiptRollup | null>(null);
   const [profileImages, setProfileImages] = useState<string[]>([]);
+  const [providerCampaigns, setProviderCampaigns] = useState<CampaignRequest[]>([]);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
@@ -81,6 +96,7 @@ export default function AdBoostDetailPage() {
       setCampaignStats((json.campaignStats as ProviderViewStats | null) ?? null);
       setReceipt((json.receipt as ReceiptRollup | null) ?? null);
       setProfileImages((json.profileImages as string[]) ?? []);
+      setProviderCampaigns((json.providerCampaigns as CampaignRequest[]) ?? []);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load");
     }
@@ -89,6 +105,8 @@ export default function AdBoostDetailPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const isCurrentRequest = request?.id === id;
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8">
@@ -103,16 +121,18 @@ export default function AdBoostDetailPage() {
       </Link>
 
       {error && <p className="text-red-600 text-sm mb-4">{error}</p>}
-      {!request && !error && <p className="text-gray-400 text-sm">Loading…</p>}
+      {!isCurrentRequest && !error && <p className="text-gray-400 text-sm">Loading…</p>}
 
-      {request && (
+      {isCurrentRequest && (
         <Detail
+          key={request.id}
           request={request}
           leads={leads}
           communications={communications}
           campaignStats={campaignStats}
           receipt={receipt}
           profileImages={profileImages}
+          providerCampaigns={providerCampaigns}
           onChanged={load}
           onDeleted={() => router.push("/admin/ad-boost")}
         />
@@ -128,6 +148,7 @@ function Detail({
   campaignStats,
   receipt,
   profileImages,
+  providerCampaigns,
   onChanged,
   onDeleted,
 }: {
@@ -137,6 +158,7 @@ function Detail({
   campaignStats: ProviderViewStats | null;
   receipt: ReceiptRollup | null;
   profileImages: string[];
+  providerCampaigns: CampaignRequest[];
   onChanged: () => void;
   onDeleted: () => void;
 }) {
@@ -212,6 +234,7 @@ function Detail({
   const successfulCommunicationCount = getAdBoostRecordedSendCount(request, communications);
 
   const delivered = request.delivered ?? 0;
+  const metricsAge = fmtMetricsAge(request.metrics_updated_at);
   const spendNum = spend.trim() === "" ? null : Number(spend);
   const clicksNum = clicks.trim() === "" ? null : Number(clicks);
   const impressionsNum = impressions.trim() === "" ? null : Number(impressions);
@@ -516,6 +539,20 @@ function Detail({
           View provider record ↗
         </Link>
       </div>
+
+      {/* What actually happened to this campaign, in order. Sits above the
+          provider's other flights: the case first, then the wider history. */}
+      <AdBoostCaseTimeline
+        requestId={request.id}
+        campaignTag={request.campaign_tag}
+      />
+
+      {providerCampaigns.length > 1 && (
+        <CampaignHistory
+          campaigns={providerCampaigns}
+          currentCampaignId={request.id}
+        />
+      )}
 
       {!["live", "ended", "cancelled"].includes(request.status) && (
         <PhotoReadinessReview
@@ -964,7 +1001,12 @@ function Detail({
               <Stat value={campaignStats.visitors.toLocaleString()} label="Visitors" />
               <Stat
                 value={(campaignStats.questions?.received ?? 0).toLocaleString()}
-                label="Questions"
+                label={
+                  campaignStats.questions &&
+                  campaignStats.questions.uniqueReceived < campaignStats.questions.received
+                    ? `Question taps (${campaignStats.questions.uniqueReceived} topics)`
+                    : "Question taps"
+                }
               />
               <Stat value={campaignStats.leads.toLocaleString()} label="Leads" accent />
             </div>
@@ -972,6 +1014,7 @@ function Detail({
               <p className="mt-3 text-xs text-gray-500">
                 Receipt rollup: {receipt.google.impressions != null ? `${receipt.google.impressions.toLocaleString()} ad views · ` : ""}
                 {receipt.engagement.saves} save{receipt.engagement.saves === 1 ? "" : "s"} ·{" "}
+                {receipt.engagement.questionsReceived} question taps across {receipt.engagement.questionTopics} topics ·{" "}
                 {receipt.outcomes.client} client{receipt.outcomes.client === 1 ? "" : "s"} reported ·{" "}
                 {receipt.outcomes.talking} still talking ·{" "}
                 {receipt.outcomes.unanswered} unanswered
@@ -985,7 +1028,22 @@ function Detail({
 
       {/* Performance (admin-only: manual spend + cost-per analysis) */}
       <section className="rounded-xl border border-gray-200 p-5 mb-5">
-        <h2 className="text-sm font-semibold text-gray-900 mb-4">Performance</h2>
+        <h2 className="text-sm font-semibold text-gray-900 mb-1">Performance</h2>
+        {/* These four tiles are computed from numbers a human typed in, so they
+            are only ever as current as the last save. Saying when that was is
+            the difference between "this campaign is dead" and "nobody has
+            looked since Thursday" — Rosemonte and Edmonds spent six days
+            reading as the former while they were the latter. */}
+        <p
+          className={`text-xs mb-4 ${
+            (metricsAge?.days ?? 0) >= 7 ? "text-amber-600" : "text-gray-500"
+          }`}
+        >
+          {metricsAge
+            ? `Ad-platform figures last entered ${metricsAge.label}.`
+            : "Ad-platform figures have no recorded entry date."}
+          {(metricsAge?.days ?? 0) >= 7 && " Re-check the dashboard before acting on them."}
+        </p>
 
         {/* Cross-channel read: spend and CPC make the Nextdoor pilot directly
             comparable with the existing Google flights. */}
@@ -1150,6 +1208,126 @@ function Detail({
         </p>
       </section>
     </>
+  );
+}
+
+function CampaignHistory({
+  campaigns,
+  currentCampaignId,
+}: {
+  campaigns: CampaignRequest[];
+  currentCampaignId: string;
+}) {
+  return (
+    <section className="mb-5 overflow-hidden rounded-xl border border-gray-200 bg-white">
+      <div className="flex items-start justify-between gap-4 border-b border-gray-100 px-5 py-4">
+        <div>
+          <h2 className="text-sm font-semibold text-gray-900">Campaign history</h2>
+          <p className="mt-0.5 text-xs text-gray-400">
+            One continuous record for this provider
+          </p>
+        </div>
+        <span className="shrink-0 text-xs tabular-nums text-gray-400">
+          {campaigns.length} campaigns
+        </span>
+      </div>
+
+      <div className="divide-y divide-gray-100">
+        {campaigns.map((campaign) => (
+          <CampaignHistoryRow
+            key={`${campaign.id}-${campaign.updated_at}`}
+            campaign={campaign}
+            current={campaign.id === currentCampaignId}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function CampaignHistoryRow({
+  campaign,
+  current,
+}: {
+  campaign: CampaignRequest;
+  current: boolean;
+}) {
+  const platform = channelLabel(campaign.channel) ?? "Platform not set";
+  const flightStart = campaign.flight_start_date ?? campaign.requested_setup_week;
+  const timing = campaign.flight_start_date
+    ? campaign.flight_end_date
+      ? `Flight ${fmtDateOnly(flightStart)} – ${fmtDateOnly(campaign.flight_end_date)}`
+      : `Flight started ${fmtDateOnly(flightStart)}`
+    : `Setup week ${fmtDateOnly(campaign.requested_setup_week)}`;
+  const statusTone =
+    campaign.status === "live"
+      ? "text-emerald-700"
+      : campaign.status === "scheduled"
+        ? "text-blue-700"
+        : campaign.status === "requested" || campaign.status === "pending_profile"
+          ? "text-amber-700"
+          : "text-gray-500";
+  const rowClass = `grid gap-2 px-5 py-3.5 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center ${
+    current ? "bg-teal-50/45" : "transition-colors hover:bg-gray-50/70"
+  }`;
+  const content = (
+    <>
+      <div className="min-w-0">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <span className="text-sm font-medium text-gray-900">
+            Submitted {fmtTimestamp(campaign.created_at)}
+          </span>
+          {current && (
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-teal-700">
+              Viewing
+            </span>
+          )}
+          {!!campaign.deleted_at && (
+            <span className="text-[11px] font-medium text-gray-400">Archived</span>
+          )}
+        </div>
+        <p className="mt-1 truncate text-xs text-gray-400">
+          {platform} · {timing}
+        </p>
+      </div>
+
+      <div className="flex items-center justify-between gap-5 sm:justify-end">
+        <div className="text-left sm:text-right">
+          <p className={`text-xs font-medium ${statusTone}`}>
+            {STATUS_LABELS[campaign.status] ?? campaign.status}
+          </p>
+          <p className="mt-1 whitespace-nowrap text-xs tabular-nums text-gray-400">
+            {campaign.ad_landings ?? 0} landed · {campaign.delivered ?? 0} leads
+          </p>
+        </div>
+        {!current && (
+          <svg
+            className="h-4 w-4 shrink-0 text-gray-300"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth={1.5}
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="m9 18 6-6-6-6" />
+          </svg>
+        )}
+      </div>
+    </>
+  );
+
+  if (current) {
+    return (
+      <div className={rowClass} aria-current="page">
+        {content}
+      </div>
+    );
+  }
+
+  return (
+    <Link href={`/admin/ad-boost/${campaign.id}`} className={rowClass}>
+      {content}
+    </Link>
   );
 }
 

@@ -8,7 +8,6 @@ import OleraSelect from "./OleraSelect";
 export interface BackgroundFormState {
   legalName: string;
   dateOfBirth: string;
-  ssn: string;
   address: string;
   city: string;
   state: string;
@@ -21,7 +20,6 @@ export interface BackgroundFormState {
 export const INITIAL_BACKGROUND: BackgroundFormState = {
   legalName: "",
   dateOfBirth: "",
-  ssn: "",
   address: "",
   city: "",
   state: "TX",
@@ -85,7 +83,6 @@ export default function Step4Background({
     const e: Record<string, string> = {};
     if (!background.legalName.trim()) e.legalName = "Legal name is required";
     if (!background.dateOfBirth) e.dateOfBirth = "Date of birth is required";
-    if (!background.ssn.trim()) e.ssn = "SSN is required";
     if (!background.address.trim()) e.address = "Address is required";
     if (!background.city.trim()) e.city = "City is required";
     if (!background.zip.trim()) e.zip = "ZIP code is required";
@@ -234,16 +231,15 @@ export default function Step4Background({
         <div>
           <h3 className="text-lg font-semibold text-gray-900 mb-1">Your information</h3>
           <p className="text-sm text-gray-400 mb-5">
-            Used only for the background check. Encrypted in transit and at rest.
+            Used to start your background check. When your application is reviewed, Checkr
+            collects any sensitive details it needs — like your SSN — directly through its
+            own secure process. Olera never sees or stores them.
           </p>
         </div>
 
         {field("legalName", "Full legal name", "text", "As it appears on your ID")}
 
-        <div className="grid sm:grid-cols-2 gap-4">
-          {field("dateOfBirth", "Date of birth", "date")}
-          {field("ssn", "Social Security Number", "password", "XXX-XX-XXXX", "Encrypted and only used for the background check — never stored by Olera.")}
-        </div>
+        {field("dateOfBirth", "Date of birth", "date")}
 
         {field("address", "Street address", "text", "123 Main St, Apt 4B")}
 

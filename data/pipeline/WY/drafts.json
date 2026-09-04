@@ -162,7 +162,7 @@
         ]
       },
       "intro": "If your loved one struggles to pay heating bills during Wyoming's harsh winters, LIHEAP can provide direct payment to their utility company. This federal program pays between $49 and $2,176 toward heating costs from November through May, with the payment going straight to the utility so your loved one doesn't have to manage reimbursements.\n\nYour loved one qualifies if their household income is below $2,985/month for a single person or $3,904/month for a couple. Because Wyoming uses automatic eligibility, if your loved one already receives SNAP, SSI, TANF, or certain veterans benefits, they're immediately approved without income verification.\n\nCrisis assistance provides an additional $550 in winter months if your loved one faces shut-off notices or heating system failures. Applications open October 1st each year, but funding is limited and the program often closes early when money runs out.",
-      "savingsRange": "$49 \u2013 $2,176/year in 2026",
+      "savingsRange": "$49 – $2,176/year in 2026",
       "savingsSource": "Wyoming Department of Family Services maximum and minimum benefit amounts for regular heating assistance",
       "savingsVerified": true,
       "structuredEligibility": {
@@ -325,7 +325,7 @@
       "id": "tax-refund-elderly-disabled",
       "name": "Wyoming Tax Refund for Elderly & Disabled",
       "shortName": "Wyoming Tax Refund",
-      "tagline": "Annual refunds of $250\u2013900 to help Wyoming seniors cover property taxes and utility costs.",
+      "tagline": "Annual refunds of $250–900 to help Wyoming seniors cover property taxes and utility costs.",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
@@ -338,8 +338,8 @@
           }
         ]
       },
-      "intro": "If your loved one is 65+ or permanently disabled and lives in Wyoming on a fixed income, they may qualify for an annual tax refund of $250\u2013900. Because Wyoming doesn't have state income tax, this program refunds money your loved one paid through sales taxes, property taxes, and utility costs throughout the year.\n\nThe refund amount depends on your loved one's income level. Single applicants with income below $10,000 receive the full $800 refund, while those earning $10,001\u2013$17,500 get a prorated amount down to $250. Married couples get $900 (full refund) if their combined income is below $16,000, prorated down to $216 for incomes up to $28,500.\n\nYour loved one must reapply every year and meet asset limits of $29,950 per adult household member. The program is administered by the Wyoming Department of Health and available statewide to qualifying residents.",
-      "savingsRange": "$250 \u2013 $900/year in 2026",
+      "intro": "If your loved one is 65+ or permanently disabled and lives in Wyoming on a fixed income, they may qualify for an annual tax refund of $250–900. Because Wyoming doesn't have state income tax, this program refunds money your loved one paid through sales taxes, property taxes, and utility costs throughout the year.\n\nThe refund amount depends on your loved one's income level. Single applicants with income below $10,000 receive the full $800 refund, while those earning $10,001–$17,500 get a prorated amount down to $250. Married couples get $900 (full refund) if their combined income is below $16,000, prorated down to $216 for incomes up to $28,500.\n\nYour loved one must reapply every year and meet asset limits of $29,950 per adult household member. The program is administered by the Wyoming Department of Health and available statewide to qualifying residents.",
+      "savingsRange": "$250 – $900/year in 2026",
       "savingsSource": "Wyoming Department of Health refund schedule based on income tiers",
       "savingsVerified": false,
       "structuredEligibility": {
@@ -410,7 +410,7 @@
         {
           "label": "Wyoming Department of Revenue (start here)",
           "phone": "(307) 777-7320",
-          "description": "Wyoming Department of Revenue \u2014 Property Tax Refund Program (current statewide successor to the old elderly/disabled listing)",
+          "description": "Wyoming Department of Revenue — Property Tax Refund Program (current statewide successor to the old elderly/disabled listing)",
           "hours": null
         },
         {
@@ -481,17 +481,17 @@
     }
   ],
   "stateOverview": {
-    "intro": "Wyoming offers 3 key programs to help seniors with living costs, from reducing state park fees to covering heating bills and providing tax relief. These programs can save your loved one $250\u20132,176 per year, depending on their income and needs. Most have simple applications through state agencies, and one requires no application at all. Start with the programs that address your loved one's biggest expenses: heating costs in Wyoming's harsh winters, property taxes, or recreation if they're active outdoors.",
+    "intro": "Wyoming offers 3 key programs to help seniors with living costs, from reducing state park fees to covering heating bills and providing tax relief. These programs can save your loved one $250–2,176 per year, depending on their income and needs. Most have simple applications through state agencies, and one requires no application at all. Start with the programs that address your loved one's biggest expenses: heating costs in Wyoming's harsh winters, property taxes, or recreation if they're active outdoors.",
     "startHere": [
       {
         "name": "Low Income Energy Assistance Program (LIHEAP)",
-        "programId": "wyoming-liheap",
+        "programId": "liheap-energy-assistance",
         "why": "Wyoming winters are expensive, this covers up to $2,176 in heating bills for qualifying families."
       },
       {
         "name": "Wyoming Tax Refund for Elderly & Disabled",
-        "programId": "wyoming-elderly-disabled-tax-refund",
-        "why": "Provides $250\u2013900 annually to help with property taxes and utilities for Wyoming seniors."
+        "programId": "tax-refund-elderly-disabled",
+        "why": "Provides $250–900 annually to help with property taxes and utilities for Wyoming seniors."
       },
       {
         "name": "Wyoming State Parks Senior Discounts",

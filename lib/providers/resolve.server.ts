@@ -56,7 +56,10 @@ export async function resolveProvider(
           claimedProfile.verification_state === "not_required" ||
           badgeApproved;
         if (isVerifiedClaim) {
-          return { kind: "active", provider: accountRowToProvider(claimedProfile) };
+          return {
+            kind: "active",
+            provider: accountRowToProvider(claimedProfile, bySlug),
+          };
         }
       }
       return { kind: "active", provider: directoryRowToProvider(bySlug) };
@@ -89,7 +92,10 @@ export async function resolveProvider(
           claimedProfile.verification_state === "not_required" ||
           badgeApproved;
         if (isVerifiedClaim) {
-          return { kind: "active", provider: accountRowToProvider(claimedProfile) };
+          return {
+            kind: "active",
+            provider: accountRowToProvider(claimedProfile, byId),
+          };
         }
       }
       return { kind: "active", provider: directoryRowToProvider(byId) };
@@ -113,6 +119,7 @@ export async function resolveProvider(
       // Unverified providers' edits should not be publicly visible — fall back
       // to the original directory data until they complete verification.
       // badge_approved is an admin override that grants verified status.
+      let linkedDirectoryRow: IOSProvider | null = null;
       if (data.source_provider_id) {
         const metadata = data.metadata as Record<string, unknown> | null;
         const badgeApproved = metadata?.badge_approved === true;
@@ -122,24 +129,31 @@ export async function resolveProvider(
            data.verification_state === "not_required" ||
            badgeApproved);
 
-        if (!isVerifiedClaim) {
-          // Fetch original directory data
-          const { data: dirRow } = await db
-            .from("olera-providers")
-            .select("*")
-            .eq("provider_id", data.source_provider_id)
-            .not("deleted", "is", true)
-            .single<IOSProvider>();
+        // Always fetch the linked directory row. It serves three jobs: the
+        // verification fallback below, category inheritance for account rows
+        // that predate category syncing, and — on verified claims — the
+        // side-channel data (Google reviews, place ID, CMS quality, trust
+        // signals) that only ever lives on the directory side. Fetching it
+        // only for the first two is what blanked claimed providers' ratings.
+        const { data: dirRow } = await db
+          .from("olera-providers")
+          .select("*")
+          .eq("provider_id", data.source_provider_id)
+          .not("deleted", "is", true)
+          .single<IOSProvider>();
+        linkedDirectoryRow = dirRow;
 
-          if (dirRow) {
-            return { kind: "active", provider: directoryRowToProvider(dirRow) };
-          }
-          // If directory row is deleted/missing, fall through to show profile
-          // (edge case: provider claimed then directory was purged)
+        if (!isVerifiedClaim && dirRow) {
+          return { kind: "active", provider: directoryRowToProvider(dirRow) };
         }
+        // If directory row is deleted/missing, fall through to show profile
+        // (edge case: provider claimed then directory was purged)
       }
       // Native profiles (no source_provider_id) or verified claims: show as-is
-      return { kind: "active", provider: accountRowToProvider(data) };
+      return {
+        kind: "active",
+        provider: accountRowToProvider(data, linkedDirectoryRow),
+      };
     }
   } catch {
     // fall through

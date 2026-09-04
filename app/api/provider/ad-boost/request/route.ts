@@ -136,7 +136,11 @@ export async function GET() {
     // shows one set of numbers.
     const [stats, questions, fullReceipt] = await Promise.all([
       getCampaignStats(db, { providerIdVariants, since }),
-      getCampaignQuestions(db, { providerIdVariants, since }),
+      getCampaignQuestions(db, {
+        providerIdVariants,
+        since,
+        campaignTag: latest.campaign_tag || latest.id,
+      }),
       getCampaignReceipt(db, {
         id: latest.id,
         provider_id: elig.profileId,

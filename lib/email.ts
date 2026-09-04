@@ -1,7 +1,7 @@
 import { Resend } from "resend";
 import { createClient } from "@supabase/supabase-js";
 import { shouldSendNotification, isControllableNotification, getPrefKeyForEmailType } from "./notification-prefs";
-import { isUndeliverable, verifyAndCache, effectiveStatus } from "./email-verification";
+import { isUndeliverable, verifyAndCache, effectiveStatus, isUnoverridableVerdict, getCachedVerification } from "./email-verification";
 import { NUDGE_EMAIL_TYPES, NUDGE_WEEKLY_CAP, NUDGE_WINDOW_DAYS, isGovernedNudge, FAMILY_NUDGE_EMAIL_TYPES, FAMILY_NUDGE_WEEKLY_CAP, FAMILY_NUDGE_DAILY_CAP, PENDING_COUNT_WINDOW_MINUTES, isGovernedFamilyNudge } from "./email-governance";
 import { isEmailDoNotContact } from "./do-not-contact";
 
@@ -54,6 +54,10 @@ const PROVIDER_NOTIFY_FROM_TYPES = new Set<string>([
   // Provider outreach cold sequence (Day 0/3/7/14 emails to unclaimed providers).
   // These go to scraped directory addresses, so they ring-fence to oleracare.com.
   "provider_outreach_sequence",
+  // City broadcasts — engagement emails to dormant providers when family
+  // activity (questions, published profiles) occurs in their city.
+  "city_broadcast_question",
+  "city_broadcast_profile",
 ]);
 
 /**
@@ -217,6 +221,73 @@ export async function isSuppressedRecipient(email: string): Promise<boolean> {
   } catch (err) {
     console.error("[email] Suppression check failed (sending anyway):", err);
     return false;
+  }
+}
+
+/**
+ * The trust-refusal rule, isolated so it can be asserted without a database.
+ *
+ * True only when the receiving server has rejected mail and never once accepted
+ * it. One successful delivery, ever, on any email type, means the inbox works and
+ * a human override is legitimate — bounces after that are the mailbox's problem,
+ * not evidence the address is wrong.
+ */
+export function isNeverDeliveredMailbox(history: { bounced: number; everDelivered: boolean }): boolean {
+  return history.bounced > 0 && !history.everDelivered;
+}
+
+/**
+ * Delivery history for one address, across every email type.
+ *
+ * This is the strongest evidence we hold about a mailbox: not a prediction from
+ * a verification vendor, but what the receiving server actually did with mail we
+ * already sent. `everDelivered === false` alongside `bounced > 0` means every
+ * attempt was rejected and none ever landed.
+ *
+ * Read by the admin trust action (app/api/admin/email-override) so a human
+ * cannot "send anyway" to a mailbox that has never once accepted mail. Deliberately
+ * NOT filtered by email_type: a provider who takes the weekly digest but bounces
+ * question_received has a working inbox, and we should not suppress them.
+ *
+ * Fails OPEN (zeroes) on any error, so a transient DB issue can never block a
+ * trust action that would otherwise be legitimate.
+ */
+export async function getRecipientDeliveryHistory(email: string): Promise<{
+  sends: number;
+  delivered: number;
+  bounced: number;
+  everDelivered: boolean;
+  lastBounceAt: string | null;
+}> {
+  const empty = { sends: 0, delivered: 0, bounced: 0, everDelivered: false, lastBounceAt: null };
+  try {
+    const db = getServiceDb();
+    if (!db) return empty;
+    // Case-insensitive: email_log.recipient is stored as-supplied, so the same
+    // mailbox appears under several casings (Info@x.com and info@x.com). An
+    // exact .eq() silently misses those rows and under-reports the history.
+    // % and _ are LIKE wildcards, so escape them before matching.
+    const pattern = email.trim().replace(/([%_\\])/g, "\\$1");
+    const { data, error } = await db
+      .from("email_log")
+      .select("delivered_at, bounced_at")
+      .ilike("recipient", pattern)
+      .limit(500);
+    if (error || !data) return empty;
+    let delivered = 0;
+    let bounced = 0;
+    let lastBounceAt: string | null = null;
+    for (const row of data) {
+      if (row.delivered_at) delivered += 1;
+      if (row.bounced_at) {
+        bounced += 1;
+        if (!lastBounceAt || row.bounced_at > lastBounceAt) lastBounceAt = row.bounced_at;
+      }
+    }
+    return { sends: data.length, delivered, bounced, everDelivered: delivered > 0, lastBounceAt };
+  } catch (err) {
+    console.error("[email] Delivery-history lookup failed (treating as unknown):", err);
+    return empty;
   }
 }
 
@@ -478,6 +549,9 @@ export async function sendEmail(
       PROVIDER_NOTIFY_FROM_TYPES.has(emailType) ||
       (!!process.env.PROVIDER_NOTIFY_FROM && from === process.env.PROVIDER_NOTIFY_FROM);
     let suppressReason: string | null = null;
+    // Some suppressions are facts about the mailbox, not predictions, and a
+    // human "send anyway" must not clear them. See UNOVERRIDABLE_SUBSTATUSES.
+    let overridable = true;
     // Do-Not-Contact kill switch (admin-managed, cross-channel HARD suppression).
     // Checked FIRST and NOT overridable by the email_overrides trust allowlist
     // below — a recipient who demanded "remove me from everything" outranks any
@@ -526,13 +600,37 @@ export async function sendEmail(
       // transactional path never makes a network call. Also fails OPEN.
       suppressReason = "verified undeliverable";
     }
-    // A human-trusted address (email_overrides) supersedes ANY suppression
-    // signal above — a person confirmed the inbox is real, which beats a stale
-    // bounce or a predictive verdict. Only pay for this lookup when we'd
-    // otherwise drop the send (rare), never on the hot path of every send.
-    if (suppressReason && (await isTrustedRecipient(soleRecipient))) {
+
+    // Whether a hard verdict blocks the override is INDEPENDENT of which signal
+    // suppressed the send. Checking it inside the branches above missed the
+    // commonest case by far: an address that had bounced before takes the first
+    // branch, so its verdict was never consulted and trust cleared it anyway —
+    // 60 of the last week's 260 bounces escaped exactly that way. One check,
+    // after the chain, covers every branch. The read is warm (verifyAndCache
+    // just wrote it) and only happens when we were going to drop the send.
+    if (suppressReason) {
+      const cached = await getCachedVerification(soleRecipient);
+      if (cached && isUnoverridableVerdict(cached.status, cached.subStatus)) {
+        suppressReason = `undeliverable (${cached.subStatus})`;
+        overridable = false;
+      }
+    }
+    // A human-trusted address (email_overrides) supersedes any PREDICTIVE
+    // suppression above — a person confirmed the inbox is real, which beats a
+    // stale bounce or a predictive verdict. It does NOT supersede a hard verdict
+    // (overridable=false): no amount of human confidence makes a nonexistent
+    // mailbox deliverable. Only pay for this lookup when we'd otherwise drop the
+    // send (rare), never on the hot path of every send.
+    if (suppressReason && overridable && (await isTrustedRecipient(soleRecipient))) {
       console.log(`[email] Trusted override — sending ${emailType} to ${soleRecipient} despite: ${suppressReason}`);
       suppressReason = null;
+    } else if (suppressReason && !overridable && (await isTrustedRecipient(soleRecipient))) {
+      // A trust override exists but cannot apply. Log it loudly: this is the
+      // case that was quietly generating most of our bounces, and the admin who
+      // trusted the address deserves to see why it still didn't send.
+      console.log(
+        `[email] Trust override IGNORED for ${soleRecipient} — ${suppressReason} is a hard verdict, not a prediction`,
+      );
     }
     if (suppressReason) {
       console.log(`[email] Suppressed ${emailType} to ${soleRecipient} — ${suppressReason}`);

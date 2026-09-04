@@ -56,17 +56,25 @@ The target: one sentence naming the problem, one sentence on what shipped, one s
 
 5. **Format for Slack**
 
+   The Slack MCP tools (`slack_send_message`, `slack_send_message_draft`) take
+   **standard markdown** and convert it to Slack formatting themselves. They do NOT
+   take raw Slack mrkdwn. This trips people up because Slack's own compose box uses
+   the opposite convention.
+
    **Do:**
-   - Inline links: `<https://url|Link label>` — never `[label](url)`
-   - Bold: `*single asterisks*`
+   - Inline links: `[Link label](https://url)` — standard markdown
+   - Bold: `**double asterisks**`
    - Italic: `_underscores_`
    - Inline code: `` `backticks` ``
+   - Channel-wide ping: `<!channel>` (verified: renders as a real @channel mention)
    - Tag users: `<@U0131NJURA7>` (or use their `@Name` which Slack resolves)
    - Em-dashes `—` for asides
 
    **Don't:**
    - No markdown headers (`#`, `##`)
-   - No `**bold**`
+   - **No `*single asterisks*` for bold** — standard markdown reads that as ITALIC, so
+     the whole message posts italicised. This happened for real on 2026-08-18: a
+     `@channel` deliverability notice went out with every emphasised phrase in italics.
    - No bullet lists in short notes — prose flows better when the message is 2-3 sentences
    - No triple-backtick code blocks
 

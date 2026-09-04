@@ -78,6 +78,7 @@ export default function ConnectionCard(props: ConnectionCardProps) {
               key="guest"
               providerName={providerName}
               onSubmit={hook.submitInquiryForm}
+              onEngage={hook.trackFormEngaged}
               submitting={hook.submitting}
               error={hook.error}
               connectionCount={hook.connectionCount ?? undefined}

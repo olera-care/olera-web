@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     // Fetch the question
     const { data: question, error: fetchError } = await db
       .from("provider_questions")
-      .select("id, provider_id, metadata")
+      .select("id, provider_id, metadata, canonical_question_id")
       .eq("id", questionId)
       .single();
 
@@ -76,13 +76,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    let targetQuestion = question;
+    if (question.canonical_question_id) {
+      const { data: canonicalQuestion, error: canonicalError } = await db
+        .from("provider_questions")
+        .select("id, provider_id, metadata, canonical_question_id")
+        .eq("id", question.canonical_question_id)
+        .single();
+
+      if (canonicalError || !canonicalQuestion) {
+        return NextResponse.json({ error: "Question not found" }, { status: 404 });
+      }
+      targetQuestion = canonicalQuestion;
+    }
+
     // Verify provider owns this question
     const providerIdVariants = [profile.slug, profile.id];
     if (profile.source_provider_id) {
       providerIdVariants.push(profile.source_provider_id);
     }
 
-    if (!providerIdVariants.includes(question.provider_id)) {
+    if (
+      !providerIdVariants.includes(question.provider_id) ||
+      !providerIdVariants.includes(targetQuestion.provider_id)
+    ) {
       return NextResponse.json(
         { error: "Not authorized to mark this question as read" },
         { status: 403 }
@@ -91,7 +108,7 @@ export async function POST(request: NextRequest) {
 
     // Update metadata.read_by
     const existingMeta =
-      (question.metadata as Record<string, unknown>) || {};
+      (targetQuestion.metadata as Record<string, unknown>) || {};
     const existingReadBy =
       (existingMeta.read_by as Record<string, string>) || {};
 
@@ -105,7 +122,7 @@ export async function POST(request: NextRequest) {
       .update({
         metadata: { ...existingMeta, read_by: updatedReadBy },
       })
-      .eq("id", questionId);
+      .eq("id", targetQuestion.id);
 
     if (updateError) {
       console.error("[questions/mark-read] Update error:", updateError);

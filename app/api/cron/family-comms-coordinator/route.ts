@@ -90,7 +90,7 @@ import type { NudgeSequence } from "@/lib/types";
  *   3. never-engaged → compare cards (guide fallback)      → family_never_engaged
  *   4. provider-responded → compare + how-to-choose        → day_10_awaiting
  *   5. pending reach-out      → family_reach_out_nudge
- *   B1. benefits first step (intake 48-96h) → benefits_first_step
+ *   B1. benefits first step (intake 48h-10d) → benefits_first_step
  *   B2. benefits check-in (first step +3d)  → benefits_check_in
  *      (the Benefits Cascade — see lib/family-comms/benefits-cascade.server.ts.
  *      While the cascade is in flight, rung 6 stays quiet for benefits families.)
@@ -1019,12 +1019,12 @@ export async function GET(request: NextRequest) {
         //    composes a personal TJ-signed navigator letter (AI-drafted from
         //    the family's own facts + the verified first-step pick, see
         //    lib/family-comms/benefits-navigator.server.ts) and parks it in
-        //    /admin/benefits for TJ's approval. Nothing reaches the family
-        //    until TJ sends it; first_step_sent_at is stamped by the admin
+        //    /admin/benefits for care-team approval. Nothing reaches the family
+        //    until the team sends it; first_step_sent_at is stamped by the admin
         //    send route, so B2 stays correctly downstream of the REAL send.
-        //    Band: still opens at 48h, but stays open to 10 days — a letter
-        //    approved on day 6 is still a good letter, and the old one-shot
-        //    96h window silently dropped families whenever a run was missed.
+        //    Band: opens at 48h and stays open to 10 days — a letter approved
+        //    on day 6 is still useful, and the old one-shot 96h window silently
+        //    dropped families whenever a run was missed.
         //    One-shot per family on successful composition; a failed compose
         //    logs and retries next run. Dry runs skip composition entirely
         //    (it writes metadata and spends tokens). ──

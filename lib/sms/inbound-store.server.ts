@@ -104,6 +104,8 @@ export async function storeInboundMessage(params: {
   fromPhone: string;
   body: string;
   keyword: string | null;
+  /** Courtesy-only family replies are durable history, but not human work. */
+  autoHandleIfFamily?: boolean;
 }): Promise<{ stored: boolean; sender: ResolvedSender }> {
   const last10 = phoneLast10(params.fromPhone);
   const sender = last10 ? await resolveSender(last10) : { profileId: null, profileType: null, displayName: null };
@@ -111,6 +113,7 @@ export async function storeInboundMessage(params: {
   if (!db || !last10) return { stored: false, sender };
 
   try {
+    const autoHandled = params.autoHandleIfFamily && sender.profileType === "family";
     const { error } = await db.from("sms_inbound").insert({
       twilio_sid: params.twilioSid,
       from_phone: params.fromPhone,
@@ -120,6 +123,8 @@ export async function storeInboundMessage(params: {
       profile_id: sender.profileId,
       profile_type: sender.profileType,
       display_name: sender.displayName,
+      handled_at: autoHandled ? new Date().toISOString() : null,
+      handled_by: autoHandled ? "sms-webhook:courtesy" : null,
     });
     if (error) {
       // 23505 = unique violation on twilio_sid, i.e. a Twilio retry. Expected.

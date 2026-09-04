@@ -61,7 +61,15 @@ export async function GET() {
           name: program.name,
           shortName: program.shortName || program.name,
           tagline: program.tagline,
-          savingsRange: program.savingsRange || s.savings_range,
+          // Live value only, never the save-time snapshot. A blank savingsRange
+          // in the library is a deliberate statement that no official figure is
+          // published, so falling back here resurrected exactly the numbers the
+          // benefits fact-check rounds had removed: 107 saved cards across 11
+          // programs were still showing deleted figures, including a Mississippi
+          // respite voucher amount the state itself no longer publishes.
+          // `s.savings_range` remains the fallback in the branch above, where the
+          // program is gone from the library and the snapshot is all we have.
+          savingsRange: program.savingsRange || null,
           nextStep: firstStep,
           description,
         };

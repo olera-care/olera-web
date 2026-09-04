@@ -33,11 +33,24 @@ export function pendingInquirySms(p: { fromName: string; url: string }): string 
   return `New inquiry on Olera from ${p.fromName}. View and respond: ${p.url}`;
 }
 
+/** Stable labels written to email_log.metadata.copy_version. They let us
+ * compare this full-cohort rollout with later copy without inferring versions
+ * from message text. */
+export const BENEFITS_RESULTS_SMS_COPY_VERSION = "continuity_question_v1_2026_08_19";
+export const BENEFITS_RESULTS_ZERO_MATCH_SMS_COPY_VERSION = "zero_match_v1";
+export const BENEFITS_HELP_REQUEST_SMS_COPY_VERSION = "help_request_v1_2026_08_19";
+
 /** Benefits results text — match/no-match branch lives here, next to the copy. */
-export function benefitsResultsSms(p: { matchCount: number; familyPhrase: string; url: string }): string {
-  const programWord = p.matchCount === 1 ? "program" : "programs";
+export function benefitsResultsSms(p: {
+  matchCount: number;
+  url: string;
+  context?: "results" | "help_requested";
+}): string {
+  if (p.context === "help_requested") {
+    return `Olera care team: We got your request. What should we help with first? Plan: ${p.url} We'll reply within 48h. STOP to opt out.`;
+  }
   return p.matchCount > 0
-    ? `Olera: We found ${p.matchCount} benefit ${programWord} for ${p.familyPhrase}. They're in your private Olera plan. Start here: ${p.url} Reply STOP to opt out.`
+    ? `Olera care team: We got your answers. Any questions about next steps? Plan: ${p.url} We'll reply within 48h. STOP to opt out.`
     : `Olera: We created your private Olera plan. No strong match yet; we'll keep checking. See it here: ${p.url} Reply STOP to opt out.`;
 }
 
@@ -84,4 +97,39 @@ export function verificationCodeSms(code: string): string {
 /** Auto-reply to an inbound HELP/INFO keyword (TwiML response body). */
 export function smsHelpReply(): string {
   return "Olera: We text care-search updates and provider replies. Reply STOP to opt out. Help: olera.care/contact";
+}
+
+/**
+ * Acknowledgement for a free-form question from a family. The ONLY message in
+ * the Family Answers flow that goes out without a human reading it first, which
+ * is why it makes no claims of any kind: it promises attention, not an answer.
+ *
+ * It also carries the disclaimer for the whole conversation. A per-message
+ * legal line would eat the 480-char reply budget every time, but this text is
+ * always the first thing a family hears back, so the caveat rides along once
+ * and every later reply stays clean. Full terms live on the /m/{token} plan
+ * page, which has no length limit.
+ *
+ * No "Reply STOP" line: this is transactional, sent in direct response to a
+ * message the family just sent us, and STOP is already handled at the carrier
+ * and in the webhook.
+ */
+/**
+ * The 7-day outcome check for a researched answer we sent.
+ *
+ * Proactive, so it carries the STOP line. It names two keywords because the
+ * answer has to be machine-readable: prose would create another message needing
+ * a human, which is the cost this system exists to reduce. HELPED and NOTYET
+ * are used rather than YES/NO because YES is a TCPA opt-in keyword handled
+ * earlier in the webhook and STUCK belongs to the benefits cascade.
+ *
+ * It says why we are asking. People answer a question that has a visible point
+ * more often than one that looks like a survey, and it happens to be true.
+ */
+export function familyAnswerFollowupSms(): string {
+  return "Olera: Following up on the benefits help we sent last week. Did it get you anywhere? Reply HELPED if you got assistance, or NOTYET if you're still stuck. Either answer helps us do better for the next family. Reply STOP to opt out.";
+}
+
+export function familyAnswerAckSms(): string {
+  return "Thanks for reaching out. We're looking into this and will get back to you with what we find. We share free resources and can get things wrong, so please confirm anything important with the agency.";
 }

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/VA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.534Z
+ * Last updated: 2026-08-22T10:37:49.051Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -852,7 +852,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Virginia Insurance Counseling and Assistance Program (VICAP)",
-        "programId": "vicap",
+        "programId": "vicap-medicare-counseling",
         "why": "Free Medicare counseling available to all Virginia seniors, regardless of income."
       },
       {

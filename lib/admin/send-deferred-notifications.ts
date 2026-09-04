@@ -65,11 +65,30 @@ interface SendDeferredNotificationsOptions {
   /**
    * Cap how many QUESTION notifications to send this call (newest first), so a
    * large backlog can be paced instead of blasting the provider all at once.
-   * Undefined = no cap (send all) — preserves existing add-email behavior.
-   * Leads are not capped.
+   * Undefined = DEFAULT_QUESTION_FLUSH_CAP. Leads are not capped.
    */
   maxQuestions?: number;
 }
+
+/**
+ * How many held questions one call may send to a single provider.
+ *
+ * Undefined used to mean "send all", and on 2026-08-17 that put 6 emails into
+ * one provider's inbox inside a single second, 9 into another over two and a
+ * half minutes, and 4+ into 55 providers' inboxes — 263 emails from one admin
+ * session. That reads as a broken system, and the spam complaints it invites
+ * are charged against the whole Resend account, which also carries family mail,
+ * student outreach, and login links.
+ *
+ * Defaulting here rather than at the ~16 call sites is deliberate: only 2 of
+ * them passed a cap, and the next new caller would silently reopen the hole.
+ * A caller that genuinely wants to drain a backlog still passes maxQuestions
+ * explicitly.
+ *
+ * Nothing is dropped — uncapped questions stay unnotified and go out on the
+ * next flush. A provider who reacts at all reacts to the first email.
+ */
+export const DEFAULT_QUESTION_FLUSH_CAP = 2;
 
 /**
  * Send deferred notifications for a provider.
@@ -100,7 +119,7 @@ export async function sendDeferredNotificationsForProvider(
     providerSlug,
     additionalSlugVariants = [],
     leadsUnsubscribed,
-    maxQuestions,
+    maxQuestions = DEFAULT_QUESTION_FLUSH_CAP,
     dryRunQuestions,
   } = options;
   const db = getServiceClient();
@@ -412,6 +431,16 @@ export async function sendDeferredNotificationsForProvider(
   // call (another surface, another enrichment run) never resurrects them.
   const unnotifiedQuestions: QuestionRow[] = [];
   const newestByKey = new Map<string, string>();
+  // Which texts have at least one asker we can reach. An anonymous repeat of
+  // such a text is redundant: the reachable instance carries it, and that one
+  // is never suppressed, so the provider still gets asked.
+  const reachableAskerByKey = new Map<string, string>();
+  for (const q of gathered) {
+    if (q.asker_email) {
+      const k = questionKey(q.question);
+      if (k && !reachableAskerByKey.has(k)) reachableAskerByKey.set(k, q.id);
+    }
+  }
   for (const q of gathered) {
     const key = questionKey(q.question);
     // An asker who left an email is a family we can actually reach, so this
@@ -419,11 +448,30 @@ export async function sendDeferredNotificationsForProvider(
     // that family's question never reaches the provider and never gets
     // answered, while an anonymous instance of the same text does. Always send
     // it. (scripts/suppress-duplicate-questions.ts carves out the same rows.)
+    //
+    // Register the key on the way past, so an anonymous copy of this same text
+    // still dedupes against it. Without that, an anonymous repeat would find no
+    // survivor recorded, elect itself, and send the identical question twice —
+    // which under DEFAULT_QUESTION_FLUSH_CAP would burn the provider's whole
+    // allowance on one question.
     if (q.asker_email) {
+      // ...but only ONE copy of a text goes out per call, even when several
+      // reachable families asked it. Three identical emails read the same as
+      // one email sent three times, and under the cap they would spend the
+      // provider's whole allowance on a single question. The siblings are NOT
+      // suppressed — they stay unnotified, so once this one is stamped sent the
+      // next takes its turn on a later flush and no family is silently dropped.
+      if (key && newestByKey.has(key)) continue;
+      if (key) newestByKey.set(key, q.id);
       unnotifiedQuestions.push(q);
       continue;
     }
-    const firstId = newestByKey.get(key);
+    // Suppress against an already-elected survivor OR against a reachable
+    // asker's copy of the same text, even when that copy is older than this
+    // one. The reachable instance is never suppressed, so the provider is still
+    // asked; sending the anonymous copy too would just spend the cap twice on
+    // one question.
+    const firstId = newestByKey.get(key) ?? reachableAskerByKey.get(key);
     if (key && firstId) {
       if (!dryRunQuestions) {
         const meta = (q.metadata as Record<string, unknown>) || {};

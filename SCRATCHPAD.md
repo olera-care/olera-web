@@ -7,6 +7,702 @@
 
 ## Current Focus
 
+### 2026-09-04 (later) — The Sept 3 revenue session checked against production, and the January 5 anchor (`radiant-wright`, ops only, no code)
+
+**What TJ asked for.** Sit with the Sept 3 team revenue session (transcript + Logan's Slack summary) and strategize before acting. Then, once the read landed, turn it into an action-plan memo he could share with the team, anchored on the SBIR CRP revenue goal. Two artifacts came out of it. No code changed.
+
+**Verified the room's premises against prod rather than taking them.** The whole beachhead decision rested on Esther's numbers, and she flagged herself that they were rough. Read from production 09-04. **Human claims: 823 all-time, 551 in 90d, 192 in the last 30d and accelerating** — Logan's "150/month since February" is now ~190. **Active base is ~250, not 900:** 250 distinct providers used one-click access in 30d, 222 hit the dashboard, 65 edited a profile; 520 distinct over 90d. That is ~8/day arriving warm, which is exactly the moment Esther described. **Home care is a plurality, not a majority:** 42% of categorized 90-day claimers, 61% once home health is included. **`managed_ads_pitch_viewed` fired 424 times in 30 days against 16 applications all-time** — the clearest revenue gap on the board, and it is a conversion problem, not a headcount problem.
+
+**Correction worth keeping: `claim_state = claimed` reads 2,876, but only ~823 came from a human clicking claim.** The rest is bulk backfill (consistent with the Aug 4 internal claim+fill op already on file). Esther's ~900 was the right order of magnitude; the 2,876 figure must never leave the building. `claimed_at` only starts populating in July, so it is useless for claim history — use `provider_activity.claim_completed`.
+
+**Three places the data contradicted the room.** (1) **"We have the products, we need people"** does not hold for Managed Ads — 21 campaigns, $471.23 real Google spend, 6 attributed inquiries ever, $0 MRR, and per the 09-03/09-04 audit the failures were ours. Scaling sales onto that multiplies a defect across the one asset we cannot rebuy. (2) **The MedJobs geography does not overlap the warm base.** Seven campuses in `student_outreach_campuses`: Bloomington, Charlottesville, Tempe, Gainesville, Madison, Salt Lake City, Tallahassee. **None in Texas**, while claimers concentrate TX 69 / FL 47 / CA 36. TJ said in the meeting that Dallas and Houston have ongoing university relationships; if they exist they are not in the CRM. (3) **`city` is null on a large share of `business_profiles`**, so the warm base cannot be sliced by market at all — Esther's call-them-while-they-are-active plan is mechanically blocked before anyone picks up a phone.
+
+**TJ's correction on MedJobs, which changed the framing and was right.** First read leaned too hard on the CRM numbers (318 prospects, 3,268 touchpoints, 762 emails → 24 replies, 12 meetings → 10 no-shows, 0 partner conversions, 1 placement at `offered` with both $100 fees unpaid). TJ: Logan was building the system at low intensity knowing he could make it deliver when it mattered, so do not over-index on the results so far. Reframed as **the baseline to beat, not a verdict.** Two numbers stay in the memo because they are intensity-independent and whoever scales this inherits them: the **3.1% email reply rate** and the **10-of-12 no-show rate**. The protocol Grazie is writing should name a fix for the no-show rate specifically.
+
+**The CRP anchor, which is what made the team memo work.** CRP was deferred to the **January 5, 2027 receipt date**; the scorecard declines into execution and commercialization with market traction at the center; David Qu's instruction was to walk backwards from January, set minimal and stretch before starting, and narrow the beachhead because Q4 holidays mean there are not really four months. **There are ~14 working weeks.** The load-bearing fact: **Olera has never taken a payment for anything, any product, all time.** Going from zero to a small repeatable number is worth more in January than any growth rate applied to revenue that does not exist. Proposed minimal (5 paying providers, 3 collected placements, one protocol run by someone outside the founding team) and stretch (15 / 10 / two charted months), both by Dec 15, for the team to set and then stop moving.
+
+**Why the team memo reframes the ads pause instead of arguing it.** Decision 1 in the internal read ("pause new Ad Boost sales") was too inside-baseball — only TJ has the audit context. In the team version it stops being a decision and becomes three sentences in Track A, modeled on TJ's own Slack reply: campaigns have not been delivering the way they should, some of that is how we built and operated them, changes went live and I report Monday. Forward-framed, no autopsy, nothing untrue. **Also cut from the team version:** the grant-vs-revenue tension (founders conversation), the $0.00-vs-$43.52 metric forensics, and the 2,876 correction reframed to confirm Esther's number rather than correct it.
+
+**Naming: "Managed Ads" is wrong, and the rename is deferred anyway.** TJ raised it; found **three names for one product** — providers read "Managed Ads" (19 files), land on `/provider/boost`, and everything internal says "Ad Boost" (58 files). Four objections to the name hold: it names our mechanism instead of their outcome, files us under ad agencies (lowest-trust cold-call category), re-opens the media-cost itemization already rejected in the monetization plan of record, and **hard-codes a delivery channel we do not reliably control** — if the product is named for ads, a week where ads do not serve is a week with no product. Proposed **Olera Introductions**; TJ pushed; it broke. It **overpromises quality we do not control** (2 of 4 inquiries arrived with no phone and no qualification data, so a provider paying for "Introductions" and receiving a form fill has a real complaint), it is **less legible on a call** than Managed Ads, it fails the customer's-mouth test, and **"intro" already means the free $50 intro campaign** in the plan of record. **DECISION: do not rename yet.** Introductions is the right name *after* the curated shortlist is built, not for what exists today. The deciding input is the 16 Track B calls next week — ask Chantel to record the exact phrase each provider uses for what they bought. One thing that survives regardless: it should not be named for the ads.
+
+**Artifacts.** Internal read (TJ only, carries the forensics and the grant-vs-revenue tension): https://claude.ai/code/artifact/830b1562-ad4f-463c-bc22-1bedcd0e30a7 — "Beachhead Action Plan". Team memo (shareable, TJ's voice, CRP-anchored): https://claude.ai/code/artifact/aa2a9073-cedc-456e-a46f-df879c853265 — "Road to January 5". Source HTML in the session scratchpad.
+
+**Method note worth keeping.** Prod is queryable from a worktree with no `node_modules` via PostgREST + curl using `/Users/tfalohun/Desktop/olera-web/.env.local`; `Prefer: count=exact` + `Range: 0-0` gives exact counts without pulling rows, and the default row cap is 10,000 so any "distinct actors" figure over that needs paging. Python's `urllib` fails SSL verification on this machine — use `curl` and pipe to `python3`.
+
+### 2026-09-04 — Support sync quota root cause confirmed; repair in PR #1771
+
+- Follow-up branch `codex/support-sync-retry-errors`, PR #1771 targets staging. Previous #1765 is already in production via #1768; do not repeat its merge or treat its cursor progress as complete recovery.
+- Read-only production checks at 16:44 ICT: 37,431 stored messages; newest August 14 at 00:48:36 UTC; 355 pending events. Cursor advanced to 3649735, below last queued target 3674230. Runs at 16:25, 16:30, 16:35, and 16:40 failed. The 16:20 run completed but reprocessed existing mail. UI count 899 agrees with stale backend data.
+- Root cause confirmed after TJ approved Gmail sign-in in Dia: Gmail has September 3–4 mail. Newer Vercel runs had fewer than 256 log messages, exposing the complete error: HTTP 403 `rateLimitExceeded`, quota `totalQueryCostPerMinutePerUser`, limit 6000, Gmail project 255324104824. Runs at 16:40, 16:46, and 16:50 show the same limit. Google updated quota pricing May 2026; message reads cost 20 units. The worker exhausted the minute quota, then treated the 403 as fatal. Earlier cursor-only verification missed this.
+- #1771 now adds quota-weighted read pacing at approximately 4500 units/minute per access token in each server instance, leaving headroom; honors Google's per-user `window_start_time` before retrying. Keeps exponential backoff, Retry-After, no auth/quota metadata fallback, safe errors, and sparse logs. Synthetic tests reproduce the production window and verify 300 reads in ten-way batches stay below the limit. Cross-instance coordination still relies on the mailbox lease and server backoff.
+- Added authenticated read-only source comparison at GET `/api/admin/support-email?diagnostics=true` and cron route diagnostics with bearer secret. Reads Gmail profile, recent IDs/dates/labels and stored presence only; never invokes sync, classifier, checkpoint/lease writes, or cron recording. Tests verify both auth gates and read-only behavior.
+- Checks pass: full Next build, TypeScript, targeted ESLint, 41 cron registrations, 15 worker scenarios, transport and diagnostic regressions. Preview commit 14dff7bb7 passed Vercel. No production deployment of #1771 and no merge authorized for this follow-up.
+- Gmail access is now verified after TJ approved sign-in in Dia. Browser provider identifies as Chrome but actual browser is Dia. Direct diagnostic navigation still gets `ERR_BLOCKED_BY_CLIENT` even though Vercel records HTTP 200; do not bypass that block. Exact production failure was recovered through authorized Vercel Logs UI by filtering `requestPath:/api/cron/support-email-sync`.
+- Prior automatic approval review rejected manually running the full sync because the existing classifier sends private email content to Anthropic. No later approval was granted. Read-only diagnostics are independently authorized; do not trigger the classifier as a workaround. Next: compare Gmail recent source messages to stored mail after user verification, establish the remaining root cause, then verify a completed catch-up before claiming resolution.
+
+
+### 2026-09-04 — Ad Boost: we broke the campaigns ourselves, and Ad Boost now has a case log (`helpful-hopper` #1759, `adboost-case-log` #1767)
+
+**Yesterday's headline was wrong and is retracted.** "The campaigns were in markets that do not exist" described one Keyword Planner query, scoped to the *August* keyword set in *Killeen city*. Franchil's June campaign served 124 impressions and produced 3 inquiries in that same city. TJ caught it. Today went back to ground truth in Google Ads, campaign by campaign, and the answer is operator error in at least two distinct forms.
+
+**TJ's reframe, which was the right one.** The problem is not that my diagnosis moved four times in two days. It is that Ad Boost has underperformed for months, a few early campaigns worked, and the likely cause is how we built and operated them. He has been hands-off and relying on Claude; that delegation worked for setup and failed for operation, and I never flagged the gap. Recorded because it changes how this should be run, not as self-criticism.
+
+**FINDING 1 — the Franchil rebuild deleted every keyword that worked.** June campaign `23961292547` ($50 total, Jun 22–Jul 5): 124 impr, 16 clicks, **12.90% CTR** (highest ever), $36.50, **3 inquiries at ~$12 each** (program average ~$87). All 16 clicks came from five geo-locked keywords: `"senior care killeen"` 53 impr/5 clicks, `"caregiver killeen tx"` 20/4, `"home care killeen"` 17/5 at a **29.41% CTR**, `"home care copperas cove"` 11/1, `"in home care killeen tx"` 9/1. The four generic non-geo terms produced 6 impressions and **zero clicks** — which kills my earlier "the rebuild dropped the generics" story too. August campaign `24166094865` contains **none of those five**. `"senior care killeen"` → `"senior home care killeen"`, which Google flags **Low search volume**. `"home care killeen"` → `"in home care killeen"`, which got 1 impression in June. `"caregiver killeen tx"` → **deleted, no replacement**. The August set is built almost entirely from June's zero- and one-impression terms. Result: **1 impression in 12 days.**
+
+**FINDING 2 — the negative keyword regime went from ~0 to 48–104 terms per campaign in three weeks, and the inquiry rate went to zero.** Change history: Aug 2 (48 to Edmonds), Aug 10 (**104 to Rosemonte**, **72 to HomeWell**), Aug 13 (6 Legacy Haven, 2 Pacesetter, shared list modified), Aug 16 (shared 98-term list → LumiWell), Aug 20 (→ Miracle Aug and Graceful, both within 3 min of build), Aug 23 (→ Franchil Aug, 3 min after build). Grouped by negatives live during flight: **0 negatives → 90 clicks, 4 inquiries (4.4%). 2–6 → 50 clicks, 2 inquiries (4.0%). 48–104 → 67 clicks, 0. Shared 98 → 38 clicks, 0.** Every inquiry in program history came from a campaign running ≤6 negatives. At the earlier rate, P(zero across the 105 high-negative clicks) ≈ **1%**.
+
+**THE HYPOTHESIS THAT FOLLOWS, and it is the most consequential one open.** Every visible click in Franchil June was category-adjacent: `rosewood villas killeen` (an assisted-living community, 2 clicks), `memory care killeen tx` (1), `visiting angels killeen tx` (a competitor brand, 1). Our own HomeWell audit called exactly this pattern *"wrong-category or competitor"* and the 98-term list was built to eliminate it. **We may have negated the traffic that was converting, on the assumption it was junk, without testing whether it converted.** Cross-referencing the full 98 against June's search terms: `"visiting angels"`, `"memory care"`, `"assisted living"`, `"home health care"` and `"home instead"` are all in the list — **19 of June's 57 named impressions and 2 of its 4 named clicks would be blocked today.** UNCONFIRMED, and unconfirmable from here: June's 3 conversions came from the 12 clicks Google places in its unnamed "Other search terms" bucket.
+
+**Two facts push back on it, kept deliberately.** HomeWell produced 0 inquiries in its July flight *before* receiving any negatives, so negatives are not necessary for failure. And Graceful runs the full 98-term list and still serves 184 impr / 15 clicks — so the list is not a universal blocker, it interacts with keyword breadth. **Correction to my own claim: the list does NOT explain Franchil August.** Ten narrow geo phrases rarely generate queries containing "assisted living" or "visiting angels". For Franchil the rewrite is the mechanism; the list is a suspect for a separate program-level failure.
+
+**FINDING 3 — Miracle August is a genuinely different failure and remains unexplained.** Flight 1 (`23998344651`) keyword performance: `"personal care assistance"` 149 impr/11 clicks, `"in home care cleveland"` 59/6, `"senior home care cleveland"` 40/3, `"home care cleveland"` 25/3. **Flight 2 (`24151612515`) kept all four**, expanded 12 → 29 keywords, and deliberately paused `"home care near me"` which Google had flagged QS 2/10 *"Rarely shown (low Quality Score)"*. It was rebuilt correctly by the Franchil diagnosis and serves **0 impressions**. Status Eligible, same $1.67/day and same shared list as Graceful, which serves. Leading hypothesis is Cleveland repricing (flight 1 realized $1.92/click; top-of-page now $2.75–$9.64), consistent with the 26 Aug finding. Not proven.
+
+**FINDING 4 — our hand-typed metrics are not just stale, they are fabricated-by-omission.** Google all-time vs our DB: **Edmonds Villa Aug $43.52 / 394 impr vs $0.00 / 4 recorded. Rosemonte $41.64 / 238 impr vs $0.00 / 6.** HomeWell $71.77/732 vs $30.57/373. Pacesetter $51.82/285 vs $27.24/149. Real Google all-time is **$471.23 / 226 clicks / 3,644 impressions**, not the ~$520 across both platforms we have been quoting. Every program-level number reported for two months came from this source.
+
+**Also found:** Edmonds Villa's September campaign is Eligible and serving in Google (15 impr, 1 click, $0.76 CPC, **62.67% lost to budget** — the only campaign limited by money rather than rank) while Olera still marks it `scheduled`. Abode's campaign does not appear in the Google campaigns list at all despite appearing in the negative list's applied-campaigns list. Franchil August has **1** impression, not 0.
+
+**Contact path: VERIFIED WORKING, and this closes an open question.** All four inquiry records inspected. Providers read every one within 4–24 hours; three of four replied within a day. The 27 Jun Franchil lead carried full qualification (name, phone, urgency "immediate", care type, need) and got a long personal reply from Hilda. Two of four arrived with **no phone and no qualification data**. One (Rhonda Taylor, phone given) was read and **never answered**. All four sit at `status: pending`. Abode explicitly reported outcome **"no"**. So "6 inquiries, 1 confirmed client" is wrong framing: it is **1 verbally claimed client, 1 explicit no, and 4 outcomes nobody ever established** — and across all 21 campaigns only 2 outcomes were ever recorded, both on campaigns that produced zero inquiries.
+
+**DECISIONS SUSPENDED.** All four calls from 09-03 (Olera fronts the media / no price test / curated shortlist / DFW pilot) are pulled back. Each rested on the market-selection story, which is dead. Specifically: the DFW plan moved us from a market where we got clicks at $2.28 and inquiries at $12 to a metro where top-of-page starts at $5.46 — **the evidence may point the opposite way, toward thin markets.** TJ: "I think we should backtrack on these before we lock anything in. Let's still stay in the world of problem diagnosis... we jump to action too fast without properly understanding the problem."
+
+**PROCESS CHANGE TJ ASKED FOR.** `/ad-boost-setup` should open a case per client ad and record everything, checked daily while we are still perfecting it. His diagnosis: lack of continuity on individual cases versus big generalizations. Proven correct twice today — the HomeWell note already recorded the wrong-category search-terms finding, and the Rosemonte note already recorded that the shared list negates "assisted living". Both were written down; neither reached program level. A case should hold setup config, hypothesis, keywords **with prior-flight performance where a prior flight exists**, a daily log, search-terms harvest, provider comms, and outcome. Not yet built.
+
+**Artifacts.** `~/Desktop/adboost-state-of-play.md` rewritten as 20 case files with explicit `[FACT] / [GOOGLE ESTIMATE] / [INFERENCE] / [GUESS] / [UNKNOWN]` labels on every claim, a section listing the four times I was wrong, and a section listing what I did not check. Built for handing to another model without inheriting my judgments. The older artifact https://claude.ai/code/artifact/e32e3365-88e5-4f6d-a78a-a4060bf8bfca is **stale** — its "silence problem" thesis is superseded.
+
+**Next, in order.** (1) Restore Franchil's five June keywords into the August campaign — free, reversible, tests the clearest finding. (2) Strip the category terms from the negative list on one campaign, keep jobseeker and competitor blocks, see if traffic returns. (3) Stop hand-typing metrics. (4) Franchil and Miracle-Lightstar were both emailed that campaigns launched that never served; still uncorrected. (5) Five providers in the requested queue, Senior Services at 42 days. (6) Pacesetter has 2 conversions nobody told them about; email suppressed, needs a phone call.
+
+### 2026-09-03 — [SUPERSEDED BY 09-04 — the market-selection headline is retracted] Ad Boost pipeline review and queue fixes (`helpful-hopper`, PR #1759)
+
+Read the whole Ad Boost pipeline out of production Supabase and reconciled it against attributed traffic. Most of it corroborates the 28 Aug audit; a few things have moved and two gaps are new.
+
+**Where the pipeline stands.** 21 campaign rows / 16 providers: **3 live, 1 scheduled, 5 requested, 12 ended, 0 archived.** `plan_status` is NULL on every row — still **zero subscriptions, $0 MRR**. Hand-entered lifetime totals in the DB read $297.67 / 146 clicks / 2,791 impressions against **6 attributed conversions ever** (Franchil 3, Pacesetter 2, Abode 1). Those stored numbers remain wrong per the 28 Aug reconciliation (~$520 actual) — this is the DB's version, not Google's.
+
+**The three live 90-day flights are near-silent, which matches the known platform causes.** Graceful 15 attributed landings (still landing today), **Miracle-Lightstar 1** (last 27 Aug), **Franchil 0** — not one landing, not even an internal preview, in 11 days live. Zero conversions across all three. Franchil's `Pending — all ads under review` and Miracle's 0-impressions/lost-IS-to-rank are the recorded causes; nothing here contradicts them, and Franchil's total absence of even a preview hit is the strongest confirmation yet that it has never served.
+
+**Two gaps that are ours, not Google's.**
+
+- **`flight_end_date` is still NULL on Franchil and Edmonds Villa.** Stage 0 set hard *platform* end dates on all three 90-day flights, but the Olera-side field was never filled for those two. `ad-boost-end-scheduler` rung 1 filters `.not("flight_end_date", "is", null)` (`app/api/cron/ad-boost-end-scheduler/route.ts:83`), so neither will ever auto-end or fire its wrap-up. The cron does count them in its Slack summary, so the gap is visible and has simply not been actioned. Setting the platform date is not the same as setting ours.
+- **Three of twelve ended campaigns never delivered the wrap-up — the one email that carries the subscribe ask.** LumiWell failed `Suppressed: catch-all (risky) on cold lane`; **Pacesetter** failed `Suppressed: prior bounce/complaint on record`; **Graceful's Nextdoor flight has no `ad_boost_promo_complete` row in `email_log` at all** and a null schedule, despite its queued/ready/launched emails all sending to the same provider. Pacesetter is the one that stings: it is one of only two campaigns that ever produced conversions (2), and its provider has never been told. Cause of the Graceful miss is unresolved — most likely rung 2 hit a permanent skip and cleared the slot, but nothing was logged either way, which is itself the defect.
+
+**Requested queue is aging on photos.** Senior Services & Home Care has waited **41 days** in `update_requested` with no follow-up since 5 Aug; Living Angels 23 days, Caring Senior Service 20 days, both the same. Meanwhile **Assisting Hands (Dallas) is 100% complete with photos ready and has sat 8 days** — that is the one that should be scheduled next.
+
+**Nextdoor September batch is still unrepresented in the pipeline.** Five `*-nextdoor-sep26` tags appear in traffic (Edmonds Villa, Franchil, Graceful, Miracle-Lightstar, Pacesetter), one hit each on 26–27 Aug — the signature of setup previews. Those flights are paused per stage 0, so nothing is spending, but there are still **zero rows in `ad_campaign_requests`**, so if any of them is ever unpaused its traffic attributes to nothing. Worth noting on the channel question: Graceful's August Nextdoor flight pulled **128 attributed landings** against 13–23 for a typical Google flight, and converted **0** — consistent with the p<0.05 rejection already on file.
+
+**Shipped: the queue opens on Live.** `/admin/ad-boost` defaulted to All, so 21 campaigns loaded at once and the 3 spending money were buried among 12 ended. `load` now owns the default and re-applies it per view — Archived never defaults to Live, and an active queue with nothing live falls back to All so the page can never open empty. Removed the tab handler's own filter reset so there is a single writer.
+
+**Then the chips were reordered by priority, and the reason is a CSS fact, not a preference.** With Live defaulted the row still read All / Needs attention / Requested / Scheduled / Live / Ended, so the eye started on an unselected chip and travelled past three others to reach the active one. TJ asked far-left or far-right. **Left, because `.filterRail` is `overflow-x: auto`** (added by the 27 Aug compact-tablet work so Sort stays reachable) — the right end is the first thing clipped on a narrow window, so leftmost is the only position guaranteed to stay visible, and the default chip must not be one that can scroll out of sight. Right was the one placement that could actually break.
+
+New order: **`Live · Needs attention · All │ Requested · Scheduled · Ended`**. The row is two groups, not one list — lenses you work from (the money, the alert, the escape hatch out of any filter) sit left in the always-visible zone; a hairline divider; then the stages you only browse, in funnel order. **The trade:** Live is pulled out of the lifecycle sequence, so the row no longer reads as a funnel left to right. Accepted, because that reading was already interrupted by All and Needs attention sitting in front of it, and this row is a filter control — the pipeline is the table below it. Chip markup factored into `renderStatusChip` so Live and the lifecycle group cannot drift apart, and `shrink-0` added so chips scroll in the rail instead of compressing.
+
+**File:** `app/admin/ad-boost/page.tsx` (both commits). `tsc --noEmit` and `eslint` clean on it — the remaining tsc errors are pre-existing missing-module errors from the borrowed `node_modules`. **Not done, offered:** the selected Live chip is black like the others while `Live` in the rows is green; tying them would make the connection but is a styling call, not a placement one.
+
+**THE ROOT CAUSE WAS WRONG TWICE BEFORE IT HELD, AND THE ANSWER CHANGED THE PRODUCT.** Started on checklist item 1 (is Franchil actually serving) and it turned into a strategy decision.
+
+**Franchil is not serving and never has.** Campaign `24166094865`, built 23 Aug, Enabled, start date passed, $1.67/day, 7 of 10 keywords Eligible, ad Eligible, all 10 RSA assets Eligible, nothing under review despite a stale "All ads under review" chip at campaign level. **0 impressions in 11 days.** Final URL is exactly right (`utm_source=olera_managed&utm_medium=paid_search&utm_campaign=franchil-killeen-90d-aug26`), so the UTM theory is dead. Also ruled out: billing (same account spent $273.15 in-window), paused/future start, keyword approval, and the shared negative list (Graceful carries the identical list and serves). **Incidental:** Edmonds Villa Sep 2026 is Eligible and serving on Google with 6 impressions while Olera still has it `scheduled`.
+
+**Three attempts at the cause. Only the third survives.**
+
+1. *Landing page quality.* Real but not primary. Landing page experience is **Below average on every keyword Google has ever scored in the account** (3 for 3: Graceful `home care agency` QS 4/10; Miracle July `home care near me` QS 2/10 marked **"Rarely shown (low Quality Score)"**; Miracle July `respite care near me` QS 5/10). Ad relevance and expected CTR both range Average to Above average. Landing page never moves off the floor. Account-wide we lose **77.80% of impression share to rank** and 14.07% to budget, so this is a program-wide Ad Rank deficit, not a per-campaign fluke.
+2. *Budget too low.* Falsified by my own table. Graceful runs the **identical $1.67/day** in Concord and serves 178 impressions / 13 clicks. I also misread "Top of page bid (low range)" as the price of a click (it is the price of a *top* placement) and misapplied DFW prices to Killeen and Cleveland. And `lost IS (budget) 0.00%` proves nothing at zero impressions — you cannot be budget-limited if you never win an auction.
+3. **Market selection. This one holds.** Keyword Planner, same keyword, three markets: **Killeen 10 searches/month** with too little auction activity for Google to even report a bid range; **Cleveland 320/month, top-of-page now $2.75** against Miracle's realized $1.89/click in July when it served 295 impressions; **Concord** still cheap enough that Graceful's $1.85/click keeps working. Franchil never had a market. Cleveland repriced above our bid (confirms the 26 Aug finding with Google's own numbers). **We have been buying ads in markets we never priced, and nothing in the setup process checks demand before launch or price after.**
+
+**Stress-tested externally before deciding.** Published the thesis as an artifact (https://claude.ai/code/artifact/e32e3365-88e5-4f6d-a78a-a4060bf8bfca) plus markdown at `~/Desktop/adboost-silence-problem.md`, written to be attacked. One external review came back and landed. Its two best hits, both conceded: I stated `P(zero | healthy) = 58%` as though it were the rate at which shrugging is correct, which reverses the conditional (the defensible form is a **likelihood ratio of 1.7**, very weak evidence); and my negative-keyword exclusion was invalid because a shared list interacts with each campaign's own keyword set. It also correctly flagged that landing page experience feeds Ad Rank, so my "fix delivery before pages" ordering was backwards, and that I priced the media precisely while leaving operator time out of the argument entirely.
+
+**DECISION (TJ): Olera fronts the media.** Ad Boost stops being provider-funded per-provider campaigns and becomes Olera-funded market-level lead generation. A first-principles market page per metro, built from our own provider data, with leads going to fitting providers.
+
+**DECISION (TJ): no price test yet.** Charging before the product delivers would be a bad look. Cost of this is that the reviewer's strongest objection (nobody has been asked to pay, so $0 MRR is not evidence of rejection) stays open longer.
+
+**DECISION: curated shortlist, not blind routing.** TJ flagged the intent mismatch: a family fills a form thinking they asked Olera a question, then a stranger calls. That is exactly A Place for Mom's reputation problem. Resolution is to **move the quality gate before the form** — we curate which agencies appear, the family chooses from the shortlist. Preserves agency, reuses the existing inquiry machinery and conversion definition, and keeps the editorial control TJ wanted. Consequence: ad copy must become market-branded rather than provider-branded, which should also *improve* ad relevance (a Quality Score component) rather than hurt it.
+
+**DFW is the pilot market, and my supply number was wrong.** Demand verified at 5,400/month on the head term versus Killeen's 10. But I quoted "400+ home care providers" from `olera-providers` (the scraped directory). The number that matters for routing is accounts: **109 active DFW `business_profiles`, 54 claimed** (all 54 with email, 32 with phone, 11 verified), concentrated Garland 14 / Irving 8 / Dallas 5 / Plano 4 / McKinney 4. Bench is 54, not 400+. Recommendation is claimed-only for the pilot.
+
+**Pilot pricing is NOT settled.** My $2,000 / 30 days / ~$65 a day figure rests on a $5 CPC that came from the top-of-page misread, and on an invented 5-8% conversion rate when the only measured rate is 2.7%. Honest range is 370 to 800 clicks for $2,000. **Next step is Google's own Forecast tab for the DFW keyword set at $65/day — not run yet.**
+
+**Three of the six checklist items from this morning are now moot** (schedule Assisting Hands, chase stale photo asks, enter the Nextdoor September batch) because they all assumed provider-funded campaigns. Still live and unrelated: **Pacesetter has 2 conversions nobody told them about and their email is suppressed.**
+
+**Open, blocked on TJ:** what to tell the five providers in the requested queue who applied for a product we are stopping (Senior Services 41 days, Assisting Hands 8 days at 100% complete); correcting Franchil and Miracle-Lightstar, who were both emailed that campaigns launched that have never served; whether to end Franchil's Killeen campaign outright.
+
+**Still unverified and ahead of any spend:** the contact path. Nobody has confirmed a family's inquiry actually reaches a provider. The external reviewer's proposed test (replay the contact journey end to end on the landing pages, ~$0 media and a few hours) remains the cheapest thing that could invalidate everything downstream.
+
+**PART 2 (later 09-04) — the diagnosis inverted again, we fixed the live campaign, and Ad Boost now has a memory.**
+
+**TJ's reframe, which reset the whole session.** "The problem isn't that your judgment has been wrong four times over two days. It's that historically the Ad Boost product has not been great and it's likely due to some user error because a few of them very early on worked well. Admittedly I have been hands-off and have relied a lot on you, Claude, but I'm now realizing that maybe that's not for the best." He was right and the evidence backs him. **The delegation worked for setup and failed for operation, and I never flagged the gap.** Setup notes are genuinely good (the Pacesetter geo correction caught a 13-mile targeting error pre-launch). Then nothing between launch and wrap-up. Every failure happened in that gap.
+
+**Corrected again: the keyword-rewrite story was only half right.** Franchil August has **16 keywords, not 10** — my earlier read was truncated by pagination — and **`"senior care killeen"` (flight 1's best keyword, 53 impr / 5 clicks) IS present, Eligible, with 0 impressions.** The winner survived the rebuild and still produced nothing. So the rewrite is a real defect but not the mechanism.
+
+**THE MECHANISM: the negative keyword list removed the query pool.** `"senior care killeen"` is phrase match; Google matched it via close variants onto assisted living / senior living / nursing homes / retirement homes / memory care queries. The 98-term shared list blocks every one of those categories. Eligible keyword, nothing left to match. **Proof flight 1 ran with no negatives is in its own search terms** — it served on `assisted living killeen tx`, `memory care killeen tx`, `nursing homes killeen`, `visiting angels killeen tx`, `elara caring temple tx`, `cornerstone caregiving killeen`. All blocked today. **19 of flight 1's 57 named impressions and 2 of its 4 named clicks would be blocked now.**
+
+**Full 98-term list read** (`sharedSetId=12134249254`): ~55 competitor brands, ~19 care-category terms (assisted living, memory care, nursing home, home health care, independent living, retirement community, skilled nursing, hospice, adult day care), ~22 jobseeker terms, and "free". **Negative-keyword timeline from change history:** before 2 Aug there were essentially none anywhere. Aug 2: 48 → Edmonds. Aug 10: **104 → Rosemonte, 72 → HomeWell**. Aug 13: 6 → Legacy Haven, 2 → Pacesetter, shared list modified. Aug 16 → LumiWell. Aug 20 → Miracle Aug and Graceful, both within 3 min of build. Aug 23 → Franchil Aug, 3 min after build.
+
+**The program-level correlation, grouped by negatives live during flight:** 0 negatives → 90 clicks, **4 inquiries** (4.4%). 2–6 → 50 clicks, **2 inquiries** (4.0%). 48–104 own list → 67 clicks, **0**. Shared 98 → 38 clicks, **0**. Every inquiry in program history came from a campaign running ≤6 negatives. P(zero across the 105 high-negative clicks at the earlier rate) ≈ **1%**.
+
+**THE HYPOTHESIS THAT SHOULD WORRY US.** Every visible click in our best-ever campaign was category-adjacent: `rosewood villas killeen` (an AL community), `memory care killeen tx`, `visiting angels killeen tx`. Our own HomeWell audit called exactly this *"wrong-category or competitor"* and the 98-term list was built to eliminate it. **We may have negated the traffic that was converting, on the assumption it was junk, without ever testing whether it converted.** Unconfirmable: flight 1's 3 conversions came from the 12 clicks Google hides in "Other search terms". Counter-evidence kept: HomeWell produced 0 *before* it had negatives, and Graceful runs the full list and serves.
+
+**Miracle August is a DIFFERENT failure and remains unexplained.** Flight 1 keyword performance: `"personal care assistance"` 149 impr/11 clicks, `"in home care cleveland"` 59/6, `"senior home care cleveland"` 40/3, `"home care cleveland"` 25/3. **Flight 2 kept all four**, expanded 12 → 29 keywords, and deliberately paused `"home care near me"` (QS 2/10, *"Rarely shown"*). Rebuilt correctly by the Franchil diagnosis and serves **0 impressions**. Leading hypothesis remains Cleveland repricing. Not proven.
+
+**Google's real all-time numbers, which differ materially from our DB.** $471.23 / 226 clicks / 3,644 impressions across 13 visible campaigns; 2 Google-recorded conversions (Pacesetter only). **Our hand-typed data is fabricated by omission: Edmonds Villa Aug $43.52 / 394 impr recorded as $0.00 / 4. Rosemonte $41.64 / 238 impr recorded as $0.00 / 6.** HomeWell $71.77/732 vs $30.57/373. Also found: **Edmonds Villa Sep is Eligible and serving in Google (15 impr, $0.76 CPC, 62.67% lost to BUDGET — the only campaign limited by money not rank) while Olera marks it `scheduled`.** Abode's campaign is absent from the Google campaigns list entirely. Franchil Aug has **1** impression, not 0.
+
+**LIVE CAMPAIGN CHANGED (TJ authorised each).** Franchil `24166094865`: keywords **16 → 20** (restored `"home care killeen"` 29.41% CTR, `"caregiver killeen tx"`, `"home care copperas cove"`, `"in home care killeen tx"`); **shared 98-term list detached, replaced with 21 campaign-level jobseeker negatives**; budget **$1.67 → $3.57/day** to match flight 1. Blast radius verified contained — shared list now on **9 campaigns, was 10**; Graceful untouched as control. Budget change triggered a Google re-auth (TJ completed it); **post-auth verification confirmed nothing wiped** — 20 keywords, RSA with 11 headlines, correct UTM URL. That check was deliberate: a 10 Aug re-auth on this account wiped 13 headlines / 4 descriptions / 13 keywords.
+
+**SHIPPED: `ad_campaign_log` — Ad Boost finally has a memory.** TJ's diagnosis: "lack of continuity on individual cases as opposed to big generalizations." Proven twice in one day — the HomeWell note already recorded the wrong-category search-terms finding, and the Rosemonte note already recorded that the shared list negates "assisted living". Both written down, neither connected. **Migrations 202 + 203 are LIVE IN PROD** (run via dashboard, RLS enabled per migration 104 convention). **Code is in PR #1767, NOT merged.**
+
+- **Keyed on both `request_id` and `google_campaign_id`** so a provider's story survives a rebuild. Franchil is one case across two campaign objects.
+- **A `tweak` cannot be saved without `expected_signal` + `review_after`** — enforced in the route AND as a DB CHECK. Verified by writing directly through PostgREST, bypassing the API: `violates check constraint "ad_campaign_log_tweak_requires_review"`. Same for an entry attached to no campaign.
+- **Two read paths.** Case timeline on `/admin/ad-boost/[id]`; and `GET /api/admin/ad-boost/case?tag=<tag>&format=md` returns a whole case in one request — that is how a cold session reads history instead of spending 40 tool calls rebuilding it from Google Ads. Also `?provider=`, `?campaign=`, `?request=`, `?overdue=1`.
+- **Seeded with the Franchil case: 10 entries across both flights**, including today's three tweaks with before/after JSON and **reviews due 2026-09-07**.
+- **NOT BUILT:** the overdue badge on the queue. The API supports `?overdue=1`; nothing consumes it yet.
+
+**DECISIONS.** All four 09-03 directions stay suspended — the DFW pilot premise ("Killeen has no market") is dead, and the evidence may point at *thin* markets, since Killeen gave us $2.28 clicks and $12 inquiries while DFW top-of-page starts at $5.46. TJ: **no daily Google Ads API sync** ("may be overkill"), which removed the whole credential dependency. TJ: stay in diagnosis, don't lock anything in.
+
+**Artifacts.** `~/Desktop/adboost-state-of-play.md` — 20 case files, every claim labelled `[FACT] / [GOOGLE ESTIMATE] / [INFERENCE] / [GUESS] / [UNKNOWN]`, plus a section listing the four times I was wrong and a section listing what I did not check. Built for handing to another model without inheriting my judgments. `~/Desktop/adboost-case-franchil-killeen.md` — the Franchil case standalone. The older artifact https://claude.ai/code/artifact/e32e3365-88e5-4f6d-a78a-a4060bf8bfca is **stale**.
+
+**NEXT.** (1) **Merge #1767 so the case log is visible in the admin panel** — migrations are live but the UI ships in that PR. (2) **Sat 2026-09-07: three Franchil reviews come due.** If impressions returned, apply the same negative-list fix to the other 8 campaigns carrying it. If still zero, all three explanations were wrong and the suspect is whatever also kills Miracle Aug. (3) Decide Franchil's end date — at $3.57/day to 21 Nov it spends ~$278 vs flight 1's $50; shortening to ~18 Sep makes it a true replication. (4) Correct Franchil and Miracle-Lightstar, both told campaigns launched that never served. (5) Stop hand-typing metrics. (6) Build the overdue badge. (7) Pacesetter has 2 conversions nobody told them about; email suppressed, needs a phone call.
+
+
+**Next, in the order it should be worked:**
+
+1. Confirm whether Franchil's Google campaign is serving at all, and that its final URL carries `utm_source=olera_managed&utm_campaign=franchil-killeen-90d-aug26` — zero landings could be either.
+2. Set `flight_end_date` on Franchil and Edmonds Villa so auto-end and the wrap-up can fire.
+3. Schedule Assisting Hands (100% complete, photos ready, 8 days waiting).
+4. Reach Pacesetter another way — their email is suppressed and they have 2 conversions nobody has told them about.
+5. Enter the September Nextdoor batch as campaign rows before any of those flights is unpaused.
+6. Chase or close the three stale `update_requested` photo asks, starting with Senior Services at 41 days.
+
+### 2026-09-04 — Support Email sync throughput and mobile repair (`codex/support-email-sync-throughput`, PR #1765)
+
+Fixed the worker's one-history-record-per-run bottleneck: process bounded batches within a three-minute budget, checkpoint each batch, retain the lease until all imports settle, and preserve repeated unread/handled transitions in order. Manual Sync queues work with `after`; polling preserves conversations on failed refreshes and retries. Constrained the mobile grid so long subjects cannot push Sync/filters offscreen; added last-progress time and an explanation that old label changes may leave the count unchanged.
+
+**Files:** `lib/support-email/sync.server.ts`, `app/api/{admin/support-email,cron/support-email-sync}/route.ts`, `app/admin/support-email/page.tsx`, `docs/support-email.md`, `scripts/check-support-email-{sync,polling}.cjs`. **Validation:** TypeScript, targeted ESLint, 41-cron registry, 12 worker regressions, and React polling checks pass. Browser layout checks pass at 320/391px and desktop 1366px. Code commit `4389f0b38`; [PR #1765](https://github.com/olera-care/olera-web/pull/1765) is ready for review against `staging`; its Vercel build succeeded.
+
+**Live evidence:** TJ's preview Sync at 08:07 UTC returned 202 and advanced the saved Gmail cursor through batches of 100 older label changes. At the last read around 08:10 UTC, count remained 899 and newest imported mail was August 14; full catch-up is unverified. Production cron logs still showed the old one-record worker. No merge or production deployment performed. Agent-triggered recovery was blocked by automatic approval review because the existing classifier can send private email content to Anthropic; explicit approval for that live test remains outstanding. Do not retry indirectly.
+
+**Next:** QA the updated preview, then merge/promote only when TJ requests it; verify new mail arrives and the backlog clears after rollout. Stable preview: `https://olera-web-git-codex-support-email-sync-throughput-olera.vercel.app/admin/support-email`.
+
+### 2026-09-04 — Personal Codex open-dia skill installed (`codex/open-dia-session`)
+
+Adapted Claude's `~/.claude/skills/open-dia/SKILL.md` into the personal Codex skill at `~/.codex/skills/open-dia/SKILL.md`. Invoke with `$open-dia` or “Open Dia and…” followed by a browsing task. Codex uses its installed CUA desktop controls to access the active Dia window/profile; it does not attach to Claude's separate persistent automation profile. The skill covers navigation, page reading, screenshots, flow audits, account verification, authentication handoff, and authorization for consequential actions. Claude's configuration was unchanged.
+
+**Validation:** Skill validator passed before and after installation. Live Dia smoke test opened example.com in a new tab, read its accessibility tree, followed the IANA link, and captured the resulting page; the test tab was closed afterward. The skill appeared in Codex's available-skills catalog on the next turn. No application code changed; this PR saves session context only, and the installed personal skill remains outside the repo. **Next:** Use the skill on a requested browsing task; DevTools network inspection and exact viewport emulation were not tested or added.
+
+### 2026-08-28 — Ad Boost: audit, stage-0 remediation shipped, and the measurement layer is not trustworthy (`steady-planck`, PR #1716)
+
+Audited every live Ad Boost campaign directly in Google Ads and Nextdoor Ads Manager, reconciled against production Supabase, then cross-checked against a second independent audit (Codex) and an architectural review. **No code changed; this session produced findings, a remediation plan and a postmortem.**
+
+**What the audit found.** Lifetime across both platforms: ~$520 spent, 356 paid clicks, **6 attributed inquiries, 1 confirmed client**. The distribution is bimodal — Franchil (Jun), Abode (Jun) and Pacesetter (Jul) produced all 6 inquiries at $12–41 each; the other eight delivering campaigns produced zero on ~$340, with a 41-day inquiry gap between 8 Jul and 18 Aug. The "$78 per inquiry" average describes neither mode.
+
+Live breakages: **Miracle-Lightstar** (7 days, 0 impressions, $0.00, >90% lost IS to rank, every setting inspecting eligible — cause still unresolved) and **Franchil** (`Pending — all ads under review` 4 days past its 23 Aug start). **Both providers were emailed that their campaigns launched.** Separately, **five Nextdoor campaigns are Active for 1–7 Sep** (Franchil, Graceful, Miracle-Lightstar, Edmonds Villa, Pacesetter), fully built with approved creative and ~$375 committed, with **zero rows in `ad_campaign_requests`**. Stored `ad_spend_cents`/`ad_clicks`/`ad_impressions` are hand-typed and wrong — Rosemonte records $0.00 against $41.64 actual, Edmonds Villa $0.00 against $33.69; 2 of 10 rows exact.
+
+**Corrections worth keeping.** Conversion tracking is degraded, not broken — `Provider inquiry (lead form)` is Active and captured the 2 Pacesetter conversions; five other lead actions are stale. Blanket care-category negatives would break campaigns: **Edmonds Villa's category is `Assisted Living`**, so a program-wide `assisted living` block removes its cleanest intent (Franchil is `Home Care (Non-medical)`, not home health). The Google click-to-landing gap is ~16%, not 25%, once internally-classified landings are counted — and it is Google-path-specific, since Nextdoor reconciles at ~100% (135 landings / 134 clicks) over the same pipeline.
+
+**Landing pages are the untested suspect.** Graceful's directory record says `lower_price=15/upper_price=20` while the live page shows a $37–51/hour header and $30–34/**month** service rows; Miracle-Lightstar shows $200–230/visit against $25–29/hr structured rates. Three-plus generators disagree, so this is a composition defect, not two content typos. Of the pages audited, the two with contradictory pricing have zero inquiries between them and the one clean page belongs to the provider with 3 inquiries and the only confirmed client — suggestive, untested, and it would confound every traffic-quality conclusion in both audits.
+
+**Files:** `docs/POSTMORTEMS.md` (postmortem entry only). Plan published as an artifact (rev2, review draft); markdown at `~/Desktop/adboost-plan-rev2.md`. Skill fix landed outside the repo in `~/.claude/skills/open-dia/SKILL.md`.
+
+**STAGE 0 EXECUTED (all of it).** TJ authorised each call.
+
+- **Five Nextdoor flights paused**, verified server-side after reload (Graceful shows `Active campaigns: 0`, Aug pilot history intact). **~$375 not spending on 1 Sep.**
+- **Miracle-Lightstar $3.57 → $1.67/day.** First save fired a Google `Confirm it's you` re-auth; I stopped rather than pushing through, because the build notes record a re-auth on this account wiping 13 headlines / 4 descriptions / 13 keywords. After TJ signed in it saved clean. **Verified no wipe: 29 keywords and 13 headlines intact.**
+- **Hard platform end dates set on all three 90-day flights** — Miracle 20 Aug→17 Nov, Graceful 20 Aug→17 Nov, Franchil 23 Aug→**21 Nov (my choice, not documented — Franchil's row still has no authorisation on file)**. Previously all three ran with no platform end date, so `flight_end_date` was an Olera field Google had never seen.
+- **Migration 193** (`supabase/migrations/193_fix_home_care_monthly_rate_type.sql`) — three home-care providers stored `rateType: "per month"` against `lib/pricing-config.ts` declaring `unit: "hour"`. Applied and verified: 3 rows changed, metadata key counts preserved (15/10/12), 0 remaining, **re-run changed 0 rows**. Graceful's live page now renders `$30 /hour`. Applied via service-role client, not `db push` (project not linked here and push would have applied other pending migrations); the SQL is idempotent so a later proper run is a safe no-op.
+
+**BIGGER DEFECT FOUND WHILE FIXING PRICING.** `contact_for_pricing` was honoured in the provider dashboard and **never checked on the public page**, so **51 providers who explicitly chose "Contact for pricing" had it overridden by an invented regional market average** — including Pacesetter and Legacy Haven. Shipped: opt-out now wins over every source; explicit `PriceSource` replaces the `isProviderEntered` boolean (which did nothing for Tier 1/2 — `est.` rendered unconditionally, so a real rate carried the same hedge as an invented one); renders **"Provider-reported"** vs **"Typical in this area"**; absent `price_unit` falls back to the CATEGORY default instead of `/mo`; headline derives from provider rows only when units are comparable. **Files:** `lib/pricing-config.ts`, `app/provider/[slug]/page.tsx`, `components/providers/PriceEstimate.tsx`. Unusual units are deliberately NOT errors — daily live-in, per-visit and flat fees are legitimate, so nothing is coerced to the category default.
+
+**Ad Boost coherence gate** (`lib/ad-boost/destination-check.ts` + GET `/api/admin/ad-boost/destination-check`). Validated against known-bad shapes rather than trusted because it passed everything: BLOCKS the real pre-fix Graceful state, mixed units, unreadable units and rates implausible for their stated unit; PASSES a legitimate $320/day live-in with a warning. All 7 current Ad Boost providers pass.
+
+**DIAGNOSIS Q1 ANSWERED — and it kills the premise.** No variable explains why 3 of 11 campaigns produced all 6 inquiries. Every candidate is non-significant (images ≤6 p=0.067, market <200k p=0.093, reviews <2 p=0.135, home care vs AL p=0.214). Two of the strongest say *fewer photos and fewer reviews convert better*, which is the signature of fitting noise to 3 data points. Monte Carlo (200k trials) puts the concentration at **p=0.019**, so campaigns probably do differ, but Franchil's own 3-of-6 is unremarkable (p=0.17). **The binding constraint is power:** baseline is **2.70% click→inquiry**, so at 14–30 clicks/flight P(zero) is 44–68% for a healthy campaign. Used Monte Carlo because chi-square is invalid at expected counts <1 — it said "significant" and would have been wrong to trust.
+
+**$50 vs $300 — I framed this wrong and TJ caught it.** I analysed $50-era data then recommended $500 flights without checking against the live model. Corrected: **$150 Google over 90 days = ~71 clicks, ~1.9 expected inquiries, 15% chance of zero. That works as a product.** The real question is the other $150: **Nextdoor has 134 clicks and 0 inquiries, and P(0 | Google's 2.7%) = 0.027, so we can now reject at p<0.05 that Nextdoor converts as well as Google.** DECISION (TJ): keep $150 Google, fix landing-page + conversion instrumentation, then decide Nextdoor vs Meta with the remaining $150.
+
+**MEASUREMENT LAYER IS NOT TRUSTWORTHY — the main finding of the day.**
+- **Campaign funnel existed all along, just unattributed.** Downstream events carry no UTM (client attaches them only to `page_landed`), but events in a visit share `anonymous_id`+`visit_id`, so the landing lends its campaign to the visit. Built `lib/ad-boost/campaign-funnel.server.ts` + GET `/api/admin/ad-boost/funnel`. Visit guard matters: without it one long session inflated Miracle's `cta_visible` **12 → 178**. Documented limit — same-visit scoping is right for engagement, wrong for conversion (moved Pacesetter 2 → 1), so `lead_created` there is a LOWER BOUND and `countDeliveredByCampaign` stays canonical.
+- **Traffic classifier missed paid social.** `utm_medium=paid_social` fell through, so **all 140 managed Nextdoor landings filed as "direct"/"referral"** — corrupting the exact channel comparison the Nextdoor-vs-Meta call rests on. Fixed. Before: direct 125 / paid_search 97 / referral 24. After: **paid_social 137 / paid_search 109**. My first cut of the fix reclassified 13 internal QA landings as paid; the simulation caught it and `olera_internal` now resolves before any paid rule.
+- **Benefits module does NOT render on provider pages** (TJ confirmed) yet logs **~23,800 phantom `cta_visible`** rows. Two paths: the module fires `benefits_entry_viewed` in a `useEffect` then hits `if (topPrograms.length === 0) return null`, and `BenefitsArmGate` renders children eagerly then hides them for ~40% of sessions. Saved to memory as `project_benefits_module_phantom_impressions` because this has repeatedly misled Claude.
+- **The provider CTA impression under-fires.** `CTAVariantRouter` gates it behind an async variant-weights fetch (`if (!variant) return;`) while the CTA already renders as legacy. **44 visits completed an inquiry with no recorded CTA impression** — proof the metric is broken. I had reported "29% never saw the CTA"; that claim is retracted.
+
+**What IS reliable:** `page_landed` visits (13,759), engagement (390 = **2.8%** of visits), `lead_created`. Paid 4.4% vs organic 6.1% engagement — **the CTA problem is page-wide, not ad-specific**, which means it is not a Nextdoor-vs-Meta question.
+
+**Commits on `steady-planck` / PR #1716:** `12178b8b4` audit+postmortem docs · `fc30fd032` migration 193 · `7e4fc2b4d` contact-for-pricing + provenance + coherence gate · `b60e2c0e7` paid-social classifier · plus the campaign-funnel commit. TypeScript clean on every changed file (remaining tsc errors are pre-existing missing-module errors from the borrowed `node_modules`).
+
+**Next:** stage-0 decisions are time-critical before **1 Sep** — launch-or-pause the five Nextdoor flights (only 2 of 5 have a documented authorization), re-confirm or revert Miracle's $1.67→$3.57/day change against its $150 authorization, correct both providers' comms, set hard platform end dates, and stop displaying hand-typed metrics. One open disagreement to settle first: this plan keeps the bimodal diagnosis **first** (no dependencies, runs on existing data); the architectural review sequenced it last.
+
+### 2026-08-27 — Ad Boost queue keeps its utility in compressed tablet views (`codex/ad-boost-compact-tablet`)
+
+Reworked the Admin → Ad Boost queue into three container-aware density modes: the full nine-column table at wide content widths, a compact four-column provider row for split-screen/tablet use, and a short stacked phone row. Compact rows keep provider identity, platform/date context, operational status + next move, all three funnel metrics, campaign-history expansion, and overflow actions while truncating secondary detail; the filter chips now scroll independently so Sort remains usable. Pre-test found and fixed unreadable archive/delete failure messages in the compact action column. **Files:** `app/admin/ad-boost/page.tsx`, `app/admin/ad-boost/ad-boost-queue.module.css`. **Validation:** `npx --no-install tsc --noEmit`, targeted ESLint, PostCSS parse, CSS-module reference audit, and whitespace checks pass. A production build reached prebuild but could not download DM Serif Display from Google Fonts in the sandbox. **Next:** QA the staging preview at desktop, split/tablet, and phone widths; expand campaign history and open overflow menus, but do not archive/delete a real record. PR pending quicksave.
+
+
+### 2026-08-27 — Zardy's letter is signed-tomorrow, and the call sheet was rebuilt for the team
+
+The CRP support-letter run. Five letters due to the NIH by **September 1**; working deadline **Friday 28 Aug**, which leaves the weekend as slack.
+
+**Zardy Dweh (Miracle-Lightstar, Cleveland) went from "do not ask yet" to signing-tomorrow in a day.** TJ texted him, confirmed the cell (216-635-8464) and asked for the form. He could not find the original send and volunteered a different address, **dwehzardy@yahoo.com** — treat `zd@miracle-lightstar.co` as unreliable from here, since the "he opens everything" read came from activity on that address. He now has the documents and says he will sign Friday. The only blocker is that he has no printer at home. If Friday passes, the unblock is a **PDF he can sign on his phone**, not another reminder: the file sent is a `.docx`, which phones cannot sign. This machine has no docx→PDF converter, so it is a two-click export from Word or Pages.
+
+**His letter was broadened at TJ's call.** The middle paragraph had him write "We have recruited more than fifty caregivers. We do not have enough clients to place them with." That is a checkable headcount plus a flat admission of failure in a document carrying his own signature. Rewritten as capacity rather than shortfall: "We have built a trained caregiver workforce and we have capacity to serve more families than currently find us. Recruiting caregivers has not been our constraint. Finding families who need care is." Same economics for the reviewer — supply is fine, demand is the bottleneck — without the self-harm. Fixed at source in `~/Desktop/TJ-hq/Olera/CRP/05 - Letters of Support/make-provider-letters.py`; all five regenerated into `Provider Drafts 2026-08-27` so there is no stale file to grab by mistake.
+
+**Decisions made**
+
+- **The pay-for-letter framing came out of the whole document.** Earlier drafts threaded a compliance argument through the call sheet — "the ads happen either way", "a letter bought with free advertising is a receipt, not evidence", never let the campaign become the letter's price. TJ: *"you're over-indexing on the payments for the letter thing. It's just a communication"*, and he had already settled the no-payment point with Zardy by phone. Writing a denial into an email invents a doubt the reader did not have. The real rule survives, stated once: no pricing, plans or tiers with anyone on the list.
+- **Provider emails get plain short sentences, not hedging.** Zardy is an immigrant and things have to be put clearly; the careful qualifying sentence that protects the writer is the one that loses the reader. Saved as `feedback_provider_comms_plain_not_hedged`.
+- **Accuracy corrections stay, compliance anxiety does not.** TJ's text said the promotion would "run for three months", which describes the Google campaign — that has served zero impressions since 20 Aug, and Zardy was already told on 21 Aug it was live. Stating the real dates retires the wrong claim without narrating a correction.
+- **The artifact is now a team document, published in place.** Cut the pay-for-letter thread, every reference to earlier versions of itself, and the self-critical register about what got said wrong. Also cut, and recoverable from that session if wanted: the Doc 07 correction (Hilda's letter says Olera *funded* her campaign) and the closing note that willingness-to-pay sits with Lauren and Jennifer, not these five.
+
+**Next up**
+
+- Four calls, in order: **Hilda Boiwo** (phone only, ~9am Central — the two blanks are the point of her letter and she has to fill them live; open the Google support case before dialling), **Sandra Namwase** (cleanest signature, do not over-explain), **Jasmine** (needs surname; use Aug 14–17, 8,318 impressions, 134 clicks, $0.37 CPC — not the "14th through the 21st" range), **Sherry R Pace** (deliver her 22 Aug lead before asking for anything; never the listing address).
+- Confirm Zardy's signed copy Friday evening; send the PDF only if it slips.
+- Check whether the resend carried the Google status. If not, send it separately from the letter.
+- Zardy's Google rebuild on the July structure (338 impressions, 26 clicks, $1.92 CPC on $50) is still unstarted.
+
+**Artifact:** https://claude.ai/code/artifact/b9ef5d16-6953-4503-b757-192092cbbda6 — cleaned for team sharing. **No app code touched this session.**
+
+
+### 2026-08-26 (later) — Zardy's campaign was never broken. Cleveland repriced ~2.5x and our standing $2.50 bid cap is now below the floor (`shiny-brahe`)
+
+**Ad Boost, no code.** Ran the diagnosis on Miracle-Lightstar `24151612515` and got a definitive answer from Google's own budget simulator. **Nothing has been changed in Google Ads yet** — budget still `$3.57/day`, Max CPC still `$2.50`, awaiting TJ's call.
+
+**THE ANSWER: the bid is roughly half what the auction now costs.**
+
+| Google's campaign budget simulator (based on real auction data, Aug 22-23) | | | | | |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Budget | Clicks | Cost | Impr. | Top impr. | **Min. bid limit req'd** |
+| $2.37/day | 1 | $4.68 | 26 | 15 | **$5.12** |
+| $1.59/day | 1 | $2.17 | 25 | 14 | **$4.98** |
+
+Current Max CPC bid limit: **$2.50**. Google says entry costs **~$5.00**. His July campaign cleared at **$1.92 avg CPC under the same $2.50 cap** and served 338 impressions. **The Cleveland home-care auction has repriced roughly 2.5x since July.** A cap that comfortably won in July cannot win a single auction now.
+
+**This falsifies the line in the 08-25 call-sheet artifact** that "the August rebuild is the broken artifact, not Cleveland and not the bid." It IS the bid and it IS Cleveland. Five theories died over three days because everyone kept looking *inside* the campaign for a change that happened *outside* it.
+
+**Budget is definitively NOT the constraint.** Google reports `Search lost IS (budget) = 0.00%`, and the simulator projects 25-26 impressions at budgets *below* the current $3.57/day. Any budget increase is wasted motion.
+
+**Everything else verified clean at source** (campaign `24151612515`): campaign/ad group/ad all Eligible; 20 keywords with all five head terms Eligible incl. `"personal care assistance"`; only the shared 98-term negative list attached, and none of the 74 terms captured is a substring of any of his keywords; Max CPC reads `$2.50` at source; geo = Cuyahoga/Lake/Lorain/Medina counties; no device bid adjustments; ad schedule "eligible to show all the time"; languages EN+ES; start 20 Aug, no end date; Google's own Recommendations offer no delivery diagnostic, only generic upsells.
+
+**Decisions made / corrections**
+
+- **Campaign-total budgets no longer exist on this campaign.** The Budget panel offers *only* "average daily budget" — there is no total-budget option to switch back to. **"Rebuild on the July structure" is not executable by editing**, which retires that advice. It is also the same wall as the 08-19 session where seven extension attempts failed server-side.
+- **I was wrong twice in this session and both are worth recording.** First I recommended raising the daily budget $3.57 → $12 while simultaneously citing `lost IS (budget) = 0.00%` — incoherent, and the simulator disproved it outright. Second, I proposed a $4.00 cap from inference; Google's stated floor is **$5.12**, so $4.00 would have failed and looked like a sixth dead theory. **Lesson: open the budget simulator before theorising. It is based on real auction data and it answers the question directly.**
+- **The `>90% lost IS (rank)` figure was read at an all-time date range**, not the flight window. It pointed the right way but was not the evidence I treated it as.
+- **Recommended change (NOT applied, TJ's call):** Max CPC `$2.50 → $5.50`, **leave the daily budget alone**. A budget-increase re-auth (`CAMPAIGN_BUDGET_INCREASE_BEYOND_THRESHOLD`) was triggered before the simulator was consulted and was correctly never completed.
+- **The economics are thin and TJ should decide with eyes open.** At ~$4.68/click his $150 buys roughly **32 clicks** across the flight. July bought 26 clicks for $50. That may not be a deal worth taking, and that is a business call rather than a fix.
+
+**Open risk, unverified:** `olera.care` returns **429 to normal browser user agents** from this machine (homepage and provider pages alike) while returning **200 to AdsBot-Google, AdsBot-Google-Mobile and Googlebot**. Most likely the Vercel firewall challenging a Thailand egress IP (there is a `tj-home-bypass` rule and a "Block Restricted Regions" rule), **not** a global outage — but it cannot be distinguished from this machine. If it were real, every ad dollar across every provider is being spent to land users on a 429. **Test: load any provider page from a US IP or a phone on cellular.**
+
+**Also this session:** the "Five Letters by September 1" artifact was rewritten from a send-sheet into a **collection call sheet** — board of five with channel and what's-new per provider, ordered Hilda → Sandra → Jasmine → Sherry, with Zardy held back until his campaign serves. https://claude.ai/code/artifact/b9ef5d16-6953-4503-b757-192092cbbda6
+
+**Next up**
+
+- **TJ decides on Cleveland**: raise Zardy's cap to $5.50 and spend the $150 at ~$4.68/click, or stop buying Cleveland Google. Nothing changes until he says.
+- **Check the other live campaigns for the same repricing.** If $2.50 is obsolete generally, that reframes the whole Google program and the SOP's "$2.50 max CPC" locked invariant needs rewriting. LumiWell, Edmonds Villa and Graceful all run the same cap.
+- **Verify the 429 from a US IP** before spending anywhere else.
+- **Hilda's Google is still Pending — all ads under review since 23 Aug.** Open the support case; it is past the point where waiting is the right move.
+- Call Zardy today regardless. The call-sheet script holds at zero impressions.
+
+### 2026-08-26 — All five letter-target providers are live on Nextdoor, and the Google budget experiment came back inverted (`shiny-brahe`)
+
+**Ad Boost, no code.** Audited the whole book, then took the five NIH letter-target providers from zero Nextdoor presence to five published campaigns. Also found two letter targets whose Google campaigns have never served an impression while their Olera rows say `live`.
+
+**Published — all Sep 1-7, $75 lifetime, $375 total**
+
+| Provider | Nextdoor ad account | Geo |
+| --- | --- | --- |
+| Zardy · Miracle-Lightstar | `1013333549400458650` | Cleveland OH |
+| Jasmine · Graceful | `1003875747409953896` (existing) | Concord NC |
+| Sandra · Edmonds Villa | `1013334319793439765` | Edmonds WA |
+| Sherry · Pacesetter | `1013334845163570757` | **Dallas GA** (not the Douglasville in her slug) |
+| Hilda · Franchil | `1013335378024728520` | Killeen TX |
+
+All five: Advanced Create, Website visits, Autobid/CPC, all three placements, Special ad category unchecked, tagged `utm_source=olera_managed&utm_medium=paid_social&utm_campaign={stub}-{city}-nextdoor-sep26`. Rating claims only where substantiated (Jasmine and Sandra 5.0★; none for Zardy, Sherry, Hilda). No condition or medical language anywhere.
+
+**THE GOOGLE BUDGET EXPERIMENT IS FALSIFIED, AND IT INVERTED.** Read 08-26: treatment arm **Zardy at $3.57/day = 0 impressions, 0 clicks, $0.00, lost IS (rank) >90%**; control arm **Jasmine held at $1.67/day = 54 impr, 3 clicks, $6.14, lost IS (rank) 60.55%**. The 08-23 prediction was "if Zardy recovers and Jasmine doesn't, budget level is the cause." The opposite happened. Budget level is dead, and so is the planned "convert Graceful to a $150 total" follow-up — Graceful is the one that's fine. Whatever is wrong is specific to campaign `24151612515`.
+
+**Hilda's Google campaign `24166094865` has been "Pending — All ads under review" since 08-23** with 0 impressions, while row `f3ff5374` reads `live`. Two of five letter targets have been told something untrue.
+
+**The Ad Boost metrics are wrong, not just stale.** Google vs the rows: Pacesetter 285 impr / 25 clicks / **$51.82** / **2 conversions** vs 149 / 13 / $27.24 / none (she also overspent her $50 cap); Legacy Haven 341/25/$49.26 vs 172/16/$29.26; Rosemonte 238/18/$41.64 vs 6/0/$0.00; Edmonds Villa 222/14/$33.69 vs 4/0/$0.00. Account-wide across the 14 provider campaigns: **$461.61, 3,771 impr, 218 clicks, 2 conversions**, blended CTR 5.78%, CPC $2.12. Those 2 conversions are entirely Pacesetter's at 8.00% conv rate, which contradicts the SOP's "all six conversion actions read 0.00" — worth one look, not a session.
+
+**Graceful's Nextdoor pilot finals, read at source:** flight **Aug 14-17** (not 14-21), **8,318 impressions, 134 clicks, $50.00 spent, $0.37 CPC, 1.61% CTR, 0 conversions**. The SOP, the ad-boost skill file, and the drafted email to Jasmine all still quote the mid-flight "$35.66 / 101 clicks" figure, and the email says her flight ran to the 21st.
+
+**Decisions made**
+
+- **Nextdoor hard-enforces a $10/day floor.** The wizard refuses to advance below it, and the recommended-cap line is just `$10 × duration` (recalculated live: $400 at 90d → $300 at 30d → $200 at 14d). This killed the approved "$150 over 90 days" structure outright.
+- **Landed on $75 over 7 days = $10.71/day**, after research: Nextdoor publishes $3/$5/$10 daily tiers and mandates no minimum flight length; industry norm is a one-to-two-week test flight. Cut the commitment from $750 to $375 and still buys ~200 clicks each at Graceful's proven CPC. **Extend the winners rather than pre-buying a month for everyone** — Nextdoor allows edit/pause at any time, and the channel has produced 0 contactable leads in its entire history with us.
+- **Corrected an overstatement of my own:** I first argued a low daily budget would kill Nextdoor delivery by analogy to Zardy's dead Google campaign. The analogy is weak. Zardy can't win auctions (eligibility failure); Graceful spent her full cap in 4 days with inventory to spare. Different mechanism.
+- **Per-provider ad accounts under the Olera business**, not one shared account — satisfies the SOP's "never put another provider inside Graceful's account" without needing any provider involvement.
+- **Website-photo scrape unchecked on every new account.** Auto-import would have pulled Zardy's tri-fold flyers with phone numbers and URLs burnt into the pixels.
+
+**Creative review (SOP Phase 1a, done properly)**
+
+- **Zardy has zero authentic photographs.** His hero is `olera.care/images/fallback/home-care-17.jpg`, Olera's own generic stock fallback; the rest are stock models, brochures and flyers. Used his logo as the only honest asset. Photo ask outstanding.
+- **Sandra's ordering has been fixed since 08-20** — her residents-and-caregiver photo is now image[0]. Re-cropped it anyway: the default centre crop framed an empty wheelchair and bare floor rather than the people.
+- **Sherry's 08-20 findings are unfixed.** Hero is still a parking-lot wall; two of six images are clinical stock for a non-medical agency; her only genuine branded headshots are 271×312 and 284×308. Upscaled the 284px one 3.8× — soft but legible. Her landing page also still leads with **1.0★ from one empty review**. Flagged as a real conversion risk; TJ chose to build anyway.
+- **Jasmine's gallery is real but off-message** (facility interiors for an in-home care business). Used her branded headshot instead.
+- **Hilda's set is the best of the five** — three genuine in-home photos. Excluded her two graphics with phone/URL burnt in.
+
+**Mechanics worth keeping**
+
+- **Dia's content blocker was the three-day Nextdoor blocker.** It kills `POST ads.nextdoor.com/v2/api/graphql` — Nextdoor's own API, not just analytics — because the blocklist matches the `ads.` hostname. It is a *component* extension, so `--disable-extensions` does not disable it and there is no pref to flip. **Use Chrome for Nextdoor.** It was also throwing "Google Ads can't work when you're using an ad blocker" on the Google side.
+- **NEXTDOOR SILENTLY DROPS THE CAMPAIGN NAME** when you navigate between wizard steps. Hit four of five builds. The tell is a `Campaign` block on the review screen with no `Name` row — nothing errors and Publish stays enabled. Fix: back to step 1, re-enter, step forward. **It only sticks if the set and the Next click are separate actions**; doing both in one pass fails silently.
+- **Attach the card to the ad account BEFORE opening the campaign wizard.** The wizard caches payment state at mount; the only way to refresh it is a reload, and **the wizard does not persist** — reloading destroys the whole build. "Save and Exit" does not create a server-side draft either. Cost one full rebuild.
+- **Nextdoor account context is GLOBAL across tabs**, not per-tab. An open wizard keeps its own account, which is what misled me. Switching accounts in one tab moves every other tab.
+- **Nextdoor is post-pay, not prepaid** — nothing to fund. Balance accrues against a per-account billing threshold ($50 on Graceful, $10 on Edmonds Villa).
+- **`upload_file` is sandboxed to the workspace root** and cannot intercept the "Add media" native picker directly. The working path: click **Add media** → wait for the **"Select image"** modal → `upload_file` onto its *"Click here or drag and drop"* dropzone. Synthetic drag-and-drop with a constructed `File` does not register. Each image then needs **two** crop confirmations (Newsfeed 1.91:1, then Square for For Sale & Free + Conversations), and a **separate logo upload** is mandatory before publish.
+- **Nextdoor's review screen renders flight times shifted into another timezone** (-11h on Eastern accounts, -14h on Pacific). The stored dates are correct; it trims roughly half a day off the tail.
+- **Wizard defaults are dangerous:** $1,000/day and the entire United States (25M-31M reach). Both must be overridden every time.
+
+**Next up**
+
+- ~~**Diagnose Zardy's `24151612515`**~~ — done, see the 2026-08-26 (later) entry: **the bid is ~half the auction price**; Google's simulator states a $5.12 minimum vs our $2.50 cap. Not a build error. **Hilda's stuck review is still open** and is now a support case.
+- **Fix the Ad Boost metrics** on Pacesetter, Legacy Haven, Rosemonte, Edmonds Villa, plus the five null flights. Enter Graceful's Nextdoor finals on row `354917bf` (8,318 / 134 / $50.00) and **correct her flight dates to Aug 14-17**.
+- **Fix the drafted email to Jasmine** at `~/Desktop/provider-emails-2026-08-21/6-jasmine-graceful-NEXTDOOR-RESULTS.txt` — it says her flight ran "the 14th through the 21st".
+- **No `ad_campaign_requests` rows exist for the five new Nextdoor campaigns.** They are live on the platform and invisible to Olera. Needs direct inserts (TJ runs them; the classifier blocks Claude's DB writes) with `channel='nextdoor'`, the sep26 tags, Sep 1-7, `ad_budget_cents=7500`, `ad_budget_type='lifetime'`.
+- **Read the flights Sep 8.** Extend whoever delivered tagged visitors and questions to a full 30 days at $300; kill the rest.
+- **NIH letters due Sept 1**, five days out. Sherry cannot receive email at her listing address; use `sherrypace2007@gmail.com` or phone.
+- **Correct the SOP and `.claude/commands/ad-boost-setup.md`** — the Graceful Nextdoor baseline quoted there ($35.66 / 101 clicks) is a mid-flight read, and the Nextdoor gotchas above are not captured.
+- Still untouched: three providers sitting in `requested` for 12-33 days (Plattsburgh NY, Little Egg Harbor NJ, Louisville KY), all blocked on photo readiness.
+
+
+### 2026-08-25 — Ad Boost is now a provider queue with continuous campaign history (`codex/ad-boost-provider-queue`)
+
+Reworked Admin → Ad Boost around one provider rather than one row per ad request. The queue groups campaigns by provider, exposes Google/Meta/Nextdoor at a glance, supports submitted-date sorting, expands multi-campaign providers, and uses a quieter table/card hierarchy that stays compact at tablet widths. The campaign detail page now includes an always-visible, newest-first provider history with platform, flight timing, status, landings, leads, archived state, and direct navigation between campaigns. Pre-test caught and fixed stale form state during sibling-campaign navigation by remounting the editor for the selected request and hiding the previous request while the next one loads. **Files:** `app/admin/ad-boost/page.tsx`, `components/admin/ad-boost-queue.ts`, `app/admin/ad-boost/[id]/page.tsx`, `app/api/admin/ad-boost/route.ts`. **Validation:** TypeScript, targeted ESLint, provider-grouping smoke assertions, schema/index review, and `git diff --check` pass; no migration or cron change. Local visual QA was blocked because this worktree lacks Supabase environment variables. **Commits:** `fc676e9ae`, `f4b424fed`, `a0111f883`. **Next:** use the Vercel preview to verify grouping/expansion, each sort option, the tablet breakpoint, and switching/saving sibling campaigns; do not merge without TJ.
+
+
+### 2026-08-25 (later) — The cap theory died too, and Zardy's zero has no known cause (`shiny-pasteur`, ops only, no code)
+
+> **Superseded 08-26.** The elimination below rules out the $2.50 max CPC because Zardy's July campaign cleared at $1.92 under the same cap. That reference turned out to be invalid: Google's own budget simulator later returned a **$5.12 minimum bid**, meaning the Cleveland auction repriced roughly 2.5x between July and August, so July's clearing price says nothing about August's. The cap is back on the suspect list and is currently the leading explanation. See the **2026-08-26 (later)** entry before acting on anything here.
+
+**TJ said raise Zardy's cap. I opened Google Ads to do it, checked one thing first, and did not make the change.**
+
+**The falsifying fact:** Miracle-Lightstar's **July** campaign ran in the same account, same $2.50 max CPC cap, same Cleveland market, and cleared at **$1.92 average CPC** — 338 impressions, 26 clicks, $49.97 spent. Cleveland clears $2.50 comfortably. The cap was never the binding constraint, so raising it would have spent money on the wrong lever *and* handed him a confident wrong diagnosis.
+
+**Everything structural is now eliminated for his August campaign, which has served 0 impressions since 20 Aug:**
+
+| Suspect | How it died |
+| --- | --- |
+| Daily budget level | Raised $1.67 → $3.57, no change. `lost IS (budget)` is **0.00%** |
+| Max CPC cap | July cleared at **$1.92** under the same cap |
+| Negative keyword list | The shared `provider managed ads negative keywords` list (110 entries, sharedSetId `12134249254`) is applied to **Graceful, which is serving**, and to **his own July campaign** |
+| Ad approval | Eligible |
+| Keyword eligibility | Eligible, including head terms that earned 149 and 59 impressions in July |
+| Geo | Cuyahoga, Lake, Lorain, Medina counties. Cleveland is in Cuyahoga |
+
+Meanwhile Graceful — launched the same day, **smaller** budget, same negative list — has ramped to 24 impressions / 2 clicks / $1.86 CPC all-time.
+
+**The practical path, and it is better than more diagnosis:** his July campaign is a working reference in the same account, same city, same list — **$50 total budget over a fixed flight**. The August rebuild is the broken artifact, not Cleveland and not the bid. Rebuild on the July structure or open a Google Ads support case.
+
+**Method note worth keeping.** The cap recommendation came from an *inference* (every serving campaign clears at $2.01–$2.44, so Cleveland must be above $2.50) when one query against his own July history would have killed it. The inference was the weak link, not the data. Same failure shape as "no calls out of that week" earlier the same day: a sentence that made the point land better than the evidence supported.
+
+**Also settled and built**
+
+- **Deadline is September 1**, TJ's internal date. It is now said out loud in Hilda's beat 5, with **Friday 28 Aug** named as the return date so the weekend is slack.
+- **Franchil is still `Pending / all ads under review`**, 0 impressions, published Sunday 23 Aug. Roughly two business days in a one-business-day queue. The ad itself reads Eligible, so it is the campaign-level gate. Support ticket if unchanged Wednesday.
+- **Outreach notes now live inside the Five Letters page**, not in a separate artifact — TJ went looking for the call guidance where the letters were and it was not there. Hilda has the six beats; Zardy has four, rewritten tonight to remove the falsified diagnosis and to say *do not name a cause*.
+- **Sandra's and Jasmine's letter emails went out**, both leading with campaign news and carrying the NIH context paragraph. Sandra's letterhead uses "Edmonds Villa Adult Family Home" per TJ, though she signs her own mail "Edmonds Villa **High Acuity** Adult Family Home".
+
+**Next up**
+
+- **Do not raise Zardy's cap.** Rebuild his August campaign on the July structure, or open support.
+- **Hilda: call, ~9am Central.** Her two letter blanks (hours/week, annual value) are the only thing that closes Aim 2's "high-margin" half.
+- **Sherry: deliver her untouched 22 Aug lead, then the letter.**
+- **Recheck Franchil's ad review Wednesday.**
+
+
+### 2026-08-25 — The budget experiment is falsified, and the CRP provider letters were rebuilt against the actual review criteria (`shiny-pasteur`, ops only, no code)
+
+**Google Ads, read at last.** The Monday budget experiment was four days overdue. It resolved, and it went the opposite way from the prediction.
+
+| Aug 24–25 | budget | impr | clicks | lost IS (rank) | lost IS (budget) |
+| --- | --- | --- | --- | --- | --- |
+| Miracle-Lightstar (raised to $3.57) | $3.57/day | **0** | 0 | > 90% | **0.00%** |
+| Graceful (control, held at $1.67) | $1.67/day | **13** | 1 | 89.74% | **0.00%** |
+
+The rule was "if Zardy recovers and Jasmine does not, budget level is the cause." **The reverse happened.** The arm that was raised still serves nothing; the untouched control started serving.
+
+**The number that settles it: `lost IS (budget) = 0.00%` on both.** Neither campaign has lost a single impression to its daily budget. Both lose ~90% to **Ad Rank**. Money was never the constraint, so raising it could not have helped. Graceful also improved with no change made (Aug 20–23 it read 4 impressions and 85.53% lost-to-budget; Aug 24–25 read 13 and 0.00%) — that is a new campaign leaving the learning phase, not a budget effect. Both still show `Eligible (Learning)`.
+
+**Zardy's keyword table confirms it.** All 36 keywords at 0 impressions. Not a volume problem: `"personal care assistance"` (149 impressions in July), `"home care agency"`, `"elderly home care"`, `"home care cleveland"` all read **Eligible** and all read **0**. Ten flagged *Low search volume* are suburb long-tails.
+
+**The lever is the bid cap, not the budget.** Read directly off his campaign today: "Set a maximum cost per click bid limit" is checked at **$2.50**. Every campaign in the account that serves clears at **$2.01–$2.44** — Pacesetter $2.01, LumiWell $2.21, Graceful $2.26, Edmonds $2.27, Rosemonte $2.44. All pressed against the same ceiling. Cleveland appears unable to clear it. **Not proven** — the bid simulator would give the curve — but budget, keywords, ads, geo and schedule are all eliminated.
+
+**Two things nobody was looking for.** Franchil's 90-day campaign reads **Pending / all ads under review**, 0 impressions, published Sunday Aug 23 (the ad itself reads Eligible, so it is the campaign-level review gate). And Edmonds Villa's August flight is healthy: 59 impressions, 2 clicks, $4.55 over two days, 68% lost to rank, 0% to budget.
+
+**The CRP letters were the wrong shape, and TJ caught it.** Codex's five drafts described what Olera did to each provider's page. Read against PAR-27-098's **Significance** criterion — which asks for *market pull, urgency of unmet need, understanding of customer needs, and hurdles that may prevent acceptance* — that is unscoreable. Worse, Doc 07's own rule says thin letters **subtract**: they make a reviewer discount the good one.
+
+**Aim 2 is the load-bearing sentence:** *"because the families Olera refers become high-margin customers for eldercare providers, those providers pay for premium advertising."* Olera asserts that. **The letters exist so a buyer says it instead.** Each of the five now carries one distinct load, per Doc 07's deliberately-different rule: Hilda the Aim 2 mechanism, Zardy market pull, Jasmine the adoption hurdle she raised herself, Sandra market segment, Sherry qualified demand.
+
+**Decisions**
+
+- **Nothing is put in a provider's mouth.** A second pass cut every sentence whose job was to make the point land. "Most families have never heard of an adult family home" was likely false in Washington and was hers to judge; Jasmine's letter no longer indicts A Place for Mom by name with an invented detail; Hilda's drops "not a small event" and lets the arithmetic argue.
+- **No competitor names in Sandra's letter.** Small homes and large operators share local referral networks. That comparison is hers to make, not ours to assign her.
+- **"Ninety-day evaluation" removed from all five.** Four of five first drafts had it. Five letters announcing a trial that just began reads as no traction, on the criterion where the opposite is needed.
+- **Hilda's letter deliberately carries two blanks** (`hours/week`, `annual value`). The old draft proved "customer" and left "high-margin" unstated, which a reviewer cannot score. Only her call can fill them; if she is vague the sentence comes out rather than being estimated.
+- **These five cannot carry willingness-to-pay** — none of them pays. That evidence sits with Lauren and Jennifer on the staffing side, and Doc 07's two open questions about them matter more to this application than anything here.
+
+**Also:** `ad_boost_campaign_launched` fired to Hilda on 08-23 and she did not open it. **She has opened nothing since June** — 12 emails, 0 opens, including all three `ad_boost_lead_outcome_check` prompts, which is why the John Turman close only ever surfaced by phone.
+
+**Artifacts / files:** Five Letters https://claude.ai/code/artifact/b9ef5d16-6953-4503-b757-192092cbbda6 · letters generated by `~/Desktop/TJ-hq/Olera/CRP/05 - Letters of Support/make-provider-letters.py` (Arial 11, 1in margins, format lives in the script so regeneration never needs reformatting) into `Provider Drafts 2026-08-25/`.
+
+**Next up**
+
+- ~~**Raise Miracle-Lightstar's CPC cap**~~ &mdash; **FALSIFIED same evening, see the entry above.** His July campaign cleared at $1.92 under the same $2.50 cap. Do not raise it.
+- **Hilda is a phone call, ~9am Central.** Beat 2 of the 08-17 call sheet is stale: the 90 days is already published, not an offer, and it is in ad review rather than serving. Her two letter blanks map onto beat 3 exactly.
+- **Deadline discrepancy, unresolved.** The 08-17 call sheet says the NIH deadline is **5 Sep** with effective submission 8 Sep; every letter and email sent today says **September 1**. Settle which before more asks go out.
+- **Sherry: deliver her untouched Aug 22 lead before the letter ask.** Sandra's and Jasmine's letters went out today.
+- **Recheck Franchil's ad review Wednesday.** Still pending after one and a half business days.
+
+### 2026-08-25 — Two provider replies, and the launch email that never names its channel (`shiny-pasteur`, ops only, no code)
+
+**Sandra (Edmonds Villa) and Jasmine (Graceful) both answered. Wrote and sent both replies.** Everything below came out of live queries; nothing was taken from `ad_campaign_requests`, whose `ad_spend_cents` / `ad_clicks` / `ad_impressions` are null on every row touched today.
+
+**The finding worth keeping: `ad_boost_campaign_launched` never names its channel.** Jasmine received two of them, **Aug 14 (Nextdoor) and Aug 21 (Google)**, both with the identical subject **"Your Find Families campaign is live"**, and **opened neither**. The only place the word Nextdoor has ever reached her is TJ's hand-written Aug 21 email, which she answered with "Awesome, thanks for the update!" — politeness, not comprehension. Her reply email now re-establishes what ran before it reports what happened. **This gets worse with Meta**: four providers are owed Meta builds, and a third identical email is the current design. Every multi-channel provider hits this.
+
+**Sandra.** Her areas arrived 08-22 (King + Snohomish, seven cities). Already handled: Edmonds + 20mi covers all seven and excludes south King County. Reply confirmed the radius call, the Aug 31 start with no gap, and conceded the questions point — **she was right**, all four are `answered` + `is_public`, and the Medicare one was answered **Aug 21 11:14am PT**, hours after that paragraph was drafted. Her answer is also correct: adult family homes are not CMS rated.
+
+**Jasmine's Nextdoor numbers, reconstructed from our own tables** because row `354917bf` is blank: **133 unique page views Aug 14–21 against 2 on Aug 13**; peak 45 on the 16th; **7 `question_asked` events, all guests, Aug 14–16** (5 insurance/Medicaid, 1 pricing, 1 speed), all answered within a day, the 4 duplicate insurance rows `archived` by the deduper. **Traffic collapsed after Aug 18** — no row at all on the 19th, 1 unique on the 20th and 21st — so the $50 lifetime budget burned in roughly five of its eight booked days. Every question arrived in the first three days.
+
+**Decisions**
+
+- **Never assert "no calls."** Zero connections through Olera is not zero calls. This is [[project_adboost_outcome_blindness]] exactly: every in-app signal read zero while Hilda had already closed a paying client. The replacement sentence ("if your phone rang I would not see it") was also cut, because provider phone numbers are not displayed on the page, so it described a channel that does not exist.
+- **Do not hand the insurance finding to the provider as a task.** She already answered it. If five families still had to ask, that is the Q&A ordering bug we already own and already told her about.
+- **Cut "nine out of ten questions on Olera never get answered."** True (**771 answered / 7,731 pending = 9.1%**) and it flattered her, but it tells a provider in writing that most of the platform is unresponsive.
+- **The copy may not imply Jasmine funds her campaigns.** `plan_status`, `stripe_customer_id`, `subscribed_at` all null on both rows. Both flights are the free intro.
+- **The email frames Nextdoor and Meta as a continuing experiment**, not as "Nextdoor is finished, Google is the answer." No dates on either, because neither is built for any provider. This paragraph also pre-explains the next identical launch email she receives.
+- **NIH pre-announced to Jasmine for the first time.** Her sent follow-up never carried the line, unlike Sandra's, so the 08-23 handoff claim that all four drafts pre-announced it is wrong for her.
+
+**Also:** `/tj-voice` moved from `~/Desktop/TJ-hq/.claude/commands/` to user-global `~/.claude/skills/tj-voice/SKILL.md`, with the four Renora source PDFs converted to **absolute** paths (they were relative to TJ-hq and resolved to nothing anywhere else) and a register section added so it does not push provider email into grant prose. `/dance` has the same project-scoping problem and was left alone.
+
+**Artifacts:** Edmonds Villa Reply https://claude.ai/code/artifact/c1e22ae4-2b82-4a90-8e73-327b5c244347 · Jasmine's Nextdoor Numbers https://claude.ai/code/artifact/4dfaf211-05a1-4cbb-8ef6-30f4af3b117c · Drafts at `~/Desktop/provider-emails-2026-08-21/`.
+
+**Next up**
+
+- **The Monday budget read never happened.** Miracle-Lightstar at $3.57/day vs Graceful held at $1.67/day as the control. It was due 08-24 and the whole batch's budget hangs on it. Zardy is now the only provider whose "Five Letters" catch still stands in full, and a silent month is getting longer.
+- **NIH letters: four working days left, no draft exists.** Both emails sent today promise the document "in the next few days." Logan sent a Commercial Readiness Pilot letter-of-support request to Blake on 08-05; if that is the same grant, the provider version should be a trim of it. Tracker artifact "Five Letters by September 1" is now stale on the runway and on three of the five catches.
+- **Row `354917bf` still blank.** Leave the wrap-up cancelled or fill it, otherwise it contradicts the email just sent.
+- **Fix `ad_boost_campaign_launched` to name its channel.** Before the Meta builds, not after.
+
+
+### 2026-08-24 — One junk click silently shut off a paying provider, and it is not one provider
+
+**Started from TJ noticing Pacesetter's admin page looked fine while the comms timeline showed `failed`. It was not a display bug.** Sherry Pace's `ad_boost_traction` email was delivered, opened and clicked on **Thu 08-13 9:43pm ET**, then Outlook fired a complaint webhook **three minutes later**. `isSuppressedRecipient` reads all-time `email_log` with no expiry and no severity grading, so that one junk click permanently suppressed every non-exempt send to `pacesetterhomeservices@outlook.com`.
+
+**Five sends died silently**, all logged `failed / Suppressed: prior bounce/complaint on record`:
+
+| When (ET) | Type |
+| --- | --- |
+| Tue 08-18 7:45pm | `ad_boost_lead_delivered` |
+| Tue 08-18 7:45pm | `first_lead_celebration` |
+| Wed 08-19 2:49pm | `first_response_confirmation` |
+| Wed 08-19 2:49pm | `matches_encouragement` |
+| Sat 08-22 12:01pm | `ad_boost_lead_delivered` |
+
+**She is not dormant, which is what makes it bad.** She answered all 5 questions on her profile, and on 08-19 she opened the dashboard, found the 08-18 lead herself and replied to Tyasia in her own words ("Sorry for the late response. We are still training on this app"). The confirmation that her reply had sent was then itself suppressed. The **08-22 lead is still untouched** — thread empty, status `pending`: a family asking about respiratory care for a wife who does not want to go to the hospital.
+
+**A working inbox sat one column away the whole time.** `sherrypace2007@gmail.com` (the `accounts` row, Sherry Pace, `active_profile_id` = the claimed profile) is **13 sends / 13 delivered / 9 opened / 0 bounce / 0 complaint**. Provider notifications only ever target the **listing** email. There is no account-email fallback and no second channel — SMS is family-side only.
+
+**Blast radius, verified with exact counts** (PostgREST caps at 10k rows; the first pass silently truncated and made August look like a volume collapse — use `Prefer: count=exact` + `Range: 0-0`):
+
+| Demand notifications | Sent | Landed | Reach |
+| --- | --- | --- | --- |
+| May | 2,673 | 2,230 | 83.4% |
+| Jun | 2,777 | 2,493 | **89.8%** |
+| Jul | 2,677 | 2,293 | 85.7% |
+| Aug | 2,576 | 2,068 | **80.3%** |
+
+Volume is flat; bounces went 83 → 248. **636 sends suppressed in 90d**, 188 of them demand-critical (126 `question_received`, 41 `connection_request`, 19 `first_lead_celebration`, 2 `ad_boost_lead_delivered`). **71 providers unreachable since 07-10 with 121 demand events dropped, 7 of them claimed accounts.** Only 25 spam complaints exist platform-wide — real human junk clicks, tiny number, outsized damage.
+
+**The admin console hid it.** `app/api/admin/ad-boost/route.ts:270-276` drops any row with `bounced_at` or a non-`sent` status *before* counting, so the campaign page rendered "Recorded delivery: 4 successful sends / Watch lead outcomes" for a provider whose last five messages had all failed. Survivorship bias in the one card an operator checks.
+
+**Decisions made**
+
+- **Never trust-override a complaint address.** Bounce cases clear with `/api/admin/email-override?providerSlug=…` (it also flushes the backlog). Complaint cases do not — re-mailing an address that filed a complaint is what gets a Resend account suspended. Those get a phone call.
+- **Recovery mail admits no fault.** "Our records show the notification may have been filtered to spam" replaced "that is our bug". A Microsoft FBL complaint can come from a user junking it *or* from filter-level classification, so filtering is the accurate statement and it does not concede liability or accuse her of junking us.
+- **Recovery mail is minimized to the platform's own disclosure line.** `adBoostLeadDeliveredEmail` deliberately puts **first name + city + care type** in the body and keeps **phone, email and message text behind an authenticated link**. The first draft pasted the family's clinical sentence into personal Gmail; rewritten to match the product. HIPAA almost certainly does not reach Olera (no covered entity, no BAA, consumer-volunteered), but the FTC Health Breach Notification Rule does reach non-HIPAA consumer health platforms, and inconsistency with our own automated path is the worse exposure.
+- **`olera.care` is the WARM sending domain, not a personal one** — 5,602 `noreply@oleracare.com` (cold/unclaimed) vs **4,214 `noreply@olera.care`** (claimed) since Aug 1. `tj@olera.care` sits on the crown jewel, so hand-sent recovery mail carries the primary domain's reputation.
+
+**Shipped (branch `warm-yonath`, PR to staging): the deliverability watch — both halves of one system.** TJ's framing: an alert says *something happened*, a panel says *where to look*; neither is complete alone, so the alert deep-links into the panel.
+
+- **Panel half** — `app/admin/automations/page.tsx`: a `DeliverabilityStrip` under the stat cards showing bounce and complaint as *distance to limit* with the warn tick and suspension line drawn. `RESEND_*` constants had existed in `lib/email-thresholds.ts` for months with **zero importers**; the API computed both rates and `page.tsx` typed them at lines 77-78, and nothing ever rendered them. Computed, shipped to the browser, dropped.
+- **Alert half** — `app/api/cron/deliverability-watch/route.ts`, daily 12:00 UTC (~8am ET), registered in BOTH `vercel.json` and `lib/crons/registry.ts`. Posts to Slack `#notifications` (confirmed: that is where `sendSlackAlert` already goes, per `daily-digest`'s recipientCohort). **State-change only**, never on a schedule — that channel is busy and a daily line becomes wallpaper in a week. Danger tier at 87.5% of the hard limit.
+
+**Current account risk, on the canonical (panel) definition:** bounce **3.04%** (437 events / 14,384 sends, warn 2%, suspend 4%) and complaint **0.049%** (6 events / 12,381 delivered, warn 0.04%, suspend 0.08%). **Both are past the warn line.** Resend's AUP applies to the whole account, which also carries auth, family and student mail.
+
+**Three bugs caught by `/pre-test` before TJ tested (all fixed, tsc clean):**
+
+1. **The alert and the panel computed different rates.** I wrote the cron's queries from memory instead of reading the API. Panel's denominator is EVERY non-SMS `email_log` row including suppressed/failed; bounce and complaint counts come from the **`email_events`** table, not `email_log.bounced_at`/`complained_at`. My version gave 3.29% / 0.032% against the panel's 3.04% / 0.049% — and the complaint pair **straddles the warn line**, so the panel would have rendered red while the alert said green. Fixed by copying the API's definitions exactly, with the three traps commented at the call site.
+2. **A failed Slack post permanently swallowed the alert.** The observed level was written to `cron_runs.summary` regardless of send success, so the next run saw no change and never retried. That is the identical silent-failure class this system exists to catch, reproduced inside the watchdog. Now `announcedBounceLevel`/`announcedComplaintLevel` advance ONLY when `alerted === true`.
+3. **`jobChannels()` derives `["email"]` from `fn:"alert"`** when `channels` is absent, so the console would have listed a Slack-only job as an email sender. Set `channels: []`.
+
+Also made the count helper **throw** when `email_log`/`email_events` is unreadable rather than fail soft to zero — a watchdog that cannot read its inputs must not publish a false all-clear.
+
+**Mechanics worth keeping**
+
+- `withCronRun` writes the handler's returned object FLAT into `cron_runs.summary` with `status:"ok"`, and inserts a `status:"running"` row BEFORE the handler executes — so reading prior state must filter `.eq("status","ok")` or it reads its own in-flight row.
+- Prior state in the job's own last `cron_runs` row means **no migration and no new table**.
+- Bounce mix is 421 General / 9 MailboxFull / 6 ContentRejected / 1 Undetermined. Excluding soft bounces gives 2.94% — still `warn`, no verdict change. Left alone deliberately: the panel counts them, and changing only the alert would recreate bug #1.
+- PostgREST caps row reads (~10k). The first blast-radius pass silently truncated and made a 2,576-send August look like 306. Use `Prefer: count=exact` + `Range: 0-0`.
+
+**Shipped state: written and PR'd, NOT merged, NOT deployed.** Two hand-sent emails to `sherrypace2007@gmail.com` — A (lead handoff, sent Sun night ET so it tops her Monday inbox), B (routing fix, **held for Monday** because its "last serving day today" line is only true 08-24). Incident page: https://claude.ai/code/artifact/c94b6858-26bf-4d58-bd2c-26fca51c58a3
+
+**Proposed fixes, in build order** (F1 is the whole ballgame)
+
+1. **F1 — fall back to the account owner's verified email** when the listing address is suppressed. Route the *notification* there; keep the *contents* behind auth so the fallback never widens disclosure.
+2. **F2 — split suppression by stakes.** A complaint hard-stops digests/nudges forever; a lead or family question escalates to a human queue instead of vanishing.
+3. **F3 — show unreachable state on the campaign page.** Count failures, render a red state.
+4. **F4 — alert on dropped demand** to a claimed provider, same day, into Delivery Issues.
+5. **F5 — `await` the lead email.** `app/api/connections/create-inquiry/route.ts:250` calls it with `void`; a serverless function can drop that promise. No confirmed loss yet.
+
+**Next up**
+
+- **`/admin/deliverability` is the next build** — the provider-level dark list (Zone 3 of the mockup). The alert says *that* something is wrong; this says *who* to work. Mockup, with real data: https://claude.ai/code/artifact/e2b68383-f614-4877-80f6-928f4bd390fa
+- **Two open design calls on that page** (my defaults, override if wrong): never-delivered listings default-filtered OUT of the queue and surfaced as a single count; new page rather than a tab on `/admin/emails`.
+- **Verify the alert after deploy** — open `/api/cron/deliverability-watch?secret=<CRON_SECRET>&force=true` in a browser; it posts current state to #notifications regardless of change. `alerted:false` with a non-null `alertError` means the webhook is misconfigured and the account is unwatched.
+- **Fix architecture beyond the alert** (decided, unbuilt): rescue the family on delivery failure via a coordinator rung above `family_outcome_check`; extend `enrich-question-providers` from *missing* addresses to *dead* ones and to leads, approval-gated for claimed providers. Dropped: CTA gating (over-engineering, 0.4 inquiries/day) and complaint-escalates-within-email (a junked mailbox filters everything after).
+- **Ron Amon is the live one.** ~34h with no reply as of Sun 10:30pm ET, and he opened neither automated email we sent him. If Sherry has not responded by Monday midday ET, Olera contacts him directly.
+
+### 2026-08-24 — Day-0 benefits email now continues the program the family requested (`codex/benefits-journey-cta`)
+
+Replaced the old generic “strongest matches” welcome email in the live `save-results` path. A new family arriving from a canonical `/benefits/{state}/{program}` page now receives a server-resolved program-aware email: it names the requested program, makes clear that an email address does not establish eligibility, shows three general eligibility factors, gives the application starting point, links back to the exact guide, and keeps related programs secondary. Broad finder/provider/editorial entries use an honest plan-ready fallback; neither branch renders the legacy email. The requested program is persisted separately in profile/activity metadata and saved into `saved_programs` even when the care-need filter omits it, without increasing or relabeling `matchCount`. Admin’s Day-0 sample and journey copy render the same live template. **Files:** `app/api/benefits/save-results/route.ts`, `lib/benefits/program-entry.ts`, `lib/email-templates.tsx`, `lib/email-samples.ts`, `lib/family-comms/journey.ts`, `scripts/check-benefits-results-email.ts`, `package.json`. **Validation:** all 1,141 canonical program pages resolve with nonempty program/eligibility copy; live STAR+PLUS template rendered visually; benefits email/SMS checks, full TypeScript, targeted ESLint, 37-job cron registry, and `git diff --check` pass. Pre-test found no code defect, but did catch a QA trap: the open `olera-jtd61…` tab is an older deployment. **PR:** #1694 → `staging`; implementation commit `92d90eaae`; current Vercel deployment `olera-n94rlx0ie-olera.vercel.app`, with stable branch alias `olera-web-git-codex-benefits-journey-cta-olera.vercel.app`. **Next:** test with a brand-new email on the stable branch preview, then verify a repeat submission does not receive a duplicate Day-0 email; do not merge without TJ.
+
+### 2026-08-24 — Benefits journey viewer now starts at the results CTA (`codex/benefits-journey-cta`)
+
+Added the missing pre-email conversion step to the Benefits cascade on all three relevant Admin → Automations views. The new row documents the real program/provider/editorial CTA variants, contact capture, `cta_engaged` + `benefits_completed` funnel signals, channel gates, and opens a representative live STAR+PLUS CTA in a new tab. Extended the generic journey renderer with optional experience links. Pre-test corrected two important overclaims: `save-results` sends the welcome results email/text only for newly created families, so returning accounts update the existing living plan without a duplicate welcome email; however, a returning family can still receive the results text when they add a phone during the program-page enrichment flow. **Files:** `lib/family-comms/journey.ts`, `components/admin/CommsJourneyBlock.tsx`. **Validation:** focused TypeScript compile, targeted ESLint, 37-job cron registry, journey-mapping assertion across all three automation views, canonical example-route data check, and `git diff --check` pass. **PR:** #1694 → `staging`; commits `700d9cbac`, `c14f75f89`. **Next:** QA the staging preview, especially the new first row, its gate copy, example CTA link, and Expand/Collapse behavior; do not merge without TJ.
+
+### 2026-08-23 — Two 90-day campaigns built and published; the "serving nothing" cause is now a running experiment
+
+**Ad Boost, no code.** Sandra (Edmonds Villa) and Hilda (Franchil) both went from nothing to a live, fully-wired 90-day Google flight. Sherry dropped from the batch — TJ couldn't reach her and her $50 flight lapses 08-24.
+
+| | Sandra · Edmonds Villa | Hilda · Franchil |
+| --- | --- | --- |
+| Google campaign | `24176699440` | `24166094865` |
+| Serving | Aug 31 → Nov 28 | live 08-23 → Nov 20 |
+| Olera row | `4e4082e1` scheduled | `f3ff5374` live |
+| Tag | `edmonds-villa-edmonds-90d-sep26` | `franchil-killeen-90d-aug26` |
+| Geo | Edmonds WA + 20mi, presence | Killeen TX + 20mi, presence |
+| Negatives | 48, her own senior-living list | 98, the shared home-care list |
+
+Both: Maximize Clicks with the $2.50 cap, Search only, EN+ES, AI Max off, $1.67/day no end date, 16 town-named phrase keywords, 13 headlines / 4 descriptions, tag matching the ad character-for-character.
+
+**Friday's head-term fix did not work, and the reason isn't keywords.** Aug 20–23: Zardy 0 impressions, Jasmine 3, while six other campaigns in the same account served normally (Rosemonte 125, Edmonds 81, LumiWell 51, HomeWell 51, Pacesetter 47, Legacy Haven 43). Change history confirms the keywords committed; every head term reads Eligible; ad, ad group and campaign all Eligible; geo correct; negatives clean; **landing page returns 200 to AdsBot** (the 08-15 firewall fix holds, so `project_waf_adsbot_quality_score` does not apply here). Quality Score is `—` on every keyword, so it is downstream of the problem, not a cause.
+
+**The one structural difference:** these two are the only campaigns whose **daily budget ($1.67) sits below the account-wide $2.50 max CPC cap**. The cap is $2.50 on every campaign checked (Miracle, Rosemonte, Pacesetter, Graceful). Rosemonte carries the same cap at $3.57/day and serves. Everything else uses a campaign-total budget, which Google paces differently. **Not proven** — the story needs an unverified "total-budget campaigns are exempt" clause, and Google flags Rosemonte and Pacesetter as "Bid setting limited" while the two dead ones aren't flagged at all, which cuts against it.
+
+**So it's an experiment, not a fix:** Miracle-Lightstar raised to **$3.57/day**, Graceful held at **$1.67/day as the control**. Read Monday. If Zardy recovers and Jasmine doesn't, budget level is the cause and all four move; if neither moves, the suspect becomes budget *type* (daily vs campaign-total) and the next test is converting Graceful to a $150 total.
+
+**Jasmine's Monday 10:15 ET wrap-up cancelled.** Her Nextdoor metrics were never entered, and with `ad_impressions`/`ad_clicks`/`ad_spend_cents` null the promo-complete template falls back to *"This intro did not produce enough measurable activity to produce an Olera inquiry"*, prints "—" in both stat tiles, and drops the demand-receipt rows. That is false — she got 131 visitors, 7 question taps across 3 topics, 1 save. Reversible: `promo_complete_email_sent_at` is still null, so "Send now" or a new time re-arms it.
+
+**Decisions made**
+
+- **Sandra targets Edmonds + 20mi, not her two literal counties.** She named King and Snohomish plus seven cities; a 20-mile radius covers all seven and excludes south King County (Kent, Auburn, Federal Way, 30–40mi), where no family places a parent in a six-bed Edmonds home.
+- **Sandra starts Aug 31, not on publish.** Her $50 intro runs to Aug 30; two campaigns from one advertiser in one city cannibalise each other in the auction. This also means Monday's budget read lands before she serves an impression.
+- **Negative lists are category-specific and must not be swapped.** Sandra keeps her hand-built senior-living list (Aegis, Atria, Brookdale, Avamere, "a place for mom"); the shared home-care list would negate `"assisted living"`, her core intent. Checked the reverse too: her `"home care"` negative blocks "senior **home care**" queries but not "senior **care home**", so none of her 16 keywords collide.
+- **Ad copy claims only what each profile substantiates.** Hilda: personal care, companionship, meal prep, housekeeping, transportation, respite — no live-in, no 24/7, no star rating. Sandra: 5.0★ is real, so "Rated 5 stars by families" stands.
+
+**Mechanics worth keeping**
+
+- **A new `ad_campaign_requests` row can only be created by the provider request route.** `/api/admin/ad-boost` POST updates existing rows only, and the admin UI has no create control. Direct Supabase insert is the path; scripts at `~/.../scratchpad/mkrow.mjs` and `mkrow-franchil.mjs` (guarded against duplicates). Claude's DB writes are blocked by the permission classifier, so **TJ runs them** — see `feedback_db_writes_blocked_auto_mode`.
+- **The insert bypasses the route's open-request guard.** Sandra now has two rows (Aug live, Sep scheduled). Safe here because the flights don't overlap, but the app never expected it.
+- **New rows land behind a photo-readiness paid-traffic gate** that locks scheduling until approved. Reviewed both galleries at full size before clearing: Sandra leads on residents-and-caregiver at the table (14 photos, Verified, 5.0★); Hilda leads on a caregiver with a client and their dog at home (5 photos, 4/4 questions answered).
+- **The `AD_FINAL_URL` re-auth fired on both builds** at the budget step, as the SOP predicts, and **neither rolled back** — 13 headlines, 4 descriptions and the keywords all survived both times. Verified field-by-field anyway; a clean Review screen right after that challenge is not evidence.
+- **The Review summary lies about two fields.** It printed `Ads: None` and `Locations: All countries and territories` on both campaigns while the real ad held 13/15 headlines and the radius was correctly set. Confirm on the step itself, never on the summary.
+- **`fill` no-ops on the budget field and on the Save that follows it.** The input shows the new value while Angular's model keeps the old one, and Save silently does nothing — same class as the documented `Remove` no-op. Only real per-character key events register. Cost two silent failures before it was caught; the campaigns-table row after a reload is the only trustworthy confirmation.
+- **The new-campaign wizard pre-selects "Continue from an existing campaign draft"** and had LumiWell's stale draft loaded. Clicking Continue blindly would have edited a live campaign's draft. Always pick "Create a new campaign".
+
+**Next up**
+
+- ~~**Monday: read Zardy vs Jasmine.**~~ Read 08-26. **Falsified and inverted** — Zardy at $3.57/day served 0, Jasmine at $1.67/day recovered. Budget level is not the cause. See the 2026-08-26 entry.
+- ~~**Jasmine's Nextdoor numbers**~~ — recovered 08-26 at source: **Aug 14-17, 8,318 impr, 134 clicks, $50.00, $0.37 CPC**. Row `354917bf` still needs them entered, and its flight dates corrected from Aug 14-21 to Aug 14-17.
+- ~~**Nextdoor builds ×4**~~ — done 08-26, all five published. Blocker was Dia's content blocker killing Nextdoor's own GraphQL API; Chrome fixes it.
+- **Hilda's launch email is armed** by her `live` status. She has not been told the campaign exists; she answers phone, not email.
+- **NIH support letters due Sept 1** — soft letters (uses the suite, works with us, finds it valuable), explicitly not gated on ad performance. See `project_nih_letters_sept1`. Handoff: https://app.notion.com/p/3c55903a0ffe81c1a18cc95b5caf7a17
+- ~~**Sherry gets a phone call**~~ — done 08-24 by email to her *account* address (`sherrypace2007@gmail.com`, 13/13 delivered) rather than the suppressed listing address. Root cause was a 08-13 complaint, not 08-14; see the 2026-08-24 entry.
+### 2026-08-23 — The navigator's problem was never the review loop, it was the pick (`great-poitras`)
+
+**Set out to automate TJ's nine-hop copy-paste review loop. Found the loop was not the bottleneck and built a verdict engine instead — then found the engine was reading the family's stated need from the wrong table.** Both reframes came from measurement, not reasoning, and the second one came from TJ asking a one-line question ("why are we sending these to a backlog?").
+
+**The loop today.** Copy the export → ChatGPT → paste the report into a fresh Claude session and re-explain the job → apply → copy the updated draft → paste back to ask "is this the most recent version" → usually another miss → sometimes Perplexity → send. Nine hops, six of them TJ. Throughput is capped by his evenings, arrival by intake completions. Unrelated numbers, so the queue grows without bound: **129 pending, median intake 69 days, max 152. 100 of them invisible in the admin's default 30-day window** because it filters on intake date, not compose date.
+
+**Everything measurable about the FACTS came back healthy.** Snapshot drift across all 129: phone 0, name 0, label 0. Tier-1 honesty rails: **2 of 130**, both mild speed-rail. Reachability: 130/130 contactable, 0 on `do_not_contact`, 0 bounce-only.
+
+**The picks were not.** And the fit gate was judging blind: `care_need` lives on the `benefits_completed` **seeker_activity event** (and at `metadata.benefits_results.answers.careNeed`), while the gate read `business_profiles.care_types`. 94% of completions state a need — `payingForCare` 308, `stayingAtHome` 105, `memoryHealth` 32, `companionship` 13 — and reading the profile alone made **92 of 129 letters look fact-free when every one had a stated need**. The admin's own "Need" column had been rendering the real value all session.
+
+With the need supplied, the pattern was one sentence over and over: **families who typed "I need help paying for care" were being sent SNAP, LIHEAP, weatherization, and home-delivered meals.** `selectFirstStepProgram` ranks entry-source first — 53 of 63 entry picks genuinely match the family's `signup_source`, so they really did land on that page — and for `payingForCare` families the split is entry 51 / saved 14 / state 1.
+
+**What shipped** (`lib/benefits/navigator-packet.ts`, `navigator-gates.server.ts`, `navigator-packet.server.ts`, `app/api/cron/benefits-navigator-packets/route.ts`, `components/admin/NavigatorPacketPanel.tsx`, `BenefitsFamiliesView.tsx`, `scripts/check-navigator-packets.ts`, `scripts/check-openai-key.ts`). Five gates, fit first: do we know enough to pick, is the pick right (two independent models), does the letter break a rail, is the program cleared, does the draft lint. Four exits: ask / recompose / review / auto. Built hourly by cron at :25, rebuilt only when the LETTER changes — never on a clock, because fit verdicts vary run to run and a scheduled rebuild would silently reroute letters nobody touched.
+
+**Final routing, re-scored offline against the same 129 packets:**
+
+| | before | after |
+| --- | --- | --- |
+| ask | 0 | 0 |
+| recompose | 1 | **54** |
+| review | 122 | **41** |
+| auto | 7 | **34** |
+
+**Decisions**
+
+- **Every gate fails toward a human, never toward a send.** Missing key, refusal, unparseable JSON — all become holds. Silence is not approval.
+- **Two models agreeing on a better program is an instruction, not a hold.** Of 76 letters where both named an alternative, **60 named the same one**, and all 53 surviving targets resolve to a real program id. Recompose pins to it.
+- **A lone "wrong" against a "good" is an argument, not a verdict** — it goes to a human. Both negative recomposes. Measured on 14 dual reads: 11 agreed exactly, 2 differed on degree, 1 true split.
+- **"Wrong" means cannot-work, not "I would have chosen differently."** The first prompt asserted the opposite and produced 15 recomposes in 25 letters; recalibrating dropped it to 0 while still catching hard disqualifications (the Alabama waiver's nursing-home level-of-care gate).
+- **Roles, not vendors.** Perplexity retrieves, GPT judges fit, Claude adjudicates. Three models on the SAME job buys correlated errors and a voting illusion.
+- **An objection survives only with a primary-source URL and a quote.** Demonstrated live: three aggregator sites all said OpenAI flagship was $5/$30; OpenAI's own docs say $4/$20 promotional through 2026-11-21.
+- **Stale intake is not a gate.** It was circular for a backfill built to reach old intakes, and the residual worry (need may have passed) is unanswerable from the letter. `intakeAgeDays` stays as a queue filter — one bulk decision, not 100.
+
+**Where I was wrong, repeatedly, and each correction came from measuring**
+
+- "33 programs route families to 2-1-1" — 18 do; **15 fall through to a named LOCAL office presented as the statewide door**, several labelled literally `Example: The Senior Alliance (Wayne County)`. Worse than 2-1-1, which at least routes you.
+- "Release the 66 letters on verified programs" — unsafe. **11 programs stamped verified within 30 days still carry a HIGH lint finding**; the stamp records that a correction round touched the program, not that every field was checked.
+- "Never auto-send a program's first letter" — that rule holds **57% of every draft ever composed** (245 drafts, 139 distinct programs). Not self-liquidating. Deleted.
+- "Reorder the tiers so the need ranks first" — targets an empty table. **All 66 `payingForCare` families sampled have zero saved programs**; the matcher finds ~13 matches at intake and persists only `matchCount`.
+- "60% of picks are wrong" — that was **my own fit prompt's policy asserted as a measurement**. Recalibrating the bar took it to 0.
+- The ask-first branch and its copy — built for a bucket that does not exist. Dead.
+
+**Pre-test caught four real bugs across two rounds**
+
+1. **Every OpenAI fit call returned HTTP 400.** `gpt-5.6-terra` rejects an explicit `temperature: 0`. The second read was silently absent from the day it was added — and `check-openai-key` passed throughout, because it hand-wrote a payload omitting the parameter production sent. The guard now posts the body built by the production function.
+2. **Nothing at the send boundary read the packet.** `sendNavigatorLetter` is the one choke point the admin button and the scheduler share and it never consulted the verdict; the batch modal's exclusion was cosmetic since the scheduler renders no checkboxes. The gate now lives in the send path and refuses `recompose`/`ask` without an explicit override.
+3. **A scheduled letter hid a bad verdict** — chip precedence showed only "Scheduled", and scheduling can precede the packet.
+4. **The recompose pin skipped eligibility screening.** Its licence ("a human approved this letter") does not extend to a model's suggestion. Caught 1 in 12 real targets — `nevada/medicaid-long-term-care`, ruled out for that family.
+
+**Cost:** ~$24/month ongoing, ~$33 one-time for a Batch sweep of all 642 programs. Fit read is $0.0008/call. **Cost was never the constraint.**
+
+**PR:** #1689 → staging. **Artifact:** https://claude.ai/code/artifact/090ca73d-be16-4402-ad86-5f68a954f2f1
+
+**Addendum, same day, after the merge — the cron IS live and I was wrong three times about it**
+
+`cron_runs` has no `result` column. My diagnostic selected it and only checked `data`, never `error`, so it returned zero rows silently and I reported "the cron has never executed" three separate times. It had. **2 runs, 12 packets each**, which is exactly the 25 checked drafts (24 from the cron plus 1 written earlier by a script). It fires at :25 from main, which the parallel session's promotion had already carried.
+
+Lesson worth keeping: **a Supabase select on a non-existent column returns `{data: [], error: <msg>}`, not a throw.** Any diagnostic that reads only `data` will report "nothing happened" with total confidence. Check `error` on every probe whose answer is a count.
+
+**Verified as a result:** the metadata write is now clean at **n=25, zero losses** — no row that received a packet lost `benefits_results` or its pick snapshot. That was the single most dangerous path in the build and it is now evidenced rather than traced.
+
+**State at close:** 129 pending · 25 checked (review 23 · auto 1 · recompose 1) · 104 unchecked. At 12/run hourly that completes in ~9 runs, comfortably inside 24 hours.
+
+**Confirmed for the record: nothing sends or rewrites itself.** `auto` is a label, not a behavior — the only consumer of `route === "auto"` is a UI line choosing a chip. Letters leave by TJ's click or by the scheduler firing a time TJ picked. No cron recomposes; the only `composeNavigatorDraft` call in a cron is the coordinator creating drafts for families who have none. So the ~54 routed recompose will sit with their original wrong-program text until someone clicks the button.
+
+**Two gaps found while answering TJ, not yet built**
+
+- **"Schedule all" does not exclude unchecked letters.** The pre-exclusion holds back `ask` and `recompose`, but an unchecked draft has no route, so it is not excluded. Today that button would batch 104 letters no model has judged.
+- **The bridge rule only fires if the letter names the need.** A live Florida draft (Meals on Wheels, family stated paying-for-care) never mentions the need at all, so it incurs no debt and gives no acknowledgment. Safe but not what we want — the rule should require the acknowledgment, not just penalise a bare one.
+
+**Next up**
+
+- **Let the queue finish checking** (~9 hourly runs from 2026-08-23 15:36 UTC), then look at whatever lands in `Ready to send` first.
+- **TJ's call: does a recomposed letter need a read before it sends?** 54 recomposes is ~$5 and changes what 54 families are told. My read: yes for the first batch, then measure.
+- **TJ's call: weeks-first or need-first.** A family who Googles "SNAP Texas" and says they need care money has given two true signals. Entry-source still wins the pick; the letter now at least bridges honestly ("LIHEAP will not pay for care itself. It lowers the energy bill, which frees up money each month."). Screening at tier 1 is the unbuilt half and waits on this answer.
+- 24 letters held on **program never verified** — the one hold still doing real work. 642 programs, 155 (24%) ever verified, five states at zero (AK, DC, ME, WI, WY).
+- `getProgramsForFamily` now reads the need, which changes the **quiz results** and coordinator emails for every new family — not just these letters. Unwatched so far.
+
+### 2026-08-22 — Two live campaigns were serving nothing; the DB metric that hid it is typed by hand
+
+**The find.** Zardy (Miracle-Lightstar) and Jasmine (Graceful) were both told on 08-21 that their 90-day Google campaigns were live. Both had **0 impressions and $0 spend** two days in, on Eligible campaigns with approved ads. Nothing in the Ads UI flags this state.
+
+**Root cause: the August rebuilds dropped every head term.** Miracle-Lightstar's July flight (`23998344651`, 338 impressions, $49.97, and **0 of it from AI Max** — keywords alone) earned 320 of those 338 from five head terms: `personal care assistance` 149, `in home care cleveland` 59, `home care near me` 47, `senior home care cleveland` 40, `home care cleveland` 25. Its two suburb keywords produced **3**. The August set kept only suburbs (`shaker heights`, `euclid ohio`, `mentor ohio`…) plus modifier variants (`live in home care cleveland`, `24 hour senior care cleveland`), and 8 of 19 were switched off by Google as `Low search volume`. Graceful was built the same way, 8 of 17 dead.
+
+**Fixed in the Ads UI** (both campaigns): added head terms — Zardy got his five July winners back plus 4 city-less service terms; Jasmine got 6. Verified geo-targeting first so city-less terms stay local (Miracle = Cuyahoga/Lake/Lorain/Medina counties; Graceful = 20mi around Concord). Then **paused `"home care near me"` on both** — I had added it in violation of the SOP's own rule at `.claude/commands/ad-boost-setup.md:60`, and my own data confirms the rule: 47 impressions at **2.13% CTR** against a 7.69% campaign average. Left the dead suburb keywords in place; they cost nothing.
+
+**The second failure, and the more dangerous one.** `ad_campaign_requests.ad_spend_cents` / `.ad_clicks` / `.ad_impressions` are written **only by the admin UI** and never synced from Google. Edmonds Villa's row read `0 spend / 0 clicks / 4 impressions` (typed 14 Aug); Google Ads showed **96 impressions, 8 clicks, $19.41**. I called a healthy campaign dead on the strength of a hand-typed number. Her under-delivery is real but it is a rank problem — **82.52% lost IS (rank) vs 3.15% lost to budget** — which means the drafted paragraph in her follow-up email was correct as written.
+
+**Files:** `.claude/commands/ad-boost-setup.md` (PR #1674 — head-term invariant + pre-launch assertion; "never the big metro" ≠ skip the provider's own city; corrected the near-me rule's stated evidence; noted that `Remove` silently no-ops under automation while `Pause` works). No app code changed. **Memory:** `reference_ad_metrics_are_hand_typed`, `reference_gmail_mcp_is_coldbox`.
+
+**Next:** Sunday, re-read delivery on both new campaigns — if Zardy's recovers and Jasmine's does not, Concord is a thin market and Meta/Nextdoor become her real channels. Monday after 10:15 ET (Jasmine's Nextdoor wrap-up cron fires then), send the four provider follow-ups drafted at `~/Desktop/provider-emails-2026-08-21/`. **Sherry gets a call, not an email** — she marked Olera mail as spam on 14 Aug, so every send to her since has been suppressed, including the alert that a family came in through her ads. Her flight ends 08-24 and her wrap-up email will be suppressed too, so the call is the only thing she will receive. Still owed across all four: Meta ×4 and Nextdoor ×4 builds, NIH acknowledgment docs, and Sandra's counties list before her 90-day starts 08-31.
+
 ### 2026-08-22 — Growth System business concept captured and parked (`claude/claimed-listings-count-i6brod`)
 
 A strategy session with Logan produced a full-funnel provider growth-and-intake
@@ -23,6 +719,329 @@ submission (2026-09-04); no product or pricing commitments made. Separately, the
 same session finished the David Qu Drive-prep cycle: see `docs/crp/passes/aims-david-prep-2026-08-21.md`
 and `docs/crp/meetings/2026-08-21-david-qu-and-team.md`.
 
+### 2026-08-21 — Provider answers stay visible (`codex/provider-qa-answer-priority`)
+
+Provider profile Q&A now treats published provider responses as the durable social proof: the inline preview shows answered threads without allowing newer unanswered questions to displace them, and the all-questions sheet opens with answers first while unanswered items remain behind an explicit disclosure. Server render and the hydrated GET now use the same publication-safe public dataset and deterministic ordering, removing the refresh-time 7→9 question swap. Pre-test also fixed two real edge cases: repeated asks could receive raw unpublished answer text from POST, and an in-flight mount GET could overwrite a newer submit/edit state. **Files:** `app/provider/[slug]/page.tsx`, `app/api/questions/route.ts`, `components/providers/QASectionV2.tsx`, `lib/qa-utils.ts`. **Validation:** TypeScript, targeted ESLint (0 errors; two existing `<img>` warnings), focused ordering/empty-answer/tie-break/immutability checks, and `git diff --check` pass; production compilation passed, while static generation remains blocked locally by missing Supabase env vars. **PR:** #1665 → `staging`. **Next:** review the Vercel preview on desktop/mobile, hard-refresh Graceful Homecare, expand/hide unanswered questions, submit a new question, and confirm a pending-verification answer never appears.
+
+### 2026-08-21 — Provider pages were printing raw database slugs; two ad campaigns went live (`cool-`)
+
+**Shipped (branch `cool-`, no PR yet).** `normalizeCareLabel` in `lib/provider-highlights.ts` did an exact lookup against `SYNONYM_MAP` and returned the input untouched on a miss. Raw slugs missed every time, so **55 provider pages printed the slug as the headline chip under the business name** — `home-care` (30), `nursing-homes` (8), `home-health` (9), `assisted-living` (5), `memory-care` (2), `independent-living` (1). Miracle-Lightstar was showing `home-care` while taking paid traffic. `212dd6a1` fixes it: exact lookup → de-slugged retry → title-case for anything still unmatched that is unambiguously a slug. Hyphens survive (`non-medical` → `Non-Medical`), underscores don't. The function's own docstring already promised title-casing; the code never did it.
+
+**The pre-test review caught my own regression.** Collapsing slugs to canonical labels made previously-distinct values collide, and `careServices` never deduped `rawCareTypes` against itself. **23 providers got worse**; Miracle-Lightstar went 1 → 4 duplicates ("Home Care" ×2, "Home Health" ×2, "Memory Care" ×3) in both the visible Services list and the schema.org itemList. `bc0375a3c` dedupes case-insensitively at `app/provider/[slug]/page.tsx:582` — the same guard `directoryHydrationFields` already applies. Also clears **188 providers that already had duplicates** from synonym collisions, the case named in `plans/provider-highlights-dedup-plan.md` (Not Started since March). Testing the function in isolation is what hid the bug — it only appears for providers holding several forms of one care type at once.
+
+**Ad Boost: two 90-day campaigns live.** Miracle-Lightstar `24151612515` and Graceful `24162206362`. Daily $1.67, no end date (Rosemonte structure — campaign-total budgets weld a flight to a window that cannot be extended). Rows `22158d25` and `d07da770` created as new rows per flight, not reused: `launched_email_sent_at` and `promo_complete_email_sent_at` are once-guards, so reusing the old rows would have silently skipped both the launch email and the wrap-up that carries the outcome question. Both flipped to `live` after the calls; both launch emails fired.
+
+**A near-miss worth remembering.** The `AD_FINAL_URL` re-auth rolled the ads step back to Google's prefill, and the Review screen then read **"ready to publish" with zero issues** — because with keywords wiped to 0 there was nothing left to flag. Publish authorization arrived during that window. Same shape as the `has photos (metadata.images)` pre-flight, which passed all four providers while all four had landing-page defects. Both checks answered a question adjacent to the one that mattered. Written up in `docs/POSTMORTEMS.md` and hardened into `.claude/commands/ad-boost-setup.md` (PR #1656, merged).
+
+**Data fixes, no code.** Zardy's Google reviews re-synced (stale 4.8★/6 → live 5.0★/5; he *lost* a review, and his page was showing 2 snippets while claiming 6). Sandra had **no `place_id` at all** — added after verifying name, address *and* phone against Places, which surfaced **8 reviews at 5.0★ her page had never shown**. Her gallery reordered so the residents-and-caregivers photo leads instead of an empty room, with a crock pot second. Her category moved `nursing_home` → `assisted_living`; she is a six-bed adult family home and provider cards were labelling her "Skilled Nursing".
+
+**Decisions made**
+
+- **New request row per flight, never reuse.** The email timestamps are once-guards; reuse means no launch email and no outcome capture. HomeWell precedent (two rows).
+- **Olera keeps a real `flight_end_date` even though Google has none.** That date is what fires auto-end and the wrap-up; rows without one never wrap up. Google stays open-ended so the campaign remains extendable.
+- **`channel='google'`, not `'both'`.** The admin UI labels `both` as **"Google + Meta"**, not Google + Nextdoor — the SOP's instruction is wrong about what that value means, and there is no way to express Google + Nextdoor at all.
+- **Category taxonomy: normalize before extending.** `business_profiles.category` is untyped TEXT mixing snake_case, Title Case and pipe-delimited values, read by **six** category→label maps that already disagree (`nursing_home` renders "Nursing Home" in one and "Skilled Nursing" in another). ~45 of 75 name-matched residential-care providers render **no category label at all** because `formatCategory` is `categoryLabels[category] || null` and Title Case values miss. Phase 1 normalize + consolidate, Phase 2 add `residential_care_home`, Phase 3 (deferred) state-aware labels.
+- **`residential_care_home`, not `adult_family_home`.** 89% of "adult family home" is Washington (650 of 730 across 115,608 rows). Every state term is state-locked; "care home" is the only national one and collides with the existing "Home Care". State terms become `SYNONYM_MAP` aliases, not categories.
+
+**Next up**
+
+- Rebase `cool-` on staging (21 behind) and open the code PR. `app/provider/[slug]/page.tsx` is on the `/pr-merge` watchlist.
+- **Jasmine's Nextdoor row `354917bf` before Monday 10:15am ET** — spend/clicks/impressions still NULL and the wrap-up quotes whatever is there. Her flight closed 08-21 so final numbers exist now.
+- Search-terms harvest on both new campaigns, Aug 23–25. Matters more than usual: virgin campaigns, and Quality Score set now governs 90 days rather than 14.
+- Zardy's three private-pay keywords (`"private pay home care"` drew a click at 50% CTR on his flight 1) — blocked, the Google Ads add-keyword panel won't open under automation.
+- Decide Meta. Promised on two call transcripts; two more providers sit in `Requested` marked "Google + Meta".
+- Sherry Pace no-showed; reschedule pending. Still held on her 1.0★ page — the play is review generation, which is TJ's standing call from 2026-07-26, not a product change.
+
+### 2026-08-21 — Pruned 129 dead allowlist entries; the shipped guard was the small half
+
+**The correction that mattered.** PR #1658 (merged to staging 08-20) only refuses **new** trusts. It does not touch the send path: `lib/email.ts:620` still lets `isTrustedRecipient` clear the suppression reason, so every address already on the allowlist keeps bypassing bounce suppression. The **2.28% → 1.62%** figure quoted in the PR body, the Notion page and the Slack note to Esther and Logan came from a simulation of a *send-time* rule that was recommended and never built. It does not describe what shipped.
+
+Honest impact on 90 days of live data:
+
+| action | 90d account rate | bounces removed |
+| --- | --- | --- |
+| baseline | 2.28% | — |
+| PR #1658 as shipped | **2.21%** | 27 (26 trusts refused) |
+| prune the dead entries | **1.53%** | 282 |
+| both | ~1.46% | — |
+
+**Done 08-21: pruned 129 of 676 allowlist entries** (676 → 547). Criterion: bounced at least once and delivered zero times across 90 days, derived from a fresh live pull rather than cached data. All 129 were `reason: admin`, **zero claimed accounts**, so no real customer lost a channel. They were receiving nothing already. Backup of all 129 full rows at `~/Desktop/email-overrides-prune-backup-2026-08-21.json`, written before any delete; restore is a re-POST. Verified after: sampled 20 pruned addresses all absent, and `info@flintridgehc.com` (bounces but delivers) correctly survived.
+
+**Finding worth keeping: 45% of sends to those 129 resolved to neither delivered nor bounced** (228 of 509), against a ~2% account baseline. One address had 79 sends, 1 bounce, 0 deliveries. That is not a webhook gap targeting 129 specific addresses; it reads as accept-then-discard. It strengthens the case for removal rather than weakening it, but note the evidence class differs: for ~29 of them the argument is "zero deliveries ever", not "repeated hard bounces".
+
+**Effect is immediate and needs no deploy.** Removing trust restores the suppression that already existed, since all 129 have a recorded bounce.
+
+**Still true after this:** the send path remains unchanged, so if the allowlist refills with dead addresses the bleed returns. That is what promoting #1658 prevents. Also note `isSuppressedRecipient` still uses an exact `.eq("recipient", …)`; the case-insensitive fix landed only in `getRecipientDeliveryHistory`, so a handful of mixed-case addresses can still evade send-time suppression.
+
+### 2026-08-20 — Claiming your listing was deleting your star rating (`gentle-mahavira` → merged, `provider-place-id-unlock` open)
+
+**Shipped: [#1657](https://github.com/olera-care/olera-web/pull/1657), merged to staging at `3f3f5714e`.** Open: [#1659](https://github.com/olera-care/olera-web/pull/1659), retargeted to staging.
+
+**The session began on the A-1 place-ID plan below and that plan did not survive its own first verification step.** Step 0 was "confirm the directory fallback is safe before clearing anything." It killed steps 1 and 2. The profile `place_id` and the linked directory row's `place_id` are **identical** on all three cases, so clearing the profile copy falls back to the same wrong ID. And the claim-time address-agreement check is dead code by construction: `claim/finalize/route.ts:327` copies `address` and `place_id` from the same directory row in one insert, so they can never disagree at the moment of copying. Therapy Partners of Texas is not holding a stale copy, it is linked to a directory row that *is* a different company.
+
+**The A-1-shaped defect is worth 8 providers, not 32.** Six of those show a sister branch of the same company, which for a multi-location agency is arguably correct. Two are bound to a genuinely different company. Neither had complained. An earlier framing in this session said "32 live, 7 different-company" and that was wrong by about 4x, because it counted profiles the resolver never serves as account data and leaned on an address normalizer with false positives.
+
+**The real defect was the inverse, and it was found only by checking that plan's assumptions.**
+
+| | Before | After |
+|---|---|---|
+| Claimed providers showing a Google rating | 299 | 552 |
+| Showing AI trust signals | 0 | 354 |
+| Showing CMS quality | 0 | 42 |
+
+**253 providers lost their star rating by claiming their listing.** The directory page shows 4.7★/21; they claim it, verify, and the page goes blank. Cause is `e8bce717a` (2026-06-17), labelled "parity-first, behavior-preserving", which introduced *prefer the claimed `business_profiles` record*. Before it a claimed provider's page rendered the directory row outright. Preferring the account row is correct for fields the provider authors. Google reviews, place ID, CMS quality, trust signals and franchise parentage are not; they are external data the provider never types, and they went null with everything else. **Trust signals are the Tier 1 input to the provider-highlights waterfall**, so every claimed provider had been running on the degraded "fewer honest highlights" path for 64 days without anyone noticing.
+
+**Fix:** `accountRowToProvider` takes the linked directory row instead of just its category and falls back per field; the account row still wins wherever it has its own value. `resolve.server.ts` fetches that row whenever `source_provider_id` is set. Guard: `npm run check:provider-inheritance`, 6 assertion groups. Verified by running the real adapter both ways over all 684 served claimed profiles rather than re-reasoning.
+
+**#1659 unlocks the Place ID field, behind a gate.** It was write-once: a mailto in settings and a server-side refusal in `google-business/route.ts:180`. Both doors shut, which is exactly why A-1's correct self-diagnosis became a six-week dead end. The lock was guarding something real, since connecting a listing auto-verifies and a free rebind is a way to adopt a competitor's rating. So a change is now allowed only when the new Place's `formattedAddress` is at the profile's own street address. First connection is deliberately **not** gated, because it is the ownership proof and the profile address at that point is still whatever the directory seeded.
+
+**Pre-test on #1659 caught a bug #1657 had just created.** A profile can hold a cached review payload without ever owning a `place_id`: since #1657 the page inherits the directory row's place_id, and the on-demand backfill then writes *that* Place's reviews onto the profile. A first connection therefore hit `isRebind === false`, kept the directory listing's stars, and the backfill never re-fired because the cache was non-empty. Writing a place_id now invalidates everything cached under the previous binding regardless of path.
+
+**Two process notes worth keeping.** The `/pr-merge` critical-file watchlist reported all 12 files clean, and it was right and useless: `app/provider/[slug]/page.tsx` is untouched, yet this PR is the biggest change to what that page *renders* in months, because the behavior arrives through `lib/providers/adapters.ts`. Separately, the watchlist loop in the command file **silently passes on every file under zsh**, which does not word-split unquoted variables, so the loop runs once with the whole list as one filename. Caught and re-run by hand; the command file still has it.
+
+**Not built, deliberately:** the invalidation trigger, the claim-time agreement check, and the bulk unbind from the plan below. Two were falsified, the third is a data decision.
+
+### 2026-08-20 — The Trust button: a 10.4% bounce rate caused by a screen that showed nothing to confirm (`fix/trust-button-delivery-history`, PR #1658)
+
+**Started from "oleracare.com is at 5.48% bounce" in the Next Up list. Almost every number in that framing was wrong, and it took two `/push` passes to find out.**
+
+**Corrections worth keeping.** The 4% figure in `lib/email-thresholds.ts:16` is an **account-level** suspension line, not per-domain; quoting a domain rate against it overstates the emergency. Every rate computed off raw `email_log` is wrong because `status='failed'` rows were never dispatched (caps and suppressions, only 3 of 1,000 sampled were real errors) — the true account 30d rate is **3.28%**, not 2.98%. And `bounce_type` alone does not tell you if a bounce is permanent: the `General` bucket splits by *reason text* into 158 hard ("recommend removing") and 286 explicitly retryable. I claimed "96.5% permanent" off the type field and was wrong by a factor of three.
+
+**There is no rising trend. There are two bad days.** 08-12 at 8.58% and 08-17 at **12.84%**; 08-18 and 08-19 are 1.21% and 1.73%. 162 of the month's 452 bounces landed on 08-17 alone. A 30-day average smoothed an event-driven pattern into a fake ramp, and I built urgency language on the ramp.
+
+**Root cause, after the second push.** Trusted addresses bounce at **10.42%**; everything else at **1.39%** — 20% of cold volume producing 65% of cold bounces. The Trust control in `app/admin/questions/page.tsx:1664` renders "Delivery failed", the address, and two buttons. **No bounce count, no reason, no delivery history, no verdict.** It then wrote `"admin confirmed email works"` — a string the interface makes impossible to earn. It is a work queue, and Trust is the button that clears a row. 311 clicks in one day by one person was the rational move given what the screen showed.
+
+**The decision had already been made.** `app/api/admin/email-override/route.ts:147` already refuses to trust an address whose verification verdict is a hard fact, with the exact reasoning *"a fact from the receiving mail server, not a prediction."* It was wired to the vendor's **prediction** and never to what the server **actually did**. Not a missing feature — a missing input to a guard that already existed.
+
+**My first proposed fix would have caught 12 of 61.** Of the addresses that bounced on 08-17, only 12 had a prior recorded bounce; 49 had never bounced and were blocked by predictive verification, force-trusted, then bounced — proving the verifier right. The `overridable=false` change I ranked first was nearly irrelevant.
+
+**MERGED to staging 2026-08-20** (`e909a636f`, branch deleted). Pre-test review before merge caught three more: the Replace button's `force` path bypassed the guard entirely (157 allowlist entries came in that way, and its own comment says defeating prior-bounce suppression is the point); the UI over-claimed because `provider_email_history` is fetched for `question_received` only while the server guard checks every type, so a digest-delivering provider would show red "never delivered" and then have the trust succeed; and history is keyed by provider not address, so a replaced email inherited the old one's bounces. All fixed in `8f7be4803`.
+
+**Shipped (PR #1658 → staging):** refuse trust when an address has bounced and never once delivered (narrow: one delivery ever, any email type, means the override stands; fails open); delivery history rendered beside the button; the false note string removed; recipient matching made case-insensitive since `email_log` stores mixed case and exact match under-reports history. Projected account 90d **2.28% → 1.62%**. **Files:** `lib/email.ts`, `app/api/admin/email-override/route.ts`, `app/admin/questions/page.tsx`, `scripts/check-trust-guard.ts`, `package.json`. **Validation:** tsc clean in changed files, `check:trust-guard` passes, `check:crons` 36, `git diff --check` clean.
+
+**Do not remove the allowlist.** 65% of its entries deliver cleanly. It is a decent-precision human triage step with no feedback loop, not a bad idea.
+
+**Still open:** ~a third of the 08-17 bounces were addresses with no history at all, unreachable by any retrospective rule. Only the verification verdict catches those, and it is the thing being overridden. Nobody has measured how often the verifier is actually wrong, which is the fair objection to tightening it. Also unmeasured: the 78 allowlist entries whose own note says "claimed provider with failing email" are real customers who now silently receive nothing and need a non-email channel.
+
+### 2026-08-20 — Ad Boost metrics were lying in three places (`funny-payne`, PR #1653)
+
+TJ spotted a provider row showing **5 visitors and 1 question tap on the detail page, but 0 clicks on the summary** and said he was suspicious of the data. He was right, and the real answer was not the one I gave first.
+
+**The bug he saw.** `app/admin/ad-boost/page.tsx:342` chained `request.ad_clicks ?? request.ad_landings ?? 0`. `??` only falls through on null, so a hand-typed **0** — a real value — permanently masked the live measured landings. Rosemonte read "0 clicks" against **10** real ad-driven landings; Edmonds Villa against 3. LumiWell showed 5 in that same column because its `ad_clicks` was null, so one column was silently rendering two different units depending on the row.
+
+**Where I was wrong first, and what /push found.** My first pass framed this as "two incompatible measurement systems" — typed Google clicks and measured landings disagreeing by up to 3x in both directions (Impact 28 vs 14, Miracle 24 vs 9, Abode 19 vs 1). Pressure-testing that killed it. `metadata.referrer_class` already labels our own traffic `olera_internal` and **no counter read it**. Strip it and align windows and the systems reconcile: **HomeWell 13 typed vs 13 measured, Pacesetter 13 typed vs 12 measured as of the entry date.** The remaining gaps are the instrumentation start — first `olera_managed` page_view ever is **2026-07-22**, and Miracle/Impact/Abode flew partly or wholly before it. **The tracking layer was sound the whole time; every defect was in counting and presentation.** I also over-claimed that one of Edmonds's visitors was the provider viewing their own page — `profile_id` on that row is null, so that was inference stated as fact. Withdrawn.
+
+**Bot filter checked, and it holds.** `lib/analytics/bot-filter.ts` is `isbot` on the UA string plus missing-UA-is-a-bot, applied at `app/api/activity/track/route.ts:207`. **0 of 71,677 page_views since Jul 1 lack `referrer_class`**, which only that branch writes — so nothing bypassed it (the provider branch at :408 is a latent bypass, never used). The residual hole is a crawler spoofing a real mobile UA, and it is empirically bounded to ~zero two ways: measured landings match Google's clicks rather than exceeding them, and Graceful — the one campaign with no external number to check — shows a Pacific-time diurnal curve, 20-min median inter-arrival (3 of 139 gaps under 5s), 130/133 sessions firing more than one event type, and a 5% CTA click rate. That is people. Its 128 is real.
+
+**Shipped four fixes.** (1) `olera_internal` stripped from `countAdLandingsByCampaign` and the visitors half of `getCampaignStats`; leads and question taps stay unfiltered because a conversion is real whatever page reached it. (2) Queue column `Clicks` → `Landed` showing measured landings with the typed figure on a sub-line — two labelled numbers, neither substituting for the other. (3) Traction gate counts measured landings, so a delivering campaign stops sitting on "Watching metrics". (4) `metrics_updated_at` (migration 188, applied) so typed figures carry their age, amber past 7 days; deliberately **not** backfilled from `updated_at`, which moves on every write and would understate staleness while looking precise.
+
+**Pre-test caught a critical bug I had introduced.** Widening the traction trigger broke an invariant the email template depended on: the old gate guaranteed `clicks > 0 || spend > 0`, so `adBoostTractionEmail` always had real figures. Rosemonte would have received an email headlined *"Your campaign is getting activity"* whose own table read **0 Ad clicks · $0.00 Ad spend**. The ad-platform row is now omitted when those figures are absent — the same rule `BoostCampaignViews.tsx:168,241` already applies provider-side. Zero regression, since the old gate made the guard always true for every send that could previously happen. Verified by rendering all three cases offline. Also fixed the dangling table rule left by the removed row, and the email-gallery copy that still described the old trigger.
+
+**Effect on live data:** Rosemonte 0→10, Edmonds 0→3, Pacesetter 13→19, HomeWell 17→12. Provider-facing visitors drop as our own clicks come out: Rosemonte 18→15, HomeWell 16→13, Legacy 22→18, Pacesetter 23→20.
+
+**Files:** `lib/ad-boost/delivered.server.ts`, `app/admin/ad-boost/page.tsx`, `app/admin/ad-boost/[id]/page.tsx`, `app/api/admin/ad-boost/route.ts`, `lib/ad-boost/admin-communications.ts`, `components/admin/AdBoostShared.tsx`, `lib/email-templates.tsx`, `lib/email-samples.ts`, `supabase/migrations/188_ad_campaign_metrics_updated_at.sql`. **Validation:** 0 project type errors, ESLint clean, migration verified live against Supabase (ROW_SELECT 200, column nullable + writable), traction email rendered offline for all three trigger cases.
+
+### 2026-08-19 — Olera-branded cold sending domain: joinolera.care was already built and waiting (`quick-hawking`, infra only, zero code)
+
+Esther's thread flagged provider cold outreach sending from `seniorlistings.net` and `partnerships@findmedjobs.com` — providers call the first sketchy, the second breaks continuity when the team follows up by phone as "Olera", and findmedjobs shares a 40/day cap with MedJobs. **Two framing corrections up front:** this channel is **SmartLead, not Resend** (the thread reads as a Resend problem; it isn't), and the address is `findmedjobs.**co**`, not `.com`. Ground truth from the SmartLead API: 4 mailboxes — `hello@seniorlistings.net` (15/day, from_name "TJ Falohun", no "Olera" anywhere), `partnerships@findmedjobs.co` (40, "Olera Team"), `logan@findmedjobs.co` (40, warmup INACTIVE), `tj@findmedjobs.co` (40, no warmup); all 6 active `Provider Outreach — TX — 2026-08` campaigns run on only the first two. **The big find: `joinolera.care` was already owned and already fully authenticated** — Cloudflare registrar to Mar 2027, Google MX, SPF, `google._domainkey` DKIM and DMARC all standing since March 2026, and `logan@joinolera.care` already a real standalone user (not an alias). That killed the entire buy-a-domain/Workspace/DKIM runbook and handed us a 5-month-aged authenticated domain instead of a fresh one. **Rejected `oleracare.com` as the cold domain** even though TJ's Slack reply proposed it: prod data shows it is already the busiest Resend sender at 5,636 sends/30d and **5.48% bounce, over Resend's 4% account threshold**, carrying `weekly_analytics_digest` (3,092) + `question_received` (2,133) — stacking cold-list bounces onto it would put the crown-jewel provider notifications in the blast radius. **Done:** created `partnerships@joinolera.care` (Business Starter, $8.40/mo, OU "Olera, Inc."). **RESOLVED 2026-08-20: `partnerships@joinolera.care` is connected in SmartLead and warming** (Gmail type, 0/40 daily, warmup ON, rampup +5/day from 3 toward 40, 20% reply rate). Warmup reputation reads NA until the first cycles run; expect ~2–3 weeks before real sends. Root cause was App Access Control after all — the tenant had **zero** Configured apps, and a restricted scope (`mail.google.com`) is refused for any unconfigured third-party app regardless of the per-service Restricted/Unrestricted toggle. That is why Gmail showing "Unrestricted" looked exonerating and was not. The client ID is findable only by **client ID**, never by name (that search indexes Marketplace listings only), which is what made last session's hunt dead-end. **Two framings were wrong and both mattered:** SmartLead asks for App Access Control trust, **not** domain-wide delegation — consent stays per-mailbox and nothing is granted until a user OAuths, so the tenant-exposure objection that paused the decision was aimed at the wrong control; and the block was never CDP automation (its error string is "This browser or app may not be secure", not the one we got). **Also learned: "Specific Google data" is not sufficient.** Allowlisting exactly Gmail (1 scope) + Google Sign-in (3 scopes) still returned the block; only **Trusted** cleared it. Final state: Smartlead.ai configured, Org Unit `Olera, Inc.`, access **Trusted**. **Files:** none — all state is in Google Admin, SmartLead, and Cloudflare. Handoff: Notion "Olera-branded cold sending domain (joinolera.care) — Handoff (2026-08-19)".
+### 2026-08-19 — Courtesy-aware Family Answers auto-replies (`codex/smart-sms-auto-replies`)
+
+Fixed the failure where a care seeker replying **“Thank you”** was treated as a new benefits question, received the generic “we're looking into this” acknowledgment, and generated another researched-answer draft. The webhook now recognizes only high-confidence conversational closers, stores them as handled history, and sends nothing; gratitude plus a real question, unresolved need, or crisis still follows the actionable path. AI triage is the broader backstop: `thanks`/`unrelated` skip the expensive draft pipeline, but only true `thanks` may auto-close—the broad `unrelated` category remains visible to a human. **Mark handled** now cancels pending/running/ready answer jobs, and worker compare-and-set guards prevent a late model result from resurrecting dismissed work. **Files:** `lib/sms/inbound-intent.ts`, `lib/sms/inbound-store.server.ts`, `app/api/sms/webhook/route.ts`, `lib/family-answers/engine.server.ts`, `app/api/cron/family-answers/route.ts`, `app/api/admin/sms-inbox/[phone]/route.ts`, `scripts/check-sms-inbound-intent.ts`, `package.json`. **Validation:** TypeScript, targeted ESLint, 36-cron registry, 45 crisis cases, 19 intent cases, SMS inbox state tests, and diff checks pass. No migration, Twilio console access, or live send. **Next:** preview/QA after staging deployment with `Thank you`, gratitude plus a request, crisis language, and Mark-handled-during-processing; historical bad drafts require one manual Mark handled.
+
+### 2026-08-19 — Outbound-only families visible in Admin Messages (`codex/sms-outbound-visibility`)
+
+Admin → Messages now unifies durable `sms_inbound` rows with logged family SMS rows from `email_log`, so a family Olera texted no longer disappears merely because they stayed silent. Added explicit states and views for **Needs reply**, **Awaiting family**, **Clicked plan**, **Delivery failed**, **Opted out**, and **Handled**; outbound previews say `Sent:` and outbound-only profiles resolve to their family record. Thread detail still prefers Twilio's complete history but falls back to the durable bidirectional ledger during an outage, and new human replies preserve recipient identity in the ledger. Pre-test caught and fixed a desktop filter mismatch where the right pane could retain a conversation excluded by the selected tab. **Files:** `app/admin/inbox/page.tsx`, both `app/api/admin/sms-inbox` routes, `lib/sms/inbox-threads.ts`, `scripts/check-sms-inbox-threads.ts`, `package.json`. **Validation:** TypeScript, targeted ESLint, `check:sms-inbox`, and diff checks pass. No migration, cron change, Twilio console access, or live SMS send. **Known limit:** only outbound texts actually logged in `email_log` can seed silent-recipient threads; queued and historical unlogged sends cannot. **Next:** review the staging preview, especially filter/detail alignment and an outbound-only benefits recipient; use a test number for any send.
+
+### 2026-08-19 — Continuity-led benefits first SMS (`codex/question-led-benefits-sms`)
+
+Replaced the positive-match opener with the approved one-segment message: **“Olera care team: We got your answers. Any questions about next steps?”** while preserving the private-plan link, conditional 48-hour reply promise, and STOP language. Pre-test caught that the shared renderer also serves the later `wants_help` phone-capture path; that path now records its own `help_request_v1_2026_08_19` version and says **“We got your request. What should we help with first?”** instead of forgetting the action the family just took. Both production-length variants are 158 GSM-7 characters. Updated the two phone-capture surfaces, source-aware rendering/ledger metadata, regression check, and rollout record; zero-match copy is unchanged. **Files:** `lib/sms/templates.ts`, `lib/family-comms/benefits-cascade.server.ts`, `components/waiver-library/ProgramBenefitsCard.tsx`, `app/benefits-outcome/page.tsx`, `scripts/check-benefits-results-sms.ts`, `docs/benefits/first-sms-rollout-2026-08-19.md`. **Validation:** TypeScript, `check:benefits-sms`, 36-cron registry, and diff checks pass. **PR:** #1642 → `staging`. **Next:** preview both phone-capture contexts; enable the VPN before any real Twilio test or account access.
+
+### 2026-08-19 — Family Answers shipped to production, then the review panel was rebuilt because nobody could read it
+
+**Phases 2-4 promoted to main** (PR #1636, `ce629edef`). Production deploy green. The gap flagged at the gate was that the cron routes had never executed in a deployed environment, since Vercel schedules crons on production only and staging cannot exercise them. So it was watched rather than assumed: fired 02:15:20 UTC, claimed the waiting job, packet written by 02:18, summary `{considered:1, drafted:1, failed:0}`.
+
+**First real production packet.** A Cincinnati care seeker (513-765-0509) texted a bare SSA link, `secure.ssa.gov/myssa/mycoa-ui/mycoa`, with no other words. The engine produced 476 chars, 9 claims, 7 objections (2 contested), 5 library gaps, no errors. Notably **seven person-fact risks, five conditional, two asked, zero relied_upon** — correct behaviour on an input where intent is unknowable. It asked instead of assuming.
+
+**Then TJ looked at it and could not read it.** The report was "visually overwhelming, I need to see the original text underneath". Drawing the layout to proportion (artifact: https://claude.ai/code/artifact/1a51780a-4c09-4c07-820a-8443c212ae13) showed it was not a styling problem. **The panel was a ~700px document inside the conversation column and it had not crowded the thread, it had replaced it.** You were being asked to judge whether an answer fit a question that was off screen.
+
+**The design error was mine and it was conceptual.** "The reviewer must not skip the flags" is a salience requirement. "Everything is expanded at once" is a density decision, and it defeats the first one — a four-hundred-word amber wall gets skimmed. PR #1640: packet moved to the right rail (320→400px), evidence collapsed to three counted lines that open in place, draft rendered as an SMS bubble rather than a grey code block, sources leading with their domain, no nested boxes, one saturated element, attention as a 6px dot. Bottom sheet below 2xl. **The "I read the flags" checkbox is gone** — opening the flags is now the gate, because ticking a box asserts the reading and opening performs it.
+
+**Pre-test caught a draft-eating bug.** A clean packet pre-fills the reply box. Opening a thread loads the saved draft via `setReply(body)`, then the panel mounts and its auto-fill runs — and **child effects run before parent effects**, so `latestReplyRef` still held the previous thread's empty value. The auto-fill saw an empty box and wrote over the parked draft. Fixed by guarding on `draftBaselineRef`, which `loadDetail` assigns synchronously, making the guard independent of effect ordering.
+
+**Two drafting rules added (PR #1641), both found by reading a real draft against the message that prompted it.** The engine's SSA reply opened "Did you mean to update your address, or did you get stuck signing in?" — both options presuppose she wants the tool, and neither covers the likeliest reason an older person forwards a link to a service they trust, which is asking whether it is a scam. **Offering a menu is not neutral: people pick from the options they are handed, especially when being polite, so a guessed binary can manufacture a wrong answer that then gets confidently solved.** Second rule is register: "we'll take it from there" implies Olera owns the problem. It does not. Olera finds things and points at them.
+
+**The prompt lesson worth keeping.** The first version of the no-need rule said "do not pre-answer a question they have not asked" and the engine ignored it, producing 421 chars including an unrequested paragraph on SSI. That is a judgement, and judgements are weak instructions. Replaced with a number — under 200 characters — and it produced 151 chars with all five target behaviours correct. **When a prompt instruction does not stick, check whether you asked for judgement where you could have given a number.** Verified by running the engine twice against the real message, read-only, not by reading the prompt.
+
+**Also fixed a tooling flaw:** the `/pr-merge` watchlist check silently under-reports on Next.js route files, because git reads `[slug]` as a character class in pathspecs. It reported 0 differences on a file staging had changed by 82 lines. Needs `--literal-pathspecs` in the command definition or it gives false all-clears on exactly the SEO-critical bracketed routes it exists to protect.
+
+**Next:** send the Cincinnati reply (drafted, 163 chars, artifact: https://claude.ai/code/artifact/db8c723b-5d37-452a-a074-00a7f75039e5), merge #1641, promote staging to main. Then email-responder parity, where the real design question is the triage gate rather than the wiring.
+
+### 2026-08-19 — Provider question deduplication + Ad Boost attribution (`codex/question-deduplication`)
+
+Replaced duplicate provider-facing question rows with one canonical topic plus append-only `provider_question_asks` receipts. Asked topics now leave the suggestion pool immediately; one answer fans out to every asker; provider notifications fire once per topic; stable suggestion keys and provider identities cover copy/slug changes. Ad Boost preserves raw attributed taps while reporting unique topics separately, and claimed profiles inherit their linked directory category. Migration **185** supersedes the manually applied draft and is safe to replay without duplicating receipts or overwriting newer demand counts. Historical emailed duplicate-row IDs now resolve to the canonical topic throughout onboarding, Q&A, answering, and read tracking. Pre-test also fixed shared-topic deletion in QA session cleanup, rejected/archived Ad Boost counting, archived legacy rows leaking into provider/admin views, provider-ID variant misses, and missing “Asked N times” metadata. Added the Codex `/push` skill wrapper requested during planning.
+
+**Key files:** `supabase/migrations/185_provider_question_deduplication.sql`, `app/api/questions/route.ts`, `app/api/provider/questions/route.ts`, `app/provider/qna/page.tsx`, `components/providers/QASectionV2.tsx`, `lib/notifications/question-answer-notifications.server.ts`, `lib/ad-boost/delivered.server.ts`, provider/admin question readers, reporting readers, `scripts/check-question-dedup.ts`, `.agents/skills/push/SKILL.md`. **Validation:** `npx --no-install tsc --noEmit`, `npm run check:question-dedup`, `npm run check:crons` (36), and `git diff --check` pass. **Notion:** [Provider question deduplication + Ad Boost attribution](https://app.notion.com/p/Provider-question-deduplication-Ad-Boost-attribution-3c15903a0ffe81a6bad6f3a0180043fe). **Next:** preview-QA concurrent duplicate submission, an old emailed question link, one provider notification, answer fan-out, chip removal, Graceful category prompts, and raw-vs-unique Ad Boost totals; do not merge without TJ approval.
+
+### 2026-08-19 — A-1 Home Care: the reviews really were the wrong location's (investigation only, zero code)
+
+**Finding:** https://claude.ai/code/artifact/f8bad2c8-399e-4494-803b-7320a562e1db — read-only, nothing changed.
+
+**Jackie Brown was right, and the July memory was wrong about why.** The parked note (`project_a1_homecare_review_dispute`, 2026-07-09) concluded this was "not a sampling bug, Google itself is 1.0★/3" and treated her Pasadena-vs-Whittier diagnosis as beside the point. It was the point. The defect is real, and it is one layer above where the July pass looked.
+
+**All twelve directory rows are bound correctly.** Every `place_id` in `olera-providers` was resolved against the live Places API; each returns a business whose name and street address match the record holding it. There is no text-matching or proximity-matching bug — `scripts/process-city.js` creates rows *from* Places results, so the binding is authoritative by construction, and step 7.5 rewrites city/state from the Place ID afterward.
+
+**The mismatch is in `business_profiles`.** Their claimed profile carries `address: 15111 Whittier Blvd Ste 360, Whittier` and `metadata.google_metadata.place_id: ChIJiS8Zj…`, which is the **Pasadena** branch. Cached under it: 1.0★/3, Maisie Lai and Eric Chan — the exact two names she reported. The page rendered a Whittier headquarters with Pasadena's one-star reviews underneath.
+
+**Mechanism:** `app/api/claim/finalize/route.ts:307` copies the directory row's `place_id` into profile metadata at claim time. Editing the address afterward never touches it, and settings renders the field read-only as "Contact support to change". So A-1 diagnosed their own bug correctly and had no way to act on it. Emailing support was the only path available to them, and then it lapsed.
+
+**Blast radius is 3, not thousands.** Of 377 claimed profiles holding a Place ID, 15 disagree with their own city label; 12 of those are the same street address under a neighbouring city name (cosmetic). Three are genuine street-address mismatches, **two live in production right now**:
+- **Therapy Partners of Texas** (live) — profile says Sherman TX, Place ID resolves to **"Therapy At Home"**, a *different company* in McAllen. Worse than A-1's case. Nobody has complained.
+- **A Rainbow of Care** (live) — Upland profile, Ontario CA Place. Same shape as A-1, but the wrong branch is flattering (5.0★/7), which is why it went unreported.
+- **A-1 Home Care Agency** (hidden).
+
+The 13,113 records sharing a normalized name across cities are mostly legitimate chains (Home Instead ×335), correctly bound — that number is not the exposure. Separately, 1,400 Place IDs sit on records in more than one city; that is a dedupe problem, including A-1 Domestic's own two rows.
+
+**Owner responses are unavailable, not unrendered.** Pulled the raw payload: author, rating, text, publish time, flag link, Maps link. No owner-reply field. Google exposes responses only through the Business Profile API, to the verified owner. **Not a UI fix.** The "See all on Google" link has existed in the reviews header since March — but it pointed at Pasadena, so it sent readers to the wrong location's reviews and their replies were nowhere in sight. Fixing the binding fixes the link.
+
+**Their page has 404'd for 42 days.** `deletion_reason = 'provider_request'` returns `{kind:"gone"}` in `lib/providers/resolve.server.ts` → `notFound()` (other reasons redirect to a power page; this one does not), and `business_profiles.is_active = false` closes the second door. They are the **only** provider-request deletion in the table, so restoring is contained. Separately, **11 claimed providers have no public page** because a data sweep deleted the directory row underneath them — A-1 is not an isolated case of that.
+
+**Open decision before replying.** Rebinding them to the A-1 Domestic corporate listing moves their page from 1.0★/3 to 4.4★/15. Defensible if the profile represents the Whittier entity, which their own address entry claims; not defensible as a way to bury the Pasadena reviews, and Pasadena would then have no page. Their belief that Google removed the three reviews is incorrect — all three are live today. Ask them which listing the profile represents rather than picking for them.
+
+### 2026-08-19 (later) — A-1 rebind: the letter and the code plan behind it (`gentle-mahavira`, still zero code)
+
+**Artifact:** https://claude.ai/code/artifact/2f0db461-f430-4c61-9eb4-b3393db9a6a2 — the corrected reply to Jackie Brown and Sue Dagdagan with its drafting rules in the margin, plus the dependency-ordered build plan. **Handoff:** [A-1 place-ID rebind — Handoff (2026-08-19)](https://app.notion.com/p/3c15903a0ffe817896b2d8bcb2224cff). Both linked from the P1 ticket, which was appended to rather than duplicated.
+
+**Found the chokepoint the morning's investigation had not named.** `components/provider-dashboard/edit-modals/save-profile.ts:39` is the single provider-facing write to `business_profiles`. That is where the invalidation hook goes, and it is the one place a check would have caught A-1 on the day they typed their Whittier address — six weeks before anyone emailed us. Identified by elimination (settings only edits phone/email/password), so confirm it before assuming it is the sole path.
+
+**The plan, ordered by dependency, every path read not inferred.** (1) store `bound_address` + `bound_at` in the existing `metadata.google_metadata` JSONB — no migration, no CHECK constraint to negotiate; (2) only copy the place ID at `claim/finalize:307` when directory address and profile address agree, failing closed because `app/api/provider/[slug]/info/route.ts:114` already falls back to the correctly-bound directory row; (3) invalidate on address edit; (4) unlock the field; (5) make the sweep standing; (6) restore A-1; (7) contact the other two.
+
+**Step 4 is the real failure, and it is only visible once the plan is drawn.** Steps 2 and 3 stop the bug recurring. Step 4 is why it lasted 42 days. `app/account/settings/page.tsx:677` renders a mailto and `app/api/provider/google-business/route.ts:182` refuses the change server-side — **both doors shut**, so a provider who had correctly diagnosed their own problem had exactly one route open, which was emailing support and waiting. The one-way lock was guarding against something far smaller than what it caused.
+
+**The letter is the fix's dependent, not its sibling.** Three separate code changes exist to make one sentence honest: "the check that should have caught this is being built now." Right now that sentence has nothing under it.
+
+**Four drafting rules the letter obeys because the July reply broke them:** named human not `support@`; concede the Pasadena diagnosis plainly and early (they were right, we said otherwise); never say "location matching" (that diagnosis is false and they are technically literate enough to check); **never confirm Google removed anything** — all three disputed reviews are live today, and the existing drafted reply quietly accepts that they aren't, which becomes a liability on their next refresh. No second date either; the commitment is an action gated on their reply, since we already spent the credibility of a deadline.
+
+**Do not send the draft on the ticket.** It predates the investigation and two of its load-bearing claims are now known false. Anyone reading that page top-to-bottom hits it first.
+
+**Blank slots left visibly blank:** TJ's direct line in the letter, the call window, the ticket's Timeline date, and who takes Therapy Partners of Texas — which is live right now attributing a different company's identity to a provider who has not noticed, and is arguably more urgent than A-1.
+
+### 2026-08-19 — A broken AC in Marion County turned into the Family Answers Engine, phases 1-4
+
+**Started as one care seeker.** 2026-08-18, 6:43am ET: a Florida woman texted that her AC had stopped cooling. On Medicaid, under $1,500/mo, in cancer treatment with fibromyalgia. She had finished benefits intake five minutes earlier, opened her plan of 12 programs, and texted a human anyway because none of it answered her question. She waited 46 minutes for any reply. The Slack ping fired correctly; nobody could act on it because answering meant twenty minutes of benefits research at dawn.
+
+**The first answer I sent was confidently wrong.** I recommended EHEAP, which requires someone 60+ in the household, because `metadata.age` said 60. It was false — it came from an enrichment quiz answer. She corrected us herself: *"I am disabled but not 60."* An external fact-checker reviewed that message twice and never flagged it. **It cannot** — it has no access to whether our record about a person is true. Only she caught it, at the cost of a wasted phone call while sick. That single failure shaped the entire architecture that followed.
+
+**Shipped to production (PR #1633, main at `0c3afc4bc`):** EHEAP added to the FL library (#1628 — it was absent entirely, and it is the one FL program whose described uses include repairing failed cooling equipment); Family Answers Phase 1 (#1631); plus #1613 and two session logs. Also merged Efuanyamekye's contact-form channel (#1632), which arrived on staging four hours before the promotion with an entirely unchecked test plan — the pre-flight scan for un-QA'd work is the phase that earned its keep.
+
+**Family Answers Engine — `lib/family-answers/`, PR #1634 open (phases 2-4).**
+- **Phase 1 (LIVE in prod):** crisis regex → unreviewed acknowledgement, deduped 6h → `family_answer_jobs` row. First thing Olera sends a family with no human in the loop.
+- **Phase 2:** five stages. Haiku triage, Opus 5 research over our library then web search, Opus 5 draft, **Perplexity adversarial check, Opus 5 rebuttal.**
+- **Phase 3:** `AnswerPacketPanel` in `/admin/inbox`, above the reply box. Flags are non-collapsible and gate the "Use this draft" button.
+- **Phase 4:** 7-day outcome check, HELPED/NOTYET, `outcome` column. Migrations 183 + 184 applied and verified.
+
+**The design target is not "write a good draft".** The sole reviewer is TJ at self-described sophomore-level benefits knowledge. So the system's job is to **make him a good reviewer**: hand him disagreements and provenance, never polished prose. At one message a day with a fluent draft, the realistic failure is not a bad generation — it is approving one.
+
+**The rebuttal round is the load-bearing part and looks like polish.** A fact-checker optimises for defensibility; a family in crisis needs to know whether a phone call is worth their limited energy. With no counter-party the checker ratchets every message toward "contact your local agency for more information", which is safe and worthless. Hedging has a cost the checker never pays. On the real test run it **contested 3 of 5 objections**, including refusing to soften a sourced weatherization claim.
+
+**Verified end to end against the real case.** 196s, 443/480 chars, ending: *"EHEAP is for households with someone 60 or older, if that's you."* That conditional clause is the whole fix — it states who the program is for and lets our record be wrong. The engine also flagged a risk I had missed (`housing_status` relied_upon: weatherization needs landlord consent on a rental, never asked), and surfaced 10 library gaps led by CFCAA being absent as Marion County's LIHEAP administrator — which is exactly why its draft routed through 2-1-1 instead of the direct number I found by hand.
+
+**Three silent bugs caught in pre-test**, none of which would have errored: a job killed 3x stalled invisibly in `pending` (released regardless of attempts while the fetch filters on attempts); one reply stamped `sent` onto every `ready` job for a number, marking unanswered questions answered; the follow-up retried a failing send forever. Earlier, the same review caught the ack dedupe reading only `email_log` while a quiet-hours-held ack lives in `sms_queue` — it would have failed in precisely the 6:43am scenario that motivated it.
+
+**Keyword space is more constrained than it looks.** YES is a TCPA opt-in keyword; STUCK belongs to the benefits cascade. Outcome capture uses HELPED/NOTYET, verified against all 13 existing control and cascade keywords.
+
+**Next:** merge #1634 → staging → main. **Manual follow-up with the Marion County care seeker on 2026-08-25** — her answer predates the engine so Phase 4 will not catch it, and she still has no working AC. Then bring the email responder up to parity: `classify.server.ts` calls `buildAnswerPacket` on `category: care_seeker` (the engine is already channel-agnostic for this), reuse `AnswerPacketPanel`, drop its eligibility guardrail now that sourcing is enforced. The real design question there is the triage gate — 899 threads at five Opus stages is a different cost conversation than one text a day.
+
+### 2026-08-18 — Benefits fact-check: 30 programs corrected, one invented phone number found, shipped to production
+
+**Shipped:** PR #1624 + #1626 → staging, promoted to main via #1627 (`07b603f2`). Production deploy green.
+
+**What triggered it.** TJ ran the navigator queue's "Copy AI review prompt" export through an external AI. It returned 19 corrections across 16 programs. Every one was re-verified against a primary source before applying, one program per subagent, in parallel. **All 19 survived** — but re-deriving them turned up roughly a dozen defects the reviewer missed, and a second self-directed pass on four programs it never looked at found all four wrong too. **Twenty programs opened, twenty with material defects.**
+
+**The finding that matters most.** The ND Assistive Senior Safety Program published `(800) 735-5400`. That number appears on `ndassistive.org` nowhere and `hhs.nd.gov` nowhere. The only page on the open web attributing it to that program was **olera.care**. We invented it, published it, and it ranks — so checking it looked like confirmation. The same record also told families they must be **denied by Medicaid first** and that **income limits apply**; neither exists. A family reading that letter would reasonably conclude they were ineligible and never call.
+
+**Second-order finding:** `data/pipeline/<ST>/factcheck.json` exists for all 51 states, dated 2026-04-14, and **already recorded the correct ND number in April**. It was never applied — probably because it keys programs as `nd-assistive-senior-safety-program` while `drafts.json` uses `assistive-senior-safety-program`. 323 of 328 entries only match after loosening the id. It holds **101 disagreements, 78 never verified since**. Treat as leads, not truth: it asserted a *retired* Alabama number this morning, and several of its own "verified" sources are aggregators.
+
+**The systematic one.** `"Bank statements for all accounts (last 3 months)"` sat in 242 records. Origin found: `scripts/benefits-pipeline.js` handed the model that exact string as a worked example. The figure is the state's own **Asset Verification System query window** — under 42 U.S.C. 1396w the state pulls those records itself *at no cost to the applicant*, and Texas MEPD B-6200 tells its own caseworkers to check AVS *before* asking the person for anything. For Older Americans Act services the inquiry is outright **prohibited** (45 CFR 1321.9(c)(2)(x)(E); 1321.93(f)(2)(xi)(A) bars legal aid from even asking). Replaced across 236 records per cohort; 13 with genuine asset tests deliberately left alone.
+
+**Decisions made**
+- **Removed Nevada PACE entirely** rather than correcting it. Nevada Medicaid told the Silver Haired Legislative Forum (2026-06-25) that no operator is selected and the RFP is expected early 2027. NPA lists 33 states + DC without Nevada. That URL now 404s.
+- **Did not blanket-remove unverified phone numbers.** 468 of 612 published numbers have never been confirmed against an operator page, but `toPick()` requires a phone — deleting them would make those programs unpickable, a self-inflicted version of the bug below.
+- **Left the composer rail alone.** `lib/family-comms/benefits-navigator.server.ts:125` instructs the model to render any `savingsRange` as "Families that qualify often save $X a year" — the root cause of the false savings claims. Emptied the four bad figures; the rail is TJ's call.
+
+**Built into the machinery** (so each round is safer than the last, per TJ: "we have to build and fix as we go")
+- `scripts/benefits-lint.js`: `non-dialable-phone` (64 contacts hold prose/email/`316-XXX-XXXX` in the phone field, 9 in the lead slot) and `empty-documents`
+- `scripts/benefits-pipeline.js`: killed the bad exemplar, added rails against inventing documentation periods and against asset asks on no-asset-test programs
+- `scripts/benefits-phone-provenance.js` (PR #1629, **left in draft**): fetches each program's own `sourceUrl` and asks whether our number is on it. It flags `8007355400` and confirms `8008954728`, so it would have caught ND in April. **But a full run over 547 numbers flagged 45% as missing, and calibration against 14 programs verified by hand this session showed 7 false positives.** One URL is the wrong unit: the correct number usually lives somewhere on the operator's *domain* (a contact page, a sibling page, a PDF), not necessarily on the single `sourceUrl` the record cites. ND worked only because ND Assistive is a small single-site org with its number in every page header. Needs a v2 that resolves the registrable domain, does a site-restricted search, extracts PDF text, and treats a dead `sourceUrl` as its own finding.
+
+**Letters:** 20 pending drafts patched (body + SMS + `pick` snapshot together), Nevada PACE draft dismissed, 10 SMS `{link}.` punctuation fixes. `benefits-draft-lint` ended at **0 high / 0 medium**. TJ scheduled 33 of 35 for send.
+
+**Mistakes worth remembering**
+- I skipped `tsc` calling this "data-only, shape unchanged". Adding a `url` field to contacts **is** a shape change; it broke the Vercel build on #1624.
+- I put Oklahoma's published "60 months" into a PACE pre-call list. 60 months is the *institutional* parameter; PACE is a community program. NY and WA both split community (3–4 months) from institutional (60) explicitly.
+- I recommended pausing the reactive loop to go build infrastructure. TJ corrected it: the loop is demand-weighted and already running — fix inside it, don't stop it.
+
+
+### 2026-08-18 — GA4 inflation traced to AWS bots; img2dataset scraper blocked (operations, no code)
+
+**Zero code changes.** One firewall rule published; the rest is diagnosis. Follow-on from the ground-truth audit below.
+
+**The "delete the old GA4 stream" follow-up was already done, and it was never the cause anyway.** Admin → Data streams lists exactly one stream (`olera.care web v2`, id `15064657515`, receiving traffic). `G-ZLP95NWSZW` no longer exists. The stale open item in memory has been corrected.
+
+**What actually inflates GA4: AWS-hosted bot traffic.** Demographic details → City, July 2026 (38,561 active users): **Boardman 16,304 (42.3%) at 7s average engagement, 98.9% "new users"**; then (not set) 2,888 / 18s, Houston 556 / 42s, New York 513 / 25s, Dallas 346 / 58s. **Boardman OR is AWS `us-west-2`.** Real US cities run 25–58s. Traffic acquisition for the same month: Direct **22,401 sessions (54.5%) at 17s / 42.4% engaged** vs Organic Search **17,474 (42.5%) at 48s / 60.9% engaged**.
+
+**This is NOT ghost spam — it hits the server.** Ghost spam posts straight to Google's collect endpoint. Server-side counters confirm real hits: distinct sessions on provider pages 26,383 (Jun) → 40,654 (Jul), **+54%**, while questions went 2,644 → 2,710 (+2.5%) and inquiries 354 → 322 (**−9%**). Real requests, zero humans. **Therefore the lever is the Vercel Firewall, not anything in GA4** — GA4's bot exclusion only covers the IAB list, is not configurable, and misses JS-rendering cloud scrapers.
+
+**Two distinct actors, found in Firewall → Traffic (past hour, ~7.1k requests to olera.care):**
+1. **`ImageBot/1.0 (compatible; research crawler; +https://github.com/rom1504/img2dataset; opt-out: abuse.notification.dcomp12b@gmail.com)`** — 317 req/hr. img2dataset builds large-scale image-text AI training sets. `/_next/image` was **1.4k of 7.1k requests**, the site's busiest path, and it is billed. Does not run JS, so it is not the GA4 problem — it is a cost and image-harvesting problem.
+2. **Headless Chrome** — `Mozilla/5.0 (X11; Linux x86_64) … Chrome/150.0.0.0 Safari/537.36`, **2.1k req/hr**, top UA on the site. The `150.0.0.0` reduced version string plus X11/Linux is the Puppeteer/Playwright signature. Amazon is AS #1 and #3 (1.1k + 745 req/hr). **This one runs JS and is the GA4 Boardman traffic.** Operator unidentified.
+
+**SHIPPED: custom rule `Block img2dataset image scraper`** (`rule_block_img2dataset_image_scraper_54c2G0`) — `User Agent Contains "img2dataset"` → **Deny**. Published to production. Sits below `Allow verified search bots`, so Googlebot/bingbot are untouched. Matched on `img2dataset` not `ImageBot` because the tool URL is the distinctive token. **Vercel's managed "AI Bots" ruleset was already set to Deny and did not catch this crawler** — do not assume the managed list covers a named bot.
+
+**Deliberately NOT done: the AWS/headless-Chrome half.** TJ deferred it the week of an investor call, which is right. Two reasons beyond timing: (a) the dominant JA4 digest `t13d1516h2_8daaf6152771_…` (3.7k) is ordinary Chrome's TLS fingerprint, shared with real users, so it is not a safe discriminator; (b) the existing `Twilio webhooks` bypass rule exists precisely because Twilio posts from datacenter IPs and bot_protection was 429ing them — the canonical warning about ASN-level blocks. If it is ever taken on, use Challenge not Deny, and audit which of our own services egress from AWS first.
+
+**Vercel team slug is `olera`, not `olera-pro`** — the latter 404s. Prod project `olera-web`. Firewall edits stage and require **Review Changes → Publish**; saving alone does nothing.
+
+**Nothing here changes the Friday numbers.** GSC is flat at ~3,300 clicks/wk; organic stands at ~15,000/mo.
+
+**Next:** (1) Firewall → Traffic, past 24h, tomorrow — `ImageBot/1.0` should vanish from Top User Agents and `/_next/image` should fall well below 1.4k/hr; if not, they changed their UA. (2) Decide after Friday whether to Challenge AWS-origin traffic. (3) Standing rule: quote GSC clicks or GA4 Organic Search users, never GA4 `total_users`.
+
+### 2026-08-18 — Ground-truth audit for the David Qu call (analysis only, zero code)
+
+**Zero code changes.** Read-only queries against live Supabase, GA4/GSC snapshots, and Stripe. Output is the artifact `Olera Ground Truth` (https://claude.ai/code/artifact/25c5b172-98bc-4bc3-9dd1-6cb70ff968d5), the pre-read for Friday 21 Aug 9:00 CT.
+
+**The traffic number in the deck is wrong and the error is load-bearing.** GSC has been **flat at ~3,300 clicks/week for nine months** (2,851 → 3,518 → 3,238, Nov 2025 → Aug 2026) ≈ **14,300 organic/month**. GA4 Organic Search users agree independently (~3,500/wk). The **Research Plan's 15,500 is the correct number; the deck's 25,000 and the Abstract's 25–30K are not.** GA4 *total* users doubled 4,275→9,066/wk in early July — but **every bit of it is "Direct" (770→5,166/wk) while session duration halved (217s→79s) and engagement fell 0.587→0.468.** That is ghost traffic or a duplicate stream, consistent with the GA4 stream rotation where the old property was never deleted. **Do not quote GA4 totals.** Also: "effectively all organic" is not supportable — organic is ~40% of current GA4 totals, ~78% excluding the suspect Direct.
+
+**The synergy thesis is dead in the data, and cleanly so.** Of 1,627 family profiles, **exactly six** have ever both saved a benefits program and sent a provider inquiry; four of the six did both inside eight minutes (one session). Segmented by acquisition source to kill the confound that a family profile is *created by* inquiring (`source='guest_connection'`): of **321** families arriving via `benefits_intake`, **2 (0.6%) ever inquired and 0 did so in a later session**. Reverse direction is 42/1,101 (3.8%). Benefits and the marketplace are two products sharing a database and a logo.
+
+**Large demand-side traction exists and was never counted.** `connections` type=`inquiry` = **1,133** (Mar 3 · Apr 91 · May 238 · Jun 379 · Jul 343 · Aug 175), reaching **845 distinct providers across 662 cities**. `provider_questions` = **11,129 asked on the web since Apr 2026** at ~82/day — verified real by a textbook US diurnal curve (trough 06–10 UTC, peak 18–21 UTC) across 138 distinct days, no bulk-insert spikes. Benefits: **3,222 programs saved by 348 users, 337 (97%) saving more than one**, ~11x growth Apr→Jul. **402 distinct providers have answered a family question** unprompted.
+
+**Two counts in the pre-read are wrong in our own disfavor.** The directory is **74,140 live** (115,608 rows, 41,468 deleted) — the "39,000" is close to the *deleted* count. And "725 onboarded" = `claim_state='claimed'` → **804** today (`claim_completed` = 727 distinct), but "onboarded" oversells it: only **317 (21%)** of 1,496 acting providers ever returned on a second day.
+
+**The eligibility DB is not versioned and not verified, and the columns prove it.** `sbf_state_programs` (1,629 rows, 528 active) / `sbf_federal_programs` (76) have **no version column, no history table, no snapshot**. Worse, the provenance scaffolding is entirely unpopulated: `last_verified_date` **0/1,629 and 0/76**, `verified_by` **0/1,629**, `savings_verified` **false on all 1,629**. Do not say "curated, versioned" on the call. Corollary: **do not quote the $9.57M "aid identified"** figure (sum of `savings_range` midpoints over 2,022 priced saves) — it double-counts overlapping programs and rests on ranges our own schema says nobody verified.
+
+**Zero revenue infrastructure, confirmed.** 258 `memberships` all `plan='free'`/`status='free'`, **0 `stripe_customer_id`, 0 `trial_ends_at`** — no Growth Suite trial mechanism is wired at all. `STRIPE_SECRET_KEY` in `.env.local` is a placeholder test key. Ad Boost is the only willingness-to-pay signal: 15 requests, **13 named a $50–$150 monthly budget**, 7 live, $297.67 total (Olera-funded), **0 subscriptions**.
+
+**Could not verify from this repo (genuinely, not softly):** the 900+ students / 20+ placements (on-platform MedJobs is 106 student profiles, 8 interviews, 1 unpaid `offered` placement; `student_outreach` is a campus-stakeholder CRM, not a student roster); the $275/month × 3 franchisees (`$275` appears nowhere in code, docs, or git history); the $5.3M NIA awards (no financial records here); iOS installs/actives (no App Store data); and unique users behind the 11,129 questions (96% anonymous, no session id on the row).
+
+**Landmine for Friday:** `docs/staffing-outreach-pilot-agreement.md` — the *current* canonical provider agreement — says "This pilot is free for the Provider… no payment information is required at any point." Different, later pilot than the Texas A&M one, but "three franchisees paid $275/month" alongside it reads as a contradiction. Have the one-sentence reconciliation ready.
+
+**The biggest unused asset:** GSC shows **~2M impressions/month at average position 23 with 0.6% CTR**. Median CTR at position 8–10 is ~3%, so the same content moved to page one is a 4–5x on organic with zero new pages. Reframes flat traffic from "SEO is maturing" to "SEO hasn't started."
+
+**Next:** (1) fix or delete the stale GA4 stream so totals stop lying; (2) correct 25,000 → 15,000 and 39,000 → 74,140 in the deck, Research Plan and Abstract; (3) the 90-day synergy test — put 3 nearest matching providers with one-tap inquiry at the end of a completed benefits screening, randomized 50/50, and treat failure to move 0.6% into double digits as falsification; (4) apply the one-click pattern to inquiries, since 1,228 of 1,229 sit `pending` and every traction number currently terminates in a dead end.
+
+### 2026-08-17 — Provider reachability: War Room's 333 closed to 285, and question emails stopped blasting
+
+**War Room probe moved 333/1408 → 285/1394 unreachable.** 43 providers newly reachable, 58 held questions delivered, $4.61 spend, 0 bounces. PRs #1614, #1615, #1616 (`vibrant-kepler`).
+
+**/benefits-pipeline was the wrong tool and its contact finder does not transfer.** It finds benefit-*program* application doors (phone, apply URL) via Perplexity prompts written for government programs. The provider-side finder already existed — `lib/medjobs/outreach-enrichment.ts` `findEmail()` (scrape → Perplexity → ZeroBounce) with a batch driver at `scripts/enrich-outreach-emails.ts`. It just could not be aimed at this cohort and threw away most of what it found.
+
+**Three bugs in the existing enricher.** (1) It gated on ZeroBounce's RAW verdict, dropping `invalid`/`role_based` — a marketing-policy verdict on `info@`/`admin@`, not a dead mailbox, and exactly what provider sites publish. `effectiveStatus()` existed for this and the send path already applied it (`lib/email.ts:514`); the enricher never called it. In a 30-provider sample, **5 of 7 finds would have been discarded**. This also explains the old College Station log ("6 found → 3 written"). (2) Targeting required a website on file, skipping **137 of 282** — `resolveWebsite()` already resolves a `place_id` through Places. (3) A written email was inert: it never flushed the questions held *because* the column was empty.
+
+**The repeats are a demand tally, not junk — do not delete them.** `app/provider/[slug]/page.tsx:391` reads every question ever asked on a provider, any status, to build `suggestionStats`, which renders **"N people asked this"** (`components/providers/QASectionV2.tsx:681`) and ranks the suggested chips. `willow-bend-villas` holds 55 pending questions carrying **14 distinct texts**. Deleting the repeats turns "16 people asked this" into "1". Suppression (`metadata.email_suppressed_at`) stops the mail, keeps the tally, and reverses cleanly. **845 swept** across 202 providers; deliberately spared: 877 already emailed (live one-click links point at those row ids), 181 not pending, 72 answered, 65 with an asker email.
+
+**Claim conversion was unmeasurable, now instrumented.** `business_profiles.claimed_at` was null on all 3,734 rows and `provider_activity` has no claim event, so 789 claimed orgs could not be attributed to anything. Migration `181_business_profile_claimed_at.sql` adds a trigger (10+ call sites set `claim_state='claimed'`; a trigger cannot be forgotten) and backfills the 159 real dates from `provider_outreach_tracking`. **Applied to prod 2026-08-17, verified.**
+
+**Answer rate is 7.4% and that is the wrong metric.** 5,331 questions were emailed to a provider; 395 answered. Median time-to-answer 33 hours, p90 **782 hours**. TJ's correction: questions are a provider-onboarding tool, not a Q&A service — families do not leave emails (440 of 12,514 = 3.5%) and do not come back. So claim conversion is the KPI, which is why the timestamp had to exist first.
 ### 2026-08-17 — LumiWell Ad Boost published; the blocker was one keyword, not the firewall (operations, no code)
 
 **Zero code changes.** The only file touched is this log. The real artifacts live in Google Ads and Supabase.
@@ -3662,6 +4681,10 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Blocked / Needs Input
 
+- **Franchil Google campaign stuck `Pending`** (2026-08-28) — six days past start, ads Eligible, zero impressions. Needs Google support.
+- **Miracle-Lightstar zero-delivery cause still unresolved** — 8 days, 0 impressions, >90% lost IS to rank, every setting inspects clean. Bid-simulator floor test not yet run.
+- **Nextdoor vs Meta for the remaining $150** — deliberately parked until the CTA/instrumentation work lands.
+
 - ~~**Migration Playbook → Notion:**~~ ✅ Done (2026-03-01) — updated via Notion MCP
 - ~~**Top 100 pages from Search Console:**~~ ✅ Done — GSC export analyzed, 0 404 risks found
 - ~~**Editorial content redirect decision:**~~ ✅ Done — all v1.0 content routes now have redirects in `next.config.ts`: `/research-and-press/*` → homepage, `/caregiver-forum/*` → `/`, `/caregiver-relief-network/*` → homepage, `/company/*` → dedicated pages
@@ -3669,6 +4692,115 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Next Up
+
+**Revenue plan / CRP January 5 — added 2026-09-04 (`radiant-wright`, ops only)**
+- 🔴 **Track B: call the 16 providers who requested ads** (TJ + Chantel, by Wed 09-09). Correct Franchil and Miracle-Lightstar by phone — both were told campaigns launched that never served. Pacesetter has **2 conversions nobody told them about** and their email is suppressed, so that one is a call. Establish outcome on the 4 inquiries still at `status: pending`. Answer the 5 in the requested queue (Senior Services at 42 days). One question per call: what would have to be true for you to pay. **Log the exact phrase each provider uses for what they bought** — that decides the rename.
+- 🔴 **Track A gate: Franchil reviews come due Mon 09-07.** Impressions returned → propagate the negative-list fix to the 8 other campaigns on the shared 98-term list. Still zero → the mechanism is elsewhere and Track A/B decides whether ads continue. **No new ad campaigns sold before this reads out.**
+- 🟡 **Track D: make the warm base callable** (Esther, by Fri 09-11). Backfill `city` on `business_profiles` — null on a large share, and territory slicing is impossible until it lands. Build a "Warm & Active" view: one-click access, dashboard arrival, or profile edit in the last 7 days (~8/day). Then instrument the **424 pitch views → 16 applications** gap.
+- 🟡 **Track C: MedJobs one city, students first** (Logan + Grazie). Pick the single campus. **Open question for Logan: no Texas campus is in the system** while claimers concentrate in TX — if the Dallas/Houston relationships exist they need entering before anyone can pitch MedJobs to a TX provider. Protocol should be written from the 3,268 logged touchpoints, and must name a fix for the 10-of-12 no-show rate.
+- 🟡 **Set minimal and stretch in the meeting and stop moving them.** Proposed: minimal 5 paying providers / 3 collected placements / 1 protocol run by a non-founder; stretch 15 / 10 / two charted months. Both by 12-15.
+- 🟢 **Chantel's phone tooling is a yes.** Zoom phone is a real blocker for callbacks and sits in the critical path of Track B. Approve out of her ops plan rather than folding it into a longer tooling review.
+- ⚪ **Rename deferred, not dropped.** Three names for one product (`Managed Ads` 19 files / `/provider/boost` / `Ad Boost` 58 files). Decide after the 16 calls, from providers' own language. Keep DB event types (`managed_ads_pitch_viewed`, 424 rows/30d) — rename the surface only, since a new event_type needs a CHECK migration.
+
+**Ad Boost — updated 2026-08-28 (`steady-planck`, PR #1716)**
+- 🔴 **Franchil Google still reads `Pending`** six days past its 23 Aug start. Ads read Eligible, nothing serving. Only live campaign not delivering. Escalate to Google support.
+- 🔴 **Franchil has no documented authorisation or flight window.** I set an end date of 21 Nov as a defensible default. Confirm or replace it.
+- 🟡 **Fix the CTA impression gate** in `components/providers/CTAVariantRouter.tsx` — fire on render (CTA already paints as legacy) and attach the variant when it resolves. Until then no CTA optimisation can use impression-based rates.
+- 🟡 **Fix the phantom benefits impressions** — move the fire below the early return and make `BenefitsArmGate` resolve the variant before mounting children.
+- 🟡 **Google conversion actions: 8 feed account-level goals, 1 works.** Switch these 7 from Primary → **Secondary** (reversible, do NOT Remove): Submit lead form (1), Lead form submission A, Connect Form, Pop-up Form, Connect to provider form, Conversion from home page, **Android installs (Google Play)**. Keep `Provider inquiry (lead form)` — it has the only 2 real conversions. Automation could not click through (names are JS-driven, no href); ~2 min by hand.
+- 🟡 **Backfill `utm_medium`** on LumiWell and Edmonds August final URLs.
+- 🟢 **Diagnosis Q2/Q3 not started:** Miracle's auction floor via bid simulator, and the click-to-landing gap via click-ID trace.
+- ⚪ **Decision parked:** remaining $150 → Nextdoor or Meta. Blocked on instrumentation, and the CTA problem is page-wide so it may not be a channel question at all.
+
+**Trust button / bounce rate — updated 2026-08-21 (prune DONE; #1658 still on staging only)**
+- ✅ **DONE 08-21: pruned 129 dead allowlist entries** (676 → 547). Expected 2.28% → ~1.53%. Backup at `~/Desktop/email-overrides-prune-backup-2026-08-21.json`. This was the big win; #1658 alone is only 2.28% → 2.21%.
+- 🟡 **Promote staging → main** (deferred 08-20 and 08-21). Small direct impact, but it is what stops the allowlist refilling and makes the prune a one-time job rather than a recurring chore. **QA on staging first.**
+- 🟡 **Verify the prune landed** in a day or two: account bounce rate should sit near 1.5% instead of 2.3%. If it does not move, the removed entries are being re-added by the Questions tab, which is the argument for promoting #1658.
+- 🟡 **`isSuppressedRecipient` still uses exact `.eq("recipient", …)`.** The case-insensitive fix landed only in `getRecipientDeliveryHistory`, so a handful of mixed-case addresses can still evade send-time suppression. Small, unfixed.
+- ✅ **DONE 08-21: `hello@seniorlistings.net` from_name → "Logan from Olera"** (was "TJ Falohun", with the word Olera appearing nowhere in what a provider saw). Applies immediately to the six live TX campaigns, no warmup needed. Partially answers Esther's "providers flag it as sketchy" complaint today rather than in September; the domain itself still reads seniorlistings.net until the migration. **Watch for:** replies land in `hello@seniorlistings.net` while the name now says Logan, so if the person making the follow-up call is not Logan, this trades one continuity mismatch for another.
+- ✅ **DONE 08-21: `logan@joinolera.care` connected.** TJ reset the password in Google Admin (auto-generated 16 chars, never handled by Claude); consent passed straight through with **no block**, confirming yesterday's App Access Control fix applies to the whole `Olera, Inc.` OU and not just the one mailbox it was tested on. Set to 40/day, warmup ACTIVE with the same defaults as `partnerships@` (rampup +5, 20% reply rate). **joinolera.care now carries 80/day across two senders**, covering the 55/day provider outreach actually runs. Reputation reads 0% rather than NA at this stage; `partnerships@` reached 100% within a day, so check back in 48h if it has not moved.
+- 🔴 **QA on staging before promoting.** `/admin/questions` → Delivery Issues. Exact targets: **`the-manor`** (`info@themanorflorence.com`, bounced 1x, never delivered, not trusted) should show a red "Question emails: bounced 1x, never delivered" line and **refuse** the Trust click. **`bayberry-retirement-inn`** (already trusted) should also refuse, proving the guard reads delivery history not trust state. Replace-with-force on a known-dead address (e.g. `woodbirch@snet.net`) should refuse too.
+- ⚠️ **Safe to test: the refusal. Dangerous: the success.** A successful trust calls `sendDeferredNotificationsForProvider` immediately and emails the provider their queued questions. The guard returns before that, so a refused trust has zero side effects. Staging and prod share one Supabase, so trusts written on staging are real.
+- ⚠️ **Coverage gap:** no provider currently in Delivery Issues has an address that has ever delivered, so the "allow" path cannot be exercised from that tab without mailing a healthy provider. Covered in logic by `npm run check:trust-guard`.
+- 🟡 **CORRECTION worth keeping:** `info@flintridgehc.com` was cited all session as "17 bounces, never delivered." That was the 30-day `question_received` slice. Over 90 days across all email types it is **33 bounced / 32 delivered**, so the guard correctly **allows** it. It is the boundary case the "Question emails:" copy scoping exists for, not an example of a dead mailbox.
+- 🟡 **The unmeasured question, if bounce rate stays a concern:** ~a third of the worst day's bounces were addresses with no history at all — flagged by predictive verification, force-trusted, then bounced. Nobody has measured how often that verifier is *wrong*, which is the fair objection to tightening it further.
+- 🟡 **78 allowlist entries are claimed providers** whose own note says "claimed provider with failing email." They now silently receive nothing. Correct for the account; they need a non-email channel. Product call.
+- ✅ PR #1657 merged overnight 08-20 without hitting the `package.json` conflict.
+
+**Provider Place-ID binding / claimed-provider data (2026-08-20)**
+- ✅ **#1657 merged** — 253 providers regained their star rating, 354 their trust signals. Verify on staging with a provider who has their **own** Google Business Profile connected: the account row must still win.
+- ✅ **[#1659](https://github.com/olera-care/olera-web/pull/1659) merged to staging 2026-08-21** (`ec5fe3100`). Test the Change flow on a provider with an existing connection: their old reviews must disappear, not persist under the new listing. Both pre-test bugs lived on that path.
+- 🔴 **Two data decisions, blocked on TJ.** `Therapy Partners of Texas` has **no correct directory row** (searched every TX row named "Therapy" and all 52 Sherman rows), so the only fix is severing `source_provider_id`; its page also still lives at `/provider/therapy-at-home`, so fixing identity properly means a slug change and a 301. `Encore Memory Care` has a correct row that matches its address exactly (`euless-tx-0012`, 2928 Blue Quail Ln, 5★) but it is **soft-deleted**, so fixing it reverses a data-sweep decision.
+- 🟡 **Review refresh never reaches claimed profiles.** `getProvidersForReviewRefresh` (`lib/providers/reviews.server.ts:48`) reads and writes `olera-providers` only. #1657 shrank this to the ~318 profiles holding their own cached payload — median 50 days stale, max 138 — and those are disproportionately the providers engaged enough to connect their own listing.
+- 🟡 **A-1 itself is still 404 and still wrongly bound.** Restore plus a reply, not engineering. The letter's load-bearing sentence ("you can fix this yourself now") only becomes true once #1659 ships. **Do not send the older reply draft on the [ticket](https://app.notion.com/p/3c15903a0ffe81619698c1a26290bffb)** — it blames location matching (no such bug) and implicitly accepts that Google removed the disputed reviews (all three are live).
+- 🟡 **Nothing asserts what a claimed provider's page renders.** Two root causes this session were refactors labelled parity-preserving that were not, and the second was mine. The adapter-level guard added in #1657 covers this failure, not the class.
+- 🟡 **23 claimed profiles have no directory row at all**, so their fallback is dead. A business claiming its listing and silently losing its page is its own defect.
+- 🟡 **`MAX_REVIEWS = 2`** (`lib/google-places.ts:18`) stores 2 of the 5 Google returns in the same billed call, and the mapper drops `googleMapsUri` though the type declares it. A per-review link-out is the only way a provider can point at their own reply, since the API never returns replies.
+- ⏳ **1,400 Place IDs sit on records in more than one city** (2,828 records). Dedupe sweep, not part of this fix.
+- ⏳ **`tKhal27` city column says Compton**; its address, zip and Place ID are all Newport Beach. Cosmetic.
+
+**Ad Boost metrics (2026-08-20, PR #1653)**
+- 🟡 **The traction email still only fires on a manual metrics save.** The gate now counts measured landings, but nothing evaluates it on a schedule, so Rosemonte will not receive one until someone opens the row and saves. The amber "Traction email missing" flag in the queue is what closes the loop today. A scheduled evaluator is a new cron plus `vercel.json` and `lib/crons/registry.ts` entries — deliberately out of scope on that PR.
+- ⏳ **`metrics_updated_at` is NULL on every existing row** by design, so the Performance panel reads "no recorded entry date" until each campaign's metrics are next saved. Expected, not a bug.
+- ⏳ **Visitors stays broader than Landed on purpose** (Edmonds: 5 vs 3). A family who clicks the ad, leaves and returns tomorrow by search is real campaign traffic with no UTM on the second visit. Documented in `getCampaignStats` so it does not get "fixed" into matching.
+- ⏳ **Pre-instrumentation ended campaigns read low in `Landed`** (Franchil 0, Abode 1) because managed-UTM tracking started 2026-07-22. Their typed figure is preserved on the sub-line and is the only history that exists.
+
+**Olera-branded cold sending domain — joinolera.care (2026-08-19)**
+- ✅ **DONE 08-20: `partnerships@joinolera.care` connected.** Fix was Admin → Security → API Controls → App Access Control → Configure new app → search by **client ID** `1021517043376-ipe8289dof3t2v9apjpae8hs2q9abetp.apps.googleusercontent.com` → access **Trusted**. SMTP and DWD both unnecessary.
+- ✅ **DONE 08-20: warmup ON and daily limit 15 → 40** for `partnerships@joinolera.care`, matching `partnerships@findmedjobs.co`. Warmup clock started 08-20, so real sends are realistic from ~early September. Watch the Warmup Reputation column climb off NA toward 100%.
+- ✅ **DONE 08-20: `joinolera.care` now resolves.** Proxied A records on root and `www` (`192.0.2.1`, RFC 5737 reserved) plus an active Cloudflare redirect rule, all incoming requests 301 to `https://olera.care`. Verified on all four paths (http/https x root/www). MX, SPF, DKIM, DMARC untouched and re-verified after the change. Note the apex 301 lagged the `www` one by a minute; that was propagation, not a broken rule.
+- ✅ **DONE 08-20: Esther updated in-thread** (product-development, her "UPDATE 1"). Told her the domain is hers to use once warm, that we went with joinolera.care over oleracare.com because of the bounce rate, and to expect early September.
+- ⏸ **BLOCKED 08-20: `logan@joinolera.care`** needs its password. Asked Logan on Slack whether he has it or whether TJ should reset it in Google Admin. The account is pre-existing (created ~March 2026, last sign-in 5 months ago, 0.001 GB, never used), so it is NOT new from this work. Only `partnerships@joinolera.care` was created by us.
+- 🚫 **NOT DOING: DMARC `rua` repoint.** `_dmarc.joinolera.care` points at `tj@joinolera.care`, which exists as neither a user nor an alias, so aggregate reports go nowhere. Considered fixing, then dropped it as not worth doing: `p=none` means nothing is enforced, SmartLead sends via the Gmail API so mail is SPF-aligned and DKIM-signed by Google automatically, and warmup is the only traffic. Deliverability problems on this channel show up in SmartLead's warmup reputation and bounce rate, not in DMARC reports. Also worth knowing if it is ever revisited: repointing `rua` at another domain requires an authorization record (`joinolera.care._report._dmarc.olera.care` = `v=DMARC1`) or reporters silently refuse to send. The cheaper fix is an alias on `tj@olera.care`.
+- 🔴 **oleracare.com is over Resend's bounce threshold and nobody is on it.** 5,636 sends/30d at **5.48% bounce** vs olera.care's 1.23%; account-wide sits ~3.6%. Almost all of it is `weekly_analytics_digest` + `question_received` hitting stale addresses. Separate fire from Esther's thread, untouched this session, threatens the whole Resend account.
+- 🟡 **Free recognition win, no domain needed:** `hello@seniorlistings.net` sends as from_name "TJ Falohun" with no "Olera" anywhere. Renaming to "TJ Falohun · Olera" removes a chunk of the distrust today. Not done — changes what providers see, so TJ's call.
+- 🟡 **Connect `logan@joinolera.care` too** (pre-existing, dormant 5 months — expect a recovery challenge). Two mailboxes are needed for capacity parity: today's provider outreach runs 55/day, one joinolera mailbox is 40/day.
+- 🟡 **Warmup is ~2–3 weeks** before real sends regardless of path. Tell Esther now so the domain switch isn't expected this week.
+- 🟡 **`joinolera.care` has no A record** — resolves to nothing in a browser, the same "looks sketchy" signal as seniorlistings.net. One Cloudflare redirect rule to olera.care fixes it.
+- ⏳ After warmup: swap the 6 active `Provider Outreach — TX — 2026-08` campaigns and set `PROVIDER_OUTREACH_SMARTLEAD_SENDERS` in Vercel.
+
+**A-1 Home Care / provider Place-ID binding (2026-08-19)**
+- ℹ️ *Superseded in part by the 2026-08-20 block above — "let providers change their own Place ID" shipped as #1659, and the claim-time re-verify idea was falsified (profile and directory `place_id` are identical, so the check is dead code by construction). Remaining bullets still stand.*
+- 🔴 **Two providers are misrepresented in production right now.** `Therapy Partners of Texas` shows a different company's reviews ("Therapy At Home", McAllen) under their name; `A Rainbow of Care` shows its Ontario branch on an Upland profile. Neither has complained. Fix these before A-1, because A-1's page is hidden and these two are live.
+- 🔴 **Ask A-1 which listing their profile represents** before rebinding: the A-1 Domestic corporate listing (4.4★/15) or the Pasadena branch (1.0★/3) their claimed record actually is. **Do not pick for them** — a wrong rebind moves the misrepresentation onto a different provider, and the swing here is 1.0 → 4.4. Same question individually for the other two.
+- 🔴 **Restore their page after the binding is settled, not before.** Bringing it back still carrying Pasadena's reviews reopens the complaint. Admin restore is fully reversible (`app/api/admin/directory/[providerId]/route.ts:365`) and they are the only provider-request deletion in the table.
+- 🟡 **`MAX_REVIEWS = 2`** (`lib/google-places.ts:18`) stores 2 of the 5 Google returns in the same billed call, and the mapper at line 85 drops `googleMapsUri` though the type declares it at line 32. A per-review link-out is the only mechanism a provider has to point at their own reply, since the API never returns replies.
+- 🟡 **11 claimed providers have no public page** because a data sweep deleted the directory row underneath them. A business claiming its listing and silently losing its page is its own defect; A-1 is just the one that emailed.
+- ⏳ **1,400 Place IDs sit on records in more than one city** (2,828 records), including A-1 Domestic's two rows at one address. Dedupe sweep, not part of this fix.
+- ⏳ **`tKhal27` city column says Compton**; its address, zip and Place ID are all Newport Beach. Cosmetic, unrelated to the review bug, but it is the public A-1 record families see.
+
+**Family Answers Engine (2026-08-19, updated)**
+- 🔴 **Send the Cincinnati reply.** Drafted and ready: https://claude.ai/code/artifact/db8c723b-5d37-452a-a074-00a7f75039e5 . She texted a bare SSA link at 8:43pm 08-18 and the acknowledgement was held to 8am by quiet hours, so she has had almost nothing back. This is also the last unexercised path in the system: review surface → send → `sent_body` stamp has never been walked.
+- 🔴 **Follow up with the Marion County care seeker on 2026-08-25, by hand.** Her answer predates the engine so Phase 4 will not catch it. Disabled, under 60, in cancer treatment, no working AC at last contact.
+- 🟡 **Merge #1641** (drafting rules) and promote staging to main. 9 commits unpromoted.
+- 🟡 **Look at the review panel on staging.** It has never been seen rendering — browser firewall-blocked and `next dev` will not start on borrowed node_modules. If the 400px rail feels tight against a long draft, that is the first number to tune. Two decisions were taken on my lean and are cheap to flip: bottom sheet rather than swapped view on narrow, and drafter-vs-checker demoted below the flags.
+- 🟡 **Fix the `/pr-merge` watchlist check** to use `--literal-pathspecs`. It currently gives false all-clears on bracketed Next.js routes.
+- ⏸ **Email responder parity — KILLED 2026-08-19, do not rebuild without new evidence.** I had framed the design problem as a triage-gate cost question, citing "899 threads at five Opus stages". **That was wrong: 899 was the unread badge, not demand.** Real numbers from `support_email_threads` (30,846 rows): **74 `care_seeker` threads ever** (0.24%), 3 in the last 90 days, 1 in the last week. Email care-seeker volume is roughly **one a month**; SMS runs ~30x hotter. So there is no cost problem (the existing classifier already filters 30,846 → 74, and the pipeline would cost ~$2/month) and no value case either — a five-stage engine for a once-a-month event. Several of the 74 are not even real inbound: replies to our own outreach, a provider autoresponder, a miscategorised voicemail notification. **If it ever comes back, build the cheap version:** a "draft an answer" button in the support-email thread view that calls `buildAnswerPacket` on demand. Two hours, zero cost when unused, no commitment to automation.
+- ⏸ **71 unanswered care-seeker emails, 45 of them over a year old.** Parked with the above, but this is the finding worth more than the build was. People wrote in asking about senior care and got silence. Age buckets: >1y 45, 180-365d 24, 90-180d 1, <30d 1. An hour of reading would establish whether any are still live.
+- ⏸ **Classifier coverage gap makes those numbers provisional.** Only **42% of the last 30 days** of support email was ever analyzed (100% of last 7d, 78% of 90d, 81% of 365d — the all-time 10% is historical import and fine). If the classifier is silently skipping recent mail, care-seeker volume could be higher than 74 and we would not know. Diagnose this before trusting any count above.
+- 🟡 **Watch whether the engine confirms legitimacy** on forwarded links. It describes what a page is rather than saying plainly it is genuine, and for someone suspecting a scam that is the sentence that matters. Left untuned deliberately: one example is noise.
+- 🟡 **Close the library gaps.** CFCAA plus the 5 from the SSA case. Each one measurably improves the next answer.
+- ⏳ **EHEAP needs benefits QA from Cess.** Live in production on the Auto-researched badge.
+- ⏳ **Health-data retention is undecided.** Cancer and fibromyalgia disclosures sit in `metadata.sms_inbound`.
+- ⏳ **Vercel firewall `tj-home-bypass` is on a stale IP** (current egress 1.2.239.180), which is what blocks browser-driven verification.
+
+**Benefits fact-check follow-ups (2026-08-18)**
+- **2 drafts never got a schedule marker**: `b32bb6fd` north-dakota/assistive-senior-safety-program and `acfe50b7` kentucky/hcbs-waivers. Both patched and correct; both had the heaviest letter rewrites. Check whether that was deliberate.
+- **Provenance checker needs a v2 before its output is usable.** The full sweep finished at 547 checked: 247 `NOT_ON_OPERATOR_PAGE` (45%), 199 `CONFIRMED`, 96 `UNREACHABLE`. Calibrating against the 14 programs verified by hand this session found 7 false positives, so the miss list is mostly noise. Diagnosis and the v2 requirements are in PR #1629's description. Do not work the current list.
+- **101 April `factcheck.json` disagreements**, 78 never verified since. Free ranked queue; leads not truth.
+- **124 programs `toPick()` can never select** (phone present, `documentsNeeded: null`) — almost all SHIP, ombudsman, legal aid, caregiver support, i.e. the free no-paperwork services. Filed on the Web App board, P3. One-line fix at the guard, but it is a product call.
+- **Composer rail** `benefits-navigator.server.ts:125` still manufactures "families often save $X" from any savings figure.
+- **3 duplicate program pairs**: AL waiver (`medicaid-elderly-disabled-waiver` / `ed-medicaid-waiver`), KY waiver (`hcbs-waivers` / `hcb-waiver`), and the two AL Medicare Savings letters. Merging removes a live URL.
+- **Pre-existing lint highs** not in scope today: `CA/ihss` and `DE/pace-comprehensive-care` null lead phones, `OR/pace-elderly-care` non-dialable phone.
+- **MA Frail Elder Waiver dispute moved**: NY and WA both split community vs institutional lookback, and PA's 60-month guide is titled "Long-Term Care *Facility*". FEW is a community waiver, so the burden has shifted to the FEW-specific sources. Still not settled.
+
+**Provider reachability / question flush — added 2026-08-17 (PRs #1614, #1615 merged; #1616 open):**
+- 🔴 **Merge #1616.** It carries the claimed_at migration (already applied to prod), the flush cap at 2, and three pre-test fixes. Two of those fixes correct defects introduced by #1615, which is already live — nothing has fired through that path yet because the admin session predates it, but the next flush would hit them.
+- 🟡 **Check bounces on the 58 enrichment sends.** 0 so far but the run finished 2026-08-17; bounces take hours. First real test of role addresses at volume. `email_log` where `email_type='question_received'`.
+- 🟡 **Let `claimed_at` accumulate for a week before analysing.** Today's 43 newly-reachable providers are a clean cohort. Do not read the 8 same-day claims as causal: all 8 are outreach-program providers taking fax/mail/LinkedIn touches too, `provider_outreach_tracking.claimed_at` may be detection rather than click time, and only 2 fall inside the enrichment run's window.
+- ⏳ **Do not invest further in reachability breadth.** 225 of the 278 attempted providers have no findable email at all, and the remaining 285 are the hardest. Hit rate came in at **15.5%**, below the 23% the n=30 sample suggested — the sample was optimistic, budget off the 15.5%.
+- ⏳ **2 addresses were written as catch-all "risky".** The probe counts them reachable; the cold lane will always suppress them. Matches the probe's own caveat that a present address is not proof of deliverability. Inflates the improvement by 2.
+- ⏳ **Wire `findEmail()` into the city pipeline** so new cities ship with emails instead of being backfilled forever. `scripts/enrich-city.js` still has no email finder — that gap is what `scripts/enrich-outreach-emails.ts` was built to paper over.
 
 **Benefits household-income guard — added 2026-08-14 (PR #1599):**
 - 🔴 **Kill or rewrite the pending Navigator draft on profile `a86383a6`** before any send sweep runs. Status is `pending` and manual-send only, so nothing has gone out, but as written it tells an 83-year-old *"an income under $1,500 a month is in the range they look at"* and quotes $2,435/yr. It would send him to a hotline for a denial.
@@ -3771,7 +4903,20 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Decisions Made
 
+**2026-08-28 — Ad Boost**
+- **Pause all five Sep Nextdoor flights rather than launch.** Only 2 of 5 had a documented authorisation and none were instrumented. Pausing costs $0 and loses a week; spending $375 outside the system produces numbers nobody can reconcile.
+- **Keep $150 Google, park the other $150.** $150 buys ~71 clicks and ~1.9 expected inquiries — a real product. Nextdoor's 0-for-134 now rejects parity with Google at p=0.027, so the second half is not justified until measurement lands.
+- **Stop pushing through a Google re-auth mid-edit.** Build notes record one wiping all campaign assets. Hand to TJ, then verify assets survived.
+- **`contact_for_pricing` wins over every price source.** Publishing a market average to a provider who opted out overrides an explicit decision about their own business.
+- **Do not coerce provider rate units to the category default.** Daily live-in, per-visit and flat fees are legitimate; require explicit handling of unusual units instead.
+- **Diagnosis before building the control system.** It runs on data we already hold and has no dependencies; the architectural review sequenced it last, which contradicted its own endorsement of diagnosing first.
+- **Impression-based rates are unusable on the provider page** (both the benefits and CTA impressions are broken). Engagement-per-landing is the only defensible denominator.
+
 | Date | Decision | Rationale |
+| 2026-08-19 | Reject `oleracare.com` as the cold-outreach sending domain | TJ's Slack reply proposed hooking it up as the immediate fix, but prod data killed it: 5,636 Resend sends/30d at **5.48% bounce**, already past Resend's 4% account threshold, and 93% of that volume is `weekly_analytics_digest` + `question_received`. Adding SmartLead cold-list bounces stacks onto a domain already failing, and the blast radius is the crown-jewel provider notifications. Same org-domain means shared Gmail/Outlook reputation even though Resend uses `send.oleracare.com` for Return-Path. |
+| 2026-08-19 | Use the already-owned `joinolera.care` instead of buying a new cold domain | Discovered mid-session it was already registered (Cloudflare, to Mar 2027) and **already fully authenticated since March 2026** — Google MX, SPF, `google._domainkey` DKIM, DMARC — with `logan@joinolera.care` already a real user. Skips purchase, Workspace onboarding, and DKIM setup entirely, and a 5-month-aged authenticated domain is a better deliverability start than one registered today. |
+| 2026-08-20 | Grant SmartLead **Trusted** access in App Access Control rather than SMTP or DWD | Reproducing the block and reading its exact string ruled out CDP automation. Configured apps was empty, and a restricted scope is refused for unconfigured third-party apps even with every Google service Unrestricted. Tried the least-privilege option first — "Specific Google data" allowlisting exactly the Gmail + Sign-in scopes SmartLead requests — and it **still blocked**; only Trusted worked. Trusted is not DWD: it permits users to consent, it does not grant impersonation, so no mailbox is exposed unless someone OAuths it. Scoped to Org Unit `Olera, Inc.` because the tenant has no sub-OU to narrow to. |
+| 2026-08-19 | Prefer SMTP + app password over domain-wide delegation for SmartLead (SUPERSEDED 08-20) | The March playbook used DWD + App-Access-Trusted, but those were throwaway tenants. `joinolera.care` is a secondary domain on the **Olera, Inc.** tenant, and DWD is tenant-wide by client ID — it cannot be scoped, so it would grant SmartLead Gmail access to `logan@olera.care`, `tj@olera.care`, `support@olera.care`. SMTP is scoped to the single mailbox and sidesteps the OAuth block. Decision not yet executed — TJ paused before choosing. |
 | 2026-04-27 | Scrap regex amnesia detector for LLM self-correction pass | After 5 regex iterations (v1 → v2.2) chasing TJ-flagged FPs, recognized regex-on-LLM-free-text is fundamentally fragile. Forced-choice anti-amnesia prompt on the 2,936 OUT_OF_SCOPE verdicts gave structured output for ~$5 in 4 min. Replaced regex output entirely. |
 | 2026-04-27 | Generate disagreements file as third review artifact | When two noisy signals disagree (regex v2.2 vs LLM re-pass), the cases worth highest scrutiny are the 233 disagreements (8% of OUT_OF_SCOPE). Cheap to produce, valuable for spot-check, surfaces blindspots in either signal. |
 | 2026-04-27 | Backup CSVs written BEFORE DB writes, not after | If execution fails partway, we still have the full intended-state record. Recovery is a single SQL UPDATE per CSV. Previous data sweeps generated backups after which is recoverable but more painful. |
@@ -3892,6 +5037,52 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-08-21 — Pruned the allowlist, connected the second sender, and found the shipped fix was the small half
+
+**Two deliverables and one correction.**
+
+**Pruned 129 dead entries from `email_overrides`** (676 → 547). Criterion: bounced at least once and delivered zero times across 90 days, derived from a fresh live pull. All `reason: admin`, zero claimed accounts, zero deliveries lost. Backup written to `~/Desktop/email-overrides-prune-backup-2026-08-21.json` **before** any delete. Expected 2.28% → ~1.53%. No deploy needed: removing trust just restores the suppression that already existed.
+
+**Connected `logan@joinolera.care` to SmartLead.** TJ reset the password in Google Admin (auto-generated, never handled by Claude, kept out of the transcript). Consent passed straight through with **no block**, which is the first confirmation that the 08-20 App Access Control fix applies to the whole `Olera, Inc.` OU rather than just the mailbox it was tested on. Set 40/day, warmup ACTIVE. **joinolera.care now carries 80/day across two senders against the 55/day outreach actually runs**, which closes the shared-cap complaint from Esther's original thread. Told her in `#product-development`.
+
+**The correction that matters most.** PR #1658 only refuses *new* trusts. It never touched the send path (`lib/email.ts:620` still lets `isTrustedRecipient` clear the suppression reason), so every address already on the allowlist kept bypassing suppression. The **2.28% → 1.62%** figure quoted in the PR body, the Notion page and the Slack note came from a simulation of a *send-time* rule that was recommended and never built. Measured honestly on 90 days: #1658 as shipped is **2.21%** (26 trusts refused, 27 bounces prevented); the prune is **1.53%** (282 bounces). The priority was backwards for a day. TJ decided the Slack number was not worth correcting publicly given how fast the team moves.
+
+**Also worth keeping:** 45% of sends to the pruned addresses resolved to neither delivered nor bounced, against a ~2% baseline. Checked whether that was a webhook gap, since if it were, "never delivered" would be an artifact and deleting would be wrong. It is not: a gap would not target 129 specific addresses, and a working mailbox with 79 sends would show ~75 deliveries. Reads as accept-then-discard.
+
+### 2026-08-19 — Went to buy a cold-outreach domain and found we already owned a fully authenticated one
+
+Started from Esther's thread: providers flag `seniorlistings.net` as sketchy, `findmedjobs.com` breaks continuity when the team calls as "Olera", and that domain's 40/day cap is shared with MedJobs. TJ asked to hook up `oleracare.com`.
+
+**Two corrections before any work.** The channel is **SmartLead, not Resend** — the thread reads as a Resend problem and isn't, which changes the entire fix. And the address is `findmedjobs.**co**`, not `.com`. SmartLead's API gave ground truth: 4 mailboxes, and all 6 active `Provider Outreach — TX — 2026-08` campaigns run on just `hello@seniorlistings.net` (15/day) and `partnerships@findmedjobs.co` (40/day).
+
+**`oleracare.com` was the wrong answer and prod data proved it.** It's already the busiest Resend sender — 5,636 sends/30d at **5.48% bounce**, past Resend's 4% account threshold, against olera.care's 1.23%. Its volume is 93% `weekly_analytics_digest` + `question_received`. Pointing cold sequences at it would stack cold-list bounces onto a domain already failing and put the crown-jewel provider notifications in the blast radius. TJ redirected to Cloudflare over GoDaddy for a fresh domain — then spotted **`joinolera.care` already in the registrations list**.
+
+**That find deleted most of the plan.** It was owned to Mar 2027 and **fully authenticated since March 2026** — Google MX, SPF, `google._domainkey` DKIM, DMARC — with `logan@joinolera.care` already a real standalone user, not an alias. No purchase, no Workspace onboarding, no DKIM, and a 5-month-aged domain beats a fresh one on deliverability. Created `partnerships@joinolera.care` (Business Starter, $8.40/mo) for capacity parity.
+
+**Then Google blocked it, and I was wrong about why.** I checked App Access Control, saw Gmail "Unrestricted", and said OAuth would go through. It returned "This app is blocked" twice — SmartLead requests the restricted `mail.google.com` scope. Chased it further and ruled out tenant policy entirely: 0 restricted services, "Allow users to access any third-party apps", "Trust internal apps", 0 apps pending review. Nothing in Admin is blocking it, and SmartLead's client ID isn't findable via "Configure new app" because that search only indexes Marketplace apps by name. **Root cause still unproven.**
+
+**Paused on a decision worth not rushing.** The March playbook says DWD + App-Access-Trusted, but that was on throwaway tenants; `joinolera.care` sits on the **Olera, Inc.** tenant, and DWD is tenant-wide by client ID — it would hand SmartLead Gmail access to Logan's and TJ's real mailboxes. SMTP + app password is mailbox-scoped and sidesteps the block; retrying OAuth in a normal browser is the free discriminator against CDP-automation detection. TJ stopped for the day before choosing. Zero code written — all state is in Google Admin, SmartLead, and Cloudflare. Handoff in Notion.
+
+### 2026-08-17 — Reached the providers holding unanswered questions; found the flush was blasting them
+
+Started from the War Room card: *333 of 1408 provider pages holding unanswered questions have no usable email*. TJ asked whether `/benefits-pipeline` or its contact finder could close it.
+
+**It could not, and the right tool already existed.** The benefits pipeline finds government-program application doors, not business emails. `lib/medjobs/outreach-enrichment.ts` already had the provider finder. Fixed three things in `scripts/enrich-outreach-emails.ts`: judge on `effectiveStatus()` not the raw ZeroBounce verdict (role addresses are the whole unlock — 5 of 7 sampled finds were being discarded), drop the website requirement (137 of 282 providers have only a `place_id`), and call `sendDeferredNotificationsForProvider()` on write so the held questions actually go. PR #1614.
+
+**TJ's steer changed the design: dedupe the repeats.** Families pick from the same suggested chips, so providers accumulate identical texts — `willow-bend-villas` 55 questions / 14 texts, `briarwood` 52 / 8. Every caller sent all of them. Dedupe landed in the shared function so all ~16 callers benefit, including `/api/admin/flush-deferred-backlog` whose `perProvider` default of 100 was the only thing between those backlogs and the inbox.
+
+**Suppress, not delete.** TJ asked to purge the repeats ("families don't leave their email anyway" — true, 3.5%). But `app/provider/[slug]/page.tsx:391` counts every row sharing a text to render "N people asked this" and rank the chips. Deleting would zero that on exactly the questions families care most about. Swept 845 with `metadata.email_suppressed_at`, sparing already-emailed / answered / asker-email / non-pending rows. Tally verified intact afterwards.
+
+**Ran it: 278 targets → 43 emails written, 58 questions delivered, $4.61, 0 bounces.** Probe moved to 285/1394. Hit rate 15.5%, below the 23% the n=30 sample implied — small-sample optimism, worth remembering. Skipped the 25-provider pilot I had proposed after TJ questioned it: every address is ZeroBounce-verified at write and re-verified at send, and 130 emails cannot move a 4% account-wide threshold. Replaced it with a 3-provider smoke test of the untested write→notify path, which is the part you cannot unsend.
+
+**Then TJ corrected the strategy.** I recommended answering the questions ourselves (7.4% answer rate, 33h median, 782h p90). Wrong frame: questions are a provider-onboarding instrument, not a Q&A service. So the KPI is claim conversion — which turned out to be **unmeasurable**: `claimed_at` null on all 3,734 rows, no claim event in `provider_activity`. Migration `181` adds a trigger and backfills the 159 real dates from `provider_outreach_tracking`. TJ applied it; verified end to end.
+
+**Found the flush blasting providers.** Investigating a same-day claim signal surfaced 583 question emails after my run — a person working the admin Questions tab (372 actions, 12:30–14:00 UTC). Shape: 6 emails to one inbox **inside one second**, 9 to another, 55 providers with 4+. Cause: `maxQuestions: undefined` meant "send all", and only 2 of ~16 call sites passed a cap. `DEFAULT_QUESTION_FLUSH_CAP = 2` now lives in the shared function; `email-override` 5→2 and `flush-deferred-backlog` 100→2.
+
+**`/pre-test` earned its place — three real bugs.** (1) The asker-email carve-out never registered its text, so an anonymous copy elected itself and sent the same question twice, spending the whole cap on one question. (2) Several reachable families asking the same text each got their own email; now one copy per call, siblings left unnotified rather than suppressed so nobody is dropped. (3) **My own regression**: dropping `perProvider` 100→2 broke the invariant `flush-deferred-backlog`'s no-cursor design rests on — served providers no longer fall out of the alphabetically-sorted list, so every re-run would re-serve the same prefix and starve the tail. Providers now sit out 24h after being served.
+
+**Verification habits that paid.** `dryRunQuestions` (added for this) previews a flush without sending. The first dedupe test passed only because the cap truncated the list before duplicates collided — re-running it uncapped exposed bug (2). And an early "0% claim conversion" result was an artifact of `claimed_at` being unpopulated, not a finding.
 
 ### 2026-08-17 — LumiWell published; the Aug 15 blocker was one keyword, and the firewall theory was wrong
 

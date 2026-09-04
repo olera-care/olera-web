@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/DE/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.509Z
+ * Last updated: 2026-09-03T11:25:55.869Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -65,7 +65,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Delaware's Medicaid portal or call 1-800-372-2022, processing time not specified but requires clinical assessment for DSHP-Plus.",
+        "summary": "Apply online through the ASSIST portal at assist.dhss.delaware.gov or call Medicaid Customer Relations at (866) 843-7212. For DSHP-Plus, call the Medicaid Central Intake Unit at 1-866-940-8963. Processing time is not published, and DSHP-Plus requires a clinical assessment.",
         "steps": [
           {
             "step": 1,
@@ -75,7 +75,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Submit application",
-            "description": "Complete the Delaware Medicaid application online, call 1-800-372-2022, or visit your local Division of Medicaid & Medical Assistance office."
+            "description": "Complete the Delaware Medicaid application online through ASSIST at assist.dhss.delaware.gov, call Medicaid Customer Relations at (866) 843-7212, or visit your local Division of Medicaid & Medical Assistance office."
           },
           {
             "step": 3,
@@ -110,7 +110,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Delaware residency (utility bill, lease, or state-issued document)",
         "Pay stubs or income statements from last 30 days",
         "Social Security or pension award letters",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Vehicle titles and registration",
         "Property deeds or tax statements",
@@ -121,10 +121,22 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Delaware Medicaid Application Line",
-          "phone": "(800) 372-2022",
-          "description": "Apply by phone and get application assistance",
-          "hours": "Business hours"
+          "label": "Delaware Medicaid Customer Relations (start here)",
+          "phone": "(866) 843-7212",
+          "description": "General Medicaid information, referrals, and help with an application. Apply online through the ASSIST portal at assist.dhss.delaware.gov.",
+          "hours": "Mon-Fri 8:00am-4:30pm"
+        },
+        {
+          "label": "Medicaid Central Intake Unit (long-term and home-based care)",
+          "phone": "1-866-940-8963",
+          "description": "Takes referrals and applications for nursing home or community-based long-term care Medicaid. This is the right line if your loved one needs care at home.",
+          "hours": null
+        },
+        {
+          "label": "Medicaid Health Benefits Manager",
+          "phone": "1-800-996-9969",
+          "description": "Helps you enroll in or change a managed care organization (MCO) and understand your benefits and prescriptions.",
+          "hours": null
         },
         {
           "label": "Division of Medicaid & Medical Assistance",
@@ -134,6 +146,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must enroll in a managed care organization (MCO) to receive any benefits, approval alone doesn't provide coverage",
         "DSHP-Plus applicants keep only $75/month for personal needs, most income goes to the state to offset care costs",
         "If your loved one's home equity exceeds $752,000, they may be disqualified even if other assets are under $2,000",
@@ -169,7 +182,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can my loved one switch MCOs if they don't like their health plan?",
-          "answer": "Contact the Delaware Medicaid office at 1-800-372-2022 to ask about changing MCOs. Availability varies, some plans may have immediate openings while others maintain waitlists."
+          "answer": "Call the Medicaid Health Benefits Manager at 1-800-996-9969 to change your managed care organization. Delaware lets you choose among its participating plans. If you do not pick one within about 90 days, the Health Benefits Manager assigns you to a plan."
         }
       ],
       "layoutIntent": {
@@ -181,16 +194,17 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "ShieldCheck",
-      "phone": "(800) 372-2022",
+      "phone": "(866) 843-7212",
       "sourceUrl": "https://dhss.delaware.gov/dmma/medicaid.html",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "dsaapd-waivers",
-      "name": "Division of Services for Aging and Adults with Physical Disabilities (DSAAPD) Waivers",
-      "shortName": "DSAAPD Waivers",
-      "tagline": "Home care services that let your loved one avoid nursing home placement while getting daily help with bathing, dressing, and mobility.",
+      "name": "DSAAPD In-Home Support and Aging Services",
+      "shortName": "DSAAPD Aging Services",
+      "tagline": "State-funded help at home for older Delawareans: personal care, self-directed attendant services, assistive devices, and an emergency response system.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -200,42 +214,24 @@ export const drafts: PipelineStateDrafts = {
           {
             "name": "Delaware Aging & Disability Resource Center (ADRC)",
             "type": "service-area"
-          },
-          {
-            "name": "Joining Generations",
-            "type": "service-area"
           }
         ]
       },
-      "intro": "If your loved one needs nursing home-level care but wants to stay in their own home, Delaware's DSAAPD waivers can provide personal care services, case management, and assistive devices, all covered by Medicaid. Your loved one gets help with daily activities like bathing, dressing, toileting, and medication management from trained caregivers who come to their home.\n\nBecause this is a Medicaid waiver program, your loved one must first qualify for Medicaid and meet nursing home level of care requirements (needing daily help with multiple activities of daily living). The program covers Delaware residents age 60+ or younger adults 18-59 who meet stricter financial and medical criteria. Services include personal care attendants, respite care for family caregivers, assistive devices like shower chairs and ramps, and case management to coordinate all care.",
+      "intro": "If your loved one needs help at home, Delaware's Division of Services for Aging and Adults with Physical Disabilities runs a set of state-funded services you can ask about without being on Medicaid first. Those include personal care services, self-directed attendant services where your loved one chooses and manages their own caregiver, assistive devices, and a personal emergency response system. There is also respite support for family caregivers through the Lifespan Respite Program.\n\nThe single front door is the Delaware Aging and Disability Resource Center, and it takes calls at any hour. The ADRC is deliberately open to everyone: no matter your loved one's income or where in Delaware they live, and whether you are the person who needs help or a family member calling on their behalf.\n\nIf it turns out your loved one needs the fuller Medicaid long-term care package, that is Diamond State Health Plan Plus, and the ADRC can hand you off to the Medicaid Central Intake Unit for it. Delaware folded its old elderly and disabled waiver into Diamond State Health Plan Plus in 2012, so there is no separate DSAAPD waiver to apply for any more.",
       "savingsRange": "",
-      "savingsSource": "Free service",
+      "savingsSource": "Free to ask. Funding for assistive devices is limited and available only when no other payment option exists.",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
-          "Age 60+ (or 18-59 with stricter criteria)",
-          "Medicaid eligible",
-          "Needs nursing home level of care",
-          "Delaware resident living at home"
+          "Delaware resident",
+          "Age 60+ for aging services; self-directed attendant services are open from age 18 with a disability",
+          "Needs help with daily activities at home",
+          "No Medicaid enrolment needed to ask. Financial and functional criteria apply to individual services."
         ],
         "ageRequirement": "60+",
         "incomeTable": null,
-        "assetLimits": {
-          "individual": 2000,
-          "couple": null,
-          "countedAssets": [
-            "Bank accounts",
-            "CDs",
-            "Property other than residence",
-            "Whole life insurance",
-            "401K accounts"
-          ],
-          "exemptAssets": [
-            "Primary residence"
-          ],
-          "homeEquityCap": null
-        },
-        "functionalRequirement": "Must need nursing home level of care (requiring daily assistance with activities like bathing, dressing, mobility, toileting, feeding, or health maintenance)",
+        "assetLimits": null,
+        "functionalRequirement": "Needs help with activities of daily living at home. Nursing-home level of care is not required for these state-funded services; that threshold belongs to Diamond State Health Plan Plus.",
         "otherRequirements": [
           "Delaware resident living in own home or apartment",
           "Medicaid eligible",
@@ -245,27 +241,22 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call 800-223-9074 for intake, processing time varies but you must qualify for Medicaid first.",
+        "summary": "Call the Delaware ADRC on 1-800-223-9074, any hour. Nothing is needed for the first call.",
         "steps": [
           {
             "step": 1,
-            "title": "Call DSAAPD intake line",
-            "description": "Call 800-223-9074 (DSAAPD or Joining Generations) to start the referral process through Delaware's Aging & Disability Resource Center."
+            "title": "Call the Delaware ADRC",
+            "description": "Call 1-800-223-9074, at any hour, or email DelawareADRC@delaware.gov. Explain what your loved one needs help with. Nothing needs to be gathered first."
           },
           {
             "step": 2,
-            "title": "Apply for Medicaid",
-            "description": "Complete Medicaid application since waiver eligibility requires Medicaid qualification, this is handled through Division of Medicaid and Medical Assistance (DMMA)."
+            "title": "Options counselling",
+            "description": "The ADRC talks through what is available, which may be a DSAAPD state-funded service, a community program, or Medicaid long-term care. They help complete applications and gather documents at that point."
           },
           {
             "step": 3,
-            "title": "Clinical assessment",
-            "description": "Undergo functional assessment to determine if your loved one meets nursing home level of care requirements for activities like bathing, dressing, and mobility."
-          },
-          {
-            "step": 4,
-            "title": "Service planning",
-            "description": "Work with case manager to develop care plan and arrange personal care attendants, assistive devices, and other covered services."
+            "title": "If Medicaid long-term care is the right fit",
+            "description": "The ADRC hands you off to the Medicaid Central Intake Unit on 1-866-940-8963 for Diamond State Health Plan Plus. If your loved one is already enrolled in a plan, ask for their care coordinator instead of starting a new application."
           }
         ],
         "processingTime": null,
@@ -273,46 +264,43 @@ export const drafts: PipelineStateDrafts = {
         "tip": "Start the Medicaid application process early, waiver services can't begin until Medicaid eligibility is confirmed.",
         "urls": [
           {
-            "label": "DSAAPD Official Site",
-            "url": "https://www.dhss.delaware.gov/dsaapd"
+            "label": "DSAAPD in-home support",
+            "url": "https://dhss.delaware.gov/dsaapd/division-of-services-for-aging-and-adults-with-physical-disabilities/in-home-support-to-help-you-live-independently/"
+          },
+          {
+            "label": "Delaware ADRC",
+            "url": "https://dhss.delaware.gov/dsaapd/division-of-services-for-aging-and-adults-with-physical-disabilities/adrc/"
+          },
+          {
+            "label": "Diamond State Health Plan Plus",
+            "url": "https://dhss.delaware.gov/dmma/home/medicaid/dshp-plus/"
           }
         ]
       },
       "documentsNeeded": [
-        "Social Security cards for all household members",
-        "Medicare card",
-        "Proof of Delaware residency (utility bill, lease, or state-issued document)",
-        "Most recent Social Security award letter",
-        "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
-        "Investment documents (stocks, bonds, annuities)",
-        "Property documents (deeds, tax statements)",
-        "Life insurance policies with face values",
-        "Vehicle titles and registration",
-        "Medical records documenting functional impairments",
-        "Physician documentation of need for daily care assistance",
-        "Documentation of current medical conditions and medications",
-        "Proof of any irrevocable trusts if assets exceed limits"
+        "Nothing at all for the first call. The ADRC says it is there for you whatever your income or situation.",
+        "Worth having to hand: what your loved one struggles with day to day, and who helps now",
+        "Their age, county, and whether they are already on Medicaid or in a health plan"
       ],
       "contacts": [
         {
-          "label": "DSAAPD Intake Line",
-          "phone": "(800) 223-9074",
-          "description": "Primary number for waiver program information and referrals",
-          "hours": "Business hours"
+          "label": "Delaware Aging and Disability Resource Center (ADRC) (start here)",
+          "phone": "1-800-223-9074",
+          "hours": "24 hours a day, 7 days a week",
+          "description": "DelawareADRC@delaware.gov. TDD (302) 424-7141. The ADRC is DSAAPD's single front door for aging, disability and caregiving services, whatever your income."
         },
         {
-          "label": "Delaware Aging & Disability Resource Center",
-          "phone": "(800) 223-9074",
-          "description": "Statewide referral and information center",
-          "hours": "Business hours"
+          "label": "Medicaid Central Intake Unit (for Diamond State Health Plan Plus)",
+          "phone": "1-866-940-8963",
+          "hours": "Mon-Fri 8:00am-4:30pm",
+          "description": "Takes referrals and applications for nursing home or community-based long-term care Medicaid."
         }
       ],
       "applicationNotes": [
-        "Ages 18-59 face stricter financial and medical criteria than applicants 60 and older",
-        "If assets exceed $2,000, you may need to establish an irrevocable trust before qualifying",
-        "Different waivers available (Elderly & Disabled, Assisted Living, Acquired Brain Injury), intake will determine which fits your loved one's needs",
-        "Assisted living waiver coverage requires the facility to be licensed and offer covered services"
+        "Nothing is needed for the first call. The ADRC states it is there for you no matter your income or situation.",
+        "Delaware folded its elderly and disabled waiver, assisted living waiver and acquired brain injury waiver into Diamond State Health Plan Plus in 2012. There is no separate DSAAPD waiver to apply for.",
+        "If your loved one is already enrolled in a Medicaid managed care plan, their plan care coordinator may be the faster route than a new application.",
+        "Kent and Sussex ADRC callers can also ask about PACE, which operates in Delaware under the name LIFE."
       ],
       "relatedPrograms": [
         "Delaware Medicaid",
@@ -364,10 +352,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "(800) 223-9074",
+      "phone": "1-800-223-9074",
       "sourceUrl": "https://www.dhss.delaware.gov/dsaapd",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "pace-comprehensive-care",
@@ -474,7 +463,7 @@ export const drafts: PipelineStateDrafts = {
         "Complete medical records (PACE will request via Release of Medical Records Form)",
         "List of all current medications and prescriptions",
         "Social Security award letter",
-        "Bank statements for all accounts (last 3 months) if applying as private-pay participant",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Proof of any other insurance coverage",
         "Power of attorney or guardianship documents (if someone else is applying on behalf of your loved one)",
         "Contact information for all current healthcare providers",
@@ -482,25 +471,26 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "PACE Your LIFE",
-          "phone": null,
-          "description": "Delaware PACE provider serving specific regions",
-          "hours": "Contact via email: info@paceyourlifemwv.com"
+          "label": "Saint Francis LIFE - New Castle County (start here)",
+          "phone": "1-302-660-3380",
+          "hours": "Mon-Fri 8:00am-4:30pm",
+          "description": "Referral line. Centers in Wilmington (1072 Justison St, 302-660-3351) and Newark (30 Executive Dr, 302-661-7400). Toll-free 1-833-883-7573. 24/7 on-call for enrolled participants."
         },
         {
-          "label": "Saint Francis LIFE",
-          "phone": null,
-          "description": "Trinity Health PACE serving specific Delaware zip codes",
-          "hours": "Contact provider directly for service area and enrollment information"
+          "label": "PACE Your LIFE - Kent and Sussex Counties",
+          "phone": "(302) 865-3565",
+          "hours": "Mon-Fri 8:00am-5:00pm",
+          "description": "21 West Clarke Ave, Suite 1010, Milford. Toll-free 1-833-722-3302, TTY 711. Evening and weekend on-call available."
         },
         {
-          "label": "Delaware 2-1-1",
-          "phone": "2-1-1",
-          "description": "Free helpline for all Delaware health and social services",
+          "label": "Delaware Aging and Disability Resource Center",
+          "phone": "1-800-223-9074",
           "hours": "24 hours, 7 days a week"
         }
       ],
       "applicationNotes": [
+        "Delaware has exactly two PACE organizations, and locally the model is called LIFE (Living Independence for the Elderly). Saint Francis LIFE covers New Castle County; PACE Your LIFE covers Kent and Sussex. Note that the state Medicaid page still says PACE is being developed, which is out of date.",
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must be living in the community at enrollment, if your loved one is already in a nursing home, they may not qualify for PACE",
         "PACE is all-or-nothing: once enrolled, your loved one must receive all services exclusively through the PACE organization and cannot use other providers",
         "If your loved one doesn't qualify for Medicaid, they can still enroll as a private-pay participant with a flat monthly premium",
@@ -556,10 +546,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Stethoscope",
-      "phone": null,
+      "phone": "1-302-660-3380",
       "sourceUrl": "https://www.law.cornell.edu/regulations/delaware/16-Del-Admin-Code-SS-20000-20775",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "qmb-slmb-medicare-help",
@@ -649,7 +640,6 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card showing Part A entitlement",
         "Most recent Social Security award letter",
         "Pay stubs from last 30 days (if still working)",
-        "Bank statements for all accounts (last 3 months)",
         "Pension or retirement income statements",
         "Proof of Delaware residency (utility bill or lease agreement)",
         "Valid government-issued photo ID",
@@ -672,6 +662,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Income limits are updated annually, current limits apply through March 2025, then new federal poverty guidelines take effect",
         "If your loved one has Social Security income, revised poverty levels apply starting April 1st each year rather than February 1st",
         "Providers are federally prohibited from billing QMB recipients for Medicare-covered services, if this happens, contact DMMA immediately",
@@ -735,9 +726,9 @@ export const drafts: PipelineStateDrafts = {
     },
     {
       "id": "snap-food-benefits",
-      "name": "Food Stamp Program (SNAP)",
+      "name": "Supplemental Nutrition Assistance Program (SNAP)",
       "shortName": "SNAP",
-      "tagline": "Up to $291/month toward groceries for Delaware seniors on fixed incomes",
+      "tagline": "Up to $298/month toward groceries for Delaware seniors on fixed incomes",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -750,9 +741,9 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling to afford groceries on Social Security or a fixed income, Delaware's expanded SNAP program may provide $100–291/month loaded onto an EBT card for food purchases. Delaware offers higher income limits than most states, up to $2,608/month gross income for a single person (200% of federal poverty level) versus the typical $1,580 limit elsewhere.\n\nBecause Delaware exempts all asset limits for households where everyone is 60+ or disabled, your loved one won't lose benefits for having a modest savings account or owning their home. The program also provides higher deductions for medical expenses over $35/month and shelter costs, which often helps seniors qualify even with Social Security income that seems too high.\n\nSSI recipients automatically qualify without a separate application. Benefits are calculated based on net income after deductions, typically every $100 increase in net income reduces benefits by about $30, so many seniors with Social Security still receive substantial food assistance.",
-      "savingsRange": "$1,200 – $3,492/year in 2026",
-      "savingsSource": "Maximum monthly SNAP benefits: $291 for 1-person household, $535 for 2-person household",
+      "intro": "If your loved one is 60+ and struggling to afford groceries on Social Security or a fixed income, Delaware's expanded SNAP program may provide $100–298/month loaded onto an EBT card for food purchases. Delaware offers higher income limits than most states, up to $2,608/month gross income for a single person (200% of federal poverty level) versus the typical $1,580 limit elsewhere.\n\nBecause Delaware exempts all asset limits for households where everyone is 60+ or disabled, your loved one won't lose benefits for having a modest savings account or owning their home. The program also provides higher deductions for medical expenses over $35/month and shelter costs, which often helps seniors qualify even with Social Security income that seems too high.\n\nSSI recipients automatically qualify without a separate application. Benefits are calculated based on net income after deductions, typically every $100 increase in net income reduces benefits by about $30, so many seniors with Social Security still receive substantial food assistance.",
+      "savingsRange": "Up to $298/month ($3,576/year) for one person in FY2026",
+      "savingsSource": "USDA FY2026 maximum monthly allotments, effective Oct 1 2025 through Sep 30 2026: $298 for one person, $546 for two. Delaware publishes the same table. These are ceilings, and most households receive less.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -807,12 +798,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at mybenefits.delaware.gov or call your local DSS office, decision within 30 days, expedited benefits within 7 days if income is very low.",
+        "summary": "Apply online through the ASSIST portal at assist.dhss.delaware.gov or call your local DSS office, decision within 30 days, expedited benefits within 7 days if income is very low.",
         "steps": [
           {
             "step": 1,
             "title": "Submit application",
-            "description": "Apply online at mybenefits.delaware.gov, call your local DSS office (find yours at dhss.delaware.gov/dss), or visit in person. Online is fastest for most families."
+            "description": "Apply online through the ASSIST portal at assist.dhss.delaware.gov, call your local DSS office (find yours at dhss.delaware.gov/dss), or visit in person. Online is fastest for most families."
           },
           {
             "step": 2,
@@ -854,7 +845,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Rent receipt or mortgage statement",
         "Utility bills (electric, gas, water, phone)",
         "Proof of Delaware residency (utility bill, lease, or voter registration)",
@@ -865,10 +856,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "State SNAP agency (start here)",
-          "phone": "(800) 372-2022",
-          "description": "Apply for SNAP and ask about your application",
-          "hours": null
+          "label": "Delaware DSS Customer Relations (start here)",
+          "phone": "(866) 843-7212",
+          "description": "Questions about SNAP eligibility and an application you have filed. Apply online through the ASSIST portal at assist.dhss.delaware.gov, or at a State Service Center.",
+          "hours": "Mon-Fri 8:00am-4:30pm"
         },
         {
           "label": "Delaware 2-1-1",
@@ -877,8 +868,8 @@ export const drafts: PipelineStateDrafts = {
           "hours": "24 hours, 7 days a week"
         },
         {
-          "label": "Delaware DSS Main Line",
-          "phone": "(302) 255-9500",
+          "label": "Delaware DSS General Inquiries",
+          "phone": "(302) 255-9040",
           "description": "Division of Social Services for SNAP applications and questions",
           "hours": "Mon-Fri 8am-4:30pm EST"
         },
@@ -945,10 +936,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "(800) 372-2022",
+      "phone": "(866) 843-7212",
       "sourceUrl": "https://dhss.delaware.gov/dss/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "liheap-energy-assistance",
@@ -2099,13 +2091,13 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Qualified Medicare Beneficiary (QMB)",
-        "programId": "qmb-slmb",
+        "programId": "qmb-slmb-medicare-help",
         "why": "Delaware pays all Medicare premiums and co-pays if your loved one's income is under $1,585/month."
       },
       {
         "name": "Food Stamp Program (SNAP)",
-        "programId": "snap",
-        "why": "Provides up to $291/month toward groceries for seniors on fixed incomes."
+        "programId": "snap-food-benefits",
+        "why": "Provides up to $298/month toward groceries for seniors on fixed incomes."
       }
     ],
     "byNeed": [

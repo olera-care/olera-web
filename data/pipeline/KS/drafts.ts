@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/KS/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-07T11:45:11.703Z
+ * Last updated: 2026-09-03T11:25:55.875Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -111,7 +111,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Kansas residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter",
         "Medicare card if they have one (Medicare is not required for this program)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -143,6 +143,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Waiver denial is automatic if your loved one doesn't qualify for KanCare Medicaid first, complete that application before requesting functional assessment",
         "Wait times vary regionally due to limited slots and local provider availability, ask about current waitlist length in your area",
         "The 60-month Look-Back Rule can create penalty periods if your loved one transferred assets below fair market value, consult elder law attorney if transfers occurred",
@@ -307,7 +308,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of age (birth certificate or passport)",
         "Medicare card if they have one (Medicare is not required for this program)",
         "Proof of Kansas residency (utility bill or lease agreement)",
-        "Most recent bank statements (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Income statements (Social Security, pension, retirement accounts)",
         "Current medication list from all doctors",
         "Recent medical records from primary care physician",
@@ -345,6 +346,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You cannot be enrolled in Medicare Advantage plans while in PACE, this is the most common enrollment barrier for seniors already in MA plans",
         "Private pay is possible but costs $7,000+ per month, most families pursue Medicaid eligibility even if initial income seems too high",
         "Ages 55-64 face an additional hurdle requiring Social Security disability determination beyond just needing nursing home care",
@@ -533,7 +535,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Medicare card showing Part A enrollment",
         "Social Security award letters for all household members",
-        "Most recent bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment documents (stocks, bonds, annuities statements)",
         "Pay stubs or pension statements if still working",
         "Valid government-issued photo ID",
@@ -565,6 +567,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI program requires annual reapplication and may reach funding caps, apply early in the year and ask about waitlist status",
         "All MSP programs automatically qualify you for Extra Help with prescription drug costs, but you must report income changes promptly",
         "QMB protects from provider billing for Medicare-covered services, but small Medicaid copays may still apply for some services",
@@ -634,7 +637,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-792-4884",
       "sourceUrl": "https://khap.kdhe.ks.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "snap-food-assistance",
@@ -654,9 +658,9 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits loaded onto an EBT card for food purchases. Benefits range from $298/month for a single person up to $1,789+ for larger households, based on income and expenses. Because your loved one is over 60, they qualify for higher asset limits ($4,250 instead of $2,750) and can deduct uncapped medical expenses over $35/month.\n\nThe application requires detailed financial documentation, but Kansas allows authorized representatives to apply on behalf of elderly loved ones who have mobility issues. Processing typically takes 30 days, though expedited approval within 7 days is available for households with very low income and less than $100 in liquid assets.\n\nYou'll apply through your loved one's county DCF office, either online through the Kansas Benefits Portal or by phone. Social Security and pension income count toward eligibility, but the program excludes the primary home and retirement savings when calculating assets.",
-      "savingsRange": "$298 – $1,789/month in 2026",
-      "savingsSource": "Maximum SNAP allotments for household sizes 1-8, October 2025-September 2026",
-      "savingsVerified": true,
+      "savingsRange": "$298/month maximum for one person (FY2026 limits)",
+      "savingsSource": "FY2026 federal SNAP maximums for the 48 contiguous states: $298/month for a one-person household rising to $1,789 for eight, plus $218 for each additional person. The minimum for eligible one- and two-person households is $24. Actual benefit depends on household size and the benefit calculation.",
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 60+",
@@ -741,7 +745,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings accounts. Kansas does apply a resource limit, $4,500 for a household with someone 60 or older or disabled and $3,000 otherwise. It does not apply at all to household members who receive SSI or TANF, and a household where everyone receives SSI or TANF is categorically eligible.",
         "Proof of Kansas residency (utility bill, lease, or state-issued document)",
         "Rent receipts or mortgage statements",
         "Utility bills (electric, gas, water, phone)",
@@ -754,22 +758,31 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Kansas DCF Customer Service",
+          "label": "Kansas DCF Benefits Assistance (start here)",
           "phone": "1-888-369-4777",
-          "description": "General questions about SNAP benefits and applications",
-          "hours": "Mon-Fri 8am-5pm CT"
+          "description": "Answers food assistance questions and will mail you a paper application. It cannot take the application itself. Apply online at dcfapp.kees.ks.gov, on form ES-3100.6, or at a DCF Service Center. DCF publishes no hours for this line."
+        },
+        {
+          "label": "Kansas DCF Customer Service",
+          "phone": "1-833-765-2003",
+          "description": "Office of Client Services, for complaints and service issues."
         },
         {
           "label": "Kansas 2-1-1",
           "phone": "2-1-1",
-          "description": "Free helpline for all social services and benefit programs",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 7am-7pm CT",
+          "description": "United Way of the Plains. The online directory at 211Kansas.org is available anytime."
         },
         {
-          "label": "USDA SNAP Hotline",
+          "label": "USDA SNAP Toll-free Information Number",
           "phone": "1-800-221-5689",
-          "description": "National SNAP information and complaints",
-          "hours": "Mon-Fri 9am-5pm ET"
+          "description": "National information line. It does not take applications; states do."
+        },
+        {
+          "label": "USDA National Hunger Hotline",
+          "phone": "1-866-348-6479",
+          "hours": "Mon-Fri 8am-8pm ET",
+          "description": "1-866-3-HUNGRY, operated by Hunger Free America."
         }
       ],
       "applicationNotes": [
@@ -831,7 +844,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-888-369-4777",
       "sourceUrl": "https://www.dcf.ks.gov/services/ees/Pages/Food/FoodAssistance.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "liheap-energy-assistance",
@@ -2394,12 +2408,12 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Medicare Savings Programs (MSP)",
-        "programId": "medicare-savings-programs-msp",
+        "programId": "medicare-savings-programs-qmb-slmb-qi",
         "why": "Can save your loved one $2,000+ per year on Medicare costs and has the highest income limits of Kansas's major benefit programs."
       },
       {
         "name": "Senior Health Insurance Counseling for Kansas (SHICK)",
-        "programId": "senior-health-insurance-counseling-shick",
+        "programId": "shick-medicare-counseling",
         "why": "Free Medicare guidance available to all Kansas seniors, no income requirements and can prevent costly insurance mistakes."
       },
       {
@@ -2409,7 +2423,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Food Assistance (SNAP)",
-        "programId": "food-assistance-snap",
+        "programId": "snap-food-assistance",
         "why": "Provides up to $298 monthly for groceries with relatively straightforward qualification process."
       }
     ],

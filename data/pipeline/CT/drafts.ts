@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/CT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.508Z
+ * Last updated: 2026-09-03T11:25:55.868Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -69,12 +69,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at portal.ct.gov/HUSKY or call 1-877-284-4911 for enrollment assistance.",
+        "summary": "Apply online at portal.ct.gov/HUSKY or call DSS on 1-855-626-6632, Monday, Tuesday, Thursday and Friday, 7:30am to 4:30pm.",
         "steps": [
           {
             "step": 1,
             "title": "Choose your application method",
-            "description": "Apply online at portal.ct.gov/HUSKY or www.accesshealthct.com, or call Connecticut Health Care Referrals at 1-877-284-4911 for phone assistance."
+            "description": "Apply online at portal.ct.gov/HUSKY, or call DSS on 1-855-626-6632. Do not use Access Health CT: Connecticut scopes it to children, pregnant women, and adults under 65."
           },
           {
             "step": 2,
@@ -84,7 +84,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 3,
             "title": "Complete the application",
-            "description": "Fill out the full application through Access Health CT or directly with the Department of Social Services. Be specific about what type of coverage you need (standard health coverage vs. long-term care)."
+            "description": "Fill out the full application with the Department of Social Services. Be specific about what type of coverage you need (standard health coverage vs. long-term care)."
           },
           {
             "step": 4,
@@ -104,10 +104,6 @@ export const drafts: PipelineStateDrafts = {
           {
             "label": "HUSKY Health Application Portal",
             "url": "https://portal.ct.gov/HUSKY"
-          },
-          {
-            "label": "Access Health CT",
-            "url": "https://www.accesshealthct.com"
           }
         ]
       },
@@ -116,7 +112,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of age (birth certificate, passport, or driver's license)",
         "Proof of Connecticut residency (utility bill, lease, or voter registration)",
         "Social Security award letter or SSDI determination letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, IRA statements)",
         "Property documents (deeds, tax statements for any real estate)",
         "Vehicle titles and registration",
@@ -130,25 +126,25 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Connecticut Health Care Referrals",
-          "phone": "(877) 284-4911",
-          "description": "HUSKY Health inquiries and enrollment assistance",
-          "hours": "Business hours"
+          "label": "DSS Client Information Line and Benefits Center (start here)",
+          "phone": "(855) 626-6632",
+          "hours": "Mon, Tue, Thu, Fri 7:30am-4:30pm ET",
+          "description": "1-855-6-CONNECT. This is the line Connecticut publishes for people over 65, blind, or with a disability who want to apply for or renew HUSKY C, the Medicare Savings Program, or MED-Connect."
+        },
+        {
+          "label": "Connecticut Home Care Program for Elders",
+          "phone": "(800) 445-5394",
+          "hours": "Mon-Fri 8am-4pm ET",
+          "description": "Press option 4 for referrals, option 2 for financial eligibility. Considers both Medicaid and state-funded home care pathways."
         },
         {
           "label": "Connecticut 2-1-1",
           "phone": "2-1-1",
-          "description": "Free helpline for all social services and benefit programs",
           "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "Department of Social Services",
-          "phone": "(855) 626-6632",
-          "description": "General DSS customer service line",
-          "hours": "Mon-Fri 7am-6pm ET"
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Working disabled individuals may qualify for MED-Connect with higher income limits (up to $85,000/year) but may owe monthly premiums",
         "If your loved one needs Long-Term Services & Supports, expect a detailed 5-year financial review including all income and asset transfers",
         "Married couples applying for LTSS get special protections for the community spouse's income and assets under CSPA rules",
@@ -197,7 +193,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens if my loved one's income is slightly over the limit?",
-          "answer": "Your loved one may still qualify through a spend-down process, where they pay their excess income toward medical bills each month. The exact amount depends on how much they're over the limit. Call 1-877-284-4911 to discuss spend-down options."
+          "answer": "Your loved one may still qualify through a spend-down process, where they pay their excess income toward medical bills each month. The exact amount depends on how much they're over the limit. Call DSS on 1-855-626-6632 to discuss spend-down options."
         },
         {
           "question": "Can I apply for HUSKY Health C and Medicare Savings Programs at the same time?",
@@ -233,10 +229,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "Stethoscope",
-      "phone": "(877) 284-4911",
+      "phone": "(855) 626-6632",
       "sourceUrl": "https://portal.ct.gov/HUSKY/How-to-Qualify",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "chcpe-medicare-savings",
@@ -354,7 +351,6 @@ export const drafts: PipelineStateDrafts = {
         "Birth certificate or passport for age verification",
         "Proof of Connecticut residency (utility bill, lease, or driver's license)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property deeds and tax assessments",
         "Life insurance policies with cash values",
@@ -368,7 +364,7 @@ export const drafts: PipelineStateDrafts = {
       "contacts": [
         {
           "label": "CT Department of Social Services",
-          "phone": "1-855-626-6632",
+          "phone": "1-800-445-5394",
           "description": "CHCPE applications and general program information",
           "hours": "Mon-Fri 8am-4:30pm ET"
         },
@@ -386,6 +382,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "State-funded services can start while you wait for Medicaid waiver approval, don't delay applying if your loved one needs immediate help",
         "Excess assets can be spent down on any goods or services for your loved one or spouse, no requirement to spend only on medical care",
         "Medicare Savings Program has no asset limits or estate recovery, unlike the home care component",
@@ -441,173 +438,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "1-855-626-6632",
+      "phone": "1-800-445-5394",
       "sourceUrl": "https://portal.ct.gov/dss/health-and-home-care/connecticut-home-care-program-for-elders/connecticut-home-care-program-for-elders-chcpe",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-07"
-    },
-    {
-      "id": "pace-comprehensive-care",
-      "name": "Program of All-Inclusive Care for the Elderly (CT PACE)",
-      "shortName": "CT PACE",
-      "tagline": "Your loved one gets all medical care, medications, and support services through one coordinated team, no copays, no provider juggling.",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false
-      },
-      "intro": "If your loved one needs nursing home-level care but wants to stay home, CT PACE provides everything through one team: doctors, specialists, medications, therapy, transportation, even adult day care. Because PACE coordinates all services, your loved one never bounces between providers or pays copays for covered care.\n\nYour loved one must be 55+ and medically qualify for nursing home care, but there are no income limits. If they have Medicaid, it's completely free. Without Medicaid, they pay a monthly premium but still get zero copays for all PACE services. The catch: PACE is only available in specific areas of Connecticut, not statewide.\n\nOnce enrolled, PACE becomes your loved one's sole healthcare provider, they can't use outside doctors for covered services. But they can leave PACE anytime if it's not working.",
-      "savingsRange": "",
-      "savingsSource": "Comprehensive medical service coverage",
-      "savingsVerified": false,
-      "structuredEligibility": {
-        "summary": [
-          "Age 55+",
-          "Nursing home level of care",
-          "Live in PACE service area",
-          "Can live safely at home with support"
-        ],
-        "ageRequirement": "55+",
-        "incomeTable": null,
-        "assetLimits": null,
-        "functionalRequirement": "Must be certified as needing nursing facility level of care, a clinical assessment of whether your loved one needs daily help with bathing, dressing, medication management, or other essential activities",
-        "otherRequirements": [
-          "Must live in a PACE organization service area",
-          "Must be able to live safely in the community with PACE services",
-          "Cannot be enrolled in Medicare Advantage or Medicare prescription drug plan",
-          "Cannot be receiving hospice services"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "phone",
-        "summary": "Contact your local PACE organization directly, they handle everything from eligibility screening to enrollment.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Find your local PACE organization",
-            "description": "Use the online eligibility test at medicaidlongtermcare.org or contact Connecticut's Department of Social Services to locate PACE programs in your area."
-          },
-          {
-            "step": 2,
-            "title": "Call for initial screening",
-            "description": "The PACE organization will do a phone screening to check basic eligibility, age, location, and preliminary care needs assessment."
-          },
-          {
-            "step": 3,
-            "title": "Schedule comprehensive assessment",
-            "description": "If initially eligible, PACE's interdisciplinary team conducts an in-person evaluation to determine if your loved one meets nursing facility level of care."
-          },
-          {
-            "step": 4,
-            "title": "Complete enrollment",
-            "description": "Once approved, PACE develops a comprehensive care plan within 30 days and begins coordinating all services."
-          }
-        ],
-        "processingTime": "Comprehensive assessment and care plan development within 30 days of enrollment",
-        "waitlist": null,
-        "tip": "Ask specifically about Medicare Advantage, your loved one must disenroll from any Medicare Advantage plan before joining PACE.",
-        "urls": [
-          {
-            "label": "Eligibility Test",
-            "url": "https://medicaidlongtermcare.org"
-          },
-          {
-            "label": "National PACE Directory",
-            "url": "https://www.npaonline.org"
-          }
-        ]
-      },
-      "documentsNeeded": [
-        "Medicare card",
-        "Medicaid card (if enrolled)",
-        "Social Security card",
-        "Valid government-issued photo ID or driver's license",
-        "Proof of Connecticut residency (utility bill or lease agreement)",
-        "List of current medications with dosages",
-        "Medical records from primary care doctor",
-        "Recent hospital discharge summaries (if applicable)",
-        "Documentation of current health conditions and diagnoses",
-        "Insurance cards for any supplemental coverage",
-        "Power of attorney documents (if family member is applying)",
-        "Guardian or conservatorship papers (if applicable)"
-      ],
-      "contacts": [
-        {
-          "label": "Connecticut 2-1-1",
-          "phone": "2-1-1",
-          "description": "24/7 helpline for social services, can help locate PACE programs in your area",
-          "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "National PACE Association",
-          "phone": "(703) 535-1565",
-          "description": "National organization with Connecticut PACE program directory",
-          "hours": "Mon-Fri 9am-5pm ET"
-        }
-      ],
-      "applicationNotes": [
-        "You cannot be enrolled in both PACE and Medicare Advantage, your loved one must choose one or the other",
-        "If your loved one has Medicaid, Connecticut may place a lien on their estate to recover PACE costs after death",
-        "PACE is not available everywhere in Connecticut, service area availability varies significantly by region",
-        "Your loved one can leave PACE at any time, but re-enrollment is not guaranteed if they want to return later"
-      ],
-      "relatedPrograms": [
-        "Connecticut Home Care Program for Elders",
-        "Money Follows the Person",
-        "Connecticut Medicaid Waiver Programs",
-        "Medicare Extra Help"
-      ],
-      "contentSections": [],
-      "faqs": [
-        {
-          "question": "Can my loved one keep seeing their current doctor after joining PACE?",
-          "answer": "No. PACE becomes your loved one's sole healthcare provider for all covered services. They must use PACE doctors, specialists, and facilities. This is the trade-off for coordinated care with no copays."
-        },
-        {
-          "question": "What happens if my loved one lives outside a PACE service area?",
-          "answer": "They cannot enroll. PACE is only available where PACE organizations operate, which is not statewide in Connecticut. Contact 2-1-1 to check if PACE serves your loved one's zip code."
-        },
-        {
-          "question": "How much does PACE cost if my loved one doesn't have Medicaid?",
-          "answer": "Non-Medicaid participants pay a monthly premium, but the exact amount varies by PACE organization and isn't publicly listed. Contact your local PACE program for current rates. Once enrolled, there are no deductibles or copays."
-        },
-        {
-          "question": "Can I apply for PACE while my loved one is still in the hospital?",
-          "answer": "Yes. Hospital discharge planners often help initiate PACE applications. The key is proving your loved one can live safely in the community with PACE services, even if they currently need hospital-level care."
-        },
-        {
-          "question": "What if my loved one's care needs increase after they're enrolled?",
-          "answer": "PACE continuously adjusts services as needs change, that's the program's strength. The interdisciplinary team reassesses regularly and adds services like more home care hours or adult day care without additional paperwork."
-        },
-        {
-          "question": "Does PACE cover my loved one's spouse who doesn't need nursing home-level care?",
-          "answer": "No. Each spouse must qualify individually. If only one spouse meets the nursing facility level of care requirement, only that spouse can enroll in PACE."
-        },
-        {
-          "question": "Can my loved one use Medicare Advantage and PACE together?",
-          "answer": "Absolutely not. Your loved one must disenroll from any Medicare Advantage plan, Medicare prepayment plan, or Medicare prescription drug plan before joining PACE. They cannot be in both programs simultaneously."
-        },
-        {
-          "question": "What happens to my loved one's estate if they have Medicaid and use PACE?",
-          "answer": "Connecticut may place a lien or claim against your loved one's estate (including their home) to recover PACE costs paid by Medicaid. This is part of Medicaid estate recovery rules, not specific to PACE."
-        }
-      ],
-      "layoutIntent": {
-        "aboutHighlight": "coverage",
-        "eligibilityDisplay": "simple-list",
-        "applyDisplay": "step-journey",
-        "hasLocationFinder": true,
-        "hasDocumentChecklist": true,
-        "visualTone": "editorial"
-      },
-      "icon": "Stethoscope",
-      "phone": "2-1-1",
-      "sourceUrl": "https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "snap-food-benefits",
@@ -627,8 +462,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one is struggling to afford groceries on Social Security or a pension, SNAP provides monthly benefits loaded onto an EBT card for food purchases. A single person can receive up to $298 per month, while a two-person household can get up to $546 monthly, the exact amount depends on income after deductions like medical expenses and housing costs.\n\nConnecticut makes SNAP easier for seniors by allowing households with someone 60 or older to skip the strict gross income test and offering a simplified application. Your loved one can use SNAP benefits at grocery stores for food items (not prepared meals, alcohol, or tobacco), making their Social Security check stretch further each month.",
-      "savingsRange": "$298 – $1,789/month in 2026",
-      "savingsSource": "Maximum monthly SNAP allotments by household size",
+      "savingsRange": "Up to $298/month for one person, up to $1,789/month for eight, in FY2026",
+      "savingsSource": "USDA FY2026 maximum monthly allotments, 48 states and DC, effective Oct 1 2025 through Sep 30 2026: $298 for one person rising to $1,789 for eight. These are ceilings, not typical awards. Most households receive less, because the amount depends on income and deductions.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -698,7 +533,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Choose your application method",
-            "description": "Online: portal.ct.gov/Apply (fastest). Phone: Call 2-1-1 or 877-423-4746. In-person: Visit your local DSS office. If you're 60+, ask for the Elderly Simplified Application Project (ESAP) form, it's shorter."
+            "description": "Online: portal.ct.gov/Apply (fastest). Phone: Call 2-1-1 for help finding an office, or DSS at 1-855-626-6632 (Mon-Fri 8am-4pm) once you have applied. In-person: Visit your local DSS office. If you're 60+, ask for the Elderly Simplified Application Project (ESAP) form, it's shorter."
           },
           {
             "step": 2,
@@ -753,20 +588,14 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "DSS Customer Service (start here)",
           "phone": "(855) 626-6632",
-          "description": "General benefits questions and account issues",
-          "hours": "Monday-Friday 8am-4:30pm"
+          "description": "Questions about an application you already filed, and booking your interview. The fastest way to apply is online at connect.ct.gov. Phones close at 4pm; DSS field offices stay open until 4:30pm.",
+          "hours": "Monday-Friday 8am-4pm"
         },
         {
           "label": "Connecticut 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for SNAP applications and all social services",
           "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "CT SNAP Hotline",
-          "phone": "(877) 423-4746",
-          "description": "SNAP-specific questions and application assistance",
-          "hours": "Monday-Friday 8am-4:30pm"
         }
       ],
       "applicationNotes": [
@@ -828,7 +657,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 626-6632",
       "sourceUrl": "https://portal.ct.gov/dss/snap",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "energy-assistance-ceap",
@@ -1438,7 +1268,6 @@ export const drafts: PipelineStateDrafts = {
         "Social Security award letters or other income verification",
         "Physician Statement form with dementia diagnosis confirmation",
         "Completed program application form",
-        "Bank statements showing liquid assets (last 3 months)",
         "Investment account statements if applicable",
         "Power of Attorney documentation if someone else is applying",
         "Conservatorship papers if applicable"
@@ -1464,6 +1293,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you.",
         "Income limits vary in sources, one cites $58,772 annually while another shows $48,266, so verify the current limit when you apply",
         "Funding depends on available state budget, so approval isn't guaranteed even if you meet all requirements",
         "You cannot receive this program and Connecticut Homecare Program for Elders simultaneously, choose the one that better fits your needs",
@@ -1523,7 +1353,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://portal.ct.gov/ads/knowledge-base/articles/independent-living-services/healthy-living-services/connecticut-statewide-respite-care",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-07"
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "scsep-employment-training",
@@ -1784,22 +1614,22 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "HUSKY Health (Medicaid for seniors/disabled)",
-        "programId": "husky-health",
+        "programId": "husky-health-medicaid-seniors",
         "why": "Covers all medical care plus long-term care services that can cost $100,000+ annually out-of-pocket."
       },
       {
         "name": "SNAP (Supplemental Nutrition Assistance Program)",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Fastest benefit to apply for with immediate monthly grocery assistance up to $298."
       },
       {
         "name": "Connecticut Home Care Program for Elders (CHCPE)",
-        "programId": "chcpe",
+        "programId": "chcpe-medicare-savings",
         "why": "Provides home care services plus Medicare savings to prevent costly nursing home placement."
       },
       {
         "name": "CHOICES (CT SHIP)",
-        "programId": "choices",
+        "programId": "choices-ship",
         "why": "Free service available to everyone that can save hundreds annually on Medicare costs."
       }
     ],

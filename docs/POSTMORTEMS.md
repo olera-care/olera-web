@@ -422,3 +422,86 @@ A secondary self-inflicted wound: I diagnosed "94 zombie tsc processes" from `pg
 **Lesson**: Don't put the slow, flaky thing upstream of the thing the user is waiting for. A verification step that can hang must never sit between the work and the push — commit/push first, verify second.
 
 ---
+
+### 2026-08-20: Near-miss — publish authorization arrived while the campaign was silently rolled back, and the Review screen called it "ready to publish"
+
+**Symptom**: Building Miracle-Lightstar's 90-day Google campaign, the budget step fired the documented `AD_FINAL_URL` re-auth. After TJ completed the passkey, the wizard's Review screen reported **"Your campaign is ready to publish"** with zero issues and no policy flag. Underneath, the ad had reverted to Google's prefill: an `Olera.care` headline (the classic policy denial), a description reading "A Great Choice For Home Care, Inc Youngstown Ohio" (a competitor's name and the wrong city), blank display paths, cleared budget, and **0 keywords**. TJ gave publish authorization during this window. Publishing then would have put a broken, competitor-naming ad live against a real provider's name.
+
+**Root Cause**: Two compounding failures.
+
+1. The `AD_FINAL_URL` rollback itself was already documented in the SOP and in `project_managed_ads_setup_sop`. That part worked as warned.
+
+2. **The new one: a clean Review screen after a rollback is *caused by* the rollback, not evidence against it.** The wizard's issue list is derived from the campaign's actual contents. With keywords wiped to 0 and assets reverted to Google's own safe prefill, there is nothing left to flag — so the screen reads its cleanest at exactly the moment the campaign is most broken. The "ready to publish" string and the absent policy warning are both artifacts of emptiness.
+
+3. **My error on top of that**: I ran a policy check against that screen, got `policy: false`, and reported to TJ that the `24 hour home care cleveland` keyword "did NOT trip the health policy." That was confidently wrong. Once the 22 keywords were restored, Google immediately flagged `Health in personalized advertising`. I had inferred a property of the keyword set from a screen that no longer contained the keyword set.
+
+**Fix**: Did not publish on the authorization. Re-opened the ads step through the in-app left-nav (never a `currentStep=` URL rewrite, per the 2026-07-23 root cause), confirmed the rollback field-by-field, rebuilt all 13 headlines / 4 descriptions / 20 keywords / both display paths / the $1.67 daily budget, and only then re-read the Review screen — which now correctly surfaced the policy block naming two keywords. Removed those two, published as campaign `24151612515`, and read the max CPC bid limit back at source ($2.50).
+
+**Time to Resolution**: ~20 minutes from re-auth to clean publish. The detection itself was immediate because the SOP told me to look; the cost was the rebuild, not the diagnosis.
+
+**Prevention**:
+
+1. **SOP rule added**: never read the Review screen's issue list as meaningful until the ads step has been asserted populated — `Headlines n/15`, `Descriptions n/4`, keyword count > 0, and no headline equal to `Olera.care`. An empty campaign always looks compliant. Order is: verify contents, *then* read issues.
+2. **SOP rule added**: treat a *newly clean* Review immediately after any Google identity challenge as positive evidence of rollback, not of health. The suspicious signal is issues disappearing, not appearing.
+3. **Health-policy trigger narrowed and recorded**: Google flagged exactly `24 hour home care cleveland` and `in home care cleveland heights`, while `24 hour senior care cleveland` and `senior home care cleveland heights` passed in the same ad group. So the trigger is the literal string "24 hour home care", not "24 hour" generally — and the Cleveland Heights hit contains no health term at all, so the classifier is not purely lexical. Do not generalize from one blocked keyword to a whole pattern.
+4. **Tooling note added**: `/aw/settings?campaignId=X` still hangs under the automation profile, but clicking **Campaign settings** from `/aw/adgroups?campaignId=X` loads the settings panel **inline** and works. This is now the reliable way to read back the max CPC bid limit that Phase 3G step 0 requires.
+
+**Lesson**: A verification screen that derives its output from the thing you are verifying cannot detect that the thing is missing. When state can silently vanish, check for presence before you check for problems — absence of errors and absence of content look identical from the outside.
+
+---
+
+### 2026-08-20: "Has photos" passed four providers whose landing pages were all wasting the clicks
+
+**Symptom**: Built and published two 90-day Ad Boost campaigns, then looked at the provider pages the ads point at. All four providers in the batch satisfied the SOP's Phase 1 pre-flight (`has photos (metadata.images)`), and all four had a landing-page defect serious enough to undermine the traffic being bought. The check that passed them counted images. Nobody had looked at one.
+
+**Root Cause**: The pre-flight tested for the *presence* of an array, not the *content* of it. Presence and suitability are different properties, and only one of them was being measured — the same class of error as the near-miss earlier the same day, where a clean Review screen was clean because it was empty. Both times the check answered a question adjacent to the one that mattered.
+
+What looking actually found:
+
+- **Miracle-Lightstar** — 5 of 13 images were photographs of printed tri-fold marketing flyers, complete with QR codes and his phone number burnt into the pixels. 7 were stock models in scrubs. 1 was the logo. **His hero image was a picture of a brochure.** Not one real photograph of his business, his staff, or his clients.
+- **Graceful** — every image real, well shot, full resolution, and of *a facility*: a thirty-table dining hall, a twenty-chair activity lounge, a multi-storey atrium. She sells non-medical care in the client's own home. This is the dangerous case, because "authentic and off-message" survives every automated check that "stock" would fail.
+- **Pacesetter** — her two genuine professional headshots, one against a branded wall, were her two smallest files (271×312 and 284×308) and last in the gallery, behind a parking-lot exterior and two clinical stock images (hospital bed, stethoscope) for a business that is explicitly non-medical.
+- **Edmonds Villa** — all fourteen genuinely hers, and the running order buried the good one: hero was an empty room of banquet tables, second image was a crock pot, and the single photo of residents eating with caregivers sat fourth. Four of fourteen were bathrooms; one was propane tanks.
+
+A second, systematic defect surfaced in the same pass: **the hero chip renders `care_types[0]` verbatim.** All four were wrong, including `"home-care"` (the raw lowercase slug, which reads to a family as a broken page) and `"Memory Care"` on the one provider whose ads legally cannot mention it.
+
+**Fix**: Phase 1 of `.claude/commands/ad-boost-setup.md` gains steps 1a, 1b and 1c — view the images as a contact sheet rather than counting them, check `image[0]` specifically because it is the entire first impression, verify the subject matches what the provider sells, read `care_types[0]` as the hero chip, and check whether trust signals exist. The four cases above are recorded as the worked examples.
+
+**Prevention**: The reusable rule is in the SOP as a heading: **a count is not a check.** Any pre-flight that asserts a field is non-empty should say what it is *not* verifying, so the gap is visible rather than implied. Downloading and viewing a whole gallery costs one image read via a PIL contact sheet, which is cheaper than one wasted flight.
+
+Also worth keeping: **PIL ignores EXIF orientation and browsers honour it.** A contact sheet made one hero look rotated 90°; the file carried `Orientation=6` and renders correctly in a browser. Check the EXIF tag before reporting a rotation bug — this is the second time an image has been misdiagnosed from a non-browser rendering, after the 2026-07-26 "blank hero" that was only slow optimization.
+
+**Lesson**: A pre-flight that asks "is there something here?" will pass every case where there is something wrong here. If the thing being checked is what the customer sees, the check has to be looking at it.
+
+---
+
+### 2026-08-28: Declared Nextdoor unreachable when the only broken thing was our own browser
+
+**Symptom**: Mid-way through an Ad Boost paid-media audit, Nextdoor Ads Manager would not load. `ads.nextdoor.com` rendered nothing but `Application error: a client-side exception has occurred`, through repeated reloads and three URL variants. I reported the Nextdoor half of the audit as unverifiable, labelled every Nextdoor figure as sourced from our own DB and build notes, and handed the browser back to TJ with an instruction to disable a content blocker and sign in. TJ pushed back: *"I'm absolutely sure you can't boot up Nextdoor... I use ChatGPT Codex to drive a browser to open Nextdoor. Why can we do this on our end?"* He was right. Nextdoor was reachable the whole time.
+
+**Root Cause**: Two failures stacked.
+
+1. **The technical one.** Dia — the browser the `/open-dia` skill drives — ships a built-in content blocker. Blocklists match hostnames beginning `ads.`, so Nextdoor's *advertiser dashboard* is a textbook false positive: the blocker ate the app's own first-party scripts and XHR, React threw, and the generic error boundary rendered. `ERR_BLOCKED_BY_CONTENT_BLOCKER` is a client-side refusal — **our** browser declining to make the request. Vanilla Chromium does not even emit that error string.
+
+2. **The reasoning one, which is the real lesson.** I diagnosed from three console lines and stopped. I never ran `list_network_requests` to see *which* URLs were blocked — the one check that separates "our blocker is eating the app" from "an unrelated third-party script failed." Worse, I treated the browser as a fixed constraint. The MCP is configured `--browserUrl http://127.0.0.1:9222`: **the port is the contract and the browser behind it is a free variable.** Codex isn't doing anything clever — it drives plain Chromium with no blocker. That option was available to me from the first minute and I never considered it, because "the browser" registered as environment rather than as a choice.
+
+A third thing fell out of investigating properly: I had also been wrong about *what* I was driving. `curl` to 9222 returned nothing and no process carried automation flags, because the automation instance had already exited. I had spent the session assuming a browser identity I never verified.
+
+**Fix**: Launched vanilla Chrome on the same port with a dedicated fresh profile, made one tool call, and the MCP reattached with no `/mcp` reconnect (args already matched). Nextdoor's login form rendered immediately; console showed zero `ERR_BLOCKED_BY_CONTENT_BLOCKER` and only benign third-party analytics CORS noise.
+
+What that unlocked was not cosmetic. The audit's entire Nextdoor section had been wrong:
+- Not a per-provider silo requiring separate logins — a single **Olera business with 6 child ad accounts** under one login. A standing "needs its own account + payment method" blocker in Miracle-Lightstar's build notes was stale; the account existed and a campaign was already built in it.
+- The Graceful pilot's recorded numbers were wrong in every field: **$50.00 not $35.66, 134 clicks not 101, Aug 14–17 not Aug 14–21.** It burned the full budget in 4 days, not 8.
+- **Five Nextdoor campaigns are Active for Sep 1–7, fully built with ads and budget, with zero rows in `ad_campaign_requests`.** I had seen their UTM tags in analytics earlier the same session and explicitly dismissed them as "URL previews, not campaigns."
+
+**Time to Resolution**: ~10 minutes once I actually questioned the premise. The first attempt consumed roughly an hour and produced a wrong answer plus a request for TJ to do work that was mine.
+
+**Prevention**:
+
+1. `~/.claude/skills/open-dia/SKILL.md` — new failure mode **"Site loads blank / Application error — ERR_BLOCKED_BY_CONTENT_BLOCKER"** with the copy-paste Chrome-on-9222 launch, and the three traps that cost time: zsh eats an unquoted `--remote-allow-origins=*`; never repoint Chrome at the Dia-written `chrome-profile` dir (Chrome may migrate it and destroy saved sign-ins); a fresh profile has no sessions, which is free when the site was showing a login wall anyway.
+2. Same skill, promoted into **Startup sequence** so it is read before anything breaks: *the port is the contract; the browser behind it is yours to choose.* Dia is the default because its profile holds the sign-ins, not because it is required. Plus: **never assume which browser you're driving** — verify via `curl /json/version` or `navigator.brave`.
+3. Standing diagnostic rule added: **three console lines are not a diagnosis.** Before blaming a site or handing a task back, enumerate blocked requests. First-party app resources blocked ⇒ our blocker. Third-party analytics blocked ⇒ noise, look elsewhere.
+
+**Lesson**: "I can't reach it" is a claim about the tool as often as about the target, and the tool is usually the half you control. Before reporting a capability limit, check whether the constraint is something you chose — a browser, a profile, a port — rather than something you were handed.
+
+---

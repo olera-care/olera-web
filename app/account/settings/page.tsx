@@ -170,6 +170,10 @@ export default function AccountSettingsPage() {
   const [googleSaving, setGoogleSaving] = useState(false);
   const [googleError, setGoogleError] = useState("");
   const [showGoogleConfirm, setShowGoogleConfirm] = useState(false);
+  // Re-pointing an existing connection. The server allows it only when the new
+  // listing sits at the profile's own street address, so this is a guarded
+  // change, not the old "contact support" dead end.
+  const [googleChanging, setGoogleChanging] = useState(false);
 
 
   // ── Notification toggle (optimistic — flips instantly, persists in background) ──
@@ -387,6 +391,7 @@ export default function AccountSettingsPage() {
       setShowGoogleConfirm(false);
       setGooglePlaceIdInput(null);
       setGoogleSelectedName(null);
+      setGoogleChanging(false);
     } catch (err) {
       setGoogleError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
@@ -658,7 +663,7 @@ export default function AccountSettingsPage() {
                       )}
                     </div>
 
-                    {hasGooglePlaceId ? (
+                    {hasGooglePlaceId && !googleChanging ? (
                       /* ── Connected state ── */
                       <div>
                         <p className="text-sm text-gray-500 mb-3">
@@ -670,19 +675,25 @@ export default function AccountSettingsPage() {
                               {googleMetadata.place_id}
                             </span>
                           </p>
-                          <a
-                            href="mailto:support@olera.care?subject=Change%20Google%20Business%20Profile"
-                            className="text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors"
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setGoogleChanging(true);
+                              setGoogleError("");
+                            }}
+                            className="text-[14px] font-medium text-primary-600 hover:text-primary-700 transition-colors shrink-0 ml-4"
                           >
-                            Contact support to change
-                          </a>
+                            Change
+                          </button>
                         </div>
                       </div>
                     ) : (
                       /* ── Not connected state ── */
                       <div>
                         <p className="text-sm text-gray-500 mb-3">
-                          Connect your Google Business Profile to have review requests direct families to leave reviews on Google instead of Olera.
+                          {googleChanging
+                            ? "Pick the Google listing for this business. It has to be at the address on your profile."
+                            : "Connect your Google Business Profile to have review requests direct families to leave reviews on Google instead of Olera."}
                         </p>
 
                         {showGoogleConfirm && googleSelectedName ? (
@@ -694,10 +705,12 @@ export default function AccountSettingsPage() {
                               </svg>
                               <div>
                                 <p className="text-sm font-semibold text-amber-900">
-                                  Connect &quot;{googleSelectedName}&quot;?
+                                  {googleChanging ? "Change to" : "Connect"} &quot;{googleSelectedName}&quot;?
                                 </p>
                                 <p className="text-sm text-amber-700 mt-1">
-                                  This cannot be changed later. Once connected, you&apos;ll need to contact support to change your Google Business Profile.
+                                  {googleChanging
+                                    ? "Your reviews and rating will come from this listing instead. It has to be at the address on your profile, so update that first if you have moved."
+                                    : "Your reviews and rating will come from this listing. You can change it later as long as the new listing is at your profile's address."}
                                 </p>
                               </div>
                             </div>
@@ -716,6 +729,7 @@ export default function AccountSettingsPage() {
                                   setGooglePlaceIdInput(null);
                                   setGoogleSelectedName(null);
                                   setGoogleError("");
+                                  setGoogleChanging(false);
                                 }}
                                 disabled={googleSaving}
                                 className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors disabled:opacity-50"
@@ -728,13 +742,20 @@ export default function AccountSettingsPage() {
                                 disabled={googleSaving || !googlePlaceIdInput}
                                 className="px-4 py-2 bg-gray-900 hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg text-sm font-medium text-white transition-colors"
                               >
-                                {googleSaving ? "Connecting..." : "Yes, connect permanently"}
+                                {googleSaving
+                                  ? googleChanging ? "Changing..." : "Connecting..."
+                                  : googleChanging ? "Yes, change it" : "Yes, connect"}
                               </button>
                             </div>
                           </div>
                         ) : (
                           /* ── Search step ── */
                           <div>
+                            {googleError && (
+                              <div className="mb-3 p-2 bg-red-50 border border-red-100 rounded-lg text-sm text-red-700">
+                                {googleError}
+                              </div>
+                            )}
                             <GooglePlaceSearch
                               value={null}
                               selectedName={null}
@@ -748,6 +769,18 @@ export default function AccountSettingsPage() {
                                 setGoogleSelectedName(null);
                               }}
                             />
+                            {googleChanging && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setGoogleChanging(false);
+                                  setGoogleError("");
+                                }}
+                                className="mt-3 text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                              >
+                                Keep current listing
+                              </button>
+                            )}
                           </div>
                         )}
                       </div>

@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendSlackAlert, slackQuestionAnswered } from "@/lib/slack";
-import { sendEmail } from "@/lib/email";
-import { questionAnsweredEmail } from "@/lib/email-templates";
+import { notifyQuestionAskers } from "@/lib/notifications/question-answer-notifications.server";
 
 /**
  * GET /api/provider/questions
@@ -49,6 +48,7 @@ export async function GET(request: NextRequest) {
     // Parse status filter
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") || "all";
+    const requestedQuestionId = searchParams.get("id");
 
     // Use service client to bypass RLS for question lookups
     const db = getServiceClient();
@@ -68,12 +68,28 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Notification emails sent before topic deduplication contain a legacy row
+    // ID. Resolve it for the Q&A page, but only when it belongs to this provider.
+    let resolvedQuestionId: string | null = null;
+    if (requestedQuestionId) {
+      const { data: requestedQuestion } = await db
+        .from("provider_questions")
+        .select("id, provider_id, canonical_question_id")
+        .eq("id", requestedQuestionId)
+        .maybeSingle();
+
+      if (requestedQuestion && providerIdVariants.includes(requestedQuestion.provider_id)) {
+        resolvedQuestionId = requestedQuestion.canonical_question_id || requestedQuestion.id;
+      }
+    }
+
     // Build query - match any of the possible provider_id formats
     // Include metadata for read tracking, answer_status for verification gating
     let query = db
       .from("provider_questions")
       .select("id, question, answer, asker_name, asker_email, status, is_public, answer_status, answered_at, created_at, updated_at, metadata")
       .in("provider_id", providerIdVariants)
+      .is("canonical_question_id", null)
       .order("created_at", { ascending: false });
 
     // Apply status filter
@@ -96,6 +112,7 @@ export async function GET(request: NextRequest) {
       questions: questions ?? [],
       providerSlug: profile.slug,
       profileId: profile.id,
+      requestedQuestionId: resolvedQuestionId,
     });
   } catch (err) {
     console.error("Provider questions GET error:", err);
@@ -161,15 +178,30 @@ export async function PATCH(request: NextRequest) {
     const db = getServiceClient();
 
     // Verify the question belongs to this provider
-    const { data: question, error: questionError } = await db
+    const { data: requestedQuestion, error: questionError } = await db
       .from("provider_questions")
-      .select("id, provider_id, question, answer, asker_name, asker_email")
+      .select("id, provider_id, question, answer, asker_name, asker_email, canonical_question_id")
       .eq("id", id)
       .single();
 
-    if (questionError || !question) {
+    if (questionError || !requestedQuestion) {
       console.error("Question lookup error:", questionError);
       return NextResponse.json({ error: "Question not found" }, { status: 404 });
+    }
+
+    let question = requestedQuestion;
+    if (requestedQuestion.canonical_question_id) {
+      const { data: canonicalQuestion, error: canonicalError } = await db
+        .from("provider_questions")
+        .select("id, provider_id, question, answer, asker_name, asker_email, canonical_question_id")
+        .eq("id", requestedQuestion.canonical_question_id)
+        .single();
+
+      if (canonicalError || !canonicalQuestion) {
+        console.error("Canonical question lookup error:", canonicalError);
+        return NextResponse.json({ error: "Question not found" }, { status: 404 });
+      }
+      question = canonicalQuestion;
     }
 
     // Check if question's provider_id matches any of our possible identifiers (slug, UUID, source_provider_id, or iOS slug)
@@ -186,8 +218,15 @@ export async function PATCH(request: NextRequest) {
       }
     }
 
-    if (!providerIdVariants.includes(question.provider_id)) {
-      console.error("Provider mismatch:", { questionProviderId: question.provider_id, providerIdVariants });
+    if (
+      !providerIdVariants.includes(requestedQuestion.provider_id) ||
+      !providerIdVariants.includes(question.provider_id)
+    ) {
+      console.error("Provider mismatch:", {
+        requestedQuestionProviderId: requestedQuestion.provider_id,
+        questionProviderId: question.provider_id,
+        providerIdVariants,
+      });
       return NextResponse.json({ error: "Not authorized to answer this question" }, { status: 403 });
     }
 
@@ -210,7 +249,7 @@ export async function PATCH(request: NextRequest) {
         answer_status: answerStatus,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", id)
+      .eq("id", question.id)
       .select("id, question, answer, asker_name, status, is_public, answer_status, answered_at, created_at")
       .single();
 
@@ -244,7 +283,7 @@ export async function PATCH(request: NextRequest) {
         profile_id: profile.id,
         event_type: "question_responded",
         metadata: {
-          question_id: id,
+          question_id: question.id,
           question_preview: question.question?.substring(0, 100),
           answer_preview: answer.trim().substring(0, 100),
           asker_name: question.asker_name,
@@ -260,26 +299,15 @@ export async function PATCH(request: NextRequest) {
     }
 
     if (shouldNotify) {
-
-      // Email the asker that their question was answered (fire-and-forget)
-      if (question.asker_email) {
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-        sendEmail({
-          to: question.asker_email,
-          subject: `${providerName} answered your question on Olera`,
-          html: questionAnsweredEmail({
-            askerName: question.asker_name || "there",
-            providerName,
-            question: question.question || "",
-            answer: answer.trim(),
-            providerUrl: `${siteUrl}/provider/${profile.slug}`,
-          }),
-          emailType: "question_answered",
-          recipientType: "family",
-          providerId: profile.slug,
-        }).catch((err: unknown) => {
-          console.error("Answer notification email failed:", err);
-        });
+      const notificationResult = await notifyQuestionAskers(db, {
+        questionId: question.id,
+        providerName,
+        providerSlug: profile.slug,
+        question: question.question || "",
+        answer: answer.trim(),
+      });
+      if (notificationResult.errors.length > 0) {
+        console.error("Answer notification errors:", notificationResult.errors);
       }
     }
 

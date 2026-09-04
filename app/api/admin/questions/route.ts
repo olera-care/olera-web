@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient, logAuditAction } from "@/lib/admin";
-import { sendEmail } from "@/lib/email";
-import { questionAnsweredEmail } from "@/lib/email-templates";
 import { generateProviderSlug } from "@/lib/slugify";
 import { US_STATES } from "@/lib/us-states";
+import { notifyQuestionAskers } from "@/lib/notifications/question-answer-notifications.server";
 
 /**
  * Humanize a provider_id that looks like a slug into a readable name.
@@ -57,7 +56,6 @@ function humanizeProviderId(providerId: string): string | null {
   // Return a labeled fallback so it's clear this is an unknown provider
   return `Unknown Provider (${providerId})`;
 }
-
 /**
  * GET /api/admin/questions
  *
@@ -102,14 +100,14 @@ export async function GET(request: NextRequest) {
       };
 
       const [pendingQuestions, needsEmailQuestions, deliveryIssuesQuestions, noContactQuestions, notInterestedQuestions, archivedQuestions, answeredQuestions, allQuestions] = await Promise.all([
-        applyDateFilters(db.from("provider_questions").select("provider_id, metadata").eq("status", "pending")).limit(50000),
-        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { needs_provider_email: true }).not("metadata", "cs", '{"email_dead":true}').not("metadata", "cs", '{"provider_not_interested":true}').not("metadata", "cs", '{"provider_no_contact":true}').neq("status", "archived").neq("status", "rejected")).limit(50000),
-        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { email_dead: true }).not("metadata", "cs", '{"provider_not_interested":true}').not("metadata", "cs", '{"provider_no_contact":true}').neq("status", "archived").neq("status", "rejected")).limit(50000),
-        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { provider_no_contact: true }).neq("status", "archived").neq("status", "rejected")).limit(50000),
-        applyDateFilters(db.from("provider_questions").select("provider_id").contains("metadata", { provider_not_interested: true }).neq("status", "archived").neq("status", "rejected")).limit(50000),
-        applyDateFilters(db.from("provider_questions").select("provider_id").eq("status", "archived")).limit(50000),
-        applyDateFilters(db.from("provider_questions").select("provider_id").in("status", ["answered", "approved"])).limit(50000),
-        applyDateFilters(db.from("provider_questions").select("provider_id")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id, metadata").is("canonical_question_id", null).eq("status", "pending")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").is("canonical_question_id", null).contains("metadata", { needs_provider_email: true }).not("metadata", "cs", '{"email_dead":true}').not("metadata", "cs", '{"provider_not_interested":true}').not("metadata", "cs", '{"provider_no_contact":true}').neq("status", "archived").neq("status", "rejected")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").is("canonical_question_id", null).contains("metadata", { email_dead: true }).not("metadata", "cs", '{"provider_not_interested":true}').not("metadata", "cs", '{"provider_no_contact":true}').neq("status", "archived").neq("status", "rejected")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").is("canonical_question_id", null).contains("metadata", { provider_no_contact: true }).neq("status", "archived").neq("status", "rejected")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").is("canonical_question_id", null).contains("metadata", { provider_not_interested: true }).neq("status", "archived").neq("status", "rejected")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").is("canonical_question_id", null).eq("status", "archived")).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").is("canonical_question_id", null).in("status", ["answered", "approved"])).limit(50000),
+        applyDateFilters(db.from("provider_questions").select("provider_id").is("canonical_question_id", null)).limit(50000),
       ]);
 
       // Helper to count unique providers
@@ -293,6 +291,7 @@ export async function GET(request: NextRequest) {
         let countQuery = db
           .from("provider_questions")
           .select("provider_id, metadata")
+          .is("canonical_question_id", null)
           .contains("metadata", { needs_provider_email: true })
           .not("metadata", "cs", '{"email_dead":true}')
           .not("metadata", "cs", '{"provider_not_interested":true}')
@@ -420,7 +419,7 @@ export async function GET(request: NextRequest) {
       }
 
       // Standard count query for non-needs_email filters
-      let countQuery = db.from("provider_questions").select("*", { count: "exact", head: true });
+      let countQuery = db.from("provider_questions").select("*", { count: "exact", head: true }).is("canonical_question_id", null);
       if (status) countQuery = (countQuery as any).eq("status", status);
       if (providerId) countQuery = (countQuery as any).eq("provider_id", providerId);
       if (searchSlugs) {
@@ -444,6 +443,7 @@ export async function GET(request: NextRequest) {
       let needsEmailQuery = db
         .from("provider_questions")
         .select("*")
+        .is("canonical_question_id", null)
         .contains("metadata", { needs_provider_email: true })
         .not("metadata", "cs", '{"email_dead":true}')
         .not("metadata", "cs", '{"provider_not_interested":true}')
@@ -709,6 +709,50 @@ export async function GET(request: NextRequest) {
         }
       }
 
+      // Fetch apollo_contact from provider_outreach_tracking for Apollo decision-maker lookup
+      // This is keyed by provider_id (olera-providers.provider_id), so we need to map via providerEditorIds
+      const apolloContactLookup: Record<string, {
+        email: string;
+        first_name: string | null;
+        last_name: string | null;
+        title: string | null;
+        linkedin_url: string | null;
+        found_at: string;
+      }> = {};
+      const apolloEmailSourceLookup: Record<string, string> = {};
+
+      const providerIdsForApollo = [...new Set(
+        Object.values(providerEditorIds).filter(Boolean)
+      )];
+
+      if (providerIdsForApollo.length > 0) {
+        const { data: outreachData } = await db
+          .from("provider_outreach_tracking")
+          .select("provider_id, apollo_contact, email_source")
+          .in("provider_id", providerIdsForApollo);
+
+        // Build lookup map from provider_id to outreach data
+        const outreachByProviderId = new Map<string, { apollo_contact: unknown; email_source: string | null }>();
+        for (const d of outreachData ?? []) {
+          if (d.provider_id) {
+            outreachByProviderId.set(d.provider_id, { apollo_contact: d.apollo_contact, email_source: d.email_source });
+          }
+        }
+
+        // Populate lookup for ALL slug variants that map to each provider_id
+        for (const [slug, editorId] of Object.entries(providerEditorIds)) {
+          if (editorId) {
+            const outreach = outreachByProviderId.get(editorId);
+            if (outreach?.apollo_contact) {
+              apolloContactLookup[slug] = outreach.apollo_contact as typeof apolloContactLookup[string];
+            }
+            if (outreach?.email_source) {
+              apolloEmailSourceLookup[slug] = outreach.email_source;
+            }
+          }
+        }
+      }
+
       const enriched = questions.map((q) => ({
         ...q,
         provider_name: providerNames[q.provider_id] || humanizeProviderId(q.provider_id),
@@ -717,6 +761,8 @@ export async function GET(request: NextRequest) {
         provider_phone: providerPhones[q.provider_id] || null,
         is_account_claimed: providerClaimStatus[q.provider_id] ?? false,
         verification_state: providerVerificationState[q.provider_id] || null,
+        apollo_contact: apolloContactLookup[q.provider_id] || null,
+        email_source: apolloEmailSourceLookup[q.provider_id] || null,
       }));
 
       return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts(dateFrom, dateTo) });
@@ -728,6 +774,7 @@ export async function GET(request: NextRequest) {
       let deliveryIssuesQuery = db
         .from("provider_questions")
         .select("*")
+        .is("canonical_question_id", null)
         .contains("metadata", { email_dead: true })
         .not("metadata", "cs", '{"provider_not_interested":true}')
         .neq("status", "archived")
@@ -886,6 +933,7 @@ export async function GET(request: NextRequest) {
       // Fetch email history for question notifications sent to these providers
       const providerEmailHistory: Record<string, Array<{
         id: string;
+        recipient: string | null;
         created_at: string;
         subject: string;
         delivered_at: string | null;
@@ -898,7 +946,7 @@ export async function GET(request: NextRequest) {
       if (uniqueProviderIdsForEmail.length > 0) {
         const { data: emailLogs } = await db
           .from("email_log")
-          .select("id, provider_id, created_at, subject, delivered_at, first_opened_at, bounced_at, complained_at")
+          .select("id, provider_id, recipient, created_at, subject, delivered_at, first_opened_at, bounced_at, complained_at")
           .in("provider_id", uniqueProviderIdsForEmail)
           .eq("email_type", "question_received")
           .eq("recipient_type", "provider")
@@ -912,6 +960,7 @@ export async function GET(request: NextRequest) {
           }
           providerEmailHistory[log.provider_id].push({
             id: log.id,
+            recipient: log.recipient,
             created_at: log.created_at,
             subject: log.subject,
             delivered_at: log.delivered_at,
@@ -919,6 +968,49 @@ export async function GET(request: NextRequest) {
             bounced_at: log.bounced_at,
             complained_at: log.complained_at,
           });
+        }
+      }
+
+      // Fetch apollo_contact from provider_outreach_tracking for Apollo decision-maker lookup
+      const apolloContactLookup: Record<string, {
+        email: string;
+        first_name: string | null;
+        last_name: string | null;
+        title: string | null;
+        linkedin_url: string | null;
+        found_at: string;
+      }> = {};
+      const apolloEmailSourceLookup: Record<string, string> = {};
+
+      const providerIdsForApollo = [...new Set(
+        Object.values(providerEditorIds).filter(Boolean)
+      )];
+
+      if (providerIdsForApollo.length > 0) {
+        const { data: outreachData } = await db
+          .from("provider_outreach_tracking")
+          .select("provider_id, apollo_contact, email_source")
+          .in("provider_id", providerIdsForApollo);
+
+        // Build lookup map from provider_id to outreach data
+        const outreachByProviderId = new Map<string, { apollo_contact: unknown; email_source: string | null }>();
+        for (const d of outreachData ?? []) {
+          if (d.provider_id) {
+            outreachByProviderId.set(d.provider_id, { apollo_contact: d.apollo_contact, email_source: d.email_source });
+          }
+        }
+
+        // Populate lookup for ALL slug variants that map to each provider_id
+        for (const [slug, editorId] of Object.entries(providerEditorIds)) {
+          if (editorId) {
+            const outreach = outreachByProviderId.get(editorId);
+            if (outreach?.apollo_contact) {
+              apolloContactLookup[slug] = outreach.apollo_contact as typeof apolloContactLookup[string];
+            }
+            if (outreach?.email_source) {
+              apolloEmailSourceLookup[slug] = outreach.email_source;
+            }
+          }
         }
       }
 
@@ -931,6 +1023,8 @@ export async function GET(request: NextRequest) {
         is_account_claimed: providerClaimStatus[q.provider_id] ?? false,
         verification_state: providerVerificationState[q.provider_id] || null,
         provider_email_history: providerEmailHistory[q.provider_id] || [],
+        apollo_contact: apolloContactLookup[q.provider_id] || null,
+        email_source: apolloEmailSourceLookup[q.provider_id] || null,
       }));
 
       return NextResponse.json({ questions: enriched, count, tabCounts: await getTabCounts(dateFrom, dateTo) });
@@ -941,6 +1035,7 @@ export async function GET(request: NextRequest) {
       let notInterestedQuery = db
         .from("provider_questions")
         .select("*")
+        .is("canonical_question_id", null)
         .contains("metadata", { provider_not_interested: true })
         .neq("status", "archived")
         .neq("status", "rejected")
@@ -1098,6 +1193,7 @@ export async function GET(request: NextRequest) {
       // Fetch email history for question notifications sent to these providers
       const providerEmailHistory: Record<string, Array<{
         id: string;
+        recipient: string | null;
         created_at: string;
         subject: string;
         delivered_at: string | null;
@@ -1110,7 +1206,7 @@ export async function GET(request: NextRequest) {
       if (uniqueProviderIdsForEmail.length > 0) {
         const { data: emailLogs } = await db
           .from("email_log")
-          .select("id, provider_id, created_at, subject, delivered_at, first_opened_at, bounced_at, complained_at")
+          .select("id, provider_id, recipient, created_at, subject, delivered_at, first_opened_at, bounced_at, complained_at")
           .in("provider_id", uniqueProviderIdsForEmail)
           .eq("email_type", "question_received")
           .eq("recipient_type", "provider")
@@ -1124,6 +1220,7 @@ export async function GET(request: NextRequest) {
           }
           providerEmailHistory[log.provider_id].push({
             id: log.id,
+            recipient: log.recipient,
             created_at: log.created_at,
             subject: log.subject,
             delivered_at: log.delivered_at,
@@ -1154,6 +1251,7 @@ export async function GET(request: NextRequest) {
       let noContactQuery = db
         .from("provider_questions")
         .select("*")
+        .is("canonical_question_id", null)
         .contains("metadata", { provider_no_contact: true })
         .neq("status", "archived")
         .neq("status", "rejected")
@@ -1247,6 +1345,7 @@ export async function GET(request: NextRequest) {
       let unansweredQuery = db
         .from("provider_questions")
         .select("*")
+        .is("canonical_question_id", null)
         .eq("status", "pending")
         .order("created_at", { ascending: false })
         .limit(10000);
@@ -1413,6 +1512,7 @@ export async function GET(request: NextRequest) {
       // Fetch email history for question notifications sent to these providers
       const providerEmailHistory: Record<string, Array<{
         id: string;
+        recipient: string | null;
         created_at: string;
         subject: string;
         delivered_at: string | null;
@@ -1425,7 +1525,7 @@ export async function GET(request: NextRequest) {
       if (uniqueProviderIdsForEmail.length > 0) {
         const { data: emailLogs } = await db
           .from("email_log")
-          .select("id, provider_id, created_at, subject, delivered_at, first_opened_at, bounced_at, complained_at")
+          .select("id, provider_id, recipient, created_at, subject, delivered_at, first_opened_at, bounced_at, complained_at")
           .in("provider_id", uniqueProviderIdsForEmail)
           .eq("email_type", "question_received")
           .eq("recipient_type", "provider")
@@ -1439,6 +1539,7 @@ export async function GET(request: NextRequest) {
           }
           providerEmailHistory[log.provider_id].push({
             id: log.id,
+            recipient: log.recipient,
             created_at: log.created_at,
             subject: log.subject,
             delivered_at: log.delivered_at,
@@ -1468,6 +1569,7 @@ export async function GET(request: NextRequest) {
     let query = db
       .from("provider_questions")
       .select("*")
+      .is("canonical_question_id", null)
       .order("created_at", { ascending: false })
       .limit(50000);
 
@@ -1819,6 +1921,7 @@ export async function GET(request: NextRequest) {
     // Fetch email history for question notifications sent to these providers
     const providerEmailHistory: Record<string, Array<{
       id: string;
+      recipient: string | null;
       created_at: string;
       subject: string;
       delivered_at: string | null;
@@ -1831,7 +1934,7 @@ export async function GET(request: NextRequest) {
     if (uniqueProviderIds.length > 0) {
       const { data: emailLogs } = await db
         .from("email_log")
-        .select("id, provider_id, created_at, subject, delivered_at, first_opened_at, bounced_at, complained_at")
+        .select("id, provider_id, recipient, created_at, subject, delivered_at, first_opened_at, bounced_at, complained_at")
         .in("provider_id", uniqueProviderIds)
         .eq("email_type", "question_received")
         .eq("recipient_type", "provider")
@@ -1845,6 +1948,7 @@ export async function GET(request: NextRequest) {
         }
         providerEmailHistory[log.provider_id].push({
           id: log.id,
+          recipient: log.recipient,
           created_at: log.created_at,
           subject: log.subject,
           delivered_at: log.delivered_at,
@@ -2000,8 +2104,10 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: "Failed to update question" }, { status: 500 });
     }
 
-    // Email the asker when their question is answered (fire-and-forget)
-    if (answer && data?.asker_email) {
+    // Fan a published answer out to every family who asked this canonical
+    // topic. Database reservations make retries and competing publication
+    // paths idempotent.
+    if (answer && data?.id) {
       try {
         const providerSlug = data.provider_id || "";
         const { data: provider } = await db
@@ -2010,29 +2116,25 @@ export async function PATCH(request: NextRequest) {
           .eq("slug", providerSlug)
           .single();
 
-        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
-        await sendEmail({
-          to: data.asker_email,
-          subject: `${provider?.display_name || "A provider"} answered your question on Olera`,
-          html: questionAnsweredEmail({
-            askerName: data.asker_name || "there",
-            providerName: provider?.display_name || "The provider",
-            question: data.question,
-            answer,
-            providerUrl: `${siteUrl}/provider/${providerSlug}`,
-          }),
-          emailType: "question_answered",
-          recipientType: "family",
-          providerId: providerSlug,
+        const notificationResult = await notifyQuestionAskers(db, {
+          questionId: data.id,
+          providerName: provider?.display_name || "The provider",
+          providerSlug,
+          question: data.question || "",
+          answer,
         });
+        if (notificationResult.errors.length > 0) {
+          console.error("Answer notification errors:", notificationResult.errors);
+        }
       } catch (emailErr) {
         console.error("Answer notification email failed:", emailErr);
       }
     }
 
-    // Log provider-side activity when admin answers (fire-and-forget)
+    // Log provider-side activity when admin answers. Await the insert so the
+    // event is not dropped when the serverless response finishes.
     if (answer && data?.provider_id) {
-      db.from("provider_activity").insert({
+      const { error: actErr } = await db.from("provider_activity").insert({
         provider_id: data.provider_id,
         event_type: "question_responded",
         metadata: {
@@ -2042,9 +2144,8 @@ export async function PATCH(request: NextRequest) {
           asker_name: data.asker_name,
           answered_by_admin: true,
         },
-      }).then(({ error: actErr }: { error: { message: string } | null }) => {
-        if (actErr) console.error("[provider_activity] question_responded insert failed:", actErr);
       });
+      if (actErr) console.error("[provider_activity] question_responded insert failed:", actErr);
     }
 
     return NextResponse.json({ question: data });

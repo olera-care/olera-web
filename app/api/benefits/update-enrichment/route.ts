@@ -5,7 +5,6 @@ import { syncIntentToProfile } from "@/lib/sync-intent-to-profile";
 import { normalizeUSPhone } from "@/lib/twilio";
 import {
   captureFamilyPhoneAndTextResults,
-  familyPhraseFromRelationship,
   benefitsSituationLine,
 } from "@/lib/family-comms/benefits-cascade.server";
 import { sendSlackAlert } from "@/lib/slack";
@@ -227,7 +226,6 @@ export async function PATCH(request: Request) {
         profileId,
         rawPhone: normalizedPhone,
         source: "benefits_enrichment",
-        familyPhrase: familyPhraseFromRelationship(recipient),
       });
       smsSent = captured.smsSent;
     }

@@ -133,11 +133,28 @@ export const INCOME_RANGES: Record<
   preferNotToSay: { displayTitle: "Prefer not to say", midpointMonthly: null, maxMonthly: null },
 };
 
+/**
+ * `doesNotHave` and `denied` are BOTH "no Medicaid today", and they are kept
+ * apart because they need different letters, not different programs.
+ *
+ * A family that has never applied should be told how to apply. A family that
+ * applied and was turned down should be told why this is still worth a call:
+ * long-term-care Medicaid runs on different income, asset and spend-down rules
+ * than the category most denials come from, so an earlier "no" often does not
+ * decide it. Sending the first letter to someone already denied is the version
+ * that costs us their trust.
+ *
+ * `doesNotHave` predates the split (50 families hold it as of 2026-09-01) and
+ * stays ambiguous for them on purpose — we will not retroactively assert which
+ * of the two they meant. Treat a legacy `doesNotHave` as "unknown which", and
+ * prefer the denial-aware wording, which reads correctly either way.
+ */
 export type MedicaidStatus =
   | "alreadyHas"
   | "applying"
   | "notSure"
-  | "doesNotHave";
+  | "doesNotHave"
+  | "denied";
 
 export const MEDICAID_STATUSES: Record<
   MedicaidStatus,
@@ -146,7 +163,8 @@ export const MEDICAID_STATUSES: Record<
   alreadyHas: { displayTitle: "Already have Medicaid", shortTitle: "Has Medicaid" },
   applying: { displayTitle: "Currently applying", shortTitle: "Applying" },
   notSure: { displayTitle: "Not sure", shortTitle: "Not sure" },
-  doesNotHave: { displayTitle: "Don't have it", shortTitle: "No Medicaid" },
+  doesNotHave: { displayTitle: "Haven't applied", shortTitle: "No Medicaid" },
+  denied: { displayTitle: "Applied and was turned down", shortTitle: "Medicaid denied" },
 };
 
 export type VeteranStatus = "yes" | "no" | "preferNotToSay";

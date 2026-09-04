@@ -69,12 +69,29 @@ function buildIntentFromProfile(profile: {
   return null;
 }
 
-// Fire cta_variant_clicked event when user opens the form/sheet
+/**
+ * Fire the CTA funnel events for A/B and channel reporting.
+ *
+ * `form_submitted` maps to `lead_started` downstream; everything else maps to
+ * `cta_engaged` (see the mirror in app/api/activity/track/route.ts).
+ *
+ * WHY `form_engaged` AND NOT `form_opened`
+ * The original TODO asked for a "form-open" boundary, which assumed the mobile
+ * shape where a sheet has to be opened before anything can be typed. Desktop
+ * has no such step: the card renders `InquiryForm` inline and already open, so
+ * an "opened" event would fire on every render and mean nothing.
+ *
+ * The honest desktop analogue of mobile's `sheet_opened` is the first time the
+ * visitor actually touches the form. That is the moment intent becomes
+ * observable, and it is the signal that was missing: desktop recorded 21
+ * completed inquiries against 10 engagement events, so we could see arrivals
+ * and submissions with nothing in between.
+ */
 function fireCTAClickEvent(
   providerSlug: string,
   variant: string | null | undefined,
   surface: "desktop" | "mobile",
-  action: "form_opened" | "form_submitted",
+  action: "form_engaged" | "form_submitted",
   isPreview: boolean,
 ) {
   // Don't fire if variant not yet resolved (CTAVariantRouter passes fallback, so this is rare)
@@ -433,6 +450,16 @@ export function useConnectionCard(props: ConnectionCardProps) {
       submitRequest(restoredIntent || undefined);
     }
   }, [user, account, providerId, submitRequest, onConnectionCreated]);
+
+  // ── Funnel: first real interaction with the inquiry form ──
+  // Fires once per card. Without this the desktop funnel has a hole between
+  // "landed" and "submitted", which is exactly where the CTA fails.
+  const formEngagedRef = useRef(false);
+  const trackFormEngaged = useCallback(() => {
+    if (formEngagedRef.current) return;
+    formEngagedRef.current = true;
+    fireCTAClickEvent(providerSlug, ctaVariant, ctaSurface, "form_engaged", ctaPreviewMode);
+  }, [providerSlug, ctaVariant, ctaSurface, ctaPreviewMode]);
 
   // ── Navigation helpers ──
   const startFlow = useCallback(() => {
@@ -862,6 +889,9 @@ export function useConnectionCard(props: ConnectionCardProps) {
     availableCareTypes,
     notificationEmail,
     totalSteps,
+
+    // Funnel tracking
+    trackFormEngaged,
 
     // Navigation
     startFlow,

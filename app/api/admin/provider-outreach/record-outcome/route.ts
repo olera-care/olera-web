@@ -3,6 +3,8 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import {
   renderEmail,
+  renderVariantEmail,
+  previewEmail,
   buildContextFromProvider,
   PROVIDER_OUTREACH_EMAIL_TYPE,
   PROVIDER_OUTREACH_FROM,
@@ -10,6 +12,44 @@ import {
 } from "@/lib/provider-outreach";
 import { OUTREACH_STAGES, type OutreachStage } from "../route";
 import { NOT_INTERESTED_REASON_VALUES, type NotInterestedReason } from "@/lib/provider-outreach";
+import { pauseLeadInCampaign, getLeadByEmail } from "@/lib/smartlead";
+
+// PDF attachment cache (survives warm Lambda invocations)
+let cachedPdfAttachment: { filename: string; content: string; encoding: string; type: string } | null = null;
+let pdfFetchAttempted = false;
+
+/**
+ * Fetch PDF attachment from public URL.
+ * In Vercel, public/ files are served via CDN, not accessible via filesystem.
+ * We fetch once and cache in memory for the lifetime of the Lambda instance.
+ */
+async function getPdfAttachment(): Promise<typeof cachedPdfAttachment> {
+  if (cachedPdfAttachment) return cachedPdfAttachment;
+  if (pdfFetchAttempted) return null; // Don't retry failed fetches
+
+  pdfFetchAttempted = true;
+  try {
+    const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+    const pdfUrl = `${baseUrl}/Olera%20for%20Providers.pdf`;
+    const response = await fetch(pdfUrl);
+    if (!response.ok) {
+      console.warn(`[record-outcome] Failed to fetch PDF: ${response.status}`);
+      return null;
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    cachedPdfAttachment = {
+      filename: "Olera for Providers.pdf",
+      content: Buffer.from(arrayBuffer).toString("base64"),
+      encoding: "base64",
+      type: "application/pdf",
+    };
+    console.log("[record-outcome] PDF attachment loaded and cached");
+    return cachedPdfAttachment;
+  } catch (err) {
+    console.warn("[record-outcome] Failed to fetch PDF attachment:", err);
+    return null;
+  }
+}
 
 /**
  * POST /api/admin/provider-outreach/record-outcome
@@ -33,14 +73,14 @@ import { NOT_INTERESTED_REASON_VALUES, type NotInterestedReason } from "@/lib/pr
  * | wrong_contact    | clears email                   | → not_contacted | -               |
  * | not_interested   | -                              | → not_interested| -               |
  * | try_fax          | -                              | → re_engage     | fax             |
- * | try_linkedin     | -                              | → re_engage     | linkedin        |
+ * | try_contact_form | -                              | → re_engage     | contact_form    |
  * | try_direct_mail  | -                              | → re_engage     | direct_mail     |
  *
  * Note: "not_interested" is a soft terminal - stops outreach but questions/connections still flow.
  * Use the Archive action (via action modal) for hard terminal with system-wide block.
  *
- * The try_fax/try_linkedin/try_direct_mail outcomes move providers to the Alternative Channels
- * tab where they can be followed up via fax, LinkedIn, or direct mail.
+ * The try_fax/try_contact_form/try_direct_mail outcomes move providers to the Alternative Channels
+ * tab where they can be followed up via fax, contact form, or direct mail.
  */
 
 const VALID_OUTCOMES = [
@@ -48,15 +88,11 @@ const VALID_OUTCOMES = [
   "wrong_contact",
   "not_interested",
   "try_fax",
-  "try_linkedin",
+  "try_contact_form",
   "try_direct_mail",
 ] as const;
 
 type FollowUpOutcome = (typeof VALID_OUTCOMES)[number];
-
-// Maximum number of times a claim link can be resent before requiring manual intervention
-// Configurable via env var, default 2
-const MAX_RESEND_COUNT = parseInt(process.env.OUTREACH_MAX_RESEND_COUNT || "2", 10);
 
 export async function POST(request: NextRequest) {
   try {
@@ -71,7 +107,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { provider_id, outcome, notes, not_interested_reason } = body;
+    const { provider_id, outcome, notes, not_interested_reason, custom_subject, custom_body } = body;
 
     if (!provider_id || typeof provider_id !== "string") {
       return NextResponse.json({ error: "provider_id is required" }, { status: 400 });
@@ -100,7 +136,7 @@ export async function POST(request: NextRequest) {
     // Get current tracking record
     const { data: tracking, error: trackingError } = await db
       .from("provider_outreach_tracking")
-      .select("id, provider_id, stage, resend_count, due_date, city, state")
+      .select("id, provider_id, stage, resend_count, due_date, city, state, sequence_started_at, email_source, smartlead_data")
       .eq("provider_id", provider_id)
       .single();
 
@@ -125,19 +161,16 @@ export async function POST(request: NextRequest) {
     let clearEmail = false;
     let shouldSendNudgeEmail = false;
     let newReEngageChannel: string | null = null;
+    let shouldSetSequenceStartedAt = false;
 
     switch (outcome as FollowUpOutcome) {
       case "resend_link":
-        // Reject if already at limit
-        if (currentResendCount >= MAX_RESEND_COUNT) {
-          return NextResponse.json(
-            { error: `Resend link limit reached (${MAX_RESEND_COUNT}). Provider has been emailed too many times.` },
-            { status: 400 }
-          );
-        }
+        // No limit - track count and resend
         newResendCount = currentResendCount + 1;
         newStage = "re_engage"; // Move to re-engage after sending email
         shouldSendNudgeEmail = true;
+        // Set sequence_started_at if not already set, so this provider counts in Sequence Conv.
+        shouldSetSequenceStartedAt = !tracking.sequence_started_at;
         break;
 
       case "wrong_contact":
@@ -155,18 +188,24 @@ export async function POST(request: NextRequest) {
         // Move to re-engage with fax channel for follow-up via fax
         newStage = "re_engage";
         newReEngageChannel = "fax";
+        // Set sequence_started_at so this provider counts in Sequence Conv. if they claim
+        shouldSetSequenceStartedAt = !tracking.sequence_started_at;
         break;
 
-      case "try_linkedin":
-        // Move to re-engage with linkedin channel for LinkedIn outreach
+      case "try_contact_form":
+        // Move to re-engage with contact_form channel for website contact form outreach
         newStage = "re_engage";
-        newReEngageChannel = "linkedin";
+        newReEngageChannel = "contact_form";
+        // Set sequence_started_at so this provider counts in Sequence Conv. if they claim
+        shouldSetSequenceStartedAt = !tracking.sequence_started_at;
         break;
 
       case "try_direct_mail":
         // Move to re-engage with direct_mail channel for postcard/mail outreach
         newStage = "re_engage";
         newReEngageChannel = "direct_mail";
+        // Set sequence_started_at so this provider counts in Sequence Conv. if they claim
+        shouldSetSequenceStartedAt = !tracking.sequence_started_at;
         break;
     }
 
@@ -178,6 +217,17 @@ export async function POST(request: NextRequest) {
 
     if (newResendCount !== currentResendCount) {
       updateData.resend_count = newResendCount;
+    }
+
+    // Set sequence_started_at so provider counts in Sequence Conv. if they claim.
+    // Also set sequenced_with_source for accurate conversion tracking by channel.
+    if (shouldSetSequenceStartedAt) {
+      updateData.sequence_started_at = nowIso;
+      // For alternative channels, track the channel as source. Otherwise use email source.
+      const alternativeChannels = ["fax", "contact_form", "direct_mail"];
+      updateData.sequenced_with_source = newReEngageChannel && alternativeChannels.includes(newReEngageChannel)
+        ? newReEngageChannel
+        : (tracking.email_source || "organization");
     }
 
     if (newStage) {
@@ -207,6 +257,45 @@ export async function POST(request: NextRequest) {
     if (updateError) {
       console.error("[record-outcome] Update error:", updateError);
       return NextResponse.json({ error: "Failed to update tracking record" }, { status: 500 });
+    }
+
+    // ── Pause Smartlead lead when leaving the active sequence ──
+    // This stops the automated sequence from sending more emails
+    // Triggers: re_engage (resend_link, try_fax, etc.), not_interested, or clearEmail (wrong_contact)
+    if (newStage === "re_engage" || newStage === "not_interested" || clearEmail) {
+      const smartleadData = tracking.smartlead_data as {
+        campaign_id?: number;
+        lead_id?: number;
+        lead_email?: string;
+      } | null;
+
+      if (smartleadData?.campaign_id) {
+        try {
+          let leadId = smartleadData.lead_id;
+
+          // If we don't have lead_id, look it up by email
+          if (!leadId && smartleadData.lead_email) {
+            const lookup = await getLeadByEmail(smartleadData.lead_email);
+            if (lookup.ok && lookup.data?.id) {
+              leadId = lookup.data.id;
+            }
+          }
+
+          if (leadId) {
+            const pauseResult = await pauseLeadInCampaign(smartleadData.campaign_id, leadId);
+            if (pauseResult.ok) {
+              console.log(`[record-outcome] Paused Smartlead lead ${leadId} in campaign ${smartleadData.campaign_id} (moving to ${newStage})`);
+            } else {
+              console.warn(`[record-outcome] Failed to pause Smartlead lead: ${pauseResult.error}`);
+            }
+          } else {
+            console.warn(`[record-outcome] No lead_id found for provider ${provider_id}, cannot pause Smartlead`);
+          }
+        } catch (err) {
+          console.error("[record-outcome] Error pausing Smartlead lead:", err);
+          // Non-fatal - continue with the response
+        }
+      }
     }
 
     // ── Clear email if wrong_contact ──
@@ -277,9 +366,36 @@ export async function POST(request: NextRequest) {
             slug: provider.slug,
           });
 
-          const rendered = renderEmail("nudge", context);
+          // Render email - use custom content if provided, otherwise default nudge template
+          let rendered;
+          const isCustomEmail = !!(custom_subject || custom_body);
 
-          // Send via Resend
+          if (isCustomEmail) {
+            // Use custom content with standard footer
+            const preview = previewEmail("nudge", context);
+
+            // Substitute {claim_url} in custom body if present
+            let finalBody = custom_body || preview.editableBody;
+            if (finalBody.includes("{claim_url}")) {
+              finalBody = finalBody.replace(/\{claim_url\}/g, context.claim_url);
+            }
+
+            rendered = renderVariantEmail(
+              {
+                subject: custom_subject || preview.subject,
+                body: finalBody,
+              },
+              context
+            );
+          } else {
+            // Use default nudge template
+            rendered = renderEmail("nudge", context);
+          }
+
+          // Fetch PDF attachment (cached after first fetch)
+          const pdfAttachment = await getPdfAttachment();
+
+          // Send via Resend with PDF attachment
           const sendResult = await sendEmail({
             to: provider.email,
             from: PROVIDER_OUTREACH_FROM,
@@ -288,10 +404,13 @@ export async function POST(request: NextRequest) {
             html: rendered.html,
             emailType: PROVIDER_OUTREACH_EMAIL_TYPE,
             providerId: provider_id,
+            attachments: pdfAttachment ? [pdfAttachment] : undefined,
             metadata: {
               template_key: "nudge",
-              trigger: "resend_link_outcome",
+              trigger: isCustomEmail ? "resend_link_custom" : "resend_link_outcome",
               resend_count: newResendCount,
+              has_pdf_attachment: !!pdfAttachment,
+              is_custom: isCustomEmail,
             },
           });
 

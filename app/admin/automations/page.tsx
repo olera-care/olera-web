@@ -9,6 +9,12 @@ import {
   normalizeAutomationSystemOrder,
   type AutomationSystem,
 } from "@/lib/crons/systems";
+import {
+  RESEND_BOUNCE_LIMIT,
+  RESEND_BOUNCE_WARN,
+  RESEND_COMPLAINT_LIMIT,
+  RESEND_COMPLAINT_WARN,
+} from "@/lib/email-thresholds";
 
 type Fn = "nudge" | "alert" | "digest" | "outreach" | "event" | "refresh" | "maintenance";
 type Lifecycle = "current" | "archived";
@@ -131,6 +137,106 @@ function Skeleton() {
       <div className="mt-8 space-y-4">
         {Array.from({ length: 3 }).map((_, index) => <div key={index} className="h-36 rounded-2xl bg-gray-100" />)}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Account deliverability against Resend's Acceptable-Use limits.
+ *
+ * These two rates were computed by /api/admin/automations and typed on this page
+ * for months without ever being rendered — the values were calculated, shipped to
+ * the browser and dropped. Crossing either limit lets Resend suspend the account
+ * WITHOUT WARNING, and it is the same account that carries auth, family and
+ * student mail, so a provider-acquisition bounce problem takes logins down with it.
+ *
+ * Deliberately shown as distance-to-limit rather than a bare percentage: "3.30%"
+ * means nothing without the 4% line next to it. The gauge marks warn and limit so
+ * the number is legible to someone who has never read the AUP.
+ *
+ * Rate definitions match the API (app/api/admin/automations/route.ts): complaints
+ * are over DELIVERED (you can only complain about mail you received), bounces are
+ * over SENT (bounced mail is by definition not delivered).
+ */
+function DeliverabilityStrip({ summary }: {
+  summary: {
+    bounceRate30d: number;
+    complaintRate30d: number;
+    bounceEvents30d: number;
+    complaintEvents30d: number;
+    sentAll30d: number;
+    deliveredAll30d: number;
+  };
+}) {
+  const meters = [
+    {
+      key: "bounce",
+      label: "Bounce rate",
+      rate: summary.bounceRate30d,
+      warn: RESEND_BOUNCE_WARN,
+      limit: RESEND_BOUNCE_LIMIT,
+      events: summary.bounceEvents30d,
+      denom: summary.sentAll30d,
+      denomLabel: "sends",
+      digits: 2,
+    },
+    {
+      key: "complaint",
+      label: "Complaint rate",
+      rate: summary.complaintRate30d,
+      warn: RESEND_COMPLAINT_WARN,
+      limit: RESEND_COMPLAINT_LIMIT,
+      events: summary.complaintEvents30d,
+      denom: summary.deliveredAll30d,
+      denomLabel: "delivered",
+      digits: 3,
+    },
+  ];
+
+  return (
+    <div className="mt-3 grid gap-3 lg:grid-cols-2">
+      {meters.map((m) => {
+        // Distance to the suspension line, capped for display only.
+        const pctOfLimit = m.limit > 0 ? Math.min(m.rate / m.limit, 1) * 100 : 0;
+        const state = m.rate >= m.limit ? "over" : m.rate >= m.warn ? "warn" : "ok";
+        // Red is reserved for actually over the line. Warn is amber: it means
+        // watch this, not stop everything. Two saturated red bars for a rate
+        // that is elevated but legal reads as an outage and burns the signal.
+        const copy = {
+          over: { badge: "Over limit", badgeCls: "bg-red-50 text-red-700 ring-1 ring-red-200", num: "text-red-600", fill: "bg-red-500" },
+          warn: { badge: "Past warn line", badgeCls: "bg-amber-50 text-amber-700 ring-1 ring-amber-200", num: "text-gray-950", fill: "bg-amber-400" },
+          ok: { badge: "Within limits", badgeCls: "bg-gray-50 text-gray-500 ring-1 ring-gray-200", num: "text-gray-950", fill: "bg-emerald-400" },
+        }[state];
+        return (
+          <div key={m.key} className="rounded-xl border border-gray-200 bg-white px-4 py-3">
+            <div className="flex items-baseline justify-between gap-3">
+              <span className="text-xs font-semibold text-gray-700">{m.label}</span>
+              <span className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${copy.badgeCls}`}>
+                {copy.badge}
+              </span>
+            </div>
+            <div className="mt-1.5 flex items-baseline gap-2">
+              <span className={`text-xl font-semibold leading-none tabular-nums ${copy.num}`}>
+                {(m.rate * 100).toFixed(m.digits)}%
+              </span>
+              <span className="text-[11px] text-gray-400">
+                {m.events.toLocaleString()} of {m.denom.toLocaleString()} {m.denomLabel} · 30d
+              </span>
+            </div>
+            <div className="relative mt-2.5 h-1.5 rounded-full bg-gray-100" role="img"
+              aria-label={`${m.label} ${(m.rate * 100).toFixed(m.digits)} percent, warning at ${(m.warn * 100).toFixed(m.digits)} percent, suspension at ${(m.limit * 100).toFixed(m.digits)} percent`}>
+              <span className={`absolute left-0 top-0 h-full rounded-full ${copy.fill}`} style={{ width: `${pctOfLimit}%` }} />
+              <span className="absolute -top-0.5 -bottom-0.5 w-px bg-gray-400" style={{ left: `${(m.warn / m.limit) * 100}%` }} />
+              <span className="absolute -top-0.5 -bottom-0.5 right-0 w-px bg-gray-500" />
+            </div>
+            <div className="mt-1 flex justify-between text-[10px] tabular-nums text-gray-400">
+              <span>0%</span>
+              <span>warn {(m.warn * 100).toFixed(m.digits)}%</span>
+              <span>suspend {(m.limit * 100).toFixed(m.digits)}%</span>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
@@ -486,6 +592,8 @@ export default function AutomationsPage() {
             <StatCard value={data.summary.total} label="Current automations" detail={`Across ${AUTOMATION_SYSTEMS.length} operating systems`} onClick={() => { setView("all"); setFilter("all"); }} />
             <StatCard value={data.summary.paused} label="Paused" detail="Temporary, auto-resuming holds" tone={data.summary.paused === 0 ? "muted" : "default"} onClick={data.summary.paused > 0 ? selectPaused : undefined} />
           </div>
+
+          <DeliverabilityStrip summary={data.summary} />
 
           <div className="mt-8 border-b border-gray-200">
             <nav className="flex gap-6" aria-label="Automation views">

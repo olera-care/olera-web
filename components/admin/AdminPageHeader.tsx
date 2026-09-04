@@ -8,7 +8,7 @@ interface Breadcrumb {
 
 interface AdminPageHeaderProps {
   title: string;
-  description?: string;
+  description?: ReactNode;
   /** Right-aligned slot for page-level actions (buttons, search, date pickers). */
   actions?: ReactNode;
   /** Optional breadcrumb links rendered above the title. */
@@ -42,7 +42,7 @@ export default function AdminPageHeader({
           </div>
         )}
         <h1 className="text-display-xs font-bold text-gray-900 font-serif">{title}</h1>
-        {description && <p className="text-sm text-gray-500 mt-1">{description}</p>}
+        {description && <div className="text-sm text-gray-500 mt-1">{description}</div>}
       </div>
       {actions && <div className="flex items-center gap-3">{actions}</div>}
     </div>

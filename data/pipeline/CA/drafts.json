@@ -118,7 +118,7 @@
       "documentsNeeded": [
         "Medicare card",
         "Social Security award letter or most recent statement",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, retirement accounts)",
         "Proof of any pension or retirement income",
         "Property tax statements for real estate owned",
@@ -144,6 +144,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Applications go through your county Medi-Cal office (form MC 14A by mail, by phone, online, or in person). HICAP counselors help with the paperwork for free.",
         "California became a Part A Buy-In state in January 2025, QMB recipients are now automatically enrolled in Medicare Part A if eligible",
         "Providers cannot legally bill QMB recipients for Medicare deductibles or copays, but choose providers who accept Medi-Cal to avoid billing confusion",
@@ -323,7 +324,7 @@
         "Medicare card if you have one",
         "Current medication list and dosages",
         "Recent medical records documenting functional limitations",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Vehicle titles and registration",
         "Life insurance policies with cash values",
@@ -347,6 +348,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Applications go through your county's local MSSP site. Find it via aging.ca.gov -> Find Services in My County.",
         "Not all California counties have MSSP providers, Alpine, Colusa, El Dorado, Placer, Sacramento, Sutter, Yolo, and Yuba are served by California Health Collaborative, while Los Angeles and Ventura have different arrangements",
         "The nurse assessment is comprehensive and may take 2-3 hours, prepare a quiet space and have your loved one's medications and medical records readily available",
@@ -587,9 +589,9 @@
         ]
       },
       "intro": "If your loved one is 60+ and struggling with grocery costs, CalFresh provides monthly funds loaded onto an EBT card for food purchases. Benefits range from a minimum of $24/month up to $298/month for individuals, depending on income and expenses like medical costs and housing.\n\nBecause seniors get special eligibility rules, your loved one may qualify even if the full household wouldn't. Seniors can form their own separate household for CalFresh purposes, use net income after medical and housing deductions, and face no asset limits in most cases. The program also covers prepared meals at participating restaurants statewide through the Restaurant Meals Program.\n\nSSI/SSP recipients can receive CalFresh in addition to their cash benefits, but they are not automatically income-eligible, they must apply and meet the same income rules as everyone else. Your loved one won't face work requirements, and all out-of-pocket medical expenses over $35 count as deductions to lower their countable income.",
-      "savingsRange": "$288 – $3,576/year in 2026",
-      "savingsSource": "Based on minimum $24/month to maximum $298/month individual benefits",
-      "savingsVerified": true,
+      "savingsRange": "$24 - $298/month for one person (FY2026 limits)",
+      "savingsSource": "FY2026 California limits: maximum $298/month for one person, $1,789 for eight. The $24 minimum is the federal floor and applies only to eligible one- and two-person households. Actual benefit depends on household size and the benefit calculation.",
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 60+",
@@ -704,8 +706,8 @@
       },
       "documentsNeeded": [
         "Social Security award letter or other proof of income",
-        "Bank statements for all accounts (last 3 months)",
-        "Medical expense receipts over $35 (prescriptions, insurance premiums, medical transport)",
+        "The current balance of any checking or savings accounts. In California, if gross monthly income is at or below the state limit ($2,610 for one person in 2026), savings do not count at all. Above that limit an older or disabled household can still qualify, but savings then count against a $4,500 limit.",
+        "Out-of-pocket medical expenses totalling more than $35 in a month, if a household member is 60 or older or meets the SNAP disability rules. Only costs your household actually paid count; anything covered by Medi-Cal or other insurance does not.",
         "Rent receipt or mortgage statement",
         "Utility bills (electric, gas, water, phone)",
         "California driver's license or state ID",
@@ -718,23 +720,23 @@
       ],
       "contacts": [
         {
-          "label": "CalFresh Application Hotline",
+          "label": "CalFresh Benefits Helpline (start here)",
           "phone": "(877) 847-3663",
-          "description": "Statewide application assistance and questions",
-          "hours": "Business hours, varies by county"
+          "description": "CDSS lists this line for information on how to apply in your county. It does not complete an application. Apply online at BenefitsCal.com or through your county office. CDSS publishes no hours for this line."
         },
         {
           "label": "California 2-1-1",
           "phone": "2-1-1",
-          "description": "Free referral service for all social services including CalFresh",
-          "hours": "24 hours, 7 days a week"
+          "hours": "24 hours, 7 days a week",
+          "description": "Covers more than 98% of California's population."
         }
       ],
       "applicationNotes": [
         "Seniors and disabled individuals can form separate households for CalFresh even if living with family, which often increases benefits",
-        "All medical expenses over $35 per month count as deductions, keep receipts for prescriptions, insurance premiums, and medical transportation",
+        "Out-of-pocket medical expenses above $35 a month count as a deduction when a household member is 60 or older or meets the SNAP disability rules. Keep receipts for what you paid yourself; insurance-covered costs do not count.",
         "SSI/SSP recipients can receive CalFresh alongside their cash benefits, but they are not automatically income-eligible, they must apply separately and meet the same income and asset rules as everyone else",
-        "Expedited processing (3 days) is available for households with very low income and resources"
+        "Expedited processing (3 days) is available for households with very low income and resources",
+        "People aged 60 through 64 are exempt from SNAP work registration but are still subject to the ABAWD time limit as of June 1, 2026, unless another exemption applies. Counties must screen for exemptions. The time limit stops the month of the 65th birthday."
       ],
       "relatedPrograms": [
         "Commodity Supplemental Food Program (CSFP)",
@@ -789,7 +791,8 @@
       "phone": "(877) 847-3663",
       "sourceUrl": "https://www.cdss.ca.gov/calfresh",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "liheap-energy-assistance",
@@ -928,15 +931,9 @@
       ],
       "contacts": [
         {
-          "label": "LIHEAP Application Line",
+          "label": "CSD Call Center",
           "phone": "(866) 675-6623",
-          "description": "Apply by phone or get application help",
-          "hours": "Business hours"
-        },
-        {
-          "label": "LIHEAP Information Line",
-          "phone": "(866) 675-6623",
-          "description": "Income guidelines and participating agency information",
+          "description": "California Department of Community Services and Development call center for LIHEAP program questions and to find your local service provider. Applications are taken by that local provider, not this line.",
           "hours": "Business hours"
         }
       ],
@@ -998,7 +995,8 @@
       "phone": "(866) 675-6623",
       "sourceUrl": "https://www.csd.ca.gov/pages/liheapprogram.aspx",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-22"
     },
     {
       "id": "weatherization-assistance-program",
@@ -1733,7 +1731,7 @@
         "Proof of current income from all sources (last 3 months)",
         "Documentation of unemployment status (unemployment benefits letter or statement)",
         "Proof of residency in service area (utility bill, lease, or mail within last 30 days)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Tax return from most recent year",
         "Veterans discharge papers (DD-214) if applicable",
         "Documentation of disability status if applicable",
@@ -1819,7 +1817,8 @@
       "phone": "1-800-510-2020",
       "sourceUrl": "https://aging.ca.gov/Programs_and_Services/Senior_Employment_and_Training/",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "senior-legal-services",
@@ -2110,8 +2109,8 @@
         ]
       },
       "intro": "If your loved one is 65+, disabled, or blind and receives federal SSI (Supplemental Security Income), California automatically provides an additional cash payment called State Supplementary Payment (SSP). This means your loved one gets more money each month, up to $239.94 extra for an individual or $607.83 extra for couples in 2026.\n\nThe total monthly payment becomes $1,206.94 for individuals or $2,057.83 for couples when combining federal SSI and California's SSP supplement. Because SSP follows SSI eligibility automatically, your loved one doesn't need to apply separately, if they qualify for SSI, they get SSP.\n\nTo qualify, your loved one must have very limited income (generally under $1,207/month after disregards) and assets under $2,000 for individuals or $3,000 for couples. The payment is reduced dollar-for-dollar by other countable income, and living arrangements can affect the amount.",
-      "savingsRange": "$2,879-$7,585/year in 2026 (depends on living situation)",
-      "savingsSource": "DHCS SSI/SSP payment standards eff. 2026-01-01: individual SSP $239.94-$632.07/month by living arrangement",
+      "savingsRange": "$239.94/month ($2,879/year) for a single aged or disabled adult living independently in 2026",
+      "savingsSource": "SSA POMS SI 01415.058, California payment standards effective 2026-01-01. The state supplement for a single recipient depends entirely on category and living arrangement: $239.94/month living independently (aged or disabled), $324.32 blind, $368.81 without cooking facilities, $632.07 in non-medical out-of-home care, and $0.00 in some settings. There is no single typical amount and no guaranteed minimum.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -2209,19 +2208,13 @@
           "label": "Social Security Administration",
           "phone": "(800) 772-1213",
           "description": "Apply for SSI/SSP benefits and check application status",
-          "hours": "Mon-Fri 8am-7pm PT"
+          "hours": "Mon-Fri 8am-7pm local time"
         },
         {
           "label": "SSA TTY Line",
           "phone": "(800) 325-0778",
           "description": "TTY service for deaf or hard of hearing",
-          "hours": "Mon-Fri 8am-7pm PT"
-        },
-        {
-          "label": "California CDSS",
-          "phone": "(800) 952-5253",
-          "description": "Questions about California SSP program",
-          "hours": "Mon-Fri 8am-5pm PT"
+          "hours": "Mon-Fri 8am-7pm local time"
         }
       ],
       "applicationNotes": [
@@ -2276,7 +2269,7 @@
       "sourceUrl": "https://www.cdss.ca.gov/inforesources/cdss-programs/ssi-ssp/ssi-ssp-eligibility-summary",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-01"
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "property-tax-postponement",
@@ -2534,7 +2527,7 @@
         "U.S. citizenship or immigration status documentation",
         "Health Care Certification form (SOC 873) completed by licensed healthcare provider",
         "Medical records documenting diagnosis and functional limitations",
-        "Bank statements for all accounts (last 3 months) if not on SSI/SSP",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Income documentation (Social Security award letter, pension statements, pay stubs)",
         "Asset documentation (property deeds, investment accounts, life insurance policies)",
         "Proof of any medical expenses paid out-of-pocket",
@@ -2542,19 +2535,14 @@
       ],
       "contacts": [
         {
-          "label": "California IHSS Information",
-          "phone": null,
-          "description": "Find your county IHSS office contact information",
-          "hours": "Varies by county"
-        },
-        {
-          "label": "California 2-1-1",
+          "label": "California 2-1-1 (start here, locator)",
           "phone": "2-1-1",
-          "description": "Free helpline for social services and county office referrals",
+          "description": "California has no statewide IHSS application line. Applications are taken by your county IHSS office. 2-1-1 can connect you to the right county office, or you can find it directly at cdss.ca.gov/inforesources/county-ihss-offices.",
           "hours": "24 hours, 7 days a week"
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must have Medi-Cal eligibility before IHSS services can begin, apply for both programs simultaneously if needed",
         "Services are limited to your loved one's own home or chosen residence, nursing homes and licensed facilities don't qualify",
         "The functional assessment determines service hours from 1-283 per month, be specific about daily limitations during the home visit",
@@ -2613,7 +2601,8 @@
       "phone": null,
       "sourceUrl": "https://www.cdss.ca.gov/in-home-supportive-services",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-23"
     },
     {
       "id": "caregiver-resource-centers",
@@ -2853,7 +2842,7 @@
         "Current medication record signed by physician or nursing medication sheet",
         "Medical documentation of qualifying diagnosis (dementia, brain injury, chronic mental illness, or developmental disability)",
         "Evidence of confirmed chronic mental illness diagnosis from Diagnostic and Statistical Manual (if applicable)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements for non-primary residence)",
         "Vehicle titles and registration",
@@ -2885,6 +2874,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "CBAS is only available in 28 of California's 58 counties, verify there's a certified center within one hour of your loved one's home before applying",
         "Asset limits changed January 1, 2026, families previously eligible under unlimited asset rules may now be disqualified",
         "Your Medi-Cal Managed Care Plan controls the approval process, and different plans may have varying approval rates and timelines",
@@ -2943,7 +2933,8 @@
       "phone": "(800) 430-4263",
       "sourceUrl": "https://aging.ca.gov/Programs_and_Services/Community-Based_Adult_Services/",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     }
   ],
   "stateOverview": {
@@ -2961,7 +2952,7 @@
       },
       {
         "name": "CalFresh",
-        "programId": "calfresh",
+        "programId": "calfresh-food-benefits",
         "why": "Up to $298/month for groceries with simplified application process for seniors 60+."
       }
     ],

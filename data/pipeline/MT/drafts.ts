@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MT/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.521Z
+ * Last updated: 2026-09-03T11:31:11.495Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -111,7 +111,7 @@ export const drafts: PipelineStateDrafts = {
         "Birth certificate or other proof of age",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property deeds and tax statements",
         "Vehicle titles and registration",
@@ -142,6 +142,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "For married couples, if only one spouse applies for the waiver, both spouses' assets are still counted as jointly owned, Medicaid planning may be needed",
         "The primary home is exempt from asset limits regardless of value, but other property may need to be addressed",
         "Priority for services is given to people at immediate risk of nursing home placement or safety concerns",
@@ -200,7 +201,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 219-7035",
       "sourceUrl": "https://dphhs.mt.gov/sltc/csb/BSW/BigSkyWaiverProgram",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "cfcs-personal-care-services",
@@ -214,24 +216,24 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": false,
         "localEntities": [
           {
-            "name": "Provider Type 12 enrollment via Optum/Conduent; examples: Summit Independent Living for self-directed",
+            "name": "Statewide through enrolled provider agencies; examples: Summit Independent Living for self-directed",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or taking medications but wants to stay home instead of moving to a nursing home, Montana's CFCS and PCS programs provide paid caregivers through Medicaid. Your loved one gets a personal care attendant who comes to their home, and you can even become their paid caregiver if you're an adult child.\n\nThe program has two tiers: Personal Care Services covers basic assistance with daily activities, while Community First Choice Services adds extras like emergency response systems and community outings for parents who need nursing-home-level care. Because everyone approved for PCS gets automatically reviewed for CFCS, 95% of enrollees end up in the higher tier with more comprehensive services.\n\nIncome limit: $967/month for a single person (2025). Asset limit: $2,000 individual, $3,000 couple. Your loved one must be Medicaid-eligible and demonstrate they need help with activities of daily living through a nurse assessment.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or taking medications but wants to stay home instead of moving to a nursing home, Montana's CFCS and PCS programs provide paid caregivers through Medicaid. Your loved one gets a personal care attendant who comes to their home, and you can even become their paid caregiver if you're an adult child.\n\nThe program has two tiers: Personal Care Services covers basic assistance with daily activities, while Community First Choice Services adds extras like emergency response systems and community outings for parents who need nursing-home-level care. Because everyone approved for PCS gets automatically reviewed for CFCS, 95% of enrollees end up in the higher tier with more comprehensive services.\n\nIncome limit: $994/month for a single person (2025). Asset limit: $2,000 individual, $3,000 couple. Your loved one must be Medicaid-eligible and demonstrate they need help with activities of daily living through a nurse assessment.",
       "savingsRange": "",
       "savingsSource": "Free service through Medicaid",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
-          "Age 65+",
-          "Income below $967/month (single)",
+          "Any age. Montana describes the program as serving seniors and people with disabilities.",
+          "Income below $994/month (single)",
           "Medicaid eligible",
           "Needs help with daily activities",
           "Montana resident"
         ],
-        "ageRequirement": "65+",
+        "ageRequirement": null,
         "incomeTable": null,
         "assetLimits": {
           "individual": 2000,
@@ -265,7 +267,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Contact Medicaid office",
-            "description": "Visit medicaid.mt.gov to find your local office or call for initial screening and Medicaid eligibility confirmation."
+            "description": "Apply for Medicaid at apply.mt.gov or call the Montana Public Assistance Helpline on 1-888-706-1535. Local Office of Public Assistance locations are listed at dphhs.mt.gov/HCSD/OfficeofPublicAssistance."
           },
           {
             "step": 2,
@@ -281,15 +283,10 @@ export const drafts: PipelineStateDrafts = {
             "step": 4,
             "title": "Choose service model",
             "description": "Select self-directed care (you manage and can hire family caregivers through agencies like Summit Independent Living) or agency-based care."
-          },
-          {
-            "step": 5,
-            "title": "Complete Provider Type 12 enrollment",
-            "description": "Enroll through Optum/Conduent system with your chosen provider agency to begin receiving services."
           }
         ],
         "processingTime": null,
-        "waitlist": null,
+        "waitlist": "None. Montana describes CFCS and PCS as entitlement programs: meeting the financial and level-of-care requirements means services are available without a waiting list.",
         "tip": "Everyone approved for PCS gets automatically reviewed for CFCS with additional services, don't apply separately for both tiers.",
         "urls": [
           {
@@ -307,7 +304,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card",
         "Proof of Montana residency (utility bill or state-issued document)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents if applicable",
         "Property deeds and tax statements",
         "Vehicle titles and registration",
@@ -320,29 +317,29 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Montana DPHHS utilization review contractor, Mountain Pacific (start here)",
-          "phone": "(800) 219-7035",
-          "description": "Montana DPHHS utilization review contractor, Mountain Pacific — Community First Choice/Personal Care Services assessment scheduling",
-          "hours": null
+          "label": "Montana Public Assistance Helpline (start here)",
+          "phone": "(888) 706-1535",
+          "hours": "Mon-Fri 8:00am-5:00pm MT",
+          "description": "Start here if your loved one is not on Medicaid yet, because Medicaid approval comes first. Office of Public Assistance. Apply online at apply.mt.gov."
         },
         {
-          "label": "Montana Medicaid Information",
-          "phone": null,
-          "description": "Visit medicaid.mt.gov for local office contact information",
-          "hours": "Varies by office"
+          "label": "Mountain Pacific, the state assessment contractor",
+          "phone": "(800) 219-7035",
+          "description": "Call this one instead if your loved one is already on Medicaid, to schedule the assessment. Mountain Pacific publishes no hours."
         },
         {
           "label": "Montana 2-1-1",
           "phone": "2-1-1",
-          "description": "Free helpline for all social services and program information",
           "hours": "24 hours, 7 days a week"
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Spouses, parents, and legal guardians cannot be paid caregivers, only other family members like adult children or ex-spouses",
         "Self-directed option allows you to hire and manage your loved one's caregivers, including family members, through participating agencies",
         "Provider agencies cover specific counties and reservations, onsite visits required for enrollment in your area",
-        "Home equity over $730,000 may affect eligibility unless spouse or disabled child lives in the home"
+        "Home equity over $730,000 may affect eligibility unless spouse or disabled child lives in the home",
+        "A spouse counts as a legally responsible individual. They can be paid as a personal care attendant only under the CFCS tier, only under the Extraordinary Care standard, meaning the care goes beyond what is normally expected of a spouse, and generally capped at 40 hours a week. They cannot be the paid caregiver and the personal representative at the same time. An adult child faces none of these limits. On a PCS-only plan, ask for a re-screening first."
       ],
       "relatedPrograms": [
         "Montana Medicaid",
@@ -400,10 +397,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "(800) 219-7035",
+      "phone": "(888) 706-1535",
       "sourceUrl": "https://medicaidprovider.mt.gov/12",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "pace-comprehensive-care",
@@ -665,7 +663,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security award letter if receiving SSI or SSDI",
         "Proof of Montana residency (utility bill, lease, or state-issued document)",
         "U.S. citizenship documentation or immigration papers",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Pay stubs or other income statements (last 30 days)",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Vehicle titles and registration for all vehicles",
@@ -697,6 +695,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "SSI recipients automatically qualify, bring your award letter to speed up enrollment",
         "If income exceeds limits, ask about medically needy spenddown which allows qualification by deducting medical expenses",
         "Home equity up to $752,000 is protected if your spouse, disabled child, or child under 21 lives there",
@@ -755,7 +754,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(888) 706-1535",
       "sourceUrl": "https://dphhs.mt.gov/SLTC/eligible",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "medicare-savings-programs",
@@ -875,7 +875,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card showing Part A eligibility or enrollment",
         "Social Security award letter or most recent statement",
         "Pay stubs from last 30 days (if still working)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Retirement account statements (401k, IRA, pensions)",
         "Investment documents (stocks, bonds, annuities)",
         "Property deeds or tax statements for any real estate",
@@ -902,6 +902,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QMB has no retroactive coverage, apply before the month you need coverage to start",
         "SLMB and QI can provide up to 3 months of retroactive coverage if you were eligible during that time",
         "QI funding is limited federally and may close enrollment if exhausted, apply early in the year",
@@ -1127,7 +1128,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security award letters or benefit statements",
         "Pay stubs from the last 30 days (if working)",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Rent receipts or mortgage statements",
         "Utility bills (electric, gas, water, phone)",
         "Medical bills and receipts over $35/month (for seniors 60+)",
@@ -1215,7 +1216,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-855-642-8650",
       "sourceUrl": "https://dphhs.mt.gov/HCSD/SNAP",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -1974,7 +1976,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Montana residency (utility bill, lease, or state-issued document)",
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Medical records documenting functional limitations and care needs",
         "Current medication list and prescribing physician information",
         "Documentation of any other income sources (pensions, retirement accounts)",
@@ -2005,6 +2007,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must be approved for Medicaid before you can even apply for waiver services, start that process immediately",
         "The clinical assessment is thorough and looks at your loved one's ability to safely live at home without institutional care",
         "Waiver slots are limited statewide, so even if your loved one qualifies, they may face a waitlist",
@@ -2153,7 +2156,7 @@ export const drafts: PipelineStateDrafts = {
         "Valid government-issued photo ID showing age 55 or older",
         "Proof of U.S. work authorization (Social Security card, passport, or employment authorization document)",
         "Income verification for last 30 days (pay stubs, Social Security award letter, unemployment benefits statement)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Proof of any other income (pension statements, retirement benefits, disability payments)",
         "Veteran discharge papers (DD-214) if claiming veteran priority",
         "Disability documentation if claiming disability priority",
@@ -2238,7 +2241,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-877-872-5627",
       "sourceUrl": "https://wsd.dli.mt.gov/_docs/wsd-policy/scsep-policy.pdf",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "legal-services-seniors",
@@ -2522,17 +2526,17 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Medicaid for the Aged, Blind, and Disabled (ABD)",
-        "programId": "medicaid-abd-montana",
+        "programId": "medicaid-abd",
         "why": "Unlocks Montana's most comprehensive benefits including home care services and nursing home coverage."
       },
       {
         "name": "Qualified Medicare Beneficiary (QMB), Specified Low-Income Medicare Beneficiary (SLMB), Qualifying Individual (QI)",
-        "programId": "qmb-slmb-qi-montana",
+        "programId": "medicare-savings-programs",
         "why": "Can eliminate all Medicare out-of-pocket costs if your loved one's income is under $1,761/month."
       },
       {
         "name": "SNAP (Food Stamps)",
-        "programId": "snap-montana",
+        "programId": "snap-food-benefits",
         "why": "Fastest way to put money back in your loved one's budget, up to hundreds per month for groceries."
       }
     ],

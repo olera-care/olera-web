@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.519Z
+ * Last updated: 2026-09-03T11:25:55.878Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -118,7 +118,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Minnesota residency (utility bill, lease agreement, or bank statement)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property deeds and property tax statements",
         "Vehicle titles and registration",
@@ -149,6 +149,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "If your loved one is already receiving SSI, they may be automatically eligible for Medical Assistance without the standard asset test",
         "Married couples have spousal impoverishment protections, the community spouse can keep more assets and income than the standard limits",
         "If income is slightly over the limit, ask about spend-down options or Medical Assistance for Employed Persons with Disabilities (MA-EPD)",
@@ -207,7 +208,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(855) 366-7873",
       "sourceUrl": "https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/seniors.jsp",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "elderly-waiver",
@@ -311,7 +313,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements)",
         "Life insurance policies with face values",
@@ -336,6 +338,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "People with income above Medical Assistance limits may still qualify through monthly spenddown or waiver obligation payments, don't assume high income disqualifies",
         "If your loved one has income at or below 120% of federal poverty guidelines and assets under $3,000, they may need to apply for Alternative Care instead of Elderly Waiver",
         "The cost of your loved one's community services must be less than nursing home costs, or they won't qualify, this is determined during the assessment",
@@ -486,7 +489,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Minnesota residency (utility bill, lease, or bank statement)",
         "Most recent Social Security award letter",
         "Pay stubs from last 30 days if working",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Tax returns (most recent year)",
         "Pension or retirement income statements",
         "Investment account statements (stocks, bonds, retirement accounts)",
@@ -516,6 +519,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You cannot apply directly for MSHO, you must first qualify for Medical Assistance through your county",
         "MSHO is only available in counties where participating health plans operate, check which plans serve your county before applying",
         "If you're already in a nursing facility when you enroll, MSHO will not cover your nursing facility costs (only covers 180 days for people entering facilities after enrollment)",
@@ -701,7 +705,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card",
         "Social Security award letter or SSI statement",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, CDs)",
         "Proof of Minnesota residency (utility bill or lease)",
         "Birth certificate or other proof of age",
@@ -733,6 +737,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI program funding is limited and awarded first-come, first-served, apply as early in the fiscal year as possible to avoid waitlists",
         "Income limits change annually (typically July 1) and Minnesota often exceeds federal minimums, so recheck eligibility if previously denied",
         "Standard income disregards ($20 plus half of earned income) are applied before determining eligibility, this can make you eligible even if gross income appears too high",
@@ -797,13 +802,14 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(651) 431-2670",
       "sourceUrl": "https://mn.gov/dhs/people-we-serve/seniors/health-care/health-care-programs/programs-and-services/help-with-medicare-costs.jsp",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "snap-food-benefits",
       "name": "Minnesota SNAP (Supplemental Nutrition Assistance Program)",
       "shortName": "Minnesota SNAP",
-      "tagline": "Monthly grocery assistance for parents 60+ on fixed incomes, up to $546/month with no gross income limits",
+      "tagline": "Monthly grocery assistance for parents 60+ on fixed incomes, up to $298/month for one person, with no gross income limit",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -816,10 +822,10 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60 or older and struggling with grocery costs, Minnesota SNAP can provide $100-546 per month on an EBT card for food purchases. Because your loved one is 60+, they face no gross income limit and get higher asset limits ($4,500 instead of $3,000), making qualification easier than for younger households.\n\nThe benefit amount depends on household size and net income after deductions. A single person with $1,200/month income might receive around $180/month in SNAP benefits. Medical expenses over $35/month and shelter costs (rent, utilities, property taxes) reduce countable income, potentially increasing benefits. Your loved one can form a separate SNAP household even if living with family, as long as they buy and prepare their own food.\n\nOnly about half of eligible seniors actually receive SNAP benefits, often because they don't know about the age-friendly rules or assume their income is too high. The program is administered by county offices statewide, with the same eligibility rules but different application processes depending on location.",
-      "savingsRange": "$1,200 – $6,552/year in 2026",
-      "savingsSource": "Maximum monthly SNAP allotments for 1-person ($546) and 2-person households, Minnesota DHS 2025-2026",
-      "savingsVerified": true,
+      "intro": "If your loved one is 60 or older and struggling with grocery costs, Minnesota SNAP can provide $24-298 per month for a single person on an EBT card for food purchases. Because your loved one is 60+, they face no gross income limit and get higher asset limits ($4,500 instead of $3,000), making qualification easier than for younger households.\n\nThe benefit amount depends on household size and net income after deductions. A single person with $1,200/month income might receive around $180/month in SNAP benefits. Medical expenses over $35/month and shelter costs (rent, utilities, property taxes) reduce countable income, potentially increasing benefits. Your loved one can form a separate SNAP household even if living with family, as long as they buy and prepare their own food.\n\nOnly about half of eligible seniors actually receive SNAP benefits, often because they don't know about the age-friendly rules or assume their income is too high. The program is administered by county offices statewide, with the same eligibility rules but different application processes depending on location.",
+      "savingsRange": "$24 - $298/month for one person (FY2026 limits)",
+      "savingsSource": "FY2026 federal SNAP limits for the 48 contiguous states: maximum $298/month for one person and $546 for two; minimum $24/month for eligible one- and two-person households. Actual benefit depends on household size and the benefit calculation.",
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 60+ (or spouse 60+)",
@@ -894,12 +900,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Choose your application method",
-            "description": "Apply online at MNsure.org or your county's website, call your county SNAP office directly, or download the Senior SNAP Application form from benefitscheckup.org for mail/in-person submission."
+            "description": "Apply online at mnbenefits.mn.gov, or contact your county or Tribal Nation human services office for a paper Combined Application Form. MNsure is the health insurance exchange and does not take SNAP applications."
           },
           {
             "step": 2,
             "title": "Contact your county office",
-            "description": "Call 1-800-657-3739 or visit mn.gov/dhs to find your specific county human services office. Each county processes applications differently."
+            "description": "Call 1-800-657-3698, or the Minnesota Food HelpLine at 1-888-711-1151, to find your county or Tribal Nation human services office. Each county processes applications differently."
           },
           {
             "step": 3,
@@ -922,16 +928,16 @@ export const drafts: PipelineStateDrafts = {
         "tip": "Seniors 60+ should use the Senior SNAP Application rather than the standard Combined Application Form, it's designed specifically for older adults.",
         "urls": [
           {
-            "label": "Find County Office",
-            "url": "https://mn.gov/dhs"
+            "label": "Apply online (MNbenefits)",
+            "url": "https://mnbenefits.mn.gov"
           },
           {
-            "label": "MNsure Application Portal",
-            "url": "https://www.mnsure.org"
+            "label": "Minnesota SNAP program page",
+            "url": "https://dcyf.mn.gov/snap"
           },
           {
-            "label": "Senior SNAP Application",
-            "url": "https://www.benefitscheckup.org"
+            "label": "Minnesota Food HelpLine",
+            "url": "https://mn.gov/dhs/mnfoodhelper/"
           }
         ]
       },
@@ -940,7 +946,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Minnesota residency (utility bill, lease, or state-issued document)",
         "Social Security award letter or most recent statement",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Medical expense receipts over $35/month (prescriptions, Medicare premiums, doctor visits)",
         "Rent receipt or mortgage statement",
         "Utility bills (electric, gas, water, phone)",
@@ -952,19 +958,31 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Minnesota DHS Helpline",
-          "phone": "(800) 657-3739",
-          "description": "Find your county SNAP office and get program information",
-          "hours": "Business hours"
+          "label": "Minnesota Food HelpLine (start here)",
+          "phone": "(888) 711-1151",
+          "hours": "Mon-Fri 10am-5pm CT",
+          "description": "Call or text. They screen your eligibility, answer application questions, and will mail you a paper application. Applications themselves are filed online at mnbenefits.mn.gov or with your county or Tribal Nation."
+        },
+        {
+          "label": "SNAP information and case status",
+          "phone": "(800) 657-3698",
+          "hours": "Mon-Fri business hours",
+          "description": "Minnesota Department of Children, Youth, and Families. Handles application status and case questions; it does not take applications."
+        },
+        {
+          "label": "Minnesota Aging Pathways",
+          "phone": "(800) 333-2433",
+          "hours": "Mon-Fri business hours",
+          "description": "Broader entry point when the underlying problem is paying for care rather than groceries."
         },
         {
           "label": "2-1-1 Minnesota",
           "phone": "2-1-1",
-          "description": "Free helpline for all social services and benefit programs",
           "hours": "24 hours, 7 days a week"
         }
       ],
       "applicationNotes": [
+        "Minnesota publishes an applicant-facing gross income screen of $2,609/month for one person and $3,525 for two, effective October 1, 2025, under broad-based categorical eligibility. The net income figures below are the federal net test, which applies only where categorical eligibility does not.",
         "Seniors 60+ can form a separate SNAP household even if living with family, as long as they buy and prepare their own food",
         "No gross income test applies to households with members 60+ or disabled, only net income matters after deductions",
         "Medical expenses over $35/month and shelter costs significantly reduce countable income, potentially increasing benefits",
@@ -1020,10 +1038,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "(800) 657-3739",
+      "phone": "(888) 711-1151",
       "sourceUrl": "https://mn.gov/dhs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "ship-medicare-counseling",
@@ -1387,7 +1406,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Proof of Minnesota residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Pension or retirement income statements",
         "Medicare card",
         "Current medication list from doctor or pharmacy",
@@ -1414,6 +1433,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Each county sets its own income and asset limits, what disqualifies your loved one in one county may be acceptable in another",
         "Some counties have immediate openings while others maintain multi-month waitlists, ask about current availability when calling",
         "If your loved one is being discharged from a hospital, contact the county office immediately as crisis situations may receive expedited processing",
@@ -1472,7 +1492,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://mn.gov/dhs",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "scsep-employment",
@@ -1581,7 +1602,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Proof of U.S. citizenship or work authorization",
         "Income statements for all household members from last 30 days (pay stubs, unemployment benefits, Social Security)",
-        "Most recent bank statements for all accounts",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Documentation of unemployment status",
         "Veteran's discharge papers (DD-214) if applicable",
         "Proof of disability status if applicable",
@@ -1666,7 +1687,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "832-599-0872",
       "sourceUrl": "https://mn.gov/deed/programs-services/dislocated-worker/scsep/index.jsp",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "legal-assistance-seniors",
@@ -1984,7 +2006,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 65+ and qualifies for Minnesota Medical Assistance (Medicaid), UCare Minnesota Senior Care Plus (MSC+) coordinates all their healthcare under one managed care plan. Because MSC+ covers medical, dental, pharmacy, and home-based services through a single program, your loved one won't need to navigate multiple providers or coordinate between separate systems, one team manages everything from doctor visits to personal care assistance.\n\nMSC+ includes all standard Medicaid benefits plus extras like 24/7 nurse hotline, transportation to medical appointments, disease management programs, and healthy food discounts through a Visa card. If your loved one needs help with daily activities like bathing or dressing, MSC+ can also provide Elderly Waiver services including personal care assistance and homemaker services. The program is mandatory enrollment in participating counties, if your loved one is eligible for Medicaid and lives in a county-based purchasing (CBP) area, they'll automatically be enrolled in MSC+ unless they choose the Medicare-Medicaid dual program (MSHO).",
+      "intro": "If your loved one is 65+ and qualifies for Minnesota Medical Assistance (Medicaid), UCare Minnesota Senior Care Plus (MSC+) coordinates all their healthcare under one managed care plan. Because MSC+ covers medical, dental, pharmacy, and home-based services through a single program, your loved one won't need to navigate multiple providers or coordinate between separate systems, one team manages everything from doctor visits to personal care assistance.\n\nMSC+ includes all standard Medicaid benefits plus extras like 24/7 nurse hotline, transportation to medical appointments, disease management programs, and healthy food discounts through a Visa card. If your loved one needs help with daily activities like bathing or dressing, MSC+ can also provide Elderly Waiver services including personal care assistance and homemaker services. The program is mandatory enrollment in participating counties, if your loved one is eligible for Medicaid and lives in UCare's MSC+ service area, which covers 68 counties including the Twin Cities metro, they may be enrolled in MSC+ unless they choose the Medicare-Medicaid dual program (MSHO).",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": true,
@@ -2001,9 +2023,9 @@ export const drafts: PipelineStateDrafts = {
         "functionalRequirement": "Some services like personal care assistance require demonstrating need for help with at least one Activity of Daily Living (bathing, dressing, eating, toileting, mobility, transferring, or grooming)",
         "otherRequirements": [
           "Must qualify for Minnesota Medical Assistance (Medicaid)",
-          "Must live in county-based purchasing (CBP) managed care county, not PMAP county",
           "Minnesota resident",
-          "May or may not have Medicare Parts A and B"
+          "May or may not have Medicare Parts A and B",
+          "Minnesota resident living in the UCare MSC+ service area, which covers 68 counties including Hennepin, Ramsey, Anoka, Dakota and Washington"
         ],
         "povertyLevelReference": null
       },
@@ -2014,7 +2036,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Apply for Minnesota Medical Assistance",
-            "description": "Call your local county human services office or Minnesota Health Care Programs at 1-800-657-3672. You must qualify for Medicaid before enrolling in MSC+."
+            "description": "Call your local county human services office or the MHCP Member Help Desk at 1-800-657-3739. You must qualify for Medicaid before enrolling in MSC+."
           },
           {
             "step": 2,
@@ -2029,15 +2051,15 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Check if your county uses CBP (county-based purchasing) or PMAP system, MSC+ is only available in CBP counties.",
+        "tip": "Ask whether your loved one is already enrolled in a health plan. If they are, their care coordinator can start the home-care assessment without a new application.",
         "urls": [
           {
-            "label": "Minnesota DHS Medical Assistance Application",
-            "url": "https://hcopub.dhs.state.mn.us/"
+            "label": "Minnesota Elderly Waiver",
+            "url": "https://mn.gov/dhs/disability-aging/home-and-community-services/programs-and-services/elderly-waiver/"
           },
           {
-            "label": "UCare MSC+ Information",
-            "url": "https://www.ucare.org/health-plans/medicaid/ages-65-plus/msc-plus"
+            "label": "Apply for Medical Assistance (MNbenefits)",
+            "url": "https://mnbenefits.mn.gov"
           }
         ]
       },
@@ -2046,30 +2068,37 @@ export const drafts: PipelineStateDrafts = {
         "Social Security card",
         "Proof of Minnesota residency (utility bill, lease agreement, or state-issued document)",
         "Proof of income from last 30 days (Social Security award letter, pension statements, or pay stubs)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Medicare card"
       ],
       "contacts": [
         {
-          "label": "Minnesota Health Care Programs",
-          "phone": "(800) 657-3672",
-          "description": "Medical Assistance application and eligibility",
-          "hours": "Mon-Fri business hours"
+          "label": "Long-term care consultation and Elderly Waiver assessment (start here)",
+          "phone": "(800) 333-2433",
+          "hours": "Mon-Fri business hours",
+          "description": "Minnesota Aging Pathways. Connects you to the long-term care consultation contact for your county or Tribe, which is where a home-care assessment starts. If your loved one is already in a plan, their care coordinator can do this instead."
+        },
+        {
+          "label": "MHCP Member Help Desk",
+          "phone": "(800) 657-3739",
+          "hours": "Mon-Fri business hours",
+          "description": "Medical Assistance member questions. Applications for people 65+ go through the county or Tribal agency, or mnbenefits.mn.gov."
         },
         {
           "label": "UCare Customer Service",
           "phone": "(800) 203-7225",
-          "description": "MSC+ enrollment and benefits questions",
-          "hours": "Mon-Fri 8am-5pm"
+          "hours": "Mon-Fri 8am-5pm",
+          "description": "TTY 711."
         },
         {
-          "label": "TTY Line",
+          "label": "Minnesota Relay",
           "phone": "(800) 627-3529",
-          "description": "TTY access for hearing impaired",
-          "hours": "Mon-Fri business hours"
+          "hours": "24 hours, 7 days a week",
+          "description": "Statewide relay service. UCare's own TTY is 711."
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "MSC+ is mandatory enrollment, if you're eligible and live in a CBP county, you'll be automatically enrolled unless you choose MSHO",
         "Different managed care organizations have different provider networks, make sure your loved one's current doctors accept the MCO you choose"
       ],
@@ -2098,10 +2127,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "minimal"
       },
       "icon": "Stethoscope",
-      "phone": "(800) 203-7225",
+      "phone": "(800) 333-2433",
       "sourceUrl": "https://www.ucare.org/health-plans/medicaid/ages-65-plus/msc-plus",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "aging-pathways",
@@ -2228,12 +2258,12 @@ export const drafts: PipelineStateDrafts = {
     "startHere": [
       {
         "name": "Medical Assistance (Medicaid)",
-        "programId": "medical-assistance",
+        "programId": "medical-assistance-medicaid",
         "why": "Free health coverage that unlocks other programs like home care waivers and simplified Medicare plans."
       },
       {
         "name": "Minnesota SNAP",
-        "programId": "minnesota-snap",
+        "programId": "snap-food-benefits",
         "why": "Monthly grocery assistance up to $546 with no gross income limits for seniors 60+."
       },
       {

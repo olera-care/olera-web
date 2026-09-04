@@ -209,6 +209,16 @@ function StepRow({
                   ✆ {step.smsType}
                 </span>
               ))}
+              {step.experienceUrl && (
+                <Link
+                  href={step.experienceUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex min-h-7 items-center rounded-md bg-teal-50 px-2.5 text-[11px] font-semibold text-teal-700 ring-1 ring-inset ring-teal-100 transition-colors hover:bg-teal-100 hover:text-teal-900"
+                >
+                  {step.experienceLabel ?? "View experience"} ↗
+                </Link>
+              )}
               {other && (
                 <Link
                   href={`/admin/automations/${other.id}`}

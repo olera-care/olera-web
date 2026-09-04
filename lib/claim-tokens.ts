@@ -142,16 +142,23 @@ export function decodeClaimTokenAllowExpired(
  *   - Redirects to /provider dashboard
  *
  * This ensures one-click access for providers clicking any cold outreach email.
+ *
+ * @param source - Optional claim source for analytics (e.g., "city_broadcast", "cold_outreach").
+ *                 Defaults to "cold_outreach" if not specified.
  */
 export function generateClaimUrl(
   providerId: string,
   _providerSlug: string,
   email: string,
-  baseUrl: string = process.env.NEXT_PUBLIC_APP_URL || "https://olera.care"
+  baseUrl: string = process.env.NEXT_PUBLIC_APP_URL || "https://olera.care",
+  source?: string
 ): string {
   const token = generateClaimToken(providerId, email);
   const url = new URL(`${baseUrl}/api/claim-campaign`);
   url.searchParams.set("otk", token);
+  if (source) {
+    url.searchParams.set("src", source);
+  }
   return url.toString();
 }
 
@@ -180,7 +187,8 @@ export function generateNotificationUrl(
  *
  * @param providerSlug - Provider's slug or ID
  * @param email - Provider's email for token generation
- * @param destination - Portal destination: "manage" (dashboard), "settings", "market", "leads", "ads", or "matches"
+ * @param destination - Portal destination: "manage" (dashboard), "settings", "market", "leads", "ads", "matches",
+ *   or "profile" (the provider's PUBLIC page, i.e. what a family sees)
  *   ("market" lands on the Your Market diagnostic; "leads" lands on the Find Families
  *   connections inbox; "ads" lands on /provider/boost — the managed-ads pitch + setup;
  *   "matches" lands on /provider/matches — the Find Families nearby-seeker leads view)
@@ -189,7 +197,7 @@ export function generateNotificationUrl(
 export function generateProviderPortalUrl(
   providerSlug: string,
   email: string,
-  destination: "manage" | "settings" | "market" | "leads" | "ads" | "matches",
+  destination: "manage" | "settings" | "market" | "leads" | "ads" | "matches" | "profile",
   baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"
 ): string {
   const token = generateClaimToken(providerSlug, email);
@@ -619,4 +627,105 @@ export function validateBriefToken(
   } catch {
     return { valid: false, error: "Failed to parse token" };
   }
+}
+
+/**
+ * ── Provider connection status tokens ─────────────────────────────────────────
+ *
+ * Authorizes a provider self-report of connection status from email buttons.
+ * Used for follow-up emails (Day 3, Day 5, stale conversation) where the
+ * provider can report "Yes, I connected", "Not a good fit", or "No capacity".
+ * Same HMAC scheme, distinct "connstat:" domain.
+ *
+ * NOTE: Unlike quiz tokens, these URLs are POSTed on mount (scanner-safe) —
+ * the landing page renders immediately and fires a client-side POST.
+ */
+
+export type ConnectionStatusValue = "connected" | "not_a_fit" | "no_capacity";
+
+interface ConnectionStatusTokenPayload {
+  connectionId: string;
+  value: ConnectionStatusValue;
+  expiresAt: number;
+}
+
+function connectionStatusSignatureData(p: ConnectionStatusTokenPayload): string {
+  return `connstat:${p.connectionId}:${p.value}:${p.expiresAt}`;
+}
+
+function generateConnectionStatusSignature(p: ConnectionStatusTokenPayload): string {
+  return hmacSignature(connectionStatusSignatureData(p), TOKEN_SECRET);
+}
+
+export function generateConnectionStatusToken(
+  connectionId: string,
+  value: ConnectionStatusValue,
+): string {
+  const expiresAt = Date.now() + TOKEN_EXPIRY_HOURS * 60 * 60 * 1000;
+  const payload: ConnectionStatusTokenPayload = { connectionId, value, expiresAt };
+  const tokenData = { ...payload, signature: generateConnectionStatusSignature(payload) };
+  return Buffer.from(JSON.stringify(tokenData))
+    .toString("base64")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+}
+
+export function validateConnectionStatusToken(
+  token: string,
+):
+  | { valid: true; connectionId: string; value: ConnectionStatusValue }
+  | { valid: false; error: string } {
+  try {
+    const base64 = token.replace(/-/g, "+").replace(/_/g, "/");
+    const tokenData = JSON.parse(Buffer.from(base64, "base64").toString("utf-8")) as ConnectionStatusTokenPayload & {
+      signature: string;
+    };
+    const { connectionId, value, expiresAt, signature } = tokenData;
+    if (!connectionId || !value || !expiresAt || !signature) {
+      return { valid: false, error: "Invalid token format" };
+    }
+    if (!["connected", "not_a_fit", "no_capacity"].includes(value)) {
+      return { valid: false, error: "Invalid status value" };
+    }
+    if (Date.now() > expiresAt) return { valid: false, error: "Token has expired" };
+    if (!signatureMatches(connectionStatusSignatureData({ connectionId, value, expiresAt }), signature)) {
+      return { valid: false, error: "Invalid token signature" };
+    }
+    return { valid: true, connectionId, value };
+  } catch {
+    return { valid: false, error: "Failed to parse token" };
+  }
+}
+
+/**
+ * Generate URLs for provider connection status self-report buttons.
+ * Returns URLs for all three status options (connected, not_a_fit, no_capacity).
+ *
+ * @param connectionId - The connection ID to report status for
+ * @param baseUrl - Base URL (defaults to NEXT_PUBLIC_SITE_URL)
+ */
+export function generateProviderConnectionStatusUrls(
+  connectionId: string,
+  baseUrl: string = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care",
+): {
+  connected: string;
+  notAFit: string;
+  noCapacity: string;
+} {
+  const values: ConnectionStatusValue[] = ["connected", "not_a_fit", "no_capacity"];
+  const urls: Record<string, string> = {};
+
+  for (const value of values) {
+    const token = generateConnectionStatusToken(connectionId, value);
+    const url = new URL(`${baseUrl}/provider/connection-status`);
+    url.searchParams.set("tok", token);
+    urls[value] = url.toString();
+  }
+
+  return {
+    connected: urls.connected,
+    notAFit: urls.not_a_fit,
+    noCapacity: urls.no_capacity,
+  };
 }

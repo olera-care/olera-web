@@ -116,6 +116,7 @@ const SYNONYM_MAP: Record<string, string> = {
   "skilled nursing": "Skilled Nursing",
   "snf": "Nursing Home",
   "nursing home": "Nursing Home",
+  "nursing homes": "Nursing Home",
   "nursing facility": "Nursing Home",
 
   // Assisted living variants
@@ -170,11 +171,44 @@ const SYNONYM_MAP: Record<string, string> = {
 
 /**
  * Normalize a care service/type label to its canonical form.
- * Returns the original label (title-cased) if no synonym match.
+ *
+ * Values arrive in two shapes: labels a person typed ("Respite Care") and raw
+ * database slugs ("home-care", "nursing-homes"). Slugs miss the synonym map on
+ * an exact lookup, and the old fallback returned them verbatim — which is how
+ * `home-care` came to render as a provider's headline chip on a live page
+ * (measured 2026-08-21: 39 profiles printing a raw value, `home-care` on 21).
+ *
+ * So: exact lookup, then retry with separators as spaces, then title-case
+ * anything still unmatched that is unambiguously a slug. Human-entered labels
+ * are returned untouched, as before.
  */
 export function normalizeCareLabel(label: string): string {
-  const key = label.trim().toLowerCase();
-  return SYNONYM_MAP[key] ?? label.trim();
+  const trimmed = label.trim();
+  const key = trimmed.toLowerCase();
+
+  const direct = SYNONYM_MAP[key];
+  if (direct) return direct;
+
+  // "home-care" / "nursing_homes" → retry as "home care" / "nursing homes".
+  // Runs after the exact lookup so genuinely hyphenated keys already in the
+  // map ("in-home care", "home care (non-medical)") are never reshaped.
+  const spaced = key.replace(/[-_]+/g, " ").replace(/\s+/g, " ").trim();
+  if (spaced !== key) {
+    const viaSpaced = SYNONYM_MAP[spaced];
+    if (viaSpaced) return viaSpaced;
+  }
+
+  // Still unmatched. An all-lowercase token joined by separators is a slug,
+  // never prose someone typed, so title-case rather than print it raw.
+  // Hyphens survive, because a real hyphenated term ("non-medical") should
+  // keep its shape; underscores do not, because nothing in English uses one.
+  if (/^[a-z0-9]+(?:[-_][a-z0-9]+)+$/.test(key)) {
+    return key
+      .replace(/_+/g, " ")
+      .replace(/[a-z0-9]+/g, (w) => w.charAt(0).toUpperCase() + w.slice(1));
+  }
+
+  return trimmed;
 }
 
 // ============================================================

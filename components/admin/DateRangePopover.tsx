@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-export type DatePreset = "all" | "today" | "yesterday" | "7d" | "30d" | "90d" | "12w" | "6m" | "1y";
+export type DatePreset = "all" | "today" | "yesterday" | "7d" | "14d" | "30d" | "90d" | "12w" | "6m" | "1y";
 
 export interface DateRangeValue {
   preset: DatePreset | "custom";
@@ -140,15 +140,17 @@ export function resolveRange(
   }
   const days = value.preset === "7d"
     ? 7
-    : value.preset === "30d"
-      ? 30
-      : value.preset === "90d"
-        ? 90
-        : value.preset === "12w"
-          ? 84
-          : value.preset === "6m"
-            ? 183
-            : 365;
+    : value.preset === "14d"
+      ? 14
+      : value.preset === "30d"
+        ? 30
+        : value.preset === "90d"
+          ? 90
+          : value.preset === "12w"
+            ? 84
+            : value.preset === "6m"
+              ? 183
+              : 365;
   // Calendar windows include today, so "Last 30 days" starts 29 dates ago.
   const start = addCalendarDays(today, -(days - 1));
   return {
@@ -205,11 +207,14 @@ export default function DateRangePopover({
   onChange,
   presets = PRESETS,
   ariaLabel = "Date range",
+  hideCustomRange = false,
 }: {
   value: DateRangeValue;
   onChange: (next: DateRangeValue) => void;
   presets?: DateRangePresetOption[];
   ariaLabel?: string;
+  /** Hide the custom date range inputs. Useful when only preset options are supported. */
+  hideCustomRange?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const [draftFrom, setDraftFrom] = useState(value.customFrom);
@@ -299,40 +304,42 @@ export default function DateRangePopover({
             })}
           </div>
 
-          <div className="border-t border-gray-100 px-4 py-3">
-            <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400 mb-2.5">Custom range</p>
-            <div className="space-y-2">
-              <label className="block">
-                <span className="block text-[11px] text-gray-500 mb-1">From</span>
-                <input
-                  type="date"
-                  value={draftFrom}
-                  onChange={(e) => setDraftFrom(e.target.value)}
-                  className="w-full px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 transition-colors"
-                />
-              </label>
-              <label className="block">
-                <span className="block text-[11px] text-gray-500 mb-1">To</span>
-                <input
-                  type="date"
-                  value={draftTo}
-                  min={draftFrom || undefined}
-                  onChange={(e) => setDraftTo(e.target.value)}
-                  className="w-full px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 transition-colors"
-                />
-              </label>
+          {!hideCustomRange && (
+            <div className="border-t border-gray-100 px-4 py-3">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-gray-400 mb-2.5">Custom range</p>
+              <div className="space-y-2">
+                <label className="block">
+                  <span className="block text-[11px] text-gray-500 mb-1">From</span>
+                  <input
+                    type="date"
+                    value={draftFrom}
+                    onChange={(e) => setDraftFrom(e.target.value)}
+                    className="w-full px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 transition-colors"
+                  />
+                </label>
+                <label className="block">
+                  <span className="block text-[11px] text-gray-500 mb-1">To</span>
+                  <input
+                    type="date"
+                    value={draftTo}
+                    min={draftFrom || undefined}
+                    onChange={(e) => setDraftTo(e.target.value)}
+                    className="w-full px-2.5 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:border-gray-900 transition-colors"
+                  />
+                </label>
+              </div>
+              <div className="mt-3 flex justify-end">
+                <button
+                  type="button"
+                  onClick={applyCustom}
+                  disabled={customRangeInvalid}
+                  className="px-3.5 h-8 text-xs font-medium text-white bg-gray-900 rounded-full hover:bg-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Apply
+                </button>
+              </div>
             </div>
-            <div className="mt-3 flex justify-end">
-              <button
-                type="button"
-                onClick={applyCustom}
-                disabled={customRangeInvalid}
-                className="px-3.5 h-8 text-xs font-medium text-white bg-gray-900 rounded-full hover:bg-black transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                Apply
-              </button>
-            </div>
-          </div>
+          )}
         </div>
       )}
     </div>

@@ -2,8 +2,8 @@
   "state": "NV",
   "stateName": "Nevada",
   "draftedAt": "2026-04-13T22:29:50.217Z",
-  "total": 18,
-  "successful": 18,
+  "total": 17,
+  "successful": 17,
   "programs": [
     {
       "id": "medicaid-long-term-care",
@@ -110,7 +110,7 @@
         "Proof of Nevada residency (utility bill, lease, or state-issued document)",
         "Social Security award letters for all income sources",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment account statements (stocks, bonds, annuities)",
         "Vehicle titles and registration",
         "Property deeds or tax statements",
@@ -132,7 +132,7 @@
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "General social services helpline and local resource referrals",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         },
         {
           "label": "Nevada Aging and Disability Services",
@@ -142,6 +142,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Coverage can be retroactive up to 3 months before approval, so apply as soon as you think your loved one might qualify",
         "Home and Community-Based Services waivers have limited slots, ask about current waitlist length for your region when applying",
         "Your loved one's primary home is exempt from asset limits but subject to estate recovery after death",
@@ -200,11 +201,12 @@
       "phone": "(775) 684-3600",
       "sourceUrl": "https://www.dss.nv.gov/programs/medical/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "hcbs-waiver",
-      "name": "Home and Community-Based Services (HCBS) Waiver",
+      "name": "Home and Community Based Services (HCBS) Waiver for the Frail Elderly (FE)",
       "shortName": "HCBS Waiver",
       "tagline": "Keep your loved one at home with help for personal care, meals, and household tasks instead of nursing home placement.",
       "programType": "benefit",
@@ -302,7 +304,7 @@
         "Proof of Nevada residency (utility bill, lease, or state-issued document)",
         "Social Security card and Medicare card",
         "Medical diagnosis documentation showing physical disability or frail elderly condition",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Social Security award letter or pension statements",
         "Property documents if homeowner (deed, tax assessment showing home equity)",
         "Vehicle titles and registration",
@@ -315,19 +317,20 @@
       ],
       "contacts": [
         {
+          "label": "Nevada ADSD",
+          "phone": "(775) 687-4210",
+          "description": "Aging and Disability Services Division. Submit the OCL Program Application to your nearest ADSD regional office, or give the information over the phone to an intake team member.",
+          "hours": "Mon-Fri 8am-5pm PT"
+        },
+        {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline to find your local ADSD Regional Center",
-          "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "Nevada ADSD",
-          "phone": "(775) 687-4210",
-          "description": "Aging and Disability Services Division main office for HCBS questions",
-          "hours": "Mon-Fri 8am-5pm PT"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Multiple HCBS waivers exist, confirm you're applying for the correct one (PD Waiver for physical disabilities, FE Waiver for frail elderly)",
         "Must meet both financial eligibility (Medicaid) AND functional eligibility (nursing home level of care), both assessments required",
         "Home equity limit is $752,000 in 2026, exemptions apply if spouse or disabled child lives there",
@@ -386,167 +389,8 @@
       "phone": "(775) 687-4210",
       "sourceUrl": "https://adsd.nv.gov/Programs/Seniors/PD_Waiver/Waiver_for_Person's_with_Physical_Disabilities_(PD)/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
-    },
-    {
-      "id": "pace-comprehensive-care",
-      "name": "Nevada Program of All-Inclusive Care for the Elderly (PACE)",
-      "shortName": "Nevada PACE",
-      "tagline": "If your loved one needs nursing home-level care but wants to stay home, PACE provides all medical services under one team with no copays.",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "local",
-        "stateVariation": false
-      },
-      "intro": "If your loved one is 55+ and has been certified as needing nursing home-level care, Nevada PACE provides all their medical and social services through one coordinated team. This means your loved one gets primary care, specialists, prescription drugs, physical therapy, transportation, and social services with no deductibles or copays, while staying in their own home or community.\n\nBecause PACE covers all Medicare and Medicaid services plus additional long-term care under one program, your loved one won't need to coordinate between separate doctors, pharmacies, or insurance plans. One team manages everything from preventive care to transportation to and from appointments.\n\nNevada's PACE program launched in July 2025 under Senate Bill 207, but providers are still setting up service areas. Your loved one must live in a designated PACE service area once providers begin operations, the program is not available statewide.",
-      "savingsRange": "",
-      "savingsSource": "Free service",
-      "savingsVerified": false,
-      "structuredEligibility": {
-        "summary": [
-          "Age 55+",
-          "Certified for nursing home level of care",
-          "Live in PACE service area",
-          "Able to live safely at home with support"
-        ],
-        "ageRequirement": "55+",
-        "incomeTable": null,
-        "assetLimits": null,
-        "functionalRequirement": "Must be certified by Nevada as needing nursing home level of care (daily help with bathing, dressing, medication management, or other activities of daily living) but able to live safely in the community with PACE services",
-        "otherRequirements": [
-          "Must live in a designated PACE service area in Nevada",
-          "Must be able to live safely in the community with PACE support services"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "phone",
-        "summary": "Contact Nevada Aging and Disability Services Division to check service area availability and begin the nursing home level of care assessment.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Check service area availability",
-            "description": "Call Nevada Aging and Disability Services Division at (775) 687-4210 to confirm PACE providers are operational in your loved one's area. The program is brand new and not yet available statewide."
-          },
-          {
-            "step": 2,
-            "title": "Get nursing home level of care certification",
-            "description": "Request a clinical assessment to determine if your loved one meets Nevada's nursing home level of care requirements. This evaluates their need for daily assistance with activities like bathing, dressing, or medication management."
-          },
-          {
-            "step": 3,
-            "title": "Contact PACE provider directly",
-            "description": "Once service areas are established, you'll work directly with the local PACE provider for enrollment. They will coordinate all Medicare and Medicaid transitions."
-          },
-          {
-            "step": 4,
-            "title": "Complete enrollment",
-            "description": "Provide documentation of age, Nevada residency, nursing home level of care certification, and Medicare/Medicaid status. PACE becomes your loved one's sole source of Medicare and Medicaid services."
-          }
-        ],
-        "processingTime": "Not specified - program is newly launched and processing times not yet established",
-        "waitlist": null,
-        "tip": "Call now to get on notification lists for when PACE providers begin operating in your area - the program is very new in Nevada.",
-        "urls": [
-          {
-            "label": "Nevada DHHS",
-            "url": "https://dhhs.nv.gov/"
-          },
-          {
-            "label": "Nevada Aging and Disability Services",
-            "url": "https://adsd.nv.gov/"
-          }
-        ]
-      },
-      "documentsNeeded": [
-        "Birth certificate or other proof of age",
-        "Proof of Nevada residency (utility bill, lease agreement, or state-issued ID)",
-        "Medicare card",
-        "Medicaid card (if currently enrolled)",
-        "Social Security award letter",
-        "Current medication list from doctor or pharmacy",
-        "Recent medical records or hospital discharge summaries",
-        "Nursing home level of care assessment or certification from Nevada",
-        "Power of attorney documents (if someone else is applying on their behalf)",
-        "Contact information for current doctors and specialists",
-        "Current insurance cards (Medicare supplement, Medicare Advantage, or other coverage)",
-        "Recent lab results or diagnostic test reports"
-      ],
-      "contacts": [
-        {
-          "label": "Nevada Aging and Disability Services",
-          "phone": "(775) 687-4210",
-          "description": "PACE program information and nursing home level of care assessments",
-          "hours": "Mon-Fri 8am-5pm PT"
-        },
-        {
-          "label": "Nevada 2-1-1",
-          "phone": "2-1-1",
-          "description": "General information about all Nevada social services and aging programs",
-          "hours": "24 hours, 7 days a week"
-        }
-      ],
-      "applicationNotes": [
-        "Nevada's PACE program is brand new as of July 2025 - call to check if providers are operational in your area yet",
-        "Once enrolled in PACE, your loved one cannot keep separate Medicare Part D prescription plans or Medicare Advantage - PACE becomes their complete coverage",
-        "If your loved one is not eligible for Medicaid, they will pay a monthly premium for PACE services, but the amount has not been set for Nevada yet",
-        "Your loved one must be able to live safely in the community with PACE support - those requiring 24/7 institutional care may not qualify"
-      ],
-      "relatedPrograms": [
-        "Nevada Medicaid",
-        "Nevada Medicare SHIP Counseling",
-        "Nevada Home and Community-Based Services Waiver",
-        "Nevada Senior Rx Program"
-      ],
-      "contentSections": [],
-      "faqs": [
-        {
-          "question": "Can my loved one keep their current doctors if they join PACE?",
-          "answer": "No, PACE uses its own team of doctors, nurses, and specialists. Your loved one will be assigned to the PACE medical team, but this team coordinates all their care in one place. Many families find this reduces the burden of managing multiple providers."
-        },
-        {
-          "question": "What happens if my loved one needs to move to a nursing home later?",
-          "answer": "PACE can continue to coordinate your loved one's care even if they need temporary or permanent nursing home placement. The PACE team works with nursing facilities in their network and continues managing the overall care plan."
-        },
-        {
-          "question": "How much will PACE cost if my loved one doesn't have Medicaid?",
-          "answer": "If your loved one has Medicare but not Medicaid, they'll pay a monthly premium to PACE. Nevada hasn't published the premium amount yet since the program just launched in 2025. Contact Nevada Aging and Disability Services at (775) 687-4210 for current rates."
-        },
-        {
-          "question": "Can I apply for PACE while my loved one is in the hospital?",
-          "answer": "Yes, hospital discharge planners can help initiate the PACE application process. This is often ideal timing since recent hospitalization may help document the nursing home level of care requirement."
-        },
-        {
-          "question": "What if there's no PACE provider in my loved one's area yet?",
-          "answer": "Nevada's PACE program is brand new and providers are still establishing service areas. Ask to be placed on notification lists when you call (775) 687-4210. PACE is only available in designated geographic areas, not statewide."
-        },
-        {
-          "question": "Can my loved one join PACE and keep their Medicare Advantage plan?",
-          "answer": "No, enrollment in PACE means leaving Medicare Advantage or Medicare supplement plans. PACE becomes your loved one's complete Medicare and Medicaid coverage. This change is permanent unless they disenroll from PACE entirely."
-        },
-        {
-          "question": "Who decides if my loved one needs 'nursing home level of care'?",
-          "answer": "Nevada state assessors conduct this clinical evaluation, looking at your loved one's ability to perform daily activities like bathing, dressing, eating, and managing medications safely. Hospital discharge planners or your loved one's doctor can refer them for this assessment."
-        },
-        {
-          "question": "What transportation does PACE provide?",
-          "answer": "PACE provides transportation to and from the PACE adult day center and to medical appointments with PACE providers. This is included in the program at no extra cost and helps families who struggle with getting their loved one to multiple appointments."
-        }
-      ],
-      "layoutIntent": {
-        "aboutHighlight": "coverage",
-        "eligibilityDisplay": "simple-list",
-        "applyDisplay": "step-journey",
-        "hasLocationFinder": false,
-        "hasDocumentChecklist": true,
-        "visualTone": "editorial"
-      },
-      "icon": "Stethoscope",
-      "phone": "(775) 687-4210",
-      "sourceUrl": "https://adsd.nv.gov/",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-22"
     },
     {
       "id": "medicare-savings-programs",
@@ -670,7 +514,7 @@
         "Social Security award letter or SSI award letter",
         "Pay stubs from last 30 days (if still working)",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment documents (stocks, bonds, certificates of deposit)",
         "Life insurance policies with face values",
         "Birth certificate or valid government-issued photo ID",
@@ -694,6 +538,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI has limited federal funding and applications may be put on hold if the allocation is exhausted during the fiscal year",
         "Income limits change every April 1 based on updated Federal Poverty Level guidelines",
         "QMB protects your loved one from provider billing on Medicare-covered services, but small Medicaid copays may apply for some services",
@@ -781,7 +626,7 @@
       "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly money loaded onto an EBT card, like a debit card for food purchases. Most Nevada seniors get $100–400 per month, with the exact amount based on income and household size. Because Nevada expanded income limits beyond federal minimums, many seniors who wouldn't qualify elsewhere can get help here.\n\nThe program uses special rules for seniors that make qualifying easier. Your loved one doesn't face the strict gross income test that younger adults do, and medical expenses over $35/month actually increase their benefit amount. Nevada has no waitlist, if your loved one qualifies, benefits start within 30 days of approval.",
       "savingsRange": "$1,200 – $4,800/year in 2026",
       "savingsSource": "Based on typical monthly benefits of $100–400 for Nevada seniors",
-      "savingsVerified": true,
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 60+",
@@ -809,8 +654,8 @@
           }
         ],
         "assetLimits": {
-          "individual": 3500,
-          "couple": 3500,
+          "individual": 3200,
+          "couple": 3200,
           "countedAssets": [
             "Cash",
             "Bank accounts",
@@ -874,7 +719,7 @@
       },
       "documentsNeeded": [
         "Social Security award letter or pension statement",
-        "Bank statements for all accounts (last 3 months)",
+        "Current balance for every checking and savings account. Nevada does count these toward the SNAP resource limit.",
         "Medicare card and Medicare premium statements",
         "Prescription receipts and medical bills from last 3 months",
         "Rent receipt or mortgage statement",
@@ -898,7 +743,7 @@
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for SNAP and all social services information",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         },
         {
           "label": "Access Nevada Support",
@@ -914,6 +759,7 @@
         }
       ],
       "applicationNotes": [
+        "Nevada counts cash and money in checking and savings accounts as resources. The limit is $2,000 for most households and $3,200 when at least one member is age 60 or older or disabled.",
         "Seniors 60+ skip the gross income test that trips up younger applicants, focus on net income and assets instead",
         "Medical expenses over $35/month are deductible and increase your benefit amount, many families miss this",
         "If your loved one gets SSI, they may automatically qualify or get streamlined processing",
@@ -972,7 +818,8 @@
       "phone": "(800) 992-0900",
       "sourceUrl": "https://www.dss.nv.gov/programs/snap/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-22"
     },
     {
       "id": "energy-assistance-eap-liheap",
@@ -1080,7 +927,7 @@
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services and local EAP office locations",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         },
         {
           "label": "Nevada Division of Welfare and Supportive Services",
@@ -1136,7 +983,7 @@
       "id": "weatherization-assistance-program",
       "name": "Weatherization Assistance Program",
       "shortName": "Weatherization Assistance",
-      "tagline": "Free home energy upgrades including insulation, windows, and HVAC repairs if your loved one's income is below $2,500/month",
+      "tagline": "Free home energy upgrades including insulation, windows, and HVAC repairs if your loved one's income is below $2,660/month",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1144,12 +991,12 @@
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Nevada Housing Division, HELP of Southern Nevada, Nevada Rural Housing, CSA Reno, RND Council NV",
+            "name": "Nevada Housing Division, HELP of Southern Nevada, Rural Nevada Development Corporation, CSA Reno",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your loved one struggles with high heating or cooling bills, Nevada's Weatherization Assistance Program provides free home energy upgrades, no cost to homeowners or renters with landlord approval. Eligible homes receive insulation, window replacements, duct sealing, and potentially new HVAC systems, water heaters, or refrigerators based on an energy audit.\n\nYour loved one qualifies if household income is at or below 200% of the federal poverty level (roughly $2,500/month for one person). Priority goes to households with elderly or disabled members. Because the program covers all materials and labor at no cost, families typically save hundreds of dollars annually on utility bills after improvements are completed.\n\nThe program operates through regional nonprofits across Nevada, you'll need to contact the provider serving your loved one's area for an application and energy audit to determine which upgrades are cost-effective for their specific home.",
+      "intro": "If your loved one struggles with high heating or cooling bills, Nevada's Weatherization Assistance Program provides free home energy upgrades, no cost to homeowners or renters with landlord approval. Eligible homes receive insulation, window replacements, duct sealing, and potentially new HVAC systems, water heaters, or refrigerators based on an energy audit.\n\nYour loved one qualifies if household income is at or below 200% of the federal poverty level (roughly $2,660/month for one person). Priority goes to households with elderly or disabled members. Because the program covers all materials and labor at no cost, families typically save hundreds of dollars annually on utility bills after improvements are completed.\n\nThe program operates through regional nonprofits across Nevada, you'll need to contact the provider serving your loved one's area for an application and energy audit to determine which upgrades are cost-effective for their specific home.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1164,35 +1011,35 @@
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 2152
+            "monthlyLimit": 2660
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 2907
+            "monthlyLimit": 3607
           },
           {
             "householdSize": 3,
-            "monthlyLimit": 3663
+            "monthlyLimit": 4553
           },
           {
             "householdSize": 4,
-            "monthlyLimit": 4418
+            "monthlyLimit": 5500
           },
           {
             "householdSize": 5,
-            "monthlyLimit": 5173
+            "monthlyLimit": 6447
           },
           {
             "householdSize": 6,
-            "monthlyLimit": 5928
+            "monthlyLimit": 7393
           },
           {
             "householdSize": 7,
-            "monthlyLimit": 6684
+            "monthlyLimit": 8340
           },
           {
             "householdSize": 8,
-            "monthlyLimit": 7439
+            "monthlyLimit": 9287
           }
         ],
         "assetLimits": null,
@@ -1211,7 +1058,7 @@
           {
             "step": 1,
             "title": "Find your regional provider",
-            "description": "Southern Nevada: Call HELP of Southern Nevada at (702) 369-4357. Northern Nevada: Call CSA Reno at (775) 786-6023. Rural areas: Call Nevada Rural Housing Authority at (775) 887-1795."
+            "description": "Southern Nevada: Call HELP of Southern Nevada at (702) 795-0575. Northern Nevada: Call CSA Reno at (775) 786-6023. Rural areas: Call Rural Nevada Development Corporation at (866) 404-5204."
           },
           {
             "step": 2,
@@ -1234,8 +1081,8 @@
             "description": "If approved, licensed contractors perform all work at no cost, typically insulation, air sealing, window/door replacement, and HVAC work as needed."
           }
         ],
-        "processingTime": "Applications reviewed in order received; no statewide timeline specified, varies by provider",
-        "waitlist": "Processing is order-based which may create delays during high-demand periods",
+        "processingTime": "Varies by provider. Rural Nevada Development Corporation states a determination within 30 days of receiving a complete application and all supporting documents.",
+        "waitlist": "CSA ranks applications on a priority-points basis rather than purely first-come. Ask your regional provider where you sit.",
         "tip": "Gather all required documents before applying, incomplete applications cause delays in processing.",
         "urls": [
           {
@@ -1243,47 +1090,50 @@
             "url": "https://housing.nv.gov/programs/weatherization/"
           },
           {
-            "label": "CSA Reno Weatherization Application",
-            "url": "https://csareno.org/weatherization"
+            "label": "CSA Reno Weatherization",
+            "url": "https://csareno.org/program/home-weatherization-assistance/"
           }
         ]
       },
       "documentsNeeded": [
         "Social Security cards for all household members",
         "Valid unexpired photo ID for all adults 18 and older",
-        "Four most recent pay stubs for all working household members",
-        "Social Security benefit statements or pension statements",
-        "Self-employment tax returns and bank statements if applicable",
-        "Two current months of bank statements for all accounts",
-        "Last 12 months of gas and electric utility bills (all pages)",
-        "Current utility bills showing account status",
-        "Notarized zero income form if anyone has no income",
-        "Statement of crisis if applying for emergency weatherization"
+        "Proof of earned income covering at least the past 30 days (pay stubs, or bank statements showing wage direct deposits)",
+        "For unearned income: a benefit award letter, or three months of statements",
+        "A copy of your power and/or gas bill",
+        "Signed Notice of Rights and Obligations",
+        "Homeowners: a deed or tax bill showing ownership",
+        "Renters: a Weatherization Service Agreement and an Owner’s Investment Form signed by the landlord",
+        "Certification of Zero Income form if anyone in the household has no income"
       ],
       "contacts": [
         {
-          "label": "Nevada Housing Division Weatherization",
+          "label": "Nevada Housing Division - Las Vegas (start here)",
           "phone": "(702) 486-4311",
-          "description": "Statewide program oversight and general information",
-          "hours": "Monday-Friday, business hours"
+          "hours": "Mon-Fri business hours",
+          "description": "General weatherization questions. Applications are filed with the regional provider for your county, not the state office. Toll-free alternate: (888) 486-8775."
         },
         {
-          "label": "HELP of Southern Nevada",
-          "phone": "(702) 369-4357",
-          "description": "Las Vegas and Southern Nevada weatherization services",
-          "hours": "Contact for current hours"
-        },
-        {
-          "label": "CSA Reno Weatherization",
+          "label": "CSA - Carson City, Washoe, Churchill, Douglas, Lyon, Storey",
           "phone": "(775) 786-6023",
-          "description": "Washoe County and Reno area weatherization services",
-          "hours": "Monday-Friday, business hours"
+          "hours": "Mon-Fri business hours"
+        },
+        {
+          "label": "HELP of Southern Nevada - City of Las Vegas, Henderson, Southern Rural Clark",
+          "phone": "(702) 795-0575",
+          "hours": "Contact for current hours",
+          "description": "Ask for a Weatherization representative."
+        },
+        {
+          "label": "Rural Nevada Development Corporation - North Las Vegas, Northern Rural Clark, Elko, Esmeralda, Eureka, Humboldt, Lander, Lincoln, Mineral, Nye, Pershing, White Pine",
+          "phone": "(866) 404-5204",
+          "hours": "Mon-Fri business hours",
+          "description": "RNDC uses a 150% federal poverty level limit rather than 200%."
         },
         {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
-          "description": "Free helpline for all social services and program referrals",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, closed weekends"
         }
       ],
       "applicationNotes": [
@@ -1317,7 +1167,7 @@
         },
         {
           "question": "Which regional provider should we contact if we're not sure about our service area?",
-          "answer": "Call the Nevada Housing Division at (702) 486-4311 first, they can direct you to the correct regional provider. Generally: HELP of Southern Nevada covers Las Vegas area, CSA Reno covers Washoe County, and Nevada Rural Housing covers rural areas."
+          "answer": "Call the Nevada Housing Division at (702) 486-4311 first, they can direct you to the correct regional provider. Generally: HELP of Southern Nevada covers Las Vegas area, CSA Reno covers Carson City, Washoe, Churchill, Douglas, Lyon and Storey, and Rural Nevada Development Corporation covers North Las Vegas plus the rural counties."
         },
         {
           "question": "What happens if my loved one's income changes after they're approved?",
@@ -1344,7 +1194,8 @@
       "phone": "(702) 486-4311",
       "sourceUrl": "https://housing.nv.gov/programs/weatherization/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "ship-medicare-counseling",
@@ -1479,7 +1330,7 @@
     },
     {
       "id": "home-delivered-meals",
-      "name": "Home Delivered Meals",
+      "name": "Home Delivered Meals (Meals on Wheels)",
       "shortName": "Home Delivered Meals",
       "tagline": "If your loved one is homebound and 60+, they can get free nutritious meals delivered to their door, 7 meals per week in most areas.",
       "programType": "benefit",
@@ -1558,7 +1409,7 @@
         "urls": [
           {
             "label": "Washoe County Senior Services",
-            "url": "https://www.washoecounty.gov/seniorsrv/nutrition/home_delivered_meals.php"
+            "url": "https://www.washoecounty.gov/seniorsrv/programs_and_services/nutrition/home_delivered_meals.php"
           },
           {
             "label": "Nevada 211 Referrals",
@@ -1567,32 +1418,37 @@
         ]
       },
       "documentsNeeded": [
-        "Valid photo ID or driver's license",
-        "Proof of age (birth certificate, passport, or Medicare card)",
-        "Documentation of homebound status (doctor's note, disability letter, or medical records)",
-        "Proof of address within service delivery area (utility bill or lease)",
-        "List of current medications and medical conditions",
-        "Emergency contact information",
-        "For Medicaid waiver participants: Waiver enrollment documentation and case manager contact"
+        "The person's age or date of birth. These programs serve adults 60 and older.",
+        "Their home address and city or county. This decides which provider serves them, and some providers only cover certain cities.",
+        "Why they cannot get out to a meal site. Illness, disability, mobility, or living too far out all count.",
+        "A phone number and a good time to reach them. Staff confirm eligibility during an in-home visit, so someone will call to schedule.",
+        "Any food allergies or dietary restrictions, and whether they have freezer space. Deliveries are usually one hot meal plus frozen meals for the week.",
+        "If they are already on a Medicaid waiver, the case manager's name. Meals may come through that route instead."
       ],
       "contacts": [
         {
-          "label": "Washoe County Senior Services",
+          "label": "Eldercare Locator (start here)",
+          "phone": "1-800-677-1116",
+          "description": "Federal referral line. Give them the ZIP code and they name the home-delivered meals provider for that area. Nevada has no single statewide intake number, so this is the one door that works from any part of the state.",
+          "hours": "Mon-Fri 8am-9pm ET"
+        },
+        {
+          "label": "Nevada Care Connection, Southern Nevada",
+          "phone": "(702) 933-1191",
+          "description": "Jewish Family Service Agency, the ADSD resource center for Clark, Nye, Lincoln, and Esmeralda counties. Connects Las Vegas area families to their local meals provider.",
+          "hours": null
+        },
+        {
+          "label": "Nevada Care Connection, Northern and Rural Nevada",
+          "phone": "(877) 861-1893",
+          "description": "Access to Healthcare Network, the ADSD resource center for Washoe, Carson City, and 11 other northern and rural counties.",
+          "hours": null
+        },
+        {
+          "label": "Washoe County Senior Services (Reno and Sparks)",
           "phone": "(775) 328-2575",
-          "description": "Home delivered meals for Reno/Sparks area",
-          "hours": "Monday-Friday 8am-5pm"
-        },
-        {
-          "label": "Nevada 211",
-          "phone": "2-1-1",
-          "description": "Referrals to local meal providers statewide",
-          "hours": "24 hours, 7 days a week"
-        },
-        {
-          "label": "Nevada Aging & Disability Services",
-          "phone": "(775) 687-4210",
-          "description": "State program information and local referrals",
-          "hours": "Monday-Friday 8am-5pm"
+          "description": "The home-delivered meals operator for Washoe County. Closed on federal and Nevada state holidays.",
+          "hours": "Mon-Fri 8am-5pm PT"
         }
       ],
       "applicationNotes": [
@@ -1651,10 +1507,11 @@
         "visualTone": "editorial"
       },
       "icon": "BowlFood",
-      "phone": "(775) 328-2575",
+      "phone": "1-800-677-1116",
       "sourceUrl": "https://adsd.nv.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-18"
     },
     {
       "id": "senior-respite-vouchers",
@@ -1746,7 +1603,7 @@
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "General information about all senior services and caregiving resources",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         }
       ],
       "applicationNotes": [
@@ -1901,7 +1758,7 @@
         "Social Security card",
         "Proof of unemployment status (unemployment benefits letter, layoff notice, or signed statement)",
         "Income documentation for all household members from past 12 months (Social Security letters, pension statements, or tax returns)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Proof of Nevada residency (utility bill, lease agreement, or state-issued document)",
         "Veterans discharge papers (DD-214) if applicable for priority status",
         "Disability documentation if applicable for priority status"
@@ -1917,7 +1774,7 @@
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services and program referrals",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         },
         {
           "label": "Nevada ADSD",
@@ -1985,7 +1842,8 @@
       "phone": "(775) 323-2243",
       "sourceUrl": "https://adsd.nv.gov/About/Reports/SrCommSvcEmplyProg/Home/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "advocates-for-seniors",
@@ -2066,7 +1924,7 @@
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all aging and social services in Nevada",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         }
       ],
       "applicationNotes": [
@@ -2356,7 +2214,7 @@
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "General assistance finding current benefit programs",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         }
       ],
       "applicationNotes": [
@@ -2422,7 +2280,7 @@
     },
     {
       "id": "hcbw-fe-waiver",
-      "name": "Home and Community-Based Waiver for the Frail Elderly (HCBW-FE)",
+      "name": "Home and Community Based Services (HCBS) Waiver for the Frail Elderly (FE)",
       "shortName": "HCBW-FE Waiver",
       "tagline": "If your loved one needs daily care to stay home safely, this Nevada waiver can pay for homemaker, respite, and companion services.",
       "programType": "benefit",
@@ -2519,7 +2377,7 @@
         "Birth certificate or other proof of age",
         "Proof of Nevada residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements) if home equity exceeds $752,000",
         "Vehicle titles and registration for all vehicles",
@@ -2533,18 +2391,19 @@
       "contacts": [
         {
           "label": "Nevada ADSD",
-          "phone": null,
-          "description": "Aging and Disability Services Division for HCBW-FE applications",
-          "hours": "Contact via website for current phone numbers"
+          "phone": "(775) 687-4210",
+          "description": "Aging and Disability Services Division. Submit the OCL Program Application to your nearest ADSD regional office, or give the information over the phone to an intake team member.",
+          "hours": "Mon-Fri 8am-5pm PT"
         },
         {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all Nevada social services and program information",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Home ownership doesn't disqualify you, but home equity over $752,000 does, and your home may be subject to Medicaid estate recovery after death",
         "A dementia diagnosis alone doesn't automatically qualify, you still must score 3+ functional deficits on the formal assessment",
         "If married and only one spouse applies, both spouses' assets are counted jointly against the $2,000 individual limit",
@@ -2600,10 +2459,11 @@
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": null,
+      "phone": "(775) 687-4210",
       "sourceUrl": "https://adsd.nv.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-22"
     },
     {
       "id": "personal-care-services-program",
@@ -2711,7 +2571,7 @@
         "Social Security card",
         "Medicare card (if applicable)",
         "CBC-423 Medical Diagnosis form (completed by doctor)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Life insurance policies with face values",
         "Property deeds or mortgage statements",
         "Pre-need burial contracts or irrevocable burial trusts",
@@ -2738,10 +2598,11 @@
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all Nevada social services and programs",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Having Nevada Medicaid does not automatically enroll your loved one in PCS, a separate assessment and application are required",
         "Documentation delays are common if medical forms are missing, ensure the CBC-423 is completed before submitting",
         "Regional ADSD offices may have different providers and intake processes, call your local office for area-specific details",
@@ -2800,7 +2661,8 @@
       "phone": "(800) 525-2395",
       "sourceUrl": "https://adsd.nv.gov/programs/seniors/persasstsvcs/pas_prog/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "cope-community-options-elderly",
@@ -2850,7 +2712,7 @@
           {
             "step": 1,
             "title": "Contact your regional ADSD office",
-            "description": "Call (775) 687-4210 for statewide intake or find your local office at adsd.nv.gov. Request the OCL Program Application for COPE."
+            "description": "Call the ADSD regional office nearest you: Carson City (775) 687-4210, Las Vegas (702) 486-3545, Reno (775) 687-0800, or Elko (775) 738-1966. There is no statewide COPE line. Request the OCL Program Application for COPE."
           },
           {
             "step": 2,
@@ -2860,7 +2722,7 @@
           {
             "step": 3,
             "title": "Submit application",
-            "description": "Submit by phone, mail, or in-person to your nearest ADSD office. Carson City: 1550 College Parkway. Las Vegas: 2460 Professional Court, Suite 110. Henderson: 2831 St. Rose Parkway, Suite 200."
+            "description": "Submit by phone, mail, or in-person to your nearest ADSD office. Carson City: 1550 E College Parkway. Las Vegas: 7150 Pollock Drive. Reno: 10375 Professional Circle. Elko: 1010 Ruby Vista Drive, Suite 104."
           },
           {
             "step": 4,
@@ -2890,7 +2752,7 @@
         "Proof of U.S. citizenship or legal permanent residency",
         "Most recent Social Security award letter",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (deeds, tax statements)",
         "Life insurance policies with face values",
@@ -2901,19 +2763,35 @@
       ],
       "contacts": [
         {
-          "label": "ADSD Statewide COPE Line",
+          "label": "ADSD Carson City Regional Office (start here)",
           "phone": "(775) 687-4210",
-          "description": "Main number for COPE applications and questions",
-          "hours": "Monday-Friday business hours"
+          "hours": "Mon-Fri business hours",
+          "description": "COPE intake is regional. Call the ADSD office nearest you and ask for the OCL Program Application, or email CBCSouthIntake@adsd.nv.gov."
+        },
+        {
+          "label": "ADSD Las Vegas Regional Office",
+          "phone": "(702) 486-3545",
+          "hours": "Mon-Fri business hours"
+        },
+        {
+          "label": "ADSD Reno Regional Office",
+          "phone": "(775) 687-0800",
+          "hours": "Mon-Fri business hours"
+        },
+        {
+          "label": "ADSD Elko Regional Office",
+          "phone": "(775) 738-1966",
+          "hours": "Mon-Fri business hours"
         },
         {
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
-          "description": "Free 24/7 helpline for all social services and aging programs",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, closed weekends",
+          "description": "Free helpline for social services and aging programs."
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. The application asks for total monthly gross income and total resources on its face, and ADSD may request written verification, so have those figures ready. If the office needs something specific it sends a written list with a due date.",
         "This is a non-Medicaid program, you can apply even if your loved one doesn't qualify for Medicaid yet",
         "Some regions have waitlists while others can start services immediately, ask about current availability in your area",
         "Family members (excluding spouses and guardians) may be paid to provide some care services, but confirm eligibility rules",
@@ -2972,7 +2850,8 @@
       "phone": "(775) 687-4210",
       "sourceUrl": "https://adsd.nv.gov/Programs/Seniors/COPE/COPE_Prog/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "tap-taxi-assistance",
@@ -3071,7 +2950,7 @@
           "label": "Nevada 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all Nevada social services and programs",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Mon-Fri 9am-9pm PT, excluding holidays"
         }
       ],
       "applicationNotes": [
@@ -3127,7 +3006,7 @@
       },
       {
         "name": "SNAP",
-        "programId": "snap-nevada",
+        "programId": "snap-food-benefits",
         "why": "Provides immediate monthly grocery assistance ($100–400/month) for seniors 60+ on fixed incomes."
       },
       {
@@ -3137,7 +3016,7 @@
       },
       {
         "name": "Nevada Energy Assistance Program",
-        "programId": "nevada-energy-assistance",
+        "programId": "energy-assistance-eap-liheap",
         "why": "Covers up to $3,136/year in heating and cooling costs with no asset limits."
       }
     ],

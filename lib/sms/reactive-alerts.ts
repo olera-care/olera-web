@@ -198,6 +198,90 @@ async function clearBenefitsQueuePending(
 }
 
 /**
+ * Finish the bookkeeping an immediate admin reply would have done at send time.
+ *
+ * A human-scheduled reply commits the thread at QUEUE time (handled, draft
+ * cleared, job -> 'queued') but deliberately withholds the one claim it cannot
+ * yet make: that the message was sent. This closes that gap once Twilio has it.
+ */
+async function stampAdminReplyDelivered(
+  db: ReturnType<typeof getServiceClient>,
+  row: { answer_job_id: string | null; queued_by: string | null; body: string },
+  sentAt: string,
+): Promise<void> {
+  if (!row.answer_job_id) return;
+  const { error } = await db
+    .from("family_answer_jobs")
+    .update({ status: "sent", sent_at: sentAt, sent_body: row.body, sent_by: row.queued_by })
+    .eq("id", row.answer_job_id);
+  if (error) console.error("[sms-queue] admin reply job stamp failed:", error);
+}
+
+/**
+ * Put a canceled admin reply back in front of the human who scheduled it.
+ *
+ * This is the failure the whole scheduling design has to survive. Someone wrote
+ * a reply, pressed a button, and walked away believing it was handled. Then the
+ * flush re-checked opt-out or the throttle and dropped it. Leaving the thread
+ * marked handled would make a message that never went out indistinguishable
+ * from one that did, and the family would be waiting on an answer nobody knows
+ * is missing. So the thread reopens: handled_at cleared, job back to 'ready',
+ * and the reply restored to the draft box rather than discarded, because it is
+ * still the right text and re-typing it is a tax on an already-bad outcome.
+ */
+async function reopenCanceledAdminReply(
+  db: ReturnType<typeof getServiceClient>,
+  row: {
+    phone_last10: string | null;
+    answer_job_id: string | null;
+    body: string;
+    queued_by: string | null;
+    created_at: string;
+  },
+  reason: string,
+): Promise<void> {
+  const last10 = row.phone_last10;
+  if (!last10) return;
+
+  // Only the messages THIS scheduling marked handled. A thread can hold months
+  // of earlier exchanges that were answered properly, and a blanket clear would
+  // resurrect all of them as unanswered — turning one undelivered reply into a
+  // fake backlog. Scheduling stamps handled_at at queue time, so anything
+  // stamped at or after that instant is ours to undo.
+  await db
+    .from("sms_inbound")
+    .update({ handled_at: null, handled_by: null })
+    .eq("phone_last10", last10)
+    .gte("handled_at", row.created_at);
+
+  if (row.answer_job_id) {
+    const { error } = await db
+      .from("family_answer_jobs")
+      .update({ status: "ready", sent_body: null, sent_by: null })
+      .eq("id", row.answer_job_id);
+    if (error) console.error("[sms-queue] admin reply job reopen failed:", error);
+  }
+
+  // Never clobber a draft written since: the reviewer may already be redoing
+  // this by hand, and their newer text outranks the one that failed to send.
+  const { data: existing } = await db
+    .from("sms_drafts")
+    .select("phone_last10")
+    .eq("phone_last10", last10)
+    .maybeSingle();
+  if (!existing) {
+    await db.from("sms_drafts").insert({
+      phone_last10: last10,
+      body: row.body,
+      updated_by: row.queued_by ?? "sms-queue-flush",
+      updated_at: new Date().toISOString(),
+    });
+  }
+
+  console.warn(`[sms-queue] scheduled admin reply to ${last10} canceled (${reason}); thread reopened`);
+}
+
+/**
  * Deliver due rows from sms_queue. Called by the sms-queue-flush cron. Re-checks
  * opt-out and the daily throttle at delivery time (state changed since enqueue),
  * so a family who texted STOP overnight is never sent the held message.
@@ -209,7 +293,9 @@ export async function flushDueSmsQueue(now?: Date): Promise<FlushResult> {
 
   const { data: due, error } = await db
     .from("sms_queue")
-    .select("id, to_phone, body, email_type, recipient_type, family_profile_id, attempts")
+    .select(
+      "id, to_phone, phone_last10, body, email_type, recipient_type, family_profile_id, attempts, origin, queued_by, answer_job_id, created_at",
+    )
     .eq("status", "pending")
     .lte("send_after", at.toISOString())
     .order("send_after", { ascending: true })
@@ -229,6 +315,16 @@ export async function flushDueSmsQueue(now?: Date): Promise<FlushResult> {
       if (prof?.phone_validity === "opted_out") {
         await db.from("sms_queue").update({ status: "canceled", last_error: "opted_out" }).eq("id", row.id);
         await clearBenefitsQueuePending(db, row.family_profile_id, row.email_type);
+        // Deliberately NOT reopened. Every other cancel reason wants the thread
+        // back in front of a human so they can resend; this one must not, since
+        // the only allowed action is to leave them alone. The reply box refuses
+        // a do-not-contact number anyway, so restoring the draft would only
+        // invite someone to fight a control that is working.
+        if (row.origin === "admin_reply") {
+          console.warn(
+            `[sms-queue] scheduled admin reply to ${row.phone_last10} dropped: recipient opted out before the send window opened`,
+          );
+        }
         result.canceled++;
         continue;
       }
@@ -244,7 +340,14 @@ export async function flushDueSmsQueue(now?: Date): Promise<FlushResult> {
     }
 
     // Re-check the daily safety throttle.
-    if (await isOverDailyThrottle(db, row.to_phone, at)) {
+    //
+    // Exempt for a human reply. The throttle protects families from Olera's
+    // automation, and the immediate admin send path has never consulted it — so
+    // applying it here would mean the same reply to the same question survives
+    // or dies purely on what time of day it was written, which is not a rule
+    // anyone could reason about. A person answering a direct question is the
+    // case the throttle exists to make room for.
+    if (row.origin !== "admin_reply" && (await isOverDailyThrottle(db, row.to_phone, at))) {
       await db.from("sms_queue").update({ status: "canceled", last_error: "daily_throttle" }).eq("id", row.id);
       if (row.family_profile_id) {
         await clearBenefitsQueuePending(db, row.family_profile_id, row.email_type);
@@ -259,7 +362,14 @@ export async function flushDueSmsQueue(now?: Date): Promise<FlushResult> {
       emailType: row.email_type,
       recipientType: (row.recipient_type as "family" | undefined) ?? "family",
       recipientLogProfileId: row.family_profile_id ?? undefined,
-      metadata: { reactive: isTransactionalSms(row.email_type), queued: true },
+      // A human answering a question a family asked is transactional by
+      // definition. It is absent from the channel-policy map because the admin
+      // reply path has never consulted that map, so asking the map here would
+      // log every held reply as a proactive nudge in /admin/family-comms.
+      metadata: {
+        reactive: row.origin === "admin_reply" || isTransactionalSms(row.email_type),
+        queued: true,
+      },
     });
 
     if (res.success && !res.skipped) {
@@ -270,6 +380,9 @@ export async function flushDueSmsQueue(now?: Date): Promise<FlushResult> {
       if (row.family_profile_id) {
         await stampBenefitsQueueDelivery(db, row.family_profile_id, row.email_type, sentAt);
       }
+      if (row.origin === "admin_reply") {
+        await stampAdminReplyDelivered(db, row, sentAt);
+      }
       result.sent++;
     } else if (res.skipped) {
       await db.from("sms_queue").update({
@@ -277,6 +390,9 @@ export async function flushDueSmsQueue(now?: Date): Promise<FlushResult> {
       }).eq("id", row.id);
       if (row.family_profile_id) {
         await clearBenefitsQueuePending(db, row.family_profile_id, row.email_type);
+      }
+      if (row.origin === "admin_reply") {
+        await reopenCanceledAdminReply(db, row, "suppressed");
       }
       result.canceled++;
     } else {
@@ -288,6 +404,9 @@ export async function flushDueSmsQueue(now?: Date): Promise<FlushResult> {
       if (failed) {
         if (row.family_profile_id) {
           await clearBenefitsQueuePending(db, row.family_profile_id, row.email_type);
+        }
+        if (row.origin === "admin_reply") {
+          await reopenCanceledAdminReply(db, row, res.error ?? "send_failed");
         }
         result.failed++;
       }

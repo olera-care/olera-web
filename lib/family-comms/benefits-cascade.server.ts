@@ -28,7 +28,12 @@ import {
 } from "@/lib/benefits/eligibility.server";
 import { findPipelineDraftFor, getStateAbbrev, getStateSlug } from "@/lib/program-data";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
-import { benefitsResultsSms } from "@/lib/sms/templates";
+import {
+  BENEFITS_HELP_REQUEST_SMS_COPY_VERSION,
+  BENEFITS_RESULTS_SMS_COPY_VERSION,
+  BENEFITS_RESULTS_ZERO_MATCH_SMS_COPY_VERSION,
+  benefitsResultsSms,
+} from "@/lib/sms/templates";
 import { withSmsSource } from "@/lib/sms/click-source";
 import { getSiteUrl } from "@/lib/site-url";
 import { sendSlackAlert } from "@/lib/slack";
@@ -342,7 +347,7 @@ function toPick(
 }
 
 /** Parse "/benefits/{stateSlug}/{programId}" out of an entry-source path. */
-function parseEntrySourceProgram(entrySource: string | null | undefined): { stateId: string; programId: string } | null {
+export function parseEntrySourceProgram(entrySource: string | null | undefined): { stateId: string; programId: string } | null {
   if (!entrySource) return null;
   const segs = entrySource.split("?")[0].split("/").filter(Boolean);
   if (segs.length === 3 && segs[0] === "benefits") return { stateId: segs[1], programId: segs[2] };
@@ -387,17 +392,38 @@ export async function selectFirstStepProgram(
      *  worse than a soft rule firing late. Falls through to the normal
      *  ladder when the pinned program has no callable content. */
     pin?: { programId: string; stateId: string | null } | null;
+    /** Run the pin through the eligibility screen. Set when the pin came from
+     *  a model suggestion rather than from a letter a human already sent. */
+    pinScreened?: boolean;
   },
 ): Promise<FirstStepPick | null> {
   const excluded = new Set(opts.exclude || []);
 
-  if (opts.pin?.programId && opts.pin.stateId && opts.stateAbbrev && !excluded.has(opts.pin.programId)) {
-    const pinnedDraft = draftFor(opts.stateAbbrev, opts.pin.programId);
-    if (pinnedDraft) {
-      const pinned = toPick(pinnedDraft, opts.stateAbbrev, opts.pin.stateId, "saved");
-      if (pinned) return pinned;
-    }
-  }
+  /**
+   * draftFor, with the exclusion re-checked on the far side of the id bridge.
+   *
+   * Every `excluded.has(...)` guard below tests the identifier we were HANDED —
+   * a saved row's program_id, the entry program, a startHere id. But draftFor
+   * falls through to findPipelineDraftFor, which maps waiver-library ids onto
+   * the same pipeline draft. A family holding both forms of one program (they
+   * accumulate: "low-income-home-energy-assistance-program-liheap" and
+   * "liheap-energy-assistance" are the same thing) passes the pre-bridge guard
+   * on the form that is not excluded, and toPick then returns draft.id — the
+   * excluded program.
+   *
+   * That made recompose hand back the exact program the packet ruled out, with
+   * no error, which is the worst outcome for that button: the operator is told
+   * it worked. Found 2026-09-01 in a batch of 51, where 3 recomposed to
+   * themselves — including a Kentucky family whose packet said the program
+   * requires Medicaid and the family had stated they do not have it.
+   *
+   * The pre-bridge guards stay: they are cheap and they short-circuit earlier.
+   */
+  const draftForUnexcluded = (stateAbbrev: string, programId: string): PipelineDraft | null => {
+    const draft = draftFor(stateAbbrev, programId);
+    if (!draft) return null;
+    return excluded.has(draft.id) ? null : draft;
+  };
 
   // Eligibility screen (conservative: unknown facts and unjoined programs
   // always pass). sbf rows load once, only when there are facts to apply.
@@ -435,6 +461,23 @@ export async function selectFirstStepProgram(
     );
     return { ruledOut: verdict.ruledOut, boost: verdict.boost };
   };
+  // The pin, resolved here rather than before the screen exists.
+  //
+  // A pin from a SENT letter is never screened: we already told the family to
+  // start there, and contradicting it is worse than a soft rule firing late.
+  // A pin from a model suggestion has no such licence — nobody approved it —
+  // so `pinScreened` runs it through the same eligibility check every other
+  // candidate faces. Without that, a recompose could hand a family a program
+  // their own stated facts rule out, which is the exact failure this system
+  // exists to prevent.
+  if (opts.pin?.programId && opts.pin.stateId && opts.stateAbbrev && !excluded.has(opts.pin.programId)) {
+    const pinnedDraft = draftForUnexcluded(opts.stateAbbrev, opts.pin.programId);
+    if (pinnedDraft && !(opts.pinScreened && screen(pinnedDraft, opts.pin.stateId).ruledOut)) {
+      const pinned = toPick(pinnedDraft, opts.stateAbbrev, opts.pin.stateId, "saved");
+      if (pinned) return pinned;
+    }
+  }
+
   const { data: account } = await db
     .from("accounts")
     .select("user_id, signup_source")
@@ -442,14 +485,33 @@ export async function selectFirstStepProgram(
     .maybeSingle();
   if (!account?.user_id) return null;
 
-  // 1. Entry-source program page.
+  // 1. Entry-source program page — a CANDIDATE, not a short circuit.
+  //
+  // Landing on a program's page is real intent and it still wins every tie.
+  // What it no longer does is beat a saved program that fits the family
+  // better. It used to return immediately, so the page someone happened to
+  // arrive on outranked everything the eligibility screen knew: an Oregon
+  // family whose saved SNAP scored 20 got a letter about the rental
+  // assistance page they entered through, which scored 8. Reading a page is
+  // weaker evidence than the facts a family typed about themselves, so it is
+  // scored as the tiebreak it is.
   const entry = parseEntrySourceProgram(account.signup_source);
+  let entryCandidate: { pick: FirstStepPick; boost: number; rank: number } | null = null;
   if (entry && !excluded.has(entry.programId)) {
     const abbrev = getStateAbbrev(entry.stateId);
-    const draft = draftFor(abbrev, entry.programId);
-    if (draft && !screen(draft, entry.stateId).ruledOut) {
-      const pick = toPick(draft, abbrev, entry.stateId, "entry");
-      if (pick) return pick;
+    const draft = draftForUnexcluded(abbrev, entry.programId);
+    if (draft) {
+      const verdict = screen(draft, entry.stateId);
+      if (!verdict.ruledOut) {
+        const pick = toPick(draft, abbrev, entry.stateId, "entry");
+        if (pick) {
+          entryCandidate = {
+            pick,
+            boost: verdict.boost,
+            rank: COMPLEXITY_RANK[draft.complexity] ?? 3,
+          };
+        }
+      }
     }
   }
 
@@ -470,7 +532,16 @@ export async function selectFirstStepProgram(
     .order("id", { ascending: true });
 
   const ownAbbrev = opts.stateAbbrev ? opts.stateAbbrev.toUpperCase() : null;
-  const candidates: { pick: FirstStepPick; boost: number; rank: number; idx: number }[] = [];
+  const candidates: {
+    pick: FirstStepPick;
+    boost: number;
+    rank: number;
+    idx: number;
+    isEntry?: boolean;
+  }[] = [];
+  // idx -1 keeps the entry ahead of saved rows on the final tiebreak too,
+  // for the case where boost and complexity are all equal.
+  if (entryCandidate) candidates.push({ ...entryCandidate, idx: -1, isEntry: true });
   (saved || []).forEach((row, idx) => {
     if (!row.program_id || !row.state_id || excluded.has(row.program_id)) return;
     const abbrev = getStateAbbrev(row.state_id);
@@ -490,7 +561,7 @@ export async function selectFirstStepProgram(
     // as the fallback and returns a real ND program, so removing foreign states
     // here routes there instead of misdirecting.
     if (ownAbbrev && abbrev.toUpperCase() !== ownAbbrev) return;
-    const draft = draftFor(abbrev, row.program_id);
+    const draft = draftForUnexcluded(abbrev, row.program_id);
     if (!draft) return;
     const verdict = screen(draft, row.state_id);
     if (verdict.ruledOut) return;
@@ -512,7 +583,13 @@ export async function selectFirstStepProgram(
   // because it was `medium` and the waiver was `deep`. Families with no
   // eligibility facts have boost 0 across the board and fall straight through
   // to the complexity ordering.
-  candidates.sort((a, b) => b.boost - a.boost || a.rank - b.rank || a.idx - b.idx);
+  candidates.sort(
+    (a, b) =>
+      b.boost - a.boost ||
+      Number(b.isEntry ?? false) - Number(a.isEntry ?? false) ||
+      a.rank - b.rank ||
+      a.idx - b.idx,
+  );
   if (candidates[0]) return candidates[0].pick;
 
   // 3. State fallback: the pipeline's own "start here" list.
@@ -523,7 +600,7 @@ export async function selectFirstStepProgram(
     if (stateId) {
       for (const s of startHere) {
         if (excluded.has(s.programId)) continue;
-        const draft = draftFor(abbrev, s.programId);
+        const draft = draftForUnexcluded(abbrev, s.programId);
         if (!draft) continue;
         if (screen(draft, stateId).ruledOut) continue;
         const pick = toPick(draft, abbrev, stateId, "state");
@@ -548,7 +625,8 @@ export function benefitsSituationLine(profileMeta: Record<string, any> | null | 
   if (typeof meta.age === "number" && meta.age > 0) parts.push(`age ${meta.age}`);
   const medicaid = meta.medicaid_status as string | undefined;
   if (medicaid === "alreadyHas") parts.push("on Medicaid");
-  else if (medicaid === "doesNotHave") parts.push("not on Medicaid");
+  else if (medicaid === "doesNotHave") parts.push("not on Medicaid, has not applied");
+  else if (medicaid === "denied") parts.push("applied for Medicaid and was denied");
   else if (medicaid === "applying") parts.push("applying for Medicaid");
   else if (medicaid === "notSure") parts.push("Medicaid: not sure");
   const incomeLabels: Record<string, string> = {
@@ -598,7 +676,6 @@ export async function captureFamilyPhoneAndTextResults(
     rawPhone: string;
     /** Consent provenance, e.g. "benefits_enrichment" | "benefits_outcome_help". */
     source: string;
-    familyPhrase?: string;
   },
 ): Promise<{ stored: boolean; smsSent: boolean }> {
   const normalized = normalizeUSPhone(opts.rawPhone);
@@ -666,18 +743,31 @@ export async function captureFamilyPhoneAndTextResults(
     return { stored: true, smsSent: false };
   }
 
+  const smsContext = opts.source === "benefits_outcome_help" ? "help_requested" : "results";
+  const copyVersion =
+    smsContext === "help_requested"
+      ? BENEFITS_HELP_REQUEST_SMS_COPY_VERSION
+      : (tokenRow.match_count || 0) > 0
+        ? BENEFITS_RESULTS_SMS_COPY_VERSION
+        : BENEFITS_RESULTS_ZERO_MATCH_SMS_COPY_VERSION;
+
   const result = await sendSMS({
     to: normalized,
     body: benefitsResultsSms({
       matchCount: tokenRow.match_count || 0,
-      familyPhrase: opts.familyPhrase || "your family",
       url: withSmsSource(`${getSiteUrl()}/m/${tokenRow.token}`, "benefits_results_sms"),
+      context: smsContext,
     }),
     // Ledger entry (channel='sms') so the send shows on /admin/family-comms.
     // benefits_results_sms is transactional — deliberately NOT a governed type.
     emailType: "benefits_results_sms",
     recipientType: "family",
     recipientLogProfileId: opts.profileId,
+    metadata: {
+      copy_version: copyVersion,
+      entry_source: opts.source,
+      match_count: tokenRow.match_count || 0,
+    },
   });
   if (!result.success) {
     console.error("[captureFamilyPhone] results SMS failed:", result.error);

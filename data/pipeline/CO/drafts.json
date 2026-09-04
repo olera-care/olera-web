@@ -108,7 +108,7 @@
         "Medicare card (showing Part A and Part B coverage)",
         "Social Security award letter or most recent statement",
         "Proof of all income sources from last 30 days (pay stubs, pension statements, rental income)",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, mutual funds)",
         "Life insurance policies showing cash value",
         "Property deeds or tax assessments for real estate beyond primary home",
@@ -136,10 +136,11 @@
           "label": "Colorado 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline connecting to local resources and assistance",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Hours vary by region; the online directory at 211colorado.org is available anytime"
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI tier has limited federal funding and often maintains waitlists, QMB and SLMB typically have no waiting periods",
         "Asset limits exclude your primary home and one vehicle, but count all bank accounts and investments",
         "You can apply for Medicare Savings Programs even if you've been denied other Medicaid programs, different eligibility rules apply",
@@ -289,7 +290,7 @@
           {
             "step": 1,
             "title": "Contact your local Health First Colorado office",
-            "description": "Call your regional Colorado Department of Health Care Policy and Financing (HCPF) office or contact a certified Health First Colorado provider to begin the application process."
+            "description": "Call the Health First Colorado Member Contact Center on 1-800-221-3943 to apply for Medicaid, then contact the Case Management Agency for your county for the waiver screening and assessment. Find your agency at hcpf.colorado.gov/CMA."
           },
           {
             "step": 2,
@@ -310,14 +311,27 @@
         "processingTime": "Not specified, varies by case complexity and required assessments",
         "waitlist": "Possible regional variations in wait times but specific timeframes not documented",
         "tip": "Gather medical documentation showing your loved one's need for daily assistance before applying, this speeds up the nursing facility level of care assessment.",
-        "urls": []
+        "urls": [
+          {
+            "label": "Find your Case Management Agency",
+            "url": "https://hcpf.colorado.gov/CMA"
+          },
+          {
+            "label": "Elderly, Blind and Disabled (EBD) Waiver",
+            "url": "https://hcpf.colorado.gov/elderly-blind-disabled-waiver-ebd"
+          },
+          {
+            "label": "Apply for Health First Colorado",
+            "url": "https://www.healthfirstcolorado.gov/apply-now/"
+          }
+        ]
       },
       "documentsNeeded": [
         "Birth certificate",
         "Social Security card",
         "Photo ID or signed Affidavit of Identity (passport, driver's license, or state ID)",
         "Social Security award letter or other proof of income",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property documents (deeds, tax statements) if applicable",
         "Vehicle titles and registration",
         "Life insurance policies with face values",
@@ -329,23 +343,24 @@
       ],
       "contacts": [
         {
-          "label": "Colorado Benefits Hotline",
-          "phone": "(855) 264-2683",
-          "description": "Health First Colorado application and benefits questions",
-          "hours": "Mon-Fri 8am-5pm MT"
+          "label": "Health First Colorado Member Contact Center (start here)",
+          "phone": "(800) 221-3943",
+          "hours": "Mon-Fri 8am-4:30pm MT",
+          "description": "State Relay 711. Phone applications are taken Mon-Fri 8am-4pm. Closed the third Thursday of each month from 2pm to 4:30pm. Waiver screening itself is done by the Case Management Agency for your county: find yours at hcpf.colorado.gov/CMA."
         },
         {
           "label": "Colorado 2-1-1",
           "phone": "2-1-1",
-          "description": "Free referral service for all social services and local HCPF offices",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Hours vary by region; the online directory at 211colorado.org is available anytime"
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "The 60-month Look-Back Rule applies, assets given away or sold below fair market value within 5 years can create a penalty period of ineligibility",
         "Income test uses only your loved one's individual income, not household income, this can make elderly loved ones on fixed incomes eligible even in higher-income households",
         "Multiple HCBS waivers exist in Colorado, make sure you're applying for the EBD (Elderly, Blind, and Disabled) waiver, not developmental disabilities or other specialized waivers",
-        "Home equity cannot exceed $1,130,000, homes worth more may disqualify applicants regardless of other assets"
+        "Home equity cannot exceed $1,130,000, homes worth more may disqualify applicants regardless of other assets",
+        "Colorado has capped HCBS service hours since 2026. Annual soft caps took effect April 1, 2026, a 56-hour weekly limit per caregiver took effect July 1, 2026, and the homemaker limit for a legally responsible person fell from 10 hours to 7 hours a week on April 1, 2026. Each has an exceptions process, so ask your Case Management Agency about it rather than assuming the cap is final."
       ],
       "relatedPrograms": [
         "Health First Colorado (Colorado Medicaid)",
@@ -397,10 +412,11 @@
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "(855) 264-2683",
+      "phone": "(800) 221-3943",
       "sourceUrl": "https://www.healthfirstcolorado.com",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "pace-comprehensive-elderly-care",
@@ -502,7 +518,7 @@
         "Medicare card if you have one",
         "Medicaid card or documentation if already enrolled",
         "Social Security award letter or pension income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements for non-primary residence)",
         "Life insurance policies with cash values",
@@ -526,6 +542,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Medicare-only participants have no income or asset limits, but must still meet age and nursing home level of care requirements",
         "Exceeding standard Medicaid financial limits ($2,901/month income, $2,000 assets) does not automatically disqualify, Medicaid planning strategies may help establish eligibility",
         "Assessment includes evaluation of safety to live in community, your loved one must demonstrate ability to remain at home with PACE support rather than requiring immediate institutional care",
@@ -584,7 +601,8 @@
       "phone": null,
       "sourceUrl": "https://www.medicaid.gov/medicaid/long-term-services-supports/program-of-all-inclusive-care-for-elderly",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "snap-food-benefits",
@@ -712,7 +730,7 @@
         "Social Security award letters for all household members",
         "Medical bills and receipts showing out-of-pocket expenses over $35/month",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Rent or mortgage statement showing monthly housing costs",
         "Recent utility bills (electricity, gas, water, trash)",
         "Social Security cards or proof of application for all household members",
@@ -738,7 +756,7 @@
           "label": "Colorado 2-1-1",
           "phone": "2-1-1",
           "description": "Free 24/7 helpline to find your local county human services office, where applications are filed.",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Hours vary by region; the online directory at 211colorado.org is available anytime"
         },
         {
           "label": "EBT Card Customer Service",
@@ -825,7 +843,7 @@
             "type": "service-area"
           },
           {
-            "name": "Energy Resource Center (Denver, Boulder, Larimer, Weld)",
+            "name": "Energy Resource Center (Denver metro and Northern Colorado)",
             "type": "service-area"
           },
           {
@@ -873,12 +891,12 @@
           {
             "step": 2,
             "title": "Gather required documents",
-            "description": "Collect current photo ID, income proof for the last 30 days, public assistance letters if applicable, and household member information."
+            "description": "Collect current photo ID, three months of income for everyone 18 or older (or last year's signed tax return), a public assistance letter if you get SNAP, LEAP, TANF, SSI, OAP, AND or COAP, your energy account number, and the names and ages of everyone in the home."
           },
           {
             "step": 3,
             "title": "Submit application online or by phone",
-            "description": "Apply at socgov02.my.site.com/ceoweatherization/s/ or call your regional provider. Denver area: Energy Resource Center (720) 236-1321. Pueblo: email wap@pueblocounty.us."
+            "description": "Apply at socgov02.my.site.com/ceoweatherization/s/, which works statewide, or call your regional provider. Broomfield, Denver, Jefferson and Gilpin: Energy Resource Center (720) 236-1321. Boulder, Larimer and Weld: (970) 617-2801. Pueblo and southeast Colorado: 719-583-6315."
           },
           {
             "step": 4,
@@ -904,29 +922,41 @@
       "documentsNeeded": [
         "Current picture ID (Colorado driver's license/ID expired less than 10 years, passport, military card, or tribal document)",
         "Public assistance award or approval letter (if receiving SNAP, LEAP, TANF, SSI, OAP, AND, or COAP)",
-        "Income documentation for all working household members from the past 30 days (pay stubs, Social Security letters)",
+        "The last three months of income for every person in the home aged 18 or older (pay stubs, Social Security letters), or a signed copy of last year's tax return",
         "Complete household list with names, ages, disabilities, and income sources for all members",
         "Legal presence affidavit if applicable",
         "Landlord Release Form (renters only, must be signed before services can begin)"
       ],
       "contacts": [
         {
-          "label": "Energy Resource Center (Denver, Boulder, Larimer, Weld)",
+          "label": "Colorado Weatherization Assistance Program, statewide (start here)",
+          "phone": "303-866-2100",
+          "description": "Colorado Energy Office, which runs the program statewide. The fastest route is the online application at socgov02.my.site.com/ceoweatherization/s/, which works in any county. This is the general office line, so ask for weatherization.",
+          "hours": "Business hours"
+        },
+        {
+          "label": "Energy Resource Center, Denver Metro",
           "phone": "(720) 236-1321",
-          "description": "Weatherization services for metro Denver area",
+          "description": "Serves Broomfield, Denver, Jefferson, and Gilpin counties",
+          "hours": "Contact for current hours"
+        },
+        {
+          "label": "Energy Resource Center, Northern Colorado",
+          "phone": "(970) 617-2801",
+          "description": "Serves Boulder, Larimer, and Weld counties",
           "hours": "Contact for current hours"
         },
         {
           "label": "Pueblo County Weatherization",
-          "phone": null,
-          "description": "Email: wap@pueblocounty.us for Pueblo County services",
+          "phone": "719-583-6315",
+          "description": "Serves Baca, Bent, Crowley, Custer, Huerfano, Kiowa, Las Animas, Otero, Prowers, and Pueblo counties. Email weatherization@pueblocounty.us.",
           "hours": "Contact for current hours"
         },
         {
           "label": "Colorado 2-1-1",
           "phone": "2-1-1",
           "description": "Free referral service to find your local weatherization provider",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Hours vary by region; the online directory at 211colorado.org is available anytime"
         }
       ],
       "applicationNotes": [
@@ -984,10 +1014,11 @@
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "(720) 236-1321",
+      "phone": "303-866-2100",
       "sourceUrl": "https://socgov02.my.site.com/ceoweatherization/s/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "ship-medicare-counseling",
@@ -1200,7 +1231,6 @@
         "Current psychological evaluation (within last 3 years)",
         "Adaptive behavior testing results",
         "Social Security award letters for all household members",
-        "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -1215,7 +1245,7 @@
           "label": "Colorado 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline to find your local Case Management Agency",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Hours vary by region; the online directory at 211colorado.org is available anytime"
         },
         {
           "label": "Community Connections (Southwest Colorado)",
@@ -1231,6 +1261,7 @@
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you. Some intakes ask you to self-declare whether income is above or below the poverty line; that is for the agency’s own reporting and you can decline without losing the service.",
         "Not all services are available in rural areas, Southwest Colorado has limited provider networks",
         "You must qualify for both financial eligibility (through county Human Services) and functional eligibility (through the Case Management Agency)",
         "Natural supports and family resources are considered first before waiver services can be approved",
@@ -1289,7 +1320,8 @@
       "phone": "2-1-1",
       "sourceUrl": "https://hcpf.colorado.gov",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "senior-community-service-employment-program",
@@ -1391,7 +1423,7 @@
         "Social Security card",
         "Proof of unemployment status (termination letter, unemployment benefits statement, or self-attestation)",
         "Income documentation for all household members (Social Security award letters, pension statements, pay stubs from last 30 days)",
-        "Bank statements for all accounts (last 3 months)",
+        "Proof of monthly income: a Social Security, pension, or unemployment award letter, or recent pay stubs. Not bank statements, this program looks at income rather than savings.",
         "Proof of Colorado residency in served area (utility bill, lease agreement, or mail from last 30 days)",
         "Work authorization documents for I-9 completion (U.S. passport, driver's license plus Social Security card, or other I-9 acceptable combinations)",
         "Bank account information for direct deposit setup",
@@ -1416,7 +1448,7 @@
           "label": "Colorado 2-1-1",
           "phone": "2-1-1",
           "description": "General social services helpline for program referrals",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Hours vary by region; the online directory at 211colorado.org is available anytime"
         },
         {
           "label": "U.S. Department of Labor SCSEP",
@@ -1484,7 +1516,8 @@
       "phone": "2-1-1",
       "sourceUrl": "https://www.dol.gov/agencies/eta/seniors",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "legal-aid-seniors",
@@ -1574,7 +1607,7 @@
           "label": "Colorado 2-1-1",
           "phone": "2-1-1",
           "description": "Free helpline for all social services including legal aid referrals",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Hours vary by region; the online directory at 211colorado.org is available anytime"
         }
       ],
       "applicationNotes": null,
@@ -1874,7 +1907,7 @@
           "label": "Colorado 2-1-1 (finds your county human services office)",
           "phone": "2-1-1",
           "description": "Old Age Pension applications go through your own county's human services department. 2-1-1 connects you to the right county office; you can also apply online at Colorado PEAK (peak.colorado.gov).",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Hours vary by region; the online directory at 211colorado.org is available anytime"
         }
       ],
       "applicationNotes": [
@@ -2030,7 +2063,7 @@
         "Most recent Social Security award letter",
         "Pay stubs from last 30 days (if working)",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment account statements (stocks, bonds, annuities)",
         "Property deeds and tax statements",
         "Vehicle titles and registration",
@@ -2057,10 +2090,11 @@
           "label": "Colorado 2-1-1",
           "phone": "2-1-1",
           "description": "General benefits information and county office referrals",
-          "hours": "24 hours, 7 days a week"
+          "hours": "Hours vary by region; the online directory at 211colorado.org is available anytime"
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "The requirement to be evaluated for Medicaid home services first can add 2-3 months to your timeline, start early",
         "Skilled personal care (like wound care or medication administration) is explicitly not covered, only unskilled daily living assistance qualifies",
         "Asset limits are strict at $2,000, spend down excess assets before applying or consider exempt assets like prepaid burial plans",
@@ -2119,7 +2153,8 @@
       "phone": "855-855-4626",
       "sourceUrl": "https://www.colorado.gov/peak",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     }
   ],
   "stateOverview": {
@@ -2127,7 +2162,7 @@
     "startHere": [
       {
         "name": "Health First Colorado Buy-In (QMB, SLMB, QI)",
-        "programId": "health-first-colorado-buy-in",
+        "programId": "medicare-savings-programs",
         "why": "Can save hundreds monthly on Medicare premiums and out-of-pocket costs for parents on limited income."
       },
       {
@@ -2137,7 +2172,7 @@
       },
       {
         "name": "SNAP",
-        "programId": "snap-colorado",
+        "programId": "snap-food-benefits",
         "why": "Monthly grocery money that provides immediate budget relief for food costs."
       },
       {

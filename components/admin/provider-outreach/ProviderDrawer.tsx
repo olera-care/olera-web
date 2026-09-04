@@ -1,0 +1,4174 @@
+"use client";
+
+/**
+ * ProviderDrawer - Airbnb-inspired detail drawer for provider outreach
+ *
+ * Slides from right, shows all provider details in a clean layout.
+ * Reduces visual clutter in the main provider row by moving secondary
+ * information here (Apollo contacts, notes, activity, full actions).
+ */
+
+import { useEffect, useState, useCallback, useRef } from "react";
+import Link from "next/link";
+import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
+import { EmailHistoryPopover } from "@/components/admin/provider-outreach/EmailHistoryPopover";
+import EmailVerificationBadge, { type VerificationStatus } from "@/components/admin/EmailVerificationBadge";
+import TrustScoreBadge, { type TrustScoreStatus } from "@/components/admin/TrustScoreBadge";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Types (copied from page.tsx for standalone use)
+// ─────────────────────────────────────────────────────────────────────────────
+
+type OutreachStage =
+  | "not_contacted"
+  | "in_sequence"
+  | "needs_call"
+  | "broadcast_ready"
+  | "re_engage"
+  | "call_exhausted"
+  | "not_interested"
+  | "claimed"
+  | "archived";
+
+interface ApolloContact {
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  title: string | null;
+  linkedin_url: string | null;
+  found_at: string;
+}
+
+interface OutreachProvider {
+  provider_id: string;
+  provider_name: string;
+  provider_category: string | null;
+  city: string | null;
+  state: string | null;
+  address: string | null;
+  zipcode: number | null;
+  email: string | null;
+  phone: string | null;
+  website: string | null;
+  slug: string | null;
+  stage: OutreachStage;
+  notes: string | null;
+  questions_count?: number;
+  leads_count?: number;
+  apollo_contact?: ApolloContact | null;
+  email_source?: "organization" | "decision_maker" | null;
+  email_locked_by?: string | null;
+  assigned_to: string | null;
+  emails_sent?: number;
+  sequence_status?: {
+    last_email_at?: string;
+    failed_step?: number;
+    failed_reason?: string;
+  };
+  // Follow Up queue fields
+  due_date?: string | null;
+  resend_count?: number;
+  needs_call_reason?: string | null;
+  engagement?: {
+    emails_sent: number;
+    opens: number;
+    clicks: number;
+    resends: number;
+  };
+  // Alternative Channels (re_engage) fields
+  re_engage_channel?: string | null;
+  re_engage_entered_at?: string | null;
+  fax_number?: string | null;
+  fax_confidence?: string | null;
+  fax_status?: string | null;
+  mail_address?: string | null;
+  contact_form_url?: string | null;
+  contact_form_send_count?: number;
+  // Call tab (call_exhausted) fields
+  stage_changed_at?: string | null;
+}
+
+interface Note {
+  id: string;
+  provider_id: string;
+  admin_user_id: string;
+  note: string;
+  created_at: string;
+  admin_name: string | null;
+}
+
+interface ProviderDrawerProps {
+  provider: OutreachProvider;
+  onClose: () => void;
+  // Inline editing callbacks
+  onEmailUpdate?: (providerId: string, email: string, emailSource?: "decision_maker") => void;
+  onPhoneUpdate?: (providerId: string, phone: string | null) => void;
+  onFaxUpdate?: (providerId: string, fax: string | null) => void;
+  // Action callbacks (use providerId to avoid type mismatches with page's full OutreachProvider)
+  onLaunchSequence?: (providerId: string) => void;
+  onMarkNotInterested?: (providerId: string, reason?: string) => void;
+  onArchive?: (providerId: string) => void;
+  onRemove?: (providerId: string, providerName: string) => void;
+  // Reset to Ready with Apollo email (for in_sequence providers)
+  onResetToReadyWithApollo?: (providerId: string) => Promise<boolean>;
+  // Apollo callbacks
+  onContactFound?: (providerId: string, contact: ApolloContact) => void;
+  // Outcome callback (for Follow Up and Alt Channels actions)
+  onOutcomeRecorded?: (providerId: string, stageChanged: boolean) => void;
+  // Claim link sent callback (updates resend_count in local state)
+  onClaimLinkSent?: (providerId: string, newResendCount: number) => void;
+  // Contact form sent callback (updates contact_form_send_count in local state)
+  onContactFormSent?: (providerId: string, newSendCount: number) => void;
+  // Move to broadcast callback
+  onMoveToBroadcast?: (providerId: string) => void;
+  // Call logged callback (updates call_count in local state for sorting)
+  onCallLogged?: (providerId: string, newCallCount: number, latestStatus: string) => void;
+  // Email lock toggle callback (updates email_locked_by in local state)
+  onEmailLockToggle?: (providerId: string, lockedBy: string | null) => void;
+  // Navigation callbacks for prev/next provider
+  onPrevious?: () => void;
+  onNext?: () => void;
+  hasPrevious?: boolean;
+  hasNext?: boolean;
+  // Current UI context
+  activeTab?: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper functions
+// ─────────────────────────────────────────────────────────────────────────────
+
+function formatPhone(phone: string): string {
+  const digits = phone.replace(/\D/g, "");
+  if (digits.length === 10) {
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+  }
+  if (digits.length === 11 && digits[0] === "1") {
+    return `(${digits.slice(1, 4)}) ${digits.slice(4, 7)}-${digits.slice(7)}`;
+  }
+  return phone;
+}
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) {
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+  } else if (diffDays === 1) {
+    return "Yesterday";
+  } else if (diffDays < 7) {
+    return `${diffDays} days ago`;
+  } else {
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
+    });
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Follow Up Helper Functions
+// ─────────────────────────────────────────────────────────────────────────────
+
+const NEEDS_CALL_REASON_LABELS: Record<string, string> = {
+  sequence_exhausted: "Sequence done",
+  sequence_completed: "Sequence done",
+  clicked_not_claimed: "Clicked",
+  replied: "Replied",
+  email_bounced: "Bounced",
+  manual: "Manual",
+};
+
+function getTodayISO(): string {
+  return new Date().toLocaleDateString('en-CA', { timeZone: 'America/Chicago' });
+}
+
+// Days until a future date (positive = future, negative = overdue)
+function daysUntil(dateStr: string | null): number {
+  if (!dateStr) return 0;
+  const today = new Date(getTodayISO());
+  const targetDate = new Date(dateStr);
+  const diffTime = targetDate.getTime() - today.getTime();
+  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+}
+
+function formatDueDateBadge(dateStr: string | null): { text: string; className: string } {
+  if (!dateStr) {
+    return { text: "Due today", className: "bg-amber-100 text-amber-700" };
+  }
+
+  const daysDiff = daysUntil(dateStr);
+
+  if (daysDiff < 0) {
+    const daysOverdue = Math.abs(daysDiff);
+    return {
+      text: daysOverdue === 1 ? "1 day overdue" : `${daysOverdue} days overdue`,
+      className: "bg-red-100 text-red-700",
+    };
+  } else if (daysDiff === 0) {
+    return { text: "Due today", className: "bg-amber-100 text-amber-700" };
+  } else if (daysDiff === 1) {
+    return { text: "Tomorrow", className: "bg-blue-100 text-blue-700" };
+  } else {
+    return { text: `In ${daysDiff} days`, className: "bg-gray-100 text-gray-600" };
+  }
+}
+
+function getNeedsCallReasonChip(reason: string | null): { label: string; className: string } | null {
+  if (!reason) return null;
+  const label = NEEDS_CALL_REASON_LABELS[reason] || reason;
+  switch (reason) {
+    case "sequence_exhausted":
+    case "sequence_completed":
+      return { label, className: "bg-blue-50 text-blue-700" };
+    case "clicked_not_claimed":
+      return { label, className: "bg-emerald-50 text-emerald-700" };
+    case "replied":
+      return { label, className: "bg-purple-50 text-purple-700" };
+    case "email_bounced":
+      return { label, className: "bg-red-50 text-red-700" };
+    case "manual":
+    default:
+      return { label, className: "bg-gray-100 text-gray-600" };
+  }
+}
+
+function getFollowUpReasonExplanation(provider: OutreachProvider): string {
+  const reason = provider.needs_call_reason;
+  const engagement = provider.engagement || { emails_sent: 0, opens: 0, clicks: 0, resends: 0 };
+
+  switch (reason) {
+    case "replied":
+      return "Provider replied to an email — this is a hot lead.";
+    case "clicked_not_claimed":
+      return `Provider clicked ${engagement.clicks} time${engagement.clicks !== 1 ? "s" : ""} but didn't claim.`;
+    case "sequence_exhausted":
+    case "sequence_completed":
+      if (engagement.opens > 0) {
+        return `Provider opened ${engagement.opens} email${engagement.opens !== 1 ? "s" : ""} but didn't click.`;
+      } else {
+        return "No email engagement detected.";
+      }
+    case "email_bounced":
+      return "Email bounced — contact info needs to be updated.";
+    case "manual":
+      return "Manually added to follow-up queue.";
+    default:
+      return "Ready for follow-up.";
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Section Components
+// ─────────────────────────────────────────────────────────────────────────────
+
+function SectionHeader({ children }: { children: React.ReactNode }) {
+  return (
+    <h3 className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-4">
+      {children}
+    </h3>
+  );
+}
+
+function SectionDivider() {
+  return <div className="border-t border-gray-200 my-8" />;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Call Script Section (personalized for the provider)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function CallScriptSection({ provider, activeTab }: { provider: OutreachProvider; activeTab?: string }) {
+  const city = provider.city || "your area";
+  const careType = provider.provider_category || "senior care";
+  const email = provider.email || "[email]";
+
+  // Different scripts per tab based on where provider is in the outreach lifecycle
+  const getScript = () => {
+    if (activeTab === "call_confirm") {
+      // First contact - no emails sent yet. Goal: confirm email, launch sequence.
+      return (
+        <>
+          &quot;Hi, this is [your name] from Dr. DuBose&apos;s company office, calling about his Family Referral Program for <span className="text-gray-700">{city}</span> families. He&apos;d like to send your team some info on the program, and I wanted to check first on the best email to send the details to.&quot;
+        </>
+      );
+    }
+    if (activeTab === "needs_call" || activeTab === "follow_up") {
+      // After 4-email sequence. First human contact. Check if they got emails, offer alternative channels.
+      return (
+        <>
+          <div>&quot;Hi, this is [your name] from Dr. DuBose&apos;s office. Just checking - did you get the emails we sent about your Olera page? Families in <span className="text-gray-700">{city}</span> are trying to reach you but those messages aren&apos;t getting through.&quot;</div>
+          <div className="mt-2 text-gray-400 italic">
+            If no: &quot;I can send it another way - fax, mail, or through your contact form. What works best?&quot;
+          </div>
+          <div className="text-gray-400 italic">
+            If yes: &quot;Any issues with the link, or questions I can answer?&quot;
+          </div>
+        </>
+      );
+    }
+    if (activeTab === "call_exhausted" || activeTab === "call") {
+      // After emails + alternative channels. Final push. Offer help to activate.
+      return (
+        <>
+          &quot;Hi, this is [your name] from Dr. DuBose&apos;s office. We&apos;ve reached out a few times about your Olera page - <span className="text-gray-700">{city}</span> families are looking for <span className="text-gray-700">{careType}</span> and their messages aren&apos;t getting to you. Do you need help activating your page?&quot;
+        </>
+      );
+    }
+    // Fallback (shouldn't reach here given showCallScript logic)
+    return null;
+  };
+
+  return (
+    <div className="mx-4 mb-3 px-3 py-2 bg-gray-50 rounded text-[11px] text-gray-500">
+      <div className="font-medium text-gray-400 mb-1">Script</div>
+      <div className="leading-relaxed">
+        {getScript()}
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Contact Section (Email + Phone with inline edit)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ContactSection({
+  provider,
+  onEmailUpdate,
+  onPhoneUpdate,
+  onFaxUpdate,
+  onEmailLockToggle,
+}: {
+  provider: OutreachProvider;
+  onEmailUpdate?: (email: string) => void;
+  onPhoneUpdate?: (phone: string | null) => void;
+  onFaxUpdate?: (fax: string | null) => void;
+  onEmailLockToggle?: (lockedBy: string | null) => void;
+}) {
+  const [editingEmail, setEditingEmail] = useState(false);
+  const [editingPhone, setEditingPhone] = useState(false);
+  const [editingFax, setEditingFax] = useState(false);
+  const [emailValue, setEmailValue] = useState(provider.email || "");
+  const [phoneValue, setPhoneValue] = useState(provider.phone || "");
+  const [faxValue, setFaxValue] = useState(provider.fax_number || "");
+  const [savingEmail, setSavingEmail] = useState(false);
+  const [savingPhone, setSavingPhone] = useState(false);
+  const [savingFax, setSavingFax] = useState(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [faxError, setFaxError] = useState<string | null>(null);
+
+  // Email lock state
+  const [emailLocked, setEmailLocked] = useState(!!provider.email_locked_by);
+  const [togglingLock, setTogglingLock] = useState(false);
+
+  // Sync email lock state when provider changes (e.g., navigating to next/prev provider)
+  useEffect(() => {
+    setEmailLocked(!!provider.email_locked_by);
+  }, [provider.provider_id, provider.email_locked_by]);
+
+  // Toggle email lock
+  const handleToggleEmailLock = async () => {
+    if (togglingLock) return;
+    setTogglingLock(true);
+    try {
+      const newLocked = !emailLocked;
+      const res = await fetch("/api/admin/provider-outreach/lock-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, locked: newLocked }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setEmailLocked(newLocked);
+        onEmailLockToggle?.(data.email_locked_by);
+      }
+    } catch (err) {
+      console.error("Failed to toggle email lock:", err);
+    } finally {
+      setTogglingLock(false);
+    }
+  };
+
+  // Auto email finding state
+  const [findingEmail, setFindingEmail] = useState(false);
+  const [foundEmail, setFoundEmail] = useState<{ email: string; source: string | null; foundUrl: string | null } | null>(null);
+  const [findError, setFindError] = useState<string | null>(null);
+  const findAttemptedRef = useRef(false);
+
+  // Email verification and trust score state
+  const [verificationStatus, setVerificationStatus] = useState<VerificationStatus>("idle");
+  const [trustScoreStatus, setTrustScoreStatus] = useState<TrustScoreStatus>("idle");
+  const [trustScoreReason, setTrustScoreReason] = useState("");
+  const verifyRequestIdRef = useRef(0);
+  const verifyDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Verify email address
+  const verifyEmail = useCallback(async (emailToVerify: string): Promise<VerificationStatus> => {
+    if (!emailToVerify || !emailToVerify.includes("@")) return "idle";
+
+    try {
+      const res = await fetch("/api/admin/verify-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailToVerify }),
+      });
+
+      if (!res.ok) return "unknown";
+
+      const data = await res.json();
+      const result = data.results?.[0];
+      if (!result) return "unknown";
+
+      return result.status as VerificationStatus;
+    } catch {
+      return "unknown";
+    }
+  }, []);
+
+  // Fetch trust score for email
+  // Note: Trust score API requires provider slug (business_profiles.id), not provider_id
+  const fetchTrustScore = useCallback(async (emailToCheck: string): Promise<{ level: TrustScoreStatus; reason: string }> => {
+    if (!emailToCheck || !emailToCheck.includes("@") || !provider.slug) {
+      return { level: "idle", reason: "" };
+    }
+
+    try {
+      const res = await fetch("/api/admin/connections/preview-trust-score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: emailToCheck, providerId: provider.slug }),
+      });
+
+      if (!res.ok) return { level: "idle", reason: "" };
+
+      const data = await res.json();
+      return { level: data.level as TrustScoreStatus, reason: data.reason || "" };
+    } catch {
+      return { level: "idle", reason: "" };
+    }
+  }, [provider.slug]);
+
+  // Run verification and trust scoring in parallel
+  const verifyAndScore = useCallback(async (emailToCheck: string) => {
+    if (!emailToCheck || !emailToCheck.includes("@")) {
+      setVerificationStatus("idle");
+      setTrustScoreStatus("idle");
+      setTrustScoreReason("");
+      return;
+    }
+
+    const requestId = ++verifyRequestIdRef.current;
+
+    setVerificationStatus("verifying");
+    setTrustScoreStatus("scoring");
+
+    const [verifyStatus, trustResult] = await Promise.all([
+      verifyEmail(emailToCheck),
+      fetchTrustScore(emailToCheck),
+    ]);
+
+    // Only update if this is still the latest request
+    if (verifyRequestIdRef.current === requestId) {
+      setVerificationStatus(verifyStatus);
+      setTrustScoreStatus(trustResult.level);
+      setTrustScoreReason(trustResult.reason);
+    }
+  }, [verifyEmail, fetchTrustScore]);
+
+  // Detect obvious email errors that don't need API verification
+  // Returns error message if invalid, null if email looks OK
+  const detectObviousEmailError = useCallback((email: string): string | null => {
+    if (!email) return null;
+
+    const trimmed = email.trim().toLowerCase();
+
+    // Basic structure check
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      return "Invalid email format";
+    }
+
+    const [, domain] = trimmed.split("@");
+    if (!domain) return "Missing domain";
+
+    const parts = domain.split(".");
+    const tld = parts[parts.length - 1];
+    const domainName = parts.slice(0, -1).join(".");
+
+    // TLD must be at least 2 characters
+    if (tld.length < 2) {
+      return "Invalid domain extension";
+    }
+
+    // Common TLD typos (only include TLDs that are NOT valid country codes)
+    // Valid ccTLDs we must NOT flag: .co (Colombia), .cm (Cameroon), .om (Oman), .ne (Niger)
+    const tldTypos: Record<string, string> = {
+      "con": "com", "cmo": "com", "ocm": "com", "comm": "com", "coom": "com",
+      "nte": "net", "ent": "net", "nett": "net",
+      "ogr": "org", "og": "org", "rg": "org", "orgg": "org",
+      "eud": "edu", "eduu": "edu",
+      "gvo": "gov", "go": "gov", "govv": "gov",
+    };
+    if (tldTypos[tld]) {
+      return `Did you mean .${tldTypos[tld]}? (.${tld} is not valid)`;
+    }
+
+    // Common domain name typos for major providers
+    const domainTypos: Record<string, string> = {
+      "gmial": "gmail", "gmal": "gmail", "gnail": "gmail", "gmil": "gmail",
+      "gmai": "gmail", "gamil": "gmail", "gmali": "gmail", "gmaul": "gmail",
+      "yahooo": "yahoo", "yaho": "yahoo", "yhoo": "yahoo", "yaoo": "yahoo",
+      "hotmal": "hotmail", "hotmai": "hotmail", "hotmial": "hotmail",
+      "outlok": "outlook", "outloo": "outlook", "outlookk": "outlook",
+    };
+    // Check the base domain (e.g., "gmail" from "gmail.com")
+    const baseDomain = domainName.split(".").pop() || domainName;
+    if (domainTypos[baseDomain]) {
+      return `Did you mean ${domainTypos[baseDomain]}? (${baseDomain} looks like a typo)`;
+    }
+
+    return null; // No obvious errors
+  }, []);
+
+  // Handler for inline email input change - triggers debounced verification as user types
+  const handleEmailInputChange = useCallback((value: string) => {
+    setEmailValue(value);
+    setEmailError(null);
+
+    // First check for obvious errors (typos, invalid TLD, etc.)
+    const obviousError = detectObviousEmailError(value);
+    if (obviousError) {
+      // Clear any pending verification
+      if (verifyDebounceRef.current) clearTimeout(verifyDebounceRef.current);
+      // Invalidate any in-flight API requests so they don't overwrite our "invalid" status
+      verifyRequestIdRef.current++;
+      // Show as invalid immediately without calling API
+      setVerificationStatus("invalid");
+      setTrustScoreStatus("idle");
+      setTrustScoreReason("");
+      setEmailError(obviousError);
+      return;
+    }
+
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+    if (!isValidEmail) {
+      // Clear any pending verification and reset state
+      if (verifyDebounceRef.current) clearTimeout(verifyDebounceRef.current);
+      setVerificationStatus("idle");
+      setTrustScoreStatus("idle");
+      setTrustScoreReason("");
+      return;
+    }
+
+    // Debounced verification - starts as user types, so by the time they click Save,
+    // verification is likely already done or in progress
+    if (verifyDebounceRef.current) clearTimeout(verifyDebounceRef.current);
+    verifyDebounceRef.current = setTimeout(() => {
+      verifyAndScore(value.trim());
+    }, 500); // 500ms debounce for typing
+  }, [verifyAndScore, detectObviousEmailError]);
+
+  // Handler for inline email input blur - triggers immediate verification (fallback)
+  // This catches cases where user pastes and immediately clicks away
+  const handleEmailInputBlur = useCallback(() => {
+    // First check for obvious errors
+    const obviousError = detectObviousEmailError(emailValue);
+    if (obviousError) {
+      if (verifyDebounceRef.current) clearTimeout(verifyDebounceRef.current);
+      // Invalidate any in-flight API requests
+      verifyRequestIdRef.current++;
+      setVerificationStatus("invalid");
+      setTrustScoreStatus("idle");
+      setEmailError(obviousError);
+      return;
+    }
+
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue.trim());
+    if (!isValidEmail) {
+      setVerificationStatus("idle");
+      setTrustScoreStatus("idle");
+      return;
+    }
+    // Cancel any pending debounce and verify immediately
+    if (verifyDebounceRef.current) clearTimeout(verifyDebounceRef.current);
+    // Only verify if not already verified or verifying
+    if (verificationStatus === "idle") {
+      verifyAndScore(emailValue.trim());
+    }
+  }, [emailValue, verificationStatus, verifyAndScore, detectObviousEmailError]);
+
+  // Reset state when provider changes
+  const lastProviderIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (lastProviderIdRef.current !== provider.provider_id) {
+      lastProviderIdRef.current = provider.provider_id;
+      findAttemptedRef.current = false;
+      setFoundEmail(null);
+      setFindError(null);
+      setFindingEmail(false);
+      // Reset verification state
+      setVerificationStatus("idle");
+      setTrustScoreStatus("idle");
+      setTrustScoreReason("");
+      // Reset editing state to prevent stale data if switching providers while editing
+      setEditingEmail(false);
+      setEditingPhone(false);
+      setEditingFax(false);
+      setEmailValue(provider.email || "");
+      setPhoneValue(provider.phone || "");
+      setFaxValue(provider.fax_number || "");
+      setEmailError(null);
+      setPhoneError(null);
+      setFaxError(null);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- Only reset on provider_id change; email/phone/fax values are read at that moment
+  }, [provider.provider_id]);
+
+  // Trigger verification when found email changes
+  useEffect(() => {
+    if (foundEmail?.email) {
+      verifyAndScore(foundEmail.email);
+    } else {
+      setVerificationStatus("idle");
+      setTrustScoreStatus("idle");
+      setTrustScoreReason("");
+    }
+  }, [foundEmail?.email, verifyAndScore]);
+
+  // Auto-find email when drawer opens for provider without email
+  useEffect(() => {
+    // Reset state when provider changes
+    if (provider.email) {
+      // Provider has email, nothing to find
+      setFoundEmail(null);
+      setFindError(null);
+      return;
+    }
+
+    // Already attempted for this provider
+    if (findAttemptedRef.current) return;
+    findAttemptedRef.current = true;
+
+    // Track which provider this fetch is for (race condition guard)
+    const fetchForProviderId = provider.provider_id;
+    let cancelled = false;
+
+    // Start finding email
+    setFindingEmail(true);
+    setFindError(null);
+    setFoundEmail(null);
+
+    fetch("/api/admin/provider-outreach/find-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ provider_id: provider.provider_id }),
+    })
+      .then(async (res) => {
+        if (cancelled) return;
+        const data = await res.json();
+        // Double-check we're still on the same provider
+        if (lastProviderIdRef.current !== fetchForProviderId) return;
+
+        if (data.email && data.source !== "existing") {
+          setFoundEmail({
+            email: data.email,
+            source: data.source || null,
+            foundUrl: data.foundUrl || null,
+          });
+        } else if (data.source === "existing") {
+          // Email was found in DB (sync issue) - update parent
+          onEmailUpdate?.(data.email);
+        } else if (!data.email) {
+          setFindError(data.error || "No email found");
+        }
+      })
+      .catch(() => {
+        if (cancelled || lastProviderIdRef.current !== fetchForProviderId) return;
+        setFindError("Lookup failed");
+      })
+      .finally(() => {
+        if (cancelled || lastProviderIdRef.current !== fetchForProviderId) return;
+        setFindingEmail(false);
+      });
+
+    // Cleanup: mark as cancelled if provider changes before fetch completes
+    return () => {
+      cancelled = true;
+    };
+  }, [provider.provider_id, provider.email, onEmailUpdate]);
+
+  // Save the found email (with optional force override)
+  async function handleSaveFoundEmail(force = false) {
+    if (!foundEmail) return;
+    setSavingEmail(true);
+    setEmailError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, email: foundEmail.email, force }),
+      });
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        onEmailUpdate?.(foundEmail.email);
+        setFoundEmail(null);
+        // Warn if SmartLead sync failed (email saved but sequence not updated)
+        if (data.smartleadSynced === false && data.smartleadError) {
+          setEmailError(`Saved, but SmartLead sync failed: ${data.smartleadError}`);
+        }
+      } else {
+        const data = await res.json().catch(() => ({}));
+        // Handle specific errors with human-readable messages
+        if (data.error === "undeliverable" || data.error === "risky" || data.error === "never_delivered" || data.error === "invalid_format") {
+          setEmailError(data.message || "Email verification failed");
+          // Mark as invalid if it's a format error
+          if (data.error === "invalid_format") {
+            setVerificationStatus("invalid");
+          }
+        } else {
+          setEmailError(data.message || data.error || "Failed to save");
+        }
+      }
+    } catch {
+      setEmailError("Network error");
+    } finally {
+      setSavingEmail(false);
+    }
+  }
+
+  // Save manually edited email (with optional force override)
+  async function handleSaveEmail(force = false) {
+    if (!emailValue.trim()) return;
+
+    // Check for obvious errors before even calling API
+    const obviousError = detectObviousEmailError(emailValue);
+    if (obviousError) {
+      setVerificationStatus("invalid");
+      setEmailError(obviousError);
+      return;
+    }
+
+    setSavingEmail(true);
+    setEmailError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, email: emailValue.trim(), force }),
+      });
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        onEmailUpdate?.(emailValue.trim());
+        setEditingEmail(false);
+        // Reset verification state on successful save
+        setVerificationStatus("idle");
+        setTrustScoreStatus("idle");
+        // Warn if SmartLead sync failed (email saved but sequence not updated)
+        if (data.smartleadSynced === false && data.smartleadError) {
+          setEmailError(`Saved, but SmartLead sync failed: ${data.smartleadError}`);
+        }
+      } else {
+        const data = await res.json().catch(() => ({}));
+        // Handle specific errors with human-readable messages
+        if (data.error === "undeliverable" || data.error === "risky" || data.error === "never_delivered" || data.error === "invalid_format") {
+          setEmailError(data.message || "Email verification failed");
+          // Mark as invalid if it's a format error
+          if (data.error === "invalid_format") {
+            setVerificationStatus("invalid");
+          }
+        } else {
+          setEmailError(data.message || data.error || "Failed to save");
+        }
+      }
+    } catch {
+      setEmailError("Network error");
+    } finally {
+      setSavingEmail(false);
+    }
+  }
+
+  async function handleSavePhone() {
+    setSavingPhone(true);
+    setPhoneError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-phone", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, phone: phoneValue.trim() }),
+      });
+      if (res.ok) {
+        onPhoneUpdate?.(phoneValue.trim() || null);
+        setEditingPhone(false);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setPhoneError(data.error || "Failed to save");
+      }
+    } catch {
+      setPhoneError("Network error");
+    } finally {
+      setSavingPhone(false);
+    }
+  }
+
+  async function handleSaveFax() {
+    setSavingFax(true);
+    setFaxError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-fax", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, fax: faxValue.trim() }),
+      });
+      if (res.ok) {
+        onFaxUpdate?.(faxValue.trim() || null);
+        setEditingFax(false);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setFaxError(data.error || "Failed to save");
+      }
+    } catch {
+      setFaxError("Network error");
+    } finally {
+      setSavingFax(false);
+    }
+  }
+
+  return (
+    <div>
+      <SectionHeader>Contact</SectionHeader>
+
+      <div className="space-y-4">
+        {/* Email */}
+        <div className="flex items-center justify-between">
+          <span className="text-sm text-gray-500 w-16">Email</span>
+        {editingEmail ? (
+          <div className="flex-1 ml-3">
+            <div className="flex items-center gap-2">
+              <input
+                type="email"
+                value={emailValue}
+                onChange={(e) => handleEmailInputChange(e.target.value)}
+                onBlur={handleEmailInputBlur}
+                className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    // If verification shows risky/invalid, force through on Enter
+                    const shouldForce = verificationStatus === "invalid" || verificationStatus === "risky";
+                    handleSaveEmail(shouldForce);
+                  }
+                  if (e.key === "Escape") {
+                    e.stopPropagation(); // Prevent drawer from closing
+                    setEditingEmail(false);
+                    setEmailValue(provider.email || "");
+                    setEmailError(null);
+                    // Clear pending debounce and invalidate in-flight requests
+                    if (verifyDebounceRef.current) clearTimeout(verifyDebounceRef.current);
+                    verifyRequestIdRef.current++;
+                    setVerificationStatus("idle");
+                    setTrustScoreStatus("idle");
+                  }
+                }}
+                autoFocus
+              />
+              {/* Save button - changes style based on verification status */}
+              {verificationStatus === "invalid" || verificationStatus === "risky" ? (
+                <button
+                  onClick={() => handleSaveEmail(true)}
+                  disabled={savingEmail || !emailValue.trim()}
+                  className="px-3 py-1.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg hover:bg-amber-100 disabled:opacity-50"
+                >
+                  {savingEmail ? "..." : "Save anyway"}
+                </button>
+              ) : (
+                <button
+                  onClick={() => handleSaveEmail(false)}
+                  disabled={savingEmail || !emailValue.trim() || verificationStatus === "verifying"}
+                  className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+                >
+                  {savingEmail ? "..." : "Save"}
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  setEditingEmail(false);
+                  setEmailValue(provider.email || "");
+                  setEmailError(null);
+                  // Clear pending debounce and invalidate in-flight requests
+                  if (verifyDebounceRef.current) clearTimeout(verifyDebounceRef.current);
+                  verifyRequestIdRef.current++;
+                  setVerificationStatus("idle");
+                  setTrustScoreStatus("idle");
+                }}
+                className="text-sm text-gray-400 hover:text-gray-600"
+              >
+                Cancel
+              </button>
+            </div>
+            {/* Email verification badges */}
+            {(verificationStatus !== "idle" || trustScoreStatus !== "idle") && (
+              <div className="flex items-center gap-3 mt-2">
+                <EmailVerificationBadge status={verificationStatus} showHelperText />
+                <TrustScoreBadge status={trustScoreStatus} reason={trustScoreReason} />
+              </div>
+            )}
+            {emailError && <span className="text-xs text-red-500 mt-1 block">{emailError}</span>}
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 flex-1 ml-3">
+            {provider.email ? (
+              <>
+                <a
+                  href={`mailto:${provider.email}`}
+                  className="text-sm text-primary-600 hover:underline"
+                >
+                  {provider.email}
+                </a>
+                <EmailHistoryPopover providerId={provider.provider_id} currentEmail={provider.email} />
+                {/* Email lock toggle */}
+                <button
+                  onClick={handleToggleEmailLock}
+                  disabled={togglingLock}
+                  className={`p-1 rounded transition-colors ${
+                    emailLocked
+                      ? "text-emerald-600 hover:text-emerald-700"
+                      : "text-gray-400 hover:text-gray-600"
+                  } ${togglingLock ? "opacity-50 cursor-not-allowed" : ""}`}
+                  title={emailLocked ? "Email confirmed (click to unlock)" : "Click to mark email as confirmed"}
+                >
+                  {emailLocked ? (
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+                    </svg>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                </button>
+              </>
+            ) : findingEmail ? (
+              <span className="flex items-center gap-2 text-sm text-gray-500">
+                <span className="w-3 h-3 border-2 border-gray-300 border-t-primary-500 rounded-full animate-spin" />
+                Finding email...
+              </span>
+            ) : foundEmail ? (
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <span className={`text-sm font-medium ${
+                    verificationStatus === "invalid" ? "text-red-600" :
+                    verificationStatus === "risky" ? "text-amber-600" :
+                    "text-emerald-600"
+                  }`}>{foundEmail.email}</span>
+                  {/* Save button - changes style based on verification status */}
+                  {verificationStatus === "invalid" || verificationStatus === "risky" ? (
+                    <button
+                      onClick={() => handleSaveFoundEmail(true)}
+                      disabled={savingEmail}
+                      className="px-2 py-0.5 text-xs font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded hover:bg-amber-100 disabled:opacity-50"
+                    >
+                      {savingEmail ? "..." : "Save anyway"}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleSaveFoundEmail(false)}
+                      disabled={savingEmail || verificationStatus === "verifying"}
+                      className="px-2 py-0.5 text-xs font-medium text-white bg-emerald-600 rounded hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                      {savingEmail ? "..." : "Save"}
+                    </button>
+                  )}
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Found via {foundEmail.source === "scrape" ? "web scraping" : foundEmail.source === "perplexity" ? "AI analysis" : "search"}
+                  {foundEmail.foundUrl && (
+                    <>
+                      {" · "}
+                      <a
+                        href={foundEmail.foundUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary-600 hover:underline"
+                      >
+                        View source
+                      </a>
+                    </>
+                  )}
+                </p>
+                {/* Verification and trust score badges */}
+                {(verificationStatus !== "idle" || trustScoreStatus !== "idle") && (
+                  <div className="flex items-center gap-3 mt-2">
+                    <EmailVerificationBadge status={verificationStatus} showHelperText />
+                    <TrustScoreBadge status={trustScoreStatus} reason={trustScoreReason} />
+                  </div>
+                )}
+                {emailError && <p className="text-xs text-red-500 mt-1">{emailError}</p>}
+              </div>
+            ) : (
+              <span className="text-sm text-gray-400 italic">
+                {findError || "No email"}
+              </span>
+            )}
+            <button
+              onClick={() => {
+                setEditingEmail(true);
+                setEmailValue(provider.email || foundEmail?.email || "");
+                // Clear any pending debounce and invalidate in-flight requests
+                if (verifyDebounceRef.current) clearTimeout(verifyDebounceRef.current);
+                verifyRequestIdRef.current++;
+                // Reset verification state when entering edit mode
+                setVerificationStatus("idle");
+                setTrustScoreStatus("idle");
+                setTrustScoreReason("");
+              }}
+              className="ml-auto text-xs text-gray-400 hover:text-gray-600"
+            >
+              Edit
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Phone */}
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-gray-500 w-16">Phone</span>
+        {editingPhone ? (
+          <div className="flex items-center gap-2 flex-1 ml-3">
+            <input
+              type="tel"
+              value={phoneValue}
+              onChange={(e) => setPhoneValue(e.target.value)}
+              className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              placeholder="(555) 123-4567"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSavePhone();
+                if (e.key === "Escape") {
+                  e.stopPropagation(); // Prevent drawer from closing
+                  setEditingPhone(false);
+                  setPhoneValue(provider.phone || "");
+                }
+              }}
+              autoFocus
+            />
+            <button
+              onClick={handleSavePhone}
+              disabled={savingPhone}
+              className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+            >
+              {savingPhone ? "..." : "Save"}
+            </button>
+            <button
+              onClick={() => {
+                setEditingPhone(false);
+                setPhoneValue(provider.phone || "");
+                setPhoneError(null);
+              }}
+              className="text-sm text-gray-400 hover:text-gray-600"
+            >
+              Cancel
+            </button>
+            {phoneError && <span className="text-xs text-red-500">{phoneError}</span>}
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 flex-1 ml-3">
+            {provider.phone ? (
+              <a
+                href={`tel:${provider.phone.replace(/\D/g, "")}`}
+                className="text-sm text-primary-600 hover:underline"
+              >
+                {formatPhone(provider.phone)}
+              </a>
+            ) : (
+              <span className="text-sm text-gray-400 italic">No phone</span>
+            )}
+            <button
+              onClick={() => {
+                setEditingPhone(true);
+                setPhoneValue(provider.phone || "");
+              }}
+              className="ml-auto text-xs text-gray-400 hover:text-gray-600"
+            >
+              Edit
+            </button>
+          </div>
+        )}
+        </div>
+
+      {/* Fax */}
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-gray-500 w-16">Fax</span>
+        {editingFax ? (
+          <div className="flex items-center gap-2 flex-1 ml-3">
+            <input
+              type="tel"
+              value={faxValue}
+              onChange={(e) => setFaxValue(e.target.value)}
+              className="flex-1 px-3 py-1.5 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              placeholder="(555) 123-4567"
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSaveFax();
+                if (e.key === "Escape") {
+                  e.stopPropagation();
+                  setEditingFax(false);
+                  setFaxValue(provider.fax_number || "");
+                }
+              }}
+              autoFocus
+            />
+            <button
+              onClick={handleSaveFax}
+              disabled={savingFax}
+              className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+            >
+              {savingFax ? "..." : "Save"}
+            </button>
+            <button
+              onClick={() => {
+                setEditingFax(false);
+                setFaxValue(provider.fax_number || "");
+                setFaxError(null);
+              }}
+              className="text-sm text-gray-400 hover:text-gray-600"
+            >
+              Cancel
+            </button>
+            {faxError && <span className="text-xs text-red-500">{faxError}</span>}
+          </div>
+        ) : (
+          <div className="flex items-center gap-3 flex-1 ml-3">
+            {provider.fax_number ? (
+              <span className="text-sm text-gray-900">
+                {formatPhone(provider.fax_number)}
+              </span>
+            ) : (
+              <span className="text-sm text-gray-400 italic">No fax</span>
+            )}
+            <button
+              onClick={() => {
+                setEditingFax(true);
+                setFaxValue(provider.fax_number || "");
+              }}
+              className="ml-auto text-xs text-gray-400 hover:text-gray-600"
+            >
+              Edit
+            </button>
+          </div>
+        )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Saved Contacts Section (additional emails, fax, phone for reference)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CONTACT_TYPE_LABELS: Record<string, string> = {
+  email: "Email",
+  fax: "Fax",
+  phone: "Phone",
+};
+
+interface SavedContact {
+  id: string;
+  provider_id: string;
+  type: "email" | "fax" | "phone";
+  value: string;
+  label: string | null;
+  notes: string | null;
+  admin_id: string;
+  admin_name: string | null;
+  created_at: string;
+}
+
+function SavedContactsSection({
+  provider,
+  onUseEmail,
+}: {
+  provider: OutreachProvider;
+  onUseEmail?: (email: string) => void;
+}) {
+  const [contacts, setContacts] = useState<SavedContact[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newType, setNewType] = useState<"email" | "fax" | "phone">("email");
+  const [newValue, setNewValue] = useState("");
+  const [newLabel, setNewLabel] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [usingEmail, setUsingEmail] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editType, setEditType] = useState<"email" | "fax" | "phone">("email");
+  const [editValue, setEditValue] = useState("");
+  const [editLabel, setEditLabel] = useState("");
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+
+  // Reset state when provider changes to avoid stale data flash
+  useEffect(() => {
+    setContacts([]);
+    setShowAddForm(false);
+    setNewValue("");
+    setNewLabel("");
+    setSubmitError(null);
+    setEditingId(null);
+  }, [provider.provider_id]);
+
+  // Fetch contacts on mount / provider change
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchContacts() {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `/api/admin/provider-outreach/contacts?provider_id=${encodeURIComponent(provider.provider_id)}`
+        );
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          setContacts(data.contacts || []);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchContacts();
+    return () => {
+      cancelled = true;
+    };
+  }, [provider.provider_id]);
+
+  const handleAddContact = useCallback(async () => {
+    if (submitting || !newValue.trim()) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/contacts", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          type: newType,
+          value: newValue.trim(),
+          label: newLabel.trim() || undefined,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setContacts((prev) => [data.contact, ...prev]);
+        setNewValue("");
+        setNewLabel("");
+        setShowAddForm(false);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSubmitError(data.error || "Failed to save");
+      }
+    } catch {
+      setSubmitError("Network error");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [provider.provider_id, newType, newValue, newLabel, submitting]);
+
+  const handleUseEmail = useCallback(async (email: string) => {
+    if (usingEmail) return;
+    setUsingEmail(email);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, email }),
+      });
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        onUseEmail?.(email);
+        // Warn if SmartLead sync failed (logged since no error UI in this context)
+        if (data.smartleadSynced === false && data.smartleadError) {
+          console.warn(`[ProviderDrawer] SmartLead sync failed for ${email}:`, data.smartleadError);
+        }
+      }
+    } finally {
+      setUsingEmail(null);
+    }
+  }, [provider.provider_id, onUseEmail, usingEmail]);
+
+  const handleDelete = useCallback(async (contactId: string) => {
+    try {
+      const res = await fetch("/api/admin/provider-outreach/contacts", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contact_id: contactId }),
+      });
+      if (res.ok) {
+        setContacts((prev) => prev.filter((c) => c.id !== contactId));
+      }
+    } catch {
+      // Silent fail for delete
+    }
+  }, []);
+
+  const startEdit = useCallback((contact: SavedContact) => {
+    setEditingId(contact.id);
+    setEditType(contact.type);
+    setEditValue(contact.value);
+    setEditLabel(contact.label || "");
+    setEditError(null);
+  }, []);
+
+  const cancelEdit = useCallback(() => {
+    setEditingId(null);
+    setEditType("email");
+    setEditValue("");
+    setEditLabel("");
+    setEditError(null);
+  }, []);
+
+  const handleSaveEdit = useCallback(async () => {
+    if (!editingId || editSubmitting || !editValue.trim()) return;
+    setEditSubmitting(true);
+    setEditError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/contacts", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contact_id: editingId,
+          type: editType,
+          value: editValue.trim(),
+          label: editLabel.trim() || null,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setContacts((prev) =>
+          prev.map((c) => (c.id === editingId ? data.contact : c))
+        );
+        cancelEdit();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setEditError(data.error || "Failed to save changes");
+      }
+    } catch {
+      setEditError("Network error");
+    } finally {
+      setEditSubmitting(false);
+    }
+  }, [editingId, editType, editValue, editLabel, editSubmitting, cancelEdit]);
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wider">
+          Saved Contacts
+        </span>
+        {!showAddForm && (
+          <button
+            onClick={() => setShowAddForm(true)}
+            className="text-xs text-primary-600 hover:text-primary-700"
+          >
+            + Add
+          </button>
+        )}
+      </div>
+
+      {/* Add contact form */}
+      {showAddForm && (
+        <div className="mb-4 p-3 bg-gray-50 rounded-lg space-y-2">
+          <div className="flex items-center gap-2">
+            <select
+              value={newType}
+              onChange={(e) => setNewType(e.target.value as "email" | "fax" | "phone")}
+              className="px-2 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+              disabled={submitting}
+            >
+              <option value="email">Email</option>
+              <option value="fax">Fax</option>
+              <option value="phone">Phone</option>
+            </select>
+            <input
+              type="text"
+              value={newValue}
+              onChange={(e) => setNewValue(e.target.value)}
+              placeholder={newType === "email" ? "email@example.com" : "(555) 123-4567"}
+              className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              disabled={submitting}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddContact();
+                }
+                if (e.key === "Escape") {
+                  e.stopPropagation();
+                  setShowAddForm(false);
+                }
+              }}
+            />
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              value={newLabel}
+              onChange={(e) => setNewLabel(e.target.value)}
+              placeholder="Label (e.g., Sales Director)"
+              className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+              disabled={submitting}
+            />
+            <button
+              onClick={handleAddContact}
+              disabled={submitting || !newValue.trim()}
+              className="px-3 py-1.5 text-xs font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+            >
+              {submitting ? "..." : "Save"}
+            </button>
+            <button
+              onClick={() => {
+                setShowAddForm(false);
+                setNewValue("");
+                setNewLabel("");
+                setSubmitError(null);
+              }}
+              className="text-xs text-gray-400 hover:text-gray-600"
+            >
+              Cancel
+            </button>
+          </div>
+          {submitError && (
+            <p className="text-xs text-red-500">{submitError}</p>
+          )}
+        </div>
+      )}
+
+      {/* Contacts list */}
+      {loading ? (
+        <div className="flex items-center justify-center py-4">
+          <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+        </div>
+      ) : contacts.length === 0 ? (
+        <p className="text-sm text-gray-400 italic">No saved contacts</p>
+      ) : (
+        <div className="space-y-2">
+          {contacts.map((contact) => {
+            const isEditing = editingId === contact.id;
+
+            if (isEditing) {
+              return (
+                <div key={contact.id} className="p-2 bg-gray-50 rounded-lg border border-gray-200 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <select
+                      value={editType}
+                      onChange={(e) => setEditType(e.target.value as "email" | "fax" | "phone")}
+                      className="px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                      disabled={editSubmitting}
+                    >
+                      <option value="email">Email</option>
+                      <option value="fax">Fax</option>
+                      <option value="phone">Phone</option>
+                    </select>
+                    <input
+                      type="text"
+                      value={editValue}
+                      onChange={(e) => setEditValue(e.target.value)}
+                      placeholder={editType === "email" ? "email@example.com" : "(555) 123-4567"}
+                      className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      disabled={editSubmitting}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          e.preventDefault();
+                          handleSaveEdit();
+                        }
+                        if (e.key === "Escape") {
+                          e.stopPropagation();
+                          cancelEdit();
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={editLabel}
+                      onChange={(e) => setEditLabel(e.target.value)}
+                      placeholder="Label (e.g., Sales Director)"
+                      className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                      disabled={editSubmitting}
+                    />
+                    <button
+                      onClick={handleSaveEdit}
+                      disabled={editSubmitting || !editValue.trim()}
+                      className="px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50"
+                    >
+                      {editSubmitting ? "..." : "Save"}
+                    </button>
+                    <button
+                      onClick={cancelEdit}
+                      disabled={editSubmitting}
+                      className="text-xs text-gray-400 hover:text-gray-600"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  {editError && (
+                    <p className="text-xs text-red-500">{editError}</p>
+                  )}
+                </div>
+              );
+            }
+
+            return (
+              <div key={contact.id} className="flex items-center justify-between text-sm group">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-gray-400 w-12">{CONTACT_TYPE_LABELS[contact.type]}</span>
+                    <span className="text-gray-900 truncate">{contact.value}</span>
+                    {contact.label && (
+                      <span className="text-gray-500">· {contact.label}</span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  {contact.type === "email" && contact.value !== provider.email && (
+                    <button
+                      onClick={() => handleUseEmail(contact.value)}
+                      disabled={usingEmail === contact.value}
+                      className="text-xs text-primary-600 hover:text-primary-700 disabled:opacity-50"
+                    >
+                      {usingEmail === contact.value ? "..." : "Use"}
+                    </button>
+                  )}
+                  <button
+                    onClick={() => startEdit(contact)}
+                    className="text-xs text-gray-400 hover:text-primary-600 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(contact.id)}
+                    className="text-xs text-gray-400 hover:text-red-500 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                  >
+                    Remove
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Decision Maker Section (Apollo data - clean, no colored boxes)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function DecisionMakerSection({
+  provider,
+  onUseEmail,
+  onContactFound,
+  onResetToReadyWithApollo,
+}: {
+  provider: OutreachProvider;
+  onUseEmail?: (email: string) => void;
+  onContactFound?: (contact: ApolloContact) => void;
+  onResetToReadyWithApollo?: () => Promise<boolean>;
+}) {
+  const [finding, setFinding] = useState(false);
+  const [using, setUsing] = useState(false);
+  const [resetting, setResetting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [localContact, setLocalContact] = useState<ApolloContact | null>(
+    provider.apollo_contact || null
+  );
+
+  const contact = localContact;
+  const isActive = provider.email_source === "decision_maker";
+  const emailsMatch = contact?.email?.toLowerCase() === provider.email?.toLowerCase();
+  const isInSequence = provider.stage === "in_sequence";
+
+  async function handleFind() {
+    setFinding(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/find-decision-maker", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+      const data = await res.json();
+      if (data.error) {
+        setError(data.error);
+      } else if (data.contact?.email) {
+        const foundContact: ApolloContact = {
+          email: data.contact.email,
+          first_name: data.contact.first_name,
+          last_name: data.contact.last_name,
+          title: data.contact.title,
+          linkedin_url: data.contact.linkedin_url,
+          found_at: new Date().toISOString(),
+        };
+        setLocalContact(foundContact);
+        // Notify parent to sync state
+        onContactFound?.(foundContact);
+      } else {
+        setError("No decision-maker found");
+      }
+    } catch {
+      setError("Lookup failed");
+    } finally {
+      setFinding(false);
+    }
+  }
+
+  async function handleUseEmail() {
+    if (!contact?.email || using) return;
+    setUsing(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/update-email", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          email: contact.email,
+          confirm_apollo: true,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json().catch(() => ({}));
+        onUseEmail?.(contact.email);
+        // Warn if SmartLead sync failed
+        if (data.smartleadSynced === false && data.smartleadError) {
+          setError(`Saved, but SmartLead sync failed: ${data.smartleadError}`);
+        }
+      } else {
+        const data = await res.json();
+        setError(data.error || "Failed to update");
+      }
+    } catch {
+      setError("Failed to update");
+    } finally {
+      setUsing(false);
+    }
+  }
+
+  async function handleResetToReady() {
+    if (!onResetToReadyWithApollo || resetting) return;
+    setResetting(true);
+    setError(null);
+    try {
+      const success = await onResetToReadyWithApollo();
+      if (!success) {
+        setError("Failed to reset");
+      }
+    } catch {
+      setError("Failed to reset");
+    } finally {
+      setResetting(false);
+    }
+  }
+
+  return (
+    <div>
+      <SectionHeader>Decision Maker (Apollo)</SectionHeader>
+
+      {!contact ? (
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleFind}
+            disabled={finding}
+            className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-purple-600 bg-purple-50 border border-purple-200 rounded-lg hover:bg-purple-100 disabled:opacity-50"
+          >
+            {finding ? (
+              <>
+                <span className="w-4 h-4 border-2 border-purple-300 border-t-purple-600 rounded-full animate-spin" />
+                Finding...
+              </>
+            ) : (
+              "Find Decision Maker"
+            )}
+          </button>
+          {error && <span className="text-sm text-amber-600">{error}</span>}
+        </div>
+      ) : (
+        <div className="space-y-1">
+          {/* Name - bold */}
+          <p className="font-medium text-gray-900">
+            {[contact.first_name, contact.last_name].filter(Boolean).join(" ") || "Unknown"}
+          </p>
+
+          {/* Title · Email · LinkedIn - all inline */}
+          {(contact.title || contact.email || contact.linkedin_url) && (
+            <p className="text-sm text-gray-500">
+              {contact.title}
+              {contact.title && contact.email && <span className="mx-1.5">·</span>}
+              {contact.email}
+              {(contact.title || contact.email) && contact.linkedin_url && <span className="mx-1.5">·</span>}
+              {contact.linkedin_url && (
+                <a
+                  href={contact.linkedin_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:underline"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  LinkedIn
+                </a>
+              )}
+            </p>
+          )}
+
+          {/* Action buttons - only show when needed */}
+          {(!isActive && !emailsMatch && contact.email) || (isInSequence && contact?.email && !emailsMatch && onResetToReadyWithApollo) ? (
+            <div className="pt-2 flex flex-wrap items-center gap-2">
+              {!isActive && !emailsMatch && contact.email && (
+                <button
+                  onClick={handleUseEmail}
+                  disabled={using}
+                  className="px-3 py-1.5 text-sm font-medium text-purple-600 hover:text-purple-700 hover:bg-purple-50 rounded-lg transition disabled:opacity-50"
+                >
+                  {using ? "Updating..." : "Use This Email"}
+                </button>
+              )}
+              {isInSequence && contact?.email && !emailsMatch && onResetToReadyWithApollo && (
+                <button
+                  onClick={handleResetToReady}
+                  disabled={resetting}
+                  className="px-3 py-1.5 text-sm font-medium text-amber-600 hover:text-amber-700 hover:bg-amber-50 rounded-lg transition disabled:opacity-50"
+                >
+                  {resetting ? "Resetting..." : "Reset to Ready with This Email"}
+                </button>
+              )}
+              {error && <span className="text-sm text-amber-600">{error}</span>}
+            </div>
+          ) : null}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Call Log Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CALL_STATUSES = [
+  { value: "voicemail", label: "VM", color: "bg-amber-100 text-amber-700" },
+  { value: "no_answer", label: "No Answer", color: "bg-gray-100 text-gray-600" },
+  { value: "hung_up", label: "Hung Up", color: "bg-red-100 text-red-700" },
+  { value: "callback", label: "Callback", color: "bg-blue-100 text-blue-700" },
+  { value: "new_email", label: "New Email", color: "bg-emerald-100 text-emerald-700" },
+  { value: "resend", label: "Resend", color: "bg-teal-100 text-teal-700" },
+  { value: "spoke_with", label: "Spoke With", color: "bg-purple-100 text-purple-700" },
+  { value: "note", label: "Note", color: "bg-slate-100 text-slate-600" },
+] as const;
+
+type CallStatus = (typeof CALL_STATUSES)[number]["value"];
+
+interface CallLogEntry {
+  id: string;
+  provider_id: string;
+  status: CallStatus;
+  notes: string | null;
+  admin_id: string;
+  admin_name: string | null;
+  created_at: string;
+}
+
+function getCallStatusBadge(status: string): { label: string; className: string } {
+  const found = CALL_STATUSES.find((s) => s.value === status);
+  return found
+    ? { label: found.label, className: found.color }
+    : { label: status, className: "bg-gray-100 text-gray-600" };
+}
+
+function CallLogSection({
+  provider,
+  onCallLogged,
+}: {
+  provider: OutreachProvider;
+  onCallLogged?: (providerId: string, newCallCount: number, latestStatus: string) => void;
+}) {
+  const [logs, setLogs] = useState<CallLogEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedStatus, setSelectedStatus] = useState<CallStatus>("voicemail");
+  const [callNotes, setCallNotes] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [currentAdminId, setCurrentAdminId] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editStatus, setEditStatus] = useState<CallStatus>("voicemail");
+  const [editNotes, setEditNotes] = useState("");
+  const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
+  // Reset state when provider changes to avoid stale data flash
+  useEffect(() => {
+    setLogs([]);
+    setCallNotes("");
+    setSubmitError(null);
+    setEditingId(null);
+    setDeleteConfirmId(null);
+  }, [provider.provider_id]);
+
+  // Fetch call logs on mount / provider change
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchLogs() {
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `/api/admin/provider-outreach/call-logs?provider_id=${encodeURIComponent(provider.provider_id)}`
+        );
+        if (res.ok && !cancelled) {
+          const data = await res.json();
+          setLogs(data.logs || []);
+          setCurrentAdminId(data.current_admin_id || null);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchLogs();
+    return () => {
+      cancelled = true;
+    };
+  }, [provider.provider_id]);
+
+  const handleLogCall = useCallback(async () => {
+    if (submitting) return;
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/call-logs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          status: selectedStatus,
+          notes: callNotes.trim() || undefined,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Add the new log to the top of the list
+        setLogs((prev) => {
+          const newLogs = [data.log, ...prev];
+          // Notify parent of the new call count and status for sorting
+          onCallLogged?.(provider.provider_id, newLogs.length, selectedStatus);
+          return newLogs;
+        });
+        setCallNotes("");
+        setSelectedStatus("voicemail");
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setSubmitError(data.error || "Failed to log call");
+      }
+    } catch {
+      setSubmitError("Network error");
+    } finally {
+      setSubmitting(false);
+    }
+  }, [provider.provider_id, selectedStatus, callNotes, submitting, onCallLogged]);
+
+  const startEdit = useCallback((log: CallLogEntry) => {
+    setEditingId(log.id);
+    setEditStatus(log.status);
+    setEditNotes(log.notes || "");
+    setEditError(null);
+    setDeleteConfirmId(null); // Clear any pending delete confirmation
+  }, []);
+
+  const cancelEdit = useCallback(() => {
+    setEditingId(null);
+    setEditStatus("voicemail");
+    setEditNotes("");
+  }, []);
+
+  const handleSaveEdit = useCallback(async () => {
+    if (!editingId || editSubmitting) return;
+    setEditSubmitting(true);
+    setEditError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/call-logs", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          touchpoint_id: editingId,
+          status: editStatus,
+          notes: editNotes.trim() || null,
+        }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Update the log in the list
+        setLogs((prev) =>
+          prev.map((log) => (log.id === editingId ? data.log : log))
+        );
+        // If this was the most recent log, notify parent of status change
+        if (logs[0]?.id === editingId) {
+          onCallLogged?.(provider.provider_id, logs.length, editStatus);
+        }
+        cancelEdit();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setEditError(data.error || "Failed to save changes");
+      }
+    } catch {
+      setEditError("Network error");
+    } finally {
+      setEditSubmitting(false);
+    }
+  }, [editingId, editStatus, editNotes, editSubmitting, logs, provider.provider_id, onCallLogged, cancelEdit]);
+
+  const handleDelete = useCallback(async (logId: string) => {
+    if (deletingId) return;
+    setDeletingId(logId);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/call-logs", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ touchpoint_id: logId }),
+      });
+      if (res.ok) {
+        // Remove from list
+        setLogs((prev) => {
+          const newLogs = prev.filter((log) => log.id !== logId);
+          // Notify parent of new count and status
+          const latestStatus = newLogs[0]?.status || "";
+          onCallLogged?.(provider.provider_id, newLogs.length, latestStatus);
+          return newLogs;
+        });
+        setDeleteConfirmId(null);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || "Failed to delete call log");
+      }
+    } catch {
+      alert("Network error");
+    } finally {
+      setDeletingId(null);
+    }
+  }, [deletingId, provider.provider_id, onCallLogged]);
+
+  return (
+    <div>
+      <SectionHeader>Call Log</SectionHeader>
+
+      {/* Log call form */}
+      <div className="mb-5 p-3 bg-gray-50 rounded-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <select
+            value={selectedStatus}
+            onChange={(e) => setSelectedStatus(e.target.value as CallStatus)}
+            className="flex-1 px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+            disabled={submitting}
+          >
+            {CALL_STATUSES.map((status) => (
+              <option key={status.value} value={status.value}>
+                {status.label}
+              </option>
+            ))}
+          </select>
+          <button
+            onClick={handleLogCall}
+            disabled={submitting}
+            className="px-4 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
+          >
+            {submitting ? "..." : "Log Call"}
+          </button>
+        </div>
+        <input
+          type="text"
+          value={callNotes}
+          onChange={(e) => setCallNotes(e.target.value)}
+          placeholder="Optional notes..."
+          className="w-full px-3 py-1.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500"
+          disabled={submitting}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              handleLogCall();
+            }
+            if (e.key === "Escape") {
+              e.stopPropagation();
+              setCallNotes("");
+            }
+          }}
+        />
+        {submitError && (
+          <p className="mt-1 text-xs text-red-500">{submitError}</p>
+        )}
+      </div>
+
+      {/* Call history */}
+      {loading ? (
+        <div className="flex items-center justify-center py-4">
+          <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+        </div>
+      ) : logs.length === 0 ? (
+        <p className="text-sm text-gray-400 italic">No calls logged yet</p>
+      ) : (
+        <div className="space-y-3 max-h-48 overflow-y-auto">
+          {logs.map((log) => {
+            const badge = getCallStatusBadge(log.status);
+            const isEditing = editingId === log.id;
+            const canEdit = currentAdminId === log.admin_id;
+
+            if (isEditing) {
+              return (
+                <div key={log.id} className="text-sm p-2 bg-gray-50 rounded-lg border border-gray-200">
+                  <div className="flex items-center gap-2 mb-2">
+                    <select
+                      value={editStatus}
+                      onChange={(e) => setEditStatus(e.target.value as CallStatus)}
+                      className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white"
+                      disabled={editSubmitting}
+                    >
+                      {CALL_STATUSES.map((status) => (
+                        <option key={status.value} value={status.value}>
+                          {status.label}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      onClick={handleSaveEdit}
+                      disabled={editSubmitting}
+                      className="px-2 py-1 text-xs font-medium text-white bg-primary-600 rounded hover:bg-primary-700 disabled:opacity-50"
+                    >
+                      {editSubmitting ? "..." : "Save"}
+                    </button>
+                    <button
+                      onClick={cancelEdit}
+                      disabled={editSubmitting}
+                      className="px-2 py-1 text-xs font-medium text-gray-600 hover:text-gray-900"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                  <input
+                    type="text"
+                    value={editNotes}
+                    onChange={(e) => setEditNotes(e.target.value)}
+                    placeholder="Notes..."
+                    className="w-full px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    disabled={editSubmitting}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        handleSaveEdit();
+                      }
+                      if (e.key === "Escape") {
+                        e.stopPropagation();
+                        cancelEdit();
+                      }
+                    }}
+                  />
+                  {editError && (
+                    <p className="mt-1 text-xs text-red-500">{editError}</p>
+                  )}
+                </div>
+              );
+            }
+
+            return (
+              <div key={log.id} className="text-sm group">
+                {/* Row 1: Time, status, admin, edit button */}
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs text-gray-400">
+                    {formatDate(log.created_at)}
+                  </span>
+                  <span className={`inline-flex px-1.5 py-0.5 text-xs font-medium rounded ${badge.className}`}>
+                    {badge.label}
+                  </span>
+                  <span className="text-xs text-gray-400 ml-auto">
+                    {log.admin_name || "Unknown"}
+                  </span>
+                  {canEdit && (
+                    <div className="flex items-center gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => startEdit(log)}
+                        className="text-xs text-gray-400 hover:text-primary-600"
+                        title="Edit"
+                      >
+                        Edit
+                      </button>
+                      {deleteConfirmId === log.id ? (
+                        <>
+                          <button
+                            onClick={() => handleDelete(log.id)}
+                            disabled={deletingId === log.id}
+                            className="text-xs text-red-600 hover:text-red-700 font-medium"
+                          >
+                            {deletingId === log.id ? "..." : "Confirm"}
+                          </button>
+                          <button
+                            onClick={() => setDeleteConfirmId(null)}
+                            className="text-xs text-gray-400 hover:text-gray-600"
+                          >
+                            Cancel
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          onClick={() => setDeleteConfirmId(log.id)}
+                          className="text-xs text-gray-400 hover:text-red-500"
+                          title="Delete"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+                {/* Row 2: Full note text */}
+                {log.notes ? (
+                  <p className="text-gray-600 whitespace-pre-wrap">{log.notes}</p>
+                ) : (
+                  <p className="text-gray-400 italic">No notes</p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Notes Section (shows both historical notes and Call Log notes with status="note")
+// ─────────────────────────────────────────────────────────────────────────────
+
+function NotesSection({ provider }: { provider: OutreachProvider }) {
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Reset state when provider changes to avoid stale data flash
+  useEffect(() => {
+    setNotes([]);
+    setLoading(true);
+  }, [provider.provider_id]);
+
+  useEffect(() => {
+    async function fetchNotes() {
+      try {
+        const res = await fetch(
+          `/api/admin/provider-outreach/notes?provider_id=${encodeURIComponent(provider.provider_id)}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          setNotes(data.notes || []);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchNotes();
+  }, [provider.provider_id]);
+
+  // Don't render section if no historical notes
+  if (!loading && notes.length === 0) {
+    return null;
+  }
+
+  return (
+    <>
+      <div>
+        <SectionHeader>Notes</SectionHeader>
+
+        {loading ? (
+          <div className="flex items-center justify-center py-4">
+            <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+          </div>
+        ) : (
+          <div className="space-y-3 max-h-48 overflow-y-auto">
+            {notes.map((note) => (
+              <div key={note.id} className="text-sm">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xs text-gray-400">{formatDate(note.created_at)}</span>
+                  <span className="inline-flex px-1.5 py-0.5 text-xs font-medium rounded bg-slate-100 text-slate-600">
+                    Note
+                  </span>
+                  <span className="text-xs text-gray-400 ml-auto">{note.admin_name || "Unknown"}</span>
+                </div>
+                <p className="text-gray-600 whitespace-pre-wrap">{note.note}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <SectionDivider />
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Activity Section (Questions & Leads)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ActivitySection({ provider }: { provider: OutreachProvider }) {
+  const questionsCount = provider.questions_count ?? 0;
+  const leadsCount = provider.leads_count ?? 0;
+  // Use actual email_sent touchpoint count (includes SmartLead + manual sends)
+  // Fall back to resend_count if engagement data not available
+  const emailsSent = provider.engagement?.emails_sent ?? provider.resend_count ?? 0;
+  const formsSent = provider.contact_form_send_count ?? 0;
+
+  return (
+    <div>
+      <SectionHeader>Activity</SectionHeader>
+      <div className="flex items-center gap-6">
+        <div>
+          <span className="text-2xl font-semibold text-gray-900">{emailsSent}</span>
+          <span className="ml-1.5 text-sm text-gray-500">Emails Sent</span>
+        </div>
+        <div>
+          <span className="text-2xl font-semibold text-gray-900">{formsSent}</span>
+          <span className="ml-1.5 text-sm text-gray-500">Forms Sent</span>
+        </div>
+        <div>
+          <span className="text-2xl font-semibold text-gray-900">{questionsCount}</span>
+          <span className="ml-1.5 text-sm text-gray-500">Questions</span>
+        </div>
+        <div>
+          <span className="text-2xl font-semibold text-gray-900">{leadsCount}</span>
+          <span className="ml-1.5 text-sm text-gray-500">Leads</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Email Sends Section (detailed email history)
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface EmailSendEntry {
+  id: string;
+  sent_at: string;
+  template_key: string;
+  template_label: string;
+  trigger: string;
+  to_email: string | null;
+  open_count: number;
+  click_count: number;
+  admin_name: string | null;
+  email_log_id: string | null;
+  is_custom: boolean;
+  subject: string | null;
+}
+
+function EmailSendsSection({ provider }: { provider: OutreachProvider }) {
+  const [expanded, setExpanded] = useState(false);
+  const [emails, setEmails] = useState<EmailSendEntry[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  // Preview state for showing full email HTML
+  const [previewId, setPreviewId] = useState<string | null>(null);
+  const [previewHtml, setPreviewHtml] = useState<string | null>(null);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState<string | null>(null);
+
+  // Fetch email history when expanded
+  useEffect(() => {
+    if (!expanded || loaded) return;
+
+    let cancelled = false;
+    async function fetchEmails() {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(
+          `/api/admin/provider-outreach/email-sends?provider_id=${encodeURIComponent(provider.provider_id)}`
+        );
+        if (!cancelled) {
+          if (res.ok) {
+            const data = await res.json();
+            setEmails(data.emails || []);
+            setLoaded(true);
+          } else {
+            setError("Failed to load email history");
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          setError("Network error");
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    fetchEmails();
+    return () => {
+      cancelled = true;
+    };
+  }, [expanded, loaded, provider.provider_id]);
+
+  // Reset loaded state when provider changes
+  useEffect(() => {
+    setLoaded(false);
+    setEmails([]);
+    setError(null);
+    setPreviewId(null);
+    setPreviewHtml(null);
+  }, [provider.provider_id]);
+
+  // Fetch email HTML when preview is requested
+  const handlePreview = useCallback(async (emailLogId: string) => {
+    if (previewId === emailLogId) {
+      // Toggle off
+      setPreviewId(null);
+      setPreviewHtml(null);
+      return;
+    }
+    setPreviewId(emailLogId);
+    setPreviewHtml(null);
+    setPreviewLoading(true);
+    setPreviewError(null);
+    try {
+      const res = await fetch(`/api/admin/emails/${emailLogId}/html`);
+      if (res.ok) {
+        const data = await res.json();
+        setPreviewHtml(data.html_body || null);
+      } else {
+        setPreviewError("Failed to load email");
+      }
+    } catch {
+      setPreviewError("Network error");
+    } finally {
+      setPreviewLoading(false);
+    }
+  }, [previewId]);
+
+  // Use actual count from API once loaded, otherwise estimate from provider data
+  const emailCount = loaded ? emails.length : (provider.engagement?.emails_sent ?? provider.resend_count ?? 0);
+
+  // Format date for display
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  };
+
+  return (
+    <div>
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between py-2 text-left group"
+      >
+        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider group-hover:text-gray-600">
+          Email History ({emailCount})
+        </span>
+        <svg
+          className={`w-4 h-4 text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+
+      {expanded && (
+        <div className="mt-2">
+          {loading ? (
+            <div className="flex items-center justify-center py-4">
+              <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+            </div>
+          ) : error ? (
+            <p className="text-sm text-red-500 py-2">{error}</p>
+          ) : emails.length === 0 ? (
+            <p className="text-sm text-gray-400 italic py-2">No emails sent yet</p>
+          ) : (
+            <div className="space-y-2 max-h-[400px] overflow-y-auto">
+              {emails.map((email) => {
+                const canPreview = !!email.email_log_id;
+                const isPreviewOpen = canPreview && previewId === email.email_log_id;
+
+                return (
+                  <div
+                    key={email.id}
+                    className="py-2 border-b border-gray-50 last:border-0"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium text-gray-900">
+                            {email.template_label}
+                            {email.is_custom && (
+                              <span className="ml-1.5 text-xs text-purple-600">(Custom)</span>
+                            )}
+                          </span>
+                          {(email.open_count > 0 || email.click_count > 0) && (
+                            <div className="flex items-center gap-1.5 text-xs">
+                              {email.open_count > 0 && (
+                                <span className="text-blue-600">{email.open_count} open{email.open_count !== 1 ? "s" : ""}</span>
+                              )}
+                              {email.click_count > 0 && (
+                                <span className="text-green-600">{email.click_count} click{email.click_count !== 1 ? "s" : ""}</span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 text-xs text-gray-500 mt-0.5">
+                          <span>{formatDate(email.sent_at)}</span>
+                          {email.to_email && (
+                            <>
+                              <span className="text-gray-300">·</span>
+                              <span className="truncate">{email.to_email}</span>
+                            </>
+                          )}
+                          {email.admin_name && (
+                            <>
+                              <span className="text-gray-300">·</span>
+                              <span>by {email.admin_name}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      {canPreview && (
+                        <button
+                          onClick={() => handlePreview(email.email_log_id!)}
+                          className={`text-xs px-2 py-1 rounded ${
+                            isPreviewOpen
+                              ? "bg-primary-100 text-primary-700"
+                              : "text-gray-500 hover:text-primary-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          {isPreviewOpen ? "Hide" : "View"}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Email preview */}
+                    {isPreviewOpen && (
+                      <div className="mt-3 border border-gray-200 rounded-lg overflow-hidden">
+                        {previewLoading ? (
+                          <div className="flex items-center justify-center py-8">
+                            <span className="w-5 h-5 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+                          </div>
+                        ) : previewError ? (
+                          <div className="py-4 px-3 text-sm text-red-500">{previewError}</div>
+                        ) : previewHtml ? (
+                          <iframe
+                            srcDoc={previewHtml}
+                            className="w-full h-[400px] bg-white"
+                            title="Email preview"
+                            sandbox="allow-same-origin"
+                          />
+                        ) : (
+                          <div className="py-4 px-3 text-sm text-gray-400 italic">No content available</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Follow Up Section (for needs_call stage)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function FollowUpSection({
+  provider,
+}: {
+  provider: OutreachProvider;
+}) {
+  const dueBadge = formatDueDateBadge(provider.due_date || null);
+  const reasonChip = getNeedsCallReasonChip(provider.needs_call_reason || null);
+  const explanation = getFollowUpReasonExplanation(provider);
+  const engagement = provider.engagement || { emails_sent: 0, opens: 0, clicks: 0, resends: 0 };
+  const resendCount = provider.resend_count ?? 0;
+  const contactFormSendCount = provider.contact_form_send_count ?? 0;
+
+  return (
+    <div>
+      <SectionHeader>Follow Up Status</SectionHeader>
+
+      {/* Due date and reason badges */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${dueBadge.className}`}>
+          {dueBadge.text}
+        </span>
+        {reasonChip && (
+          <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${reasonChip.className}`}>
+            {reasonChip.label}
+          </span>
+        )}
+      </div>
+
+      {/* Explanation */}
+      <p className="text-sm text-gray-700 mb-4">{explanation}</p>
+
+      {/* Engagement stats */}
+      <div className="flex items-center gap-4 text-sm mb-6">
+        <div className="flex items-center gap-1.5">
+          <span className="text-gray-500">Emails:</span>
+          <span className="font-medium text-gray-900">{engagement.emails_sent}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-gray-500">Opens:</span>
+          <span className="font-medium text-gray-900">{engagement.opens}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-gray-500">Clicks:</span>
+          <span className="font-medium text-gray-900">{engagement.clicks}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-gray-500">Emails Sent:</span>
+          <span className="font-medium text-gray-900">{resendCount}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-gray-500">Forms Sent:</span>
+          <span className="font-medium text-gray-900">{contactFormSendCount}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Alternative Channels Section (for re_engage stage)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const CHANNEL_LABELS: Record<string, { label: string; className: string }> = {
+  fax: { label: "Fax", className: "bg-purple-50 text-purple-700" },
+  direct_mail: { label: "Direct Mail", className: "bg-teal-50 text-teal-700" },
+  contact_form: { label: "Contact Form", className: "bg-orange-50 text-orange-700" },
+  linkedin: { label: "LinkedIn", className: "bg-blue-50 text-blue-700" },
+  re_engage: { label: "Email Resend", className: "bg-gray-100 text-gray-700" },
+};
+
+function daysSince(dateString: string | null): number {
+  if (!dateString) return 0;
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+}
+
+function ReEngageSection({
+  provider,
+}: {
+  provider: OutreachProvider;
+}) {
+  const channel = provider.re_engage_channel;
+  const channelInfo = channel ? CHANNEL_LABELS[channel] || { label: channel, className: "bg-gray-100 text-gray-600" } : null;
+  const waitDays = daysSince(provider.re_engage_entered_at || null);
+
+  return (
+    <div>
+      <SectionHeader>Alternative Channel Status</SectionHeader>
+
+      {/* Channel and wait time */}
+      <div className="flex flex-wrap items-center gap-3 mb-4">
+        {channelInfo && (
+          <span className={`inline-flex px-2.5 py-1 text-xs font-medium rounded-full ${channelInfo.className}`}>
+            {channelInfo.label}
+          </span>
+        )}
+        <span className="text-sm text-gray-600">
+          {waitDays === 0 ? "Added today" : waitDays === 1 ? "1 day in stage" : `${waitDays} days in stage`}
+        </span>
+      </div>
+
+      {/* Channel-specific details */}
+      {channel === "fax" && provider.fax_number && (
+        <div className="mb-4 p-3 bg-purple-50 rounded-lg">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-gray-500">Fax sent to:</span>
+            <span className="font-medium text-gray-900">{provider.fax_number}</span>
+          </div>
+        </div>
+      )}
+
+      {channel === "direct_mail" && provider.mail_address && (
+        <div className="mb-4 p-3 bg-teal-50 rounded-lg">
+          <div className="text-sm">
+            <span className="text-gray-500">Postcard sent to:</span>
+            <p className="font-medium text-gray-900 mt-1 whitespace-pre-line">{provider.mail_address}</p>
+          </div>
+        </div>
+      )}
+
+      {channel === "contact_form" && provider.contact_form_url && (
+        <div className="mb-4 p-3 bg-orange-50 rounded-lg">
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-gray-500">
+              {(provider.contact_form_send_count ?? 0) > 0 ? "Form submitted:" : "Contact form:"}
+            </span>
+            <a
+              href={provider.contact_form_url.startsWith("http") ? provider.contact_form_url : `https://${provider.contact_form_url}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-orange-600 hover:underline truncate max-w-[200px]"
+            >
+              {provider.contact_form_url}
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* Warning if waiting too long */}
+      {waitDays >= 30 && (
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <p className="text-sm text-amber-800">
+            No response after {waitDays} days.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Call Exhausted Section (for call_exhausted stage - final call state)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function CallExhaustedSection({
+  provider,
+}: {
+  provider: OutreachProvider;
+}) {
+  const emailsSent = provider.resend_count ?? 0;
+  const contactFormSendCount = provider.contact_form_send_count ?? 0;
+  const daysSinceStageChange = provider.stage_changed_at
+    ? Math.floor((Date.now() - new Date(provider.stage_changed_at).getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+
+  return (
+    <div>
+      <SectionHeader>Call Status</SectionHeader>
+
+      {/* Status badges */}
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <span className="inline-flex px-2.5 py-1 text-xs font-medium rounded-full bg-orange-100 text-orange-700">
+          Requires Call
+        </span>
+        <span className="text-sm text-gray-500">
+          {daysSinceStageChange === 0 ? "Added today" : `${daysSinceStageChange} day${daysSinceStageChange === 1 ? "" : "s"} in stage`}
+        </span>
+      </div>
+
+      {/* Stats */}
+      <div className="flex items-center gap-4 text-sm">
+        <div className="flex items-center gap-1.5">
+          <span className="text-gray-500">Emails Sent:</span>
+          <span className="font-medium text-gray-900">{emailsSent}</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-gray-500">Forms Sent:</span>
+          <span className="font-medium text-gray-900">{contactFormSendCount}</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Actions Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Pattern to find the CTA line in email body: [Activate your page →]({claim_url})
+const CTA_PATTERN = /\[Activate your page[^\]]*\]\(\{claim_url\}\)/;
+const CTA_DISPLAY_TEXT = "[Activate your page →]({claim_url})";
+
+function ActionsSection({
+  provider,
+  onLaunchSequence,
+  onMarkNotInterested,
+  onArchive,
+  onRemove,
+  onOutcomeRecorded,
+  onClaimLinkSent,
+  onContactFormSent,
+  onMoveToBroadcast,
+  onClose,
+  activeTab,
+}: {
+  provider: OutreachProvider;
+  onLaunchSequence?: (providerId: string) => void;
+  onMarkNotInterested?: (providerId: string) => void;
+  onArchive?: (providerId: string) => void;
+  onRemove?: (providerId: string, providerName: string) => void;
+  onOutcomeRecorded?: (providerId: string, stageChanged: boolean) => void;
+  onClaimLinkSent?: (providerId: string, newResendCount: number) => void;
+  onContactFormSent?: (providerId: string, newSendCount: number) => void;
+  onMoveToBroadcast?: (providerId: string) => void;
+  onClose?: () => void;
+  activeTab?: string;
+}) {
+  // Confirmation states for each action
+  const [confirmAction, setConfirmAction] = useState<string | null>(null);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const [actionSuccess, setActionSuccess] = useState<{ outcome: string; emailSent?: boolean; emailError?: string } | null>(null);
+
+  // Resend requires call confirmation checkbox
+  const [confirmedCall, setConfirmedCall] = useState(false);
+
+  // Contact form workflow state
+  // Pre-fill with saved contact_form_url, or fall back to provider website
+  const [contactFormUrl, setContactFormUrl] = useState<string>(
+    provider.contact_form_url || provider.website || ""
+  );
+  const [claimUrl, setClaimUrl] = useState<string | null>(null);
+  const [claimUrlLoading, setClaimUrlLoading] = useState(false);
+  const [messageCopied, setMessageCopied] = useState(false);
+  const [contactFormOpened, setContactFormOpened] = useState(false);
+  const [findingContactForm, setFindingContactForm] = useState(false);
+
+  // Fax workflow state
+  const [faxNumber, setFaxNumber] = useState<string>(provider.fax_number || "");
+  const [findingFax, setFindingFax] = useState(false);
+  const [faxConfidence, setFaxConfidence] = useState<string | null>(provider.fax_confidence || null);
+  const [sendingFax, setSendingFax] = useState(false);
+  const [faxSent, setFaxSent] = useState(false);
+
+  // Direct Mail workflow state
+  const formatProviderAddress = () => {
+    const parts = [provider.address, provider.city, provider.state].filter(Boolean);
+    if (parts.length === 0) return "";
+    const zipStr = provider.zipcode ? ` ${String(provider.zipcode).padStart(5, '0')}` : "";
+    // Format: "123 Main St, City, ST 12345"
+    if (provider.address && provider.city && provider.state) {
+      return `${provider.address}, ${provider.city}, ${provider.state}${zipStr}`;
+    }
+    return parts.join(", ") + zipStr;
+  };
+  const [mailAddress, setMailAddress] = useState<string>(provider.mail_address || formatProviderAddress());
+  const [sendingMail, setSendingMail] = useState(false);
+  const [mailSent, setMailSent] = useState(false);
+
+  // Compose email modal state (for customizable nudge emails)
+  const [showComposeModal, setShowComposeModal] = useState(false);
+  const [composeSubject, setComposeSubject] = useState("");
+  const [composeBody, setComposeBody] = useState(""); // Text before CTA
+  const [composeClosing, setComposeClosing] = useState(""); // Text after CTA
+  const [composeLoading, setComposeLoading] = useState(false);
+  const [composeToEmail, setComposeToEmail] = useState("");
+  // Track compose mode: "send" = just send email, "resend" = send + move to Alt Channels
+  const [composeMode, setComposeMode] = useState<"send" | "resend">("send");
+  // Checkbox for "I called" confirmation in resend mode
+  const [composeConfirmedCall, setComposeConfirmedCall] = useState(false);
+  // HTML preview state
+  const [showPreview, setShowPreview] = useState(false);
+  const [previewHtml, setPreviewHtml] = useState("");
+  const [previewLoading, setPreviewLoading] = useState(false);
+
+  // Reset contact form state when provider changes
+  useEffect(() => {
+    setContactFormUrl(provider.contact_form_url || provider.website || "");
+    setClaimUrl(null);
+    setMessageCopied(false);
+    setContactFormOpened(false);
+    setFindingContactForm(false);
+  }, [provider.provider_id, provider.contact_form_url, provider.website]);
+
+  // Reset fax state when provider changes
+  useEffect(() => {
+    setFaxNumber(provider.fax_number || "");
+    setFaxConfidence(provider.fax_confidence || null);
+    setFindingFax(false);
+    setSendingFax(false);
+    setFaxSent(false);
+  }, [provider.provider_id, provider.fax_number, provider.fax_confidence]);
+
+  // Reset mail state when provider changes
+  useEffect(() => {
+    setMailAddress(provider.mail_address || formatProviderAddress());
+    setSendingMail(false);
+    setMailSent(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [provider.provider_id, provider.mail_address, provider.address, provider.city, provider.state, provider.zipcode]);
+
+  // Reset compose modal state when provider changes
+  useEffect(() => {
+    setShowComposeModal(false);
+    setComposeSubject("");
+    setComposeBody("");
+    setComposeClosing("");
+    setComposeLoading(false);
+    setComposeToEmail("");
+    setComposeMode("send");
+    setComposeConfirmedCall(false);
+    setShowPreview(false);
+    setPreviewHtml("");
+    setPreviewLoading(false);
+  }, [provider.provider_id]);
+
+  // Parse email body to split around the CTA
+  function parseEmailBody(body: string): { message: string; closing: string } {
+    const match = body.match(CTA_PATTERN);
+    if (match && match.index !== undefined) {
+      const ctaStart = match.index;
+      const ctaEnd = ctaStart + match[0].length;
+      const message = body.slice(0, ctaStart).replace(/\n+$/, "");
+      const closing = body.slice(ctaEnd).replace(/^\n+/, "");
+      return { message, closing };
+    }
+    return { message: body, closing: "" };
+  }
+
+  // Reassemble body from message + CTA + closing
+  function assembleEmailBody(message: string, closing: string): string {
+    const parts = [message.trim(), "", CTA_DISPLAY_TEXT];
+    if (closing.trim()) {
+      parts.push("", closing.trim());
+    }
+    return parts.join("\n");
+  }
+
+  // Load default email template for compose modal (send mode - no stage change)
+  async function loadComposeTemplate() {
+    setComposeLoading(true);
+    setActionError(null);
+    setComposeMode("send");
+    setComposeConfirmedCall(false);
+    try {
+      const res = await fetch(`/api/admin/provider-outreach/send-claim-link?provider_id=${provider.provider_id}`);
+      const data = await res.json();
+      if (res.ok) {
+        setComposeSubject(data.subject || "");
+        const { message, closing } = parseEmailBody(data.body || "");
+        setComposeBody(message);
+        setComposeClosing(closing);
+        setComposeToEmail(data.to_email || provider.email || "");
+        setShowComposeModal(true);
+      } else {
+        setActionError(data.error || "Failed to load template");
+      }
+    } catch {
+      setActionError("Failed to load email template");
+    } finally {
+      setComposeLoading(false);
+    }
+  }
+
+  // Load compose template for resend mode (sends email + moves to Alt Channels)
+  async function loadComposeTemplateForResend() {
+    setComposeLoading(true);
+    setActionError(null);
+    setComposeMode("resend");
+    setComposeConfirmedCall(false);
+    try {
+      const res = await fetch(`/api/admin/provider-outreach/send-claim-link?provider_id=${provider.provider_id}`);
+      const data = await res.json();
+      if (res.ok) {
+        setComposeSubject(data.subject || "");
+        const { message, closing } = parseEmailBody(data.body || "");
+        setComposeBody(message);
+        setComposeClosing(closing);
+        setComposeToEmail(data.to_email || provider.email || "");
+        setShowComposeModal(true);
+      } else {
+        setActionError(data.error || "Failed to load template");
+      }
+    } catch {
+      setActionError("Failed to load email template");
+    } finally {
+      setComposeLoading(false);
+    }
+  }
+
+  // Generate HTML preview of the composed email
+  async function loadEmailPreview() {
+    setPreviewLoading(true);
+    setActionError(null);
+    try {
+      const fullBody = assembleEmailBody(composeBody, composeClosing);
+      const res = await fetch("/api/admin/provider-outreach/preview-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          provider_id: provider.provider_id,
+          custom_subject: composeSubject,
+          custom_body: fullBody,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.html) {
+        setPreviewHtml(data.html);
+        setShowPreview(true);
+      } else {
+        setActionError(data.error || "Failed to generate preview");
+      }
+    } catch {
+      setActionError("Failed to generate preview");
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
+  // Auto-generate claim URL when entering contact form workflow
+  useEffect(() => {
+    if (confirmAction === "contact_form" && !claimUrl && !claimUrlLoading && provider.email && provider.slug) {
+      handleGenerateClaimUrl();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirmAction]);
+
+  // Auto-find contact form URL when entering workflow (if provider has website but no saved URL)
+  useEffect(() => {
+    if (
+      confirmAction === "contact_form" &&
+      provider.website &&
+      !provider.contact_form_url &&
+      !findingContactForm
+    ) {
+      setFindingContactForm(true);
+      const initialUrl = provider.website;
+      fetch("/api/admin/provider-outreach/find-contact-form", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, website: provider.website }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.found && data.url) {
+            // Only update if user hasn't edited the URL (still matches initial website)
+            setContactFormUrl((current) =>
+              current === initialUrl ? data.url : current
+            );
+          }
+        })
+        .catch(() => {
+          // Non-fatal - keep website as fallback
+        })
+        .finally(() => {
+          setFindingContactForm(false);
+        });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirmAction]);
+
+  // Auto-find fax number when entering fax workflow (if provider has website but no saved fax)
+  useEffect(() => {
+    if (
+      confirmAction === "fax" &&
+      provider.website &&
+      !provider.fax_number &&
+      !findingFax
+    ) {
+      setFindingFax(true);
+      const initialFaxNumber = faxNumber; // Capture initial value
+      fetch("/api/admin/provider-outreach/find-fax", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.fax) {
+            // Only update if user hasn't edited the fax number
+            setFaxNumber((current) =>
+              current === initialFaxNumber ? data.fax : current
+            );
+            setFaxConfidence((currentConf) =>
+              currentConf === null ? data.confidence : currentConf
+            );
+          }
+        })
+        .catch(() => {
+          // Non-fatal - user can enter manually
+        })
+        .finally(() => {
+          setFindingFax(false);
+        });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [confirmAction]);
+
+  const isTerminal = ["claimed", "archived"].includes(provider.stage);
+  const canLaunch = provider.stage === "not_contacted" && provider.email;
+  const isFollowUp = provider.stage === "needs_call";
+  const isCallExhausted = provider.stage === "call_exhausted";
+
+  // Generic outcome handler for Follow Up actions
+  async function handleRecordOutcome(outcome: string) {
+    setActionLoading(true);
+    setActionError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/record-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id, outcome }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        // Include email status for resend_link outcome
+        setActionSuccess({
+          outcome,
+          emailSent: data.email_sent,
+          emailError: data.email_error,
+        });
+        setConfirmAction(null);
+        setConfirmedCall(false);
+        onOutcomeRecorded?.(provider.provider_id, true);
+        setTimeout(() => onClose?.(), 1500);
+      } else {
+        setActionError(data.error || "Failed");
+      }
+    } catch {
+      setActionError("Network error");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function handleSendClaimLink(customSubject?: string, customBody?: string) {
+    setActionLoading(true);
+    setActionError(null);
+    try {
+      const payload: Record<string, string> = { provider_id: provider.provider_id };
+      if (customSubject) payload.custom_subject = customSubject;
+      if (customBody) payload.custom_body = customBody;
+
+      const res = await fetch("/api/admin/provider-outreach/send-claim-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setActionSuccess({ outcome: "claim_link" });
+        setConfirmAction(null);
+        setShowComposeModal(false);
+        // Update local state with new resend_count
+        if (typeof data.resend_count === "number") {
+          onClaimLinkSent?.(provider.provider_id, data.resend_count);
+        }
+        setTimeout(() => onClose?.(), 1200);
+      } else {
+        setActionError(data.error || "Failed to send");
+      }
+    } catch {
+      setActionError("Network error");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  // Handle resend link with compose modal (sends email + moves to Alt Channels)
+  async function handleResendLink(customSubject?: string, customBody?: string) {
+    setActionLoading(true);
+    setActionError(null);
+    try {
+      const payload: Record<string, string> = {
+        provider_id: provider.provider_id,
+        outcome: "resend_link",
+      };
+      if (customSubject) payload.custom_subject = customSubject;
+      if (customBody) payload.custom_body = customBody;
+
+      const res = await fetch("/api/admin/provider-outreach/record-outcome", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setActionSuccess({
+          outcome: "resend_link",
+          emailSent: data.email_sent,
+          emailError: data.email_error,
+        });
+        setConfirmAction(null);
+        setShowComposeModal(false);
+        setComposeConfirmedCall(false);
+        onOutcomeRecorded?.(provider.provider_id, true);
+        setTimeout(() => onClose?.(), 1500);
+      } else {
+        setActionError(data.error || "Failed to send");
+      }
+    } catch {
+      setActionError("Network error");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  function cancelConfirm() {
+    setConfirmAction(null);
+    setConfirmedCall(false);
+    setActionError(null);
+    // Reset contact form workflow state
+    setContactFormUrl(provider.contact_form_url || "");
+    setClaimUrl(null);
+    setMessageCopied(false);
+    setContactFormOpened(false);
+  }
+
+  async function handleGenerateClaimUrl() {
+    setClaimUrlLoading(true);
+    setActionError(null);
+    try {
+      const res = await fetch("/api/admin/provider-outreach/generate-claim-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ provider_id: provider.provider_id }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to generate claim URL");
+      setClaimUrl(data.claim_url);
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to generate claim URL");
+    } finally {
+      setClaimUrlLoading(false);
+    }
+  }
+
+  function getContactFormMessage(): string {
+    if (!claimUrl) return "";
+    const city = provider.city || provider.state || "your area";
+    const category = provider.provider_category || "care services";
+    const name = provider.provider_name;
+    return `Hi, I'm Logan from Olera.
+
+Families in ${city} searching for ${category} can already see the page we built for ${name}. But if one reached out today, no one would see the message.
+
+Activate your page (2 min, free) to fully manage it:
+${claimUrl}
+
+Questions? support@olera.care or (979) 243-9801`;
+  }
+
+  async function handleConfirmContactFormSubmission() {
+    if (!contactFormUrl) return;
+    setActionLoading(true);
+    setActionError(null);
+    try {
+      // In Follow Up (needs_call), move to Alt Channels via record-outcome
+      // In other tabs, just record the send without stage change via send-contact-form
+      if (isFollowUp) {
+        const res = await fetch("/api/admin/provider-outreach/record-outcome", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            provider_id: provider.provider_id,
+            outcome: "try_contact_form",
+            notes: `Contact form submitted: ${contactFormUrl}`,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to record submission");
+        setActionSuccess({ outcome: "try_contact_form" });
+        setConfirmAction(null);
+        onOutcomeRecorded?.(provider.provider_id, true);
+        setTimeout(() => onClose?.(), 1500);
+      } else {
+        // Non-Follow-Up: Use new endpoint that doesn't change stage
+        const res = await fetch("/api/admin/provider-outreach/send-contact-form", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            provider_id: provider.provider_id,
+            contact_form_url: contactFormUrl.trim(),
+            notes: `Contact form submitted: ${contactFormUrl}`,
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to record submission");
+        // Update local state with new send count
+        onContactFormSent?.(provider.provider_id, data.send_count);
+        setActionSuccess({ outcome: "contact_form_sent" });
+        setConfirmAction(null);
+        // Don't close drawer - provider stays in current tab
+        // Auto-clear success message after 3 seconds
+        setTimeout(() => setActionSuccess(null), 3000);
+      }
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : "Failed to record submission");
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  // Compact button styles
+  const primaryBtn = "px-3 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 transition disabled:opacity-50 disabled:cursor-not-allowed";
+  const outlineBtn = "px-3 py-1.5 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed";
+  const plainBtn = "px-3 py-1.5 text-sm font-medium text-gray-500 hover:text-gray-700 transition";
+
+  // Show success message
+  if (actionSuccess) {
+    // Build message based on outcome and email status
+    let message: string;
+    let isWarning = false;
+
+    if (actionSuccess.outcome === "resend_link") {
+      if (actionSuccess.emailSent) {
+        message = "Email resent, moved to Alt Channels";
+      } else {
+        message = `Moved to Alt Channels (email not sent: ${actionSuccess.emailError || "unknown error"})`;
+        isWarning = true;
+      }
+    } else {
+      const messages: Record<string, string> = {
+        claim_link: "Claim link sent",
+        try_fax: "Moved to Alt Channels (Fax)",
+        try_contact_form: "Moved to Alt Channels (Contact Form)",
+        try_direct_mail: "Moved to Alt Channels (Direct Mail)",
+        direct_mail: "Postcard sent",
+        contact_form_sent: "Contact form submitted",
+      };
+      message = messages[actionSuccess.outcome] || "Done";
+    }
+
+    return (
+      <div>
+        <SectionHeader>Actions</SectionHeader>
+        <div className={`flex items-center gap-2 text-sm ${isWarning ? "text-amber-600" : "text-emerald-600"}`}>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={isWarning ? "M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" : "M5 13l4 4L19 7"} />
+          </svg>
+          {message}
+        </div>
+      </div>
+    );
+  }
+
+  // Show Contact Form workflow (special case with multi-step UI)
+  if (confirmAction === "contact_form") {
+    // Check preconditions
+    const canGenerateClaimUrl = provider.email && provider.slug;
+    const hasMessage = claimUrl && !claimUrlLoading;
+
+    return (
+      <div>
+        <SectionHeader>Contact Form</SectionHeader>
+        <div className="space-y-3">
+          {/* 1. Contact form URL input (first - entry point) */}
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-gray-500">Contact form URL</label>
+              {findingContactForm && (
+                <span className="text-xs text-gray-400 flex items-center gap-1">
+                  <span className="w-3 h-3 border border-gray-300 border-t-gray-500 rounded-full animate-spin" />
+                  Finding...
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={contactFormUrl}
+                onChange={(e) => setContactFormUrl(e.target.value)}
+                placeholder="https://example.com/contact"
+                className="flex-1 px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+              />
+              {provider.website && (
+                <a
+                  href={provider.website.startsWith("http") ? provider.website : `https://${provider.website}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:underline whitespace-nowrap"
+                >
+                  Visit site
+                </a>
+              )}
+            </div>
+            {!provider.website && (
+              <p className="text-xs text-gray-400">No website on file</p>
+            )}
+          </div>
+
+          {/* 2. Message preview (below URL, clearly visible) */}
+          {claimUrlLoading ? (
+            <div className="p-2 bg-gray-50 rounded text-sm text-gray-500 text-center">
+              Generating message...
+            </div>
+          ) : !canGenerateClaimUrl ? (
+            <div className="p-2 bg-amber-50 rounded text-sm text-amber-700">
+              {!provider.email ? "Provider needs an email address" : "Provider needs a public page"} to generate claim link.
+            </div>
+          ) : hasMessage ? (
+            <div className="p-2 bg-gray-50 rounded text-xs text-gray-700 max-h-32 overflow-y-auto whitespace-pre-line">
+              {getContactFormMessage()}
+            </div>
+          ) : null}
+
+          {/* 3. Form field hints */}
+          {hasMessage && (
+            <div className="p-2 bg-amber-50 rounded text-xs text-amber-700">
+              <strong>Fill form as:</strong> Logan DuBose · support@olera.care · (979) 243-9801
+            </div>
+          )}
+
+          {/* 4. Action buttons */}
+          {!contactFormOpened ? (
+            <button
+              onClick={async () => {
+                if (!contactFormUrl.trim()) {
+                  setActionError("Please enter a contact form URL");
+                  return;
+                }
+                // Save URL to DB
+                try {
+                  await fetch("/api/admin/provider-outreach/save-contact-form-url", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ provider_id: provider.provider_id, url: contactFormUrl.trim() }),
+                  });
+                } catch { /* non-fatal */ }
+                // Copy message
+                const message = getContactFormMessage();
+                if (message) {
+                  try {
+                    await navigator.clipboard.writeText(message);
+                    setMessageCopied(true);
+                    setTimeout(() => setMessageCopied(false), 2000);
+                  } catch { /* non-fatal */ }
+                }
+                // Open form
+                const url = contactFormUrl.trim().startsWith("http") ? contactFormUrl.trim() : `https://${contactFormUrl.trim()}`;
+                window.open(url, "_blank");
+                setContactFormOpened(true);
+              }}
+              disabled={!hasMessage || !contactFormUrl.trim()}
+              className={`${primaryBtn} w-full`}
+            >
+              {messageCopied ? "Copied! Opening..." : "Copy & Open Form"}
+            </button>
+          ) : (
+            <button
+              onClick={handleConfirmContactFormSubmission}
+              disabled={actionLoading}
+              className={`${primaryBtn} w-full bg-green-600 hover:bg-green-700`}
+            >
+              {actionLoading ? "Confirming..." : "Confirm Form Submitted"}
+            </button>
+          )}
+
+          {actionError && <p className="text-sm text-red-600">{actionError}</p>}
+
+          <button onClick={cancelConfirm} className={`${plainBtn} w-full text-center`}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show Fax workflow (find fax number, send fax)
+  if (confirmAction === "fax") {
+    return (
+      <div>
+        <SectionHeader>Send Fax</SectionHeader>
+        <div className="space-y-3">
+          {/* Fax number input */}
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <label className="text-xs text-gray-500">Fax number</label>
+              {findingFax && (
+                <span className="text-xs text-gray-400 flex items-center gap-1">
+                  <span className="w-3 h-3 border border-gray-300 border-t-gray-500 rounded-full animate-spin" />
+                  Finding...
+                </span>
+              )}
+              {faxConfidence && !findingFax && (
+                <span className={`text-xs ${faxConfidence === "high" ? "text-green-600" : "text-amber-600"}`}>
+                  {faxConfidence === "high" ? "Found" : "Possible match"}
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={faxNumber}
+                onChange={(e) => {
+                  setFaxNumber(e.target.value);
+                  setFaxConfidence(null); // Clear confidence when manually editing
+                }}
+                placeholder="(555) 123-4567"
+                className="flex-1 px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+              />
+              {provider.website && !findingFax && (
+                <button
+                  type="button"
+                  onClick={async () => {
+                    setFindingFax(true);
+                    setActionError(null);
+                    try {
+                      const res = await fetch("/api/admin/provider-outreach/find-fax", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ provider_id: provider.provider_id }),
+                      });
+                      const data = await res.json();
+                      if (data.fax) {
+                        setFaxNumber(data.fax);
+                        setFaxConfidence(data.confidence);
+                      } else {
+                        setActionError(data.error_detail || "No fax number found");
+                      }
+                    } catch {
+                      setActionError("Failed to search for fax");
+                    } finally {
+                      setFindingFax(false);
+                    }
+                  }}
+                  className="text-xs text-blue-600 hover:underline whitespace-nowrap"
+                >
+                  Find Fax
+                </button>
+              )}
+            </div>
+            {!provider.website && (
+              <p className="text-xs text-gray-400">No website on file - enter fax manually</p>
+            )}
+          </div>
+
+          {/* Fax sent success message */}
+          {faxSent && (
+            <div className="p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700 flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Fax sent! Provider moved to Alternative Channels.
+            </div>
+          )}
+
+          {/* Send Fax button */}
+          {!faxSent && (
+            <button
+              onClick={async () => {
+                if (!faxNumber.trim()) {
+                  setActionError("Please enter a fax number");
+                  return;
+                }
+                setSendingFax(true);
+                setActionError(null);
+                try {
+                  // First save the fax number if entered manually
+                  if (!faxConfidence) {
+                    await fetch("/api/admin/provider-outreach/find-fax", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ provider_id: provider.provider_id, manual_fax: faxNumber.trim() }),
+                    });
+                  }
+                  // Send the fax
+                  const res = await fetch("/api/admin/provider-outreach/send-fax", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ provider_id: provider.provider_id, fax_number: faxNumber.trim() }),
+                  });
+                  const data = await res.json();
+                  if (res.ok && data.success) {
+                    // Record the outcome to move to re_engage
+                    const outcomeRes = await fetch("/api/admin/provider-outreach/record-outcome", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ provider_id: provider.provider_id, outcome: "try_fax" }),
+                    });
+                    if (!outcomeRes.ok) {
+                      // Fax sent but tracking update failed
+                      setActionError("Fax sent, but failed to update stage. Refresh and check provider status.");
+                      onOutcomeRecorded?.(provider.provider_id, false);
+                      return;
+                    }
+                    setFaxSent(true);
+                    onOutcomeRecorded?.(provider.provider_id, true);
+                    setTimeout(() => onClose?.(), 1500);
+                  } else {
+                    if (data.missing_config) {
+                      setActionError("Fax service not configured. Contact admin.");
+                    } else {
+                      setActionError(data.error || "Failed to send fax");
+                    }
+                  }
+                } catch {
+                  setActionError("Network error");
+                } finally {
+                  setSendingFax(false);
+                }
+              }}
+              disabled={sendingFax || !faxNumber.trim()}
+              className={`${primaryBtn} w-full`}
+            >
+              {sendingFax ? "Sending..." : "Send Fax"}
+            </button>
+          )}
+
+          {actionError && <p className="text-sm text-red-600">{actionError}</p>}
+
+          <button onClick={cancelConfirm} className={`${plainBtn} w-full text-center`}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show Direct Mail workflow (enter address, send postcard)
+  if (confirmAction === "direct_mail") {
+    return (
+      <div>
+        <SectionHeader>Send Postcard</SectionHeader>
+        <div className="space-y-3">
+          {/* Address input */}
+          <div className="space-y-1">
+            <label className="text-xs text-gray-500">Mailing address</label>
+            <textarea
+              value={mailAddress}
+              onChange={(e) => setMailAddress(e.target.value)}
+              placeholder="123 Main St, City, ST 12345"
+              rows={3}
+              className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+            />
+            {!mailAddress && !provider.mail_address && !provider.address && (
+              <p className="text-xs text-gray-400">No address on file - enter address manually</p>
+            )}
+            {provider.mail_address && (
+              <p className="text-xs text-gray-400">Using saved mailing address</p>
+            )}
+            {!provider.mail_address && provider.address && (
+              <p className="text-xs text-gray-400">Pre-filled from provider data</p>
+            )}
+          </div>
+
+          {/* Mail sent success message */}
+          {mailSent && (
+            <div className="p-2 bg-green-50 border border-green-200 rounded text-sm text-green-700 flex items-center gap-2">
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Postcard sent! Provider moved to Alternative Channels.
+            </div>
+          )}
+
+          {/* Send Postcard button */}
+          {!mailSent && (
+            <button
+              onClick={async () => {
+                if (!mailAddress.trim()) {
+                  setActionError("Please enter a mailing address");
+                  return;
+                }
+                setSendingMail(true);
+                setActionError(null);
+                try {
+                  // Send the postcard
+                  const res = await fetch("/api/admin/provider-outreach/send-mailer", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      provider_id: provider.provider_id,
+                      provider_name: provider.provider_name,
+                      address: mailAddress.trim(),
+                    }),
+                  });
+                  const data = await res.json();
+                  if (res.ok && data.success) {
+                    // Record the outcome to move to re_engage
+                    const outcomeRes = await fetch("/api/admin/provider-outreach/record-outcome", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ provider_id: provider.provider_id, outcome: "try_direct_mail" }),
+                    });
+                    if (!outcomeRes.ok) {
+                      setActionError("Postcard sent, but failed to update stage. Refresh and check provider status.");
+                      onOutcomeRecorded?.(provider.provider_id, false);
+                      return;
+                    }
+                    setMailSent(true);
+                    onOutcomeRecorded?.(provider.provider_id, true);
+                    setTimeout(() => onClose?.(), 1500);
+                  } else {
+                    if (data.missing_config) {
+                      setActionError("PostGrid not configured. Contact admin.");
+                    } else {
+                      setActionError(data.error || "Failed to send postcard");
+                    }
+                  }
+                } catch {
+                  setActionError("Network error");
+                } finally {
+                  setSendingMail(false);
+                }
+              }}
+              disabled={sendingMail || !mailAddress.trim()}
+              className={`${primaryBtn} w-full`}
+            >
+              {sendingMail ? "Sending..." : "Send Postcard"}
+            </button>
+          )}
+
+          {actionError && <p className="text-sm text-red-600">{actionError}</p>}
+
+          <button onClick={cancelConfirm} className={`${plainBtn} w-full text-center`}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Show compose email modal
+  if (showComposeModal) {
+    return (
+      <div>
+        <SectionHeader>Compose Email</SectionHeader>
+        <div className="p-3 bg-gray-50 border border-gray-200 rounded-md space-y-3">
+          {/* Toggle between Edit and Preview */}
+          <div className="flex items-center gap-2 border-b border-gray-200 pb-2">
+            <button
+              onClick={() => setShowPreview(false)}
+              className={`px-3 py-1 text-sm font-medium rounded-md transition ${
+                !showPreview
+                  ? "bg-primary-100 text-primary-700"
+                  : "text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Edit
+            </button>
+            <button
+              onClick={() => {
+                if (!previewHtml) {
+                  loadEmailPreview();
+                } else {
+                  setShowPreview(true);
+                }
+              }}
+              disabled={previewLoading || !composeSubject.trim() || !composeBody.trim()}
+              className={`px-3 py-1 text-sm font-medium rounded-md transition ${
+                showPreview || previewLoading
+                  ? "bg-primary-100 text-primary-700"
+                  : "text-gray-500 hover:text-gray-700 disabled:opacity-50"
+              }`}
+            >
+              {previewLoading ? "Loading..." : "Preview"}
+            </button>
+            {showPreview && (
+              <button
+                onClick={() => {
+                  setPreviewHtml("");
+                  loadEmailPreview();
+                }}
+                disabled={previewLoading}
+                className="ml-auto text-xs text-gray-400 hover:text-gray-600"
+              >
+                Refresh preview
+              </button>
+            )}
+          </div>
+
+          {/* Preview pane */}
+          {showPreview && previewHtml && (
+            <div className="border border-gray-200 rounded-md bg-white overflow-hidden">
+              <iframe
+                srcDoc={previewHtml}
+                title="Email Preview"
+                className="w-full h-[400px] border-0"
+                sandbox="allow-same-origin"
+              />
+            </div>
+          )}
+
+          {/* Edit pane */}
+          {!showPreview && (
+            <>
+              {/* To field (read-only) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">To</label>
+                <div className="text-sm text-gray-700 bg-gray-100 px-2 py-1.5 rounded border border-gray-200">
+                  {composeToEmail}
+                </div>
+              </div>
+
+              {/* Subject field (editable) */}
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">Subject</label>
+                <input
+                  type="text"
+                  value={composeSubject}
+                  onChange={(e) => {
+                    setComposeSubject(e.target.value);
+                    setPreviewHtml(""); // Clear preview when editing
+                  }}
+                  className="w-full px-2 py-1.5 text-sm border border-gray-300 rounded focus:ring-1 focus:ring-primary-500 focus:border-primary-500"
+                  placeholder="Email subject..."
+                />
+              </div>
+
+              {/* Message field - unified container with locked CTA in middle */}
+              <div>
+                <label className="block text-xs font-medium text-gray-500 mb-1">
+                  Message
+                  <span className="ml-1 font-normal text-gray-400">(supports markdown links)</span>
+                </label>
+                <div className="border border-gray-300 rounded overflow-hidden focus-within:ring-1 focus-within:ring-primary-500 focus-within:border-primary-500">
+                  {/* Top: editable text before CTA */}
+                  <textarea
+                    value={composeBody}
+                    onChange={(e) => {
+                      setComposeBody(e.target.value);
+                      setPreviewHtml("");
+                    }}
+                    rows={5}
+                    className="w-full px-2 py-1.5 text-sm border-0 focus:ring-0 resize-none"
+                    placeholder="Email body..."
+                  />
+                  {/* Middle: locked CTA - not editable */}
+                  <div className="px-2 py-1.5 bg-gray-50 text-sm text-gray-500 select-none border-y border-gray-200">
+                    {CTA_DISPLAY_TEXT}
+                  </div>
+                  {/* Bottom: editable text after CTA */}
+                  <textarea
+                    value={composeClosing}
+                    onChange={(e) => {
+                      setComposeClosing(e.target.value);
+                      setPreviewHtml("");
+                    }}
+                    rows={3}
+                    className="w-full px-2 py-1.5 text-sm border-0 focus:ring-0 resize-none"
+                    placeholder="Optional closing text..."
+                  />
+                </div>
+                <p className="mt-1 text-xs text-gray-400">
+                  Footer with signature added automatically
+                </p>
+              </div>
+            </>
+          )}
+
+          {actionError && <p className="text-sm text-red-600">{actionError}</p>}
+
+          {/* Checkbox for resend mode (requires call confirmation) */}
+          {composeMode === "resend" && (
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={composeConfirmedCall}
+                onChange={(e) => setComposeConfirmedCall(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span className="text-sm text-gray-600">I called and confirmed this action</span>
+            </label>
+          )}
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              onClick={() => {
+                const fullBody = assembleEmailBody(composeBody, composeClosing);
+                if (composeMode === "resend") {
+                  handleResendLink(composeSubject, fullBody);
+                } else {
+                  handleSendClaimLink(composeSubject, fullBody);
+                }
+              }}
+              disabled={
+                actionLoading ||
+                !composeSubject.trim() ||
+                !composeBody.trim() ||
+                (composeMode === "resend" && !composeConfirmedCall)
+              }
+              className={primaryBtn}
+            >
+              {actionLoading
+                ? "Sending..."
+                : composeMode === "resend"
+                ? "Resend & Move to Alt Channels"
+                : "Send Email"}
+            </button>
+            <button
+              onClick={() => {
+                setShowComposeModal(false);
+                setActionError(null);
+                setComposeConfirmedCall(false);
+                setComposeClosing("");
+                setShowPreview(false);
+                setPreviewHtml("");
+              }}
+              className={plainBtn}
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show confirmation dialog
+  if (confirmAction) {
+    const configs: Record<string, { title: string; requiresCall?: boolean; confirmText: string }> = {
+      launch: { title: "Launch email sequence for this provider?", confirmText: "Launch" },
+      claim_link: { title: "Send claim link email?", confirmText: "Send" },
+      send_claim_link: { title: "Send claim link email?", requiresCall: true, confirmText: "Send" },
+      // resend_link now uses compose modal instead of confirmation dialog
+      try_fax: { title: "Move to Alternative Channels (Fax)?", requiresCall: true, confirmText: "Move to Fax" },
+      try_direct_mail: { title: "Move to Alternative Channels (Direct Mail)?", requiresCall: true, confirmText: "Move to Direct Mail" },
+      remove: { title: `Remove ${provider.provider_name} from outreach?`, confirmText: "Remove" },
+    };
+    const config = configs[confirmAction];
+    if (!config) return null;
+
+    return (
+      <div>
+        <SectionHeader>Actions</SectionHeader>
+        <div className="p-3 bg-gray-50 border border-gray-200 rounded-md space-y-3">
+          <p className="text-sm text-gray-700">{config.title}</p>
+          {config.requiresCall && (
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={confirmedCall}
+                onChange={(e) => setConfirmedCall(e.target.checked)}
+                className="mt-0.5 w-4 h-4 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
+              />
+              <span className="text-sm text-gray-600">I called and confirmed this action</span>
+            </label>
+          )}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                if (confirmAction === "launch") {
+                  onLaunchSequence?.(provider.provider_id);
+                  onClose?.();
+                } else if (confirmAction === "claim_link" || confirmAction === "send_claim_link") {
+                  handleSendClaimLink();
+                } else if (confirmAction === "remove") {
+                  onRemove?.(provider.provider_id, provider.provider_name);
+                  onClose?.();
+                } else {
+                  handleRecordOutcome(confirmAction);
+                }
+              }}
+              disabled={actionLoading || (config.requiresCall && !confirmedCall)}
+              className={confirmAction === "remove" ? `${outlineBtn} text-red-600 border-red-300 hover:bg-red-50` : primaryBtn}
+            >
+              {actionLoading ? "..." : config.confirmText}
+            </button>
+            <button onClick={cancelConfirm} className={plainBtn}>Cancel</button>
+            {actionError && <span className="text-xs text-red-500">{actionError}</span>}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <SectionHeader>Actions</SectionHeader>
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Launch Sequence - primary, only for not_contacted with email */}
+        {canLaunch && onLaunchSequence && (
+          <button onClick={() => setConfirmAction("launch")} className={primaryBtn}>
+            Launch Sequence
+          </button>
+        )}
+
+        {/* Send Claim Link - for non-follow-up active stages (excluding call_exhausted which has its own) */}
+        {!isTerminal && !isFollowUp && !isCallExhausted && provider.email && (
+          <button onClick={loadComposeTemplate} disabled={composeLoading} className={canLaunch ? outlineBtn : primaryBtn}>
+            {composeLoading ? "Loading..." : "Send Claim Link"}
+          </button>
+        )}
+
+        {/* Contact Form - for non-follow-up, non-terminal stages (excluding call_exhausted which has its own order) */}
+        {!isTerminal && !isFollowUp && !isCallExhausted && (
+          <button onClick={() => setConfirmAction("contact_form")} className={outlineBtn}>
+            Contact Form
+          </button>
+        )}
+
+        {/* Follow Up specific actions - move to alternative channels */}
+        {isFollowUp && (
+          <>
+            {provider.email && (
+              <button onClick={loadComposeTemplateForResend} disabled={composeLoading} className={outlineBtn}>
+                {composeLoading ? "Loading..." : "Resend Link"}
+              </button>
+            )}
+            <button onClick={() => setConfirmAction("fax")} className={outlineBtn}>
+              Fax
+            </button>
+            <button onClick={() => setConfirmAction("contact_form")} className={outlineBtn}>
+              Contact Form
+            </button>
+            <button onClick={() => setConfirmAction("direct_mail")} className={outlineBtn}>
+              Direct Mail
+            </button>
+          </>
+        )}
+
+        {/* Call Exhausted: Send Claim Link (no stage change) */}
+        {isCallExhausted && provider.email && (
+          <button onClick={loadComposeTemplate} disabled={composeLoading} className={primaryBtn}>
+            {composeLoading ? "Loading..." : "Send Claim Link"}
+          </button>
+        )}
+
+        {/* Move to Broadcast - only for call_exhausted stage */}
+        {provider.stage === "call_exhausted" && onMoveToBroadcast && (
+          <button onClick={() => { onMoveToBroadcast(provider.provider_id); onClose?.(); }} className={outlineBtn}>
+            Move to Broadcast
+          </button>
+        )}
+
+        {/* Start Sequence - for needs_call, re_engage, or not_interested (not call_exhausted) */}
+        {["needs_call", "re_engage", "not_interested"].includes(provider.stage) && provider.email && onLaunchSequence && (
+          <button onClick={() => { onLaunchSequence(provider.provider_id); onClose?.(); }} className={outlineBtn}>
+            Start Sequence
+          </button>
+        )}
+
+        {/* Mark Not Interested - opens ActionModal which has its own confirmation */}
+        {!isTerminal && provider.stage !== "not_interested" && onMarkNotInterested && (
+          <button onClick={() => { onMarkNotInterested(provider.provider_id); onClose?.(); }} className={outlineBtn}>
+            Not Interested
+          </button>
+        )}
+
+        {/* Archive - opens ActionModal which has its own confirmation */}
+        {provider.stage !== "archived" && onArchive && (
+          <button onClick={() => { onArchive(provider.provider_id); onClose?.(); }} className={outlineBtn}>
+            Archive
+          </button>
+        )}
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Remove */}
+        {activeTab !== "hidden" && onRemove && (
+          <button onClick={() => setConfirmAction("remove")} className={`${plainBtn} text-red-500 hover:text-red-600`}>
+            Remove
+          </button>
+        )}
+      </div>
+      {/* Error display for failed template load or other errors */}
+      {actionError && (
+        <p className="mt-2 text-sm text-red-600">{actionError}</p>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main ProviderDrawer Component
+// ─────────────────────────────────────────────────────────────────────────────
+
+export function ProviderDrawer({
+  provider,
+  onClose,
+  onEmailUpdate,
+  onPhoneUpdate,
+  onFaxUpdate,
+  onLaunchSequence,
+  onMarkNotInterested,
+  onArchive,
+  onRemove,
+  onResetToReadyWithApollo,
+  onContactFound,
+  onOutcomeRecorded,
+  onClaimLinkSent,
+  onContactFormSent,
+  onMoveToBroadcast,
+  onCallLogged,
+  onEmailLockToggle,
+  onPrevious,
+  onNext,
+  hasPrevious = false,
+  hasNext = false,
+  activeTab,
+}: ProviderDrawerProps) {
+  // Determine if we should show Follow Up section
+  const showFollowUpSection = provider.stage === "needs_call" || activeTab === "follow_up";
+  // Determine if we should show Alternative Channels section
+  const showReEngageSection = provider.stage === "re_engage" || activeTab === "re_engage";
+  // Determine if we should show Call Exhausted section
+  const showCallExhaustedSection = provider.stage === "call_exhausted" || activeTab === "call_exhausted";
+  // Header content with link to provider admin page
+  const header = (
+    <div>
+      <div className="flex items-center gap-2">
+        <h2 className="text-lg font-semibold text-gray-900">{provider.provider_name}</h2>
+        {provider.slug && (
+          <Link
+            href={`/admin/directory/${provider.slug}`}
+            className="text-gray-400 hover:text-primary-600 transition-colors"
+            title="Open provider page"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25" />
+            </svg>
+          </Link>
+        )}
+      </div>
+      <p className="text-sm text-gray-500">
+        {[provider.provider_category, [provider.city, provider.state].filter(Boolean).join(", ")]
+          .filter(Boolean)
+          .join(" · ")}
+      </p>
+    </div>
+  );
+
+  // Actions footer for sticky bottom
+  const actionsFooter = (
+    <ActionsSection
+      provider={provider}
+      onLaunchSequence={onLaunchSequence}
+      onMarkNotInterested={onMarkNotInterested}
+      onArchive={onArchive}
+      onRemove={onRemove}
+      onOutcomeRecorded={onOutcomeRecorded}
+      onClaimLinkSent={onClaimLinkSent}
+      onContactFormSent={onContactFormSent}
+      onMoveToBroadcast={onMoveToBroadcast}
+      onClose={onClose}
+      activeTab={activeTab}
+    />
+  );
+
+  // Show call script for tabs where calling is the primary action
+  const showCallScript =
+    activeTab === "call_confirm" ||
+    activeTab === "needs_call" ||
+    activeTab === "call_exhausted";
+
+  // Navigation buttons for prev/next provider
+  const navigationExtras = (onPrevious || onNext) ? (
+    <div className="flex items-center gap-1">
+      <button
+        onClick={onPrevious}
+        disabled={!hasPrevious}
+        className={`p-1.5 rounded-md transition-colors ${
+          hasPrevious
+            ? "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            : "text-gray-300 cursor-not-allowed"
+        }`}
+        title="Previous provider"
+        aria-label="Previous provider"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+        </svg>
+      </button>
+      <button
+        onClick={onNext}
+        disabled={!hasNext}
+        className={`p-1.5 rounded-md transition-colors ${
+          hasNext
+            ? "text-gray-500 hover:bg-gray-100 hover:text-gray-700"
+            : "text-gray-300 cursor-not-allowed"
+        }`}
+        title="Next provider"
+        aria-label="Next provider"
+      >
+        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+        </svg>
+      </button>
+    </div>
+  ) : undefined;
+
+  return (
+    <DrawerShell onClose={onClose} header={header} headerExtras={navigationExtras} footer={actionsFooter}>
+      <div className="py-2">
+        {/* Call Script - show for Call & Confirm, Follow Up, and Call tabs */}
+        {showCallScript && <CallScriptSection provider={provider} activeTab={activeTab} />}
+
+        {/* Contact Section */}
+        <ContactSection
+          provider={provider}
+          onEmailUpdate={(email) => onEmailUpdate?.(provider.provider_id, email)}
+          onPhoneUpdate={(phone) => onPhoneUpdate?.(provider.provider_id, phone)}
+          onFaxUpdate={(fax) => onFaxUpdate?.(provider.provider_id, fax)}
+          onEmailLockToggle={(lockedBy) => onEmailLockToggle?.(provider.provider_id, lockedBy)}
+        />
+
+        <SectionDivider />
+
+        {/* Decision Maker Section - grouped with contacts for discovery workflow */}
+        <DecisionMakerSection
+          provider={provider}
+          onUseEmail={(email) => onEmailUpdate?.(provider.provider_id, email, "decision_maker")}
+          onContactFound={(contact) => onContactFound?.(provider.provider_id, contact)}
+          onResetToReadyWithApollo={
+            onResetToReadyWithApollo
+              ? () => onResetToReadyWithApollo(provider.provider_id)
+              : undefined
+          }
+        />
+
+        <SectionDivider />
+
+        {/* Saved Contacts Section */}
+        <SavedContactsSection
+          provider={provider}
+          onUseEmail={(email) => onEmailUpdate?.(provider.provider_id, email)}
+        />
+
+        <SectionDivider />
+
+        {/* Call Log Section */}
+        <CallLogSection provider={provider} onCallLogged={onCallLogged} />
+
+        <SectionDivider />
+
+        {/* Follow Up Section - only for needs_call stage */}
+        {showFollowUpSection && (
+          <>
+            <FollowUpSection provider={provider} />
+            <SectionDivider />
+          </>
+        )}
+
+        {/* Alternative Channels Section - only for re_engage stage */}
+        {showReEngageSection && (
+          <>
+            <ReEngageSection provider={provider} />
+            <SectionDivider />
+          </>
+        )}
+
+        {/* Call Exhausted Section - only for call_exhausted stage */}
+        {showCallExhaustedSection && (
+          <>
+            <CallExhaustedSection provider={provider} />
+            <SectionDivider />
+          </>
+        )}
+
+        {/* Notes Section (shows all notes including Call Log notes) */}
+        <NotesSection provider={provider} />
+
+        {/* Activity Section */}
+        <ActivitySection provider={provider} />
+
+        <SectionDivider />
+
+        {/* Email History Section */}
+        <EmailSendsSection provider={provider} />
+      </div>
+    </DrawerShell>
+  );
+}

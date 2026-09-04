@@ -277,24 +277,31 @@ function finalEmail(): EmailDraft {
  * Standalone: Nudge email
  *
  * NOT part of the cadence. Used by:
- *   - "Send Claim Link" action from Ready tab / Not Interested stage
- *   - Future re-engagement triggers
+ *   - "Send Claim Link" action in Provider Outreach
+ *   - "Send Claim Link" action in Directory admin
+ *   - Any manual claim link send
  *
- * Short and direct - just delivers the link.
+ * Works WITHOUT any editing - neutral template that fits any context.
+ * Admin can optionally customize (add "Great speaking with you", etc.)
+ * System auto-fills: provider name, city, greeting name, claim URL.
  *
- * Style: Minimal, transactional.
+ * Style: Neutral, works for post-call, voicemail follow-up, or cold send.
  */
 function nudgeEmail(): EmailDraft {
   return {
-    subject: `The link for ${PLACEHOLDER.providerName}'s page`,
+    subject: `${PLACEHOLDER.providerName}'s page on Olera`,
     body: [
       `Hi ${PLACEHOLDER.greetingName},`,
       ``,
-      `Here's the link to take over ${PLACEHOLDER.providerName}'s page on Olera:`,
+      `Here's the link to activate ${PLACEHOLDER.providerName}'s page on Olera:`,
+      ``,
+      `Right now the page only shows the basics from public records. Activating it lets you add your photos, services, and contact details, so families searching in ${PLACEHOLDER.city} see your story instead of ours. Two minutes, free, no contracts, no referral or per-lead fees.`,
       ``,
       `[Activate your page →](${PLACEHOLDER.claimUrl})`,
       ``,
-      `Two minutes, free: no contracts, no referral or per-lead fees. If anything gets in the way, just reply or call +1 (979) 243-9801.`,
+      `If this belongs with your administrator, just forward this email. The attached one-pager covers who we are, in short: founded by a physician, backed by the National Institute on Aging, and free for the families who use it.`,
+      ``,
+      `Questions? Just reply or call +1 (979) 243-9801.`,
     ].join("\n"),
   };
 }

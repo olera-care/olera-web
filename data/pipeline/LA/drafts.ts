@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/LA/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T09:02:41.388Z
+ * Last updated: 2026-09-03T11:25:55.876Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -115,7 +115,7 @@ export const drafts: PipelineStateDrafts = {
         "U.S. citizenship or immigration status documentation",
         "Social Security award letters or statements",
         "Pension or retirement income documentation",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property deeds and current tax assessments",
         "Vehicle titles and registration",
         "Life insurance policies with cash values",
@@ -146,6 +146,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Louisiana is an income cap state, if your loved one's monthly income exceeds $2,982, they cannot simply spend down to qualify, though a Medically Needy program exists for high medical expenses",
         "The 5-year look-back period means any gifts or below-market asset sales within 5 years will trigger penalty periods that delay coverage",
         "For Long-Term Personal Care Services, your loved one must be able to direct their own care or have a representative, this is a significant functional requirement beyond just needing assistance",
@@ -313,7 +314,7 @@ export const drafts: PipelineStateDrafts = {
         "Medical records documenting need for daily care assistance",
         "Social Security cards for your loved one and spouse",
         "Medicare card if they have one (Medicare is not required for this program)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Pension or retirement income statements",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (home deed, tax statements)",
@@ -346,6 +347,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Priority 1 cases (APS/EPS referrals at risk of institutionalization) may get immediate placement while others wait years",
         "If your loved one has ALS, they qualify for Priority 2 status, mention this when calling to request registry placement",
         "The 60-month look-back rule applies to all asset transfers, penalties can delay eligibility if your loved one gifted money or sold assets below market value",
@@ -522,7 +524,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card",
         "Medicaid card (if applicable)",
         "Social Security award letters for all income sources",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Insurance cards for all current coverage",
         "Complete list of current medications with dosages",
         "Medical records from primary care doctor and specialists",
@@ -559,6 +561,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must live within specific zip codes in the four service areas, PACE is not available statewide regardless of eligibility",
         "The program requires you to switch from all current medical providers to the PACE team, you cannot keep your existing doctors",
         "If you have Medicare Advantage (Part C) or prescription drug plans, you must disenroll before joining PACE",
@@ -617,7 +620,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(225) 490-0604",
       "sourceUrl": "https://ldh.la.gov/office-of-aging-and-adult-services/pace",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "medicare-savings-programs",
@@ -849,7 +853,7 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Louisiana Department of Children and Family Services (DCFS) - parish offices",
+            "name": "Louisiana Department of Health, Office of Economic Stability - parish offices",
             "type": "service-area"
           },
           {
@@ -858,45 +862,59 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits that load onto an EBT card like a debit card for food purchases. A typical 2-person elderly household with $1,200 monthly income receives $415 in monthly SNAP benefits. Because Louisiana has expanded eligibility beyond federal rules, many Louisiana seniors qualify even if they were denied elsewhere or think their income is too high.\n\nHouseholds with someone 60+ get significantly easier qualification rules: they only need to meet the net income test (100% of Federal Poverty Level) rather than the stricter gross income limits that apply to younger households. There are no asset limits in Louisiana for elderly households, your loved one can own their home, car, and have savings while still qualifying. About half of eligible seniors don't receive SNAP despite qualifying, often because they don't realize the rules are more generous for older adults.",
-      "savingsRange": "$1,200 – $4,980/year in 2026",
-      "savingsSource": "Based on typical elderly household benefit amounts from Louisiana DCFS",
-      "savingsVerified": true,
+      "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits that load onto an EBT card like a debit card for food purchases. A typical 2-person elderly household with $1,200 monthly income receives $415 in monthly SNAP benefits. Because Louisiana has expanded eligibility beyond federal rules, many Louisiana seniors qualify even if they were denied elsewhere or think their income is too high.\n\nHouseholds with someone 60+ get significantly easier qualification rules: they only need to meet the net income test (100% of Federal Poverty Level) rather than the stricter gross income limits that apply to younger households. Louisiana applies a resource limit of $4,500 for a household with someone 60 or older or disabled, and $3,000 otherwise. The home and car your loved one uses do not count. About half of eligible seniors don't receive SNAP despite qualifying, often because they don't realize the rules are more generous for older adults.",
+      "savingsRange": "$24 - $298/month for one person (FY2026 limits)",
+      "savingsSource": "FY2026 federal SNAP limits for the 48 contiguous states: maximum $298/month for one person and $546 for two; minimum $24/month for eligible one- and two-person households. Actual benefit depends on household size and the benefit calculation.",
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 60+ household",
-          "Net income below $1,630/month (1 person)",
+          "Net income below $1,305/month (1 person)",
           "Louisiana resident",
-          "No asset limits"
+          "Countable resources up to $4,500 for a household with a member 60+ or disabled ($3,000 otherwise); SSI, FITAP, KCSP and STEP recipients are exempt"
         ],
         "ageRequirement": "60+",
         "incomeTable": [
           {
             "householdSize": 1,
-            "monthlyLimit": 1630
+            "monthlyLimit": 1305
           },
           {
             "householdSize": 2,
-            "monthlyLimit": 2205
+            "monthlyLimit": 1763
           },
           {
             "householdSize": 3,
-            "monthlyLimit": 2781
+            "monthlyLimit": 2221
           },
           {
             "householdSize": 4,
-            "monthlyLimit": 3356
+            "monthlyLimit": 2680
           },
           {
             "householdSize": 5,
-            "monthlyLimit": 3931
+            "monthlyLimit": 3138
           },
           {
             "householdSize": 6,
-            "monthlyLimit": 4506
+            "monthlyLimit": 3596
           }
         ],
-        "assetLimits": null,
+        "assetLimits": {
+          "individual": 4500,
+          "couple": 4500,
+          "countedAssets": [
+            "Cash",
+            "Bank accounts",
+            "Stocks and bonds"
+          ],
+          "exemptAssets": [
+            "Primary home",
+            "One vehicle (typically)",
+            "Burial funds"
+          ],
+          "homeEquityCap": null
+        },
         "functionalRequirement": null,
         "otherRequirements": [
           "Louisiana resident",
@@ -912,12 +930,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Contact your parish Council on Aging",
-            "description": "They provide free application assistance and know local DCFS office procedures. Each parish has different processing speeds."
+            "description": "They provide free application assistance and know local parish office procedures. Each parish has different processing speeds."
           },
           {
             "step": 2,
             "title": "Complete SNAP application",
-            "description": "Apply online at dcfs.louisiana.gov/page/524 or request paper application from your parish DCFS office."
+            "description": "Apply online through the CAFE Customer Portal at sspweb.ie.dcfs.la.gov/selfservice/, by phone on 888-524-3578, or request a paper application from your parish LDH Economic Stability office."
           },
           {
             "step": 3,
@@ -940,8 +958,8 @@ export const drafts: PipelineStateDrafts = {
         "tip": "Seniors often qualify for ESAP (Elderly Simplified Application Project) which extends certification to 36 months instead of annual renewal if you have no earned income.",
         "urls": [
           {
-            "label": "Louisiana DCFS SNAP Application",
-            "url": "https://dcfs.louisiana.gov/page/524"
+            "label": "Louisiana SNAP application (CAFE Customer Portal)",
+            "url": "https://sspweb.ie.dcfs.la.gov/selfservice/"
           }
         ]
       },
@@ -951,7 +969,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of citizenship or lawful presence status",
         "Social Security award letter or benefits statement",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings accounts. Every state asks about this. Your savings will not count against you in this state, but you still need the numbers.",
         "Investment account statements if applicable",
         "Life insurance policy documents",
         "Property tax statements if you own real estate",
@@ -962,20 +980,20 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Louisiana DCFS Customer Service (start here)",
+          "label": "Louisiana Department of Health SNAP customer service (LAHelpU) (start here)",
           "phone": "(888) 524-3578",
-          "description": "SNAP application status and general questions",
-          "hours": "Mon-Fri 8am-4:30pm CT"
+          "hours": "Mon-Fri 7:30am-6pm CT",
+          "description": "You can apply by phone on this line. Select your language, then press 3-2-1-3-6 one prompt at a time to reach a SNAP representative."
         },
         {
           "label": "Louisiana 2-1-1",
           "phone": "2-1-1",
-          "description": "Free helpline to find your parish Council on Aging and DCFS office",
-          "hours": "24 hours, 7 days a week"
+          "hours": "24 hours a day in southeast Louisiana; hours vary by region elsewhere",
+          "description": "Text your zip code to 898211 for a 24/7 statewide text option."
         }
       ],
       "applicationNotes": [
-        "Louisiana has no asset limits for elderly households, unlike federal SNAP rules shown on other websites that may list $4,500 limits",
+        "A household with a member 60 or older or disabled may hold up to $4,500 in countable resources, and $3,000 otherwise. Households where everyone receives SSI, FITAP, KCSP or STEP are exempt from the resource test",
         "Seniors must reapply annually unless they qualify for ESAP (36-month certification for households with no earned income)",
         "If your loved one receives Social Security, veterans benefits, or disability payments, these count toward income but don't automatically disqualify them",
         "Elderly households only need to meet net income test (100% FPL), they can exceed gross income limits that apply to younger applicants"
@@ -990,11 +1008,11 @@ export const drafts: PipelineStateDrafts = {
       "faqs": [
         {
           "question": "Can my loved one keep their house and savings account while getting SNAP?",
-          "answer": "Yes. Louisiana has no asset limits for households with someone 60+. Your loved one can own their home, car, and have money in savings accounts while still qualifying. Only income matters for elderly households."
+          "answer": "Louisiana does apply a resource limit. A household that includes someone 60 or older, or someone disabled, may hold up to $4,500 in countable resources; other households are limited to $3,000. The home your loved one lives in does not count. Households where every member receives SSI or state cash assistance are exempt from the test entirely."
         },
         {
           "question": "What if my loved one's Social Security puts them over the income limit?",
-          "answer": "Elderly households (60+) only need to meet the net income test, which subtracts allowable deductions like medical expenses and shelter costs. A single person can have gross income above $2,608/month and still qualify if their net income after deductions is below $1,630/month."
+          "answer": "Elderly households (60+) only need to meet the net income test, which subtracts allowable deductions like medical expenses and shelter costs. A single person can have gross income above the standard limit and still qualify if their net income after deductions is below $1,305/month."
         },
         {
           "question": "Can I apply for SNAP on behalf of my elderly loved one?",
@@ -1010,7 +1028,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens if my loved one's income changes after approval?",
-          "answer": "Report income changes to your parish DCFS office within 10 days. Increases might reduce benefits, while decreases could increase them. Failure to report changes can result in overpayments that must be repaid."
+          "answer": "Report income changes to your parish LDH Economic Stability office within 10 days. Increases might reduce benefits, while decreases could increase them. Failure to report changes can result in overpayments that must be repaid."
         },
         {
           "question": "Can my loved one get both SNAP and Medicaid at the same time?",
@@ -1018,7 +1036,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What if my loved one was denied SNAP in another state?",
-          "answer": "Apply again in Louisiana. Louisiana has more generous rules than federal SNAP requirements, no asset limits and easier income tests for elderly households. Previous denials in other states don't affect Louisiana eligibility."
+          "answer": "Apply again in Louisiana. Louisiana applies the federal resource limits ($4,500 for a household with someone 60 or older or disabled) and uses only the net income test for those households. Previous denials in other states don't affect Louisiana eligibility."
         }
       ],
       "layoutIntent": {
@@ -1031,9 +1049,10 @@ export const drafts: PipelineStateDrafts = {
       },
       "icon": "BowlFood",
       "phone": "(888) 524-3578",
-      "sourceUrl": "https://dcfs.louisiana.gov/page/524",
+      "sourceUrl": "https://sspweb.ie.dcfs.la.gov/selfservice/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-03"
     },
     {
       "id": "csfp-senior-food-boxes",
@@ -1476,7 +1495,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for your loved one and spouse (if married)",
         "Most recent Social Security award letter",
         "Medicare card if they have one (Medicare is not required for this program)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Pension or retirement income statements",
         "Investment documents (stocks, bonds, annuities)",
         "Property documents (deeds, tax statements)",
@@ -1508,6 +1527,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Hospital discharge within 30 days gets priority placement, work with discharge planners to initiate the waiver request before your loved one leaves the hospital",
         "Income over $2,163/month doesn't disqualify your loved one if medical expenses exceed the excess amount, keep detailed records of Medicare premiums, prescription costs, and other healthcare spending",
         "The waiver is approved through June 30, 2027, renewals are expected but not guaranteed, so have backup care plans",
@@ -1683,7 +1703,7 @@ export const drafts: PipelineStateDrafts = {
         "Being paid as a family caregiver comes later, after the waiver is approved and a provider is chosen.",
         "Most recent Social Security award letter",
         "Pay stubs from last 30 days or pension statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements for real estate)",
         "Vehicle titles and registration",
@@ -1714,6 +1734,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "The parish Council on Aging caregiver voucher is a separate, locally run program with no Medicaid requirement, and its rules vary by parish",
         "Priority groups (ALS diagnosis, abuse/neglect referrals, nursing home residents) get served first, others wait on first-come, first-served basis",
         "Not all family members can be paid caregivers. A spouse can be paid only under the Extraordinary Care standard with written OAAS approval, and any paid family caregiver must live with the care recipient",
@@ -1791,7 +1812,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "SNAP",
-        "programId": "louisiana-snap",
+        "programId": "snap-food-benefits",
         "why": "Provides immediate monthly grocery benefits of $100-400 for seniors on fixed incomes."
       }
     ],

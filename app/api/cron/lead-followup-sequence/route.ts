@@ -11,7 +11,7 @@ import {
 } from "@/lib/email-templates";
 import { withCronRun } from "@/lib/crons/run";
 import { getSiteUrl } from "@/lib/site-url";
-import { generateLeadClaimUrl, generateProviderPortalUrl } from "@/lib/claim-tokens";
+import { generateLeadClaimUrl, generateProviderPortalUrl, generateProviderConnectionStatusUrls } from "@/lib/claim-tokens";
 import { parseAdminOverride } from "@/lib/connection-engagement";
 
 // Valid archive reasons from provider portal
@@ -71,8 +71,15 @@ interface FollowupMetadata {
   followup_sent_at?: string | null;
   followup_sent_by?: string;
   followup_stopped_at?: string | null;
-  followup_stopped_reason?: "connected" | "responded" | "admin_marked_connected" | "family_confirmed" | null;
+  followup_stopped_reason?: "connected" | "responded" | "admin_marked_connected" | "family_confirmed" | "provider_confirmed_connected" | "provider_declined" | null;
   thread?: ThreadMessage[];
+  /** Provider self-reported connection status from email buttons */
+  provider_connection_status?: {
+    self_reported: boolean;
+    value: "connected" | "not_a_fit" | "no_capacity";
+    at: string;
+    source: string;
+  };
 }
 
 type ThreadMessage = {
@@ -101,6 +108,8 @@ interface ProviderGroup {
   providerSlug: string;
   providerKey: string; // canonical olera-providers.slug for email_log.provider_id (frequency gate + dashboard)
   leads: EligibleLead[];
+  /** Provider verification state - needed to determine if self-report buttons should be shown */
+  isVerified: boolean;
 }
 
 /**
@@ -230,7 +239,7 @@ export async function GET(request: NextRequest) {
         metadata,
         created_at,
         from_profile:business_profiles!connections_from_profile_id_fkey(display_name, care_types, metadata),
-        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email, city, metadata)
+        to_profile:business_profiles!connections_to_profile_id_fkey(id, display_name, slug, source_provider_id, email, city, metadata, verification_state)
       `
       )
       .eq("type", "inquiry")
@@ -366,10 +375,24 @@ export async function GET(request: NextRequest) {
       }
 
       // Check if sequence was already stopped for a REAL connection
-      // Skip if stopped for actual connection ("connected", "responded"), admin verification, or family confirmation
+      // Skip if stopped for actual connection ("connected", "responded"), admin verification, family confirmation,
+      // or provider self-report via email buttons ("provider_confirmed_connected", "provider_declined")
       const stopReason = meta.followup_stopped_reason;
-      const isRealStop = stopReason === "connected" || stopReason === "responded" || stopReason === "admin_marked_connected" || stopReason === "family_confirmed";
+      const isRealStop =
+        stopReason === "connected" ||
+        stopReason === "responded" ||
+        stopReason === "admin_marked_connected" ||
+        stopReason === "family_confirmed" ||
+        stopReason === "provider_confirmed_connected" ||
+        stopReason === "provider_declined";
       if (meta.followup_stopped_at && isRealStop) {
+        counts.skipped++;
+        counts.skipReasons.sequence_stopped++;
+        continue;
+      }
+
+      // Also check provider_connection_status for self-reported status (belt-and-suspenders)
+      if (meta.provider_connection_status?.self_reported) {
         counts.skipped++;
         counts.skipReasons.sequence_stopped++;
         continue;
@@ -534,6 +557,9 @@ export async function GET(request: NextRequest) {
             sourceProviderId: toProfile?.source_provider_id,
             profileSlug: providerSlug,
           })) ?? providerSlug;
+        // Check if provider is verified (for self-report button eligibility)
+        const verificationState = toProfile?.verification_state as string | undefined;
+        const isVerified = verificationState === "verified" || verificationState === "not_required";
         providerGroups.set(providerId, {
           providerId,
           providerEmail,
@@ -541,6 +567,7 @@ export async function GET(request: NextRequest) {
           providerSlug,
           providerKey,
           leads: [],
+          isVerified,
         });
       }
 
@@ -643,6 +670,13 @@ export async function GET(request: NextRequest) {
         siteUrl
       );
 
+      // Generate self-report URLs for single leads with verified providers (Day 3 and Day 5 only)
+      // Unverified providers see redacted PII, so asking "did you connect?" makes no sense
+      const isSingleLead = leadCount === 1;
+      const connectionStatusUrls = (isSingleLead && group.isVerified && templateStage >= 2)
+        ? generateProviderConnectionStatusUrls(group.leads[0].connectionId, siteUrl)
+        : undefined;
+
       let html: string;
       const templateOpts = {
         providerName: group.providerName,
@@ -651,6 +685,7 @@ export async function GET(request: NextRequest) {
         providerSlug: group.providerSlug,
         manageListingUrl,
         settingsUrl,
+        connectionStatusUrls,
       };
 
       switch (templateStage) {

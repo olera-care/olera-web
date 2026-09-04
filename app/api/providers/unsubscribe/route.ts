@@ -22,6 +22,17 @@ function flagForType(type: UnsubscribeType): { flag: string; at: string } | null
 }
 
 /**
+ * Normalize the type parameter, treating city_broadcast as cold_outreach.
+ * City broadcasts are a form of cold provider outreach, so unsubscribing
+ * from them should also stop other cold outreach emails.
+ */
+function normalizeType(typeParam: string | null): UnsubscribeType {
+  if (typeParam === "analytics_digest") return "analytics_digest";
+  if (typeParam === "cold_outreach" || typeParam === "city_broadcast") return "cold_outreach";
+  return "leads";
+}
+
+/**
  * POST /api/providers/unsubscribe
  *
  * Opt a provider out of a specific email channel.
@@ -38,10 +49,7 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { slug } = body;
-    const type: UnsubscribeType =
-      body.type === "analytics_digest" ? "analytics_digest" :
-      body.type === "cold_outreach" ? "cold_outreach" :
-      "leads";
+    const type = normalizeType(body.type);
     const flagInfo = flagForType(type);
 
     if (!slug) {
@@ -201,11 +209,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const slug = searchParams.get("slug");
-    const typeParam = searchParams.get("type");
-    const type: UnsubscribeType =
-      typeParam === "analytics_digest" ? "analytics_digest" :
-      typeParam === "cold_outreach" ? "cold_outreach" :
-      "leads";
+    const type = normalizeType(searchParams.get("type"));
     const flagInfo = flagForType(type);
 
     if (!slug) {

@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NE/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-11T04:24:05.523Z
+ * Last updated: 2026-09-02T03:10:35.697Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -115,7 +115,7 @@ export const drafts: PipelineStateDrafts = {
         "Medical records documenting need for assistance with Activities of Daily Living",
         "Physician documentation of current health conditions",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Property documents if you own your home (deed, tax statement)",
         "Vehicle titles and registration",
         "Life insurance policies with face values",
@@ -149,6 +149,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You cannot apply for the AD Waiver until you are already enrolled in Nebraska Medicaid, this is a strict prerequisite, not something that happens automatically",
         "The Nursing Facility Level of Care assessment uses specific clinical criteria, having a disability or being elderly alone does not guarantee qualification",
         "Home equity limit of $752,000 is for 2026 and may change annually, verify current limits when applying",
@@ -199,7 +200,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(877) 667-6266",
       "sourceUrl": "https://dhhs.ne.gov/Pages/Medicaid-Aged-and-Disabled-Waiver.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "pace-elder-care",
@@ -296,7 +298,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Proof of Nebraska residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Life insurance policies with face values",
         "Medical records documenting current health conditions and care needs",
@@ -320,6 +322,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You cannot be enrolled in Medicare Advantage (Part C) and PACE at the same time, disenrollment from Medicare Advantage required first",
         "PACE becomes your loved one's sole source of Medicare and Medicaid services, they cannot use other providers outside the PACE network",
         "Private pay costs typically exceed $7,000 per month if your loved one doesn't qualify for Medicaid coverage",
@@ -508,7 +511,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": [
         "Medicare card",
         "Social Security award letter or most recent Social Security statement",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking and savings account, as a number. You do not need bank statements.",
         "Investment account statements (stocks, bonds, CDs)",
         "Birth certificate or other proof of age and citizenship",
         "Social Security card",
@@ -535,6 +538,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "QI program funding is limited, apply early in the calendar year for best chance of approval",
         "You can apply for Medicare Savings Program even if you've been denied regular Medicaid due to higher asset limits",
         "Approval is retroactive to the month of application for QMB, potentially saving money on Medicare costs you've already paid",
@@ -727,7 +731,7 @@ export const drafts: PipelineStateDrafts = {
         "Social Security cards for all household members",
         "Social Security award letters or benefit statements",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "The current balance of any checking or savings accounts. Every state asks about this. In Nebraska your savings do count. The limit is $25,000 in liquid assets.",
         "Proof of rent or mortgage payments",
         "Recent utility bills (electric, gas, water, phone)",
         "Medical expense receipts over $35/month (unreimbursed)",
@@ -801,7 +805,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "(800) 383-4278",
       "sourceUrl": "https://dhhs.ne.gov/pages/snap.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "liheap-energy-assistance",
@@ -2197,7 +2202,7 @@ export const drafts: PipelineStateDrafts = {
         "Medicare card if they have one (Medicare is not required for this program)",
         "Most recent Social Security award letter or benefit statement",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements, mortgage statements)",
         "Life insurance policies showing face values",
@@ -2228,6 +2233,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "You must apply for Nebraska Medicaid and the AD Waiver at the same time, the waiver cannot be approved without active Medicaid coverage",
         "The interRAI-HC functional assessment is required and determines whether you meet nursing facility level of care, prepare to demonstrate specific limitations in daily activities",
         "Service availability varies by region, western Nebraska uses different coordinators (like Aging Office of Western Nebraska) than other areas",
@@ -2536,6 +2542,11 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
+          "label": "Nebraska ADRC (statewide toll-free)",
+          "phone": "(844) 843-6364",
+          "hours": "Mon-Fri business hours"
+        },
+        {
           "label": "Northeast Nebraska AAA",
           "phone": null,
           "description": "ADRC services for northeast Nebraska counties",
@@ -2585,10 +2596,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "Signpost",
-      "phone": "800-252-2412",
+      "phone": "(844) 843-6364",
       "sourceUrl": "https://nebraskalegislature.gov/laws/statutes.php?statute=68-1116",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-02"
     },
     {
       "id": "aabd-cash-medical",
@@ -2644,7 +2656,7 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 1,
             "title": "Choose your application method",
-            "description": "Apply online at dhhs.ne.gov, call 402-471-3121 or (800) 358-8802, or visit your local Nebraska DHHS office."
+            "description": "Apply online through the iServe Nebraska portal at iserve.nebraska.gov, call ACCESSNebraska Economic Assistance at (800) 383-4278, or visit your local Nebraska DHHS office."
           },
           {
             "step": 2,
@@ -2677,7 +2689,7 @@ export const drafts: PipelineStateDrafts = {
         "Proof of Nebraska residency (utility bill, lease, or state ID)",
         "Social Security Administration disability determination or denial letter",
         "Federal SSI denial letter (for disability component)",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Income documentation (Social Security award letters, pension statements)",
         "Asset documentation (property deeds, vehicle titles, investment accounts)",
         "Medical records supporting disability claim",
@@ -2686,15 +2698,15 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Nebraska DHHS AABD Line",
-          "phone": "(402) 471-3121",
-          "description": "Primary application and program questions",
-          "hours": "Business hours"
+          "label": "Nebraska DHHS Economic Assistance, ACCESSNebraska (start here)",
+          "phone": "(800) 383-4278",
+          "description": "Apply for AABD and ask program questions. In Lincoln call (402) 323-3900, in Omaha (402) 595-1258. You can also apply online through the iServe Nebraska portal.",
+          "hours": "Mon-Fri 8:00am-5:00pm Central"
         },
         {
-          "label": "Nebraska DHHS Toll-Free",
-          "phone": "(800) 358-8802",
-          "description": "Statewide benefits information and applications",
+          "label": "Nebraska DHHS Main Switchboard",
+          "phone": "(402) 471-3121",
+          "description": "General department line. It will not answer AABD questions directly, but it can transfer you.",
           "hours": "Business hours"
         },
         {
@@ -2705,6 +2717,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "This program is specifically for people denied federal SSI because their disability is expected to last less than 12 months, it's not for long-term SSI-eligible individuals",
         "You must have a disability determination from Social Security Administration or Nebraska's State Review Team before applying",
         "For the disability component, your loved one must be ineligible for Medicaid through other pathways"
@@ -2726,7 +2739,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can my loved one keep their house and still get AABD?",
-          "answer": "Yes, the home your loved one lives in typically doesn't count toward the asset limits. However, income and asset limits do apply, and the specific amounts aren't detailed in state materials, contact Nebraska DHHS at (402) 471-3121 for current limits."
+          "answer": "Yes, the home your loved one lives in typically doesn't count toward the asset limits. However, income and asset limits do apply, and the specific amounts aren't detailed in state materials, contact ACCESSNebraska Economic Assistance at (800) 383-4278 for current limits."
         },
         {
           "question": "What happens if my loved one's disability lasts longer than initially expected?",
@@ -2734,7 +2747,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Can I apply for AABD on behalf of my elderly loved one?",
-          "answer": "Yes, family members can help with the application process. You can call Nebraska DHHS at (402) 471-3121 to discuss acting as a representative for your loved one, but you'll need proper authorization and documentation of your loved one's need for assistance."
+          "answer": "Yes, family members can help with the application process. You can call ACCESSNebraska Economic Assistance at (800) 383-4278 to discuss acting as a representative for your loved one, but you'll need proper authorization and documentation of your loved one's need for assistance."
         },
         {
           "question": "Does living in assisted living affect AABD payments?",
@@ -2750,10 +2763,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "CurrencyDollar",
-      "phone": "(402) 471-3121",
+      "phone": "(800) 383-4278",
       "sourceUrl": "https://dhhs.ne.gov/Pages/Aged-Blind-or-Disabled.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-31"
     },
     {
       "id": "ssad-aged-disabled-services",
@@ -2835,7 +2849,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "documentsNeeded": [
         "Social Security award letter or other proof of income for all household members",
-        "Bank statements for the last 3 months",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Birth certificate or other proof of age",
         "Medical documentation of blindness or disability status",
         "Medical or functional assessment showing need for requested services",
@@ -2859,6 +2873,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "SSAD is separate from the Medicaid Aged and Disabled (AD) Waiver, don't confuse the two programs",
         "You may need to prove ineligibility for other programs before SSAD approval",
         "Services are authorized based on individual assessment rather than fixed hours or dollar amounts",
@@ -2917,7 +2932,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": null,
       "sourceUrl": "https://dhhs.ne.gov/Pages/Social-Services-Aged-and-Disabled-Adults.aspx",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     }
   ],
   "stateOverview": {
@@ -2930,7 +2946,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "SNAP Food Benefits",
-        "programId": "snap",
+        "programId": "snap-food-benefits",
         "why": "Monthly grocery assistance up to $546 for couples provides immediate budget relief."
       },
       {
@@ -2940,7 +2956,7 @@ export const drafts: PipelineStateDrafts = {
       },
       {
         "name": "Nebraska SHIP",
-        "programId": "nebraska-ship",
+        "programId": "ship-medicare-counseling",
         "why": "Free Medicare counseling helps optimize coverage and catch savings your family might miss."
       }
     ],

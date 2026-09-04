@@ -19,8 +19,13 @@ If `support@olera.care` is an alias, connect the underlying mailbox and set `GMA
 
 ## Operating model
 
-- New Gmail history is processed before each historical page, so an old mailbox never delays current support.
-- The worker imports 100 historical messages per 5-minute run until Gmail returns no next page. There is no date cutoff. That is up to 28,800 historical messages per day without letting the backfill monopolize a serverless run.
+- Each worker drains Gmail history for up to three minutes, saving its cursor after every successful chunk. Chunks contain up to 100 changed messages, except that a single bulk Gmail record stays atomic even when larger. A backlog no longer throttles the worker to one change every five minutes.
+- A six-minute mailbox lease covers the entire worker, including history checkpoints, backfill, and watch renewal. Expired leases recover after a terminated worker; handled errors release the lease immediately.
+- Manual **Sync** requests run in the background with the same five-minute server limit as cron. The visible inbox refreshes every 15 seconds. Cron summaries include processed history chunks and mailboxes still catching up.
+- Gmail reads retry transient server/network errors and the `rateLimitExceeded`/`userRateLimitExceeded` 403 reasons with exponential backoff starting at one second plus jitter. Retries honor `Retry-After` within a 60-second request budget; a longer cooldown ends the current request instead of retrying early. Writes are never automatically replayed. Metadata fallback is disabled for credential, permission, and quota errors. See [Google's error-handling guidance](https://developers.google.com/workspace/gmail/api/guides/handle-errors).
+- Reads reserve quota-weighted slots per access token within each server instance at approximately 4,500 units/minute, leaving headroom below Gmail's 6,000-unit per-user limit. Message and attachment reads cost 20 units under the current [Gmail quota schedule](https://developers.google.com/workspace/gmail/api/reference/quota). Server-provided per-user minute windows delay retries until the window ends. The mailbox lease prevents overlapping sync workers; this local pacer cannot coordinate other deployments or other API clients, so server backoff remains necessary.
+- Persisted Gmail failures include their HTTP status and machine-readable reason. Progress is logged every 25 completed chunks and on completion/interruption so per-chunk chatter does not crowd out the failure details. Failed cron summaries can still show zero aggregate work even when earlier chunks were checkpointed; inspect the mailbox cursor and interruption log for partial progress.
+- When time remains after incremental sync, the worker imports 100 historical messages per 5-minute run until Gmail returns no next page. There is no date cutoff. That is up to 28,800 historical messages per day without letting the backfill monopolize a serverless run.
 - Pub/Sub provides the prompt notification. The 5-minute cron is also the mandatory recovery poll for missed notifications.
 - Gmail is the transport source of truth. Supabase owns assignment, triage, Olera identity links, agent recommendations, and audit history.
 - Agent output is advisory. Sends, archives, unsubscribes, escalations, and Do Not Contact writes require an explicit admin action.
@@ -36,3 +41,16 @@ If `support@olera.care` is an alias, connect the underlying mailbox and set `GMA
 4. Send from Olera and confirm Gmail Sent plus the admin thread both show the reply.
 5. Archive from Gmail and confirm the Olera state catches up on the next sync.
 6. Confirm obvious bulk mail lands in **Noise**, while family/provider support remains in **Needs attention**.
+
+## Regression checks
+
+Run `node scripts/check-support-email-sync.cjs` to exercise chunk draining, cursor checkpoints, time limits, overlapping workers, bulk records, expired Gmail cursors, label event order, and failed concurrent imports without live credentials. Run `node scripts/check-support-email-polling.cjs` to verify refresh failures, slow requests, retry recovery, and action-error preservation against synthetic inbox data.
+
+Run `node scripts/check-support-email-gmail.cjs` for transport-level rate-limit recovery, permanent permission failures, numeric/date `Retry-After`, retry deadlines, safe error details, and prevention of automatic write replay. All HTTP responses and clocks are synthetic.
+The transport regressions include the September 4 production `rateLimitExceeded` payload with its per-user quota window and 300 message reads in ten-way concurrent batches, checking the quota consumed in each rolling minute.
+
+## Read-only sync diagnostics
+
+Authenticated admins can GET `/api/admin/support-email?diagnostics=true`. The cron route also accepts `?diagnostics=true` with the configured cron bearer secret. Both paths return an uncached comparison of the connected Gmail address, history cursors, latest stored date, and a small recent-message sample. The sample contains IDs, dates, labels, and whether each message is stored; it excludes subjects, bodies, and credentials.
+
+The probe only reads Gmail and database records. It does not run the sync worker, classifier, cron tracking, or checkpoint writes. Run `node scripts/check-support-email-diagnostics.cjs` to verify both authorization gates, missing-mail comparisons, credential exclusion, and the absence of database writes or worker calls. A changing cursor alone does not prove recovery: compare recent source messages with stored messages and verify that scheduled runs finish successfully.

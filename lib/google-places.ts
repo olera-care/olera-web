@@ -176,17 +176,25 @@ export async function fetchGooglePlacePhoto(
 /**
  * Validate that a Place ID exists in Google Places.
  *
- * Makes a minimal API request (displayName field only) to verify the Place ID.
- * Returns { valid: true, name: string } if valid, { valid: false } otherwise.
+ * Makes one minimal API request (displayName + formattedAddress) to verify the
+ * Place ID and report which business and location it actually points at, so
+ * callers can check it against the provider's own address before binding.
+ *
+ * `formattedAddress` is null when it could not be established (no API key, or
+ * Google returned none); treat that as "cannot compare", never as agreement.
  */
 export async function validateGooglePlaceId(
   placeId: string,
-): Promise<{ valid: true; name: string } | { valid: false; error?: string }> {
+): Promise<
+  | { valid: true; name: string; formattedAddress: string | null }
+  | { valid: false; error?: string }
+> {
   const apiKey = process.env.GOOGLE_PLACES_API_KEY;
   if (!apiKey) {
-    // If no API key, skip validation and assume valid
+    // If no API key, skip validation and assume valid. formattedAddress is null
+    // so address-agreement callers fail closed rather than silently allowing.
     console.warn("[google-places] GOOGLE_PLACES_API_KEY not set, skipping validation");
-    return { valid: true, name: "Unknown" };
+    return { valid: true, name: "Unknown", formattedAddress: null };
   }
 
   if (!placeId) {
@@ -194,8 +202,10 @@ export async function validateGooglePlaceId(
   }
 
   try {
-    // Minimal request - just get displayName to verify the Place ID exists
-    const url = `${PLACES_API_BASE}/${placeId}?fields=displayName&key=${apiKey}`;
+    // displayName verifies the Place ID exists; formattedAddress lets callers
+    // check the Place is the same physical location as the provider's profile
+    // before binding to it. Both are Essentials-tier fields, one billed call.
+    const url = `${PLACES_API_BASE}/${placeId}?fields=displayName,formattedAddress&key=${apiKey}`;
     const res = await fetch(url, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
@@ -213,7 +223,11 @@ export async function validateGooglePlaceId(
     const data = await res.json();
     const displayName = data.displayName?.text || "Business";
 
-    return { valid: true, name: displayName };
+    return {
+      valid: true,
+      name: displayName,
+      formattedAddress: data.formattedAddress ?? null,
+    };
   } catch (err) {
     console.error(`[google-places] Validation failed for ${placeId}:`, err);
     return { valid: false, error: "Could not validate Place ID" };

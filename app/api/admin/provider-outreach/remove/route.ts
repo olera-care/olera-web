@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       state = tracking.state;
 
       // Already hidden? Return success (idempotent)
-      if (tracking.admin_hidden === true) {
+      if (tracking.admin_hidden) {
         return NextResponse.json({
           success: true,
           provider_id,

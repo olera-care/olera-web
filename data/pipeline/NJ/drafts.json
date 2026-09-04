@@ -89,10 +89,10 @@
       ],
       "contacts": [
         {
-          "label": "NJ Division of Taxation",
-          "phone": "(609) 292-6400",
-          "description": "Property tax relief programs and Stay NJ questions",
-          "hours": "Mon-Fri 8:30am-4:30pm ET"
+          "label": "NJ Property Tax Relief Programs (start here)",
+          "phone": "1-888-238-1233",
+          "description": "Stay NJ is claimed on the combined Form PAS-1, the same application as Senior Freeze and ANCHOR. The deadline for the 2025 benefit is November 2, 2026. You can also apply online at propertytaxreliefapp.nj.gov.",
+          "hours": "Automated 24/7. Agents 8:30 a.m. to 5:30 p.m., Monday to Friday."
         },
         {
           "label": "New Jersey 2-1-1",
@@ -148,10 +148,11 @@
         "visualTone": "warm"
       },
       "icon": "CurrencyDollar",
-      "phone": "(609) 292-6400",
+      "phone": "1-888-238-1233",
       "sourceUrl": "https://www.nj.gov/treasury/taxation/staynj/index.shtml",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-23"
     },
     {
       "id": "senior-freeze-property-tax",
@@ -388,7 +389,7 @@
         "Proof of New Jersey residency (utility bill, lease agreement, or state-issued document)",
         "Medicare card if they have one (Medicare is not required for this program)",
         "Social Security award letter or benefit statement",
-        "Bank statements for all accounts (last 3 months)",
+        "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements)",
         "Vehicle titles and registration",
@@ -420,6 +421,7 @@
         }
       ],
       "applicationNotes": [
+        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Clinical assessment is required and determines both eligibility and your specific Plan of Care services",
         "Monthly service caps vary slightly by county ($1,090-$1,156) - confirm your county's current limit",
         "Sliding-scale co-pays are billed directly by your service provider, not the state",
@@ -571,28 +573,26 @@
         ]
       },
       "documentsNeeded": [
-        "Proof of income from all sources (tax returns, Social Security award letters, pension statements)",
-        "Proof of New Jersey residency (utility bill, lease agreement, or state-issued document)",
-        "Medicare card (Parts A, B, and D if applicable)",
-        "Proof of Social Security Title II Disability benefits if under age 65",
-        "Documentation showing you're not eligible for Medicaid",
-        "Social Security card",
-        "Birth certificate or other proof of age",
-        "Green card or other proof of lawful permanent residency if not a U.S. citizen",
-        "Current prescription list from your doctor or pharmacy",
-        "Medicare Part D plan information if already enrolled"
+        "Two current proofs of New Jersey residence, each clearly dated within the last 6 months",
+        "Your federal tax return, if you filed one",
+        "Proof of age, required only if you are not receiving Social Security benefits",
+        "Copies of the front and back of every health insurance and pharmacy card",
+        "Medicare Part D PDP enrollment assistance form",
+        "Completed income sections of the NJSave application, with signatures from both applicant and spouse if married",
+        "Documentation for all income and assets, required if you are also applying for a Medicare Savings Program",
+        "A completed Affidavit of Separation, if you are separated from your spouse"
       ],
       "contacts": [
         {
-          "label": "NJ Division of Aging Services",
-          "phone": "(866) 657-2835",
-          "description": "PAAD application help and general program questions",
+          "label": "PAAD / NJSave Hotline",
+          "phone": "1-800-792-9745",
+          "description": "NJ Division of Aging Services toll-free hotline for PAAD, Senior Gold, Medicare Savings Programs and Lifeline.",
           "hours": "Business hours"
         },
         {
-          "label": "Medicare Part D Plan Information",
-          "phone": "1-800-792-9745",
-          "description": "Help choosing qualifying Medicare Part D plans for PAAD",
+          "label": "NJSave application assistance",
+          "phone": "(866) 657-2835",
+          "description": "Help completing the NJSave application, which screens for PAAD and related programs.",
           "hours": "Business hours"
         },
         {
@@ -658,10 +658,11 @@
         "visualTone": "editorial"
       },
       "icon": "Pill",
-      "phone": "(866) 657-2835",
+      "phone": "1-800-792-9745",
       "sourceUrl": "https://www.nj.gov/humanservices/doas/home/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-08-22"
     },
     {
       "id": "lifeline-utility-credit",
@@ -932,7 +933,6 @@
         "Social Security card for care recipient (and spouse if married)",
         "Proof of New Jersey residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter or pension statements",
-        "Bank statements for all accounts (last 3 months)",
         "Documentation of any other income sources",
         "Investment or asset documentation if applicable",
         "Medical certification of functional impairments from licensed provider",
@@ -954,6 +954,7 @@
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you. Some intakes ask you to self-declare whether income is above or below the poverty line; that is for the agency’s own reporting and you can decline without losing the service.",
         "Each county has its own sponsor agency that administers the program locally, service availability and wait times may vary by county",
         "You can switch from JACC or the Alzheimer's Adult Day Services Program to Statewide Respite, but you cannot participate in both simultaneously",
         "The Caregiver Directed Option allows reimbursement for services or items that make caregiving easier, ask about this flexibility",
@@ -1012,7 +1013,8 @@
       "phone": "1-877-222-3737",
       "sourceUrl": "https://www.nj.gov/humanservices/doas/services/q-z/srcp/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "alzheimers-adult-day-services",
@@ -1094,7 +1096,6 @@
         "Written certification of functional impairments requiring daily assistance",
         "Social Security award letters for all household income sources",
         "Pension or retirement income statements",
-        "Bank statements for all accounts (last 3 months)",
         "Investment documents (stocks, bonds, annuities, trust agreements)",
         "Property documents (deeds, tax statements if applicable)",
         "Life insurance policies with face values",
@@ -1122,6 +1123,7 @@
         }
       ],
       "applicationNotes": [
+        "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you. Some intakes ask you to self-declare whether income is above or below the poverty line; that is for the agency’s own reporting and you can decline without losing the service.",
         "Income and asset limits aren't published in program brochures, contact the Division of Aging Services or participating centers for current financial thresholds",
         "You must use centers that specifically participate in this program and specialize in dementia care, not all adult day centers qualify",
         "Even with subsidies, you'll still pay an income-based copay, ask centers for specific amounts during your initial contact",
@@ -1172,7 +1174,8 @@
       "phone": "(877) 222-3737",
       "sourceUrl": "https://www.nj.gov/humanservices/doas/documents/Adult%20Day%20Services%20Program%20Brochure%20(Web-English).pdf",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": null
     },
     {
       "id": "senior-ezpass-discount",
@@ -1353,22 +1356,22 @@
     "startHere": [
       {
         "name": "Stay NJ",
-        "programId": "stay-nj",
+        "programId": "stay-nj-property-tax-relief",
         "why": "Up to $6,500 back on property taxes, the largest potential benefit in New Jersey."
       },
       {
         "name": "Pharmaceutical Assistance to the Aged & Disabled (PAAD)",
-        "programId": "paad",
+        "programId": "paad-prescription-assistance",
         "why": "Reduces prescription costs to $5-7 per medication, saving hundreds monthly for parents with multiple prescriptions."
       },
       {
         "name": "Senior Freeze (Property Tax Reimbursement)",
-        "programId": "senior-freeze",
+        "programId": "senior-freeze-property-tax",
         "why": "Protects against property tax increases for long-term homeowners, providing ongoing savings."
       },
       {
         "name": "Jersey Assistance for Community Caregiving (JACC)",
-        "programId": "jacc",
+        "programId": "jacc-community-caregiving",
         "why": "Helps parents who need nursing-level care stay at home when income is too high for Medicaid."
       }
     ],

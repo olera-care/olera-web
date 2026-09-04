@@ -409,24 +409,22 @@ async function enrichWithNotesCount(
 
   if (providerIds.length === 0) return providers;
 
-  // Query notes in batches to avoid URL length limits
+  // Query notes in parallel batches to avoid URL length limits
   const notesCounts = new Map<string, number>();
 
-  for (let i = 0; i < providerIds.length; i += IN_CLAUSE_BATCH_SIZE) {
-    const batch = providerIds.slice(i, i + IN_CLAUSE_BATCH_SIZE);
+  const batchResults = await Promise.all(
+    Array.from({ length: Math.ceil(providerIds.length / IN_CLAUSE_BATCH_SIZE) }, (_, i) => {
+      const batch = providerIds.slice(i * IN_CLAUSE_BATCH_SIZE, (i + 1) * IN_CLAUSE_BATCH_SIZE);
+      return db.from("provider_outreach_notes").select("provider_id").in("provider_id", batch);
+    })
+  );
 
-    const { data: notesRows, error } = await db
-      .from("provider_outreach_notes")
-      .select("provider_id")
-      .in("provider_id", batch);
-
+  // Process all batch results
+  for (const { data: notesRows, error } of batchResults) {
     if (error) {
       console.error("[enrichWithNotesCount] Query error:", error);
-      // Continue with other batches, don't fail entirely
       continue;
     }
-
-    // Count notes per provider
     for (const row of notesRows || []) {
       const count = notesCounts.get(row.provider_id) || 0;
       notesCounts.set(row.provider_id, count + 1);
@@ -455,19 +453,23 @@ async function enrichWithCallStats(
 
   if (providerIds.length === 0) return providers;
 
-  // Query call_attempted touchpoints in batches
+  // Query call_attempted touchpoints in parallel batches
   const callStats = new Map<string, { count: number; latestStatus: string | null; latestAt: string | null }>();
 
-  for (let i = 0; i < providerIds.length; i += IN_CLAUSE_BATCH_SIZE) {
-    const batch = providerIds.slice(i, i + IN_CLAUSE_BATCH_SIZE);
+  const batchResults = await Promise.all(
+    Array.from({ length: Math.ceil(providerIds.length / IN_CLAUSE_BATCH_SIZE) }, (_, i) => {
+      const batch = providerIds.slice(i * IN_CLAUSE_BATCH_SIZE, (i + 1) * IN_CLAUSE_BATCH_SIZE);
+      return db
+        .from("provider_outreach_touchpoints")
+        .select("provider_id, details, created_at")
+        .in("provider_id", batch)
+        .eq("touchpoint_type", "call_attempted")
+        .order("created_at", { ascending: false });
+    })
+  );
 
-    const { data: touchpoints, error } = await db
-      .from("provider_outreach_touchpoints")
-      .select("provider_id, details, created_at")
-      .in("provider_id", batch)
-      .eq("touchpoint_type", "call_attempted")
-      .order("created_at", { ascending: false });
-
+  // Process all batch results
+  for (const { data: touchpoints, error } of batchResults) {
     if (error) {
       console.error("[enrichWithCallStats] Query error:", error);
       continue;
@@ -507,6 +509,43 @@ async function enrichWithCallStats(
       latest_call_status: stats?.latestStatus || undefined,
     };
   });
+}
+
+/**
+ * Run all enrichment functions in parallel for better performance.
+ * Each enrichment is independent (adds different fields based on provider IDs),
+ * so they can safely run concurrently.
+ */
+async function enrichProvidersParallel(
+  db: ReturnType<typeof getServiceClient>,
+  providers: OutreachProvider[]
+): Promise<OutreachProvider[]> {
+  if (providers.length === 0) return providers;
+
+  // Run all enrichments in parallel - they're independent of each other
+  const [withEmail, withQuestions, withNotes, withCalls] = await Promise.all([
+    enrichWithEmailVerification(db, providers),
+    enrichWithQuestionsAndLeads(db, providers),
+    enrichWithNotesCount(db, providers),
+    enrichWithCallStats(db, providers),
+  ]);
+
+  // Merge all enrichment results into final provider objects
+  // Each enrichment adds its own fields, so we merge them by index
+  return providers.map((p, i) => ({
+    ...p,
+    // From enrichWithEmailVerification
+    email_verification_status: withEmail[i].email_verification_status,
+    is_email_overridden: withEmail[i].is_email_overridden,
+    // From enrichWithQuestionsAndLeads
+    questions_count: withQuestions[i].questions_count,
+    leads_count: withQuestions[i].leads_count,
+    // From enrichWithNotesCount
+    notes_count: withNotes[i].notes_count,
+    // From enrichWithCallStats
+    call_count: withCalls[i].call_count,
+    latest_call_status: withCalls[i].latest_call_status,
+  }));
 }
 
 /**
@@ -586,10 +625,7 @@ export async function GET(request: NextRequest) {
     // If search is provided, search across ALL stages and return flat results
     if (search) {
       const searchResults = await searchProviders(db, state, search);
-      const withEmail = await enrichWithEmailVerification(db, searchResults);
-      const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
-      const withNotes = await enrichWithNotesCount(db, withQuestions);
-      const enriched = await enrichWithCallStats(db, withNotes);
+      const enriched = await enrichProvidersParallel(db, searchResults);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats, is_search: true });
     }
 
@@ -597,22 +633,18 @@ export async function GET(request: NextRequest) {
       // Special case: providers NOT in tracking OR with stage = not_contacted
       // email_filter allows splitting into "Needs Email" and "Ready" tabs
       const providers = await getNotContactedProviders(db, state, city, emailFilter);
-      const withEmail = await enrichWithEmailVerification(db, providers);
-      const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
-      const withNotes = await enrichWithNotesCount(db, withQuestions);
-      const enriched = await enrichWithCallStats(db, withNotes);
-      // Compute admin counts from the providers list (includes display_name for filter chips)
-      const computedAdminCounts = await computeAdminCountsFromProviders(db, providers);
+      // Run enrichment and admin counts computation in parallel
+      const [enriched, computedAdminCounts] = await Promise.all([
+        enrichProvidersParallel(db, providers),
+        computeAdminCountsFromProviders(db, providers),
+      ]);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: computedAdminCounts, follow_ups_today: followUpsTodayStats });
     }
 
     if (stage === "claimed") {
       // Special case: "Claimed" shows ACTUAL claimed providers (from business_profiles)
       const providers = await getClaimedProviders(db, state, city);
-      const withEmail = await enrichWithEmailVerification(db, providers);
-      const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
-      const withNotes = await enrichWithNotesCount(db, withQuestions);
-      const enriched = await enrichWithCallStats(db, withNotes);
+      const enriched = await enrichProvidersParallel(db, providers);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
@@ -629,20 +661,14 @@ export async function GET(request: NextRequest) {
     // When querying "hidden", show admin_hidden providers for recovery
     if (stage === "hidden") {
       const providers = await getHiddenProviders(db, state, city);
-      const withEmail = await enrichWithEmailVerification(db, providers);
-      const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
-      const withNotes = await enrichWithNotesCount(db, withQuestions);
-      const enriched = await enrichWithCallStats(db, withNotes);
+      const enriched = await enrichProvidersParallel(db, providers);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
     // When querying "archived", use special function that merges tracking + system-wide archived
     if (stage === "archived") {
       const providers = await getArchivedProviders(db, state, city);
-      const withEmail = await enrichWithEmailVerification(db, providers);
-      const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
-      const withNotes = await enrichWithNotesCount(db, withQuestions);
-      const enriched = await enrichWithCallStats(db, withNotes);
+      const enriched = await enrichProvidersParallel(db, providers);
       return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
     }
 
@@ -927,10 +953,7 @@ export async function GET(request: NextRequest) {
       .filter((p): p is OutreachProvider => p !== null)
       .sort((a, b) => a.provider_name.localeCompare(b.provider_name));
 
-    const withEmail = await enrichWithEmailVerification(db, providers);
-    const withQuestions = await enrichWithQuestionsAndLeads(db, withEmail);
-    const withNotes = await enrichWithNotesCount(db, withQuestions);
-    const enriched = await enrichWithCallStats(db, withNotes);
+    const enriched = await enrichProvidersParallel(db, providers);
     return NextResponse.json({ providers: enriched, stage_counts: stageCounts, admin_counts: adminCounts, follow_ups_today: followUpsTodayStats });
   } catch (err) {
     console.error("[provider-outreach] Error:", err);

@@ -180,5 +180,15 @@ function fixture({ pages = [], failAt = -1, failCursor = null, stepMs = 0, mailb
   assert.equal(leaseWhileSiblingPending, ACTIVE, 'lease cannot be released while another import is pending');
   assert.equal(f.row.gmail_history_id, '10');
 
-  console.log('Support sync: 12 regression scenarios passed (drain, checkpoints, budgets, leases, atomic records, cursor recovery, label order, failed concurrent imports).');
+  for (const status of [401, 403, 429]) {
+    f = fixture({ pages: [{ history: [record('11', 1)], historyId: '99' }] });
+    f.gmail.getGmailMessage = async () => { throw new f.GmailApiError('access or quota error', status); };
+    let metadataCalls = 0;
+    f.gmail.getGmailMessageMetadata = async () => { metadataCalls++; return { labelIds: ['DRAFT'] }; };
+    await assert.rejects(f.run, /access or quota error/);
+    assert.equal(metadataCalls, 0, 'metadata fallback must not bypass quota or permission errors');
+    assert.equal(f.row.gmail_history_id, '10', 'failed import must remain pending');
+  }
+
+  console.log('Support sync: 15 regression scenarios passed (drain, checkpoints, budgets, leases, atomic records, cursor recovery, label order, failed concurrent imports, quota and access failures).');
 })().catch(error => { console.error(error); process.exitCode = 1; });

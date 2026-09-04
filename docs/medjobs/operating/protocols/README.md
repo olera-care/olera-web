@@ -89,7 +89,7 @@ The test of these protocols is whether a new person can run a lane from them alo
 
 | Day | What |
 |---|---|
-| 1 | Read `../00-EXECUTIVE-OPERATING-PLAN.md` and this README. Get admin access. Shadow the daily zero-out |
+| 1 | Read `../00-OPERATING-SYSTEM.md` and this README. Get admin access. Shadow the daily zero-out |
 | 2 | Read the protocol for your lane. Walk 3 rows end to end **with** your supervisor |
 | 3–5 | Run your lane **supervised**. Every outcome reviewed same day |
 | 6–10 | Run your lane solo. Supervisor spot-checks 20% of rows |

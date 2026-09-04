@@ -4,12 +4,12 @@
 metrics, experiments, decisions, and iteration history, from MVP through early scale.
 
 > **New here? Read in this order:**
-> 1. [`00-EXECUTIVE-OPERATING-PLAN.md`](00-EXECUTIVE-OPERATING-PLAN.md) — the whole strategy, ~12 minutes
+> 1. [`00-OPERATING-SYSTEM.md`](00-OPERATING-SYSTEM.md) — the master architecture, in one diagram
 > 2. [`02-ROLES-AND-CADENCE.md`](02-ROLES-AND-CADENCE.md) — your lane and your week
 > 3. [`protocols/`](protocols/) — the SOP you run from daily
 >
-> **Founders:** `00-` §10 and [`07-OPEN-DECISIONS-AND-CONFLICTS.md`](07-OPEN-DECISIONS-AND-CONFLICTS.md)
-> are the two things that need you. **Six blockers.**
+> **Founders:** [`07-OPEN-DECISIONS-AND-CONFLICTS.md`](07-OPEN-DECISIONS-AND-CONFLICTS.md) is the file that
+> needs you — the blocking decisions, the standing risks, and who owns each.
 
 ---
 
@@ -17,8 +17,8 @@ metrics, experiments, decisions, and iteration history, from MVP through early s
 
 | File | What it is for | Owner | Updated |
 |---|---|---|---|
-| [`00-EXECUTIVE-OPERATING-PLAN.md`](00-EXECUTIVE-OPERATING-PLAN.md) | **Layer 1.** What MedJobs 2.0 is, the operating model, the pod, metrics, path to scale, founder decisions | Pod | On strategy change |
-| [`01-EXECUTION-PLAYBOOK.md`](01-EXECUTION-PLAYBOOK.md) | **Layer 2.** The seven stages, the ten-day readiness sprint, the operating week, failure triage, handoff contracts | Pod | Weekly |
+| [`00-OPERATING-SYSTEM.md`](00-OPERATING-SYSTEM.md) | **The architecture.** A short orientation, then the full operating system: both funnels, the Portal, match and fulfillment, ownership and handoffs | Pod | On architecture change |
+| [`01-EXECUTION-PLAYBOOK.md`](01-EXECUTION-PLAYBOOK.md) | **The sequencing.** The stages, the ten-day readiness sprint, the operating week, failure triage, handoff contracts | Pod | Weekly |
 | [`02-ROLES-AND-CADENCE.md`](02-ROLES-AND-CADENCE.md) | Who owns what, a week in each person's life, the daily zero-out, meeting cadence, absence coverage | Pod | On team change |
 | [`03-METRICS.md`](03-METRICS.md) | North star, the five rates, the four health signals, sources, targets, the weekly pack | Esther | Weekly |
 | [`04-SCALE-GATES.md`](04-SCALE-GATES.md) | The six gates that say we may scale, and the three-stage scaling plan | Pod | Monthly |
@@ -33,15 +33,15 @@ metrics, experiments, decisions, and iteration history, from MVP through early s
 
 ## The one-paragraph version
 
-MedJobs 2.0 is an **operated placement service** that puts pre-health university students into paid caregiver
-jobs at non-medical home care agencies, **one university catchment at a time**. It has already run manually
-end to end and made ~$6,000; what is unproven is running it **without a founder in every step**. Two funnels
-— providers on the demand side, partners and students on the supply side — meet in one marketplace and
-produce one billing event: a **confirmed placement**. Four people own it: **Grazy** (demand), **Chantel**
-(conversion and accounts), **Sess** (supply and data), **Esther** (the system). The target is proving the
-model on one site well enough to pass six gates, then repeating it on two more, then delegating it to
-interns. **January 5** — the CRP submission needing customer traction and revenue — is the date everything
-works backward from.
+MedJobs 2.0 places **pre-medical and pre-nursing students** into paid, part-time caregiving work at
+eldercare providers — **one university and one surrounding service area at a time.** It has already run by
+hand end to end and produced roughly $6,000 in revenue; what is unproven is running it **without a founder
+behind every step.** Two pipelines — providers on one side, universities and students on the other —
+converge in the Portal, which carries a qualified candidate through match and fulfillment to a confirmed
+hire. Olera charges once that placement has produced **six or more confirmed shifts.** Ownership runs
+**Admin Team → Logan → Chantel → Portal** on both sides, with **Esther** on the technology underneath.
+**January 5** — the CRP submission needing customer traction and revenue — is the date everything works
+backward from.
 
 ---
 

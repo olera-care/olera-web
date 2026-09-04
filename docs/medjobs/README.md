@@ -9,7 +9,7 @@ is built). They are peers and must stay consistent — same vocabulary, same sta
 |---|---|
 | Running MedJobs day to day | **[`operating/`](operating/)** — the operating workspace |
 | Changing MedJobs code | **[`OPERATIONAL_BRIEF.md`](OPERATIONAL_BRIEF.md)** — the engineering reference |
-| New to MedJobs entirely | [`operating/00-EXECUTIVE-OPERATING-PLAN.md`](operating/00-EXECUTIVE-OPERATING-PLAN.md), then [`EXECUTIVE_SUMMARY.md`](EXECUTIVE_SUMMARY.md) |
+| New to MedJobs entirely | [`operating/00-OPERATING-SYSTEM.md`](operating/00-OPERATING-SYSTEM.md), then [`EXECUTIVE_SUMMARY.md`](EXECUTIVE_SUMMARY.md) |
 
 ## Operating layer
 

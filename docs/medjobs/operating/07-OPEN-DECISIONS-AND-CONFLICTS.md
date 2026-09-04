@@ -220,6 +220,19 @@ credential as the primary moat). Logged so nobody re-opens it; revisit only if a
 
 ---
 
+## Standing risks
+
+| Risk | Why it is real | What we do about it |
+|---|---|---|
+| **Supply starves demand** | Structural, and already flagged in the build plan as HIGH | Supply runs one site ahead; Gate C blocks scaling without it |
+| **Email reputation collapse** | Named as the top risk in the engineering brief; warmup has a 2–4 week lead time we have not started | Start warmup Day 0; hard volume caps; bounce/complaint kill-switch in `protocols/P2` |
+| **Founder remains the bottleneck** | The conversion meeting converts *because it is him* | Scheduled handoff, measured as Gate F |
+| **The pod is not full-time on this** | April 15 grant work and provider outreach compete for the same four people | O-11 must be answered; the plan assumes ~60% of four people, not 100% |
+| **We standardize the wrong things** | Freezing a message that does not work yet is worse than having no protocol | The protocol/experiment split in `05-EXPERIMENTS.md`, reviewed every Tuesday |
+| **Jan 5 arrives with activity but no revenue** | Stripe is stubbed; there is no capture path today | Manual invoicing from hire #1. Do not let billing infrastructure gate hires |
+
+---
+
 ## How to close an item
 
 1. Owner brings a recommendation to the Tuesday session (or decides solo if it is theirs alone).

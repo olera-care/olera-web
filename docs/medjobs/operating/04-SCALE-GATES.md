@@ -8,6 +8,24 @@
 
 ---
 
+## 0. What we are aiming at — January 5
+
+Not a forecast — the target the operating model is designed to hit:
+
+- **3 sites live**, each with clients, partners and candidates
+- **15+ Clients**, **25+ confirmed placements**, **revenue collected and reconcilable**
+- **A pod running the whole thing** with the founder in conversion meetings only — and Chantel running
+  most of those
+- **Protocols good enough that an intern onboarded in a day** — the actual proof that this is a business
+  and not a founder one-off
+
+> Logan, in the meeting: *"We keep getting dinged because we're not expanding out of founders' brains.
+> We're not building enterprise-level businesses, we're building founder one-offs."*
+>
+> The gates below are how we tell whether we are on the way there.
+
+---
+
 ## 1. The gates
 
 All six. Not five. A gate that is "basically passed" is not passed.

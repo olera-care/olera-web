@@ -1,13 +1,14 @@
 # MedJobs 2.0 — Execution Playbook
 
-> **Layer 2 of 2.** The sequence, day by day and stage by stage, with a named owner on every line.
-> Read `00-EXECUTIVE-OPERATING-PLAN.md` first for the why. Run from `protocols/` for the how.
+> **The sequencing companion to `00-OPERATING-SYSTEM.md`.** Day by day and stage by stage, with a named
+> owner on every line.
+> Read `00-OPERATING-SYSTEM.md` first for the architecture. Run from `protocols/` for the how.
 >
 > **Rule of the road:** if a step here and a protocol disagree, the protocol wins and this file gets fixed.
 > If a protocol and the shipped system disagree, stop and log it in `07-OPEN-DECISIONS-AND-CONFLICTS.md`.
 >
 > **Note — this file is one revision behind.** Its S0–S7 stage model predates the master architecture in
-> `00-EXECUTIVE-OPERATING-PLAN.md` §2, which re-cuts the funnel as **PR · ST · MA** with different ownership
+> `00-OPERATING-SYSTEM.md` §2, which re-cuts the funnel as **PR · ST · MA** with different ownership
 > at the meeting and conversion stages. The sequencing, sprint, triage and handoff contracts below still
 > hold. The stage map gets re-cut against PR/ST/MA once that architecture is agreed.
 

@@ -26,8 +26,8 @@ metrics, experiments, decisions, and iteration history, from MVP through early s
 | [`06-DECISIONS.md`](06-DECISIONS.md) | Every operating decision with its reasoning and **what would reverse it** | Pod | On decision |
 | [`07-OPEN-DECISIONS-AND-CONFLICTS.md`](07-OPEN-DECISIONS-AND-CONFLICTS.md) | **Where sources disagree, named explicitly** + open questions and their owners | Pod | On discovery |
 | [`08-ITERATION-LOG.md`](08-ITERATION-LOG.md) | Jank log, weekly entries, protocol change history — the memory of the model | Esther | Weekly |
-| [`09-TECH-READINESS.md`](09-TECH-READINESS.md) | **The technology audit.** Does the built technology support the operating system, and what must be fixed before we raise volume | Esther | Through the audit |
-| [`tech-readiness/`](tech-readiness/) | The audit's outputs — readiness matrix, user-flow maps, defect log | Esther | Daily during the audit |
+| [`09-IMPLEMENTATION-MAP.md`](09-IMPLEMENTATION-MAP.md) | **The implementation map.** Everything required for each part of the operating system to function — technology, human SOP, communications, data, handoff | Esther | Through the audit |
+| [`implementation-map/`](implementation-map/) | The map itself — master matrix, five user journeys, component inventory | Esther | Daily during the audit |
 | [`protocols/`](protocols/) | **P1–P7.** The SOPs. What an intern is handed on day one | Lane owners | On change |
 | [`sources/`](sources/) | Distilled primary material — the meeting and Grazy's protocol | — | On new input |
 

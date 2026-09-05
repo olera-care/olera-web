@@ -81,6 +81,7 @@ const navSections: NavSection[] = [
       { label: "Organic Growth", href: "/admin/organic-growth" },
       { label: "Analytics", href: "/admin/analytics" },
       { label: "Ad Boost", href: "/admin/ad-boost" },
+      { label: "Relationships", href: "/admin/relationships" },
       { label: "Automations", href: "/admin/automations" },
       // Sits next to Automations on purpose: that page carries account-level
       // send risk, this one carries who stopped hearing from us. Two halves.

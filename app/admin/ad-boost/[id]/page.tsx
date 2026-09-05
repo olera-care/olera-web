@@ -572,12 +572,20 @@ function Detail({
             <h2 className="mt-1 text-lg font-semibold text-gray-950">What they heard—and what happens next</h2>
             <p className="mt-1 text-xs leading-relaxed text-gray-500">Campaign milestones and delivery history are checked together, so older sends are not mistaken for missing messages.</p>
           </div>
-          <Link
-            href={`/admin/automations/ad-boost?campaign=${encodeURIComponent(request.id)}&step=${encodeURIComponent(nextAction.stepKey ?? "campaign_launched")}#ad-boost-message-preview`}
-            className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-lg border border-teal-200 bg-white px-3 text-xs font-semibold text-teal-800 hover:bg-teal-50"
-          >
-            Open provider journey →
-          </Link>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <Link
+              href={`/admin/relationships/${encodeURIComponent(request.provider_id)}`}
+              className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-lg border border-teal-200 bg-white px-3 text-xs font-semibold text-teal-800 hover:bg-teal-50"
+            >
+              Relationship log →
+            </Link>
+            <Link
+              href={`/admin/automations/ad-boost?campaign=${encodeURIComponent(request.id)}&step=${encodeURIComponent(nextAction.stepKey ?? "campaign_launched")}#ad-boost-message-preview`}
+              className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-lg border border-teal-200 bg-white px-3 text-xs font-semibold text-teal-800 hover:bg-teal-50"
+            >
+              Open provider journey →
+            </Link>
+          </div>
         </div>
 
         <div className="grid gap-px bg-gray-100 sm:grid-cols-3">

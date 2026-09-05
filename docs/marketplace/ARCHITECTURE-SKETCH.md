@@ -2,7 +2,7 @@
 
 One city, both sides. Everything below the entry layer lives in the Portal.
 
-**Track A = Aid Establishment. Track B = Care Establishment. PG = the paid growth layer.**
+**Track A = Aid Establishment. Track B = Care Establishment. PG = Olera Pro, the paid layer.**
 
 ---
 
@@ -11,57 +11,57 @@ One city, both sides. Everything below the entry layer lives in the Portal.
                                        │  ONE CITY  │
                                        └──────┬─────┘
             ┌─────────────────────────────────┴──────────────────────────┐
-            ▼                                                            ▼
-
-                              PG1  DEMAND
-FAMILY                             │                  PROVIDER
-───────────────────────────────────┼───────────────   ─────────────────────────────────────
-SOURCES                            ▼                  SOURCES
-FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  PS2 REFERRAL
-  │              │             │                        │         │            │
-  │              └───────┬──────┘                       ▼         └──────┬──────┘
-  │                      ▼                            P2  OUTREACH       │
-  │           F1  ENTRY SURFACE                         │                │
-  │               provider page                         │                │
-  │               editorial                             │                │
-  │               benefits page                         │                │
-  │               │                                     │                │
-  │               ├─ FQ   QUESTION ─────────────────────►                │
-  │               ▼                                     │                │
-  │           F2  CTA                                   │                │
-  │               ├─ F2a  BENEFITS CTA                  │                │
-  │               ├─ F2b  CONNECTION CARD ──────────────►                │
-  │               ├─ F2c  LIVE PROFILE ─────────────────►                │
-  │               │                                     │                │
-  └────────┬──────┘                                     │                │
-           └─────────────────────────┐                  │                │
-                                     ▼                  ▼                ▼
-┌──────────────────────────────────────────────────────────────────────────────────────────┐
-│  PORTAL                                                                                  │   PG
-│  ┌──────────────────────┐  ┌─────────────────────┐  ┌─────────────────────────────────┐  │   GROWTH SYSTEM
-│  │ TRACK A              │  │ F3  FAMILY PROFILE  │  │ TRACK B                         │  │   ─────────────
-│  │ AID ESTABLISHMENT    │  │                     │  │ CARE ESTABLISHMENT              │  │
-│  │                      │  │    ┌────────────┐   │  │          ┌────────────┐         │  │
-│  │                      │  │    │    CR-F    │   │  │          │    CR-P    │         │  │
-│  │                      │  │    └────────────┘   │  │          └────────────┘         │  │
-│  │                      │  │                     │  │                                 │  │
-│  │ A1  MATCHED          │◄─│       enriches      │  │ P3  PROVIDER PROFILE            │◄─┼── PG2  PRESENCE
-│  │      │               │  │     continuously    │  │     CLAIM or CREATE             │  │       profile
-│  │      ▼               │  │                     │  │      │                          │  │       reviews
-│  │ A2  APPLICATION      │  │                     │  │      ▼                          │  │       search & AI
-│  │      │               │  │                     │─►│ B1  FAMILY-PROVIDER MATCHED     │◄─┼── PG3  RESPONSE
-│  │      ▼               │  │                     │  │      │                          │  │       minutes
-│  │ A3  AID ESTABLISHED  │  │                     │  │      ▼                          │  │       needs intake
-│  │                      │  │                     │  │ B2  QUALIFIED                   │◄─┼── PG4  FOLLOW-UP
-│  │                      │  │                     │  │      │                          │  │       re-engagement
-│  │                      │  │                     │  │      ▼                          │  │       scheduling
-│  │                      │  │                     │  │ B3  CARE ESTABLISHED            │  │
+            ▼                                                            ▼                     OLERA PRO
+                                                                                               ─────────
+                                   ┌────────────────────────────────────────────────────────── PG1  MANAGED ADS
+FAMILY                             │                  PROVIDER                               ┌─PG2  STAFFING
+───────────────────────────────────┼───────────────   ─────────────────────────────────────  │
+SOURCES                            ▼                  SOURCES                                │
+FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  PS2 REFERRAL  │
+  │              │             │                        │         │            │             │
+  │              └───────┬──────┘                       ▼         └──────┬──────┘            │
+  │                      ▼                            P2  OUTREACH       │                   │
+  │           F1  ENTRY SURFACE                         │                │                   │
+  │               provider page                         │                │                   │
+  │               editorial                             │                │                   │
+  │               benefits page                         │                │                   │
+  │               │                                     │                │                   │
+  │               ├─ FQ   QUESTION ─────────────────────►                │                   │
+  │               ▼                                     │                │                   │
+  │           F2  CTA                                   │                │                   │
+  │               ├─ F2a  BENEFITS CTA                  │                │                   │
+  │               ├─ F2b  CONNECTION CARD ──────────────►                │                   │
+  │               ├─ F2c  LIVE PROFILE ─────────────────►                │                   │
+  │               │                                     │                │                   │
+  └────────┬──────┘                                     │                │                   │
+           └─────────────────────────┐                  │                │                   │
+                                     ▼                  ▼                ▼                   │
+┌──────────────────────────────────────────────────────────────────────────────────────────┐ │
+│  PORTAL                                                                                  │ │
+│  ┌──────────────────────┐  ┌─────────────────────┐  ┌─────────────────────────────────┐  │ │
+│  │ TRACK A              │  │ F3  FAMILY PROFILE  │  │ TRACK B                         │  │ │
+│  │ AID ESTABLISHMENT    │  │                     │  │ CARE ESTABLISHMENT              │  │ │
+│  │                      │  │    ┌────────────┐   │  │          ┌────────────┐         │  │ │
+│  │                      │  │    │    CR-F    │   │  │          │    CR-P    │         │  │ │
+│  │                      │  │    └────────────┘   │  │          └────────────┘         │  │ │
+│  │                      │  │                     │  │                                 │  │ │
+│  │ A1  MATCHED          │◄─│       enriches      │  │ P3  PROVIDER PROFILE            │  │ │
+│  │      │               │  │     continuously    │  │     CLAIM or CREATE             │  │ │
+│  │      ▼               │  │                     │  │      │                          │  │ │
+│  │ A2  APPLICATION      │  │                     │  │      ▼                          │  │ │
+│  │      │               │  │                     │─►│ B1  FAMILY-PROVIDER MATCHED     │  │ │
+│  │      ▼               │  │                     │  │      │                          │  │ │
+│  │ A3  AID ESTABLISHED  │  │                     │  │      ▼                          │  │ │
+│  │                      │  │                     │  │ B2  QUALIFIED                   │  │ │
+│  │                      │  │                     │  │      │                          │  │ │
+│  │                      │  │                     │  │      ▼                          │  │ │
+│  │                      │  │                     │  │ B3  CARE ESTABLISHED            │◄─┼─┘
 │  └──────────┬───────────┘  └─────────────────────┘  └─────┬────────────────┬─────────┘   │
 └─────────────┼─────────────────────────────────────────────┼────────────────┼────────────┘
               │                                             │                │
               └──────────────────────┬──────────────────────┘                │
                                      ▼                                       ▼
-                              FAMILY OUTCOME                         PROVIDER OUTCOME ───────► PG5  REPORTING
+                              FAMILY OUTCOME                         PROVIDER OUTCOME
                             FO1 aid   FO2 care                       PO  new business
 ```
 
@@ -87,7 +87,7 @@ FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  P
 | **B1 · B2 · B3** | family–provider matched · qualified · care established |
 | **FO1 · FO2** | aid · care |
 | **PO** | new business |
-| **PG** | growth system — **PG1** demand · **PG2** presence · **PG3** response · **PG4** follow-up · **PG5** reporting |
+| **PG** | Olera Pro — **PG1** managed ads · **PG2** staffing |
 
 ---
 
@@ -107,66 +107,33 @@ listed directory — there is no family equivalent, and there should not be.
 
 ---
 
-## PG — the growth system
+## Olera Pro
 
-PG is not a step. It is a paid service layer over one provider's arc, and its arms act in five
-different places, which is why it cannot be drawn as a box inside Track B.
+Two tiers, one upgrade. Neither changes how a family is matched.
 
-**PG1 demand** funds FS3 for one provider. It is the only arm on the family side of the diagram, and
-the only one that creates supply rather than working it.
+**PG1 managed ads** funds FS3 for one provider. More families see that provider's page, so more of
+them reach B1 with them. It buys distribution, not position.
 
-**PG2 presence** brings P3 up to the standard the rest of the system already assumes: complete
-profile, current photos and pricing, reviews answered, structured data an AI can read.
+**PG2 staffing** acts at B3. A provider who cannot staff a case cannot establish care, so the
+constraint at the bottom of Track B is often capacity rather than demand. This tier is MedJobs
+pointed at a single provider.
 
-**PG3 response** takes over the provider's side of B1 — the inquiry is answered in the provider's
-name, in minutes, nights and weekends included.
+**Why only these two.** They are the only arms whose value a provider can state without our numbers:
+families saw me, and I can staff the case. Profile work, answering inquiries and follow-up are either
+already free or work we would have to staff ourselves before we could sell it.
 
-**PG4 follow-up** works B1 toward B2 for weeks, ending in a booked assessment.
+**Where it is sold.** As an upgrade the provider sees in the portal at P3, and in the CR-P
+conversation. The free market snapshot is what earns that call.
 
-**PG5 reporting** runs the other way. PO's numbers come back monthly as the provider's scorecard.
+**PG1 today.** Shipped as Ad Boost — `lib/ad-boost/*`, `/provider/boost`, `/admin/ad-boost`.
+Providers choose Google, Meta or both; Nextdoor is admin-assigned and experimental. A campaign runs
+pending_profile → requested → scheduled → live → ended, and will not start below 70% profile
+completeness, so presence work is already a gate rather than a product. The ladder is a $50 first
+campaign on us, then $75, $150 and $300 a month, with $600+ handled as a custom plan. Billing is
+flat and all-in — spend, setup and management bundled, never per-lead.
 
-**Sold at CR-P.** Not in the portal. PG needs an onboarding month that no self-serve flow can
-deliver, and the shipped ad ladder already treats anything above $600 as a conversation. The portal
-holds the account and the monthly numbers; it does not hold the purchase. The free market snapshot is
-what earns the CR-P call, delivered through P2.
-
-**One boundary.** PG3 and PG4 must cover every inquiry a provider receives, including the ones that
-never came from Olera. The moment they become a reason to route B1 preferentially, the network stops
-being open and the paid layer starts taxing the family's match.
-
-**Track A stays out of PG.** Screening a family for VA and Medicaid is already free and already runs
-on the family side. Selling it to the provider who then gets paid by those programs is the one arm
-with real legal exposure, and it would put a free-network asset behind a paywall.
-
----
-
-## One package, one price
-
-A no-brainer price can only buy work whose marginal cost is near zero. That splits PG cleanly, though
-not along the line the five arms suggest.
-
-**Near zero.** PG2 and PG5 are already automated. PG3 and PG4 are near zero too — but only on
-inquiries that came through Olera, where we already hold the family and already message them. On
-those, answering is a rewrite of work we do today, not new labor.
-
-**Not near zero.** PG1 is pass-through money. So is PG3 and PG4 over a provider's *own* inbound —
-their forms, their phone — which needs a tracked line and staffed hours that do not exist.
-
-The package is the first list. The second is priced separately.
-
-| | |
-|---|---|
-| **Market snapshot** | free — the artifact that earns the CR-P call |
-| **Growth System · $49/mo** | PG2, PG3, PG4, PG5, scoped to Olera inquiries |
-| **Ads** | optional, at cost — PG1 |
-| **Full service · $749/mo** | adds the provider's own inbound and managed ad operations |
-
-**Why $49 clears the bar.** One home-care client is worth thousands a month, so a single answered
-inquiry pays for the year. The provider does not have to believe our numbers to see that. And it is
-cheaper than the meeting it would take to evaluate — which is the real test of a no-brainer.
-
-**What it costs to say this.** `lib/ad-boost/billing.server.ts` holds that plans are flat and all-in,
-spend included, never itemized. Unbundling ads contradicts that rule. One of the two has to give.
+**PG2 today.** Does not exist as a provider-facing tier. MedJobs runs as its own system with its own
+funnel; nothing sells staffing to a provider as an Olera Pro tier.
 
 ---
 
@@ -201,8 +168,5 @@ half).
 
 **Proposed** — FS1, PS1, PS2, CR-F, CR-P.
 
-**PG** — **PG1** exists as Ad Boost, but priced all-in rather than as fee plus spend at cost.
-**PG2** is partial: completeness scoring, review requests, the Google place link and structured data
-exist; managing a provider's Google Business Profile or their own website does not. **PG3** and
-**PG4** are proposed — nothing today writes to a family as the provider, and there is no tracked
-line. **PG5** is partial: campaign funnel and receipts exist, a booked assessment does not.
+**PG** — **PG1** exists as Ad Boost, but is not framed or sold as a tier of a named product.
+**PG2** is proposed: the caregiver supply exists in MedJobs, the provider-facing tier does not.

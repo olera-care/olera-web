@@ -18,6 +18,7 @@ import { CHANNEL_LABEL, type RelationshipFlag, type RelationshipRow } from "@/li
 
 const FLAG_LABEL: Record<RelationshipFlag, string> = {
   overdue: "overdue",
+  awaiting_reply: "they wrote, no reply yet",
   never_human: "never had a human touch",
   complaint_on_file: "spam complaint on file",
   prefers_text: "prefers text",
@@ -26,6 +27,7 @@ const FLAG_LABEL: Record<RelationshipFlag, string> = {
 
 const FLAG_STYLE: Record<RelationshipFlag, string> = {
   overdue: "bg-orange-50 text-orange-800",
+  awaiting_reply: "bg-rose-50 text-rose-800",
   never_human: "bg-red-50 text-red-700",
   complaint_on_file: "bg-red-50 text-red-700",
   prefers_text: "bg-sky-50 text-sky-800",
@@ -177,7 +179,18 @@ export default function AdminRelationshipsPage() {
                     <div className="mt-0.5 font-mono text-[11px] text-gray-500">
                       {[r.city, r.state].filter(Boolean).join(", ")}
                       {r.contact_name ? ` · ${r.contact_name}` : ""}
-                      {r.campaign_status ? ` · ${r.campaign_status}` : ""}
+                      {r.campaign_request_id ? (
+                        <>
+                          {" · "}
+                          <Link href={`/admin/ad-boost/${r.campaign_request_id}`} className="text-teal-700 hover:underline">
+                            campaign{r.campaign_status ? ` · ${r.campaign_status}` : ""} →
+                          </Link>
+                        </>
+                      ) : r.campaign_status ? (
+                        ` · ${r.campaign_status}`
+                      ) : (
+                        ""
+                      )}
                     </div>
                     {r.flags.length > 0 && (
                       <div className="mt-1.5 flex flex-wrap gap-1">

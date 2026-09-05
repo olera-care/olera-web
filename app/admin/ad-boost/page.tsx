@@ -400,6 +400,14 @@ function ProviderGroupRow({
                 · {campaignCountLabel}
               </span>
             )}
+            <span className="text-[11px] text-gray-400">·</span>
+            <Link
+              href={`/admin/relationships/${group.providerId}`}
+              className="text-[11px] text-teal-700 hover:underline"
+              title="Every email, text, and call with this provider, in order"
+            >
+              comms →
+            </Link>
           </p>
           <CompactProviderMeta
             completeness={group.latestRequest.completeness_at_submit}

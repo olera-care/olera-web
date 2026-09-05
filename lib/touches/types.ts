@@ -65,20 +65,39 @@ export type TouchInput = {
   next_action_owner?: string | null;
 };
 
+/**
+ * Where a timeline row was read from. The first three are what a touch row can
+ * declare (DB CHECK); the last two are read-only feeds the timeline merges in:
+ * `gmail` also covers support_email_messages, `twilio` covers sms_inbound.
+ */
+export type TimelineSource = TouchSource | "twilio";
+
 /** One line on a provider's timeline, whatever table it came from. */
 export type TimelineItem = {
   id: string;
-  kind: "touch" | "email" | "campaign";
+  /**
+   * touch    = provider_touches (a person logged it)
+   * email    = email_log (system sends, email and SMS)
+   * campaign = ad_campaign_log
+   * support  = support_email_messages (anything through support@, replies and Bcc'd copies)
+   * sms      = sms_inbound (a text to the Olera number)
+   */
+  kind: "touch" | "email" | "campaign" | "support" | "sms";
   /** out = we did it, in = they did it, system = the application did it */
   actor: "out" | "in" | "system";
   channel: TouchChannel | "system";
   occurred_at: string;
   title: string;
   detail: string | null;
-  source: TouchSource;
-  /** For system emails: delivered / opened / failed / complained. */
+  source: TimelineSource;
+  /**
+   * System emails: delivered / opened / failed / complained.
+   * Support and SMS rows: "needs reply" when nobody has answered them yet.
+   */
   status?: string | null;
   contact_handle?: string | null;
+  /** Where to go to act on it (the support inbox, the SMS inbox). */
+  href?: string | null;
   /** Only on touch rows that declared a next action. */
   next_action?: {
     text: string;
@@ -113,7 +132,7 @@ export type LastTouch = {
   occurred_at: string;
   channel: TouchChannel | "system";
   actor: "out" | "in" | "system";
-  source: TouchSource;
+  source: TimelineSource;
   title: string;
   status?: string | null;
 };
@@ -127,10 +146,21 @@ export type RelationshipRow = ProviderContact & {
   days_quiet: number | null;
   flags: RelationshipFlag[];
   campaign_status: string | null;
+  /** Newest Ad Boost request, for the link back to /admin/ad-boost/[id]. */
+  campaign_request_id: string | null;
+};
+
+/** One Ad Boost request, enough to link to it and say what state it is in. */
+export type CampaignRef = {
+  id: string;
+  status: string;
+  campaign_tag: string | null;
+  created_at: string;
 };
 
 export type RelationshipFlag =
   | "overdue"
+  | "awaiting_reply"
   | "never_human"
   | "complaint_on_file"
   | "prefers_text"
@@ -141,5 +171,7 @@ export type ProviderTimeline = {
   profile: ProviderContact;
   open_action: OpenAction | null;
   flags: RelationshipFlag[];
+  /** Every Ad Boost request for this provider, newest first. */
+  campaigns: CampaignRef[];
   items: TimelineItem[];
 };

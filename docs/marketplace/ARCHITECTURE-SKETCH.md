@@ -48,13 +48,13 @@ FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  P
 │  │      │               │  │     continuously    │  │     CLAIM or CREATE             │                       │
 │  │      ▼               │  │                     │  │      │                          │     PAID ADD-ONS      │
 │  │ A2  APPLICATION      │  │                     │  │      ▼                          │     ────────────      │
-│  │      │               │  │                     │─►│ B1  FAMILY-PROVIDER MATCHED  ▲  │◄─── PG1  MANAGED ADS  │
+│  │      │               │  │                     │─►│ B1  FAMILY-PROVIDER MATCHED ▲ ◄─┼──── PG1  MANAGED ADS  │
 │  │      ▼               │  │                     │  │      │                          │                       │
 │  │ A3  AID ESTABLISHED  │  │                     │  │      ▼                          │                       │
 │  │                      │  │                     │  │ B2  FAMILY-PROVIDER QUALIFIED   │                       │
 │  │                      │  │                     │  │      │                          │                       │
 │  │                      │  │                     │  │      ▼                          │                       │
-│  │                      │  │                     │  │ B3  STAFFED PROVIDER         ▲  │◄─── PG2  STAFFING     │
+│  │                      │  │                     │  │ B3  STAFFED PROVIDER        ▲ ◄─┼──── PG2  STAFFING     │
 │  │                      │  │                     │  │      │                          │                       │
 │  │                      │  │                     │  │      ▼                          │                       │
 │  │                      │  │                     │  │ B4  CARE ESTABLISHED            │                       │

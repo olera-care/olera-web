@@ -158,14 +158,14 @@ export function StageBox({
         stroke={greyed ? "#e5e7eb" : o.stroke}
         strokeDasharray={greyed ? "4 3" : undefined}
       />
-      {!greyed && metric?.health ? (
+      {!greyed && showStats && metric?.health ? (
         <g>
           {!read ? <title>{metricTitle(s.key ?? s.code, s.code, s.name, metric)}</title> : null}
           <circle cx={s.x + 13} cy={s.y + 16} r={4.5} fill={HEALTH[metric.health].dot} />
         </g>
       ) : null}
       <text
-        x={s.x + (!greyed && metric?.health ? 25 : 12)}
+        x={s.x + (!greyed && showStats && metric?.health ? 25 : 12)}
         y={s.y + 21}
         fontSize={s.w < 200 ? 14 : 16}
         fontWeight={700}
@@ -173,11 +173,11 @@ export function StageBox({
       >
         {s.code}
       </text>
-      <text x={s.x + (!greyed && metric?.health ? 25 : 12)} y={s.y + 39} fontSize={s.w < 200 ? 12 : 13.5} fill={greyed ? "#9ca3af" : "#374151"}>
+      <text x={s.x + (!greyed && showStats && metric?.health ? 25 : 12)} y={s.y + 39} fontSize={s.w < 200 ? 12 : 13.5} fill={greyed ? "#9ca3af" : "#374151"}>
         {s.name}
       </text>
       {sub ? (
-        <text x={s.x + (!greyed && metric?.health ? 25 : 12)} y={s.y + 56} fontSize={12} fill={greyed ? "#b0b6be" : "#6b7280"}>
+        <text x={s.x + (!greyed && showStats && metric?.health ? 25 : 12)} y={s.y + 56} fontSize={12} fill={greyed ? "#b0b6be" : "#6b7280"}>
           {sub}
         </text>
       ) : null}

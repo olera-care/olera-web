@@ -43,10 +43,13 @@ const BAR: Record<Health, string> = {
 export default function SiteNavigator({
   active,
   onPick,
+  showStats = true,
 }: {
   /** Currently filtered site slug, or null for all sites. */
   active: string | null;
   onPick: (slug: string | null) => void;
+  /** Off hides every score and health mark, leaving a plain list of schools. */
+  showStats?: boolean;
 }) {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [failed, setFailed] = useState(false);
@@ -70,13 +73,15 @@ export default function SiteNavigator({
   }, [rows, q]);
 
   return (
-    <aside className="rounded-lg border border-gray-200 bg-white">
-      <div className="border-b border-gray-100 px-3 py-2.5">
-        <h2 className="text-sm font-semibold text-gray-900">Site health</h2>
-        <p className="text-xs text-gray-500">Worst first</p>
+    <aside className="flex h-full flex-col border-l border-gray-100 pl-4">
+      <div className="pb-2">
+        <h2 className="text-sm font-semibold text-gray-900">
+          {showStats ? "Site health" : "Sites"}
+        </h2>
+        {showStats ? <p className="text-xs text-gray-500">Worst first</p> : null}
       </div>
 
-      <div className="px-3 py-2">
+      <div className="pb-2">
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
@@ -89,7 +94,7 @@ export default function SiteNavigator({
       <button
         type="button"
         onClick={() => onPick(null)}
-        className={`flex w-full items-center justify-between px-3 py-2 text-left text-[13px] transition-colors ${
+        className={`flex w-full items-center justify-between rounded-md px-2 py-2 text-left text-[13px] transition-colors ${
           active === null ? "bg-primary-50 font-semibold text-primary-900" : "text-gray-700 hover:bg-gray-50"
         }`}
       >
@@ -97,26 +102,28 @@ export default function SiteNavigator({
         <span className="text-[11px] text-gray-400">{rows?.length ?? ""}</span>
       </button>
 
-      <div className="max-h-[26rem] overflow-y-auto border-t border-gray-100">
+      <div className="min-h-0 flex-1 overflow-y-auto border-t border-gray-100">
         {failed ? (
-          <p className="px-3 py-4 text-xs text-gray-500">Site health could not be loaded.</p>
+          <p className="px-2 py-4 text-xs text-gray-500">Site health could not be loaded.</p>
         ) : !rows ? (
-          <p className="px-3 py-4 text-xs text-gray-500">Scoring sites…</p>
+          <p className="px-2 py-4 text-xs text-gray-500">Scoring sites…</p>
         ) : shown.length === 0 ? (
-          <p className="px-3 py-4 text-xs text-gray-500">No university matches that.</p>
+          <p className="px-2 py-4 text-xs text-gray-500">No university matches that.</p>
         ) : (
           shown.map((r) => (
             <button
               key={r.slug}
               type="button"
-              title={r.reads}
+              title={showStats ? r.reads : r.name}
               onClick={() => onPick(r.slug)}
-              className={`flex w-full items-center gap-2.5 px-3 py-2 text-left transition-colors ${
+              className={`flex w-full items-center gap-2.5 rounded-md px-2 py-2 text-left transition-colors ${
                 active === r.slug ? "bg-primary-50" : "hover:bg-gray-50"
               }`}
             >
               {/* The bar carries the status at a glance; the number is the detail. */}
-              <span className={`h-8 w-1 shrink-0 rounded-full ${BAR[r.status]}`} aria-hidden />
+              {showStats ? (
+                <span className={`h-8 w-1 shrink-0 rounded-full ${BAR[r.status]}`} aria-hidden />
+              ) : null}
               <Mark row={r} />
               <span className="min-w-0 flex-1">
                 <span
@@ -126,11 +133,13 @@ export default function SiteNavigator({
                 >
                   {r.name}
                 </span>
-                <span className="block text-[11px] text-gray-500">
-                  {r.status === "unscored" ? "not scored" : `${r.score} / 100`}
-                </span>
+                {showStats ? (
+                  <span className="block text-[11px] text-gray-500">
+                    {r.status === "unscored" ? "not scored" : `${r.score} / 100`}
+                  </span>
+                ) : null}
               </span>
-              <HealthBadge status={r.status} />
+              {showStats ? <HealthBadge status={r.status} /> : null}
             </button>
           ))
         )}

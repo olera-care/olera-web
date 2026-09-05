@@ -42,8 +42,8 @@ const STAGES: Stage[] = [
   { code: "ST-OUT", name: "University outbound", owner: "admin", dest: "st-out-university-outbound", x: RIGHT, y: 172, w: LANE_W },
   { code: "PR2", name: "Provider meeting held", owner: "sales", dest: "pr2-provider-meeting-held", x: LEFT, y: 262, w: LANE_W },
   { code: "ST2", name: "Advisor meeting held", owner: "sales", dest: "st2-advisor-meeting-held", x: RIGHT, y: 262, w: LANE_W },
-  { code: "PR3", name: "Client success", owner: "usm", dest: "pr3-client-success", x: LEFT, y: 352, w: LANE_W, h: 74 },
-  { key: "ST3-ST7", code: "ST3–ST7", name: "University activation", owner: "usm", dest: "st3st7-university-activation", x: RIGHT, y: 352, w: LANE_W, h: 74 },
+  { code: "PR3", name: "Client success", owner: "usm", dest: "pr3-client-success", x: LEFT, y: 352, w: LANE_W },
+  { key: "ST3-ST7", code: "ST3–ST7", name: "University activation", owner: "usm", dest: "st3st7-university-activation", x: RIGHT, y: 352, w: LANE_W },
 ];
 
 const MATCH: Stage[] = [
@@ -100,7 +100,7 @@ export default function SystemArchitecture({
 
   return (
     <svg
-      viewBox="0 0 960 768"
+      viewBox="0 0 960 738"
       width="100%"
       fontFamily="ui-sans-serif, system-ui, -apple-system, Segoe UI, Arial, sans-serif"
       role="img"
@@ -155,47 +155,44 @@ export default function SystemArchitecture({
       {STAGES.filter((s) => s.y === 262).map((s) => box(s))}
 
       {handoff(336, "HANDOFF · SALES LEAD → USER SUCCESS MANAGER")}
-      {box(STAGES[6], "Profile, terms, account setup, through to the first hire")}
-      {box(STAGES[7], "Job board · student orgs · campus events · listservs · professors")}
+      {box(STAGES[6])}
+      {box(STAGES[7])}
 
       {/* Both sides feed the Portal */}
-      {arrow(LEFT + 20, 426, 456)}
-      {arrow(RIGHT + 20, 426, 456)}
+      {arrow(LEFT + 20, 396, 426)}
+      {arrow(RIGHT + 20, 396, 426)}
 
-      <rect x={24} y={458} width={912} height={274} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
-      <text x={44} y={481} fontSize={12} fontWeight={700} fill="#334155" letterSpacing="0.5">
+      <rect x={24} y={428} width={912} height={274} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
+      <text x={44} y={451} fontSize={12} fontWeight={700} fill="#334155" letterSpacing="0.5">
         PORTAL
       </text>
 
-      <rect x={44} y={494} width={360} height={44} rx={5} fill="#d8edec" stroke="#96c8c8" />
-      <text x={56} y={513} fontSize={13.5} fontWeight={700} fill="#1a3030">
+      <rect x={44} y={464} width={360} height={44} rx={5} fill="#d8edec" stroke="#96c8c8" />
+      <text x={56} y={491} fontSize={13.5} fontWeight={700} fill="#1a3030">
         Active client with a staffing need
       </text>
-      <text x={56} y={529} fontSize={12} fill="#6b7280">
-        from the provider side
-      </text>
 
-      {box({ code: "ST8", name: "Student application submitted", owner: "portal", dest: "st8-student-application-submitted", x: 556, y: 494, w: 360 })}
-      {arrow(576, 538, 550)}
-      {box({ code: "QUAL", name: "Portal vets the application", owner: "portal", dest: "qual-portal-vets-the-application", x: 556, y: 552, w: 360 })}
+      {box({ code: "ST8", name: "Student application submitted", owner: "portal", dest: "st8-student-application-submitted", x: 556, y: 464, w: 360 })}
+      {arrow(576, 508, 520)}
+      {box({ code: "QUAL", name: "Portal vets the application", owner: "portal", dest: "qual-portal-vets-the-application", x: 556, y: 522, w: 360 })}
 
-      <line x1={224} y1={538} x2={224} y2={604} stroke="#cbd5e1" strokeWidth={1.5} />
-      <line x1={736} y1={596} x2={736} y2={604} stroke="#cbd5e1" strokeWidth={1.5} />
-      <line x1={142} y1={604} x2={736} y2={604} stroke="#cbd5e1" strokeWidth={1.5} />
-      {arrow(142, 604, 618)}
+      <line x1={224} y1={508} x2={224} y2={574} stroke="#cbd5e1" strokeWidth={1.5} />
+      <line x1={736} y1={566} x2={736} y2={574} stroke="#cbd5e1" strokeWidth={1.5} />
+      <line x1={142} y1={574} x2={736} y2={574} stroke="#cbd5e1" strokeWidth={1.5} />
+      {arrow(142, 574, 588)}
 
-      <text x={44} y={592} fontSize={12} fontWeight={700} fill="#64748b" letterSpacing="0.5">
+      <text x={44} y={562} fontSize={12} fontWeight={700} fill="#64748b" letterSpacing="0.5">
         MATCH / FULFILMENT
       </text>
       {MATCH.map((s, i) =>
-        box({ ...s, x: mx0 + i * (mw + mgap), y: 622, w: mw }),
+        box({ ...s, x: mx0 + i * (mw + mgap), y: 592, w: mw }),
       )}
 
       {yields && outcomes ? (
-        <BottomLine y={680} yields={yields} outcomes={outcomes} showStats={showStats} />
+        <BottomLine y={650} yields={yields} outcomes={outcomes} showStats={showStats} />
       ) : null}
 
-      <Legend y={750} owners={Object.keys(OWNERS) as Owner[]} />
+      <Legend y={720} owners={Object.keys(OWNERS) as Owner[]} />
     </svg>
   );
 }

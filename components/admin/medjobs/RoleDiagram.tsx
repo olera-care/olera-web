@@ -85,7 +85,7 @@ const LEGEND: Record<Props["role"], Owner[]> = {
   crm: ["usm", "portal"],
 };
 
-const HEIGHT: Record<Props["role"], number> = { admin: 300, sales: 250, crm: 436 };
+const HEIGHT: Record<Props["role"], number> = { admin: 300, sales: 250, crm: 422 };
 
 export default function RoleDiagram({ role, onJump, metrics, yields, outcomes, showStats = true }: Props) {
   const box = (st: Stage, sub?: string, greyed?: boolean) => (
@@ -148,30 +148,29 @@ export default function RoleDiagram({ role, onJump, metrics, yields, outcomes, s
       {role === "crm" && (
         <>
           <Lanes y={22} />
-          {box({ code: "PR3", name: "Client success", owner: "usm", dest: "pr3", x: L, y: 36, w: W, h: 58 }, "Profile, terms, account setup, to the first hire")}
+          {box({ code: "PR3", name: "Client success", owner: "usm", dest: "pr3", x: L, y: 36, w: W })}
           {box(
-            { key: "ST3-ST7", code: "ST3–ST7", name: "University activation", owner: "usm", dest: "st", x: R, y: 36, w: W, h: 58 },
-            "Job board · orgs · events · listservs · professors",
+            { key: "ST3-ST7", code: "ST3–ST7", name: "University activation", owner: "usm", dest: "st", x: R, y: 36, w: W },
           )}
-          <Arrow x={L + 20} y1={94} y2={124} />
-          <Arrow x={R + 20} y1={94} y2={124} />
+          <Arrow x={L + 20} y1={80} y2={110} />
+          <Arrow x={R + 20} y1={80} y2={110} />
 
-          <rect x={30} y={126} width={900} height={200} rx={7} fill="#f9fafb" stroke="#eaecf0" />
-          <text x={L} y={148} fontSize={12} fontWeight={700} fill="#334155" letterSpacing="0.5">
+          <rect x={30} y={112} width={900} height={200} rx={7} fill="#f9fafb" stroke="#eaecf0" />
+          <text x={L} y={134} fontSize={12} fontWeight={700} fill="#334155" letterSpacing="0.5">
             PORTAL
           </text>
-          {box({ code: "ST8", name: "Student application submitted", owner: "portal", dest: "portal", x: L, y: 160, w: W })}
-          {box({ code: "QUAL", name: "Portal vets the application", owner: "portal", dest: "portal", x: R, y: 160, w: W })}
-          <Arrow x={480} y1={204} y2={236} />
-          <text x={L} y={232} fontSize={12} fontWeight={700} fill="#64748b" letterSpacing="0.5">
+          {box({ code: "ST8", name: "Student application submitted", owner: "portal", dest: "portal", x: L, y: 146, w: W })}
+          {box({ code: "QUAL", name: "Portal vets the application", owner: "portal", dest: "portal", x: R, y: 146, w: W })}
+          <Arrow x={480} y1={190} y2={222} />
+          <text x={L} y={218} fontSize={12} fontWeight={700} fill="#64748b" letterSpacing="0.5">
             MATCH / FULFILMENT
           </text>
           {MATCH_CHAIN.map((m, i) =>
-            box({ ...m, x: 44 + i * 176, y: 242, w: 168 }),
+            box({ ...m, x: 44 + i * 176, y: 228, w: 168 }),
           )}
 
-          {yields && outcomes ? <BottomLine y={342} yields={yields} outcomes={outcomes} showStats={showStats} /> : null}
-          <Legend y={402} owners={LEGEND.crm} />
+          {yields && outcomes ? <BottomLine y={328} yields={yields} outcomes={outcomes} showStats={showStats} /> : null}
+          <Legend y={388} owners={LEGEND.crm} />
         </>
       )}
     </svg>

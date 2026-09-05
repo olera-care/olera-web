@@ -1,0 +1,561 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>MedJobs Sales Lead Operations</title>
+<style>
+:root { --ink:#000; --muted:#5f6b64; --rule:#b9c4bd; --teal:#14453f; --soft:#f4f7f6; }
+* { box-sizing: border-box; }
+body { margin:0; color:var(--ink); font-family:Arial,Helvetica,sans-serif;
+       font-size:11pt; line-height:1.2; }
+.doc-title { font-size:15pt; font-weight:700; margin:0 0 2pt; color:var(--teal);
+       letter-spacing:0.2pt; }
+.doc-sub { font-size:10pt; color:var(--muted); margin:0 0 9pt; }
+h1,h2,h3,h4 { break-after:avoid; page-break-after:avoid; }
+h1 { font-size:13pt; font-weight:700; text-transform:uppercase; letter-spacing:0.4pt;
+       margin:16pt 0 5pt; color:var(--teal); border-bottom:1.6pt solid var(--teal);
+       padding-bottom:3pt; break-before:page; page-break-before:always; }
+h2 { font-size:11pt; font-weight:700; text-transform:uppercase; letter-spacing:0.4pt;
+       margin:13pt 0 4pt; padding-bottom:2pt; border-bottom:1.2pt solid #000; }
+h3 { font-size:10pt; font-weight:700; text-transform:uppercase; letter-spacing:0.4pt;
+       margin:9pt 0 3pt; color:var(--teal); }
+h4 { font-size:9.5pt; font-weight:700; margin:7pt 0 2pt; color:var(--muted);
+       text-transform:uppercase; letter-spacing:0.4pt; }
+p { margin:0 0 3pt; text-align:justify; orphans:2; widows:2; }
+ul,ol { margin:3pt 0 4pt; padding-left:17pt; }
+li { margin:0 0 3pt; text-align:left; }
+li::marker { color:var(--teal); }
+li > ul, li > ol { margin-top:3pt; }
+p.obj { break-after:avoid; page-break-after:avoid; }
+ul.facts { break-inside:avoid; page-break-inside:avoid; }
+strong { font-weight:700; }
+hr { border:0; border-top:0.6pt solid var(--rule); margin:9pt 0; }
+a { color:var(--teal); text-decoration:none; }
+code { font-family:"DejaVu Sans Mono","Liberation Mono",monospace; font-size:8.6pt;
+       background:var(--soft); border:0.5pt solid var(--rule); border-radius:2px;
+       padding:0 2px; }
+/* The flow diagram is 69 lines of box drawing. The size has to be set on the
+   pre itself, not on the code inside it, or the line boxes take the 11pt body
+   size and the block runs off the page. Overflow is left visible so that a
+   future edit which no longer fits is obvious rather than silently cropped. */
+pre { background:var(--soft); border:0.5pt solid var(--rule);
+      border-left:2.4pt solid var(--teal); padding:7pt 9pt;
+      font-family:"DejaVu Sans Mono","Liberation Mono",monospace;
+      font-size:7.2pt; line-height:1.05;
+      break-inside:avoid; page-break-inside:avoid; margin:0 0 6pt; }
+pre code { background:none; border:0; padding:0; font-size:inherit;
+           line-height:inherit; white-space:pre; }
+blockquote { margin:0 0 5pt; padding:0 0 0 8pt; border-left:2.4pt solid var(--rule);
+      color:var(--muted); font-size:9.5pt; break-inside:avoid; }
+blockquote p { margin:0 0 2pt; text-align:left; }
+blockquote p:last-child { margin-bottom:0; }
+blockquote strong { color:var(--teal); }
+table { width:100%; border-collapse:collapse; margin:5pt 0 2pt; font-size:9pt;
+      line-height:1.16; break-inside:auto; }
+thead { display:table-header-group; }
+tr { break-inside:avoid; page-break-inside:avoid; }
+th { text-align:left; color:var(--teal); border-bottom:1pt solid var(--teal);
+      padding:0 6pt 2.5pt 0; font-weight:700; vertical-align:bottom; }
+td { border-bottom:0.4pt solid var(--rule); padding:2.8pt 6pt 2.8pt 0;
+      vertical-align:top; }
+td strong { color:var(--teal); }
+tbody tr:last-child td { border-bottom:1pt solid var(--teal); }
+.toc { border-top:1.2pt solid #000; border-bottom:1.2pt solid #000; padding:6pt 0;
+      margin:0 0 10pt; font-size:9.5pt; break-inside:avoid; column-count:2;
+      column-gap:20pt; }
+.toc-h { font-size:9pt; text-transform:uppercase; letter-spacing:0.4pt;
+      color:var(--teal); font-weight:700; margin:0 0 4pt; column-span:all; }
+.toc ul { list-style:none; margin:0; padding:0; }
+.toc ul ul { display:none; }
+.toc li { margin:0 0 2pt; }
+.toc a { color:var(--ink); }
+figure { margin:5pt 0 6pt; break-inside:avoid; page-break-inside:avoid; }
+/* Process figures float into the text so a run of tables is broken up rather
+   than merely interrupted. Headings clear them so a float cannot escape into
+   the next stage. */
+figure.fw { float:right; width:2.5in; margin:2pt 0 6pt 14pt; }
+figure.fw svg { display:block; width:100%; height:auto; }
+figure.fw figcaption { font-size:8.5pt; line-height:1.14; }
+h1,h2,h3 { clear:both; }
+table { clear:both; }
+/* The screenshots are 640px wide. Capping the plate at 6.6in keeps them
+   near 97 dpi rather than the 85 dpi a full 7.5in column would give. */
+figure img { display:block; max-width:6.6in; max-height:8.2in; margin:0 auto; }
+figcaption { font-size:9pt; line-height:1.16; text-align:left; margin:3pt 0 0;
+      break-before:avoid; }
+figcaption strong:first-child { color:var(--teal); }
+.exhibit-missing { border:0.6pt dashed var(--rule); background:var(--soft);
+      padding:14pt 10pt; margin:5pt 0 6pt; text-align:center; color:var(--muted);
+      font-size:9pt; }
+.exhibit-missing b { display:block; color:var(--teal); font-size:9.5pt;
+      margin-bottom:3pt; }
+@page { size: Letter; }
+
+p.navbar { margin:6pt 0 10pt; padding:7pt 8pt; text-align:left;
+           border:0.8pt solid var(--rule); border-radius:3pt; background:var(--soft);
+           line-height:1.9; break-inside:avoid; }
+p.navbar a { display:inline-block; margin:0 4pt 0 0; padding:2.5pt 6pt;
+             border:0.8pt solid var(--teal); border-radius:2.5pt;
+             color:var(--teal); font-size:9pt; font-weight:700;
+             text-decoration:none; }
+p.navlabel { margin:0 0 2pt; font-size:8.5pt; font-weight:700; color:var(--muted);
+             text-transform:uppercase; letter-spacing:0.4pt; }
+p.totop { margin:2pt 0 12pt; text-align:right; font-size:8.5pt; }
+p.totop a { color:var(--muted); text-decoration:none; }
+/* A gap block: an open question in the master, carried rather than answered. */
+div.gap { border-left:2.5pt solid var(--teal); background:var(--soft);
+          margin:6pt 0 8pt; padding:5pt 8pt 5pt 9pt; font-size:10pt;
+          break-inside:avoid; page-break-inside:avoid; }
+div.gap p { margin:0; text-align:left; }
+/* A stage's operating spine is a headerless two-column table: label, then the
+   fact. Tagged by shape, because attr_list does not attach to a table. */
+table.field th { display:none; }
+table.field td:first-child { width:23%; font-weight:700; color:var(--teal); }
+h2 { break-before:page; page-break-before:always; }
+h2.nobreak { break-before:auto; page-break-before:auto; }
+table.field th:first-child, table.field td:first-child { width:22%; }
+.gap { border-left:2.5pt solid var(--teal); padding:5pt 0 5pt 9pt; margin:6pt 0 8pt;
+       background:var(--soft); break-inside:avoid; }
+.gap p { margin:0 0 3pt; }
+</style></head><body>
+<div class="doc-title" id="top">MedJobs Sales Lead Operations</div>
+<div class="doc-sub">Sales Lead view of the MedJobs 2.0 operating system &#183; 4 September 2026</div>
+
+<p>A role view of the MedJobs 2.0 Master Implementation Matrix. Every instruction here
+comes from that document, which stays the source of truth. Nothing has been added to
+the operating model; where the master leaves a question open, it is marked
+<strong>GAP / DECISION NEEDED</strong> rather than answered here.</p>
+<p><strong>ROLE PURPOSE</strong> Hold the two meetings the Admin Team books, and turn each into
+something the User Success Manager can act on: a converted provider on one side, an
+agreed channel plan on the other. The Sales Lead owns a narrow, decisive middle of
+both pipelines.</p>
+<p><strong>WHAT YOU OWN</strong> PR2 provider meeting held. ST2 advisor meeting held. Logging both
+outcomes. Naming the handoff in the room. Where a physician in the room changes the
+answer during ST3 to ST7, you share ownership with the User Success Manager.</p>
+<p><strong>WHAT YOU DO NOT OWN</strong> Prospecting, outreach and booking, which are the Admin Team's
+(PR1, PR-OUT, ST1, ST-OUT). Client success, university activation, matching,
+fulfilment and billing, which are the User Success Manager's or the Portal's.</p>
+<p><strong>WHO HANDS WORK TO YOU</strong> The Admin Team, at the booked meeting, on both sides. The
+row arrives in the <strong>Meetings</strong> queue with its full timeline.</p>
+<p><strong>WHO YOU HAND WORK TO</strong> The User Success Manager, once the outcome is logged.</p>
+<p class="navbar"><a href="#pr2">Provider meetings</a> <a href="#st2">Advisor meetings</a> <a href="#after">After the handoff</a> <a href="#handoff">User Success handoff</a> <a href="#exceptions">Exceptions</a> <a href="#gaps">Gaps</a> <a href="#trace">Traceability</a></p>
+<h2 class="nobreak" id="receiving">Receiving the Admin Team handoff</h2>
+<p>A booking is the handoff. The Admin Team books the 30-minute <em>Student Caregiver
+Program</em> slot, usually live on a call or off a reply that names a time, and the row
+lands in <strong>Meetings</strong> at <code>olera.care/admin/medjobs/in-basket?tab=meetings</code>. Once the
+time has passed it sits under <strong>NEEDS LOGGING</strong>, with the instruction on the tab
+itself: <em>"log the outcome to move the row forward."</em></p>
+<p>Below <strong>NEEDS LOGGING</strong>, <strong>FINDING A TIME</strong> holds rows still coordinating by email.
+That is a holding state the Admin Team sets by hand, not a meeting, and not yours.</p>
+<p><strong>Read the row before the call.</strong> The timeline shows every email, reply and call that
+produced this meeting, including what they said when they replied. On the provider
+side the drawer's <strong>NEXT STEP</strong> reads <em>"On the calendar"</em> and the state chip reads
+<em>"Replied, they replied, meeting booked."</em></p>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="pr2">PR2 Provider meeting held</h2>
+<p><strong>Objective</strong> Hold the meeting, convert the provider, and capture what was promised.</p>
+<table class="field">
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Trigger</strong></td>
+<td>The booking lands the row in <strong>Meetings</strong>, under <strong>NEEDS LOGGING</strong> once the time has passed</td>
+</tr>
+<tr>
+<td><strong>Tools</strong></td>
+<td>Meetings tab &#183; the provider drawer and its timeline &#183; <strong>Log meeting outcome</strong> modal &#183; Calendly for a rebook</td>
+</tr>
+<tr>
+<td><strong>Communications</strong></td>
+<td>Booking confirmation and reminder from Calendly &#183; the post-meeting details email with the agreement &#183; a polite closing note when the answer is no</td>
+</tr>
+<tr>
+<td><strong>Completion criteria</strong></td>
+<td>Outcome logged and the relationship handed to the User Success Manager</td>
+</tr>
+<tr>
+<td><strong>Handoff</strong></td>
+<td><strong>Sales Lead to User Success Manager.</strong> <em>Interested / went well</em> launches activation and moves the relationship on; the other two close the row</td>
+</tr>
+</tbody>
+</table>
+<h3 id="required-actions">Required actions</h3>
+<ol>
+<li><strong>Read the row before the call.</strong> The timeline shows every email, reply and call
+   that produced this meeting, including what they said when they replied.</li>
+<li><strong>Run the standard structure</strong> and close with the soft agreement ask: <em>no rush to
+   sign, we just need it before you interview your first student.</em></li>
+<li><strong>Log the outcome the same day.</strong> A meeting held and unlogged is a row that stops
+   moving.</li>
+<li><strong>Write down what was promised</strong> in the notes. A note on its own logs the meeting.</li>
+<li><strong>Rebook a no-show once, warmly.</strong> The option opens Calendly for you; people miss
+   meetings.</li>
+<li><strong>A no-show that cannot be rebooked goes back into outreach.</strong> It is not a decline.
+   The row should re-enter a call-and-email sequence rather than sit in Meetings or
+   close.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Outcome</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Interested / went well</strong></td>
+<td>Logs the meeting and launches the activation sequence</td>
+</tr>
+<tr>
+<td><strong>No-show / reschedule</strong></td>
+<td>Logs a no-show and opens Calendly to rebook</td>
+</tr>
+<tr>
+<td><strong>Not interested</strong></td>
+<td>Sends a polite closing note and stops outreach</td>
+</tr>
+</tbody>
+</table>
+<h3 id="what-must-be-recorded">What must be recorded</h3>
+<p>Booked time, attendee name and address, outcome, notes and commitments.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="st2">ST2 Advisor meeting held</h2>
+<p><strong>Objective</strong> Hold the meeting, agree which of the five activation channels are open
+to us, and hand the User Success Manager a plan they can act on without asking again.</p>
+<p><strong>This meeting is not a sale. It is a channel-planning session.</strong> The provider meeting
+ends in a commercial agreement; this one ends in a route to students. The advisor
+already believes pre-health students want caregiving hours. What we do not know is how
+their campus reaches them, and the output is the ST3 to ST7 plan.</p>
+<table class="field">
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Trigger</strong></td>
+<td>The booking lands the row in <strong>Meetings</strong>, under <strong>NEEDS LOGGING</strong> once the time has passed</td>
+</tr>
+<tr>
+<td><strong>Tools</strong></td>
+<td>Meetings tab &#183; the partner row and its timeline &#183; <strong>Log meeting outcome</strong>, the same modal and the same three outcomes as the provider side &#183; video for the meeting</td>
+</tr>
+<tr>
+<td><strong>Communications</strong></td>
+<td>Booking confirmation and reminder from Calendly &#183; the post-meeting note with the ready-to-send copy and flyer the advisor asked for &#183; the results-back note that carries the next ask</td>
+</tr>
+<tr>
+<td><strong>Completion criteria</strong></td>
+<td>Outcome logged, the agreed channels and their named contacts written down, and the relationship handed to the User Success Manager</td>
+</tr>
+<tr>
+<td><strong>Handoff</strong></td>
+<td><strong>Sales Lead to User Success Manager.</strong> <em>Interested / went well</em> launches activation and hands over the channel plan; the other two close the row</td>
+</tr>
+</tbody>
+</table>
+<h3 id="required-actions_1">Required actions</h3>
+<ol>
+<li><strong>Read the row before the call.</strong> Advisors notice when you already know what they
+   told the last person.</li>
+<li><strong>Open by naming what students get</strong>, not what we want: hours, a letter, and
+   experience that strengthens a med, PA or nursing application. That is the advisor's
+   job, which makes it common ground.</li>
+<li><strong>Then work the five channels in order.</strong> This is the body of the meeting.</li>
+<li><strong>Ask for their read, not just their permission.</strong> <em>"Which of these actually
+   reaches pre-health students here?"</em> An advisor telling you the job board is dead
+   and the listserv is everything saves the User Success Manager a month.</li>
+<li><strong>Get a name for every open channel.</strong> A channel with no named contact is not a
+   channel.</li>
+<li><strong>Ask what they need from us to make it easy</strong>, being copy, a flyer, a date, then
+   send it within two days.</li>
+<li><strong>Log the outcome the same day</strong>, with the channel plan in the notes.</li>
+</ol>
+<h3 id="the-five-channels">The five channels</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Channel</th>
+<th>Ask</th>
+<th>The answer the User Success Manager needs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ST3</strong></td>
+<td>University job board</td>
+<td>Is there a board pre-health students actually check? Who posts, and does it need approval?</td>
+<td>The board, the posting route, and who approves</td>
+</tr>
+<tr>
+<td><strong>ST4</strong></td>
+<td>Student organisations</td>
+<td>Which orgs reach these students, pre-med, pre-nursing, AMSA chapters? Who runs them this term?</td>
+<td>Org names and current officers, with a warm introduction where they will make one</td>
+</tr>
+<tr>
+<td><strong>ST5</strong></td>
+<td>Campus events</td>
+<td>Which fairs or events are worth attending, and what are the deadlines and costs?</td>
+<td>Event, date, registration deadline, who books the table</td>
+</tr>
+<tr>
+<td><strong>ST6</strong></td>
+<td>Advisor listservs</td>
+<td>Do you email these students directly? Would you send something for us?</td>
+<td>Which list, who sends it, how often they are willing, and the copy they want</td>
+</tr>
+<tr>
+<td><strong>ST7</strong></td>
+<td>Professors and class visits</td>
+<td>Which professors teach the courses these students take? Would an introduction be welcome?</td>
+<td>Named professors, and explicitly whether we may approach them</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Permission is the deliverable on ST6 and ST7.</strong> A listserv send and a class visit
+both happen on someone else's authority. Write down who granted it and what exactly
+they agreed to, because the User Success Manager will be acting on it weeks later
+without having been in the room.</p>
+<table>
+<thead>
+<tr>
+<th>Outcome</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Interested / went well</strong></td>
+<td>Logs the meeting and launches the activation sequence</td>
+</tr>
+<tr>
+<td><strong>No-show / reschedule</strong></td>
+<td>Logs a no-show and opens Calendly to rebook</td>
+</tr>
+<tr>
+<td><strong>Not interested</strong></td>
+<td>Sends a polite closing note and stops outreach</td>
+</tr>
+</tbody>
+</table>
+<h3 id="when-the-advisor-skips-the-meeting">When the advisor skips the meeting</h3>
+<p>Some advisors will not take a call. They reply to the outreach by simply telling us
+what to do: post it here, email this officer, send me copy for the listserv. <strong>Take
+the advice and act on it.</strong> A channel the advisor handed us is worth more than the
+meeting that would have produced it. Two things still hold.</p>
+<ol>
+<li><strong>Capture it exactly as if it came from a meeting</strong>, being channel, named contact
+   and permission, so the User Success Manager inherits the same plan either way.</li>
+<li><strong>Keep pushing for the meeting, gently.</strong> Not to unlock the channels; those are
+   already running. A named advisor is what makes the second term easier than the
+   first, and the moment to ask is when you report results back: <em>here is what your
+   listserv produced. Can we talk about the spring?</em></li>
+</ol>
+<h3 id="what-must-be-recorded_1">What must be recorded</h3>
+<p>Booked time, attendee, outcome, the channel plan and permissions as notes, and any
+named contacts offered.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="after">Where the Sales Lead stays involved after the handoff</h2>
+<p>Three places, and only three. The master gives the Sales Lead no other role after the
+meeting is logged.</p>
+<table>
+<thead>
+<tr>
+<th>Where</th>
+<th>What the master says</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ST3 to ST7 ownership</strong></td>
+<td>The stage is owned by the <em>"User Success Manager, with the Sales Lead where a physician in the room changes the answer"</em></td>
+</tr>
+<tr>
+<td><strong>ST5 campus events</strong></td>
+<td>Who acts: <em>"USM and Sales Lead attend"</em></td>
+</tr>
+<tr>
+<td><strong>ST7 professors and class visits</strong></td>
+<td>Who acts: <em>"USM and Sales Lead, once permitted"</em></td>
+</tr>
+</tbody>
+</table>
+<p>Read the second and third together with the first: the User Success Manager works the
+plan, and you are in the room where a physician's presence is what makes the ask land.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="handoff">The handoff to the User Success Manager</h2>
+<p>The boundary is the logged outcome. Before it, the row is yours. After it, the
+relationship is the User Success Manager's, on both sides.</p>
+<p><strong>Name the handoff in the room.</strong> On the provider side the master makes this an
+explicit step: <em>"our user success team will follow up with you on next steps."</em> The
+provider leaves expecting the next contact, and expecting it from someone else. A warm
+introduction to a named function beats a cold email from a stranger a week later.</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Provider side</th>
+<th>University side</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>What passes over</strong></td>
+<td>The converted provider, the meeting notes, and anything promised</td>
+<td>The channel plan: which channels were agreed, the named contact for each, and the permission granted</td>
+</tr>
+<tr>
+<td><strong>How it passes</strong></td>
+<td>The provider drawer timeline, which the User Success Manager reads before making contact</td>
+<td>As prose in the meeting notes</td>
+</tr>
+<tr>
+<td><strong>What the outcome does</strong></td>
+<td><em>Interested / went well</em> launches activation and moves the relationship on</td>
+<td><em>Interested / went well</em> launches activation and hands over the channel plan</td>
+</tr>
+<tr>
+<td><strong>What happens next</strong></td>
+<td>The User Success Manager sends the terms email within one business day of the meeting</td>
+<td>The User Success Manager activates every agreed channel within two weeks of the meeting</td>
+</tr>
+</tbody>
+</table>
+<p>Two things about this handoff are worth stating plainly, because both are in the
+master and both bear on whether a relationship becomes ownerless.</p>
+<p><strong>Nothing tells the User Success Manager a provider is waiting.</strong> Logging the meeting
+outcome should alert them; it does not. See <strong>B4</strong> under gaps.</p>
+<p><strong>The channel plan is the handoff, and it travels as prose.</strong> The master says this is
+<em>"enough to work from and not enough to report on."</em> See <strong>B6</strong> under gaps.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="exceptions">Exceptions and escalation</h2>
+<p>Only the exceptions the master document defines are listed here.</p>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>What the master says to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A no-show</strong></td>
+<td>Rebook once, warmly. The outcome option opens Calendly for you</td>
+</tr>
+<tr>
+<td><strong>A no-show that cannot be rebooked</strong></td>
+<td>It is not a decline. The row should re-enter a call-and-email sequence rather than sit in Meetings or close. Nothing catches the row today if the rebook never happens, so this is a hand-worked exception</td>
+</tr>
+<tr>
+<td><strong>An advisor who will not take a meeting</strong></td>
+<td>Take the advice they give in the reply and act on it. Capture channel, named contact and permission exactly as if it came from a meeting, and keep pushing gently for the meeting when you report results back</td>
+</tr>
+<tr>
+<td><strong>A meeting held and not yet logged</strong></td>
+<td>Log it the same day. A meeting held and unlogged is a row that stops moving</td>
+</tr>
+</tbody>
+</table>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="gaps">Gaps and decisions needed</h2>
+<p>Each of these is a place the master document leaves open or names as unbuilt. None is
+resolved here.</p>
+<div class="gap">
+<p><strong>GAP / DECISION NEEDED &#183; "The standard structure" of the provider meeting is not
+written down.</strong> PR2 instructs the Sales Lead to <em>"run the standard structure"</em> and
+gives only its closing move, the soft agreement ask. The master specifies the ST2
+meeting in full, channel by channel, but nowhere sets out the provider meeting's
+agenda. Either it exists outside this document and should be brought in, or it needs
+writing. Not resolved here.</p>
+</div>
+<div class="gap">
+<p><strong>B2 &#183; A no-show re-enters outreach automatically.</strong> A missed meeting is not a
+decline. The outcome opens Calendly to rebook, and nothing catches the row if the
+rebook never happens.</p>
+</div>
+<div class="gap">
+<p><strong>B4 &#183; An alert when a meeting converts</strong>, putting the client in front of the
+User Success Manager with the meeting notes attached. Not built. Nothing tells them a
+provider is waiting, which is why naming the handoff in the room matters as much as it
+does.</p>
+</div>
+<div class="gap">
+<p><strong>B6 &#183; Structured channel capture at the meeting</strong>: which channels were agreed,
+the named contact for each, and the permission granted, as fields rather than prose.
+The plan lives in the meeting notes. Workable for one operator, unreportable across
+campuses.</p>
+</div>
+<div class="gap">
+<p><strong>B7 &#183; A state for <em>channels agreed, no meeting yet</em></strong>, carrying an open ask for a
+relationship meeting. No such state exists. The row either sits in Meetings without a
+meeting or looks like one that never engaged. This is the state an advisor who skipped
+the meeting leaves behind.</p>
+</div>
+<div class="gap">
+<p><strong>B8 &#183; A partner-facing booking event.</strong> Advisors book the provider's event. The
+invite copy carries over and reads acceptably to an advising office; the slug
+<code>home-care-agency-manager-interview</code> in the URL does not.</p>
+</div>
+<div class="gap">
+<p><strong>B1 &#183; The Meetings tab holds only booked meetings.</strong> <em>Finding a time</em> is a
+hand-set state inside Meetings, which muddies the queue you work from.</p>
+</div>
+<div class="gap">
+<p><strong>B12 &#183; Channel attribution.</strong> Which of the five channels produced a student.
+Channels are not modelled as distinct entities, so the plan you agree in ST2 cannot yet
+be judged by results.</p>
+</div>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="trace">Traceability</h2>
+<p>Every section of this manual against its source in the master document. Ownership,
+sequence, handoffs and completion criteria are carried over unchanged.</p>
+<table>
+<thead>
+<tr>
+<th>This manual</th>
+<th>Master document</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Receiving the Admin Team handoff</td>
+<td>PR2 journey steps 1 to 3 and the two notes beneath; ST2 journey steps 1 and 2; PR2 exhibits M and N</td>
+</tr>
+<tr>
+<td>PR2, all of it</td>
+<td>PR2 objective, procedure steps 1 to 6, outcomes table, system and handoff row, communications</td>
+</tr>
+<tr>
+<td>ST2, all of it</td>
+<td>ST2 objective, the not-a-sale note, procedure steps 1 to 7, the five-channel table, the permission note, outcomes table, the advisor-skips-the-meeting block, system and handoff row</td>
+</tr>
+<tr>
+<td>After the handoff</td>
+<td>ST3 to ST7 owner line; ST3 to ST7 channel table, ST5 and ST7 rows</td>
+</tr>
+<tr>
+<td>The handoff to the User Success Manager</td>
+<td>PR3 journey steps 1 and 3 and procedure steps 1 to 3; ST2 system and handoff row and the paragraph beneath it; ST3 to ST7 procedure step 2</td>
+</tr>
+<tr>
+<td>Exceptions</td>
+<td>PR2 procedure steps 3, 5 and 6; ST2 advisor-skips block; deferred build list B2</td>
+</tr>
+<tr>
+<td>Gaps</td>
+<td>PR2 procedure step 2; deferred build list B1, B2, B4, B6, B7, B8, B12</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Nothing was added.</strong> No stage, outcome, channel, permission rule or tool appears here
+that is not in the master. <strong>Nothing owned by the Sales Lead was omitted:</strong> PR2 and ST2
+are carried in full, along with the three places the master keeps the Sales Lead
+involved after the handoff.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+</body></html>

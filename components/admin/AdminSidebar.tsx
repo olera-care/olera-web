@@ -143,7 +143,16 @@ const medjobsItems: NavItem[] = [
   { label: "Sites",     href: "/admin/medjobs/sites" },
   { label: "In Basket", href: "/admin/medjobs/in-basket" },
   { label: "Stats",     href: "/admin/medjobs/stats" },
-  { label: "SOP",       href: "/admin/medjobs/sop" },
+];
+
+// SOP is a group, not a page: one operating system with four ways in. System is
+// the master implementation matrix; the other three are role views of it.
+const SOP_HREF = "/admin/medjobs/sop";
+const sopItems: NavItem[] = [
+  { label: "System", href: SOP_HREF },
+  { label: "Admin",  href: `${SOP_HREF}/admin` },
+  { label: "Sales",  href: `${SOP_HREF}/sales` },
+  { label: "CRM",    href: `${SOP_HREF}/crm` },
 ];
 
 /** Map nav-item href → sidebar-counts response key. Only In Basket and Sites
@@ -152,7 +161,6 @@ const COUNTS_KEY: Record<string, string | null> = {
   "/admin/medjobs/in-basket": "in_basket",
   "/admin/medjobs/sites":     "sites",
   "/admin/medjobs/stats":     null,
-  "/admin/medjobs/sop":       null,
 };
 
 interface CountEntry {
@@ -223,6 +231,7 @@ const STORAGE_KEY = "admin-sidebar-collapsed";
 const pinnableItems: NavItem[] = [
   ...navSections.flatMap((s) => s.items),
   ...medjobsItems,
+  ...sopItems.map((i) => ({ ...i, label: `SOP · ${i.label}` })),
   { label: "Young Caregivers", href: "/admin/young-caregivers" },
 ];
 
@@ -306,6 +315,7 @@ export default function AdminSidebar({
       initial[s.key] = !s.defaultOpen;
     }
     initial.medjobs = false;
+    initial.sop = true;
     return initial;
   });
 
@@ -413,7 +423,7 @@ export default function AdminSidebar({
   // collapsed state, not effective-open — the active section stays visually
   // open via the auto-expand override even after "Collapse all", so the
   // current page never disappears from the nav.
-  const allSectionKeys = [...navSections.map((s) => s.key), "medjobs"];
+  const allSectionKeys = [...navSections.map((s) => s.key), "medjobs", "sop"];
   const allCollapsed = allSectionKeys.every((k) => collapsed[k]);
   function setAll(collapse: boolean) {
     setCollapsed((prev) => {
@@ -434,8 +444,12 @@ export default function AdminSidebar({
 
   // v9.0 Phase 7: medjobs section auto-expands when any child route
   // is active, so the current page is always visible in the nav.
-  const medjobsHasActive = medjobsItems.some((item) => isActive(item.href));
+  const medjobsHasActive =
+    medjobsItems.some((item) => isActive(item.href)) || isActive(SOP_HREF);
   const medjobsOpen = !collapsed.medjobs || medjobsHasActive;
+  // The SOP group opens on any of its four pages, and starts closed otherwise:
+  // it is reference material, not a daily queue.
+  const sopOpen = !collapsed.sop || isActive(SOP_HREF);
   void STAKEHOLDERS_KEY;
   void stakeholdersChildren;
 
@@ -670,6 +684,63 @@ export default function AdminSidebar({
                     </div>
                   );
                 })}
+
+                {/* SOP is a group of four: the master operating system, and
+                    the Admin, Sales and User Success views of it. Nested one
+                    level deeper than the flat MedJobs surfaces above. */}
+                <div>
+                  <button
+                    onClick={() => toggle("sop")}
+                    aria-expanded={sopOpen}
+                    className={[
+                      "w-full flex items-center justify-between pl-5 pr-2.5 py-1.5 rounded-md text-[13px] transition-colors duration-100",
+                      isActive(SOP_HREF)
+                        ? "font-semibold text-gray-900"
+                        : "font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                    ].join(" ")}
+                  >
+                    <span>SOP</span>
+                    <Chevron open={sopOpen} />
+                  </button>
+
+                  {sopOpen && (
+                    <div className="mt-0.5 space-y-px">
+                      {sopItems.map((item) => {
+                        // System shares the group's href, so it needs an exact
+                        // match or it would light up on all four pages.
+                        const active = pathname === item.href;
+                        const pinned = favorites.includes(item.href);
+                        return (
+                          <div key={item.href} className="relative group/item">
+                            <Link
+                              href={item.href}
+                              prefetch={false}
+                              className={[
+                                "flex items-center pl-9 pr-8 py-1.5 rounded-md text-[13px] transition-colors duration-100",
+                                active
+                                  ? "bg-gray-100 font-medium text-gray-900"
+                                  : "font-medium text-gray-600 hover:text-gray-900 hover:bg-gray-50",
+                              ].join(" ")}
+                            >
+                              {item.label}
+                            </Link>
+                            <button
+                              onClick={() => toggleFavorite(item.href)}
+                              title={pinned ? "Unpin" : "Pin to top"}
+                              aria-label={`${pinned ? "Unpin" : "Pin"} SOP ${item.label}`}
+                              className={[
+                                "absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded opacity-0 group-hover/item:opacity-100 transition-opacity duration-100",
+                                pinned ? "text-amber-400 hover:text-amber-500" : "text-gray-300 hover:text-amber-400",
+                              ].join(" ")}
+                            >
+                              <Star filled={pinned} />
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>

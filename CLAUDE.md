@@ -71,6 +71,15 @@ For MedJobs / student-outreach work, **read `docs/medjobs/OPERATIONAL_BRIEF.md` 
 
 The companion `docs/medjobs/EXECUTIVE_SUMMARY.md` is the human-readable team brief — useful for orientation but the engineering reference is authoritative.
 
+### The SOP documents
+
+`docs/medjobs/matrix-src/MATRIX.md` is the **canonical source of truth for the operating model** — every stage in three layers, plus the deferred build list. The three role manuals in `docs/medjobs/roles-src/` (ADMIN, SALES, CRM) are **filtered views of it, never independent documents**: same terminology, stage numbering, ownership, handoffs and business rules. Where the master does not specify something a role needs, the manual carries a **GAP / DECISION NEEDED** block rather than inventing a procedure.
+
+- Change the operating model in `MATRIX.md` first, then propagate to the role manuals.
+- `docs/medjobs/roles-src/validate.py` checks the three against the master and exits non-zero on drift. Run it after any edit to any of the four.
+- All four are served to admins at `/admin/medjobs/sop` (System, Admin, Sales, CRM) via `/api/admin/medjobs/sop?doc=…`. New or renamed PDFs need an entry in `outputFileTracingIncludes` in `next.config.ts`, or the route 404s in production.
+- Rebuilding a PDF can move its page count, which moves the jump-bar page numbers in `app/admin/medjobs/sop/*/page.tsx`. Both READMEs say how to re-derive them.
+
 ## Grant Work (NIH SBIR CRP)
 
 - CRP application work lives in `docs/crp/` — read `docs/crp/CLAUDE.md` and

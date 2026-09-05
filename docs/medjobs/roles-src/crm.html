@@ -1,0 +1,757 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>MedJobs User Success Manager Operations</title>
+<style>
+:root { --ink:#000; --muted:#5f6b64; --rule:#b9c4bd; --teal:#14453f; --soft:#f4f7f6; }
+* { box-sizing: border-box; }
+body { margin:0; color:var(--ink); font-family:Arial,Helvetica,sans-serif;
+       font-size:11pt; line-height:1.2; }
+.doc-title { font-size:15pt; font-weight:700; margin:0 0 2pt; color:var(--teal);
+       letter-spacing:0.2pt; }
+.doc-sub { font-size:10pt; color:var(--muted); margin:0 0 9pt; }
+h1,h2,h3,h4 { break-after:avoid; page-break-after:avoid; }
+h1 { font-size:13pt; font-weight:700; text-transform:uppercase; letter-spacing:0.4pt;
+       margin:16pt 0 5pt; color:var(--teal); border-bottom:1.6pt solid var(--teal);
+       padding-bottom:3pt; break-before:page; page-break-before:always; }
+h2 { font-size:11pt; font-weight:700; text-transform:uppercase; letter-spacing:0.4pt;
+       margin:13pt 0 4pt; padding-bottom:2pt; border-bottom:1.2pt solid #000; }
+h3 { font-size:10pt; font-weight:700; text-transform:uppercase; letter-spacing:0.4pt;
+       margin:9pt 0 3pt; color:var(--teal); }
+h4 { font-size:9.5pt; font-weight:700; margin:7pt 0 2pt; color:var(--muted);
+       text-transform:uppercase; letter-spacing:0.4pt; }
+p { margin:0 0 3pt; text-align:justify; orphans:2; widows:2; }
+ul,ol { margin:3pt 0 4pt; padding-left:17pt; }
+li { margin:0 0 3pt; text-align:left; }
+li::marker { color:var(--teal); }
+li > ul, li > ol { margin-top:3pt; }
+p.obj { break-after:avoid; page-break-after:avoid; }
+ul.facts { break-inside:avoid; page-break-inside:avoid; }
+strong { font-weight:700; }
+hr { border:0; border-top:0.6pt solid var(--rule); margin:9pt 0; }
+a { color:var(--teal); text-decoration:none; }
+code { font-family:"DejaVu Sans Mono","Liberation Mono",monospace; font-size:8.6pt;
+       background:var(--soft); border:0.5pt solid var(--rule); border-radius:2px;
+       padding:0 2px; }
+/* The flow diagram is 69 lines of box drawing. The size has to be set on the
+   pre itself, not on the code inside it, or the line boxes take the 11pt body
+   size and the block runs off the page. Overflow is left visible so that a
+   future edit which no longer fits is obvious rather than silently cropped. */
+pre { background:var(--soft); border:0.5pt solid var(--rule);
+      border-left:2.4pt solid var(--teal); padding:7pt 9pt;
+      font-family:"DejaVu Sans Mono","Liberation Mono",monospace;
+      font-size:7.2pt; line-height:1.05;
+      break-inside:avoid; page-break-inside:avoid; margin:0 0 6pt; }
+pre code { background:none; border:0; padding:0; font-size:inherit;
+           line-height:inherit; white-space:pre; }
+blockquote { margin:0 0 5pt; padding:0 0 0 8pt; border-left:2.4pt solid var(--rule);
+      color:var(--muted); font-size:9.5pt; break-inside:avoid; }
+blockquote p { margin:0 0 2pt; text-align:left; }
+blockquote p:last-child { margin-bottom:0; }
+blockquote strong { color:var(--teal); }
+table { width:100%; border-collapse:collapse; margin:5pt 0 2pt; font-size:9pt;
+      line-height:1.16; break-inside:auto; }
+thead { display:table-header-group; }
+tr { break-inside:avoid; page-break-inside:avoid; }
+th { text-align:left; color:var(--teal); border-bottom:1pt solid var(--teal);
+      padding:0 6pt 2.5pt 0; font-weight:700; vertical-align:bottom; }
+td { border-bottom:0.4pt solid var(--rule); padding:2.8pt 6pt 2.8pt 0;
+      vertical-align:top; }
+td strong { color:var(--teal); }
+tbody tr:last-child td { border-bottom:1pt solid var(--teal); }
+.toc { border-top:1.2pt solid #000; border-bottom:1.2pt solid #000; padding:6pt 0;
+      margin:0 0 10pt; font-size:9.5pt; break-inside:avoid; column-count:2;
+      column-gap:20pt; }
+.toc-h { font-size:9pt; text-transform:uppercase; letter-spacing:0.4pt;
+      color:var(--teal); font-weight:700; margin:0 0 4pt; column-span:all; }
+.toc ul { list-style:none; margin:0; padding:0; }
+.toc ul ul { display:none; }
+.toc li { margin:0 0 2pt; }
+.toc a { color:var(--ink); }
+figure { margin:5pt 0 6pt; break-inside:avoid; page-break-inside:avoid; }
+/* Process figures float into the text so a run of tables is broken up rather
+   than merely interrupted. Headings clear them so a float cannot escape into
+   the next stage. */
+figure.fw { float:right; width:2.5in; margin:2pt 0 6pt 14pt; }
+figure.fw svg { display:block; width:100%; height:auto; }
+figure.fw figcaption { font-size:8.5pt; line-height:1.14; }
+h1,h2,h3 { clear:both; }
+table { clear:both; }
+/* The screenshots are 640px wide. Capping the plate at 6.6in keeps them
+   near 97 dpi rather than the 85 dpi a full 7.5in column would give. */
+figure img { display:block; max-width:6.6in; max-height:8.2in; margin:0 auto; }
+figcaption { font-size:9pt; line-height:1.16; text-align:left; margin:3pt 0 0;
+      break-before:avoid; }
+figcaption strong:first-child { color:var(--teal); }
+.exhibit-missing { border:0.6pt dashed var(--rule); background:var(--soft);
+      padding:14pt 10pt; margin:5pt 0 6pt; text-align:center; color:var(--muted);
+      font-size:9pt; }
+.exhibit-missing b { display:block; color:var(--teal); font-size:9.5pt;
+      margin-bottom:3pt; }
+@page { size: Letter; }
+
+p.navbar { margin:6pt 0 10pt; padding:7pt 8pt; text-align:left;
+           border:0.8pt solid var(--rule); border-radius:3pt; background:var(--soft);
+           line-height:1.9; break-inside:avoid; }
+p.navbar a { display:inline-block; margin:0 4pt 0 0; padding:2.5pt 6pt;
+             border:0.8pt solid var(--teal); border-radius:2.5pt;
+             color:var(--teal); font-size:9pt; font-weight:700;
+             text-decoration:none; }
+p.navlabel { margin:0 0 2pt; font-size:8.5pt; font-weight:700; color:var(--muted);
+             text-transform:uppercase; letter-spacing:0.4pt; }
+p.totop { margin:2pt 0 12pt; text-align:right; font-size:8.5pt; }
+p.totop a { color:var(--muted); text-decoration:none; }
+/* A gap block: an open question in the master, carried rather than answered. */
+div.gap { border-left:2.5pt solid var(--teal); background:var(--soft);
+          margin:6pt 0 8pt; padding:5pt 8pt 5pt 9pt; font-size:10pt;
+          break-inside:avoid; page-break-inside:avoid; }
+div.gap p { margin:0; text-align:left; }
+/* A stage's operating spine is a headerless two-column table: label, then the
+   fact. Tagged by shape, because attr_list does not attach to a table. */
+table.field th { display:none; }
+table.field td:first-child { width:23%; font-weight:700; color:var(--teal); }
+h2 { break-before:page; page-break-before:always; }
+h2.nobreak { break-before:auto; page-break-before:auto; }
+table.field th:first-child, table.field td:first-child { width:22%; }
+.gap { border-left:2.5pt solid var(--teal); padding:5pt 0 5pt 9pt; margin:6pt 0 8pt;
+       background:var(--soft); break-inside:avoid; }
+.gap p { margin:0 0 3pt; }
+</style></head><body>
+<div class="doc-title" id="top">MedJobs User Success Manager Operations</div>
+<div class="doc-sub">User Success Manager view of the MedJobs 2.0 operating system &#183; 4 September 2026</div>
+
+<p>A role view of the MedJobs 2.0 Master Implementation Matrix. Every instruction here
+comes from that document, which stays the source of truth. Nothing has been added to
+the operating model; where the master leaves a question open, it is marked
+<strong>GAP / DECISION NEEDED</strong> rather than answered here.</p>
+<p><strong>CRM</strong> is the workspace label. The operating role is <strong>User Success Manager</strong>, and
+that is the term used throughout.</p>
+<p><strong>ROLE PURPOSE</strong> Own the relationship from the moment a provider converts and from the
+moment an advisor agrees a channel plan, and carry both through to a placement we can
+bill for. One role holds it across both sides of MedJobs. Chantel is the User Success
+Manager today.</p>
+<p><strong>WHAT YOU OWN</strong> PR3 client success. ST3 to ST7 university activation. MA3 hire
+confirmed. MA4 six or more shifts worked, confirmed. MA5 bill issued and collected.
+The monthly client list call.</p>
+<p><strong>WHAT YOU DO NOT OWN</strong> Prospecting, outreach and booking, which are the Admin Team's.
+The two meetings, which are the Sales Lead's. ST8, QUAL, MA1 and MA2, which the Portal
+owns. On those four you are the exception handler, not a step in the flow.</p>
+<p><strong>WHO HANDS WORK TO YOU</strong> The Sales Lead, once the meeting outcome is logged. A
+converted provider on one side, an agreed channel plan on the other.</p>
+<p><strong>WHO YOU HAND WORK TO</strong> The Portal. On the provider side, once the account is ready
+and a staffing need is recorded. On the university side, the moment a student follows
+the link. The partner row stays open and keeps producing.</p>
+<p class="navbar"><a href="#pr3">Provider success</a> <a href="#st">University activation</a> <a href="#portal">Portal exceptions</a> <a href="#ma3">Hire confirmed</a> <a href="#ma4">Six shifts</a> <a href="#ma5">Billing</a> <a href="#listcall">List call</a> <a href="#gaps">Gaps</a> <a href="#trace">Traceability</a></p>
+<h2 class="nobreak" id="what">What client success is</h2>
+<p><strong>The ongoing relationship function, from the moment a provider converts.</strong> It is not
+onboarding, which ends, and it is not support, which waits to be asked. It is one
+person owning the client from the meeting through the first hire and every hire after:
+the profile, the terms, the account setup, the interviews, the placements, the
+six-shift threshold, the invoice, and the next staffing need.</p>
+<p><strong>Almost none of this is built.</strong> PR3 runs by hand today, and so do MA3, MA4 and MA5.
+The master describes how it should work and carries every missing piece on the
+deferred build list. Nothing here is blocked on that; it is blocked on someone doing it
+consistently.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="pr3">PR3 Client success</h2>
+<p><strong>Objective</strong> Carry the provider from the meeting to a first hire: profile updated,
+terms understood, account set up and ready for the first student to arrive.</p>
+<table class="field">
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Trigger</strong></td>
+<td>The Sales Lead logs <em>Interested / went well</em> on PR2. In the meeting they have already named the handoff: <em>"our user success team will follow up with you on next steps"</em></td>
+</tr>
+<tr>
+<td><strong>Tools</strong></td>
+<td>The provider drawer timeline &#183; email, by hand &#183; the provider portal for the profile, chased by hand &#183; Calendly, by hand</td>
+</tr>
+<tr>
+<td><strong>Communications</strong></td>
+<td>The post-meeting terms email &#183; profile reminders &#183; the setup meeting invitation &#183; everything after it, from the same person</td>
+</tr>
+<tr>
+<td><strong>Completion criteria</strong></td>
+<td>Profile updated &#183; terms email sent and acknowledged &#183; setup meeting held &#183; the account ready to receive a candidate</td>
+</tr>
+<tr>
+<td><strong>Handoff</strong></td>
+<td><strong>User Success Manager to the Portal</strong>, once the account is ready and a staffing need is recorded. The staffing need drives matching; the client stays yours from here on</td>
+</tr>
+</tbody>
+</table>
+<h3 id="required-actions">Required actions</h3>
+<ol>
+<li><strong>Read the record before you write.</strong> The meeting notes tell you what they asked
+   for and what was promised. Opening with something they said is the difference
+   between a follow-up and a form letter.</li>
+<li><strong>Send the terms email within one business day of the meeting</strong>, while it is still
+   fresh for them.</li>
+<li><strong>Land three things, in this order:</strong> profile updated, terms understood, setup
+   meeting booked. Chase each until it is done rather than sending one email and
+   waiting.</li>
+<li><strong>Book the setup meeting one to two weeks out.</strong> It is the readiness check, the last
+   chance to catch a half-finished account before a student is looking at it.</li>
+<li><strong>Write down every touchpoint.</strong> Until the client record exists, keep it on the row
+   so the history stays in one place.</li>
+<li><strong>Do not hand a client to the marketplace until the account is ready.</strong> A provider
+   looking at candidates with an incomplete profile gets bad matches and blames the
+   matching.</li>
+</ol>
+<h3 id="what-must-be-recorded">What must be recorded</h3>
+<p>Terms sent and acknowledged, profile answers and demand profile, setup meeting held,
+and every touchpoint after conversion.</p>
+<p><strong>What is built and what is not.</strong> Reading the whole record before making contact is
+supported by the provider drawer timeline. The profile is partly supported through the
+provider portal. The terms email, the setup meeting booking and the setup meeting
+itself are manual. The conversion alert (<strong>B4</strong>) and the client record (<strong>B5</strong>) do not
+exist.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="st">ST3 to ST7 University activation</h2>
+<p><strong>Objective</strong> Turn the channel plan agreed in ST2 into five live channels at that
+university, then keep each one alive.</p>
+<p><strong>This stage does not close.</strong> Every stage before it ends in an outcome. Activation
+ends in a standing commitment: postings expire, officers graduate, a career fair moves,
+a listserv only sends when someone remembers. <strong>Each channel is two motions, secure it
+once, then keep it alive</strong>, and the second decides whether a university produces
+students in the spring as well as the fall.</p>
+<p><strong>There is no generic version of this stage.</strong> One campus is a dead job board and a
+listserv that reaches everyone; the next is three student orgs and a professor who will
+give us ten minutes of a class. Work the plan per row, not per channel.</p>
+<table class="field">
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Trigger</strong></td>
+<td>The Sales Lead logs <em>Interested / went well</em> on ST2 and hands over the channel plan</td>
+</tr>
+<tr>
+<td><strong>Ownership</strong></td>
+<td>Yours, with the Sales Lead where a physician in the room changes the answer</td>
+</tr>
+<tr>
+<td><strong>Tools</strong></td>
+<td>The partner row and its meeting notes &#183; the flyer as the shared asset &#183; ready-to-send copy per channel. The advisor follow-up tab this stage needs does not exist</td>
+</tr>
+<tr>
+<td><strong>Communications</strong></td>
+<td>Ready-to-send copy per channel &#183; the flyer &#183; the listserv reminder to the advisor &#183; the results-back note &#183; the professor email sequence</td>
+</tr>
+<tr>
+<td><strong>Completion criteria</strong></td>
+<td>Every agreed channel is either live and recorded, or explicitly marked as not available at this university, and every live channel has its next maintenance task queued</td>
+</tr>
+<tr>
+<td><strong>Handoff</strong></td>
+<td><strong>To the Portal (ST8)</strong>, the moment a student follows the link. The partner row stays open and keeps producing</td>
+</tr>
+</tbody>
+</table>
+<h3 id="required-actions_1">Required actions</h3>
+<ol>
+<li><strong>Work the plan from ST2, not a template.</strong> The row tells you which channels are
+   open at this university and who agreed to each. A channel nobody agreed to is not
+   on your list.</li>
+<li><strong>Activate every agreed channel within two weeks of the meeting.</strong> The advisor is
+   warmest immediately after; a month later you are re-introducing yourself.</li>
+<li><strong>Supply ready-to-send copy for anything a partner sends.</strong> The advisor should have
+   to forward, not write. This is the single largest determinant of whether ST6
+   actually happens.</li>
+<li><strong>Mark a channel <em>not available here</em> out loud.</strong> A dead job board recorded as dead
+   is useful; a dead job board left blank looks like work nobody did.</li>
+<li><strong>Record the distribution when it happens</strong>, being the channel, the date, the asset
+   used, and a rough reach estimate, on the partner row.</li>
+<li><strong>Report results back to the partner.</strong> <em>Your listserv produced eleven
+   applications.</em> It is the reason they send the second one, and it is the natural
+   moment to ask for the next thing.</li>
+<li><strong>Never let a secured channel go unwatched.</strong> Every live channel carries a next
+   check date; working that date is the job.</li>
+<li><strong>Re-check the whole row each term.</strong> A row fully activated in September is not
+   necessarily activated in January.</li>
+</ol>
+<h3 id="the-five-channels-who-acts-secured-maintained">The five channels: who acts, secured, maintained</h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Channel</th>
+<th>Who acts</th>
+<th>Secured means</th>
+<th>Maintaining means</th>
+<th>Rhythm</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ST3</strong></td>
+<td>University job board</td>
+<td>You post; the advisor or the board's owner approves</td>
+<td>The listing is live and visible to students</td>
+<td>Check the listing is still up and has not expired or been archived; repost or renew it when it has</td>
+<td>Every few months</td>
+</tr>
+<tr>
+<td><strong>ST4</strong></td>
+<td>Student organisations</td>
+<td>You build the relationship; an officer shares it</td>
+<td>An officer has shared it once</td>
+<td>Refresh the relationship before it goes cold, and re-establish it with the new officers when leadership turns over</td>
+<td>Ongoing, and every term</td>
+</tr>
+<tr>
+<td><strong>ST5</strong></td>
+<td>Campus events</td>
+<td>You and the Sales Lead attend</td>
+<td>We are registered for a specific event on a specific date</td>
+<td>Confirm the event is still scheduled and still on our date; rebook when it moves, and get on the next one after it passes</td>
+<td>Before each event, then re-book</td>
+</tr>
+<tr>
+<td><strong>ST6</strong></td>
+<td>Advisor listservs</td>
+<td>You supply the copy; the advisor sends it</td>
+<td>The advisor has agreed to send, and has our copy</td>
+<td>Remind the advisor to send it, with fresh copy ready each time. The send happens because we asked</td>
+<td>Each agreed send</td>
+</tr>
+<tr>
+<td><strong>ST7</strong></td>
+<td>Professors and class visits</td>
+<td>You and the Sales Lead, once permitted</td>
+<td>A professor has agreed to an introduction or a visit</td>
+<td>Follow up and email professors, its own kind of work, with its own record of who was contacted, who agreed, and which class was visited</td>
+<td>Per professor, then per term</td>
+</tr>
+</tbody>
+</table>
+<p>Each of these carries specifics the table cannot hold: which board, which officer,
+which fair and its registration deadline, which list and when it goes out, which
+professor and which course. That detail belongs on the row against the channel.</p>
+<p><strong>ST7 is its own workstream.</strong> Professor outreach behaves less like a channel than like
+a second, smaller outreach funnel: named professors, a permission state on each, an
+email to follow up, and a class visit to schedule once someone says yes. Scoped and
+named separately when we get to it, and noted here so it is not mistaken for a
+checkbox.</p>
+<h3 id="what-must-be-recorded_1">What must be recorded</h3>
+<p>Per channel: secured, not yet, or not available here &#183; the named contact &#183;
+the date live &#183; the next check date &#183; the distribution date, asset used and
+reach estimate.</p>
+<p>Your working state is the set of partner rows with live channels and the date each is
+next due. That is why the advisor follow-up tab and its queued tasks (<strong>B9</strong>, <strong>B10</strong>)
+are the difference between five universities and fifty.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="portal">Where the Portal runs and you handle exceptions</h2>
+<p>Four stages the Portal owns. You are here for what the system cannot resolve, not as a
+step in the flow. Each list below is deliberately short; the master says so explicitly
+for ST8 and QUAL, on the grounds that if these lists grow the system has failed.</p>
+<h3 id="st8-student-application-submitted">ST8 Student application submitted</h3>
+<p><strong>Owner: Portal.</strong> You are a user <em>only when the system cannot finish the job.</em> The
+student scans the QR code, answers the eligibility check, accepts the Student Caregiver
+Program Agreement, works the application against a completeness meter, is chased by a
+fixed ladder of nudges on days 1, 3, 5, 7, then 21, 35, 49, 63, and presses <strong>Go Live</strong>.</p>
+<ol>
+<li><strong>Watch the stall, not the student.</strong> The ladder handles the individual; what needs
+   attention is the pattern. A campus where half the applications stop at the same
+   section is a broken question or a broken upload, not eight unmotivated students.</li>
+<li><strong>Log why students stall</strong>, so the pattern is visible at all.</li>
+<li><strong>Intervene by hand only when the system cannot</strong>: a document that will not upload,
+   a student whose circumstances do not fit the form.</li>
+<li><strong>Check both entry paths after any change to the assets.</strong> The QR code and the email
+   link must each carry a student all the way through.</li>
+</ol>
+<h3 id="qual-portal-vets-the-application">QUAL Portal vets the application</h3>
+<p><strong>Owner: Portal.</strong> You are a user <em>on exceptions.</em></p>
+<ol>
+<li><strong>Handle exceptions, not cases.</strong> A student the rules would reject who is obviously
+   right, or the reverse. <strong>Record the reason for every override.</strong></li>
+<li><strong>Feed failure reasons back into the application.</strong> A criterion that keeps failing
+   honest applicants is a badly written criterion.</li>
+<li><strong>Watch what happens after the list goes out</strong>, whether students actually call, and
+   what providers say when they do. That is the fastest signal we have about whether
+   our bar means anything.</li>
+</ol>
+<h3 id="ma1-candidate-intro">MA1 Candidate intro</h3>
+<p><strong>Owner: Portal, User Success Manager on exceptions.</strong></p>
+<ol>
+<li><strong>Send to the provider in the form they will open</strong>: PDF attached, link included, no
+   login asked for.</li>
+<li><strong>Do not rely on the board.</strong> If a qualified student has not been introduced
+   anywhere this week, that is a push we failed to send, not a student who failed to
+   look.</li>
+<li><strong>Watch the students who are qualified and not yet hired.</strong> That list is the whole
+   job at this stage.</li>
+<li><strong>Keep the call list current.</strong> A student calling a provider who is no longer hiring
+   wastes the one thing we are trying to build.</li>
+</ol>
+<h3 id="ma2-interview-held">MA2 Interview held</h3>
+<p><strong>Owner: Portal.</strong> You are a user <em>on exceptions.</em> The interview state machine runs
+<em>proposed, confirmed, completed, cancelled, no-show, rescheduled</em>, proposals email the
+other side, confirmations email both, and a calendar file is attached on confirmation.</p>
+<ol>
+<li><strong>Chase the proposal that has sat unanswered.</strong> A pending request nobody confirmed
+   is the single most common place a match dies.</li>
+<li><strong>Confirm by hand when a provider will not use the system</strong>, and put the invite on
+   the calendar anyway.</li>
+<li><strong>Ask the student first</strong> whether the interview happened. They answer faster, and it
+   is their outcome.</li>
+<li><strong>Record a no-show as a no-show.</strong> It is a different problem from a hire that did
+   not happen, and only one of them is the student's.</li>
+</ol>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="ma3">MA3 Hire confirmed</h2>
+<p><strong>Objective</strong> Find out whether the interview produced a job, and if it did not, find
+out why.</p>
+<p><strong>A hire we did not hear about is a hire we cannot bill for.</strong> This stage exists
+because nobody tells us on their own. The provider hires and moves on; the student
+starts work and moves on. Every placement we know about is one we went and asked for.</p>
+<table class="field">
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Trigger</strong></td>
+<td>The interview is confirmed held. Open the cadence the day after</td>
+</tr>
+<tr>
+<td><strong>Tools</strong></td>
+<td>Nothing is built. SMS, email, the daily call queue and the monthly list call, worked by hand</td>
+</tr>
+<tr>
+<td><strong>Communications</strong></td>
+<td>Post-interview SMS to the student &#183; follow-up email &#183; the call task when neither lands &#183; a single email to the provider</td>
+</tr>
+<tr>
+<td><strong>Completion criteria</strong></td>
+<td>A recorded answer either way, with a reason when the answer is no</td>
+</tr>
+<tr>
+<td><strong>Handoff</strong></td>
+<td><strong>To MA4</strong>, on a confirmed hire</td>
+</tr>
+</tbody>
+</table>
+<h3 id="required-actions_2">Required actions</h3>
+<ol>
+<li><strong>Open the cadence the day after the interview</strong>, while both sides still remember
+   it.</li>
+<li><strong>Student first, by SMS.</strong> One question, answerable in four words.</li>
+<li><strong>Escalate to a call</strong> when two touches go unanswered.</li>
+<li><strong>Ask the provider once</strong>, by email, and do not chase them further. The monthly list
+   call picks up what they did not answer.</li>
+<li><strong>Record the reason for every no.</strong> A blank reason is a lost lesson.</li>
+</ol>
+<h3 id="what-must-be-recorded_2">What must be recorded</h3>
+<p>Interview outcome, hired or not, start date, the reason when not, and which channel got
+the answer.</p>
+<p><strong>Instrument the no.</strong> A hire that did not happen is the most useful signal in the
+funnel: the interview was a formality, the schedule did not work, the student went
+quiet, the provider was not really hiring. Without a reason field, this stage produces
+a number nobody can act on.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="ma4">MA4 Six or more shifts worked, confirmed</h2>
+<p><strong>Objective</strong> Establish that the placement actually stuck, six shifts worked, because
+that is the point we bill.</p>
+<p><strong>Chase the student, not the provider.</strong> The student knows what they worked and answers
+a text. The provider is the customer, and asking them to do our record-keeping every
+week is how we become annoying before we become useful.</p>
+<table class="field">
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Trigger</strong></td>
+<td>A hire is confirmed in MA3 and the student has a start date</td>
+</tr>
+<tr>
+<td><strong>Tools</strong></td>
+<td>SMS on the same stack as MA1 and MA3, and email. The monthly client list call. No shift concept exists in the product</td>
+</tr>
+<tr>
+<td><strong>Communications</strong></td>
+<td>Student SMS on a rhythm &#183; the same question by email &#183; the monthly client list call</td>
+</tr>
+<tr>
+<td><strong>Completion criteria</strong></td>
+<td>Six shifts confirmed and recorded against the placement</td>
+</tr>
+<tr>
+<td><strong>Handoff</strong></td>
+<td><strong>To MA5</strong>, once six are confirmed</td>
+</tr>
+</tbody>
+</table>
+<h3 id="required-actions_3">Required actions</h3>
+<ol>
+<li><strong>Text the student on a rhythm</strong> from their start date until the answer reaches six.</li>
+<li><strong>Never ask the provider week to week.</strong> Their confirmation comes on the list call.</li>
+<li><strong>Run the list call monthly per client</strong>, every student placed with them, top to
+   bottom.</li>
+<li><strong>Record the confirmation and where it came from</strong>: the student, the provider, or
+   both.</li>
+<li><strong>Escalate a placement that stalls before six.</strong> A student who stopped after two
+   shifts is a problem worth understanding while it is still fixable.</li>
+</ol>
+<h3 id="what-must-be-recorded_3">What must be recorded</h3>
+<p>Shifts worked and the date each was confirmed, who confirmed it, and the list-call
+record per client.</p>
+<p><strong>Comms before a logging surface.</strong> A logging surface is more precise and worth
+building eventually, but a text a student answers beats a form they do not fill in.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="ma5">MA5 Bill issued and collected</h2>
+<p><strong>Objective</strong> Turn a confirmed placement into an invoice, and the invoice into money.</p>
+<p><strong>Manual first, deliberately.</strong> At current volume raising an invoice by hand is not a
+stopgap. It is the right answer, and it is how we learn what the automated version
+should do.</p>
+<table class="field">
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Trigger</strong></td>
+<td>Six shifts are confirmed in MA4. The confirmation is the event, not a billing day</td>
+</tr>
+<tr>
+<td><strong>Tools</strong></td>
+<td>By hand. Eventually a button on the client record, which does not exist yet</td>
+</tr>
+<tr>
+<td><strong>Communications</strong></td>
+<td>Invoice &#183; receipt &#183; payment reminder &#183; the billing conversation on the list call</td>
+</tr>
+<tr>
+<td><strong>Completion criteria</strong></td>
+<td>Invoice issued against a confirmed six-shift placement, and payment recorded</td>
+</tr>
+<tr>
+<td><strong>Handoff</strong></td>
+<td><strong>Complete.</strong> The client record carries the history</td>
+</tr>
+</tbody>
+</table>
+<h3 id="required-actions_4">Required actions</h3>
+<ol>
+<li><strong>Raise the invoice as soon as six is confirmed</strong>, not on a billing day. The
+   confirmation is the event.</li>
+<li><strong>Bill against the placement, not the client</strong>, one invoice per student, so a
+   dispute is about one student.</li>
+<li><strong>Record payment where the placement lives</strong>, so the client record stays the single
+   account of what happened.</li>
+<li><strong>Raise a billing question on the monthly list call</strong>, not by email. The call already
+   exists.</li>
+</ol>
+<h3 id="what-must-be-recorded_4">What must be recorded</h3>
+<p>Placement billed, amount, invoice issued and sent, payment received.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="listcall">The monthly client list call</h2>
+<p>One recurring commitment, serving two stages at once. The master defines it inside MA4
+and points MA3 and MA5 at it.</p>
+<table class="field">
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Rhythm</strong></td>
+<td>Monthly per client, or quarterly. The master says monthly in the procedure</td>
+</tr>
+<tr>
+<td><strong>What you run</strong></td>
+<td>Every student placed with that client, top to bottom: still working, how many shifts, any problems</td>
+</tr>
+<tr>
+<td><strong>Why a call</strong></td>
+<td>One conversation confirms what a dozen emails would not, and it is a touchpoint rather than an interruption</td>
+</tr>
+<tr>
+<td><strong>What it serves</strong></td>
+<td>MA4, where the provider confirms shift counts. MA3, where it picks up the hire questions the provider did not answer by email. MA5, where billing questions are raised</td>
+</tr>
+<tr>
+<td><strong>What it replaces</strong></td>
+<td>Asking the provider week to week. Never do that</td>
+</tr>
+</tbody>
+</table>
+<p>The master lists this as <strong>B27</strong>: a practice to establish, not code, and one that needs
+the client record (<strong>B5</strong>) to run from.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="gaps">Gaps and decisions needed</h2>
+<p>Each of these is a place the master document leaves open or names as unbuilt. None is
+resolved here. This role carries more of them than the other two, because most of what
+it owns runs by hand today.</p>
+<div class="gap">
+<p><strong>B5 &#183; The client record. The most blocked item in the whole system.</strong> One place
+holding everything after conversion: notes on every touchpoint, plus the interviews,
+hires, six-shift confirmations and invoices against that client. <strong>PR3, MA4 and MA5 all
+wait on it</strong>, and so does the monthly list call. An MVP of notes and a timeline would
+carry the stage.</p>
+</div>
+<div class="gap">
+<p><strong>B4 &#183; An alert when a meeting converts.</strong> Nothing tells you a provider is waiting.
+Until it exists, the Sales Lead naming the handoff in the room is what starts the clock
+on your one-business-day terms email.</p>
+</div>
+<div class="gap">
+<p><strong>B9 and B10 &#183; The advisor follow-up tab, and maintenance tasks that queue
+themselves.</strong> The five channels as a checklist on the partner row, each secured, not
+yet, or not available here, with its contact and go-live date; and the board re-check,
+the listserv reminder, the event date and the officer refresh arriving as ordinary
+daily work. Neither is built. Activation state lives in meeting notes and in your head,
+and a channel stays alive only as long as someone remembers it.</p>
+</div>
+<div class="gap">
+<p><strong>B11 and B12 &#183; A professor record for ST7, and channel attribution.</strong> ST7 is not
+yet scoped, and channels are not modelled as distinct entities, so which of the five
+produced a student cannot be told from results, only from effort.</p>
+</div>
+<div class="gap">
+<p><strong>B15, B16 and B19 &#183; What "live" and "qualified" mean.</strong> Nothing is required to go
+live: the review calls everything <em>"recommended but not required"</em> and skips
+verification, where three of the intended five baseline items sit. The nudge ladder
+treats 100% completeness as done while the Go Live button requires nothing, so two
+definitions of <em>live</em> disagree. And the catchment broadcast calls a candidate <em>ready to
+interview</em> under our name with no written criteria behind it. These three decide what
+your exception handling on ST8 and QUAL is exceptions <em>to</em>.</p>
+</div>
+<div class="gap">
+<p><strong>B18 &#183; The call list to the student.</strong> On qualifying, every provider hiring near
+them, with name, area and phone number, and an instruction to call. Not built, and the
+master calls it <em>"the important half"</em> of QUAL. The nearest thing today fires when a
+<em>provider</em> accepts terms, names one provider, and offers a link rather than a number.</p>
+</div>
+<div class="gap">
+<p><strong>B17 &#183; Application source capture.</strong> Nothing records how a student found us, which
+is the other half of why ST3 to ST7 cannot be judged by results.</p>
+</div>
+<div class="gap">
+<p><strong>B20 and B21 &#183; The candidate profile as a PDF, and student SMS.</strong> MA1's procedure
+asks you to send in the form a provider will open and to push qualified students. The
+PDF renderer is not built, and student SMS is not built, though the SMS stack exists
+with consent, quiet hours, a queue and a flush job.</p>
+</div>
+<div class="gap">
+<p><strong>B22 and B23 &#183; A real calendar event, and the did-it-happen loop.</strong> A calendar
+file is attached to the confirmation email, which is enough to RSVP and not a shared
+event. And nothing asks either side whether the interview happened: <code>completed</code> and
+<code>no_show</code> exist as states and nothing sets them. That loop is the instrumentation the
+whole match half of the funnel depends on, which is why MA3 currently starts with you
+asking by hand.</p>
+</div>
+<div class="gap">
+<p><strong>B24 and B25 &#183; The post-interview cadence and the reason on every no.</strong> Neither is
+built. Nothing asks, so nothing is known, and the most useful signal in the funnel goes
+uncollected.</p>
+</div>
+<div class="gap">
+<p><strong>B26, B27 and B28 &#183; The shift-count rhythm, the list call, and a shift count on
+the placement.</strong> No concept of a shift exists in the product; the only trace of the
+threshold is the number behind the guarantee. There is no view of who is approaching
+six.</p>
+</div>
+<div class="gap">
+<p><strong>B29 &#183; Billing on the six-shift trigger.</strong> Two legacy billing paths exist, neither
+matching this model, and the placements Stripe path is stubbed. Needs <strong>B5</strong>.</p>
+</div>
+<div class="gap">
+<p><strong>B13 and B14 &#183; A content pass over every student-facing asset, and entry-path QA
+from the QR code and from email.</strong> All five assets ship and work end to end; none has
+had a content pass, and the journey is untested as a journey. This is what ST8 required
+action 4 is asking you to watch for.</p>
+</div>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="trace">Traceability</h2>
+<p>Every section of this manual against its source in the master document. Ownership,
+sequence, handoffs and completion criteria are carried over unchanged.</p>
+<table>
+<thead>
+<tr>
+<th>This manual</th>
+<th>Master document</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>What client success is</td>
+<td>PR3, <em>What client success is</em>, and the not-built note above it</td>
+</tr>
+<tr>
+<td>PR3, all of it</td>
+<td>PR3 objective, journey table with its Built? column, procedure steps 2 to 7, system and handoff row, communications</td>
+</tr>
+<tr>
+<td>ST3 to ST7, all of it</td>
+<td>ST3 to ST7 objective, the does-not-close and no-generic-version notes, the who-acts table, procedure steps 1 to 8, the secured and maintaining table, the ST7 workstream note, system and handoff row</td>
+</tr>
+<tr>
+<td>Portal exceptions, ST8</td>
+<td>ST8 owner line and procedure steps 1 to 4; the nudge ladder</td>
+</tr>
+<tr>
+<td>Portal exceptions, QUAL</td>
+<td>QUAL owner line and procedure steps 1 to 3</td>
+</tr>
+<tr>
+<td>Portal exceptions, MA1</td>
+<td>MA1 owner line and procedure steps 1 to 4</td>
+</tr>
+<tr>
+<td>Portal exceptions, MA2</td>
+<td>MA2 owner line, the state machine, and procedure steps 1 to 4</td>
+</tr>
+<tr>
+<td>MA3, all of it</td>
+<td>MA3 objective, the hire-we-did-not-hear-about note, procedure steps 1 to 5, the instrument-the-no note, system and handoff row</td>
+</tr>
+<tr>
+<td>MA4, all of it</td>
+<td>MA4 objective, the chase-the-student note, the comms-first note, procedure steps 1 to 5, system and handoff row</td>
+</tr>
+<tr>
+<td>MA5, all of it</td>
+<td>MA5 objective, the manual-first note, procedure steps 1 to 4, system and handoff row</td>
+</tr>
+<tr>
+<td>The monthly client list call</td>
+<td>MA4 procedure steps 2 and 3 and the provider-side-is-a-list paragraph; MA3 procedure step 4; MA5 procedure step 4; deferred build list B27</td>
+</tr>
+<tr>
+<td>Gaps</td>
+<td>Deferred build list B4, B5, B9 to B29 as cited; ST8 and QUAL notes on the two definitions of live</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Nothing was added.</strong> No stage, status, threshold, rhythm, channel or tool appears here
+that is not in the master. <strong>Nothing owned by the User Success Manager was omitted:</strong>
+PR3, ST3 to ST7, MA3, MA4 and MA5 are carried in full, along with the four Portal
+stages where the master names you as the exception handler.</p>
+<p><strong>One deliberate omission of detail, not of instruction.</strong> The student-facing surfaces
+of ST8, being the flyer, the landing page, the agreement, the job board and the
+application portal, are described in the master with their exhibits. They are the
+Portal's, not yours, so this manual carries only your four exception actions over them
+and points at the master for the rest.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+</body></html>

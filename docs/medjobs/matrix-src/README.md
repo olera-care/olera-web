@@ -136,3 +136,9 @@ Two changes Logan asked for after reading it.
 
 The document grew by one page, so the stage jump targets in
 `app/admin/medjobs/sop/page.tsx` moved with it.
+
+`md2html.py` also gained the `md_in_html` extension so the role manuals in
+`../roles-src` can put markdown inside a `<div>`. The matrix source has no
+markdown attributes, so its render is unchanged. The three role manuals are
+built from this same renderer, which is what keeps all four documents
+typographically identical.

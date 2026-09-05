@@ -98,7 +98,7 @@ def build(src, out, title, subtitle, notoc=''):
     raw = open(src).read()
     raw = re.sub(r'\A#\s+.*?\n', '', raw, count=1)
     md = markdown.Markdown(extensions=['tables', 'fenced_code', 'toc', 'sane_lists',
-                                       'attr_list'],
+                                       'attr_list', 'md_in_html'],
                            extension_configs={'toc': {'toc_depth': '2-2'}})
     body = md.convert(raw)
     srcdir = os.path.dirname(os.path.abspath(src))

@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { brandPath } from "@/lib/brands";
 import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData, CMSData, AiTrustSignals, StaffInfo } from "@/lib/types";
 import { resolveProvider, resolveProviderForMeta, getClaimedAccount } from "@/lib/providers";
 import { DesktopCTAVariantRouter, MobileCTAVariantRouter } from "@/components/providers/CTAVariantRouter";
@@ -977,6 +978,15 @@ export default async function ProviderPage({
                 {locationStr && (
                   <p className="text-sm text-gray-500 mt-1">{locationStr}</p>
                 )}
+                {/* Brand hub link: every tagged location points at its brand page */}
+                {parentOrganization?.name && (
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    Part of{" "}
+                    <a href={brandPath(parentOrganization.name)} className="text-primary-600 hover:text-primary-700 font-medium">
+                      {parentOrganization.name}
+                    </a>
+                  </p>
+                )}
 
                 {/* Row 2: Highlights only (category is now eyebrow above name) */}
                 {(() => {
@@ -1157,6 +1167,18 @@ export default async function ProviderPage({
                       <span className="font-semibold text-gray-900">{rating.toFixed(1)}</span>
                       <span>on Google</span>
                     </span>
+                  )}
+                  {/* Brand hub link: every tagged location points at its brand page */}
+                  {parentOrganization?.name && (
+                    <>
+                      <span className="text-gray-300">·</span>
+                      <span>
+                        Part of{" "}
+                        <a href={brandPath(parentOrganization.name)} className="text-primary-600 hover:text-primary-700 font-medium">
+                          {parentOrganization.name}
+                        </a>
+                      </span>
+                    </>
                   )}
                 </div>
 

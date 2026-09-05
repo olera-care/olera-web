@@ -1,7 +1,13 @@
 "use client";
 
 import type { StageMetric } from "@/lib/medjobs/funnel-30d";
-import type { Health } from "@/lib/medjobs/funnel-health";
+import {
+  bandText,
+  HEALTH_ORDER,
+  THRESHOLDS,
+  UNSCORED_NEXT,
+  type Health,
+} from "@/lib/medjobs/funnel-health";
 
 /**
  * The pieces every MedJobs operating-system diagram is drawn from: the System
@@ -59,42 +65,64 @@ export function readMetric(m: StageMetric) {
 }
 
 export const KIND_LABEL: Record<string, string> = {
-  conversion: "CONVERSION",
-  coverage: "COVERAGE (not a conversion rate)",
-  throughput: "THROUGHPUT (a count, not a rate)",
-  gap: "NOT INSTRUMENTED",
+  conversion: "Conversion",
+  coverage: "Coverage",
+  throughput: "Throughput",
+  gap: "Not instrumented",
 };
 
 /**
- * The hover text. Four lines, in the order a reader needs them: what kind of
- * number this is, the arithmetic spelled out in words, how to interpret it,
- * and any caveat. Naming the kind first is the point — a coverage number read
- * as a conversion rate says the opposite of what it means.
+ * The hover text. Seven labelled lines at most, in the order an operator needs
+ * them: what state the stage is in, what drives that state, where the bands
+ * sit, what the number actually counts, what to do about it, and any caveat.
+ *
+ * The improvement line comes from the stage's own procedure in the master
+ * matrix. Someone acting on it is following the operating model, not generic
+ * advice about sales.
  */
-export function metricTitle(stage: string, name: string, m: StageMetric) {
-  const lines = [`${stage} · ${name}`, KIND_LABEL[m.kind] ?? ""];
-  if (m.gap) {
-    lines.push(m.gap);
-    return lines.filter(Boolean).join("\n");
-  }
+export function metricTitle(stageKey: string, code: string, name: string, m: StageMetric) {
+  const t = THRESHOLDS[stageKey];
+  const lines: string[] = [`${code} · ${name}`];
+
   const join = (...bits: Array<string | number | undefined>) =>
     bits.filter((b) => b !== undefined && b !== "").join(" ");
-  if (m.y != null && m.x != null) {
-    const pct = m.y > 0 ? Math.round((m.x / m.y) * 100) : null;
-    lines.push(
-      join(m.x, m.xLabel, "out of", m.y, m.yLabel) + (pct == null ? "." : ` = ${pct}%.`),
-    );
-  } else if (m.x != null) {
-    lines.push(join(m.x, m.xLabel, "in the last 30 days."));
-  }
-  if (m.health && m.health !== "unscored") {
-    lines.push(`Health: ${HEALTH[m.health].label.toUpperCase()}.`);
-  }
-  if (m.reads) lines.push(m.reads);
-  if (m.note) lines.push(`Caveat: ${m.note}`);
-  return lines.filter(Boolean).join("\n");
-}
 
+  // Headline: the state and the number, on one line.
+  if (m.gap) {
+    lines.push(join("NOT SCORED", m.x != null ? `· ${m.x}` : undefined));
+  } else if (m.y != null && m.x != null) {
+    const pct = m.y > 0 ? Math.round((m.x / m.y) * 100) : null;
+    const state = m.health && m.health !== "unscored" ? HEALTH_ORDER[m.health] : "NOT SCORED";
+    lines.push(`${state} · ${m.x} / ${m.y}${pct == null ? "" : ` = ${pct}%`}`);
+  } else if (m.x != null) {
+    const state = m.health && m.health !== "unscored" ? HEALTH_ORDER[m.health] : "NOT SCORED";
+    lines.push(`${state} · ${m.x}`);
+  }
+
+  lines.push("");
+  lines.push(`Driver    ${t ? `${KIND_LABEL[m.kind] ?? ""}. ${t.reads}` : KIND_LABEL[m.kind] ?? ""}`);
+  if (t) lines.push(`Bands     ${bandText(t)}`);
+
+  // What the number counts, in words.
+  if (m.y != null && m.x != null) {
+    lines.push(`Counts    ${join(m.x, m.xLabel, "out of", m.y, m.yLabel)}.`);
+  } else if (m.x != null && m.xLabel) {
+    lines.push(`Counts    ${join(m.x, m.xLabel)} in the last 30 days.`);
+  }
+  if (m.reads) lines.push(`Reading   ${m.reads}`);
+
+  if (m.gap) {
+    if (m.gap) lines.push(`Why       ${m.gap}`);
+    if (UNSCORED_NEXT[stageKey]) lines.push(`Needs     ${UNSCORED_NEXT[stageKey]}`);
+  } else if (t) {
+    // Shown whatever the state. On a green stage it is what keeps it green,
+    // which is the more useful thing to read before it slips.
+    lines.push(`${m.health === "green" ? "Sustain  " : "Improve  "} ${t.improve}`);
+  }
+
+  if (m.note) lines.push(`Caveat    ${m.note}`);
+  return lines.join("\n");
+}
 
 /**
  * One stage. Greyed stages are the neighbours just past a handoff, drawn on a
@@ -173,7 +201,7 @@ export function StageBox({
       ) : null}
       {read && metric ? (
         <>
-          <title>{metricTitle(s.code, s.name, metric)}</title>
+          <title>{metricTitle(s.key ?? s.code, s.code, s.name, metric)}</title>
           <text
             x={s.x + s.w - 12}
             y={s.y + 19}
@@ -291,7 +319,7 @@ export function BottomLine({
     <>
       <line x1={44} y1={y} x2={916} y2={y} stroke="#e2e8f0" strokeWidth={1} />
       <g>
-        <title>{metricTitle("Funnel yield", "Commercial conversion", yields.commercial)}</title>
+        <title>{metricTitle("YIELD", "Funnel yield", "Commercial conversion", yields.commercial)}</title>
         <rect x={38} y={y + 6} width={200} height={20} fill="transparent" />
         <text x={44} y={y + 20} fontSize={9.5} fontWeight={700} fill="#64748b" letterSpacing="0.5">
           YIELD

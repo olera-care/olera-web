@@ -174,6 +174,17 @@ export function cityToSlug(city: string): string {
   return city.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "");
 }
 
+/**
+ * A city page's URL slug loses punctuation ("St. Louis" → "st-louis" →
+ * "St Louis"), so an exact match misses the stored name. Matching with a
+ * wildcard between words ("St%Louis") finds "St. Louis" and "St Louis" alike.
+ * Apostrophes inside a word ("O'Fallon" → "ofallon") still miss; those are the
+ * ~10 cities cityHasPowerPage() in lib/provider-breadcrumbs.ts leaves unlinked.
+ */
+export function cityMatchPattern(city: string): string {
+  return city.trim().split(/\s+/).join("%");
+}
+
 /** "new-york" → "New York" */
 export function citySlugToDisplay(slug: string): string {
   return slug
@@ -240,7 +251,7 @@ export async function fetchPowerPageData(opts: {
   const cityNames = city ? expandCityAliases(city) : null;
   if (cityNames) {
     if (cityNames.length === 1) {
-      query = query.ilike("city", cityNames[0]);
+      query = query.ilike("city", cityMatchPattern(cityNames[0]));
     } else {
       query = query.in("city", cityNames);
     }
@@ -267,7 +278,7 @@ export async function fetchPowerPageData(opts: {
     if (stateAbbrev) bpQuery = (bpQuery as any).eq("state", stateAbbrev);
     if (cityNames) {
       if (cityNames.length === 1) {
-        bpQuery = (bpQuery as any).ilike("city", cityNames[0]);
+        bpQuery = (bpQuery as any).ilike("city", cityMatchPattern(cityNames[0]));
       } else {
         bpQuery = (bpQuery as any).in("city", cityNames);
       }

@@ -1,34 +1,11 @@
 import Link from "next/link";
-import type { ProfileCategory } from "@/lib/types";
+import type { Crumb } from "@/lib/provider-breadcrumbs";
 
-const categoryToBrowseSlug: Partial<Record<ProfileCategory, string>> = {
-  home_care_agency: "home-care",
-  home_health_agency: "home-health",
-  assisted_living: "assisted-living",
-  memory_care: "memory-care",
-  nursing_home: "skilled-nursing",
-  independent_living: "independent-living",
-  hospice_agency: "hospice",
-  inpatient_hospice: "hospice",
-};
-
-const categoryLabels: Partial<Record<ProfileCategory, string>> = {
-  home_care_agency: "Home Care",
-  home_health_agency: "Home Health",
-  assisted_living: "Assisted Living",
-  memory_care: "Memory Care",
-  nursing_home: "Nursing Home",
-  independent_living: "Independent Living",
-  hospice_agency: "Hospice",
-  inpatient_hospice: "Hospice",
-};
-
-interface BreadcrumbsProps {
-  category: ProfileCategory | null;
-  city: string | null;
-  state: string | null;
-  providerName: string;
-}
+/**
+ * Visible breadcrumb trail on a provider page. The crumbs come from
+ * lib/provider-breadcrumbs.ts, the same list the page's BreadcrumbList
+ * JSON-LD is built from, so the two cannot drift apart.
+ */
 
 function Chevron() {
   return (
@@ -38,45 +15,25 @@ function Chevron() {
   );
 }
 
-export default function Breadcrumbs({ category, city, state, providerName }: BreadcrumbsProps) {
-  const browseSlug = category ? categoryToBrowseSlug[category] : null;
-  const categoryLabel = category ? categoryLabels[category] : null;
-  const locationStr = [city, state].filter(Boolean).join(", ");
-
+export default function Breadcrumbs({ crumbs }: { crumbs: Crumb[] }) {
+  const last = crumbs.length - 1;
   return (
     <nav className="hidden md:flex items-center gap-2 text-sm mb-2 flex-wrap" aria-label="Breadcrumb">
-      <Link href="/" className="text-gray-500 hover:text-gray-700 transition-colors">
-        Home
-      </Link>
-
-      {categoryLabel && browseSlug && (
-        <>
-          <Chevron />
-          <Link
-            href={`/browse?type=${browseSlug}`}
-            className="text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            {categoryLabel}
-          </Link>
-        </>
+      {crumbs.map((c, i) =>
+        i === last ? (
+          <span key={c.href} className="text-gray-900 font-medium truncate max-w-[300px]">
+            {c.name}
+          </span>
+        ) : (
+          <span key={c.href} className="contents">
+            {i > 0 && <Chevron />}
+            <Link href={c.href} className="text-gray-500 hover:text-gray-700 transition-colors">
+              {c.name}
+            </Link>
+          </span>
+        ),
       )}
-
-      {locationStr && browseSlug && (
-        <>
-          <Chevron />
-          <Link
-            href={`/browse?type=${browseSlug}&q=${encodeURIComponent(locationStr)}`}
-            className="text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            {locationStr}
-          </Link>
-        </>
-      )}
-
-      <Chevron />
-      <span className="text-gray-900 font-medium truncate max-w-[300px]">
-        {providerName}
-      </span>
+      {crumbs.length > 1 && <Chevron />}
     </nav>
   );
 }

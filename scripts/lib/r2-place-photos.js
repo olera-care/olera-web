@@ -94,7 +94,8 @@ async function fetchWithRetry(url, retries = 3) {
     } catch (e) {
       lastErr = e;
     }
-    await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
+    // 429 here is a per-minute quota; back off in seconds, not milliseconds.
+    await new Promise((r) => setTimeout(r, 2000 * 2 ** attempt));
   }
   throw lastErr || new Error("fetch failed");
 }

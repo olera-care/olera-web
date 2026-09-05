@@ -101,6 +101,9 @@ const CLI_LIMIT = getArg("--limit=")
 const CONCURRENCY = getArg("--concurrency=")
   ? parseInt(getArg("--concurrency=").split("=")[1], 10)
   : 20;
+// Google enforces a per-minute GetPlaceRequest quota on this project. The
+// 2026-09-05 full run at ~21 QPS lost 1,964 providers to 429s; 8 QPS is safe.
+const QPS = getArg("--qps=") ? parseInt(getArg("--qps=").split("=")[1], 10) : 8;
 
 // ---------------------------------------------------------------------------
 // Validate env
@@ -146,10 +149,10 @@ const startTime = Date.now();
 
 // ---------------------------------------------------------------------------
 // Global rate limiter — shared across all concurrent workers
-// Target: ~30 Google API requests/sec (well within 100 QPS quota)
+// Target: QPS Google requests/sec (default 8; see --qps=)
 // ---------------------------------------------------------------------------
 
-const GOOGLE_MIN_INTERVAL_MS = 33; // ~30 QPS
+const GOOGLE_MIN_INTERVAL_MS = Math.ceil(1000 / QPS);
 let lastGoogleCallTime = 0;
 let rateLimitQueue = Promise.resolve();
 
@@ -372,7 +375,7 @@ async function main() {
   console.log("  Provider Image Migration: cdn-api.olera.care → Cloudflare R2");
   console.log("=".repeat(70));
   console.log(`  Mode:        ${DRY_RUN ? "DRY RUN (no writes)" : "LIVE"}`);
-  console.log(`  Concurrency: ${CONCURRENCY} workers`);
+  console.log(`  Concurrency: ${CONCURRENCY} workers @ ${QPS} QPS`);
   console.log(`  Photos/prov: ${MAX_PHOTOS_PER_PROVIDER}`);
   console.log(`  R2 bucket:   ${R2_BUCKET}`);
   console.log(`  R2 URL:      ${R2_PUBLIC_URL}`);
@@ -443,7 +446,7 @@ async function main() {
   if (DRY_RUN) {
     // Cost: 1 Place Details ($0.005) + 2 Photo Media ($0.007 each) = $0.019/provider
     const estimatedCost = (providers.length * 0.019).toFixed(2);
-    const estimatedTime = ((providers.length * 3) / 30 / 60).toFixed(1); // 3 calls/prov, 30 QPS
+    const estimatedTime = ((providers.length * 3) / QPS / 60).toFixed(1); // 3 calls/prov
     console.log(`  Estimated Google API calls: ~${providers.length * 3}`);
     console.log(`  Estimated cost:  ~$${estimatedCost}`);
     console.log(`  Estimated time:  ~${estimatedTime} min (at ${CONCURRENCY} workers)`);

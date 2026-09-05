@@ -59,6 +59,8 @@ export default function SystemArchitecture({
   metrics,
   yields,
   outcomes,
+  showStats = true,
+  site,
 }: {
   /** Jump the reader to a PDF named destination. */
   onJump: (dest: string) => void;
@@ -66,6 +68,10 @@ export default function SystemArchitecture({
   metrics?: FunnelMetrics;
   /** The two yields that are honest today. Omit to hide the strip. */
   yields?: { commercial: StageMetric; placement: StageMetric };
+  /** Off hides every per-stage number, leaving the health dots. */
+  showStats?: boolean;
+  /** The site in view, which titles the header block. Null is the whole network. */
+  site?: { name: string; logoUrl: string | null } | null;
   /** The bottom line's outcome figures. */
   outcomes?: {
     successfulStudents: number;
@@ -74,7 +80,14 @@ export default function SystemArchitecture({
   };
 }) {
   const box = (st: Stage, sub?: string) => (
-    <StageBox key={st.code + st.x} stage={st} metric={metrics?.[st.key ?? st.code]} onJump={onJump} sub={sub} />
+    <StageBox
+      key={st.code + st.x}
+      stage={st}
+      metric={metrics?.[st.key ?? st.code]}
+      onJump={onJump}
+      sub={sub}
+      showStats={showStats}
+    />
   );
   const arrow = (x: number, y1: number, y2: number) => <Arrow key={`a${x}${y1}`} x={x} y1={y1} y2={y2} />;
   const handoff = (y: number, text: string) => (
@@ -97,25 +110,36 @@ export default function SystemArchitecture({
       <ArrowDefs />
 
       {/* One site: a university and the providers around it */}
-      <rect x={250} y={8} width={460} height={38} rx={5} fill="#0f172a" />
-      <text x={480} y={25} fontSize={12} fontWeight={700} fill="#fff" textAnchor="middle">
-        SITE 1
+      <rect x={250} y={8} width={460} height={40} rx={5} fill="#1a3030" />
+      {site?.logoUrl ? (
+        <image href={site.logoUrl} x={266} y={16} width={24} height={24} preserveAspectRatio="xMidYMid meet" />
+      ) : site ? (
+        // No logo loaded for this school, so a monogram holds the slot.
+        <>
+          <circle cx={278} cy={28} r={12} fill="#385e5e" />
+          <text x={278} y={32} fontSize={11} fontWeight={700} fill="#d8edec" textAnchor="middle">
+            {site.name.replace(/^(The|University of)\s+/i, "").slice(0, 2).toUpperCase()}
+          </text>
+        </>
+      ) : null}
+      <text x={480} y={26} fontSize={13} fontWeight={700} fill="#fff" textAnchor="middle">
+        {site ? site.name : "All sites"}
       </text>
-      <text x={480} y={39} fontSize={10} fill="#cbd5e1" textAnchor="middle">
-        One university and one surrounding service area of providers
+      <text x={480} y={41} fontSize={11} fill="#96c8c8" textAnchor="middle">
+        {site ? "One university and its surrounding service area" : "Every university and its service area"}
       </text>
       {arrow(230, 46, 68)}
       {arrow(730, 46, 68)}
       <line x1={230} y1={46} x2={730} y2={46} stroke="#cbd5e1" strokeWidth={1.5} />
 
-      <text x={LEFT} y={80} fontSize={10.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
+      <text x={LEFT} y={80} fontSize={11.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
         PROVIDER SIDE
       </text>
-      <text x={RIGHT} y={80} fontSize={10.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
+      <text x={RIGHT} y={80} fontSize={11.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
         STUDENT / UNIVERSITY SIDE
       </text>
       {metrics ? (
-        <text x={916} y={80} fontSize={9.5} fontWeight={700} fill="#0f172a" textAnchor="end" letterSpacing="0.5">
+        <text x={916} y={80} fontSize={10.5} fontWeight={700} fill="#0f172a" textAnchor="end" letterSpacing="0.5">
           LAST 30 DAYS
         </text>
       ) : null}
@@ -125,11 +149,8 @@ export default function SystemArchitecture({
           everything below the Sales-to-User-Success handoff runs by hand or in
           the Portal. This is the tech-on-duty's boundary. */}
       <rect x={30} y={88} width={900} height={228} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
-      <text x={44} y={106} fontSize={10} fontWeight={700} fill="#334155" letterSpacing="0.5">
+      <text x={44} y={106} fontSize={11} fontWeight={700} fill="#334155" letterSpacing="0.5">
         ADMIN PANEL
-      </text>
-      <text x={134} y={106} fontSize={10} fill="#64748b">
-        every step here is worked in the In Basket
       </text>
 
       {STAGES.filter((s) => s.y < 226).map((s) => box(s))}
@@ -151,15 +172,12 @@ export default function SystemArchitecture({
       <text x={44} y={481} fontSize={11} fontWeight={700} fill="#334155" letterSpacing="0.5">
         PORTAL
       </text>
-      <text x={102} y={481} fontSize={10.5} fill="#64748b">
-        carries the flow from student application through fulfilment
-      </text>
 
       <rect x={44} y={494} width={360} height={44} rx={5} fill="#ecfdf5" stroke="#a7f3d0" />
-      <text x={56} y={513} fontSize={11.5} fontWeight={700} fill="#065f46">
+      <text x={56} y={513} fontSize={12.5} fontWeight={700} fill="#065f46">
         Active client with a staffing need
       </text>
-      <text x={56} y={529} fontSize={10.5} fill="#6b7280">
+      <text x={56} y={529} fontSize={11} fill="#6b7280">
         from the provider side
       </text>
 
@@ -172,7 +190,7 @@ export default function SystemArchitecture({
       <line x1={142} y1={604} x2={736} y2={604} stroke="#cbd5e1" strokeWidth={1.5} />
       {arrow(142, 604, 618)}
 
-      <text x={44} y={592} fontSize={10} fontWeight={700} fill="#64748b" letterSpacing="0.5">
+      <text x={44} y={592} fontSize={11} fontWeight={700} fill="#64748b" letterSpacing="0.5">
         MATCH / FULFILMENT
       </text>
       {MATCH.map((s, i) =>

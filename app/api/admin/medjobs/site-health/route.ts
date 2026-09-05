@@ -17,6 +17,7 @@ export const dynamic = "force-dynamic";
 export interface SiteHealthRow {
   slug: string;
   name: string;
+  logoUrl: string | null;
   score: number;
   status: Health;
   reads: string;
@@ -43,6 +44,7 @@ export async function GET() {
         rows.push({
           slug: s.slug,
           name: s.name,
+          logoUrl: s.logoUrl,
           score: r.health.score,
           status: r.health.status,
           reads: r.health.reads,
@@ -51,6 +53,7 @@ export async function GET() {
         rows.push({
           slug: s.slug,
           name: s.name,
+          logoUrl: s.logoUrl,
           score: 0,
           status: "unscored",
           reads: "Could not be scored.",

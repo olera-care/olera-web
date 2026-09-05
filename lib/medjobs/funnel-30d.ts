@@ -77,6 +77,12 @@ export interface Site {
   id: string;
   slug: string;
   name: string;
+  /**
+   * The school's mark. `medjobs_universities.logo_url` exists as a column and
+   * nothing populates it yet, so this is null for every site today and the UI
+   * falls back to a monogram. It fills in the moment logos are loaded.
+   */
+  logoUrl: string | null;
 }
 
 /** The bottom line: what the funnel produced, in outcomes rather than rates. */
@@ -227,12 +233,24 @@ export async function loadFunnel30d(db: DB, siteSlug?: string | null): Promise<F
 
   // The site list drives both the filter and the navigator, so it is always
   // loaded even when no filter is applied.
-  const { data: campusRows } = await db
-    .from("student_outreach_campuses")
-    .select("id, slug, name")
-    .eq("is_active", true)
-    .order("name");
-  const sites = (campusRows ?? []) as Site[];
+  const [{ data: campusRows }, { data: uniRows }] = await Promise.all([
+    db.from("student_outreach_campuses").select("id, slug, name").eq("is_active", true).order("name"),
+    db.from("medjobs_universities").select("slug, name, logo_url"),
+  ]);
+  // The two registries drift on slug, so match on name first, as the
+  // campus-university bridge does, and fall back to slug.
+  const byName = new Map<string, string | null>();
+  const bySlug = new Map<string, string | null>();
+  for (const u of (uniRows ?? []) as Array<{ slug: string; name: string; logo_url: string | null }>) {
+    byName.set(u.name.trim().toLowerCase(), u.logo_url);
+    bySlug.set(u.slug, u.logo_url);
+  }
+  const sites: Site[] = ((campusRows ?? []) as Array<{ id: string; slug: string; name: string }>).map(
+    (c) => ({
+      ...c,
+      logoUrl: byName.get(c.name.trim().toLowerCase()) ?? bySlug.get(c.slug) ?? null,
+    }),
+  );
   const site = siteSlug ? (sites.find((c) => c.slug === siteSlug) ?? null) : null;
   const campusId = site?.id ?? null;
   // Asking for a site that does not exist must not silently return the network.

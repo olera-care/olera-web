@@ -13,9 +13,24 @@ import type { Health } from "@/lib/medjobs/funnel-health";
 interface Row {
   slug: string;
   name: string;
+  logoUrl: string | null;
   score: number;
   status: Health;
   reads: string;
+}
+
+/** The school's mark, or its initials while no logo is loaded. */
+function Mark({ row }: { row: Row }) {
+  if (row.logoUrl) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={row.logoUrl} alt="" className="h-6 w-6 shrink-0 rounded object-contain" />;
+  }
+  const initials = row.name.replace(/^(The|University of)\s+/i, "").slice(0, 2).toUpperCase();
+  return (
+    <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded bg-primary-100 text-[10px] font-bold text-primary-800">
+      {initials}
+    </span>
+  );
 }
 
 const BAR: Record<Health, string> = {
@@ -102,6 +117,7 @@ export default function SiteNavigator({
             >
               {/* The bar carries the status at a glance; the number is the detail. */}
               <span className={`h-8 w-1 shrink-0 rounded-full ${BAR[r.status]}`} aria-hidden />
+              <Mark row={r} />
               <span className="min-w-0 flex-1">
                 <span
                   className={`block truncate text-[13px] ${

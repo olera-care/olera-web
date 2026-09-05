@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
+
 import RoleDiagram from "@/components/admin/medjobs/RoleDiagram";
+import StatsToggle from "@/components/admin/medjobs/StatsToggle";
 import { useFunnel30d } from "@/components/admin/medjobs/useFunnel30d";
 
 /**
@@ -16,23 +19,20 @@ export default function RoleOrientation({
   onJump: (dest: string) => void;
 }) {
   const { funnel, failed } = useFunnel30d();
+  const [showStats, setShowStats] = useState(false);
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white p-4">
-      <div className="mb-3 flex items-baseline justify-between gap-4">
-        <h2 className="text-sm font-semibold text-gray-900">
-          Your steps{funnel ? ", last 30 days" : ""}
-        </h2>
-        <p className="text-xs text-gray-500">
-          Click a step to jump the reader to it
-          {funnel ? " · hover a number for what it counts" : ""}
-        </p>
+      <div className="mb-3 flex justify-end">
+        <StatsToggle on={showStats} onChange={setShowStats} />
       </div>
       <RoleDiagram
         role={role}
         onJump={onJump}
         metrics={funnel?.stages}
         yields={role === "crm" ? funnel?.yield : undefined}
+        outcomes={role === "crm" ? funnel?.outcomes : undefined}
+        showStats={showStats}
       />
       {failed ? (
         <p className="mt-2 text-xs text-gray-500">

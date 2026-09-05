@@ -16,8 +16,9 @@ import {
  */
 
 /**
- * Health colour, taken from the design system's own semantic scales rather
- * than a generic dashboard palette: success / warning / error in
+ * Health colour. The only place green, yellow and red appear, now that
+ * ownership is a single teal scale. Values come from the design system's own
+ * semantic scales rather than a generic dashboard palette: success / warning / error in
  * tailwind.config.ts, which is where every other status in the product reads
  * from. `unscored` is deliberately quiet — a stage we cannot measure should
  * not compete for attention with one that is failing.
@@ -29,11 +30,16 @@ export const HEALTH: Record<Health, { dot: string; fill: string; stroke: string;
   unscored: { dot: "#D0D5DD", fill: "#F9FAFB", stroke: "#EAECF0", ink: "#667085", label: "Not scored" },
 };
 
+/**
+ * Ownership, as one teal scale from the brand's primary palette. Four steps of
+ * the same colour rather than four different hues, so that anything on the map
+ * which is not teal is a health state.
+ */
 export const OWNERS = {
-  admin: { fill: "#eff6ff", stroke: "#bfdbfe", ink: "#1e40af", label: "Admin Team" },
-  sales: { fill: "#fffbeb", stroke: "#fde68a", ink: "#92400e", label: "Sales Lead" },
-  usm: { fill: "#ecfdf5", stroke: "#a7f3d0", ink: "#065f46", label: "User Success Manager" },
-  portal: { fill: "#f8fafc", stroke: "#e2e8f0", ink: "#334155", label: "Portal" },
+  admin: { fill: "#f4fafa", stroke: "#d8edec", ink: "#417272", label: "Admin Team" },
+  sales: { fill: "#edf7f7", stroke: "#bee0e0", ink: "#385e5e", label: "Sales Lead" },
+  usm: { fill: "#d8edec", stroke: "#96c8c8", ink: "#1a3030", label: "User Success Manager" },
+  portal: { fill: "#f9fafb", stroke: "#eaecf0", ink: "#475467", label: "Portal" },
 } as const;
 
 export type Owner = keyof typeof OWNERS;
@@ -135,17 +141,20 @@ export function StageBox({
   onJump,
   sub,
   greyed,
+  showStats = true,
 }: {
   stage: Stage;
   metric?: StageMetric;
   onJump?: (dest: string) => void;
   sub?: string;
   greyed?: boolean;
+  /** Off hides the number and leaves the health dot, which is the summary. */
+  showStats?: boolean;
 }) {
   const s = stage;
   const o = OWNERS[s.owner];
   const h = s.h ?? 44;
-  const read = greyed ? null : metric ? readMetric(metric) : null;
+  const read = greyed || !showStats ? null : metric ? readMetric(metric) : null;
   const jump = greyed ? undefined : onJump;
   return (
     <g
@@ -180,22 +189,25 @@ export function StageBox({
         strokeDasharray={greyed ? "4 3" : undefined}
       />
       {!greyed && metric?.health ? (
-        <circle cx={s.x + 12} cy={s.y + 15} r={4} fill={HEALTH[metric.health].dot} />
+        <g>
+          {!read ? <title>{metricTitle(s.key ?? s.code, s.code, s.name, metric)}</title> : null}
+          <circle cx={s.x + 13} cy={s.y + 16} r={4.5} fill={HEALTH[metric.health].dot} />
+        </g>
       ) : null}
       <text
-        x={s.x + (!greyed && metric?.health ? 23 : 12)}
-        y={s.y + 19}
-        fontSize={12.5}
+        x={s.x + (!greyed && metric?.health ? 25 : 12)}
+        y={s.y + 21}
+        fontSize={14}
         fontWeight={700}
         fill={greyed ? "#9ca3af" : o.ink}
       >
         {s.code}
       </text>
-      <text x={s.x + (!greyed && metric?.health ? 23 : 12)} y={s.y + 35} fontSize={11.5} fill={greyed ? "#9ca3af" : "#374151"}>
+      <text x={s.x + (!greyed && metric?.health ? 25 : 12)} y={s.y + 38} fontSize={12.5} fill={greyed ? "#9ca3af" : "#374151"}>
         {s.name}
       </text>
       {sub ? (
-        <text x={s.x + (!greyed && metric?.health ? 23 : 12)} y={s.y + 53} fontSize={10} fill={greyed ? "#b0b6be" : "#6b7280"}>
+        <text x={s.x + (!greyed && metric?.health ? 25 : 12)} y={s.y + 55} fontSize={11} fill={greyed ? "#b0b6be" : "#6b7280"}>
           {sub}
         </text>
       ) : null}
@@ -204,8 +216,8 @@ export function StageBox({
           <title>{metricTitle(s.key ?? s.code, s.code, s.name, metric)}</title>
           <text
             x={s.x + s.w - 12}
-            y={s.y + 19}
-            fontSize={read.gap ? 9 : s.w < 200 ? 10.5 : 12}
+            y={s.y + 21}
+            fontSize={read.gap ? 10 : s.w < 200 ? 11.5 : 13.5}
             fontWeight={read.gap ? 400 : 700}
             fontStyle={read.gap ? "italic" : undefined}
             textAnchor="end"

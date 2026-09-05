@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import SystemArchitecture from "@/components/admin/medjobs/SystemArchitecture";
 import SiteNavigator from "@/components/admin/medjobs/SiteNavigator";
 import HealthBadge from "@/components/admin/medjobs/HealthBadge";
+import StatsToggle from "@/components/admin/medjobs/StatsToggle";
 import { useFunnel30d } from "@/components/admin/medjobs/useFunnel30d";
 
 /**
@@ -48,27 +49,11 @@ function Action({
   );
 }
 
-function Resource({ href, kind, title, detail }: { href: string; kind: string; title: string; detail: string }) {
-  return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      className="group flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-colors hover:border-gray-300 hover:bg-gray-50"
-    >
-      <span className="mt-0.5 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-        {kind}
-      </span>
-      <span className="min-w-0">
-        <span className="block text-sm font-medium text-gray-900 group-hover:underline">{title}</span>
-        <span className="block text-xs text-gray-500">{detail}</span>
-      </span>
-    </a>
-  );
-}
 
 export default function SopOrientation({ onJump }: { onJump: (dest: string) => void }) {
   const [site, setSite] = useState<string | null>(null);
+  // Off by default: the health dots carry the state, the figures are detail.
+  const [showStats, setShowStats] = useState(false);
   const { funnel, failed } = useFunnel30d(site);
 
   // The sidebar used to carry these fractions. Moving Sites and the In Basket
@@ -95,6 +80,7 @@ export default function SopOrientation({ onJump }: { onJump: (dest: string) => v
         <span className="text-xs text-gray-500">
           {funnel?.site ? funnel.site.name : "All sites"} · last 30 days
         </span>
+        <StatsToggle on={showStats} onChange={setShowStats} />
         {funnel ? (
           <HealthBadge
             status={funnel.health.status}
@@ -106,21 +92,33 @@ export default function SopOrientation({ onJump }: { onJump: (dest: string) => v
       </div>
 
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_18rem]">
-        <div className="rounded-lg border border-gray-200 bg-white p-4">
-          <div className="mb-3 flex items-baseline justify-between gap-4">
-            <h2 className="text-sm font-semibold text-gray-900">
-              System Architecture{funnel ? ", last 30 days" : ""}
-            </h2>
-            <p className="text-xs text-gray-500">
-              Click a stage to jump the reader to it
-              {funnel ? " · hover a number for what it counts" : ""}
-            </p>
+        <div>
+          <div className="mb-1.5 flex flex-wrap items-center gap-3">
+            <a
+              href={VIDEO}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-medium text-primary-700 underline underline-offset-2 hover:text-primary-800"
+            >
+              Watch the walkthrough
+            </a>
+            <a
+              href={WALKTHROUGH}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs font-medium text-primary-700 underline underline-offset-2 hover:text-primary-800"
+            >
+              Reader guide
+            </a>
           </div>
+          <div className="rounded-lg border border-gray-200 bg-white p-4">
           <SystemArchitecture
             onJump={onJump}
             metrics={funnel?.stages}
             yields={funnel?.yield}
             outcomes={funnel?.outcomes}
+            showStats={showStats}
+            site={funnel?.site ?? null}
           />
           {failed ? (
             <p className="mt-2 text-xs text-gray-500">
@@ -135,25 +133,12 @@ export default function SopOrientation({ onJump }: { onJump: (dest: string) => v
               map and sit out this site&rsquo;s health score.
             </p>
           ) : null}
+          </div>
         </div>
 
         <SiteNavigator active={site} onPick={setSite} />
       </div>
 
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        <Resource
-          href={VIDEO}
-          kind="Video"
-          title="Operating system walkthrough"
-          detail="Recorded 4 September 2026 · opens in a new tab"
-        />
-        <Resource
-          href={WALKTHROUGH}
-          kind="PDF"
-          title="Walkthrough summary and reader guide"
-          detail="Two pages · how to read the matrix below"
-        />
-      </div>
     </div>
   );
 }

@@ -11,7 +11,30 @@ import AdminPageHeader from "@/components/admin/AdminPageHeader";
  * coordinate, so the section title lands at the top of the viewer instead of
  * wherever its page happens to start. It also means a rebuild that repaginates
  * the document cannot break the jump bar.
+ *
+ * The walkthrough sits beside the document's own title on every tab, because
+ * the video walks through this operating system: from wherever you are
+ * reading, the recording of it is one click away.
  */
+
+const VIDEO = "/api/admin/medjobs/sop?doc=video";
+
+/** The external-link mark beside the walkthrough. */
+function LinkIcon() {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      className="h-3.5 w-3.5"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.6}
+      aria-hidden
+    >
+      <path d="M6.5 3H3.5A0.5.5 0 0 0 3 3.5v9a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-3" strokeLinecap="round" />
+      <path d="M9.5 2.5H13.5V6.5M13 3l-5.5 5.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 export interface SopJump {
   /** Short label on the button. */
@@ -74,7 +97,18 @@ export default function SopReader({
       ) : null}
 
       <div ref={frame} className="scroll-mt-4">
-        <h2 className="mb-2 text-sm font-semibold text-gray-900">{readerLabel}</h2>
+        <div className="mb-2 flex items-center gap-3">
+          <h2 className="text-sm font-semibold text-gray-900">{readerLabel}</h2>
+          <a
+            href={VIDEO}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs font-medium text-primary-700 hover:text-primary-800"
+          >
+            <LinkIcon />
+            Walkthrough
+          </a>
+        </div>
         <div className="mb-3 flex flex-wrap items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2">
           {jumps.map((j) => {
             const h = sopHash(j);

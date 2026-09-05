@@ -7,6 +7,7 @@ import {
   HandoffRule,
   Legend,
   OWNERS,
+  SiteHeader,
   StageBox,
   BottomLine,
   type Owner,
@@ -110,23 +111,7 @@ export default function SystemArchitecture({
       <ArrowDefs />
 
       {/* One site: a university and the providers around it */}
-      <rect x={250} y={8} width={460} height={40} rx={5} fill="#1a3030" />
-      {site?.logoUrl ? (
-        <image href={site.logoUrl} x={266} y={16} width={24} height={24} preserveAspectRatio="xMidYMid meet" />
-      ) : site ? (
-        // No logo loaded for this school, so a monogram holds the slot.
-        <>
-          <circle cx={278} cy={28} r={12} fill="#385e5e" />
-          <text x={278} y={32} fontSize={11} fontWeight={700} fill="#d8edec" textAnchor="middle">
-            {site.name.replace(/^(The|University of)\s+/i, "").slice(0, 2).toUpperCase()}
-          </text>
-        </>
-      ) : null}
-      {/* Just the mark and the name. The block sits above the map it heads;
-          nothing else needs saying. */}
-      <text x={480} y={33} fontSize={15} fontWeight={700} fill="#fff" textAnchor="middle">
-        {site ? site.name : "All sites"}
-      </text>
+      <SiteHeader site={site} />
       {arrow(230, 46, 68)}
       {arrow(730, 46, 68)}
       <line x1={230} y1={46} x2={730} y2={46} stroke="#cbd5e1" strokeWidth={1.5} />
@@ -138,13 +123,13 @@ export default function SystemArchitecture({
         CAREGIVER
       </text>
 
-      {/* The six stages worked inside the admin panel. Drawn before the stage
-          boxes so it sits behind them, and sized to close under PR2 / ST2:
-          everything below the Sales-to-User-Success handoff runs by hand or in
-          the Portal. This is the tech-on-duty's boundary. */}
+      {/* The six stages worked in the In Basket. Drawn before the stage boxes
+          so it sits behind them, and sized to close under PR2 / ST2:
+          everything below the Sales-to-Consumer-Relations handoff runs by hand
+          or in the Portal. This is the tech-on-duty's boundary. */}
       <rect x={30} y={88} width={900} height={228} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
       <text x={44} y={106} fontSize={12} fontWeight={700} fill="#334155" letterSpacing="0.5">
-        ADMIN PANEL
+        IN BASKET
       </text>
 
       {STAGES.filter((s) => s.y < 226).map((s) => box(s))}

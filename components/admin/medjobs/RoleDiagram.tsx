@@ -6,6 +6,7 @@ import {
   Arrow,
   HandoffRule,
   Legend,
+  SiteHeader,
   StageBox,
   BottomLine,
   type Owner,
@@ -17,10 +18,10 @@ import {
  * their trailing-30-day numbers, and one dashed step past each handoff so they
  * can see where their work goes.
  *
- * Drawn from the same kit as the System map, so colour, tooltips and the way a
- * number reads are identical across all four pages. The grey ADMIN PANEL
- * container marks the steps worked inside the In Basket, which is what tells
- * the tech on duty where technology is involved.
+ * Drawn from the same kit as the System map, so colour, tooltips, the site
+ * header and the way a number reads are identical across all four pages. The
+ * grey In Basket container marks the steps worked inside the In Basket, which
+ * is what tells the tech on duty where technology is involved.
  */
 
 const L = 44;
@@ -41,13 +42,13 @@ function Lanes({ y }: { y: number }) {
 }
 
 
-/** The grey container marking steps worked in the admin panel. */
-function AdminPanel({ y, h }: { y: number; h: number }) {
+/** The grey container marking steps worked in the In Basket. */
+function InBasket({ y, h }: { y: number; h: number }) {
   return (
     <>
       <rect x={30} y={y} width={900} height={h} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
       <text x={L} y={y + 18} fontSize={12} fontWeight={700} fill="#334155" letterSpacing="0.5">
-        ADMIN PANEL
+        IN BASKET
       </text>
     </>
   );
@@ -71,6 +72,8 @@ type Props = {
   yields?: { commercial: StageMetric; placement: StageMetric };
   /** Off hides every per-stage number, leaving the health dots. */
   showStats?: boolean;
+  /** The site in view, which titles the header block. Null is the whole network. */
+  site?: { name: string; logoUrl: string | null } | null;
   /** The bottom line's outcome figures. */
   outcomes?: {
     successfulStudents: number;
@@ -85,9 +88,20 @@ const LEGEND: Record<Props["role"], Owner[]> = {
   crm: ["usm", "portal"],
 };
 
+/** The header band above every role map, matching the System map's. */
+const HEAD = 56;
+
 const HEIGHT: Record<Props["role"], number> = { admin: 300, sales: 250, crm: 422 };
 
-export default function RoleDiagram({ role, onJump, metrics, yields, outcomes, showStats = true }: Props) {
+export default function RoleDiagram({
+  role,
+  onJump,
+  metrics,
+  yields,
+  outcomes,
+  showStats = true,
+  site,
+}: Props) {
   const box = (st: Stage, sub?: string, greyed?: boolean) => (
     <StageBox
       key={st.code + st.x}
@@ -102,7 +116,7 @@ export default function RoleDiagram({ role, onJump, metrics, yields, outcomes, s
 
   return (
     <svg
-      viewBox={`0 0 960 ${HEIGHT[role]}`}
+      viewBox={`0 0 960 ${HEIGHT[role] + HEAD}`}
       width="100%"
       role="img"
       aria-label={`The MedJobs steps owned by the ${role} role`}
@@ -111,10 +125,16 @@ export default function RoleDiagram({ role, onJump, metrics, yields, outcomes, s
     >
       <ArrowDefs />
 
+      {/* One site: a university and the providers around it */}
+      <SiteHeader site={site} />
+
+      {/* The map itself, dropped clear of the header. Every y below is the
+          coordinate it had before the header existed. */}
+      <g transform={`translate(0, ${HEAD})`}>
       {role === "admin" && (
         <>
           <Lanes y={22} />
-          <AdminPanel y={32} h={222} />
+          <InBasket y={32} h={222} />
           {box({ code: "PR1", name: "Target list built", owner: "admin", dest: "pr1", x: L, y: 62, w: W })}
           {box({ code: "ST1", name: "Target advisors", owner: "admin", dest: "st1", x: R, y: 62, w: W })}
           <Arrow x={L + 20} y1={106} y2={114} />
@@ -131,7 +151,7 @@ export default function RoleDiagram({ role, onJump, metrics, yields, outcomes, s
       {role === "sales" && (
         <>
           <Lanes y={22} />
-          <AdminPanel y={34} h={92} />
+          <InBasket y={34} h={92} />
           {box({ code: "PR2", name: "Provider meeting held", owner: "sales", dest: "pr2", x: L, y: 62, w: W })}
           {box({ code: "ST2", name: "Advisor meeting held", owner: "sales", dest: "st2", x: R, y: 62, w: W })}
           <HandoffRule y={148} text="HANDOFF · YOU → CONSUMER RELATIONS MANAGER" lanes={[[L, W], [R, W]]} />
@@ -173,6 +193,7 @@ export default function RoleDiagram({ role, onJump, metrics, yields, outcomes, s
           <Legend y={388} owners={LEGEND.crm} />
         </>
       )}
+      </g>
     </svg>
   );
 }

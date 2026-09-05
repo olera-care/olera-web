@@ -329,3 +329,39 @@ export function BottomLine({
     </>
   );
 }
+
+/**
+ * The header block naming the site a diagram is filtered to, or the whole
+ * network. Shared so the System map and the three role maps say which site
+ * they are showing in exactly the same way.
+ */
+export function SiteHeader({
+  site,
+  y = 8,
+}: {
+  site?: { name: string; logoUrl: string | null } | null;
+  y?: number;
+}) {
+  return (
+    <>
+      <rect x={250} y={y} width={460} height={40} rx={5} fill="#1a3030" />
+      {site?.logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <image href={site.logoUrl} x={266} y={y + 8} width={24} height={24} preserveAspectRatio="xMidYMid meet" />
+      ) : site ? (
+        // No logo loaded for this school, so a monogram holds the slot.
+        <>
+          <circle cx={278} cy={y + 20} r={12} fill="#385e5e" />
+          <text x={278} y={y + 24} fontSize={11} fontWeight={700} fill="#d8edec" textAnchor="middle">
+            {site.name.replace(/^(The|University of)\s+/i, "").slice(0, 2).toUpperCase()}
+          </text>
+        </>
+      ) : null}
+      {/* Just the mark and the name. The block sits above the map it heads;
+          nothing else needs saying. */}
+      <text x={480} y={y + 25} fontSize={15} fontWeight={700} fill="#fff" textAnchor="middle">
+        {site ? site.name : "All sites"}
+      </text>
+    </>
+  );
+}

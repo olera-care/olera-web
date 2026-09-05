@@ -1,7 +1,7 @@
-# Olera Marketplace — System Architecture (v9)
+# Olera Marketplace — System Architecture (v10)
 
-One city. The profile sits between the tracks and feeds both continuously. Claiming is not a
-provider stage — it is the gate inside Track B.
+One city. Everything a family gives us flows into one profile-and-plan, which feeds both tracks
+continuously. Claiming is the gate inside Track B.
 
 **Track A = Aid Program. Track B = Provider Connection.**
 
@@ -17,17 +17,17 @@ ORGANIC   ◆PAID ADS                                     ◆CITY DIRECTORY
   └────┬────┘                                             ▼
        ▼                                                P1  LISTED
 F1  ENTRY SURFACE                                           the available pool
-    provider · editorial · benefits page                  │
-    │                                                     ▼
-    ▼                                                   ◆P2  OUTREACH
-F2  CTA                                                     accelerates claiming
-    ├─ BENEFITS CTA ──────►  A1                           │
-    ├─ CONNECTION CARD ───►  B1                           │
-    └─ QUESTION ──────────►  P3                           │
+    provider · editorial ·                                │
+    benefits page                                         ▼
+    │                                                   ◆P2  OUTREACH
+    ├─ QUESTION ───────────────────────────────────────►    accelerates claiming
+    ▼                                                     │
+F2  CTA                                                   │
+    benefits CTA                                          │
+    connection card                                       │
     │                                                     │
     └───────────────────────────┐                         │
 ◆REFERRAL PARTNER · flyer / QR ─┤                         │
-CR-F ───────────────────────────┤                         │
                                 ▼                         ▼
 ┌────────────────────┐  ┌───────────────────┐  ┌────────────────────────────┐
 │  TRACK A           │  │  F3  PROFILE      │  │  TRACK B                   │
@@ -40,9 +40,9 @@ CR-F ─────────────────────────
 │        │           │  │  is already       │  │        │       ◄── self-   │
 │        ▼           │  │  running          │  │        │           serve   │
 │   A3  ACTING       │◄─│                   │─►│        ├──►  CR-P          │
-│        │           │  │                   │  │        ▼                   │
-│        ▼           │  │                   │  │   B2  RESPONDED            │
-│   A4  SECURED      │  │                   │  │        │                   │
+│        │           │  │  ┌─────────────┐  │  │        ▼                   │
+│        ▼           │  │  │    CR-F     │  │  │   B2  RESPONDED            │
+│   A4  SECURED      │  │  └─────────────┘  │  │        │                   │
 │                    │  │                   │  │        ▼                   │
 │                    │  │                   │  │   B3  TALKED               │
 │                    │  │                   │  │        │                   │
@@ -59,47 +59,29 @@ CR-P  - - ►  CLIENT ACQUISITION GROWTH  ·  CAREGIVER STAFFING
 
 ---
 
-## What changed, and why
+## What changed
 
-### The tracks start at F2, not after the plan
+**The question left the CTA layer.** It branches between F1 and F2 and points at **P2**. A question
+is a reason to work that provider, not a family workflow — and unlike the two CTAs it can arrive
+with no name and no email, so there may be no family to enrol. F2 is now reserved for the two CTAs
+that produce a contactable family: **benefits CTA** and **connection card**.
 
-A CTA can start a track immediately. The profile is not upstream of the tracks — it sits **beside**
-them, enriching continuously and deepening whatever is already running. That is why F3 is drawn
-between Track A and Track B with arrows pointing both ways: it is a parallel process, not a stage.
+**The bypass arrows are gone, and nothing was lost.** Both CTAs now flow into F3. Because F3 is not
+a gate, a half-filled profile immediately yields a half plan, and that half plan starts its track.
+The bypass was only ever needed to route around a gate that no longer exists.
 
-Profile and plan are one box. The plan is what the profile becomes once it carries enough to act on;
-splitting them added a step nobody occupies.
+**CR-F sits inside F3.** It is not a stage the family passes through — it is help available while
+the profile and plan are being built and worked. Enrichment before, during or after the interaction
+all read the same on the diagram.
 
-### Claiming is a gate inside Track B, not a provider stage
-
-`connectionRequestEmail` carries `providerName · familyName · careType · city · viewUrl` —
-**no family email, no phone.** The provider gets a teaser and a link. Full contact details are
-behind the click, and the click is the claim.
-
-So B1 lands on a **listed** provider — nothing about the provider funnel gates delivery — and the
-provider must pass **P3** before B2 is possible. P3 now sits between B1 and B2, where it actually
-operates.
-
-### P4 is gone
-
-There was no active/inactive barrier in the product. A claimed provider with an empty profile
-receives and answers families exactly like any other. Removing the box removes a distinction we do
-not enforce.
-
-### The provider funnel is now two boxes
-
-**P1 LISTED** puts a provider in the available pool that Track B draws from — that is the whole
-point of being listed. **◆P2 OUTREACH** does not gate anything; it *accelerates claiming*, which is
-why it is drawn as a parallel lever rather than a prerequisite.
-
-Self-serve providers arrive straight at P3. CR-P sits immediately after P3, where a provider first
-becomes reachable, with the commercial products branching off it and touching nothing on the B path.
+**Referral partners enter directly above F3.** The partner already did the persuading; the landing
+page collects the profile. No entry surface, no CTA.
 
 ---
 
 ## Index
 
-**Family** — F1 entry surface · F2 CTA · F3 profile & plan · CR-F
+**Family** — F1 entry surface · F2 CTA · F3 profile & plan (contains CR-F)
 
 **Provider** — P1 listed · ◆P2 outreach · P3 claim or create (inside Track B) · CR-P
 
@@ -109,10 +91,24 @@ becomes reachable, with the commercial products branching off it and touching no
 
 ---
 
+## Two mechanics the diagram compresses
+
+**Why the tracks need different things.** Track A's eligibility engine filters on state, age, income
+band, Medicaid status and veteran status. Track B matches on care type, location and contact. The
+benefits CTA deposits the first set; the connection card deposits the second. So a family who
+arrives through one has half a plan until the profile deepens — which is CR-F's most concrete job:
+one conversation crosses both thresholds.
+
+**Why P3 gates B2.** The lead email carries the provider's name, the family's name, care type, city
+and a link — no family email, no phone. The provider cannot act without clicking, and the click is
+the claim.
+
+---
+
 ## Status
 
-**Exists** — both CTAs · continuous enrichment · the listed pool · outreach · claim-or-create · both
-tracks' execution · the claim gate exactly as drawn.
+**Exists** — both CTAs · questions with optional contact · continuous enrichment · the listed pool ·
+outreach · claim-or-create · both tracks' execution · the claim gate.
 
 **Partial** — the plan. The aid half exists; there is no provider half and no combined plan object.
 

@@ -9,6 +9,7 @@ import { allStates } from "@/data/waiver-library";
 import { pipelineDrafts } from "@/data/pipeline-drafts";
 import { allEpisodes } from "@/lib/aging-in-america-data";
 import { shouldIndexBenefitsProgram } from "@/lib/benefits/program-content-quality";
+import { listBrands, BRANDS_BASE_PATH } from "@/lib/brands";
 
 export const dynamic = "force-dynamic";
 
@@ -134,6 +135,19 @@ export async function GET(request: Request) {
       // Aging in America episode pages
       for (const ep of allEpisodes) {
         entries.push(xmlEntry(`${SITE_URL}/aging-in-america/${ep.slug}`, 0.6, "monthly"));
+      }
+
+      // Brand hub pages (one per franchise / multi-location operator)
+      try {
+        const brands = await listBrands();
+        if (brands.length > 0) {
+          entries.push(xmlEntry(`${SITE_URL}${BRANDS_BASE_PATH}`, 0.7, "weekly"));
+          for (const brand of brands) {
+            entries.push(xmlEntry(`${SITE_URL}${BRANDS_BASE_PATH}/${brand.slug}`, 0.7, "weekly"));
+          }
+        }
+      } catch (err) {
+        console.error("[sitemap] brands error:", err);
       }
 
       // Waiver-library state URLs (state listing page)

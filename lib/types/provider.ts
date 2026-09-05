@@ -11,7 +11,7 @@ import { generateProviderSlug } from "@/lib/slugify";
 import type { BusinessProfile, ProfileCategory, GoogleReviewsData, CMSData, AiTrustSignals } from "@/lib/types";
 import { getRegionalEstimate, getPricingConfig } from "@/lib/pricing-config";
 import { buildHighlights } from "@/lib/provider-highlights";
-import { filterDeadImageUrls } from "@/lib/images/dead-hosts";
+import { filterDeadImageUrls, liveImageUrlOrNull } from "@/lib/images/dead-hosts";
 
 export interface Provider {
   provider_id: string;
@@ -104,8 +104,7 @@ export function getPrimaryImage(provider: Provider): string | null {
   if (provider.hero_image_url) return provider.hero_image_url;
   const images = parseProviderImages(provider.provider_images);
   if (images[0]) return images[0];
-  if (provider.provider_logo) return provider.provider_logo;
-  return null;
+  return liveImageUrlOrNull(provider.provider_logo);
 }
 
 /**

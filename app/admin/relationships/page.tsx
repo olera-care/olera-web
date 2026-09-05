@@ -18,6 +18,7 @@ import { CHANNEL_LABEL, type RelationshipFlag, type RelationshipRow } from "@/li
 
 const FLAG_LABEL: Record<RelationshipFlag, string> = {
   overdue: "overdue",
+  awaiting_reply: "they wrote, no reply yet",
   never_human: "never had a human touch",
   complaint_on_file: "spam complaint on file",
   prefers_text: "prefers text",
@@ -26,6 +27,7 @@ const FLAG_LABEL: Record<RelationshipFlag, string> = {
 
 const FLAG_STYLE: Record<RelationshipFlag, string> = {
   overdue: "bg-orange-50 text-orange-800",
+  awaiting_reply: "bg-rose-50 text-rose-800",
   never_human: "bg-red-50 text-red-700",
   complaint_on_file: "bg-red-50 text-red-700",
   prefers_text: "bg-sky-50 text-sky-800",

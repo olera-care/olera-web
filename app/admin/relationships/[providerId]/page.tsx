@@ -208,10 +208,17 @@ export default function AdminRelationshipPage() {
                     )}
                   </div>
                   <div className="pt-0.5 text-right">
-                    <span className={`rounded px-1.5 py-0.5 font-mono text-[10px] ${it.source === "system" ? "bg-gray-100 text-gray-500" : it.status === "failed" || it.status === "complained" || it.status === "bounced" ? "bg-red-50 text-red-700" : "border border-gray-200 text-gray-600"}`}>
+                    <span className={`rounded px-1.5 py-0.5 font-mono text-[10px] ${it.status === "needs reply" ? "bg-rose-50 text-rose-800" : it.source === "system" ? "bg-gray-100 text-gray-500" : it.status === "failed" || it.status === "complained" || it.status === "bounced" ? "bg-red-50 text-red-700" : "border border-gray-200 text-gray-600"}`}>
                       {it.source}
-                      {it.status && it.source === "system" ? ` · ${it.status}` : ""}
+                      {it.status ? ` · ${it.status}` : ""}
                     </span>
+                    {it.href && (
+                      <div className="mt-1">
+                        <Link href={it.href} className="font-mono text-[10px] text-teal-800 hover:underline">
+                          open inbox →
+                        </Link>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -221,7 +228,7 @@ export default function AdminRelationshipPage() {
       </div>
 
       <p className="mt-3 max-w-3xl text-xs text-gray-500">
-        Black dot: we did it. Blue: they did. Hollow: the system did. <span className="font-mono">gmail</span> rows are synced from a mailbox, <span className="font-mono">manual</span> rows were typed or pasted, <span className="font-mono">system</span> rows come from email_log and the campaign case log. Nothing here is stored as a status; it is all read off the touches.
+        Black dot: we did it. Blue: they did. Hollow: the system did. <span className="font-mono">gmail</span> rows came from a mailbox: support@ threads (their replies, and copies of emails we Bcc'd), or an email logged from Gmail.<span className="font-mono">twilio</span> rows are texts to the Olera number, <span className="font-mono">manual</span> rows were typed or pasted, <span className="font-mono">system</span> rows come from email_log and the campaign case log. Nothing here is stored as a status; it is all read off the rows.
       </p>
     </div>
   );

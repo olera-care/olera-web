@@ -67,5 +67,6 @@ For a screenshot, one line per row plus any promise you proposed. Then stop. Do 
 
 - Never invent a timestamp. If the image has none, say so and use `--at` from TJ.
 - Never log a message that was drafted but not confirmed sent. "Good to send?" is not a send.
+- Never log an email that went through support@olera.care (Bcc'd, or a reply to a system email), or a text to the Olera number. The timeline reads `support_email_messages` and `sms_inbound` directly; a touch row would duplicate it. `/touch` is for what has no paper trail we own: texts on TJ's phone, calls, meetings, email from an inbox that was not Bcc'd.
 - No PHI about families in `summary`. A family is "a family". Their details belong in the connection record, not here.
 - If the provider has no `business_profiles` row, stop and say so; this table is keyed to profiles on purpose.

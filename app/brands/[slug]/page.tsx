@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getBrandHub, listBrands, BRANDS_BASE_PATH, type BrandHub } from "@/lib/brands";
+import { getBrandHub, listBrands, BRANDS_BASE_PATH, MIN_BRAND_LOCATIONS, type BrandHub } from "@/lib/brands";
 import BrowseCard from "@/components/browse/BrowseCard";
 
 // ISR: revalidate every hour, like the category and state power pages.
@@ -70,6 +70,9 @@ export async function generateMetadata({
     title,
     description,
     alternates: { canonical: url },
+    // Small brands keep a hub because their provider pages link here, but a
+    // three-location page is too thin to put in the index.
+    ...(hub.locationCount < MIN_BRAND_LOCATIONS && { robots: { index: false, follow: true } }),
     openGraph: {
       title,
       description,

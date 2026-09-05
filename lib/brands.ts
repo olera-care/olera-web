@@ -35,7 +35,11 @@ import { slugify } from "@/lib/slugify";
 
 export const BRANDS_BASE_PATH = "/brands";
 
-/** Minimum tagged locations for a brand to get a hub page and a sitemap entry. */
+/**
+ * Minimum tagged locations for a brand to be listed on /brands, in the
+ * sitemap, and indexed. Smaller brands still get a hub (every tagged provider
+ * page links to its brand, so the page must exist), marked noindex.
+ */
 export const MIN_BRAND_LOCATIONS = 10;
 
 /** URL slug for a brand name: "Home Instead" → "home-instead". */
@@ -239,14 +243,24 @@ function reviewCountOf(r: LightRow): number {
  * Home Care Services of Birmingham, AL" does. Return the name only when it
  * carries more than the brand.
  */
-function distinctLocationName(name: string, brand: string): string | null {
+function distinctLocationName(
+  name: string,
+  brand: string,
+  city: string | null,
+  state: string | null,
+): string | null {
   const norm = (v: string) => v.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
   const n = norm(name);
   const b = norm(brand);
   if (!n || n === b) return null;
-  const rest = n.startsWith(b) ? n.slice(b.length).trim() : n;
+  let rest = n.startsWith(b) ? n.slice(b.length).trim() : n;
+  rest = rest.replace(/^(of|in|at)\s+/, "");
   // Leftovers like "inc", "llc", "senior care" are not worth a second label.
   if (rest.length < 4 || /^(inc|llc|co|senior care|home care)$/.test(rest)) return null;
+  // "Home Instead – San Antonio, TX" next to the city "San Antonio" says nothing new.
+  const c = city ? norm(city) : "";
+  const st = state ? norm(state) : "";
+  if (c && (rest === c || rest === `${c} ${st}`.trim() || rest === `${c} ${st} area`.trim())) return null;
   return name;
 }
 
@@ -330,7 +344,7 @@ function toLocation(r: LightRow, brand: string): BrandLocation {
     id: r.provider_id,
     slug: r.slug || r.provider_id,
     name: r.provider_name,
-    distinctName: distinctLocationName(r.provider_name, brand),
+    distinctName: distinctLocationName(r.provider_name, brand, r.city, r.state),
     city: r.city,
     state: r.state,
     rating: ratingOf(r),
@@ -352,7 +366,6 @@ export const getBrandHub = cache(async (slug: string): Promise<BrandHub | null> 
   const match = [...groups.entries()].find(([name]) => brandSlug(name) === slug);
   if (!match) return null;
   const [name, list] = match;
-  if (list.length < MIN_BRAND_LOCATIONS) return null;
 
   const summary = summarize(name, list);
 

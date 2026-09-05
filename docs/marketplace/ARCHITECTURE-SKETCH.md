@@ -35,31 +35,31 @@ FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  P
   └────────┬──────┘                                     │                │
            └─────────────────────────┐                  │                │
                                      ▼                  ▼                ▼
-┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
-│  PORTAL                                                                                                          │
-│  ┌──────────────────────┐  ┌─────────────────────┐  ┌─────────────────────────────────┐   ┌───────────────────┐  │
-│  │ TRACK A              │  │ F3  FAMILY PROFILE  │  │ TRACK B                         │   │ PAID ADD-ONS      │  │
-│  │ AID ESTABLISHMENT    │  │                     │  │ CARE ESTABLISHMENT              │   │                   │  │
-│  │                      │  │    ┌────────────┐   │  │          ┌────────────┐         │   │                   │  │
-│  │                      │  │    │    CR-F    │   │  │          │    CR-P    │         │   │                   │  │
-│  │                      │  │    └────────────┘   │  │          └────────────┘         │   │                   │  │
-│  │                      │  │                     │  │                                 │   │                   │  │
-│  │ A1  MATCHED          │◄─│       enriches      │  │ P3  PROVIDER PROFILE            │   │                   │  │
-│  │      │               │  │     continuously    │  │     CLAIM or CREATE             │   │                   │  │
-│  │      ▼               │  │                     │  │      │                          │   │                   │  │
-│  │ A2  APPLICATION      │  │                     │  │      ▼                          │   │                   │  │
-│  │      │               │  │                     │─►│ B1  FAMILY-PROVIDER MATCHED     │◄──┤ PG1  MANAGED ADS  │  │
-│  │      ▼               │  │                     │  │      │                          │   │                   │  │
-│  │ A3  AID ESTABLISHED  │  │                     │  │      ▼                          │   │                   │  │
-│  │                      │  │                     │  │ B2  QUALIFIED                   │   │                   │  │
-│  │                      │  │                     │  │      │                          │   │                   │  │
-│  │                      │  │                     │  │      ▼                          │   │                   │  │
-│  │                      │  │                     │  │ B3  STAFFED PROVIDER            │◄──┤ PG2  STAFFING     │  │
-│  │                      │  │                     │  │      │                          │   │                   │  │
-│  │                      │  │                     │  │      ▼                          │   │                   │  │
-│  │                      │  │                     │  │ B4  CARE ESTABLISHED            │   │                   │  │
-│  └──────────┬───────────┘  └─────────────────────┘  └─────┬────────────────┬──────────┘   └───────────────────┘  │
-└─────────────┼─────────────────────────────────────────────┼────────────────┼────────────────────────────────────┘
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  PORTAL                                                                                                       │
+│  ┌──────────────────────┐  ┌─────────────────────┐  ┌─────────────────────────────────┐                       │
+│  │ TRACK A              │  │ F3  FAMILY PROFILE  │  │ TRACK B                         │                       │
+│  │ AID ESTABLISHMENT    │  │                     │  │ CARE ESTABLISHMENT              │                       │
+│  │                      │  │    ┌────────────┐   │  │          ┌────────────┐         │                       │
+│  │                      │  │    │    CR-F    │   │  │          │    CR-P    │         │                       │
+│  │                      │  │    └────────────┘   │  │          └────────────┘         │                       │
+│  │                      │  │                     │  │                                 │                       │
+│  │ A1  MATCHED          │◄─│       enriches      │  │ P3  PROVIDER PROFILE            │                       │
+│  │      │               │  │     continuously    │  │     CLAIM or CREATE             │                       │
+│  │      ▼               │  │                     │  │      │                          │     PAID ADD-ONS      │
+│  │ A2  APPLICATION      │  │                     │  │      ▼                          │     ────────────      │
+│  │      │               │  │                     │─►│ B1  FAMILY-PROVIDER MATCHED  ▲  │◄─── PG1  MANAGED ADS  │
+│  │      ▼               │  │                     │  │      │                          │                       │
+│  │ A3  AID ESTABLISHED  │  │                     │  │      ▼                          │                       │
+│  │                      │  │                     │  │ B2  QUALIFIED                   │                       │
+│  │                      │  │                     │  │      │                          │                       │
+│  │                      │  │                     │  │      ▼                          │                       │
+│  │                      │  │                     │  │ B3  STAFFED PROVIDER         ▲  │◄─── PG2  STAFFING     │
+│  │                      │  │                     │  │      │                          │                       │
+│  │                      │  │                     │  │      ▼                          │                       │
+│  │                      │  │                     │  │ B4  CARE ESTABLISHED            │                       │
+│  └──────────┬───────────┘  └─────────────────────┘  └─────┬────────────────┬──────────┘                       │
+└─────────────┼─────────────────────────────────────────────┼────────────────┼─────────────────────────────────┘
               │                                             │                │
               └──────────────────────┬──────────────────────┘                │
                                      ▼                                       ▼
@@ -117,6 +117,9 @@ upgrade, and neither changes how a family is matched.
 **PG1 managed ads** points at B1. The mechanism is longer than the arrow: paid spend buys FS3 for one
 provider, families reach that provider's page at F1, and more of them come through F2 to B1 with
 them. It buys distribution, not position.
+
+**The ▲ marks the step each tier lifts.** PG1 raises the number of families reaching B1; PG2 raises
+the number of matches that get staffed at B3.
 
 **PG2 staffing** points at B3. A provider who cannot staff a case cannot establish care, so the
 constraint near the bottom of Track B is often capacity rather than demand. This tier is MedJobs

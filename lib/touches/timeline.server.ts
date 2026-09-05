@@ -398,11 +398,9 @@ export async function loadProviderTimeline(providerId: string): Promise<Provider
   }
 
   const ts = ((touches ?? []) as TouchRow[]).slice().sort(byNewest);
-  const items: TimelineItem[] = [
-    ...ts.map(touchToItem),
-    ...emails.map(emailToItem),
-    ...campaignRows.map(campaignToItem),
-  ].sort(byNewest);
+  const items: TimelineItem[] = collapseRepeats(
+    [...ts.map(touchToItem), ...emails.map(emailToItem), ...campaignRows.map(campaignToItem)].sort(byNewest),
+  );
 
   const openAction = openActionOf(ts);
   const flags: RelationshipFlag[] = [];
@@ -413,6 +411,44 @@ export async function loadProviderTimeline(providerId: string): Promise<Provider
   if (p.preferred_contact_channel === "sms") flags.push("prefers_text");
 
   return { profile: toContact(p), open_action: openAction, flags, items };
+}
+
+/**
+ * A retrying system email (the outcome ping fires twice a day against an address
+ * that already complained) would bury a timeline under identical failed rows. Fold
+ * consecutive system emails with the same title and status into one row that says
+ * how many and over what span. Human touches are never folded.
+ */
+function collapseRepeats(items: TimelineItem[]): TimelineItem[] {
+  const out: TimelineItem[] = [];
+  let run: TimelineItem[] = [];
+  const sameRun = (a: TimelineItem, b: TimelineItem) =>
+    a.kind === "email" && b.kind === "email" && a.title === b.title && a.status === b.status && (a.status === "failed" || a.status === "bounced");
+  const flush = () => {
+    if (!run.length) return;
+    if (run.length < 3) {
+      out.push(...run);
+    } else {
+      const newest = run[0];
+      const oldest = run[run.length - 1];
+      out.push({
+        ...newest,
+        id: `${newest.id}:x${run.length}`,
+        title: `${newest.title} · ×${run.length}`,
+        detail: `${newest.detail ?? ""} · repeated ${run.length} times, ${oldest.occurred_at.slice(0, 10)} to ${newest.occurred_at.slice(0, 10)}`.replace(/^ · /, ""),
+      });
+    }
+    run = [];
+  };
+  for (const it of items) {
+    if (run.length && sameRun(run[0], it)) run.push(it);
+    else {
+      flush();
+      run = [it];
+    }
+  }
+  flush();
+  return out;
 }
 
 // ── Markdown rendering (GET ...&format=md) ────────────────────────────────────

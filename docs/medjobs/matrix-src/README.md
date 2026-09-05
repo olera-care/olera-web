@@ -43,7 +43,7 @@ fails loudly rather than silently skipping it.
 ### Gendered pronouns
 
 Eight, all removed. Four were `She` opening consecutive rows of the PR3 steps
-table, where the row above already names the User Success Manager, so they became
+table, where the row above already names the Consumer Relations Manager, so they became
 `They`. The rest: `the client stays hers` became `theirs`, `a plan she can act on`
 became `they`, `Nothing tells her` became `them`, and the quoted call script's
 `calling about his Student Caregiver Program` became `the Student Caregiver

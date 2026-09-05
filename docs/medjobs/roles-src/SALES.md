@@ -6,24 +6,24 @@ the operating model; where the master leaves a question open, it is marked
 **GAP / DECISION NEEDED** rather than answered here.
 
 **ROLE PURPOSE** Hold the two meetings the Admin Team books, and turn each into
-something the User Success Manager can act on: a converted provider on one side, an
+something the Consumer Relations Manager can act on: a converted provider on one side, an
 agreed channel plan on the other. The Sales Lead owns a narrow, decisive middle of
 both pipelines.
 
 **WHAT YOU OWN** PR2 provider meeting held. ST2 advisor meeting held. Logging both
 outcomes. Naming the handoff in the room. Where a physician in the room changes the
-answer during ST3 to ST7, you share ownership with the User Success Manager.
+answer during ST3 to ST7, you share ownership with the Consumer Relations Manager.
 
 **WHAT YOU DO NOT OWN** Prospecting, outreach and booking, which are the Admin Team's
 (PR1, PR-OUT, ST1, ST-OUT). Client success, university activation, matching,
-fulfilment and billing, which are the User Success Manager's or the Portal's.
+fulfilment and billing, which are the Consumer Relations Manager's or the Portal's.
 
 **WHO HANDS WORK TO YOU** The Admin Team, at the booked meeting, on both sides. The
 row arrives in the **Meetings** queue with its full timeline.
 
-**WHO YOU HAND WORK TO** The User Success Manager, once the outcome is logged.
+**WHO YOU HAND WORK TO** The Consumer Relations Manager, once the outcome is logged.
 
-[Receiving the handoff](#receiving) [Provider meetings](#pr2) [Advisor meetings](#st2) [After the handoff](#after) [User Success handoff](#handoff) [Exceptions](#exceptions) [Gaps](#gaps) [Traceability](#trace)
+[Receiving the handoff](#receiving) [Provider meetings](#pr2) [Advisor meetings](#st2) [After the handoff](#after) [Consumer Relations handoff](#handoff) [Exceptions](#exceptions) [Gaps](#gaps) [Traceability](#trace)
 {: .navbar }
 
 ## Receiving the Admin Team handoff {: #receiving .nobreak }
@@ -58,8 +58,8 @@ side the drawer's **NEXT STEP** reads *"On the calendar"* and the state chip rea
 | **Trigger** | The booking lands the row in **Meetings**, under **NEEDS LOGGING** once the time has passed |
 | **Tools** | Meetings tab &#183; the provider drawer and its timeline &#183; **Log meeting outcome** modal &#183; Calendly for a rebook |
 | **Communications** | Booking confirmation and reminder from Calendly &#183; the post-meeting details email with the agreement &#183; a polite closing note when the answer is no |
-| **Completion criteria** | Outcome logged and the relationship handed to the User Success Manager |
-| **Handoff** | **Sales Lead to User Success Manager.** *Interested / went well* launches activation and moves the relationship on; the other two close the row |
+| **Completion criteria** | Outcome logged and the relationship handed to the Consumer Relations Manager |
+| **Handoff** | **Sales Lead to Consumer Relations Manager.** *Interested / went well* launches activation and moves the relationship on; the other two close the row |
 
 ### Required actions
 
@@ -96,7 +96,7 @@ Booked time, attendee name and address, outcome, notes and commitments.
 ## ST2 Advisor meeting held {: #st2 }
 
 **Objective** Hold the meeting, agree which of the five activation channels are open
-to us, and hand the User Success Manager a plan they can act on without asking again.
+to us, and hand the Consumer Relations Manager a plan they can act on without asking again.
 
 **This meeting is not a sale. It is a channel-planning session.** The provider meeting
 ends in a commercial agreement; this one ends in a route to students. The advisor
@@ -108,8 +108,8 @@ their campus reaches them, and the output is the ST3 to ST7 plan.
 | **Trigger** | The booking lands the row in **Meetings**, under **NEEDS LOGGING** once the time has passed |
 | **Tools** | Meetings tab &#183; the partner row and its timeline &#183; **Log meeting outcome**, the same modal and the same three outcomes as the provider side &#183; video for the meeting |
 | **Communications** | Booking confirmation and reminder from Calendly &#183; the post-meeting note with the ready-to-send copy and flyer the advisor asked for &#183; the results-back note that carries the next ask |
-| **Completion criteria** | Outcome logged, the agreed channels and their named contacts written down, and the relationship handed to the User Success Manager |
-| **Handoff** | **Sales Lead to User Success Manager.** *Interested / went well* launches activation and hands over the channel plan; the other two close the row |
+| **Completion criteria** | Outcome logged, the agreed channels and their named contacts written down, and the relationship handed to the Consumer Relations Manager |
+| **Handoff** | **Sales Lead to Consumer Relations Manager.** *Interested / went well* launches activation and hands over the channel plan; the other two close the row |
 
 ### Required actions
 
@@ -121,7 +121,7 @@ their campus reaches them, and the output is the ST3 to ST7 plan.
 3. **Then work the five channels in order.** This is the body of the meeting.
 4. **Ask for their read, not just their permission.** *"Which of these actually
    reaches pre-health students here?"* An advisor telling you the job board is dead
-   and the listserv is everything saves the User Success Manager a month.
+   and the listserv is everything saves the Consumer Relations Manager a month.
 5. **Get a name for every open channel.** A channel with no named contact is not a
    channel.
 6. **Ask what they need from us to make it easy**, being copy, a flyer, a date, then
@@ -134,7 +134,7 @@ their campus reaches them, and the output is the ST3 to ST7 plan.
 
 ### The five channels
 
-| | Channel | Ask | The answer the User Success Manager needs |
+| | Channel | Ask | The answer the Consumer Relations Manager needs |
 |---|---|---|---|
 | **ST3** | University job board | Is there a board pre-health students actually check? Who posts, and does it need approval? | The board, the posting route, and who approves |
 | **ST4** | Student organisations | Which orgs reach these students, pre-med, pre-nursing, AMSA chapters? Who runs them this term? | Org names and current officers, with a warm introduction where they will make one |
@@ -144,7 +144,7 @@ their campus reaches them, and the output is the ST3 to ST7 plan.
 
 **Permission is the deliverable on ST6 and ST7.** A listserv send and a class visit
 both happen on someone else's authority. Write down who granted it and what exactly
-they agreed to, because the User Success Manager will be acting on it weeks later
+they agreed to, because the Consumer Relations Manager will be acting on it weeks later
 without having been in the room.
 
 | Outcome | What happens |
@@ -161,7 +161,7 @@ the advice and act on it.** A channel the advisor handed us is worth more than t
 meeting that would have produced it. Two things still hold.
 
 1. **Capture it exactly as if it came from a meeting**, being channel, named contact
-   and permission, so the User Success Manager inherits the same plan either way.
+   and permission, so the Consumer Relations Manager inherits the same plan either way.
 2. **Keep pushing for the meeting, gently.** Not to unlock the channels; those are
    already running. A named advisor is what makes the second term easier than the
    first, and the moment to ask is when you report results back: *here is what your
@@ -182,37 +182,37 @@ meeting is logged.
 
 | Where | What the master says |
 |---|---|
-| **ST3 to ST7 ownership** | The stage is owned by the *"User Success Manager, with the Sales Lead where a physician in the room changes the answer"* |
+| **ST3 to ST7 ownership** | The stage is owned by the *"Consumer Relations Manager, with the Sales Lead where a physician in the room changes the answer"* |
 | **ST5 campus events** | Who acts: *"USM and Sales Lead attend"* |
 | **ST7 professors and class visits** | Who acts: *"USM and Sales Lead, once permitted"* |
 
-Read the second and third together with the first: the User Success Manager works the
+Read the second and third together with the first: the Consumer Relations Manager works the
 plan, and you are in the room where a physician's presence is what makes the ask land.
 
 [Back to top](#top)
 {: .totop }
 
-## The handoff to the User Success Manager {: #handoff }
+## The handoff to the Consumer Relations Manager {: #handoff }
 
 The boundary is the logged outcome. Before it, the row is yours. After it, the
-relationship is the User Success Manager's, on both sides.
+relationship is the Consumer Relations Manager's, on both sides.
 
 **Name the handoff in the room.** On the provider side the master makes this an
-explicit step: *"our user success team will follow up with you on next steps."* The
+explicit step: *"our consumer relations team will follow up with you on next steps."* The
 provider leaves expecting the next contact, and expecting it from someone else. A warm
 introduction to a named function beats a cold email from a stranger a week later.
 
 | | Provider side | University side |
 |---|---|---|
 | **What passes over** | The converted provider, the meeting notes, and anything promised | The channel plan: which channels were agreed, the named contact for each, and the permission granted |
-| **How it passes** | The provider drawer timeline, which the User Success Manager reads before making contact | As prose in the meeting notes |
+| **How it passes** | The provider drawer timeline, which the Consumer Relations Manager reads before making contact | As prose in the meeting notes |
 | **What the outcome does** | *Interested / went well* launches activation and moves the relationship on | *Interested / went well* launches activation and hands over the channel plan |
-| **What happens next** | The User Success Manager sends the terms email within one business day of the meeting | The User Success Manager activates every agreed channel within two weeks of the meeting |
+| **What happens next** | The Consumer Relations Manager sends the terms email within one business day of the meeting | The Consumer Relations Manager activates every agreed channel within two weeks of the meeting |
 
 Two things about this handoff are worth stating plainly, because both are in the
 master and both bear on whether a relationship becomes ownerless.
 
-**Nothing tells the User Success Manager a provider is waiting.** Logging the meeting
+**Nothing tells the Consumer Relations Manager a provider is waiting.** Logging the meeting
 outcome should alert them; it does not. See **B4** under gaps.
 
 **The channel plan is the handoff, and it travels as prose.** The master says this is
@@ -257,7 +257,7 @@ rebook never happens.
 
 <div class="gap" markdown="1">
 **B4 &#183; An alert when a meeting converts**, putting the client in front of the
-User Success Manager with the meeting notes attached. Not built. Nothing tells them a
+Consumer Relations Manager with the meeting notes attached. Not built. Nothing tells them a
 provider is waiting, which is why naming the handoff in the room matters as much as it
 does.
 </div>
@@ -307,7 +307,7 @@ sequence, handoffs and completion criteria are carried over unchanged.
 | PR2, all of it | PR2 objective, procedure steps 1 to 6, outcomes table, system and handoff row, communications |
 | ST2, all of it | ST2 objective, the not-a-sale note, procedure steps 1 to 7, the five-channel table, the permission note, outcomes table, the advisor-skips-the-meeting block, system and handoff row |
 | After the handoff | ST3 to ST7 owner line; ST3 to ST7 channel table, ST5 and ST7 rows |
-| The handoff to the User Success Manager | PR3 journey steps 1 and 3 and procedure steps 1 to 3; ST2 system and handoff row and the paragraph beneath it; ST3 to ST7 procedure step 2 |
+| The handoff to the Consumer Relations Manager | PR3 journey steps 1 and 3 and procedure steps 1 to 3; ST2 system and handoff row and the paragraph beneath it; ST3 to ST7 procedure step 2 |
 | Exceptions | PR2 procedure steps 3, 5 and 6; ST2 advisor-skips block; deferred build list B2 |
 | Gaps | PR2 procedure step 2; deferred build list B1, B2, B4, B6, B7, B8, B12 |
 

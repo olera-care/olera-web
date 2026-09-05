@@ -44,18 +44,6 @@ export default function SopOrientation({ onJump }: { onJump: (dest: string) => v
   return (
     <div className="grid items-stretch gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
       <div className="flex flex-col">
-        <div className="mb-1 flex justify-end">
-          <a
-            href={VIDEO}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-xs font-medium text-primary-700 hover:text-primary-800"
-          >
-            <LinkIcon />
-            Walkthrough
-          </a>
-        </div>
-
         <SystemArchitecture
           onJump={onJump}
           metrics={funnel?.stages}
@@ -72,7 +60,16 @@ export default function SopOrientation({ onJump }: { onJump: (dest: string) => v
           </p>
         ) : null}
 
-        <div className="mt-3 flex justify-end">
+        <div className="mt-3 flex items-center justify-end gap-3">
+          <a
+            href={VIDEO}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 text-xs font-medium text-primary-700 hover:text-primary-800"
+          >
+            <LinkIcon />
+            Walkthrough
+          </a>
           <StatsToggle on={showStats} onChange={setShowStats} />
         </div>
       </div>

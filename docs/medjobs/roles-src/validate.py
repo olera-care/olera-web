@@ -57,11 +57,11 @@ for k, txt in ROLES.items():
 print('\nROLE NAMES')
 for k, txt in ROLES.items():
     for wrong, right in [('Admin team', 'Admin Team'), ('Sales lead', 'Sales Lead'),
-                         ('User success manager', 'User Success Manager'),
-                         ('user success manager', 'User Success Manager')]:
+                         ('User success manager', 'Consumer Relations Manager'),
+                         ('consumer relations manager', 'Consumer Relations Manager')]:
         check(wrong not in txt, f'{k}: writes "{right}", never "{wrong}"')
-check('User Success Manager' in ROLES['CRM'] and 'CRM Manager' not in ROLES['CRM'],
-      'CRM: the operating role is written as User Success Manager throughout')
+check('Consumer Relations Manager' in ROLES['CRM'] and 'CRM Manager' not in ROLES['CRM'],
+      'CRM: the operating role is written as Consumer Relations Manager throughout')
 
 # ---------------------------------------------------------------- ownership
 print('\nOWNERSHIP')
@@ -70,7 +70,7 @@ OWNER = dict(re.findall(r'^## ([A-Z0-9–-]+) —.*?\n\n\*\*Objective\*\*.*?'
 EXPECT = {'ADMIN': ['PR1', 'PR-OUT', 'ST1', 'ST-OUT'],
           'SALES': ['PR2', 'ST2'],
           'CRM':   ['PR3', 'MA3', 'MA4', 'MA5']}
-ROLE_OF = {'ADMIN': 'Admin Team', 'SALES': 'Sales Lead', 'CRM': 'User Success Manager'}
+ROLE_OF = {'ADMIN': 'Admin Team', 'SALES': 'Sales Lead', 'CRM': 'Consumer Relations Manager'}
 for k, stages in EXPECT.items():
     for st in stages:
         owner = OWNER.get(st, '')

@@ -34,7 +34,7 @@ function Lanes({ y }: { y: number }) {
         PROVIDER SIDE
       </text>
       <text x={R} y={y} fontSize={12.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
-        STUDENT / UNIVERSITY SIDE
+        CAREGIVER
       </text>
     </>
   );
@@ -134,7 +134,7 @@ export default function RoleDiagram({ role, onJump, metrics, yields, outcomes, s
           <AdminPanel y={34} h={92} />
           {box({ code: "PR2", name: "Provider meeting held", owner: "sales", dest: "pr2", x: L, y: 62, w: W })}
           {box({ code: "ST2", name: "Advisor meeting held", owner: "sales", dest: "st2", x: R, y: 62, w: W })}
-          <HandoffRule y={148} text="HANDOFF · YOU → USER SUCCESS MANAGER" lanes={[[L, W], [R, W]]} />
+          <HandoffRule y={148} text="HANDOFF · YOU → CONSUMER RELATIONS MANAGER" lanes={[[L, W], [R, W]]} />
           {box({ code: "PR3", name: "Client success", owner: "usm", dest: "handoff", x: L, y: 160, w: W }, undefined, true)}
           {box(
             { key: "ST3-ST7", code: "ST3–ST7", name: "University activation", owner: "usm", dest: "after", x: R, y: 160, w: W },

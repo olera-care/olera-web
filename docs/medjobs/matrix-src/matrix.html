@@ -107,7 +107,7 @@ figcaption strong:first-child { color:var(--teal); }
 <li><a href="#ma4-six-or-more-shifts-worked-confirmed">MA4: Six or more shifts worked, confirmed</a></li>
 <li><a href="#ma5-bill-issued-and-collected">MA5: Bill issued and collected</a></li>
 </ul></div>
-<p>One university and the providers around it. Two pipelines built in parallel, each handed from the Admin Team to the Sales Lead at the booked meeting, and from the Sales Lead to the User Success Manager after it. Both feed the Portal, which carries a student from application to a placement we can bill for.</p>
+<p>One university and the providers around it. Two pipelines built in parallel, each handed from the Admin Team to the Sales Lead at the booked meeting, and from the Sales Lead to the Consumer Relations Manager after it. Both feed the Portal, which carries a student from application to a placement we can bill for.</p>
 <pre><code>┌──────────────────────────────────────────────────────────────┐
 │  SITE 1                                                      │
 │  ONE UNIVERSITY + ONE SURROUNDING SERVICE AREA OF PROVIDERS  │
@@ -128,10 +128,10 @@ PR-OUT  OUTBOUND WORK                           ST-OUT  OUTBOUND WORK
 PR2  MEETING HELD                               ST2  ADVISOR MEETING HELD
      Sales Lead                                      Sales Lead
   │                                               │
-  ╞═══ HANDOFF  Sales Lead → User Success         ╞═══ HANDOFF  Sales Lead → User Success
+  ╞═══ HANDOFF  Sales Lead → Consumer Relations         ╞═══ HANDOFF  Sales Lead → Consumer Relations
   ▼                                               ▼
 PR3  CLIENT SUCCESS                                  UNIVERSITY ACTIVATION
-     User Success Manager                         │  User Success Manager
+     Consumer Relations Manager                         │  Consumer Relations Manager
   │  Profile, terms, account setup                ├── ST3  UNIVERSITY JOB BOARD
   │  Through to the first hire                    ├── ST4  STUDENT ORG RELATIONSHIPS
   │                                               ├── ST5  CAMPUS EVENTS
@@ -540,7 +540,7 @@ Behind it, the <strong>Emails</strong> tab grouped by state: <em>THEY REPLIED (9
 <ul class="facts">
 <li><strong>Owner</strong> Sales Lead.</li>
 <li><strong>Users</strong> Sales Lead, provider.</li>
-<li><strong>Completion criteria</strong> Outcome logged and the relationship handed to the User Success Manager.</li>
+<li><strong>Completion criteria</strong> Outcome logged and the relationship handed to the Consumer Relations Manager.</li>
 </ul>
 <h3 id="1-user-journey-technology_2">① User journey / technology</h3>
 <table>
@@ -638,7 +638,7 @@ list. Left as-is for now.</p>
 <td>engaged → meeting scheduled → converted · closed</td>
 <td>meeting scheduled: row moved to Meetings · meeting held · outcome logged · activation launched</td>
 <td>Outcome logged</td>
-<td><strong>Sales Lead → User Success Manager.</strong> <em>Interested / went well</em> launches activation and moves the relationship on; the other two close the row</td>
+<td><strong>Sales Lead → Consumer Relations Manager.</strong> <em>Interested / went well</em> launches activation and moves the relationship on; the other two close the row</td>
 </tr>
 </tbody>
 </table>
@@ -659,8 +659,8 @@ through every reply and send. Meetings → row → <strong>Log meeting outcome</
 <h2 id="pr3-client-success">PR3: Client success</h2>
 <p class="obj"><strong>Objective</strong> Carry the provider from the meeting to a first hire: profile updated, terms understood, account set up and ready for the first student to arrive.</p>
 <ul class="facts">
-<li><strong>Owner</strong> User Success Manager.</li>
-<li><strong>Users</strong> User Success Manager, provider.</li>
+<li><strong>Owner</strong> Consumer Relations Manager.</li>
+<li><strong>Users</strong> Consumer Relations Manager, provider.</li>
 <li><strong>Completion criteria</strong> Profile updated · terms email sent and acknowledged · setup meeting held · the account ready to receive a candidate.</li>
 </ul>
 <blockquote>
@@ -673,7 +673,7 @@ on that. It is blocked on someone doing it consistently.</p>
 and it is not support, which waits to be asked. It is one person owning the client from the meeting through
 the first hire and every hire after: the profile, the terms, the account setup, the interviews, the
 placements, the six-shift threshold, the invoice, and the next staffing need.</p>
-<p>One role holds it across both sides of MedJobs. Chantel is the User Success Manager today.</p>
+<p>One role holds it across both sides of MedJobs. Chantel is the Consumer Relations Manager today.</p>
 <h3 id="1-user-journey-technology_3">① User journey / technology</h3>
 <table>
 <thead>
@@ -687,13 +687,13 @@ placements, the six-shift threshold, the invoice, and the next staffing need.</p
 <tbody>
 <tr>
 <td>1</td>
-<td><strong>The Sales Lead names the handoff in the meeting</strong>: <em>"our user success team will follow up with you on next steps."</em> The provider leaves expecting the next contact, and expecting it from someone else</td>
+<td><strong>The Sales Lead names the handoff in the meeting</strong>: <em>"our consumer relations team will follow up with you on next steps."</em> The provider leaves expecting the next contact, and expecting it from someone else</td>
 <td>In the meeting</td>
 <td>Manual</td>
 </tr>
 <tr>
 <td>2</td>
-<td><strong>Logging the meeting outcome alerts the User Success Manager</strong> that a converted provider is waiting on them</td>
+<td><strong>Logging the meeting outcome alerts the Consumer Relations Manager</strong> that a converted provider is waiting on them</td>
 <td>None</td>
 <td><strong>Not built: B4</strong></td>
 </tr>
@@ -768,7 +768,7 @@ placements, the six-shift threshold, the invoice, and the next staffing need.</p
 <td>converted → active client, account ready</td>
 <td>handoff received · terms email sent · profile completed · setup meeting held · client note added</td>
 <td>The account is ready and a staffing need is recorded</td>
-<td><strong>User Success Manager → the Portal.</strong> The staffing need drives matching; the client stays theirs from here on</td>
+<td><strong>Consumer Relations Manager → the Portal.</strong> The staffing need drives matching; the client stays theirs from here on</td>
 </tr>
 </tbody>
 </table>
@@ -1030,11 +1030,11 @@ worked side by side in the same tab with the same modal, which is why the row sh
 <code>olera.care/admin/medjobs/in-basket?tab=replies</code> → row → <strong>Check for reply</strong></figcaption></figure>
 <hr />
 <h2 id="st2-advisor-meeting-held">ST2: Advisor meeting held</h2>
-<p class="obj"><strong>Objective</strong> Hold the meeting, agree which of the five activation channels are open to us, and hand the User Success Manager a plan they can act on without asking again.</p>
+<p class="obj"><strong>Objective</strong> Hold the meeting, agree which of the five activation channels are open to us, and hand the Consumer Relations Manager a plan they can act on without asking again.</p>
 <ul class="facts">
 <li><strong>Owner</strong> Sales Lead.</li>
 <li><strong>Users</strong> Sales Lead, advising office.</li>
-<li><strong>Completion criteria</strong> Outcome logged, the agreed channels and their named contacts written down, and the relationship handed to the User Success Manager.</li>
+<li><strong>Completion criteria</strong> Outcome logged, the agreed channels and their named contacts written down, and the relationship handed to the Consumer Relations Manager.</li>
 </ul>
 <blockquote>
 <p><strong>This meeting is not a sale. It is a channel-planning session.</strong> The provider meeting ends in a
@@ -1089,7 +1089,7 @@ slug in the URL does not. See the deferred list.</p>
    strengthens a med, PA or nursing application. That is the advisor's job, which makes it common ground.</li>
 <li><strong>Then work the five channels in order.</strong> This is the body of the meeting.</li>
 <li><strong>Ask for their read, not just their permission.</strong> <em>"Which of these actually reaches pre-health
-   students here?"</em> An advisor telling you the job board is dead and the listserv is everything saves the User Success Manager a month.</li>
+   students here?"</em> An advisor telling you the job board is dead and the listserv is everything saves the Consumer Relations Manager a month.</li>
 <li><strong>Get a name for every open channel.</strong> A channel with no named contact is not a channel.</li>
 <li><strong>Ask what they need from us to make it easy</strong> (copy, a flyer, a date) then send it within two days.</li>
 <li><strong>Log the outcome the same day</strong>, with the channel plan in the notes.</li>
@@ -1101,7 +1101,7 @@ slug in the URL does not. See the deferred list.</p>
 <th></th>
 <th>Channel</th>
 <th>Ask</th>
-<th>The answer the User Success Manager needs</th>
+<th>The answer the Consumer Relations Manager needs</th>
 </tr>
 </thead>
 <tbody>
@@ -1194,7 +1194,7 @@ produced it. Two things still hold:</p>
 <td>engaged → meeting scheduled → active partner · closed</td>
 <td>meeting scheduled: row moved to Meetings · meeting held · outcome logged · activation launched</td>
 <td>Outcome logged</td>
-<td><strong>Sales Lead → User Success Manager.</strong> <em>Interested / went well</em> launches activation and hands over the channel plan; the other two close the row</td>
+<td><strong>Sales Lead → Consumer Relations Manager.</strong> <em>Interested / went well</em> launches activation and hands over the channel plan; the other two close the row</td>
 </tr>
 </tbody>
 </table>
@@ -1207,8 +1207,8 @@ possible.</p>
 <h2 id="st3st7-university-activation">ST3–ST7: University activation</h2>
 <p class="obj"><strong>Objective</strong> Turn the channel plan agreed in ST2 into five live channels at that university, then keep each one alive.</p>
 <ul class="facts">
-<li><strong>Owner</strong> User Success Manager, with the Sales Lead where a physician in the room changes the answer.</li>
-<li><strong>Users</strong> User Success Manager, advisor, org officers, professors, students.</li>
+<li><strong>Owner</strong> Consumer Relations Manager, with the Sales Lead where a physician in the room changes the answer.</li>
+<li><strong>Users</strong> Consumer Relations Manager, advisor, org officers, professors, students.</li>
 <li><strong>Completion criteria</strong> Every agreed channel is either live and recorded, or explicitly marked as not available at this university: and every live channel has its next maintenance task queued.</li>
 </ul>
 <blockquote>
@@ -1218,7 +1218,7 @@ remembers. <strong>Each channel is two motions (secure it once, then keep it ali
 whether a university produces students in the spring as well as the fall.</p>
 <p><strong>There is no generic version of this stage.</strong> One campus is a dead job board and a listserv that
 reaches everyone; the next is three student orgs and a professor who will give us ten minutes of a
-class. The User Success Manager works the plan per row, not per channel.</p>
+class. The Consumer Relations Manager works the plan per row, not per channel.</p>
 </blockquote>
 <h3 id="1-user-journey-technology_7">① User journey / technology</h3>
 <table>
@@ -1359,22 +1359,22 @@ detail belongs on the row against the channel, which is what the follow-up tab i
 </tr>
 </tbody>
 </table>
-<p>Every other stage hands a row on and lets it go. This one keeps it. The User Success Manager's working state
-is the set of partner rows with live channels and the date each is next due, which is why the follow-up tab
-and its queued tasks are the difference between five universities and fifty.</p>
+<p>Every other stage hands a row on and lets it go. This one keeps it. The Consumer Relations Manager's working
+state is the set of partner rows with live channels and the date each is next due, which is why the follow-up
+tab and its queued tasks are the difference between five universities and fifty.</p>
 <p><strong>Communications</strong> Ready-to-send copy per channel · the flyer as the shared asset · the listserv reminder to the advisor · the results-back note · the professor email sequence.</p>
 <hr />
 <h2 id="st8-student-application-submitted">ST8: Student application submitted</h2>
 <p class="obj"><strong>Objective</strong> Carry a student from the QR code on a flyer to a live application, without anyone in the middle.</p>
 <ul class="facts">
 <li><strong>Owner</strong> Portal.</li>
-<li><strong>Users</strong> Student, User Success Manager only when the system cannot finish the job.</li>
+<li><strong>Users</strong> Student, Consumer Relations Manager only when the system cannot finish the job.</li>
 <li><strong>Completion criteria</strong> The student is live: visible on the board, and the providers in their catchment have been told they are ready to interview.</li>
 </ul>
 <blockquote>
 <p><strong>This stage should run itself.</strong> Every other stage is an operator working a queue. This one is a
 student alone with a website at eleven at night. The system screens them, takes the application, chases
-what they left blank, decides when they are ready, and tells the providers. The User Success Manager is
+what they left blank, decides when they are ready, and tells the providers. The Consumer Relations Manager is
 here for what the system cannot resolve, not as a step in the flow.</p>
 <p><strong>The assets below are final in form, not in content.</strong> All five work end to end and are shown here as
 the shipped journey. Every one needs another pass, and the journey needs a QA sweep from both entry
@@ -1526,7 +1526,7 @@ percentage, a stage label, and every section scored from Profile Overview throug
 providers who can hire them, from both directions at once.</p>
 <ul class="facts">
 <li><strong>Owner</strong> Portal.</li>
-<li><strong>Users</strong> Student, providers in the student's catchment, User Success Manager on exceptions.</li>
+<li><strong>Users</strong> Student, providers in the student's catchment, Consumer Relations Manager on exceptions.</li>
 <li><strong>Completion criteria</strong> The student is on the board, every hiring provider in their area has been told they are ready to interview, and the student has been given the list and the phone numbers to call them.</li>
 </ul>
 <blockquote>
@@ -1646,7 +1646,7 @@ providers near them with phone numbers</strong> · the outcome message and what 
 <h2 id="ma1-candidate-intro">MA1: Candidate intro</h2>
 <p class="obj"><strong>Objective</strong> Put a qualified candidate in front of the providers who can hire them, in a form a provider will actually open, and keep telling the student where the work is until they are hired.</p>
 <ul class="facts">
-<li><strong>Owner</strong> Portal, User Success Manager on exceptions.</li>
+<li><strong>Owner</strong> Portal, Consumer Relations Manager on exceptions.</li>
 <li><strong>Users</strong> Provider, student.</li>
 <li><strong>Completion criteria</strong> The provider has seen the candidate, and the student knows who is hiring and how to reach them.</li>
 </ul>
@@ -1737,7 +1737,7 @@ consent capture and message types on a running pipeline, not a new channel.</p>
 <p class="obj"><strong>Objective</strong> Get a real interview onto two real calendars, then confirm it happened.</p>
 <ul class="facts">
 <li><strong>Owner</strong> Portal.</li>
-<li><strong>Users</strong> Student, provider, User Success Manager on exceptions.</li>
+<li><strong>Users</strong> Student, provider, Consumer Relations Manager on exceptions.</li>
 <li><strong>Completion criteria</strong> Both sides firm, a calendar invite on both calendars, and a recorded answer to <em>did it happen?</em>.</li>
 </ul>
 <blockquote>
@@ -1873,7 +1873,7 @@ is chasing.</figcaption></figure>
 <h2 id="ma3-hire-confirmed">MA3: Hire confirmed</h2>
 <p class="obj"><strong>Objective</strong> Find out whether the interview produced a job, and if it did not, find out why.</p>
 <ul class="facts">
-<li><strong>Owner</strong> User Success Manager.</li>
+<li><strong>Owner</strong> Consumer Relations Manager.</li>
 <li><strong>Users</strong> Student, provider.</li>
 <li><strong>Completion criteria</strong> A recorded answer either way, with a reason when the answer is no.</li>
 </ul>
@@ -1957,7 +1957,7 @@ reason field, this stage produces a number nobody can act on.</p>
 <p class="obj"><strong>Objective</strong> Establish that the placement actually stuck, six shifts worked, because that is the point we
 bill.</p>
 <ul class="facts">
-<li><strong>Owner</strong> User Success Manager.</li>
+<li><strong>Owner</strong> Consumer Relations Manager.</li>
 <li><strong>Users</strong> Student, provider on the monthly list call.</li>
 <li><strong>Completion criteria</strong> Six shifts confirmed and recorded against the placement.</li>
 </ul>
@@ -1971,7 +1971,7 @@ before we become useful.</p>
 until the answer is six, asks the student to reply to a text. <strong>Logging</strong>, a place in the portal to log shifts
 as they go, asks them to remember, every time.</p>
 <p><strong>Comms first.</strong> A logging surface is more precise and worth building eventually, but a text a student answers beats a form they do not fill in. SMS is the channel, on the same stack as MA1 and MA3.</p>
-<p><strong>The provider side is a list, not a cadence.</strong> Monthly or quarterly, the User Success Manager runs the client's students down on a call: still working, how many shifts, any problems. One conversation confirms what a dozen emails would not, and it is a touchpoint rather than an interruption. It is the same call that keeps MA3 honest.</p>
+<p><strong>The provider side is a list, not a cadence.</strong> Monthly or quarterly, the Consumer Relations Manager runs the client's students down on a call: still working, how many shifts, any problems. One conversation confirms what a dozen emails would not, and it is a touchpoint rather than an interruption. It is the same call that keeps MA3 honest.</p>
 <h3 id="2-procedure_13">② Procedure</h3>
 <ol>
 <li><strong>Text the student on a rhythm</strong> from their start date until the answer reaches six.</li>
@@ -2008,12 +2008,12 @@ as they go, asks them to remember, every time.</p>
 <h2 id="ma5-bill-issued-and-collected">MA5: Bill issued and collected</h2>
 <p class="obj"><strong>Objective</strong> Turn a confirmed placement into an invoice, and the invoice into money.</p>
 <ul class="facts">
-<li><strong>Owner</strong> User Success Manager.</li>
+<li><strong>Owner</strong> Consumer Relations Manager.</li>
 <li><strong>Users</strong> Client.</li>
 <li><strong>Completion criteria</strong> Invoice issued against a confirmed six-shift placement, and payment recorded.</li>
 </ul>
 <blockquote>
-<p><strong>Manual first, deliberately.</strong> At current volume the User Success Manager raising an invoice by hand is
+<p><strong>Manual first, deliberately.</strong> At current volume the Consumer Relations Manager raising an invoice by hand is
 not a stopgap: it is the right answer, and it is how we learn what the automated version should do.</p>
 </blockquote>
 <h3 id="1-user-journey-technology_14">① User journey / technology</h3>
@@ -2036,7 +2036,7 @@ not a stopgap: it is the right answer, and it is how we learn what the automated
 <tr>
 <td>2</td>
 <td>The bill is raised</td>
-<td>The User Success Manager raises it</td>
+<td>The Consumer Relations Manager raises it</td>
 <td><strong>A button on the client record</strong>: confirm the student hit six, and the invoice issues</td>
 </tr>
 <tr>
@@ -2123,7 +2123,7 @@ invoice the consequence, and the team is there only for exceptions.</p>
 <tr>
 <td><strong>B4</strong></td>
 <td>PR3</td>
-<td><strong>An alert when a meeting converts</strong>, putting the client in front of the User Success Manager with the meeting notes attached</td>
+<td><strong>An alert when a meeting converts</strong>, putting the client in front of the Consumer Relations Manager with the meeting notes attached</td>
 <td>Not built. Nothing tells them a provider is waiting</td>
 </tr>
 <tr>
@@ -2154,7 +2154,7 @@ invoice the consequence, and the team is there only for exceptions.</p>
 <td><strong>B9</strong></td>
 <td>ST3–ST7</td>
 <td><strong>The advisor follow-up tab.</strong> The five channels as a checklist on the partner row (secured, not yet, or not available here) each with its contact and go-live date</td>
-<td>Not built. Activation state lives in meeting notes and in the User Success Manager's head</td>
+<td>Not built. Activation state lives in meeting notes and in the Consumer Relations Manager's head</td>
 </tr>
 <tr>
 <td><strong>B10</strong></td>

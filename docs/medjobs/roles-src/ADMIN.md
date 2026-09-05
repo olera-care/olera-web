@@ -15,7 +15,7 @@ ST1 target advisors. ST-OUT university outbound. Booking the 30-minute slot on b
 sides. The daily Calls, Emails and Follow-up queues.
 
 **WHAT YOU DO NOT OWN** The meeting itself, which is the Sales Lead's (PR2, ST2).
-Client success and university activation, which are the User Success Manager's (PR3,
+Client success and university activation, which are the Consumer Relations Manager's (PR3,
 ST3 to ST7). Everything the Portal carries from ST8 onward.
 
 **WHO HANDS WORK TO YOU** Nobody. Both pipelines start with you: a site added in PR1

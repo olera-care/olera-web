@@ -1,6 +1,6 @@
 # MedJobs 2.0: Master Implementation Matrix
 
-One university and the providers around it. Two pipelines built in parallel, each handed from the Admin Team to the Sales Lead at the booked meeting, and from the Sales Lead to the User Success Manager after it. Both feed the Portal, which carries a student from application to a placement we can bill for.
+One university and the providers around it. Two pipelines built in parallel, each handed from the Admin Team to the Sales Lead at the booked meeting, and from the Sales Lead to the Consumer Relations Manager after it. Both feed the Portal, which carries a student from application to a placement we can bill for.
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -23,10 +23,10 @@ PR-OUT  OUTBOUND WORK                           ST-OUT  OUTBOUND WORK
 PR2  MEETING HELD                               ST2  ADVISOR MEETING HELD
      Sales Lead                                      Sales Lead
   │                                               │
-  ╞═══ HANDOFF  Sales Lead → User Success         ╞═══ HANDOFF  Sales Lead → User Success
+  ╞═══ HANDOFF  Sales Lead → Consumer Relations         ╞═══ HANDOFF  Sales Lead → Consumer Relations
   ▼                                               ▼
 PR3  CLIENT SUCCESS                                  UNIVERSITY ACTIVATION
-     User Success Manager                         │  User Success Manager
+     Consumer Relations Manager                         │  Consumer Relations Manager
   │  Profile, terms, account setup                ├── ST3  UNIVERSITY JOB BOARD
   │  Through to the first hire                    ├── ST4  STUDENT ORG RELATIONSHIPS
   │                                               ├── ST5  CAMPUS EVENTS
@@ -305,7 +305,7 @@ Behind it, the **Emails** tab grouped by state: *THEY REPLIED (9)*.
 
 - **Owner** Sales Lead.
 - **Users** Sales Lead, provider.
-- **Completion criteria** Outcome logged and the relationship handed to the User Success Manager.
+- **Completion criteria** Outcome logged and the relationship handed to the Consumer Relations Manager.
 
 ### ① User journey / technology
 
@@ -347,7 +347,7 @@ Behind it, the **Emails** tab grouped by state: *THEY REPLIED (9)*.
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Booked time · attendee name and address · outcome · notes and commitments | engaged → meeting scheduled → converted · closed | meeting scheduled: row moved to Meetings · meeting held · outcome logged · activation launched | Outcome logged | **Sales Lead → User Success Manager.** *Interested / went well* launches activation and moves the relationship on; the other two close the row |
+| Booked time · attendee name and address · outcome · notes and commitments | engaged → meeting scheduled → converted · closed | meeting scheduled: row moved to Meetings · meeting held · outcome logged · activation launched | Outcome logged | **Sales Lead → Consumer Relations Manager.** *Interested / went well* launches activation and moves the relationship on; the other two close the row |
 
 **Communications** Booking confirmation and reminder from Calendly · the post-meeting details email with the agreement · a polite closing note when the answer is no.
 
@@ -379,8 +379,8 @@ through every reply and send. Meetings → row → **Log meeting outcome**
 
 **Objective** Carry the provider from the meeting to a first hire: profile updated, terms understood, account set up and ready for the first student to arrive.
 
-- **Owner** User Success Manager.
-- **Users** User Success Manager, provider.
+- **Owner** Consumer Relations Manager.
+- **Users** Consumer Relations Manager, provider.
 - **Completion criteria** Profile updated · terms email sent and acknowledged · setup meeting held · the account ready to receive a candidate.
 
 > **Almost none of this is built.** PR3 runs by hand today. The block below describes how it should work;
@@ -394,14 +394,14 @@ and it is not support, which waits to be asked. It is one person owning the clie
 the first hire and every hire after: the profile, the terms, the account setup, the interviews, the
 placements, the six-shift threshold, the invoice, and the next staffing need.
 
-One role holds it across both sides of MedJobs. Chantel is the User Success Manager today.
+One role holds it across both sides of MedJobs. Chantel is the Consumer Relations Manager today.
 
 ### ① User journey / technology
 
 | # | What happens | Where | Built? |
 |---|---|---|---|
-| 1 | **The Sales Lead names the handoff in the meeting**: *"our user success team will follow up with you on next steps."* The provider leaves expecting the next contact, and expecting it from someone else | In the meeting | Manual |
-| 2 | **Logging the meeting outcome alerts the User Success Manager** that a converted provider is waiting on them | None | **Not built: B4** |
+| 1 | **The Sales Lead names the handoff in the meeting**: *"our consumer relations team will follow up with you on next steps."* The provider leaves expecting the next contact, and expecting it from someone else | In the meeting | Manual |
+| 2 | **Logging the meeting outcome alerts the Consumer Relations Manager** that a converted provider is waiting on them | None | **Not built: B4** |
 | 3 | **They read the whole record before making contact**: the outreach history, what they said in the reply, the meeting notes and anything promised | Provider drawer timeline (Exhibit **N**) | Exists |
 | 4 | **They send the terms email**: more detail on how the program works and what it costs | Email, by hand | Manual |
 | 5 | **They get the profile updated**: what a good caregiver looks like here, shifts needed, headcount | Provider portal · chased by hand | Partly |
@@ -429,7 +429,7 @@ One role holds it across both sides of MedJobs. Chantel is the User Success Mana
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Terms sent and acknowledged · profile answers and demand profile · setup meeting held · every touchpoint after conversion | converted → active client, account ready | handoff received · terms email sent · profile completed · setup meeting held · client note added | The account is ready and a staffing need is recorded | **User Success Manager → the Portal.** The staffing need drives matching; the client stays theirs from here on |
+| Terms sent and acknowledged · profile answers and demand profile · setup meeting held · every touchpoint after conversion | converted → active client, account ready | handoff received · terms email sent · profile completed · setup meeting held · client note added | The account is ready and a staffing need is recorded | **Consumer Relations Manager → the Portal.** The staffing need drives matching; the client stays theirs from here on |
 
 **Communications** The post-meeting terms email · profile reminders · the setup meeting invitation · everything after it, from the same person.
 
@@ -627,11 +627,11 @@ worked side by side in the same tab with the same modal, which is why the row sh
 
 ## ST2: Advisor meeting held
 
-**Objective** Hold the meeting, agree which of the five activation channels are open to us, and hand the User Success Manager a plan they can act on without asking again.
+**Objective** Hold the meeting, agree which of the five activation channels are open to us, and hand the Consumer Relations Manager a plan they can act on without asking again.
 
 - **Owner** Sales Lead.
 - **Users** Sales Lead, advising office.
-- **Completion criteria** Outcome logged, the agreed channels and their named contacts written down, and the relationship handed to the User Success Manager.
+- **Completion criteria** Outcome logged, the agreed channels and their named contacts written down, and the relationship handed to the Consumer Relations Manager.
 
 > **This meeting is not a sale. It is a channel-planning session.** The provider meeting ends in a
 > commercial agreement; this one ends in a route to students. The advisor already believes pre-health
@@ -658,14 +658,14 @@ slug in the URL does not. See the deferred list.
    strengthens a med, PA or nursing application. That is the advisor's job, which makes it common ground.
 3. **Then work the five channels in order.** This is the body of the meeting.
 4. **Ask for their read, not just their permission.** *"Which of these actually reaches pre-health
-   students here?"* An advisor telling you the job board is dead and the listserv is everything saves the User Success Manager a month.
+   students here?"* An advisor telling you the job board is dead and the listserv is everything saves the Consumer Relations Manager a month.
 5. **Get a name for every open channel.** A channel with no named contact is not a channel.
 6. **Ask what they need from us to make it easy** (copy, a flyer, a date) then send it within two days.
 7. **Log the outcome the same day**, with the channel plan in the notes.
 
 **The five channels: what to ask, and what a usable answer looks like**
 
-| | Channel | Ask | The answer the User Success Manager needs |
+| | Channel | Ask | The answer the Consumer Relations Manager needs |
 |---|---|---|---|
 | **ST3** | University job board | Is there a board pre-health students actually check? Who posts, and does it need approval? | The board, the posting route, and who approves |
 | **ST4** | Student organisations | Which orgs reach these students: pre-med, pre-nursing, AMSA chapters? Who runs them this term? | Org names and current officers, with a warm introduction where they will make one |
@@ -702,7 +702,7 @@ Today the row has nowhere to sit in that state: channels agreed, no meeting held
 
 | Data captured | Status | Events | Next trigger | Handoff |
 |---|---|---|---|---|
-| Booked time · attendee · outcome · the channel plan and permissions, as notes · named contacts offered | engaged → meeting scheduled → active partner · closed | meeting scheduled: row moved to Meetings · meeting held · outcome logged · activation launched | Outcome logged | **Sales Lead → User Success Manager.** *Interested / went well* launches activation and hands over the channel plan; the other two close the row |
+| Booked time · attendee · outcome · the channel plan and permissions, as notes · named contacts offered | engaged → meeting scheduled → active partner · closed | meeting scheduled: row moved to Meetings · meeting held · outcome logged · activation launched | Outcome logged | **Sales Lead → Consumer Relations Manager.** *Interested / went well* launches activation and hands over the channel plan; the other two close the row |
 
 The channel plan is the handoff. It travels as prose in the meeting notes, which is enough to work from and
 not enough to report on: nothing counts how many campuses opened a listserv, or which channel produced the
@@ -717,8 +717,8 @@ possible.
 
 **Objective** Turn the channel plan agreed in ST2 into five live channels at that university, then keep each one alive.
 
-- **Owner** User Success Manager, with the Sales Lead where a physician in the room changes the answer.
-- **Users** User Success Manager, advisor, org officers, professors, students.
+- **Owner** Consumer Relations Manager, with the Sales Lead where a physician in the room changes the answer.
+- **Users** Consumer Relations Manager, advisor, org officers, professors, students.
 - **Completion criteria** Every agreed channel is either live and recorded, or explicitly marked as not available at this university: and every live channel has its next maintenance task queued.
 
 > **This stage does not close.** Every stage before it ends in an outcome. Activation ends in a standing
@@ -728,7 +728,7 @@ possible.
 
 > **There is no generic version of this stage.** One campus is a dead job board and a listserv that
 > reaches everyone; the next is three student orgs and a professor who will give us ten minutes of a
-> class. The User Success Manager works the plan per row, not per channel.
+> class. The Consumer Relations Manager works the plan per row, not per channel.
 
 ### ① User journey / technology
 
@@ -790,9 +790,9 @@ built; see the deferred list.
 |---|---|---|---|---|
 | Per channel: secured / not yet / not available · named contact · date live · next check date · distribution date, asset used and reach estimate | partner active → distributing → maintained | channel activated · distribution recorded · maintenance task completed · channel lapsed | A student follows the link | **→ Portal (ST8).** The partner row stays open and keeps producing |
 
-Every other stage hands a row on and lets it go. This one keeps it. The User Success Manager's working state
-is the set of partner rows with live channels and the date each is next due, which is why the follow-up tab
-and its queued tasks are the difference between five universities and fifty.
+Every other stage hands a row on and lets it go. This one keeps it. The Consumer Relations Manager's working
+state is the set of partner rows with live channels and the date each is next due, which is why the follow-up
+tab and its queued tasks are the difference between five universities and fifty.
 
 **Communications** Ready-to-send copy per channel · the flyer as the shared asset · the listserv reminder to the advisor · the results-back note · the professor email sequence.
 
@@ -803,12 +803,12 @@ and its queued tasks are the difference between five universities and fifty.
 **Objective** Carry a student from the QR code on a flyer to a live application, without anyone in the middle.
 
 - **Owner** Portal.
-- **Users** Student, User Success Manager only when the system cannot finish the job.
+- **Users** Student, Consumer Relations Manager only when the system cannot finish the job.
 - **Completion criteria** The student is live: visible on the board, and the providers in their catchment have been told they are ready to interview.
 
 > **This stage should run itself.** Every other stage is an operator working a queue. This one is a
 > student alone with a website at eleven at night. The system screens them, takes the application, chases
-> what they left blank, decides when they are ready, and tells the providers. The User Success Manager is
+> what they left blank, decides when they are ready, and tells the providers. The Consumer Relations Manager is
 > here for what the system cannot resolve, not as a step in the flow.
 
 > **The assets below are final in form, not in content.** All five work end to end and are shown here as
@@ -926,7 +926,7 @@ percentage, a stage label, and every section scored from Profile Overview throug
 providers who can hire them, from both directions at once.
 
 - **Owner** Portal.
-- **Users** Student, providers in the student's catchment, User Success Manager on exceptions.
+- **Users** Student, providers in the student's catchment, Consumer Relations Manager on exceptions.
 - **Completion criteria** The student is on the board, every hiring provider in their area has been told they are ready to interview, and the student has been given the list and the phone numbers to call them.
 
 > **Qualification happens at go-live, whether or not anyone decided it.** The moment a student presses Go
@@ -988,7 +988,7 @@ Both surfaces this stage produces are shown under ST8: **AB** for Go Live, and *
 
 **Objective** Put a qualified candidate in front of the providers who can hire them, in a form a provider will actually open, and keep telling the student where the work is until they are hired.
 
-- **Owner** Portal, User Success Manager on exceptions.
+- **Owner** Portal, Consumer Relations Manager on exceptions.
 - **Users** Provider, student.
 - **Completion criteria** The provider has seen the candidate, and the student knows who is hiring and how to reach them.
 
@@ -1041,7 +1041,7 @@ consent capture and message types on a running pipeline, not a new channel.
 **Objective** Get a real interview onto two real calendars, then confirm it happened.
 
 - **Owner** Portal.
-- **Users** Student, provider, User Success Manager on exceptions.
+- **Users** Student, provider, Consumer Relations Manager on exceptions.
 - **Completion criteria** Both sides firm, a calendar invite on both calendars, and a recorded answer to *did it happen?*.
 
 > **The key endpoint is the calendar invite.** Everything before it is scheduling admin; everything after
@@ -1118,7 +1118,7 @@ is chasing.
 
 **Objective** Find out whether the interview produced a job, and if it did not, find out why.
 
-- **Owner** User Success Manager.
+- **Owner** Consumer Relations Manager.
 - **Users** Student, provider.
 - **Completion criteria** A recorded answer either way, with a reason when the answer is no.
 
@@ -1169,7 +1169,7 @@ reason field, this stage produces a number nobody can act on.
 **Objective** Establish that the placement actually stuck, six shifts worked, because that is the point we
 bill.
 
-- **Owner** User Success Manager.
+- **Owner** Consumer Relations Manager.
 - **Users** Student, provider on the monthly list call.
 - **Completion criteria** Six shifts confirmed and recorded against the placement.
 
@@ -1185,7 +1185,7 @@ as they go, asks them to remember, every time.
 
 **Comms first.** A logging surface is more precise and worth building eventually, but a text a student answers beats a form they do not fill in. SMS is the channel, on the same stack as MA1 and MA3.
 
-**The provider side is a list, not a cadence.** Monthly or quarterly, the User Success Manager runs the client's students down on a call: still working, how many shifts, any problems. One conversation confirms what a dozen emails would not, and it is a touchpoint rather than an interruption. It is the same call that keeps MA3 honest.
+**The provider side is a list, not a cadence.** Monthly or quarterly, the Consumer Relations Manager runs the client's students down on a call: still working, how many shifts, any problems. One conversation confirms what a dozen emails would not, and it is a touchpoint rather than an interruption. It is the same call that keeps MA3 honest.
 
 ### ② Procedure
 
@@ -1212,11 +1212,11 @@ Today there is no concept of a shift anywhere in the product. The only trace of 
 
 **Objective** Turn a confirmed placement into an invoice, and the invoice into money.
 
-- **Owner** User Success Manager.
+- **Owner** Consumer Relations Manager.
 - **Users** Client.
 - **Completion criteria** Invoice issued against a confirmed six-shift placement, and payment recorded.
 
-> **Manual first, deliberately.** At current volume the User Success Manager raising an invoice by hand is
+> **Manual first, deliberately.** At current volume the Consumer Relations Manager raising an invoice by hand is
 > not a stopgap: it is the right answer, and it is how we learn what the automated version should do.
 
 ### ① User journey / technology
@@ -1224,7 +1224,7 @@ Today there is no concept of a shift anywhere in the product. The only trace of 
 | # | What happens | Now | Eventually |
 |---|---|---|---|
 | 1 | Six shifts are confirmed in MA4 | Recorded by hand | Recorded against the placement |
-| 2 | The bill is raised | The User Success Manager raises it | **A button on the client record**: confirm the student hit six, and the invoice issues |
+| 2 | The bill is raised | The Consumer Relations Manager raises it | **A button on the client record**: confirm the student hit six, and the invoice issues |
 | 3 | The invoice is sent and tracked | By hand | Against the client, with its status |
 | 4 | Payment is recorded | By hand | Automatically, against the placement |
 
@@ -1263,12 +1263,12 @@ Things this document describes as they **should** work, which do not work that w
 | **B1** | PR2 | **The Meetings tab holds only booked meetings.** Timing back-and-forth belongs with the email work | *Finding a time* is a hand-set state inside Meetings. Works, but muddies the tab |
 | **B2** | PR2 | **A no-show re-enters outreach automatically.** A missed meeting is not a decline | The outcome opens Calendly to rebook. Nothing catches the row if the rebook never happens |
 | **B3** | PR-OUT · PR2 | **A custom campaign any operator can launch on a single row**: pick the emails and calls, set the days, start it | *Launch custom cadence* exists in the reply modal, not as a general action from a row |
-| **B4** | PR3 | **An alert when a meeting converts**, putting the client in front of the User Success Manager with the meeting notes attached | Not built. Nothing tells them a provider is waiting |
+| **B4** | PR3 | **An alert when a meeting converts**, putting the client in front of the Consumer Relations Manager with the meeting notes attached | Not built. Nothing tells them a provider is waiting |
 | **B5** | PR3 | **The client record.** One place holding everything after conversion: notes on every touchpoint, plus the interviews, hires, six-shift confirmations and invoices against that client. **The most blocked item here: PR3, MA4 and MA5 all wait on it** | Not built. An MVP, notes and a timeline, would carry the stage |
 | **B6** | ST2 | **Structured channel capture at the meeting**: which channels were agreed, the named contact for each, the permission granted, as fields rather than prose | The plan lives in the meeting notes. Workable for one operator, unreportable across campuses |
 | **B7** | ST2 | **A state for _channels agreed, no meeting yet_**, carrying an open ask for a relationship meeting | No such state. The row either sits in Meetings without a meeting or looks like one that never engaged |
 | **B8** | ST2 | **A partner-facing booking event** | Advisors book the provider's event; the slug `home-care-agency-manager-interview` shows in the URL they click |
-| **B9** | ST3–ST7 | **The advisor follow-up tab.** The five channels as a checklist on the partner row (secured, not yet, or not available here) each with its contact and go-live date | Not built. Activation state lives in meeting notes and in the User Success Manager's head |
+| **B9** | ST3–ST7 | **The advisor follow-up tab.** The five channels as a checklist on the partner row (secured, not yet, or not available here) each with its contact and go-live date | Not built. Activation state lives in meeting notes and in the Consumer Relations Manager's head |
 | **B10** | ST3–ST7 | **Maintenance tasks that queue themselves**: the board re-check, the listserv reminder, the event date, the officer refresh each term | Not built. A channel stays alive only as long as someone remembers it |
 | **B11** | ST3–ST7 | **A professor record for ST7**: named professors, a permission state on each, the follow-up and the class visit it produced | Not built, and not yet scoped. Named so it is not mistaken for one more channel |
 | **B12** | ST3–ST7 | **Channel attribution.** Which of the five produced a student | Channels are not modelled as distinct entities |

@@ -47,8 +47,8 @@ const DOCS: Record<string, Doc> = {
     type: "application/pdf",
   },
   crm: {
-    file: "docs/medjobs/MedJobs_User_Success_Manager_Operations.pdf",
-    download: "MedJobs-User-Success-Manager-Operations.pdf",
+    file: "docs/medjobs/MedJobs_Consumer_Relations_Manager_Operations.pdf",
+    download: "MedJobs-Consumer-Relations-Manager-Operations.pdf",
     type: "application/pdf",
   },
   walkthrough: {

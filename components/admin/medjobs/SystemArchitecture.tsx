@@ -19,7 +19,7 @@ import {
  *
  * Colour is ownership, which is the thing the map is actually for: two
  * pipelines built in parallel, each handed from the Admin Team to the Sales
- * Lead at the booked meeting and from the Sales Lead to the User Success
+ * Lead at the booked meeting and from the Sales Lead to the Consumer Relations
  * Manager after it, both feeding the Portal.
  *
  * Every stage is a button. Clicking one jumps the reader below to that stage's
@@ -135,7 +135,7 @@ export default function SystemArchitecture({
         PROVIDER SIDE
       </text>
       <text x={RIGHT} y={80} fontSize={12.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
-        STUDENT / UNIVERSITY SIDE
+        CAREGIVER
       </text>
 
       {/* The six stages worked inside the admin panel. Drawn before the stage
@@ -154,7 +154,7 @@ export default function SystemArchitecture({
       {handoff(238, "HANDOFF · ADMIN TEAM → SALES LEAD")}
       {STAGES.filter((s) => s.y === 262).map((s) => box(s))}
 
-      {handoff(336, "HANDOFF · SALES LEAD → USER SUCCESS MANAGER")}
+      {handoff(336, "HANDOFF · SALES LEAD → CONSUMER RELATIONS MANAGER")}
       {box(STAGES[6])}
       {box(STAGES[7])}
 

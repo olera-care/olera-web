@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import HealthBadge from "@/components/admin/medjobs/HealthBadge";
+import { AddSiteModal } from "@/components/admin/medjobs/AddSiteModal";
 import type { Health } from "@/lib/medjobs/funnel-health";
 
 /**
@@ -54,17 +55,23 @@ export default function SiteNavigator({
   const [rows, setRows] = useState<Row[] | null>(null);
   const [failed, setFailed] = useState(false);
   const [q, setQ] = useState("");
+  const [adding, setAdding] = useState(false);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch("/api/admin/medjobs/site-health");
+      if (!res.ok) throw new Error(String(res.status));
+      const d = (await res.json()) as { sites: Row[] };
+      setRows(d.sites);
+      setFailed(false);
+    } catch {
+      setFailed(true);
+    }
+  }, []);
 
   useEffect(() => {
-    let cancelled = false;
-    fetch("/api/admin/medjobs/site-health")
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((d: { sites: Row[] }) => !cancelled && setRows(d.sites))
-      .catch(() => !cancelled && setFailed(true));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    void load();
+  }, [load]);
 
   const shown = useMemo(() => {
     if (!rows) return [];
@@ -74,11 +81,15 @@ export default function SiteNavigator({
 
   return (
     <aside className="flex h-full flex-col border-l border-gray-100 pl-4">
-      <div className="pb-2">
-        <h2 className="text-sm font-semibold text-gray-900">
-          {showStats ? "Site health" : "Sites"}
-        </h2>
-        {showStats ? <p className="text-xs text-gray-500">Worst first</p> : null}
+      <div className="flex items-center justify-between pb-2">
+        <h2 className="text-sm font-semibold text-gray-900">Sites</h2>
+        <button
+          type="button"
+          onClick={() => setAdding(true)}
+          className="rounded-md border border-primary-200 px-2 py-1 text-[11px] font-semibold text-primary-700 transition-colors hover:bg-primary-50"
+        >
+          + Site
+        </button>
       </div>
 
       <div className="pb-2">
@@ -144,6 +155,18 @@ export default function SiteNavigator({
           ))
         )}
       </div>
+
+      {adding ? (
+        <AddSiteModal
+          existingSlugs={new Set((rows ?? []).map((r) => r.slug))}
+          onClose={() => setAdding(false)}
+          onCreated={(slug) => {
+            setAdding(false);
+            void load();
+            onPick(slug);
+          }}
+        />
+      ) : null}
     </aside>
   );
 }

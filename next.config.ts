@@ -14,7 +14,7 @@ const nextConfig: NextConfig = {
       "./docs/medjobs/MedJobs_2.0_Master_Implementation_Matrix.pdf",
       "./docs/medjobs/MedJobs_Admin_Team_Operations.pdf",
       "./docs/medjobs/MedJobs_Sales_Lead_Operations.pdf",
-      "./docs/medjobs/MedJobs_User_Success_Manager_Operations.pdf",
+      "./docs/medjobs/MedJobs_Consumer_Relations_Manager_Operations.pdf",
       "./docs/medjobs/MedJobs_Operating_System_Walkthrough_Summary.pdf",
       "./docs/medjobs/MedJobs_Operating_System_Walkthrough.mp4",
     ],

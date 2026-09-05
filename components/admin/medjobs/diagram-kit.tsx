@@ -38,7 +38,7 @@ export const HEALTH: Record<Health, { dot: string; fill: string; stroke: string;
 export const OWNERS = {
   admin: { fill: "#f4fafa", stroke: "#d8edec", ink: "#417272", label: "Admin Team" },
   sales: { fill: "#edf7f7", stroke: "#bee0e0", ink: "#385e5e", label: "Sales Lead" },
-  usm: { fill: "#d8edec", stroke: "#96c8c8", ink: "#1a3030", label: "User Success Manager" },
+  usm: { fill: "#d8edec", stroke: "#96c8c8", ink: "#1a3030", label: "Consumer Relations Manager" },
   portal: { fill: "#f9fafb", stroke: "#eaecf0", ink: "#475467", label: "Portal" },
 } as const;
 

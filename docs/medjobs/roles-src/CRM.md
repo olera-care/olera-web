@@ -1,16 +1,16 @@
-# MedJobs User Success Manager Operations
+# MedJobs Consumer Relations Manager Operations
 
 A role view of the MedJobs 2.0 Master Implementation Matrix. Every instruction here
 comes from that document, which stays the source of truth. Nothing has been added to
 the operating model; where the master leaves a question open, it is marked
 **GAP / DECISION NEEDED** rather than answered here.
 
-**CRM** is the workspace label. The operating role is **User Success Manager**, and
+**CRM** is the workspace label. The operating role is **Consumer Relations Manager**, and
 that is the term used throughout.
 
 **ROLE PURPOSE** Own the relationship from the moment a provider converts and from the
 moment an advisor agrees a channel plan, and carry both through to a placement we can
-bill for. One role holds it across both sides of MedJobs. Chantel is the User Success
+bill for. One role holds it across both sides of MedJobs. Chantel is the Consumer Relations
 Manager today.
 
 **WHAT YOU OWN** PR3 client success. ST3 to ST7 university activation. MA3 hire
@@ -54,11 +54,11 @@ terms understood, account set up and ready for the first student to arrive.
 
 | | |
 |---|---|
-| **Trigger** | The Sales Lead logs *Interested / went well* on PR2. In the meeting they have already named the handoff: *"our user success team will follow up with you on next steps"* |
+| **Trigger** | The Sales Lead logs *Interested / went well* on PR2. In the meeting they have already named the handoff: *"our consumer relations team will follow up with you on next steps"* |
 | **Tools** | The provider drawer timeline &#183; email, by hand &#183; the provider portal for the profile, chased by hand &#183; Calendly, by hand |
 | **Communications** | The post-meeting terms email &#183; profile reminders &#183; the setup meeting invitation &#183; everything after it, from the same person |
 | **Completion criteria** | Profile updated &#183; terms email sent and acknowledged &#183; setup meeting held &#183; the account ready to receive a candidate |
-| **Handoff** | **User Success Manager to the Portal**, once the account is ready and a staffing need is recorded. The staffing need drives matching; the client stays yours from here on |
+| **Handoff** | **Consumer Relations Manager to the Portal**, once the account is ready and a staffing need is recorded. The staffing need drives matching; the client stays yours from here on |
 
 ### Required actions
 
@@ -213,7 +213,7 @@ fixed ladder of nudges on days 1, 3, 5, 7, then 21, 35, 49, 63, and presses **Go
 
 ### MA1 Candidate intro
 
-**Owner: Portal, User Success Manager on exceptions.**
+**Owner: Portal, Consumer Relations Manager on exceptions.**
 
 1. **Send to the provider in the form they will open**: PDF attached, link included, no
    login asked for.
@@ -505,7 +505,7 @@ sequence, handoffs and completion criteria are carried over unchanged.
 | Gaps | Deferred build list B4, B5, B9 to B29 as cited; ST8 and QUAL notes on the two definitions of live |
 
 **Nothing was added.** No stage, status, threshold, rhythm, channel or tool appears here
-that is not in the master. **Nothing owned by the User Success Manager was omitted:**
+that is not in the master. **Nothing owned by the Consumer Relations Manager was omitted:**
 PR3, ST3 to ST7, MA3, MA4 and MA5 are carried in full, along with the four Portal
 stages where the master names you as the exception handler.
 

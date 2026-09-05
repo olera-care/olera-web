@@ -10,14 +10,14 @@ FULL SYSTEM OPERATIONS  (matrix-src/MATRIX.md)
         |
   +-----+-----+-----------+
   ADMIN       SALES       CRM
-  Admin Team  Sales Lead  User Success Manager
+  Admin Team  Sales Lead  Consumer Relations Manager
 ```
 
 | Source | Role | Deliverable | Pages |
 |---|---|---|---|
 | `ADMIN.md` | Admin Team | `../MedJobs_Admin_Team_Operations.pdf` | 12 |
 | `SALES.md` | Sales Lead | `../MedJobs_Sales_Lead_Operations.pdf` | 7 |
-| `CRM.md` | User Success Manager | `../MedJobs_User_Success_Manager_Operations.pdf` | 9 |
+| `CRM.md` | Consumer Relations Manager | `../MedJobs_User_Success_Manager_Operations.pdf` | 9 |
 
 ```
 python3 build_roles.py     # all three, and copies them to docs/medjobs/
@@ -49,8 +49,8 @@ of those beyond the master's own deferred build list:
 |---|---|---|
 | PR1, PR-OUT, ST1, ST-OUT | Admin Team | ADMIN |
 | PR2, ST2 | Sales Lead | SALES |
-| PR3, MA3, MA4, MA5 | User Success Manager | CRM |
-| ST3 to ST7 | User Success Manager, with the Sales Lead where a physician in the room changes the answer | CRM, with the boundary stated in SALES |
+| PR3, MA3, MA4, MA5 | Consumer Relations Manager | CRM |
+| ST3 to ST7 | Consumer Relations Manager, with the Sales Lead where a physician in the room changes the answer | CRM, with the boundary stated in SALES |
 | ST8, QUAL, MA1, MA2 | Portal | CRM, as the exception handler the master names |
 
 Booking the 30-minute slot sits inside PR2 and ST2 but the master assigns it to

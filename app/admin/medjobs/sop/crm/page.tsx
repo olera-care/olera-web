@@ -4,9 +4,9 @@ import SopReader, { type SopJump } from "@/components/admin/medjobs/SopReader";
 import RoleOrientation from "@/components/admin/medjobs/RoleOrientation";
 
 /**
- * SOP · CRM — the User Success Manager's view of the operating system.
+ * SOP · CRM — the Consumer Relations Manager's view of the operating system.
  *
- * CRM is the workspace label; the operating role is User Success Manager, and
+ * CRM is the workspace label; the operating role is Consumer Relations Manager, and
  * the document uses that term throughout. Built from
  * docs/medjobs/roles-src/CRM.md.
  */
@@ -27,7 +27,7 @@ export default function MedJobsSopCrmPage() {
   return (
     <SopReader
       doc="crm"
-      title="MedJobs Customer Relations"
+      title="MedJobs Consumer Relations"
       readerLabel="Standard Operating Procedure"
       jumps={JUMPS}
       openAt={JUMPS[0]}

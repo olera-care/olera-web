@@ -53,14 +53,14 @@ DOCS = [
      'Admin Team view of the MedJobs 2.0 operating system &#183; 4 September 2026'),
     ('SALES', 'MedJobs Sales Lead Operations',
      'Sales Lead view of the MedJobs 2.0 operating system &#183; 4 September 2026'),
-    ('CRM', 'MedJobs User Success Manager Operations',
-     'User Success Manager view of the MedJobs 2.0 operating system &#183; 4 September 2026'),
+    ('CRM', 'MedJobs Consumer Relations Manager Operations',
+     'Consumer Relations Manager view of the MedJobs 2.0 operating system &#183; 4 September 2026'),
 ]
 
 OUT = os.path.normpath(os.path.join(HERE, '..'))
 NAMES = {'ADMIN': 'MedJobs_Admin_Team_Operations',
          'SALES': 'MedJobs_Sales_Lead_Operations',
-         'CRM': 'MedJobs_User_Success_Manager_Operations'}
+         'CRM': 'MedJobs_Consumer_Relations_Manager_Operations'}
 
 jobs = []
 for key, title, sub in DOCS:

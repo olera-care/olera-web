@@ -46,15 +46,15 @@ FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  P
 │  │                      │  │    └────────────┘   │  │          └────────────┘         │  │
 │  │                      │  │                     │  │                                 │  │
 │  │ A1  MATCHED          │◄─│       enriches      │  │ P3  PROVIDER PROFILE            │◄─┼── PG2  PRESENCE
-│  │      │               │  │     continuously    │  │     CLAIM or CREATE             │  │
-│  │      ▼               │  │                     │  │      │                          │  │
-│  │ A2  APPLICATION      │  │                     │  │      ▼                          │  │
+│  │      │               │  │     continuously    │  │     CLAIM or CREATE             │  │       profile
+│  │      ▼               │  │                     │  │      │                          │  │       reviews
+│  │ A2  APPLICATION      │  │                     │  │      ▼                          │  │       search & AI
 │  │      │               │  │                     │─►│ B1  FAMILY-PROVIDER MATCHED     │◄─┼── PG3  RESPONSE
-│  │      ▼               │  │                     │  │      │                          │  │
-│  │ A3  AID ESTABLISHED  │  │                     │  │      ▼                          │  │
+│  │      ▼               │  │                     │  │      │                          │  │       minutes
+│  │ A3  AID ESTABLISHED  │  │                     │  │      ▼                          │  │       needs intake
 │  │                      │  │                     │  │ B2  QUALIFIED                   │◄─┼── PG4  FOLLOW-UP
-│  │                      │  │                     │  │      │                          │  │
-│  │                      │  │                     │  │      ▼                          │  │
+│  │                      │  │                     │  │      │                          │  │       re-engagement
+│  │                      │  │                     │  │      ▼                          │  │       scheduling
 │  │                      │  │                     │  │ B3  CARE ESTABLISHED            │  │
 │  └──────────┬───────────┘  └─────────────────────┘  └─────┬────────────────┬─────────┘   │
 └─────────────┼─────────────────────────────────────────────┼────────────────┼────────────┘
@@ -137,6 +137,36 @@ being open and the paid layer starts taxing the family's match.
 **Track A stays out of PG.** Screening a family for VA and Medicaid is already free and already runs
 on the family side. Selling it to the provider who then gets paid by those programs is the one arm
 with real legal exposure, and it would put a free-network asset behind a paywall.
+
+---
+
+## One package, one price
+
+A no-brainer price can only buy work whose marginal cost is near zero. That splits PG cleanly, though
+not along the line the five arms suggest.
+
+**Near zero.** PG2 and PG5 are already automated. PG3 and PG4 are near zero too — but only on
+inquiries that came through Olera, where we already hold the family and already message them. On
+those, answering is a rewrite of work we do today, not new labor.
+
+**Not near zero.** PG1 is pass-through money. So is PG3 and PG4 over a provider's *own* inbound —
+their forms, their phone — which needs a tracked line and staffed hours that do not exist.
+
+The package is the first list. The second is priced separately.
+
+| | |
+|---|---|
+| **Market snapshot** | free — the artifact that earns the CR-P call |
+| **Growth System · $49/mo** | PG2, PG3, PG4, PG5, scoped to Olera inquiries |
+| **Ads** | optional, at cost — PG1 |
+| **Full service · $749/mo** | adds the provider's own inbound and managed ad operations |
+
+**Why $49 clears the bar.** One home-care client is worth thousands a month, so a single answered
+inquiry pays for the year. The provider does not have to believe our numbers to see that. And it is
+cheaper than the meeting it would take to evaluate — which is the real test of a no-brainer.
+
+**What it costs to say this.** `lib/ad-boost/billing.server.ts` holds that plans are flat and all-in,
+spend included, never itemized. Unbundling ads contradicts that rule. One of the two has to give.
 
 ---
 

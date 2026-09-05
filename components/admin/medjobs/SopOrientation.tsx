@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import SystemArchitecture from "@/components/admin/medjobs/SystemArchitecture";
+import type { FunnelResult } from "@/lib/medjobs/funnel-30d";
 
 /**
  * What sits above the reader on the System page: the operating system as a
@@ -50,14 +52,41 @@ export default function SopOrientation({
   /** Jump the reader below to a PDF named destination. */
   onJump: (dest: string) => void;
 }) {
+  const [funnel, setFunnel] = useState<FunnelResult | null>(null);
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    // The map is worth reading with or without the numbers, so a failure here
+    // drops the tracker rather than the diagram.
+    fetch("/api/admin/medjobs/funnel-30d")
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((d: FunnelResult) => !cancelled && setFunnel(d))
+      .catch(() => !cancelled && setFailed(true));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   return (
     <div>
       <div className="rounded-lg border border-gray-200 bg-white p-4">
         <div className="mb-3 flex items-baseline justify-between gap-4">
-          <h2 className="text-sm font-semibold text-gray-900">The operating system</h2>
-          <p className="text-xs text-gray-500">Click any stage to jump the reader to it</p>
+          <h2 className="text-sm font-semibold text-gray-900">
+            The operating system{funnel ? ", last 30 days" : ""}
+          </h2>
+          <p className="text-xs text-gray-500">
+            Click any stage to jump the reader to it
+            {funnel ? " · hover a number for what it counts" : ""}
+          </p>
         </div>
-        <SystemArchitecture onJump={onJump} />
+        <SystemArchitecture onJump={onJump} metrics={funnel?.stages} yields={funnel?.yield} />
+        {failed ? (
+          <p className="mt-2 text-xs text-gray-500">
+            The 30-day tracker could not be loaded, so the map is showing without
+            numbers. The stages and handoffs are unaffected.
+          </p>
+        ) : null}
       </div>
 
       <div className="mt-3 grid gap-3 sm:grid-cols-2">

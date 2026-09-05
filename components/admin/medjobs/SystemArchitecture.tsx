@@ -1,5 +1,7 @@
 "use client";
 
+import type { FunnelMetrics, StageMetric } from "@/lib/medjobs/funnel-30d";
+
 /**
  * The MedJobs operating system on one screen, drawn from the flow map at the
  * top of the master implementation matrix.
@@ -11,6 +13,10 @@
  *
  * Every stage is a button. Clicking one jumps the reader below to that stage's
  * section by its PDF named destination.
+ *
+ * When trailing-30-day metrics are supplied, each stage carries its own x/y and
+ * percentage. A stage the system cannot measure carries a gap marker instead of
+ * a number, deliberately: docs/medjobs/FUNNEL_MEASUREMENT_MAP.md is the working.
  */
 
 const OWNERS = {
@@ -23,6 +29,8 @@ const OWNERS = {
 type Owner = keyof typeof OWNERS;
 
 interface Stage {
+  /** Key into the metrics map. Defaults to `code`. */
+  key?: string;
   code: string;
   name: string;
   owner: Owner;
@@ -45,7 +53,7 @@ const STAGES: Stage[] = [
   { code: "PR2", name: "Provider meeting held", owner: "sales", dest: "pr2-provider-meeting-held", x: LEFT, y: 236, w: LANE_W },
   { code: "ST2", name: "Advisor meeting held", owner: "sales", dest: "st2-advisor-meeting-held", x: RIGHT, y: 236, w: LANE_W },
   { code: "PR3", name: "Client success", owner: "usm", dest: "pr3-client-success", x: LEFT, y: 326, w: LANE_W, h: 74 },
-  { code: "ST3–ST7", name: "University activation", owner: "usm", dest: "st3st7-university-activation", x: RIGHT, y: 326, w: LANE_W, h: 74 },
+  { key: "ST3-ST7", code: "ST3–ST7", name: "University activation", owner: "usm", dest: "st3st7-university-activation", x: RIGHT, y: 326, w: LANE_W, h: 74 },
 ];
 
 const MATCH: Stage[] = [
@@ -56,15 +64,42 @@ const MATCH: Stage[] = [
   { code: "MA5", name: "Bill issued and paid", owner: "usm", dest: "ma5-bill-issued-and-collected", x: 0, y: 0, w: 0 },
 ];
 
+/** `18 / 30 = 60%`, or the throughput number alone when there is no denominator. */
+function readMetric(m: StageMetric) {
+  if (m.gap) return { text: "not instrumented", gap: true };
+  if (m.x == null) return null;
+  if (m.y == null) return { text: `${m.x}`, gap: false };
+  const pct = m.y > 0 ? Math.round((m.x / m.y) * 100) : null;
+  return { text: `${m.x} / ${m.y}${pct == null ? "" : ` = ${pct}%`}`, gap: false };
+}
+
+/** Everything the hover text should say about one stage's number. */
+function metricTitle(m: StageMetric) {
+  if (m.gap) return `Not instrumented. ${m.gap}`;
+  const parts: string[] = [];
+  if (m.xLabel) parts.push(`${m.x} ${m.xLabel}`);
+  if (m.yLabel) parts.push(`of ${m.y} ${m.yLabel}`);
+  if (m.note) parts.push(m.note);
+  return parts.join(" · ");
+}
+
 export default function SystemArchitecture({
   onJump,
+  metrics,
+  yields,
 }: {
   /** Jump the reader to a PDF named destination. */
   onJump: (dest: string) => void;
+  /** Trailing-30-day numbers per stage. Omit to draw the map alone. */
+  metrics?: FunnelMetrics;
+  /** The two yields that are honest today. Omit to hide the strip. */
+  yields?: { commercial: StageMetric; placement: StageMetric };
 }) {
   const box = (s: Stage, sub?: string) => {
     const o = OWNERS[s.owner];
     const h = s.h ?? 44;
+    const m = metrics?.[s.key ?? s.code];
+    const read = m ? readMetric(m) : null;
     return (
       <g
         key={s.code + s.x}
@@ -91,6 +126,24 @@ export default function SystemArchitecture({
           <text x={s.x + 12} y={s.y + 53} fontSize={10} fill="#6b7280">
             {sub}
           </text>
+        ) : null}
+        {read ? (
+          <>
+            <title>{metricTitle(m as StageMetric)}</title>
+            <text
+              /* Always on the code line: the name line is long enough to
+                 collide with it in the narrow match-chain boxes. */
+              x={s.x + s.w - 12}
+              y={s.y + 19}
+              fontSize={read.gap ? 9 : s.w < 200 ? 10.5 : 12}
+              fontWeight={read.gap ? 400 : 700}
+              fontStyle={read.gap ? "italic" : undefined}
+              textAnchor="end"
+              fill={read.gap ? "#94a3b8" : "#0f172a"}
+            >
+              {read.text}
+            </text>
+          </>
         ) : null}
       </g>
     );
@@ -119,7 +172,7 @@ export default function SystemArchitecture({
 
   return (
     <svg
-      viewBox="0 0 960 706"
+      viewBox="0 0 960 742"
       width="100%"
       fontFamily="ui-sans-serif, system-ui, -apple-system, Segoe UI, Arial, sans-serif"
       role="img"
@@ -150,6 +203,11 @@ export default function SystemArchitecture({
       <text x={RIGHT} y={80} fontSize={10.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
         STUDENT / UNIVERSITY SIDE
       </text>
+      {metrics ? (
+        <text x={916} y={80} fontSize={9.5} fontWeight={700} fill="#0f172a" textAnchor="end" letterSpacing="0.5">
+          LAST 30 DAYS
+        </text>
+      ) : null}
 
       {STAGES.filter((s) => s.y < 200).map((s) => box(s))}
       {arrow(LEFT + 20, 136, 144)}
@@ -166,7 +224,7 @@ export default function SystemArchitecture({
       {arrow(LEFT + 20, 400, 430)}
       {arrow(RIGHT + 20, 400, 430)}
 
-      <rect x={24} y={432} width={912} height={238} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
+      <rect x={24} y={432} width={912} height={274} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
       <text x={44} y={455} fontSize={11} fontWeight={700} fill="#334155" letterSpacing="0.5">
         PORTAL
       </text>
@@ -198,15 +256,39 @@ export default function SystemArchitecture({
         box({ ...s, x: mx0 + i * (mw + mgap), y: 596, w: mw }),
       )}
 
-      <text x={916} y={658} fontSize={9.5} fill="#64748b" textAnchor="end">
-        MA4 is where real value has been delivered, so MA5 is where Olera charges
+      {/* Funnel yield. Only the two that are honest today: revenue yield needs
+          MA4 and MA5 instrumented, and neither is. */}
+      <line x1={44} y1={654} x2={916} y2={654} stroke="#e2e8f0" strokeWidth={1} />
+      <text x={44} y={674} fontSize={9.5} fontWeight={700} fill="#64748b" letterSpacing="0.5">
+        FUNNEL YIELD
+      </text>
+      {yields ? (
+        <>
+          <text x={132} y={674} fontSize={10.5} fill="#475569">
+            Commercial conversion
+          </text>
+          <text x={272} y={674} fontSize={12} fontWeight={700} fill="#0f172a">
+            {readMetric(yields.commercial)?.text ?? ""}
+          </text>
+          <text x={470} y={674} fontSize={10.5} fill="#475569">
+            Placement yield
+          </text>
+          <text x={572} y={674} fontSize={12} fontWeight={700} fill="#0f172a">
+            {readMetric(yields.placement)?.text ?? ""}
+          </text>
+        </>
+      ) : null}
+      <text x={916} y={694} fontSize={9} fill="#94a3b8" textAnchor="end">
+        {yields
+          ? "Both against provider meetings held. Revenue yield needs MA4 and MA5 instrumented."
+          : "MA4 is where real value has been delivered, so MA5 is where Olera charges"}
       </text>
 
       {/* Ownership legend */}
       {(Object.keys(OWNERS) as Owner[]).map((k, i) => (
         <g key={k}>
-          <rect x={44 + i * 190} y={688} width={11} height={11} rx={2} fill={OWNERS[k].fill} stroke={OWNERS[k].stroke} />
-          <text x={61 + i * 190} y={697} fontSize={10} fill="#475569">
+          <rect x={44 + i * 190} y={724} width={11} height={11} rx={2} fill={OWNERS[k].fill} stroke={OWNERS[k].stroke} />
+          <text x={61 + i * 190} y={733} fontSize={10} fill="#475569">
             {OWNERS[k].label}
           </text>
         </g>

@@ -79,6 +79,7 @@ The companion `docs/medjobs/EXECUTIVE_SUMMARY.md` is the human-readable team bri
 - `docs/medjobs/roles-src/validate.py` checks the three against the master and exits non-zero on drift. Run it after any edit to any of the four.
 - All four are served to admins at `/admin/medjobs/sop` (System, Admin, Sales, CRM) via `/api/admin/medjobs/sop?doc=…`. New or renamed PDFs need an entry in `outputFileTracingIncludes` in `next.config.ts`, or the route 404s in production.
 - Jump bars address PDF **named destinations**, not page numbers, so a rebuild that repaginates a document cannot break them. Chromium only writes a destination for an id something links to, so a new section must also go in that manual's nav bar. Both READMEs say how to check.
+- **30-day tracker.** `docs/medjobs/FUNNEL_MEASUREMENT_MAP.md` is the working: which events populate each stage's x and y, what is not instrumented, and the smallest change that would fix it. `lib/medjobs/funnel-30d.ts` computes it and `/api/admin/medjobs/funnel-30d` serves it. **A stage gets an x/y only when both numbers come from dated system events** — QUAL, MA4 and MA5 return a gap with the reason, and the diagram renders that rather than a plausible number. Do not add a metric without adding its row to the map first.
 - The System page also carries the architecture diagram (`components/admin/medjobs/SystemArchitecture.tsx`, drawn not rasterised, every stage a jump target) and links to the walkthrough video and summary, both served through the same guarded route.
 
 ## Grant Work (NIH SBIR CRP)

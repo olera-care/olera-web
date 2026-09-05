@@ -5,6 +5,7 @@
 import type { ProfileCategory } from "@/lib/types";
 import type { Provider } from "@/components/providers/ProviderCard";
 import { createClient } from "@/lib/supabase/server";
+import { filterDeadImageUrls, liveImageUrlOrNull } from "@/lib/images/dead-hosts";
 import {
   type Provider as IOSProvider,
   PROVIDERS_TABLE,
@@ -571,8 +572,8 @@ function processProvidersForMulti(
 ): SimilarProviderForMulti[] {
   const providers: SimilarProviderForMulti[] = data.map((p) => {
     // Get first image from pipe-delimited string
-    const images = p.provider_images?.split(" | ") || [];
-    const image = images[0] || p.provider_logo || null;
+    const images = filterDeadImageUrls(p.provider_images?.split(" | ") || []);
+    const image = images[0] || liveImageUrlOrNull(p.provider_logo);
 
     // Calculate distance if we have coordinates
     let distanceMiles: number | null = null;

@@ -30,10 +30,14 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import sharp from "sharp";
-import { createHash } from "crypto";
+import { createRequire } from "module";
 import { readFileSync, writeFileSync, existsSync } from "fs";
+
+// Download / optimize / upload live in one shared module so the city pipeline
+// and this migration cannot drift apart again (the pipeline used to persist
+// the short-lived Places photoUri; see scripts/lib/r2-place-photos.js).
+const require = createRequire(import.meta.url);
+const r2 = require("./lib/r2-place-photos.js");
 
 // ---------------------------------------------------------------------------
 // Load env files
@@ -97,6 +101,9 @@ const CLI_LIMIT = getArg("--limit=")
 const CONCURRENCY = getArg("--concurrency=")
   ? parseInt(getArg("--concurrency=").split("=")[1], 10)
   : 20;
+// Google enforces a per-minute GetPlaceRequest quota on this project. The
+// 2026-09-05 full run at ~21 QPS lost 1,964 providers to 429s; 8 QPS is safe.
+const QPS = getArg("--qps=") ? parseInt(getArg("--qps=").split("=")[1], 10) : 8;
 
 // ---------------------------------------------------------------------------
 // Validate env
@@ -120,15 +127,6 @@ if (missing.length > 0) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const s3 = new S3Client({
-  region: "auto",
-  endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId: R2_ACCESS_KEY_ID,
-    secretAccessKey: R2_SECRET_ACCESS_KEY,
-  },
-});
-
 // ---------------------------------------------------------------------------
 // Stats (use atomic increments since workers run concurrently)
 // ---------------------------------------------------------------------------
@@ -144,6 +142,7 @@ const stats = {
   uploadFailed: 0,
   errors: 0,
   googleApiCalls: 0,
+  photoMediaCalls: 0, // the only billed call (Place Details Photos SKU)
   skippedAlreadyMigrated: 0,
 };
 
@@ -151,10 +150,17 @@ const startTime = Date.now();
 
 // ---------------------------------------------------------------------------
 // Global rate limiter — shared across all concurrent workers
-// Target: ~30 Google API requests/sec (well within 100 QPS quota)
+// Target: QPS Google requests/sec (default 8; see --qps=)
 // ---------------------------------------------------------------------------
 
-const GOOGLE_MIN_INTERVAL_MS = 33; // ~30 QPS
+const GOOGLE_MIN_INTERVAL_MS = Math.ceil(1000 / QPS);
+
+// Place Details Photos SKU (Enterprise): $7 per 1,000 after 1,000 free per
+// month. Place Details with fields=photos is the free IDs Only SKU. Verified
+// against developers.google.com/maps/billing-and-pricing/pricing, 2026-09-05.
+function photoMediaCost(calls) {
+  return (Math.max(0, calls - 1000) * 7) / 1000;
+}
 let lastGoogleCallTime = 0;
 let rateLimitQueue = Promise.resolve();
 
@@ -197,61 +203,19 @@ async function fetchWithRetry(url, retries = 2) {
 async function getPhotoReferences(placeId) {
   await googleRateLimit();
   stats.googleApiCalls++;
-  const url = `https://places.googleapis.com/v1/places/${placeId}?fields=photos&key=${GOOGLE_API_KEY}`;
-  const resp = await fetchWithRetry(url);
-  if (!resp.ok) return [];
-  const data = await resp.json();
-  return data.photos || [];
+  return r2.fetchPlacePhotos(placeId, GOOGLE_API_KEY);
 }
 
-/**
- * Download photo directly by following the redirect (1 round trip instead of 2).
- * Without skipHttpRedirect, the Photo Media endpoint 302-redirects to the image.
- */
 async function downloadPhoto(photoName) {
   await googleRateLimit();
   stats.googleApiCalls++;
-  const url = `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=${MAX_IMAGE_WIDTH}&key=${GOOGLE_API_KEY}`;
-  const resp = await fetchWithRetry(url);
-  if (!resp.ok) return null;
-  const arrayBuf = await resp.arrayBuffer();
-  return Buffer.from(arrayBuf);
+  stats.photoMediaCalls++;
+  return r2.downloadPhoto(photoName, GOOGLE_API_KEY);
 }
 
-// ---------------------------------------------------------------------------
-// Image optimization
-// ---------------------------------------------------------------------------
-
-async function optimizeImage(buffer) {
-  return sharp(buffer)
-    .resize({ width: MAX_IMAGE_WIDTH, withoutEnlargement: true })
-    .jpeg({ quality: JPEG_QUALITY })
-    .toBuffer();
-}
-
-// ---------------------------------------------------------------------------
-// R2 upload
-// ---------------------------------------------------------------------------
-
-function generateR2Key(providerId, index) {
-  const hash = createHash("md5")
-    .update(`${providerId}_photo_${index}`)
-    .digest("hex")
-    .slice(0, 12);
-  return `providers/${providerId}/${hash}.jpg`;
-}
-
-async function uploadToR2(buffer, key) {
-  const cmd = new PutObjectCommand({
-    Bucket: R2_BUCKET,
-    Key: key,
-    Body: buffer,
-    ContentType: "image/jpeg",
-    CacheControl: "public, max-age=31536000",
-  });
-  await s3.send(cmd);
-  return `${R2_PUBLIC_URL.replace(/\/$/, "")}/${key}`;
-}
+const optimizeImage = r2.optimizeImage;
+const generateR2Key = r2.r2KeyFor;
+const uploadToR2 = r2.uploadToR2;
 
 // ---------------------------------------------------------------------------
 // Checkpoint
@@ -289,11 +253,12 @@ async function migrateProvider(provider) {
     return;
   }
 
-  // Skip if already migrated to R2
+  // Skip if already migrated to R2 (no dead host left in the list)
   if (
     provider_images &&
+    provider_images.includes("r2.dev") &&
     !provider_images.includes("cdn-api.olera.care") &&
-    provider_images.includes("r2.dev")
+    !provider_images.includes("/place-photos/")
   ) {
     stats.skippedAlreadyMigrated++;
     return;
@@ -374,8 +339,7 @@ async function processWithWorkers(providers) {
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
     const pct = ((done / providers.length) * 100).toFixed(1);
     const rate = (done / (elapsed || 1)).toFixed(1);
-    const detailsCost = stats.googleApiCalls * 0.005; // blended avg
-    const estimatedCost = detailsCost.toFixed(2);
+    const estimatedCost = photoMediaCost(stats.photoMediaCalls).toFixed(2);
     const eta = rate > 0 ? (((providers.length - done) / rate) / 60).toFixed(1) : "?";
     process.stdout.write(
       `\r  [${pct}%] ${done}/${providers.length} | ` +
@@ -419,7 +383,7 @@ async function main() {
   console.log("  Provider Image Migration: cdn-api.olera.care → Cloudflare R2");
   console.log("=".repeat(70));
   console.log(`  Mode:        ${DRY_RUN ? "DRY RUN (no writes)" : "LIVE"}`);
-  console.log(`  Concurrency: ${CONCURRENCY} workers`);
+  console.log(`  Concurrency: ${CONCURRENCY} workers @ ${QPS} QPS`);
   console.log(`  Photos/prov: ${MAX_PHOTOS_PER_PROVIDER}`);
   console.log(`  R2 bucket:   ${R2_BUCKET}`);
   console.log(`  R2 URL:      ${R2_PUBLIC_URL}`);
@@ -440,8 +404,10 @@ async function main() {
     }
   }
 
-  // Query providers with dead CDN URLs
-  console.log("\n  Fetching providers with dead CDN URLs...");
+  // Query providers with dead image sources: the offline iOS-era CDN and the
+  // short-lived Places `photoUri` (lh3.googleusercontent.com/place-photos/...)
+  // that the pipeline used to persist. Both 502 through /_next/image.
+  console.log("\n  Fetching providers with dead image URLs (cdn-api + place-photos)...");
 
   let allProviders = [];
   let offset = 0;
@@ -451,7 +417,7 @@ async function main() {
     const { data, error } = await supabase
       .from("olera-providers")
       .select("provider_id, place_id, provider_images, provider_logo")
-      .like("provider_images", "%cdn-api.olera.care%")
+      .or("provider_images.like.%cdn-api.olera.care%,provider_images.like.%/place-photos/%")
       .not("deleted", "is", true)
       .order("provider_id")
       .range(offset, offset + PAGE - 1);
@@ -487,8 +453,10 @@ async function main() {
 
   if (DRY_RUN) {
     // Cost: 1 Place Details ($0.005) + 2 Photo Media ($0.007 each) = $0.019/provider
-    const estimatedCost = (providers.length * 0.019).toFixed(2);
-    const estimatedTime = ((providers.length * 3) / 30 / 60).toFixed(1); // 3 calls/prov, 30 QPS
+    // Place Details with fields=photos is the free IDs Only SKU; only Photo
+    // Media bills. Assume ~55% of providers have photos, 2 downloads each.
+    const estimatedCost = photoMediaCost(Math.round(providers.length * 0.55 * MAX_PHOTOS_PER_PROVIDER)).toFixed(2);
+    const estimatedTime = ((providers.length * 3) / QPS / 60).toFixed(1); // 3 calls/prov
     console.log(`  Estimated Google API calls: ~${providers.length * 3}`);
     console.log(`  Estimated cost:  ~$${estimatedCost}`);
     console.log(`  Estimated time:  ~${estimatedTime} min (at ${CONCURRENCY} workers)`);
@@ -516,7 +484,7 @@ async function main() {
   console.log(`  Upload failed:     ${stats.uploadFailed}`);
   console.log(`  Errors:            ${stats.errors}`);
   console.log(`  Already migrated:  ${stats.skippedAlreadyMigrated}`);
-  console.log(`  Google API calls:  ${stats.googleApiCalls}`);
+  console.log(`  Google API calls:  ${stats.googleApiCalls} (${stats.photoMediaCalls} billed Photo Media, ~$${photoMediaCost(stats.photoMediaCalls).toFixed(2)})`);
   console.log();
   console.log(
     "  Next step: run classify-provider-images.mjs to pick hero images"

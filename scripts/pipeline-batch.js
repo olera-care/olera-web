@@ -40,6 +40,8 @@ const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
 const csvParse = require('csv-parse/sync');
 const { reconcileRunLocations } = require('./lib/reconcile-location');
+const { loadR2Env, r2Configured, hostPlacePhotosOnR2, joinProviderImages } = require('./lib/r2-place-photos');
+loadR2Env();
 
 // ---------------------------------------------------------------------------
 // CLI Parsing
@@ -563,16 +565,9 @@ async function googlePlacesField(placeId, fields) {
   return resp.json();
 }
 
-async function googlePhotoUri(photoName) {
-  await rateLimiters.google.wait();
-  cost.addGoogle();
-
-  const url = `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=800&key=${GOOGLE_API_KEY}&skipHttpRedirect=true`;
-  const resp = await fetchWithRetry(url);
-  if (!resp.ok) return null;
-  const json = await resp.json();
-  return json.photoUri || null;
-}
+// googlePhotoUri() was removed on purpose: it returned the short-lived Places
+// `photoUri`, and persisting that produced thousands of dead image rows.
+// Photos now go through hostPlacePhotosOnR2() in scripts/lib/r2-place-photos.js.
 
 // ---------------------------------------------------------------------------
 // Utility Functions
@@ -1519,13 +1514,22 @@ async function enrichReviewsAndImages(allProviders) {
         updates.google_reviews_data = existingMeta;
       }
 
-      // Images
-      if (wantImages && data?.photos?.length > 0) {
-        const photoName = data.photos[0].name;
-        const uri = await googlePhotoUri(photoName);
-        apiCalls++; // photo URI resolution is a separate call (unavoidable)
-        if (uri) {
-          updates.provider_images = uri;
+      // Images — hosted on R2, never stored as a Google URL (the Places
+      // `photoUri` expires and then 403s; see scripts/lib/r2-place-photos.js).
+      // If R2 is not configured, store nothing: the site shows category stock.
+      if (wantImages && data?.photos?.length > 0 && r2Configured()) {
+        const imageStats = {};
+        const urls = await hostPlacePhotosOnR2({
+          providerId: p.provider_id,
+          placeId: p.place_id,
+          apiKey: GOOGLE_API_KEY,
+          photos: data.photos, // already fetched above; skips a second Place Details call
+          stats: imageStats,
+        });
+        apiCalls += imageStats.googleApiCalls || 0;
+        const joined = joinProviderImages(urls);
+        if (joined) {
+          updates.provider_images = joined;
           imagesFetched++;
         }
       }

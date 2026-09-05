@@ -1,4 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import {
+  STALL_DAYS,
+  siteScore,
+  stageHealth,
+  type Health,
+  type SiteScore,
+} from "@/lib/medjobs/funnel-health";
 
 /**
  * Trailing-30-day performance for every stage of the MedJobs operating system.
@@ -18,6 +25,15 @@ export const WINDOW_DAYS = 30;
 /** Provider rows and university rows are the same table, split by `kind`. */
 const UNIVERSITY_KINDS = ["advisor", "student_org", "dept_head", "professor"];
 
+/** Statuses that mean the row is still being worked, so silence on it matters. */
+const ACTIVE_STATUSES = [
+  "prospect",
+  "researched",
+  "outreach_sent",
+  "engaged",
+  "meeting_scheduled",
+];
+
 const CALL_TYPES = [
   "call_connected",
   "call_no_answer",
@@ -33,6 +49,10 @@ const CALL_TYPES = [
 export type MetricKind = "conversion" | "coverage" | "throughput" | "gap";
 
 export interface StageMetric {
+  /** Green / yellow / red, from this stage's own driver. */
+  health?: Health;
+  /** True when the stage is network-wide because it cannot be split by site. */
+  networkWide?: boolean;
   /** Which of the four things this number is. */
   kind: MetricKind;
   /** One sentence saying what the number means, in words, for the tooltip. */
@@ -53,7 +73,32 @@ export interface StageMetric {
 
 export type FunnelMetrics = Record<string, StageMetric>;
 
+export interface Site {
+  id: string;
+  slug: string;
+  name: string;
+}
+
+/** The bottom line: what the funnel produced, in outcomes rather than rates. */
+export interface Outcomes {
+  /** MA4. Placements that reached the billable threshold. */
+  billable: number;
+  /** MA5. Placements billed. */
+  billed: number;
+  /** Students who reached a confirmed placement. */
+  successfulStudents: number;
+  /** Collected, in whole dollars. */
+  revenue: number;
+  /** Which of the four are real numbers rather than structure awaiting data. */
+  instrumented: { billable: boolean; billed: boolean; successfulStudents: boolean; revenue: boolean };
+}
+
 export interface FunnelResult {
+  /** Null for ALL SITES. */
+  site: Site | null;
+  sites: Site[];
+  health: SiteScore;
+  outcomes: Outcomes;
   /** ISO start of the trailing window. */
   since: string;
   /** ISO end (now). */
@@ -80,33 +125,52 @@ interface TP {
  * One query rather than a dozen counts: the window is small and this keeps
  * the derived numbers consistent with each other.
  */
-async function loadTouchpoints(db: DB, since: string) {
-  const { data: rows, error } = await db
-    .from("student_outreach")
-    .select("id, kind")
-    .limit(100000);
+async function loadTouchpoints(db: DB, since: string, campusId: string | null) {
+  let q = db.from("student_outreach").select("id, kind, campus_id, status").limit(100000);
+  if (campusId) q = q.eq("campus_id", campusId);
+  const { data: rows, error } = await q;
   if (error) throw error;
 
   const kindOf = new Map<string, string>();
-  for (const r of (rows ?? []) as Array<{ id: string; kind: string | null }>) {
-    if (r.kind) kindOf.set(r.id, r.kind);
+  const active = new Set<string>();
+  for (const r of (rows ?? []) as Array<{
+    id: string;
+    kind: string | null;
+    status: string | null;
+  }>) {
+    if (!r.kind) continue;
+    kindOf.set(r.id, r.kind);
+    if (r.status && ACTIVE_STATUSES.includes(r.status)) active.add(r.id);
   }
 
+  // Two windows off one query: the 30-day counts, and the longer look-back that
+  // says whether an active row has gone quiet.
+  const stallSince = new Date(Date.now() - STALL_DAYS * 86_400_000).toISOString();
+  const earliest = since < stallSince ? since : stallSince;
   const { data: tps, error: tpErr } = await db
     .from("student_outreach_touchpoints")
-    .select("outreach_id, touchpoint_type")
-    .gte("created_at", since)
+    .select("outreach_id, touchpoint_type, created_at")
+    .gte("created_at", earliest)
     .limit(200000);
   if (tpErr) throw tpErr;
 
   const provider: TP[] = [];
   const university: TP[] = [];
-  for (const t of (tps ?? []) as TP[]) {
+  const touchedRecently = new Set<string>();
+  for (const t of (tps ?? []) as Array<TP & { created_at: string }>) {
     const kind = kindOf.get(t.outreach_id);
+    if (!kind) continue;
+    if (t.created_at >= stallSince) touchedRecently.add(t.outreach_id);
+    if (t.created_at < since) continue;
     if (kind === "provider") provider.push(t);
-    else if (kind && UNIVERSITY_KINDS.includes(kind)) university.push(t);
+    else if (UNIVERSITY_KINDS.includes(kind)) university.push(t);
   }
-  return { provider, university };
+
+  let stalled = 0;
+  for (const id of active) if (!touchedRecently.has(id)) stalled += 1;
+  const stalledShare = active.size > 0 ? stalled / active.size : 0;
+
+  return { provider, university, stalledShare, activeRows: active.size };
 }
 
 /** Distinct rows carrying at least one touchpoint of any of `types`. */
@@ -123,12 +187,18 @@ function events(tps: TP[], type: string): number {
   return n;
 }
 
-async function countRowsCreated(db: DB, since: string, kinds: string[] | "provider") {
+async function countRowsCreated(
+  db: DB,
+  since: string,
+  kinds: string[] | "provider",
+  campusId: string | null,
+) {
   let q = db
     .from("student_outreach")
     .select("id", { count: "exact", head: true })
     .gte("created_at", since);
   q = kinds === "provider" ? q.eq("kind", "provider") : q.in("kind", kinds);
+  if (campusId) q = q.eq("campus_id", campusId);
   const { count, error } = await q;
   if (error) throw error;
   return count ?? 0;
@@ -151,16 +221,29 @@ async function countClients(db: DB, since: string) {
   return n;
 }
 
-export async function loadFunnel30d(db: DB): Promise<FunnelResult> {
+export async function loadFunnel30d(db: DB, siteSlug?: string | null): Promise<FunnelResult> {
   const until = new Date();
   const since = new Date(until.getTime() - WINDOW_DAYS * 86_400_000).toISOString();
 
-  const [{ provider, university }, providersAdded, officesAdded, clients] =
+  // The site list drives both the filter and the navigator, so it is always
+  // loaded even when no filter is applied.
+  const { data: campusRows } = await db
+    .from("student_outreach_campuses")
+    .select("id, slug, name")
+    .eq("is_active", true)
+    .order("name");
+  const sites = (campusRows ?? []) as Site[];
+  const site = siteSlug ? (sites.find((c) => c.slug === siteSlug) ?? null) : null;
+  const campusId = site?.id ?? null;
+  // Asking for a site that does not exist must not silently return the network.
+  if (siteSlug && !site) throw new Error(`Unknown site: ${siteSlug}`);
+
+  const [{ provider, university, stalledShare }, providersAdded, officesAdded, clients] =
     await Promise.all([
-      loadTouchpoints(db, since),
-      countRowsCreated(db, since, "provider"),
-      countRowsCreated(db, since, UNIVERSITY_KINDS),
-      countClients(db, since),
+      loadTouchpoints(db, since, campusId),
+      countRowsCreated(db, since, "provider", campusId),
+      countRowsCreated(db, since, UNIVERSITY_KINDS, campusId),
+      campusId ? Promise.resolve(null) : countClients(db, since),
     ]);
 
   // Student signups. Dated and reliable; go-live is not (see G-a).
@@ -212,10 +295,21 @@ export async function loadFunnel30d(db: DB): Promise<FunnelResult> {
   const cohortNote =
     "Event-based, not cohort-based: a meeting booked late in the window is held outside it.";
 
+  // Five stages have no campus link anywhere in the schema: the Client flag
+  // lives on business_profiles, the candidate-ready broadcast on email_log, and
+  // interviews and placements point at profiles rather than a site. Under a
+  // site filter they stay network-wide, say so, and sit out that site's score
+  // rather than being quietly attributed to it.
+  const wide = campusId ? { networkWide: true } : {};
+  const wideNote = campusId
+    ? " Network-wide: this stage has no campus link, so it cannot be narrowed to one site."
+    : "";
+
   const stages: FunnelMetrics = {
     PR1: {
       kind: "coverage",
-      reads: "How much of our own list we have worked, not a conversion rate. A low number means the team is behind on pre-flight, not that providers said no.",
+      reads:
+        "How much of our own list we have worked, not a conversion rate. A low number means the team is behind on pre-flight, not that providers said no.",
       x: pPreflight,
       y: providersAdded,
       xLabel: "providers with a pre-flight call logged",
@@ -242,11 +336,14 @@ export async function loadFunnel30d(db: DB): Promise<FunnelResult> {
     PR3: {
       kind: "conversion",
       reads: "Of the provider meetings held, the share that converted to a Client. This is the commercial close rate.",
-      x: clients,
+      ...wide,
+      x: clients ?? undefined,
       y: pHeld,
       xLabel: "providers that accepted terms",
       yLabel: "provider meetings held",
-      note: "Terms acceptance is the only instrumented part of PR3. Profile updated, setup meeting held and staffing need recorded have no fields (B5).",
+      note:
+        "Terms acceptance is the only instrumented part of PR3. Profile updated, setup meeting held and staffing need recorded have no fields (B5)." +
+        wideNote,
     },
     ST1: {
       kind: "coverage",
@@ -285,9 +382,11 @@ export async function loadFunnel30d(db: DB): Promise<FunnelResult> {
     ST8: {
       kind: "throughput",
       reads: "A count, not a rate. New students entering the funnel in the window.",
+      ...wide,
       x: signups ?? 0,
       xLabel: "student signups",
-      note: "Throughput only. Go-live is not dated, so signup to live cannot be windowed (G-a).",
+      note:
+        "Throughput only. Go-live is not dated, so signup to live cannot be windowed (G-a)." + wideNote,
     },
     QUAL: {
       kind: "gap",
@@ -296,39 +395,72 @@ export async function loadFunnel30d(db: DB): Promise<FunnelResult> {
     MA1: {
       kind: "throughput",
       reads: "A count, not a rate. Distinct providers reached by the candidate-ready broadcast.",
+      ...wide,
       x: readyProviders,
       xLabel: `providers told a candidate is ready (${readySends} sends)`,
-      note: "Throughput only. The denominator needs a dated go-live (G-a); the profile PDF itself is B20.",
+      note: "Throughput only. The denominator needs a dated go-live (G-a); the profile PDF itself is B20." + wideNote,
     },
     MA2: {
       kind: "conversion",
       reads: "Of the interviews proposed, the share both sides confirmed. Read it as scheduling friction, not as attendance.",
+      ...wide,
       x: confirmed ?? 0,
       y: proposed ?? 0,
       xLabel: "interviews confirmed",
       yLabel: "interviews proposed",
-      note: "Measures confirmation, not attendance. Nothing sets completed or no_show (B23).",
+      note: "Measures confirmation, not attendance. Nothing sets completed or no_show (B23)." + wideNote,
     },
     MA3: {
       kind: "conversion",
       reads: "Of the interviews confirmed, the share that produced a placement offer.",
+      ...wide,
       x: offers ?? 0,
       y: confirmed ?? 0,
       xLabel: "placement offers made",
       yLabel: "interviews confirmed",
-      note: "The acceptance that constitutes the hire has no dated transition (G-h).",
+      note: "The acceptance that constitutes the hire has no dated transition (G-h)." + wideNote,
     },
     MA4: {
-      kind: "gap",
-      gap: "No shift concept exists in the product. The placement threshold is 120 hours, not six shifts (B28).",
+      kind: "throughput",
+      reads: "Number billable: placements that reached the billing threshold. Structure only until a shift count exists.",
+      x: 0,
+      xLabel: "billable",
+      gap: "No shift concept exists in the product. The placement threshold is 120 hours, not six shifts (B28). The count is structure, not data.",
     },
     MA5: {
-      kind: "gap",
-      gap: "Payment fields exist on the placement and are never written (B29).",
+      kind: "throughput",
+      reads: "Number billed: invoices raised against a billable placement. Structure only until payment is written.",
+      x: 0,
+      xLabel: "billed",
+      gap: "Payment fields exist on the placement and are never written (B29). The count is structure, not data.",
     },
   };
 
+  // Health per stage, then the site score from the stages that could be scored.
+  // A network-wide stage under a site filter is not that site's to answer for.
+  const scorable: Health[] = [];
+  for (const [key, m] of Object.entries(stages)) {
+    const skip = m.gap || (campusId && m.networkWide);
+    m.health = skip ? "unscored" : stageHealth(key, m.x, m.y);
+    scorable.push(m.health);
+  }
+  const health = siteScore(scorable, stalledShare);
+
+  const outcomes: Outcomes = {
+    billable: 0,
+    billed: 0,
+    successfulStudents: 0,
+    revenue: 0,
+    // Every one of the four waits on instrumentation. Declared here so the
+    // shape is settled and only the numbers change when it lands.
+    instrumented: { billable: false, billed: false, successfulStudents: false, revenue: false },
+  };
+
   return {
+    site,
+    sites,
+    health,
+    outcomes,
     since,
     until: until.toISOString(),
     windowDays: WINDOW_DAYS,
@@ -337,7 +469,8 @@ export async function loadFunnel30d(db: DB): Promise<FunnelResult> {
       commercial: {
         kind: "conversion",
         reads: "Of every provider meeting held, the share that became a paying-relationship Client.",
-        x: clients,
+        ...wide,
+        x: clients ?? undefined,
         y: pHeld,
         xLabel: "providers converted to Client",
         yLabel: "provider meetings held",
@@ -345,11 +478,12 @@ export async function loadFunnel30d(db: DB): Promise<FunnelResult> {
       placement: {
         kind: "conversion",
         reads: "Of every provider meeting held, the share that has produced a placement offer.",
+        ...wide,
         x: offers ?? 0,
         y: pHeld,
         xLabel: "placement offers made",
         yLabel: "provider meetings held",
-        note: "Revenue yield needs MA4 and MA5 instrumented; neither is.",
+        note: "Revenue yield needs MA4 and MA5 instrumented; neither is." + wideNote,
       },
     },
   };

@@ -34,6 +34,7 @@ export function sopHash(jump: Pick<SopJump, "dest" | "page">) {
 export default function SopReader({
   doc,
   title,
+  readerLabel,
   jumps,
   openAt,
   above,
@@ -41,6 +42,8 @@ export default function SopReader({
   /** The `doc` key served by /api/admin/medjobs/sop. */
   doc: string;
   title: string;
+  /** Names what the embedded document is, directly above it. */
+  readerLabel: string;
   jumps: SopJump[];
   /** Where the reader opens. */
   openAt: SopJump;
@@ -81,6 +84,7 @@ export default function SopReader({
       ) : null}
 
       <div ref={frame} className="scroll-mt-4">
+        <h2 className="mb-2 text-sm font-semibold text-gray-900">{readerLabel}</h2>
         <div className="mb-3 flex flex-wrap items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2">
           {jumps.map((j) => {
             const h = sopHash(j);

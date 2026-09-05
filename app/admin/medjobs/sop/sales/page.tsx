@@ -24,7 +24,8 @@ export default function MedJobsSopSalesPage() {
   return (
     <SopReader
       doc="sales"
-      title="SOP · Sales"
+      title="MedJobs Sales"
+      readerLabel="Standard Operating Procedure"
       jumps={JUMPS}
       openAt={JUMPS[0]}
       above={(jump) => <RoleOrientation role="sales" onJump={jump} />}

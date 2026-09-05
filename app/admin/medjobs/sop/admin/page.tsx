@@ -26,7 +26,8 @@ export default function MedJobsSopAdminPage() {
   return (
     <SopReader
       doc="admin"
-      title="SOP · Admin"
+      title="MedJobs Admin"
+      readerLabel="Standard Operating Procedure"
       jumps={JUMPS}
       openAt={JUMPS[0]}
       above={(jump) => <RoleOrientation role="admin" onJump={jump} />}

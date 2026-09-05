@@ -126,3 +126,68 @@ Smallest change that makes each blocked stage measurable, in dependency order.
 The first and third are each a one-line write next to code that already runs,
 and between them they unblock ST8, MA1 and MA3. They are the cheapest
 instrumentation in the list by a wide margin.
+
+---
+
+## 5. Health thresholds
+
+`lib/medjobs/funnel-health.ts` holds every number below in one table. Two rules
+govern it.
+
+**Each stage is judged on its own kind of metric.** A conversion stage on its
+rate, a volume stage on 30-day throughput, a coverage stage on how much of its
+own list has been worked. One universal threshold across all of them would be
+meaningless.
+
+**A stage the system cannot measure is not scored.** QUAL, MA4 and MA5 show
+their structure and a zero and sit out of the score. Scoring a site red for
+instrumentation we have not built tells an operator nothing about the site.
+
+| Stage | Driver | Green | Yellow | Red |
+|---|---|---|---|---|
+| PR1 | coverage, share of the provider list worked | ≥ 70% | 40–69% | < 40% |
+| PR-OUT | conversion, contacted to meeting booked | ≥ 8% | 3–8% | < 3% |
+| PR2 | conversion, booked to held and logged | ≥ 80% | 60–79% | < 60% |
+| PR3 | conversion, meetings held to Client | ≥ 40% | 20–39% | < 20% |
+| ST1 | coverage, share of the office list worked | ≥ 70% | 40–69% | < 40% |
+| ST-OUT | conversion, contacted to meeting booked | ≥ 15% | 6–15% | < 6% |
+| ST2 | conversion, booked to held and logged | ≥ 80% | 60–79% | < 60% |
+| ST3–ST7 | conversion, meetings held to distribution | ≥ 60% | 30–59% | < 30% |
+| ST8 | volume, signups in the window | ≥ 20 | 5–19 | < 5 |
+| MA1 | volume, providers reached by the broadcast | ≥ 10 | 3–9 | < 3 |
+| MA2 | conversion, proposed to confirmed | ≥ 60% | 35–59% | < 35% |
+| MA3 | conversion, confirmed to offer | ≥ 40% | 20–39% | < 20% |
+| QUAL, MA4, MA5 | not instrumented | not scored | | |
+
+The two sides carry different outbound bars on purpose: providers get three
+emails and two calls to a business, advising offices five emails and one
+meeting-first call. Their base rates are not the same thing.
+
+**These are initial operating defaults, not observed baselines.** There is no
+history to fit them to yet. They live in one table so that when real base rates
+arrive, that file is the only edit.
+
+### Site score
+
+Each scored stage is worth **green 100, yellow 60, red 20**. The site score is
+their mean, and the status is **green ≥ 75, yellow 50–74, red < 50**.
+
+Then one cap, because rates alone can flatter a site that has stopped working
+its pipeline. An active row with no touchpoint for **14 days** is stalled. If
+more than 40% of active rows are stalled the site cannot be green; above 60% it
+is red. The outreach cadence runs Day 0 to Day 7, so a fortnight of silence on a
+row still marked active is a row nobody is working.
+
+### What the site filter can and cannot narrow
+
+Six stages carry `campus_id` through `student_outreach` and narrow cleanly: PR1,
+PR-OUT, PR2, ST1, ST-OUT, ST2, plus ST3–ST7.
+
+**Five have no campus link anywhere in the schema.** The Client flag lives on
+`business_profiles`, the candidate-ready broadcast on `email_log`, and
+`interviews` and `medjobs_placements` point at profiles rather than a site. Under
+a site filter, PR3, ST8, MA1, MA2 and MA3 stay network-wide, say so on the map,
+and sit out that site's score rather than being attributed to it.
+
+Fixing that is a `campus_id` on the placement and a campus stamp on the student
+profile at signup. Neither is large; both are listed here rather than assumed.

@@ -27,7 +27,8 @@ export default function MedJobsSopCrmPage() {
   return (
     <SopReader
       doc="crm"
-      title="SOP · CRM"
+      title="MedJobs Customer Relations"
+      readerLabel="Standard Operating Procedure"
       jumps={JUMPS}
       openAt={JUMPS[0]}
       above={(jump) => <RoleOrientation role="crm" onJump={jump} />}

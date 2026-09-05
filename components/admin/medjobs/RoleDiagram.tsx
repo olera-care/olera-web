@@ -7,7 +7,7 @@ import {
   HandoffRule,
   Legend,
   StageBox,
-  YieldStrip,
+  BottomLine,
   type Owner,
   type Stage,
 } from "@/components/admin/medjobs/diagram-kit";
@@ -80,6 +80,12 @@ type Props = {
   onJump: (dest: string) => void;
   metrics?: FunnelMetrics;
   yields?: { commercial: StageMetric; placement: StageMetric };
+  /** The bottom line's outcome figures. */
+  outcomes?: {
+    successfulStudents: number;
+    revenue: number;
+    instrumented: { successfulStudents: boolean; revenue: boolean };
+  };
 };
 
 const LEGEND: Record<Props["role"], Owner[]> = {
@@ -90,7 +96,7 @@ const LEGEND: Record<Props["role"], Owner[]> = {
 
 const HEIGHT: Record<Props["role"], number> = { admin: 330, sales: 296, crm: 520 };
 
-export default function RoleDiagram({ role, onJump, metrics, yields }: Props) {
+export default function RoleDiagram({ role, onJump, metrics, yields, outcomes }: Props) {
   const box = (st: Stage, sub?: string, greyed?: boolean) => (
     <StageBox
       key={st.code + st.x}
@@ -190,7 +196,7 @@ export default function RoleDiagram({ role, onJump, metrics, yields }: Props) {
             Plus the monthly client list call, which confirms shifts and picks up
             the hire questions providers did not answer.
           </text>
-          {yields ? <YieldStrip y={424} yields={yields} /> : null}
+          {yields && outcomes ? <BottomLine y={424} yields={yields} outcomes={outcomes} /> : null}
           <Legend y={484} owners={LEGEND.crm} />
         </>
       )}

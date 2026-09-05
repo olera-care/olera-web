@@ -38,7 +38,8 @@ export default function MedJobsSopSystemPage() {
   return (
     <SopReader
       doc="system"
-      title="SOP · System"
+      title="MedJobs System"
+      readerLabel="System Architecture"
       jumps={JUMPS}
       openAt={JUMPS[0]}
       above={(jump) => <SopOrientation onJump={jump} />}

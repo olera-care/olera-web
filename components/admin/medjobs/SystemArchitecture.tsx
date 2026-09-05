@@ -8,7 +8,7 @@ import {
   Legend,
   OWNERS,
   StageBox,
-  YieldStrip,
+  BottomLine,
   type Owner,
   type Stage,
 } from "@/components/admin/medjobs/diagram-kit";
@@ -58,6 +58,7 @@ export default function SystemArchitecture({
   onJump,
   metrics,
   yields,
+  outcomes,
 }: {
   /** Jump the reader to a PDF named destination. */
   onJump: (dest: string) => void;
@@ -65,6 +66,12 @@ export default function SystemArchitecture({
   metrics?: FunnelMetrics;
   /** The two yields that are honest today. Omit to hide the strip. */
   yields?: { commercial: StageMetric; placement: StageMetric };
+  /** The bottom line's outcome figures. */
+  outcomes?: {
+    successfulStudents: number;
+    revenue: number;
+    instrumented: { successfulStudents: boolean; revenue: boolean };
+  };
 }) {
   const box = (st: Stage, sub?: string) => (
     <StageBox key={st.code + st.x} stage={st} metric={metrics?.[st.key ?? st.code]} onJump={onJump} sub={sub} />
@@ -172,7 +179,7 @@ export default function SystemArchitecture({
         box({ ...s, x: mx0 + i * (mw + mgap), y: 622, w: mw }),
       )}
 
-      {yields ? <YieldStrip y={680} yields={yields} /> : null}
+      {yields && outcomes ? <BottomLine y={680} yields={yields} outcomes={outcomes} /> : null}
 
       <Legend y={750} owners={Object.keys(OWNERS) as Owner[]} />
     </svg>

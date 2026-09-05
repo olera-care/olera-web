@@ -1,12 +1,27 @@
 "use client";
 
 import type { StageMetric } from "@/lib/medjobs/funnel-30d";
+import type { Health } from "@/lib/medjobs/funnel-health";
 
 /**
  * The pieces every MedJobs operating-system diagram is drawn from: the System
  * map and the three role views. Shared so the four cannot drift apart in
  * colour, wording or how a number is read.
  */
+
+/**
+ * Health colour, taken from the design system's own semantic scales rather
+ * than a generic dashboard palette: success / warning / error in
+ * tailwind.config.ts, which is where every other status in the product reads
+ * from. `unscored` is deliberately quiet — a stage we cannot measure should
+ * not compete for attention with one that is failing.
+ */
+export const HEALTH: Record<Health, { dot: string; fill: string; stroke: string; ink: string; label: string }> = {
+  green: { dot: "#12B76A", fill: "#ECFDF3", stroke: "#A6F4C5", ink: "#027A48", label: "Green" },
+  yellow: { dot: "#F79009", fill: "#FFFAEB", stroke: "#FEDF89", ink: "#B54708", label: "Yellow" },
+  red: { dot: "#F04438", fill: "#FEF3F2", stroke: "#FECDCA", ink: "#B42318", label: "Red" },
+  unscored: { dot: "#D0D5DD", fill: "#F9FAFB", stroke: "#EAECF0", ink: "#667085", label: "Not scored" },
+};
 
 export const OWNERS = {
   admin: { fill: "#eff6ff", stroke: "#bfdbfe", ink: "#1e40af", label: "Admin Team" },
@@ -31,9 +46,12 @@ export interface Stage {
   h?: number;
 }
 
-export /** `18 / 30 = 60%`, or the throughput number alone when there is no denominator. */
-function readMetric(m: StageMetric) {
-  if (m.gap) return { text: "not instrumented", gap: true };
+/** `18 / 30 = 60%`, or the throughput number alone when there is no denominator. */
+export function readMetric(m: StageMetric) {
+  // A stage can carry both a count and a gap: MA4 and MA5 show the structure
+  // with a zero in it, so the shape of the bottom of the funnel is visible
+  // before the instrumentation that fills it exists.
+  if (m.gap) return { text: m.x == null ? "not instrumented" : String(m.x), gap: true };
   if (m.x == null) return null;
   if (m.y == null) return { text: `${m.x}`, gap: false };
   const pct = m.y > 0 ? Math.round((m.x / m.y) * 100) : null;
@@ -68,6 +86,9 @@ export function metricTitle(stage: string, name: string, m: StageMetric) {
     );
   } else if (m.x != null) {
     lines.push(join(m.x, m.xLabel, "in the last 30 days."));
+  }
+  if (m.health && m.health !== "unscored") {
+    lines.push(`Health: ${HEALTH[m.health].label.toUpperCase()}.`);
   }
   if (m.reads) lines.push(m.reads);
   if (m.note) lines.push(`Caveat: ${m.note}`);
@@ -130,14 +151,23 @@ export function StageBox({
         stroke={greyed ? "#e5e7eb" : o.stroke}
         strokeDasharray={greyed ? "4 3" : undefined}
       />
-      <text x={s.x + 12} y={s.y + 19} fontSize={12.5} fontWeight={700} fill={greyed ? "#9ca3af" : o.ink}>
+      {!greyed && metric?.health ? (
+        <circle cx={s.x + 12} cy={s.y + 15} r={4} fill={HEALTH[metric.health].dot} />
+      ) : null}
+      <text
+        x={s.x + (!greyed && metric?.health ? 23 : 12)}
+        y={s.y + 19}
+        fontSize={12.5}
+        fontWeight={700}
+        fill={greyed ? "#9ca3af" : o.ink}
+      >
         {s.code}
       </text>
-      <text x={s.x + 12} y={s.y + 35} fontSize={11.5} fill={greyed ? "#9ca3af" : "#374151"}>
+      <text x={s.x + (!greyed && metric?.health ? 23 : 12)} y={s.y + 35} fontSize={11.5} fill={greyed ? "#9ca3af" : "#374151"}>
         {s.name}
       </text>
       {sub ? (
-        <text x={s.x + 12} y={s.y + 53} fontSize={10} fill={greyed ? "#b0b6be" : "#6b7280"}>
+        <text x={s.x + (!greyed && metric?.health ? 23 : 12)} y={s.y + 53} fontSize={10} fill={greyed ? "#b0b6be" : "#6b7280"}>
           {sub}
         </text>
       ) : null}
@@ -208,42 +238,85 @@ export function Legend({ y, owners }: { y: number; owners: Owner[] }) {
   );
 }
 
-/** Funnel yield: the two ratios that are honest today, each with its tooltip. */
-export function YieldStrip({
+/** Money and people, formatted the way an operator reads them. */
+function money(n: number) {
+  return n >= 1000 ? `$${(n / 1000).toFixed(n >= 10000 ? 0 : 1)}k` : `$${n}`;
+}
+
+/**
+ * The bottom line: yield, then what the funnel actually produced. Outcomes sit
+ * on the same line as the yield so the reader gets rate and result together.
+ * A figure awaiting instrumentation shows its zero in grey with the reason on
+ * hover, rather than being hidden.
+ */
+export function BottomLine({
   y,
   yields,
+  outcomes,
 }: {
   y: number;
   yields: { commercial: StageMetric; placement: StageMetric };
+  outcomes: {
+    successfulStudents: number;
+    revenue: number;
+    instrumented: { successfulStudents: boolean; revenue: boolean };
+  };
 }) {
+  const figure = (
+    x: number,
+    label: string,
+    value: string,
+    live: boolean,
+    why: string,
+  ) => (
+    <g>
+      <title>{live ? `${label}: ${value}.` : `${label}: awaiting instrumentation. ${why}`}</title>
+      <rect x={x - 6} y={y + 6} width={190} height={20} fill="transparent" />
+      <text x={x} y={y + 20} fontSize={10.5} fill="#475569">
+        {label}
+      </text>
+      <text
+        x={x + 132}
+        y={y + 20}
+        fontSize={12}
+        fontWeight={700}
+        fill={live ? "#0f172a" : "#98A2B3"}
+      >
+        {value}
+      </text>
+    </g>
+  );
+
   return (
     <>
       <line x1={44} y1={y} x2={916} y2={y} stroke="#e2e8f0" strokeWidth={1} />
-      <text x={44} y={y + 20} fontSize={9.5} fontWeight={700} fill="#64748b" letterSpacing="0.5">
-        FUNNEL YIELD
-      </text>
       <g>
         <title>{metricTitle("Funnel yield", "Commercial conversion", yields.commercial)}</title>
-        <rect x={126} y={y + 6} width={220} height={20} fill="transparent" />
-        <text x={132} y={y + 20} fontSize={10.5} fill="#475569">
-          Commercial conversion
+        <rect x={38} y={y + 6} width={200} height={20} fill="transparent" />
+        <text x={44} y={y + 20} fontSize={9.5} fontWeight={700} fill="#64748b" letterSpacing="0.5">
+          YIELD
         </text>
-        <text x={272} y={y + 20} fontSize={12} fontWeight={700} fill="#0f172a">
-          {readMetric(yields.commercial)?.text ?? ""}
-        </text>
-      </g>
-      <g>
-        <title>{metricTitle("Funnel yield", "Placement yield", yields.placement)}</title>
-        <rect x={464} y={y + 6} width={220} height={20} fill="transparent" />
-        <text x={470} y={y + 20} fontSize={10.5} fill="#475569">
-          Placement yield
-        </text>
-        <text x={572} y={y + 20} fontSize={12} fontWeight={700} fill="#0f172a">
-          {readMetric(yields.placement)?.text ?? ""}
+        <text x={92} y={y + 20} fontSize={12} fontWeight={700} fill="#0f172a">
+          {readMetric(yields.commercial)?.text ?? "not available"}
         </text>
       </g>
+      {figure(
+        300,
+        "Successful students",
+        String(outcomes.successfulStudents),
+        outcomes.instrumented.successfulStudents,
+        "A student reaching a confirmed placement has no dated transition (G-h), and the six-shift threshold does not exist (B28).",
+      )}
+      {figure(
+        620,
+        "Revenue generated",
+        money(outcomes.revenue),
+        outcomes.instrumented.revenue,
+        "Payment fields exist on the placement and are never written (B29).",
+      )}
       <text x={916} y={y + 40} fontSize={9} fill="#94a3b8" textAnchor="end">
-        Both against provider meetings held. Revenue yield needs MA4 and MA5 instrumented.
+        Yield is Clients converted against provider meetings held. Students and revenue
+        wait on MA4 and MA5.
       </text>
     </>
   );

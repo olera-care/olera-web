@@ -1,10 +1,11 @@
-# Olera Marketplace — System Architecture (v3)
+# Olera Marketplace — System Architecture (v4)
 
-Two funnels — family and provider — built independently, converging at the lead. Track B, aid
-programs, branches off the family funnel rather than forming a third.
+Three interacting state machines drawn as two funnels and a convergence layer: **family state** (how
+much we know, and what that unlocks), **provider state** (how activated the provider is), and
+**match state** (what has happened between one family opportunity and one provider).
 
-Written from an investigation of the shipped product. Every claim below is marked **EXISTS**,
-**PARTIAL**, or **PROPOSED**, and nothing proposed is described as though we have it.
+Neither funnel is linear, and the architecture says so. Every claim is grounded in the shipped
+product; things that do not exist are named as such.
 
 ---
 
@@ -14,226 +15,163 @@ Written from an investigation of the shipped product. Every claim below is marke
 ┌──────────────────────────────────────────────────────────────────────────────────┐
 │  ONE MARKET — families needing care, and the providers who serve that area       │
 └───────────────────────────┬──────────────────────────────────────────────────────┘
-  ┌────────────────────────┴──────────────────────┐
-  ▼                                               ▼
-FAMILY FUNNEL                                 PROVIDER FUNNEL
-entity: FAMILY → CARE NEED → PAYLOAD          entity: LISTING → CLAIMED PROVIDER
-──────────────────────────────────────────    ──────────────────────────────────────────
-F1  ACQUISITION                               P1  DISCOVERED
-    organic · paid ads ·                          in the directory, unclaimed,
-    referral partners (proposed)                  built from the data pipeline
-  │                                             │
-  ▼                                             ▼
-F2  ENTRY SURFACE                             P2  IN SEQUENCE
-    provider page · city page ·                   Admin Team · 4 emails / 7 days
-    editorial · program page ·                    intro · family confidence ·
-    benefits finder · ad landing                  why it's free · get verified
-  │                                             │
-  ▼                                             ▼
-F3  CTA — INTENT CAPTURED                     P3  FOLLOW UP
-    who needs care · care type ·                  Admin Team · call, broadcast,
-    urgency · contact                             or re-engage. Outcome recorded
-  │                                             │
-  │ ◄── TODAY THE INQUIRY FIRES                 ▼
-  │     HERE, BEFORE THE PAYLOAD              P4  CLAIMED
-  │     EXISTS                                    Provider · one-click token in
-  ▼                                               the lead email is the whole
-F4  FAMILY PAYLOAD                                acquisition moment
-    needs assessment (6 steps) →                │
-    care profile, published live                ▼
-    THIN TODAY — see findings                 P5  ELIGIBLE TO RECEIVE
-  │                                               category · service area ·
-  ├───────────► TRACK B (below)                   verified email · not blocked
-  │                                             │
-  └────────────────────────┬──────────────────────┘
-                           ▼
+  ┌────────────────────────┴───────────────────────┐
+  ▼                                                ▼
+FAMILY STATE                                   PROVIDER STATE
+how much we know, and what it unlocks          how activated the provider is
+───────────────────────────────────────────    ───────────────────────────────────────────
+F1  ARRIVED                                    P1  LISTED
+    organic · paid ads ·                           in the directory, unclaimed.
+    referral partners (proposed)                   Inventory, not a pipeline stage
+    surfaces: provider · city ·                  │
+    editorial · program · finder                 ▼
+  │                                            P2  IN OUTREACH
+  ├ - - ►  F3    T1 referral                       Admin Team · 4 emails / 7 days,
+  │              partner                           then a call. The only path we
+  ▼                                                control
+F2  INTENT CAPTURED                              │
+    recipient · care type ·                      │  T4  also reached directly from
+    urgency · contact                            │      a lead, question or review
+  │                                              │      email — family demand
+  ├ - - ►  M1    T2 TODAY'S                      │      ACTIVATES the provider
+  │              DEFAULT                         ▼
+  ▼                                            P3  CLAIMED
+F3  PAYLOAD COMPLETE                               one-click token. A provider who
+    the full defined assessment:                   builds their own page starts
+    who needs care · timeline ·                    here — no P1, no P2
+    care need · payment ·                        │
+    location · details                           ▼
+  │                                            P4  ACTIVE
+  │  feeds Track A and / or Track B                profile complete, responding
+  │  depending on what was found
+  │                                            CONTACTABLE — a flag, not a rung.
+  │                                            A working email is the only real
+  │                                            gate on delivery, and it applies at
+  │                                            every state above.
+  └───────────────────────┬────────────────────────┘
+                          ▼
 ┌──────────────────────────────────────────────────────────────────────────────────┐
-│  TRACK A — MATCH AND FULFILLMENT              entity: CONNECTION → LEAD          │
+│  TRACK A — PROVIDER CONNECTION                              entity: LEAD         │
 │                                                                                  │
-│   M1  LEAD DELIVERED         the payload reaches a provider as a commercial      │
-│       Technology             opportunity. inquiry (family→provider) or           │
-│        │                     request (provider→family, from Find Families)       │
+│   M1  LEAD DELIVERED     the payload — complete or partial — reaches a provider. │
+│        │                 If no provider record exists, one is CREATED,           │
+│        │                 unclaimed, to receive it.  T3                           │
 │        ▼                                                                         │
-│   M2  PROVIDER RESPONDS      accepted, or a non-auto reply in the thread          │
-│       Provider                                                                   │
+│   M2  PROVIDER RESPONDED accepted, or a non-auto reply in the thread             │
 │        │                                                                         │
 │        ▼                                                                         │
-│   M3  CONVERSATION           inbox · phone · email. Mostly off-platform.          │
-│       Family + Provider                                                          │
+│   M3  IN CONVERSATION    inbox · phone · email. Mostly off-platform              │
 │        │                                                                         │
 │        ▼                                                                         │
-│   M4  CARE ESTABLISHED       self-reported from both sides, and only that:        │
-│       sensors only           family  "did they get back to you?"                  │
-│                              provider  client · talking · no                     │
-└────────────────────────────────────────┬─────────────────────────────────────────┘
-                                         ▼
-FAMILY OUTCOME                                PROVIDER OUTCOME
-──────────────────────────────────────────    ──────────────────────────────────────────
-  care established, with whom, of               became a paying client
-  how many talked to — facility                 ─────────────────────────────
-  vs home care agency                           COMMERCIAL RELATIONSHIP
-  aid secured, which programs                   UNRESOLVED — Ad Boost is the
-  fall-off and reason at each step              only money today, not per-lead
+│   M4  CARE ESTABLISHED   sensed from both sides, not observed                    │
+├──────────────────────────────────────────────────────────────────────────────────┤
+│  TRACK B — AID PROGRAM                          entity: PROGRAM REFERRAL         │
+│                                                                                  │
+│   B1  PROGRAM MATCHED    financial · food · health · caregiver                   │
+│        │                                                                         │
+│        ▼                                                                         │
+│   B2  FIRST STEP ISSUED  the call to make, the documents to gather               │
+│        │                                                                         │
+│        ▼                                                                         │
+│   B3  FAMILY ACTING      called · no answer · needs docs · applied · waiting ·   │
+│        │                 not eligible · stuck                                    │
+│        ▼                                                                         │
+│   B4  AID SECURED        NOT TRACKED TODAY — the ladder stops at 'applied'       │
+└─────────────────┬──────────────────────────────────────┬─────────────────────────┘
+                  ▼                                      ▼
+FAMILY OUTCOME                                 PROVIDER OUTCOME
+from Track A and / or Track B                  from Track A only
+───────────────────────────────────────────    ───────────────────────────────────────────
+  care established — with whom, of how           became a paying client
+  many talked to, facility vs agency             ──────────────────────────────────
+  aid secured — which programs                   COMMERCIAL RELATIONSHIP UNRESOLVED.
+  neither — and why                              Ad Boost is the only money today,
+  A family may use one track or both             and it is not priced per lead
 
-┌──────────────────────────────────────────────────────────────────────────────────┐
-│  TRACK B — AID PROGRAM        a branch of the family funnel, not a third funnel  │
-│                                                                                  │
-│   from F4 ──►  program matched      by state, eligibility, and category:         │
-│                                     financial · food · health · caregiver        │
-│                     │                                                            │
-│                     ▼                                                            │
-│                first step issued    the call to make, the documents to gather.   │
-│                     │               TJ approves each letter                      │
-│                     ▼                                                            │
-│                family acts          called · no answer · needs docs · applied ·  │
-│                     │               waiting · not eligible · stuck               │
-│                     ▼                                                            │
-│                AID SECURED    ◄──   NOT TRACKED. The ladder stops at 'applied'.  │
-│                                                                                  │
-│   Lives on /m/{token} — no login. The family portal does not show programs.      │
-└──────────────────────────────────────────────────────────────────────────────────┘
+LEGEND   ───►  primary workflow     - - ►  valid bypass or alternate entry
+         T1–T4 are cross-funnel triggers, listed under the diagram
 ```
 
 ---
 
-## 1. Current-state findings
+## Cross-funnel triggers
 
-### The finding that matters most
-
-**The inquiry fires before the payload exists.** On a provider page the ConnectionCard captures
-*care recipient, care type, urgency* and contact details, creates the inquiry, emails the provider —
-**and only then** offers the six-step needs assessment. The assessment is a post-submit enrichment
-state, not a gate.
-
-So the first provider to receive a family gets three fields and a message. The care profile, the
-timeline, the payment situation and the details are built afterwards, if the family continues. The
-mental model of *assess → payload → match* is inverted in the product.
-
-This is not a bug — it is a deliberate friction trade, the same trade made on the provider side by
-the one-click claim. But it means **"family payload" is not a thing the system produces before
-matching**, and any architecture that assumes it is will describe a product we do not have.
-
-### Family-facing
-
-| | Status | Evidence |
+| | Trigger | Status |
 |---|---|---|
-| Entry surfaces | **EXISTS** | Provider page, city page (`/[category]/[state]/[city]`), editorial (`/caregiver-support/*`, `/aging-in-america/*`), program pages (`/benefits/*`, `/senior-benefits/*`), Benefits Finder (`/benefits/finder`), browse (`/browse/providers`) |
-| The CTA | **EXISTS** | `components/providers/connection-card/` — states: default → intent → email_capture (guest) → enrichment → connected. Guests need only name + email |
-| Intent captured | **EXISTS** | `careRecipient` (self/parent/spouse/other) · `careType` (assisted_living/home_care/memory_care/home_health) · `urgency` (asap/within_month/few_months/researching) |
-| Needs assessment | **EXISTS, but post-submit** | `EnrichmentState.tsx` — who needs care · timeline · care type · care need · payment · details · Go Live. Admin tracks step-by-step completion and skips |
-| Where it is stored | **EXISTS** | `business_profiles` with `type = "family"`; the care need is `metadata.care_post` |
-| A structured family payload | **PARTIAL** | No single object. Facts are split across the connection's intent, `metadata.care_post`, and `metadata.benefits_results`. Nothing assembles them into one deliverable thing |
-| Family account | **EXISTS** | Supabase auth; guests can inquire without one |
-| Family portal | **PARTIAL** | `/portal` → `/portal/inbox`. Also `/portal/profile`, `/portal/discover/providers`, `/portal/settings`. A family can return and see their messages, their profile and their care post |
-| Aid programs in the portal | **DOES NOT EXIST** | Saved programs appear nowhere under `/portal`. The aid track lives on `/m/{token}` — *"the token IS the auth… no login wall"* |
-| A single place showing everything | **DOES NOT EXIST** | Two surfaces, two auth models, no shared home. This is the gap most likely to be imagined into the architecture |
-| Next steps / a care plan | **PROPOSED** | The `/m/{token}` guide is the nearest thing, and it is aid-only |
+| **T1** | **A referral partner delivers a family already fully described** — straight to a complete payload, skipping intent capture | **PROPOSED.** The referral-partner channel does not exist yet |
+| **T2** | **Intent alone fires the lead.** The ConnectionCard captures recipient, care type, urgency and contact, creates the inquiry and emails the provider. The assessment runs *after*, as an optional post-submit state | **EXISTS — and it is the default, not the exception** |
+| **T3** | **A lead can create the provider.** If a family inquires to a provider with no profile row, `/api/connections/request` inserts one — `type: "organization"`, `claim_state: "unclaimed"`, `source: "seeded"` — in order to deliver the lead | **EXISTS** |
+| **T4** | **Family demand activates providers.** Lead, question and review emails all carry a claim token (`generateNotificationUrl`, `action: "lead" \| "question" \| "review"`). Claiming advances the outreach stage to `claimed` | **EXISTS** |
+| **T5** | **A provider can create their own page** and is claimed from birth — `source: "user_created"`, never unclaimed | **EXISTS** |
+| **T6** | **A complete payload feeds Track A, Track B, or both**, depending on what the assessment found | **PARTIAL.** Both tracks exist; nothing routes between them from a single assessment |
 
-### Provider-facing
-
-The provider funnel is the most complete part of the system — closer to MedJobs PR-OUT than
-anything on the family side.
-
-| | Status | Evidence |
-|---|---|---|
-| Acquisition funnel | **EXISTS** | `OUTREACH_STAGES`: not_contacted → in_sequence → needs_call (UI "Follow Up") → broadcast_ready → re_engage → call_exhausted → **claimed** / not_interested / archived |
-| Cold cadence | **EXISTS** | 4 emails over 7 days: Day 0 introduction · Day 3 family confidence · Day 5 why it's free · Day 7 get verified. Then `needs_call` for manual follow-up |
-| Terminal semantics | **EXISTS** | `claimed`, `not_interested` (soft — questions and connections still flow), `archived` (hard — system-wide block) |
-| Claiming | **EXISTS** | `ClaimState`: unclaimed / pending / claimed / rejected / archived. One-click signed token in the lead email, 72-hour expiry — *"the email IS the verification"* |
-| Trust tiers | **EXISTS** | Full access by token; **Trusted** (destructive actions) only by phone call from the team |
-| Activation | **PARTIAL** | A 3-step wizard — profile, matches, engage — but nothing gates receiving leads on completing it |
-| Eligible to receive | **EXISTS** | Category, service area, verified email, not on do-not-contact / removal-blocklist |
-| Seeing opportunities | **EXISTS** | `/provider/connections`, `/provider/outreach`, `/provider/matches` (Find Families), `/provider/inbox` |
-| Delivery | **EXISTS** | Email with a one-click lead link; `lead_received` / `lead_opened` events |
-| Responding | **EXISTS** | Accept, decline, message in-thread; `respond-interest` for provider-initiated requests |
-| Did the provider contact the family? | **PARTIAL** | On-platform replies are known. Off-platform is inferred from a one-tap sensor |
-| Was care established? | **PARTIAL — sensors only** | Family: *"did they get back to you?"* Provider: `client · talking · no`. No independent confirmation exists, and none is possible without asking |
-
-### Internal operations
-
-| | Status | Evidence |
-|---|---|---|
-| Provider pipeline | **EXISTS** | `/admin/provider-outreach` with stage tabs, follow-up, outcome recording and not-interested reasons |
-| Alternative channels | **EXISTS** | `/admin/city-broadcasts` — broadcast pool, who received, who claimed |
-| Family submissions | **EXISTS** | `/admin/care-seekers` with the enrichment funnel and per-step drop-off |
-| Leads and connections | **EXISTS** | `/admin/leads` (inquiry / application / invitation / needs_email / archived), `/admin/connections` |
-| Demand by geography | **EXISTS** | `/admin/demand` — published care posts per city |
-| Comms | **EXISTS** | `/admin/family-comms`, `/admin/automations`, `/admin/emails`, ~40 crons |
-| Event history | **EXISTS** | Two spines — `provider_activity` and `seeker_activity` |
-| Manual work outside the app | **EXISTS** | Provider follow-up calls, Trusted-tier verification, TJ approving navigator letters, Ad Boost campaign setup |
+**T2 is the finding that matters most.** What reads as a bypass is the primary path today. The
+payload-first route is the intent, not the practice — so the diagram marks T2 as *today's default*
+rather than pretending the funnel runs in the order we would design it.
 
 ---
 
-## 2. Vocabulary
+## The states, and why these and not others
 
-Grounded in the code, with the conflicts named rather than resolved silently.
+### Family — three states
 
-| Term | Definition | In the code |
-|---|---|---|
-| **Family** | The account and profile of the person seeking care | `business_profiles.type = "family"` |
-| **Care need** | What the family needs — type, timeline, recipient, payment | `metadata.care_post` |
-| **Care post** | The care need, published so providers can find it | `metadata.care_post.status = "active"` |
-| **Needs assessment** | The workflow that collects the care need | code says **"enrichment"** |
-| **Family payload** | The structured facts we can deliver to a provider | **no term exists** — this is a gap, not a synonym |
-| **Inquiry** | A family reaching a provider | `connections.type = "inquiry"` |
-| **Request** | A provider reaching a family | `connections.type = "request"` |
-| **Connection** | The row linking one family to one provider, with the thread in `metadata.thread` | `connections` |
-| **Lead** | The payload delivered to a provider as a commercial opportunity | `lead_received`, `lead_opened`, `generateLeadClaimUrl` — **provider-side only, exactly as proposed** |
-| **Provider claim** | The provider proving the listing is theirs | `ClaimState = "claimed"` |
-| **Provider activation** | Two meanings today — see conflict below | outreach `stage = "claimed"`; onboarding wizard completion |
-| **Successful connection** | Provider posted a non-auto reply, OR status accepted | `lib/connection-temperature` |
-| **Care established** | Not modelled. Inferred from two self-report sensors | `metadata.outcome`, `metadata.provider_outcome` |
-| **Aid program** | A benefit or assistance program we match and refer | code says **"benefits"** / `WaiverProgram` |
+**F1 ARRIVED · F2 INTENT CAPTURED · F3 PAYLOAD COMPLETE**
 
-**Conflict 1 — "match" means three different things.** The Find Families feed (`/provider/matches`),
-the family's activated matching profile (`matches_activated`), and aid-program matching. Pick one
-and rename the others.
+Entry surface was dropped as a stage. A provider page, a city page and the Benefits Finder are
+*places*, not states of the family — the same family is in the same state whichever one they land
+on. Surface belongs as a **dimension** on F1 (which surfaces convert), not a box.
 
-**Conflict 2 — "activation" means two things.** A provider is `claimed` in the outreach pipeline, and
-separately completes an onboarding wizard. Neither gates receiving leads.
+F3 means the full defined assessment is complete, whether or not any interface displays it back.
 
-**Conflict 3 — "benefits" versus "aid program."** `/benefits/*` URLs are earned SEO assets and should
-not move. Recommend keeping *benefits* as the consumer word and adopting **aid program** as the
-internal operating noun. Decide it once.
+### Provider — four states and one flag
 
-**Recommended addition — "family payload."** The proposed vocabulary is right and the code agrees:
-a family has a *care need*; the *needs assessment* collects it; the structured result is the
-*payload*; delivered to a provider it becomes a *lead*. Only the payload has no home in the code.
+**P1 LISTED · P2 IN OUTREACH · P3 CLAIMED · P4 ACTIVE**, plus **CONTACTABLE**.
 
----
+*Listed*, not *discovered* — the state is that a listing exists and is unclaimed, not how we came to
+know about it. A provider is listed whether we scraped them, a partner named them, or a family's
+inquiry caused the row to be created.
 
-## 3–6. The funnels
+**"Eligible to receive" was wrong and is gone.** There is no eligibility gate. The only thing that
+actually determines whether a lead can be delivered is **a working email address** — which is why
+admin has a `needs_email` queue, an email pre-verification cron and a deliverability watch. That is
+a flag that applies at every rung, not a rung of its own. A provider can be unclaimed and
+contactable (gets leads), or claimed and uncontactable (bounces).
 
-Drawn above. Three design decisions worth stating:
+So the two things are now visibly separate: **how activated a provider is** (P1→P4, a ladder we
+advance through outreach) and **whether they can receive an opportunity right now** (contactable,
+orthogonal).
 
-**The family funnel ends at the payload, not at the match.** F1–F4 is one entity becoming
-understood. Everything after is Track A.
+### Match — four states
 
-**The provider funnel ends at eligibility, not at the match.** P1–P5 is a listing becoming a
-provider who can receive a family. It runs on its own clock, driven by our outreach, not by demand.
+**M1 LEAD DELIVERED · M2 PROVIDER RESPONDED · M3 IN CONVERSATION · M4 CARE ESTABLISHED**
 
-**Track B branches from F4 and returns to the family, never to a provider.** It needs no separate
-funnel because it produces no second party to acquire — the programs already exist and no one has to
-claim them. That is the real reason providers get their own side and aid programs do not.
+M4 is sensed, not observed: the family is asked whether the provider got back to them, the provider
+is asked whether the family became a client. No independent confirmation exists.
+
+### Track B — four states
+
+**B1 PROGRAM MATCHED · B2 FIRST STEP ISSUED · B3 FAMILY ACTING · B4 AID SECURED**
+
+B3's ladder is real and reported by text. B4 does not exist — the ladder stops at *applied*.
 
 ---
 
-## 7. Open questions
+## Outcomes
 
-1. **Should the inquiry still fire before the payload exists?** Today's order optimises for
-   friction; it means the first provider gets almost nothing. Changing it is the single biggest
-   design decision on the family side.
+Track A contributes to **both** outcomes. Track B contributes only to the family outcome, because it
+produces no second party with a commercial relationship. A family may run one track or both; the
+family outcome is the composite of whichever ran.
+
+---
+
+## Open questions
+
+1. **Should the inquiry still fire before the payload exists?** T2 is the biggest design decision on
+   the family side, and everything downstream depends on it.
 2. **Is there one family home, or two surfaces?** `/portal` has no aid programs; `/m/{token}` has no
-   connections. Merging them means giving the token-auth guide an account, or giving the portal the
-   aid track.
-3. **Should activation gate lead delivery?** A claimed provider with an empty profile receives
-   families today.
-4. **What confirms care was established?** Both sensors are self-report. There may be no better
-   instrument — but we should decide that deliberately.
-5. **One canonical aid-program id** — required before *secured* can be tracked at all.
-6. **Provider type as a dimension** — facility versus home care agency needs to be on the
-   connection, not derived at read time.
-7. **What is a market?** Families and providers match by area with no market object between them.
-8. **Where does revenue attach?** Unresolved, and deliberately detached from the match. See v2 notes
-   on placement-fee exposure — this needs healthcare regulatory counsel, not an architecture
-   decision.
+   connections and no login.
+3. **Should any state gate lead delivery?** Today only contactability does. That may be right.
+4. **What confirms care was established** beyond two self-reports?
+5. **One canonical aid-program id** — required before *secured* can be tracked.
+6. **Provider type as a dimension** on the connection — facility versus home care agency.
+7. **Where does revenue attach?** Detached deliberately; needs healthcare regulatory counsel.

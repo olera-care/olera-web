@@ -335,7 +335,7 @@ async function fetchSupportFor(
   //    to nobody, or to a family, that still involve the provider).
   const threadQ = <Q extends { gte: (c: string, v: string) => Q }>(q: Q): Q => (sinceIso ? q.gte("last_message_at", sinceIso) : q);
   const msgQ = <Q extends { gte: (c: string, v: string) => Q }>(q: Q): Q => (sinceIso ? q.gte("internal_date", sinceIso) : q);
-  const [byProfile, byProvider, fromUs, toThem, ccThem] = await Promise.all([
+  const [byProfile, byProvider, fromThem, toThem, ccThem] = await Promise.all([
     threadQ(db.from("support_email_threads").select(threadSelect).in("matched_profile_id", ids)).limit(500),
     keys.length
       ? threadQ(db.from("support_email_threads").select(threadSelect).in("matched_provider_id", keys)).limit(500)
@@ -361,7 +361,7 @@ async function fetchSupportFor(
     if (owner && !ownerOfThread.has(t.id)) ownerOfThread.set(t.id, owner);
   }
   type Participant = { thread_id: string; from_email: string | null; to_emails: string[]; cc_emails: string[] };
-  for (const m of [...(fromUs.data ?? []), ...(toThem.data ?? []), ...(ccThem.data ?? [])] as Participant[]) {
+  for (const m of [...(fromThem.data ?? []), ...(toThem.data ?? []), ...(ccThem.data ?? [])] as Participant[]) {
     if (ownerOfThread.has(m.thread_id)) continue;
     const parts = [m.from_email, ...(m.to_emails ?? []), ...(m.cc_emails ?? [])].map((a) => (a ?? "").toLowerCase());
     const owner = parts.map((a) => byAddr.get(a)).find((o): o is string => !!o);
@@ -380,17 +380,38 @@ async function fetchSupportFor(
   ]);
   for (const t of (missing.data ?? []) as SupportThreadRow[]) threads.set(t.id, t);
 
-  return { messages: ((messages ?? []) as SupportMessageRow[]).filter((m) => !m.auto_submitted), threads, ownerOfThread };
+  return {
+    messages: ((messages ?? []) as SupportMessageRow[]).filter((m) => !m.auto_submitted && !isNoiseThread(threads.get(m.thread_id))),
+    threads,
+    ownerOfThread,
+  };
 }
 
-/** Did they write it, or did we? By sender address, never by Gmail's direction alone. */
+/**
+ * Did they write it, or did we? By the addresses on the message, never by Gmail's
+ * direction alone: a copy Bcc'd to support@ from any mailbox arrives as inbound.
+ */
 function supportActor(m: SupportMessageRow, ownerAddrs: Set<string>): "out" | "in" {
   const from = (m.from_email ?? "").toLowerCase();
   if (from && ownerAddrs.has(from)) return "in";
+  // Addressed to the provider: someone on our side wrote it, whatever mailbox.
+  const recipients = [...(m.to_emails ?? []), ...(m.cc_emails ?? [])].map((a) => (a ?? "").toLowerCase());
+  if (recipients.some((a) => ownerAddrs.has(a))) return "out";
   if (m.direction === "out" || isOurAddress(from)) return "out";
   // A reply from an address we do not have on file, inside a thread about this
   // provider, is far more likely to be them than us.
   return "in";
+}
+
+/**
+ * Threads that are not a conversation: a provider's newsletter, an automated
+ * notice, an internal thread. They sit in needs_reply in the support queue (23 of
+ * them did on 5 Sep) and would put the sender at the top of the Tuesday list as
+ * "they wrote, no reply yet". Not a touch, not a reply owed.
+ */
+function isNoiseThread(t: SupportThreadRow | undefined): boolean {
+  if (!t) return false;
+  return t.state === "noise" || t.category === "marketing" || t.category === "automated" || t.category === "internal";
 }
 
 function supportToItem(m: SupportMessageRow, thread: SupportThreadRow | undefined, ownerAddrs: Set<string>, latestInThread: boolean): TimelineItem {

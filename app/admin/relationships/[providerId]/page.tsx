@@ -233,7 +233,7 @@ export default function AdminRelationshipPage() {
       </div>
 
       <p className="mt-3 max-w-3xl text-xs text-gray-500">
-        Black dot: we did it. Blue: they did. Hollow: the system did. <span className="font-mono">gmail</span> rows came from a mailbox: support@ threads (their replies, and copies of emails we Bcc'd), or an email logged from Gmail.<span className="font-mono">twilio</span> rows are texts to the Olera number, <span className="font-mono">manual</span> rows were typed or pasted, <span className="font-mono">system</span> rows come from email_log and the campaign case log. Nothing here is stored as a status; it is all read off the rows.
+        Black dot: we did it. Blue: they did. Hollow: the system did. <span className="font-mono">gmail</span> rows came from a mailbox: support@ threads (their replies, and copies of emails we Bcc'd), or an email logged from Gmail. <span className="font-mono">twilio</span> rows are texts to the Olera number, <span className="font-mono">manual</span> rows were typed or pasted, <span className="font-mono">system</span> rows come from email_log and the campaign case log. Nothing here is stored as a status; it is all read off the rows.
       </p>
     </div>
   );

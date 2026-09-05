@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getBrandHub, listBrands, BRANDS_BASE_PATH, MIN_BRAND_LOCATIONS, type BrandHub } from "@/lib/brands";
+import { getBrandHub, listBrands, BRANDS_BASE_PATH, MIN_BRAND_LOCATIONS, type BrandHub, type BrandLocation } from "@/lib/brands";
 import BrowseCard from "@/components/browse/BrowseCard";
 
 // ISR: revalidate every hour, like the category and state power pages.
@@ -18,6 +18,45 @@ function StarIcon({ className }: { className?: string }) {
     <svg className={className} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
     </svg>
+  );
+}
+
+/** Locations shown per state before the rest fold behind "Show N more". */
+const DIRECTORY_FOLD = 12;
+
+/** One location as a two-line tile: city (and a name only when it adds something), then rating and rate. */
+function LocationTile({ loc }: { loc: BrandLocation }) {
+  return (
+    <li>
+      <Link
+        href={`/provider/${loc.slug}`}
+        className="group flex flex-col justify-center min-h-[56px] px-3 py-2 rounded-lg bg-gray-50 hover:bg-primary-50 transition-colors"
+      >
+        <span className="text-sm font-medium text-gray-900 group-hover:text-primary-700 transition-colors leading-snug">
+          {loc.city || loc.name}
+          {loc.city && loc.distinctName && (
+            <span className="block text-xs font-normal text-gray-500 truncate">{loc.distinctName}</span>
+          )}
+        </span>
+        <span className="mt-0.5 text-xs text-gray-500 tabular-nums flex items-center gap-1.5">
+          {loc.rating != null ? (
+            <>
+              <StarIcon className="w-3 h-3 text-amber-400" />
+              <span className="font-semibold text-gray-800">{loc.rating.toFixed(1)}</span>
+              {loc.reviewCount != null && <span className="text-gray-400">({loc.reviewCount})</span>}
+            </>
+          ) : (
+            <span className="text-gray-400">No reviews yet</span>
+          )}
+          {loc.priceRange && (
+            <>
+              <span className="text-gray-300">·</span>
+              <span>{loc.priceRange}</span>
+            </>
+          )}
+        </span>
+      </Link>
+    </li>
   );
 }
 
@@ -337,7 +376,9 @@ export default async function BrandHubPage({
           </section>
         )}
 
-        {/* Full directory */}
+        {/* Full directory: a grid of city tiles per state, folded past the first
+            dozen with a native <details> so a 54-location state stays scannable.
+            Every location is in the HTML either way. */}
         <section className="mb-14">
           <h2 className="text-2xl font-bold text-gray-900 font-serif mb-1">
             All {hub.name} locations
@@ -346,62 +387,45 @@ export default async function BrandHubPage({
             Every {hub.name} location on Olera, by state and city. Ratings are from Google reviews; rates are as reported by each location.
           </p>
           <div className="space-y-10">
-            {hub.states.map((s) => (
-              <div key={s.abbrev} id={`state-${s.abbrev.toLowerCase()}`} className="scroll-mt-24">
-                <div className="flex items-baseline justify-between mb-1">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {s.name}
-                    <span className="ml-2 text-sm font-normal text-gray-400">
-                      {s.locations.length} {pluralLocations(s.locations.length)}
-                    </span>
-                  </h3>
-                  {hub.states.length > 1 && (
-                    <a href="#states" className="text-xs text-gray-400 hover:text-primary-600 transition-colors">
-                      All states ↑
-                    </a>
+            {hub.states.map((s) => {
+              const visible = s.locations.slice(0, DIRECTORY_FOLD);
+              const folded = s.locations.slice(DIRECTORY_FOLD);
+              return (
+                <div key={s.abbrev} id={`state-${s.abbrev.toLowerCase()}`} className="scroll-mt-24">
+                  <div className="flex items-baseline justify-between mb-3">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {s.name}
+                      <span className="ml-2 text-sm font-normal text-gray-400">
+                        {s.locations.length} {pluralLocations(s.locations.length)}
+                      </span>
+                    </h3>
+                    {hub.states.length > 1 && (
+                      <a href="#states" className="text-xs text-gray-400 hover:text-primary-600 transition-colors">
+                        All states ↑
+                      </a>
+                    )}
+                  </div>
+                  <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                    {visible.map((loc) => (
+                      <LocationTile key={loc.id} loc={loc} />
+                    ))}
+                  </ul>
+                  {folded.length > 0 && (
+                    <details className="group mt-2">
+                      <summary className="inline-flex items-center min-h-[40px] cursor-pointer list-none text-sm font-medium text-primary-600 hover:text-primary-700 select-none [&::-webkit-details-marker]:hidden">
+                        <span className="group-open:hidden">Show {folded.length} more in {s.name}</span>
+                        <span className="hidden group-open:inline">Show fewer</span>
+                      </summary>
+                      <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mt-2">
+                        {folded.map((loc) => (
+                          <LocationTile key={loc.id} loc={loc} />
+                        ))}
+                      </ul>
+                    </details>
                   )}
                 </div>
-                <ul className="divide-y divide-gray-100 border-t border-gray-100">
-                  {s.locations.map((loc) => (
-                    <li key={loc.id}>
-                      {/* Whole row is the link. City leads; the location's own name only appears when it says more than the brand name. */}
-                      <Link
-                        href={`/provider/${loc.slug}`}
-                        className="group grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_7rem_9rem] items-baseline gap-x-4 gap-y-1 py-3 -mx-2 px-2 rounded-lg hover:bg-gray-50 transition-colors"
-                      >
-                        <span className="min-w-0">
-                          <span className="text-base font-medium text-gray-900 group-hover:text-primary-700 transition-colors">
-                            {loc.city || loc.name}
-                          </span>
-                          {loc.city && loc.distinctName && (
-                            <span className="ml-2 text-sm text-gray-500">{loc.distinctName}</span>
-                          )}
-                        </span>
-                        {/* Mobile: rating and rate share one line; from sm the wrapper dissolves into the grid columns. */}
-                        <span className="flex items-baseline gap-4 sm:contents">
-                        <span className="text-sm text-gray-500 sm:text-right tabular-nums">
-                          {loc.rating != null ? (
-                            <span className="inline-flex items-center gap-1">
-                              <StarIcon className="w-3.5 h-3.5 text-amber-400" />
-                              <span className="font-semibold text-gray-900">{loc.rating.toFixed(1)}</span>
-                              {loc.reviewCount != null && (
-                                <span className="text-xs text-gray-400">({loc.reviewCount})</span>
-                              )}
-                            </span>
-                          ) : (
-                            <span className="text-gray-300">No reviews yet</span>
-                          )}
-                        </span>
-                        <span className="text-sm text-gray-500 sm:text-right tabular-nums">
-                          {loc.priceRange ?? <span className="text-gray-300">Rate not published</span>}
-                        </span>
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
 

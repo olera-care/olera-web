@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getBrandHub, listBrands, BRANDS_BASE_PATH } from "@/lib/brands";
+import { getBrandHub, listBrands, BRANDS_BASE_PATH, type BrandHub } from "@/lib/brands";
 import BrowseCard from "@/components/browse/BrowseCard";
 
 // ISR: revalidate every hour, like the category and state power pages.
@@ -11,6 +11,43 @@ const SITE_URL = "https://olera.care";
 
 function pluralLocations(n: number): string {
   return n === 1 ? "location" : "locations";
+}
+
+function StarIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+    </svg>
+  );
+}
+
+/** Three questions a family asks about a brand, answered from the same numbers the page shows. */
+function buildFaqs(hub: BrandHub): { q: string; a: string }[] {
+  const cat = hub.categoryLabel.toLowerCase();
+  const states = hub.states.map((s) => s.name);
+  const stateList =
+    states.length <= 6
+      ? states.join(", ")
+      : `${states.slice(0, 5).join(", ")} and ${states.length - 5} more`;
+  const faqs = [
+    {
+      q: `How many ${hub.name} locations are there?`,
+      a: `Olera lists ${hub.locationCount} ${hub.name} ${cat} ${pluralLocations(hub.locationCount)} across ${hub.stateCount} ${hub.stateCount === 1 ? "state" : "states"}: ${stateList}. Each one is listed below with its city, Google rating and rate where published.`,
+    },
+  ];
+  if (hub.typicalRate) {
+    faqs.push({
+      q: `How much does ${hub.name} cost?`,
+      a: `Across the ${hub.pricedCount} ${hub.name} locations that publish pricing, typical rates run ${hub.typicalRate}. Rates are set by each location and vary with the level of care, hours and region, so confirm current pricing with the location directly.`,
+    });
+  }
+  if (hub.avgRating) {
+    faqs.push({
+      q: `How is ${hub.name} rated?`,
+      a: `${hub.name} locations average ${hub.avgRating.toFixed(1)} out of 5 on Google, across ${hub.ratedCount} rated locations and ${hub.totalReviews.toLocaleString()} reviews. Ratings differ a lot between locations, so look at the rating for the location nearest you rather than the brand average.`,
+    });
+  }
+  return faqs;
 }
 
 export async function generateMetadata({
@@ -53,9 +90,18 @@ export default async function BrandHubPage({
   const hub = await getBrandHub(slug);
   if (!hub) notFound();
 
-  const otherBrands = (await listBrands()).filter((b) => b.slug !== hub.slug);
+  // Same care type first, then by size: a family comparing home care
+  // franchises wants the other home care franchises, not a nursing home group.
+  const otherBrands = (await listBrands())
+    .filter((b) => b.slug !== hub.slug)
+    .sort(
+      (a, b) =>
+        Number(b.primaryCategory === hub.primaryCategory) - Number(a.primaryCategory === hub.primaryCategory) ||
+        b.locationCount - a.locationCount,
+    );
   const url = `${SITE_URL}${BRANDS_BASE_PATH}/${hub.slug}`;
   const allLocations = hub.states.flatMap((s) => s.locations);
+  const faqs = buildFaqs(hub);
 
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
@@ -92,10 +138,20 @@ export default async function BrandHubPage({
     },
   };
 
+  const faqJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
+
   const lead = [
     `${hub.name} has ${hub.locationCount} ${hub.categoryLabel.toLowerCase()} ${pluralLocations(hub.locationCount)} listed on Olera across ${hub.stateCount} ${hub.stateCount === 1 ? "state" : "states"}.`,
     hub.avgRating
-      ? `Families rate them ${hub.avgRating.toFixed(1)} out of 5 on Google on average, across the ${hub.ratedCount} locations with reviews.`
+      ? `Families rate them ${hub.avgRating.toFixed(1)} out of 5 on Google on average, across ${hub.totalReviews.toLocaleString()} reviews of ${hub.ratedCount} locations.`
       : null,
     hub.typicalRate
       ? `Typical rates run ${hub.typicalRate} at the ${hub.pricedCount} locations that publish pricing.`
@@ -113,6 +169,10 @@ export default async function BrandHubPage({
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
       />
 
       {/* Hero */}
@@ -134,7 +194,7 @@ export default async function BrandHubPage({
           </h1>
           <p className="mt-3 text-lg text-gray-600 max-w-3xl">{lead}</p>
 
-          <dl className="mt-6 flex flex-wrap gap-x-8 gap-y-3 text-sm text-gray-500">
+          <dl className="mt-6 flex flex-wrap items-center gap-x-8 gap-y-3 text-sm text-gray-500">
             <div>
               <dt className="sr-only">Locations</dt>
               <dd>
@@ -150,9 +210,10 @@ export default async function BrandHubPage({
             {hub.avgRating && (
               <div>
                 <dt className="sr-only">Average Google rating</dt>
-                <dd>
-                  <span className="font-semibold text-gray-900">{hub.avgRating.toFixed(1)}</span> average on Google
-                  <span className="text-gray-400"> ({hub.ratedCount} rated)</span>
+                <dd className="inline-flex items-center gap-1">
+                  <StarIcon className="w-4 h-4 text-amber-400" />
+                  <span className="font-semibold text-gray-900">{hub.avgRating.toFixed(1)}</span> on Google
+                  <span className="text-gray-400">({hub.totalReviews.toLocaleString()} reviews)</span>
                 </dd>
               </div>
             )}
@@ -165,16 +226,16 @@ export default async function BrandHubPage({
               </div>
             )}
             {hub.website && (
-              <div>
+              <div className="w-full sm:w-auto">
                 <dt className="sr-only">Official website</dt>
                 <dd>
                   <a
                     href={hub.website}
                     target="_blank"
                     rel="noopener"
-                    className="text-primary-600 hover:text-primary-700 font-medium"
+                    className="inline-flex items-center min-h-[36px] px-3.5 rounded-full border border-gray-300 text-sm font-medium text-gray-700 hover:border-primary-400 hover:text-primary-700 transition-colors"
                   >
-                    Official website
+                    Official website <span aria-hidden="true" className="ml-1">↗</span>
                   </a>
                 </dd>
               </div>
@@ -186,11 +247,11 @@ export default async function BrandHubPage({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {/* Highest rated */}
         {hub.featured.length > 0 && (
-          <section className="mb-12">
+          <section className="mb-14">
             <h2 className="text-2xl font-bold text-gray-900 font-serif mb-1">
               Highest-rated {hub.name} locations
             </h2>
-            <p className="text-sm text-gray-500 mb-5">By Google rating across every {hub.name} location on Olera.</p>
+            <p className="text-sm text-gray-500 mb-5">Ranked by Google rating, weighted by how many families have reviewed each location.</p>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {hub.featured.map((provider) => (
                 <BrowseCard key={provider.id} provider={provider} />
@@ -199,9 +260,62 @@ export default async function BrandHubPage({
           </section>
         )}
 
+        {/* What families say */}
+        {hub.quotes.length > 0 && (
+          <section className="mb-14">
+            <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">
+              What families say about {hub.name}
+            </h2>
+            <ul className="grid grid-cols-1 md:grid-cols-3 gap-x-8 gap-y-8">
+              {hub.quotes.map((q) => (
+                <li key={`${q.locationSlug}-${q.author}`} className="flex flex-col">
+                  <div className="flex items-center gap-0.5 text-amber-400 mb-2" aria-label={`${q.rating} out of 5`}>
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <StarIcon key={i} className={`w-3.5 h-3.5 ${i < q.rating ? "" : "text-gray-200"}`} />
+                    ))}
+                  </div>
+                  <blockquote className="text-gray-700 leading-relaxed">“{q.text}”</blockquote>
+                  <p className="mt-3 text-sm text-gray-500">
+                    <span className="font-medium text-gray-700">{q.author}</span>
+                    {q.when && <span> · {q.when}</span>}
+                    <br />
+                    <Link href={`/provider/${q.locationSlug}`} className="text-primary-600 hover:text-primary-700">
+                      {q.locationName}
+                      {q.city && `, ${q.city}`}
+                      {q.state && ` ${q.state}`}
+                    </Link>
+                  </p>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-4 text-xs text-gray-400">Google reviews of individual locations.</p>
+          </section>
+        )}
+
+        {/* Rates by care type: only when the brand spans more than one */}
+        {hub.ratesByCategory.length > 0 && (
+          <section className="mb-14">
+            <h2 className="text-2xl font-bold text-gray-900 font-serif mb-1">
+              What {hub.name} costs by care type
+            </h2>
+            <p className="text-sm text-gray-500 mb-5">Median of the published ranges at {hub.name} locations, by type of care.</p>
+            <dl className="divide-y divide-gray-100 border-y border-gray-100 max-w-2xl">
+              {hub.ratesByCategory.map((r) => (
+                <div key={r.category} className="py-3 flex items-baseline justify-between gap-4">
+                  <dt className="text-gray-700">{r.label}</dt>
+                  <dd className="text-right">
+                    <span className="font-semibold text-gray-900">{r.range}</span>
+                    <span className="ml-2 text-xs text-gray-400">{r.pricedCount} priced</span>
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
+
         {/* Browse by state */}
         {hub.states.length > 1 && (
-          <section className="mb-12">
+          <section id="states" className="mb-14 scroll-mt-24">
             <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">
               {hub.name} by state
             </h2>
@@ -210,7 +324,7 @@ export default async function BrandHubPage({
                 <a
                   key={s.abbrev}
                   href={`#state-${s.abbrev.toLowerCase()}`}
-                  className="flex items-center justify-between px-3 py-2 text-sm bg-gray-50 rounded-lg hover:bg-primary-50 hover:text-primary-700 transition-colors"
+                  className="flex items-center justify-between min-h-[40px] px-3 py-2 text-sm bg-gray-50 rounded-lg hover:bg-primary-50 hover:text-primary-700 transition-colors"
                 >
                   <span className="text-gray-700">{s.name}</span>
                   <span className="text-gray-400 text-xs">{s.locations.length}</span>
@@ -221,43 +335,65 @@ export default async function BrandHubPage({
         )}
 
         {/* Full directory */}
-        <section className="mb-12">
+        <section className="mb-14">
           <h2 className="text-2xl font-bold text-gray-900 font-serif mb-1">
             All {hub.name} locations
           </h2>
           <p className="text-sm text-gray-500 mb-6">
-            Every {hub.name} location listed on Olera, by state and city. Ratings are from Google reviews; rates are as reported by each location.
+            Every {hub.name} location on Olera, by state and city. Ratings are from Google reviews; rates are as reported by each location.
           </p>
           <div className="space-y-10">
             {hub.states.map((s) => (
               <div key={s.abbrev} id={`state-${s.abbrev.toLowerCase()}`} className="scroll-mt-24">
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  {s.name}
-                  <span className="ml-2 text-sm font-normal text-gray-400">
-                    {s.locations.length} {pluralLocations(s.locations.length)}
-                  </span>
-                </h3>
+                <div className="flex items-baseline justify-between mb-1">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {s.name}
+                    <span className="ml-2 text-sm font-normal text-gray-400">
+                      {s.locations.length} {pluralLocations(s.locations.length)}
+                    </span>
+                  </h3>
+                  {hub.states.length > 1 && (
+                    <a href="#states" className="text-xs text-gray-400 hover:text-primary-600 transition-colors">
+                      All states ↑
+                    </a>
+                  )}
+                </div>
                 <ul className="divide-y divide-gray-100 border-t border-gray-100">
                   {s.locations.map((loc) => (
-                    <li key={loc.id} className="py-3 flex flex-wrap items-baseline gap-x-4 gap-y-1">
+                    <li key={loc.id}>
+                      {/* Whole row is the link. City leads; the location's own name only appears when it says more than the brand name. */}
                       <Link
                         href={`/provider/${loc.slug}`}
-                        className="font-medium text-gray-900 hover:text-primary-700 transition-colors"
+                        className="group grid grid-cols-1 sm:grid-cols-[minmax(0,1fr)_7rem_9rem] items-baseline gap-x-4 gap-y-1 py-3 -mx-2 px-2 rounded-lg hover:bg-gray-50 transition-colors"
                       >
-                        {loc.name}
-                      </Link>
-                      {loc.city && <span className="text-sm text-gray-500">{loc.city}</span>}
-                      <span className="ml-auto flex items-center gap-4 text-sm text-gray-500">
-                        {loc.rating != null && (
-                          <span className="inline-flex items-center gap-1">
-                            <svg className="w-3.5 h-3.5 text-amber-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                              <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                            </svg>
-                            <span className="font-semibold text-gray-900">{loc.rating.toFixed(1)}</span>
+                        <span className="min-w-0">
+                          <span className="text-base font-medium text-gray-900 group-hover:text-primary-700 transition-colors">
+                            {loc.city || loc.name}
                           </span>
-                        )}
-                        {loc.priceRange && <span>{loc.priceRange}</span>}
-                      </span>
+                          {loc.city && loc.distinctName && (
+                            <span className="ml-2 text-sm text-gray-500">{loc.distinctName}</span>
+                          )}
+                        </span>
+                        {/* Mobile: rating and rate share one line; from sm the wrapper dissolves into the grid columns. */}
+                        <span className="flex items-baseline gap-4 sm:contents">
+                        <span className="text-sm text-gray-500 sm:text-right tabular-nums">
+                          {loc.rating != null ? (
+                            <span className="inline-flex items-center gap-1">
+                              <StarIcon className="w-3.5 h-3.5 text-amber-400" />
+                              <span className="font-semibold text-gray-900">{loc.rating.toFixed(1)}</span>
+                              {loc.reviewCount != null && (
+                                <span className="text-xs text-gray-400">({loc.reviewCount})</span>
+                              )}
+                            </span>
+                          ) : (
+                            <span className="text-gray-300">No reviews yet</span>
+                          )}
+                        </span>
+                        <span className="text-sm text-gray-500 sm:text-right tabular-nums">
+                          {loc.priceRange ?? <span className="text-gray-300">Rate not published</span>}
+                        </span>
+                        </span>
+                      </Link>
                     </li>
                   ))}
                 </ul>
@@ -266,8 +402,23 @@ export default async function BrandHubPage({
           </div>
         </section>
 
+        {/* FAQ */}
+        <section className="mb-14 max-w-3xl">
+          <h2 className="text-2xl font-bold text-gray-900 font-serif mb-5">
+            Questions families ask about {hub.name}
+          </h2>
+          <dl className="divide-y divide-gray-100 border-y border-gray-100">
+            {faqs.map((f) => (
+              <div key={f.q} className="py-5">
+                <dt className="text-base font-semibold text-gray-900">{f.q}</dt>
+                <dd className="mt-2 text-gray-600 leading-relaxed">{f.a}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
         {/* About the data */}
-        <section className="mb-12 max-w-3xl">
+        <section className="mb-14 max-w-3xl">
           <h2 className="text-xl font-bold text-gray-900 font-serif mb-3">About this page</h2>
           <p className="text-sm text-gray-600 leading-relaxed">
             This page lists every {hub.name} location in Olera&apos;s directory that has been matched to the brand. Ratings are Google review ratings for each individual location, not a rating of {hub.name} as a company. Rates are reported by locations or estimated from regional data and are shown for comparison; confirm current pricing and availability directly with the location.
@@ -283,16 +434,16 @@ export default async function BrandHubPage({
           </p>
         </section>
 
-        {/* Other brands */}
+        {/* Other brands, same care type first */}
         {otherBrands.length > 0 && (
           <section>
-            <h2 className="text-xl font-bold text-gray-900 font-serif mb-4">Other senior care brands</h2>
+            <h2 className="text-xl font-bold text-gray-900 font-serif mb-4">Compare with other brands</h2>
             <div className="flex flex-wrap gap-2">
               {otherBrands.map((b) => (
                 <Link
                   key={b.slug}
                   href={`${BRANDS_BASE_PATH}/${b.slug}`}
-                  className="px-3 py-1.5 text-sm bg-gray-50 rounded-full text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition-colors"
+                  className="inline-flex items-center min-h-[36px] px-3 py-1.5 text-sm bg-gray-50 rounded-full text-gray-700 hover:bg-primary-50 hover:text-primary-700 transition-colors"
                 >
                   {b.name}
                   <span className="text-gray-400 ml-1.5">{b.locationCount}</span>

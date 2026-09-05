@@ -1,4 +1,4 @@
-# Olera Marketplace — System Architecture (v11)
+# Olera Marketplace — System Architecture (v12)
 
 One city. Everything below the entry layer lives in the Portal.
 
@@ -11,8 +11,8 @@ ONE CITY                                                              ◆ active
 
 FAMILY                                                  PROVIDER
 ────────────────────────────────────────────────────    ─────────────────────────────
-◆REFERRAL   ORGANIC   ◆PAID ADS                         ◆CITY         PROVIDER CLAIMS
-PARTNER       │         │                               DIRECTORY     THEIR OWN PAGE
+◆REFERRAL   ORGANIC   ◆PAID ADS                         ◆CITY         PROVIDER ENTERS
+PARTNER       │         │                               DIRECTORY     ON THEIR OWN
   │           └────┬────┘                                 │             │
   │                ▼                                      ▼             │
   │         F1  ENTRY SURFACE                           P1  LISTED      │
@@ -33,18 +33,21 @@ PARTNER       │         │                               DIRECTORY     THEIR 
 │  ┌──────────────────┐  ┌───────────────────┐  ┌────────────────────────────────┐  │
 │  │ TRACK A          │  │ F3  PROFILE       │  │ TRACK B                        │  │
 │  │ AID PROGRAM      │  │                   │  │ PROVIDER CONNECTION            │  │
+│  │                  │  │   ┌────────────┐  │  │          ┌────────────┐        │  │
+│  │                  │  │   │    CR-F    │  │  │          │    CR-P    │        │  │
+│  │                  │  │   └────────────┘  │  │          └────────────┘        │  │
 │  │                  │  │                   │  │                                │  │
-│  │ A1  MATCHED      │◄─│ enriches          │─►│ B1  DELIVERED                  │  │
-│  │      │           │  │ continuously      │  │      │                         │  │
+│  │ A1  MATCHED      │  │                   │  │ P3  CLAIM  or  CREATE          │  │
+│  │      │           │  │                   │  │      │                         │  │
+│  │      ▼           │  │      enriches     │  │      ▼                         │  │
+│  │ A2  FIRST STEP   │◄─│    continuously   │─►│ B1  MATCHED                    │  │
+│  │      │           │  │                   │  │      │                         │  │
 │  │      ▼           │  │                   │  │      ▼                         │  │
-│  │ A2  FIRST STEP   │  │ deepens whatever  │  │ P3  CLAIM  or  CREATE          │  │
-│  │      │           │  │ is already        │  │      │                         │  │
-│  │      ▼           │  │ running           │  │      ▼                         │  │
-│  │ A3  ACTING       │◄─│                   │─►│ B2  RESPONDED                  │  │
-│  │      │           │  │ ┌─────────────┐   │  │      │      ┌─────────────┐    │  │
-│  │      ▼           │  │ │    CR-F     │   │  │      ▼      │    CR-P     │    │  │
-│  │ A4  SECURED      │  │ └─────────────┘   │  │ B3  TALKED  │  quarterly  │    │  │
-│  │                  │  │                   │  │      │      └─────────────┘    │  │
+│  │ A3  APPLICATION  │  │                   │  │ B2  RESPONDED                  │  │
+│  │      │           │  │                   │  │      │                         │  │
+│  │      ▼           │  │                   │  │      ▼                         │  │
+│  │ A4  ESTABLISHED  │  │                   │  │ B3  TALKED                     │  │
+│  │                  │  │                   │  │      │                         │  │
 │  │                  │  │                   │  │      ▼                         │  │
 │  │                  │  │                   │  │ B4  CARE ESTABLISHED           │  │
 │  └────────┬─────────┘  └───────────────────┘  └────┬─────────────────┬─────────┘  │
@@ -59,37 +62,31 @@ PARTNER       │         │                               DIRECTORY     THEIR 
 
 ## Index
 
-**Family** — F1 entry surface · F2 CTA · F3 profile (contains CR-F)
+**Family** — F1 entry surface · F2 CTA · F3 profile
 
-**Provider** — P1 listed · ◆P2 outreach · P3 claim or create (inside Track B)
+**Provider** — P1 listed · ◆P2 outreach · P3 claim or create
 
-**Track A** — A1 matched · A2 first step · A3 acting · A4 secured
+**Track A** — A1 matched · A2 first step · A3 application · A4 established
 
-**Track B** — B1 delivered · P3 claim or create · B2 responded · B3 talked · B4 care established
+**Track B** — B1 matched · B2 responded · B3 talked · B4 care established
 
----
-
-## CR-P is a relationship, not a step
-
-It does three things that share no position in the flow: it drives claiming out of **P2**, it is the
-conversation when something lands at **B1** or **P3**, and it is a standing **quarterly** check-in
-with every provider whether or not anything has landed.
-
-So it is drawn the way CR-F is drawn — a box living inside the track rather than a stage the
-provider passes through. That is the honest shape: a provider is in the CR-P relationship
-continuously from the moment we start working them, and the diagram should not imply they graduate
-into it or out of it.
+**CR-F** sits at the top of the profile: everyone who completes F2, and everyone who arrives from a
+referral partner, gets it. **CR-P** sits at the top of Track B: every provider we have an outreach
+for is targeted, claimed or not, wherever they are in B1–B4. Both are relationships, not steps —
+which is why both sit above the sequence rather than inside it.
 
 ---
 
-## Three ways into Track B
+## One thing to decide
 
-The three arrows entering Track B come from the three labelled sources above it: the **connection
-card** (straight to B1), the **listed pool** by way of outreach, and a **provider claiming their own
-page** (straight to P3).
+**P3 above B1 describes where we want to be, not where we are.** Today the match comes first: a
+family inquires, the connection is created against a listed provider, and the notification email —
+which carries a link and no family contact details — is what causes the claim. So the shipped order
+is match → claim → respond.
 
-Nothing about the provider funnel gates delivery. B1 lands on a listed provider; **P3 is what
-unblocks B2**, because the lead email carries a link and no family contact details.
+Drawing P3 first says something different and arguably better: a pool of claimed providers receiving
+matches. It is a real target state, and CR-P sitting above it is exactly the machine that would get
+us there. Worth naming the gap rather than letting the diagram quietly assert it is closed.
 
 ---
 
@@ -108,9 +105,8 @@ depth. A partial profile starts a track immediately; more profile deepens what i
 ## Status
 
 **Exists** — both CTAs · questions · continuous enrichment · the listed pool · outreach ·
-claim-or-create · both tracks' execution · the claim gate.
+claim-or-create · both tracks' execution.
 
-**Partial** — the plan the profile produces. The aid half exists; there is no provider half and no
-combined plan object.
+**Partial** — the plan the profile produces. The aid half exists; there is no provider half.
 
 **Proposed** — referral partners, CR-F, CR-P.

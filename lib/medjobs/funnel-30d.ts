@@ -25,7 +25,18 @@ const CALL_TYPES = [
   "call_wrong_number",
 ];
 
+/**
+ * What kind of question the number answers. They are not all conversion rates,
+ * and reading a coverage number as a conversion rate would be wrong: PR1 at 78%
+ * means we have worked 78% of our own list, not that 22% of providers declined.
+ */
+export type MetricKind = "conversion" | "coverage" | "throughput" | "gap";
+
 export interface StageMetric {
+  /** Which of the four things this number is. */
+  kind: MetricKind;
+  /** One sentence saying what the number means, in words, for the tooltip. */
+  reads?: string;
   /** x. Null only on a pure gap. */
   x?: number;
   /** y. Absent means throughput with no sound denominator. */
@@ -203,6 +214,8 @@ export async function loadFunnel30d(db: DB): Promise<FunnelResult> {
 
   const stages: FunnelMetrics = {
     PR1: {
+      kind: "coverage",
+      reads: "How much of our own list we have worked, not a conversion rate. A low number means the team is behind on pre-flight, not that providers said no.",
       x: pPreflight,
       y: providersAdded,
       xLabel: "providers with a pre-flight call logged",
@@ -210,13 +223,25 @@ export async function loadFunnel30d(db: DB): Promise<FunnelResult> {
       note: "Catchment size is computed on read and never stored, so the list can only be counted once a provider is materialised.",
     },
     "PR-OUT": {
+      kind: "conversion",
+      reads: "Of the providers we actually contacted, the share that booked a meeting. This is the top-of-funnel conversion rate.",
       x: pBooked,
       y: pWorked,
       xLabel: "providers that booked a meeting",
       yLabel: "providers emailed or called",
     },
-    PR2: { x: pHeld, y: pScheduled, xLabel: "meetings held", yLabel: "meetings booked", note: cohortNote },
+    PR2: {
+      kind: "conversion",
+      reads: "Of the provider meetings booked, the share that happened and were logged. A low number is no-shows or unlogged meetings, not lost demand.",
+      x: pHeld,
+      y: pScheduled,
+      xLabel: "meetings held",
+      yLabel: "meetings booked",
+      note: cohortNote,
+    },
     PR3: {
+      kind: "conversion",
+      reads: "Of the provider meetings held, the share that converted to a Client. This is the commercial close rate.",
       x: clients,
       y: pHeld,
       xLabel: "providers that accepted terms",
@@ -224,19 +249,33 @@ export async function loadFunnel30d(db: DB): Promise<FunnelResult> {
       note: "Terms acceptance is the only instrumented part of PR3. Profile updated, setup meeting held and staffing need recorded have no fields (B5).",
     },
     ST1: {
+      kind: "coverage",
+      reads: "How much of the generated office list we have worked, not a conversion rate. The university-side twin of PR1.",
       x: uPreflight,
       y: officesAdded,
       xLabel: "offices with a pre-flight call logged",
       yLabel: "offices generated as prospects",
     },
     "ST-OUT": {
+      kind: "conversion",
+      reads: "Of the advising offices we actually contacted, the share that booked a meeting.",
       x: uBooked,
       y: uWorked,
       xLabel: "offices that booked a meeting",
       yLabel: "offices emailed or called",
     },
-    ST2: { x: uHeld, y: uScheduled, xLabel: "meetings held", yLabel: "meetings booked", note: cohortNote },
+    ST2: {
+      kind: "conversion",
+      reads: "Of the advisor meetings booked, the share that happened and were logged.",
+      x: uHeld,
+      y: uScheduled,
+      xLabel: "meetings held",
+      yLabel: "meetings booked",
+      note: cohortNote,
+    },
     "ST3-ST7": {
+      kind: "conversion",
+      reads: "Of the advisor meetings held, the share that produced confirmed distribution. Whether a channel plan turned into a live channel.",
       x: activated,
       y: uHeld,
       xLabel: "distribution confirmed",
@@ -244,20 +283,26 @@ export async function loadFunnel30d(db: DB): Promise<FunnelResult> {
       note: "Stage level only. Which of the five channels went live is not modelled (B9, B12).",
     },
     ST8: {
+      kind: "throughput",
+      reads: "A count, not a rate. New students entering the funnel in the window.",
       x: signups ?? 0,
       xLabel: "student signups",
-      gap: undefined,
       note: "Throughput only. Go-live is not dated, so signup to live cannot be windowed (G-a).",
     },
     QUAL: {
+      kind: "gap",
       gap: "No qualification step exists. Going live is the qualification event, so a rate has no distinct numerator (B19).",
     },
     MA1: {
+      kind: "throughput",
+      reads: "A count, not a rate. Distinct providers reached by the candidate-ready broadcast.",
       x: readyProviders,
       xLabel: `providers told a candidate is ready (${readySends} sends)`,
       note: "Throughput only. The denominator needs a dated go-live (G-a); the profile PDF itself is B20.",
     },
     MA2: {
+      kind: "conversion",
+      reads: "Of the interviews proposed, the share both sides confirmed. Read it as scheduling friction, not as attendance.",
       x: confirmed ?? 0,
       y: proposed ?? 0,
       xLabel: "interviews confirmed",
@@ -265,6 +310,8 @@ export async function loadFunnel30d(db: DB): Promise<FunnelResult> {
       note: "Measures confirmation, not attendance. Nothing sets completed or no_show (B23).",
     },
     MA3: {
+      kind: "conversion",
+      reads: "Of the interviews confirmed, the share that produced a placement offer.",
       x: offers ?? 0,
       y: confirmed ?? 0,
       xLabel: "placement offers made",
@@ -272,9 +319,11 @@ export async function loadFunnel30d(db: DB): Promise<FunnelResult> {
       note: "The acceptance that constitutes the hire has no dated transition (G-h).",
     },
     MA4: {
+      kind: "gap",
       gap: "No shift concept exists in the product. The placement threshold is 120 hours, not six shifts (B28).",
     },
     MA5: {
+      kind: "gap",
       gap: "Payment fields exist on the placement and are never written (B29).",
     },
   };
@@ -286,12 +335,16 @@ export async function loadFunnel30d(db: DB): Promise<FunnelResult> {
     stages,
     yield: {
       commercial: {
+        kind: "conversion",
+        reads: "Of every provider meeting held, the share that became a paying-relationship Client.",
         x: clients,
         y: pHeld,
         xLabel: "providers converted to Client",
         yLabel: "provider meetings held",
       },
       placement: {
+        kind: "conversion",
+        reads: "Of every provider meeting held, the share that has produced a placement offer.",
         x: offers ?? 0,
         y: pHeld,
         xLabel: "placement offers made",

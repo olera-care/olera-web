@@ -73,14 +73,38 @@ function readMetric(m: StageMetric) {
   return { text: `${m.x} / ${m.y}${pct == null ? "" : ` = ${pct}%`}`, gap: false };
 }
 
-/** Everything the hover text should say about one stage's number. */
-function metricTitle(m: StageMetric) {
-  if (m.gap) return `Not instrumented. ${m.gap}`;
-  const parts: string[] = [];
-  if (m.xLabel) parts.push(`${m.x} ${m.xLabel}`);
-  if (m.yLabel) parts.push(`of ${m.y} ${m.yLabel}`);
-  if (m.note) parts.push(m.note);
-  return parts.join(" · ");
+const KIND_LABEL: Record<string, string> = {
+  conversion: "CONVERSION",
+  coverage: "COVERAGE (not a conversion rate)",
+  throughput: "THROUGHPUT (a count, not a rate)",
+  gap: "NOT INSTRUMENTED",
+};
+
+/**
+ * The hover text. Four lines, in the order a reader needs them: what kind of
+ * number this is, the arithmetic spelled out in words, how to interpret it,
+ * and any caveat. Naming the kind first is the point — a coverage number read
+ * as a conversion rate says the opposite of what it means.
+ */
+function metricTitle(stage: string, name: string, m: StageMetric) {
+  const lines = [`${stage} · ${name}`, KIND_LABEL[m.kind] ?? ""];
+  if (m.gap) {
+    lines.push(m.gap);
+    return lines.filter(Boolean).join("\n");
+  }
+  const join = (...bits: Array<string | number | undefined>) =>
+    bits.filter((b) => b !== undefined && b !== "").join(" ");
+  if (m.y != null && m.x != null) {
+    const pct = m.y > 0 ? Math.round((m.x / m.y) * 100) : null;
+    lines.push(
+      join(m.x, m.xLabel, "out of", m.y, m.yLabel) + (pct == null ? "." : ` = ${pct}%.`),
+    );
+  } else if (m.x != null) {
+    lines.push(join(m.x, m.xLabel, "in the last 30 days."));
+  }
+  if (m.reads) lines.push(m.reads);
+  if (m.note) lines.push(`Caveat: ${m.note}`);
+  return lines.filter(Boolean).join("\n");
 }
 
 export default function SystemArchitecture({
@@ -129,7 +153,7 @@ export default function SystemArchitecture({
         ) : null}
         {read ? (
           <>
-            <title>{metricTitle(m as StageMetric)}</title>
+            <title>{metricTitle(s.code, s.name, m as StageMetric)}</title>
             <text
               /* Always on the code line: the name line is long enough to
                  collide with it in the narrow match-chain boxes. */
@@ -264,18 +288,26 @@ export default function SystemArchitecture({
       </text>
       {yields ? (
         <>
-          <text x={132} y={674} fontSize={10.5} fill="#475569">
-            Commercial conversion
-          </text>
-          <text x={272} y={674} fontSize={12} fontWeight={700} fill="#0f172a">
-            {readMetric(yields.commercial)?.text ?? ""}
-          </text>
-          <text x={470} y={674} fontSize={10.5} fill="#475569">
-            Placement yield
-          </text>
-          <text x={572} y={674} fontSize={12} fontWeight={700} fill="#0f172a">
-            {readMetric(yields.placement)?.text ?? ""}
-          </text>
+          <g>
+            <title>{metricTitle("Funnel yield", "Commercial conversion", yields.commercial)}</title>
+            <rect x={126} y={660} width={220} height={20} fill="transparent" />
+            <text x={132} y={674} fontSize={10.5} fill="#475569">
+              Commercial conversion
+            </text>
+            <text x={272} y={674} fontSize={12} fontWeight={700} fill="#0f172a">
+              {readMetric(yields.commercial)?.text ?? ""}
+            </text>
+          </g>
+          <g>
+            <title>{metricTitle("Funnel yield", "Placement yield", yields.placement)}</title>
+            <rect x={464} y={660} width={220} height={20} fill="transparent" />
+            <text x={470} y={674} fontSize={10.5} fill="#475569">
+              Placement yield
+            </text>
+            <text x={572} y={674} fontSize={12} fontWeight={700} fill="#0f172a">
+              {readMetric(yields.placement)?.text ?? ""}
+            </text>
+          </g>
         </>
       ) : null}
       <text x={916} y={694} fontSize={9} fill="#94a3b8" textAnchor="end">

@@ -1622,6 +1622,7 @@ export default async function ProviderPage({
                   <p className="text-sm text-gray-500">Are you the owner of this business?</p>
                   <a
                     href={`/provider/onboarding?org=${profile.slug}`}
+                    rel="nofollow"
                     className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
                   >
                     Manage this page <span aria-hidden="true">→</span>

@@ -30,10 +30,14 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
-import sharp from "sharp";
-import { createHash } from "crypto";
+import { createRequire } from "module";
 import { readFileSync, writeFileSync, existsSync } from "fs";
+
+// Download / optimize / upload live in one shared module so the city pipeline
+// and this migration cannot drift apart again (the pipeline used to persist
+// the short-lived Places photoUri; see scripts/lib/r2-place-photos.js).
+const require = createRequire(import.meta.url);
+const r2 = require("./lib/r2-place-photos.js");
 
 // ---------------------------------------------------------------------------
 // Load env files
@@ -120,15 +124,6 @@ if (missing.length > 0) {
 
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-const s3 = new S3Client({
-  region: "auto",
-  endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  credentials: {
-    accessKeyId: R2_ACCESS_KEY_ID,
-    secretAccessKey: R2_SECRET_ACCESS_KEY,
-  },
-});
-
 // ---------------------------------------------------------------------------
 // Stats (use atomic increments since workers run concurrently)
 // ---------------------------------------------------------------------------
@@ -197,61 +192,18 @@ async function fetchWithRetry(url, retries = 2) {
 async function getPhotoReferences(placeId) {
   await googleRateLimit();
   stats.googleApiCalls++;
-  const url = `https://places.googleapis.com/v1/places/${placeId}?fields=photos&key=${GOOGLE_API_KEY}`;
-  const resp = await fetchWithRetry(url);
-  if (!resp.ok) return [];
-  const data = await resp.json();
-  return data.photos || [];
+  return r2.fetchPlacePhotos(placeId, GOOGLE_API_KEY);
 }
 
-/**
- * Download photo directly by following the redirect (1 round trip instead of 2).
- * Without skipHttpRedirect, the Photo Media endpoint 302-redirects to the image.
- */
 async function downloadPhoto(photoName) {
   await googleRateLimit();
   stats.googleApiCalls++;
-  const url = `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=${MAX_IMAGE_WIDTH}&key=${GOOGLE_API_KEY}`;
-  const resp = await fetchWithRetry(url);
-  if (!resp.ok) return null;
-  const arrayBuf = await resp.arrayBuffer();
-  return Buffer.from(arrayBuf);
+  return r2.downloadPhoto(photoName, GOOGLE_API_KEY);
 }
 
-// ---------------------------------------------------------------------------
-// Image optimization
-// ---------------------------------------------------------------------------
-
-async function optimizeImage(buffer) {
-  return sharp(buffer)
-    .resize({ width: MAX_IMAGE_WIDTH, withoutEnlargement: true })
-    .jpeg({ quality: JPEG_QUALITY })
-    .toBuffer();
-}
-
-// ---------------------------------------------------------------------------
-// R2 upload
-// ---------------------------------------------------------------------------
-
-function generateR2Key(providerId, index) {
-  const hash = createHash("md5")
-    .update(`${providerId}_photo_${index}`)
-    .digest("hex")
-    .slice(0, 12);
-  return `providers/${providerId}/${hash}.jpg`;
-}
-
-async function uploadToR2(buffer, key) {
-  const cmd = new PutObjectCommand({
-    Bucket: R2_BUCKET,
-    Key: key,
-    Body: buffer,
-    ContentType: "image/jpeg",
-    CacheControl: "public, max-age=31536000",
-  });
-  await s3.send(cmd);
-  return `${R2_PUBLIC_URL.replace(/\/$/, "")}/${key}`;
-}
+const optimizeImage = r2.optimizeImage;
+const generateR2Key = r2.r2KeyFor;
+const uploadToR2 = r2.uploadToR2;
 
 // ---------------------------------------------------------------------------
 // Checkpoint
@@ -289,11 +241,12 @@ async function migrateProvider(provider) {
     return;
   }
 
-  // Skip if already migrated to R2
+  // Skip if already migrated to R2 (no dead host left in the list)
   if (
     provider_images &&
+    provider_images.includes("r2.dev") &&
     !provider_images.includes("cdn-api.olera.care") &&
-    provider_images.includes("r2.dev")
+    !provider_images.includes("/place-photos/")
   ) {
     stats.skippedAlreadyMigrated++;
     return;
@@ -440,8 +393,10 @@ async function main() {
     }
   }
 
-  // Query providers with dead CDN URLs
-  console.log("\n  Fetching providers with dead CDN URLs...");
+  // Query providers with dead image sources: the offline iOS-era CDN and the
+  // short-lived Places `photoUri` (lh3.googleusercontent.com/place-photos/...)
+  // that the pipeline used to persist. Both 502 through /_next/image.
+  console.log("\n  Fetching providers with dead image URLs (cdn-api + place-photos)...");
 
   let allProviders = [];
   let offset = 0;
@@ -451,7 +406,7 @@ async function main() {
     const { data, error } = await supabase
       .from("olera-providers")
       .select("provider_id, place_id, provider_images, provider_logo")
-      .like("provider_images", "%cdn-api.olera.care%")
+      .or("provider_images.like.%cdn-api.olera.care%,provider_images.like.%/place-photos/%")
       .not("deleted", "is", true)
       .order("provider_id")
       .range(offset, offset + PAGE - 1);

@@ -34,6 +34,8 @@ for (const p of envPaths) {
 }
 
 const { createClient } = require('@supabase/supabase-js');
+const { loadR2Env, r2Configured, hostPlacePhotosOnR2, joinProviderImages } = require('./lib/r2-place-photos');
+loadR2Env();
 
 // ---------------------------------------------------------------------------
 // Config
@@ -477,27 +479,31 @@ async function enrichImages(providers, gaps) {
   console.log(`  [Images] ${need.length} providers...`);
   let fetched = 0, noPhotos = 0;
 
+  // Photos are downloaded and hosted on R2, never stored as Google URLs: the
+  // Places `photoUri` expires within weeks and then 403s (that is where 5,889
+  // dead `place-photos` rows came from). If R2 is not configured the provider
+  // simply keeps no image and the site shows the category stock photo.
+  if (!r2Configured()) {
+    console.log('  [Images] R2 not configured (R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY) — skipping, nothing will be stored');
+    return 0;
+  }
+  const imageStats = {};
+
   for (let i = 0; i < need.length; i++) {
     const p = need[i];
     try {
-      const resp = await fetchWithRetry(
-        `https://places.googleapis.com/v1/places/${p.place_id}?fields=photos&key=${GOOGLE_API_KEY}`
-      );
-      cost.addGoogle();
-      const data = await resp.json();
+      const callsBefore = imageStats.googleApiCalls || 0;
+      const urls = await hostPlacePhotosOnR2({
+        providerId: p.provider_id,
+        placeId: p.place_id,
+        apiKey: GOOGLE_API_KEY,
+        stats: imageStats,
+      });
+      for (let c = callsBefore; c < (imageStats.googleApiCalls || 0); c++) cost.addGoogle();
 
-      if (data.photos?.length > 0) {
-        const photoName = data.photos[0].name;
-        const mediaResp = await fetchWithRetry(
-          `https://places.googleapis.com/v1/${photoName}/media?maxWidthPx=800&key=${GOOGLE_API_KEY}&skipHttpRedirect=true`
-        );
-        cost.addGoogle();
-        const mediaData = await mediaResp.json();
-
-        if (mediaData.photoUri) {
-          await supabase.from('olera-providers').update({ provider_images: mediaData.photoUri }).eq('provider_id', p.provider_id);
-          fetched++;
-        } else { noPhotos++; }
+      if (urls.length > 0) {
+        await supabase.from('olera-providers').update({ provider_images: joinProviderImages(urls) }).eq('provider_id', p.provider_id);
+        fetched++;
       } else { noPhotos++; }
     } catch (err) { noPhotos++; }
 

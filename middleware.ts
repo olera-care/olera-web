@@ -1,6 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
-import { isDeadImageUrl, DEAD_IMAGE_REDIRECT_PATH } from "@/lib/images/dead-hosts";
 
 // v1.0 category slugs — used for pattern-based redirects
 const V1_CATEGORY_SLUGS = new Set([
@@ -49,23 +48,6 @@ function resolveStateAbbrev(segment: string): string | null {
 }
 
 export async function middleware(request: NextRequest) {
-  // ── Dead image sources through the optimizer ──
-  // /_next/image?url=https://cdn-api.olera.care/... would 502 because the
-  // upstream host is gone. Google keeps re-fetching image URLs it learned months
-  // ago, so this has to be answered at the request, not just removed from HTML.
-  // Redirect to a static stock image so the URL returns 200. Every other
-  // optimizer request passes straight through without touching the session.
-  if (request.nextUrl.pathname === "/_next/image") {
-    const source = request.nextUrl.searchParams.get("url");
-    if (isDeadImageUrl(source)) {
-      const url = request.nextUrl.clone();
-      url.pathname = DEAD_IMAGE_REDIRECT_PATH;
-      url.search = "";
-      return NextResponse.redirect(url, 307);
-    }
-    return NextResponse.next();
-  }
-
   const segments = request.nextUrl.pathname.split("/").filter(Boolean);
 
   // ── v1.0 provider canonical URLs ──
@@ -146,8 +128,5 @@ export const config = {
      * - api/stripe/webhook (Stripe sends raw POST with no cookies)
      */
     "/((?!_next/static|_next/image|favicon.ico|api/stripe/webhook|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-    // Deliberately matched: dead-host image sources are redirected before the
-    // optimizer can 502 on them (see the top of `middleware`).
-    "/_next/image",
   ],
 };

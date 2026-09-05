@@ -51,7 +51,7 @@ FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  P
 │  │      │               │  │                     │─►│ B1  FAMILY-PROVIDER MATCHED  ▲  │◄─── PG1  MANAGED ADS  │
 │  │      ▼               │  │                     │  │      │                          │                       │
 │  │ A3  AID ESTABLISHED  │  │                     │  │      ▼                          │                       │
-│  │                      │  │                     │  │ B2  QUALIFIED                   │                       │
+│  │                      │  │                     │  │ B2  FAMILY-PROVIDER QUALIFIED   │                       │
 │  │                      │  │                     │  │      │                          │                       │
 │  │                      │  │                     │  │      ▼                          │                       │
 │  │                      │  │                     │  │ B3  STAFFED PROVIDER         ▲  │◄─── PG2  STAFFING     │
@@ -86,7 +86,7 @@ FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  P
 | **P3** | provider profile, claim or create |
 | **CR-P** | provider consumer relations |
 | **A1 · A2 · A3** | matched · application · aid established |
-| **B1 · B2 · B3 · B4** | family–provider matched · qualified · staffed provider · care established |
+| **B1 · B2 · B3 · B4** | family–provider matched · family–provider qualified · staffed provider · care established |
 | **FO1 · FO2** | aid · care |
 | **PO** | new business |
 | **PG** | paid add-ons — **PG1** managed ads · **PG2** staffing |

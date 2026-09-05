@@ -50,7 +50,7 @@ FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  P
 │  │ A2  APPLICATION      │  │                     │  │      ▼                          │     ────────────      │
 │  │      │               │  │                     │─►│ B1  FAMILY-PROVIDER MATCHED ▲ ◄─┼──── PG1  MANAGED ADS  │
 │  │      ▼               │  │                     │  │      │                          │                       │
-│  │ A3  AID ESTABLISHED  │  │                     │  │      ▼                          │                       │
+│  │ A3  AID ESTABLISHED  │─►│                     │  │      ▼                          │                       │
 │  │                      │  │                     │  │ B2  FAMILY-PROVIDER QUALIFIED   │                       │
 │  │                      │  │                     │  │      │                          │                       │
 │  │                      │  │                     │  │      ▼                          │                       │
@@ -163,6 +163,10 @@ PS1 and PS2 are the machines that would get us there.
 and veteran status. Track B matches on care type, location and contact. F2a deposits the first set,
 F2b the second — so a family arriving through one has half a plan until the profile deepens.
 Crossing both thresholds in one conversation is CR-F's clearest job.
+
+**Why A3 returns to F3.** An aid decision is a fact about the family — what they qualify for and
+what it pays — so it lands back in the profile, where it changes what Track B can match. The profile
+is the record both tracks read and write.
 
 **Why the profile is not a gate.** It enriches continuously and yields whatever it can at any depth.
 A partial profile starts a track immediately; more profile deepens what is already running.

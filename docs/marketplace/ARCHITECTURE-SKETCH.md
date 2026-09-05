@@ -1,11 +1,9 @@
-# Olera Marketplace — System Architecture (v5)
+# Olera Marketplace — System Architecture (v6)
 
-One city. Three ways a family enters, three ways a provider enters, converging on Track A. Track B
-runs alongside for families. Consumer Relations sits between the technology and a successful outcome
-on both sides.
+One city. Every stage indexed so it can be isolated and revised. Payload complete is the ideal
+information state, not a gate — value can begin from baseline.
 
-This iteration is about **flows you can trace with a finger**. Roles, SOPs, instrumentation, metrics
-and commercial logic come later.
+**Track A = Aid Program Connection. Track B = Provider Connection.**
 
 ---
 
@@ -14,146 +12,179 @@ and commercial logic come later.
 ```
 ┌──────────────────────────────────────────────────────────────────────────────────┐
 │                                   ONE CITY                                       │
-│      enough family flow + enough provider network to make connections happen     │
 └──────────────────────────┬───────────────────────────────────────────────────────┘
   ┌───────────────────────┴────────────────────┐
   ▼                                            ▼
-FAMILY SIDE                                     PROVIDER SIDE
+FAMILY FUNNEL                                   PROVIDER FUNNEL
 ────────────────────────────────────────────    ────────────────────────────────────────────
-ORGANIC     PAID ADS      REFERRAL              IN THE CITY        PROVIDER BUILDS
-   │           │          PARTNER               DIRECTORY          THEIR OWN PAGE
-   └─────┬─────┘             │                     │                     │
-         ▼                   │                     ▼                     │
-  ENTRY SURFACE              │                  LISTED                   │
-  provider · city ·          │                  unclaimed                │
-  editorial · program        │                     │                     │
-         │                   │                     ▼                     │
-    ┌────┴─────┐             │                  OUTREACH                 │
-    ▼          ▼             │                  4 emails / 7 days,       │
- CONNECTION  BENEFITS        │                  then a call              │
- CARD        RESULTS CTA     │                     │                     │
-    │          │             │                     ▼                     ▼
- a lead     a living         │                  CLAIMED  ◄───────────────┘
- goes out   plan is          │                     │   ▲
- NOW        created          │                     │   └── a family's inquiry,
-    │          │             ▼                     │       question or review
-    ▼          ▼        FAMILY PROFILE             │       reaches an UNCLAIMED
- 6-STEP     3-STEP      WORKFLOW                   │       provider. The email
- ENRICH-    BENEFITS    starts here                │       carries a claim link
- MENT       ENRICHMENT       │                     ▼
-    │          │             │                  ACTIVE
-    └─────┬────┴─────────────┘                  profile complete, responding
-          │                                        │
-  ╔═══════╧══════════════╗                         │      ╔══════════════════════╗
-  ║ CONSUMER RELATIONS   ║                         │      ║ CONSUMER RELATIONS   ║
-  ║ helps the family     ║                         └─────►║ helps the provider   ║
-  ║ finish, and work     ║                                ║ get value from the   ║
-  ║ the tracks           ║                                ║ families they get    ║
-  ╚═══════╤══════════════╝                                ╚═════════╤════════════╝
-          ▼                                                         │
-  PAYLOAD COMPLETE                                                  │
-  the full family profile                                           │
-          │                                                         │
-  ┌───────┴─────────────────────────────┐                           │
-  ▼                                     ▼                           ▼
-┌──────────────────────────┐  ┌─────────────────────────────────────────────────────┐
-│  TRACK B — AID PROGRAM   │  │  TRACK A — PROVIDER CONNECTION                      │
-│                          │  │                                                     │
-│    program matched       │  │    opportunity delivered to a provider —            │
-│         │                │  │    at ANY provider state, claimed or not             │
-│         ▼                │  │         │                                           │
-│    first step issued     │  │         ▼                                           │
-│         │                │  │    provider responds                                │
-│         ▼                │  │         │                                           │
-│    family acting         │  │         ▼                                           │
-│         │                │  │    family and provider talk                         │
-│         ▼                │  │         │                                           │
-│    AID SECURED           │  │         ▼                                           │
-│                          │  │    CARE ESTABLISHED                                 │
-└────────────┬─────────────┘  └──────────────┬──────────────────────┬───────────────┘
-             │                               │                      │
-             └───────────────┬───────────────┘                      ▼
-                             ▼                              PROVIDER OUTCOME
-                     FAMILY OUTCOME                          ─────────────────
-                     ─────────────────                       became a paying
-                     care established                        client
-                     and / or aid secured
+F1  ACQUISITION                                 IN THE CITY         PROVIDER BUILDS
+    organic · paid ads · referral               DIRECTORY           THEIR OWN PAGE
+  │                                               │                       │
+  ├ - - ►  F4    a referral partner can           ▼                       │
+  │             deliver a family straight       P1  LISTED                │
+  │             into enrichment                     unclaimed             │
+  ▼                                               │                       │
+F2  ENTRY SURFACE                                 ▼                       │
+    provider · city · editorial ·               P2  OUTREACH              │
+    program page                                    4 emails / 7 days,    │
+  │                                                 then a call           │
+  ▼                                               │                       │
+F3  CTA — BASELINE CAPTURED                       ▼                       ▼
+    connection card · benefits CTA              P3  CLAIMED  ◄────────────┘
+  │                                                 most providers arrive here
+  ├ - - ►  A1 / B1   baseline alone can             from family activity, not
+  │                  start either track             from our outreach
+  │                                               │
+  ├ - - ►  P3        an inquiry, question         ▼
+  │                  or review notifies         P4  ACTIVE
+  │                  the provider and               profile complete,
+  │                  carries a claim link           responding to families
+  │
+  ├──────►  CR1  CONSUMER RELATIONS
+  │              triggered by baseline,
+  │              not by F5. Helps finish
+  │              enrichment, and helps
+  │              the family work both
+  ▼              tracks
+F4  ENRICHMENT
+    6 steps from a provider page,
+    3 from the benefits path
+  │
+  ▼
+F5  PAYLOAD COMPLETE
+    the ideal information state.
+    NOT a gate — it strengthens
+    whatever is already running
+  │
+  └──────────┬──────────────────────┐
+             ▼                      ▼
+┌───────────────────────────────┐  ┌───────────────────────────────────────────────┐
+│  TRACK A — AID PROGRAM        │  │  TRACK B — PROVIDER CONNECTION                │
+│  CONNECTION                   │  │                                               │
+│                               │  │   B1  OPPORTUNITY DELIVERED                   │
+│   A1  PROGRAM MATCHED         │  │        │   to a provider at ANY state,        │
+│        │                      │  │        │   claimed or not. Delivering it is   │
+│        ▼                      │  │        │   often what activates them          │
+│   A2  FIRST STEP ISSUED       │  │        ▼                                      │
+│        │                      │  │   B2  PROVIDER RESPONDS                       │
+│        ▼                      │  │        │                                      │
+│   A3  FAMILY ACTING           │  │        ▼                                      │
+│        │                      │  │   B3  FAMILY AND PROVIDER TALK                │
+│        ▼                      │  │        │                                      │
+│   A4  AID SECURED             │  │        ▼                                      │
+│                               │  │   B4  CARE ESTABLISHED                        │
+└──────────────┬────────────────┘  └──────────┬──────────────────┬─────────────────┘
+               │                              │                  │
+               └──────────────┬───────────────┘                  ▼
+                              ▼                           PROVIDER OUTCOME
+                       FAMILY OUTCOME                     ────────────────
+                       ──────────────                     became a paying client
+                       care established · aid secured
 
-The Connection Card sends an opportunity into Track A immediately, before the payload
-is complete. That is the shortest path a family can take to a provider today.
+LEGEND   ───►  primary path        - - ►  partial-state or cross-funnel path
 ```
 
 ---
 
-## The six pathways, traced
+## Indexed stages
 
-### Family
+### Family funnel
 
-**Organic or paid ad → provider or city page.** The family lands on a provider they were already
-looking at, engages the **Connection Card**, gives who needs care, care type, urgency and contact —
-**and a lead goes out to that provider immediately**. Only afterwards are they offered the six-step
-enrichment that finishes the profile.
+| | Stage | |
+|---|---|---|
+| **F1** | Acquisition | organic · paid ads · referral partner |
+| **F2** | Entry surface | provider · city · editorial · program page |
+| **F3** | CTA — baseline captured | connection card or benefits CTA. The minimum viable family record |
+| **F4** | Enrichment | 6 steps from a provider page, 3 from the benefits path |
+| **F5** | Payload complete | the ideal information state |
+| **CR1** | Consumer Relations, family side | triggered by F3, not by F5 |
 
-**Organic or paid ad → program or editorial page.** The family engages the **benefits results CTA**,
-gives contact, and a living plan is created for them at a private link. They are then offered a
-three-step benefits enrichment — recipient, timeline, payment. This path reaches Track B first.
+### Provider funnel
 
-**Referral partner *(proposed)*.** A partner hands the family off directly into the profile
-workflow. No entry surface, no partial lead first. They arrive to complete their information, and
-they converge on the same milestone.
+| | Stage | |
+|---|---|---|
+| **P1** | Listed | in the city directory, unclaimed |
+| **P2** | Outreach | 4 emails / 7 days, then a call |
+| **P3** | Claimed | most providers arrive here from family activity |
+| **P4** | Active | profile complete, responding to families |
+| **CR2** | Consumer Relations, provider side | after P3 — helps a claim become real activity |
 
-All three end at **PAYLOAD COMPLETE** — the full family profile.
+### Track A — Aid Program Connection
 
-### Provider
+**A1** program matched → **A2** first step issued → **A3** family acting → **A4** aid secured
 
-**Already in the city directory.** When we open a city the providers are already there, **listed and
-unclaimed**. We run outreach — four emails over seven days, then a call — until they **claim**.
+### Track B — Provider Connection
 
-**The provider builds their own page.** They arrive **claimed**. They are never listed-unclaimed and
-never receive outreach.
-
-**A family's interest reaches them.** An inquiry, question or review lands on an unclaimed provider —
-the record is created on the spot if it does not exist — and the notification email carries a claim
-link. The family, not our outreach, is what activates them.
-
-All three converge on **CLAIMED → ACTIVE**.
-
----
-
-## Two things the picture has to keep saying
-
-**A provider can receive a family opportunity at any state.** Claimed or not, active or not. Track A
-draws from the whole provider funnel, not from its end. The funnel describes how a relationship
-deepens, not who is allowed to participate.
-
-**Nothing commercial gates Track A.** A provider receives families through the free product whether
-or not they ever pay us for anything. Paid products sit alongside the relationship, never in front
-of it.
+**B1** opportunity delivered → **B2** provider responds → **B3** family and provider talk →
+**B4** care established
 
 ---
 
-## Where Consumer Relations enters
+## The four dotted paths
 
-The same place on both sides: **between the point where technology has got someone in, and the point
-where they succeed.**
+Only four, and each is a real operating pathway rather than an exception.
 
-**Family side — after the CTA, before the payload is complete.** This is where families fall out. The
-enrichment is optional and comes after they have already got what they came for, so a large share
-simply stop. Consumer Relations helps them finish, understand their options, and then work whichever
-track is relevant. Not a meeting in every journey — an intervention available where a family stalls.
+| From | To | What it means |
+|---|---|---|
+| **F1** | **F4** | A referral partner delivers a family already described, straight into enrichment |
+| **F3** | **A1 / B1** | Baseline alone can start either track. A family gets value before the payload is complete |
+| **F3** | **P3** | An inquiry, question or review notifies the provider and carries a claim link |
+| **B1** | **P3** | Delivering an opportunity to an unclaimed provider is itself what often activates them |
 
-**Provider side — after the claim, before they are genuinely active.** Claiming is one click from an
-email; it does not mean the provider will answer the next family. Consumer Relations helps them get
-value from the families they already receive. That is also the natural relationship through which
-other Olera products eventually get introduced — later, and never as a condition of Track A.
+The last two are the same effect from two sources: an inquiry becomes an opportunity, a question or
+review does not — but all three notification emails carry a claim link. So Track B both **uses** the
+provider funnel and **feeds** it.
 
-**The symmetry is real, with one asymmetry worth keeping.** On the family side the human help is
-needed *before* the milestone. On the provider side it is needed *after* it. In both cases the role
-is the same: the human layer that turns an automated entry into a completed outcome.
+---
+
+## Payload complete is not a gate
+
+F5 is the most complete information state, not the point at which anything becomes possible. A
+family can have aid work running, provider connections running, and Consumer Relations support
+running while F4 is still half finished. When F5 arrives it **strengthens whatever is already in
+flight** — better program matching, a better payload for the provider — rather than starting it.
+
+This is why the dotted lines out of F3 matter. They are not shortcuts around the process; they are
+how most families actually begin.
+
+---
+
+## Enrichment can happen at any point relative to Consumer Relations
+
+Three legitimate sequences, all supported by the same boxes:
+
+**Self-enriched.** F3 → F4 → F5, then the tracks. No human needed.
+
+**Enriched during the interaction.** F3 → tracks begin → CR1 → enrichment completed on the call →
+F5 → tracks continue, now better informed.
+
+**Enriched afterwards.** F3 → tracks begin → CR1 → the family finishes F4 later → F5 → tracks
+continue.
+
+CR1 is triggered by **baseline engagement at F3**, not by payload completion. That is the whole
+point: the families most likely to need help are the ones least likely to finish on their own.
+
+---
+
+## Consumer Relations, both sides
+
+**CR1 — family.** Triggered at F3. Helps finish enrichment, clarify needs, and work both tracks.
+
+**CR2 — provider.** After P3. Claiming is one click from an email; it does not mean the provider
+will answer the next family. CR2 turns a claim into real participation in Track B.
+
+The symmetry: the human layer sits between an automated entry and a completed outcome on both sides.
+The asymmetry: on the family side it is needed *before* the milestone, on the provider side *after*
+it.
 
 ---
 
 ## Outcomes
 
-Track A produces both outcomes. Track B contributes only to the family outcome. A family may run one
-track or both, and the family outcome is the composite of whichever ran.
+**Family outcome** is the composite of Track A and Track B — care established, aid secured, or both.
+A family may run one track or both.
+
+**Provider outcome** comes from Track B only.
+
+Nothing commercial gates Track B. A provider receives families through the free product whether or
+not they ever pay for anything.

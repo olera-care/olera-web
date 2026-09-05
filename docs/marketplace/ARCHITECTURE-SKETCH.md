@@ -1,190 +1,233 @@
-# Olera Marketplace — System Architecture (sketch)
+# Olera Marketplace — System Architecture (sketch, v2)
 
-How a family care need moves through Olera, meets an appropriate provider, and becomes an
-established care relationship and commercial value. A sibling to the MedJobs System Architecture,
-but **not** the same shape — the differences are the point, and they are set out below.
+How a family's care need moves through Olera, becomes a plan, and gets executed against **two**
+tracks — providers and aid programs — until care is established and aid is secured.
 
-Architecture only. User journeys, SOPs, communications, instrumentation and metrics come later.
+Architecture only. Still a sketch; several things below are deliberately unresolved.
 
 ---
 
 ## The architecture
 
 ```
-┌────────────────────────────────────────────────────────────────────┐
-│  MARKET 1                                                          │
-│  ONE CITY / SERVICE AREA — families needing care + providers in it  │
-└──────────────────────────┬─────────────────────────────────────────┘
-  ┌───────────────────────┴───────────────────────┐
-  ▼                                               ▼
-DEMAND SIDE — inbound funnel                  SUPPLY SIDE — standing inventory
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  D1  DEMAND SOURCES                                        entity: VISITOR       │
+│                                                                                  │
+│   ORGANIC                  PROVIDER-FUNDED ADS         REFERRAL PARTNERS         │
+│   Technology               Admin Team · Ad Boost        Admin Team · NEW         │
+│   provider pages, city     managed campaigns to a       AAAs, ADRCs, churches,   │
+│   pages, editorial,        provider's Olera page        discharge planners,      │
+│   program pages            (their spend, our funnel)    senior centers, VSOs     │
+│        │                            │                      │  cards + collateral │
+│        └────────────────────────────┴──────────────────────┘                     │
+└────────────────────────────────────────┬─────────────────────────────────────────┘
+                                         ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  D2  ENTRY SIGNAL          three weights, one door — all must be accounted for   │
+│                                                                                  │
+│    QUESTION                    LEAD                     CARE NEED                │
+│    public Q&A on a             an inquiry with          the family says what     │
+│    provider page, guests       contact details          they need                │
+│    allowed (name + email)                                                        │
+│    intent inferred:                                                              │
+│    cost · care-type · fit                                                        │
+│         └──────────────────────────┴────────────────────────┘                    │
+└────────────────────────────────────────┬─────────────────────────────────────────┘
+                                         ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  D3  NEEDS ASSESSMENT                                    entity: CARE NEED       │
+│      Portal · ONE assessment, not three steps                                    │
+│      who needs care · timeline · care need · payment · location · details        │
+└────────────────────────────────────────┬─────────────────────────────────────────┘
+                                         ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  D4  THE PLAN                                            entity: CARE PLAN       │
+│      Portal · what we hand the family, and what we execute against               │
+│                                                                                  │
+│        a care profile      ·   matched PROVIDERS   ·   matched AID PROGRAMS      │
+│        posted live for providers to find                                         │
+└──────────────────────┬──────────────────────────┬────────────────────────────────┘
+                       ▼                          ▼
+TRACK A — PROVIDER CONNECTION                 TRACK B — AID PROGRAM
+entity: CONNECTION                            entity: PROGRAM REFERRAL
 ──────────────────────────────────────────    ──────────────────────────────────────────
-entity: visitor → family → CARE POST          entity: LISTING → claimed provider
-
-F1  ARRIVAL                                   P1  LISTING EXISTS
-    Technology · organic, benefits,               Technology · seeded from the
-    editorial, provider-funded ads                directory pipeline. Unclaimed.
-  │                                             │  Providers do not sign up.
-  ▼                                             ▼
-F2  NEED EXPRESSED                            P2  REACHABLE
-    Family · a care need, on a                    Admin Team · verified email,
-    provider page or benefits page                category, service area, not on
-  │                                               a do-not-contact list
-  ▼                                             │
-F3  INTAKE                                      │   No outbound sequence runs here.
-    Portal · who needs care ·                   │   The pool waits for demand.
-    timeline · care need · payment              │
-    · details                                   │
+A1  MATCH                                     B1  MATCH
+    by care type, area, availability              by state, eligibility, category:
+    inquiry  family → provider                    financial · food · health ·
+    request  provider → family                    caregiver
   │                                             │
-  ▼                                             │
-F4  CARE POST LIVE                              │
-    Portal · "Go Live"                          │
-    An actionable opportunity:                  │
-    matchable, in Find Families,                │
-    counted in Demand by city                   │
+  ▼                                             ▼
+A2  PAYLOAD DELIVERED                         B2  FIRST STEP ISSUED
+    Technology · care profile +                   Technology · the call to make,
+    needs assessment, by email                    the documents to gather.
+    with a one-click link                         TJ approves each letter
+  │                                             │
+  ▼                                             ▼
+A3  PROVIDER RESPONDS                         B3  FAMILY ACTS
+    Provider                                      Family · status ladder:
+  │                                               called · no answer · needs docs
+  ▼                                               · applied · waiting · stuck ·
+A4  CONVERSATION                                  not eligible
+    inbox · phone · email · a                   │
+    scheduled call or meeting                   ▼
+  │                                           B4  SECURED   ◄── NOT TRACKED TODAY
+  ▼                                               the ladder stops at 'applied'.
+A5  CONNECTION CONFIRMED                          Nothing records approval.
+    both sides say they talked                  │
   │                                             │
   └───────────────────────┬───────────────────────┘
                           ▼
 ┌──────────────────────────────────────────────────────────────────────────────────┐
-│  CONNECTION            entity: CONNECTION  (one family ↔ one provider)           │
+│  FAMILY OUTCOME                                          entity: FAMILY          │
 │                                                                                  │
-│   C1  MATCH MADE                          Two directions, one entity:            │
-│       Family · or Provider                  inquiry  family → provider           │
-│        │                                    request  provider → family           │
-│        ▼                                                                         │
-│   C2  OPPORTUNITY DELIVERED  ────────────────────────► activates the provider    │
-│       Technology · email + one-click token                    (P3, below)        │
-│        │                                                                         │
-│        ▼                                                                         │
-│   C3  PROVIDER RESPONDS                   accepted, or a non-auto thread reply   │
-│       Provider                            = "successful connection"              │
-│        │                                                                         │
-│        ├──────────── silent 7d ──────────────────┐                               │
-│        ▼                                         ▼                               │
-│   C4  CONVERSATION                        GUIDANCE BRANCH                        │
-│       Family + Provider · mostly by            Technology · benefits cascade,    │
-│       phone, off-platform                      compare, guide. TJ approves       │
-│        │                                       navigator letters                 │
-│        ▼                                         │                               │
-│   C5  OUTCOME SENSED                             │                               │
-│       Two one-tap sensors, because the truth     │                               │
-│       is off-platform:                           │                               │
-│         family    "did they get back to you?"    │                               │
-│         provider  client · talking · no          │                               │
-└────────────────────────┬─────────────────────────┼───────────────────────────────┘
-                         ▼                         ▼
-FAMILY OUTCOME  (per family)                  PROVIDER OUTCOME  (per connection)
-──────────────────────────────────────────    ──────────────────────────────────────────
-  connected  a real match formed                client    became a paying client
-  active     still in the window (7d)           talking   in conversation
-  guided     no match, guidance engaged         no        did not convert
-  stalled    aged out, provider silent
-
-┌──────────────────────────────────────────────────────────────────────────────────┐
-│  P3  PROVIDER ACTIVATED        claimed · portal access · leads with full PII     │
-│      Provider · triggered by C2, not before it                                   │
-│        │                                                                         │
-│        ▼                                                                         │
-│  P4  COMMERCIAL — AD BOOST     Admin Team · managed lead-gen, gated on a ≥70%    │
-│      profile. Provider-funded ads that drive families back into F1.              │
-│      NOT priced per connection. Revenue attaches to the PROVIDER, not the match. │
+│    CARE ESTABLISHED                       AID SECURED                            │
+│    with which provider, of how many       which programs, of how many referred   │
+│    talked to — split by provider type:    — split by category                    │
+│    facility vs home care agency                                                  │
+│                                                                                  │
+│    fall-off and reason, at every step above                                      │
 └──────────────────────────────────────────────────────────────────────────────────┘
+
+PROVIDER STATE  —  a ladder, not a funnel. No stage owns it; it is the listing's state.
+──────────────────────────────────────────────────────────────────────────────────────
+  unclaimed ──► reachable ──► activated ──► responsive ──► ??? 
+  seeded from   verified      clicked the   answers        COMMERCIAL RELATIONSHIP
+  the directory email, area,  lead email    leads          UNRESOLVED — see notes.
+  pipeline      category      (claimed)                    Ad Boost is the only
+                                                           money that exists today,
+                                                           and it is not per-referral.
 ```
 
 ---
 
-## Why this is not shaped like MedJobs
+## What changed from v1, and why
 
-MedJobs is **two outbound funnels converging**. Both sides are built by the Admin Team, both run
-cadences, both hand off at a booked meeting. This system is not that.
+**The aid track is a parallel deliverable, not a failure branch.** v1 drew guidance as where a family
+goes when matchmaking stalls. That was wrong. A family can need a provider, an aid program, or both,
+and the aid track has its own match, its own execution and its own outcome. It runs from the same
+plan, at the same time.
 
-**1. One funnel meeting a stock.** The demand side is a genuine inbound funnel. The supply side is a
-standing inventory: listings are seeded from the directory pipeline and sit unclaimed. *Providers do
-not sign up for Olera.* There is no provider-side cadence running in parallel — the pool waits for
-demand and is activated by it.
+**One needs assessment, not three stages.** v1 split *need expressed → intake → care post live*. They
+are one act with several outputs: a care profile, matched providers, matched aid programs, and a post
+that providers can find.
 
-**2. Activation happens after the first connection, not before it.** The provider's acquisition
-moment is the one-click token link in the lead email. So P3 sits below the connection block, and the
-arrow runs backwards. Drawing the provider side as a pipeline that completes before matching would
-misrepresent the system.
+**A plan is the deliverable.** The thing we hand the family — and the thing we execute against — is a
+plan, not a post. The post is one of its outputs.
 
-**3. Failure is a designed branch, not an error.** `connected · active · guided · stalled` is a clean
-partition of every family that has inquired. Guidance — the benefits cascade, compare, guide — is
-where a family goes when matchmaking stalls. A happy-path-only diagram would describe a system we do
-not run.
+**Three entry weights, not one.** A question (public Q&A, guests allowed, intent already inferred as
+cost / care-type / fit), a lead, and a stated care need are different commitments through the same
+door. All three have to be accounted for; only the third produces a care post today.
 
-**4. Connections run in both directions.** `inquiry` is family → provider; `request` is provider →
-family from Find Families. One entity, two origins.
-
-**5. Truth is off-platform and self-reported.** The real conversation happens by phone. So the
-outcome layer is a **sensor** layer, not a system of record: a one-tap question to each side. In
-MedJobs the operator logs what happened; here we ask, and sometimes nobody answers.
-
-**6. Revenue does not attach to the match.** MedJobs bills a placement at six shifts — revenue sits
-on the unit that moves through the funnel. Here the commercial event is Ad Boost: provider-level,
-subscription-shaped, gated on profile completeness, and it *feeds families back into F1*. Revenue
-attaches to the provider, not the connection. **This is the difference most likely to produce a
-misleading funnel if we draw a straight line from care need to commercial outcome.**
+**The provider side is a state ladder, not a funnel.** v1's P3/P4 tried to make provider activation a
+stage. It is not — it is the listing's state, and it changes as a side effect of demand.
+`unclaimed → reachable → activated → responsive → ?`
 
 ---
 
-## Stages, owners, and what is moving
+## Aid programs — what exists
 
-| Stage | Name | Primary owner | Entity progressing |
-|---|---|---|---|
-| **F1** | Arrival | Technology | Visitor |
-| **F2** | Need expressed | Family, on a Portal surface | Care need |
-| **F3** | Intake | Portal | Care need |
-| **F4** | Care post live | Portal · *Go Live* | **Care post** — the actionable opportunity |
-| **P1** | Listing exists | Technology · directory pipeline | Listing |
-| **P2** | Reachable | Admin Team | Listing |
-| **P3** | Provider activated | Provider · one-click token | Claimed provider |
-| **P4** | Commercial — Ad Boost | Admin Team | Provider |
-| **C1** | Match made | Family or Provider | **Connection** |
-| **C2** | Opportunity delivered | Technology | Connection |
-| **C3** | Provider responds | Provider | Connection |
-| **C4** | Conversation | Family + Provider, off-platform | Connection |
-| **C5** | Outcome sensed | Family and Provider, one tap each | Connection → client relationship |
-| **—** | Guidance branch | Technology · TJ approves navigator letters | Family |
+**Recommended noun: aid program.** Not *public aid* — the catalogue is already broader than public
+programs (SHIP/HICAP counselling, ombudsman, legal aid, nonprofit meal programs), so *public* would
+be wrong for part of the list and would make the taxonomy argue with itself.
 
-### The unit of analysis changes three times
+**But note the vocabulary split.** The product says **benefits** everywhere — `/benefits/*` routes,
+`benefits_cascade`, `WaiverProgram`, the SEO surface. Recommendation: leave that alone (those URLs
+are earned assets) and adopt **aid program** as the internal operating noun for the thing we match,
+refer, and track. Decide it once and write it down, or the two will drift.
 
-Care needs are not families. Connections are not care posts. One family can raise several care
-needs; one care post can generate several connections; one connection is the only place a client
-relationship can form. **F, C and P counts must never be divided into each other without saying
-which entity the denominator is.** Two ratios are safe and worth having early:
+**The categories already exist** — `lib/waiver-category.ts` sorts every program into one of four:
 
-- **per care post** — how many connections did it produce, and did any reach `connected`
-- **per connection** — did the provider respond, and did the family become a client
+| Category | Examples in the keyword map |
+|---|---|
+| **financial** | SSI/SSP, LIHEAP, weatherization, property tax relief, Medicare Savings Programs, legal aid |
+| **food** | SNAP/CalFresh, congregate and home-delivered meals, senior nutrition |
+| **health** | Medicaid, Medicare, HCBS waivers, PACE, SHIP/HICAP |
+| **caregiver** | Family caregiver support, respite, ombudsman |
 
-Family outcome is a **per-family** partition. Provider outcome is **per-connection**. They do not
-stack.
+**Two program universes that share no key.** The scored engine holds structured eligibility
+(`min_age`, `max_income_single`, `requires_medicaid`, `requires_veteran`) on `sbf_*` tables. Every
+family-facing surface runs on pipeline draft programs with slug ids and prose eligibility.
+`waiver_library_url` joins only ~530 of 1,629 state rows; `lib/benefits/eligibility.server.ts`
+bridges the rest by canonical name. **To track "did they secure the program we referred," we need one
+canonical program id.** That is the first real dependency on this track.
+
+**The execution ladder exists; the finish line does not.**
+`called · no_answer · needs_docs · applied · waiting · not_eligible · stuck` — reported by text and
+shown back on the living plan. There is no `secured` / `approved` / `enrolled` state. The ladder
+stops at *applied*, so today we can say a family applied and never that they got it.
 
 ---
 
-## Open architectural questions
+## Demand sources — the referral-partner channel
 
-1. **Is F2 before or after F4?** A family can inquire from a provider page without ever publishing a
-   care post, and can publish a care post without inquiring. Drawn as a sequence it is a funnel;
-   drawn honestly it may be two entry doors into the same opportunity. This decides whether F1–F4 is
-   a funnel we can measure fall-off through at all.
+The third lane of D1 is new work, and it is structurally identical to the MedJobs university side: an
+office, a named contact, a permission, collateral, and a relationship maintained over time. **The
+ST1–ST7 machinery already built for universities is the same machine pointed at aging services.**
+Cards and collateral are the flyer. That reuse is the strongest argument for building this lane next.
 
-2. **Is the benefits path the same funnel?** Benefits captures contact around eligibility, not around
-   a provider, and creates a living plan rather than a care post. It may be a second demand funnel
-   that merges at F3 — or its own system that occasionally donates a family.
+Grouped by who holds the family's trust at the moment of need:
 
-3. **What is P2 actually gated on?** "Reachable" currently means a verified email, a category and a
-   service area. Whether that is the real eligibility bar for receiving an opportunity — or whether
-   quality, responsiveness or recency belong in it — is undecided, and it determines who gets sent
-   families.
+**Clinical — at discharge or diagnosis.** Hospital discharge planners and case managers · SNF
+discharge planners · home health agencies · primary care and geriatrics practices · neurology and
+memory clinics · palliative care and hospice teams · dialysis centers · rehab facilities · health
+system community-benefit and population-health teams.
 
-4. **Should provider responsiveness feed matching?** A provider who has never answered a lead still
-   receives leads. This is the supply-side analogue of qualification.
+**Aging-services infrastructure — the highest-leverage lane, and already partly in the code
+(`lib/benefits/local-aaa.ts`).** Area Agencies on Aging · Aging & Disability Resource Centers ·
+SHIP/HICAP counsellors · long-term care ombudsmen · senior centers and congregate meal sites · Meals
+on Wheels routes · adult day programs · PACE programs.
 
-5. **Where does Ad Boost sit?** It is drawn as an outcome, but it is also an F1 source. It may
-   deserve to be drawn as a loop rather than a terminus.
+**Faith and community.** Churches, synagogues and mosques — specifically their parish-nurse and
+health-ministry programs · community centers and YMCAs · public libraries, which field more
+"help me find" questions than anyone expects · cultural associations.
 
-6. **Is a market the right frame?** MedJobs has Site 1 = one university plus its catchment. The
-   equivalent here is a city or service area — but families and providers are matched by area
-   independently of any market definition. If we want per-market health, the market has to become a
-   real object.
+**Financial, legal and benefits touchpoints.** Elder law attorneys · financial advisors and estate
+planners · Medicaid eligibility offices · county veteran service officers, VSOs, VFW and American
+Legion posts · Social Security field offices.
+
+**Employer and membership.** HR benefits teams and EAPs with caregiver benefits · unions and retiree
+associations · AARP chapters.
+
+**Housing.** Independent living communities whose residents now need care · senior housing and HUD
+202 property managers · home-modification contractors.
+
+---
+
+## The commercial question — unresolved on purpose
+
+The diagram ends the provider ladder at `?` deliberately. Today the only money is **Ad Boost**:
+provider-funded managed advertising, gated on a ≥70% profile, priced as a campaign and **not per
+referral**. It is also a demand source, so it is a loop, not a terminus.
+
+Charging a provider when a family becomes their client is a **placement-fee** model, and that is the
+model that attracts scrutiny in healthcare referral. The federal Anti-Kickback Statute reaches
+remuneration for referrals of items or services payable by a federal healthcare program; many states
+add patient-brokering statutes that are broader still. Senior-living referral agencies do commonly
+operate placement-fee models, typically confined to private-pay placements — which is exactly the
+distinction that has to be got right rather than assumed.
+
+**This needs healthcare regulatory counsel before anything is designed against it.** What the
+architecture should do meanwhile is refuse to presuppose an answer: keep the commercial box detached
+from the match, so a decision either way does not require redrawing the funnel. Three candidates
+worth pricing out for that conversation:
+
+1. **Provider-funded marketing** (Ad Boost today) — no payment per referral.
+2. **Subscription or listing enhancement** — flat fee, not contingent on a placement.
+3. **Placement fee** — contingent on the family becoming a client; the highest-scrutiny option, and
+   the one most likely to need to be confined by payer type.
+
+---
+
+## Open questions
+
+1. **Does a question or a lead produce a plan?** Today only a stated care need does. If a question is
+   a real entry signal, something has to carry it forward.
+2. **One canonical aid-program id** — a hard prerequisite for tracking *secured*.
+3. **What counts as secured?** Approved, enrolled, first benefit received? Each is a different
+   sensor, and the family is the only one who can tell us.
+4. **Who owns Track B execution?** Today it is a cron plus TJ approving letters. Step-by-step help
+   applying is a human job at some volume.
+5. **Provider-type reporting** — facility versus home care agency needs to be a real dimension on the
+   connection, not derived at read time.
+6. **Does responsiveness feed matching?** A provider who never answers still receives families.
+7. **What is a market?** Families and providers match by area independently of any market object.

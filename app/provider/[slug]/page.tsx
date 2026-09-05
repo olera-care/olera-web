@@ -34,7 +34,8 @@ import {
   RATE_UNIT_SUFFIX,
 } from "@/lib/pricing-config";
 import type { PriceSource } from "@/components/providers/PriceEstimate";
-import { getProfileCategoryFallbackImage } from "@/lib/types/provider";
+import { getProfileCategoryFallbackImage, getCategoryFallbackImage } from "@/lib/types/provider";
+import { filterDeadImageUrls, liveImageUrlOrNull } from "@/lib/images/dead-hosts";
 import ManagePageCTA from "@/components/providers/ManagePageCTA";
 import SectionEmptyState from "@/components/providers/SectionEmptyState";
 import ReviewsSection from "@/components/providers/ReviewsSection";
@@ -98,13 +99,16 @@ export async function generateMetadata({
     ? provider.provider_description.slice(0, 160).trimEnd() + (provider.provider_description.length > 160 ? "..." : "")
     : `Find details, reviews, and pricing for ${name}, a ${category} provider${locationComma ? ` in ${locationComma}` : ""}. Compare options on Olera.`;
 
-  const images: string[] = [];
-  if (provider.provider_images) {
-    const first = provider.provider_images.split(" | ")[0];
-    if (first) images.push(first);
-  } else if (provider.provider_logo) {
-    images.push(provider.provider_logo);
-  }
+  // og:image must never point at a dead host (cdn-api.olera.care, expired
+  // Places photoUri): Googlebot-Image fetches it directly and logs the failure
+  // against the site. Fall back to the category stock image, as an absolute URL.
+  const liveImages = filterDeadImageUrls(
+    provider.provider_images ? provider.provider_images.split(" | ").filter(Boolean) : [],
+  );
+  const firstImage = liveImages[0] ?? liveImageUrlOrNull(provider.provider_logo);
+  const images: string[] = [
+    firstImage ?? `https://olera.care${getCategoryFallbackImage(provider.provider_category ?? "", slug)}`,
+  ];
 
   return {
     title,
@@ -381,11 +385,16 @@ export default async function ProviderPage({
   const priceSource = priceResolution.source;
 
   const rating = meta?.rating;
+  // business_profiles.metadata.images was hydrated from the directory at claim
+  // time and can still carry dead-host URLs; filter here so the gallery, the
+  // JSON-LD image, and the hero fallback all see the same clean list.
+  const liveMetaImages = filterDeadImageUrls(meta?.images ?? []);
+  const liveProfileImage = liveImageUrlOrNull(profile.image_url);
   const images =
-    meta?.images && meta.images.length > 0
-      ? meta.images
-      : profile.image_url
-        ? [profile.image_url]
+    liveMetaImages.length > 0
+      ? liveMetaImages
+      : liveProfileImage
+        ? [liveProfileImage]
         : [];
   const heroFallbackImage = getProfileCategoryFallbackImage(profile.category, profile.id);
   let staff = meta?.staff;

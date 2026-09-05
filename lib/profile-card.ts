@@ -6,6 +6,7 @@
  * (e.g., components/shared/ProfileCard.tsx).
  */
 
+import { liveImageUrlOrNull } from "@/lib/images/dead-hosts";
 import type {
   Profile,
   OrganizationMetadata,
@@ -102,7 +103,7 @@ export function profileToCard(profile: Profile): CardProfile {
     type: profile.type,
     name: profile.display_name,
     location,
-    imageUrl: profile.image_url,
+    imageUrl: liveImageUrlOrNull(profile.image_url),
     verified: profile.claim_state === "claimed" && (profile.verification_state === "verified" || profile.verification_state === "not_required"),
     careTypes: profile.care_types || [],
     category,

@@ -1,0 +1,2282 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>MedJobs 2.0 Master Implementation Matrix</title>
+<style>
+:root { --ink:#000; --muted:#5f6b64; --rule:#b9c4bd; --teal:#14453f; --soft:#f4f7f6; }
+* { box-sizing: border-box; }
+body { margin:0; color:var(--ink); font-family:Arial,Helvetica,sans-serif;
+       font-size:11pt; line-height:1.2; }
+.doc-title { font-size:15pt; font-weight:700; margin:0 0 2pt; color:var(--teal);
+       letter-spacing:0.2pt; }
+.doc-sub { font-size:10pt; color:var(--muted); margin:0 0 9pt; }
+h1,h2,h3,h4 { break-after:avoid; page-break-after:avoid; }
+h1 { font-size:13pt; font-weight:700; text-transform:uppercase; letter-spacing:0.4pt;
+       margin:16pt 0 5pt; color:var(--teal); border-bottom:1.6pt solid var(--teal);
+       padding-bottom:3pt; break-before:page; page-break-before:always; }
+h2 { font-size:11pt; font-weight:700; text-transform:uppercase; letter-spacing:0.4pt;
+       margin:13pt 0 4pt; padding-bottom:2pt; border-bottom:1.2pt solid #000; }
+h3 { font-size:10pt; font-weight:700; text-transform:uppercase; letter-spacing:0.4pt;
+       margin:9pt 0 3pt; color:var(--teal); }
+h4 { font-size:9.5pt; font-weight:700; margin:7pt 0 2pt; color:var(--muted);
+       text-transform:uppercase; letter-spacing:0.4pt; }
+p { margin:0 0 3pt; text-align:justify; orphans:2; widows:2; }
+ul,ol { margin:3pt 0 4pt; padding-left:17pt; }
+li { margin:0 0 3pt; text-align:left; }
+li::marker { color:var(--teal); }
+li > ul, li > ol { margin-top:3pt; }
+p.obj { break-after:avoid; page-break-after:avoid; }
+ul.facts { break-inside:avoid; page-break-inside:avoid; }
+strong { font-weight:700; }
+hr { border:0; border-top:0.6pt solid var(--rule); margin:9pt 0; }
+a { color:var(--teal); text-decoration:none; }
+code { font-family:"DejaVu Sans Mono","Liberation Mono",monospace; font-size:8.6pt;
+       background:var(--soft); border:0.5pt solid var(--rule); border-radius:2px;
+       padding:0 2px; }
+/* The flow diagram is 69 lines of box drawing. The size has to be set on the
+   pre itself, not on the code inside it, or the line boxes take the 11pt body
+   size and the block runs off the page. Overflow is left visible so that a
+   future edit which no longer fits is obvious rather than silently cropped. */
+pre { background:var(--soft); border:0.5pt solid var(--rule);
+      border-left:2.4pt solid var(--teal); padding:7pt 9pt;
+      font-family:"DejaVu Sans Mono","Liberation Mono",monospace;
+      font-size:7.2pt; line-height:1.05;
+      break-inside:avoid; page-break-inside:avoid; margin:0 0 6pt; }
+pre code { background:none; border:0; padding:0; font-size:inherit;
+           line-height:inherit; white-space:pre; }
+blockquote { margin:0 0 5pt; padding:0 0 0 8pt; border-left:2.4pt solid var(--rule);
+      color:var(--muted); font-size:9.5pt; break-inside:avoid; }
+blockquote p { margin:0 0 2pt; text-align:left; }
+blockquote p:last-child { margin-bottom:0; }
+blockquote strong { color:var(--teal); }
+table { width:100%; border-collapse:collapse; margin:5pt 0 2pt; font-size:9pt;
+      line-height:1.16; break-inside:auto; }
+thead { display:table-header-group; }
+tr { break-inside:avoid; page-break-inside:avoid; }
+th { text-align:left; color:var(--teal); border-bottom:1pt solid var(--teal);
+      padding:0 6pt 2.5pt 0; font-weight:700; vertical-align:bottom; }
+td { border-bottom:0.4pt solid var(--rule); padding:2.8pt 6pt 2.8pt 0;
+      vertical-align:top; }
+td strong { color:var(--teal); }
+tbody tr:last-child td { border-bottom:1pt solid var(--teal); }
+.toc { border-top:1.2pt solid #000; border-bottom:1.2pt solid #000; padding:6pt 0;
+      margin:0 0 10pt; font-size:9.5pt; break-inside:avoid; column-count:2;
+      column-gap:20pt; }
+.toc-h { font-size:9pt; text-transform:uppercase; letter-spacing:0.4pt;
+      color:var(--teal); font-weight:700; margin:0 0 4pt; column-span:all; }
+.toc ul { list-style:none; margin:0; padding:0; }
+.toc ul ul { display:none; }
+.toc li { margin:0 0 2pt; }
+.toc a { color:var(--ink); }
+figure { margin:5pt 0 6pt; break-inside:avoid; page-break-inside:avoid; }
+/* Process figures float into the text so a run of tables is broken up rather
+   than merely interrupted. Headings clear them so a float cannot escape into
+   the next stage. */
+figure.fw { float:right; width:2.5in; margin:2pt 0 6pt 14pt; }
+figure.fw svg { display:block; width:100%; height:auto; }
+figure.fw figcaption { font-size:8.5pt; line-height:1.14; }
+h1,h2,h3 { clear:both; }
+table { clear:both; }
+/* The screenshots are 640px wide. Capping the plate at 6.6in keeps them
+   near 97 dpi rather than the 85 dpi a full 7.5in column would give. */
+figure img { display:block; max-width:6.6in; max-height:8.2in; margin:0 auto; }
+figcaption { font-size:9pt; line-height:1.16; text-align:left; margin:3pt 0 0;
+      break-before:avoid; }
+figcaption strong:first-child { color:var(--teal); }
+.exhibit-missing { border:0.6pt dashed var(--rule); background:var(--soft);
+      padding:14pt 10pt; margin:5pt 0 6pt; text-align:center; color:var(--muted);
+      font-size:9pt; }
+.exhibit-missing b { display:block; color:var(--teal); font-size:9.5pt;
+      margin-bottom:3pt; }
+@page { size: Letter; }
+</style></head><body>
+<div class="doc-title">MedJobs 2.0 Master Implementation Matrix</div>
+<div class="doc-sub">Stage by stage: user journey, procedure, system handoff &#183; 4 September 2026</div>
+<div class="toc"><div class="toc-h">Contents</div><ul>
+<li><a href="#pr1-target-list-built-and-pre-flight-complete">PR1: Target list built and pre-flight complete</a></li>
+<li><a href="#pr-out-outbound-work">PR-OUT: Outbound work</a></li>
+<li><a href="#pr2-provider-meeting-held">PR2: Provider meeting held</a></li>
+<li><a href="#pr3-client-success">PR3: Client success</a></li>
+<li><a href="#st1-target-advisors">ST1: Target advisors</a></li>
+<li><a href="#st-out-university-outbound">ST-OUT: University outbound</a></li>
+<li><a href="#st2-advisor-meeting-held">ST2: Advisor meeting held</a></li>
+<li><a href="#st3st7-university-activation">ST3–ST7: University activation</a></li>
+<li><a href="#st8-student-application-submitted">ST8: Student application submitted</a></li>
+<li><a href="#qual-portal-vets-the-application">QUAL: Portal vets the application</a></li>
+<li><a href="#ma1-candidate-intro">MA1: Candidate intro</a></li>
+<li><a href="#ma2-interview-held">MA2: Interview held</a></li>
+<li><a href="#ma3-hire-confirmed">MA3: Hire confirmed</a></li>
+<li><a href="#ma4-six-or-more-shifts-worked-confirmed">MA4: Six or more shifts worked, confirmed</a></li>
+<li><a href="#ma5-bill-issued-and-collected">MA5: Bill issued and collected</a></li>
+</ul></div>
+<p>One university and the providers around it. Two pipelines built in parallel, each handed from the Admin Team to the Sales Lead at the booked meeting, and from the Sales Lead to the Consumer Relations Manager after it. Both feed the Portal, which carries a student from application to a placement we can bill for.</p>
+<pre><code>┌──────────────────────────────────────────────────────────────┐
+│  SITE 1                                                      │
+│  ONE UNIVERSITY + ONE SURROUNDING SERVICE AREA OF PROVIDERS  │
+└─────────────────────────┬────────────────────────────────────┘
+  ┌───────────────────────┴───────────────────────┐
+  ▼                                               ▼
+PROVIDER SIDE                                   STUDENT / UNIVERSITY SIDE
+────────────────────────────────────────────    ────────────────────────────────────────────
+PR1  TARGET LIST BUILT                          ST1  TARGET ADVISORS
+     Admin Team                                      Admin Team
+  │                                               │
+  ▼                                               ▼
+PR-OUT  OUTBOUND WORK                           ST-OUT  OUTBOUND WORK
+        Admin Team                                      Admin Team
+  │                                               │
+  ╞═══ HANDOFF  Admin Team → Sales Lead           ╞═══ HANDOFF  Admin Team → Sales Lead
+  ▼                                               ▼
+PR2  MEETING HELD                               ST2  ADVISOR MEETING HELD
+     Sales Lead                                      Sales Lead
+  │                                               │
+  ╞═══ HANDOFF  Sales Lead → Consumer Relations         ╞═══ HANDOFF  Sales Lead → Consumer Relations
+  ▼                                               ▼
+PR3  CLIENT SUCCESS                                  UNIVERSITY ACTIVATION
+     Consumer Relations Manager                         │  Consumer Relations Manager
+  │  Profile, terms, account setup                ├── ST3  UNIVERSITY JOB BOARD
+  │  Through to the first hire                    ├── ST4  STUDENT ORG RELATIONSHIPS
+  │                                               ├── ST5  CAMPUS EVENTS
+  │                                               ├── ST6  ADVISOR LISTSERVS
+  │                                               ├── ST7  PROFESSOR OUTREACH + CLASS VISITS
+  │                                               │
+  │                                               │   Each is secured once, then maintained.
+  │                                               │   All five circulate the opportunity.
+  │                                               │
+  └───────────────────────┬───────────────────────┘
+                          ▼
+┌──────────────────────────────────────────────────────────────────────────────────┐
+│  PORTAL   carries the flow from student application through fulfillment          │
+│                                                                                  │
+│   from PROVIDER SIDE                  from STUDENT / UNIVERSITY SIDE             │
+│   active client with                  ST8  STUDENT APPLICATION SUBMITTED         │
+│   a staffing need                           │                                    │
+│            │                                ▼                                    │
+│            │                          QUAL  PORTAL VETS THE APPLICATION          │
+│            │                                │                                    │
+│            │                                ▼                                    │
+│            │                          QUALIFIED CANDIDATE                        │
+│            └───────────────┬────────────────┘                                    │
+│                            ▼                                                     │
+│              ┌─────────────────────────────────────┐                             │
+│              │  MATCH / FULFILLMENT                │                             │
+│              │   MA1  CANDIDATE INTRO              │                             │
+│              │    ▼                                │                             │
+│              │   MA2  INTERVIEW HELD               │                             │
+│              │    ▼                                │                             │
+│              │   MA3  HIRE CONFIRMED               │                             │
+│              │    ▼                                │                             │
+│              │   MA4  6+ SHIFTS WORKED CONFIRMED   │ ◄── real value delivered,   │
+│              │    ▼                                │     so Olera charges        │
+│              │   MA5  BILL ISSUED AND COLLECTED    │                             │
+│              └──────────────────┬──────────────────┘                             │
+└─────────────────────────┬────────────────────────────────────────────────────────┘
+  ┌───────────────────────┴───────────────────────┐
+  ▼                                               ▼
+PROVIDER RECEIVES                               STUDENT RECEIVES
+────────────────────────────────────────────    ────────────────────────────────────────────
+  A successfully placed worker                    Pay
+  Value before any fee is charged                 Caregiving experience
+  Ongoing value from that worker                  A path to a strong recommendation
+</code></pre>
+<p>Each stage below is set out in three layers: what the user does and what the technology does, the procedure behind it, and what the system records and hands on. Anything the document describes that does not exist yet is named as such and carried in the deferred build list at the end.</p>
+<hr />
+<h2 id="pr1-target-list-built-and-pre-flight-complete">PR1: Target list built and pre-flight complete</h2>
+<p class="obj"><strong>Objective</strong> Add a university site so the system loads every matching provider from the Olera directory into
+the In Basket, then complete pre-flight research on each one (phone, email, address, decision maker) confirmed
+by a pre-flight call.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Admin Team.</li>
+<li><strong>Users</strong> Admin Team.</li>
+<li><strong>Completion criteria</strong> Contact details confirmed on the call, and the row launched into outreach, or three unsuccessful call attempts, and the row archived.</li>
+</ul>
+<blockquote>
+<p><strong>PR1 is not just the list.</strong> It is the list <em>built and worked through pre-flight.</em> A site whose
+providers are loaded but un-researched has not completed PR1.</p>
+</blockquote>
+<h3 id="1-user-journey-technology">① User journey / technology</h3>
+<p><strong>Actor: Admin Team.</strong> Two screens carry the whole stage.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>What they do</th>
+<th>Where</th>
+<th>Exhibit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Open the Sites tab and review active university territories</td>
+<td><a href="https://olera.care/admin/medjobs/sites"><code>olera.care/admin/medjobs/sites</code></a></td>
+<td><strong>A</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td>Click <strong>+ Add Site</strong> and pick a university. The picker shows how many directory providers fall in that service area, and that is how many Provider Prospects the site will generate</td>
+<td>Same page, Add Site modal</td>
+<td><strong>B</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Go to the In Basket, Providers tab. The site's providers are waiting there for pre-flight research</td>
+<td><a href="https://olera.care/admin/medjobs/in-basket"><code>olera.care/admin/medjobs/in-basket</code></a></td>
+<td><strong>C</strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Open a provider row. The drawer holds the research panel (business name, phone, email, address, fax, contact form, decision makers, research notes) with <strong>Fill from Website</strong> and a <strong>source</strong> link</td>
+<td>In Basket → provider drawer</td>
+<td><strong>E</strong></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Click <strong>Call to Confirm</strong>, work the suggested script, and log the outcome</td>
+<td>Drawer → Log Pre-Flight outcome modal</td>
+<td><strong>D</strong></td>
+</tr>
+<tr>
+<td>6</td>
+<td>Launch outreach once contact details are confirmed</td>
+<td>Drawer → <strong>Launch outreach →</strong></td>
+<td><strong>E</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>What the system does on its own:</strong> adding a site pulls the matching providers out of the Olera directory and places them in the In Basket as rows awaiting pre-flight research. Nobody builds the list by hand.</p>
+<h3 id="2-procedure">② Procedure</h3>
+<figure class="fw"><svg viewBox="0 0 250 158" width="2.5in" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif"><defs><marker id="a" markerWidth="7" markerHeight="5.4" refX="6.5" refY="2.7" orient="auto"><path d="M0,0 L7,2.7 L0,5.4 z" fill="#14453f"/></marker></defs><rect x="55" y="6" width="140" height="20" rx="3" fill="#e8f1ec" stroke="#14453f" stroke-width="1.1"/><text x="125" y="20" font-size="13.19" fill="#14453f" text-anchor="middle" font-weight="bold" font-style="normal">Call the provider</text><line x1="125" y1="27" x2="125" y2="39" stroke="#14453f" stroke-width="1.2" marker-end="url(#a)"/><rect x="4" y="41" width="112" height="18" rx="3" fill="#fff" stroke="#1a7f4e" stroke-width="1.0"/><text x="60" y="53.6" font-size="13.19" fill="#1a7f4e" text-anchor="middle" font-weight="bold" font-style="normal">Confirmed</text><line x1="118" y1="50" x2="130" y2="50" stroke="#1a7f4e" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="53.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Launch outreach</text><rect x="4" y="63" width="112" height="18" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.0"/><text x="60" y="75.6" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">No answer</text><line x1="118" y1="72" x2="130" y2="72" stroke="#5f6b64" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="75.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Call again</text><rect x="4" y="85" width="112" height="18" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.0"/><text x="60" y="97.6" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Voicemail</text><line x1="118" y1="94" x2="130" y2="94" stroke="#5f6b64" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="97.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Call again</text><rect x="4" y="107" width="112" height="18" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.0"/><text x="60" y="119.6" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Not interested</text><line x1="118" y1="116" x2="130" y2="116" stroke="#5f6b64" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="119.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Close the row</text><rect x="4" y="131" width="242" height="21" rx="3" fill="#f4f7f6" stroke="#b9c4bd" stroke-width="1"/><text x="125" y="145" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Three failed calls, then archive</text></svg><figcaption><strong>Pre-flight.</strong> One call, four outcomes, and the three-strike rule that closes a row nobody answers.</figcaption></figure>
+
+<p><strong>For a given site, work every provider on it.</strong></p>
+<ol>
+<li><strong>Do the desk research first.</strong> Fill in whatever phone, email and address you can find yourself, from
+   the provider's website, the source link on the row, or <strong>Fill from Website</strong>. Do not call a row you have not looked at.</li>
+<li><strong>Call every provider on the site.</strong> The call confirms the research; research alone does not complete
+   pre-flight.</li>
+<li><strong>Use the suggested script</strong> shown in the log modal: <em>"Hi, this is [your name] from Dr. DuBose's
+   office, calling about the Student Caregiver Program for [University] students. I'd like to send your team an email with the details, and wanted to check first on the best address to send it to."</em></li>
+<li><strong>Log the outcome, every time.</strong></li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Outcome</th>
+<th>What it means</th>
+<th>What happens to the row</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Confirmed contact info</strong></td>
+<td>Reached someone; email and decision maker verified</td>
+<td>Pre-flight passes: launch outreach</td>
+</tr>
+<tr>
+<td><strong>No answer</strong></td>
+<td>Nobody picked up</td>
+<td>Stays in pre-flight: call again</td>
+</tr>
+<tr>
+<td><strong>Voicemail</strong></td>
+<td>Message left</td>
+<td>Stays in pre-flight: call again</td>
+</tr>
+<tr>
+<td><strong>Not interested</strong></td>
+<td>They do not want the information</td>
+<td>Row closes; no outreach</td>
+</tr>
+</tbody>
+</table>
+<ol start="5">
+<li><strong>Update the record from the call.</strong> A corrected email address or a named decision maker learned on the
+   phone goes onto the row immediately, while you have it.</li>
+<li><strong>Three attempts, then archive.</strong> If three calls fail to confirm the contact details, archive the
+   provider and move on.</li>
+</ol>
+<p><em>The modal also carries an </em><em>Override &amp; launch outreach</em><em> escape hatch for a row you are confident about without a confirming call. Use it deliberately, not as the default.</em></p>
+<h3 id="3-system-handoff">③ System / handoff</h3>
+<table>
+<thead>
+<tr>
+<th>Data captured</th>
+<th>Status</th>
+<th>Events</th>
+<th>Next trigger</th>
+<th>Handoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Business name · phone · email · address · fax · contact form · decision makers · research notes · call outcome and notes</td>
+<td>loaded → in pre-flight → confirmed · archived · closed</td>
+<td>site added · providers loaded · contact added or updated · pre-flight call logged (confirmed / no answer / voicemail / not interested) · outreach launched · archived</td>
+<td>Contact details confirmed on a call</td>
+<td><strong>Launch outreach → PR-OUT.</strong> Not confirmed → the row stays in pre-flight for another attempt. Three failed attempts → archived</td>
+</tr>
+</tbody>
+</table>
+<p>Every call, including the ones nobody answered, writes to the row's timeline with the caller's name and the
+time, so the attempt count is visible rather than remembered.</p>
+<p><strong>Communications</strong> None outbound at this stage. The pre-flight call is the only contact, and it uses the script in the log modal.</p>
+<h3 id="exhibits">Exhibits</h3>
+<figure><img alt="Exhibit A. MedJobs Sites" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/A-sites.png" /><figcaption><strong>Exhibit A. Sites.</strong> Active university territories, each card carrying its research badges (<strong>Research
+needed</strong> · Advising ✓ · Orgs ✓ · Dept heads ☐), a stakeholder count, and <strong>Find partners ✦</strong>.
+<code>olera.care/admin/medjobs/sites</code></figcaption></figure>
+<figure><img alt="Exhibit B. Add Site modal" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/B-add-site.png" /><figcaption><strong>Exhibit B. Add Site.</strong> The university picker, each option carrying its catchment count, <em>University of
+Houston / Rice, 152 in catchment</em>. <strong>This is where the size of the prospect list is decided.</strong> Picking a
+university with 152 providers commits the Admin Team to pre-flighting 152 rows.
+<code>olera.care/admin/medjobs/sites</code> → <strong>+ Add Site</strong></figcaption></figure>
+<figure><img alt="Exhibit C. In Basket, Providers tab" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/C-in-basket-providers.png" /><figcaption><strong>Exhibit C. In Basket, Providers tab.</strong> The day's workload over three counters: <strong>QUEUED</strong>, <strong>LOGS COMPLETED
+TODAY</strong>, and a <strong>STREAK</strong> of consecutive business days hitting fifty logs. Below, one card per provider,
+filtered to a single site, under tabs that each carry a worked/total count.
+<code>olera.care/admin/medjobs/in-basket</code></figcaption></figure>
+<figure><img alt="Exhibit D. Log Pre-Flight outcome modal" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/D-log-preflight.png" /><figcaption><strong>Exhibit D. Log Pre-Flight outcome.</strong> The <strong>SUGGESTED SCRIPT</strong> verbatim, the four outcomes with their
+consequences written underneath each, a notes field prompting <em>"What did they confirm? Anything useful for
+outreach copy?"</em>, and <strong>Override &amp; launch outreach</strong>. In Basket → provider row → <strong>Call to Confirm</strong></figcaption></figure>
+<figure><img alt="Exhibit E. Provider research drawer" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/E-provider-drawer.png" /><figcaption><strong>Exhibit E. Provider drawer.</strong> <strong>RESEARCH</strong> states the sequence (<em>"Check the info, call to confirm, then
+launch outreach"</em>) over five contact fields, each with a state marker. The ticks are what pre-flight complete
+looks like on a row. Then <strong>DECISION MAKERS</strong>, three actions (<strong>Call to Confirm</strong> · <strong>Launch outreach →</strong> ·
+<strong>Launch activation →</strong>), research notes, and the timeline. <strong>The timeline is where the three-strikes count is
+read from</strong>: one entry per attempt, with the operator's name and how long ago. In Basket → provider row</figcaption></figure>
+<hr />
+<h2 id="pr-out-outbound-work">PR-OUT: Outbound work</h2>
+<p class="obj"><strong>Objective</strong> Launch the call-and-email campaign on a provider that has cleared pre-flight, then work the queues it generates until the provider books a meeting or the row runs out.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Admin Team.</li>
+<li><strong>Users</strong> Admin Team, provider.</li>
+<li><strong>Completion criteria</strong> A meeting on the Sales Lead's calendar, or a recorded terminal outcome, or a finished cadence that drops the row into Follow-up.</li>
+</ul>
+<blockquote>
+<p><strong>The cadence is shorter than the protocol says.</strong> Graize's written protocol calls this the <em>D0–30
+campaign</em>. What is shipped is <strong>3 emails and 2 calls over 7 days</strong>: Day 0 · Day 3 · Day 5 · Day 7.
+Either the protocol or the cadence should change; flagged rather than reconciled.</p>
+</blockquote>
+<h3 id="1-user-journey-technology_1">① User journey / technology</h3>
+<p><strong>Actors: Admin Team and the provider.</strong> Launch happens once; the queues are worked daily.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>What happens</th>
+<th>Where</th>
+<th>Exhibit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Click <strong>Launch outreach →</strong> on a cleared row. <strong>Confirm outreach plan</strong> opens with the whole campaign laid out: a launch summary, the recipients as checkboxes, and every day expandable to the actual email the provider will receive</td>
+<td>In Basket → provider drawer</td>
+<td><strong>E</strong>, <strong>F</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Start outreach.</strong> Day 0 sends; the rest queue via the send engine</td>
+<td>Automatic</td>
+<td>None</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Work the <strong>Calls</strong> tab: calls grouped by the day they are due, each row with a click-to-dial number</td>
+<td><a href="https://olera.care/admin/medjobs/in-basket?tab=calls"><code>olera.care/admin/medjobs/in-basket?tab=calls</code></a></td>
+<td><strong>G</strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Open the row. The drawer's <strong>NEXT STEP</strong> panel names the state and offers the actions that fit it</td>
+<td>Calls → row</td>
+<td><strong>I</strong></td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>Call provider</strong>, work the day's script, log the outcome</td>
+<td>Row → <strong>Log call</strong></td>
+<td><strong>H</strong></td>
+</tr>
+<tr>
+<td>6</td>
+<td>Check replies. <strong>Check for reply</strong> shows the provider's actual message and the ways to respond</td>
+<td>Emails → row → <strong>Check for reply</strong></td>
+<td><strong>J</strong></td>
+</tr>
+<tr>
+<td>7</td>
+<td>When a cadence finishes with no meeting, the row appears in <strong>Follow-up</strong> for triage</td>
+<td>In Basket → Follow-up</td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+<figure class="fw"><svg viewBox="0 0 250 146" width="2.5in" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif"><defs><marker id="a" markerWidth="7" markerHeight="5.4" refX="6.5" refY="2.7" orient="auto"><path d="M0,0 L7,2.7 L0,5.4 z" fill="#14453f"/></marker></defs><text x="4" y="16" font-size="13.19" fill="#5f6b64" text-anchor="start" font-weight="bold" font-style="normal">OUTREACH, 7 DAYS</text><line x1="34" y1="24" x2="34" y2="44" stroke="#b9c4bd" stroke-width="1"/><circle cx="34" cy="32" r="3.4" fill="#14453f"/><text x="28" y="35.5" font-size="13.19" fill="#14453f" text-anchor="end" font-weight="bold" font-style="normal">Day 0</text><text x="44" y="35.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Intro email</text><line x1="34" y1="44" x2="34" y2="77" stroke="#b9c4bd" stroke-width="1"/><circle cx="34" cy="52" r="3.4" fill="#14453f"/><text x="28" y="55.5" font-size="13.19" fill="#14453f" text-anchor="end" font-weight="bold" font-style="normal">Day 3</text><text x="44" y="55.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Follow-up email</text><text x="44" y="68.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Check-in call</text><line x1="34" y1="77" x2="34" y2="97" stroke="#b9c4bd" stroke-width="1"/><circle cx="34" cy="85" r="3.4" fill="#14453f"/><text x="28" y="88.5" font-size="13.19" fill="#14453f" text-anchor="end" font-weight="bold" font-style="normal">Day 5</text><text x="44" y="88.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Call</text><line x1="34" y1="97" x2="34" y2="117" stroke="#b9c4bd" stroke-width="1"/><circle cx="34" cy="105" r="3.4" fill="#14453f"/><text x="28" y="108.5" font-size="13.19" fill="#14453f" text-anchor="end" font-weight="bold" font-style="normal">Day 7</text><text x="44" y="108.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Final email</text><rect x="4" y="119" width="242" height="21" rx="3" fill="#e8f1ec" stroke="#1a7f4e" stroke-width="1.1"/><text x="125" y="133" font-size="13.19" fill="#1a7f4e" text-anchor="middle" font-weight="bold" font-style="normal">A reply stops the sequence</text></svg><figcaption><strong>The outreach cadence.</strong> Three emails and two calls over seven days, and any reply ends it.</figcaption></figure>
+
+<p><strong>The cadence.</strong> Day 0 intro email · Day 3 follow-up email and a check-in call · Day 5 call · Day 7 final email. Cold email sends from a dedicated outreach domain. Scheduled sends and calls appear in the drawer's <strong>UPCOMING</strong> list with their dates, so the row's whole future is visible before it happens.</p>
+<h3 id="2-procedure_1">② Procedure</h3>
+<ol>
+<li><strong>Launch only rows that cleared pre-flight.</strong> The override writes itself to the timeline with your
+   name on it. Use it deliberately.</li>
+<li><strong>Read the plan before starting.</strong> Untick anyone who should not receive it, and expand Day 0 to check
+   the merge fields resolved.</li>
+<li><strong>Work the Calls tab to zero every day.</strong> Calls are grouped by due date; the count beside the date is
+   the day's workload.</li>
+<li><strong>Read the NEXT STEP panel before dialling.</strong> It tells you where the row actually is: awaiting reply,
+   next call in N days, or they replied and it is your move.</li>
+<li><strong>Use the day's script.</strong> A Day 3 call opens with a different line than a Day 5 one.</li>
+<li><strong>Answer every reply within one business day</strong>: same day for anything mentioning a time.</li>
+<li><strong>Log every outcome, every time</strong>, including the calls nobody answered. A note on its own logs the call.</li>
+<li><strong>Do not hand-email a row mid-cadence.</strong> Reply through the row so the cadence stops cleanly.</li>
+</ol>
+<p><strong>Call outcomes and what each does to the row</strong></p>
+<table>
+<thead>
+<tr>
+<th>Outcome</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Interested</strong></td>
+<td>They want to move forward: launches the activation sequence</td>
+</tr>
+<tr>
+<td><strong>📅 Meeting booked</strong></td>
+<td>Opens the Calendly booking page and marks a meeting scheduled</td>
+</tr>
+<tr>
+<td><strong>No answer</strong></td>
+<td>Marks this call done; the next cadence call stays scheduled</td>
+</tr>
+<tr>
+<td><strong>Voicemail</strong></td>
+<td>Message left; the next cadence call stays scheduled</td>
+</tr>
+<tr>
+<td><strong>Not interested</strong></td>
+<td>Closes the row and cancels remaining outreach</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Reply handling: what each option does</strong></p>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Launch activation cadence</strong></td>
+<td>Runs the standard activation sequence toward a meeting</td>
+</tr>
+<tr>
+<td><strong>✎ Launch custom cadence</strong></td>
+<td>Compose your own emails and calls for a bespoke response</td>
+</tr>
+<tr>
+<td><strong>↻ OOO reply: restart last cadence</strong></td>
+<td>Auto-reply, not a real answer. Resumes the cadence and puts the row back to pending</td>
+</tr>
+<tr>
+<td><strong>📅 Book a meeting</strong></td>
+<td>Opens the Calendly booking page and marks a meeting scheduled</td>
+</tr>
+<tr>
+<td><strong>Not interested</strong></td>
+<td>Sends a polite closing note and stops outreach</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>A real reply stops the cadence automatically.</strong> The timeline records <em>"Reply received to [address] 
+cadence stopped,"</em> so the next move is a manual one. The out-of-office option exists precisely because
+an auto-reply should not count as one.</p>
+</blockquote>
+<h3 id="3-system-handoff_1">③ System / handoff</h3>
+<table>
+<thead>
+<tr>
+<th>Data captured</th>
+<th>Status</th>
+<th>Events</th>
+<th>Next trigger</th>
+<th>Handoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Recipients launched · sends, opens, replies · call outcomes and notes · scheduled sends and calls</td>
+<td>researched → outreach sent → cold · replied · closed · cadence finished</td>
+<td>outreach launched · row moved from Researched to Outreach Sent · outreach email sent (with open state) · called, no answer / voicemail / reached · reply received, cadence stopped · pre-flight overridden</td>
+<td>A meeting is booked</td>
+<td><strong>Admin Team → Sales Lead.</strong> The row appears in the Meetings queue with its full timeline. No meeting and the cadence finishes → the row drops to <strong>Follow-up</strong> for re-engage-or-retire triage</td>
+</tr>
+</tbody>
+</table>
+<p>A <strong>state chip</strong> above the timeline reads the row's position without anyone reading its history, <em>Cold, 1
+email sent, never opened · awaiting their callback</em>, or <em>Replied: your move</em>. <strong>UPCOMING</strong> lists what is still
+scheduled; <strong>PAST ACTIVITY</strong> what happened, each entry stamped with the operator and how long ago.</p>
+<p>Opens, replies and bounces only reach these queues if the send engine's webhook is wired. Without it the Emails and Follow-up tabs look empty rather than broken.</p>
+<p><strong>Communications</strong> Day 0 intro email · Day 3 follow-up email · Day 3 check-in call · Day 5 call · Day 7 final email · the reply the provider sends back.</p>
+<h3 id="exhibits_1">Exhibits</h3>
+<figure><img alt="Exhibit F. Confirm outreach plan" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/F-launch-outreach.png" /><figcaption><strong>Exhibit F. Confirm outreach plan.</strong> <strong>LAUNCH SUMMARY</strong> (<em>"3 emails + 2 calls"</em>), <strong>RECIPIENTS</strong> as
+checkboxes with the address and phone each will be reached on, and <strong>CADENCE</strong> with every day expandable. Day
+0 opens to the full email: To, From, subject, the body the provider will see, the variables substituted, and
+the program PDF. In Basket → provider drawer → <strong>Launch outreach →</strong></figcaption></figure>
+<figure><img alt="Exhibit G. Calls tab" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/G-calls-tab.png" /><figcaption><strong>Exhibit G. Calls tab.</strong> Calls grouped by due date with the day's count beside it, each row carrying the
+provider, its contact type, its site, and a click-to-dial number.
+<code>olera.care/admin/medjobs/in-basket?tab=calls</code></figcaption></figure>
+<figure><img alt="Exhibit I. Provider drawer during outreach" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/I-outreach-drawer.png" /><figcaption><strong>Exhibit I. The drawer during outreach.</strong> <strong>NEXT STEP</strong> names the state, <em>"Awaiting reply · Next call in
+4d"</em>, over the actions that fit it. Below, the state chip, <strong>UPCOMING</strong> (queued emails and scheduled calls
+with dates) and <strong>PAST ACTIVITY</strong>. Calls → row</figcaption></figure>
+<figure><img alt="Exhibit H. Log call modal" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/H-log-call.png" /><figcaption><strong>Exhibit H. Log call.</strong> The day's script at the top, <em>DAY 3 SCRIPT</em>, then the five outcomes with their
+consequences, and a notes field where a note on its own logs the call. Calls → row → <strong>Call provider</strong></figcaption></figure>
+<figure><img alt="Exhibit J. Check for reply modal" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/J-check-for-reply.png" /><figcaption><strong>Exhibit J. Check for reply.</strong> The provider's actual reply quoted at the top, then the five ways to respond.
+Behind it, the <strong>Emails</strong> tab grouped by state: <em>THEY REPLIED (9)</em>.
+<code>olera.care/admin/medjobs/in-basket?tab=replies</code> → row → <strong>Check for reply</strong></figcaption></figure>
+<hr />
+<h2 id="pr2-provider-meeting-held">PR2: Provider meeting held</h2>
+<p class="obj"><strong>Objective</strong> Hold the meeting, convert the provider, and capture what was promised.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Sales Lead.</li>
+<li><strong>Users</strong> Sales Lead, provider.</li>
+<li><strong>Completion criteria</strong> Outcome logged and the relationship handed to the Consumer Relations Manager.</li>
+</ul>
+<h3 id="1-user-journey-technology_2">① User journey / technology</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>What happens</th>
+<th>Where</th>
+<th>Exhibit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Someone books the 30-minute slot</strong> (usually the Admin Team, live on a call or off a reply that names a time</td>
+<td>Calendly) <code>Student Caregiver Program</code></td>
+<td><strong>L</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td>The booking lands the row in <strong>Meetings</strong>, under <strong>NEEDS LOGGING</strong> once the time has passed: <em>"log the outcome to move the row forward"</em></td>
+<td><a href="https://olera.care/admin/medjobs/in-basket?tab=meetings"><code>olera.care/admin/medjobs/in-basket?tab=meetings</code></a></td>
+<td><strong>M</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Open the row. <strong>NEXT STEP</strong> reads <em>"On the calendar"</em> with a single action, and the state chip reads <em>"Replied: they replied · meeting booked"</em></td>
+<td>Meetings → row</td>
+<td><strong>N</strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Hold the meeting, then <strong>Log meeting outcome</strong>. The modal confirms what was booked and who attended, then offers three outcomes</td>
+<td>Row → <strong>Log meeting outcome</strong></td>
+<td><strong>N</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Booking is an Admin Team action first.</strong> The operator putting it in the calendar during the call is
+the design. Sending the link and waiting is the slower fallback.</p>
+<p><strong>"Finding a time" is a holding state, not a meeting.</strong> The Admin Team sets it while a provider is going
+back and forth by email. Ideally the Meetings tab would hold only booked meetings. See the deferred
+list. Left as-is for now.</p>
+</blockquote>
+<h3 id="2-procedure_2">② Procedure</h3>
+<ol>
+<li><strong>Read the row before the call.</strong> The timeline shows every email, reply and call that produced this
+   meeting, including what they said when they replied.</li>
+<li><strong>Run the standard structure</strong> and close with the soft agreement ask: <em>no rush to sign, we just need it
+   before you interview your first student.</em></li>
+<li><strong>Log the outcome the same day.</strong> A meeting held and unlogged is a row that stops moving.</li>
+<li><strong>Write down what was promised</strong> in the notes: a note on its own logs the meeting.</li>
+<li><strong>Rebook a no-show once, warmly.</strong> The option opens Calendly for you; people miss meetings.</li>
+<li><strong>A no-show that cannot be rebooked goes back into outreach.</strong> It is not a decline. The row should
+   re-enter a call-and-email sequence rather than sit in Meetings or close. See the deferred list.</li>
+</ol>
+<p><strong>Meeting outcomes and what each does to the row</strong></p>
+<table>
+<thead>
+<tr>
+<th>Outcome</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Interested / went well</strong></td>
+<td>Logs the meeting and launches the activation sequence</td>
+</tr>
+<tr>
+<td><strong>No-show / reschedule</strong></td>
+<td>Logs a no-show and opens Calendly to rebook. <em>Ideally, a no-show that is not immediately rebooked drops the row into a fresh call-and-email sequence, not yet built</em></td>
+</tr>
+<tr>
+<td><strong>Not interested</strong></td>
+<td>Sends a polite closing note and stops outreach</td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-system-handoff_2">③ System / handoff</h3>
+<table>
+<thead>
+<tr>
+<th>Data captured</th>
+<th>Status</th>
+<th>Events</th>
+<th>Next trigger</th>
+<th>Handoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Booked time · attendee name and address · outcome · notes and commitments</td>
+<td>engaged → meeting scheduled → converted · closed</td>
+<td>meeting scheduled: row moved to Meetings · meeting held · outcome logged · activation launched</td>
+<td>Outcome logged</td>
+<td><strong>Sales Lead → Consumer Relations Manager.</strong> <em>Interested / went well</em> launches activation and moves the relationship on; the other two close the row</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Communications</strong> Booking confirmation and reminder from Calendly · the post-meeting details email with the agreement · a polite closing note when the answer is no.</p>
+<h3 id="exhibits_2">Exhibits</h3>
+<figure><img alt="Exhibit L. Calendly booking page" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/L-calendly-booking.png" /><figcaption><strong>Exhibit L. The booking page.</strong> What the provider sees: <strong>Student Caregiver Program</strong>, 30 minutes, the Sales
+Lead's name, and the pitch: <em>hands-on caregiving hours, recommendation letters, and experience that
+strengthens their med, PA, and nursing applications</em>, over a date and time picker.
+<code>calendly.com/…/home-care-agency-manager-interview</code></figcaption></figure>
+<figure><img alt="Exhibit M. Meetings tab" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/M-meetings-tab.png" /><figcaption><strong>Exhibit M. Meetings tab.</strong> <strong>NEEDS LOGGING</strong> carries meetings whose time has passed: <em>"log the outcome to
+move the row forward."</em> <strong>FINDING A TIME</strong> below it holds rows still coordinating by email, a state the Admin
+Team sets by hand. The tab count reads worked over total. <code>olera.care/admin/medjobs/in-basket?tab=meetings</code></figcaption></figure>
+<figure><img alt="Exhibit N. Log meeting outcome" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/N-log-meeting.png" /><figcaption><strong>Exhibit N. Log meeting outcome.</strong> A <strong>BOOKED</strong> panel confirming the calendar entry and the attendee, then
+the three outcomes with their consequences, and a notes field. Behind it the drawer shows <strong>NEXT STEP · On the
+calendar</strong> and the state chip <em>"Replied: they replied · meeting booked"</em>, over a timeline that runs back
+through every reply and send. Meetings → row → <strong>Log meeting outcome</strong></figcaption></figure>
+<hr />
+<h2 id="pr3-client-success">PR3: Client success</h2>
+<p class="obj"><strong>Objective</strong> Carry the provider from the meeting to a first hire: profile updated, terms understood, account set up and ready for the first student to arrive.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Consumer Relations Manager.</li>
+<li><strong>Users</strong> Consumer Relations Manager, provider.</li>
+<li><strong>Completion criteria</strong> Profile updated · terms email sent and acknowledged · setup meeting held · the account ready to receive a candidate.</li>
+</ul>
+<blockquote>
+<p><strong>Almost none of this is built.</strong> PR3 runs by hand today. The block below describes how it should work;
+every missing piece is on the deferred build list at the end of this document. Nothing here is blocked
+on that. It is blocked on someone doing it consistently.</p>
+</blockquote>
+<h3 id="what-client-success-is">What client success is</h3>
+<p><strong>The ongoing relationship function, from the moment a provider converts.</strong> It is not onboarding, which ends,
+and it is not support, which waits to be asked. It is one person owning the client from the meeting through
+the first hire and every hire after: the profile, the terms, the account setup, the interviews, the
+placements, the six-shift threshold, the invoice, and the next staffing need.</p>
+<p>One role holds it across both sides of MedJobs. Chantel is the Consumer Relations Manager today.</p>
+<h3 id="1-user-journey-technology_3">① User journey / technology</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>What happens</th>
+<th>Where</th>
+<th>Built?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>The Sales Lead names the handoff in the meeting</strong>: <em>"our consumer relations team will follow up with you on next steps."</em> The provider leaves expecting the next contact, and expecting it from someone else</td>
+<td>In the meeting</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Logging the meeting outcome alerts the Consumer Relations Manager</strong> that a converted provider is waiting on them</td>
+<td>None</td>
+<td><strong>Not built: B4</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>They read the whole record before making contact</strong>: the outreach history, what they said in the reply, the meeting notes and anything promised</td>
+<td>Provider drawer timeline (Exhibit <strong>N</strong>)</td>
+<td>Exists</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>They send the terms email</strong>: more detail on how the program works and what it costs</td>
+<td>Email, by hand</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>5</td>
+<td><strong>They get the profile updated</strong>: what a good caregiver looks like here, shifts needed, headcount</td>
+<td>Provider portal · chased by hand</td>
+<td>Partly</td>
+</tr>
+<tr>
+<td>6</td>
+<td><strong>They book the setup meeting</strong> for the next week or two</td>
+<td>Calendly, by hand</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>The setup meeting happens</strong>: the account is configured and ready for the first student</td>
+<td>In the meeting</td>
+<td>Manual</td>
+</tr>
+<tr>
+<td>8</td>
+<td><strong>Everything after this is recorded against the client</strong> (every meeting, touchpoint, interview, hire, six-shift confirmation, invoice</td>
+<td>None</td>
+<td><strong>Not built) B5</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-procedure_3">② Procedure</h3>
+<ol>
+<li><strong>The Sales Lead names the handoff in the room.</strong> A warm introduction to a named function beats a cold
+   email from a stranger a week later.</li>
+<li><strong>Read the record before you write.</strong> The meeting notes tell you what they asked for and what was
+   promised. Opening with something they said is the difference between a follow-up and a form letter.</li>
+<li><strong>Send the terms email within one business day of the meeting</strong>, while it is still fresh for them.</li>
+<li><strong>Land three things, in this order:</strong> profile updated · terms understood · setup meeting booked.
+   Chase each until it is done rather than sending one email and waiting.</li>
+<li><strong>Book the setup meeting one to two weeks out.</strong> It is the readiness check: the last chance to catch a
+   half-finished account before a student is looking at it.</li>
+<li><strong>Write down every touchpoint.</strong> Until the client record exists, keep it on the row so the history
+   stays in one place.</li>
+<li><strong>Do not hand a client to the marketplace until the account is ready.</strong> A provider looking at
+   candidates with an incomplete profile gets bad matches and blames the matching.</li>
+</ol>
+<h3 id="3-system-handoff_3">③ System / handoff</h3>
+<table>
+<thead>
+<tr>
+<th>Data captured</th>
+<th>Status</th>
+<th>Events</th>
+<th>Next trigger</th>
+<th>Handoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Terms sent and acknowledged · profile answers and demand profile · setup meeting held · every touchpoint after conversion</td>
+<td>converted → active client, account ready</td>
+<td>handoff received · terms email sent · profile completed · setup meeting held · client note added</td>
+<td>The account is ready and a staffing need is recorded</td>
+<td><strong>Consumer Relations Manager → the Portal.</strong> The staffing need drives matching; the client stays theirs from here on</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Communications</strong> The post-meeting terms email · profile reminders · the setup meeting invitation · everything after it, from the same person.</p>
+<h3 id="exhibits_3">Exhibits</h3>
+<p>None. There is no client success surface to photograph yet: the work happens in email, in Calendly, and in the
+provider row. <strong>B4</strong> and <strong>B5</strong> are what would make this stage visible.</p>
+<hr />
+<h2 id="st1-target-advisors">ST1: Target advisors</h2>
+<p class="obj"><strong>Objective</strong> Produce a verified list of university offices for a site, each with the email outreach needs, waiting in the In Basket to be confirmed by a call.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Admin Team.</li>
+<li><strong>Users</strong> Admin Team.</li>
+<li><strong>Completion criteria</strong> Offices generated as prospects, each verified and tagged, waiting in the Partners tab.</li>
+</ul>
+<blockquote>
+<p><strong>The office is the prospect, not the person.</strong> An advising office with an email is what outreach needs.
+Named advisors are optional, and worth adding only when they have their own contact details. The
+opposite of provider prospecting, and deliberate: offices outlast the people in them.</p>
+</blockquote>
+<h3 id="1-user-journey-technology_4">① User journey / technology</h3>
+<p>Three subtypes are worked in turn for each site: <strong>Advising</strong> → <strong>Student orgs</strong> → <strong>Departments</strong>.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>What they do</th>
+<th>Where</th>
+<th>Exhibit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>On the site card, click <strong>Find partners ✦</strong>: <em>"Find partners with AI for this university"</em></td>
+<td><a href="https://olera.care/admin/medjobs/sites"><code>olera.care/admin/medjobs/sites</code></a></td>
+<td><strong>O</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Step 1 · Find offices.</strong> <strong>Suggest links</strong> proposes office pages; <strong>predefined searches</strong> open Google and check themselves off as you go; anything found by hand can be pasted in. Pre-health advising first, then nursing and allied, then career services</td>
+<td>Research modal</td>
+<td><strong>P</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Step 2 · Verify offices.</strong> Each office gets a name, a <strong>tag</strong>, an email, a phone, an optional website, then a <strong>Verified</strong> tick. Advisors can be added underneath, but only with their own email or phone</td>
+<td>Research modal</td>
+<td><strong>Q</strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Step 3 · Generate.</strong> The verified offices become prospects in the In Basket, then <strong>Continue to Student orgs →</strong>, and later Departments</td>
+<td>Research modal</td>
+<td><strong>R</strong></td>
+</tr>
+<tr>
+<td>5</td>
+<td>The offices appear in the <strong>Partners</strong> tab, each showing its university and its tag</td>
+<td><a href="https://olera.care/admin/medjobs/in-basket?tab=partner_book"><code>olera.care/admin/medjobs/in-basket?tab=partner_book</code></a></td>
+<td><strong>S</strong></td>
+</tr>
+</tbody>
+</table>
+<p>The site card tracks progress across the three subtypes, <strong>Advising ✓ · Orgs ✓ · Dept heads ☐</strong>, with
+<strong>Research needed</strong> until the first one is done. The wizard autosaves as you work.</p>
+<h3 id="2-procedure_4">② Procedure</h3>
+<ol>
+<li><strong>Work one site through all three subtypes</strong> (advising, then orgs, then departments) rather than
+   half-finishing several sites.</li>
+<li><strong>Use Suggest links first, then the predefined searches.</strong> They cover the ground without your keeping a
+   list in your head.</li>
+<li><strong>Prefer the office with the clearest published email.</strong> Pre-health advising first, then nursing and
+   allied health, then career services.</li>
+<li><strong>Tag every office.</strong> The tag is what makes the outreach copy correct later.</li>
+<li><strong>Add an advisor only when they have their own contact.</strong> A name with no direct email gives outreach
+   nothing to use.</li>
+<li><strong>Tick verified only when you would send to that address today.</strong> The tick is the gate.</li>
+<li><strong>Then confirm by a quick call before launching.</strong> Generating a prospect is not the same as knowing
+   the address is live.</li>
+</ol>
+<h3 id="3-system-handoff_4">③ System / handoff</h3>
+<table>
+<thead>
+<tr>
+<th>Data captured</th>
+<th>Status</th>
+<th>Events</th>
+<th>Next trigger</th>
+<th>Handoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Office name · tag · email · phone · website · source link · optional advisors · verified flag · the research links kept</td>
+<td>researched → prospect</td>
+<td>research started · links kept · office verified · prospects generated · stakeholder added to site</td>
+<td>Offices generated</td>
+<td>Stays with the Admin Team → <strong>ST-OUT</strong>, via the Partners tab</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Communications</strong> None at this stage. The confirming call and the outreach that follows are ST-OUT.</p>
+<h3 id="exhibits_4">Exhibits</h3>
+<figure><img alt="Exhibit O. Find partners on the site card" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/O-find-partners.png" /><figcaption><strong>Exhibit O. Find partners.</strong> The entry point on the site card, alongside the research-progress badges and
+<strong>See stakeholders →</strong>. <code>olera.care/admin/medjobs/sites</code></figcaption></figure>
+<figure><img alt="Exhibit P. Research, find offices" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/P-research-find-offices.png" /><figcaption><strong>Exhibit P. Research · step 1, Find offices.</strong> Subtype tabs across the top (<strong>Advising</strong> · Student orgs ·
+Departments), the three steps beneath, <strong>Suggest links</strong>, and the predefined searches with <strong>Open all</strong>, an
+add-by-hand field, and a kept-links list.</figcaption></figure>
+<figure><img alt="Exhibit Q. Research, verify offices" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/Q-research-verify-offices.png" /><figcaption><strong>Exhibit Q. Research · step 2, Verify offices.</strong> <em>"The advising office is the prospect. Confirm each one's
+email and tag: that's all outreach needs."</em> Each office carries a tag, email, phone and optional website, an
+advisors section, and the <strong>Verified</strong> tick. Footer counts <em>1 of 3 verified</em>.</figcaption></figure>
+<figure><img alt="Exhibit R. Research, generate" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/R-research-generate.png" /><figcaption><strong>Exhibit R. Research · step 3, Generate.</strong> Confirmation that the offices were created and are waiting in the
+In Basket, with the next action named (<em>confirm each advising office by a quick call, then launch outreach</em>)
+and <strong>Continue to Student orgs →</strong>.</figcaption></figure>
+<figure><img alt="Exhibit S. Partners tab" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/S-partners-tab.png" /><figcaption><strong>Exhibit S. Partners tab.</strong> The generated offices as prospects, each with its university and tag, above the
+site cards still needing research. <code>olera.care/admin/medjobs/in-basket?tab=partner_book</code></figcaption></figure>
+<hr />
+<h2 id="st-out-university-outbound">ST-OUT: University outbound</h2>
+<p class="obj"><strong>Objective</strong> Confirm the advising office by phone, launch the call-and-email campaign, then work the queues it generates until the office books a meeting or the row runs out.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Admin Team.</li>
+<li><strong>Users</strong> Admin Team, advising office.</li>
+<li><strong>Completion criteria</strong> A meeting on the Sales Lead's calendar, or a recorded terminal outcome, or a finished cadence that drops the row into Follow-up.</li>
+</ul>
+<blockquote>
+<p><strong>Same machinery, different cadence.</strong> ST-OUT runs on the same pre-flight call, the same Calls and
+Emails queues, and the same log modals as the provider side. What differs is the campaign: the partner
+cadence is <strong>5 emails and 1 call</strong>, and every email is meeting-first: the ask is a conversation with
+Dr. DuBose, not a service. Providers get <strong>3 emails and 2 calls</strong>. Nobody should have to remember which;
+the launch modal states it before anything sends.</p>
+</blockquote>
+<h3 id="1-user-journey-technology_5">① User journey / technology</h3>
+<p><strong>Actors: Admin Team and the advising office.</strong> Confirm, then launch, then work the queues daily.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>What happens</th>
+<th>Where</th>
+<th>Exhibit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Open the office in the <strong>Partners</strong> tab. The drawer's <strong>RESEARCH</strong> panel states the sequence plainly (<em>"Check the info, call to confirm, then launch outreach"</em>) over the office name, general email, general phone, and an <strong>ADVISORS</strong> list</td>
+<td>In Basket → Partners → row</td>
+<td><strong>T</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Call to Confirm.</strong> <strong>Log Pre-Flight outcome</strong> opens with the script and the four outcomes. <em>Confirmed contact info</em> unlocks the row for outreach</td>
+<td>Drawer → <strong>Call to Confirm</strong></td>
+<td><strong>U</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Launch outreach →.</strong> <strong>Confirm outreach plan</strong> lays out the whole campaign: a launch summary, the recipients as checkboxes, and every day expandable to the actual email</td>
+<td>Drawer → <strong>Launch outreach →</strong></td>
+<td><strong>V</strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Start outreach.</strong> Day 0 sends; the rest queue, and <strong>UPCOMING</strong> shows <em>Outreach queued</em> with its date</td>
+<td>Automatic</td>
+<td><strong>T</strong></td>
+</tr>
+<tr>
+<td>5</td>
+<td>Work the <strong>Calls</strong> and <strong>Emails</strong> tabs daily: the same queues the provider rows sit in</td>
+<td><a href="https://olera.care/admin/medjobs/in-basket"><code>olera.care/admin/medjobs/in-basket</code></a></td>
+<td><strong>W</strong></td>
+</tr>
+<tr>
+<td>6</td>
+<td>Check replies. <strong>Check for reply</strong> quotes their message and offers the ways to respond</td>
+<td>Emails → row → <strong>Check for reply</strong></td>
+<td><strong>W</strong></td>
+</tr>
+<tr>
+<td>7</td>
+<td>A cadence that finishes with no meeting drops the row into <strong>Follow-up</strong></td>
+<td>In Basket → Follow-up</td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The cadence.</strong> Day 0 is the <strong>intro email (meeting-first)</strong>: it names Dr. DuBose, links the flyer and the
+program PDF, and asks for a conversation with the advisors students turn to. Day 3 is a <strong>one-line bump</strong>.
+Emails send from <code>partnerships@findmedjobs.co</code>, a dedicated outreach domain.</p>
+<p><strong>Recipients.</strong> The general office contact always; any advisor added in ST1 with their own email as a
+selectable extra, which is why ST1 accepts only advisors who have one. <strong>Launch activation →</strong> sits beside
+Launch outreach as the second cadence, run once a row has engaged.</p>
+<h3 id="2-procedure_5">② Procedure</h3>
+<ol>
+<li><strong>Call before you launch.</strong> The row is a prospect, not a confirmed address. The pre-flight call exists
+   to verify the email actually reaches the office and to find the person who decides.</li>
+<li><strong>Use the suggested script.</strong> It leads with Dr. DuBose's office, names the program, and asks one thing:
+   the best address to send the details to. Nothing is being sold on this call.</li>
+<li><strong>Log the outcome, every time</strong>, including the calls nobody answered. The override writes itself to
+   the timeline with your name on it.</li>
+<li><strong>Read the plan before starting.</strong> Expand Day 0 and check the merge fields resolved. A wrong
+   substitution is visible here and nowhere later.</li>
+<li><strong>Keep the research notes honest.</strong> The panel says the office was AI-sourced and tells you to confirm
+   by phone. Replace that with what the call established.</li>
+<li><strong>Answer every reply within one business day</strong>: same day for anything mentioning a time.</li>
+<li><strong>Do not hand-email a row mid-cadence.</strong> Reply through the row so the cadence stops cleanly.</li>
+<li><strong>Respect permission gating on professors.</strong> Class visits and listserv posts happen because someone
+   agreed to them; the ask on this cadence is a meeting, not a distribution.</li>
+</ol>
+<p><strong>The pre-flight outcomes and the reply options are the same four and five as the provider side</strong> (PR1,
+PR-OUT). One difference: <strong>Launch activation cadence</strong> drops out of the reply options once a row is already
+enrolled: the timeline then reads <em>"Activation launched,"</em> and four choices remain.</p>
+<h3 id="3-system-handoff_5">③ System / handoff</h3>
+<table>
+<thead>
+<tr>
+<th>Data captured</th>
+<th>Status</th>
+<th>Events</th>
+<th>Next trigger</th>
+<th>Handoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Pre-flight call outcome and notes · recipients launched · sends, opens, replies · call outcomes · scheduled sends and calls</td>
+<td>prospect → researched → outreach sent → cold · replied · closed · cadence finished</td>
+<td>initial contact added · row moved from Prospect to Researched · reached on the phone · pending tasks superseded, stage advanced · outreach queued · outreach email sent (with open state) · reply received, cadence stopped · activation launched</td>
+<td>A meeting is booked</td>
+<td><strong>Admin Team → Sales Lead.</strong> The row appears in the Meetings queue with its full timeline. No meeting and the cadence finishes → the row drops to <strong>Follow-up</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Communications</strong> Pre-flight confirming call · Day 0 intro email (meeting-first) with flyer and program PDF · Day 3 one-line bump · the remaining cadence emails · the cadence call · the reply the office sends back.</p>
+<h3 id="exhibits_5">Exhibits</h3>
+<figure><img alt="Exhibit T. Partner drawer" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/T-partner-drawer.png" /><figcaption><strong>Exhibit T. Partner drawer.</strong> <strong>RESEARCH</strong> states the sequence (<em>"Check the info, call to confirm, then
+launch outreach"</em>) over the office name, general email and general phone, with <strong>ADVISORS (0)</strong> and the rule
+beneath it: <em>"Anyone with an email becomes a selectable recipient at launch, alongside the general office
+contact."</em> Three actions: <strong>Call to Confirm</strong> · <strong>Launch outreach →</strong> · <strong>Launch activation →</strong>. <strong>Research
+notes</strong> records where the office came from. <strong>TIMELINE</strong> shows <em>Outreach queued</em> under <strong>UPCOMING</strong>, and the
+row's history under <strong>PAST ACTIVITY</strong>. <code>olera.care/admin/medjobs/in-basket?tab=partner_book</code> → row</figcaption></figure>
+<figure><img alt="Exhibit U. Log Pre-Flight outcome" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/U-partner-preflight.png" /><figcaption><strong>Exhibit U. Log Pre-Flight outcome.</strong> The <strong>SUGGESTED SCRIPT</strong>: Dr. DuBose's office, the program, and one
+ask: the best address to send the details to, then the four outcomes with their consequences stated on each, a
+notes field prompting <em>"What did they confirm? Anything useful for outreach copy?"</em>, and <strong>Override &amp; launch
+outreach</strong> for rows that do not need the call. Partner drawer → <strong>Call to Confirm</strong></figcaption></figure>
+<figure><img alt="Exhibit V. Confirm outreach plan" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/V-partner-launch-outreach.png" /><figcaption><strong>Exhibit V. Confirm outreach plan.</strong> <strong>LAUNCH SUMMARY</strong> reads <em>"5 emails + 1 call across the cadence below."</em>
+<strong>RECIPIENTS (1)</strong> lists the general contact with its address and phone. <strong>CADENCE</strong> opens Day 0, <em>intro email
+(meeting-first)</em>, to the full email: To, From <code>partnerships@findmedjobs.co</code>, the subject, the body the office
+will actually read, the variables that were substituted, and the program PDF. Day 3 is a <em>one-line bump</em>.
+Footer reads <em>"5 email + 1 call ready"</em> against <strong>Start outreach</strong>. Partner drawer → <strong>Launch outreach →</strong></figcaption></figure>
+<figure><img alt="Exhibit W. Check for reply" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/W-check-for-reply.png" /><figcaption><strong>Exhibit W. Check for reply, and the Emails tab.</strong> The reply quoted at the top, then the ways to respond
+(<em>Launch custom cadence</em>, <em>OOO reply) restart last cadence</em>, <em>Book a meeting</em>, <em>Not interested</em>. Behind it the
+<strong>Emails</strong> tab grouped by state, <em>THEY REPLIED (7)</em> over <em>PENDING REPLY (96)</em>, and the drawer's <strong>NEXT STEP</strong>
+panel: <em>They replied · [address]</em> over <strong>Reply now</strong> and <strong>Call</strong>. The timeline shows the sends, the reply
+that stopped the cadence, and the activation launch. <strong>This queue is shared:</strong> provider and partner rows are
+worked side by side in the same tab with the same modal, which is why the row shown here is a provider.
+<code>olera.care/admin/medjobs/in-basket?tab=replies</code> → row → <strong>Check for reply</strong></figcaption></figure>
+<hr />
+<h2 id="st2-advisor-meeting-held">ST2: Advisor meeting held</h2>
+<p class="obj"><strong>Objective</strong> Hold the meeting, agree which of the five activation channels are open to us, and hand the Consumer Relations Manager a plan they can act on without asking again.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Sales Lead.</li>
+<li><strong>Users</strong> Sales Lead, advising office.</li>
+<li><strong>Completion criteria</strong> Outcome logged, the agreed channels and their named contacts written down, and the relationship handed to the Consumer Relations Manager.</li>
+</ul>
+<blockquote>
+<p><strong>This meeting is not a sale. It is a channel-planning session.</strong> The provider meeting ends in a
+commercial agreement; this one ends in a route to students. The advisor already believes pre-health
+students want caregiving hours. What we do not know is how their campus reaches them, and the output
+is the ST3–ST7 plan.</p>
+</blockquote>
+<h3 id="1-user-journey-technology_6">① User journey / technology</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>What happens</th>
+<th>Where</th>
+<th>Exhibit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td><strong>Someone books the 30-minute slot.</strong> Usually the Admin Team does it (live on the confirming call, or from a reply that names a time</td>
+<td>Calendly) <code>Student Caregiver Program</code></td>
+<td><strong>L</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td>The booking lands the row in <strong>Meetings</strong>, under <strong>NEEDS LOGGING</strong> once the time has passed</td>
+<td><a href="https://olera.care/admin/medjobs/in-basket?tab=meetings"><code>olera.care/admin/medjobs/in-basket?tab=meetings</code></a></td>
+<td><strong>M</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Hold the meeting and work the five channels</td>
+<td>Video</td>
+<td>None</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>Log meeting outcome</strong>: the same modal and the same three outcomes as the provider side</td>
+<td>Row → <strong>Log meeting outcome</strong></td>
+<td><strong>N</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Advisors book the same event as providers</strong>: the 30-minute <em>Student Caregiver Program</em> slot, one link for
+both funnels. The invite copy carries over unchanged, which reads acceptably to an advising office; the event
+slug in the URL does not. See the deferred list.</p>
+<h3 id="2-procedure_6">② Procedure</h3>
+<ol>
+<li><strong>Read the row before the call.</strong> Advisors notice when you already know what they told the last person.</li>
+<li><strong>Open by naming what students get</strong>, not what we want: hours, a letter, and experience that
+   strengthens a med, PA or nursing application. That is the advisor's job, which makes it common ground.</li>
+<li><strong>Then work the five channels in order.</strong> This is the body of the meeting.</li>
+<li><strong>Ask for their read, not just their permission.</strong> <em>"Which of these actually reaches pre-health
+   students here?"</em> An advisor telling you the job board is dead and the listserv is everything saves the Consumer Relations Manager a month.</li>
+<li><strong>Get a name for every open channel.</strong> A channel with no named contact is not a channel.</li>
+<li><strong>Ask what they need from us to make it easy</strong> (copy, a flyer, a date) then send it within two days.</li>
+<li><strong>Log the outcome the same day</strong>, with the channel plan in the notes.</li>
+</ol>
+<p><strong>The five channels: what to ask, and what a usable answer looks like</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Channel</th>
+<th>Ask</th>
+<th>The answer the Consumer Relations Manager needs</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ST3</strong></td>
+<td>University job board</td>
+<td>Is there a board pre-health students actually check? Who posts, and does it need approval?</td>
+<td>The board, the posting route, and who approves</td>
+</tr>
+<tr>
+<td><strong>ST4</strong></td>
+<td>Student organisations</td>
+<td>Which orgs reach these students: pre-med, pre-nursing, AMSA chapters? Who runs them this term?</td>
+<td>Org names and current officers, with a warm introduction where they will make one</td>
+</tr>
+<tr>
+<td><strong>ST5</strong></td>
+<td>Campus events</td>
+<td>Which fairs or events are worth attending, and what are the deadlines and costs?</td>
+<td>Event, date, registration deadline, who books the table</td>
+</tr>
+<tr>
+<td><strong>ST6</strong></td>
+<td>Advisor listservs</td>
+<td>Do you email these students directly? Would you send something for us?</td>
+<td>Which list, who sends it, how often they are willing, and the copy they want</td>
+</tr>
+<tr>
+<td><strong>ST7</strong></td>
+<td>Professors and class visits</td>
+<td>Which professors teach the courses these students take? Would an introduction be welcome?</td>
+<td>Named professors, and explicitly whether we may approach them</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Permission is the deliverable on ST6 and ST7.</strong> A listserv send and a class visit both happen on
+someone else's authority. Write down who granted it and what exactly they agreed to, because the User
+Success Manager will be acting on it weeks later without having been in the room.</p>
+</blockquote>
+<p><strong>Meeting outcomes and what each does to the row</strong></p>
+<table>
+<thead>
+<tr>
+<th>Outcome</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Interested / went well</strong></td>
+<td>Logs the meeting and launches the activation sequence</td>
+</tr>
+<tr>
+<td><strong>No-show / reschedule</strong></td>
+<td>Logs a no-show and opens Calendly to rebook</td>
+</tr>
+<tr>
+<td><strong>Not interested</strong></td>
+<td>Sends a polite closing note and stops outreach</td>
+</tr>
+</tbody>
+</table>
+<p><strong>When the advisor skips the meeting.</strong> Some advisors will not take a call. They reply to the outreach by
+simply telling us what to do: post it here, email this officer, send me copy for the listserv. <strong>Take the
+advice and act on it.</strong> A channel the advisor handed us is worth more than the meeting that would have
+produced it. Two things still hold:</p>
+<ol>
+<li><strong>Capture it exactly as if it came from a meeting</strong> (channel, named contact, permission) so the User
+   Success Manager inherits the same plan either way.</li>
+<li><strong>Keep pushing for the meeting, gently.</strong> Not to unlock the channels; those are already running. A
+   named advisor is what makes the second term easier than the first, and the moment to ask is when you report
+   results back, <em>here is what your listserv produced. Can we talk about the spring?</em></li>
+</ol>
+<p>Today the row has nowhere to sit in that state: channels agreed, no meeting held. See the deferred list.</p>
+<h3 id="3-system-handoff_6">③ System / handoff</h3>
+<table>
+<thead>
+<tr>
+<th>Data captured</th>
+<th>Status</th>
+<th>Events</th>
+<th>Next trigger</th>
+<th>Handoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Booked time · attendee · outcome · the channel plan and permissions, as notes · named contacts offered</td>
+<td>engaged → meeting scheduled → active partner · closed</td>
+<td>meeting scheduled: row moved to Meetings · meeting held · outcome logged · activation launched</td>
+<td>Outcome logged</td>
+<td><strong>Sales Lead → Consumer Relations Manager.</strong> <em>Interested / went well</em> launches activation and hands over the channel plan; the other two close the row</td>
+</tr>
+</tbody>
+</table>
+<p>The channel plan is the handoff. It travels as prose in the meeting notes, which is enough to work from and
+not enough to report on: nothing counts how many campuses opened a listserv, or which channel produced the
+students who applied. Structured capture is on the deferred list, alongside the attribution it would make
+possible.</p>
+<p><strong>Communications</strong> Booking confirmation and reminder from Calendly · the post-meeting note with the ready-to-send copy and flyer the advisor asked for · the results-back note that carries the next ask.</p>
+<hr />
+<h2 id="st3st7-university-activation">ST3–ST7: University activation</h2>
+<p class="obj"><strong>Objective</strong> Turn the channel plan agreed in ST2 into five live channels at that university, then keep each one alive.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Consumer Relations Manager, with the Sales Lead where a physician in the room changes the answer.</li>
+<li><strong>Users</strong> Consumer Relations Manager, advisor, org officers, professors, students.</li>
+<li><strong>Completion criteria</strong> Every agreed channel is either live and recorded, or explicitly marked as not available at this university: and every live channel has its next maintenance task queued.</li>
+</ul>
+<blockquote>
+<p><strong>This stage does not close.</strong> Every stage before it ends in an outcome. Activation ends in a standing
+commitment: postings expire, officers graduate, a career fair moves, a listserv only sends when someone
+remembers. <strong>Each channel is two motions (secure it once, then keep it alive</strong>) and the second decides
+whether a university produces students in the spring as well as the fall.</p>
+<p><strong>There is no generic version of this stage.</strong> One campus is a dead job board and a listserv that
+reaches everyone; the next is three student orgs and a professor who will give us ten minutes of a
+class. The Consumer Relations Manager works the plan per row, not per channel.</p>
+</blockquote>
+<h3 id="1-user-journey-technology_7">① User journey / technology</h3>
+<table>
+<thead>
+<tr>
+<th>Channel</th>
+<th>Who acts</th>
+<th>What the student sees</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ST3</strong> University job board</td>
+<td>USM posts; the advisor or the board's owner approves</td>
+<td>A posting on a board they already check</td>
+</tr>
+<tr>
+<td><strong>ST4</strong> Student organisations</td>
+<td>USM builds the relationship; an officer shares it</td>
+<td>A post in their group chat, or a mention at a meeting</td>
+</tr>
+<tr>
+<td><strong>ST5</strong> Campus events</td>
+<td>USM and Sales Lead attend</td>
+<td>A table, a talk, a QR code</td>
+</tr>
+<tr>
+<td><strong>ST6</strong> Advisor listservs</td>
+<td>USM supplies the copy; the advisor sends it</td>
+<td>An email from a sender they already trust</td>
+</tr>
+<tr>
+<td><strong>ST7</strong> Professors and class visits</td>
+<td>USM and Sales Lead, once permitted</td>
+<td>An introduction in a class they are sitting in</td>
+</tr>
+</tbody>
+</table>
+<p><strong>The advisor follow-up tab</strong>: the surface this stage needs and does not have. On the partner row: the five
+channels as a checklist, each <strong>secured</strong>, <strong>not yet</strong>, or <strong>not available here</strong>, with its named contact and
+go-live date. A university's whole activation state in one glance, and answerable across universities: <em>which
+campuses have a live listserv?</em></p>
+<p>A channel checked off <strong>queues its own maintenance task</strong>, into the same daily queues the Admin Team already
+works, so keeping a channel alive is ordinary daily work rather than something to remember. None of this is
+built; see the deferred list.</p>
+<h3 id="2-procedure_7">② Procedure</h3>
+<ol>
+<li><strong>Work the plan from ST2, not a template.</strong> The row tells you which channels are open at this
+   university and who agreed to each. A channel nobody agreed to is not on your list.</li>
+<li><strong>Activate every agreed channel within two weeks of the meeting.</strong> The advisor is warmest immediately
+   after; a month later you are re-introducing yourself.</li>
+<li><strong>Supply ready-to-send copy for anything a partner sends.</strong> The advisor should have to forward, not
+   write. This is the single largest determinant of whether ST6 actually happens.</li>
+<li><strong>Mark a channel <em>not available here</em> out loud.</strong> A dead job board recorded as dead is useful; a dead
+   job board left blank looks like work nobody did.</li>
+<li><strong>Record the distribution when it happens</strong>: the channel, the date, the asset used, and a rough reach
+   estimate, on the partner row.</li>
+<li><strong>Report results back to the partner.</strong> <em>Your listserv produced eleven applications.</em> It is the reason
+   they send the second one, and it is the natural moment to ask for the next thing.</li>
+<li><strong>Never let a secured channel go unwatched.</strong> Every live channel carries a next check date; working
+   that date is the job.</li>
+<li><strong>Re-check the whole row each term.</strong> A row fully activated in September is not necessarily activated
+   in January.</li>
+</ol>
+<p><strong>What securing and maintaining each channel actually means</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Channel</th>
+<th>Secured means</th>
+<th>Maintaining means</th>
+<th>Rhythm</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ST3</strong></td>
+<td>University job board</td>
+<td>The listing is live and visible to students</td>
+<td>Check the listing is still up and has not expired or been archived; repost or renew it when it has</td>
+<td>Every few months</td>
+</tr>
+<tr>
+<td><strong>ST4</strong></td>
+<td>Student organisations</td>
+<td>An officer has shared it once</td>
+<td>Refresh the relationship before it goes cold, and re-establish it with the new officers when leadership turns over</td>
+<td>Ongoing, and every term</td>
+</tr>
+<tr>
+<td><strong>ST5</strong></td>
+<td>Campus events</td>
+<td>We are registered for a specific event on a specific date</td>
+<td>Confirm the event is still scheduled and still on our date; rebook when it moves, and get on the next one after it passes</td>
+<td>Before each event, then re-book</td>
+</tr>
+<tr>
+<td><strong>ST6</strong></td>
+<td>Advisor listservs</td>
+<td>The advisor has agreed to send, and has our copy</td>
+<td>Remind the advisor to send it, with fresh copy ready each time. The send happens because we asked</td>
+<td>Each agreed send</td>
+</tr>
+<tr>
+<td><strong>ST7</strong></td>
+<td>Professors and class visits</td>
+<td>A professor has agreed to an introduction or a visit</td>
+<td>Follow up and email professors, its own kind of work, with its own record of who was contacted, who agreed, and which class was visited</td>
+<td>Per professor, then per term</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Each of these carries specifics the table cannot hold</strong>: which board, which officer, which fair and
+its registration deadline, which list and when it goes out, which professor and which course. That
+detail belongs on the row against the channel, which is what the follow-up tab is for.</p>
+</blockquote>
+<p><strong>ST7 is its own workstream.</strong> Professor outreach behaves less like a channel than like a second, smaller outreach funnel: named professors, a permission state on each, an email to follow up, and a class visit to schedule once someone says yes. Scoped and named separately when we get to it; noted here so it is not mistaken for a checkbox.</p>
+<h3 id="3-system-handoff_7">③ System / handoff</h3>
+<table>
+<thead>
+<tr>
+<th>Data captured</th>
+<th>Status</th>
+<th>Events</th>
+<th>Next trigger</th>
+<th>Handoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Per channel: secured / not yet / not available · named contact · date live · next check date · distribution date, asset used and reach estimate</td>
+<td>partner active → distributing → maintained</td>
+<td>channel activated · distribution recorded · maintenance task completed · channel lapsed</td>
+<td>A student follows the link</td>
+<td><strong>→ Portal (ST8).</strong> The partner row stays open and keeps producing</td>
+</tr>
+</tbody>
+</table>
+<p>Every other stage hands a row on and lets it go. This one keeps it. The Consumer Relations Manager's working
+state is the set of partner rows with live channels and the date each is next due, which is why the follow-up
+tab and its queued tasks are the difference between five universities and fifty.</p>
+<p><strong>Communications</strong> Ready-to-send copy per channel · the flyer as the shared asset · the listserv reminder to the advisor · the results-back note · the professor email sequence.</p>
+<hr />
+<h2 id="st8-student-application-submitted">ST8: Student application submitted</h2>
+<p class="obj"><strong>Objective</strong> Carry a student from the QR code on a flyer to a live application, without anyone in the middle.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Portal.</li>
+<li><strong>Users</strong> Student, Consumer Relations Manager only when the system cannot finish the job.</li>
+<li><strong>Completion criteria</strong> The student is live: visible on the board, and the providers in their catchment have been told they are ready to interview.</li>
+</ul>
+<blockquote>
+<p><strong>This stage should run itself.</strong> Every other stage is an operator working a queue. This one is a
+student alone with a website at eleven at night. The system screens them, takes the application, chases
+what they left blank, decides when they are ready, and tells the providers. The Consumer Relations Manager is
+here for what the system cannot resolve, not as a step in the flow.</p>
+<p><strong>The assets below are final in form, not in content.</strong> All five work end to end and are shown here as
+the shipped journey. Every one needs another pass, and the journey needs a QA sweep from both entry
+points. See the deferred list.</p>
+</blockquote>
+<h3 id="1-user-journey-technology_8">① User journey / technology</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>What happens</th>
+<th>Where</th>
+<th>Exhibit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>The student sees the flyer (on a board, in a listserv email, at a table) and scans the <strong>QR code</strong></td>
+<td>Print and PDF, ST3–ST7</td>
+<td><strong>X</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td>It lands them on the student page, and the <strong>eligibility check</strong> opens on top of it: <em>2 quick questions</em>, starting with <em>"Where are you headed?"</em>: Med school · Nursing · PA · PT/OT · Public health · Still exploring</td>
+<td><a href="https://olera.care/medjobs/families"><code>olera.care/medjobs/families</code></a></td>
+<td><strong>Y</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td>They read the <strong>Student Caregiver Program Agreement</strong> (what the program is, who employs them, the one-time $50 fee, the term commitment) and accept it on signing up</td>
+<td>Linked from the landing page</td>
+<td><strong>Z</strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td>Signed in, they land on the board: <strong>Recommended for you</strong>, filtered by campus and care type, every card gated behind <strong>Complete profile to apply</strong></td>
+<td><a href="https://olera.care/portal/medjobs/jobs"><code>olera.care/portal/medjobs/jobs</code></a></td>
+<td><strong>AA</strong></td>
+</tr>
+<tr>
+<td>5</td>
+<td>They work the application (availability, commitment, screening questions, experience, documents) against a <strong>Profile completeness</strong> meter that names every remaining section</td>
+<td><a href="https://olera.care/portal/medjobs"><code>olera.care/portal/medjobs</code></a></td>
+<td><strong>AB</strong></td>
+</tr>
+<tr>
+<td>6</td>
+<td>The system chases what they left blank on a fixed ladder of nudges</td>
+<td>Automatic: daily cron</td>
+<td>None</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Once the baseline is met, they <strong>Go Live</strong></td>
+<td>Portal → <strong>Go Live</strong></td>
+<td><strong>AB</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>The baseline for going live.</strong> The point at which an application is worth a provider's time: <strong>an intro
+video · a driver's licence · car insurance · their weekly availability · their answers to the screening
+questions.</strong> The first three live in the profile's Verification section, the other two in sections of their
+own.</p>
+<p>Everything else on the profile makes a student more attractive to a provider. These five are what make them assessable at all. <strong>The list is a starting position and should be revisited</strong> once we see which parts providers actually use to decide who to interview.</p>
+<blockquote>
+<p><strong>Nothing is required to go live today.</strong> The Go Live review lists unfinished sections under
+<em>"Recommended but not required,"</em> and excludes the verification section entirely, which is where the
+video, the licence and the insurance sit. A student can go live at 5%. The baseline above is the intent;
+enforcing it is on the deferred list.</p>
+</blockquote>
+<p><strong>What going live does.</strong> Two things, and the second one is already built:</p>
+<ol>
+<li><strong>The student becomes visible</strong>: active on the board, matchable by providers in their area.</li>
+<li><strong>Every provider we are actively working in that student's campus catchment is emailed</strong> that a new
+   candidate is ready to interview. This fires on the <strong>first</strong> go-live only, runs in the background so a failure can never block the student, and is capped so a single go-live cannot blast an entire catchment.</li>
+</ol>
+<p>That second one is where this stage runs into QUAL. Going live <em>is</em> the qualification event as the system
+currently behaves: the broadcast says the candidate is ready, and nobody decided that. Whether that is right
+is QUAL's question, not this stage's. See that stage and the deferred list.</p>
+<h3 id="2-procedure_8">② Procedure</h3>
+<p>Deliberately short. If this list grows, the system has failed.</p>
+<ol>
+<li><strong>Watch the stall, not the student.</strong> The ladder handles the individual; what needs attention is the
+   pattern. A campus where half the applications stop at the same section is a broken question or a broken upload, not eight unmotivated students.</li>
+<li><strong>Log why students stall</strong>, so the pattern is visible at all.</li>
+<li><strong>Intervene by hand only when the system cannot</strong>: a document that will not upload, a student whose
+   circumstances do not fit the form.</li>
+<li><strong>Check both entry paths after any change to the assets.</strong> The QR code and the email link must each
+   carry a student all the way through.</li>
+</ol>
+<figure class="fw"><svg viewBox="0 0 250 89" width="2.5in" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif"><defs><marker id="a" markerWidth="7" markerHeight="5.4" refX="6.5" refY="2.7" orient="auto"><path d="M0,0 L7,2.7 L0,5.4 z" fill="#14453f"/></marker></defs><text x="4" y="16" font-size="13.19" fill="#5f6b64" text-anchor="start" font-weight="bold" font-style="normal">PROFILE NUDGES</text><line x1="12" y1="38" x2="238" y2="38" stroke="#b9c4bd" stroke-width="1.2"/><circle cx="12.0" cy="38" r="3.2" fill="#14453f" stroke="#14453f" stroke-width="1.2"/><text x="12.0" y="31" font-size="12.1348" fill="#14453f" text-anchor="middle" font-weight="normal" font-style="normal">1</text><circle cx="44.3" cy="38" r="3.2" fill="#14453f" stroke="#14453f" stroke-width="1.2"/><text x="44.285714285714285" y="31" font-size="12.1348" fill="#14453f" text-anchor="middle" font-weight="normal" font-style="normal">3</text><circle cx="76.6" cy="38" r="3.2" fill="#14453f" stroke="#14453f" stroke-width="1.2"/><text x="76.57142857142857" y="31" font-size="12.1348" fill="#14453f" text-anchor="middle" font-weight="normal" font-style="normal">5</text><circle cx="108.9" cy="38" r="3.2" fill="#14453f" stroke="#14453f" stroke-width="1.2"/><text x="108.85714285714286" y="31" font-size="12.1348" fill="#14453f" text-anchor="middle" font-weight="normal" font-style="normal">7</text><circle cx="141.1" cy="38" r="3.2" fill="#fff" stroke="#14453f" stroke-width="1.2"/><text x="141.14285714285714" y="31" font-size="12.1348" fill="#5f6b64" text-anchor="middle" font-weight="normal" font-style="normal">21</text><circle cx="173.4" cy="38" r="3.2" fill="#fff" stroke="#14453f" stroke-width="1.2"/><text x="173.42857142857142" y="31" font-size="12.1348" fill="#5f6b64" text-anchor="middle" font-weight="normal" font-style="normal">35</text><circle cx="205.7" cy="38" r="3.2" fill="#fff" stroke="#14453f" stroke-width="1.2"/><text x="205.71428571428572" y="31" font-size="12.1348" fill="#5f6b64" text-anchor="middle" font-weight="normal" font-style="normal">49</text><circle cx="238.0" cy="38" r="3.2" fill="#fff" stroke="#14453f" stroke-width="1.2"/><text x="238.0" y="31" font-size="12.1348" fill="#5f6b64" text-anchor="middle" font-weight="normal" font-style="normal">63</text><text x="12" y="53" font-size="13.19" fill="#14453f" text-anchor="start" font-weight="normal" font-style="normal">first week</text><text x="238" y="53" font-size="13.19" fill="#5f6b64" text-anchor="end" font-weight="normal" font-style="normal">then fortnightly</text><rect x="4" y="62" width="242" height="21" rx="3" fill="#f4f7f6" stroke="#b9c4bd" stroke-width="1"/><text x="125" y="76" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Eight nudges, then it stops</text></svg><figcaption><strong>The completeness ladder.</strong> Four nudges in the first week, four more over the following six, then silence.</figcaption></figure>
+
+<p><strong>The nudge ladder: built and running.</strong> A daily job emails every student under 100% completeness, naming what
+they are missing, on a fixed schedule: <strong>days 1, 3, 5, 7, then 21, 35, 49, 63</strong>, eight nudges over roughly six
+weeks, then it stops. It will not send twice within twenty hours.</p>
+<blockquote>
+<p><strong>The ladder measures a different thing than Go Live does.</strong> It treats <strong>100% completeness</strong> as done and
+sends <em>"Your MedJobs profile is live!"</em> at that point, while the button that actually makes a student
+live requires nothing at all. So a student can be live on the board at 5% and still be told their
+profile is incomplete, or reach 100%, be told they are live, never press Go Live, and have no provider
+hear about them. Two definitions of <em>live</em>, disagreeing. On the deferred list.</p>
+</blockquote>
+<h3 id="3-system-handoff_8">③ System / handoff</h3>
+<table>
+<thead>
+<tr>
+<th>Data captured</th>
+<th>Status</th>
+<th>Events</th>
+<th>Next trigger</th>
+<th>Handoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Eligibility answers · agreement acceptance · availability and commitment · screening answers · experience, certifications, skills, resume · verification documents and expiries · completeness per section</td>
+<td>started → in progress → live</td>
+<td>student eligibility completed · application started · nudge sent · profile activated · catchment providers notified</td>
+<td>Go Live</td>
+<td><strong>→ QUAL.</strong> The student appears on the board and the catchment hears about them</td>
+</tr>
+</tbody>
+</table>
+<p>Nothing here records <strong>how the student found us</strong>: which flyer, which listserv, which class visit. Until it
+does, ST3–ST7 cannot be told apart from each other by results, only by effort.</p>
+<p><strong>Communications</strong> Welcome and account-created emails · the profile-incomplete nudge ladder · the activation email · the candidate-ready broadcast to catchment providers.</p>
+<h3 id="exhibits_6">Exhibits</h3>
+<figure><img alt="Exhibit X. Student flyer" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/X-flyer.png" /><figcaption><strong>Exhibit X. The flyer.</strong> The asset every activation channel shares: what the student gets, the four-step <em>How
+to join</em>, who can join, the one-time $50 fee, and the <strong>QR code</strong> that starts the whole funnel.</figcaption></figure>
+<figure><img alt="Exhibit Y. Landing page with eligibility check" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/Y-landing-eligibility.png" /><figcaption><strong>Exhibit Y. Landing page and eligibility check.</strong> <em>"Get real healthcare experience: paid caregiving jobs for
+college students pursuing careers in medicine and nursing,"</em> with <strong>Apply Now</strong> and the jobs board beneath.
+Over it, <strong>ELIGIBILITY CHECK · 2 QUICK QUESTIONS</strong>: <em>"Where are you headed?"</em>, which routes the student and
+captures their track before anything else is asked of them. <code>olera.care/medjobs/families</code></figcaption></figure>
+<figure><img alt="Exhibit Z. Student Caregiver Program Agreement" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/Z-agreement.png" /><figcaption><strong>Exhibit Z. Student Caregiver Program Agreement.</strong> In plain language: what the program is, that <strong>the agency
+is their employer and Olera is not</strong>, the $50 fee and what it buys, how matching and offers work, what they
+must finish before a first shift, and the one-term commitment. Footed <em>"Draft for review. Not legally binding
+yet."</em></figcaption></figure>
+<figure><img alt="Exhibit AA. Job board" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/AA-job-board.png" /><figcaption><strong>Exhibit AA. The job board.</strong> <strong>Recommended for you</strong> (<em>"based on your profile, these are the best matches
+near you"</em>) with campus and care-type filters, a map, and a running job count. Every card and the banner above
+them say the same thing: <strong>Complete profile to apply.</strong> <code>olera.care/portal/medjobs/jobs</code></figcaption></figure>
+<figure><img alt="Exhibit AB. Application portal" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/AB-application-portal.png" /><figcaption><strong>Exhibit AB. The application portal.</strong> The student's profile, section by section, each with its empty state
+and edit control. On the right, <strong>Not live yet</strong> over the <strong>Go Live</strong> button, and <strong>Profile completeness</strong>: a
+percentage, a stage label, and every section scored from Profile Overview through Verification.
+<code>olera.care/portal/medjobs</code></figcaption></figure>
+<hr />
+<h2 id="qual-portal-vets-the-application">QUAL: Portal vets the application</h2>
+<p class="obj"><strong>Objective</strong> Turn a completed application into a qualified candidate, and put that candidate in front of the
+providers who can hire them, from both directions at once.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Portal.</li>
+<li><strong>Users</strong> Student, providers in the student's catchment, Consumer Relations Manager on exceptions.</li>
+<li><strong>Completion criteria</strong> The student is on the board, every hiring provider in their area has been told they are ready to interview, and the student has been given the list and the phone numbers to call them.</li>
+</ul>
+<blockquote>
+<p><strong>Qualification happens at go-live, whether or not anyone decided it.</strong> The moment a student presses Go
+Live, the system tells providers a candidate is <em>ready to interview</em>. That is a qualification claim made
+under our name with no criteria behind it. Everything below describes the stage as it should work; the
+criteria are the missing piece the rest of it hangs on.</p>
+</blockquote>
+<h3 id="1-user-journey-technology_9">① User journey / technology</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>What happens</th>
+<th>Where</th>
+<th>Exhibit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>The student goes live</td>
+<td>Portal → <strong>Go Live</strong></td>
+<td><strong>AB</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>They appear on the board</strong>: matchable, filterable by campus and care type, visible to providers looking for student caregivers</td>
+<td><a href="https://olera.care/portal/medjobs/jobs"><code>olera.care/portal/medjobs/jobs</code></a></td>
+<td><strong>AA</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td><strong>Every provider we are working in that student's campus catchment is emailed</strong>, <em>"Ready for interview: a student caregiver candidate near [campus]"</em>, with a link to the profile</td>
+<td>Automatic, on first go-live</td>
+<td>None</td>
+</tr>
+<tr>
+<td>4</td>
+<td><strong>The student is emailed the providers who are hiring near them, with phone numbers</strong>, and told to call</td>
+<td>Not built</td>
+<td>None</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Providers start hearing from students who have met our bar</td>
+<td>Phone</td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Both directions matter, and only one of them is built.</strong></p>
+<table>
+<thead>
+<tr>
+<th>Direction</th>
+<th>What it is</th>
+<th>Where it stands</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Us → providers</strong></td>
+<td>On first go-live, providers being actively worked in the student's campus catchment get <em>a candidate is ready to interview</em>, with a link to the profile. Runs in the background so a failure never blocks the student, and is capped so one go-live cannot blast a whole catchment</td>
+<td><strong>Built and running</strong></td>
+</tr>
+<tr>
+<td><strong>Us → student</strong></td>
+<td>A list of every provider hiring near them (name, area, and <strong>the phone number</strong>) and a clear instruction: call them, tell them you are available to interview</td>
+<td><strong>Not built.</strong> This is the important half</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>The student calling is the point.</strong> A provider who receives an email about a candidate may open it. A
+provider who picks up the phone to a student saying <em>"I'm in the Student Caregiver Program, I'm cleared
+to interview, are you hiring?"</em> has met the candidate. The first is a notification; the second is a
+placement starting.</p>
+</blockquote>
+<p><strong>What exists today is a near-miss.</strong> A student-facing email already fires when a <em>provider</em> accepts terms, telling live students <em>"a caregiver job near you is open."</em> Right idea, pointed the wrong way: triggered by the provider rather than the student qualifying, one provider rather than the list, and a link to click rather than a number to call.</p>
+<h3 id="2-procedure_9">② Procedure</h3>
+<p>Deliberately short, for the same reason as ST8: this stage should be a system, not a queue.</p>
+<ol>
+<li><strong>Handle exceptions, not cases.</strong> A student the rules would reject who is obviously right, or the
+   reverse. Record the reason for every override.</li>
+<li><strong>Feed failure reasons back into the application.</strong> A criterion that keeps failing honest applicants is
+   a badly written criterion.</li>
+<li><strong>Watch what happens after the list goes out</strong>: whether students actually call, and what providers say
+   when they do. That is the fastest signal we have about whether our bar means anything.</li>
+</ol>
+<h3 id="3-system-handoff_9">③ System / handoff</h3>
+<table>
+<thead>
+<tr>
+<th>Data captured</th>
+<th>Status</th>
+<th>Events</th>
+<th>Next trigger</th>
+<th>Handoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Criteria evaluated · decision and reason · reviewer on an override · which providers were notified · the call list sent to the student</td>
+<td>submitted → qualified · not qualified</td>
+<td>qualification decision · profile activated · catchment providers notified · call list sent to student</td>
+<td>Qualified and both broadcasts sent</td>
+<td><strong>→ MA1.</strong> The candidate is live, the providers know, and the student is calling</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Communications</strong> The candidate-ready email to catchment providers · <strong>the call list to the student: hiring
+providers near them with phone numbers</strong> · the outcome message and what to expect next.</p>
+<h3 id="exhibits_7">Exhibits</h3>
+<p>Both surfaces this stage produces are shown under ST8: <strong>AB</strong> for Go Live, and <strong>AA</strong> for the board the student appears on.</p>
+<hr />
+<h2 id="ma1-candidate-intro">MA1: Candidate intro</h2>
+<p class="obj"><strong>Objective</strong> Put a qualified candidate in front of the providers who can hire them, in a form a provider will actually open, and keep telling the student where the work is until they are hired.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Portal, Consumer Relations Manager on exceptions.</li>
+<li><strong>Users</strong> Provider, student.</li>
+<li><strong>Completion criteria</strong> The provider has seen the candidate, and the student knows who is hiring and how to reach them.</li>
+</ul>
+<blockquote>
+<p><strong>Assume nobody logs in.</strong> A provider will not create an account to look at a candidate, and a student
+will not check a job board every day waiting for work to appear. Everything in this stage has to land in
+an inbox or on a phone and be usable there.</p>
+</blockquote>
+<h3 id="1-user-journey-technology_10">① User journey / technology</h3>
+<p><strong>To the provider: the candidate, as an attachment.</strong> The intro email carries <strong>the candidate's profile as a
+PDF</strong> as well as a link. The PDF is the point: it opens on a phone, forwards to whoever does the hiring, and
+needs no login. Our send path already supports attachments, it sends calendar files that way today, so this is
+a renderer and a template change, not new infrastructure.</p>
+<p><strong>To the student: three channels, and the board is the least of them.</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>Channel</th>
+<th>What it carries</th>
+<th>Why it matters</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1</strong></td>
+<td><strong>SMS</strong></td>
+<td>A link to the opportunity, or the profile PDF</td>
+<td>The one channel a student reads within the hour. The most important of the three</td>
+</tr>
+<tr>
+<td><strong>2</strong></td>
+<td><strong>Email</strong></td>
+<td>The fuller message: who is hiring, where, what the role is</td>
+<td>Carries detail SMS cannot, and survives being read later</td>
+</tr>
+<tr>
+<td><strong>3</strong></td>
+<td><strong>The phone</strong></td>
+<td>The student calling providers directly, off the QUAL call list</td>
+<td>The most effective of all, and the one we most under-support</td>
+</tr>
+<tr>
+<td>None</td>
+<td>The job board</td>
+<td>Everything, browsable</td>
+<td>Real and worth having, but a display surface. Most students will not go looking</td>
+</tr>
+</tbody>
+</table>
+<p>An SMS stack already exists (consent handling, quiet hours, a send queue and a flush job) so student SMS is
+consent capture and message types on a running pipeline, not a new channel.</p>
+<h3 id="2-procedure_10">② Procedure</h3>
+<ol>
+<li><strong>Send to the provider in the form they will open</strong>: PDF attached, link included, no login asked for.</li>
+<li><strong>Do not rely on the board.</strong> If a qualified student has not been introduced anywhere this week, that is
+   a push we failed to send, not a student who failed to look.</li>
+<li><strong>Watch the students who are qualified and not yet hired.</strong> That list is the whole job at this stage.</li>
+<li><strong>Keep the call list current.</strong> A student calling a provider who is no longer hiring wastes the one
+   thing we are trying to build.</li>
+</ol>
+<h3 id="3-system-handoff_10">③ System / handoff</h3>
+<table>
+<thead>
+<tr>
+<th>Data captured</th>
+<th>Status</th>
+<th>Events</th>
+<th>Next trigger</th>
+<th>Handoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Which providers were sent which candidate · PDF generated and attached · SMS and email sends to the student · opens and replies</td>
+<td>qualified → introduced</td>
+<td>candidate intro sent · profile PDF generated · student notified by SMS and email</td>
+<td>An interview is requested</td>
+<td><strong>→ MA2</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Communications</strong> Candidate intro email to the provider, PDF attached · student SMS with the link or PDF · student email with the detail · the QUAL call list behind the student's own calls.</p>
+<hr />
+<h2 id="ma2-interview-held">MA2: Interview held</h2>
+<figure class="fw"><svg viewBox="0 0 250 182" width="2.5in" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif"><defs><marker id="a" markerWidth="7" markerHeight="5.4" refX="6.5" refY="2.7" orient="auto"><path d="M0,0 L7,2.7 L0,5.4 z" fill="#14453f"/></marker></defs><rect x="62" y="6" width="126" height="19" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.2"/><text x="125" y="19" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">proposed</text><line x1="125" y1="26" x2="125" y2="36" stroke="#5f6b64" stroke-width="1.2" marker-end="url(#a)"/><rect x="62" y="39" width="126" height="19" rx="3" fill="#fff" stroke="#14453f" stroke-width="1.2"/><text x="125" y="52" font-size="13.19" fill="#14453f" text-anchor="middle" font-weight="bold" font-style="normal">confirmed</text><line x1="125" y1="59" x2="125" y2="69" stroke="#14453f" stroke-width="1.2" marker-end="url(#a)"/><rect x="62" y="72" width="126" height="19" rx="3" fill="#e8f1ec" stroke="#1a7f4e" stroke-width="1.2"/><text x="125" y="85" font-size="13.19" fill="#1a7f4e" text-anchor="middle" font-weight="bold" font-style="normal">completed</text><text x="4" y="112" font-size="13.19" fill="#5f6b64" text-anchor="start" font-weight="normal" font-style="normal">Also from confirmed:</text><rect x="4" y="118" width="78" height="17" rx="3" fill="#fff" stroke="#b9c4bd" stroke-width="1.0"/><text x="43" y="129.6" font-size="12.398599999999998" fill="#5f6b64" text-anchor="middle" font-weight="normal" font-style="normal">cancelled</text><rect x="4" y="138" width="78" height="17" rx="3" fill="#fff" stroke="#b9c4bd" stroke-width="1.0"/><text x="43" y="149.6" font-size="12.398599999999998" fill="#5f6b64" text-anchor="middle" font-weight="normal" font-style="normal">no-show</text><rect x="4" y="158" width="78" height="17" rx="3" fill="#fff" stroke="#b9c4bd" stroke-width="1.0"/><text x="43" y="169.6" font-size="12.398599999999998" fill="#5f6b64" text-anchor="middle" font-weight="normal" font-style="normal">rescheduled</text></svg><figcaption><strong>Interview states.</strong> Two of the three ways out of confirmed are failures worth recording.</figcaption></figure>
+
+<p class="obj"><strong>Objective</strong> Get a real interview onto two real calendars, then confirm it happened.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Portal.</li>
+<li><strong>Users</strong> Student, provider, Consumer Relations Manager on exceptions.</li>
+<li><strong>Completion criteria</strong> Both sides firm, a calendar invite on both calendars, and a recorded answer to <em>did it happen?</em>.</li>
+</ul>
+<blockquote>
+<p><strong>The key endpoint is the calendar invite.</strong> Everything before it is scheduling admin; everything after
+depends on it. When both parties are firm an invite should appear on both calendars, and when its time
+has passed both should be asked whether the meeting happened. That answer is the instrumentation the
+whole match half of the funnel runs on.</p>
+</blockquote>
+<h3 id="1-user-journey-technology_11">① User journey / technology</h3>
+<p>Requests go both ways, and both are built.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>What happens</th>
+<th>Where</th>
+<th>Exhibit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>The student opens a provider's opportunity page and clicks <strong>Request interview</strong></td>
+<td>Provider page · <code>?ctx=medjobs-student</code></td>
+<td><strong>AC</strong></td>
+</tr>
+<tr>
+<td>2</td>
+<td><strong>Request an interview</strong>: format (<strong>Video · Phone · In person</strong>), a date and time, <strong>Offer another time</strong>, and a note to introduce themselves</td>
+<td>Same page</td>
+<td><strong>AC</strong></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Providers can request an interview of a candidate the same way, from the other direction</td>
+<td>Provider surfaces</td>
+<td>None</td>
+</tr>
+<tr>
+<td>4</td>
+<td>The request emails the other party as <strong>proposed</strong>, and lands on the student's <strong>Interviews</strong> calendar as <strong>Pending</strong></td>
+<td><a href="https://olera.care/portal/medjobs/interviews"><code>olera.care/portal/medjobs/interviews</code></a></td>
+<td><strong>AD</strong>, <strong>AE</strong></td>
+</tr>
+<tr>
+<td>5</td>
+<td>On confirmation, both parties are emailed and a calendar file is attached to each</td>
+<td>Automatic</td>
+<td>None</td>
+</tr>
+<tr>
+<td>6</td>
+<td>The interview happens</td>
+<td>Video, phone, or on site</td>
+<td>None</td>
+</tr>
+<tr>
+<td>7</td>
+<td><strong>Both sides are asked whether it happened.</strong> Not built</td>
+<td>None</td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>What is already there.</strong> The loop runs end to end: interviews carry a state machine, <em>proposed · confirmed ·
+completed · cancelled · no-show · rescheduled</em>, proposals email the other side, confirmations email both
+sides, and a calendar file is attached on confirmation. The student's calendar colour-codes <strong>Confirmed ·
+Pending · Past</strong>.</p>
+<p><strong>What is missing is narrower than it looks.</strong></p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>What we want</th>
+<th>Where it stands</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1</strong></td>
+<td>A real <strong>Google Calendar event</strong> on both calendars when both are firm: one both sides can see, update and cancel</td>
+<td>A calendar file is attached to the confirmation email. Enough for an RSVP, not a shared event</td>
+</tr>
+<tr>
+<td><strong>2</strong></td>
+<td>The <strong>did-it-happen loop</strong>: after the scheduled time, email both sides and record the answer</td>
+<td>Not built. <code>completed</code> and <code>no_show</code> exist as states and nothing sets them</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-procedure_11">② Procedure</h3>
+<ol>
+<li><strong>Chase the proposal that has sat unanswered.</strong> A pending request nobody confirmed is the single most
+   common place a match dies.</li>
+<li><strong>Confirm by hand when a provider will not use the system</strong>, and put the invite on the calendar anyway.</li>
+<li><strong>Ask the student first</strong> whether the interview happened. They answer faster, and it is their outcome.</li>
+<li><strong>Record a no-show as a no-show.</strong> It is a different problem from a hire that did not happen, and only
+   one of them is the student's.</li>
+</ol>
+<h3 id="3-system-handoff_11">③ System / handoff</h3>
+<table>
+<thead>
+<tr>
+<th>Data captured</th>
+<th>Status</th>
+<th>Events</th>
+<th>Next trigger</th>
+<th>Handoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Format, proposed times, notes · who proposed and who confirmed · the calendar invite · the answer to <em>did it happen</em></td>
+<td>proposed → confirmed → completed · cancelled · no-show · rescheduled</td>
+<td>interview proposed · interview confirmed · invite sent · interview completed · no-show</td>
+<td>Interview confirmed held</td>
+<td><strong>→ MA3</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Communications</strong> Proposal email to the other party · confirmation email to both, with the invite · reminder before the interview · <strong>the did-it-happen email to both sides afterwards</strong>.</p>
+<h3 id="exhibits_8">Exhibits</h3>
+<figure><img alt="Exhibit AC. Request an interview" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/AC-request-interview.png" /><figcaption><strong>Exhibit AC. Request an interview.</strong> From the student's side, on the provider's opportunity page. <strong>Format</strong>
+(Video · Phone · In person), a date and time with <strong>Offer another time</strong>, and an optional note. Behind it the
+opportunity itself: what you'd do, when, and <em>"Counts toward your 120 patient-care hours."</em>
+<code>olera.care/provider/…?ctx=medjobs-student</code></figcaption></figure>
+<figure><img alt="Exhibit AD. Interviews calendar, empty" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/AD-interviews-empty.png" /><figcaption><strong>Exhibit AD. The student's interview calendar, empty.</strong> The month grid and the legend that carries the whole
+state model: <strong>Confirmed · Pending · Past</strong>. <code>olera.care/portal/medjobs/interviews</code></figcaption></figure>
+<figure><img alt="Exhibit AE. Interviews calendar with a pending request" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/AE-interviews-pending.png" /><figcaption><strong>Exhibit AE. The same calendar after a request.</strong> The requested interview sits on its date (<em>Oak, 8:30a</em>) in
+the amber of <strong>Pending</strong>, waiting on the provider to confirm. This is the state the follow-up in the SOP above
+is chasing.</figcaption></figure>
+<hr />
+<h2 id="ma3-hire-confirmed">MA3: Hire confirmed</h2>
+<p class="obj"><strong>Objective</strong> Find out whether the interview produced a job, and if it did not, find out why.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Consumer Relations Manager.</li>
+<li><strong>Users</strong> Student, provider.</li>
+<li><strong>Completion criteria</strong> A recorded answer either way, with a reason when the answer is no.</li>
+</ul>
+<blockquote>
+<p><strong>A hire we did not hear about is a hire we cannot bill for.</strong> This stage exists because nobody tells us
+on their own. The provider hires and moves on; the student starts work and moves on. Every placement we
+know about is one we went and asked for.</p>
+</blockquote>
+<h3 id="1-user-journey-technology_12">① User journey / technology</h3>
+<p>Nothing is built. What should run, after the interview:</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>What happens</th>
+<th>Channel</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>A cadence opens on the <strong>student</strong>: did the interview happen, and did they offer you the job?</td>
+<td>SMS first, then email</td>
+</tr>
+<tr>
+<td>2</td>
+<td>If the student does not answer, it becomes a <strong>call task</strong> in the daily queue</td>
+<td>Phone</td>
+</tr>
+<tr>
+<td>3</td>
+<td>The <strong>provider</strong> is emailed the same question, more lightly</td>
+<td>Email</td>
+</tr>
+<tr>
+<td>4</td>
+<td>The answer is recorded against the placement, with a <strong>reason when it is no</strong></td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Ask the student first, every time.</strong> They reply faster and it is their outcome.</p>
+<p><strong>Instrument the no.</strong> A hire that did not happen is the most useful signal in the funnel: the interview was a
+formality, the schedule did not work, the student went quiet, the provider was not really hiring. Without a
+reason field, this stage produces a number nobody can act on.</p>
+<h3 id="2-procedure_12">② Procedure</h3>
+<ol>
+<li><strong>Open the cadence the day after the interview</strong>, while both sides still remember it.</li>
+<li><strong>Student first, by SMS.</strong> One question, answerable in four words.</li>
+<li><strong>Escalate to a call</strong> when two touches go unanswered.</li>
+<li><strong>Ask the provider once</strong>, by email, and do not chase them further: the monthly list call picks up what
+   they did not answer.</li>
+<li><strong>Record the reason for every no.</strong> A blank reason is a lost lesson.</li>
+</ol>
+<h3 id="3-system-handoff_12">③ System / handoff</h3>
+<table>
+<thead>
+<tr>
+<th>Data captured</th>
+<th>Status</th>
+<th>Events</th>
+<th>Next trigger</th>
+<th>Handoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Interview outcome · hired or not · start date · the reason when not · which channel got the answer</td>
+<td>interviewed → hired · not hired</td>
+<td>hire confirmed · hire not confirmed with reason</td>
+<td>Hire confirmed</td>
+<td><strong>→ MA4</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Communications</strong> Post-interview SMS to the student · follow-up email · the call task when neither lands · a single email to the provider.</p>
+<hr />
+<h2 id="ma4-six-or-more-shifts-worked-confirmed">MA4: Six or more shifts worked, confirmed</h2>
+<figure class="fw"><svg viewBox="0 0 250 186" width="2.5in" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif"><defs><marker id="a" markerWidth="7" markerHeight="5.4" refX="6.5" refY="2.7" orient="auto"><path d="M0,0 L7,2.7 L0,5.4 z" fill="#14453f"/></marker></defs><rect x="4" y="6" width="242" height="20" rx="3" fill="#fff" stroke="#14453f" stroke-width="1.0"/><text x="14" y="19.6" font-size="13.19" fill="#14453f" text-anchor="start" font-weight="bold" font-style="normal">MA1</text><text x="50" y="19.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Candidate intro</text><line x1="125" y1="27" x2="125" y2="35" stroke="#14453f" stroke-width="1.2" marker-end="url(#a)"/><rect x="4" y="38" width="242" height="20" rx="3" fill="#fff" stroke="#14453f" stroke-width="1.0"/><text x="14" y="51.6" font-size="13.19" fill="#14453f" text-anchor="start" font-weight="bold" font-style="normal">MA2</text><text x="50" y="51.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Interview held</text><line x1="125" y1="59" x2="125" y2="67" stroke="#14453f" stroke-width="1.2" marker-end="url(#a)"/><rect x="4" y="70" width="242" height="20" rx="3" fill="#fff" stroke="#14453f" stroke-width="1.0"/><text x="14" y="83.6" font-size="13.19" fill="#14453f" text-anchor="start" font-weight="bold" font-style="normal">MA3</text><text x="50" y="83.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Hire confirmed</text><line x1="125" y1="91" x2="125" y2="99" stroke="#14453f" stroke-width="1.2" marker-end="url(#a)"/><rect x="4" y="102" width="242" height="20" rx="3" fill="#e8f1ec" stroke="#b8860b" stroke-width="1.4"/><text x="14" y="115.6" font-size="13.19" fill="#b8860b" text-anchor="start" font-weight="bold" font-style="normal">MA4</text><text x="50" y="115.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Six shifts worked</text><line x1="125" y1="123" x2="125" y2="131" stroke="#b8860b" stroke-width="1.2" marker-end="url(#a)"/><rect x="4" y="134" width="242" height="20" rx="3" fill="#e8f1ec" stroke="#1a7f4e" stroke-width="1.4"/><text x="14" y="147.6" font-size="13.19" fill="#1a7f4e" text-anchor="start" font-weight="bold" font-style="normal">MA5</text><text x="50" y="147.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Bill issued</text><rect x="4" y="158" width="242" height="22" rx="3" fill="#f4f7f6" stroke="#b8860b" stroke-width="1.2" stroke-dasharray="4 3"/><text x="125" y="173" font-size="13.19" fill="#b8860b" text-anchor="middle" font-weight="bold" font-style="normal">No invoice before six shifts</text></svg><figcaption><strong>The fulfilment chain.</strong> Every stage before MA4 is unpaid work; the six-shift confirmation is what releases the invoice.</figcaption></figure>
+
+<p class="obj"><strong>Objective</strong> Establish that the placement actually stuck, six shifts worked, because that is the point we
+bill.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Consumer Relations Manager.</li>
+<li><strong>Users</strong> Student, provider on the monthly list call.</li>
+<li><strong>Completion criteria</strong> Six shifts confirmed and recorded against the placement.</li>
+</ul>
+<blockquote>
+<p><strong>Chase the student, not the provider.</strong> The student knows what they worked and answers a text. The
+provider is the customer, and asking them to do our record-keeping every week is how we become annoying
+before we become useful.</p>
+</blockquote>
+<h3 id="1-user-journey-technology_13">① User journey / technology</h3>
+<p>Two ways to get this number, and they are not equally likely to work. <strong>Comms</strong>, SMS and email on a rhythm
+until the answer is six, asks the student to reply to a text. <strong>Logging</strong>, a place in the portal to log shifts
+as they go, asks them to remember, every time.</p>
+<p><strong>Comms first.</strong> A logging surface is more precise and worth building eventually, but a text a student answers beats a form they do not fill in. SMS is the channel, on the same stack as MA1 and MA3.</p>
+<p><strong>The provider side is a list, not a cadence.</strong> Monthly or quarterly, the Consumer Relations Manager runs the client's students down on a call: still working, how many shifts, any problems. One conversation confirms what a dozen emails would not, and it is a touchpoint rather than an interruption. It is the same call that keeps MA3 honest.</p>
+<h3 id="2-procedure_13">② Procedure</h3>
+<ol>
+<li><strong>Text the student on a rhythm</strong> from their start date until the answer reaches six.</li>
+<li><strong>Never ask the provider week to week.</strong> Their confirmation comes on the list call.</li>
+<li><strong>Run the list call monthly per client</strong>: every student placed with them, top to bottom.</li>
+<li><strong>Record the confirmation and where it came from</strong>: the student, the provider, or both.</li>
+<li><strong>Escalate a placement that stalls before six.</strong> A student who stopped after two shifts is a problem
+   worth understanding while it is still fixable.</li>
+</ol>
+<h3 id="3-system-handoff_13">③ System / handoff</h3>
+<table>
+<thead>
+<tr>
+<th>Data captured</th>
+<th>Status</th>
+<th>Events</th>
+<th>Next trigger</th>
+<th>Handoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Shifts worked and the date each was confirmed · who confirmed it · the list-call record per client</td>
+<td>hired → working → threshold met</td>
+<td>shift count updated · six shifts confirmed</td>
+<td>Six confirmed</td>
+<td><strong>→ MA5</strong></td>
+</tr>
+</tbody>
+</table>
+<p>Today there is no concept of a shift anywhere in the product. The only trace of the threshold is the number behind the guarantee.</p>
+<p><strong>Communications</strong> Student SMS on a rhythm · the same question by email · the monthly client list call.</p>
+<hr />
+<h2 id="ma5-bill-issued-and-collected">MA5: Bill issued and collected</h2>
+<p class="obj"><strong>Objective</strong> Turn a confirmed placement into an invoice, and the invoice into money.</p>
+<ul class="facts">
+<li><strong>Owner</strong> Consumer Relations Manager.</li>
+<li><strong>Users</strong> Client.</li>
+<li><strong>Completion criteria</strong> Invoice issued against a confirmed six-shift placement, and payment recorded.</li>
+</ul>
+<blockquote>
+<p><strong>Manual first, deliberately.</strong> At current volume the Consumer Relations Manager raising an invoice by hand is
+not a stopgap: it is the right answer, and it is how we learn what the automated version should do.</p>
+</blockquote>
+<h3 id="1-user-journey-technology_14">① User journey / technology</h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>What happens</th>
+<th>Now</th>
+<th>Eventually</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Six shifts are confirmed in MA4</td>
+<td>Recorded by hand</td>
+<td>Recorded against the placement</td>
+</tr>
+<tr>
+<td>2</td>
+<td>The bill is raised</td>
+<td>The Consumer Relations Manager raises it</td>
+<td><strong>A button on the client record</strong>: confirm the student hit six, and the invoice issues</td>
+</tr>
+<tr>
+<td>3</td>
+<td>The invoice is sent and tracked</td>
+<td>By hand</td>
+<td>Against the client, with its status</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Payment is recorded</td>
+<td>By hand</td>
+<td>Automatically, against the placement</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Where the button lives.</strong> On the client record described in PR3 and still unbuilt. That record already needs
+to hold every meeting, hire, interview and six-shift confirmation for a client, so the invoice belongs on it
+too. Build it, and MA5 becomes one click on a row that already exists: the confirmation is the trigger, the
+invoice the consequence, and the team is there only for exceptions.</p>
+<h3 id="2-procedure_14">② Procedure</h3>
+<ol>
+<li><strong>Raise the invoice as soon as six is confirmed</strong>, not on a billing day. The confirmation is the event.</li>
+<li><strong>Bill against the placement, not the client</strong>: one invoice per student, so a dispute is about one
+   student.</li>
+<li><strong>Record payment where the placement lives</strong>, so the client record stays the single account of what
+   happened.</li>
+<li><strong>Raise a billing question on the monthly list call</strong>, not by email. The call already exists.</li>
+</ol>
+<h3 id="3-system-handoff_14">③ System / handoff</h3>
+<table>
+<thead>
+<tr>
+<th>Data captured</th>
+<th>Status</th>
+<th>Events</th>
+<th>Next trigger</th>
+<th>Handoff</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Placement billed · amount · invoice issued and sent · payment received</td>
+<td>threshold met → invoiced → paid</td>
+<td>invoice issued · payment recorded</td>
+<td>Payment recorded</td>
+<td><strong>Complete.</strong> The client record carries the history</td>
+</tr>
+</tbody>
+</table>
+<p>Two legacy billing paths exist in the product, neither matching this model, and the Stripe path for placements is stubbed.</p>
+<p><strong>Communications</strong> Invoice · receipt · payment reminder · the billing conversation on the list call.</p>
+<hr />
+<h1 id="deferred-build-list">Deferred build list</h1>
+<p>Things this document describes as they <strong>should</strong> work, which do not work that way yet. Collected here rather than softened in the stages above, so the map reads as the operating system we are building toward and the gap stays visible.</p>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Stage</th>
+<th>What we want</th>
+<th>Where it stands</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>B1</strong></td>
+<td>PR2</td>
+<td><strong>The Meetings tab holds only booked meetings.</strong> Timing back-and-forth belongs with the email work</td>
+<td><em>Finding a time</em> is a hand-set state inside Meetings. Works, but muddies the tab</td>
+</tr>
+<tr>
+<td><strong>B2</strong></td>
+<td>PR2</td>
+<td><strong>A no-show re-enters outreach automatically.</strong> A missed meeting is not a decline</td>
+<td>The outcome opens Calendly to rebook. Nothing catches the row if the rebook never happens</td>
+</tr>
+<tr>
+<td><strong>B3</strong></td>
+<td>PR-OUT · PR2</td>
+<td><strong>A custom campaign any operator can launch on a single row</strong>: pick the emails and calls, set the days, start it</td>
+<td><em>Launch custom cadence</em> exists in the reply modal, not as a general action from a row</td>
+</tr>
+<tr>
+<td><strong>B4</strong></td>
+<td>PR3</td>
+<td><strong>An alert when a meeting converts</strong>, putting the client in front of the Consumer Relations Manager with the meeting notes attached</td>
+<td>Not built. Nothing tells them a provider is waiting</td>
+</tr>
+<tr>
+<td><strong>B5</strong></td>
+<td>PR3</td>
+<td><strong>The client record.</strong> One place holding everything after conversion: notes on every touchpoint, plus the interviews, hires, six-shift confirmations and invoices against that client. <strong>The most blocked item here: PR3, MA4 and MA5 all wait on it</strong></td>
+<td>Not built. An MVP, notes and a timeline, would carry the stage</td>
+</tr>
+<tr>
+<td><strong>B6</strong></td>
+<td>ST2</td>
+<td><strong>Structured channel capture at the meeting</strong>: which channels were agreed, the named contact for each, the permission granted, as fields rather than prose</td>
+<td>The plan lives in the meeting notes. Workable for one operator, unreportable across campuses</td>
+</tr>
+<tr>
+<td><strong>B7</strong></td>
+<td>ST2</td>
+<td><strong>A state for <em>channels agreed, no meeting yet</em></strong>, carrying an open ask for a relationship meeting</td>
+<td>No such state. The row either sits in Meetings without a meeting or looks like one that never engaged</td>
+</tr>
+<tr>
+<td><strong>B8</strong></td>
+<td>ST2</td>
+<td><strong>A partner-facing booking event</strong></td>
+<td>Advisors book the provider's event; the slug <code>home-care-agency-manager-interview</code> shows in the URL they click</td>
+</tr>
+<tr>
+<td><strong>B9</strong></td>
+<td>ST3–ST7</td>
+<td><strong>The advisor follow-up tab.</strong> The five channels as a checklist on the partner row (secured, not yet, or not available here) each with its contact and go-live date</td>
+<td>Not built. Activation state lives in meeting notes and in the Consumer Relations Manager's head</td>
+</tr>
+<tr>
+<td><strong>B10</strong></td>
+<td>ST3–ST7</td>
+<td><strong>Maintenance tasks that queue themselves</strong>: the board re-check, the listserv reminder, the event date, the officer refresh each term</td>
+<td>Not built. A channel stays alive only as long as someone remembers it</td>
+</tr>
+<tr>
+<td><strong>B11</strong></td>
+<td>ST3–ST7</td>
+<td><strong>A professor record for ST7</strong>: named professors, a permission state on each, the follow-up and the class visit it produced</td>
+<td>Not built, and not yet scoped. Named so it is not mistaken for one more channel</td>
+</tr>
+<tr>
+<td><strong>B12</strong></td>
+<td>ST3–ST7</td>
+<td><strong>Channel attribution.</strong> Which of the five produced a student</td>
+<td>Channels are not modelled as distinct entities</td>
+</tr>
+<tr>
+<td><strong>B13</strong></td>
+<td>ST8</td>
+<td><strong>A content pass over every student-facing asset</strong>, with real empty states, and a check that the portal asks for what we want</td>
+<td>All five ship and work end to end. None has had a content pass</td>
+</tr>
+<tr>
+<td><strong>B14</strong></td>
+<td>ST8</td>
+<td><strong>Entry-path QA, from the QR code and from email.</strong> Each must carry a student to a submitted application with no dead end, on a phone as well as a laptop</td>
+<td>Untested as a journey. The pieces work individually</td>
+</tr>
+<tr>
+<td><strong>B15</strong></td>
+<td>ST8</td>
+<td><strong>A defined and enforced go-live baseline</strong> (video, licence, insurance, availability, screening answers) the list to be revisited once we see what providers use to decide</td>
+<td>Nothing is required. The review calls everything <em>"recommended but not required"</em> and skips verification, where three of the five sit</td>
+</tr>
+<tr>
+<td><strong>B16</strong></td>
+<td>ST8</td>
+<td><strong>One definition of <em>live</em></strong></td>
+<td>Two, disagreeing. A student can be live at 5% and still be nudged, or reach 100%, be told they are live, and have had no provider told about them</td>
+</tr>
+<tr>
+<td><strong>B17</strong></td>
+<td>ST8</td>
+<td><strong>Application source capture.</strong> Ask a student how they heard about MedJobs</td>
+<td>Nothing records it</td>
+</tr>
+<tr>
+<td><strong>B18</strong></td>
+<td>QUAL</td>
+<td><strong>The call list to the student.</strong> On qualifying, every provider hiring near them (name, area, phone number) and an instruction to call</td>
+<td>Not built. The nearest thing fires when a <em>provider</em> accepts terms, names one provider, and offers a link rather than a number</td>
+</tr>
+<tr>
+<td><strong>B19</strong></td>
+<td>QUAL</td>
+<td><strong>Written qualification criteria</strong>, then a step that applies them. The catchment broadcast already calls a candidate <em>ready to interview</em>, under our name</td>
+<td>Today "live" means the student pressed a button. Nothing is required and nothing is checked</td>
+</tr>
+<tr>
+<td><strong>B20</strong></td>
+<td>MA1</td>
+<td><strong>The candidate profile as a PDF on the intro email</strong>, readable on a phone and forwardable without an account. The link stays alongside it</td>
+<td>Not built. The send path already supports attachments: it sends calendar files that way today</td>
+</tr>
+<tr>
+<td><strong>B21</strong></td>
+<td>MA1</td>
+<td><strong>Student SMS.</strong> Qualified students who are not yet hired need a push, not a board</td>
+<td>Not built for students. The SMS stack exists: consent, quiet hours, a queue and a flush job</td>
+</tr>
+<tr>
+<td><strong>B22</strong></td>
+<td>MA2</td>
+<td><strong>A real calendar event when both sides are firm</strong>, updatable and cancellable by either</td>
+<td>A calendar file is attached to the confirmation email. Enough to RSVP, not a shared event</td>
+</tr>
+<tr>
+<td><strong>B23</strong></td>
+<td>MA2</td>
+<td><strong>The did-it-happen loop.</strong> Ask both sides after the scheduled time and record the answer. The instrumentation the whole match half depends on</td>
+<td>Not built. <code>completed</code> and <code>no_show</code> exist as states and nothing ever sets them</td>
+</tr>
+<tr>
+<td><strong>B24</strong></td>
+<td>MA3</td>
+<td><strong>A post-interview cadence to confirm the hire</strong>: student first by SMS, escalating to a call task, one email to the provider</td>
+<td>Not built. Nothing asks, so nothing is known</td>
+</tr>
+<tr>
+<td><strong>B25</strong></td>
+<td>MA3</td>
+<td><strong>A reason recorded on every hire that did not happen</strong></td>
+<td>The most useful signal in the funnel, uncollected</td>
+</tr>
+<tr>
+<td><strong>B26</strong></td>
+<td>MA4</td>
+<td><strong>A shift-count rhythm to the student by SMS</strong>, from their start date until the answer reaches six</td>
+<td>Not built. Comms before a logging surface: a text they answer beats a form they do not</td>
+</tr>
+<tr>
+<td><strong>B27</strong></td>
+<td>MA3 · MA4</td>
+<td><strong>The monthly client list call.</strong> Every student placed with a client, run top to bottom. Providers confirm here rather than in a cadence</td>
+<td>A practice to establish, not code. Needs B5 to run from</td>
+</tr>
+<tr>
+<td><strong>B28</strong></td>
+<td>MA4</td>
+<td><strong>A shift count on the placement, and a view of who is approaching six</strong></td>
+<td>No concept of a shift exists in the product. The only trace of the threshold is the number behind the guarantee</td>
+</tr>
+<tr>
+<td><strong>B29</strong></td>
+<td>MA5</td>
+<td><strong>Billing on the six-shift trigger</strong>: a button on the client record that confirms the threshold, issues the invoice and records payment. Manual until volume justifies it</td>
+<td>Two legacy billing paths, neither matching the model, and the placements Stripe path is stubbed. Needs B5</td>
+</tr>
+</tbody>
+</table>
+<p><strong>How to use this list.</strong> Nothing here blocks running the operating system by hand today. Each item is a place where a person is doing something the system should do, or where the system records something less precisely than the model needs. Scope and prioritise them together, against the whole map, rather than one at a time as they surface.</p>
+</body></html>

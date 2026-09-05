@@ -1,0 +1,160 @@
+<!doctype html><html><head><meta charset="utf-8"><title>CRP Figure 1 (LOCKED)</title>
+<!--
+  THE ECOSYSTEM FIGURE: CareNavigator Coordinates the Eldercare Ecosystem to
+  Deliver Preventive Geriatric Care. Figure 2 in the current sequence (file
+  renamed from figure-1-ecosystem when the vicious cycle took the opening slot).
+
+  STATUS: LOCKED 2026-08-24; amended 2026-08-25 on Logan direction only
+  (deloaded 2026-08-25: the older-adults box and the full vicious cycle moved
+  to their own opening figure, so this figure keeps only the family icon and a
+  condensed reference to that cycle).
+  Do not modify without Logan's explicit direction. The working copy in
+  passes/payer-horizon-visuals-2026-08-24.html mirrors this file; this file
+  is canonical.
+
+  Render: chrome --headless --no-sandbox --disable-gpu \
+    --print-to-pdf=figure-ecosystem.pdf --no-pdf-header-footer figure-ecosystem.html
+  (One landscape-letter page. QA screenshots at width 979 = true print width.)
+-->
+<style>
+@page { size: letter landscape; margin: 0.35in; }
+* { box-sizing: border-box; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 10pt; color: #1f2a24; margin: 0; }
+.page { page-break-after: always; padding: 2pt 4pt; }
+.page:last-child { page-break-after: avoid; }
+h1 { font-size: 14pt; margin: 0 0 2pt 0; }
+.lede { font-size: 9.8pt; color: #333; margin: 0 0 4pt 0; line-height: 1.3; }
+.q { font-size: 10pt; color: #555; margin: 0 0 10pt 0; }
+table.pay { border-collapse: collapse; width: 100%; font-size: 8.2pt; }
+table.pay th { background: #1f4534; color: #fff; padding: 5pt 6pt; text-align: left; font-size: 8.3pt; }
+table.pay td { border: 1px solid #c9d6cf; padding: 5pt 7pt; vertical-align: top; line-height: 1.3; background: #fff; }
+table.pay tr:nth-child(odd) td { background: #f7faf8; }
+table.pay td.rev { background: #eaf5ee !important; }
+.whypay { margin-top: 8pt; border: 2px solid #1a7f4e; border-radius: 6pt; background: #f5faf7; padding: 7pt 12pt; }
+.whypay p { margin: 0; font-size: 9pt; line-height: 1.35; }
+.footnote { font-size: 7.8pt; color: #777; margin-top: 5pt; }
+</style></head><body>
+<!-- ============ FIGURE 2: THE CARENAVIGATOR ECOSYSTEM ============ -->
+<div class="page">
+<h1>2. CareNavigator Coordinates the Eldercare Ecosystem to Deliver Preventive Geriatric Care</h1>
+
+<svg width="100%" viewBox="0 0 980 600" font-family="Arial" style="margin-top:52pt">
+
+  <!-- ===== TOP: older adults and families (icon only; detail lives in Figure 1) ===== -->
+  <g>
+    <circle cx="470" cy="56" r="11" fill="#4a5a6a"/>
+    <path d="M453 112 Q453 74 470 74 Q487 74 487 112 Z" fill="#8a6d9a"/>
+    <circle cx="513" cy="51" r="11" fill="#4a5a6a"/>
+    <path d="M496 112 Q496 69 513 69 Q530 69 530 112 Z" fill="#1a7f4e"/>
+    <rect x="527" y="80" width="10" height="17" rx="2" fill="#2b3a33"/>
+    <rect x="528.5" y="82" width="7" height="12" fill="#eaf5ee"/>
+  </g>
+  <text x="490" y="132" font-size="11.5" font-weight="bold" fill="#1f2a24" text-anchor="middle">Older adults and families</text>
+
+  <!-- ===== the alternative path, condensed from Figure 1 ===== -->
+  <line x1="576" y1="88" x2="716" y2="88" stroke="#b04040" stroke-width="1.8" stroke-dasharray="5 4"/>
+  <path d="M715 83 L728 88 L715 93 Z" fill="#b04040"/>
+  <rect x="730" y="30" width="220" height="112" rx="10" fill="#fdf3f2" stroke="#b04040" stroke-width="1.5" stroke-dasharray="7 4"/>
+  <text x="840" y="50" font-size="6.4" font-weight="bold" fill="#a03a3a" text-anchor="middle" letter-spacing="0.8">THE VICIOUS CYCLE OF UNMET NEED</text>
+  <path d="M 847.2 71.0 A 26 26 0 0 1 865.2 102.3" fill="none" stroke="#b04040" stroke-width="1.2"/><path d="M 863.9 107.6 L 862.3 101.6 L 868.1 103.0 Z" fill="#b04040"/>
+  <path d="M 858.1 114.7 A 26 26 0 0 1 821.9 114.7" fill="none" stroke="#b04040" stroke-width="1.2"/><path d="M 818.0 110.9 L 824.0 112.5 L 819.9 116.9 Z" fill="#b04040"/>
+  <path d="M 814.8 102.3 A 26 26 0 0 1 832.8 71.0" fill="none" stroke="#b04040" stroke-width="1.2"/><path d="M 838.1 69.5 L 833.7 73.9 L 832.0 68.1 Z" fill="#b04040"/>
+  <circle cx="840.0" cy="70.0" r="3.0" fill="#b04040"/><circle cx="862.5" cy="109.0" r="3.0" fill="#b04040"/><circle cx="817.5" cy="109.0" r="3.0" fill="#b04040"/>
+  <text x="840" y="134" font-size="7.8" font-style="italic" fill="#b04040" text-anchor="middle">see Figure 1</text>
+
+  <!-- ===== needs lane down ===== -->
+  <line x1="444" y1="150" x2="444" y2="212" stroke="#1a7f4e" stroke-width="1.8"/>
+  <path d="M439 210 L444 221 L449 210 Z" fill="#1a7f4e"/>
+  <text x="432" y="188" font-size="8.5" font-weight="bold" fill="#14563a" text-anchor="end">Needs + means</text>
+
+  <!-- ===== block return arrow ===== -->
+  <path d="M510 222 L510 170 L498 170 L524 144 L550 170 L538 170 L538 222 Z" fill="#1a7f4e"/>
+  <text x="560" y="188" font-size="11.5" font-weight="bold" fill="#14563a" text-anchor="start">Preventive Geriatric Care</text>
+
+  <!-- ===== CENTER: the CareNavigator cycle + app ===== -->
+  <rect x="330" y="222" width="320" height="300" rx="13" fill="#eaf5ee" stroke="#1a7f4e" stroke-width="3"/>
+<path d="M 507.5 284.0 A 78.0 78.0 0 0 1 555.4 317.5" fill="none" stroke="#1a7f4e" stroke-width="2"/><path d="M 559.5 323.8 L 551.9 319.8 L 558.9 315.2 Z" fill="#1a7f4e"/><path d="M 567.7 353.2 A 78.0 78.0 0 0 1 550.6 409.1" fill="none" stroke="#1a7f4e" stroke-width="2"/><path d="M 545.9 414.9 L 547.4 406.4 L 553.9 411.7 Z" fill="#1a7f4e"/><path d="M 520.5 431.8 A 78.0 78.0 0 0 1 462.0 432.8" fill="none" stroke="#1a7f4e" stroke-width="2"/><path d="M 455.0 430.1 L 463.6 428.9 L 460.5 436.7 Z" fill="#1a7f4e"/><path d="M 431.1 411.2 A 78.0 78.0 0 0 1 412.1 355.9" fill="none" stroke="#1a7f4e" stroke-width="2"/><path d="M 412.5 348.4 L 416.3 356.1 L 407.9 355.7 Z" fill="#1a7f4e"/><path d="M 423.1 319.8 A 78.0 78.0 0 0 1 469.8 284.7" fill="none" stroke="#1a7f4e" stroke-width="2"/><path d="M 477.1 282.7 L 470.9 288.7 L 468.7 280.6 Z" fill="#1a7f4e"/><circle cx="490.0" cy="282.0" r="4.5" fill="#1a7f4e"/><circle cx="564.2" cy="335.9" r="4.5" fill="#1a7f4e"/><circle cx="535.8" cy="423.1" r="4.5" fill="#1a7f4e"/><circle cx="444.2" cy="423.1" r="4.5" fill="#1a7f4e"/><circle cx="415.8" cy="335.9" r="4.5" fill="#1a7f4e"/>
+  <!-- app inside the cycle -->
+  <g>
+    <rect x="471" y="302" width="38" height="64" rx="6" fill="#2b3a33"/>
+    <rect x="474" y="308" width="32" height="53" fill="#fff"/>
+    <rect x="474" y="308" width="32" height="8" fill="#1a7f4e"/>
+    <text x="476.5" y="314" font-size="4.2" fill="#fff" font-weight="bold">CareNavigator</text>
+    <text x="477" y="324" font-size="4.8" font-weight="bold" fill="#1f4534">Care plan</text>
+    <g>
+      <circle cx="480" cy="331" r="2.2" fill="#1a7f4e"/><path d="M479 331 l0.8 1 l1.5 -2" fill="none" stroke="#fff" stroke-width="0.7"/>
+      <line x1="485" y1="331" x2="502" y2="331" stroke="#d8e6dd" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="480" cy="340" r="2.2" fill="#1a7f4e"/><path d="M479 340 l0.8 1 l1.5 -2" fill="none" stroke="#fff" stroke-width="0.7"/>
+      <line x1="485" y1="340" x2="502" y2="340" stroke="#d8e6dd" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="480" cy="349" r="2.2" fill="none" stroke="#1a7f4e" stroke-width="0.9"/>
+      <line x1="485" y1="349" x2="502" y2="349" stroke="#d8e6dd" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="480" cy="358" r="2.2" fill="none" stroke="#1a7f4e" stroke-width="0.9"/>
+      <line x1="485" y1="358" x2="502" y2="358" stroke="#d8e6dd" stroke-width="2" stroke-linecap="round"/>
+    </g>
+  </g>
+  <text x="490" y="386" font-size="13" font-weight="bold" fill="#1f2a24" text-anchor="middle">CareNavigator</text>
+  <text x="490" y="400" font-size="8" fill="#5a7264" text-anchor="middle">by Olera</text>
+
+  <text x="490" y="268" font-size="8.2" font-weight="bold" fill="#1f4534" text-anchor="middle">Assess needs + means</text>
+  <text x="572" y="340" font-size="8.2" font-weight="bold" fill="#1f4534" text-anchor="start">Update profile</text>
+  <text x="546" y="440" font-size="8.2" font-weight="bold" fill="#1f4534" text-anchor="start">Build plan</text>
+  <text x="434" y="440" font-size="8.2" font-weight="bold" fill="#1f4534" text-anchor="end">Execute plan</text>
+  <text x="408" y="333" font-size="8.2" font-weight="bold" fill="#1f4534" text-anchor="end">Track</text>
+  <text x="408" y="344" font-size="8.2" font-weight="bold" fill="#1f4534" text-anchor="end">Outcomes</text>
+
+  <!-- ===== LEFT TOP: Public Aid Programs ===== -->
+  <rect x="30" y="248" width="220" height="116" rx="10" fill="#f5faf7" stroke="#1a7f4e" stroke-width="1.5"/>
+  <text x="140" y="280" font-size="12" font-weight="bold" fill="#1f2a24" text-anchor="middle">Public Aid Programs</text>
+  <text x="140" y="308" font-size="9" fill="#333" text-anchor="middle">Food, housing, income, transportation, LTSS</text>
+  <text x="140" y="332" font-size="7.8" fill="#777" text-anchor="middle">SNAP, housing aid, SSI, VA pension, Medicaid waivers</text>
+
+  <line x1="262" y1="288" x2="325" y2="288" stroke="#1a7f4e" stroke-width="1.7"/>
+  <path d="M264 283 L253 288 L264 293 Z" fill="#1a7f4e"/>
+  <text x="290" y="281" font-size="8.2" font-weight="bold" fill="#14563a" text-anchor="middle">Applications</text>
+  <line x1="255" y1="324" x2="318" y2="324" stroke="#1a7f4e" stroke-width="1.7"/>
+  <path d="M316 319 L327 324 L316 329 Z" fill="#1a7f4e"/>
+  <text x="290" y="317" font-size="8.2" font-weight="bold" fill="#14563a" text-anchor="middle">Aid</text>
+
+  <!-- ===== LEFT BOTTOM: Insurance Coverage ===== -->
+  <rect x="30" y="384" width="220" height="116" rx="10" fill="#f5faf7" stroke="#1a7f4e" stroke-width="1.5"/>
+  <text x="140" y="416" font-size="12" font-weight="bold" fill="#1f2a24" text-anchor="middle">Insurance Coverage</text>
+  <text x="140" y="444" font-size="9" fill="#333" text-anchor="middle">Medicare, Medicare Advantage, Medicaid</text>
+  <text x="140" y="464" font-size="9" fill="#333" text-anchor="middle">Commercial and long-term care insurance</text>
+
+  <line x1="262" y1="424" x2="325" y2="424" stroke="#1a7f4e" stroke-width="1.7"/>
+  <path d="M264 419 L253 424 L264 429 Z" fill="#1a7f4e"/>
+  <text x="290" y="417" font-size="8.2" font-weight="bold" fill="#14563a" text-anchor="middle">Eligibility</text>
+  <line x1="255" y1="460" x2="318" y2="460" stroke="#1a7f4e" stroke-width="1.7"/>
+  <path d="M316 455 L327 460 L316 465 Z" fill="#1a7f4e"/>
+  <text x="290" y="453" font-size="8.2" font-weight="bold" fill="#14563a" text-anchor="middle">Benefits</text>
+
+  <!-- ===== RIGHT TOP: Healthcare Services ===== -->
+  <rect x="730" y="248" width="220" height="116" rx="10" fill="#f5faf7" stroke="#1a7f4e" stroke-width="1.5"/>
+  <text x="840" y="280" font-size="12" font-weight="bold" fill="#1f2a24" text-anchor="middle">Healthcare Services</text>
+  <text x="840" y="308" font-size="9" fill="#333" text-anchor="middle">Home health, hospice, skilled nursing</text>
+  <text x="840" y="328" font-size="9" fill="#333" text-anchor="middle">Rehabilitation and physician services</text>
+
+  <line x1="655" y1="288" x2="718" y2="288" stroke="#1a7f4e" stroke-width="1.7"/>
+  <path d="M716 283 L727 288 L716 293 Z" fill="#1a7f4e"/>
+  <text x="690" y="281" font-size="8.2" font-weight="bold" fill="#14563a" text-anchor="middle">Health needs</text>
+  <line x1="662" y1="324" x2="725" y2="324" stroke="#1a7f4e" stroke-width="1.7"/>
+  <path d="M664 319 L653 324 L664 329 Z" fill="#1a7f4e"/>
+  <text x="690" y="317" font-size="8.2" font-weight="bold" fill="#14563a" text-anchor="middle">Healthcare</text>
+
+  <!-- ===== RIGHT BOTTOM: LTSS ===== -->
+  <rect x="730" y="384" width="220" height="116" rx="10" fill="#f5faf7" stroke="#1a7f4e" stroke-width="1.5"/>
+  <text x="840" y="410" font-size="10.6" font-weight="bold" fill="#1f2a24" text-anchor="middle">Long-Term Services &amp; Supports</text>
+  <text x="840" y="424" font-size="8.2" font-weight="bold" fill="#5a7264" text-anchor="middle">(LTSS)</text>
+  <text x="840" y="446" font-size="9" fill="#333" text-anchor="middle">Home care, assisted living, adult day services</text>
+  <text x="840" y="464" font-size="8" fill="#777" text-anchor="middle">Non-medical help with daily living (ADLs and IADLs)</text>
+
+  <line x1="655" y1="424" x2="718" y2="424" stroke="#1a7f4e" stroke-width="1.7"/>
+  <path d="M716 419 L727 424 L716 429 Z" fill="#1a7f4e"/>
+  <text x="690" y="417" font-size="8.2" font-weight="bold" fill="#14563a" text-anchor="middle">ADL/IADL needs</text>
+  <line x1="662" y1="460" x2="725" y2="460" stroke="#1a7f4e" stroke-width="1.7"/>
+  <path d="M664 455 L653 460 L664 465 Z" fill="#1a7f4e"/>
+  <text x="690" y="453" font-size="8.2" font-weight="bold" fill="#14563a" text-anchor="middle">Daily assistance</text>
+</svg>
+</div>
+
+</body></html>

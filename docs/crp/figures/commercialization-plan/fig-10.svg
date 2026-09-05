@@ -1,0 +1,44 @@
+<svg viewBox="0 0 700 268" xmlns="http://www.w3.org/2000/svg" style="width:100%;max-width:6.3in;display:block;margin:0 auto">
+    <g font-family="Arial, Helvetica, sans-serif">
+      <rect x="70" y="18" width="162" height="222" fill="#f4f2ec"/>
+      <text x="151" y="30" text-anchor="middle" font-size="9" fill="#8a7f56" font-weight="bold">2027&ndash;2029: CRP-funded</text>
+      <polyline points="70,190 232,190 260,208 315,205 370,203 425,196 480,192 535,183 590,176 645,163" fill="none" stroke="#a08144" stroke-width="1.8"/>
+      <text x="151" y="183" text-anchor="middle" font-size="8.5" fill="#7d6a3a">operating costs</text>
+      <polyline points="95,240 150,236 205,216 260,205 315,200 370,194 425,186 480,177 535,166 590,152 645,135" fill="none" stroke="#1d4d38" stroke-width="2.4"/>
+      <polyline points="205,216 260,200 315,172 370,140 425,123 480,105 535,84 590,58 645,28" fill="none" stroke="#b0761c" stroke-width="2.2" stroke-dasharray="7 4"/>
+      <line x1="232" y1="18" x2="232" y2="240" stroke="#4a554f" stroke-width="0.9" stroke-dasharray="3 3"/>
+      <circle cx="238" cy="207" r="4.5" fill="#2e7d5b"/>
+      <text x="240" y="222" font-size="9" font-weight="bold" fill="#1d4d38">sustainable at award end (2029):</text>
+      <text x="240" y="233" font-size="9" font-weight="bold" fill="#1d4d38">revenue covers all operating costs</text>
+      <line x1="250" y1="60" x2="268" y2="60" stroke="#b0761c" stroke-width="2.2" stroke-dasharray="7 4"/>
+      <text x="274" y="63" font-size="8.5" fill="#141414">Scenario B: &asymp;$4M growth capital (2030)</text>
+      <line x1="250" y1="75" x2="268" y2="75" stroke="#1d4d38" stroke-width="2.4"/>
+      <text x="274" y="78" font-size="8.5" fill="#141414">Scenario A: reinvested margin</text>
+      <text x="640" y="22" text-anchor="end" font-size="9" font-weight="bold" fill="#8a5a12">$5.7M</text>
+      <text x="640" y="126" text-anchor="end" font-size="9" font-weight="bold" fill="#1d4d38">$2.8M</text>
+      <line x1="70" y1="240" x2="670" y2="240" stroke="#3d3d3d" stroke-width="1"/>
+      <line x1="70" y1="240" x2="70" y2="18" stroke="#3d3d3d" stroke-width="1"/>
+      <line x1="70" y1="166" x2="670" y2="166" stroke="#dddddd" stroke-width="0.6"/>
+      <line x1="70" y1="92" x2="670" y2="92" stroke="#dddddd" stroke-width="0.6"/>
+      <line x1="70" y1="18" x2="670" y2="18" stroke="#dddddd" stroke-width="0.6"/>
+      <g font-size="9" fill="#3d3d3d">
+        <text x="66" y="243" text-anchor="end">$0</text>
+        <text x="66" y="169" text-anchor="end">$2M</text>
+        <text x="66" y="95" text-anchor="end">$4M</text>
+        <text x="66" y="21" text-anchor="end">$6M</text>
+      </g>
+      <g font-size="8.5" fill="#3d3d3d">
+        <text x="95" y="254" text-anchor="middle">2027</text>
+        <text x="150" y="254" text-anchor="middle">2028</text>
+        <text x="205" y="254" text-anchor="middle">2029</text>
+        <text x="260" y="254" text-anchor="middle">2030</text>
+        <text x="315" y="254" text-anchor="middle">2031</text>
+        <text x="370" y="254" text-anchor="middle">2032</text>
+        <text x="425" y="254" text-anchor="middle">2033</text>
+        <text x="480" y="254" text-anchor="middle">2034</text>
+        <text x="535" y="254" text-anchor="middle">2035</text>
+        <text x="590" y="254" text-anchor="middle">2036</text>
+        <text x="645" y="254" text-anchor="middle">2037</text>
+      </g>
+    </g>
+  </svg>

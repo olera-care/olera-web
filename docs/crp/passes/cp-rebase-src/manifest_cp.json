@@ -1,0 +1,622 @@
+[
+ [
+  "head",
+  "1. Statement of Need",
+  "#0"
+ ],
+ [
+  "cap",
+  "Figure 1. The vicious cycle of unmet need.",
+  "#1"
+ ],
+ [
+  "FIGFLOAT",
+  "FIG1",
+  "#1"
+ ],
+ [
+  "para",
+  "The product and its impact. The gap between older Americans ",
+  "#1"
+ ],
+ [
+  "para",
+  "The remaining opportunity is to carry navigation through the",
+  "#2"
+ ],
+ [
+  "FIG",
+  "FIG2",
+  "#2"
+ ],
+ [
+  "cap",
+  "Figure 2. Care establishment requires a coordinated pathway from asses",
+  "#2"
+ ],
+ [
+  "para",
+  "Olera's Valley of Death (Figure 3). CareNavigator is deploye",
+  "#3"
+ ],
+ [
+  "risk",
+  "Technical risk.",
+  "#4"
+ ],
+ [
+  "risk",
+  "Real-world validation risk.",
+  "#5"
+ ],
+ [
+  "risk",
+  "Evidence risk.",
+  "#6"
+ ],
+ [
+  "risk",
+  "Commercial risk.",
+  "#7"
+ ],
+ [
+  "risk",
+  "Financing risk.",
+  "#8"
+ ],
+ [
+  "FIG",
+  "FIG3",
+  "#10"
+ ],
+ [
+  "cap",
+  "Figure 3. CRP bridges the five remaining risks between demonstrated de",
+  "#10"
+ ],
+ [
+  "para",
+  "Why government funding is the right instrument at this stage",
+  "#11"
+ ],
+ [
+  "para",
+  "The alternative is not simply to raise prices or sell the sa",
+  "#12"
+ ],
+ [
+  "para",
+  "Our investor advisors agree that longitudinal outcomes demon",
+  "#13"
+ ],
+ [
+  "para",
+  "How CRP funding advances Olera to full commercialization. Th",
+  "#14"
+ ],
+ [
+  "head",
+  "2. Value of the CRP Project, Expected Outcomes, and Impact",
+  "#16"
+ ],
+ [
+  "para",
+  "The product to be commercialized. CareNavigator is Olera's f",
+  "#17"
+ ],
+ [
+  "para",
+  "Caregiver Staffing is a complementary provider-facing produc",
+  "#18"
+ ],
+ [
+  "FIG",
+  "FIG4",
+  "#18"
+ ],
+ [
+  "cap",
+  "Figure 4. What a family sees, what the system does, and what accumulat",
+  "#18"
+ ],
+ [
+  "para",
+  "Foundation from prior SBIR R&amp;D. Olera's NIA Phase I and ",
+  "#19"
+ ],
+ [
+  "para",
+  "Weaknesses in current approaches. Families do not lack indiv",
+  "#20"
+ ],
+ [
+  "table",
+  "7x3",
+  "#21"
+ ],
+ [
+  "cap",
+  "Table 1. Current approaches address portions of the pathway; the CRP i",
+  "#22"
+ ],
+ [
+  "para",
+  "Commercial applications and innovation. The commercial oppor",
+  "#23"
+ ],
+ [
+  "para",
+  "At scale, this longitudinal record could become a distinctiv",
+  "#24"
+ ],
+ [
+  "para",
+  "Expected outcomes. Successful completion of the CRP will lea",
+  "#25"
+ ],
+ [
+  "para",
+  "Commercial and non-commercial impact. Olera's commercial and",
+  "#26"
+ ],
+ [
+  "table",
+  "3x3",
+  "#27"
+ ],
+ [
+  "cap",
+  "Table 2. Commercial growth produces measurable societal, educational, ",
+  "#28"
+ ],
+ [
+  "head",
+  "3. Company",
+  "#30"
+ ],
+ [
+  "para",
+  "Origins and objectives. Olera, Inc. grew from a multidiscipl",
+  "#31"
+ ],
+ [
+  "para",
+  "Olera's corporate objective is to make establishing eldercar",
+  "#32"
+ ],
+ [
+  "table",
+  "8x2",
+  "#33"
+ ],
+ [
+  "cap",
+  "Table 3. Olera at a glance.",
+  "#34"
+ ],
+ [
+  "para",
+  "Core competencies and operating continuity. Olera's capabili",
+  "#35"
+ ],
+ [
+  "para",
+  "Olera's progression from R&amp;D to commercial scale. Early ",
+  "#40"
+ ],
+ [
+  "para",
+  "Vision, sustainability, and management evolution. Today, the",
+  "#41"
+ ],
+ [
+  "para",
+  "The lean internal team is complemented by senior expertise a",
+  "#42"
+ ],
+ [
+  "para",
+  "As CRP milestones demonstrate repeatable provider sales, ope",
+  "#45"
+ ],
+ [
+  "para",
+  "SBIR/STTR commercialization history. Olera's SBIR history is",
+  "#46"
+ ],
+ [
+  "table",
+  "5x2",
+  "#47"
+ ],
+ [
+  "cap",
+  "Table 4. SBIR/STTR commercialization history.",
+  "#48"
+ ],
+ [
+  "head",
+  "4. Market, Customer, and Competition",
+  "#49"
+ ],
+ [
+  "para",
+  "Market segments and potential customers. Olera commercialize",
+  "#50"
+ ],
+ [
+  "para",
+  "Caregiver Staffing addresses an unusually persistent provide",
+  "#51"
+ ],
+ [
+  "para",
+  "The institutional market is larger but evidence-gated. Prosp",
+  "#52"
+ ],
+ [
+  "para",
+  "Market opportunity and path to meaningful scale. Caregiver S",
+  "#55"
+ ],
+ [
+  "para",
+  "Significant advantages and competitive position. The remaini",
+  "#56"
+ ],
+ [
+  "table",
+  "2x2",
+  "#57"
+ ],
+ [
+  "para",
+  "Caregiver Staffing's initial workforce wedge is deliberately",
+  "#58"
+ ],
+ [
+  "para",
+  "This wedge is differentiated from conventional job boards. T",
+  "#59"
+ ],
+ [
+  "para",
+  "Current and emerging competition. For Caregiver Staffing, Ol",
+  "#60"
+ ],
+ [
+  "para",
+  "Market and customer acceptance hurdles. The CRP is structure",
+  "#61"
+ ],
+ [
+  "table",
+  "5x2",
+  "#62"
+ ],
+ [
+  "cap",
+  "Table 5. Principal market-acceptance uncertainties and the CRP activit",
+  "#63"
+ ],
+ [
+  "para",
+  "Strategic alliances, partnerships, and route to market. Oler",
+  "#64"
+ ],
+ [
+  "para",
+  "Marketing and sales strategy. Provider sales begin where Ole",
+  "#65"
+ ],
+ [
+  "head",
+  "5. Intellectual Property Protection",
+  "#67"
+ ],
+ [
+  "para",
+  "Protection strategy. Olera will protect each component of it",
+  "#68"
+ ],
+ [
+  "para",
+  "Temporal barriers to replication. Individual interface featu",
+  "#71"
+ ],
+ [
+  "head",
+  "6. Finance Plan",
+  "#73"
+ ],
+ [
+  "para",
+  "Capital required. Olera is requesting approximately $4 milli",
+  "#74"
+ ],
+ [
+  "para",
+  "From CRP capital to commercial sustainability. Olera's finan",
+  "#75"
+ ],
+ [
+  "para",
+  "Fundraising Plan. Olera will begin financing its next stage ",
+  "#78"
+ ],
+ [
+  "para",
+  "Investor engagement and financing readiness. Commercializati",
+  "#81"
+ ],
+ [
+  "para",
+  "Post-CRP financing requirement. Olera expects independent th",
+  "#82"
+ ],
+ [
+  "cap",
+  "Figure 5. Post-CRP growth flywheel.",
+  "#83"
+ ],
+ [
+  "FIGFLOAT",
+  "FIG10B",
+  "#83"
+ ],
+ [
+  "para",
+  "Use of post-CRP capital. The raise is intentionally larger t",
+  "#83"
+ ],
+ [
+  "para",
+  "Financing continuity. If financing takes longer than expecte",
+  "#84"
+ ],
+ [
+  "head",
+  "7. Production and Marketing Plan",
+  "#85"
+ ],
+ [
+  "para",
+  "Production model. Olera produces and operates its software i",
+  "#86"
+ ],
+ [
+  "para",
+  "Digital product and AI infrastructure. CareNavigator and Car",
+  "#87"
+ ],
+ [
+  "para",
+  "Data and workforce infrastructure. Olera's provider and bene",
+  "#87"
+ ],
+ [
+  "para",
+  "Market selection and activation. Olera will not enter counti",
+  "#88"
+ ],
+ [
+  "para",
+  "Customer and participant acquisition. A functioning Olera ma",
+  "#89"
+ ],
+ [
+  "table",
+  "4x4",
+  "#90"
+ ],
+ [
+  "cap",
+  "Table 6. Distinct but coordinated acquisition channels concentrate the",
+  "#91"
+ ],
+ [
+  "cap",
+  "Figure 6. Organic traffic growth, 2023\u20132026.",
+  "#91"
+ ],
+ [
+  "FIGFLOAT",
+  "FIGXORG",
+  "#91"
+ ],
+ [
+  "para",
+  "Sales and contracting. Olera uses two distinct commercial mo",
+  "#92"
+ ],
+ [
+  "para",
+  "Institutional development is evidence-gated rather than tran",
+  "#93"
+ ],
+ [
+  "para",
+  "Distribution and route to market. Olera's distribution advan",
+  "#94"
+ ],
+ [
+  "para",
+  "Scaling the production and commercial system. The CRP does n",
+  "#95"
+ ],
+ [
+  "head",
+  "8. Revenue Stream",
+  "#96"
+ ],
+ [
+  "para",
+  "Two revenue engines, sequenced by evidence. CareNavigator re",
+  "#97"
+ ],
+ [
+  "para",
+  "Caregiver Staffing: revenue follows successful hires. The St",
+  "#98"
+ ],
+ [
+  "table",
+  "7x4",
+  "#99"
+ ],
+ [
+  "cap",
+  "Table 7. The projection separates published benchmarks from Olera assu",
+  "#100"
+ ],
+ [
+  "para",
+  "For the financial projection, Olera holds every paid market ",
+  "#101"
+ ],
+ [
+  "para",
+  "The five-year model is an early commercialization case, not ",
+  "#104"
+ ],
+ [
+  "para",
+  "Institutional CareNavigator: contracts follow outcomes evide",
+  "#105"
+ ],
+ [
+  "para",
+  "There is already precedent for organizations responsible for",
+  "#107"
+ ],
+ [
+  "table",
+  "6x6",
+  "#108"
+ ],
+ [
+  "cap",
+  "Table 8. Illustrative base case through post-CRP Year 4, with the fina",
+  "#109"
+ ],
+ [
+  "para",
+  "How the projection should be read. These are bottom-up scena",
+  "#112"
+ ],
+ [
+  "para",
+  "Commercial hiring, workforce expansion, and family care esta",
+  "#113"
+ ],
+ [
+  "para",
+  "Staffing and capital as revenue grows. During the CRP, engin",
+  "#114"
+ ],
+ [
+  "head",
+  "9. Project Management Plan",
+  "#115"
+ ],
+ [
+  "para",
+  "Team and governance. The PI, TJ Falohun, has led the project",
+  "#116"
+ ],
+ [
+  "para",
+  "How research and commercialization stay synchronized. Day-to",
+  "#117"
+ ],
+ [
+  "para",
+  "Commercialization timeline and gates. The detailed experimen",
+  "#118"
+ ],
+ [
+  "table",
+  "5x3",
+  "#121"
+ ],
+ [
+  "cap",
+  "Table 9. Five-year commercialization management timeline. Revenue valu",
+  "#122"
+ ],
+ [
+  "head",
+  "References",
+  "refs"
+ ],
+ [
+  "ref",
+  "Agency for Healthcare Research and Quality. Evidence Map on ",
+  "ref1"
+ ],
+ [
+  "ref",
+  "Fan Q, Hoang MN, DuBose L, et al. The Olera.care Digital Car",
+  "ref2"
+ ],
+ [
+  "ref",
+  "Hoang MN, Kim L, Fisher L, et al. Exploring Informal Caregiv",
+  "ref3"
+ ],
+ [
+  "ref",
+  "Olera, Inc. Caregiver Staffing pilot placements and provider",
+  "ref4"
+ ],
+ [
+  "ref",
+  "U.S. Bureau of Labor Statistics. Home Health and Personal Ca",
+  "ref5"
+ ],
+ [
+  "ref",
+  "Activated Insights. 2025 Benchmarking Report for Home-Based ",
+  "ref6"
+ ],
+ [
+  "ref",
+  "Activated Insights. 2024 Benchmarking Report for Home-Based ",
+  "ref7"
+ ],
+ [
+  "ref",
+  "KFF. Medicare Advantage in 2026: Enrollment Update and Key T",
+  "ref8"
+ ],
+ [
+  "ref",
+  "Centers for Medicare and Medicaid Services. 2026 Medicare AC",
+  "ref9"
+ ],
+ [
+  "ref",
+  "Centers for Medicare and Medicaid Services. Guiding an Impro",
+  "ref10"
+ ],
+ [
+  "ref",
+  "Association of American Medical Colleges. U.S. Medical Schoo",
+  "ref11"
+ ],
+ [
+  "ref",
+  "American Association of Colleges of Nursing. NursingCAS Appl",
+  "ref12"
+ ],
+ [
+  "ref",
+  "Augusta and Home Care Association of America. National Careg",
+  "ref13"
+ ],
+ [
+  "ref",
+  "Activated Insights. Caregiver Retention for Home-Based Care;",
+  "ref14"
+ ]
+]

@@ -1,0 +1,168 @@
+{
+ "emdash": [],
+ "para_splits": [
+  "#87"
+ ],
+ "caption_norm": [],
+ "dedup_caption": [],
+ "superscript": [
+  {
+   "where": "#1",
+   "marker": "1"
+  },
+  {
+   "where": "#3",
+   "marker": "2,3"
+  },
+  {
+   "where": "#3",
+   "marker": "4"
+  },
+  {
+   "where": "#51",
+   "marker": "5,6"
+  },
+  {
+   "where": "#51",
+   "marker": "7"
+  },
+  {
+   "where": "#52",
+   "marker": "8,9"
+  },
+  {
+   "where": "#52",
+   "marker": "10"
+  },
+  {
+   "where": "#58",
+   "marker": "11,12"
+  },
+  {
+   "where": "#59",
+   "marker": "13"
+  },
+  {
+   "where": "table cell",
+   "marker": "6",
+   "glued": true
+  },
+  {
+   "where": "table cell",
+   "marker": "14",
+   "glued": true
+  },
+  {
+   "where": "#104",
+   "marker": "5"
+  },
+  {
+   "where": "#105",
+   "marker": "8"
+  },
+  {
+   "where": "#107",
+   "marker": "9,10"
+  }
+ ],
+ "typos": [
+  {
+   "where": "#81",
+   "was": "rel-evant",
+   "now": "relevant",
+   "note": "stray hyphen inside a word, a soft-hyphen artifact"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 1 (CRP)Build",
+   "now": "Year 1 (CRP)\\nBuild",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 1 (CRP)Build",
+   "now": "Year 1 (CRP)\\nBuild",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 1 (CRP)Build",
+   "now": "Year 1 (CRP)\\nBuild",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 2 (CRP)Validate free",
+   "now": "Year 2 (CRP)\\nValidate free",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 2 (CRP)Validate free",
+   "now": "Year 2 (CRP)\\nValidate free",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 2 (CRP)Validate free",
+   "now": "Year 2 (CRP)\\nValidate free",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 3 (CRP)Monetize",
+   "now": "Year 3 (CRP)\\nMonetize",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 3 (CRP)Monetize",
+   "now": "Year 3 (CRP)\\nMonetize",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 3 (CRP)Monetize",
+   "now": "Year 3 (CRP)\\nMonetize",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 4 (post-CRP)Expand",
+   "now": "Year 4 (post-CRP)\\nExpand",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 4 (post-CRP)Expand",
+   "now": "Year 4 (post-CRP)\\nExpand",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 4 (post-CRP)Expand",
+   "now": "Year 4 (post-CRP)\\nExpand",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 5 (post-CRP)Scale",
+   "now": "Year 5 (post-CRP)\\nScale",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 5 (post-CRP)Scale",
+   "now": "Year 5 (post-CRP)\\nScale",
+   "note": "missing line break between the year label and the stage name"
+  },
+  {
+   "where": "table cell",
+   "was": "Year 5 (post-CRP)Scale",
+   "now": "Year 5 (post-CRP)\\nScale",
+   "note": "missing line break between the year label and the stage name"
+  }
+ ],
+ "directed": [],
+ "notes": []
+}

@@ -1,0 +1,18 @@
+<svg viewBox="0 0 300 208" role="img" aria-label="Olera's four mission-critical constraints: free to families, non-extractive provider pricing, neutral recommendations, and regulatory compliance, aligned with NIA's mission.">
+      <text x="150" y="18" text-anchor="middle" font-family="Arial" font-size="10" font-weight="700" fill="#141414">Mission-critical constraints</text>
+      <g font-family="Arial">
+        <rect x="10" y="28" width="280" height="34" rx="5" fill="#eaf3ee" stroke="#2e7d5b" stroke-width="0.8"/>
+        <text x="20" y="42" font-size="8.5" font-weight="700" fill="#1d4d3a">1 &middot; Free to families</text>
+        <text x="20" y="54" font-size="8" fill="#2c3a35">navigation never adds to the affordability burden</text>
+        <rect x="10" y="68" width="280" height="34" rx="5" fill="#eaf3ee" stroke="#2e7d5b" stroke-width="0.8"/>
+        <text x="20" y="82" font-size="8.5" font-weight="700" fill="#1d4d3a">2 &middot; Non-extractive provider pricing</text>
+        <text x="20" y="94" font-size="8" fill="#2c3a35">value for providers without straining thin care margins</text>
+        <rect x="10" y="108" width="280" height="34" rx="5" fill="#eaf3ee" stroke="#2e7d5b" stroke-width="0.8"/>
+        <text x="20" y="122" font-size="8.5" font-weight="700" fill="#1d4d3a">3 &middot; Neutral recommendations</text>
+        <text x="20" y="134" font-size="8" fill="#2c3a35">no payment changes what a family sees; need + eligibility only</text>
+        <rect x="10" y="148" width="280" height="34" rx="5" fill="#eaf3ee" stroke="#2e7d5b" stroke-width="0.8"/>
+        <text x="20" y="162" font-size="8.5" font-weight="700" fill="#1d4d3a">4 &middot; Regulatory compliance</text>
+        <text x="20" y="174" font-size="8" fill="#2c3a35">referral rules for reimbursed care respected by design</text>
+      </g>
+      <text x="150" y="198" text-anchor="middle" font-family="Arial" font-size="7.5" fill="#4a554f">aligned with NIA's mission "to extend the healthy, active years of life"</text>
+    </svg>

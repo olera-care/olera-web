@@ -1,0 +1,725 @@
+SIGNIFICANCE 
+The unmet need. If we are fortunate, each of us will grow old, and reach the point where we, or someone we 
+love, needs help with bathing, dressing, meals, medications, and moving safely through the home. Most 
+families meet that moment at its worst, after a fall or a hospitalization, and are expected to become experts in 
+eldercare overnight (Figure 1).  
+The eldercare system in America is fragmented and complex. A family must find the right care across the four 
+systems in Figure 1. They must fund it: full-time home care costs $80,080 a year,1 Medicare does not cover 
+custodial home care, and Medicaid does so only in some states, once they have spent down their assets to 
+poverty levels. Public aid programs to help pay for care are difficult to apply for, and an estimated $58 billion 
+goes unclaimed each year.2 A provider must be able to staff it: 63.3 percent of home-care providers reported 
+declining cases in 2023 because they lacked staff.3 And someone must execute the applications, referrals, and 
+intake that stand between a plan and a start date. Many families fall through the cracks and into a vicious cycle 
+of unmet need (Figure 2).​
+​
+Nearly a third of older adults with difficulty in daily activities go 
+without bathing, meals, or medications in a given month,4 and unmet 
+needs of this kind independently predict emergency department use, 
+readmission, nursing home placement, and mortality.5,6,7 Worse yet, 
+unmet daily activity needs are rising because both sources of 
+caregiving support are contracting (Figure 3). The population over 65 
+reaches 82 million by 2050,8 family caregivers per adult over 80 fall 
+from more than seven to four,9 and the paid caregivers workforce 
+that would have to absorb the difference faces 9.7 million direct-care 
+job vacancies between 2024 and 2034.10 ​
+​
+The product and the north star. Olera helps families find and pay 
+for care, and helps providers find the clients and staff they need to 
+deliver it. Through NIH SBIR Phases I–IIB, we developed CareNavigator, an AI system that assesses a 
+household’s needs and means and builds a personalized plan for the care, funding, and providers available to 
+meet them (Figure 4). But we’ve found that a plan is not enough. Families still have to execute the applications, 
+referrals, and intake required to start care, and even a family that successfully navigates those steps may 
+reach a provider without the caregivers to serve them. This CRP addresses both remaining failure points. We 
+will add task-based AI agents that execute and follow up on the administrative steps between a plan and a 
+confirmed care start, and further develop Caregiver Staffing, a product designed to bring new workers into the 
+local caregiving workforce.  
+Together, these capabilities are designed to complete the care-establishment pathway and ensure capacity 
+exists to deliver it.  Our objective with CareNavigator and Caregiver Staffing is to turn more recognized needs 
+into established care before they become unmet needs that feed the vicious cycle. 
+​
+Market segments and customers. Families use CareNavigator for free, and providers participate in the navigation 
+network for free, so payment does not gate the care-establishment pathway (Table 1). Olera instead monetizes two 
+additional sources of value through two paying customer classes: providers and risk-bearing institutions, including 
+insurance payers and accountable care organizations (ACOs). 
+ 
+Segment 
+Olera value 
+Relationship 
+Why it is marketable 
+Families 
+CareNavigator: navigation through the 
+care-establishment pathway 
+Free user 
+Free access keeps payment from gating care 
+establishment. 
+Care providers 
+CareNavigator participation and family 
+connections 
+Free participant 
+Free participation preserves provider access 
+without a paid referral gate. 
+Care providers 
+Caregiver Staffing: recruit and place new 
+caregivers 
+Paid customer 
+Staffing is a major provider need; providers 
+already pay to solve it, and capacity is 
+required to establish care. 
+Insurance payers and 
+ACOs (“risk-bearers”) 
+CareNavigator for defined member or patient 
+populations 
+Paid customer, 
+evidence-gated 
+They bear downstream costs when care is not 
+established; navigation can create value by 
+establishing care earlier. 
+Table 1. Olera’s market segments, commercial relationships, and sources of value. 
+Caregiver Staffing is the near-term commercial beachhead. Staffing is a major problem for healthcare and long-term 
+services and supports providers, and they already spend substantially to recruit and replace caregivers. It is also the 
+half of the problem families cannot solve on their own. A family that finds care and can pay for it still has nowhere to 
+go if the provider has no one to send.Because care cannot be established without provider capacity to deliver it. 
+Caregiver Staffing therefore turns a problem providers already pay to solve into a marketable product that also 
+strengthens CareNavigator’s care-establishment infrastructure. 
+CareNavigator creates a second market. Risk-bearing institutions, including Medicare Advantage plans, ACOs, and 
+Medicaid managed-care organizations, bear downstream costs of hospitalizations and institutionalization of older 
+adults. These organizations can pay for CareNavigator to establish care for defined member populations. 
+Medicare’s GUIDE model provides early precedent for payment for care navigation and caregiver support. However, 
+the market remains evidence-gated, and therefore our CRP must generate defensible evidence that CareNavigator 
+can increase care establishment and create economic value for these buyers. 
+Competitive environment and our advantage. The competitive environment mirrors the fragmented 
+care-establishment pathway described above. Existing human and technology-enabled alternatives address 
+individual steps or substantial portions of it, but generally operate through separate services and business 
+models (Table 2). That fragmentation matters because responsibility can return to families between services, 
+creating opportunities for care to fall through before it is established, which then feeds the same vicious cycle. 
+Competitive category 
+Representative 
+examples 
+Assess 
+Find 
+Fund Execute Establish New workforce 
+Open access 
+Public information and 
+benefits 
+Eldercare Locator; 
+BenefitsCheckUp 
+• 
+● 
+● 
+• 
+○ 
+○ 
+● 
+General-purpose AI 
+ChatGPT; Claude; 
+Gemini 
+● 
+● 
+● 
+• 
+○ 
+○ 
+● 
+Human navigation 
+Discharge planners; 
+case managers; 
+private care managers 
+● 
+● 
+● 
+● 
+● / • 
+○ 
+• 
+Digital and hybrid 
+navigation 
+Wellthy; Homethrive; 
+Cariloop 
+● 
+● 
+● 
+● 
+● / • 
+○ 
+• 
+Senior-care referral 
+marketplaces 
+A Place for Mom; 
+Caring.com 
+• 
+● 
+○ 
+• 
+• 
+○ 
+• 
+Workforce recruitment Indeed; myCNAjobs; 
+staffing agencies; 
+referrals 
+○ 
+○ 
+○ 
+○ 
+○ 
+• 
+○ 
+Olera after the CRP 
+CareNavigator with 
+Caregiver Staffing 
+● 
+● 
+● 
+● 
+● 
+● 
+● 
+Table 2. Competitive alternatives across the care-establishment pathway. ● core capability · • partial or variable · ○ not typical.  
+Olera engineers from first principles to solve for the endpoint that matters–established care. This is why 
+CareNavigator was designed to instrument the full care-establishment pathway so we can measure where, 
+why, and how quickly care establishment succeeds or fails, and target interventions to the failure points. Four 
+architectural advantages follow from this first-principles approach:​
+ 
+1. Digital scale. The care establishment pathway can be 
+screened and navigated across populations through the open 
+web and mobile application architecture. 
+2. Open to all. Families can enter without payment or 
+institutional sponsorship, and providers can participate without 
+paying for referrals. This preserves broad, neutral participation 
+while giving the instrumented pathway visibility across the most 
+families and providers. 
+3. Qualified demand and capacity. CareNavigator can connect 
+providers at no referral cost with families whose needs, funding 
+options, and service fit have been characterized. Caregiver 
+Staffing can mobilize new qualified labor pools rather than 
+redistribute existing workers.  
+4. Instrumentation and evidence. CareNavigator follows the 
+case to the meaningful endpoint of established care rather than 
+ending wherever an individual service's function ends. This 
+creates evidence about whether the care establishment pathway 
+worked, where it failed, and how long it took at the county level. 
+The CRP tests whether these proposed advantages are real, measurable, and commercially meaningful. 
+Related development efforts in academia and industry. Existing evidence spans care coordination, 
+home-based care, digital caregiver support, closed-loop referral, and workforce development, but these efforts 
+have largely developed separately. Care-coordination research has shown the value of structured support, 
+including increased use of home- and community-based services and dementia outpatient care. Home-based 
+interventions such as CAPABLE have reduced disability and supported aging in place, with Medicaid analyses 
+also finding lower monthly spending. Digital caregiver interventions have shown favorable effects on caregiver 
+health, self-efficacy, skills, quality of life, support, and coping, although application-based interventions show 
+variable engagement and effectiveness and many remain prototypes. Our family-engaged research has 
+verified the usability and acceptance of the built platform functions and evolving needs of families to have a 
+one-stop shop of care services that can establish the care needed. Closed-loop referral research identifies 
+integration, continuity, and outcome measurement as unresolved priorities. Caregiving workforce research 
+shows that retention depends on wages, training, job quality, and working conditions, while tuition assistance, 
+career development, recognition, leadership, and career pathways are among the strategies being studied to 
+strengthen the workforce. Together, these literatures and the industry environment discussed previously 
+support the individual components of Olera’s approach while exposing the need for an end-to-end solution. 
+Hurdles to adoption. A coherent product still fails if the people required to use it do not adopt it. Families must 
+trust CareNavigator enough to move from receiving information to allowing AI-enabled execution of 
+consequential care-related tasks. Providers must receive qualified families and workers with sufficient value 
+and minimal workflow burden to incorporate CareNavigator and Caregiver Staffing into their operations. 
+Caregiver Staffing must create genuinely new, safe, reliable workforce supply that providers will hire and that 
+workers will remain in long enough to create real capacity. Risk-bearing institutions face the strongest evidence 
+threshold. Their adoption depends on demonstrating that CareNavigator is accepted by their members and that 
+the care establishment it produces creates defensible economic value through utilization reduction. The CRP 
+project is therefore designed to address these specific adoption and commercialization risks. 
+INNOVATION 
+Key Innovation 1: making the care-establishment pathway computable. Phase IIB modeled the front end 
+of eldercare planning: household needs and means, likely benefits and aid, and appropriate services and 
+providers. The CRP addresses the harder engineering problem that follows. Eldercare unfolds through a finite 
+but highly variable set of entities, documents, communications, decisions, and delays that differ by household, 
+program, provider, and geography, and reliable automation first requires a computational representation of that 
+system. 
+We propose a longitudinal Care Establishment Model organized around seven eldercare-specific domains, 
+each carrying substates developed in Aim 1 (Figure 5). The Phase IIB eldercare LLM interprets each of these 
+inputs and normalizes them into this common state. The model can then assemble a household's verified state 
+into the program- or provider-specific information a computational workflow, like an AI agent, requires. 
+Applications, documentation requests, provider denials, waiting lists, service starts, and disruptions can then 
+become timestamped events with geography and provenance in a normalized database rather than lost in 
+disconnected inboxes and records or scattered elsewhere along the care establishment pathway. 
+ 
+This is the load-bearing advance for the rest of the CRP. Software cannot reliably automate a fragmented 
+pathway unless it can observe what state a case is in, what changed, who owns the next action, and what 
+evidence defines completion. It also makes the pathway measurable. Executed cases reveal precisely what 
+happened between recognized need and established care, allowing us to observe where, why, and how quickly 
+care establishment fails at the household and geographic levels. To our knowledge, there are currently no 
+established models of the eldercare ecosystem we can apply directly to our use case of helping families 
+navigate the eldercare ecosystem families find themselves navigating as described in Figure 1. 
+Key Innovation 2: AI agents that execute and learn from the care-establishment pathway. The prevailing 
+paradigm is that digital tools inform, recommend, refer, or plan, and families execute tasks to secure care. The 
+CRP explores offloading the latter to reduce failure points in the care-establishment pathway by adding 
+specialized AI agents that perform administrative tasks to secure eldercare aid and services (Figure 6). 
+AI agents combined with LLM reasoning with the care model described in Innovation 1, could act on the 
+household’s behalf, bounded by explicit workflow logic, deterministic permission gates, and constrained tools to 
+execute key steps to securing care. Key technologies incorporated into the agent system can include APIs, 
+permissioned browser automation where portals require direct interaction, document handling, email, SMS, 
+fax, or appointment scheduling. For example, a user may authorize the system to prepare an LTSS application, 
+contact multiple home-care agencies with the same care details, schedule transportation, or utilize insurance 
+benefits. Actions requiring attestation, legal authority, or consequential family choice can be identified and 
+bounded so they require approval and remain human-controlled. 
+Episodic AI agent use is helpful, but the care establishment pathway may require multiple tasks over time. This 
+is an engineering challenge that requires AI to act with persistence across delays in intake processing, 
+incomplete information, and heterogeneous external systems. Execution must then follow an event-driven loop 
+capable of interpreting a plan, outlining tasks to be executed now or queued for later, waiting or returning, and 
+verifying or escalating items over longer periods of time as cases should continue until the endpoint of care 
+establishment is verified, declined by the family, or cannot safely proceed.  
+The second novelty of eldercare AI agents acting along this model is that execution itself generates field 
+knowledge. When the model meets an unresolved operational question or gap in data substrate, the same 
+tools can retrieve current information, inspect a portal, contact a representative, or escalate fieldwork to a 
+person, and the LLM normalizes what comes back and stores the findings with source, geography, time, and 
+provenance. A provider may publicly accept a payer yet report by phone that weekend capacity is unavailable 
+until November. That fact retrieved by the agent and stored in the model, improves the current case and every 
+subsequent case in the same market. More executed cases therefore expose more knowledge gaps, produce 
+more direct observations, and can improve future effectiveness and data integrity, which matters significantly in 
+eldercare because operational truth is local, rapidly changing, and largely absent from the public web. 
+Key Innovation 3: data-directed creation of new caregiver capacity and eldercare interventions. Better 
+information and execution still cannot establish care when no person is available to deliver it. Long-term care 
+capacity ultimately depends on the caregiver workforce, and existing staffing channels predominantly compete 
+for workers already circulating in the same constrained labor market. Olera instead uses the instrumented 
+pathway to identify where workforce is actually preventing care, and targets new supply at those deficits 
+(Figure 7). 
+CareNavigator can combine funded family demand, provider denials and vacancies, service type, geography, 
+shift requirements, worker availability, placement outcomes, and external workforce indicators into a local 
+capacity view. To fill workforce vacancies, we are exploring a specialized new caregiver entrance pathway for 
+pre-health students who are uniquely well suited for caregiving roles because they are distributed through 
+universities, a new cohort becomes available each year, often seeking documented patient-facing experience, 
+and available for the evenings and weekends providers report are hardest to fill. An existing pilot of this 
+concept generated more than 900 undergraduate applicants, showing that this is a reachable labor pool. 
+Further, we are designing a longitudinal worker record into our model that accumulates verified hours, 
+experience, credentials, provider evaluations, reliability, and references to further enhance visibility into the 
+eldercare system on the individual care worker level. ​
+​
+The same instrumentation has value beyond staffing. Households’ states aggregate into county, state, and 
+national visibility on unmet needs, funding failures, processing delays, provider deserts, workforce shortages, 
+and time to established care to create an analytic layer for researchers, industry, risk-bearing institutions, and 
+public agencies. Caregiver Staffing is the first intervention we are exploring to target local markets based on 
+these analytics because the workforce shortage is already large, and caregiver shortages are a major fall-off 
+point along the care establishment pathway. 
+The end product: the Olera CareNavigator. The three innovations converge behind the existing 
+CareNavigator web and mobile experience, which Phase IIB developed through repeated build-measure-learn 
+cycles with family caregivers. The front end stays intentionally simple while the computational and agentic 
+infrastructure works behind it. A hospital discharge, a family that cannot afford home care, and a provider 
+without staff enter by different routes and run through the same infrastructure to the same place (Figure 8). 
+​
+APPROACH 
+Specific Aim 1: Engineer and technically verify the integrated care-establishment infrastructure. Aim 1 
+builds on R&D from Phase I-IIB where we established CareNavigator’s web and mobile experience, 
+eldercare-tuned LLM, national provider and benefits data infrastructure, household needs-and-means 
+modeling, and eligibility and service matching. The tasks described below add a longitudinal Care 
+Establishment Data Model, eldercare AI agent workflows, and Caregiver Staffing infrastructure required to 
+facilitate and observe the full care establishment pathway for users.​
+​
+Task 1.1: Build the Care Establishment Pathway Model. We will formalize the computational state 
+architecture introduced in Innovation 1 around seven eldercare-specific domains we have identified from prior 
+research to span the care establishment pathway. At a high level, these include normalizing input from families, 
+aid programs, and service providers by needs, means, funding, service, execution, capacity, and outcome. 
+Each domain will contain substates including timestamped events, geography, provenance, evidence, 
+ownership of the next action, and explicit terminal states. The Phase IIB eldercare LLM will serve to normalize 
+natural language input from family text or voice dialogue, uploaded documents, forms, and provider or program 
+in-kind input and intake requirements into this common data representation. Specific programs or providers will 
+span public aid, insurance benefits, home care, assisted living, home health, transportation, and 
+post-discharge coordination and will be encoded and audited for whether the model scheme accommodates 
+the data required to determine the next administrative action a case may take towards establishing aid or care. 
+Task 1.2: Build a suite of eldercare AI administration agents. The Care Establishment Model will be 
+coupled to and trigger both LLM reasoning and eldercare-specific AI agents with explicit workflow logic, 
+deterministic permission gates, scheduling, and constrained tools. Creation of these agents will incorporate 
+best practices for safety and privacy as defined by IBM AI Agent Security Best Practice guidelines. Family or 
+provider input into the model through the LLM will be normalized and mapped to a suite of AI agents whose 
+tools and workflow parameters are designed to execute the functions needed to complete administrative tasks. 
+Tools include APIs to software for permissioned browser automation for portals, document assembly software, 
+email clients, SMS, fax, phone calls, and meeting scheduling. Each agent workflow will be an event-driven loop 
+triggered by mapped model input and output actions such as obtaining permissions from the user, acting on 
+their behalf, waiting or returning to act at a specified time, verifying the terminal state of a defined task or 
+escalating for user or support team manual processing. Actions requiring legal authority, attestation, identity 
+verification, or clinical judgment will be gaurdrailed so execution does not cross medicolegal boundaries or 
+enact clinical activity like diagnosis, treatment, or interpretation of clinical information. Additional safeguards 
+include permissions that distinguish the person using the platform from the person whose information or 
+benefits are involved, and agents will not be allowed to infer legal decision-making authority from caregiver 
+status alone. Unsupported, stalled, or ambiguous workflows will be escalated to the user or our human support 
+team for manual processing. The internal engineering team will test agents on case simulations in an internal 
+staging environment to verify intended administration tasks along the eldercare establishment pathway are 
+functioning as intended. The result is a suite of eldercare administrative AI agents capable of the key execution 
+functions required when interpreting eldercare-related input from users, interacting with tools to execute 
+required tasks related to care establishment, and following up over time to confirm completion of necessary 
+intake tasks.  
+Task 1.3: Build a field learning closed-loop data architecture. Execution agents will also function 
+autonomously as structured field researchers. If an agent working a case encounters missing, stale, or 
+conflicting operational information in the model or database, the system can autonomously retrieve and store 
+the missing data. Specifically, agents will be allowed to search current public web information, inspect an 
+available application portal, contact the relevant organization through an approved communication channel like 
+email, or escalate the question to our support team. Returned information will be normalized with source, 
+geography, time, and provenance and will enter the production knowledge layer only after the required quality 
+check. Time-sensitive facts such as provider capacity, office representatives, accepted payment sources, 
+waiting-list status, and specific application procedures will be preserved for provenance and to improve the 
+learning of the system so it delivers more effective execution functions over time. This functionality will be 
+tested on similar mock cases to Task 1.2, and we will observe that autonomously collected data is normalized 
+into the model without error, and that new data entries trigger a human quality assurance check before 
+persisting in the model for the next case set.  
+Task 1.4: Develop Caregiver Staffing infrastructure. Olera's existing student recruitment and provider-facing 
+placement infrastructure will be extended from applicant intake to verified employment. Candidates will be 
+screened for availability and fit based on individual providers’ specifications stored in the model and verified 
+autonomously by decision tree logic before provider handoff. Licensed providers retain responsibility for hiring, 
+training, employment, supervision, and any provider-specific screening. After hand-off, employer-confirmed 
+hours, experience, populations served, evaluations, reliability, and references will accumulate into a 
+longitudinal worker record that is stored for geographic workforce capacity modeling.  
+Task 1.5: Preliminary usability and acceptance testing before real-world deployment. Under Clemson 
+University IRB, we will conduct a mixed-method stakeholder study of the usability of the interfaces and agent 
+execution relevant to the three user classes, including family caregivers (n=25), service providers (n=25; 
+non-medical home care operators), and potential student workers (n=25) who will complete moderated 
+sessions using standardized non-live cases simulating the functions relevant to their roles on our 
+non-production staging environment. Study participants will be recruited from Olera’s existing pipeline funnels 
+for each class, including paid advertisements, business-line communications to providers, and existing and 
+newly formed university relationships with pre-health advising offices. During sessions conducted on video call 
+with screen-sharing functionality, participants will interact with the relevant interfaces for their user class and 
+think aloud while completing role-specific tasks. We will observe behavior and record task success, time, 
+errors, and assists, administer the System Usability Scale (SUS) for all participants, and the Trust in 
+Automation Scale (TIAS) for families who use AI agent execution functions. Semi-structured interviews 
+post-session will focus on workflow comprehension, permission boundaries, trust, and needed interface or 
+software functionality refinements. This task therefore establishes whether intended family users find it useful 
+and trust and accept the permission architecture under controlled conditions before Aim 2 real-world testing. ​
+​
+Potential problems, alternatives, and GO/NO-GO to Aim 2. Failed or malfunctioning AI agent workflows can 
+be narrowed, disabled, moved behind additional approval, or thresholds lowered to trigger human manual 
+processing while it is corrected, reverified, or retired. Progression of the integrated data model, AI agent suite, 
+and caregiver infrastructure to Aim 2 real-world testing is a NO-GO if any critical workflow class has an 
+unresolved critical event defined that would break best practice in AI safety and privacy, unresolved material 
+permission failure, systematic misunderstanding of consequential-action boundaries, or inability to enforce the 
+verified execution scope. Specifically, Aim 2 is gated only after the integrated system meets the prespecified 
+technical criteria in Table 1 below:  
+Measure/Deliverable 
+Criterion 
+Source 
+Care Establishment Data Model  
+Complete computational model across pathway steps 
+including needs, means, funding, service, execution 
+steps, workforce capacity, and care establishment 
+endpoint outcome 
+Internal schema audit; Task 1.1 
+Agent workflow execution 
+All expected actions per internal team assessment 
+with no perceived errors in workflow logic, permission 
+gating, tool constraints, or agent output 
+Technical test set with mock cases 
+in simulated internal staging 
+environments; Task 1.2 
+Agent field learning with 
+closed-loop provenance and QA 
+Operational data gaps in our database are filled by 
+agents autonomously, and notifications for QA by 
+human team; 100% of new data acquired, 
+normalized, and persisted in the model 
+Technical test set with mock cases 
+in simulated internal staging 
+environments; Task 1.3 
+System Usability Scale 
+Mean ≥72 for each participant class 
+Moderated sessions; Task 1.5 
+Trust/permission comprehension 
+Mean TIAS ≥5 and no critical control failure 
+Moderated sessions; Task 1.5 
+AI Agent Security Best Practice 
+No unresolved critical event breaking best practice 
+guidelines for safety and privacy 
+IBM AI Agent Security Best 
+Practice; GATE 
+Table 1. Aim 1 success criteria and the source of each measurement. 
+Specific Aim 2: Test whether the integrated system establishes aid and care and creates value in real 
+markets. The verified suite of Eldercare AI Agents and the Caregiver Staffing infrastructure developed in Aim I 
+will be validated in real-world operations without pay gates (i.e., free pilots). The primary question is whether a 
+critical number of tracked family episodes reach the confirmed aid or care establishment state or, if not,  why 
+pathways succeed, stall, or fail. We will also observe the Caregiver Staffing infrastructure in action and observe 
+if it is successful in creating new care staff capacity with providers experiencing staffing vacancies.  
+Task 2.1: Validate CareNavigator with families in real market environments. Aim 2 will track approximately 
+440 family navigation episodes across eight medium-to-large-sized counties (i.e., “markets") over nine months. 
+Markets will be selected using specified criteria for family demand, provider density, relevant benefit and 
+service availability. Families will be recruited via Olera’s organic web activity, social media accounts, and paid 
+advertising targeted to the market radius. Families will use a self-service portal on the web or mobile app 
+platform interface.  Over the nine-month observation period, the instrumented system components will record 
+family navigation episodes and persist to the model state transitions (i.e., assessed, in-progress, denied, 
+accepted, etc.), task execution, communications, escalations, and field-learning events. Each action will also 
+be classified as user-executed, agent-executed, or Olera support team-executed. Each episode may be 
+composed of a variety of required tasks assigned to various agents to complete towards the specific terminal 
+success state of care established. The establishment of the care success state is assigned during the 
+assessment stage for each episode and followed to completion or termination. Completion requires family 
+confirmation and, when possible, provider or aid program representative confirmation that the documented 
+primary need was actually obtained. This confirmation can be ascertained by the system through 
+communication from users through the platform interface (i.e., provider or family logging successful 
+establishment), or through agent-initiated communication using email, SMS, or phone. The primary success 
+outcome is care established per episodes initiated. Secondary outcomes include whether the agentic 
+infrastructure, rather than a human (either user or Olear support team member), performed the administrative 
+work, time to establishment, specific task failure or user fall-off point, and reasons for task delay or failure 
+ascertained by user error reports. Among families offered a permission-gated agent action, we will also 
+measure rates at which they authorize or deny.  
+Task 2.2. Validate Caregiver Staffing in free pilots with non-medical home care providers. Caregiver 
+Staffing will be validated in the same eight markets as Task 2.1 to increase workforce capacity where care 
+navigation is aggregating provider demand. The decision to make the pilot free to providers is to increase 
+participation and therefore throughput so we can learn from operational experience and see system-wide what 
+works and what could be improved. Over the nine months, we will target 15 non-medical home care agencies 
+and 150 pre-health student worker placements. Non-medical home care providers will be recruited through 
+paid advertising and business line calls offering the product for free as a supplemental hiring pipeline. Student 
+workers will be recruited through local university career advising centers and student organizations. All will 
+enter through the self-serve platform that hosts provider and student profiles, an interview scheduling and 
+hiring system, and a longitudinal worker log and record system. Provider staffing requests, applicants referred, 
+successful hires, rejections, first shifts, total hours worked, employment duration, and termination of 
+employment will be monitored through the instrumented platform components.  
+Task 2.3: Conduct post-use mixed-methods evaluation and pre-commercial learning. After exposure to 
+the platform-service, users of both CareNavigator and Caregiver Staffing will be invited to provide feedback on 
+the experience and value added via surveys and feedback. For families who participated in navigation 
+episodes, standardized surveys will measure acceptability, appropriateness, feasibility, perceived value, 
+workflow fit, user experience, and comfort delegating different categories of administrative action. Interviews 
+will specifically examine which actions users authorized, declined, or preferred to keep human-assisted, why 
+those boundaries differed, and whether agent execution reduced or introduced administrative burden. For 
+providers, surveys and interviews will focus on determining provider willingness to pay for the care workers 
+they hired, and this price will be treated as a pricing hypothesis for Aim 3. For student care workers hired, we 
+will focus feedback on their experience with platform onboarding and vetting, employer relationships, client 
+hours and experience, and value to their future healthcare career goals. Interview transcripts will be analyzed 
+using a shared codebook. The resulting qualitative and quantitative user data will set the stage for Aim 3 
+experimentation in eight new markets, specifically setting the price to start with for Caregivers Staffing.  
+Analysis, alternatives, and GO/NO-GO. Aim 2 outcomes will be analyzed across all eight markets and 
+reported by market where informative. For CareNavigator, we will estimate the proportion of family episodes 
+reaching verified care or aid establishment and the proportion of eligible administrative actions completed by AI 
+agents without human execution. For Caregiver Staffing, we will measure the full recruitment-to-employment 
+pathway, including placement yield, hires per provider, hours worked, and employment duration. Acquisition 
+and operating costs will be measured across families, providers, and workers. If individual agent workflows or 
+Staffing processes underperform, we will identify the failure point, refine the workflow, and retain human 
+support where automation is not yet reliable. For staffing, the willingness to pay per-hire price will be obtained 
+via the qualitative and quantitative feedback and used for real pricing in Aim 3. Go/No-go decisions to progress 
+CareNavigator or Caregiver Staffing to Aim 3 will be based on meeting the following criterion:  
+Measure 
+Criterion 
+Source 
+Family episodes enrolled 
+~440 enrolled to retain ≥ 400 analyzable episodes 
+after ≤ 10% withdrawal/unusable outcomes data 
+Enrollment records; Task 2.1 
+Verified care or aid establishment  
+GO if lower bound of 95% CI >35% of episodes reach 
+aid or service specified by agent’s assessment 
+primary need  
+Family confirmation + source 
+records; Task 2.3 
+Family authorization of 
+consequential agent action 
+≥60% of eligible families offered such an action 
+authorize ≥1 
+Permission and execution logs; 
+Tasks 2.2–2.3 
+Agent-executed administration 
+actions 
+≥70% 
+of approved agent actions eligible for 
+automation completed without human execution 
+Platform action logs + navigator 
+records; Tasks 2.2–2.3 
+Workforce placement yield 
+≥25% of qualified workers entering provider 
+placement reach employer-confirmed hire 
+Worker + employer records; Tasks 
+2.2–2.3 
+Provider staff connections quality 
+and quantity  
+Number of staff hires per provider, hours worked, 
+duration of employment 
+Platform + provider/worker records 
+Provider willingness to pay 
+Free pilot completers will assess the service’s value, 
+provide a qualitative assessment of their willingness 
+to pay, and estimate the price they would be willing to 
+pay per successful hire. 
+Feedback form provider free pilot 
+users; Task 2.2 
+CAC and cost to serve 
+Measured across all three stakeholder groups, 
+including acquisition costs, platform usage costs, and 
+all associated fixed and variable operating costs. 
+Cost ledger; Tasks 2.1-2.4 
+AI Agent Security Best Practice 
+No unresolved critical event breaking best practice 
+guidelines for safety and privacy 
+IBM AI Agent Security Best 
+Practice; GATE 
+Table 2. Aim 2 success criteria, and the source of each measurement. 
+Specific Aim 3: Test whether demonstrated value supports repeatable paid commercial economics. 
+Aim 3 will test whether the operating model validated in Aim 2 can be reproduced in new markets under 
+commercial conditions. We will enter eight new markets, acquire families, providers, and workers through the 
+channels established in Aim 2, and operate both CareNavigator and Caregiver Staffing. CareNavigator will 
+remain free to families and providers while Caregiver Staffing will transition to a paid provider product. 
+CareNavigators ability to establish care will be tracked and used to model its potential value to payers and 
+ACOs in preparation for a post-CRP proof of concept.  
+Task 3.1: Replicate the integrated system and test paid economics in eight new markets. Aim 2 will 
+provide direct evidence on provider value of the Staffing program, hires completed, worker retention, 
+willingness to pay, and Olera’s cost to operate. These findings will determine the Caregiver Staffing initial price 
+tested in Aim 3. Over another nine-month period, we will enter eight markets not used in Aim 2. In each 
+market, Olera will recruit new families into CareNavigator, activate local providers, and recruit student workers 
+using the acquisition channels validated in Aim 2. CareNavigator family episodes will again be followed from 
+assessment through verified care or aid establishment using the same core outcome definition established in 
+Aim 2, allowing us to determine whether care-establishment performance replicates in previously untested 
+markets. Caregiver Staffing will operate concurrently, but providers will now be offered the paid product at the 
+price informed and set by willingness to pay information in Aim2. We will measure family episodes and verified 
+care establishment, providers and workers acquired, staffing requests, hires, and retention, paid conversion 
+and repeat purchasing.  Revenue, customer acquisition cost and cost to serve be used to calculate service 
+margin. 
+Task 3.2: Translate the CRP evidence into the post-CRP commercialization plan. At the nine-month mark, 
+we will begin to integrate evidence from Aims 2 and 3 for the CareNavigator towards a post-CRP evidence 
+package that will show institutional buyers like Medicare Advantage and ACOs the ability for the CareNavigator 
+to establish care. Published evidence and external economic modeling may be used to estimate the potential 
+downstream value of improved care establishment. These results will define the target population, study 
+design, outcomes, data requirements, sample size, and follow-up for a post-CRP institutional proof-of-concept 
+testing whether improved care establishment reduces utilization or total cost. For Caregiver Staffing, measured 
+purchasing, retention, acquisition cost, cost to serve, contribution margin, and replication across markets will 
+replace the assumptions in Olera’s commercial model and determine whether the provider-paid product is 
+ready for broader expansion.  
+Potential problems, alternatives, and final commercial GO/NO-GO. Commercialization development of the 
+CareNavigator is a go if it is shown to establish care replicable in another 8 markets in Aim 3 and economic 
+modeling of potential reduced costs are promising. Caregiver Staffing is a GO only if real purchasing, sustained 
+use, measured economics, and repeatable market activation support it. Otherwise Olera will preserve and 
+publish the evidence and refine, pivot, or stop the unsupported commercial pathway rather than scale a 
+potential invalidated product or revenue model. Specific post-CRP decision criteria are below:  
+Measure 
+Criterion 
+Source 
+CareNavigator replication 
+Verified care or aid establishment reproduced across 
+eight new markets using the same outcome definition 
+as Aim 2 
+Family confirmation + source 
+records; Task 3.1 
+Caregiver Staffing paid adoption 
+Providers purchase and continue using Caregiver 
+Staffing at the Aim 2-informed price 
+Offer + billing records; Task 3.1 
+Caregiver Staffing commercial 
+economics 
+ 
+CAC, cost to serve, revenue, and service margin 
+measured from live operations and support a viable 
+provider-paid model 
+Billing + operating ledger; Task 31 
+Post-CRP commercialization 
+evidence 
+CareNavigator evidence supports a credible 
+institutional-buyer proof-of-concept; Caregiver 
+Staffing evidence supports a GO/NO-GO decision for 
+broader commercial expansion 
+Integrated Aim 2–3 evidence; Task 
+3.2 
+Table 3. Aim 3 success criteria, and the source of each measurement. 
+Timetable. The work is deliberately staged so that downstream exposure occurs only after the preceding gate 
+is met, while independent workstreams proceed in parallel where safe. The governing contingency rule is 
+scope narrows before the calendar compresses: if Aim 1 verification slips, only workflow classes that pass the 
+gate enter Aim 2 and unsupported classes remain human-assisted; if Aim 2 accrual or follow-up slips, Aim 3 
+does not begin before outcome ascertainment is complete; and if insufficient time remains for both paid-market 
+waves, Wave 1 is completed and analyzed before Wave 2 is opened. This prevents schedule pressure from 
+overriding technical or human-protection gates. 
+Figure 9. Three-year task-level timetable. GO/NO-GO gates prevent progression to the next level of human or commercial exposure 
+until prespecified criteria are met. 
+CRP PROGRESS REPORT 
+What prior funding established. Olera enters the CRP after six years of NIA-supported development, not at 
+the start of it. Across NIA SBIR Phase I/II Fast-Track and Phase IIB awards (1R44AG074116), scored at 20 
+and 25, Olera built and evaluated the CareNavigator platform, and the Phase IIB review assessed its 
+commercial potential as extremely high. Olera then used NIH and NSF I-Corps support and company capital to 
+test commercialization risks the prior awards were not designed to answer. Table 6 records that progression: 
+each stage tested one uncertainty before Olera built the layer that depended on it. 
+ 
+Risk 
+Retired by 
+Evidence 
+Technical foundation​
+Could fragmented eldercare data be 
+assembled at national scale? 
+NIA Phase I to IIB 
+An expert-curated national database of 
+more than 72,000 aid programs and 
+providers across all fifty states, 578 program 
+guides, and a multi-agent eldercare AI 
+entering production. 
+User acceptance​
+Would families use and accept the 
+technology? 
+NIA Phase I to IIB 
+Four peer-reviewed evaluations with family 
+caregivers: usability 4.57 of 5; acceptance 
+5.83 of 7 after four weeks (n = 65); 
+multi-agent version 5.73 of 7 (n = 31). 
+Family demand​
+Can Olera reach families at meaningful 
+scale? 
+Company funds 
+Organic traffic grew from roughly 50 visits a 
+day in 2023 to more than 500 today, from 
+nearly every county, at near-zero acquisition 
+cost. 
+Provider participation​
+Will providers engage with Olera? 
+I-Corps and company funds 
+More than 200 customer-discovery 
+conversations with owners and operators; 
+more than 700 providers have since claimed 
+an Olera listing at no charge. 
+Workforce acquisition​
+Can Olera reach an incremental caregiver 
+labor pool? 
+Company funds 
+A student caregiver pilot drew more than 
+900 applicants and placed 25 into provider 
+jobs, establishing a workforce channel Olera 
+can reach directly. 
+Early willingness to pay​
+Will providers exchange real money for the 
+value Olera creates? 
+Company funds 
+Four providers trialed Caregiver Staffing and 
+three paid, at roughly $275 per placement 
+and $275 a month across multiple 
+semesters. Delivery was deliberately 
+manual, to learn the workflow before 
+building the infrastructure that automates it. 
+The risks that remain​
+Can the integrated system execute the 
+care-establishment pathway, reach 
+established care and create value, and 
+convert that value into repeatable 
+commercial economics? 
+Not yet retired 
+Aim 1 verifies closed-loop execution; Aim 2 
+measures verified care establishment and 
+stakeholder value across eight free 
+validation markets; Aim 3 tests paid 
+conversion, retention, unit economics, and 
+market-entry replication across eight new 
+paid markets. 
+Table 6. Commercialization risks retired to date, the evidence that retired each, and the risks the CRP is designed to remove. 
+ 
+Why the remaining work is credible. The evidence in Table 6 is cumulative rather than redundant. Olera has 
+shown that the information can be assembled, that families will use the technology, and that the company can 
+reach families, providers, and workers through channels it controls. The workforce pilot and the first provider 
+payments show that the staffing pathway can move people into provider jobs and that providers will pay for 
+what Olera produces. Delivering that manually exposed the workflow that now has to be engineered. What 
+none of it establishes is whether the integrated CareNavigator and Caregiver Staffing infrastructure can 
+execute the care-establishment pathway reliably, whether that execution reaches established care and creates 
+stakeholder value in real markets, or whether the resulting value converts into repeatable commercial 
+economics. Those three uncertainties are assigned to Aims 1 to 3.  
+Team and execution capacity. The proposed work is led by substantially the same research and operating 
+team that built and evaluated the system. Falohun was PI on both prior NIA awards and leads product, 
+technical integration, and the Aim 1 engineering workstream. DuBose, Olera’s Chief Research Officer and 
+Co-Investigator on Phase I–IIB, leads research integration, milestone coordination, and cross-aim operations. 
+Fan and Clemson independently lead the human-subjects work, with Ory advising as she has on Phase IIB. 
+Olera also enters the CRP with a full-time software engineer, two full-time family/provider operations personnel 
+with more than three years of platform experience, research and marketing support, and at least one additional 
+full-time engineering position planned for CRP Year 1. One existing operations staff member will be designated 
+Market Operations Lead before Aim 2 and will execute the non-founder market-entry test in Aim 3. 
+Third-party investment readiness. The commercial endpoints in this application have been exposed to 
+outside market scrutiny. Olera holds relationships with Ziegler, a major underwriter serving nonprofit senior 
+living providers, and with Equitage Ventures, an early-stage investor focused on the aging economy, and the 
+proposed aims were additionally reviewed by an outside investor. These relationships are not financing 
+commitments. They inform the evidence package that prospective third-party capital will require, and the 
+commercial endpoints in Tables 4 and 5 are the ones those investors said they would need to see. 
+ 
+Development status at CRP entry. Olera is beyond technical feasibility and initial market discovery, and short 
+of scalable commercial proof. The CRP funds the sequence that closes that gap: engineer and verify the 
+technology and infrastructure both products require; test whether care is established and value created in real 
+markets; then determine whether that value converts into repeatable paid economics. Completing the CRP 
+leaves a commercially tested system, measured provider economics, replicated new-market performance, a 
+payer proof-of-concept specification, and the diligence package required to pursue independent third-party 
+financing for post-CRP scale. 
+ 
+ 

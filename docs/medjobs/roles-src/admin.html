@@ -1,0 +1,720 @@
+<!doctype html><html><head><meta charset="utf-8">
+<title>MedJobs Admin Team Operations</title>
+<style>
+:root { --ink:#000; --muted:#5f6b64; --rule:#b9c4bd; --teal:#14453f; --soft:#f4f7f6; }
+* { box-sizing: border-box; }
+body { margin:0; color:var(--ink); font-family:Arial,Helvetica,sans-serif;
+       font-size:11pt; line-height:1.2; }
+.doc-title { font-size:15pt; font-weight:700; margin:0 0 2pt; color:var(--teal);
+       letter-spacing:0.2pt; }
+.doc-sub { font-size:10pt; color:var(--muted); margin:0 0 9pt; }
+h1,h2,h3,h4 { break-after:avoid; page-break-after:avoid; }
+h1 { font-size:13pt; font-weight:700; text-transform:uppercase; letter-spacing:0.4pt;
+       margin:16pt 0 5pt; color:var(--teal); border-bottom:1.6pt solid var(--teal);
+       padding-bottom:3pt; break-before:page; page-break-before:always; }
+h2 { font-size:11pt; font-weight:700; text-transform:uppercase; letter-spacing:0.4pt;
+       margin:13pt 0 4pt; padding-bottom:2pt; border-bottom:1.2pt solid #000; }
+h3 { font-size:10pt; font-weight:700; text-transform:uppercase; letter-spacing:0.4pt;
+       margin:9pt 0 3pt; color:var(--teal); }
+h4 { font-size:9.5pt; font-weight:700; margin:7pt 0 2pt; color:var(--muted);
+       text-transform:uppercase; letter-spacing:0.4pt; }
+p { margin:0 0 3pt; text-align:justify; orphans:2; widows:2; }
+ul,ol { margin:3pt 0 4pt; padding-left:17pt; }
+li { margin:0 0 3pt; text-align:left; }
+li::marker { color:var(--teal); }
+li > ul, li > ol { margin-top:3pt; }
+p.obj { break-after:avoid; page-break-after:avoid; }
+ul.facts { break-inside:avoid; page-break-inside:avoid; }
+strong { font-weight:700; }
+hr { border:0; border-top:0.6pt solid var(--rule); margin:9pt 0; }
+a { color:var(--teal); text-decoration:none; }
+code { font-family:"DejaVu Sans Mono","Liberation Mono",monospace; font-size:8.6pt;
+       background:var(--soft); border:0.5pt solid var(--rule); border-radius:2px;
+       padding:0 2px; }
+/* The flow diagram is 69 lines of box drawing. The size has to be set on the
+   pre itself, not on the code inside it, or the line boxes take the 11pt body
+   size and the block runs off the page. Overflow is left visible so that a
+   future edit which no longer fits is obvious rather than silently cropped. */
+pre { background:var(--soft); border:0.5pt solid var(--rule);
+      border-left:2.4pt solid var(--teal); padding:7pt 9pt;
+      font-family:"DejaVu Sans Mono","Liberation Mono",monospace;
+      font-size:7.2pt; line-height:1.05;
+      break-inside:avoid; page-break-inside:avoid; margin:0 0 6pt; }
+pre code { background:none; border:0; padding:0; font-size:inherit;
+           line-height:inherit; white-space:pre; }
+blockquote { margin:0 0 5pt; padding:0 0 0 8pt; border-left:2.4pt solid var(--rule);
+      color:var(--muted); font-size:9.5pt; break-inside:avoid; }
+blockquote p { margin:0 0 2pt; text-align:left; }
+blockquote p:last-child { margin-bottom:0; }
+blockquote strong { color:var(--teal); }
+table { width:100%; border-collapse:collapse; margin:5pt 0 2pt; font-size:9pt;
+      line-height:1.16; break-inside:auto; }
+thead { display:table-header-group; }
+tr { break-inside:avoid; page-break-inside:avoid; }
+th { text-align:left; color:var(--teal); border-bottom:1pt solid var(--teal);
+      padding:0 6pt 2.5pt 0; font-weight:700; vertical-align:bottom; }
+td { border-bottom:0.4pt solid var(--rule); padding:2.8pt 6pt 2.8pt 0;
+      vertical-align:top; }
+td strong { color:var(--teal); }
+tbody tr:last-child td { border-bottom:1pt solid var(--teal); }
+.toc { border-top:1.2pt solid #000; border-bottom:1.2pt solid #000; padding:6pt 0;
+      margin:0 0 10pt; font-size:9.5pt; break-inside:avoid; column-count:2;
+      column-gap:20pt; }
+.toc-h { font-size:9pt; text-transform:uppercase; letter-spacing:0.4pt;
+      color:var(--teal); font-weight:700; margin:0 0 4pt; column-span:all; }
+.toc ul { list-style:none; margin:0; padding:0; }
+.toc ul ul { display:none; }
+.toc li { margin:0 0 2pt; }
+.toc a { color:var(--ink); }
+figure { margin:5pt 0 6pt; break-inside:avoid; page-break-inside:avoid; }
+/* Process figures float into the text so a run of tables is broken up rather
+   than merely interrupted. Headings clear them so a float cannot escape into
+   the next stage. */
+figure.fw { float:right; width:2.5in; margin:2pt 0 6pt 14pt; }
+figure.fw svg { display:block; width:100%; height:auto; }
+figure.fw figcaption { font-size:8.5pt; line-height:1.14; }
+h1,h2,h3 { clear:both; }
+table { clear:both; }
+/* The screenshots are 640px wide. Capping the plate at 6.6in keeps them
+   near 97 dpi rather than the 85 dpi a full 7.5in column would give. */
+figure img { display:block; max-width:6.6in; max-height:8.2in; margin:0 auto; }
+figcaption { font-size:9pt; line-height:1.16; text-align:left; margin:3pt 0 0;
+      break-before:avoid; }
+figcaption strong:first-child { color:var(--teal); }
+.exhibit-missing { border:0.6pt dashed var(--rule); background:var(--soft);
+      padding:14pt 10pt; margin:5pt 0 6pt; text-align:center; color:var(--muted);
+      font-size:9pt; }
+.exhibit-missing b { display:block; color:var(--teal); font-size:9.5pt;
+      margin-bottom:3pt; }
+@page { size: Letter; }
+
+p.navbar { margin:6pt 0 10pt; padding:7pt 8pt; text-align:left;
+           border:0.8pt solid var(--rule); border-radius:3pt; background:var(--soft);
+           line-height:1.9; break-inside:avoid; }
+p.navbar a { display:inline-block; margin:0 4pt 0 0; padding:2.5pt 6pt;
+             border:0.8pt solid var(--teal); border-radius:2.5pt;
+             color:var(--teal); font-size:9pt; font-weight:700;
+             text-decoration:none; }
+p.navlabel { margin:0 0 2pt; font-size:8.5pt; font-weight:700; color:var(--muted);
+             text-transform:uppercase; letter-spacing:0.4pt; }
+p.totop { margin:2pt 0 12pt; text-align:right; font-size:8.5pt; }
+p.totop a { color:var(--muted); text-decoration:none; }
+/* A gap block: an open question in the master, carried rather than answered. */
+div.gap { border-left:2.5pt solid var(--teal); background:var(--soft);
+          margin:6pt 0 8pt; padding:5pt 8pt 5pt 9pt; font-size:10pt;
+          break-inside:avoid; page-break-inside:avoid; }
+div.gap p { margin:0; text-align:left; }
+/* A stage's operating spine is a headerless two-column table: label, then the
+   fact. Tagged by shape, because attr_list does not attach to a table. */
+table.field th { display:none; }
+table.field td:first-child { width:23%; font-weight:700; color:var(--teal); }
+/* No forced break before a section: jumps address a named destination, which
+   carries the heading's own coordinate, so a section does not need to start at
+   the top of a page for the jump bar to land on it. break-after:avoid on the
+   heading is what stops one stranding at a page foot. */
+h2 { margin-top:16pt; }
+.gap { border-left:2.5pt solid var(--teal); padding:5pt 0 5pt 9pt; margin:6pt 0 8pt;
+       background:var(--soft); break-inside:avoid; }
+.gap p { margin:0 0 3pt; }
+</style></head><body>
+<div class="doc-title" id="top">MedJobs Admin Team Operations</div>
+<div class="doc-sub">Admin Team view of the MedJobs 2.0 operating system &#183; 4 September 2026</div>
+
+<p>A role view of the MedJobs 2.0 Master Implementation Matrix. Every instruction here
+comes from that document, which stays the source of truth. Nothing has been added to
+the operating model; where the master leaves a question open, it is marked
+<strong>GAP / DECISION NEEDED</strong> rather than answered here.</p>
+<p><strong>ROLE PURPOSE</strong> Build both target lists for a site and work them until a meeting is
+on the Sales Lead's calendar. The Admin Team runs the front half of both pipelines:
+provider prospecting and outreach, university office prospecting and outreach, and
+the booking that ends both.</p>
+<p><strong>WHAT YOU OWN</strong> PR1 target list built and pre-flight complete. PR-OUT outbound work.
+ST1 target advisors. ST-OUT university outbound. Booking the 30-minute slot on both
+sides. The daily Calls, Emails and Follow-up queues.</p>
+<p><strong>WHAT YOU DO NOT OWN</strong> The meeting itself, which is the Sales Lead's (PR2, ST2).
+Client success and university activation, which are the Consumer Relations Manager's (PR3,
+ST3 to ST7). Everything the Portal carries from ST8 onward.</p>
+<p><strong>WHO HANDS WORK TO YOU</strong> Nobody. Both pipelines start with you: a site added in PR1
+generates the provider list, and <strong>Find partners</strong> in ST1 generates the office list.</p>
+<p><strong>WHO YOU HAND WORK TO</strong> The Sales Lead, at the booked meeting, on both sides.</p>
+<p class="navbar"><a href="#pr1">Provider outreach</a> <a href="#st1">University outreach</a> <a href="#booking">Booking and handoff</a> <a href="#queues">Daily queues</a> <a href="#exceptions">Exceptions</a> <a href="#gaps">Gaps</a> <a href="#trace">Traceability</a></p>
+<h2 class="nobreak" id="pr1">PR1 Target list built and pre-flight complete</h2>
+<p><strong>Objective</strong> Add a university site so the system loads every matching provider from
+the Olera directory into the In Basket, then complete pre-flight research on each one,
+being phone, email, address and decision maker, confirmed by a pre-flight call.</p>
+<p>PR1 is not just the list. It is the list <em>built and worked through pre-flight.</em> A site
+whose providers are loaded but un-researched has not completed PR1.</p>
+<table class="field">
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Trigger</strong></td>
+<td>You add a site. The system pulls the matching providers out of the Olera directory and places them in the In Basket as rows awaiting pre-flight research. Nobody builds the list by hand</td>
+</tr>
+<tr>
+<td><strong>Tools</strong></td>
+<td>Sites tab <code>olera.care/admin/medjobs/sites</code> &#183; <strong>+ Add Site</strong> modal &#183; In Basket Providers tab <code>olera.care/admin/medjobs/in-basket</code> &#183; the provider drawer &#183; <strong>Log Pre-Flight outcome</strong> modal</td>
+</tr>
+<tr>
+<td><strong>Communications</strong></td>
+<td>None outbound. The pre-flight call is the only contact, and it uses the script in the log modal</td>
+</tr>
+<tr>
+<td><strong>Completion criteria</strong></td>
+<td>Contact details confirmed on the call, and the row launched into outreach. Or three unsuccessful call attempts, and the row archived</td>
+</tr>
+<tr>
+<td><strong>Handoff</strong></td>
+<td><strong>Launch outreach</strong>, to PR-OUT. The row stays with you</td>
+</tr>
+</tbody>
+</table>
+<figure class="fw"><svg viewBox="0 0 250 158" width="2.5in" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif"><defs><marker id="a" markerWidth="7" markerHeight="5.4" refX="6.5" refY="2.7" orient="auto"><path d="M0,0 L7,2.7 L0,5.4 z" fill="#14453f"/></marker></defs><rect x="55" y="6" width="140" height="20" rx="3" fill="#e8f1ec" stroke="#14453f" stroke-width="1.1"/><text x="125" y="20" font-size="13.19" fill="#14453f" text-anchor="middle" font-weight="bold" font-style="normal">Call the provider</text><line x1="125" y1="27" x2="125" y2="39" stroke="#14453f" stroke-width="1.2" marker-end="url(#a)"/><rect x="4" y="41" width="112" height="18" rx="3" fill="#fff" stroke="#1a7f4e" stroke-width="1.0"/><text x="60" y="53.6" font-size="13.19" fill="#1a7f4e" text-anchor="middle" font-weight="bold" font-style="normal">Confirmed</text><line x1="118" y1="50" x2="130" y2="50" stroke="#1a7f4e" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="53.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Launch outreach</text><rect x="4" y="63" width="112" height="18" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.0"/><text x="60" y="75.6" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">No answer</text><line x1="118" y1="72" x2="130" y2="72" stroke="#5f6b64" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="75.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Call again</text><rect x="4" y="85" width="112" height="18" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.0"/><text x="60" y="97.6" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Voicemail</text><line x1="118" y1="94" x2="130" y2="94" stroke="#5f6b64" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="97.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Call again</text><rect x="4" y="107" width="112" height="18" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.0"/><text x="60" y="119.6" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Not interested</text><line x1="118" y1="116" x2="130" y2="116" stroke="#5f6b64" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="119.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Close the row</text><rect x="4" y="131" width="242" height="21" rx="3" fill="#f4f7f6" stroke="#b9c4bd" stroke-width="1"/><text x="125" y="145" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Three failed calls, then archive</text></svg><figcaption><strong>Pre-flight.</strong> One call, four outcomes, and the three-strike rule that closes a row nobody answers.</figcaption></figure>
+
+<h3 id="required-actions">Required actions</h3>
+<p>For a given site, work every provider on it.</p>
+<ol>
+<li><strong>Do the desk research first.</strong> Fill in whatever phone, email and address you can
+   find yourself, from the provider's website, the source link on the row, or <strong>Fill
+   from Website</strong>. Do not call a row you have not looked at.</li>
+<li><strong>Call every provider on the site.</strong> The call confirms the research; research alone
+   does not complete pre-flight.</li>
+<li><strong>Use the suggested script</strong> shown in the log modal: <em>"Hi, this is [your name]
+   from Dr. DuBose's office, calling about the Student Caregiver Program for
+   [University] students. I'd like to send your team an email with the details, and
+   wanted to check first on the best address to send it to."</em></li>
+<li><strong>Log the outcome, every time.</strong></li>
+<li><strong>Update the record from the call.</strong> A corrected email address or a named decision
+   maker learned on the phone goes onto the row immediately, while you have it.</li>
+<li><strong>Three attempts, then archive.</strong> If three calls fail to confirm the contact
+   details, archive the provider and move on.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Outcome</th>
+<th>What it means</th>
+<th>What happens to the row</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Confirmed contact info</strong></td>
+<td>Reached someone; email and decision maker verified</td>
+<td>Pre-flight passes, launch outreach</td>
+</tr>
+<tr>
+<td><strong>No answer</strong></td>
+<td>Nobody picked up</td>
+<td>Stays in pre-flight, call again</td>
+</tr>
+<tr>
+<td><strong>Voicemail</strong></td>
+<td>Message left</td>
+<td>Stays in pre-flight, call again</td>
+</tr>
+<tr>
+<td><strong>Not interested</strong></td>
+<td>They do not want the information</td>
+<td>Row closes; no outreach</td>
+</tr>
+</tbody>
+</table>
+<figure><img alt="Exhibit D. Log Pre-Flight outcome" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/D-log-preflight.png" /><figcaption><strong>Exhibit D. Log Pre-Flight outcome.</strong> The suggested script, the four outcomes with their consequences stated on each, the notes field, and <strong>Override and launch outreach</strong>. In Basket, provider row, <strong>Call to Confirm</strong>.</figcaption></figure>
+<figure><img alt="Exhibit E. Provider drawer" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/E-provider-drawer.png" /><figcaption><strong>Exhibit E. Provider drawer.</strong> <strong>RESEARCH</strong> states the sequence over five contact fields, each with a state marker. The ticks are what pre-flight complete looks like on a row. <strong>The timeline is where the three-strikes count is read from</strong>, one entry per attempt, with the operator and how long ago.</figcaption></figure>
+<h3 id="what-must-be-recorded">What must be recorded</h3>
+<p>Business name, phone, email, address, fax, contact form, decision makers, research
+notes, call outcome and notes. Every call, including the ones nobody answered, writes
+to the row's timeline with the caller's name and the time, so the attempt count is
+visible rather than remembered. The timeline is where the three-strikes count is read
+from.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="pr-out">PR-OUT Outbound work</h2>
+<p><strong>Objective</strong> Launch the call-and-email campaign on a provider that has cleared
+pre-flight, then work the queues it generates until the provider books a meeting or
+the row runs out.</p>
+<table class="field">
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Trigger</strong></td>
+<td>A row's contact details are confirmed on the pre-flight call</td>
+</tr>
+<tr>
+<td><strong>Tools</strong></td>
+<td>Provider drawer &#183; <strong>Confirm outreach plan</strong> modal &#183; Calls tab <code>olera.care/admin/medjobs/in-basket?tab=calls</code> &#183; <strong>Log call</strong> modal &#183; Emails tab and <strong>Check for reply</strong> &#183; Follow-up tab</td>
+</tr>
+<tr>
+<td><strong>Communications</strong></td>
+<td>Day 0 intro email &#183; Day 3 follow-up email &#183; Day 3 check-in call &#183; Day 5 call &#183; Day 7 final email &#183; the reply the provider sends back</td>
+</tr>
+<tr>
+<td><strong>Completion criteria</strong></td>
+<td>A meeting on the Sales Lead's calendar. Or a recorded terminal outcome, or a finished cadence that drops the row into Follow-up</td>
+</tr>
+<tr>
+<td><strong>Handoff</strong></td>
+<td><strong>Admin Team to Sales Lead</strong> when a meeting is booked. The row appears in the Meetings queue with its full timeline. No meeting and the cadence finishes, and the row drops to <strong>Follow-up</strong> for re-engage-or-retire triage</td>
+</tr>
+</tbody>
+</table>
+<figure class="fw"><svg viewBox="0 0 250 146" width="2.5in" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif"><defs><marker id="a" markerWidth="7" markerHeight="5.4" refX="6.5" refY="2.7" orient="auto"><path d="M0,0 L7,2.7 L0,5.4 z" fill="#14453f"/></marker></defs><text x="4" y="16" font-size="13.19" fill="#5f6b64" text-anchor="start" font-weight="bold" font-style="normal">OUTREACH, 7 DAYS</text><line x1="34" y1="24" x2="34" y2="44" stroke="#b9c4bd" stroke-width="1"/><circle cx="34" cy="32" r="3.4" fill="#14453f"/><text x="28" y="35.5" font-size="13.19" fill="#14453f" text-anchor="end" font-weight="bold" font-style="normal">Day 0</text><text x="44" y="35.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Intro email</text><line x1="34" y1="44" x2="34" y2="77" stroke="#b9c4bd" stroke-width="1"/><circle cx="34" cy="52" r="3.4" fill="#14453f"/><text x="28" y="55.5" font-size="13.19" fill="#14453f" text-anchor="end" font-weight="bold" font-style="normal">Day 3</text><text x="44" y="55.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Follow-up email</text><text x="44" y="68.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Check-in call</text><line x1="34" y1="77" x2="34" y2="97" stroke="#b9c4bd" stroke-width="1"/><circle cx="34" cy="85" r="3.4" fill="#14453f"/><text x="28" y="88.5" font-size="13.19" fill="#14453f" text-anchor="end" font-weight="bold" font-style="normal">Day 5</text><text x="44" y="88.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Call</text><line x1="34" y1="97" x2="34" y2="117" stroke="#b9c4bd" stroke-width="1"/><circle cx="34" cy="105" r="3.4" fill="#14453f"/><text x="28" y="108.5" font-size="13.19" fill="#14453f" text-anchor="end" font-weight="bold" font-style="normal">Day 7</text><text x="44" y="108.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Final email</text><rect x="4" y="119" width="242" height="21" rx="3" fill="#e8f1ec" stroke="#1a7f4e" stroke-width="1.1"/><text x="125" y="133" font-size="13.19" fill="#1a7f4e" text-anchor="middle" font-weight="bold" font-style="normal">A reply stops the sequence</text></svg><figcaption><strong>The outreach cadence.</strong> Three emails and two calls over seven days, and any reply ends it.</figcaption></figure>
+
+<p><strong>The cadence.</strong> Three emails and two calls over seven days: Day 0 intro email, Day 3
+follow-up email and a check-in call, Day 5 call, Day 7 final email. Cold email sends
+from a dedicated outreach domain. Scheduled sends and calls appear in the drawer's
+<strong>UPCOMING</strong> list with their dates, so the row's whole future is visible before it
+happens.</p>
+<figure><img alt="Exhibit F. Confirm outreach plan" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/F-launch-outreach.png" /><figcaption><strong>Exhibit F. Confirm outreach plan.</strong> <strong>LAUNCH SUMMARY</strong>, the recipients as checkboxes with the address and phone each will be reached on, and every cadence day expandable to the actual email. This is where you check the merge fields resolved.</figcaption></figure>
+<h3 id="required-actions_1">Required actions</h3>
+<ol>
+<li><strong>Launch only rows that cleared pre-flight.</strong> The override writes itself to the
+   timeline with your name on it. Use it deliberately.</li>
+<li><strong>Read the plan before starting.</strong> Untick anyone who should not receive it, and
+   expand Day 0 to check the merge fields resolved.</li>
+<li><strong>Work the Calls tab to zero every day.</strong> Calls are grouped by due date; the count
+   beside the date is the day's workload.</li>
+<li><strong>Read the NEXT STEP panel before dialling.</strong> It tells you where the row actually
+   is: awaiting reply, next call in N days, or they replied and it is your move.</li>
+<li><strong>Use the day's script.</strong> A Day 3 call opens with a different line than a Day 5 one.</li>
+<li><strong>Answer every reply within one business day</strong>, same day for anything mentioning a
+   time.</li>
+<li><strong>Log every outcome, every time</strong>, including the calls nobody answered. A note on
+   its own logs the call.</li>
+<li><strong>Do not hand-email a row mid-cadence.</strong> Reply through the row so the cadence stops
+   cleanly.</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>Call outcome</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Interested</strong></td>
+<td>They want to move forward, launches the activation sequence</td>
+</tr>
+<tr>
+<td><strong>Meeting booked</strong></td>
+<td>Opens the Calendly booking page and marks a meeting scheduled</td>
+</tr>
+<tr>
+<td><strong>No answer</strong></td>
+<td>Marks this call done; the next cadence call stays scheduled</td>
+</tr>
+<tr>
+<td><strong>Voicemail</strong></td>
+<td>Message left; the next cadence call stays scheduled</td>
+</tr>
+<tr>
+<td><strong>Not interested</strong></td>
+<td>Closes the row and cancels remaining outreach</td>
+</tr>
+</tbody>
+</table>
+<figure><img alt="Exhibit H. Log call" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/H-log-call.png" /><figcaption><strong>Exhibit H. Log call.</strong> The day's script at the top, then the five outcomes with their consequences, and a notes field where a note on its own logs the call. Calls, row, <strong>Call provider</strong>.</figcaption></figure>
+<table>
+<thead>
+<tr>
+<th>Reply option</th>
+<th>What happens</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Launch activation cadence</strong></td>
+<td>Runs the standard activation sequence toward a meeting</td>
+</tr>
+<tr>
+<td><strong>Launch custom cadence</strong></td>
+<td>Compose your own emails and calls for a bespoke response</td>
+</tr>
+<tr>
+<td><strong>OOO reply, restart last cadence</strong></td>
+<td>Auto-reply, not a real answer. Resumes the cadence and puts the row back to pending</td>
+</tr>
+<tr>
+<td><strong>Book a meeting</strong></td>
+<td>Opens the Calendly booking page and marks a meeting scheduled</td>
+</tr>
+<tr>
+<td><strong>Not interested</strong></td>
+<td>Sends a polite closing note and stops outreach</td>
+</tr>
+</tbody>
+</table>
+<figure><img alt="Exhibit J. Check for reply" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/J-check-for-reply.png" /><figcaption><strong>Exhibit J. Check for reply.</strong> The provider's actual reply quoted at the top, then the five ways to respond. Behind it the <strong>Emails</strong> tab grouped by state. Emails, row, <strong>Check for reply</strong>.</figcaption></figure>
+<p>A real reply stops the cadence automatically. The timeline records <em>"Reply received to
+[address], cadence stopped,"</em> so the next move is a manual one. The out-of-office
+option exists precisely because an auto-reply should not count as one.</p>
+<h3 id="what-must-be-recorded_1">What must be recorded</h3>
+<p>Recipients launched, sends and opens and replies, call outcomes and notes, scheduled
+sends and calls. A <strong>state chip</strong> above the timeline reads the row's position without
+anyone reading its history. <strong>UPCOMING</strong> lists what is still scheduled; <strong>PAST
+ACTIVITY</strong> what happened, each entry stamped with the operator and how long ago.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="st1">ST1 Target advisors</h2>
+<p><strong>Objective</strong> Produce a verified list of university offices for a site, each with the
+email outreach needs, waiting in the In Basket to be confirmed by a call.</p>
+<p>The office is the prospect, not the person. An advising office with an email is what
+outreach needs. Named advisors are optional, and worth adding only when they have
+their own contact details. The opposite of provider prospecting, and deliberate:
+offices outlast the people in them.</p>
+<table class="field">
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Trigger</strong></td>
+<td>A site exists and its partner research has not been done. The site card reads <strong>Research needed</strong></td>
+</tr>
+<tr>
+<td><strong>Tools</strong></td>
+<td>Site card <strong>Find partners</strong> &#183; the Research modal, steps 1 to 3 &#183; Partners tab <code>olera.care/admin/medjobs/in-basket?tab=partner_book</code></td>
+</tr>
+<tr>
+<td><strong>Communications</strong></td>
+<td>None at this stage. The confirming call and the outreach that follows are ST-OUT</td>
+</tr>
+<tr>
+<td><strong>Completion criteria</strong></td>
+<td>Offices generated as prospects, each verified and tagged, waiting in the Partners tab</td>
+</tr>
+<tr>
+<td><strong>Handoff</strong></td>
+<td>Stays with the Admin Team, to ST-OUT, via the Partners tab</td>
+</tr>
+</tbody>
+</table>
+<p>Three subtypes are worked in turn for each site: <strong>Advising</strong>, then <strong>Student orgs</strong>,
+then <strong>Departments</strong>. The site card tracks progress across the three, and the wizard
+autosaves as you work.</p>
+<h3 id="required-actions_2">Required actions</h3>
+<ol>
+<li><strong>Work one site through all three subtypes</strong>, advising, then orgs, then
+   departments, rather than half-finishing several sites.</li>
+<li><strong>Use Suggest links first, then the predefined searches.</strong> They cover the ground
+   without your keeping a list in your head.</li>
+<li><strong>Prefer the office with the clearest published email.</strong> Pre-health advising first,
+   then nursing and allied health, then career services.</li>
+<li><strong>Tag every office.</strong> The tag is what makes the outreach copy correct later.</li>
+<li><strong>Add an advisor only when they have their own contact.</strong> A name with no direct
+   email gives outreach nothing to use.</li>
+<li><strong>Tick verified only when you would send to that address today.</strong> The tick is the
+   gate.</li>
+<li><strong>Then confirm by a quick call before launching.</strong> Generating a prospect is not the
+   same as knowing the address is live.</li>
+</ol>
+<figure><img alt="Exhibit Q. Research, step 2, verify offices" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/Q-research-verify-offices.png" /><figcaption><strong>Exhibit Q. Research, step 2, verify offices.</strong> <em>"The advising office is the prospect. Confirm each one's email and tag, that's all outreach needs."</em> Each office carries a tag, email, phone and optional website, an advisors section, and the <strong>Verified</strong> tick.</figcaption></figure>
+<h3 id="what-must-be-recorded_2">What must be recorded</h3>
+<p>Office name, tag, email, phone, website, source link, optional advisors, the verified
+flag, and the research links kept.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="st-out">ST-OUT University outbound</h2>
+<p><strong>Objective</strong> Confirm the advising office by phone, launch the call-and-email
+campaign, then work the queues it generates until the office books a meeting or the
+row runs out.</p>
+<p>Same machinery, different cadence. ST-OUT runs on the same pre-flight call, the same
+Calls and Emails queues, and the same log modals as the provider side. What differs is
+the campaign: the partner cadence is <strong>five emails and one call</strong>, and every email is
+meeting-first. The ask is a conversation with Dr. DuBose, not a service. Providers get
+<strong>three emails and two calls</strong>. Nobody should have to remember which; the launch modal
+states it before anything sends.</p>
+<table class="field">
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Trigger</strong></td>
+<td>An office is generated as a prospect and sitting in the Partners tab</td>
+</tr>
+<tr>
+<td><strong>Tools</strong></td>
+<td>Partners tab, the partner drawer &#183; <strong>Call to Confirm</strong> and <strong>Log Pre-Flight outcome</strong> &#183; <strong>Launch outreach</strong> and <strong>Confirm outreach plan</strong> &#183; the shared Calls and Emails queues &#183; Follow-up</td>
+</tr>
+<tr>
+<td><strong>Communications</strong></td>
+<td>Pre-flight confirming call &#183; Day 0 intro email (meeting-first) with flyer and program PDF &#183; Day 3 one-line bump &#183; the remaining cadence emails &#183; the cadence call &#183; the reply the office sends back. Emails send from <code>partnerships@findmedjobs.co</code></td>
+</tr>
+<tr>
+<td><strong>Completion criteria</strong></td>
+<td>A meeting on the Sales Lead's calendar. Or a recorded terminal outcome, or a finished cadence that drops the row into Follow-up</td>
+</tr>
+<tr>
+<td><strong>Handoff</strong></td>
+<td><strong>Admin Team to Sales Lead</strong> when a meeting is booked. No meeting and the cadence finishes, and the row drops to <strong>Follow-up</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recipients.</strong> The general office contact always; any advisor added in ST1 with their
+own email as a selectable extra, which is why ST1 accepts only advisors who have one.
+<strong>Launch activation</strong> sits beside Launch outreach as the second cadence, run once a
+row has engaged.</p>
+<figure><img alt="Exhibit T. Partner drawer" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/T-partner-drawer.png" /><figcaption><strong>Exhibit T. Partner drawer.</strong> <strong>RESEARCH</strong> states the sequence over the office name, general email and general phone, with <strong>ADVISORS</strong> and the rule beneath it. Three actions: <strong>Call to Confirm</strong>, <strong>Launch outreach</strong>, <strong>Launch activation</strong>.</figcaption></figure>
+<h3 id="required-actions_3">Required actions</h3>
+<ol>
+<li><strong>Call before you launch.</strong> The row is a prospect, not a confirmed address. The
+   pre-flight call exists to verify the email actually reaches the office and to find
+   the person who decides.</li>
+<li><strong>Use the suggested script.</strong> It leads with Dr. DuBose's office, names the program,
+   and asks one thing: the best address to send the details to. Nothing is being sold
+   on this call.</li>
+<li><strong>Log the outcome, every time</strong>, including the calls nobody answered. The override
+   writes itself to the timeline with your name on it.</li>
+<li><strong>Read the plan before starting.</strong> Expand Day 0 and check the merge fields
+   resolved. A wrong substitution is visible here and nowhere later.</li>
+<li><strong>Keep the research notes honest.</strong> The panel says the office was AI-sourced and
+   tells you to confirm by phone. Replace that with what the call established.</li>
+<li><strong>Answer every reply within one business day</strong>, same day for anything mentioning a
+   time.</li>
+<li><strong>Do not hand-email a row mid-cadence.</strong> Reply through the row so the cadence stops
+   cleanly.</li>
+<li><strong>Respect permission gating on professors.</strong> Class visits and listserv posts happen
+   because someone agreed to them; the ask on this cadence is a meeting, not a
+   distribution.</li>
+</ol>
+<figure><img alt="Exhibit V. Confirm outreach plan, partner side" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/V-partner-launch-outreach.png" /><figcaption><strong>Exhibit V. Confirm outreach plan, partner side.</strong> <strong>LAUNCH SUMMARY</strong> reads <em>"5 emails + 1 call across the cadence below."</em> Day 0 opens to the full meeting-first intro email, sending from <code>partnerships@findmedjobs.co</code>. This is the modal that tells you which cadence you are launching.</figcaption></figure>
+<p>The pre-flight outcomes and the reply options are the same four and five as the
+provider side. One difference: <strong>Launch activation cadence</strong> drops out of the reply
+options once a row is already enrolled. The timeline then reads <em>"Activation
+launched,"</em> and four choices remain.</p>
+<h3 id="what-must-be-recorded_3">What must be recorded</h3>
+<p>Pre-flight call outcome and notes, recipients launched, sends and opens and replies,
+call outcomes, scheduled sends and calls.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="booking">Booking and the handoff to the Sales Lead</h2>
+<p>Booking is where both pipelines leave you. It is the same 30-minute <em>Student Caregiver
+Program</em> slot for providers and for advising offices.</p>
+<p><strong>Booking is an Admin Team action first.</strong> The operator putting it in the calendar
+during the call is the design. Sending the link and waiting is the slower fallback.</p>
+<table class="field">
+<thead>
+<tr>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Trigger</strong></td>
+<td>A provider or an advising office agrees to a meeting, live on a call or in a reply that names a time</td>
+</tr>
+<tr>
+<td><strong>Tool</strong></td>
+<td>Calendly, the <code>Student Caregiver Program</code> event</td>
+</tr>
+<tr>
+<td><strong>What happens next</strong></td>
+<td>The booking lands the row in <strong>Meetings</strong> <code>olera.care/admin/medjobs/in-basket?tab=meetings</code>, under <strong>NEEDS LOGGING</strong> once the time has passed</td>
+</tr>
+<tr>
+<td><strong>What must be recorded</strong></td>
+<td>The booked time and the attendee. The row carries its full timeline into the Meetings queue</td>
+</tr>
+<tr>
+<td><strong>Handoff</strong></td>
+<td><strong>Admin Team to Sales Lead.</strong> From the booked meeting on, the row is the Sales Lead's until they log the outcome</td>
+</tr>
+</tbody>
+</table>
+<figure><img alt="Exhibit M. Meetings tab" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/M-meetings-tab.png" /><figcaption><strong>Exhibit M. Meetings tab.</strong> <strong>NEEDS LOGGING</strong> carries meetings whose time has passed. <strong>FINDING A TIME</strong> below it holds rows still coordinating by email, the state you set by hand.</figcaption></figure>
+<p><strong>Finding a time</strong> is a holding state, not a meeting. You set it by hand while a
+provider is going back and forth by email. It sits below <strong>NEEDS LOGGING</strong> in the
+Meetings tab.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="queues">Daily queues, logging and follow-up</h2>
+<p>This is the standing shape of the work, on both sides at once. Provider and partner
+rows are worked side by side in the same tabs with the same modals.</p>
+<table>
+<thead>
+<tr>
+<th>Queue</th>
+<th>What it holds</th>
+<th>The rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Providers</strong></td>
+<td>The site's providers awaiting pre-flight research, filtered to a single site</td>
+<td>Work every provider on a site before moving on</td>
+</tr>
+<tr>
+<td><strong>Calls</strong></td>
+<td>Calls grouped by the day they are due, each with a click-to-dial number</td>
+<td>Work it to zero every day. The count beside the date is the day's workload</td>
+</tr>
+<tr>
+<td><strong>Emails</strong></td>
+<td>Rows grouped by state, <em>THEY REPLIED</em> over <em>PENDING REPLY</em></td>
+<td>Answer every reply within one business day, same day for anything mentioning a time</td>
+</tr>
+<tr>
+<td><strong>Meetings</strong></td>
+<td><strong>NEEDS LOGGING</strong> over <strong>FINDING A TIME</strong></td>
+<td>Booked meetings pass to the Sales Lead. <em>Finding a time</em> is yours to maintain</td>
+</tr>
+<tr>
+<td><strong>Partners</strong></td>
+<td>Generated offices as prospects, each with its university and tag</td>
+<td>Confirm by call, then launch</td>
+</tr>
+<tr>
+<td><strong>Follow-up</strong></td>
+<td>Rows whose cadence finished with no meeting</td>
+<td>Re-engage-or-retire triage</td>
+</tr>
+</tbody>
+</table>
+<p>The In Basket header carries the day's workload over three counters: <strong>QUEUED</strong>,
+<strong>LOGS COMPLETED TODAY</strong>, and a <strong>STREAK</strong> of consecutive business days hitting fifty
+logs.</p>
+<figure><img alt="Exhibit C. In Basket, Providers tab" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/C-in-basket-providers.png" /><figcaption><strong>Exhibit C. In Basket, Providers tab.</strong> The day's workload over three counters: <strong>QUEUED</strong>, <strong>LOGS COMPLETED TODAY</strong>, and a <strong>STREAK</strong> of consecutive business days hitting fifty logs.</figcaption></figure>
+<p><strong>Logging discipline, in one line.</strong> Log every outcome every time, including the calls
+nobody answered, because the timeline is the only record of how many attempts a row
+has had and who made them.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="exceptions">Exceptions and escalation</h2>
+<p>Only the exceptions the master document defines are listed here.</p>
+<table>
+<thead>
+<tr>
+<th>Situation</th>
+<th>What the master says to do</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A row you are confident about without a confirming call</strong></td>
+<td><strong>Override and launch outreach</strong> exists in the Log Pre-Flight modal. Use it deliberately, not as the default. It writes itself to the timeline with your name on it</td>
+</tr>
+<tr>
+<td><strong>Three failed pre-flight calls</strong></td>
+<td>Archive the provider and move on</td>
+</tr>
+<tr>
+<td><strong>An out-of-office auto-reply</strong></td>
+<td><strong>OOO reply, restart last cadence.</strong> It is not a real answer; the cadence resumes and the row goes back to pending</td>
+</tr>
+<tr>
+<td><strong>A reply that names a time</strong></td>
+<td>Answer the same day, not within one business day</td>
+</tr>
+<tr>
+<td><strong>A reply mid-cadence</strong></td>
+<td>Reply through the row, never by hand-email, so the cadence stops cleanly</td>
+</tr>
+<tr>
+<td><strong>A cadence that finishes with no meeting</strong></td>
+<td>The row drops to Follow-up for re-engage-or-retire triage</td>
+</tr>
+<tr>
+<td><strong>A professor named on the university side</strong></td>
+<td>Permission gating applies. The ask on the ST-OUT cadence is a meeting, not a distribution</td>
+</tr>
+</tbody>
+</table>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="gaps">Gaps and decisions needed</h2>
+<p>Each of these is a place the master document leaves open or names as unbuilt. None is
+resolved here.</p>
+<div class="gap">
+<p><strong>GAP / DECISION NEEDED &#183; The provider cadence does not match the written
+protocol.</strong> The master records that Graize's written protocol calls this the <em>D0 to
+30 campaign</em>, while what is shipped is three emails and two calls over seven days.
+The master states plainly: <em>"Either the protocol or the cadence should change; flagged
+rather than reconciled."</em> Until it is reconciled, work the shipped cadence, which is
+what the launch modal states.</p>
+</div>
+<div class="gap">
+<p><strong>GAP &#183; Opens, replies and bounces depend on a webhook.</strong> The master notes these
+only reach the Emails and Follow-up queues if the send engine's webhook is wired, and
+that without it <em>"the Emails and Follow-up tabs look empty rather than broken."</em> If
+those tabs look empty, check the webhook before concluding there is no work.</p>
+</div>
+<div class="gap">
+<p><strong>B1 &#183; The Meetings tab holds only booked meetings.</strong> <em>Finding a time</em> is a
+hand-set state inside Meetings. It works, but it muddies the tab. Timing back-and-forth
+belongs with the email work.</p>
+</div>
+<div class="gap">
+<p><strong>B3 &#183; A custom campaign any operator can launch on a single row.</strong> Pick the
+emails and calls, set the days, start it. Today <em>Launch custom cadence</em> exists in the
+reply modal only, not as a general action from a row.</p>
+</div>
+<div class="gap">
+<p><strong>B8 &#183; A partner-facing booking event.</strong> Advisors book the provider's event. The
+slug <code>home-care-agency-manager-interview</code> shows in the URL they click.</p>
+</div>
+<p class="totop"><a href="#top">Back to top</a></p>
+<h2 id="trace">Traceability</h2>
+<p>Every section of this manual against its source in the master document. Ownership,
+sequence, handoffs and completion criteria are carried over unchanged.</p>
+<table>
+<thead>
+<tr>
+<th>This manual</th>
+<th>Master document</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PR1, all of it</td>
+<td>PR1, objective, procedure steps 1 to 6, outcomes table, system and handoff row, communications</td>
+</tr>
+<tr>
+<td>PR-OUT, all of it</td>
+<td>PR-OUT, objective, the cadence, procedure steps 1 to 8, both outcome tables, system and handoff row</td>
+</tr>
+<tr>
+<td>ST1, all of it</td>
+<td>ST1, objective, the office-is-the-prospect note, procedure steps 1 to 7, system and handoff row</td>
+</tr>
+<tr>
+<td>ST-OUT, all of it</td>
+<td>ST-OUT, objective, the same-machinery note, recipients, procedure steps 1 to 8, system and handoff row</td>
+</tr>
+<tr>
+<td>Booking and the handoff</td>
+<td>PR2 journey step 1 and the booking note; ST2 journey step 1; PR2 exhibit M for <em>Finding a time</em></td>
+</tr>
+<tr>
+<td>Daily queues</td>
+<td>PR1 exhibit C (the three counters), PR-OUT journey steps 3 to 7, ST-OUT journey steps 5 to 7, ST-OUT exhibit W (the shared queue)</td>
+</tr>
+<tr>
+<td>Exceptions</td>
+<td>PR1 override note and step 6; PR-OUT reply table and steps 6 to 8; ST-OUT steps 3 and 8</td>
+</tr>
+<tr>
+<td>Gaps</td>
+<td>PR-OUT cadence note; PR-OUT webhook note; deferred build list B1, B3, B8</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Nothing was added.</strong> No stage, status, outcome, cadence, script, threshold or tool
+appears here that is not in the master. <strong>Nothing owned by the Admin Team was
+omitted:</strong> PR1, PR-OUT, ST1 and ST-OUT are carried in full, along with the booking
+action the master assigns to the Admin Team inside PR2 and ST2.</p>
+<p class="totop"><a href="#top">Back to top</a></p>
+</body></html>

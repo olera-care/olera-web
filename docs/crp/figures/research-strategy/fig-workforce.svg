@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 254" style="width:100%;display:block" role="img" aria-label="One pathway, two returns. Health-professions students who need documented patient-care experience are employed as caregivers by licensed providers, which gives older adults daily support now and sends future clinicians into training having cared for older adults.">
+  <defs>
+    <marker id="wa" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9"
+            markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#8f9c99"/>
+    </marker>
+  </defs>
+
+  <!-- students -->
+  <rect x="28" y="4" width="324" height="50" rx="7" fill="#f2f5f4" stroke="#d5dedc"/>
+  <text x="190" y="25" text-anchor="middle" font-family="Arial" font-size="14.5" font-weight="700" fill="#14453f">HEALTH-PROFESSIONS STUDENTS</text>
+  <text x="190" y="43" text-anchor="middle" font-family="Arial" font-size="12" fill="#43534f">need documented patient-care experience</text>
+
+  <path d="M190 56 v18" fill="none" stroke="#8f9c99" stroke-width="2.6" marker-end="url(#wa)"/>
+
+  <!-- employed by licensed providers -->
+  <rect x="8" y="78" width="364" height="56" rx="7" fill="#14453f"/>
+  <text x="190" y="99" text-anchor="middle" font-family="Arial" font-size="14.5" font-weight="700" fill="#ffffff">EMPLOYED AS CAREGIVERS</text>
+  <text x="190" y="116" text-anchor="middle" font-family="Arial" font-size="12" fill="#cfe0dc">by licensed providers who hire, train,</text>
+  <text x="190" y="129" text-anchor="middle" font-family="Arial" font-size="12" fill="#cfe0dc">and supervise</text>
+
+  <path d="M120 136 v10 q0 8 -8 8 h-8" fill="none" stroke="#8f9c99" stroke-width="2.6"/>
+  <path d="M104 154 v12" fill="none" stroke="#8f9c99" stroke-width="2.6" marker-end="url(#wa)"/>
+  <path d="M260 136 v10 q0 8 8 8 h8" fill="none" stroke="#8f9c99" stroke-width="2.6"/>
+  <path d="M276 154 v12" fill="none" stroke="#8f9c99" stroke-width="2.6" marker-end="url(#wa)"/>
+
+  <!-- two returns -->
+  <rect x="8" y="172" width="176" height="78" rx="7" fill="#e2edea" stroke="#c3d7d2"/>
+  <text x="96" y="200" text-anchor="middle" font-family="Arial" font-size="13.5" font-weight="700" fill="#14453f">OLDER ADULTS</text>
+  <text x="96" y="222" text-anchor="middle" font-family="Arial" font-size="12" fill="#43534f">receive daily support now</text>
+
+  <rect x="196" y="172" width="176" height="78" rx="7" fill="#e2edea" stroke="#c3d7d2"/>
+  <text x="284" y="194" text-anchor="middle" font-family="Arial" font-size="13.5" font-weight="700" fill="#14453f">FUTURE CLINICIANS</text>
+  <text x="284" y="213" text-anchor="middle" font-family="Arial" font-size="12" fill="#43534f">enter training having</text>
+  <text x="284" y="227" text-anchor="middle" font-family="Arial" font-size="12" fill="#43534f">cared for older adults</text>
+</svg>

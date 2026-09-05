@@ -1,0 +1,212 @@
+# Pre-CRP plan, iteration 4, house style
+
+Source: `Olera_Pre_CRP_RnD_Commercialization_Execution_Plan_Iteration_4.docx`
+(Logan, 2026-09-02), kept here as `orig.docx`. Six pages, PDF and Word.
+
+```
+export PYTHONPATH=../cp-rebase-src:../statement-of-need-src
+python3 build_v4.py                  # plan.html, then print to PDF
+python3 raster_v4.py                 # png/fig2.png at 300 dpi
+WORD_EXPORT=1 python3 build_v4.py    # plan_word.html
+python3 mkdocx_v4.py                 # Olera_Pre_CRP_RD_Commercialization_and_Execution_Plan.docx
+```
+
+`text.json` was extracted straight from `orig.docx` and is what the build reads,
+so no sentence is retyped. Tables 5 and 6 were subsequently rewritten in
+`text.json` at Logan's instruction (see **Scorecard and week plan**, below); every
+other word is the author's. A check confirms that every paragraph and table cell
+in `text.json` appears verbatim in the rendered PDF.
+
+## What changed
+
+Formatting, with the dash changes listed below.
+
+- House type: 11pt Arial justified, 9pt tables and captions, uppercase section
+  heads with a rule, bold run-in lead-ins, teal row labels.
+- The three subsection headings (A, B, C) become the bold lead-in of the
+  paragraph beneath them rather than a second bold line stacked above one.
+- One caption added to each of the six tables. The source had none, and a table
+  without a caption is not house style.
+- **Standing work is set in grey.** A task that begins "Continue" is work carried
+  over from an earlier week, and `bullets()` in `build_v4.py` renders it grey.
+  Several weeks are four or five continuation lines around one new item, and in
+  black they buried it. The greyed items also sort to the bottom of each cell, so
+  the week's new work reads first.
+- **Job titles are one idea each.** Two-part titles joined by a semicolon were the
+  least scannable thing in the column. Week 6 keeps its semicolon because both
+  halves are milestones; every other week is a short verb phrase.
+- **The week table's tasks become bullets.** The source writes each week's tasks
+  as one semicolon-separated sentence. `bullets()` in `build_v4.py` splits on the
+  semicolons, one bullet per clause, with a hanging indent per item so a wrapped
+  task lines up under its own text rather than under the bullet. Same words, same
+  order. The other tables keep their semicolon lists, which are prose rather than
+  task lists.
+- **Figure 1** is the author's own image, lifted out of `orig.docx` into
+  `media/image1.png` and placed full width with its caption underneath. In the
+  source the caption sat in the body text with the image above it.
+- The date line under the title becomes the lede; the closing "living planning
+  memo" paragraph becomes a working note.
+- Table 1's first column carries stage, timeframe and status on three separate
+  lines, as in the source. The status words become the small marker used
+  elsewhere in the house, grey for COMPLETE and teal for WE ARE HERE, and the
+  "we are here" row is shaded.
+
+## Scorecard and week plan
+
+Redrafted 2026-09-02 at Logan's instruction, after reading Table 5 against the
+NOFO's three Statement of Need questions and the scored review criteria in
+`../../solicitation-reviewer-reference.md`, and against the 2026-08-21 mock
+review in `../mock-review-2026-08-21.md`.
+
+Three changes to Table 5:
+
+1. **Institutional buyers**: the stretch became the target. Convergent interviews
+   are market research; a written, milestone-conditional letter naming population,
+   endpoint, POC size and budget is what the third Statement of Need question
+   turns on.
+2. **Independent financing** replaces "private investors" and is written against
+   the Fundraising criterion's actual test, third-party funds equal to or
+   exceeding the NIH request, currently about $4 million. The target names the
+   number and the forms of evidence the NOFO accepts.
+3. **Phase IIB evidence** gains a count of episodes reaching verified established
+   care. Uncontrolled and small, but it is the only pre-CRP observation of the
+   endpoint the whole CRP rests on.
+
+The eighteen weeks were reflowed to serve those rows: the letter of intent drafted
+in Week 3 and first presented in Week 8, investor conversations opened in Week 6
+rather than left to the award period, and the care-establishment count added to the
+study instrumentation in Week 4.
+
+The institutional-buyer stretch is a first paid CareNavigator engagement of any
+size, above the letters. A contract of any value answers the third Statement of
+Need question in a way a letter cannot, and it repairs the two weakest criteria at
+once, commercialization track record and investigator commercialization
+experience. It is on the scorecard so that a buyer conversation drifting toward
+"we could try something small" is recognised as the most valuable thing available
+rather than a distraction from the letter. Weeks 11 and 15 carry it: pursue it
+ahead of the letter when it comes up, and execute it before the December freeze
+rather than in January.
+
+## Logan's week revision, 2026-09-02
+
+Table 6 replaced with Logan's own revision of the eighteen weeks, from
+`Olera_Pre_CRP_RD_Commercialization_and_Execution_Plan.pdf` of that date.
+Sections 1 to 6 and Table 5 were unchanged in that file and are untouched here;
+a sentence-level comparison confirmed it.
+
+Cleanup only, on the titles and wording:
+
+- Week 2's job was three stacked lines in the source and becomes one: "Prepare
+  the offers, the interviews, and the build".
+- Four titles no longer matched the tasks under them after the revision and were
+  brought back into line: Week 6 becomes "Open the financing conversation; start
+  the study" (delivery standardization is gone from its tasks), Week 8 "Revise
+  the CRP architecture", Week 11 "Draft the application" (the HLTH schedule task
+  is gone), and Week 13 "Hold the line" (the HLTH follow-up task is gone).
+- Week 9's title says "plan HLTH" rather than "book HLTH", matching its task.
+- Ampersands spelled out, sentence case on task text, "CareNav" made
+  "CareNavigator" throughout, "Prep" made "Prepare", "Strategize" made "Plan",
+  "RP/CP" made "Research Strategy and Commercialization Plan".
+
+Figure 2's bars were reflowed to match the revised weeks: CareNavigator first
+generation now 2 to 6, the Phase IIB study 6 to 15, buyer discovery 2 to 12, the
+letter of intent 10 to 15, financing 3 to 15, and drafting 8 to 16. Week 1's
+marker is renamed from "Baseline" to "Align", since the baseline task is gone.
+
+**Open:** the Month 1 diamond still sits at Week 5, but the revision removed
+"Review Month 1 against scorecard" from that week's tasks. Either the marker goes
+or the task comes back.
+
+## The two conferences
+
+Confirmed dates, 2026-09-02, and they moved nine weeks:
+
+- **Nashville Healthcare Sessions, September 13 to 15**, falls in Week 3. The
+  buyer interview guide therefore has to be finished in Week 2 rather than Week 3,
+  and Week 4 opens with the follow-up.
+- **HLTH, the week before Thanksgiving**, falls in Week 12, which had been the
+  drafting week. Drafting moves to Week 11, which is better: HLTH is then pitched
+  from a written thesis rather than an improvised one. Weeks 9 and 10 book and
+  prepare the ask, Week 12 is the conference, and Week 14 converts it.
+- HLTH's five-day follow-up window falls inside Week 13, the Thanksgiving week.
+  That week's job says so explicitly, because it is the one thing in that week
+  that cannot wait.
+- **The J.P. Morgan Healthcare Conference** falls in mid-January, after
+  submission. It appears only in the Figure 2 caption, as a constraint on the
+  calendar rather than an activity in the plan.
+
+The proportionality answer, why $4 million against the modeled run rate, moved
+with the drafting to Week 11.
+
+A fourth Table 5 row, platform coupling, was drafted and then removed at Logan's
+instruction, along with its Gantt bar. Two week entries went with it: Week 14's
+"report the coupling measurement", which after the removal reported into nothing,
+and the words "instrument the coupling" from Week 2's job title. Week 2 keeps the
+instrumentation task itself, because recording each customer's acquisition source
+is worth having whether or not it is a tracked risk.
+
+**Figure 2** is new: the same eighteen weeks as a Gantt, so the overlaps are
+visible. Built by `figs_v4.py` in the house figure system; `checkfigs.check` is
+clean. It asserts rather than clips if a row label is too long for the gutter.
+
+## Wording changes
+
+All dashes, all in `EDITS` in `build_v4.py`, applied to the extracted text at
+build time so the source file stays untouched.
+
+Four spaced hyphens doing a dash's work:
+
+1. Three subsection headings, "Provider commercialization - retire
+   commercial-execution risk" and the two like it, take a colon.
+2. "technologies - including automation, AI, and robotics - can be incorporated"
+   takes commas.
+
+Hyphens in ranges become en dashes, which is the one place house style allows
+them: the date line, the four stage timeframes in Table 1, the price range in
+Table 2, and the eighteen week spans in Table 6.
+
+No em dashes anywhere. The only non-ASCII character in the rendered document is
+the en dash.
+
+## Left alone, flagged instead
+
+- **Figure 1 is a 1200 by 585 raster**, which is about 164 ppi at 7.3 inches
+  wide. It reads correctly on screen and acceptably in print, but its type is
+  softer than the vector figures elsewhere in the application. A vector rebuild
+  in the house figure system is the fix if this figure is going in front of
+  reviewers rather than the team.
+- **Ampersands** in "Phase I & II" and "Find & Convert". The author's, left as
+  written.
+- **Slashes** in "MA/ACO", "usability/feasibility", "target/stretch",
+  "Letters/LOIs" and the like. The author's shorthand.
+- **Table 6 splits** across pages 4 and 5 with its header repeating. Held whole
+  it would leave about 350pt of white at the foot of page 4.
+- **Figure 2's row height is set by how much room the last page has.** It has run
+  at 19, 21, 23 and 25 units as the tables around it changed length. Re-check it
+  after any edit that moves the page breaks.
+
+## Notes on the two exports
+
+Both are six pages and all six pages begin at the same point. Getting there
+needed four corrections to the Word builder, each one matching a stylesheet rule
+the export had been ignoring:
+
+- `cell_margins` sets the table cell margins to the stylesheet's `td` padding,
+  nothing on the left and 6pt on the right. Word's default 0.08in on both sides
+  narrowed every column by 0.16in, wrapped headers mid-word, and made rows taller
+  than in the print render.
+- `cant_split` sets `w:cantSplit` on every row, the equivalent of
+  `tr { break-inside: avoid }`. Without it Word splits a row across a page break.
+- `repeat_header` sets `w:tblHeader` on the header row, the equivalent of
+  `thead { display: table-header-group }`.
+- The cell splitter recognises the bulleted `div class="ti"` items as well as
+  `<br>`, and gives each one a teal bullet run and a hanging indent, because Word
+  has no run-level line break that keeps its formatting cleanly.
+- Header-row paragraphs get `keep_with_next`, so a header cannot be stranded
+  alone at the foot of a page.
+
+The figure block's image-to-caption gap is set by measurement at 6pt.
+LibreOffice adds its own font leading under an inline image and ignores an exact
+line height on the line holding it. The correction is the same for both figures,
+which suggests the leading comes from the paragraph's font rather than the image;
+re-measure if a third figure is added.

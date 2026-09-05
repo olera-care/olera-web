@@ -254,13 +254,24 @@ function distinctLocationName(
   const b = norm(brand);
   if (!n || n === b) return null;
   let rest = n.startsWith(b) ? n.slice(b.length).trim() : n;
-  rest = rest.replace(/^(of|in|at)\s+/, "");
-  // Leftovers like "inc", "llc", "senior care" are not worth a second label.
-  if (rest.length < 4 || /^(inc|llc|co|senior care|home care)$/.test(rest)) return null;
+  // Generic descriptors ("Home Care Services of", "Senior Care in") carry no
+  // information either; peel them so what is left is the part that might.
+  rest = rest
+    .replace(/^(in home |non medical )?(senior |home )?(care|health|health care|living)( services| service| agency)?\s*/, "")
+    .replace(/^(of|in|at|for)\s+/, "")
+    .trim();
+  // Leftovers like "inc", "llc" are not worth a second label.
+  if (rest.length < 4 || /^(inc|llc|co)$/.test(rest)) return null;
   // "Home Instead – San Antonio, TX" next to the city "San Antonio" says nothing new.
   const c = city ? norm(city) : "";
   const st = state ? norm(state) : "";
-  if (c && (rest === c || rest === `${c} ${st}`.trim() || rest === `${c} ${st} area`.trim())) return null;
+  const stFull = state ? norm(stateAbbrevToName(state)) : "";
+  const restatesCity =
+    c &&
+    [c, `${c} ${st}`, `${c} ${stFull}`, `${c} ${st} area`, `${c} area`, `greater ${c}`, `greater ${c} area`]
+      .map((v) => v.trim())
+      .includes(rest);
+  if (restatesCity) return null;
   return name;
 }
 

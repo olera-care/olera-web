@@ -70,63 +70,33 @@ export function readMetric(m: StageMetric) {
   return { text: `${m.x} / ${m.y}${pct == null ? "" : ` = ${pct}%`}`, gap: false };
 }
 
-export const KIND_LABEL: Record<string, string> = {
-  conversion: "Conversion",
-  coverage: "Coverage",
-  throughput: "Throughput",
-  gap: "Not instrumented",
-};
-
 /**
- * The hover text. Seven labelled lines at most, in the order an operator needs
- * them: what state the stage is in, what drives that state, where the bands
- * sit, what the number actually counts, what to do about it, and any caveat.
- *
- * The improvement line comes from the stage's own procedure in the master
- * matrix. Someone acting on it is following the operating model, not generic
- * advice about sales.
+ * The hover text. Four short lines: the state and the number, what the two
+ * numbers are, where the bands sit, and the next action. Plain words, because
+ * it is read at a glance by whoever is on duty, not studied.
  */
 export function metricTitle(stageKey: string, code: string, name: string, m: StageMetric) {
   const t = THRESHOLDS[stageKey];
   const lines: string[] = [`${code} · ${name}`];
 
-  const join = (...bits: Array<string | number | undefined>) =>
-    bits.filter((b) => b !== undefined && b !== "").join(" ");
-
-  // Headline: the state and the number, on one line.
   if (m.gap) {
-    lines.push(join("NOT SCORED", m.x != null ? `· ${m.x}` : undefined));
-  } else if (m.y != null && m.x != null) {
-    const pct = m.y > 0 ? Math.round((m.x / m.y) * 100) : null;
-    const state = m.health && m.health !== "unscored" ? HEALTH_ORDER[m.health] : "NOT SCORED";
-    lines.push(`${state} · ${m.x} / ${m.y}${pct == null ? "" : ` = ${pct}%`}`);
+    const g = UNSCORED_NEXT[stageKey];
+    lines.push("Not tracked yet", "");
+    if (g) lines.push(g.why, `To fix: ${g.fix}`);
+    return lines.join("\n");
+  }
+
+  const state = m.health && m.health !== "unscored" ? HEALTH_ORDER[m.health] : "Not scored";
+  if (m.y != null && m.x != null) {
+    const pct = m.y > 0 ? ` (${Math.round((m.x / m.y) * 100)}%)` : "";
+    lines.push(`${state} · ${m.x} of ${m.y}${pct}`);
   } else if (m.x != null) {
-    const state = m.health && m.health !== "unscored" ? HEALTH_ORDER[m.health] : "NOT SCORED";
     lines.push(`${state} · ${m.x}`);
   }
 
   lines.push("");
-  lines.push(`Driver    ${t ? `${KIND_LABEL[m.kind] ?? ""}. ${t.reads}` : KIND_LABEL[m.kind] ?? ""}`);
-  if (t) lines.push(`Bands     ${bandText(t)}`);
-
-  // What the number counts, in words.
-  if (m.y != null && m.x != null) {
-    lines.push(`Counts    ${join(m.x, m.xLabel, "out of", m.y, m.yLabel)}.`);
-  } else if (m.x != null && m.xLabel) {
-    lines.push(`Counts    ${join(m.x, m.xLabel)} in the last 30 days.`);
-  }
-  if (m.reads) lines.push(`Reading   ${m.reads}`);
-
-  if (m.gap) {
-    if (m.gap) lines.push(`Why       ${m.gap}`);
-    if (UNSCORED_NEXT[stageKey]) lines.push(`Needs     ${UNSCORED_NEXT[stageKey]}`);
-  } else if (t) {
-    // Shown whatever the state. On a green stage it is what keeps it green,
-    // which is the more useful thing to read before it slips.
-    lines.push(`${m.health === "green" ? "Sustain  " : "Improve  "} ${t.improve}`);
-  }
-
-  if (m.note) lines.push(`Caveat    ${m.note}`);
+  if (t) lines.push(t.what, bandText(t), `Do next: ${t.improve}`);
+  if (m.networkWide) lines.push("All sites. This one cannot be split by school.");
   return lines.join("\n");
 }
 
@@ -197,17 +167,17 @@ export function StageBox({
       <text
         x={s.x + (!greyed && metric?.health ? 25 : 12)}
         y={s.y + 21}
-        fontSize={14}
+        fontSize={s.w < 200 ? 14 : 16}
         fontWeight={700}
         fill={greyed ? "#9ca3af" : o.ink}
       >
         {s.code}
       </text>
-      <text x={s.x + (!greyed && metric?.health ? 25 : 12)} y={s.y + 38} fontSize={12.5} fill={greyed ? "#9ca3af" : "#374151"}>
+      <text x={s.x + (!greyed && metric?.health ? 25 : 12)} y={s.y + 39} fontSize={s.w < 200 ? 12 : 13.5} fill={greyed ? "#9ca3af" : "#374151"}>
         {s.name}
       </text>
       {sub ? (
-        <text x={s.x + (!greyed && metric?.health ? 25 : 12)} y={s.y + 55} fontSize={11} fill={greyed ? "#b0b6be" : "#6b7280"}>
+        <text x={s.x + (!greyed && metric?.health ? 25 : 12)} y={s.y + 56} fontSize={12} fill={greyed ? "#b0b6be" : "#6b7280"}>
           {sub}
         </text>
       ) : null}
@@ -217,7 +187,7 @@ export function StageBox({
           <text
             x={s.x + s.w - 12}
             y={s.y + 21}
-            fontSize={read.gap ? 10 : s.w < 200 ? 11.5 : 13.5}
+            fontSize={read.gap ? 11 : s.w < 200 ? 12 : 15}
             fontWeight={read.gap ? 400 : 700}
             fontStyle={read.gap ? "italic" : undefined}
             textAnchor="end"
@@ -269,7 +239,7 @@ export function Legend({ y, owners }: { y: number; owners: Owner[] }) {
       {owners.map((k, i) => (
         <g key={k}>
           <rect x={44 + i * 190} y={y} width={11} height={11} rx={2} fill={OWNERS[k].fill} stroke={OWNERS[k].stroke} />
-          <text x={61 + i * 190} y={y + 9} fontSize={10} fill="#475569">
+          <text x={63 + i * 190} y={y + 10} fontSize={11.5} fill="#475569">
             {OWNERS[k].label}
           </text>
         </g>
@@ -293,6 +263,7 @@ export function BottomLine({
   y,
   yields,
   outcomes,
+  showStats = true,
 }: {
   y: number;
   yields: { commercial: StageMetric; placement: StageMetric };
@@ -301,26 +272,25 @@ export function BottomLine({
     revenue: number;
     instrumented: { successfulStudents: boolean; revenue: boolean };
   };
+  /** Yield is a rate, so it follows the stats switch. The two outcomes do not. */
+  showStats?: boolean;
 }) {
-  const figure = (
-    x: number,
-    label: string,
-    value: string,
-    live: boolean,
-    why: string,
-  ) => (
+  // The two results are what the funnel is for, so they sit centred and heavy
+  // on the right where the eye lands last.
+  const figure = (cx: number, label: string, value: string, live: boolean, why: string) => (
     <g>
-      <title>{live ? `${label}: ${value}.` : `${label}: awaiting instrumentation. ${why}`}</title>
-      <rect x={x - 6} y={y + 6} width={190} height={20} fill="transparent" />
-      <text x={x} y={y + 20} fontSize={10.5} fill="#475569">
+      <title>{live ? `${label}: ${value}.` : `${label}: not tracked yet. ${why}`}</title>
+      <rect x={cx - 110} y={y + 4} width={220} height={40} fill="transparent" />
+      <text x={cx} y={y + 20} fontSize={11} fontWeight={600} fill="#64748b" textAnchor="middle" letterSpacing="0.3">
         {label}
       </text>
       <text
-        x={x + 132}
-        y={y + 20}
-        fontSize={12}
+        x={cx}
+        y={y + 40}
+        fontSize={20}
         fontWeight={700}
-        fill={live ? "#0f172a" : "#98A2B3"}
+        fill={live ? "#1a3030" : "#98A2B3"}
+        textAnchor="middle"
       >
         {value}
       </text>
@@ -330,34 +300,32 @@ export function BottomLine({
   return (
     <>
       <line x1={44} y1={y} x2={916} y2={y} stroke="#e2e8f0" strokeWidth={1} />
-      <g>
-        <title>{metricTitle("YIELD", "Funnel yield", "Commercial conversion", yields.commercial)}</title>
-        <rect x={38} y={y + 6} width={200} height={20} fill="transparent" />
-        <text x={44} y={y + 20} fontSize={9.5} fontWeight={700} fill="#64748b" letterSpacing="0.5">
-          YIELD
-        </text>
-        <text x={92} y={y + 20} fontSize={12} fontWeight={700} fill="#0f172a">
-          {readMetric(yields.commercial)?.text ?? "not available"}
-        </text>
-      </g>
+      {showStats ? (
+        <g>
+          <title>{metricTitle("YIELD", "Funnel yield", "Clients per meeting held", yields.commercial)}</title>
+          <rect x={38} y={y + 6} width={220} height={28} fill="transparent" />
+          <text x={44} y={y + 26} fontSize={10.5} fontWeight={700} fill="#64748b" letterSpacing="0.5">
+            YIELD
+          </text>
+          <text x={96} y={y + 26} fontSize={14} fontWeight={700} fill="#1a3030">
+            {readMetric(yields.commercial)?.text ?? "not available"}
+          </text>
+        </g>
+      ) : null}
       {figure(
-        300,
+        620,
         "Successful students",
         String(outcomes.successfulStudents),
         outcomes.instrumented.successfulStudents,
-        "A student reaching a confirmed placement has no dated transition (G-h), and the six-shift threshold does not exist (B28).",
+        "We cannot tell yet when a student finishes a placement.",
       )}
       {figure(
-        620,
+        832,
         "Revenue generated",
         money(outcomes.revenue),
         outcomes.instrumented.revenue,
-        "Payment fields exist on the placement and are never written (B29).",
+        "Payments are never recorded.",
       )}
-      <text x={916} y={y + 40} fontSize={9} fill="#94a3b8" textAnchor="end">
-        Yield is Clients converted against provider meetings held. Students and revenue
-        wait on MA4 and MA5.
-      </text>
     </>
   );
 }

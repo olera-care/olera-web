@@ -94,8 +94,8 @@ export default function SystemArchitecture({
     <HandoffRule key={text + y} y={y} text={text} lanes={[[LEFT, LANE_W], [RIGHT, LANE_W]]} />
   );
 
-  const mw = 164;
-  const mgap = 12;
+  const mw = 168;
+  const mgap = 8;
   const mx0 = 60;
 
   return (
@@ -122,34 +122,29 @@ export default function SystemArchitecture({
           </text>
         </>
       ) : null}
-      <text x={480} y={26} fontSize={13} fontWeight={700} fill="#fff" textAnchor="middle">
+      <text x={480} y={26} fontSize={14} fontWeight={700} fill="#fff" textAnchor="middle">
         {site ? site.name : "All sites"}
       </text>
-      <text x={480} y={41} fontSize={11} fill="#96c8c8" textAnchor="middle">
+      <text x={480} y={41} fontSize={12} fill="#96c8c8" textAnchor="middle">
         {site ? "One university and its surrounding service area" : "Every university and its service area"}
       </text>
       {arrow(230, 46, 68)}
       {arrow(730, 46, 68)}
       <line x1={230} y1={46} x2={730} y2={46} stroke="#cbd5e1" strokeWidth={1.5} />
 
-      <text x={LEFT} y={80} fontSize={11.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
+      <text x={LEFT} y={80} fontSize={12.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
         PROVIDER SIDE
       </text>
-      <text x={RIGHT} y={80} fontSize={11.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
+      <text x={RIGHT} y={80} fontSize={12.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
         STUDENT / UNIVERSITY SIDE
       </text>
-      {metrics ? (
-        <text x={916} y={80} fontSize={10.5} fontWeight={700} fill="#0f172a" textAnchor="end" letterSpacing="0.5">
-          LAST 30 DAYS
-        </text>
-      ) : null}
 
       {/* The six stages worked inside the admin panel. Drawn before the stage
           boxes so it sits behind them, and sized to close under PR2 / ST2:
           everything below the Sales-to-User-Success handoff runs by hand or in
           the Portal. This is the tech-on-duty's boundary. */}
       <rect x={30} y={88} width={900} height={228} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
-      <text x={44} y={106} fontSize={11} fontWeight={700} fill="#334155" letterSpacing="0.5">
+      <text x={44} y={106} fontSize={12} fontWeight={700} fill="#334155" letterSpacing="0.5">
         ADMIN PANEL
       </text>
 
@@ -169,15 +164,15 @@ export default function SystemArchitecture({
       {arrow(RIGHT + 20, 426, 456)}
 
       <rect x={24} y={458} width={912} height={274} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
-      <text x={44} y={481} fontSize={11} fontWeight={700} fill="#334155" letterSpacing="0.5">
+      <text x={44} y={481} fontSize={12} fontWeight={700} fill="#334155" letterSpacing="0.5">
         PORTAL
       </text>
 
       <rect x={44} y={494} width={360} height={44} rx={5} fill="#ecfdf5" stroke="#a7f3d0" />
-      <text x={56} y={513} fontSize={12.5} fontWeight={700} fill="#065f46">
+      <text x={56} y={513} fontSize={13.5} fontWeight={700} fill="#065f46">
         Active client with a staffing need
       </text>
-      <text x={56} y={529} fontSize={11} fill="#6b7280">
+      <text x={56} y={529} fontSize={12} fill="#6b7280">
         from the provider side
       </text>
 
@@ -190,14 +185,16 @@ export default function SystemArchitecture({
       <line x1={142} y1={604} x2={736} y2={604} stroke="#cbd5e1" strokeWidth={1.5} />
       {arrow(142, 604, 618)}
 
-      <text x={44} y={592} fontSize={11} fontWeight={700} fill="#64748b" letterSpacing="0.5">
+      <text x={44} y={592} fontSize={12} fontWeight={700} fill="#64748b" letterSpacing="0.5">
         MATCH / FULFILMENT
       </text>
       {MATCH.map((s, i) =>
         box({ ...s, x: mx0 + i * (mw + mgap), y: 622, w: mw }),
       )}
 
-      {yields && outcomes ? <BottomLine y={680} yields={yields} outcomes={outcomes} /> : null}
+      {yields && outcomes ? (
+        <BottomLine y={680} yields={yields} outcomes={outcomes} showStats={showStats} />
+      ) : null}
 
       <Legend y={750} owners={Object.keys(OWNERS) as Owner[]} />
     </svg>

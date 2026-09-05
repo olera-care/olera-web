@@ -37,12 +37,12 @@ export interface Threshold {
   green: number;
   /** At or above this is yellow; below it is red. */
   yellow: number;
-  /** What the driver measures, in one line. */
-  reads: string;
+  /** What the two numbers are, in plain words. */
+  what: string;
   /**
-   * What to do when this stage is not green. Taken from the stage's own
-   * procedure in the master matrix, not invented: an operator following this
-   * line is following the operating model.
+   * The next action. One or two short sentences, drawn from the stage's own
+   * procedure in the master matrix so that following it means following the
+   * operating model.
    */
   improve: string;
 }
@@ -53,17 +53,15 @@ export const THRESHOLDS: Record<string, Threshold> = {
     driver: "coverage",
     green: 70,
     yellow: 40,
-    reads: "Share of the provider list worked through pre-flight.",
-    improve:
-      "Work every provider on a site before adding another. Desk research first, then call. Three failed attempts, then archive.",
+    what: "Providers we called, out of providers we added to the list.",
+    improve: "Call every provider on a site before you add a new site.",
   },
   ST1: {
     driver: "coverage",
     green: 70,
     yellow: 40,
-    reads: "Share of the generated office list worked through pre-flight.",
-    improve:
-      "Work one site through advising, orgs and departments before starting another. Tick verified only when you would send to that address today.",
+    what: "Offices we called, out of offices we found.",
+    improve: "Finish one school before you start the next.",
   },
 
   // Outbound conversion. The two sides run different cadences to different
@@ -73,17 +71,15 @@ export const THRESHOLDS: Record<string, Threshold> = {
     driver: "conversion",
     green: 8,
     yellow: 3,
-    reads: "Share of contacted providers that booked a meeting.",
-    improve:
-      "Work the Calls tab to zero every day and answer replies within one business day. Read the NEXT STEP panel before dialling, and use the day\u2019s script.",
+    what: "Providers who booked a meeting, out of providers we contacted.",
+    improve: "Clear the Calls tab every day. Answer replies within one workday.",
   },
   "ST-OUT": {
     driver: "conversion",
     green: 15,
     yellow: 6,
-    reads: "Share of contacted offices that booked a meeting.",
-    improve:
-      "Call before you launch, and expand Day 0 to check the merge fields resolved. Answer replies within one business day.",
+    what: "Offices that booked a meeting, out of offices we contacted.",
+    improve: "Call to confirm the address before you launch. Answer replies within one workday.",
   },
 
   // Show-up and logging discipline. A booked meeting that does not happen, or
@@ -92,17 +88,15 @@ export const THRESHOLDS: Record<string, Threshold> = {
     driver: "conversion",
     green: 80,
     yellow: 60,
-    reads: "Share of booked provider meetings held and logged.",
-    improve:
-      "Log the outcome the same day. Rebook a no-show once, warmly; a no-show that cannot be rebooked goes back into outreach rather than closing.",
+    what: "Meetings that happened, out of meetings we booked.",
+    improve: "Log every meeting the same day. Rebook a no-show once.",
   },
   ST2: {
     driver: "conversion",
     green: 80,
     yellow: 60,
-    reads: "Share of booked advisor meetings held and logged.",
-    improve:
-      "Read the row before the call, then log the outcome the same day with the channel plan in the notes.",
+    what: "Meetings that happened, out of meetings we booked.",
+    improve: "Log every meeting the same day. Put the channel plan in the notes.",
   },
 
   // Conversion out of the meeting.
@@ -110,17 +104,15 @@ export const THRESHOLDS: Record<string, Threshold> = {
     driver: "conversion",
     green: 40,
     yellow: 20,
-    reads: "Share of provider meetings that converted to a Client.",
-    improve:
-      "Name the handoff in the meeting, then send the terms email within one business day. Land profile, terms and setup meeting in that order, chasing each.",
+    what: "Providers who became clients, out of meetings we held.",
+    improve: "Send the terms email within one workday, then chase the profile and the setup meeting.",
   },
   "ST3-ST7": {
     driver: "conversion",
     green: 60,
     yellow: 30,
-    reads: "Share of advisor meetings that produced confirmed distribution.",
-    improve:
-      "Activate every agreed channel within two weeks of the meeting, and supply ready-to-send copy for anything a partner sends. That last one decides whether ST6 happens at all.",
+    what: "Schools that shared our posting, out of advisor meetings we held.",
+    improve: "Turn on every agreed channel within two weeks. Write the copy for them.",
   },
 
   // Volume: these have no sound denominator, so they are judged on throughput.
@@ -128,17 +120,15 @@ export const THRESHOLDS: Record<string, Threshold> = {
     driver: "volume",
     green: 20,
     yellow: 5,
-    reads: "Student signups in the window.",
-    improve:
-      "Volume here is produced by ST3 to ST7, so a low number is an activation problem. Check both entry paths after any change to the assets, and log why students stall.",
+    what: "New students who signed up.",
+    improve: "Signups come from the school channels. Turn more of them on.",
   },
   MA1: {
     driver: "volume",
     green: 10,
     yellow: 3,
-    reads: "Providers reached by the candidate-ready broadcast.",
-    improve:
-      "This fires on a student\u2019s first go-live, so volume tracks ST8. Keep the call list current: a student calling a provider who is no longer hiring wastes the thing we are building.",
+    what: "Providers told a student is ready.",
+    improve: "This follows student signups. Keep the provider list current.",
   },
 
   // Match conversion.
@@ -146,31 +136,38 @@ export const THRESHOLDS: Record<string, Threshold> = {
     driver: "conversion",
     green: 60,
     yellow: 35,
-    reads: "Share of proposed interviews both sides confirmed.",
-    improve:
-      "Chase the proposal that has sat unanswered. A pending request nobody confirmed is the single most common place a match dies. Confirm by hand when a provider will not use the system.",
+    what: "Interviews both sides confirmed, out of interviews requested.",
+    improve: "Chase requests nobody answered. Most matches die here.",
   },
   MA3: {
     driver: "conversion",
     green: 40,
     yellow: 20,
-    reads: "Share of confirmed interviews that produced an offer.",
-    improve:
-      "Open the cadence the day after the interview. Student first by SMS, escalate to a call after two touches, and ask the provider once by email.",
+    what: "Job offers made, out of interviews confirmed.",
+    improve: "Text the student the day after the interview. Call if they do not reply.",
   },
 };
 
 /** What would have to be built before a stage can be scored at all. */
-export const UNSCORED_NEXT: Record<string, string> = {
-  QUAL: "Written qualification criteria and a step that applies them (B19). Today the catchment broadcast calls a candidate ready to interview with nothing behind it.",
-  MA4: "A shift count on the placement and the SMS rhythm that collects it (B26, B28).",
-  MA5: "The client record and billing on the six-shift trigger (B5, B29).",
+export const UNSCORED_NEXT: Record<string, { why: string; fix: string }> = {
+  QUAL: {
+    why: "Nothing checks a student before we tell providers they are ready.",
+    fix: "Write the rules, then build the check.",
+  },
+  MA4: {
+    why: "The product has no way to count shifts.",
+    fix: "Add a shift count to the placement.",
+  },
+  MA5: {
+    why: "Payments are never recorded.",
+    fix: "Build billing on the six-shift trigger.",
+  },
 };
 
-/** The bands as an operator reads them: "Green 70%+ · Yellow 40-69% · Red under 40%". */
+/** The bands in one sentence: "Green 70% or more. Yellow 40% to 69%. Red under 40%." */
 export function bandText(t: Threshold) {
   const u = t.driver === "volume" ? "" : "%";
-  return `Green ${t.green}${u} and above \u00b7 Yellow ${t.yellow}${u} to ${t.green - 1}${u} \u00b7 Red under ${t.yellow}${u}`;
+  return `Green ${t.green}${u} or more. Yellow ${t.yellow}${u} to ${t.green - 1}${u}. Red under ${t.yellow}${u}.`;
 }
 
 /** Stage health from its own driver. Returns `unscored` when unmeasurable. */

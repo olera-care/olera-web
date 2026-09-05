@@ -148,13 +148,18 @@ const medjobsItems: NavItem[] = [
   { label: "Admin",  href: `${SOP_HREF}/admin` },
   { label: "Sales",  href: `${SOP_HREF}/sales` },
   { label: "CRM",    href: `${SOP_HREF}/crm` },
+  // The daily queue sits under the four workspace pages: it is where the work
+  // actually happens, and it carries the only count worth glancing at.
+  { label: "In Basket", href: "/admin/medjobs/in-basket" },
 ];
 
 /** Map nav-item href → sidebar-counts response key. Only In Basket and Sites
  *  carry a count badge now; Stats is an overview surface. */
-// None of the four carries a queue fraction: the counts belong to Sites and
-// the In Basket, which are now actions on the System page.
-const COUNTS_KEY: Record<string, string | null> = {};
+// Only the In Basket carries a fraction; the four workspace pages are
+// documents and dashboards, not queues.
+const COUNTS_KEY: Record<string, string | null> = {
+  "/admin/medjobs/in-basket": "in_basket",
+};
 
 interface CountEntry {
   unread: number;

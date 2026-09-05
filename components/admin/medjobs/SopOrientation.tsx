@@ -17,7 +17,16 @@ import { useFunnel30d } from "@/components/admin/medjobs/useFunnel30d";
  */
 
 const VIDEO = "/api/admin/medjobs/sop?doc=video";
-const WALKTHROUGH = "/api/admin/medjobs/sop?doc=walkthrough";
+
+/** The little external-link mark beside the walkthrough. */
+function LinkIcon() {
+  return (
+    <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={1.6} aria-hidden>
+      <path d="M6.5 3H3.5A0.5.5 0 0 0 3 3.5v9a.5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5v-3" strokeLinecap="round" />
+      <path d="M9.5 2.5H13.5V6.5M13 3l-5.5 5.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
 
 function Action({
   href,
@@ -73,45 +82,29 @@ export default function SopOrientation({ onJump }: { onJump: (dest: string) => v
 
   return (
     <div>
-      <div className="mb-3 flex flex-wrap items-center gap-2">
-        <Action href="/admin/medjobs/sites" count={counts?.sites}>Sites</Action>
-        <Action href="/admin/medjobs/in-basket" count={counts?.in_basket}>In Basket</Action>
-        <span className="mx-1 h-5 w-px bg-gray-200" aria-hidden />
-        <span className="text-xs text-gray-500">
-          {funnel?.site ? funnel.site.name : "All sites"} · last 30 days
-        </span>
-        <StatsToggle on={showStats} onChange={setShowStats} />
-        {funnel ? (
-          <HealthBadge
-            status={funnel.health.status}
-            score={funnel.health.score}
-            size="lg"
-            title={funnel.health.reads}
-          />
-        ) : null}
-      </div>
-
       <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_18rem]">
         <div>
-          <div className="mb-1.5 flex flex-wrap items-center gap-3">
-            <a
-              href={VIDEO}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs font-medium text-primary-700 underline underline-offset-2 hover:text-primary-800"
-            >
-              Watch the walkthrough
-            </a>
-            <a
-              href={WALKTHROUGH}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs font-medium text-primary-700 underline underline-offset-2 hover:text-primary-800"
-            >
-              Reader guide
-            </a>
-          </div>
-          <div className="rounded-lg border border-gray-200 bg-white p-4">
+          <div className="relative rounded-lg border border-gray-200 bg-white p-4">
+            <div className="absolute right-4 top-4 z-10 flex items-center gap-2">
+              <StatsToggle on={showStats} onChange={setShowStats} />
+              <a
+                href={VIDEO}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Watch the walkthrough"
+                className="inline-flex items-center gap-1 text-xs font-medium text-primary-700 hover:text-primary-800"
+              >
+                <LinkIcon />
+                Walkthrough
+              </a>
+              {funnel ? (
+                <HealthBadge
+                  status={funnel.health.status}
+                  score={funnel.health.score}
+                  title={funnel.health.reads}
+                />
+              ) : null}
+            </div>
           <SystemArchitecture
             onJump={onJump}
             metrics={funnel?.stages}
@@ -126,17 +119,20 @@ export default function SopOrientation({ onJump }: { onJump: (dest: string) => v
               numbers. The stages and handoffs are unaffected.
             </p>
           ) : null}
-          {funnel?.site ? (
-            <p className="mt-2 text-xs text-gray-500">
-              Five stages have no campus link in the schema and stay network-wide
-              under a site filter: PR3, ST8, MA1, MA2 and MA3. They are marked on the
-              map and sit out this site&rsquo;s health score.
-            </p>
-          ) : null}
           </div>
         </div>
 
-        <SiteNavigator active={site} onPick={setSite} />
+        <div>
+          <div className="mb-2 flex flex-wrap items-center gap-2">
+            <Action href="/admin/medjobs/sites" count={counts?.sites}>
+              Sites
+            </Action>
+            <Action href="/admin/medjobs/in-basket" count={counts?.in_basket}>
+              In Basket
+            </Action>
+          </div>
+          <SiteNavigator active={site} onPick={setSite} />
+        </div>
       </div>
 
     </div>

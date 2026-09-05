@@ -38,8 +38,8 @@ FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  P
 ┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
 │  PORTAL                                                                                                       │
 │  ┌──────────────────────┐  ┌─────────────────────┐  ┌─────────────────────────────────┐                       │
-│  │ TRACK A              │  │ F3  FAMILY PROFILE  │  │ TRACK B                         │                       │
-│  │ AID ESTABLISHMENT    │  │                     │  │ CARE ESTABLISHMENT              │                       │
+│  │ TA AID ESTABLISHMENT │  │ F3  FAMILY PROFILE  │  │ TB CARE ESTABLISHMENT           │                       │
+│  │                      │  │                     │  │                                 │                       │
 │  │                      │  │    ┌────────────┐   │  │          ┌────────────┐         │                       │
 │  │                      │  │    │    CR-F    │   │  │          │    CR-P    │         │                       │
 │  │                      │  │    └────────────┘   │  │          └────────────┘         │                       │
@@ -79,6 +79,7 @@ FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  P
 | **F1** | entry surface — provider page, editorial, benefits page |
 | **FQ** | question |
 | **F2** | CTA — **F2a** benefits CTA · **F2b** connection card · **F2c** live profile |
+| **TA · TB** | track A, aid establishment · track B, care establishment |
 | **F3** | family profile |
 | **CR-F** | family consumer relations |
 | **P1 · PS1 · PS2** | listed · organic · referral |

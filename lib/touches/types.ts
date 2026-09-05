@@ -146,6 +146,16 @@ export type RelationshipRow = ProviderContact & {
   days_quiet: number | null;
   flags: RelationshipFlag[];
   campaign_status: string | null;
+  /** Newest Ad Boost request, for the link back to /admin/ad-boost/[id]. */
+  campaign_request_id: string | null;
+};
+
+/** One Ad Boost request, enough to link to it and say what state it is in. */
+export type CampaignRef = {
+  id: string;
+  status: string;
+  campaign_tag: string | null;
+  created_at: string;
 };
 
 export type RelationshipFlag =
@@ -161,5 +171,7 @@ export type ProviderTimeline = {
   profile: ProviderContact;
   open_action: OpenAction | null;
   flags: RelationshipFlag[];
+  /** Every Ad Boost request for this provider, newest first. */
+  campaigns: CampaignRef[];
   items: TimelineItem[];
 };

@@ -1,5 +1,6 @@
 import { getServiceClient } from "@/lib/admin";
 import type {
+  CampaignRef,
   LastTouch,
   OpenAction,
   ProviderContact,
@@ -521,16 +522,20 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
   const [{ data: requests }, { data: touchedIds }] = await Promise.all([
     db
       .from("ad_campaign_requests")
-      .select("provider_id, status, created_at")
+      .select("id, provider_id, status, created_at")
       .is("deleted_at", null)
       .order("created_at", { ascending: false }),
     db.from("provider_touches").select("provider_id"),
   ]);
 
   const campaignStatus = new Map<string, string>();
-  for (const r of (requests ?? []) as { provider_id: string; status: string }[]) {
+  const campaignRequestId = new Map<string, string>();
+  for (const r of (requests ?? []) as { id: string; provider_id: string; status: string }[]) {
     // newest request wins (ordered desc above)
-    if (!campaignStatus.has(r.provider_id)) campaignStatus.set(r.provider_id, r.status);
+    if (!campaignStatus.has(r.provider_id)) {
+      campaignStatus.set(r.provider_id, r.status);
+      campaignRequestId.set(r.provider_id, r.id);
+    }
   }
   const ids = Array.from(
     new Set([
@@ -660,6 +665,7 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
       days_quiet: daysSince(lastHuman?.occurred_at ?? lastTouch?.occurred_at ?? null, now),
       flags,
       campaign_status: campaignStatus.get(p.id) ?? null,
+      campaign_request_id: campaignRequestId.get(p.id) ?? null,
     };
   });
 
@@ -699,8 +705,19 @@ export async function loadProviderTimeline(providerId: string): Promise<Provider
     db.from("provider_touches").select("*").eq("provider_id", providerId).order("occurred_at", { ascending: false }),
     fetchEmailsFor(db, [p], null),
     fetchSupportFor(db, [p], null),
-    db.from("ad_campaign_requests").select("id").eq("provider_id", providerId),
+    db
+      .from("ad_campaign_requests")
+      .select("id, status, campaign_tag, created_at")
+      .eq("provider_id", providerId)
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false }),
   ]);
+  const campaigns = ((requests ?? []) as CampaignRef[]).map((r) => ({
+    id: r.id,
+    status: r.status,
+    campaign_tag: r.campaign_tag ?? null,
+    created_at: r.created_at,
+  }));
   const ts = ((touches ?? []) as TouchRow[]).slice().sort(byNewest);
   // Texts need the touches first: a personal mobile is only known from a logged text.
   const sms = await fetchSmsFor(db, [p], ts, null);
@@ -709,7 +726,7 @@ export async function loadProviderTimeline(providerId: string): Promise<Provider
     ...sms.rows.filter((r) => sms.ownerOf(r) === p.id).map(smsToItem),
   ];
 
-  const requestIds = ((requests ?? []) as { id: string }[]).map((r) => r.id);
+  const requestIds = campaigns.map((r) => r.id);
   let campaignRows: CampaignLogRow[] = [];
   if (requestIds.length) {
     const { data } = await db
@@ -734,7 +751,7 @@ export async function loadProviderTimeline(providerId: string): Promise<Provider
   if (emails.some((e) => e.complained_at)) flags.push("complaint_on_file");
   if (p.preferred_contact_channel === "sms") flags.push("prefers_text");
 
-  return { profile: toContact(p), open_action: openAction, flags, items };
+  return { profile: toContact(p), open_action: openAction, flags, campaigns, items };
 }
 
 /**

@@ -125,6 +125,11 @@ export default function AdminRelationshipPage() {
                   {f.replace(/_/g, " ")}
                 </span>
               ))}
+              {data.campaigns.map((c, i) => (
+                <Link key={c.id} href={`/admin/ad-boost/${c.id}`} className="font-mono text-[10px] text-teal-700 hover:underline">
+                  {data.campaigns.length > 1 ? `campaign ${data.campaigns.length - i}` : "campaign"} · {c.status.replace(/_/g, " ")} →
+                </Link>
+              ))}
               <Link href={`/admin/directory/${p.provider_id}`} className="font-mono text-[10px] text-teal-700 hover:underline">
                 directory record →
               </Link>

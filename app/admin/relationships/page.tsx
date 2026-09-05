@@ -179,7 +179,18 @@ export default function AdminRelationshipsPage() {
                     <div className="mt-0.5 font-mono text-[11px] text-gray-500">
                       {[r.city, r.state].filter(Boolean).join(", ")}
                       {r.contact_name ? ` · ${r.contact_name}` : ""}
-                      {r.campaign_status ? ` · ${r.campaign_status}` : ""}
+                      {r.campaign_request_id ? (
+                        <>
+                          {" · "}
+                          <Link href={`/admin/ad-boost/${r.campaign_request_id}`} className="text-teal-700 hover:underline">
+                            campaign{r.campaign_status ? ` · ${r.campaign_status}` : ""} →
+                          </Link>
+                        </>
+                      ) : r.campaign_status ? (
+                        ` · ${r.campaign_status}`
+                      ) : (
+                        ""
+                      )}
                     </div>
                     {r.flags.length > 0 && (
                       <div className="mt-1.5 flex flex-wrap gap-1">

@@ -760,6 +760,22 @@ Lesson worth keeping: **a Supabase select on a non-existent column returns `{dat
 
 **Next:** Sunday, re-read delivery on both new campaigns — if Zardy's recovers and Jasmine's does not, Concord is a thin market and Meta/Nextdoor become her real channels. Monday after 10:15 ET (Jasmine's Nextdoor wrap-up cron fires then), send the four provider follow-ups drafted at `~/Desktop/provider-emails-2026-08-21/`. **Sherry gets a call, not an email** — she marked Olera mail as spam on 14 Aug, so every send to her since has been suppressed, including the alert that a family came in through her ads. Her flight ends 08-24 and her wrap-up email will be suppressed too, so the call is the only thing she will receive. Still owed across all four: Meta ×4 and Nextdoor ×4 builds, NIH acknowledgment docs, and Sandra's counties list before her 90-day starts 08-31.
 
+### 2026-08-22 — Growth System business concept captured and parked (`claude/claimed-listings-count-i6brod`)
+
+A strategy session with Logan produced a full-funnel provider growth-and-intake
+service concept (presence management + eldercare intake to booked assessments, with
+benefits screening as the differentiator), two provider-facing collateral mocks
+approved in direction, a pricing test plan, an ops model with a marketing-intern /
+call-center staffing split, and a five-bucket monetization taxonomy including
+rejected ideas (the $1-5 claim fee). All durable context now lives in
+**`docs/growth-system/README.md`** with the collateral HTML in
+`docs/growth-system/collateral/`. `scripts/traction-census.js` (same branch) is the
+data prerequisite: liquidity-pocket diagnostic over `growth_page_metrics` +
+`connections`; needs local `.env.local` Supabase creds. Parked until after the CRP
+submission (2026-09-04); no product or pricing commitments made. Separately, the
+same session finished the David Qu Drive-prep cycle: see `docs/crp/passes/aims-david-prep-2026-08-21.md`
+and `docs/crp/meetings/2026-08-21-david-qu-and-team.md`.
+
 ### 2026-08-21 — Provider answers stay visible (`codex/provider-qa-answer-priority`)
 
 Provider profile Q&A now treats published provider responses as the durable social proof: the inline preview shows answered threads without allowing newer unanswered questions to displace them, and the all-questions sheet opens with answers first while unanswered items remain behind an explicit disclosure. Server render and the hydrated GET now use the same publication-safe public dataset and deterministic ordering, removing the refresh-time 7→9 question swap. Pre-test also fixed two real edge cases: repeated asks could receive raw unpublished answer text from POST, and an in-flight mount GET could overwrite a newer submit/edit state. **Files:** `app/provider/[slug]/page.tsx`, `app/api/questions/route.ts`, `components/providers/QASectionV2.tsx`, `lib/qa-utils.ts`. **Validation:** TypeScript, targeted ESLint (0 errors; two existing `<img>` warnings), focused ordering/empty-answer/tie-break/immutability checks, and `git diff --check` pass; production compilation passed, while static generation remains blocked locally by missing Supabase env vars. **PR:** #1665 → `staging`. **Next:** review the Vercel preview on desktop/mobile, hard-refresh Graceful Homecare, expand/hide unanswered questions, submit a new question, and confirm a pending-verification answer never appears.

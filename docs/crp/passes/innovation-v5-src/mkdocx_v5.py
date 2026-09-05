@@ -1,0 +1,333 @@
+# -*- coding: utf-8 -*-
+"""Build the house-style .docx for the Innovation (v5) section."""
+import re, html as H
+from docx import Document
+from docx.shared import Inches, Pt, RGBColor
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_LINE_SPACING
+from docx.oxml.ns import qn
+from docx.oxml import OxmlElement
+
+TEAL = RGBColor(0x14, 0x45, 0x3F); BLACK = RGBColor(0, 0, 0)
+SRC = open('v5_word.html', encoding='utf-8').read()
+
+
+def _match(html, start):
+    """Index just past the </div> that closes the <div ...> beginning at start."""
+    i, depth = start, 0
+    while i < len(html):
+        if html.startswith('<div', i):
+            depth += 1; i += 4
+        elif html.startswith('</div>', i):
+            depth -= 1; i += 6
+            if depth == 0:
+                return i
+        else:
+            i += 1
+    raise AssertionError('unclosed div')
+
+
+def flatten(html):
+    """Nested divs defeat a regex block split, so normalise them first.
+
+    A figblk is only a page-break wrapper and can be dropped: the Word export
+    keeps a figure with its caption through keep_with_next. A figwrap becomes a
+    single flat marker carrying the float width, the image and the caption."""
+    out = []
+    i = 0
+    while i < len(html):
+        if html.startswith('<div class="refcols">', i):
+            end = _match(html, i)
+            out.append(flatten(html[i + len('<div class="refcols">'):end - 6]))
+            i = end
+        elif html.startswith('<div class="figblk">', i):
+            end = _match(html, i)
+            out.append(flatten(html[i + len('<div class="figblk">'):end - 6]))
+            i = end
+        elif html.startswith('<div class="figwrap"', i):
+            end = _match(html, i)
+            blk = html[i:end]
+            w = re.search(r'width:([\d.]+)in', blk).group(1)
+            img = re.search(r'<img[^>]*>', blk).group(0)
+            cap = re.search(r'<p class="caption">(.*?)</p>', blk, re.S)
+            out.append(f'<div class="figfloat" data-w="{w}">{img}'
+                       f'<p class="caption">{cap.group(1) if cap else ""}</p></div>')
+            i = end
+        else:
+            out.append(html[i]); i += 1
+    return ''.join(out)
+
+
+SRC = flatten(SRC)
+
+doc = Document()
+sec = doc.sections[0]
+sec.page_width, sec.page_height = Inches(8.5), Inches(11)
+for m in ('top_margin', 'bottom_margin', 'left_margin', 'right_margin'):
+    setattr(sec, m, Inches(0.5))
+st = doc.styles['Normal']
+st.font.name = 'Arial'; st.font.size = Pt(11); st.font.color.rgb = BLACK
+st.element.rPr.rFonts.set(qn('w:eastAsia'), 'Arial')
+pf = st.paragraph_format
+pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+pf.space_after = Pt(3); pf.space_before = Pt(0)
+pf.line_spacing_rule = WD_LINE_SPACING.SINGLE
+
+def border(p, edge='bottom', sz=10, color='000000'):
+    pPr = p.paragraph_format.element.get_or_add_pPr()
+    bdr = OxmlElement('w:pBdr'); e = OxmlElement('w:' + edge)
+    e.set(qn('w:val'), 'single'); e.set(qn('w:sz'), str(sz))
+    e.set(qn('w:space'), '2'); e.set(qn('w:color'), color)
+    bdr.append(e); pPr.append(bdr)
+
+def no_borders(tbl):
+    b = OxmlElement('w:tblBorders')
+    for e in ('top', 'left', 'bottom', 'right', 'insideH', 'insideV'):
+        x = OxmlElement('w:' + e); x.set(qn('w:val'), 'none'); x.set(qn('w:sz'), '0'); b.append(x)
+    tbl._tbl.tblPr.append(b)
+
+def zero_cell_margins(tbl):
+    m = OxmlElement('w:tblCellMar')
+    for e in ('top', 'left', 'bottom', 'right'):
+        x = OxmlElement('w:' + e); x.set(qn('w:w'), '0'); x.set(qn('w:type'), 'dxa'); m.append(x)
+    tbl._tbl.tblPr.append(m)
+
+def fixed_width(tbl, inches):
+    tblPr = tbl._tbl.tblPr
+    for tag in ('w:tblW', 'w:tblLayout'):
+        old = tblPr.find(qn(tag))
+        if old is not None: tblPr.remove(old)
+    w = OxmlElement('w:tblW'); w.set(qn('w:w'), str(int(inches * 1440))); w.set(qn('w:type'), 'dxa')
+    tblPr.append(w)
+    lay = OxmlElement('w:tblLayout'); lay.set(qn('w:type'), 'fixed'); tblPr.append(lay)
+
+def float_table(tbl, width_in):
+    """Right-float with square text wrap: the Word-native equivalent of the
+    PDF's floated figure. Writer adds ~0.13in to a text-anchored frame's x, so
+    compute the left edge inward from the 7.5in text column rather than using
+    tblpXSpec='right', which lands outside the margin."""
+    tblPr = tbl._tbl.tblPr
+    p = OxmlElement('w:tblpPr')
+    for k, v in [('w:leftFromText', '180'), ('w:rightFromText', '0'),
+                 ('w:topFromText', '60'), ('w:bottomFromText', '60'),
+                 ('w:vertAnchor', 'text'), ('w:horzAnchor', 'margin'), ('w:tblpY', '1')]:
+        p.set(qn(k), v)
+    p.set(qn('w:tblpX'), str(int(round((7.5 - width_in - 0.13) * 1440))))
+    tblPr.insert(0, p)
+    ov = OxmlElement('w:tblOverlap'); ov.set(qn('w:val'), 'never'); tblPr.append(ov)
+
+TOKEN = re.compile(r'(<b[^>]*>|</b>|<i>|</i>|<sup>|</sup>)', re.I)
+def add_runs(par, frag, size=None, color=None, base_bold=False, bold_color=None,
+             base_ital=False):
+    bold, ital, sup = base_bold, base_ital, False
+    for tok in TOKEN.split(frag):
+        if not tok: continue
+        t = tok.lower()
+        if t.startswith('<b'): bold = True
+        elif t == '</b>': bold = base_bold
+        elif t == '<i>': ital = True
+        elif t == '</i>': ital = base_ital
+        elif t == '<sup>': sup = True
+        elif t == '</sup>': sup = False
+        else:
+            txt = H.unescape(re.sub(r'<[^>]+>', '', tok))
+            txt = re.sub(r'\s+', ' ', txt)
+            if not txt: continue
+            r = par.add_run(txt)
+            r.bold, r.italic = bold, ital
+            if sup:
+                # w:vertAlign makes Word shrink the run to about 58%, which would
+                # put the reference markers at 4.6pt. Set the size explicitly and
+                # raise the baseline instead, so 8pt is what actually prints.
+                r.font.size = Pt(8)
+                pos = OxmlElement('w:position'); pos.set(qn('w:val'), '7')
+                r._element.get_or_add_rPr().append(pos)
+            if size: r.font.size = Pt(size)
+            if color is not None: r.font.color.rgb = color
+            elif bold and bold_color is not None: r.font.color.rgb = bold_color
+    return par
+
+def add_figure(img, w, cap, floated=False):
+    """Floated figures need a table, because a frame is the only Word construct
+    that wraps text. Full-width figures must NOT use one: Writer applies its own
+    cell padding regardless of w:tblCellMar, which pushes a 7.2in image past the
+    cell and crops its right edge."""
+    if not floated:
+        pi = doc.add_paragraph()
+        pi.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        pi.paragraph_format.space_before = Pt(6); pi.paragraph_format.space_after = Pt(2)
+        pi.paragraph_format.keep_with_next = True
+        pi.add_run().add_picture(img, width=Inches(w))
+        pc = doc.add_paragraph()
+        pc.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        pc.paragraph_format.space_after = Pt(6)
+        add_runs(pc, cap, size=9)
+        return
+    t = doc.add_table(rows=1, cols=1); t.autofit = False
+    t.columns[0].width = Inches(w); t.rows[0].cells[0].width = Inches(w)
+    no_borders(t); zero_cell_margins(t); fixed_width(t, w); float_table(t, w)
+    c = t.cell(0, 0); c.text = ''
+    pi = c.paragraphs[0]; pi.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    pi.paragraph_format.space_after = Pt(2); pi.paragraph_format.space_before = Pt(4)
+    pi.add_run().add_picture(img, width=Inches(w))
+    pc = c.add_paragraph(); pc.alignment = WD_ALIGN_PARAGRAPH.LEFT
+    pc.paragraph_format.space_after = Pt(0)
+    add_runs(pc, cap, size=9)
+
+def shade(cell, hexc):
+    tcPr = cell._tc.get_or_add_tcPr(); sh = OxmlElement('w:shd')
+    sh.set(qn('w:val'), 'clear'); sh.set(qn('w:fill'), hexc); tcPr.append(sh)
+
+def cell_border(cell, edge, sz, color):
+    tcPr = cell._tc.get_or_add_tcPr()
+    b = tcPr.find(qn('w:tcBorders'))
+    if b is None:
+        b = OxmlElement('w:tcBorders'); tcPr.append(b)
+    e = OxmlElement('w:' + edge); e.set(qn('w:val'), 'single')
+    e.set(qn('w:sz'), str(sz)); e.set(qn('w:space'), '0'); e.set(qn('w:color'), color)
+    b.append(e)
+
+def build_table(thtml, keep=False, plain=False):
+    rows = [re.findall(r'<(th|td)([^>]*)>(.*?)</\1>', r, re.S)
+            for r in re.findall(r'<tr[^>]*>(.*?)</tr>', thtml, re.S)]
+    pct = [float(x) for x in re.findall(r'width:([\d.]+)%', thtml)]
+    ncol = max(len(r) for r in rows)
+    tbl = doc.add_table(rows=len(rows), cols=ncol)
+    tbl.autofit = False
+    no_borders(tbl); fixed_width(tbl, 7.5)
+    # Word lays a fixed-layout table out from tblGrid, so setting only the cell
+    # widths leaves the grid at add_table's equal columns and the proportions
+    # come out wrong. Set the column (gridCol) width as well.
+    for ci, p in enumerate(pct[:ncol]):
+        w = Inches(7.5 * p / 100.0)
+        tbl.columns[ci].width = w
+        for row in tbl.rows:
+            row.cells[ci].width = w
+    for ri, row in enumerate(rows):
+        is_head = bool(row) and row[0][0].lower() == 'th'
+        for ci, (tag, attrs, content) in enumerate(row):
+            cell = tbl.cell(ri, ci); cell.text = ''
+            par = cell.paragraphs[0]
+            par.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            par.paragraph_format.space_before = Pt(1.5)
+            par.paragraph_format.space_after = Pt(1.5)
+            # matches the PDF's `table.dat td b { color: #14453f }`: the bold
+            # lead-in is teal, the prose after it stays black
+            add_runs(par, content, size=9, color=TEAL if is_head else None,
+                     base_bold=is_head, bold_color=None if is_head else TEAL)
+            # Word has no table-level break-inside:avoid. keep_with_next on every
+            # row but the last is the equivalent, and is what stops Table 2
+            # stranding a row on the previous page.
+            if keep and ri < len(rows) - 1:
+                par.paragraph_format.keep_with_next = True
+            if 'class="tot"' in thtml and ri == len(rows) - 1:
+                shade(cell, 'EEF3F0')
+            if plain:
+                cell_border(cell, 'top', 6, 'B9C4BD')
+            elif is_head or ri == len(rows) - 1:
+                cell_border(cell, 'bottom', 8, '14453F')
+            else:
+                cell_border(cell, 'bottom', 2, 'B9C4BD')
+    return tbl
+
+BLOCK = re.compile(r'(<h1[^>]*>.*?</h1>|<div class="figfloat"[^>]*>.*?</div>|'
+                   r'<div class="fig">.*?</div>|<div class="chain">.*?</div>|'
+                   r'<ol class="risks">.*?</ol>|'
+                   r'<table[^>]*>.*?</table>|<p[^>]*>.*?</p>)', re.S)
+
+# A caption that follows a full-width <div class="fig"> belongs inside that
+# figure's frame, so it can never be stranded from its image by a page break.
+blocks = [b.strip() for b in BLOCK.split(SRC) if b.strip().startswith('<')]
+i = 0
+while i < len(blocks):
+    b = blocks[i]
+
+    if b.startswith('<h1'):
+        txt = H.unescape(re.sub(r'<[^>]+>', '', b)).strip()
+        p = doc.add_paragraph(); p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+        if 'refhead' in b:
+            p.paragraph_format.page_break_before = True
+        p.paragraph_format.space_before = Pt(11); p.paragraph_format.space_after = Pt(4)
+        p.paragraph_format.keep_with_next = True
+        r = p.add_run(txt); r.bold = True
+        border(p, 'bottom', 12, '000000')
+
+    elif b.startswith('<div class="figfloat"'):
+        img = re.search(r'src="([^"]+)"', b)
+        w = float(re.search(r'data-w="([\d.]+)"', b).group(1))
+        cap = re.search(r'<p class="caption">(.*?)</p>', b, re.S)
+        add_figure(img.group(1), w, cap.group(1), floated=True)
+
+    elif b.startswith('<div class="chain">'):
+        img = re.search(r'src="([^"]+)"[^>]*style="width:([\d.]+)in"', b)
+        pi = doc.add_paragraph(); pi.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        pi.paragraph_format.space_before = Pt(4); pi.paragraph_format.space_after = Pt(6)
+        pi.add_run().add_picture(img.group(1), width=Inches(float(img.group(2))))
+
+    elif b.startswith('<div class="fig">'):
+        img = re.search(r'src="([^"]+)"[^>]*style="width:([\d.]+)in"', b)
+        cap = ''
+        if i + 1 < len(blocks) and 'class="caption"' in blocks[i + 1]:
+            cap = re.search(r'<p class="caption">(.*?)</p>', blocks[i + 1], re.S).group(1)
+            i += 1
+        add_figure(img.group(1), float(img.group(2)), cap, floated=False)
+
+    elif b.startswith('<table'):
+        build_table(b, keep='dat keep' in b, plain='class="adv"' in b)
+        if i + 1 < len(blocks) and 'class="caption"' in blocks[i + 1]:
+            cap = re.search(r'<p class="caption">(.*?)</p>', blocks[i + 1], re.S).group(1)
+            i += 1
+            pc = doc.add_paragraph()
+            pc.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            pc.paragraph_format.space_before = Pt(2)
+            pc.paragraph_format.space_after = Pt(6)
+            add_runs(pc, cap, size=9)
+
+    elif b.startswith('<ol'):
+        # Explicit numerals with a hanging indent, rather than a Word list
+        # style: pasted into another document, a real list renumbers against
+        # whatever list precedes it. Plain runs cannot.
+        for k, li in enumerate(re.findall(r'<li>(.*?)</li>', b, re.S), 1):
+            p = doc.add_paragraph()
+            p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+            p.paragraph_format.left_indent = Inches(0.34)
+            p.paragraph_format.first_line_indent = Inches(-0.34)
+            p.paragraph_format.space_after = Pt(3)
+            r = p.add_run('%d. ' % k); r.bold = True; r.font.color.rgb = TEAL
+            m = re.match(r'\s*<b class="rk">(.*?)</b>\s*(.*)$', li, re.S)
+            if m:
+                r = p.add_run(m.group(1) + ' '); r.bold = True; r.font.color.rgb = TEAL
+                add_runs(p, m.group(2))
+            else:
+                add_runs(p, li)
+
+    elif b.startswith('<p class="clearfix"'):
+        pass
+
+    elif b.startswith('<p'):
+        txt = re.sub(r'^\s*<p[^>]*>|</p>\s*$', '', b, flags=re.S)
+        cls = re.search(r'<p class="([^"]*)"', b)
+        cls = cls.group(1) if cls else ''
+        p = doc.add_paragraph()
+        if 'refs' in cls:
+            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            p.paragraph_format.left_indent = Inches(0.22)
+            p.paragraph_format.first_line_indent = Inches(-0.22)
+            p.paragraph_format.space_after = Pt(4)
+            add_runs(p, txt)
+        elif 'modnote' in cls:
+            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            p.paragraph_format.space_before = Pt(5)
+            add_runs(p, txt, size=9, base_ital=True)
+        elif 'caption' in cls:
+            p.alignment = WD_ALIGN_PARAGRAPH.LEFT
+            p.paragraph_format.space_after = Pt(6)
+            add_runs(p, txt, size=9)
+        else:
+            p.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+            p.paragraph_format.space_before = Pt(8 if 'sec' in cls and 'first-sec' not in cls else 0)
+            p.paragraph_format.space_after = Pt(3)
+            add_runs(p, txt)
+    i += 1
+
+doc.save('Olera_CRP_Innovation_v5.docx')
+print('saved docx')

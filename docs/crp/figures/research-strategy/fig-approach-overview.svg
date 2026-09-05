@@ -1,0 +1,85 @@
+<svg viewBox="0 0 780 330" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif" role="img" aria-label="Overview of the specific aims and tasks. From broad national traction, Aim 1 verifies, validates, and builds adoption of the family-facing CareNavigator and Aim 2 does the same for the Provider Growth Suite, together building local market depth across families, providers, and workforce. Aim 3 prices the products and measures who buys, who stays, and revenue versus all costs, producing profit and investor readiness. After the award: sustainability and accelerated market capture.">
+  <defs>
+    <marker id="a" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L8 4L0 8z" fill="#5a6660"/></marker>
+    <marker id="t" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6.5" markerHeight="6.5" orient="auto"><path d="M0 0L8 4L0 8z" fill="#0f9b8e"/></marker>
+  </defs>
+
+  <!-- ===== TODAY (left column) ===== -->
+  <rect x="14" y="42" width="92" height="260" rx="8" fill="#f3f4f6" stroke="#c3cad2" stroke-width="1.2"/>
+  <text x="60" y="162" font-size="9.5" fill="#1e2a38" text-anchor="middle" font-weight="700">TODAY</text>
+  <text x="60" y="178" font-size="8.5" fill="#4b5563" text-anchor="middle">broad national</text>
+  <text x="60" y="190" font-size="8.5" fill="#4b5563" text-anchor="middle">traction</text>
+  <path d="M106 71 L114 71" stroke="#5a6660" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
+  <path d="M106 273 L114 273" stroke="#5a6660" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
+
+  <!-- ===== AIM 1 pipeline (top) ===== -->
+  <text x="118" y="30" font-size="11" font-weight="700" fill="#1e2a38" letter-spacing="1">AIM 1 · FAMILIES <tspan fill="#6b7280" font-weight="400" letter-spacing="0">· Years 1–2</tspan></text>
+
+  <rect x="118" y="42" width="132" height="58" rx="7" fill="#1e2a38"/>
+  <text x="184" y="66" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="700">Verify the</text>
+  <text x="184" y="82" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="700">CareNavigator</text>
+  <text x="184" y="114" font-size="8" fill="#6b7280" text-anchor="middle">Task 1.1</text>
+
+  <path d="M250 71 L268 71" stroke="#5a6660" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
+
+  <rect x="272" y="42" width="132" height="58" rx="7" fill="#ffffff" stroke="#1e2a38" stroke-width="1.3"/>
+  <text x="338" y="66" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">Validate with</text>
+  <text x="338" y="82" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">family caregivers</text>
+  <text x="338" y="114" font-size="8" fill="#6b7280" text-anchor="middle">Task 1.2</text>
+
+  <path d="M404 71 L422 71" stroke="#5a6660" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
+
+  <rect x="426" y="42" width="132" height="58" rx="7" fill="#ffffff" stroke="#1e2a38" stroke-width="1.3"/>
+  <text x="492" y="66" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">Build family</text>
+  <text x="492" y="82" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">adoption</text>
+  <text x="492" y="114" font-size="8" fill="#6b7280" text-anchor="middle">Task 1.3</text>
+
+  <!-- ===== LOCAL MARKET DEPTH band (middle) ===== -->
+  <path d="M534 100 L534 130" stroke="#0f9b8e" stroke-width="1.8" fill="none" marker-end="url(#t)"/>
+  <path d="M534 244 L534 200" stroke="#0f9b8e" stroke-width="1.8" fill="none" marker-end="url(#t)"/>
+
+  <rect x="118" y="134" width="440" height="62" rx="9" fill="#e6f4f2" stroke="#0f9b8e" stroke-width="1.4"/>
+  <text x="338" y="160" font-size="11.5" fill="#0b6e65" text-anchor="middle" font-weight="700">LOCAL MARKET DEPTH</text>
+  <text x="338" y="180" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">families · providers · workforce</text>
+
+  <!-- ===== AIM 2 pipeline (bottom) ===== -->
+  <text x="118" y="232" font-size="11" font-weight="700" fill="#1e2a38" letter-spacing="1">AIM 2 · PROVIDERS &amp; WORKFORCE <tspan fill="#6b7280" font-weight="400" letter-spacing="0">· Years 1–2</tspan></text>
+
+  <rect x="118" y="244" width="132" height="58" rx="7" fill="#1e2a38"/>
+  <text x="184" y="268" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="700">Verify the</text>
+  <text x="184" y="284" font-size="10" fill="#ffffff" text-anchor="middle" font-weight="700">Growth Suite</text>
+  <text x="184" y="316" font-size="8" fill="#6b7280" text-anchor="middle">Task 2.1</text>
+
+  <path d="M250 273 L268 273" stroke="#5a6660" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
+
+  <rect x="272" y="244" width="132" height="58" rx="7" fill="#ffffff" stroke="#1e2a38" stroke-width="1.3"/>
+  <text x="338" y="268" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">Validate with</text>
+  <text x="338" y="284" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">providers</text>
+  <text x="338" y="316" font-size="8" fill="#6b7280" text-anchor="middle">Task 2.2</text>
+
+  <path d="M404 273 L422 273" stroke="#5a6660" stroke-width="1.5" fill="none" marker-end="url(#a)"/>
+
+  <rect x="426" y="244" width="132" height="58" rx="7" fill="#ffffff" stroke="#1e2a38" stroke-width="1.3"/>
+  <text x="492" y="268" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">Build provider</text>
+  <text x="492" y="284" font-size="10" fill="#1e2a38" text-anchor="middle" font-weight="700">adoption</text>
+  <text x="492" y="316" font-size="8" fill="#6b7280" text-anchor="middle">Task 2.3</text>
+
+  <!-- ===== AIM 3 (right) ===== -->
+  <path d="M558 165 L598 165" stroke="#0f9b8e" stroke-width="2.2" fill="none" marker-end="url(#t)"/>
+
+  <rect x="604" y="90" width="160" height="150" rx="9" fill="#1e2a38"/>
+  <text x="684" y="116" font-size="11" fill="#ffffff" text-anchor="middle" font-weight="700">AIM 3 <tspan font-size="8.5" fill="#9fb0bd" font-weight="400">· Years 2–3</tspan></text>
+  <text x="684" y="132" font-size="9" fill="#8fd6cf" text-anchor="middle">Priced products</text>
+  <text x="684" y="154" font-size="9" fill="#e5eaef" text-anchor="middle">who buys · who stays ·</text>
+  <text x="684" y="167" font-size="9" fill="#e5eaef" text-anchor="middle">revenue vs. all costs</text>
+  <rect x="610" y="180" width="148" height="22" rx="6" fill="#0f9b8e"/>
+  <text x="684" y="195" font-size="8.5" fill="#ffffff" text-anchor="middle" font-weight="700">Profit · Investor readiness</text>
+  <text x="684" y="222" font-size="8" fill="#9fb0bd" text-anchor="middle">Tasks 3.1–3.3</text>
+
+  <!-- ===== AFTER THE AWARD (bottom right) ===== -->
+  <path d="M684 240 L684 256" stroke="#0f9b8e" stroke-width="1.8" fill="none" marker-end="url(#t)"/>
+  <rect x="604" y="260" width="160" height="52" rx="8" fill="#ffffff" stroke="#0f9b8e" stroke-width="1.4"/>
+  <text x="684" y="280" font-size="9" fill="#0b6e65" text-anchor="middle" font-weight="700">AFTER THE AWARD</text>
+  <text x="684" y="294" font-size="8.5" fill="#4b5563" text-anchor="middle">sustainability ·</text>
+  <text x="684" y="306" font-size="8.5" fill="#4b5563" text-anchor="middle">accelerated market capture</text>
+</svg>

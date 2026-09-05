@@ -1,0 +1,63 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>
+@page { size: letter; margin: 0.5in; }
+* { box-sizing: border-box; }
+body { font-family: Arial, Helvetica, sans-serif; font-size: 11pt; line-height: 1.2;
+       margin: 0; color: #000; }
+p { margin: 0 0 3pt 0; text-align: justify; orphans: 2; widows: 2; }
+p.sec { margin: 5pt 0 3pt 0; }
+p.lede { margin: 0 0 9pt 0; text-align: left; font-size: 10pt; color: #5f6b64; }
+h1.doctitle { font-size: 15pt; font-weight: bold; margin: 0 0 2pt 0; color: #14453f;
+              letter-spacing: 0.2pt; }
+h2.sechead { font-size: 11pt; font-weight: bold; text-transform: uppercase;
+             letter-spacing: 0.4pt; margin: 11pt 0 4pt 0; text-align: left;
+             border-bottom: 1.2pt solid #000; padding-bottom: 2pt;
+             break-after: avoid; page-break-after: avoid; }
+p.caption { text-align: left; margin: 2pt 0 5pt 0; font-size: 9pt; line-height: 1.16;
+            break-before: avoid; page-break-before: avoid; }
+p.caption b { color: #14453f; }
+ul.pts { margin: 3pt 0 4pt 0; padding: 0 0 0 17pt; }
+ul.pts li { margin: 0 0 3pt 0; text-align: left; padding-left: 2pt;
+            break-inside: avoid; page-break-inside: avoid; }
+ul.pts li::marker { color: #14453f; }
+ul.pts li b { color: #14453f; }
+table.dat { width: 100%; border-collapse: collapse; font-size: 9pt; line-height: 1.16;
+            margin: 5pt 0 2pt 0; }
+table.dat thead { display: table-header-group; }
+table.dat thead th { text-align: left; font-weight: bold; color: #14453f;
+                     border-bottom: 1pt solid #14453f; padding: 0 6pt 2.5pt 0;
+                     vertical-align: bottom; }
+table.dat td { padding: 2.8pt 6pt 2.8pt 0; border-bottom: 0.4pt solid #b9c4bd;
+               vertical-align: top; }
+table.dat td b { color: #14453f; }
+table.dat tr { break-inside: avoid; page-break-inside: avoid; }
+table.dat tbody tr:last-child td { border-bottom: 1pt solid #14453f; }
+p.note { font-size: 9.5pt; color: #5f6b64; text-align: left; margin: 0 0 4pt 0;
+         border-left: 2.4pt solid #b9c4bd; padding-left: 8pt; }
+p.note b { color: #14453f; }
+p.bottom { margin: 8pt 0 0 0; }
+p.bottom b { color: #14453f; }
+</style></head><body><h1 class="doctitle">MedJobs Operating System</h1>
+<p class="lede">Walkthrough Summary and Reader Guide · Companion to the MedJobs operating-system diagram · September 4, 2026</p>
+<p class="note"><b>How to use this guide.</b> The diagram is the primary operating model. This summary explains what each part is intended to accomplish, where ownership changes hands, and which parts of the workflow still need to be strengthened or instrumented.</p>
+<h2 class="sechead">1. The Operating Unit</h2>
+<p class="sec">MedJobs is designed to operate one university and its surrounding provider service area at a time. Within that local unit, the team develops two coordinated pipelines: a provider pipeline that identifies organizations with staffing needs and a university/student pipeline that creates a qualified pool of students interested in paid caregiving work. The two sides converge in the MedJobs portal for matching, hiring, shift confirmation, and billing.</p>
+<h2 class="sechead">2. Provider Side: Prospect → Meeting → Client Success</h2>
+<p class="sec"><b>Target list and outbound work.</b> The Admin Team builds the provider target list and manages outbound activity through the CRM, including calls, emails, scripts, follow-up, and meeting scheduling. The immediate objective of this work is to place a qualified provider meeting on Logan's calendar.</p>
+<p class="sec"><b>Founder meeting.</b> The Admin Team hands the relationship to Logan for the provider meeting. Logan introduces the program, confirms that the provider is active and has a staffing need, and works toward provider interest in using MedJobs.</p>
+<p class="sec"><b>Client Success.</b> Once the provider is interested, Logan hands the relationship to Chantel / Client Success. Client Success owns follow-up questions, profile completion, required staffing information, and the touch points needed to move the provider toward its first successful hire. This post-meeting stage is currently an important source of falloff and needs stronger CRM workflows and dedicated ownership.</p>
+<h2 class="sechead">3. University &amp; Student Side: Access → Distribution → Applications</h2>
+<p class="sec"><b>Advisor prospecting and outbound.</b> The Admin Team identifies university career and health-professions advisors, loads prospects into the CRM, and conducts outbound work with the goal of securing access to the university. A meeting with Logan is the preferred early relationship-building path, although an advisor may sometimes provide access to distribution channels directly by email without a meeting.</p>
+<p class="sec"><b>Advisor meeting and handoff.</b> Logan meets with advisors when possible to introduce MedJobs and secure buy-in. The central ask is simple: help circulate the MedJobs opportunity to relevant students. Once access is established, ongoing university activation should move to a University Success function rather than remain dependent on founder follow-up.</p>
+<p class="sec"><b>University activation.</b> The team should work multiple distribution channels at each university: university job boards, student organizations, campus or career events, advisor listservs/newsletters, and professor outreach. These channels distribute the MedJobs opportunity and drive students to the application. The walkthrough emphasized that student-organization distribution can be especially powerful, while job boards can provide effective passive acquisition.</p>
+<p class="sec"><b>Application.</b> Students reach the MedJobs application through links or QR codes distributed through these channels. Application intake should occur directly through the portal.</p>
+<h2 class="sechead">4. Portal: Vet → Match → Confirm Value → Bill</h2>
+<p class="sec">The portal is intended to remove manual work from the middle and lower funnel. It should manage the student application, apply qualification criteria, create a filtered candidate pool, support provider access to qualified candidates, and instrument the major fulfillment milestones.</p>
+<table class="dat"><thead><tr><th style="width:6%">Stage</th><th style="width:22%">Milestone</th><th style="width:72%">Operating intent</th></tr></thead><tbody><tr><td><b>1</b></td><td>Application submitted</td><td>Student applies through the MedJobs portal.</td></tr><tr><td><b>2</b></td><td>Application vetted</td><td>Portal applies a defined qualification decision tree. Only qualified applicants enter the candidate pool.</td></tr><tr><td><b>3</b></td><td>Candidate introduced</td><td>Qualified candidates are surfaced to relevant providers. This may include browsing through the portal/job board and, over time, more targeted candidate introductions.</td></tr><tr><td><b>4</b></td><td>Interview held</td><td>MedJobs should facilitate and confirm that interviews actually occur. Calendar integration or triggered calendar invitations were identified as a promising mechanism because manual calendar invitations worked well previously.</td></tr><tr><td><b>5</b></td><td>Hire confirmed</td><td>Portal communications should follow up with both provider and student until the hire is confirmed and the system record is updated.</td></tr><tr><td><b>6</b></td><td>6+ shifts worked confirmed</td><td>MedJobs should verify that the student has worked at least six shifts before charging the provider. The exact verification mechanism remains to be designed and could involve automated communications, provider confirmation, student logging, or a combination.</td></tr><tr><td><b>7</b></td><td>Bill issued and collected</td><td>Once 6+ shifts are confirmed, MedJobs can issue the provider invoice and collect payment. This connects the fee directly to demonstrated value rather than charging for an introduction, interview, or nominal hire.</td></tr></tbody></table><p class="caption"><b>Table 1.</b> The seven milestones the portal is meant to instrument. The commercial event is stage 7, and it depends on stage 6.</p>
+<h2 class="sechead">5. Why the Six-Shift Threshold Matters</h2>
+<p class="sec">The proposed commercial bar is intentionally downstream of the hire. A provider would not pay simply because MedJobs produced an interview or even because a student initially accepted a job. The goal is to charge only after MedJobs confirms that the student has worked at least six shifts. This makes the sales proposition lower risk for the provider and ties MedJobs' fee to a point at which the placement has generated meaningful operating value. The exact method for confirming six shifts is still an open design problem and should be treated as a priority for the portal and communications workflow.</p>
+<h2 class="sechead">6. What Needs to Be Built or Strengthened Next</h2>
+<ul class="pts"><li><b>Provider Client Success.</b> Build the post-meeting CRM workflow and ownership model from provider interest through profile completion and first hire.</li><li><b>University Success.</b> Create a repeatable process for activating job boards, student organizations, events, advisor communications, and professor outreach after university access is secured.</li><li><b>Portal application vetting.</b> Finalize the qualification decision tree and automate as much screening as practical so only qualified students enter the candidate pool.</li><li><b>Candidate introduction.</b> Improve how qualified candidates are surfaced to relevant providers beyond passive browsing alone.</li><li><b>Interview instrumentation.</b> Create a reliable way to facilitate and confirm interviews, with calendar integration identified as a strong candidate.</li><li><b>Hire and shift confirmation.</b> Build communications and portal states that reliably confirm hiring and the six-shift commercial threshold.</li><li><b>Automated billing trigger.</b> Once the six-shift threshold is verified, connect that event to invoice generation and payment collection.</li></ul>
+<h2 class="sechead">7. Operating Principle for Scale</h2>
+<p class="sec">The immediate goal is to make this full operating loop work reliably in one university/service area. The walkthrough's scaling thesis is that the human roles are relatively bounded: Admin Team prospecting/outbound, founder or sales-lead meetings, Client/University Success, and technical ownership of the portal. If the portal absorbs the manual coordination in application screening, matching, interview/hire tracking, shift confirmation, and billing, the same operating model could then be replicated across additional university/service areas with progressively less founder effort.</p>
+<p class="bottom"><b>Bottom line.</b> MedJobs succeeds when the team can repeatedly turn provider staffing needs and university access into qualified student applications, confirmed hires, six or more completed shifts, and collected revenue through a workflow that is increasingly managed by the CRM and portal rather than manual founder coordination.</p></body></html>

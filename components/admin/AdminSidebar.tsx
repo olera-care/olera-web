@@ -136,19 +136,29 @@ const STAKEHOLDERS_KEY = "stakeholders";
 // anchor (where a prospecting pass starts), then the In Basket daily work
 // queue, then Stats — the analytic hub that links out to the full list pages
 // (Prospects, Calls, Emails, Meetings, Clients, Partners, Candidates, and Logs
-// — whose routes still exist, just no longer in the sidebar).
+// — whose routes still exist, just no longer in the sidebar). SOP closes the
+// list: the implementation matrix, which describes how every one of the other
+// three is meant to be worked.
+// Four pages, one workspace. System is the operating command centre and holds
+// the Sites and In Basket actions; the other three are the role manuals.
+// Stats is retired: the performance instrumentation lives on the architecture.
+const SOP_HREF = "/admin/medjobs/sop";
 const medjobsItems: NavItem[] = [
-  { label: "Sites",     href: "/admin/medjobs/sites" },
+  { label: "System", href: SOP_HREF },
+  { label: "Admin",  href: `${SOP_HREF}/admin` },
+  { label: "Sales",  href: `${SOP_HREF}/sales` },
+  { label: "CRM",    href: `${SOP_HREF}/crm` },
+  // The daily queue sits under the four workspace pages: it is where the work
+  // actually happens, and it carries the only count worth glancing at.
   { label: "In Basket", href: "/admin/medjobs/in-basket" },
-  { label: "Stats",     href: "/admin/medjobs/stats" },
 ];
 
 /** Map nav-item href → sidebar-counts response key. Only In Basket and Sites
  *  carry a count badge now; Stats is an overview surface. */
+// Only the In Basket carries a fraction; the four workspace pages are
+// documents and dashboards, not queues.
 const COUNTS_KEY: Record<string, string | null> = {
   "/admin/medjobs/in-basket": "in_basket",
-  "/admin/medjobs/sites":     "sites",
-  "/admin/medjobs/stats":     null,
 };
 
 interface CountEntry {
@@ -218,7 +228,7 @@ const STORAGE_KEY = "admin-sidebar-collapsed";
 // simply stops rendering, no cleanup needed.
 const pinnableItems: NavItem[] = [
   ...navSections.flatMap((s) => s.items),
-  ...medjobsItems,
+  ...medjobsItems.map((i) => ({ ...i, label: `MedJobs · ${i.label}` })),
   { label: "Young Caregivers", href: "/admin/young-caregivers" },
 ];
 
@@ -666,6 +676,7 @@ export default function AdminSidebar({
                     </div>
                   );
                 })}
+
               </div>
             )}
           </div>

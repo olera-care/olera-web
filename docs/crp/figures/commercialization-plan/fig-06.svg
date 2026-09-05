@@ -1,0 +1,52 @@
+<svg viewBox="0 8 300 248" role="img" aria-label="Two trajectories from the same starting point. Without navigation, needs go unmet and the cascade runs to institutionalization. With CareNavigator, screening, matching, execution, and follow-up establish aid and care, new caregiving capacity is added to providers, and a return loop re-engages the family as needs evolve, so needs are met at home.">
+      <defs>
+        <marker id="f2g" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L8 4L0 8z" fill="#2e7d5b"/></marker>
+        <marker id="f2x" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L8 4L0 8z" fill="#9aa39c"/></marker>
+      </defs>
+      <text x="150" y="16" text-anchor="middle" font-family="Arial" font-size="9.5" font-weight="700" fill="#141414">Care need emerges</text>
+      <path d="M126 22 C 108 30, 98 38, 94 48" stroke="#2e7d5b" stroke-width="1.8" fill="none" marker-end="url(#f2g)"/>
+      <path d="M174 22 C 196 32, 210 46, 216 64" stroke="#9aa39c" stroke-width="1.4" stroke-dasharray="4 3" fill="none" marker-end="url(#f2x)"/>
+      <!-- left: CareNavigator chain -->
+      <rect x="34" y="52" width="116" height="18" rx="4" fill="#2e7d5b"/>
+      <text x="92" y="64" text-anchor="middle" font-family="Arial" font-size="9" font-weight="700" fill="#fff">CareNavigator</text>
+      <g font-family="Arial" font-size="8" fill="#1d4d3a" text-anchor="middle">
+        <rect x="34" y="76" width="116" height="22" rx="4" fill="#eaf3ee" stroke="#2e7d5b" stroke-width="0.8"/>
+        <text x="92" y="90">Screen needs &amp; eligibility</text>
+        <rect x="34" y="106" width="116" height="22" rx="4" fill="#eaf3ee" stroke="#2e7d5b" stroke-width="0.8"/>
+        <text x="92" y="120">Match aid + providers</text>
+        <rect x="34" y="136" width="116" height="22" rx="4" fill="#eaf3ee" stroke="#2e7d5b" stroke-width="0.8"/>
+        <text x="92" y="150">Execute applications &amp; intake</text>
+        <rect x="34" y="166" width="116" height="22" rx="4" fill="#eaf3ee" stroke="#2e7d5b" stroke-width="0.8"/>
+        <text x="92" y="180">Follow up until support runs</text>
+      </g>
+      <g stroke="#2e7d5b" stroke-width="1.4" fill="none">
+        <path d="M92 70 L92 74" marker-end="url(#f2g)"/>
+        <path d="M92 98 L92 104" marker-end="url(#f2g)"/>
+        <path d="M92 128 L92 134" marker-end="url(#f2g)"/>
+        <path d="M92 158 L92 164" marker-end="url(#f2g)"/>
+        <path d="M92 188 L92 214" marker-end="url(#f2g)"/>
+      </g>
+      <!-- right: the old cycle, faded -->
+      <circle cx="222" cy="112" r="40" fill="none" stroke="#c3cdc8" stroke-width="1.4" stroke-dasharray="5 4"/>
+      <path d="M258 129 C 252 138, 244 144, 236 147" stroke="#9aa39c" stroke-width="1.2" fill="none" marker-end="url(#f2x)"/>
+      <g font-family="Arial" font-size="7.5" fill="#8a9891" text-anchor="middle">
+        <text x="222" y="102">needs unmet</text>
+        <text x="222" y="113">complications</text>
+        <text x="222" y="124">ED · hospital · repeat</text>
+        <text x="222" y="166">without navigation:</text>
+        <text x="222" y="176">the cascade runs</text>
+        <text x="222" y="190">→ institutionalization · public cost</text>
+      </g>
+      <!-- workforce feeder -->
+      <g font-family="Arial" font-size="7.5" fill="#2e7d5b" font-weight="700" text-anchor="middle">
+        <text x="238" y="205">new caregiving capacity</text>
+        <text x="238" y="214">added to providers</text>
+      </g>
+      <path d="M232 218 C 196 226, 140 222, 102 218" stroke="#2e7d5b" stroke-width="1.6" fill="none" marker-end="url(#f2g)"/>
+      <!-- persistence return loop -->
+      <path d="M38 246 C 4 236, -2 160, 2 104 C 4 80, 16 68, 30 62" stroke="#2e7d5b" stroke-width="1.3" stroke-dasharray="5 3" fill="none" marker-end="url(#f2g)"/>
+      <text x="16" y="168" transform="rotate(-90 16 168)" font-family="Arial" font-size="7.5" font-weight="700" fill="#2e7d5b">needs evolve · re-engage</text>
+      <!-- outcome -->
+      <text x="120" y="232" text-anchor="middle" font-family="Arial" font-size="8.5" font-weight="700" fill="#141414">Aid secured · care established · staff in place</text>
+      <text x="130" y="250" text-anchor="middle" font-family="Arial" font-size="9" font-weight="700" fill="#1d6b4c">Needs met at home: stability, aging in place</text>
+    </svg>

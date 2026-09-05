@@ -2,6 +2,24 @@ import type { NextConfig } from "next";
 import { withWorkflow } from "workflow/next";
 
 const nextConfig: NextConfig = {
+  // The MedJobs SOP is read off disk by /api/admin/medjobs/sop rather than
+  // served from public/, because its exhibits are screenshots of the admin
+  // panel. A file read through a runtime-built path is not traced on its own,
+  // so it is named here or the route 404s in production.
+  outputFileTracingIncludes: {
+    // The SOP route reads these through a path built at runtime, which the
+    // tracer cannot follow. Without these entries the route works locally and
+    // 404s in production.
+    "/api/admin/medjobs/sop": [
+      "./docs/medjobs/MedJobs_2.0_Master_Implementation_Matrix.pdf",
+      "./docs/medjobs/MedJobs_Admin_Team_Operations.pdf",
+      "./docs/medjobs/MedJobs_Sales_Lead_Operations.pdf",
+      "./docs/medjobs/MedJobs_Consumer_Relations_Manager_Operations.pdf",
+      "./docs/medjobs/MedJobs_Operating_System_Walkthrough_Summary.pdf",
+      "./docs/medjobs/MedJobs_Operating_System_Walkthrough.mp4",
+    ],
+  },
+
   // Enable image optimization for external images
   images: {
     remotePatterns: [

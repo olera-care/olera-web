@@ -1,0 +1,90 @@
+# CRP Commercialization Plan — live bibliography.
+#
+# Same schema and discipline as references.yaml, scoped to the Commercialization
+# Plan. Kept separate because references.yaml is the source of truth for
+# research-strategy.md and its numbering is generated from that document alone.
+# Whether the two merge into one submitted bibliography attachment is an open
+# decision; keeping them separate now does not foreclose either answer.
+#
+# `shared_key` marks a claim already carried by references.yaml. Do not create a
+# second entry for a source the Research Strategy already cites: cite the same
+# source in both documents so a reviewer reading both sees one provenance.
+#
+# `verified` records the date WE checked the source against the claim. Entries
+# supplied by a team member and not yet independently re-checked carry
+# `verified: pending` and a `provenance` line. They are not submission-ready.
+
+blsAides2026:
+  ref: "U.S. Bureau of Labor Statistics. Home Health and Personal Care Aides. Occupational Outlook Handbook. U.S. Department of Labor; updated 2026-08-27."
+  url: https://www.bls.gov/ooh/healthcare/home-health-aides-and-personal-care-aides.htm
+  supports: "Approximately 4.68 million home health and personal care aide jobs in 2025; approximately 760,500 openings projected each year, 2025 to 2035; 18 percent projected employment growth through 2035. BLS attributes many of the annual openings to workers transferring occupations or leaving the labor force, so the figure is a replacement-and-growth quantity rather than net new demand."
+  verified: pending
+  provenance: "Supplied by Logan 2026-08-28. Supersedes the earlier 4.35M/2024 and 766,000/2024-2034 figures used in the CP Section 4 draft."
+  cp_ref_number: 26
+
+hcaoaBenchmark2025:
+  ref: "Home Care Association of America. Activated Insights Benchmarking Report Now Available. 2025-07-30."
+  supports: "Professional caregiver turnover declined from 79.2 percent to 75.0 percent in 2024."
+  verified: pending
+  provenance: "Supplied by Logan 2026-08-28."
+  shared_key: caregiverCAC2025
+  note: "DUPLICATE SOURCE. The Research Strategy already cites the Activated Insights benchmarking report directly for the 75 percent figure. Cite the primary report in both documents rather than this trade-association announcement of it."
+  cp_ref_number: 27
+
+hhcnRejections2024:
+  ref: "Home Health Care News. Caregiver Turnover, Referral Rejections Continue To Increase In Home Care. 2024-08-15."
+  supports: "63.3 percent of surveyed home-care providers turned down cases in 2023, reporting Activated Insights benchmarking data."
+  verified: pending
+  provenance: "Supplied by Logan 2026-08-28."
+  shared_key: activatedInsights2024
+  note: "DUPLICATE SOURCE, and secondary. The Research Strategy cites the Activated Insights 2024 benchmarking report itself for the 63.3 percent figure. Prefer the primary report in both documents."
+  cp_ref_number: 28
+
+kffMedicareAdvantage2026:
+  ref: "KFF. Medicare Advantage in 2026: Enrollment Update and Key Trends. 2026."
+  supports: "Approximately 35.2 million Medicare Advantage enrollees in 2026."
+  verified: pending
+  provenance: "Supplied by Logan 2026-08-28."
+  cp_ref_number: 29
+
+cmsAco2026:
+  ref: "Centers for Medicare & Medicaid Services. 2026 Medicare Accountable Care Organization Initiatives Participation Highlights. 2026-02-04."
+  supports: "Approximately 14.3 million Medicare beneficiaries receiving coordinated care through Medicare accountable-care initiatives in 2026."
+  verified: pending
+  provenance: "Supplied by Logan 2026-08-28."
+  cp_ref_number: 30
+
+aamcApplicants2025:
+  ref: "Association of American Medical Colleges. U.S. Medical Schools Enroll Record Number of Students in 2025. 2025-12-09."
+  supports: "54,699 U.S. medical-school applicants in 2025."
+  verified: pending
+  provenance: "Supplied by Logan 2026-08-28. The same figure already appears inside the `supports` note of references.yaml key `nces2024`; that note should be trimmed to its NCES claim and this key used for the AAMC figure."
+  cp_ref_number: 32
+
+nursingcas2026:
+  ref: "American Association of Colleges of Nursing / NursingCAS. NursingCAS Application Cycle Closes with Most Applicants to Date. 2026-02-09."
+  supports: "75,078 submitted applicants and 112,267 applications across 282 participating nursing schools during the 2024-2025 cycle."
+  verified: pending
+  provenance: "Supplied by Logan 2026-08-28."
+  cp_ref_number: 33
+
+hcaoaHiringQ12026:
+  ref: "Home Care Association of America. New Report Details Q1 Caregiver Hiring Trends. 2026-07-07."
+  supports: "Recruitment benchmarking across more than 120,000 caregiver applicants; Indeed generated 68 percent of applications during Q1 2026."
+  verified: pending
+  provenance: "Supplied by Logan 2026-08-28. Publication date 2026-07-07 resolves the earlier concern that Q1 2026 data would be too recent to cite."
+  cp_ref_number: 34
+
+cmsMedicaidManagedCare:
+  ref: "Centers for Medicare & Medicaid Services. Medicaid Managed Care Enrollment Report and Managed Long-Term Services and Supports enrollment data."
+  supports: "National and state-level Medicaid managed-care and MLTSS enrollment and program structure."
+  verified: pending
+  provenance: "Supplied by Logan 2026-08-28."
+  note: "CURRENTLY UNCITED. Section 4 names Medicaid managed-care and MLTSS organizations and Figure 7 lists MLTSS populations, but neither carries a superscript. Either attach this citation at the MLTSS mention or drop the entry."
+  cp_ref_number: 35
+
+# --- shared with the Research Strategy; do not duplicate -------------------
+# cp_ref_number 31 (CMS GUIDE Model) is references.yaml key `cmsGuide2024`.
+# That entry carries a verified CAUTION on the participant count. Section 4
+# cites GUIDE only for the existence and scope of payer-funded navigation,
+# which is what the entry supports, so no count is at risk here.

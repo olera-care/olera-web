@@ -1,0 +1,229 @@
+# CRP Research Strategy — live bibliography.
+#
+# Source of truth for every citation in research-strategy.md. In-text markers use
+# pandoc-citeproc syntax with these stable keys: [@key] or [@key1; @key2], placed
+# immediately after the claim (and its punctuation) they support. Rendered
+# numbering is generated from first appearance by tools/render_pdf.py — never
+# hard-code reference numbers in prose. [@todo: description] marks a claim whose
+# source is not yet verified; the renderer counts these and the document is not
+# submission-ready while any remain.
+#
+# Every entry must record enough metadata to re-verify the claim (doi / pmid /
+# url), a `supports` note stating exactly what was verified, and the date.
+# Do not add an entry until the source has actually been checked against the
+# claim it will support.
+
+censusVintage2024:
+  ref: "U.S. Census Bureau. Vintage 2024 Population Estimates: the 65-and-older population reached 61 million in 2024."
+  url: https://www.census.gov/programs-surveys/popest.html
+  supports: "Population 65+ reached 61 million in 2024."
+  verified: 2026-08-19
+
+censusProj2023:
+  ref: "U.S. Census Bureau. 2023 National Population Projections. 2023."
+  url: https://www.census.gov/newsroom/press-releases/2023/population-projections.html
+  supports: "65+ population projected to reach 82 million by 2050 (23% of the population by 2060). Supersedes the older 88.8M-by-2060 vintage."
+  verified: 2026-08-19
+
+phi2025:
+  ref: "PHI. Direct Care Workers in the United States: Key Facts 2025. PHI National; 2025."
+  url: https://www.phinational.org/resource/direct-care-workers-in-the-united-states-key-facts-2025/
+  supports: "9.7 million total direct-care job openings projected 2024-2034 (new jobs plus transfers and labor-force exits)."
+  verified: 2026-08-19
+
+aarpCareGap2013:
+  ref: "Redfoot D, Feinberg L, Houser A. The Aging of the Baby Boom and the Growing Care Gap. AARP Public Policy Institute; 2013."
+  url: https://www.aarp.org/content/dam/aarp/research/public_policy_institute/ltc/2013/baby-boom-and-the-growing-care-gap-insight-AARP-ppi-ltc.pdf
+  supports: "Caregiver support ratio (potential family caregivers per adult 80+) more than 7:1 in 2010, projected to fall to 4:1 by 2030."
+  verified: 2026-08-19
+
+aarpCaregiving2025:
+  ref: "AARP and National Alliance for Caregiving. Caregiving in the US 2025. AARP; 2025."
+  url: https://www.aarp.org/pri/topics/ltss/family-caregiving/caregiving-in-the-us-2025/
+  supports: "About 70 percent of working-age (18-64) family caregivers are employed."
+  verified: 2026-08-19
+
+ncoa2025:
+  ref: "National Council on Aging. Over 9 Million Eligible Older Adults Are Missing Out on $58 Billion in Benefits. NCOA; 2025."
+  url: https://www.ncoa.org/article/over-9-million-eligible-older-adults-are-missing-out-on-58-billion-in-benefits-that-can-help-them-afford-basic-necessities/
+  supports: "An estimated 9.1 million adults 65+ eligible but not enrolled; $58 billion/year unclaimed across SNAP, SSI, and Medicare Savings Programs."
+  verified: 2026-08-19
+
+freedmanSpillman2014:
+  ref: "Freedman VA, Spillman BC. Disability and care needs among older Americans. Milbank Q. 2014;92(3):509-541."
+  doi: 10.1111/1468-0009.12076
+  url: https://onlinelibrary.wiley.com/doi/abs/10.1111/1468-0009.12076
+  supports: "NHATS: 31.8% of older adults with ADL/IADL difficulty or receiving help reported an adverse consequence of unmet need in the past month (going without bathing, meals, medications, and similar)."
+  verified: 2026-08-19
+
+hass2017:
+  ref: "Hass Z, DePalma G, Craig BA, Xu H, Sands LP. Unmet need for help with activities of daily living disabilities and emergency department admissions among older Medicare recipients. Gerontologist. 2017;57(2):206-213."
+  url: https://academic.oup.com/gerontologist/article/57/2/206/2632059
+  supports: "Self-reported unmet ADL need predicts subsequent emergency department admissions (prospective survey-Medicare linkage)."
+  verified: 2026-08-19
+
+depalma2013:
+  ref: "DePalma G, Xu H, Covinsky KE, et al. Hospital readmission among older adults who return home with unmet need for ADL disability. Gerontologist. 2013;53(3):454-461."
+  pmid: 22859438
+  url: https://pubmed.ncbi.nlm.nih.gov/22859438/
+  supports: "Unmet ADL need after hospital discharge associated with increased readmission risk."
+  verified: 2026-08-19
+
+unmetNeedsSR2024:
+  ref: "Unmet needs and healthcare service utilization among older adults: a systematic review. 2024."
+  url: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11692472/
+  supports: "Systematic review: unmet ADL/IADL needs associated with hospitalization, emergency visits, nursing home placement, and mortality. [Complete author list at citation-integrity pass.]"
+  verified: 2026-08-19
+
+szanton2021:
+  ref: "Szanton SL, Clemson L, Liu M, et al. CAPABLE program improves disability in multiple randomized trials. J Am Geriatr Soc. 2021;69(12):3631-3640."
+  doi: 10.1111/jgs.17383
+  url: https://agsjournals.onlinelibrary.wiley.com/doi/10.1111/jgs.17383
+  supports: "Home-based function-focused support (CAPABLE) reduced disability across multiple randomized trials."
+  verified: 2026-08-19
+
+szanton2018:
+  ref: "Szanton SL, Alfonso YN, Leff B, et al. Medicaid cost savings of a preventive home visit program for disabled older adults. J Am Geriatr Soc. 2018;66(3):614-620."
+  doi: 10.1111/jgs.15143
+  url: https://dx.doi.org/10.1111/jgs.15143
+  supports: "CAPABLE implementation associated with reduced Medicaid spending driven by reduced inpatient/outpatient utilization (roughly $3K program cost vs >$20K savings per participant)."
+  verified: 2026-08-19
+
+nhe2023:
+  ref: "Centers for Medicare & Medicaid Services. National Health Expenditure Accounts, 2023. CMS Office of the Actuary; 2024."
+  url: https://www.cms.gov/data-research/statistics-trends-and-reports/national-health-expenditure-data
+  supports: "Home health care spending $147.8B in 2023 (+10.8%); nursing care facilities and continuing care retirement communities $211.3B (+9.5%). Components of the ~half-trillion eldercare aggregate; both categories growing near 10%/yr."
+  verified: 2026-08-19
+
+homeCareMarketEst:
+  ref: "Industry estimates of U.S. non-medical home care revenue (analyst reports; definitions vary). Range $101-162B; conservative floor >$100B, ~7%/yr growth."
+  url: https://www.grandviewresearch.com/industry-analysis/non-medical-home-care-market-report
+  supports: "Non-medical/private-duty home care exceeds $100B annually (conservative end of analyst range; consistent with Commercialization Plan Table 6). Largely outside CMS NHE home health line."
+  verified: 2026-08-19
+
+seniorLivingRev2023:
+  ref: "Senior living industry revenue statistics: $94.2B in 2023, up from $78.2B in 2016."
+  url: https://www.seniorliving.org/companies/statistics/
+  supports: "Assisted/senior living industry revenue ~$94B/yr; largely private-pay and outside CMS NHE accounts. Trace to AHCA/NCAL primary data at the citation-integrity pass."
+  verified: 2026-08-19
+
+cdcNpals2020:
+  ref: "Centers for Disease Control and Prevention, National Center for Health Statistics. National Post-acute and Long-term Care Study, 2020. National Health Statistics Reports No. 208; 2024."
+  url: https://www.cdc.gov/nchs/data/nhsr/nhsr208.pdf
+  supports: "About 68,150 paid, regulated post-acute and long-term-care providers in 2020 (residential care communities, nursing homes, home health agencies, hospices, adult day services centers). Federal core of the provider denominator; excludes state-licensed non-medical home care agencies."
+  verified: 2026-08-19
+
+oleraProviderCount:
+  ref: "Olera estimate: approximately 165,000 U.S. eldercare provider organizations, built from CDC NPALS regulated-provider counts plus approximately 100,000 state-licensed non-medical home care agencies (industry estimates; agencies are licensed by states rather than tracked federally). Consistent with Commercialization Plan Table 6."
+  url: internal (docs/crp/market-denominator.md)
+  supports: "The ~165,000 provider denominator; overlap treatment (memory care within senior living; CCRC levels embedded) documented in the workspace note."
+  verified: 2026-08-19
+
+oleraAcqSpendEst:
+  ref: "Olera conservative bottom-up estimate: U.S. eldercare providers spend at least ~$5B/year on marketing and recruiting (senior living sales/marketing at 3% of ~$94B revenue; home care advertising at 1.1% of >$100B revenue; ~2M+ annual caregiver hires at $520 median acquisition cost). Assumptions and exclusions in docs/crp/market-denominator.md."
+  url: internal (docs/crp/market-denominator.md)
+  supports: "The estimated $5B+ annual marketing and recruiting spend; every input published, every choice at the conservative end, all omissions downward-biasing."
+  verified: 2026-08-19
+
+slSalesMarketingBench:
+  ref: "Senior living industry benchmarks: sales and marketing expense typically 3-6% of revenue (6-10% for communities in growth mode)."
+  url: https://blytheco.com/blog/posts/senior-living-industry-benchmarks-where-does-your-community-stand
+  supports: "The 3% (low-end) senior-living sales-and-marketing input to the acquisition-spend estimate."
+  verified: 2026-08-19
+
+homeCareAdSpendStudy:
+  ref: "Industry study of home care agency advertising spend: average 1.1% of revenue."
+  url: https://sagapixel.com/marketing/how-much-do-home-care-agencies-spend-on-marketing/
+  supports: "The 1.1% home-care advertising input to the acquisition-spend estimate. Single study; conservative (excludes referral fees and non-advertising marketing)."
+  verified: 2026-08-19
+
+caregiverCAC2025:
+  ref: "Activated Insights. 2025 Home Care Benchmarking Report: median caregiver acquisition cost $520 (word-of-mouth channel)."
+  url: https://activatedinsights.com/articles/5-metrics-every-home-care-agency-should-be-tracking/
+  supports: "The $520-per-hire input to the recruiting-spend estimate; word-of-mouth median is the cheapest channel, biasing the estimate downward."
+  verified: 2026-08-19
+
+activatedInsights2024:
+  ref: "Activated Insights (formerly Home Care Pulse). 2024 Home Care Benchmarking Report. Reporting 2023 operating data."
+  url: https://members.homecarefla.org/provider-updates/Details/report-home-care-industry-faces-rising-caregiver-turnover-and-referral-rejections-226408
+  supports: "63.3% of home-care providers had to turn down cases in 2023 because of insufficient staffing. This is the only claim cited to this entry. Verified through the Home Care Association of Florida and Home Health Care News summaries of the report; the report itself is subscription-access. Re-verify the page/table number against the report PDF at the citation-integrity pass. Note a turnover discrepancy to resolve there: these summaries report home-based-care turnover of 79.2%, while the evidence ledger records 75.0% as previously verified from the same report, so the two figures are probably different measures. Neither is cited in the Research Strategy today."
+  verified: 2026-08-19
+
+wapoAPFM2024:
+  ref: "Whoriskey P. Popular assisted living referral 'A Place for Mom' glosses over neglect. The Washington Post. May 16, 2024."
+  url: https://www.washingtonpost.com/business/2024/05/16/place-for-mom-assisted-living-referral/
+  supports: "Senior living providers pay A Place for Mom a fee equal to about one month's fees (rent) for a successful placement; the company does not independently assess facility records; more than one third of facilities it recognized as award-winning across 28 states from 2023 to 2024 had been cited by states for serious violations affecting resident care."
+  verified: 2026-08-19
+
+caseyAPFM2024:
+  ref: "U.S. Senate Special Committee on Aging, Chairman Robert P. Casey Jr. Letter to A Place for Mom regarding potentially deceptive marketing practices. June 18, 2024."
+  url: https://www.casey.senate.gov/news/releases/casey-demands-major-assisted-living-facility-referral-service-a-place-for-mom-address-concerns-about-deceptive-marketing-practices
+  supports: "Senate Aging Committee investigation alleging that the listings families are shown are limited to facilities from which the company receives a commission (roughly 14,000 establishments, less than half the market), that company guidance works to ensure no federally funded family is referred to communities (excluding Medicaid-funded households), and that per the company's own FAQ nearly 40% of families who moved to senior living paid roughly $1,000 more per month than they had budgeted. Primary release verified through NBC News and Forbes reporting quoting the letter directly; casey.senate.gov was unreachable from this environment. Re-verify against the primary letter at the citation-integrity pass."
+  verified: 2026-08-19
+
+paProgramPCE:
+  ref: "University of Iowa Carver College of Medicine, Department of Physician Assistant Studies and Services. Admission Requirements."
+  url: https://pa.medicine.uiowa.edu/admissions/admission-requirements
+  supports: "Exemplar of a health-professions program requiring documented direct patient care hours for admission: a minimum of 1,000 hours of direct patient health care experience, with hours weighted by experience type. Substantiates that programs expect documented patient-care hours, which is what makes caregiving career-valuable to pre-health students."
+  verified: 2026-08-19
+
+paeaStudent2025:
+  ref: "Physician Assistant Education Association. By the Numbers: Student Report 6, data from the 2022 matriculating student cohort. January 2025."
+  url: https://e1.nmcdn.io/assets/paea/wp-content/uploads/2025/01/FINAL_student-report-6-2025-01-13.pdf
+  supports: "Scale of the patient-care-hours expectation: the median matriculating PA student had accumulated roughly 100 weeks of direct patient contact at about 36 hours per week, and the 75th percentile about three years of such experience."
+  verified: 2026-08-19
+
+fan2023:
+  ref: "Fan Q, DuBose L, Ory MG, Lee S, Hoang MN, Vennatt J, Kew CL, Doyle D, Falohun T. Financial, Legal, and Functional Challenges of Providing Care for People Living With Dementia and Needs for a Digital Platform: Interview Study Among Family Caregivers. JMIR Aging. 2023;6:e47577."
+  doi: 10.2196/47577
+  url: https://aging.jmir.org/2023/1/e47577
+  supports: "Olera's own caregiver-needs research that preceded platform design: semistructured interviews with 30 family caregivers (of 150 screened), January to May 2022, thematic analysis in a framework approach. Established that caregiving challenges cluster into functional care needs and financial and legal challenges, and that caregivers identified the need for an integrative digital platform. Source document: reference/publications/aging_v6i1e47577.pdf."
+  verified: 2026-08-19
+
+fan2024:
+  ref: "Fan Q, Hoang MN, DuBose L, Ory MG, Vennatt J, Salha D, Lee S, Falohun T. The Olera.care Digital Caregiving Assistance Platform for Dementia Caregivers: Preliminary Evaluation Study. JMIR Aging. 2024;7:e55132."
+  url: https://aging.jmir.org/2024/1/e55132
+  supports: "Usability and quality of the first-generation platform: overall Mobile Application Rating Scale score 4.57 (SD 0.57) of 5 among 30 adult caregivers in Texas, with engagement 4.10, functionality 4.46, aesthetics 4.58, information quality 4.76. All participants would recommend the platform; 90% rated it positively overall. Note this supersedes the n=25 and 4.6 figures quoted in earlier Olera documents. Source document: reference/publications/aging_v7i1e55132.pdf."
+  verified: 2026-08-19
+
+dubose2024:
+  ref: "DuBose L, Fan Q, Fisher L, Hoang MN, Salha D, Lee S, Ory MG, Falohun T. Development and Evaluation of a Web-Based Platform for Personalized Educational and Professional Assistance for Dementia Caregivers: Proposal for a Mixed Methods Study. JMIR Research Protocols. 2024;13:e64127."
+  url: https://www.researchprotocols.org/2024/1/e64127
+  supports: "The registered, peer-reviewed evaluation protocol: iterative Design Thinking and Build-Measure-Learn development with a caregiver feedback panel and adapted MARS in phase I, then a usability study of 300 dementia caregivers stratified as 100 African American, 100 Hispanic or Latinx, and 100 non-Hispanic White using the Technology Acceptance Survey in phase II. Documents the Dementia Care Personalization Algorithm and the IRB and funding timeline. Substantiates that the user-centered method was pre-registered rather than assembled retrospectively. Source document: reference/publications/resprot_v13i1e64127.pdf."
+  verified: 2026-08-19
+
+hoang2026:
+  ref: "Hoang MN, Kim L, Fisher L, DuBose L, Ory MG, Lee S, Falohun T, Fan Q. Exploring Informal Caregivers' Perception of the Olera Digital Caregiving Assistance Platform for Dementia Care: Mixed Methods Evaluation Study. JMIR Formative Research. 2026;10:e92967."
+  url: https://formative.jmir.org/2026/1/e92967
+  supports: "Technology acceptance of the second-generation platform after four weeks of independent use: overall adapted Technology Acceptance Survey score 5.83 (SD 0.85) of 7 among 65 US caregivers, every item above 5.0, with higher use frequency associated with higher acceptance (F3,61=7.88, P<.001). Also captured caregiver attitudes toward integrating AI into caregiver services. Note this supersedes the 'approximately 5.6 of 7' figure quoted in earlier Olera drafts, which also misattributed the result to the AI agents rather than the platform. Source document: reference/publications/formative-v10-e92967.pdf."
+  verified: 2026-08-19
+
+careNavTAS2026:
+  ref: "Olera, Inc. and Clemson University. Technology Acceptance of a Digital Care-Navigation Platform for Dementia Family Caregivers: A Preliminary Evaluation of CARE-NAV. Manuscript in preparation, 2026. Unpublished data."
+  url: internal (Drive, CARE-NAV Manuscript 2 Quantitative TAS)
+  supports: "Evaluation of the integrated multi-agent eldercare-AI system with its voice-enabled caregiver interface: total modified Technology Acceptance Survey score 5.73 (SD 1.02) of 7 (median 5.89, IQR 5.21-6.52) among a final analyzed sample of 31 unpaid dementia family caregivers, in moderated sessions with hands-on platform use, January to April 2026. Sample was 87% female, 52% White, 19% Black, 19% Hispanic, 10% other, with 39% below $50,000 household income. Content quality scored highest (6.03), ease of use lowest (5.39). Cite as unpublished data, manuscript in preparation. Note the Year 2 RPPR reports the Aim 2 pilot as n=25 (protocol target) and states the team is intentionally withholding quantitative benchmarks pending publication; Logan confirms n=31 is the final analyzed sample and can substantiate result and manuscript status."
+  verified: 2026-08-19
+
+nces2024:
+  ref: "National Center for Education Statistics. Most common undergraduate fields of study. U.S. Department of Education; 2024."
+  url: https://nces.ed.gov/fastfacts/display.asp?id=37
+  supports: "Health professions and related programs conferred 263,800 undergraduate degrees in 2021-22, 13 percent of the 3.0 million undergraduate degrees awarded, making it one of the largest undergraduate fields of study. The approximately one million enrolled figure used in Key Innovation 1 is derived from this annual degree flow across typical program length, not a published enrollment count; the verified quantity is the annual degree total and its share. Narrower populations for whom documented patient-care hours carry explicit admissions value are larger than they appear from applicant counts alone: 267,889 students enrolled in entry-level BSN programs (AACN 2024), 54,699 medical school applicants (AAMC 2025), and 34,625 physician assistant applicants (PAEA 2024-25), whose programs require documented direct patient-care hours."
+  verified: 2026-08-19
+
+ncoaBCU:
+  ref: "National Council on Aging. BenefitsCheckUp. Accessed 2026-08-19."
+  url: https://benefitscheckup.org/
+  supports: "The leading national online benefits screener for older adults: the user enters a ZIP code and answers questions about income, household size, age, health coverage, and expenses, and receives a personalized report of the programs they may qualify for and how to apply for each, drawn from more than 2,000 public and private programs across all 50 states and the District of Columbia. NCOA also operates a Benefits HelpLine and a network of Benefits Enrollment Centers where a benefits enrollment specialist works with the person to obtain, complete, and submit applications. Cite for what the online tool does; do NOT characterize NCOA as information-only, because the Benefits Enrollment Center network provides genuine hands-on enrollment assistance. The accurate distinction is that the screening arm serves anyone without limit while the assistance arm is staffed and therefore bounded by staff time and funding. Secondary source for the Benefits Enrollment Centers: https://www.ncoa.org/article/how-do-benefits-enrollment-centers-help-older-adults/"
+  verified: 2026-08-19
+
+eldercareLocator:
+  ref: "Administration for Community Living. National Eldercare Locator. U.S. Department of Health and Human Services, operated by USAging. Accessed 2026-08-19."
+  url: https://eldercare.acl.gov/
+  supports: "The federal referral service for older adults and their families: an interactive geographic database of state, Tribal, and local aging resources reachable by ZIP code, city, or state online or by calling 1-800-677-1116, where Certified Information Specialists refer the majority of inquiries to more than 600 Area Agencies on Aging and nearly 300 Title VI Native American Aging Programs, as well as to federal and state agencies and nonprofits. The database also covers Aging and Disability Resource Centers, legal services, elder abuse prevention, the State Health Insurance Assistance Program, and the Long-Term Care Ombudsman Program. Cite for what the service does. As with BenefitsCheckUp, do not describe it as a passive directory: it is staffed by trained specialists, and the limit on the assistance it connects families to is the capacity of the local agencies receiving the referral. Program description: https://acl.gov/grants/national-eldercare-locator-0"
+  verified: 2026-08-19
+
+cmsGuide2024:
+  ref: "Centers for Medicare & Medicaid Services. Guiding an Improved Dementia Experience (GUIDE) Model. CMS Innovation Center; model performance period began July 1, 2024."
+  url: https://www.cms.gov/priorities/innovation/innovation-models/guide
+  supports: "The precedent that Medicare pays directly for care navigation: the GUIDE Model began July 1, 2024 as a voluntary nationwide model test running eight years, under which participants deliver comprehensive person-centered assessments and care plans, care coordination, caregiver education and support, 24/7 access to a support line, and respite services, and people with dementia and their caregivers are assigned a care navigator who helps them access services and support, including non-clinical services such as meals and transportation through community-based organizations. Cite for the existence and scope of payer-funded care navigation, not for effectiveness. CAUTION on the participant count: the CMS announcement of 2026-07-08 was reported as 390 participating organizations (96 in the established track starting July 1 2024, 294 new programs starting July 1 2025), while the American Hospital Association's same-day report says 'over 400 participants'; do not state a count without re-verifying against the current CMS participant list. The CMS model page returns 403 to automated fetching, so this entry was verified against the AHA news report (https://www.aha.org/news/headline/2024-07-08-cms-launches-model-aimed-improving-dementia-care); confirm details against the CMS page directly before the citation-integrity pass."
+  verified: 2026-08-25

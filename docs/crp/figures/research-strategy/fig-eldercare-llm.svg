@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 380 412" style="width:100%;display:block" role="img" aria-label="Text input into a pre-trained LLM returns generic output. Parameter-efficient fine-tuning and retrieval-augmented generation adapt the model, so that text input into Olera's eldercare-specific LLM returns eldercare-specific output. AI agents then act on that output, with automation for documents, scheduling, communication, follow-up, and human escalation when needed.">
+  <defs>
+    <marker id="bk" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7"
+            markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#111111"/>
+    </marker>
+  </defs>
+
+  <!-- ============ ROW 1 : pre-trained ============ -->
+  <text x="190" y="13" text-anchor="middle" font-family="Arial" font-size="13" font-weight="700" fill="#111111">Pre-trained</text>
+  <text x="190" y="27" text-anchor="middle" font-family="Arial" font-size="13" font-weight="700" fill="#111111">LLM</text>
+  <text x="60" y="45" text-anchor="middle" font-family="Arial" font-size="13" font-weight="700" fill="#111111">Text Input</text>
+  <text x="320" y="45" text-anchor="middle" font-family="Arial" font-size="13" font-weight="700" fill="#111111">Generic Output</text>
+
+  <rect x="8" y="52" width="104" height="47" rx="6" fill="#d9d9d9" stroke="#c4c4c4"/>
+  <g fill="#9a9a9a"><rect x="20" y="62" width="70" height="7" rx="3.5"/><rect x="20" y="73" width="80" height="7" rx="3.5"/><rect x="20" y="84" width="52" height="7" rx="3.5"/></g>
+
+  <path d="M116 75 h16" fill="none" stroke="#111111" stroke-width="4" marker-end="url(#bk)"/>
+
+  <rect x="138" y="34" width="104" height="83" rx="7" fill="#ffffff" stroke="#cccccc" stroke-width="1.4"/>
+  <g stroke="#111111" stroke-width="1">
+    <path d="M157 55 L190 49 M157 55 L190 70 M157 55 L190 91 M157 73 L190 49 M157 73 L190 70 M157 73 L190 91 M157 91 L190 49 M157 91 L190 70 M157 91 L190 91" fill="none"/>
+    <path d="M190 49 L223 60 M190 49 L223 82 M190 70 L223 60 M190 70 L223 82 M190 91 L223 60 M190 91 L223 82" fill="none"/>
+    <circle cx="157" cy="55" r="3.6" fill="#ffffff" stroke-width="1.6"/>
+    <circle cx="157" cy="73" r="3.6" fill="#ffffff" stroke-width="1.6"/>
+    <circle cx="157" cy="91" r="3.6" fill="#ffffff" stroke-width="1.6"/>
+    <circle cx="190" cy="49" r="3.6" fill="#ffffff" stroke-width="1.6"/>
+    <circle cx="190" cy="70" r="3.6" fill="#ffffff" stroke-width="1.6"/>
+    <circle cx="190" cy="91" r="3.6" fill="#ffffff" stroke-width="1.6"/>
+    <circle cx="223" cy="60" r="3.6" fill="#ffffff" stroke-width="1.6"/>
+    <circle cx="223" cy="82" r="3.6" fill="#ffffff" stroke-width="1.6"/>
+  </g>
+
+  <path d="M248 75 h16" fill="none" stroke="#111111" stroke-width="4" marker-end="url(#bk)"/>
+
+  <rect x="268" y="52" width="104" height="47" rx="6" fill="#d9d9d9" stroke="#c4c4c4"/>
+  <g fill="#ffffff"><rect x="280" y="62" width="80" height="7" rx="3.5"/><rect x="280" y="73" width="80" height="7" rx="3.5"/><rect x="280" y="84" width="80" height="7" rx="3.5"/></g>
+
+  <!-- ============ ADAPTATION BAND ============ -->
+  <text x="72" y="152" text-anchor="middle" font-family="Arial" font-size="12.5" font-weight="700" fill="#111111">Parameter- Efficient</text>
+  <text x="72" y="166" text-anchor="middle" font-family="Arial" font-size="12.5" font-weight="700" fill="#111111">Fine-Tuning (PEFT)</text>
+
+  <path d="M178 130 h24 v22 h13 l-25 26 l-25 -26 h13 v-22 z" fill="#111111"/>
+
+  <text x="308" y="152" text-anchor="middle" font-family="Arial" font-size="12.5" font-weight="700" fill="#111111">Retrieval-Augmented</text>
+  <text x="308" y="166" text-anchor="middle" font-family="Arial" font-size="12.5" font-weight="700" fill="#111111">Generation (RAG)</text>
+
+  <!-- ============ ROW 2 : eldercare-specific ============ -->
+  <rect x="8" y="210" width="104" height="47" rx="6" fill="#eef6f6" stroke="#cfd8d8"/>
+  <g fill="#9a9a9a"><rect x="20" y="220" width="70" height="7" rx="3.5"/><rect x="20" y="231" width="80" height="7" rx="3.5"/><rect x="20" y="242" width="52" height="7" rx="3.5"/></g>
+
+  <path d="M116 233 h16" fill="none" stroke="#111111" stroke-width="4" marker-end="url(#bk)"/>
+
+  <rect x="138" y="192" width="104" height="83" rx="7" fill="#f4f4f2" stroke="#d8d8d4" stroke-width="1.4"/>
+  <g stroke="#17867f" stroke-width="1">
+    <path d="M157 213 L190 207 M157 213 L190 228 M157 213 L190 249 M157 231 L190 207 M157 231 L190 228 M157 231 L190 249 M157 249 L190 207 M157 249 L190 228 M157 249 L190 249" fill="none"/>
+    <path d="M190 207 L223 218 M190 207 L223 240 M190 228 L223 218 M190 228 L223 240 M190 249 L223 218 M190 249 L223 240" fill="none"/>
+    <circle cx="157" cy="213" r="3.6" fill="#ffffff" stroke-width="1.6"/>
+    <circle cx="157" cy="231" r="3.6" fill="#ffffff" stroke-width="1.6"/>
+    <circle cx="157" cy="249" r="3.6" fill="#ffffff" stroke-width="1.6"/>
+    <circle cx="190" cy="207" r="3.6" fill="#ffffff" stroke-width="1.6"/>
+    <circle cx="190" cy="228" r="3.6" fill="#ffffff" stroke-width="1.6"/>
+    <circle cx="190" cy="249" r="3.6" fill="#ffffff" stroke-width="1.6"/>
+    <circle cx="223" cy="218" r="3.6" fill="#ffffff" stroke-width="1.6"/>
+    <circle cx="223" cy="240" r="3.6" fill="#ffffff" stroke-width="1.6"/>
+  </g>
+
+  <path d="M248 233 h16" fill="none" stroke="#111111" stroke-width="4" marker-end="url(#bk)"/>
+
+  <rect x="268" y="210" width="104" height="47" rx="6" fill="#17867f" stroke="#0f6b65"/>
+  <g fill="#ffffff"><rect x="280" y="220" width="80" height="7" rx="3.5"/><rect x="280" y="231" width="80" height="7" rx="3.5"/><rect x="280" y="242" width="80" height="7" rx="3.5"/></g>
+
+  <text x="60" y="273" text-anchor="middle" font-family="Arial" font-size="13" font-weight="700" fill="#111111">Text Input</text>
+  <text x="190" y="291" text-anchor="middle" font-family="Arial" font-size="12.5" font-weight="700" fill="#111111">Eldercare-specific</text>
+  <text x="190" y="305" text-anchor="middle" font-family="Arial" font-size="12.5" font-weight="700" fill="#111111">LLM</text>
+  <text x="315" y="273" text-anchor="middle" font-family="Arial" font-size="11.5" font-weight="700" fill="#111111">Elder Care-Specific</text>
+  <text x="315" y="287" text-anchor="middle" font-family="Arial" font-size="11.5" font-weight="700" fill="#111111">Output</text>
+
+  <!-- ============ AGENTS ============ -->
+  <path d="M190 318 v18" fill="none" stroke="#111111" stroke-width="4" marker-end="url(#bk)"/>
+
+  <rect x="8" y="342" width="364" height="64" rx="7" fill="#ffffff" stroke="#17867f" stroke-width="1.8"/>
+  <text x="190" y="364" text-anchor="middle" font-family="Arial" font-size="13.5" font-weight="700" fill="#17867f">AI AGENTS</text>
+  <text x="190" y="381" text-anchor="middle" font-family="Arial" font-size="11.5" fill="#333333">automation for documents, scheduling, communication,</text>
+  <text x="190" y="395" text-anchor="middle" font-family="Arial" font-size="11.5" fill="#333333">follow-up, and human escalation when needed</text>
+</svg>

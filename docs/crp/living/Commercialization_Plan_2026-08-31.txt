@@ -1,0 +1,884 @@
+1. Statement of Need 
+The product and its impact. The gap between older Americans 
+who need help and the care available to them is growing. An 
+aging population is increasing demand while families continue to 
+face a fragmented system for finding providers, securing financial 
+assistance, and establishing care. When care is not established, 
+the consequences can compound into a vicious cycle of unmet 
+need, hospitalization, failed care establishment, and premature 
+institutionalization 
+(Figure 
+1). 
+Among 
+community-dwelling 
+Medicaid HCBS users, unmet service needs have been 
+associated with substantially greater emergency-department use 
+(52% vs. 34%) and hospital or rehabilitation stays (36% vs. 
+24%).1 Olera developed CareNavigator through NIA Phase I–IIB 
+(Impact Scores 20 and 25) to intervene earlier in this cycle by 
+helping families identify appropriate care, find aid to pay for it, and 
+connect with providers who can deliver it. Its central outcome is 
+simple and measurable: does a recognized need reach 
+established care? 
+The remaining opportunity is to make the full care-establishment 
+pathway computable, executable, and measurable from recognized need through confirmed aid or care (Figure 
+2). Prior work substantially developed the upstream functions needed to assess household needs and means, 
+identify likely benefits and aid, and match appropriate services and providers. The CRP adds three integrated 
+capabilities: (1) a longitudinal Care Establishment Model that represents needs, means, funding, service, 
+execution, capacity, and outcome as structured case state; (2) bounded AI agent workflows that execute and 
+learn from the administrative work required to move that state toward established care; and (3) data-directed 
+Caregiver Staffing that adds new workforce capacity when insufficient labor prevents care establishment. 
+ 
+Figure 2. Care establishment requires a coordinated pathway from assessing need through confirming care. 
+Olera's Valley of Death (Figure 3). CareNavigator is deployed nationally, draws 15,500+ visitors per month 
+through organic search at near-zero acquisition cost, and has demonstrated usability and technology 
+acceptance in peer-reviewed studies.2,3 Caregiver Staffing has also been tested in prior pilots, where providers 
+hired workers sourced through Olera and demonstrated willingness to pay for the service.4 Family demand, 
+CareNavigator usability, and basic provider demand for Caregiver Staffing are therefore substantially de-risked. 
+Five remaining risks must now be retired in sequence: 
+ 
+1.​ Technical risk. Can CareNavigator execute and track care establishment? 
+2.​ Real-world validation risk. Does the complete pathway work in practice? 
+3.​ Evidence risk. Does establishing care produce outcomes and economic value institutional buyers care 
+about? 
+4.​ Commercial risk. Can the value created support durable revenue? 
+5.​ Financing risk. Is Olera investable when CRP ends? 
+ 
+Figure 3. CRP bridges the five remaining risks between demonstrated demand and commercial sustainability. 
+Why government funding is the right instrument at this stage. Crossing this gap requires later-stage R&D 
+and evidence generation before CareNavigator's largest commercial pathway can be demonstrated. Private 
+investors must underwrite the risk of completing and deploying the system before its institutional value has 
+been established, while institutional buyers need real-world evidence before they can confidently value and 
+purchase the product. Non-dilutive CRP funding can break this cycle by financing the work needed to retire 
+these risks. 
+The alternative is not simply to raise prices or sell the same product differently. Charging families would create 
+the greatest barrier for households already struggling to afford eldercare. Charging providers for referrals would 
+introduce steering incentives and limit participation by some federally reimbursed providers. Caregiver Staffing 
+can generate nearer-term provider revenue without those tradeoffs, but staffing alone addresses only the 
+workforce barrier; it does not help families navigate, fund, and execute the rest of the care-establishment 
+pathway. 
+Our investor advisors agree that longitudinal outcomes demonstrating CareNavigator's value to institutional 
+buyers, together with a repeatable provider-revenue model, would materially improve Olera's investability. 
+How CRP funding advances Olera to full commercialization. Three sequential aims retire the remaining 
+risks. Aim 1 engineers and technically verifies the integrated care-establishment infrastructure and establishes 
+its safe automation envelope. Aim 2 tests that system across eight free validation markets, measuring verified 
+care establishment, agent execution, stakeholder value, workforce throughput, acquisition, and operating cost. 
+Aim 3 then enters eight new paid markets to test conversion, retention, repeatable market activation, and live 
+unit economics while producing the institutional evidence package and post-CRP payer proof-of-concept 
+specification. 
+2. Value of the CRP Project, Expected Outcomes, and Impact 
+The product to be commercialized. CareNavigator is Olera's family-facing eldercare navigation platform. It 
+combines a national, expert-curated resource database with AI-supported execution workflows and longitudinal 
+outcomes tracking to help families move from recognized need to established care. Families use 
+CareNavigator at no cost. The platform assesses needs, identifies appropriate care and financial aid, helps 
+execute the administrative and follow-up work required to obtain them, confirms whether care was established, 
+and records where the pathway succeeds or fails (Figure 4). 
+Caregiver Staffing is a complementary provider-facing product and capacity mechanism. When an otherwise 
+appropriate care plan cannot be delivered because a provider lacks workers, Olera recruits new caregivers into 
+the workforce and connects them with licensed providers, which retain responsibility for interviewing, hiring, 
+training, credentialing, supervision, and care delivery. 
+ 
+Figure 4. What a family sees, what the system does, and what accumulates across a county. Shaded elements exist today. 
+Foundation from prior SBIR R&D. Olera's NIA Phase I and Phase IIB awards (Impact Scores 20 and 25) 
+established the foundation for this commercialization effort: a nationally deployed first-generation 
+CareNavigator; an expert-curated database containing more than 72,000 eldercare provider and aid-program 
+records; peer-reviewed evidence of usability and technology acceptance; and extensive customer discovery 
+defining the needs of families and providers. In an early staffing pilot, Olera received approximately 900 
+student applications, accepted 100 candidates, and placed 25 with local providers, with participating students 
+and providers returning in a subsequent semester. These results support the CRP's next step: integrate, 
+execute, measure, and commercialize the complete pathway. 
+Weaknesses in current approaches. Families do not lack individual resources; they lack a system 
+accountable for carrying them across the full pathway to established care. Table 1 organizes current 
+approaches around the same care-establishment pathway used throughout this application. 
+Pathway step 
+Where families still fall off 
+Olera's CRP approach 
+Assess Needs 
+Assessment may end as information or 
+referral rather than an executable case 
+Persistent case begins with structured 
+needs assessment 
+Identify Care 
+Fragmented inventories and handoffs 
+leave families to reconcile options 
+Curated national resource infrastructure 
+identifies services and providers 
+Fund Care 
+Eligibility information does not ensure 
+applications, documentation, or approval 
+Aid identification is linked to execution 
+and case tracking 
+Staff Care 
+Providers may have an opening but lack 
+workers to serve the family 
+Caregiver Staffing adds a workforce 
+channel when capacity blocks care 
+Execute Plan 
+Administrative tasks cross organizations; 
+risk of "lost to follow up" 
+AI-supported workflows execute 
+applications, documents, follow-up, and 
+intake 
+Establish Care 
+Referral or eligibility is treated as success 
+even when service never starts 
+Closed-loop confirmation records whether 
+appropriate care actually begins 
+Track Outcomes 
+No longitudinal record connects need, 
+pathway failure, and subsequent 
+outcomes 
+Case-level outcomes infrastructure 
+supports institutional evidence generation 
+Table 1. Current approaches address portions of the pathway; the CRP integrates them into a closed-loop system oriented to confirmed 
+care. 
+Commercial applications and innovation. The commercial opportunity is not another directory, referral 
+marketplace, or staffing channel in isolation. It is an integrated infrastructure that carries a family across the 
+care-establishment pathway and creates evidence about what happened at every step. AI-supported execution 
+moves the product from recommending what a family should do toward completing and tracking the work 
+required to establish care, and every executed case produces a structured longitudinal record of the pathway. 
+At scale, this longitudinal record could become a distinctive commercial and scientific asset: a county-level 
+empirical map of where eldercare pathways succeed, where they fail, and what resolves those failures. The 
+CRP tests and builds the infrastructure required to create this asset; it does not assume its value in advance 
+(Figure 4, lower register). 
+Expected outcomes. (1) a verified CareNavigator shown in real-world use to execute a prespecified share of 
+eligible administrative actions within bounded permission and human-escalation rules while tracking the 
+pathway from care plan to established care; (2) real-world evidence on care establishment, failure points, 
+operating cost, and longitudinal outcomes; (3) a repeatable Caregiver Staffing model that can both generate 
+provider revenue and relieve workforce constraints to enable care establishment; and (4) a contracting-ready 
+institutional evidence package and prespecified payer proof-of-concept design positioned for post-CRP 
+validation, contracting, and private investment. 
+Commercial and non-commercial impact. Olera's commercial and public-health objectives reinforce one 
+another: growth means more families can receive support before unmet needs progress to higher-cost crises. 
+Impact potential 
+Measured by 
+National priority served 
+Societal. Families establish appropriate 
+care; available aid is converted into 
+support; caregiving capacity is added 
+where supply is short 
+Aid dollars secured; care established; 
+time to care; staffed caregiver hours 
+added 
+2022 National Strategy to Support Family 
+Caregivers 
+Educational. Future health professionals 
+gain supervised, real-world geriatric care 
+experience while contributing to the 
+direct-care workforce 
+Students recruited and placed; 
+documented patient-care hours; retention 
+National direct-care workforce need 
+Scientific and public health. New 
+visibility into where the 
+care-establishment pathway fails and how 
+patterns differ across communities 
+Case-level pathway records; failure 
+points; county-level capacity and 
+outcomes 
+Healthy aging, integrated care, long-term 
+care access, implementation research 
+Table 2. Commercial growth produces measurable societal, educational, and scientific value. 
+3. Company 
+Origins and objectives. Olera, Inc. grew from a multidisciplinary effort at Texas A&M University to solve a 
+problem families repeatedly described: eldercare was difficult to navigate, difficult to afford, and difficult to 
+convert from information into actual support. PI Tokunbo (TJ) Falohun began working with Logan DuBose, MD, 
+MBA, now Olera's Chief Research Officer and co-investigator, through the Texas A&M chapter of Sling Health 
+in 2019. Their initial work focused on dementia caregiving; continued discovery revealed a broader need 
+across eldercare and led to Olera's formation in 2020. 
+Olera's corporate objective is to make establishing eldercare navigable and broadly accessible for American 
+families while building the commercial infrastructure that can sustain that access. The commercialization 
+strategy has evolved as evidence accumulated; the mission has not. Core CareNavigator access remains 
+free to families, recommendations remain neutral, and commercialization is concentrated where Olera creates 
+incremental value for providers and institutional buyers. 
+Olera, Inc. 
+At a glance 
+Founded & structure 
+2020 · independent U.S. small business concern · C-corporation · founder-led Board 
+Commercial stage 
+Pre-scale commercial company · nationally deployed CareNavigator · early Caregiver 
+Staffing validation · no significant annual sales 
+Leadership 
+TJ Falohun, PhD, CEO/PI · Logan DuBose, MD, MBA, Chief Research 
+Officer/co-investigator 
+Team 
+Founder-led product, technical, and research leadership · existing full-time software 
+engineer (~2 years) · second full-time software engineer added at CRP start · two 
+full-time family/provider operations personnel (>3 years), including designated Market 
+Operations Lead · part-time marketing · two part-time research assistants · Clemson 
+human-subjects team 
+Federal R&D 
+≈$5.7M NIA SBIR, 2021–2027 · Phase I/II Fast-Track + Phase IIB (1R44AG074116) 
+Commercialization development 
+NSF I-Corps customer discovery (200+ interviews) · Blackstone Techstars · Texas A&M 
+Senior advisors 
+Marcia Ory, PhD (>6 years advising Olera) · David Qu, MBA · Qiping Fan, MD, 
+MS/Clemson University 
+Finance, compliance, regulatory 
+Founder-led finance and federal administration supported by ADC accounting/CPA and 
+specialized legal/compliance counsel · HIPAA-aligned data practices · federal research, 
+IRB, and data stewardship experience · referral-compliance review 
+Table 3. Olera at a glance. 
+Core competencies and operating continuity. Olera's capabilities now extend beyond the founders and 
+reflect several years of accumulated operating experience. The company combines software and applied AI 
+engineering, an expert-curated eldercare data infrastructure, human-centered aging research, digital 
+distribution, family/provider operations, and commercialization research. Four peer-reviewed studies 
+established usability and technology acceptance, and direct family/provider operations continue to expose the 
+team to the practical barriers between a recommendation and established care. 
+Olera's progression from R&D to commercial scale. Early discovery defined the problem; Phase I/II built 
+and evaluated the first-generation platform and national resource infrastructure. Phase IIB supported national 
+deployment and deeper provider/workforce learning, and the CRP is designed to complete execution and 
+outcomes capabilities, establish repeatable Caregiver Staffing economics, and build the evidence required for 
+institutional commercialization. Successful CRP completion therefore changes the appropriate source of 
+capital: subsequent scale is intended to be financed by commercial revenue and private investment rather than 
+continued dependence on federal R&D support.​
+ 
+Workstream 
+CRP Y1 
+CRP Y2 
+CRP Y3 
+Product and technical 
+leadership 
+Falohun 
+Falohun 
+Falohun 
+Engineering 
+Two full-time engineers and 
+founder engineering 
+Maintenance and refinement 
+Commercial refinement 
+Research integration 
+DuBose 
+DuBose 
+DuBose 
+Human subjects 
+Clemson and Fan 
+Clemson and Fan 
+Analysis as needed 
+Family and provider 
+operations 
+Two full-time existing staff 
+Eight free markets 
+Eight paid markets 
+Market operations lead 
+Training and playbook design 
+Runs validation activation 
+Executes new-market 
+replication 
+Commercialization 
+Offer preparation 
+Willingness to pay and 
+investor cultivation 
+Paid sales and financing 
+Independent validation 
+Technical and statistical, as 
+specified 
+Statistical 
+CPA and economic 
+Table 4. Who carries each workstream in each award year, and how the staffing shifts as the work moves from engineering to validation 
+to paid markets. 
+The lean internal team is complemented by senior expertise accumulated over years rather than assembled for 
+a single application. Marcia Ory, PhD, has advised Olera for more than six years and brings decades of aging, 
+caregiving, implementation, dissemination, and sustainability expertise, including 20 years at NIA. Qiping Fan, 
+MD, MS, and Clemson University provide longstanding capabilities in epidemiology, mixed-methods evaluation, 
+health-services research, and independent study execution. David Qu, MBA, brings approximately 30 years of 
+healthcare-technology commercialization and executive experience, including scaling and exiting digital-health 
+companies, together with relationships across healthcare and senior-care investment networks. TJ owns 
+provider commercialization because he is the CEO and must prove the motion. David pressure-tests the offer, 
+financing strategy, and investor readiness. Aim 3 itself is intentionally the experiment that determines whether 
+the company can execute commercialization beyond founder intuition. 
+As CRP milestones demonstrate repeatable provider sales, operating demand, and institutional engagement, 
+Olera will internalize dedicated commercial, customer-success, operations, data/compliance, and finance 
+capabilities when their workload and strategic importance justify full-time leadership. 
+SBIR/STTR commercialization history. Olera's SBIR history is one continuous arc: a single NIA project 
+carried from concept to a validated national platform across a Phase I/II Fast-Track and a Phase IIB 
+continuation (1R44AG074116). Table 4 answers the required history questions directly. 
+Required question 
+Answer 
+Company name changes in the past five years 
+None. The company has operated as Olera, Inc. throughout. 
+Subsidiary or spin-off status 
+Independent. No parent company. 
+Share of company revenue derived from 
+SBIR/STTR funding, each of the past five years 
+FY2021 100% · FY2022 100% · FY2023 100% · FY2024 ~100% · FY2025 
+~100% (one-off pilot fees, <1%) 
+Total SBIR/STTR Phase II awards from any 
+federal agency 
+Two, on one project: the NIA Fast-Track Phase II and its Phase IIB continuation 
+(1R44AG074116). No other agency awards. 
+Total revenues generated to date from 
+commercialization of SBIR/STTR projects funded 
+in the past five years 
+Limited and by design: multiple one-off paid pilots, no recurring revenue. Olera 
+held monetization until the platform could support it without charging families or 
+gating referrals. Provider willingness to pay also depends on concentrating 
+families and providers in the same local markets, which research funding was 
+not scoped to do. 
+Table 4. SBIR/STTR commercialization history. 
+4. Market, Customer, and Competition 
+Market segments and potential customers. Olera commercializes through two buyer classes created by the 
+same care-establishment pathway. The near-term beachhead is care-delivery providers that lose revenue 
+when caregiver vacancies prevent them from accepting or staffing new cases. The emerging institutional 
+market is healthcare organizations that bear financial risk when unmet needs contribute to avoidable utilization, 
+failed care transitions, or earlier institutional care. 
+Caregiver Staffing addresses an unusually persistent provider problem. The United States employed 
+approximately 4.68 million home health and personal care aides in 2025, with roughly 760,500 openings 
+projected each year from 2025 to 2035. Home-care benchmarking separately reported a median 
+professional-caregiver turnover of 75% in 2024.5,6 The problem directly constrains growth: 63.3% of surveyed 
+home-care providers reported turning down cases due to staffing shortages in 2023.7 Caregiver Staffing 
+therefore addresses provider workforce demand. Non-medical home care is Olera's initial provider beachhead. 
+The institutional market is larger but evidence-gated. Prospective customers include Medicare Advantage 
+plans, accountable care organizations (ACOs), health systems, Medicaid managed care and managed 
+long-term services and supports organizations, and other entities exposed to the downstream costs of unmet 
+need. In 2026, 35.2 million people are enrolled in Medicare Advantage, and 14.3 million Medicare beneficiaries 
+receive care coordinated through accountable-care arrangements.8,9 CMS's active GUIDE Model further 
+validates the purchasing logic as Medicare is already testing and paying for dementia care navigation, 
+community-resource connection, and caregiver support, with the explicit aim of delaying nursing-home 
+placement.10 
+Market opportunity and path to meaningful scale. Caregiver Staffing enters an existing, recurring 
+recruitment market in which providers already spend to fill vacancies. The CRP determines Olera's repeatable 
+pricing, conversion, retention, and unit economics. The CRP helps determine whether CareNavigator leads to 
+more established eldercare and models if that outcome could create sufficient economic value for institutional 
+contracting by reducing utilization of costly healthcare resources. Olera’s geographic unit of commercialization 
+is a county-centered local market which is defined as a service area anchored to one focal U.S. county or 
+county equivalent, within which family demand, provider participation, workforce capacity, care-establishment 
+outcomes, acquisition costs, and commercial performance are attributed and measured. With more than 3,100 
+such geographic units nationally, Olera can expand by replicating a validated local-market model without 
+requiring dominant national market share. 
+Significant advantages and competitive position. The remaining relevant competitive question is not 
+whether alternatives exist, but why Olera can create differentiated value as those alternatives evolve.  
+1. End-to-end execution. CareNavigator integrates 
+assessment, care identification, funding, AI-agent execution, 
+staffing when needed, and longitudinal outcomes rather than 
+optimizing a single step. 
+2. New workforce supply and demand intelligence. Caregiver 
+Staffing creates an easier pathway into direct care worker roles 
+rather than redistributing workers already circulating among 
+providers. CareNavigator reveals where family demand and 
+provider capacity constraints collide locally. 
+3. Distribution and local data. Organic family demand, a 
+national provider and benefits infrastructure, and county-level 
+care-establishment and outcomes data compound as the 
+platform is used. 
+4. AI interoperability. Olera can expose domain data and 
+execution capabilities to search and general-purpose AI 
+interfaces, allowing them to become entry points to 
+CareNavigator rather than substitutes for its execution layer. 
+Caregiver Staffing's initial workforce wedge is deliberately narrow. Olera initially targets health-profession 
+applicants and students for whom paid caregiving can also provide meaningful patient-care experience. The 
+opportunity is nationally distributed and continuously replenished: in the most recent cycles, U.S. MD programs 
+reported 54,699 applicants, and NursingCAS reported 75,078 applicants across 282 participating nursing 
+schools.11,12 These two pipelines are not the full addressable workforce, as we plan to design a system that 
+can eventually incorporate career changers, gig workers, and other well-positioned new labor pools into the 
+direct care workforce. Traditional recruiting channels primarily compete for workers already searching for 
+caregiver jobs. Recent recruitment benchmarking found Indeed generated 68% of applications to participating 
+home-care agencies in Q1 2026, illustrating how concentrated conventional caregiver acquisition remains.13 
+Olera instead builds relationships with universities and applicant communities to introduce caregiving as a paid 
+entry pathway into healthcare, while the licensed provider remains the employer responsible for interviewing, 
+hiring, training, credentialing, supervision, and employment standards. 
+Current and emerging competition. For Caregiver Staffing, Olera competes across categories. Provider 
+staffing alternatives include large job boards like Indeed, staffing agencies, caregiver-specific recruiting 
+platforms, and emerging student-caregiver models such as CareYaya. For CareNavigator, alternatives include 
+government and nonprofit resource directories, patient navigators, social workers and care managers, 
+eldercare referral platforms like A Place for Mom or Caring.com, and increasingly general-purpose AI and 
+search where families ask eldercare-related questions. The full customer segment and competitive 
+environment is described in the Research Strategy Significance section. 
+Market and customer acceptance hurdles. The CRP is structured to measure the remaining commercial 
+uncertainties rather than assume adoption. 
+Commercial hurdle 
+How the CRP retires it 
+Will providers pay? 
+Measure willingness to pay, conversion, retention, and unit 
+economics for Caregiver Staffing across markets. 
+Can new workforce supply replicate? 
+Measure applicant acquisition, provider hiring, placement, 
+retention, and market-to-market reproducibility. 
+Will institutional buyers have enough evidence to justify a 
+payer proof-of-concept? 
+Generate verified care-establishment and pathway data, quantify 
+operating economics, model downstream value with explicit 
+causal boundaries, and produce a contracting-ready evidence 
+package and post-CRP proof-of-concept specification. 
+Can AI execution be trusted and governed in real cases? 
+Verify bounded workflow classes, permission enforcement, 
+administrative-error behavior, field-knowledge 
+provenance/freshness, and user comprehension in Aim 1; then 
+measure live authorization, agent-execution share, human 
+escalation, material corrections, and safety events in Aim 2. 
+Can the model scale geographically? 
+Deploy across multiple counties and measure where 
+performance, cost, workforce capacity, and care-establishment 
+rates vary. 
+Table 5. Principal market-acceptance uncertainties and the CRP activity designed to retire each. 
+Strategic alliances, partnerships, and route to market. Olera enters the CRP with relationships on both 
+sides of its beachhead. This includes university relationships that support workforce recruitment and working 
+relationships with local and franchise-affiliated eldercare providers that can serve as early customers and 
+implementation sites. No FDA approval is required for the products proposed here, and Olera does not depend 
+on a licensing agreement to commercialize them. 
+Provider sales begin where Olera can demonstrate an immediate staffing constraint and measurable hiring 
+value. Institutional customer development begins with organizations whose populations and economics align 
+with the outcomes the CRP is designed to measure. The detailed acquisition channels, sales process, 
+production infrastructure, and post-CRP scaling plan are presented in the Production and Marketing Plan 
+(Section 7). 
+5. Intellectual Property Protection 
+Protection strategy. Olera’s defensibility does not depend on a single patent claim. The principal commercial 
+moat is the accumulated combination of non-public execution logic, domain-specific data architecture, 
+geographically conditioned operational knowledge, longitudinal care-establishment records, workforce 
+infrastructure, and distribution channels required to reproduce the system. These assets receive different forms 
+of protection according to how value is created. Source code and execution logic are restricted as trade 
+secrets and protected by copyright. Proprietary database structure, derived variables, quality-control methods, 
+field observations, and longitudinal datasets are access-controlled and governed through confidentiality and 
+data-use obligations. Product names and branding receive trademark protection where appropriate, and 
+CRP-generated inventions with separable patentable value will undergo counsel review before public 
+disclosure. Olera will maintain an invention and disclosure review process throughout the award so that new 
+workflow, data-modeling, execution, or workforce methods are evaluated for trade-secret versus patent 
+protection before publication or other public disclosure.  
+Compounding barriers to replication. A new entrant would need to recreate Olera’s national provider and 
+benefits infrastructure, family distribution, Care Establishment Model, program- and provider-specific execution 
+workflows, local field knowledge, workforce channels, provider relationships, and the longitudinal record of 
+which pathways actually succeeded or failed. These assets compound through use. Each executed case adds 
+timestamped operational observations, exposes missing or stale local knowledge, tests workflow behavior, 
+contributes care-establishment outcomes, and improves the geographic model used by subsequent cases. 
+Because this information largely does not exist on the public web and cannot be reconstructed retrospectively, 
+the time required to accumulate comparable executed-case history becomes part of the moat. 
+6. Finance Plan 
+Capital required. Olera is requesting approximately $4 million in CRP funding over three years to finance the 
+later-stage R&D, real-world validation, and commercialization work required to cross the Valley of Death 
+described in Section 1. The award is designed to move Olera from pre-scale commercialization to an 
+investable commercial inflection point, not to assume that revenue from the limited CRP markets immediately 
+replaces the full federal operating budget. 
+From CRP capital to commercial sustainability. Olera’s financing strategy deliberately separates evidence 
+generation from commercial scale. During the CRP, federal capital finances the engineering, real-world 
+validation, and market experiments that private investors are not yet positioned to underwrite. Caregiver 
+Staffing begins paid testing in eight new markets in Year 3, producing live conversion and unit-economics data. 
+Task 3.2 simultaneously produces the evidence package required to secure a post-CRP institutional 
+proof-of-concept. Independent third-party capital then finances expansion of the validated Staffing model and 
+the payer validation step needed before institutional CareNavigator revenue is assumed. Commercial revenue 
+progressively takes on a larger share of growth only after each revenue engine demonstrates its economics. 
+Fundraising Plan. Olera has deliberately financed its development primarily through non-dilutive SBIR support 
+and has not yet completed a material institutional equity financing. The post-CRP raise would therefore 
+represent an important transition in the company’s capital structure, and the CRP is designed to generate the 
+evidence required to make that transition on substantially stronger terms than are available today. Investor 
+cultivation will begin by the end of Year 2, after technical verification and early real-world evidence are 
+available. A formal financing process will begin during Year 3 as paid-market conversion, Staffing throughput, 
+retention, unit economics, and the institutional evidence package mature. The objective is to enter post-CRP 
+commercialization with independent financing secured or actively closing rather than encounter a new Valley of 
+Death at award completion. 
+Investor engagement. Commercialization advisor David Qu will advise Olera quarterly throughout the CRP, 
+helping management define investment-readiness milestones, pressure-test the financing strategy and 
+materials, and prepare for institutional fundraising. As milestones mature, he mayl support introductions and 
+continued engagement with relevant senior-care and healthcare investors in his network, including Ziegler, 
+Equitage Ventures, 7Wire Ventures, and Alumni Ventures, among others. His Letter of Support describes this 
+role and commitment to helping Olera prepare for and pursue independent third-party financing as CRP 
+milestones are achieved.​
+​
+Financing readiness is milestone-based rather than calendar-based. The financing case will be built 
+around evidence that is unavailable today: (1) technical verification of bounded agent execution and the Care 
+Establishment Model; (2) verified care establishment across up to sixteen validation markets; (3) observed 
+agent-execution share and human-escalation burden; (4) measured Staffing acquisition, placement, retention, 
+and hires per market-month; (5) paid provider conversion, retention, CAC, cost to serve, and contribution 
+margin across eight new commercial markets; (6) evidence that the market-entry playbook transfers beyond 
+the founders; and (7) a contracting-ready institutional evidence package and payer proof-of-concept 
+specification. 
+Post-CRP financing requirement. Olera expects independent third-party capital to finance the transition from 
+CRP validation to commercial scale. With approximately $1.4 million in expected operating requirements in 
+Year 4 and roughly $90,000 in modeled commercial revenue, and approximately $1.85 million in Year 5 
+operating requirements against roughly $400,000 in modeled revenue, Olera expects a substantial post-CRP 
+financing requirement. The current target of approximately $3–5 million will therefore be refined from the 
+CRP’s measured Staffing economics, demonstrated market-entry costs, institutional proof-of-concept 
+requirements, and desired expansion pace rather than from optimistic revenue assumptions. 
+Use of post-CRP capital. The raise is intentionally 
+larger than the modeled operating deficit because its 
+purpose is not merely to extend runway. Expanding 
+Caregiver Staffing into additional county markets 
+generates successful hires, provider revenue, and 
+greater workforce capacity. Expanding CareNavigator 
+generates more care-establishment episodes and a 
+larger longitudinal evidence base from which institutional 
+contracts can mature. Private capital therefore serves as 
+the bridge from a CRP-validated model to progressively 
+revenue-financed commercial scale (Figure 5). 
+7. Production and Marketing Plan 
+Production model. Olera produces and operates its 
+software in-house, but the commercially meaningful unit 
+of production is a functioning local market which is a 
+county in which families can enter CareNavigator, providers can participate, workers can enter local provider 
+labor pools through Caregiver Staffing, and completed care pathways can be measured. 
+Digital product and AI infrastructure. CareNavigator and Caregiver Staffing are developed by Olera's 
+internal engineering team, including the founders and full-time engineering personnel. Because the products 
+are software, there is no manufacturing, inventory, or physical-distribution dependency.​
+​
+Market activation is centralized rather than locally staffed. The same software deployment, provider index, 
+family intake, worker application system, communications infrastructure, and operations team serve every 
+market. Geographic activation changes targeting, local data, provider/workforce concentration, and 
+measurement rather than requiring a new office or dedicated local team. Aim 2 and Aim 3 therefore expand 
+Figure 5. Post-CRP growth flywheel. 
+market count primarily through centralized digital acquisition and standardized operations, with human support 
+allocated by case volume rather than county. 
+Data and workforce infrastructure. Olera's provider and benefits information is indexed, normalized, 
+reviewed, and surfaced geographically so that local CareNavigator infrastructure can exist before every 
+provider has actively joined the network. Caregiver Staffing operates through the same platform. Providers can 
+seek workers for staffing needs arising anywhere in their business, while CareNavigator provides an additional 
+signal when local workforce capacity is preventing a family from establishing care. 
+Market selection and activation. Olera will not enter counties indiscriminately. CRP markets are selected to 
+support both rigorous testing and practical commercialization, using signals such as existing family demand, 
+provider density and workforce need, recruitable workforce supply and nearby university or community-college 
+infrastructure, existing local relationships, and the feasibility of concentrating enough participation to measure 
+care-establishment and commercial outcomes. The CRP applies this process sequentially. Aim 2 activates 
+eight free county-centered validation markets to measure care establishment, stakeholder acquisition, 
+workforce throughput, geographic variation, and operating cost. Aim 3 then activates eight new paid markets, 
+in two waves of four, to test whether the Aim 2 playbook transfers to previously untouched geographies and 
+whether demonstrated provider value converts into real purchasing. The Aim 2 markets may continue 
+operating and may later generate revenue, but they are excluded from the primary Aim 3 paid-conversion 
+analysis because their prior free exposure could influence purchasing behavior. 
+Customer and participant acquisition. A functioning Olera market requires concentrated participation from 
+families, providers, and caregivers. Olera enters the CRP with established channels for each audience and will 
+use the award to measure channel cost, yield, and reproducibility across markets (Table 6). 
+Audience 
+Established acquisition 
+base 
+CRP market-concentration 
+channels 
+Conversion/activation 
+Families 
+Organic search through 
+provider pages, benefits 
+resources, and guides; social 
+communities 
+Geo-targeted search and 
+social ads; community, faith, 
+and aging-service 
+organizations; clinics 
+Free CareNavigator account 
+→ assessment → active 
+care-establishment pathway 
+Providers 
+National provider index; 
+organic discovery; inbound 
+profile claiming 
+Claim-your-profile email and 
+calls; family inquiries; 
+associations, conferences, 
+franchise relationships 
+Listed → claimed → active → 
+Staffing demonstrated → paid 
+conversion 
+Caregiver workforce 
+University relationships and 
+prior applicant pipeline 
+Career centers and job 
+boards; student organizations; 
+advisors and faculty; career 
+fairs 
+Applicant → screening → 
+provider interview/hire → 
+staffed care 
+Institutional buyers 
+Advisor and industry 
+relationships; emerging CRP 
+evidence 
+Direct business development; 
+advisor introductions; targeted 
+outreach to MA plans, MCOs, 
+ACOs, health systems 
+Evidence review → scoped 
+proof-of-concept → 
+utilization/economic validation 
+→ annual/population contract 
+→ broader deployment 
+Table 6. Distinct but coordinated acquisition channels concentrate the participants and customers each local market requires. 
+ 
+Institutional buyer development. During the CRP, Olera 
+will 
+identify 
+Medicare 
+Advantage 
+plans, Medicaid 
+managed-care and managed-LTSS organizations, ACOs, 
+health systems, and other prospective buyers whose 
+populations and economics align with the measured 
+care-establishment outcomes. Task 3.4 converts those 
+results of Aims 2 and 3 into a buyer-facing evidence 
+package and post-CRP proof-of-concept specification. 
+The initial institutional sales motion is therefore evidence 
+review → scoped proof-of-concept → utilization/economic 
+validation → annual or population-based contract. 
+ 
+Figure 6. Organic traffic growth, 2023–2026. 
+Distribution and route to market. Olera's distribution advantage is already visible in organic demand: traffic 
+has grown from approximately 50 visitors per day in 2023 to more than 500 per day in 2026 without paid 
+acquisition (Figure 6). Olera also intends to make CareNavigator's domain data and execution capabilities 
+interoperable with search and general-purpose AI interfaces, allowing those systems to become additional 
+entry points rather than requiring Olera to own every point of discovery. 
+8. Revenue Stream 
+Two revenue engines, sequenced by evidence. CareNavigator remains free to families, and basic 
+family-provider connections remain free to providers. The near-term engine is Caregiver Staffing where 
+providers pay when Olera helps them successfully hire workers. The emerging engine is institutional 
+CareNavigator contracting to help reduce utilization of costly healthcare services for payer member 
+populations. 
+Caregiver Staffing revenue follows successful hires. Successful hires x Realized revenue per successful 
+hire x Active county markets is the equation used to estimate revenue potential. In Year 2, Olera deploys 
+Staffing free across eight validation markets to establish applicant acquisition, provider hiring, placement, 
+retention, market throughput, and geographic reproducibility before price is introduced. In Year 3, paid testing 
+begins in eight new markets that did not receive free Aim 2 exposure. The working base-case price for this 
+model is $250 per successful hire, with $150 and $350 as sensitivity bounds. This is an Aim 3 pricing 
+hypothesis, not an asserted market price. It is economically plausible relative to the burden providers already 
+bear in hiring care workers (Table 7). 
+Model input 
+Base projection 
+Range or benchmark 
+Basis 
+Successful hires per active 
+market per month 
+2-5 
+1 to 5 sensitivity  
+Illustrative pre-CRP planning 
+assumption; Aim 2 measures 
+actual market throughput 
+Price per successful hire 
+$250 
+$150 to $350 sensitivity 
+Aim 3 pricing hypothesis 
+Home-care turnover 
+ 
+About 75% 
+Published benchmark6 
+Recruiting and training 
+burden 
+ 
+Up to about $2,700 per 
+replacement 
+Published benchmark14 
+First institutional proof of 
+concept work 
+Post-CRP Year 4 
+ 
+Contracting/validation 
+milestone; revenue not 
+assumed in base case 
+First annual institutional 
+relationship 
+Post-CRP Year 5 
+ 
+Evidence-gated planning 
+assumption 
+Institutional relationships 
+About 1 by Year 5; 3-10+ 
+longer-term sensitivity 
+ 
+Planning assumption after 
+successful proof-of-concept 
+Annual value per validated 
+relationship 
+About $250K 
+Negotiated after 
+proof-of-concept; sensitivity to 
+be developed from buyer 
+evidence 
+Planning hypothesis, not a 
+benchmark 
+Table 7. The projection separates published benchmarks from Olera assumptions and CRP hypotheses. 
+The pre-CRP financial model therefore uses an illustrative and conservative base case of two successful hires 
+per active market per month. At the $250 per hire charged to the provider as our Aim 3 pricing hypothesis, the 
+base case equals $6,000 annualized Staffing revenue per active market and $48,000 across eight paid 
+markets. Aim 2 will replace the throughput assumption with observed hires per market-month before Aim 3 
+pricing and paid conversion are interpreted. 
+The longer-range scenarios illustrate geographic replication rather than forecast a mature national throughput 
+rate. At the two-hire-per-market-month base case, 100 active markets would produce approximately 2,400 
+successful hires and $0.6 million in annual Staffing revenue; 250 markets, approximately 6,000 hires and $1.5 
+million; and 500 markets, approximately 12,000 hires and $3.0 million. We estimate a total addressable market 
+of 1233 mid-sized counties, representing ~66% of the 3000+ counties in the US.  
+Institutional CareNavigator: contracts follow outcomes evidence. The institutional buyer class is 
+illustrative of the pre-CRP base case. CRP years 1 to 3 test whether recognized needs reach established care, 
+why pathways fail when they do not, and what happens longitudinally afterward. This matters economically 
+because unmet home- and community-based service needs have been associated with substantially greater 
+acute-care utilization (Section 1).8 There is already precedent for organizations responsible for health 
+outcomes to pay for care-management and coordination infrastructure: CMS's GUIDE Model uses 
+per-patient-per-month dementia care-management payments for coordination and caregiver support, and in 
+2026 the Medicare Shared Savings Program includes 511 ACOs serving 12.6 million Traditional Medicare 
+beneficiaries.9,10 These sources establish the buyer class and purchasing logic but they do not establish 
+Olera's future price. Accordingly, the base case assumes no institutional revenue during the CRP or the first 
+post-CRP proof-of-concept year in Year 4. Institutional revenue enters the base case only after proof of 
+concept in Year 5, beginning with one approximately $250,000 annual relationship.  
+ 
+CRP Y1 
+CRP Y2 
+CRP Y3 
+Post-CRP Y4 
+Post-CRP Y5–Y10 
+potential 
+Commercial stage 
+Build 
+Validate free 
+Monetize 
+Expand 
+Scale to national 
+replication 
+Validation markets 
+0 
+8, free 
+~8 continuing** 
+– 
+– 
+New paid replication 
+markets 
+0 
+0 
+8 new paid 
+~15 total paid 
+~25 to 500 total paid 
+Staffing revenue 
+$0 
+$0 
+~$24K* 
+~$90K 
+~$0.15M–$3M/yr 
+Institutional 
+proof-of-concept / 
+annual relationships 
+0 
+0 
+0 
+~1 proof of 
+concept 
+~1 annual relationship: 
+~3 to 10+ longer-term 
+potential  
+Institutional 
+revenue 
+$0 
+$0 
+$0 
+~$0 base 
+case*** 
+~$250K base case; 
+~$0.75M –$2.5M+/yr 
+longer-term 
+Total commercial 
+revenue 
+$0 
+$0 
+~$24K 
+~$90K 
+~$400K base case, 
+expanding with 
+measured Staffing 
+throughput and validated 
+institutional contracts 
+Table 8. Five-year evidence-gated commercialization base case.  
+Staffing and capital as revenue grows. During the CRP, engineering, research, and market-validation 
+personnel remain central. As paid Staffing expands, Olera adds centralized market operations, worker 
+acquisition, provider success, and sales capacity rather than recreating a full team in every county. Engineering 
+grows more slowly because the platform, portals, and workflows are designed for self-service and automation. 
+9. Project Management Plan 
+Team, workstream ownership, and governance. Falohun retains final go/no-go authority and owns product, 
+engineering, agent-execution QA, and provider commercialization. DuBose owns research integration, 
+cross-aim operations, the milestone calendar, and safety-event coordination. Fan/Clemson owns 
+human-subjects protocol execution and mixed-method evaluation, with Ory providing senior scientific 
+guidance. An existing full-time family/provider operations team member will serve as Market Operations Lead 
+for Aim 2 activation and the non-founder Aim 3 replication test. Olera’s existing and newly added full-time 
+engineers execute the technical work under Falohun.  
+Commercialization timeline and gates. The detailed experimental timeline and thresholds are provided in the 
+Research Strategy. The management timeline below shows how those activities produce successive 
+commercialization decisions. 
+ 
+Period 
+Commercialization milestone 
+Decision or financing gate 
+Year 1 (CRP)Build 
+Technical and measurement infrastructure 
+operational; Staffing workflow ready for 
+real-world deployment. 
+Confirm readiness for real-world market validation. 
+Year 2 (CRP)Validate 
+free 
+Enroll approximately 440 index family 
+episodes across eight validation markets; 
+retain ≥400 analyzable episodes; quantify 
+verified care establishment, agent-execution 
+Advance to paid testing only if human-protection 
+criteria remain satisfied, the care-establishment gate 
+is met, the verified automation envelope performs 
+predominantly through agent execution rather than 
+share, family authorization, human 
+escalation, stakeholder acquisition, workforce 
+throughput, and operating cost. 
+navigator execution, and the operating evidence 
+supports a credible paid test. Use Aim 2 results to 
+finalize the Caregiver Staffing product configuration, 
+automation envelope, acquisition playbook, Staffing 
+throughput assumptions, and paid offer that advance 
+into eight new Aim 3 markets. 
+ 
+Year 3 (CRP)Monetize 
+Paid Staffing operates in the Aim 3 markets 
+and produces live conversion, throughput, 
+pricing, retention, and unit-economics 
+records; at the illustrative pre-CRP base 
+case, approximately $24K would be 
+recognized over six paid-month equivalents 
+and the annualized exit run rate would be 
+approximately $48K. 
+Commercial progression is determined by measured 
+conversion, throughput, retention, contribution margin, 
+and repeatability rather than achievement of the 
+illustrative revenue projection. Determine whether 
+new-market activation, paid conversion, retention, and 
+unit economics are sufficiently repeatable to justify 
+post-CRP expansion beyond the eight paid CRP 
+markets. 
+Year 4 
+(post-CRP)Expand 
+Expand paid Staffing according to measured 
+CRP economics and secure/execute the first 
+payer or risk-bearing institutional 
+proof-of-concept. The illustrative base case 
+assumes approximately $90K Staffing 
+revenue and no institutional revenue. 
+Institutional annual contracting advances only if the 
+proof-of-concept produces sufficiently credible 
+utilization, economic, and implementation evidence; 
+otherwise refine the target population, intervention, or 
+study design before broader institutional 
+commercialization. 
+Year 5 (post-CRP)Scale 
+Expand Staffing toward approximately 25 
+paid markets and, if the Year 4 institutional 
+proof-of-concept supports the value 
+proposition, convert at least one institutional 
+relationship into an annual commercial 
+contract. The illustrative base case is 
+approximately $400K combined revenue. 
+Scale each revenue engine according to its 
+independently measured economics rather than 
+requiring institutional contracting to subsidize an 
+unproven Staffing model or vice versa. 
+ 
+Table 9. Five-year commercialization management timeline. Revenue values are planning projections rather than CRP success criteria. 
+References 
+1. Agency for Healthcare Research and Quality. Evidence Map on Home- and Community-Based Services and 
+Person-Centered Care for Older Adults. Technical Brief No. 49; 2024. 
+2. Fan Q, Hoang MN, DuBose L, et al. The Olera.care Digital Caregiving Assistance Platform for Dementia 
+Caregivers: Preliminary Evaluation Study. JMIR Aging. 2024;7:e55132. 
+3. Hoang MN, Kim L, Fisher L, et al. Exploring Informal Caregivers' Perception of the Olera Digital Caregiving 
+Assistance Platform for Dementia Care. JMIR Form Res. 2026;10:e92967. 
+4. Olera, Inc. Caregiver Staffing pilot placements and provider fees, 2024 to 2025. Data on file. 
+5. U.S. Bureau of Labor Statistics. Home Health and Personal Care Aides. Occupational Outlook Handbook; 
+2025 to 2035 projections. 
+6. Activated Insights. 2025 Benchmarking Report for Home-Based Care; 2025. Median caregiver turnover 
+75.0% in 2024. 
+7. Activated Insights. 2024 Benchmarking Report for Home-Based Care; 2024. 63.3% of providers turned 
+down cases in 2023. 
+8. KFF. Medicare Advantage in 2026: Enrollment Update and Key Trends; 2026. 
+9. Centers for Medicare and Medicaid Services. 2026 Medicare ACO Initiatives Participation Highlights; 2026. 
+10. Centers for Medicare and Medicaid Services. Guiding an Improved Dementia Experience (GUIDE) Model; 
+2024. 
+11. Association of American Medical Colleges. U.S. Medical Schools Enroll Record Number of Students in 
+2025; 2025. 
+12. American Association of Colleges of Nursing. NursingCAS Application Cycle Closes with Most Applicants 
+to Date; 2026. 
+13. Augusta and Home Care Association of America. National Caregiver Recruitment Benchmark Report, Q1 
+2026; 2026. 
+14. Activated Insights. Caregiver Retention for Home-Based Care; recruiting and training cost up to 
+approximately $2,700 per replacement. 

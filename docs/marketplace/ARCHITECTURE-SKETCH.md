@@ -2,7 +2,7 @@
 
 One city, both sides. Everything below the entry layer lives in the Portal.
 
-**Track A = Aid Establishment. Track B = Care Establishment.**
+**Track A = Aid Establishment. Track B = Care Establishment. PG = the paid growth layer.**
 
 ---
 
@@ -13,9 +13,10 @@ One city, both sides. Everything below the entry layer lives in the Portal.
             ┌─────────────────────────────────┴──────────────────────────┐
             ▼                                                            ▼
 
-FAMILY                                                PROVIDER
-───────────────────────────────────────────────────   ─────────────────────────────────────
-SOURCES                                               SOURCES
+                              PG1  DEMAND
+FAMILY                             │                  PROVIDER
+───────────────────────────────────┼───────────────   ─────────────────────────────────────
+SOURCES                            ▼                  SOURCES
 FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  PS2 REFERRAL
   │              │             │                        │         │            │
   │              └───────┬──────┘                       ▼         └──────┬──────┘
@@ -36,22 +37,22 @@ FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  P
            └─────────────────────────┐                  │                │
                                      ▼                  ▼                ▼
 ┌──────────────────────────────────────────────────────────────────────────────────────────┐
-│  PORTAL                                                                                  │
-│  ┌──────────────────────┐  ┌─────────────────────┐  ┌─────────────────────────────────┐  │
-│  │ TRACK A              │  │ F3  FAMILY PROFILE  │  │ TRACK B                         │  │
+│  PORTAL                                                                                  │   PG
+│  ┌──────────────────────┐  ┌─────────────────────┐  ┌─────────────────────────────────┐  │   GROWTH SYSTEM
+│  │ TRACK A              │  │ F3  FAMILY PROFILE  │  │ TRACK B                         │  │   ─────────────
 │  │ AID ESTABLISHMENT    │  │                     │  │ CARE ESTABLISHMENT              │  │
 │  │                      │  │    ┌────────────┐   │  │          ┌────────────┐         │  │
 │  │                      │  │    │    CR-F    │   │  │          │    CR-P    │         │  │
 │  │                      │  │    └────────────┘   │  │          └────────────┘         │  │
 │  │                      │  │                     │  │                                 │  │
-│  │ A1  MATCHED          │◄─│       enriches      │  │ P3  PROVIDER PROFILE            │  │
+│  │ A1  MATCHED          │◄─│       enriches      │  │ P3  PROVIDER PROFILE            │◄─┼── PG2  PRESENCE
 │  │      │               │  │     continuously    │  │     CLAIM or CREATE             │  │
 │  │      ▼               │  │                     │  │      │                          │  │
 │  │ A2  APPLICATION      │  │                     │  │      ▼                          │  │
-│  │      │               │  │                     │─►│ B1  FAMILY-PROVIDER MATCHED     │  │
+│  │      │               │  │                     │─►│ B1  FAMILY-PROVIDER MATCHED     │◄─┼── PG3  RESPONSE
 │  │      ▼               │  │                     │  │      │                          │  │
 │  │ A3  AID ESTABLISHED  │  │                     │  │      ▼                          │  │
-│  │                      │  │                     │  │ B2  QUALIFIED                   │  │
+│  │                      │  │                     │  │ B2  QUALIFIED                   │◄─┼── PG4  FOLLOW-UP
 │  │                      │  │                     │  │      │                          │  │
 │  │                      │  │                     │  │      ▼                          │  │
 │  │                      │  │                     │  │ B3  CARE ESTABLISHED            │  │
@@ -60,7 +61,7 @@ FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  P
               │                                             │                │
               └──────────────────────┬──────────────────────┘                │
                                      ▼                                       ▼
-                              FAMILY OUTCOME                         PROVIDER OUTCOME
+                              FAMILY OUTCOME                         PROVIDER OUTCOME ───────► PG5  REPORTING
                             FO1 aid   FO2 care                       PO  new business
 ```
 
@@ -86,6 +87,7 @@ FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  P
 | **B1 · B2 · B3** | family–provider matched · qualified · care established |
 | **FO1 · FO2** | aid · care |
 | **PO** | new business |
+| **PG** | growth system — **PG1** demand · **PG2** presence · **PG3** response · **PG4** follow-up · **PG5** reporting |
 
 ---
 
@@ -102,6 +104,39 @@ outreach makes the next family's match land on someone who can act.
 
 Referral and organic on both; paid ads on the family side only. The one asymmetry is **P1**, the
 listed directory — there is no family equivalent, and there should not be.
+
+---
+
+## PG — the growth system
+
+PG is not a step. It is a paid service layer over one provider's arc, and its arms act in five
+different places, which is why it cannot be drawn as a box inside Track B.
+
+**PG1 demand** funds FS3 for one provider. It is the only arm on the family side of the diagram, and
+the only one that creates supply rather than working it.
+
+**PG2 presence** brings P3 up to the standard the rest of the system already assumes: complete
+profile, current photos and pricing, reviews answered, structured data an AI can read.
+
+**PG3 response** takes over the provider's side of B1 — the inquiry is answered in the provider's
+name, in minutes, nights and weekends included.
+
+**PG4 follow-up** works B1 toward B2 for weeks, ending in a booked assessment.
+
+**PG5 reporting** runs the other way. PO's numbers come back monthly as the provider's scorecard.
+
+**Sold at CR-P.** Not in the portal. PG needs an onboarding month that no self-serve flow can
+deliver, and the shipped ad ladder already treats anything above $600 as a conversation. The portal
+holds the account and the monthly numbers; it does not hold the purchase. The free market snapshot is
+what earns the CR-P call, delivered through P2.
+
+**One boundary.** PG3 and PG4 must cover every inquiry a provider receives, including the ones that
+never came from Olera. The moment they become a reason to route B1 preferentially, the network stops
+being open and the paid layer starts taxing the family's match.
+
+**Track A stays out of PG.** Screening a family for VA and Medicaid is already free and already runs
+on the family side. Selling it to the provider who then gets paid by those programs is the one arm
+with real legal exposure, and it would put a free-network asset behind a paywall.
 
 ---
 
@@ -135,3 +170,9 @@ A partial profile starts a track immediately; more profile deepens what is alrea
 half).
 
 **Proposed** — FS1, PS1, PS2, CR-F, CR-P.
+
+**PG** — **PG1** exists as Ad Boost, but priced all-in rather than as fee plus spend at cost.
+**PG2** is partial: completeness scoring, review requests, the Google place link and structured data
+exist; managing a provider's Google Business Profile or their own website does not. **PG3** and
+**PG4** are proposed — nothing today writes to a family as the provider, and there is no tracked
+line. **PG5** is partial: campaign funnel and receipts exist, a booked assessment does not.

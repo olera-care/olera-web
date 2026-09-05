@@ -144,7 +144,7 @@ export function StageBox({
       }
       className={
         jump
-          ? "cursor-pointer [&>rect]:transition-[filter] hover:[&>rect]:brightness-95 focus:outline-none focus-visible:[&>rect]:stroke-emerald-500"
+          ? "cursor-pointer [&>rect]:transition-[filter] hover:[&>rect]:brightness-95 focus:outline-none focus-visible:[&>rect]:stroke-primary-500"
           : undefined
       }
     >

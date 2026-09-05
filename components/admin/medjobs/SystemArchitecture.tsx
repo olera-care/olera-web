@@ -122,11 +122,10 @@ export default function SystemArchitecture({
           </text>
         </>
       ) : null}
-      <text x={480} y={26} fontSize={14} fontWeight={700} fill="#fff" textAnchor="middle">
+      {/* Just the mark and the name. The block sits above the map it heads;
+          nothing else needs saying. */}
+      <text x={480} y={33} fontSize={15} fontWeight={700} fill="#fff" textAnchor="middle">
         {site ? site.name : "All sites"}
-      </text>
-      <text x={480} y={41} fontSize={12} fill="#96c8c8" textAnchor="middle">
-        {site ? "One university and its surrounding service area" : "Every university and its service area"}
       </text>
       {arrow(230, 46, 68)}
       {arrow(730, 46, 68)}
@@ -168,8 +167,8 @@ export default function SystemArchitecture({
         PORTAL
       </text>
 
-      <rect x={44} y={494} width={360} height={44} rx={5} fill="#ecfdf5" stroke="#a7f3d0" />
-      <text x={56} y={513} fontSize={13.5} fontWeight={700} fill="#065f46">
+      <rect x={44} y={494} width={360} height={44} rx={5} fill="#d8edec" stroke="#96c8c8" />
+      <text x={56} y={513} fontSize={13.5} fontWeight={700} fill="#1a3030">
         Active client with a staffing need
       </text>
       <text x={56} y={529} fontSize={12} fill="#6b7280">

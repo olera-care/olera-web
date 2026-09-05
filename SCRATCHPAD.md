@@ -29,6 +29,20 @@
 
 **Next, in order.** (1) Mon 7 Sep read: first impressions on Pacesetter, Assisting Hands, Happy Mountain, then flip the three rows to `live`; Franchil Aug "under review"; Hilda's opens. (2) PR: wrap-up email gets the two data-driven page asks (gallery <3 or logo-first; no place or 0 reviews) and the offer line, copy in front of TJ before merge. (3) PR: `phone_reveal` event + stop outcome pings retrying complained addresses + 30-day review refresh for claimed profiles. (4) Search-terms harvest 10–12 Sep. (5) If Pa replies yes, sixth 90-day build, photos and reviews first. (6) Sherry's inbox answer → switch her notification email.
 
+### 2026-09-05 (later) — Provider touch log built, tested, cut back, and merged (`wonderful-williams`, PR #1791 → staging `ac46ae8b4`); provider reply-to moved to support@
+
+**Why.** The morning's four provider emails and Zardy's text had no record anywhere; the Pacesetter run promised on 19 Aug was only found because a case log happened to mention it. TJ: "tracking communications... what is the best way." Codebase read: Logan's `student_outreach` CRM is MedJobs-shaped (state machine, per-student), the support module already matches inbound mail to `business_profiles` by address, `email_log` already holds every system send with opens/bounces/complaints. Gap was human touches and next actions, nothing else.
+
+**Shipped (PR #1791, merged 5 Sep, handoff report in Notion).** `provider_touches` table (migration 205; channel email|text|call|meeting|in_app, direction, source manual|gmail|system, next_action + due + owner + done_at, author NOT NULL) and a seed of today's comms (206, sets Zardy `preferred_contact_channel='sms'`). `lib/touches/timeline.server.ts` merges touches + `email_log` + `ad_campaign_log` into one per-provider timeline and derives Tuesday-list flags live (overdue, never_human, unopened_streak, complaint_on_file, prefers_text; nothing stored). `/admin/relationships` list + `/admin/relationships/[providerId]` page, `/api/admin/touches` GET/POST/PATCH (new next action closes the prior open one), `TouchForm`, sidebar entry, "Relationship log →" link from each Ad Boost campaign page, `.claude/commands/touch.md`.
+
+**TJ's test verdict, and the redesign axis.** "Sophisticated but way too manual, I'll quickly fall behind." Then via `/push`: capture from where the work already happens, not from TJ. The three habits that survive: **Bcc support@olera.care** on any email he writes, **screenshot a text thread into `/touch`**, one line for a call. Everything else logs itself. Memory saved: `feedback_internal_tools_automatic_not_manual`.
+
+**Reply-to change (Vercel env, not code).** `PROVIDER_NOTIFY_REPLY_TO` was `hello@olera.care`, an inbox unread since June, so every provider reply to a launch/alert/wrap-up email vanished. Now `support@olera.care` (Production + Preview, redeploy `G18EEzvtZ2T4bUqQrU3RVDVfxVz2`). Verified end to end in a private browser: alert sent → raw header shows the new Reply-To → reply landed in `/admin/support-email` matched to the provider → thread archived, test rows deleted. Trusting the test address needed the admin email-override (`?email=&reason=admin`); it persists.
+
+**Artifacts.** Mockup https://claude.ai/code/artifact/72b7a5cd-562c-40c6-a1b9-bdb45c88287e. TJ how-to https://claude.ai/code/artifact/2ac566a2-22c4-4ce2-80ce-8dfbb35a6370. Notion handoff https://app.notion.com/p/3d25903a0ffe815eb2abef2c39875458.
+
+**Next builds, in order.** (1) Timeline reads `support_email_threads` and `sms_inbound` directly so replies show without a touch row. (2) Provider SMS send path from the Olera number (10DLC campaign already covers provider alerts) + log inbound as touches. (3) Tuesday digest to TJ: who is due, who went quiet, five lines. (4) Log Pa's email and Zardy's text via `/touch` once TJ confirms sent. (5) hello@olera.care inbox: someone reads it once for anything since June.
+
 ### 2026-09-05 — Traffic post-mortem executed end to end: items 1, 2a/2b/2c, 3, 4a + breadcrumb fix ALL LIVE ON PRODUCTION (`jolly-kovalevsky` analysis; code in `dead-image-hosts`, `pipeline-r2-images`, `crawl-churn` worktrees)
 
 **Shipped today.** (1) Vercel firewall v31: `GoogleOther` added to the search-bot bypass after Observability → Edge Requests → Bot Name showed it was GoogleOther (9K requests, almost all 4XX, Aug 23–24), not Googlebot, that hit the region challenge. (2) PR #1781 `fix/dead-image-hosts` (render-side: `lib/images/dead-hosts.ts` + filters in `parseProviderImages`, `getPrimaryImage`, `parseDirectoryImages`, `lib/provider-utils.ts`, `lib/profile-card.ts`, provider page metadata + gallery) merged to staging `a917eb20e`, promoted to main via #1782 `0ca417c6d`. (3) Vercel firewall v32: `Redirect dead image sources` rule (Request Path `/_next/image` AND Query `url` matches `cdn-api\.olera\.care|lh3\.googleusercontent\.com/place-photos/` → 307 to `/images/fallback/general-02.jpg`), position 2 above the search-bot bypass; verified 307→200 as Googlebot, R2 images unchanged. Report artifact updated throughout: https://claude.ai/code/artifact/bb353197-af91-4581-b951-90290fe49901. Notion handoffs: traffic deep dive (updated) + `Dead image hosts fix — Merged` (new).
@@ -4755,6 +4769,13 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Next Up
+
+**Provider touch log / Relationships — added 2026-09-05 (`wonderful-williams`, PR #1791 merged)**
+- 🔴 **Timeline should read support threads + `sms_inbound` directly** so a provider reply shows on `/admin/relationships/[id]` without anyone logging it. Reply-to is now support@, so the data is already there.
+- 🟡 **Provider SMS send path** from the Olera Twilio number; inbound texts become touches. Zardy prefers text and is the first case.
+- 🟡 **Tuesday digest to TJ** (five lines: overdue, due, quiet). Until then the list at `/admin/relationships` is the digest.
+- 🟢 **Log Pa's email + Zardy's text** via `/touch` when TJ confirms they went out.
+- 🟢 **hello@olera.care** has been unread since June; one read for provider replies that landed there.
 
 **Revenue plan / CRP January 5 — added 2026-09-04 (`radiant-wright`, ops only)**
 - 🔴 **Track B: call the 16 providers who requested ads** (TJ + Chantel, by Wed 09-09). Correct Franchil and Miracle-Lightstar by phone — both were told campaigns launched that never served. Pacesetter has **2 conversions nobody told them about** and their email is suppressed, so that one is a call. Establish outcome on the 4 inquiries still at `status: pending`. Answer the 5 in the requested queue (Senior Services at 42 days). One question per call: what would have to be true for you to pay. **Log the exact phrase each provider uses for what they bought** — that decides the rename.

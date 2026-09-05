@@ -20,6 +20,9 @@ import { TOUCH_CHANNELS, TOUCH_DIRECTIONS, TOUCH_SOURCES, type TouchInput } from
  *
  *   /api/admin/touches                         the Relationships list (Tuesday view)
  *   /api/admin/touches?provider=<uuid>         one provider's full timeline
+ *   /api/admin/touches?search=<text>           up to 10 profiles by name, for the
+ *                                              form when the provider is not yet
+ *                                              on the list (a first touch)
  *   ...&format=md                              either read as markdown, for pasting
  *                                              into a session or reading in a tab
  *
@@ -52,9 +55,29 @@ export async function GET(request: NextRequest) {
 
   const params = new URL(request.url).searchParams;
   const provider = params.get("provider");
+  const search = params.get("search")?.trim();
   const md = params.get("format") === "md";
 
   try {
+    if (search) {
+      if (search.length < 2) return NextResponse.json({ providers: [] });
+      const db = getServiceClient();
+      const like = `%${search.replace(/[%_]/g, "")}%`;
+      const { data } = await db
+        .from("business_profiles")
+        .select("id, display_name, city, state, metadata")
+        .ilike("display_name", like)
+        .order("display_name")
+        .limit(10);
+      const providers = ((data ?? []) as { id: string; display_name: string | null; city: string | null; state: string | null; metadata: Record<string, unknown> | null }[]).map((p) => ({
+        provider_id: p.id,
+        display_name: p.display_name ?? p.id,
+        city: p.city,
+        state: p.state,
+        contact_name: typeof p.metadata?.claimer_name === "string" ? (p.metadata.claimer_name as string) : null,
+      }));
+      return NextResponse.json({ providers });
+    }
     if (provider) {
       if (!UUID_RE.test(provider)) {
         return NextResponse.json({ error: "provider must be a business_profiles UUID" }, { status: 400 });
@@ -134,21 +157,6 @@ export async function POST(request: NextRequest) {
   const nowIso = new Date().toISOString();
   const author = admin.display_name || admin.email || "admin";
 
-  // A new next action supersedes the open ones. Done, not deleted: the history of
-  // what we meant to do next is part of the record.
-  if (next_action) {
-    const { error: closeErr } = await db
-      .from("provider_touches")
-      .update({ next_action_done_at: nowIso })
-      .eq("provider_id", provider_id)
-      .not("next_action", "is", null)
-      .is("next_action_done_at", null);
-    if (closeErr) {
-      console.error("[touches] failed to close prior actions:", closeErr);
-      return NextResponse.json({ error: "Failed to update earlier next actions" }, { status: 500 });
-    }
-  }
-
   const { data, error } = await db
     .from("provider_touches")
     .insert({
@@ -174,6 +182,20 @@ export async function POST(request: NextRequest) {
   if (error) {
     console.error("[touches] insert failed:", error);
     return NextResponse.json({ error: "Failed to log touch" }, { status: 500 });
+  }
+
+  // A new next action supersedes the open ones. Done, not deleted: the history of
+  // what we meant to do next is part of the record. Closed AFTER the insert so a
+  // failed write never erases the action that was already on the list.
+  if (next_action) {
+    const { error: closeErr } = await db
+      .from("provider_touches")
+      .update({ next_action_done_at: nowIso })
+      .eq("provider_id", provider_id)
+      .neq("id", (data as { id: string }).id)
+      .not("next_action", "is", null)
+      .is("next_action_done_at", null);
+    if (closeErr) console.error("[touches] failed to close prior actions:", closeErr);
   }
   return NextResponse.json({ touch: data }, { status: 201 });
 }

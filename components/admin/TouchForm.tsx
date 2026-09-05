@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { CHANNEL_LABEL, TOUCH_CHANNELS, type TouchChannel, type TouchDirection } from "@/lib/touches/types";
 
 /**
@@ -37,6 +37,31 @@ export default function TouchForm({
   onCancel?: () => void;
 }) {
   const [provider, setProvider] = useState<string>(providerId ?? providers?.[0]?.provider_id ?? "");
+  // A first touch with a provider not yet on the list: search by name.
+  const [query, setQuery] = useState("");
+  const [found, setFound] = useState<ProviderOption[]>([]);
+  const [picked, setPicked] = useState<ProviderOption | null>(null);
+
+  useEffect(() => {
+    if (providerId || query.trim().length < 2) {
+      setFound([]);
+      return;
+    }
+    let cancelled = false;
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/admin/touches?search=${encodeURIComponent(query.trim())}`);
+        const data = await res.json();
+        if (!cancelled) setFound(data.providers ?? []);
+      } catch {
+        if (!cancelled) setFound([]);
+      }
+    }, 250);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
+  }, [query, providerId]);
   const [channel, setChannel] = useState<TouchChannel>("email");
   const [direction, setDirection] = useState<TouchDirection>("out");
   const [when, setWhen] = useState<string>(localNowForInput());
@@ -91,17 +116,45 @@ export default function TouchForm({
 
   return (
     <div className="space-y-3">
-      {providers && !providerId && (
-        <div>
-          <label className={label}>Provider</label>
-          <select className={input} value={provider} onChange={(e) => setProvider(e.target.value)}>
-            {providers.map((p) => (
-              <option key={p.provider_id} value={p.provider_id}>
-                {p.display_name}
-                {p.contact_name ? ` · ${p.contact_name}` : ""}
-              </option>
-            ))}
-          </select>
+      {!providerId && (
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className={label}>Provider</label>
+            <select className={input} value={picked ? "__picked" : provider} onChange={(e) => { setPicked(null); setProvider(e.target.value); }}>
+              {picked && <option value="__picked">{picked.display_name}{picked.contact_name ? ` · ${picked.contact_name}` : ""}</option>}
+              {(providers ?? []).map((p) => (
+                <option key={p.provider_id} value={p.provider_id}>
+                  {p.display_name}
+                  {p.contact_name ? ` · ${p.contact_name}` : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="relative">
+            <label className={label}>Not on the list? Search by name</label>
+            <input className={input} value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Start typing a provider name" />
+            {found.length > 0 && (
+              <ul className="absolute z-10 mt-1 w-full overflow-hidden rounded-md border border-gray-200 bg-white shadow-md">
+                {found.map((f) => (
+                  <li key={f.provider_id}>
+                    <button
+                      type="button"
+                      className="block w-full px-3 py-1.5 text-left text-sm hover:bg-gray-50"
+                      onClick={() => {
+                        setPicked(f);
+                        setProvider(f.provider_id);
+                        setQuery("");
+                        setFound([]);
+                      }}
+                    >
+                      {f.display_name}
+                      {f.contact_name ? <span className="text-gray-500"> · {f.contact_name}</span> : null}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       )}
 

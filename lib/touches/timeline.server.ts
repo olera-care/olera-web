@@ -99,7 +99,7 @@ function profileKeys(p: ProfileRow): string[] {
 function profileAddresses(p: ProfileRow): string[] {
   const meta = p.metadata ?? {};
   const claimerEmail = typeof meta.claimer_email === "string" ? meta.claimer_email : null;
-  return [p.email, claimerEmail].filter((k): k is string => !!k).map((e) => e.toLowerCase());
+  return [p.email, claimerEmail].filter((k): k is string => !!k).map((e) => e.trim());
 }
 
 function emailStatus(e: EmailRow): string {
@@ -194,7 +194,8 @@ async function fetchEmailsFor(
   sinceIso: string | null,
 ): Promise<EmailRow[]> {
   const keys = Array.from(new Set(profiles.flatMap(profileKeys)));
-  const addrs = Array.from(new Set(profiles.flatMap(profileAddresses)));
+  // email_log stores recipients as sent; profiles may carry mixed case. Query both.
+  const addrs = Array.from(new Set(profiles.flatMap(profileAddresses).flatMap((a) => [a, a.toLowerCase()])));
   const select =
     "id, provider_id, recipient, email_type, subject, status, created_at, delivered_at, first_opened_at, bounced_at, complained_at, error_message";
 
@@ -275,7 +276,7 @@ export async function loadRelationships(): Promise<RelationshipRow[]> {
   const byAddr = new Map<string, string>();
   for (const p of profileRows) {
     for (const k of profileKeys(p)) byKey.set(k, p.id);
-    for (const a of profileAddresses(p)) byAddr.set(a, p.id);
+    for (const a of profileAddresses(p)) byAddr.set(a.toLowerCase(), p.id);
   }
 
   const touchesBy = new Map<string, TouchRow[]>();

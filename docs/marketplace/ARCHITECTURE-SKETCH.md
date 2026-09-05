@@ -1,41 +1,44 @@
-# Olera Marketplace — System Architecture (v7)
+# Olera Marketplace — System Architecture (v8)
 
-One city. Boxes and arrows; the notes below carry what the diagram deliberately does not.
+One city. The profile is one continuous object; each track has its own threshold on it.
 
 **Track A = Aid Program. Track B = Provider Connection.**
 
 ---
 
 ```
-ONE CITY                                                                ◆ active lever
+ONE CITY                                                                  ◆ active lever
 
-FAMILY                                              PROVIDER
-──────────────────────────────────────────────      ────────────────────────────────────────
-ORGANIC    ◆PAID ADS                                ◆CITY DIRECTORY      PROVIDER SELF-SERVE
-   │          │                                       │                       │
-   └─────┬────┘                                       ▼                       │
-         ▼                                          P1  LISTED                │
-F1  ENTRY SURFACE                                     │                       │
-    │                                                 ▼                       │
-    ▼                                               ◆P2  OUTREACH             │
-F2  CTA                                               │                       │
-    ├─ CONNECTION CARD   - - ►  B1                    ▼                       ▼
-    ├─ BENEFITS CTA      - - ►  A1                  P3  CLAIM  or  CREATE  ◄──┘
-    └─ QUESTION          - - ►  P3                    │
-    │                            │                    ▼
-    │                            └──────►  CR-F     P4  ACTIVE
-    ▼                                        │        │
-F3  ENRICHMENT   ◄────  ◆REFERRAL PARTNER    │        ▼
-    │                                        │      CR-P
-    ▼                                        │        │
-F4  PROFILE COMPLETE                         │        └ - - ►  CLIENT ACQUISITION GROWTH
-    │                                        │                 CAREGIVER STAFFING
-    ▼                                        │
-F5  FAMILY PLAN                              │
-    ├────────────────────────────────────────┘
-    │
-    ├───────────────────────────┐
-    ▼                           ▼
+FAMILY                                                  PROVIDER
+────────────────────────────────────────────────────    ────────────────────────────────────
+ORGANIC   ◆PAID ADS      ◆REFERRAL PARTNER              ◆CITY DIRECTORY
+                          flyer / QR                                    PROVIDER SELF-SERVE
+  │         │                               │             │                     │
+  └────┬────┘                               │             ▼                     │
+       ▼                                    │           P1  LISTED              │
+F1  ENTRY SURFACE                           │             │                     │
+    provider · editorial ·                  │             ▼                     │
+    benefits page                           │           ◆P2  OUTREACH           │
+    │                                       │             │                     │
+    ▼                                       │             ▼                     ▼
+F2  CTA                                     │           P3  CLAIM  or  CREATE  ◄┘
+    ├─ CONNECTION CARD   - - ►  B1          │             │
+    ├─ BENEFITS CTA      - - ►  A1          │             ▼
+    └─ QUESTION          - - ►  P3          │           P4  ACTIVE
+    │                                       │             │
+    ├──────►  CR-F ─┐                       │             ▼
+    ▼               │                       │           CR-P
+F3  PROFILE  ◄──────┴───────────────────────┘             │
+    enriches continuously                                 └ - - ►  CLIENT ACQUISITION
+    │                                                              GROWTH
+    ▼                                                              CAREGIVER STAFFING
+F4  FAMILY PLAN
+    ┌─────────────────────────────────────────────────┐
+    │  PROVIDER HALF   care type · location           │──►  B1
+    │  AID HALF        state · age · income ·         │──►  A1
+    │                  medicaid · veteran             │
+    └─────────────────────────────────────────────────┘
+
 ┌──────────────────────┐  ┌───────────────────────────┐
 │  TRACK A             │  │  TRACK B                  │
 │  AID PROGRAM         │  │  PROVIDER CONNECTION      │
@@ -59,77 +62,88 @@ F5  FAMILY PLAN                              │
 
 ---
 
+## The model that resolves partial completion
+
+**The profile is not a gate and completion is not binary.** F3 is one object that enriches
+continuously. F4 forms as soon as the profile carries what a track needs — and each track needs
+something different:
+
+| Half of the plan | Needs |
+|---|---|
+| **Provider half** → B1 | care type · location · contact |
+| **Aid half** → A1 | state · age · income band · Medicaid status · veteran status |
+
+Those are the real fact sets. Track B's matching runs on care type and geography. Track A's
+eligibility engine filters on `min_age`, `max_income_single`, `requires_medicaid`,
+`requires_veteran` against the family's stated facts.
+
+**So arriving through one CTA does not hand you the other half.** A connection card gives care type
+and location — enough to name providers, not enough to test eligibility. A benefits CTA gives state
+and situation facts — enough to match programs, not necessarily enough to send a provider a lead
+worth acting on. Neither is a partial version of the other; they are different questions.
+
+This is why the dotted lines from F2 are not bypasses. **The CTA deposits exactly enough profile to
+cross one threshold**, and the plan that forms is a real plan — just half of one.
+
+**Enrichment then does two things at once:** it crosses the *other* threshold, opening the second
+half of the plan, and it deepens the half already running. Better program fit, a better payload for
+the provider. Nothing has to be redone.
+
+---
+
+## What this means for CR-F
+
+CR-F's job is now specific rather than vague: **one conversation can cross both thresholds.** A
+family who came in through a connection card is missing five facts for the aid half; a family who
+came in through the benefits CTA is missing contact and care specifics for the provider half. Either
+gap is a few minutes of conversation.
+
+That is also why CR-F enters from **F2** rather than after the plan. It is not a service for
+completed families — it is the fastest route from a half plan to a whole one.
+
+---
+
+## Entry surfaces are two kinds
+
+**Content surfaces** — provider page, editorial article, benefits page — carry the CTAs. They lead
+to F2.
+
+**A referral flyer or QR code** leads straight to F3. There is no CTA in between because the partner
+already did the persuading; the landing page's job is to collect the profile.
+
+Both are entry surfaces. They differ in what they hand the family on arrival.
+
+---
+
 ## Index
 
-**Family** — F1 entry surface · F2 CTA · F3 enrichment · F4 profile complete · F5 family plan ·
-CR-F consumer relations
+**Family** — F1 entry surface · F2 CTA · F3 profile · F4 family plan · CR-F
 
-**Provider** — P1 listed · P2 outreach · P3 claim or create · P4 active · CR-P consumer relations
+**Provider** — P1 listed · P2 outreach · P3 claim or create · P4 active · CR-P
 
 **Track A** — A1 matched · A2 first step · A3 acting · A4 secured
 
 **Track B** — B1 delivered · B2 responded · B3 talked · B4 care established
 
----
-
-## The three CTAs behave differently, and the product proves it
-
-**Connection Card** and **Benefits CTA** both capture a contactable family, so both open the normal
-family workflow and can start a track from baseline.
-
-**A question does not.** `POST /api/questions` accepts a guest with no name and no email —
-*"question fires immediately, name/email optional (added via PATCH later)."* The provider is
-notified and the notification carries a claim link, but we may have no way to reach the family. So a
-question is drawn as a provider-side trigger, not a family-workflow entry.
-
-*(Note: that route's own docstring says guests "must provide asker_name + asker_email." The code
-says otherwise. Worth reconciling.)*
+F3 and the old F4 are now one box. Profile complete and payload complete were the same state; the
+payload is the profile delivered to a provider at B1.
 
 ---
 
-## Why Family Plan is its own step
+## Status
 
-F4 is **what we know**. F5 is **what we recommend** — the branch that selects Track A, Track B or
-both. Different objects, and the branch is a real decision.
+**Exists:** both CTAs and their fact capture · continuous profile enrichment · both tracks'
+execution · the provider funnel end to end.
 
-**Status: partial.** The aid half exists — the token-addressed guide, the action plan component, the
-navigator packet that computes which program to name first. There is no combined plan covering
-providers and programs together. F5 is drawn as the architecture intends it, not as shipped.
+**Partial:** the plan. The aid half exists — the token-addressed guide, the action plan, the
+navigator packet that picks which program to name first. There is no provider half and no combined
+plan object. F4 is drawn as intended, not as shipped.
 
-Profile complete and payload complete are one state, per the correction — F4. The payload is that
-profile delivered to a provider at B1.
-
----
-
-## Where consumer relations sits
-
-**CR-F** enters from **F2**, not from F4. The families least likely to finish on their own are
-exactly the ones who need help, so triggering on completion would reach the wrong people. Its output
-merges into F5's outflow, which is why it supports execution of both tracks as well as enrichment.
-Enrichment can therefore happen before, during or after the interaction without changing the shape.
-
-**CR-P** enters after **P4**. Claiming is one click from an email and does not mean a provider will
-answer the next family. CR-P turns a claim into participation.
-
-**Client Acquisition Growth** and **Caregiver Staffing** branch off CR-P on a dotted line. They are
-not on the path to B1, and nothing commercial gates Track B. A provider receives families through
-the free product whether or not they ever buy anything.
+**Proposed:** referral partners, CR-F and CR-P as defined roles.
 
 ---
 
-## Active levers
+## Open
 
-Marked ◆: **paid ads**, **referral partners**, the **city directory** sweep, and **provider
-outreach**. These are where we can push to create density in a city. Organic family arrival and
-provider self-serve are inbound and are not marked.
-
----
-
-## The bypasses
-
-Five, each landing on a real indexed step: **connection card ⇢ B1**, **benefits CTA ⇢ A1**,
-**question ⇢ P3**, **referral partner → F3**, and **B1 ⇢ P3**.
-
-The last one is the reciprocal relationship worth keeping in view: delivering an opportunity to an
-unclaimed provider is itself what most often activates them. Track B uses the provider funnel and
-feeds it.
+A question that later gains an email (`question_email_enriched`) turns an anonymous asker into a
+contactable family. That recovery path is real and is left out of the diagram to keep it readable.

@@ -34,7 +34,6 @@ export function sopHash(jump: Pick<SopJump, "dest" | "page">) {
 export default function SopReader({
   doc,
   title,
-  description,
   jumps,
   openAt,
   above,
@@ -42,7 +41,6 @@ export default function SopReader({
   /** The `doc` key served by /api/admin/medjobs/sop. */
   doc: string;
   title: string;
-  description: string;
   jumps: SopJump[];
   /** Where the reader opens. */
   openAt: SopJump;
@@ -66,7 +64,6 @@ export default function SopReader({
     <div>
       <AdminPageHeader
         title={title}
-        description={description}
         actions={
           <a
             href={url}

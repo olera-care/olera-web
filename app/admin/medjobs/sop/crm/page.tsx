@@ -27,7 +27,6 @@ export default function MedJobsSopCrmPage() {
     <SopReader
       doc="crm"
       title="SOP · CRM"
-      description="User Success Manager Operations. PR3, ST3 to ST7, MA3 to MA5 and the monthly list call, plus the four Portal stages where this role handles exceptions. A filtered view of the System document, not a separate operating model."
       jumps={JUMPS}
       openAt={JUMPS[0]}
     />

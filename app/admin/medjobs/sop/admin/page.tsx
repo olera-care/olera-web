@@ -26,7 +26,6 @@ export default function MedJobsSopAdminPage() {
     <SopReader
       doc="admin"
       title="SOP · Admin"
-      description="Admin Team Operations. PR1, PR-OUT, ST1 and ST-OUT, the booking that ends both pipelines, and the daily queues. A filtered view of the System document, not a separate operating model."
       jumps={JUMPS}
       openAt={JUMPS[0]}
     />

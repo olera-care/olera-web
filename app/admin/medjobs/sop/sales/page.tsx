@@ -24,7 +24,6 @@ export default function MedJobsSopSalesPage() {
     <SopReader
       doc="sales"
       title="SOP · Sales"
-      description="Sales Lead Operations. PR2 and ST2, what each meeting must capture, and the boundary with the User Success Manager. A filtered view of the System document, not a separate operating model."
       jumps={JUMPS}
       openAt={JUMPS[0]}
     />

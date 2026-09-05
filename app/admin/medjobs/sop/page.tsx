@@ -39,7 +39,6 @@ export default function MedJobsSopSystemPage() {
     <SopReader
       doc="system"
       title="SOP · System"
-      description="MedJobs 2.0 Master Implementation Matrix. Every stage in three layers: user journey and technology, the procedure, and the system handoff. This is the source of truth; Admin, Sales and CRM are role views of it."
       jumps={JUMPS}
       openAt={JUMPS[0]}
       above={(jump) => <SopOrientation onJump={jump} />}

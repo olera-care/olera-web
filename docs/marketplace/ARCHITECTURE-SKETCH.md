@@ -2,7 +2,7 @@
 
 One city, both sides. Everything below the entry layer lives in the Portal.
 
-**Track A = Aid Establishment. Track B = Care Establishment. PG = Olera Pro, the paid layer.**
+**Track A = Aid Establishment. Track B = Care Establishment. PG = the paid add-ons.**
 
 ---
 
@@ -11,53 +11,55 @@ One city, both sides. Everything below the entry layer lives in the Portal.
                                        │  ONE CITY  │
                                        └──────┬─────┘
             ┌─────────────────────────────────┴──────────────────────────┐
-            ▼                                                            ▼                     OLERA PRO
-                                                                                               ─────────
-                                   ┌────────────────────────────────────────────────────────── PG1  MANAGED ADS
-FAMILY                             │                  PROVIDER                               ┌─PG2  STAFFING
-───────────────────────────────────┼───────────────   ─────────────────────────────────────  │
-SOURCES                            ▼                  SOURCES                                │
-FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  PS2 REFERRAL  │
-  │              │             │                        │         │            │             │
-  │              └───────┬──────┘                       ▼         └──────┬──────┘            │
-  │                      ▼                            P2  OUTREACH       │                   │
-  │           F1  ENTRY SURFACE                         │                │                   │
-  │               provider page                         │                │                   │
-  │               editorial                             │                │                   │
-  │               benefits page                         │                │                   │
-  │               │                                     │                │                   │
-  │               ├─ FQ   QUESTION ─────────────────────►                │                   │
-  │               ▼                                     │                │                   │
-  │           F2  CTA                                   │                │                   │
-  │               ├─ F2a  BENEFITS CTA                  │                │                   │
-  │               ├─ F2b  CONNECTION CARD ──────────────►                │                   │
-  │               ├─ F2c  LIVE PROFILE ─────────────────►                │                   │
-  │               │                                     │                │                   │
-  └────────┬──────┘                                     │                │                   │
-           └─────────────────────────┐                  │                │                   │
-                                     ▼                  ▼                ▼                   │
-┌──────────────────────────────────────────────────────────────────────────────────────────┐ │
-│  PORTAL                                                                                  │ │
-│  ┌──────────────────────┐  ┌─────────────────────┐  ┌─────────────────────────────────┐  │ │
-│  │ TRACK A              │  │ F3  FAMILY PROFILE  │  │ TRACK B                         │  │ │
-│  │ AID ESTABLISHMENT    │  │                     │  │ CARE ESTABLISHMENT              │  │ │
-│  │                      │  │    ┌────────────┐   │  │          ┌────────────┐         │  │ │
-│  │                      │  │    │    CR-F    │   │  │          │    CR-P    │         │  │ │
-│  │                      │  │    └────────────┘   │  │          └────────────┘         │  │ │
-│  │                      │  │                     │  │                                 │  │ │
-│  │ A1  MATCHED          │◄─│       enriches      │  │ P3  PROVIDER PROFILE            │  │ │
-│  │      │               │  │     continuously    │  │     CLAIM or CREATE             │  │ │
-│  │      ▼               │  │                     │  │      │                          │  │ │
-│  │ A2  APPLICATION      │  │                     │  │      ▼                          │  │ │
-│  │      │               │  │                     │─►│ B1  FAMILY-PROVIDER MATCHED     │  │ │
-│  │      ▼               │  │                     │  │      │                          │  │ │
-│  │ A3  AID ESTABLISHED  │  │                     │  │      ▼                          │  │ │
-│  │                      │  │                     │  │ B2  QUALIFIED                   │  │ │
-│  │                      │  │                     │  │      │                          │  │ │
-│  │                      │  │                     │  │      ▼                          │  │ │
-│  │                      │  │                     │  │ B3  CARE ESTABLISHED            │◄─┼─┘
-│  └──────────┬───────────┘  └─────────────────────┘  └─────┬────────────────┬─────────┘   │
-└─────────────┼─────────────────────────────────────────────┼────────────────┼────────────┘
+            ▼                                                            ▼
+
+FAMILY                                                PROVIDER
+───────────────────────────────────────────────────   ─────────────────────────────────────
+SOURCES                                               SOURCES
+FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  PS2 REFERRAL
+  │              │             │                        │         │            │
+  │              └───────┬──────┘                       ▼         └──────┬──────┘
+  │                      ▼                            P2  OUTREACH       │
+  │           F1  ENTRY SURFACE                         │                │
+  │               provider page                         │                │
+  │               editorial                             │                │
+  │               benefits page                         │                │
+  │               │                                     │                │
+  │               ├─ FQ   QUESTION ─────────────────────►                │
+  │               ▼                                     │                │
+  │           F2  CTA                                   │                │
+  │               ├─ F2a  BENEFITS CTA                  │                │
+  │               ├─ F2b  CONNECTION CARD ──────────────►                │
+  │               ├─ F2c  LIVE PROFILE ─────────────────►                │
+  │               │                                     │                │
+  └────────┬──────┘                                     │                │
+           └─────────────────────────┐                  │                │
+                                     ▼                  ▼                ▼
+┌──────────────────────────────────────────────────────────────────────────────────────────────────────────────────┐
+│  PORTAL                                                                                                          │
+│  ┌──────────────────────┐  ┌─────────────────────┐  ┌─────────────────────────────────┐   ┌───────────────────┐  │
+│  │ TRACK A              │  │ F3  FAMILY PROFILE  │  │ TRACK B                         │   │ PAID ADD-ONS      │  │
+│  │ AID ESTABLISHMENT    │  │                     │  │ CARE ESTABLISHMENT              │   │                   │  │
+│  │                      │  │    ┌────────────┐   │  │          ┌────────────┐         │   │                   │  │
+│  │                      │  │    │    CR-F    │   │  │          │    CR-P    │         │   │                   │  │
+│  │                      │  │    └────────────┘   │  │          └────────────┘         │   │                   │  │
+│  │                      │  │                     │  │                                 │   │                   │  │
+│  │ A1  MATCHED          │◄─│       enriches      │  │ P3  PROVIDER PROFILE            │   │                   │  │
+│  │      │               │  │     continuously    │  │     CLAIM or CREATE             │   │                   │  │
+│  │      ▼               │  │                     │  │      │                          │   │                   │  │
+│  │ A2  APPLICATION      │  │                     │  │      ▼                          │   │                   │  │
+│  │      │               │  │                     │─►│ B1  FAMILY-PROVIDER MATCHED     │◄──┤ PG1  MANAGED ADS  │  │
+│  │      ▼               │  │                     │  │      │                          │   │                   │  │
+│  │ A3  AID ESTABLISHED  │  │                     │  │      ▼                          │   │                   │  │
+│  │                      │  │                     │  │ B2  QUALIFIED                   │   │                   │  │
+│  │                      │  │                     │  │      │                          │   │                   │  │
+│  │                      │  │                     │  │      ▼                          │   │                   │  │
+│  │                      │  │                     │  │ B3  STAFFED PROVIDER            │◄──┤ PG2  STAFFING     │  │
+│  │                      │  │                     │  │      │                          │   │                   │  │
+│  │                      │  │                     │  │      ▼                          │   │                   │  │
+│  │                      │  │                     │  │ B4  CARE ESTABLISHED            │   │                   │  │
+│  └──────────┬───────────┘  └─────────────────────┘  └─────┬────────────────┬──────────┘   └───────────────────┘  │
+└─────────────┼─────────────────────────────────────────────┼────────────────┼────────────────────────────────────┘
               │                                             │                │
               └──────────────────────┬──────────────────────┘                │
                                      ▼                                       ▼
@@ -84,10 +86,10 @@ FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  P
 | **P3** | provider profile, claim or create |
 | **CR-P** | provider consumer relations |
 | **A1 · A2 · A3** | matched · application · aid established |
-| **B1 · B2 · B3** | family–provider matched · qualified · care established |
+| **B1 · B2 · B3 · B4** | family–provider matched · qualified · staffed provider · care established |
 | **FO1 · FO2** | aid · care |
 | **PO** | new business |
-| **PG** | Olera Pro — **PG1** managed ads · **PG2** staffing |
+| **PG** | paid add-ons — **PG1** managed ads · **PG2** staffing |
 
 ---
 
@@ -107,33 +109,38 @@ listed directory — there is no family equivalent, and there should not be.
 
 ---
 
-## Olera Pro
+## Paid add-ons
 
-Two tiers, one upgrade. Neither changes how a family is matched.
+A fourth column in the portal, beside the tracks rather than inside one. Two tiers, sold as an
+upgrade, and neither changes how a family is matched.
 
-**PG1 managed ads** funds FS3 for one provider. More families see that provider's page, so more of
-them reach B1 with them. It buys distribution, not position.
+**PG1 managed ads** points at B1. The mechanism is longer than the arrow: paid spend buys FS3 for one
+provider, families reach that provider's page at F1, and more of them come through F2 to B1 with
+them. It buys distribution, not position.
 
-**PG2 staffing** acts at B3. A provider who cannot staff a case cannot establish care, so the
-constraint at the bottom of Track B is often capacity rather than demand. This tier is MedJobs
+**PG2 staffing** points at B3. A provider who cannot staff a case cannot establish care, so the
+constraint near the bottom of Track B is often capacity rather than demand. This tier is MedJobs
 pointed at a single provider.
 
-**Why only these two.** They are the only arms whose value a provider can state without our numbers:
-families saw me, and I can staff the case. Profile work, answering inquiries and follow-up are either
-already free or work we would have to staff ourselves before we could sell it.
+**B3 is new.** Track B now runs matched → qualified → staffed → care established. Staffing was always
+the real gate between a qualified family and a started case; it was simply invisible while nothing
+acted on it. It is not a tracked state today.
 
-**Where it is sold.** As an upgrade the provider sees in the portal at P3, and in the CR-P
-conversation. The free market snapshot is what earns that call.
+**The sequence sells itself.** PG1 sends more families to B1. A provider who cannot staff them stalls
+at B3, which is the moment PG2 is worth buying. One conversation, two tiers, in order.
+
+**Where it is sold.** As an upgrade the provider sees in the portal, and in the CR-P conversation.
+The free market snapshot is what earns that call.
 
 **PG1 today.** Shipped as Ad Boost — `lib/ad-boost/*`, `/provider/boost`, `/admin/ad-boost`.
 Providers choose Google, Meta or both; Nextdoor is admin-assigned and experimental. A campaign runs
 pending_profile → requested → scheduled → live → ended, and will not start below 70% profile
 completeness, so presence work is already a gate rather than a product. The ladder is a $50 first
-campaign on us, then $75, $150 and $300 a month, with $600+ handled as a custom plan. Billing is
-flat and all-in — spend, setup and management bundled, never per-lead.
+campaign on us, then $75, $150 and $300 a month, with $600+ handled as a custom plan. Billing is flat
+and all-in — spend, setup and management bundled, never per-lead.
 
 **PG2 today.** Does not exist as a provider-facing tier. MedJobs runs as its own system with its own
-funnel; nothing sells staffing to a provider as an Olera Pro tier.
+funnel; nothing sells staffing to a provider.
 
 ---
 
@@ -168,5 +175,6 @@ half).
 
 **Proposed** — FS1, PS1, PS2, CR-F, CR-P.
 
-**PG** — **PG1** exists as Ad Boost, but is not framed or sold as a tier of a named product.
-**PG2** is proposed: the caregiver supply exists in MedJobs, the provider-facing tier does not.
+**PG** — **PG1** exists as Ad Boost, but is not framed or sold as one of a pair of add-ons.
+**PG2** is proposed: the caregiver supply exists in MedJobs, the provider-facing tier does not. **B3
+staffed provider** is proposed — nothing records it.

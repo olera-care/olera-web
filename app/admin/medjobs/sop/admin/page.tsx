@@ -1,6 +1,7 @@
 "use client";
 
 import SopReader, { type SopJump } from "@/components/admin/medjobs/SopReader";
+import RoleOrientation from "@/components/admin/medjobs/RoleOrientation";
 
 /**
  * SOP · Admin — the Admin Team's view of the operating system.
@@ -28,6 +29,7 @@ export default function MedJobsSopAdminPage() {
       title="SOP · Admin"
       jumps={JUMPS}
       openAt={JUMPS[0]}
+      above={(jump) => <RoleOrientation role="admin" onJump={jump} />}
     />
   );
 }

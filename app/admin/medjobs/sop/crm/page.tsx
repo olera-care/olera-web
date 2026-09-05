@@ -1,6 +1,7 @@
 "use client";
 
 import SopReader, { type SopJump } from "@/components/admin/medjobs/SopReader";
+import RoleOrientation from "@/components/admin/medjobs/RoleOrientation";
 
 /**
  * SOP · CRM — the User Success Manager's view of the operating system.
@@ -29,6 +30,7 @@ export default function MedJobsSopCrmPage() {
       title="SOP · CRM"
       jumps={JUMPS}
       openAt={JUMPS[0]}
+      above={(jump) => <RoleOrientation role="crm" onJump={jump} />}
     />
   );
 }

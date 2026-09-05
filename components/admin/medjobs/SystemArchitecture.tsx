@@ -1,6 +1,17 @@
 "use client";
 
 import type { FunnelMetrics, StageMetric } from "@/lib/medjobs/funnel-30d";
+import {
+  ArrowDefs,
+  Arrow,
+  HandoffRule,
+  Legend,
+  OWNERS,
+  StageBox,
+  YieldStrip,
+  type Owner,
+  type Stage,
+} from "@/components/admin/medjobs/diagram-kit";
 
 /**
  * The MedJobs operating system on one screen, drawn from the flow map at the
@@ -19,41 +30,20 @@ import type { FunnelMetrics, StageMetric } from "@/lib/medjobs/funnel-30d";
  * a number, deliberately: docs/medjobs/FUNNEL_MEASUREMENT_MAP.md is the working.
  */
 
-const OWNERS = {
-  admin: { fill: "#eff6ff", stroke: "#bfdbfe", ink: "#1e40af", label: "Admin Team" },
-  sales: { fill: "#fffbeb", stroke: "#fde68a", ink: "#92400e", label: "Sales Lead" },
-  usm: { fill: "#ecfdf5", stroke: "#a7f3d0", ink: "#065f46", label: "User Success Manager" },
-  portal: { fill: "#f8fafc", stroke: "#e2e8f0", ink: "#334155", label: "Portal" },
-} as const;
-
-type Owner = keyof typeof OWNERS;
-
-interface Stage {
-  /** Key into the metrics map. Defaults to `code`. */
-  key?: string;
-  code: string;
-  name: string;
-  owner: Owner;
-  dest: string;
-  x: number;
-  y: number;
-  w: number;
-  h?: number;
-}
 
 const LANE_W = 380;
 const LEFT = 40;
 const RIGHT = 540;
 
 const STAGES: Stage[] = [
-  { code: "PR1", name: "Target list built", owner: "admin", dest: "pr1-target-list-built-and-pre-flight-complete", x: LEFT, y: 92, w: LANE_W },
-  { code: "ST1", name: "Target advisors", owner: "admin", dest: "st1-target-advisors", x: RIGHT, y: 92, w: LANE_W },
-  { code: "PR-OUT", name: "Outbound work", owner: "admin", dest: "pr-out-outbound-work", x: LEFT, y: 146, w: LANE_W },
-  { code: "ST-OUT", name: "University outbound", owner: "admin", dest: "st-out-university-outbound", x: RIGHT, y: 146, w: LANE_W },
-  { code: "PR2", name: "Provider meeting held", owner: "sales", dest: "pr2-provider-meeting-held", x: LEFT, y: 236, w: LANE_W },
-  { code: "ST2", name: "Advisor meeting held", owner: "sales", dest: "st2-advisor-meeting-held", x: RIGHT, y: 236, w: LANE_W },
-  { code: "PR3", name: "Client success", owner: "usm", dest: "pr3-client-success", x: LEFT, y: 326, w: LANE_W, h: 74 },
-  { key: "ST3-ST7", code: "ST3–ST7", name: "University activation", owner: "usm", dest: "st3st7-university-activation", x: RIGHT, y: 326, w: LANE_W, h: 74 },
+  { code: "PR1", name: "Target list built", owner: "admin", dest: "pr1-target-list-built-and-pre-flight-complete", x: LEFT, y: 118, w: LANE_W },
+  { code: "ST1", name: "Target advisors", owner: "admin", dest: "st1-target-advisors", x: RIGHT, y: 118, w: LANE_W },
+  { code: "PR-OUT", name: "Outbound work", owner: "admin", dest: "pr-out-outbound-work", x: LEFT, y: 172, w: LANE_W },
+  { code: "ST-OUT", name: "University outbound", owner: "admin", dest: "st-out-university-outbound", x: RIGHT, y: 172, w: LANE_W },
+  { code: "PR2", name: "Provider meeting held", owner: "sales", dest: "pr2-provider-meeting-held", x: LEFT, y: 262, w: LANE_W },
+  { code: "ST2", name: "Advisor meeting held", owner: "sales", dest: "st2-advisor-meeting-held", x: RIGHT, y: 262, w: LANE_W },
+  { code: "PR3", name: "Client success", owner: "usm", dest: "pr3-client-success", x: LEFT, y: 352, w: LANE_W, h: 74 },
+  { key: "ST3-ST7", code: "ST3–ST7", name: "University activation", owner: "usm", dest: "st3st7-university-activation", x: RIGHT, y: 352, w: LANE_W, h: 74 },
 ];
 
 const MATCH: Stage[] = [
@@ -63,49 +53,6 @@ const MATCH: Stage[] = [
   { code: "MA4", name: "6+ shifts confirmed", owner: "usm", dest: "ma4-six-or-more-shifts-worked-confirmed", x: 0, y: 0, w: 0 },
   { code: "MA5", name: "Bill issued and paid", owner: "usm", dest: "ma5-bill-issued-and-collected", x: 0, y: 0, w: 0 },
 ];
-
-/** `18 / 30 = 60%`, or the throughput number alone when there is no denominator. */
-function readMetric(m: StageMetric) {
-  if (m.gap) return { text: "not instrumented", gap: true };
-  if (m.x == null) return null;
-  if (m.y == null) return { text: `${m.x}`, gap: false };
-  const pct = m.y > 0 ? Math.round((m.x / m.y) * 100) : null;
-  return { text: `${m.x} / ${m.y}${pct == null ? "" : ` = ${pct}%`}`, gap: false };
-}
-
-const KIND_LABEL: Record<string, string> = {
-  conversion: "CONVERSION",
-  coverage: "COVERAGE (not a conversion rate)",
-  throughput: "THROUGHPUT (a count, not a rate)",
-  gap: "NOT INSTRUMENTED",
-};
-
-/**
- * The hover text. Four lines, in the order a reader needs them: what kind of
- * number this is, the arithmetic spelled out in words, how to interpret it,
- * and any caveat. Naming the kind first is the point — a coverage number read
- * as a conversion rate says the opposite of what it means.
- */
-function metricTitle(stage: string, name: string, m: StageMetric) {
-  const lines = [`${stage} · ${name}`, KIND_LABEL[m.kind] ?? ""];
-  if (m.gap) {
-    lines.push(m.gap);
-    return lines.filter(Boolean).join("\n");
-  }
-  const join = (...bits: Array<string | number | undefined>) =>
-    bits.filter((b) => b !== undefined && b !== "").join(" ");
-  if (m.y != null && m.x != null) {
-    const pct = m.y > 0 ? Math.round((m.x / m.y) * 100) : null;
-    lines.push(
-      join(m.x, m.xLabel, "out of", m.y, m.yLabel) + (pct == null ? "." : ` = ${pct}%.`),
-    );
-  } else if (m.x != null) {
-    lines.push(join(m.x, m.xLabel, "in the last 30 days."));
-  }
-  if (m.reads) lines.push(m.reads);
-  if (m.note) lines.push(`Caveat: ${m.note}`);
-  return lines.filter(Boolean).join("\n");
-}
 
 export default function SystemArchitecture({
   onJump,
@@ -119,75 +66,12 @@ export default function SystemArchitecture({
   /** The two yields that are honest today. Omit to hide the strip. */
   yields?: { commercial: StageMetric; placement: StageMetric };
 }) {
-  const box = (s: Stage, sub?: string) => {
-    const o = OWNERS[s.owner];
-    const h = s.h ?? 44;
-    const m = metrics?.[s.key ?? s.code];
-    const read = m ? readMetric(m) : null;
-    return (
-      <g
-        key={s.code + s.x}
-        role="button"
-        tabIndex={0}
-        aria-label={`${s.code} ${s.name}`}
-        onClick={() => onJump(s.dest)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            onJump(s.dest);
-          }
-        }}
-        className="cursor-pointer [&>rect]:transition-[filter] hover:[&>rect]:brightness-95 focus:outline-none focus-visible:[&>rect]:stroke-emerald-500"
-      >
-        <rect x={s.x} y={s.y} width={s.w} height={h} rx={5} fill={o.fill} stroke={o.stroke} />
-        <text x={s.x + 12} y={s.y + 19} fontSize={12.5} fontWeight={700} fill={o.ink}>
-          {s.code}
-        </text>
-        <text x={s.x + 12} y={s.y + 35} fontSize={11.5} fill="#374151">
-          {s.name}
-        </text>
-        {sub ? (
-          <text x={s.x + 12} y={s.y + 53} fontSize={10} fill="#6b7280">
-            {sub}
-          </text>
-        ) : null}
-        {read ? (
-          <>
-            <title>{metricTitle(s.code, s.name, m as StageMetric)}</title>
-            <text
-              /* Always on the code line: the name line is long enough to
-                 collide with it in the narrow match-chain boxes. */
-              x={s.x + s.w - 12}
-              y={s.y + 19}
-              fontSize={read.gap ? 9 : s.w < 200 ? 10.5 : 12}
-              fontWeight={read.gap ? 400 : 700}
-              fontStyle={read.gap ? "italic" : undefined}
-              textAnchor="end"
-              fill={read.gap ? "#94a3b8" : "#0f172a"}
-            >
-              {read.text}
-            </text>
-          </>
-        ) : null}
-      </g>
-    );
-  };
-
-  const arrow = (x: number, y1: number, y2: number) => (
-    <line key={`a${x}${y1}`} x1={x} y1={y1} x2={x} y2={y2} stroke="#cbd5e1" strokeWidth={1.5} markerEnd="url(#tip)" />
+  const box = (st: Stage, sub?: string) => (
+    <StageBox key={st.code + st.x} stage={st} metric={metrics?.[st.key ?? st.code]} onJump={onJump} sub={sub} />
   );
-
+  const arrow = (x: number, y1: number, y2: number) => <Arrow key={`a${x}${y1}`} x={x} y1={y1} y2={y2} />;
   const handoff = (y: number, text: string) => (
-    <g key={text + y}>
-      <line x1={LEFT} y1={y} x2={LEFT + LANE_W} y2={y} stroke="#e2e8f0" strokeWidth={1} strokeDasharray="3 3" />
-      <line x1={RIGHT} y1={y} x2={RIGHT + LANE_W} y2={y} stroke="#e2e8f0" strokeWidth={1} strokeDasharray="3 3" />
-      <text x={LEFT} y={y - 5} fontSize={9.5} fontWeight={600} fill="#94a3b8" letterSpacing="0.4">
-        {text}
-      </text>
-      <text x={RIGHT} y={y - 5} fontSize={9.5} fontWeight={600} fill="#94a3b8" letterSpacing="0.4">
-        {text}
-      </text>
-    </g>
+    <HandoffRule key={text + y} y={y} text={text} lanes={[[LEFT, LANE_W], [RIGHT, LANE_W]]} />
   );
 
   const mw = 164;
@@ -196,18 +80,14 @@ export default function SystemArchitecture({
 
   return (
     <svg
-      viewBox="0 0 960 742"
+      viewBox="0 0 960 768"
       width="100%"
       fontFamily="ui-sans-serif, system-ui, -apple-system, Segoe UI, Arial, sans-serif"
       role="img"
       aria-label="The MedJobs operating system: two pipelines feeding the Portal"
       className="block h-auto w-full"
     >
-      <defs>
-        <marker id="tip" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
-          <path d="M0 0 L8 4 L0 8 z" fill="#cbd5e1" />
-        </marker>
-      </defs>
+      <ArrowDefs />
 
       {/* One site: a university and the providers around it */}
       <rect x={250} y={8} width={460} height={38} rx={5} fill="#0f172a" />
@@ -233,98 +113,68 @@ export default function SystemArchitecture({
         </text>
       ) : null}
 
-      {STAGES.filter((s) => s.y < 200).map((s) => box(s))}
-      {arrow(LEFT + 20, 136, 144)}
-      {arrow(RIGHT + 20, 136, 144)}
+      {/* The six stages worked inside the admin panel. Drawn before the stage
+          boxes so it sits behind them, and sized to close under PR2 / ST2:
+          everything below the Sales-to-User-Success handoff runs by hand or in
+          the Portal. This is the tech-on-duty's boundary. */}
+      <rect x={30} y={88} width={900} height={228} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
+      <text x={44} y={106} fontSize={10} fontWeight={700} fill="#334155" letterSpacing="0.5">
+        ADMIN PANEL
+      </text>
+      <text x={134} y={106} fontSize={10} fill="#64748b">
+        every step here is worked in the In Basket
+      </text>
 
-      {handoff(212, "HANDOFF · ADMIN TEAM → SALES LEAD")}
-      {STAGES.filter((s) => s.y === 236).map((s) => box(s))}
+      {STAGES.filter((s) => s.y < 226).map((s) => box(s))}
+      {arrow(LEFT + 20, 162, 170)}
+      {arrow(RIGHT + 20, 162, 170)}
 
-      {handoff(302, "HANDOFF · SALES LEAD → USER SUCCESS MANAGER")}
+      {handoff(238, "HANDOFF · ADMIN TEAM → SALES LEAD")}
+      {STAGES.filter((s) => s.y === 262).map((s) => box(s))}
+
+      {handoff(336, "HANDOFF · SALES LEAD → USER SUCCESS MANAGER")}
       {box(STAGES[6], "Profile, terms, account setup, through to the first hire")}
       {box(STAGES[7], "Job board · student orgs · campus events · listservs · professors")}
 
       {/* Both sides feed the Portal */}
-      {arrow(LEFT + 20, 400, 430)}
-      {arrow(RIGHT + 20, 400, 430)}
+      {arrow(LEFT + 20, 426, 456)}
+      {arrow(RIGHT + 20, 426, 456)}
 
-      <rect x={24} y={432} width={912} height={274} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
-      <text x={44} y={455} fontSize={11} fontWeight={700} fill="#334155" letterSpacing="0.5">
+      <rect x={24} y={458} width={912} height={274} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
+      <text x={44} y={481} fontSize={11} fontWeight={700} fill="#334155" letterSpacing="0.5">
         PORTAL
       </text>
-      <text x={102} y={455} fontSize={10.5} fill="#64748b">
+      <text x={102} y={481} fontSize={10.5} fill="#64748b">
         carries the flow from student application through fulfilment
       </text>
 
-      <rect x={44} y={468} width={360} height={44} rx={5} fill="#ecfdf5" stroke="#a7f3d0" />
-      <text x={56} y={487} fontSize={11.5} fontWeight={700} fill="#065f46">
+      <rect x={44} y={494} width={360} height={44} rx={5} fill="#ecfdf5" stroke="#a7f3d0" />
+      <text x={56} y={513} fontSize={11.5} fontWeight={700} fill="#065f46">
         Active client with a staffing need
       </text>
-      <text x={56} y={503} fontSize={10.5} fill="#6b7280">
+      <text x={56} y={529} fontSize={10.5} fill="#6b7280">
         from the provider side
       </text>
 
-      {box({ code: "ST8", name: "Student application submitted", owner: "portal", dest: "st8-student-application-submitted", x: 556, y: 468, w: 360 })}
-      {arrow(576, 512, 524)}
-      {box({ code: "QUAL", name: "Portal vets the application", owner: "portal", dest: "qual-portal-vets-the-application", x: 556, y: 526, w: 360 })}
+      {box({ code: "ST8", name: "Student application submitted", owner: "portal", dest: "st8-student-application-submitted", x: 556, y: 494, w: 360 })}
+      {arrow(576, 538, 550)}
+      {box({ code: "QUAL", name: "Portal vets the application", owner: "portal", dest: "qual-portal-vets-the-application", x: 556, y: 552, w: 360 })}
 
-      <line x1={224} y1={512} x2={224} y2={578} stroke="#cbd5e1" strokeWidth={1.5} />
-      <line x1={736} y1={570} x2={736} y2={578} stroke="#cbd5e1" strokeWidth={1.5} />
-      <line x1={142} y1={578} x2={736} y2={578} stroke="#cbd5e1" strokeWidth={1.5} />
-      {arrow(142, 578, 592)}
+      <line x1={224} y1={538} x2={224} y2={604} stroke="#cbd5e1" strokeWidth={1.5} />
+      <line x1={736} y1={596} x2={736} y2={604} stroke="#cbd5e1" strokeWidth={1.5} />
+      <line x1={142} y1={604} x2={736} y2={604} stroke="#cbd5e1" strokeWidth={1.5} />
+      {arrow(142, 604, 618)}
 
-      <text x={44} y={566} fontSize={10} fontWeight={700} fill="#64748b" letterSpacing="0.5">
+      <text x={44} y={592} fontSize={10} fontWeight={700} fill="#64748b" letterSpacing="0.5">
         MATCH / FULFILMENT
       </text>
       {MATCH.map((s, i) =>
-        box({ ...s, x: mx0 + i * (mw + mgap), y: 596, w: mw }),
+        box({ ...s, x: mx0 + i * (mw + mgap), y: 622, w: mw }),
       )}
 
-      {/* Funnel yield. Only the two that are honest today: revenue yield needs
-          MA4 and MA5 instrumented, and neither is. */}
-      <line x1={44} y1={654} x2={916} y2={654} stroke="#e2e8f0" strokeWidth={1} />
-      <text x={44} y={674} fontSize={9.5} fontWeight={700} fill="#64748b" letterSpacing="0.5">
-        FUNNEL YIELD
-      </text>
-      {yields ? (
-        <>
-          <g>
-            <title>{metricTitle("Funnel yield", "Commercial conversion", yields.commercial)}</title>
-            <rect x={126} y={660} width={220} height={20} fill="transparent" />
-            <text x={132} y={674} fontSize={10.5} fill="#475569">
-              Commercial conversion
-            </text>
-            <text x={272} y={674} fontSize={12} fontWeight={700} fill="#0f172a">
-              {readMetric(yields.commercial)?.text ?? ""}
-            </text>
-          </g>
-          <g>
-            <title>{metricTitle("Funnel yield", "Placement yield", yields.placement)}</title>
-            <rect x={464} y={660} width={220} height={20} fill="transparent" />
-            <text x={470} y={674} fontSize={10.5} fill="#475569">
-              Placement yield
-            </text>
-            <text x={572} y={674} fontSize={12} fontWeight={700} fill="#0f172a">
-              {readMetric(yields.placement)?.text ?? ""}
-            </text>
-          </g>
-        </>
-      ) : null}
-      <text x={916} y={694} fontSize={9} fill="#94a3b8" textAnchor="end">
-        {yields
-          ? "Both against provider meetings held. Revenue yield needs MA4 and MA5 instrumented."
-          : "MA4 is where real value has been delivered, so MA5 is where Olera charges"}
-      </text>
+      {yields ? <YieldStrip y={680} yields={yields} /> : null}
 
-      {/* Ownership legend */}
-      {(Object.keys(OWNERS) as Owner[]).map((k, i) => (
-        <g key={k}>
-          <rect x={44 + i * 190} y={724} width={11} height={11} rx={2} fill={OWNERS[k].fill} stroke={OWNERS[k].stroke} />
-          <text x={61 + i * 190} y={733} fontSize={10} fill="#475569">
-            {OWNERS[k].label}
-          </text>
-        </g>
-      ))}
+      <Legend y={750} owners={Object.keys(OWNERS) as Owner[]} />
     </svg>
   );
 }

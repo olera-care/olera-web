@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import SystemArchitecture from "@/components/admin/medjobs/SystemArchitecture";
-import type { FunnelResult } from "@/lib/medjobs/funnel-30d";
+import { useFunnel30d } from "@/components/admin/medjobs/useFunnel30d";
 
 /**
  * What sits above the reader on the System page: the operating system as a
@@ -52,21 +51,7 @@ export default function SopOrientation({
   /** Jump the reader below to a PDF named destination. */
   onJump: (dest: string) => void;
 }) {
-  const [funnel, setFunnel] = useState<FunnelResult | null>(null);
-  const [failed, setFailed] = useState(false);
-
-  useEffect(() => {
-    let cancelled = false;
-    // The map is worth reading with or without the numbers, so a failure here
-    // drops the tracker rather than the diagram.
-    fetch("/api/admin/medjobs/funnel-30d")
-      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((d: FunnelResult) => !cancelled && setFunnel(d))
-      .catch(() => !cancelled && setFailed(true));
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+  const { funnel, failed } = useFunnel30d();
 
   return (
     <div>

@@ -1,6 +1,7 @@
 "use client";
 
 import SopReader, { type SopJump } from "@/components/admin/medjobs/SopReader";
+import RoleOrientation from "@/components/admin/medjobs/RoleOrientation";
 
 /**
  * SOP · Sales — the Sales Lead's view of the operating system.
@@ -26,6 +27,7 @@ export default function MedJobsSopSalesPage() {
       title="SOP · Sales"
       jumps={JUMPS}
       openAt={JUMPS[0]}
+      above={(jump) => <RoleOrientation role="sales" onJump={jump} />}
     />
   );
 }

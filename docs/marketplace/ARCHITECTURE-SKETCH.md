@@ -1,61 +1,68 @@
-# Olera Marketplace — System Architecture (v13)
+# Olera Marketplace — System Architecture (v14)
 
-One city. Everything below the entry layer lives in the Portal.
+We pick a city, then build both sides of it. Everything below the entry layer lives in the Portal.
 
-**Track A = Aid Program. Track B = Provider Connection.**
+**Track A = Aid Establishment. Track B = Care Establishment.**
 
 ---
 
 ```
-ONE CITY                                                        ◆ active lever
+                                WE PICK A CITY
+                               ┌────────────┐
+                               │  ONE CITY  │
+                               └──────┬─────┘
+        ┌─────────────────────────────┴─────────────────────┐
+        ▼                                                   ▼
 
-FAMILY                                            PROVIDER
-──────────────────────────────────────────────    ────────────────────────────
-◆REFERRAL   ORGANIC   ◆PAID ADS                   P1  LISTED    ◆DIRECT
-PARTNER       │         │                           │           MARKETING
-  │           └────┬────┘                           ▼           QR code, flyer
-  │                ▼                              ◆P2  OUTREACH   │
-  │         F1  ENTRY SURFACE                       │             ▼
-  │             provider page                       │           provider enters
-  │             editorial                           │           on their own
-  │             benefits page                       │             │
-  │             │                                   │             │
-  │             ├─ QUESTION ─────────────────────►                │
-  │             ▼                                   │             │
-  │         F2  CTA                                 │             │
-  │             ├─ benefits CTA                     │             │
-  │             └─ connection card ───────────────────────┐       │
-  │             │                                   │     │       │
-  └──────┬───────┘                                  │     │       │
-         └──────────────────────┐                   │     │       │
-                                 ▼                  ▼     ▼       ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  PORTAL                                                                     │
-│  ┌──────────────────┐  ┌────────────────────┐  ┌─────────────────────────┐  │
-│  │ TRACK A          │  │ F3  FAMILY PROFILE │  │ TRACK B                 │  │
-│  │ AID PROGRAM      │  │                    │  │ PROVIDER CONNECTION     │  │
-│  │                  │  │   ┌────────────┐   │  │      ┌────────────┐     │  │
-│  │                  │  │   │    CR-F    │   │  │      │    CR-P    │     │  │
-│  │                  │  │   └────────────┘   │  │      └────────────┘     │  │
-│  │                  │  │                    │  │                         │  │
-│  │                  │  │                    │  │ P3  PROVIDER PROFILE    │  │
-│  │                  │  │                    │  │     CLAIM or CREATE     │  │
-│  │                  │  │                    │  │      │                  │  │
-│  │                  │  │                    │  │      ▼                  │  │
-│  │ A1  MATCHED      │◄─│       enriches     │─►│ B1  FAMILY-PROVIDER     │  │
-│  │      │           │  │     continuously   │  │     MATCHED             │  │
-│  │      ▼           │  │                    │  │      │                  │  │
-│  │ A2  APPLICATION  │  │                    │  │      ▼                  │  │
-│  │      │           │  │                    │  │ B2  QUALIFIED           │  │
-│  │      ▼           │  │                    │  │      │                  │  │
-│  │ A3  ESTABLISHED  │  │                    │  │      ▼                  │  │
-│  │                  │  │                    │  │ B3  CARE ESTABLISHED    │  │
-│  └────────┬─────────┘  └────────────────────┘  └────┬────────────┬───────┘  │
-└───────────┼─────────────────────────────────────────┼────────────┼──────────┘
-            │                                         │            │
-            └────────────────────┬────────────────────┘            │
-                                 ▼                                 ▼
-                          FAMILY OUTCOME                   PROVIDER OUTCOME
+FAMILY                                              PROVIDER
+────────────────────────────────────────────────    ───────────────────────────
+REFERRAL   ORGANIC   PAID ADS                       P1  LISTED  DIRECT MARKETING
+PARTNER      │         │                              │         QR code, flyer
+  │          └─────┬────┘                             ▼           │
+  │                ▼                                P2  OUTREACH  ▼
+  │         F1  ENTRY SURFACE                         │         provider enters
+  │             provider page                         │         on their own
+  │             editorial                             │           │
+  │             benefits page                         │           │
+  │             │                                     │           │
+  │             ├─ QUESTION ─────────────────────────►            │
+  │             ▼                                     │           │
+  │         F2  CTA                                   │           │
+  │             ├─ benefits CTA                       │           │
+  │             ├─ connection card ──────────────────►            │
+  │             ├─ live profile ─────────────────────►            │
+  │             │                                     │           │
+  └──────┬───────┘                                    │           │
+         └───────────────────────┐                    │           │
+                                 ▼                    ▼           ▼
+┌────────────────────────────────────────────────────────────────────────────────┐
+│  PORTAL                                                                        │
+│  ┌─────────────────────┐  ┌────────────────────┐  ┌─────────────────────────┐  │
+│  │ TRACK A             │  │ F3  FAMILY PROFILE │  │ TRACK B                 │  │
+│  │ AID ESTABLISHMENT   │  │                    │  │ CARE ESTABLISHMENT      │  │
+│  │                     │  │   ┌────────────┐   │  │      ┌────────────┐     │  │
+│  │                     │  │   │    CR-F    │   │  │      │    CR-P    │     │  │
+│  │                     │  │   └────────────┘   │  │      └────────────┘     │  │
+│  │                     │  │                    │  │                         │  │
+│  │                     │  │                    │  │ P3  PROVIDER PROFILE    │  │
+│  │                     │  │                    │  │     CLAIM or CREATE     │  │
+│  │                     │  │                    │  │      │                  │  │
+│  │                     │  │                    │  │      ▼                  │  │
+│  │ A1  MATCHED         │◄─│      enriches      │─►│ B1  FAMILY-PROVIDER     │  │
+│  │      │              │  │    continuously    │  │     MATCHED             │  │
+│  │      ▼              │  │                    │  │      │                  │  │
+│  │ A2  APPLICATION     │  │                    │  │      ▼                  │  │
+│  │      │              │  │                    │  │ B2  QUALIFIED           │  │
+│  │      ▼              │  │                    │  │      │                  │  │
+│  │ A3  AID ESTABLISHED │  │                    │  │      ▼                  │  │
+│  │                     │  │                    │  │ B3  CARE ESTABLISHED    │  │
+│  └─────────┬───────────┘  └────────────────────┘  └────┬────────────┬───────┘  │
+└────────────┼───────────────────────────────────────────┼────────────┼──────────┘
+             │                                           │            │
+             └─────────────────────┬─────────────────────┘            │
+                                   ▼                                  ▼
+                            FAMILY OUTCOME                    PROVIDER OUTCOME
+                               aid or care                        new business
 ```
 
 ---
@@ -64,9 +71,9 @@ PARTNER       │         │                           │           MARKETING
 
 **Family** — F1 entry surface · F2 CTA · F3 family profile
 
-**Provider** — P1 listed · ◆P2 outreach · P3 provider profile, claim or create
+**Provider** — P1 listed · P2 outreach · P3 provider profile, claim or create
 
-**Track A** — A1 matched · A2 application · A3 established
+**Track A** — A1 matched · A2 application · A3 aid established
 
 **Track B** — B1 family–provider matched · B2 qualified · B3 care established
 
@@ -76,14 +83,15 @@ claimed or not, wherever they are in B1–B3.
 
 ---
 
-## Two provider streams
+## Three family signals feed outreach
 
-**P1 listed → ◆P2 outreach.** Providers already in the directory. We work them.
+**Question**, **connection card** and **live profile** all point at P2. Each is a family telling us
+a specific provider matters to them, which is the reason to work that provider — regardless of
+whether the family goes on to a full profile. The benefits CTA does not, because it names no
+provider.
 
-**◆Direct marketing.** A QR code or flyer asking providers to claim or create their profile. They
-enter on their own.
-
-Both land in Track B. Neither is a prerequisite for the other.
+This is the reciprocal loop: family demand is what makes provider outreach worth doing, and provider
+outreach is what makes the next family's match land on someone who can act.
 
 ---
 
@@ -95,7 +103,7 @@ a link with no family contact details — is what causes the claim. The shipped 
 claim → respond.
 
 Drawing P3 first says something better: a pool of claimed providers receiving matches. CR-P and
-direct marketing are exactly the machines that would get us there.
+direct marketing are the two machines that would get us there.
 
 ---
 
@@ -113,7 +121,7 @@ A partial profile starts a track immediately; more profile deepens what is alrea
 
 ## Status
 
-**Exists** — both CTAs · questions · continuous enrichment · the listed pool · outreach ·
+**Exists** — all CTAs · questions · continuous enrichment · the listed pool · outreach ·
 claim-or-create · both tracks' execution.
 
 **Partial** — the plan the profile produces. The aid half exists; there is no provider half.

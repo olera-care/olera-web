@@ -29,6 +29,18 @@
 
 **Next, in order.** (1) Mon 7 Sep read: first impressions on Pacesetter, Assisting Hands, Happy Mountain, then flip the three rows to `live`; Franchil Aug "under review"; Hilda's opens. (2) PR: wrap-up email gets the two data-driven page asks (gallery <3 or logo-first; no place or 0 reviews) and the offer line, copy in front of TJ before merge. (3) PR: `phone_reveal` event + stop outcome pings retrying complained addresses + 30-day review refresh for claimed profiles. (4) Search-terms harvest 10–12 Sep. (5) If Pa replies yes, sixth 90-day build, photos and reviews first. (6) Sherry's inbox answer → switch her notification email.
 
+### 2026-09-05 (evening) — Timeline reads support@ threads and inbound texts; records backfilled; Ad Boost ↔ Relationships linked (`wonderful-williams`, PR #1793 → staging, open)
+
+**Built (PR #1793, three commits).** `lib/touches/timeline.server.ts` now merges two read-only feeds at request time: `support_email_messages` (threads matched to the provider by the sync's identity, plus any thread where a profile address is a participant, then every message in those threads) and `sms_inbound` (matched by the profile phone and by any number a text touch was logged against, since the webhook stores a directory name but no profile id for providers). Sender attribution is by address: from a provider address = them; addressed to a provider address = us, whatever mailbox sent it (a Bcc'd copy arrives in Gmail as inbound); otherwise Gmail direction / our domains. Outbound texts already in `email_log` (`channel='sms'`) display as text and are excluded from the unopened streak. New list flag `awaiting_reply` ("they wrote, no reply yet"): thread still `needs_reply` or unhandled text; sorts to the top with overdue. Human-touch count and days-quiet include these rows. Gmail snippets entity-decoded. Cross-links: `comms →` on every `/admin/ad-boost` provider row, `campaign · status →` on the Relationships list, every campaign linked from the provider page header. `/touch` rule added: never log what came through support@ or the Olera number.
+
+**Pre-test caught two real bugs.** (1) Attribution trusted our domains only; a Bcc'd copy from a non-Olera mailbox read as the provider writing to us (TJ sends as tj@olera.care, so it only worked by luck). (2) The support queue holds 23 provider-address threads classed `marketing` and 4 `automated`, all in `needs_reply`; a provider's newsletter would have put them at the top of the Tuesday list. Threads classed marketing/automated/internal or state noise are now excluded from the read. Verified against prod with tsx: 16 list rows; support rows on The Groves at Athens and Compassionate Home Care Partners; `awaiting_reply` on Blue Water Homecare and Homestead of Topeka; inbound texts on Durango Gardens; every filter (two array overlaps, three in-lists incl. mixed uuid/slug) confirmed through supabase-js with errors surfaced.
+
+**Records backfilled in `provider_touches` (prod, direct inserts, author `claude (for TJ)`).** Pa Vue's LumiWell wrap-up email (12:10 UTC, full text, next action "if she says yes, build the 90-day run, photos and reviews first" due 19 Sep); Zardy's text (sent, exact time not recorded, logged at TJ's 15:17 UTC confirmation); Hilda's 26 Jul phone call confirming the June client (time of day not recorded). Sherry/Hilda/Zardy email rows from the seed now carry the full email text as `detail`, and their times were corrected from the session log (09:55 / 11:27 / 11:29 UTC; the seed's 10:40/10:50/11:00 were estimates). None of today's four emails was Bcc'd to support@ (habit starts now), so they live as touch rows, not support rows.
+
+**Known limits.** Neither `/admin/support-email` nor `/admin/inbox` takes a deep-link parameter, so a row's "open inbox →" lands on the inbox, not the thread. No Ad Boost provider has a support thread or inbound text yet; the first replies to today's emails will be the first automatic rows.
+
+**Next.** (1) Merge #1793 after TJ's test on staging. (2) Deep-link param on the support inbox (`?thread=`) and SMS inbox (`?phone=`). (3) Provider SMS send path from the Olera number. (4) Tuesday digest. (5) Sherry's inbox answer → switch her notification email.
+
 ### 2026-09-05 (later) — Provider touch log built, tested, cut back, and merged (`wonderful-williams`, PR #1791 → staging `ac46ae8b4`); provider reply-to moved to support@
 
 **Why.** The morning's four provider emails and Zardy's text had no record anywhere; the Pacesetter run promised on 19 Aug was only found because a case log happened to mention it. TJ: "tracking communications... what is the best way." Codebase read: Logan's `student_outreach` CRM is MedJobs-shaped (state machine, per-student), the support module already matches inbound mail to `business_profiles` by address, `email_log` already holds every system send with opens/bounces/complaints. Gap was human touches and next actions, nothing else.
@@ -4770,12 +4782,13 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Next Up
 
-**Provider touch log / Relationships — added 2026-09-05 (`wonderful-williams`, PR #1791 merged)**
-- 🔴 **Timeline should read support threads + `sms_inbound` directly** so a provider reply shows on `/admin/relationships/[id]` without anyone logging it. Reply-to is now support@, so the data is already there.
-- 🟡 **Provider SMS send path** from the Olera Twilio number; inbound texts become touches. Zardy prefers text and is the first case.
-- 🟡 **Tuesday digest to TJ** (five lines: overdue, due, quiet). Until then the list at `/admin/relationships` is the digest.
-- 🟢 **Log Pa's email + Zardy's text** via `/touch` when TJ confirms they went out.
+**Provider touch log / Relationships — updated 2026-09-05 evening (`wonderful-williams`, PR #1791 merged, PR #1793 open)**
+- 🔴 **Merge #1793** (support threads + inbound texts on the timeline, `awaiting_reply` flag, Ad Boost ↔ Relationships links) after TJ tests on staging.
+- 🟡 **Deep links into the inboxes**: `?thread=` on `/admin/support-email`, `?phone=` on `/admin/inbox`, so a timeline row opens the actual conversation.
+- 🟡 **Provider SMS send path** from the Olera Twilio number; replies already land on the timeline. Zardy prefers text and is the first case.
+- 🟡 **Tuesday digest to TJ** (five lines: overdue, awaiting reply, due, quiet). Until then the list at `/admin/relationships` is the digest.
 - 🟢 **hello@olera.care** has been unread since June; one read for provider replies that landed there.
+- ✅ Pa's email, Zardy's text, Hilda's 26 Jul call logged 5 Sep; today's email rows carry full text and corrected times.
 
 **Revenue plan / CRP January 5 — added 2026-09-04 (`radiant-wright`, ops only)**
 - 🔴 **Track B: call the 16 providers who requested ads** (TJ + Chantel, by Wed 09-09). Correct Franchil and Miracle-Lightstar by phone — both were told campaigns launched that never served. Pacesetter has **2 conversions nobody told them about** and their email is suppressed, so that one is a call. Establish outcome on the 4 inquiries still at `status: pending`. Answer the 5 in the requested queue (Senior Services at 42 days). One question per call: what would have to be true for you to pay. **Log the exact phrase each provider uses for what they bought** — that decides the rename.

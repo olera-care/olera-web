@@ -108,9 +108,11 @@ div.gap p { margin:0; text-align:left; }
    fact. Tagged by shape, because attr_list does not attach to a table. */
 table.field th { display:none; }
 table.field td:first-child { width:23%; font-weight:700; color:var(--teal); }
-h2 { break-before:page; page-break-before:always; }
-h2.nobreak { break-before:auto; page-break-before:auto; }
-table.field th:first-child, table.field td:first-child { width:22%; }
+/* No forced break before a section: jumps address a named destination, which
+   carries the heading's own coordinate, so a section does not need to start at
+   the top of a page for the jump bar to land on it. break-after:avoid on the
+   heading is what stops one stranding at a page foot. */
+h2 { margin-top:16pt; }
 .gap { border-left:2.5pt solid var(--teal); padding:5pt 0 5pt 9pt; margin:6pt 0 8pt;
        background:var(--soft); break-inside:avoid; }
 .gap p { margin:0 0 3pt; }
@@ -172,6 +174,8 @@ whose providers are loaded but un-researched has not completed PR1.</p>
 </tr>
 </tbody>
 </table>
+<figure class="fw"><svg viewBox="0 0 250 158" width="2.5in" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif"><defs><marker id="a" markerWidth="7" markerHeight="5.4" refX="6.5" refY="2.7" orient="auto"><path d="M0,0 L7,2.7 L0,5.4 z" fill="#14453f"/></marker></defs><rect x="55" y="6" width="140" height="20" rx="3" fill="#e8f1ec" stroke="#14453f" stroke-width="1.1"/><text x="125" y="20" font-size="13.19" fill="#14453f" text-anchor="middle" font-weight="bold" font-style="normal">Call the provider</text><line x1="125" y1="27" x2="125" y2="39" stroke="#14453f" stroke-width="1.2" marker-end="url(#a)"/><rect x="4" y="41" width="112" height="18" rx="3" fill="#fff" stroke="#1a7f4e" stroke-width="1.0"/><text x="60" y="53.6" font-size="13.19" fill="#1a7f4e" text-anchor="middle" font-weight="bold" font-style="normal">Confirmed</text><line x1="118" y1="50" x2="130" y2="50" stroke="#1a7f4e" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="53.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Launch outreach</text><rect x="4" y="63" width="112" height="18" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.0"/><text x="60" y="75.6" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">No answer</text><line x1="118" y1="72" x2="130" y2="72" stroke="#5f6b64" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="75.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Call again</text><rect x="4" y="85" width="112" height="18" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.0"/><text x="60" y="97.6" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Voicemail</text><line x1="118" y1="94" x2="130" y2="94" stroke="#5f6b64" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="97.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Call again</text><rect x="4" y="107" width="112" height="18" rx="3" fill="#fff" stroke="#5f6b64" stroke-width="1.0"/><text x="60" y="119.6" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Not interested</text><line x1="118" y1="116" x2="130" y2="116" stroke="#5f6b64" stroke-width="1.1" marker-end="url(#a)"/><text x="134" y="119.6" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Close the row</text><rect x="4" y="131" width="242" height="21" rx="3" fill="#f4f7f6" stroke="#b9c4bd" stroke-width="1"/><text x="125" y="145" font-size="13.19" fill="#5f6b64" text-anchor="middle" font-weight="bold" font-style="normal">Three failed calls, then archive</text></svg><figcaption><strong>Pre-flight.</strong> One call, four outcomes, and the three-strike rule that closes a row nobody answers.</figcaption></figure>
+
 <h3 id="required-actions">Required actions</h3>
 <p>For a given site, work every provider on it.</p>
 <ol>
@@ -221,6 +225,8 @@ whose providers are loaded but un-researched has not completed PR1.</p>
 </tr>
 </tbody>
 </table>
+<figure><img alt="Exhibit D. Log Pre-Flight outcome" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/D-log-preflight.png" /><figcaption><strong>Exhibit D. Log Pre-Flight outcome.</strong> The suggested script, the four outcomes with their consequences stated on each, the notes field, and <strong>Override and launch outreach</strong>. In Basket, provider row, <strong>Call to Confirm</strong>.</figcaption></figure>
+<figure><img alt="Exhibit E. Provider drawer" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/E-provider-drawer.png" /><figcaption><strong>Exhibit E. Provider drawer.</strong> <strong>RESEARCH</strong> states the sequence over five contact fields, each with a state marker. The ticks are what pre-flight complete looks like on a row. <strong>The timeline is where the three-strikes count is read from</strong>, one entry per attempt, with the operator and how long ago.</figcaption></figure>
 <h3 id="what-must-be-recorded">What must be recorded</h3>
 <p>Business name, phone, email, address, fax, contact form, decision makers, research
 notes, call outcome and notes. Every call, including the ones nobody answered, writes
@@ -262,11 +268,14 @@ the row runs out.</p>
 </tr>
 </tbody>
 </table>
+<figure class="fw"><svg viewBox="0 0 250 146" width="2.5in" xmlns="http://www.w3.org/2000/svg" font-family="Arial, Helvetica, sans-serif"><defs><marker id="a" markerWidth="7" markerHeight="5.4" refX="6.5" refY="2.7" orient="auto"><path d="M0,0 L7,2.7 L0,5.4 z" fill="#14453f"/></marker></defs><text x="4" y="16" font-size="13.19" fill="#5f6b64" text-anchor="start" font-weight="bold" font-style="normal">OUTREACH, 7 DAYS</text><line x1="34" y1="24" x2="34" y2="44" stroke="#b9c4bd" stroke-width="1"/><circle cx="34" cy="32" r="3.4" fill="#14453f"/><text x="28" y="35.5" font-size="13.19" fill="#14453f" text-anchor="end" font-weight="bold" font-style="normal">Day 0</text><text x="44" y="35.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Intro email</text><line x1="34" y1="44" x2="34" y2="77" stroke="#b9c4bd" stroke-width="1"/><circle cx="34" cy="52" r="3.4" fill="#14453f"/><text x="28" y="55.5" font-size="13.19" fill="#14453f" text-anchor="end" font-weight="bold" font-style="normal">Day 3</text><text x="44" y="55.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Follow-up email</text><text x="44" y="68.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Check-in call</text><line x1="34" y1="77" x2="34" y2="97" stroke="#b9c4bd" stroke-width="1"/><circle cx="34" cy="85" r="3.4" fill="#14453f"/><text x="28" y="88.5" font-size="13.19" fill="#14453f" text-anchor="end" font-weight="bold" font-style="normal">Day 5</text><text x="44" y="88.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Call</text><line x1="34" y1="97" x2="34" y2="117" stroke="#b9c4bd" stroke-width="1"/><circle cx="34" cy="105" r="3.4" fill="#14453f"/><text x="28" y="108.5" font-size="13.19" fill="#14453f" text-anchor="end" font-weight="bold" font-style="normal">Day 7</text><text x="44" y="108.5" font-size="13.19" fill="#111" text-anchor="start" font-weight="normal" font-style="normal">Final email</text><rect x="4" y="119" width="242" height="21" rx="3" fill="#e8f1ec" stroke="#1a7f4e" stroke-width="1.1"/><text x="125" y="133" font-size="13.19" fill="#1a7f4e" text-anchor="middle" font-weight="bold" font-style="normal">A reply stops the sequence</text></svg><figcaption><strong>The outreach cadence.</strong> Three emails and two calls over seven days, and any reply ends it.</figcaption></figure>
+
 <p><strong>The cadence.</strong> Three emails and two calls over seven days: Day 0 intro email, Day 3
 follow-up email and a check-in call, Day 5 call, Day 7 final email. Cold email sends
 from a dedicated outreach domain. Scheduled sends and calls appear in the drawer's
 <strong>UPCOMING</strong> list with their dates, so the row's whole future is visible before it
 happens.</p>
+<figure><img alt="Exhibit F. Confirm outreach plan" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/F-launch-outreach.png" /><figcaption><strong>Exhibit F. Confirm outreach plan.</strong> <strong>LAUNCH SUMMARY</strong>, the recipients as checkboxes with the address and phone each will be reached on, and every cadence day expandable to the actual email. This is where you check the merge fields resolved.</figcaption></figure>
 <h3 id="required-actions_1">Required actions</h3>
 <ol>
 <li><strong>Launch only rows that cleared pre-flight.</strong> The override writes itself to the
@@ -315,6 +324,7 @@ happens.</p>
 </tr>
 </tbody>
 </table>
+<figure><img alt="Exhibit H. Log call" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/H-log-call.png" /><figcaption><strong>Exhibit H. Log call.</strong> The day's script at the top, then the five outcomes with their consequences, and a notes field where a note on its own logs the call. Calls, row, <strong>Call provider</strong>.</figcaption></figure>
 <table>
 <thead>
 <tr>
@@ -345,6 +355,7 @@ happens.</p>
 </tr>
 </tbody>
 </table>
+<figure><img alt="Exhibit J. Check for reply" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/J-check-for-reply.png" /><figcaption><strong>Exhibit J. Check for reply.</strong> The provider's actual reply quoted at the top, then the five ways to respond. Behind it the <strong>Emails</strong> tab grouped by state. Emails, row, <strong>Check for reply</strong>.</figcaption></figure>
 <p>A real reply stops the cadence automatically. The timeline records <em>"Reply received to
 [address], cadence stopped,"</em> so the next move is a manual one. The out-of-office
 option exists precisely because an auto-reply should not count as one.</p>
@@ -410,6 +421,7 @@ autosaves as you work.</p>
 <li><strong>Then confirm by a quick call before launching.</strong> Generating a prospect is not the
    same as knowing the address is live.</li>
 </ol>
+<figure><img alt="Exhibit Q. Research, step 2, verify offices" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/Q-research-verify-offices.png" /><figcaption><strong>Exhibit Q. Research, step 2, verify offices.</strong> <em>"The advising office is the prospect. Confirm each one's email and tag, that's all outreach needs."</em> Each office carries a tag, email, phone and optional website, an advisors section, and the <strong>Verified</strong> tick.</figcaption></figure>
 <h3 id="what-must-be-recorded_2">What must be recorded</h3>
 <p>Office name, tag, email, phone, website, source link, optional advisors, the verified
 flag, and the research links kept.</p>
@@ -458,6 +470,7 @@ states it before anything sends.</p>
 own email as a selectable extra, which is why ST1 accepts only advisors who have one.
 <strong>Launch activation</strong> sits beside Launch outreach as the second cadence, run once a
 row has engaged.</p>
+<figure><img alt="Exhibit T. Partner drawer" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/T-partner-drawer.png" /><figcaption><strong>Exhibit T. Partner drawer.</strong> <strong>RESEARCH</strong> states the sequence over the office name, general email and general phone, with <strong>ADVISORS</strong> and the rule beneath it. Three actions: <strong>Call to Confirm</strong>, <strong>Launch outreach</strong>, <strong>Launch activation</strong>.</figcaption></figure>
 <h3 id="required-actions_3">Required actions</h3>
 <ol>
 <li><strong>Call before you launch.</strong> The row is a prospect, not a confirmed address. The
@@ -480,6 +493,7 @@ row has engaged.</p>
    because someone agreed to them; the ask on this cadence is a meeting, not a
    distribution.</li>
 </ol>
+<figure><img alt="Exhibit V. Confirm outreach plan, partner side" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/V-partner-launch-outreach.png" /><figcaption><strong>Exhibit V. Confirm outreach plan, partner side.</strong> <strong>LAUNCH SUMMARY</strong> reads <em>"5 emails + 1 call across the cadence below."</em> Day 0 opens to the full meeting-first intro email, sending from <code>partnerships@findmedjobs.co</code>. This is the modal that tells you which cadence you are launching.</figcaption></figure>
 <p>The pre-flight outcomes and the reply options are the same four and five as the
 provider side. One difference: <strong>Launch activation cadence</strong> drops out of the reply
 options once a row is already enrolled. The timeline then reads <em>"Activation
@@ -523,6 +537,7 @@ during the call is the design. Sending the link and waiting is the slower fallba
 </tr>
 </tbody>
 </table>
+<figure><img alt="Exhibit M. Meetings tab" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/M-meetings-tab.png" /><figcaption><strong>Exhibit M. Meetings tab.</strong> <strong>NEEDS LOGGING</strong> carries meetings whose time has passed. <strong>FINDING A TIME</strong> below it holds rows still coordinating by email, the state you set by hand.</figcaption></figure>
 <p><strong>Finding a time</strong> is a holding state, not a meeting. You set it by hand while a
 provider is going back and forth by email. It sits below <strong>NEEDS LOGGING</strong> in the
 Meetings tab.</p>
@@ -574,6 +589,7 @@ rows are worked side by side in the same tabs with the same modals.</p>
 <p>The In Basket header carries the day's workload over three counters: <strong>QUEUED</strong>,
 <strong>LOGS COMPLETED TODAY</strong>, and a <strong>STREAK</strong> of consecutive business days hitting fifty
 logs.</p>
+<figure><img alt="Exhibit C. In Basket, Providers tab" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/C-in-basket-providers.png" /><figcaption><strong>Exhibit C. In Basket, Providers tab.</strong> The day's workload over three counters: <strong>QUEUED</strong>, <strong>LOGS COMPLETED TODAY</strong>, and a <strong>STREAK</strong> of consecutive business days hitting fifty logs.</figcaption></figure>
 <p><strong>Logging discipline, in one line.</strong> Log every outcome every time, including the calls
 nobody answered, because the timeline is the only record of how many attempts a row
 has had and who made them.</p>

@@ -179,6 +179,8 @@ for ST8 and QUAL, on the grounds that if these lists grow the system has failed.
 
 ### ST8 Student application submitted
 
+<!--FIG nudges-->
+
 **Owner: Portal.** You are a user *only when the system cannot finish the job.* The
 student scans the QR code, answers the eligibility check, accepts the Student Caregiver
 Program Agreement, works the application against a completeness meter, is chased by a
@@ -192,6 +194,10 @@ fixed ladder of nudges on days 1, 3, 5, 7, then 21, 35, 49, 63, and presses **Go
    a student whose circumstances do not fit the form.
 4. **Check both entry paths after any change to the assets.** The QR code and the email
    link must each carry a student all the way through.
+
+**Exhibit AB. The application portal.** The student's profile section by section, each with its empty state and edit control. On the right, **Not live yet** over the **Go Live** button, and **Profile completeness**. This is the screen behind **B15** and **B16**: nothing on it is required to go live.
+
+![Exhibit AB. The application portal](../matrix-src/exhibits/AB-application-portal.png)
 
 ### QUAL Portal vets the application
 
@@ -221,9 +227,15 @@ fixed ladder of nudges on days 1, 3, 5, 7, then 21, 35, 49, 63, and presses **Go
 
 ### MA2 Interview held
 
+<!--FIG interview-->
+
 **Owner: Portal.** You are a user *on exceptions.* The interview state machine runs
 *proposed, confirmed, completed, cancelled, no-show, rescheduled*, proposals email the
 other side, confirmations email both, and a calendar file is attached on confirmation.
+
+**Exhibit AE. The interview calendar with a pending request.** The requested interview sits on its date in the amber of **Pending**, waiting on the provider to confirm. **This is the state your first required action is chasing.**
+
+![Exhibit AE. The interview calendar with a pending request](../matrix-src/exhibits/AE-interviews-pending.png)
 
 1. **Chase the proposal that has sat unanswered.** A pending request nobody confirmed
    is the single most common place a match dies.
@@ -278,6 +290,8 @@ a number nobody can act on.
 {: .totop }
 
 ## MA4 Six or more shifts worked, confirmed {: #ma4 }
+
+<!--FIG billing-->
 
 **Objective** Establish that the placement actually stuck, six shifts worked, because
 that is the point we bill.

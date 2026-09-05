@@ -5,19 +5,18 @@ import SopReader, { type SopJump } from "@/components/admin/medjobs/SopReader";
 /**
  * SOP · Sales — the Sales Lead's view of the operating system.
  *
- * Built from docs/medjobs/roles-src/SALES.md. See the Admin page for how the
- * page numbers are derived.
+ * Built from docs/medjobs/roles-src/SALES.md.
  */
 
 const JUMPS: SopJump[] = [
-  { label: "Receiving the handoff", page: 1, title: "Receiving the Admin Team handoff" },
-  { label: "Provider meetings", page: 2, title: "PR2 provider meeting held" },
-  { label: "Advisor meetings", page: 3, title: "ST2 advisor meeting held" },
-  { label: "After the handoff", page: 5, title: "Where the Sales Lead stays involved" },
-  { label: "User Success handoff", page: 6, title: "The handoff to the User Success Manager" },
-  { label: "Exceptions", page: 7, title: "Exceptions and escalation" },
-  { label: "Gaps", page: 8, title: "Gaps and decisions needed", divide: true },
-  { label: "Traceability", page: 9, title: "Every section against its source in the master" },
+  { label: "Receiving the handoff", dest: "receiving", title: "Receiving the Admin Team handoff" },
+  { label: "Provider meetings", dest: "pr2", title: "PR2 provider meeting held" },
+  { label: "Advisor meetings", dest: "st2", title: "ST2 advisor meeting held" },
+  { label: "After the handoff", dest: "after", title: "Where the Sales Lead stays involved" },
+  { label: "User Success handoff", dest: "handoff", title: "The handoff to the User Success Manager" },
+  { label: "Exceptions", dest: "exceptions", title: "Exceptions and escalation" },
+  { label: "Gaps", dest: "gaps", title: "Gaps and decisions needed", divide: true },
+  { label: "Traceability", dest: "trace", title: "Every section against its source in the master" },
 ];
 
 export default function MedJobsSopSalesPage() {
@@ -27,7 +26,7 @@ export default function MedJobsSopSalesPage() {
       title="SOP · Sales"
       description="Sales Lead Operations. PR2 and ST2, what each meeting must capture, and the boundary with the User Success Manager. A filtered view of the System document, not a separate operating model."
       jumps={JUMPS}
-      openAt={1}
+      openAt={JUMPS[0]}
     />
   );
 }

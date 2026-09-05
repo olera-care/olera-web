@@ -78,7 +78,8 @@ The companion `docs/medjobs/EXECUTIVE_SUMMARY.md` is the human-readable team bri
 - Change the operating model in `MATRIX.md` first, then propagate to the role manuals.
 - `docs/medjobs/roles-src/validate.py` checks the three against the master and exits non-zero on drift. Run it after any edit to any of the four.
 - All four are served to admins at `/admin/medjobs/sop` (System, Admin, Sales, CRM) via `/api/admin/medjobs/sop?doc=…`. New or renamed PDFs need an entry in `outputFileTracingIncludes` in `next.config.ts`, or the route 404s in production.
-- Rebuilding a PDF can move its page count, which moves the jump-bar page numbers in `app/admin/medjobs/sop/*/page.tsx`. Both READMEs say how to re-derive them.
+- Jump bars address PDF **named destinations**, not page numbers, so a rebuild that repaginates a document cannot break them. Chromium only writes a destination for an id something links to, so a new section must also go in that manual's nav bar. Both READMEs say how to check.
+- The System page also carries the architecture diagram (`components/admin/medjobs/SystemArchitecture.tsx`, drawn not rasterised, every stage a jump target) and links to the walkthrough video and summary, both served through the same guarded route.
 
 ## Grant Work (NIH SBIR CRP)
 

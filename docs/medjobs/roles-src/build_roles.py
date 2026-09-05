@@ -38,9 +38,11 @@ div.gap p { margin:0; text-align:left; }
    fact. Tagged by shape, because attr_list does not attach to a table. */
 table.field th { display:none; }
 table.field td:first-child { width:23%; font-weight:700; color:var(--teal); }
-h2 { break-before:page; page-break-before:always; }
-h2.nobreak { break-before:auto; page-break-before:auto; }
-table.field th:first-child, table.field td:first-child { width:22%; }
+/* No forced break before a section: jumps address a named destination, which
+   carries the heading's own coordinate, so a section does not need to start at
+   the top of a page for the jump bar to land on it. break-after:avoid on the
+   heading is what stops one stranding at a page foot. */
+h2 { margin-top:16pt; }
 .gap { border-left:2.5pt solid var(--teal); padding:5pt 0 5pt 9pt; margin:6pt 0 8pt;
        background:var(--soft); break-inside:avoid; }
 .gap p { margin:0 0 3pt; }

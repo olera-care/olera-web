@@ -1,26 +1,34 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import AdminPageHeader from "@/components/admin/AdminPageHeader";
 
 /**
  * The reader shared by the four SOP pages: System, Admin, Sales and CRM.
  *
- * One embedded PDF with a jump bar above it. The role manuals carry the same
- * navigation inside the PDF as real anchor links, so this bar is a convenience
- * rather than the only way through; on System, where the document has no
- * internal bar, it is the way through.
+ * Jumps address a PDF **named destination**, not a page. Chromium writes one
+ * for every heading the document links to, carrying the heading's own y
+ * coordinate, so the section title lands at the top of the viewer instead of
+ * wherever its page happens to start. It also means a rebuild that repaginates
+ * the document cannot break the jump bar.
  */
 
 export interface SopJump {
   /** Short label on the button. */
   label: string;
-  /** Page in the built PDF. */
-  page: number;
   /** Full section name, shown on hover. */
   title: string;
+  /** PDF named destination. Preferred: it lands on the heading itself. */
+  dest?: string;
+  /** Page number, for the two targets that are a page top with no heading id. */
+  page?: number;
   /** Start a new group; renders a rule before this button. */
   divide?: boolean;
+}
+
+/** What goes after the `#` for one jump. */
+export function sopHash(jump: Pick<SopJump, "dest" | "page">) {
+  return jump.dest ? `nameddest=${jump.dest}` : `page=${jump.page}&view=FitH`;
 }
 
 export default function SopReader({
@@ -29,19 +37,30 @@ export default function SopReader({
   description,
   jumps,
   openAt,
-  note,
+  above,
 }: {
   /** The `doc` key served by /api/admin/medjobs/sop. */
   doc: string;
   title: string;
   description: string;
   jumps: SopJump[];
-  /** Page the reader opens on. */
-  openAt: number;
-  note?: React.ReactNode;
+  /** Where the reader opens. */
+  openAt: SopJump;
+  /** Rendered between the header and the jump bar, given the jump function so
+   *  a diagram above the reader can drive it. */
+  above?: (jump: (dest: string) => void) => React.ReactNode;
 }) {
   const url = `/api/admin/medjobs/sop?doc=${doc}`;
-  const [page, setPage] = useState(openAt);
+  const [hash, setHash] = useState(() => sopHash(openAt));
+  const frame = useRef<HTMLDivElement>(null);
+
+  // Two scrolls, and both matter. The hash moves the PDF to the section; this
+  // moves the browser so the reader is what you are looking at, rather than
+  // leaving you at the top of a page that has a diagram and an index above it.
+  const jump = useCallback((next: string) => {
+    setHash(next);
+    frame.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
 
   return (
     <div>
@@ -60,37 +79,44 @@ export default function SopReader({
         }
       />
 
-      {note ? <div className="mb-4">{note}</div> : null}
+      {above ? (
+        <div className="mb-6">{above((dest) => jump(`nameddest=${dest}`))}</div>
+      ) : null}
 
-      <div className="mb-3 flex flex-wrap items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2">
-        {jumps.map((jump) => (
-          <span key={jump.label} className="flex items-center gap-1.5">
-            {jump.divide ? <span className="mx-1 h-4 w-px bg-gray-200" aria-hidden /> : null}
-            <button
-              type="button"
-              title={jump.title}
-              aria-current={page === jump.page ? "page" : undefined}
-              onClick={() => setPage(jump.page)}
-              className={`rounded-md border px-2 py-1 text-xs font-medium tabular-nums transition-colors ${
-                page === jump.page
-                  ? "border-emerald-200 bg-emerald-50 text-emerald-900"
-                  : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
-              }`}
-            >
-              {jump.label}
-            </button>
-          </span>
-        ))}
+      <div ref={frame} className="scroll-mt-4">
+        <div className="mb-3 flex flex-wrap items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2">
+          {jumps.map((j) => {
+            const h = sopHash(j);
+            return (
+              <span key={j.label} className="flex items-center gap-1.5">
+                {j.divide ? <span className="mx-1 h-4 w-px bg-gray-200" aria-hidden /> : null}
+                <button
+                  type="button"
+                  title={j.title}
+                  aria-current={hash === h ? "page" : undefined}
+                  onClick={() => jump(h)}
+                  className={`rounded-md border px-2 py-1 text-xs font-medium tabular-nums transition-colors ${
+                    hash === h
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                      : "border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                  }`}
+                >
+                  {j.label}
+                </button>
+              </span>
+            );
+          })}
+        </div>
+
+        {/* The key remounts the iframe on a jump: a changed hash alone does not
+            move an already-loaded PDF viewer. */}
+        <iframe
+          key={hash}
+          src={`${url}#${hash}`}
+          title={title}
+          className="h-[calc(100vh-16rem)] min-h-[32rem] w-full rounded-lg border border-gray-200 bg-gray-50"
+        />
       </div>
-
-      {/* The key remounts the iframe on a jump: a changed hash alone does not
-          move an already-loaded PDF viewer. */}
-      <iframe
-        key={page}
-        src={`${url}#page=${page}&view=FitH`}
-        title={title}
-        className="h-[calc(100vh-22rem)] min-h-[32rem] w-full rounded-lg border border-gray-200 bg-gray-50"
-      />
     </div>
   );
 }

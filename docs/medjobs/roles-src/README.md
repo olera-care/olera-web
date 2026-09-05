@@ -15,9 +15,9 @@ FULL SYSTEM OPERATIONS  (matrix-src/MATRIX.md)
 
 | Source | Role | Deliverable | Pages |
 |---|---|---|---|
-| `ADMIN.md` | Admin Team | `../MedJobs_Admin_Team_Operations.pdf` | 11 |
-| `SALES.md` | Sales Lead | `../MedJobs_Sales_Lead_Operations.pdf` | 9 |
-| `CRM.md` | User Success Manager | `../MedJobs_User_Success_Manager_Operations.pdf` | 12 |
+| `ADMIN.md` | Admin Team | `../MedJobs_Admin_Team_Operations.pdf` | 12 |
+| `SALES.md` | Sales Lead | `../MedJobs_Sales_Lead_Operations.pdf` | 7 |
+| `CRM.md` | User Success Manager | `../MedJobs_User_Success_Manager_Operations.pdf` | 9 |
 
 ```
 python3 build_roles.py     # all three, and copies them to docs/medjobs/
@@ -71,28 +71,55 @@ documents cannot drift apart typographically. What it adds:
 - **Gap blocks.** `<div class="gap" markdown="1">`, which needs the `md_in_html`
   extension. It was added to the shared `md2html.py`; the matrix source has no
   markdown attributes, so its render is unaffected.
-- **A page break before every h2**, so a section always starts at the top of a
-  page and the jump targets stay stable. `.nobreak` opts the first one out.
+- **No forced page break before a section.** Jumps address a named destination,
+  which carries the heading's own coordinate, so a section does not need to
+  start at a page top for a jump to land on it. Dropping the break took the
+  three manuals from 15, 11 and 14 pages to 12, 7 and 9.
 
 The role sources contain **no em dashes**, so they need no `dedash.py` pass. The
 build asserts this.
 
-## Page numbers
+## Named destinations, not page numbers
 
-`app/admin/medjobs/sop/*/page.tsx` holds a jump bar per manual whose page
-numbers mirror the PDF's own anchors. Re-derive them after a rebuild:
+`app/admin/medjobs/sop/*/page.tsx` holds a jump bar per manual. It addresses
+**named destinations**, so a rebuild that repaginates a document cannot break
+it, and a jump lands on the heading itself rather than at the top of whatever
+page the heading happens to fall on.
+
+Chromium writes a named destination only for an id something links to. Every
+section is in the nav bar, so every section gets one. **A section you add to a
+manual without adding it to the nav bar will have no destination.** Check after
+a rebuild:
 
 ```
 python3 -c "
 import pymupdf
 for f in ('admin','sales','crm'):
-    d = pymupdf.open(f + '.pdf'); seen = {}
-    for l in d[0].get_links():
-        n = l.get('nameddest')
-        if n and n != 'top' and n not in seen: seen[n] = l['page'] + 1
-    print(f, d.page_count, seen)
+    d = pymupdf.open(f + '.pdf')
+    print(f, d.page_count, sorted(d.resolve_names()))
 "
 ```
+
+The System page is the exception: two of its jumps carry a page number, because
+the flow map and the deferred build list have no heading id of their own.
+
+## Exhibits and figures
+
+The matrix carries all thirty exhibits because it documents the system. A role
+manual carries only the screens that person operates, placed next to the
+instruction that operates them, plus the process figures from
+`../matrix-src/figs.py` as `<!--FIG name-->`.
+
+| Manual | Exhibits | Figures |
+|---|---|---|
+| ADMIN | D, E (PR1) &#183; F, H, J (PR-OUT) &#183; Q (ST1) &#183; T, V (ST-OUT) &#183; M (booking) &#183; C (queues) | preflight, cadence |
+| SALES | M (receiving) &#183; N (PR2) &#183; L (the shared booking page) | none |
+| CRM | AB (QUAL) &#183; AE (MA2) | nudges, interview, billing |
+
+Image paths are relative to this directory, so they read
+`../matrix-src/exhibits/…`. PR3 and ST3 to ST7 have no exhibits because the
+master has none: there is no client success or activation surface to
+photograph yet.
 
 ## What validate.py checks
 

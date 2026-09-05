@@ -1,0 +1,79 @@
+"use client";
+
+import SystemArchitecture from "@/components/admin/medjobs/SystemArchitecture";
+
+/**
+ * What sits above the reader on the System page: the operating system as a
+ * picture, and the two orientation assets next to it.
+ *
+ * The diagram is the same map that opens the master document, drawn rather
+ * than rasterised so it stays sharp and so every stage can be a jump target.
+ */
+
+const VIDEO = "/api/admin/medjobs/sop?doc=video";
+const WALKTHROUGH = "/api/admin/medjobs/sop?doc=walkthrough";
+
+function Resource({
+  href,
+  kind,
+  title,
+  detail,
+}: {
+  href: string;
+  kind: string;
+  title: string;
+  detail: string;
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group flex items-start gap-3 rounded-lg border border-gray-200 bg-white p-3 transition-colors hover:border-gray-300 hover:bg-gray-50"
+    >
+      <span className="mt-0.5 rounded bg-gray-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
+        {kind}
+      </span>
+      <span className="min-w-0">
+        <span className="block text-sm font-medium text-gray-900 group-hover:underline">
+          {title}
+        </span>
+        <span className="block text-xs text-gray-500">{detail}</span>
+      </span>
+    </a>
+  );
+}
+
+export default function SopOrientation({
+  onJump,
+}: {
+  /** Jump the reader below to a PDF named destination. */
+  onJump: (dest: string) => void;
+}) {
+  return (
+    <div>
+      <div className="rounded-lg border border-gray-200 bg-white p-4">
+        <div className="mb-3 flex items-baseline justify-between gap-4">
+          <h2 className="text-sm font-semibold text-gray-900">The operating system</h2>
+          <p className="text-xs text-gray-500">Click any stage to jump the reader to it</p>
+        </div>
+        <SystemArchitecture onJump={onJump} />
+      </div>
+
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        <Resource
+          href={VIDEO}
+          kind="Video"
+          title="Operating system walkthrough"
+          detail="Recorded 4 September 2026 · opens in a new tab"
+        />
+        <Resource
+          href={WALKTHROUGH}
+          kind="PDF"
+          title="Walkthrough summary and reader guide"
+          detail="Two pages · how to read the matrix below"
+        />
+      </div>
+    </div>
+  );
+}

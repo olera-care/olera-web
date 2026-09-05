@@ -108,9 +108,11 @@ div.gap p { margin:0; text-align:left; }
    fact. Tagged by shape, because attr_list does not attach to a table. */
 table.field th { display:none; }
 table.field td:first-child { width:23%; font-weight:700; color:var(--teal); }
-h2 { break-before:page; page-break-before:always; }
-h2.nobreak { break-before:auto; page-break-before:auto; }
-table.field th:first-child, table.field td:first-child { width:22%; }
+/* No forced break before a section: jumps address a named destination, which
+   carries the heading's own coordinate, so a section does not need to start at
+   the top of a page for the jump bar to land on it. break-after:avoid on the
+   heading is what stops one stranding at a page foot. */
+h2 { margin-top:16pt; }
 .gap { border-left:2.5pt solid var(--teal); padding:5pt 0 5pt 9pt; margin:6pt 0 8pt;
        background:var(--soft); break-inside:avoid; }
 .gap p { margin:0 0 3pt; }
@@ -135,7 +137,7 @@ fulfilment and billing, which are the User Success Manager's or the Portal's.</p
 <p><strong>WHO HANDS WORK TO YOU</strong> The Admin Team, at the booked meeting, on both sides. The
 row arrives in the <strong>Meetings</strong> queue with its full timeline.</p>
 <p><strong>WHO YOU HAND WORK TO</strong> The User Success Manager, once the outcome is logged.</p>
-<p class="navbar"><a href="#pr2">Provider meetings</a> <a href="#st2">Advisor meetings</a> <a href="#after">After the handoff</a> <a href="#handoff">User Success handoff</a> <a href="#exceptions">Exceptions</a> <a href="#gaps">Gaps</a> <a href="#trace">Traceability</a></p>
+<p class="navbar"><a href="#receiving">Receiving the handoff</a> <a href="#pr2">Provider meetings</a> <a href="#st2">Advisor meetings</a> <a href="#after">After the handoff</a> <a href="#handoff">User Success handoff</a> <a href="#exceptions">Exceptions</a> <a href="#gaps">Gaps</a> <a href="#trace">Traceability</a></p>
 <h2 class="nobreak" id="receiving">Receiving the Admin Team handoff</h2>
 <p>A booking is the handoff. The Admin Team books the 30-minute <em>Student Caregiver
 Program</em> slot, usually live on a call or off a reply that names a time, and the row
@@ -144,6 +146,7 @@ time has passed it sits under <strong>NEEDS LOGGING</strong>, with the instructi
 itself: <em>"log the outcome to move the row forward."</em></p>
 <p>Below <strong>NEEDS LOGGING</strong>, <strong>FINDING A TIME</strong> holds rows still coordinating by email.
 That is a holding state the Admin Team sets by hand, not a meeting, and not yours.</p>
+<figure><img alt="Exhibit M. Meetings tab" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/M-meetings-tab.png" /><figcaption><strong>Exhibit M. Meetings tab.</strong> What the handoff looks like on your side. <strong>NEEDS LOGGING</strong> carries meetings whose time has passed, over <strong>FINDING A TIME</strong>, which is the Admin Team still coordinating and not yours.</figcaption></figure>
 <p><strong>Read the row before the call.</strong> The timeline shows every email, reply and call that
 produced this meeting, including what they said when they replied. On the provider
 side the drawer's <strong>NEXT STEP</strong> reads <em>"On the calendar"</em> and the state chip reads
@@ -218,6 +221,7 @@ side the drawer's <strong>NEXT STEP</strong> reads <em>"On the calendar"</em> an
 </tr>
 </tbody>
 </table>
+<figure><img alt="Exhibit N. Log meeting outcome" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/N-log-meeting.png" /><figcaption><strong>Exhibit N. Log meeting outcome.</strong> A <strong>BOOKED</strong> panel confirming the calendar entry and the attendee, the three outcomes with their consequences, and a notes field. Behind it the drawer shows <strong>NEXT STEP</strong> over a timeline running back through every reply and send.</figcaption></figure>
 <h3 id="what-must-be-recorded">What must be recorded</h3>
 <p>Booked time, attendee name and address, outcome, notes and commitments.</p>
 <p class="totop"><a href="#top">Back to top</a></p>
@@ -275,6 +279,7 @@ their campus reaches them, and the output is the ST3 to ST7 plan.</p>
    send it within two days.</li>
 <li><strong>Log the outcome the same day</strong>, with the channel plan in the notes.</li>
 </ol>
+<figure><img alt="Exhibit L. The booking page" src="file:///home/user/olera-web/docs/medjobs/matrix-src/exhibits/L-calendly-booking.png" /><figcaption><strong>Exhibit L. The booking page.</strong> What both a provider and an advising office see: <strong>Student Caregiver Program</strong>, 30 minutes, your name, and the pitch, over a date and time picker. One event serves both funnels, which is what <strong>B8</strong> is about.</figcaption></figure>
 <h3 id="the-five-channels">The five channels</h3>
 <table>
 <thead>

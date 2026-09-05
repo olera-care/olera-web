@@ -23,7 +23,7 @@ row arrives in the **Meetings** queue with its full timeline.
 
 **WHO YOU HAND WORK TO** The User Success Manager, once the outcome is logged.
 
-[Provider meetings](#pr2) [Advisor meetings](#st2) [After the handoff](#after) [User Success handoff](#handoff) [Exceptions](#exceptions) [Gaps](#gaps) [Traceability](#trace)
+[Receiving the handoff](#receiving) [Provider meetings](#pr2) [Advisor meetings](#st2) [After the handoff](#after) [User Success handoff](#handoff) [Exceptions](#exceptions) [Gaps](#gaps) [Traceability](#trace)
 {: .navbar }
 
 ## Receiving the Admin Team handoff {: #receiving .nobreak }
@@ -36,6 +36,10 @@ itself: *"log the outcome to move the row forward."*
 
 Below **NEEDS LOGGING**, **FINDING A TIME** holds rows still coordinating by email.
 That is a holding state the Admin Team sets by hand, not a meeting, and not yours.
+
+**Exhibit M. Meetings tab.** What the handoff looks like on your side. **NEEDS LOGGING** carries meetings whose time has passed, over **FINDING A TIME**, which is the Admin Team still coordinating and not yours.
+
+![Exhibit M. Meetings tab](../matrix-src/exhibits/M-meetings-tab.png)
 
 **Read the row before the call.** The timeline shows every email, reply and call that
 produced this meeting, including what they said when they replied. On the provider
@@ -78,6 +82,10 @@ side the drawer's **NEXT STEP** reads *"On the calendar"* and the state chip rea
 | **No-show / reschedule** | Logs a no-show and opens Calendly to rebook |
 | **Not interested** | Sends a polite closing note and stops outreach |
 
+**Exhibit N. Log meeting outcome.** A **BOOKED** panel confirming the calendar entry and the attendee, the three outcomes with their consequences, and a notes field. Behind it the drawer shows **NEXT STEP** over a timeline running back through every reply and send.
+
+![Exhibit N. Log meeting outcome](../matrix-src/exhibits/N-log-meeting.png)
+
 ### What must be recorded
 
 Booked time, attendee name and address, outcome, notes and commitments.
@@ -119,6 +127,10 @@ their campus reaches them, and the output is the ST3 to ST7 plan.
 6. **Ask what they need from us to make it easy**, being copy, a flyer, a date, then
    send it within two days.
 7. **Log the outcome the same day**, with the channel plan in the notes.
+
+**Exhibit L. The booking page.** What both a provider and an advising office see: **Student Caregiver Program**, 30 minutes, your name, and the pitch, over a date and time picker. One event serves both funnels, which is what **B8** is about.
+
+![Exhibit L. The booking page](../matrix-src/exhibits/L-calendly-booking.png)
 
 ### The five channels
 

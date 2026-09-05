@@ -43,6 +43,8 @@ whose providers are loaded but un-researched has not completed PR1.
 | **Completion criteria** | Contact details confirmed on the call, and the row launched into outreach. Or three unsuccessful call attempts, and the row archived |
 | **Handoff** | **Launch outreach**, to PR-OUT. The row stays with you |
 
+<!--FIG preflight-->
+
 ### Required actions
 
 For a given site, work every provider on it.
@@ -69,6 +71,14 @@ For a given site, work every provider on it.
 | **Voicemail** | Message left | Stays in pre-flight, call again |
 | **Not interested** | They do not want the information | Row closes; no outreach |
 
+**Exhibit D. Log Pre-Flight outcome.** The suggested script, the four outcomes with their consequences stated on each, the notes field, and **Override and launch outreach**. In Basket, provider row, **Call to Confirm**.
+
+![Exhibit D. Log Pre-Flight outcome](../matrix-src/exhibits/D-log-preflight.png)
+
+**Exhibit E. Provider drawer.** **RESEARCH** states the sequence over five contact fields, each with a state marker. The ticks are what pre-flight complete looks like on a row. **The timeline is where the three-strikes count is read from**, one entry per attempt, with the operator and how long ago.
+
+![Exhibit E. Provider drawer](../matrix-src/exhibits/E-provider-drawer.png)
+
 ### What must be recorded
 
 Business name, phone, email, address, fax, contact form, decision makers, research
@@ -94,11 +104,17 @@ the row runs out.
 | **Completion criteria** | A meeting on the Sales Lead's calendar. Or a recorded terminal outcome, or a finished cadence that drops the row into Follow-up |
 | **Handoff** | **Admin Team to Sales Lead** when a meeting is booked. The row appears in the Meetings queue with its full timeline. No meeting and the cadence finishes, and the row drops to **Follow-up** for re-engage-or-retire triage |
 
+<!--FIG cadence-->
+
 **The cadence.** Three emails and two calls over seven days: Day 0 intro email, Day 3
 follow-up email and a check-in call, Day 5 call, Day 7 final email. Cold email sends
 from a dedicated outreach domain. Scheduled sends and calls appear in the drawer's
 **UPCOMING** list with their dates, so the row's whole future is visible before it
 happens.
+
+**Exhibit F. Confirm outreach plan.** **LAUNCH SUMMARY**, the recipients as checkboxes with the address and phone each will be reached on, and every cadence day expandable to the actual email. This is where you check the merge fields resolved.
+
+![Exhibit F. Confirm outreach plan](../matrix-src/exhibits/F-launch-outreach.png)
 
 ### Required actions
 
@@ -126,6 +142,10 @@ happens.
 | **Voicemail** | Message left; the next cadence call stays scheduled |
 | **Not interested** | Closes the row and cancels remaining outreach |
 
+**Exhibit H. Log call.** The day's script at the top, then the five outcomes with their consequences, and a notes field where a note on its own logs the call. Calls, row, **Call provider**.
+
+![Exhibit H. Log call](../matrix-src/exhibits/H-log-call.png)
+
 | Reply option | What happens |
 |---|---|
 | **Launch activation cadence** | Runs the standard activation sequence toward a meeting |
@@ -133,6 +153,10 @@ happens.
 | **OOO reply, restart last cadence** | Auto-reply, not a real answer. Resumes the cadence and puts the row back to pending |
 | **Book a meeting** | Opens the Calendly booking page and marks a meeting scheduled |
 | **Not interested** | Sends a polite closing note and stops outreach |
+
+**Exhibit J. Check for reply.** The provider's actual reply quoted at the top, then the five ways to respond. Behind it the **Emails** tab grouped by state. Emails, row, **Check for reply**.
+
+![Exhibit J. Check for reply](../matrix-src/exhibits/J-check-for-reply.png)
 
 A real reply stops the cadence automatically. The timeline records *"Reply received to
 \[address\], cadence stopped,"* so the next move is a manual one. The out-of-office
@@ -186,6 +210,10 @@ autosaves as you work.
 7. **Then confirm by a quick call before launching.** Generating a prospect is not the
    same as knowing the address is live.
 
+**Exhibit Q. Research, step 2, verify offices.** *"The advising office is the prospect. Confirm each one's email and tag, that's all outreach needs."* Each office carries a tag, email, phone and optional website, an advisors section, and the **Verified** tick.
+
+![Exhibit Q. Research, step 2, verify offices](../matrix-src/exhibits/Q-research-verify-offices.png)
+
 ### What must be recorded
 
 Office name, tag, email, phone, website, source link, optional advisors, the verified
@@ -220,6 +248,10 @@ own email as a selectable extra, which is why ST1 accepts only advisors who have
 **Launch activation** sits beside Launch outreach as the second cadence, run once a
 row has engaged.
 
+**Exhibit T. Partner drawer.** **RESEARCH** states the sequence over the office name, general email and general phone, with **ADVISORS** and the rule beneath it. Three actions: **Call to Confirm**, **Launch outreach**, **Launch activation**.
+
+![Exhibit T. Partner drawer](../matrix-src/exhibits/T-partner-drawer.png)
+
 ### Required actions
 
 1. **Call before you launch.** The row is a prospect, not a confirmed address. The
@@ -241,6 +273,10 @@ row has engaged.
 8. **Respect permission gating on professors.** Class visits and listserv posts happen
    because someone agreed to them; the ask on this cadence is a meeting, not a
    distribution.
+
+**Exhibit V. Confirm outreach plan, partner side.** **LAUNCH SUMMARY** reads *"5 emails + 1 call across the cadence below."* Day 0 opens to the full meeting-first intro email, sending from `partnerships@findmedjobs.co`. This is the modal that tells you which cadence you are launching.
+
+![Exhibit V. Confirm outreach plan, partner side](../matrix-src/exhibits/V-partner-launch-outreach.png)
 
 The pre-flight outcomes and the reply options are the same four and five as the
 provider side. One difference: **Launch activation cadence** drops out of the reply
@@ -271,6 +307,10 @@ during the call is the design. Sending the link and waiting is the slower fallba
 | **What must be recorded** | The booked time and the attendee. The row carries its full timeline into the Meetings queue |
 | **Handoff** | **Admin Team to Sales Lead.** From the booked meeting on, the row is the Sales Lead's until they log the outcome |
 
+**Exhibit M. Meetings tab.** **NEEDS LOGGING** carries meetings whose time has passed. **FINDING A TIME** below it holds rows still coordinating by email, the state you set by hand.
+
+![Exhibit M. Meetings tab](../matrix-src/exhibits/M-meetings-tab.png)
+
 **Finding a time** is a holding state, not a meeting. You set it by hand while a
 provider is going back and forth by email. It sits below **NEEDS LOGGING** in the
 Meetings tab.
@@ -295,6 +335,10 @@ rows are worked side by side in the same tabs with the same modals.
 The In Basket header carries the day's workload over three counters: **QUEUED**,
 **LOGS COMPLETED TODAY**, and a **STREAK** of consecutive business days hitting fifty
 logs.
+
+**Exhibit C. In Basket, Providers tab.** The day's workload over three counters: **QUEUED**, **LOGS COMPLETED TODAY**, and a **STREAK** of consecutive business days hitting fifty logs.
+
+![Exhibit C. In Basket, Providers tab](../matrix-src/exhibits/C-in-basket-providers.png)
 
 **Logging discipline, in one line.** Log every outcome every time, including the calls
 nobody answered, because the timeline is the only record of how many attempts a row

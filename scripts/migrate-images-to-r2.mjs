@@ -142,6 +142,7 @@ const stats = {
   uploadFailed: 0,
   errors: 0,
   googleApiCalls: 0,
+  photoMediaCalls: 0, // the only billed call (Place Details Photos SKU)
   skippedAlreadyMigrated: 0,
 };
 
@@ -153,6 +154,13 @@ const startTime = Date.now();
 // ---------------------------------------------------------------------------
 
 const GOOGLE_MIN_INTERVAL_MS = Math.ceil(1000 / QPS);
+
+// Place Details Photos SKU (Enterprise): $7 per 1,000 after 1,000 free per
+// month. Place Details with fields=photos is the free IDs Only SKU. Verified
+// against developers.google.com/maps/billing-and-pricing/pricing, 2026-09-05.
+function photoMediaCost(calls) {
+  return (Math.max(0, calls - 1000) * 7) / 1000;
+}
 let lastGoogleCallTime = 0;
 let rateLimitQueue = Promise.resolve();
 
@@ -201,6 +209,7 @@ async function getPhotoReferences(placeId) {
 async function downloadPhoto(photoName) {
   await googleRateLimit();
   stats.googleApiCalls++;
+  stats.photoMediaCalls++;
   return r2.downloadPhoto(photoName, GOOGLE_API_KEY);
 }
 
@@ -330,8 +339,7 @@ async function processWithWorkers(providers) {
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(0);
     const pct = ((done / providers.length) * 100).toFixed(1);
     const rate = (done / (elapsed || 1)).toFixed(1);
-    const detailsCost = stats.googleApiCalls * 0.005; // blended avg
-    const estimatedCost = detailsCost.toFixed(2);
+    const estimatedCost = photoMediaCost(stats.photoMediaCalls).toFixed(2);
     const eta = rate > 0 ? (((providers.length - done) / rate) / 60).toFixed(1) : "?";
     process.stdout.write(
       `\r  [${pct}%] ${done}/${providers.length} | ` +
@@ -445,7 +453,9 @@ async function main() {
 
   if (DRY_RUN) {
     // Cost: 1 Place Details ($0.005) + 2 Photo Media ($0.007 each) = $0.019/provider
-    const estimatedCost = (providers.length * 0.019).toFixed(2);
+    // Place Details with fields=photos is the free IDs Only SKU; only Photo
+    // Media bills. Assume ~55% of providers have photos, 2 downloads each.
+    const estimatedCost = photoMediaCost(Math.round(providers.length * 0.55 * MAX_PHOTOS_PER_PROVIDER)).toFixed(2);
     const estimatedTime = ((providers.length * 3) / QPS / 60).toFixed(1); // 3 calls/prov
     console.log(`  Estimated Google API calls: ~${providers.length * 3}`);
     console.log(`  Estimated cost:  ~$${estimatedCost}`);
@@ -474,7 +484,7 @@ async function main() {
   console.log(`  Upload failed:     ${stats.uploadFailed}`);
   console.log(`  Errors:            ${stats.errors}`);
   console.log(`  Already migrated:  ${stats.skippedAlreadyMigrated}`);
-  console.log(`  Google API calls:  ${stats.googleApiCalls}`);
+  console.log(`  Google API calls:  ${stats.googleApiCalls} (${stats.photoMediaCalls} billed Photo Media, ~$${photoMediaCost(stats.photoMediaCalls).toFixed(2)})`);
   console.log();
   console.log(
     "  Next step: run classify-provider-images.mjs to pick hero images"

@@ -1,4 +1,4 @@
-# Olera Marketplace — System Architecture (v15)
+# Olera Marketplace — System Architecture
 
 One city, both sides. Everything below the entry layer lives in the Portal.
 
@@ -7,81 +7,85 @@ One city, both sides. Everything below the entry layer lives in the Portal.
 ---
 
 ```
-                                  ┌────────────┐
-                                  │  ONE CITY  │
-                                  └──────┬─────┘
-          ┌──────────────────────────────┴───────────────────────┐
-          ▼                                                      ▼
+                                       ┌────────────┐
+                                       │  ONE CITY  │
+                                       └──────┬─────┘
+            ┌─────────────────────────────────┴──────────────────────────┐
+            ▼                                                            ▼
 
-FAMILY                                              PROVIDER
-─────────────────────────────────────────────────   ─────────────────────────────
-FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS           P1  LISTED    PS1 ORGANIC
-  │              │             │                      │           PS2 REFERRAL
-  │              └───────┬──────┘                     ▼             │
-  │                      ▼                          P2  OUTREACH    │
-  │           F1  ENTRY SURFACE                       │             │
-  │               provider page                       │             │
-  │               editorial                           │             │
-  │               benefits page                       │             │
-  │               │                                   │             │
-  │               ├─ FQ   QUESTION ───────────────────►             │
-  │               ▼                                   │             │
-  │           F2  CTA                                 │             │
-  │               ├─ F2a  BENEFITS CTA                │             │
-  │               ├─ F2b  CONNECTION CARD ────────────►             │
-  │               ├─ F2c  LIVE PROFILE ───────────────►             │
-  │               │                                   │             │
-  └────────┬──────┘                                   │             │
-           └───────────────────────┐                  │             │
-                                   ▼                  ▼             ▼
-┌────────────────────────────────────────────────────────────────────────────────┐
-│  PORTAL                                                                        │
-│  ┌─────────────────────┐  ┌────────────────────┐  ┌─────────────────────────┐  │
-│  │ TRACK A             │  │ F3  FAMILY PROFILE │  │ TRACK B                 │  │
-│  │ AID ESTABLISHMENT   │  │                    │  │ CARE ESTABLISHMENT      │  │
-│  │                     │  │   ┌────────────┐   │  │      ┌────────────┐     │  │
-│  │                     │  │   │    CR-F    │   │  │      │    CR-P    │     │  │
-│  │                     │  │   └────────────┘   │  │      └────────────┘     │  │
-│  │                     │  │                    │  │                         │  │
-│  │ A1  MATCHED         │◄─│      enriches      │  │ P3  PROVIDER PROFILE    │  │
-│  │      │              │  │    continuously    │  │     CLAIM or CREATE     │  │
-│  │      ▼              │  │                    │  │      │                  │  │
-│  │ A2  APPLICATION     │  │                    │  │      ▼                  │  │
-│  │      │              │  │                    │─►│ B1  FAMILY-PROVIDER     │  │
-│  │      ▼              │  │                    │  │     MATCHED             │  │
-│  │ A3  AID ESTABLISHED │  │                    │  │      │                  │  │
-│  │                     │  │                    │  │      ▼                  │  │
-│  │                     │  │                    │  │ B2  QUALIFIED           │  │
-│  │                     │  │                    │  │      │                  │  │
-│  │                     │  │                    │  │      ▼                  │  │
-│  │                     │  │                    │  │ B3  CARE ESTABLISHED    │  │
-│  └─────────┬───────────┘  └────────────────────┘  └────┬────────────┬───────┘  │
-└────────────┼───────────────────────────────────────────┼────────────┼──────────┘
-             │                                           │            │
-             └─────────────────────┬─────────────────────┘            │
-                                   ▼                                  ▼
-                          FO  FAMILY OUTCOME                PO  PROVIDER OUTCOME
-                              aid or care                       new business
+FAMILY                                                PROVIDER
+───────────────────────────────────────────────────   ─────────────────────────────────────
+SOURCES                                               SOURCES
+FS1 REFERRAL   FS2 ORGANIC   FS3 PAID ADS             P1  LISTED  PS1 ORGANIC  PS2 REFERRAL
+  │              │             │                        │         │            │
+  │              └───────┬──────┘                       ▼         └──────┬──────┘
+  │                      ▼                            P2  OUTREACH       │
+  │           F1  ENTRY SURFACE                         │                │
+  │               provider page                         │                │
+  │               editorial                             │                │
+  │               benefits page                         │                │
+  │               │                                     │                │
+  │               ├─ FQ   QUESTION ─────────────────────►                │
+  │               ▼                                     │                │
+  │           F2  CTA                                   │                │
+  │               ├─ F2a  BENEFITS CTA                  │                │
+  │               ├─ F2b  CONNECTION CARD ──────────────►                │
+  │               ├─ F2c  LIVE PROFILE ─────────────────►                │
+  │               │                                     │                │
+  └────────┬──────┘                                     │                │
+           └─────────────────────────┐                  │                │
+                                     ▼                  ▼                ▼
+┌──────────────────────────────────────────────────────────────────────────────────────────┐
+│  PORTAL                                                                                  │
+│  ┌──────────────────────┐  ┌─────────────────────┐  ┌─────────────────────────────────┐  │
+│  │ TRACK A              │  │ F3  FAMILY PROFILE  │  │ TRACK B                         │  │
+│  │ AID ESTABLISHMENT    │  │                     │  │ CARE ESTABLISHMENT              │  │
+│  │                      │  │    ┌────────────┐   │  │          ┌────────────┐         │  │
+│  │                      │  │    │    CR-F    │   │  │          │    CR-P    │         │  │
+│  │                      │  │    └────────────┘   │  │          └────────────┘         │  │
+│  │                      │  │                     │  │                                 │  │
+│  │ A1  MATCHED          │◄─│       enriches      │  │ P3  PROVIDER PROFILE            │  │
+│  │      │               │  │     continuously    │  │     CLAIM or CREATE             │  │
+│  │      ▼               │  │                     │  │      │                          │  │
+│  │ A2  APPLICATION      │  │                     │  │      ▼                          │  │
+│  │      │               │  │                     │─►│ B1  FAMILY-PROVIDER MATCHED     │  │
+│  │      ▼               │  │                     │  │      │                          │  │
+│  │ A3  AID ESTABLISHED  │  │                     │  │      ▼                          │  │
+│  │                      │  │                     │  │ B2  QUALIFIED                   │  │
+│  │                      │  │                     │  │      │                          │  │
+│  │                      │  │                     │  │      ▼                          │  │
+│  │                      │  │                     │  │ B3  CARE ESTABLISHED            │  │
+│  └──────────┬───────────┘  └─────────────────────┘  └─────┬────────────────┬─────────┘   │
+└─────────────┼─────────────────────────────────────────────┼────────────────┼────────────┘
+              │                                             │                │
+              └──────────────────────┬──────────────────────┘                │
+                                     ▼                                       ▼
+                              FAMILY OUTCOME                         PROVIDER OUTCOME
+                            FO1 aid   FO2 care                       PO  new business
 ```
 
 ---
 
 ## Index
 
-**Family sources** — FS1 referral · FS2 organic · FS3 paid ads
+**S = source.** FS is a family source, PS a provider source.
 
-**Family** — F1 entry surface · FQ question · F2 CTA (F2a benefits CTA, F2b connection card,
-F2c live profile) · F3 family profile · CR-F
-
-**Provider sources** — PS1 organic · PS2 referral
-
-**Provider** — P1 listed · P2 outreach · P3 provider profile, claim or create · CR-P
-
-**Track A** — A1 matched · A2 application · A3 aid established
-
-**Track B** — B1 family–provider matched · B2 qualified · B3 care established
-
-**Outcomes** — FO family outcome, aid or care · PO provider outcome, new business
+| | |
+|---|---|
+| **FS1 · FS2 · FS3** | referral · organic · paid ads |
+| **F1** | entry surface — provider page, editorial, benefits page |
+| **FQ** | question |
+| **F2** | CTA — **F2a** benefits CTA · **F2b** connection card · **F2c** live profile |
+| **F3** | family profile |
+| **CR-F** | family consumer relations |
+| **P1 · PS1 · PS2** | listed · organic · referral |
+| **P2** | outreach |
+| **P3** | provider profile, claim or create |
+| **CR-P** | provider consumer relations |
+| **A1 · A2 · A3** | matched · application · aid established |
+| **B1 · B2 · B3** | family–provider matched · qualified · care established |
+| **FO1 · FO2** | aid · care |
+| **PO** | new business |
 
 ---
 
@@ -94,10 +98,10 @@ because it names no provider.
 That is the reciprocal loop: family demand makes provider outreach worth doing, and provider
 outreach makes the next family's match land on someone who can act.
 
-## Both sides acquire the same three ways
+## Both sides acquire the same way
 
-Family: referral, organic, paid. Provider: organic, referral — plus P1, the listed directory, which
-has no family equivalent. The symmetry is the point; the directory is the asymmetry.
+Referral and organic on both; paid ads on the family side only. The one asymmetry is **P1**, the
+listed directory — there is no family equivalent, and there should not be.
 
 ---
 
@@ -106,8 +110,8 @@ has no family equivalent. The symmetry is the point; the directory is the asymme
 **P3 above B1 describes where we want to be, not where we are.** Today the match comes first: a
 family inquires, the connection is created against a listed provider, and the notification email —
 a link with no family contact details — is what causes the claim. Shipped order is match → claim →
-respond. Drawing P3 first says something better: a pool of claimed providers receiving matches. CR-P
-and the PS1/PS2 sources are the machines that would get us there.
+respond. Drawing P3 first says something better: a pool of claimed providers receiving matches. CR-P,
+PS1 and PS2 are the machines that would get us there.
 
 ---
 

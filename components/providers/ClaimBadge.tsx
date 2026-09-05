@@ -186,6 +186,7 @@ export default function ClaimBadge({
                 </p>
                 <Link
                   href={claimUrl}
+                  rel="nofollow"
                   className="inline-flex items-center gap-1 text-primary-300 hover:text-primary-200 font-medium transition-colors"
                 >
                   Are you the owner? Manage this page
@@ -212,6 +213,7 @@ export default function ClaimBadge({
                 </p>
                 <Link
                   href={claimUrl}
+                  rel="nofollow"
                   className="inline-flex items-center gap-1 text-primary-300 hover:text-primary-200 font-medium transition-colors"
                 >
                   Are you the owner? Manage this page

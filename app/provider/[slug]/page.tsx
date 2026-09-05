@@ -2,6 +2,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { notFound, permanentRedirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { brandPath } from "@/lib/brands";
 import type { Profile, OrganizationMetadata, CaregiverMetadata, GoogleReviewsData, CMSData, AiTrustSignals, StaffInfo } from "@/lib/types";
 import { resolveProvider, resolveProviderForMeta, getClaimedAccount } from "@/lib/providers";
 import { DesktopCTAVariantRouter, MobileCTAVariantRouter } from "@/components/providers/CTAVariantRouter";
@@ -49,6 +50,7 @@ import type { BenefitsProgram } from "@/components/providers/BenefitsDiscoveryMo
 import { BenefitsArmGate, AgentOutreachSlot } from "@/components/providers/IntakeVariantSlots";
 import { getTopProvidersByCityAndCategory } from "@/lib/agent-outreach-providers";
 import { PROFILE_CAT_TO_SUPABASE_CAT } from "@/lib/types/provider";
+import { buildProviderBreadcrumbs } from "@/lib/provider-breadcrumbs";
 import { getTopProgramsForState, getAllProgramIds, getEnrichedProgram } from "@/lib/program-data";
 import {
   getInitials,
@@ -737,19 +739,24 @@ export default async function ProviderPage({
   // ============================================================
 
   // ── JSON-LD structured data ──
+  // One trail for the visible breadcrumb and the schema: category → state →
+  // city power pages, the site's canonical hierarchy (see lib/provider-breadcrumbs.ts).
+  const breadcrumbs = buildProviderBreadcrumbs({
+    category: profile.category,
+    city: profile.city,
+    state: profile.state,
+    providerName: profile.display_name,
+    providerSlug: profile.slug,
+  });
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: [
-      { "@type": "ListItem", position: 1, name: "Home", item: "https://olera.care" },
-      ...(categoryLabel
-        ? [{ "@type": "ListItem", position: 2, name: categoryLabel, item: `https://olera.care/browse?type=${profile.category}` }]
-        : []),
-      ...(profile.city && profile.state
-        ? [{ "@type": "ListItem", position: categoryLabel ? 3 : 2, name: `${profile.city}, ${profile.state}`, item: `https://olera.care/browse?type=${profile.category}&q=${encodeURIComponent(`${profile.city}, ${profile.state}`)}` }]
-        : []),
-      { "@type": "ListItem", position: (categoryLabel ? 3 : 2) + (profile.city ? 1 : 0), name: profile.display_name, item: `https://olera.care/provider/${profile.slug}` },
-    ],
+    itemListElement: breadcrumbs.map((c, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: c.name,
+      item: `https://olera.care${c.href}`,
+    })),
   };
 
   const localBusinessJsonLd: Record<string, unknown> = {
@@ -904,12 +911,7 @@ export default async function ProviderPage({
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-0 md:pt-6 pb-4 md:pb-8">
 
           {/* Breadcrumbs */}
-          <Breadcrumbs
-            category={profile.category}
-            city={profile.city}
-            state={profile.state}
-            providerName={profile.display_name}
-          />
+          <Breadcrumbs crumbs={breadcrumbs} />
 
           {/* ── Hero (full width, above the grid) ── */}
           <div className="flex flex-col md:flex-row gap-6">
@@ -976,6 +978,15 @@ export default async function ProviderPage({
                 {/* Row 1: Location (City, State) */}
                 {locationStr && (
                   <p className="text-sm text-gray-500 mt-1">{locationStr}</p>
+                )}
+                {/* Brand hub link: every tagged location points at its brand page */}
+                {parentOrganization?.name && (
+                  <p className="text-sm text-gray-500 mt-0.5">
+                    Part of{" "}
+                    <a href={brandPath(parentOrganization.name)} className="text-primary-600 hover:text-primary-700 font-medium">
+                      {parentOrganization.name}
+                    </a>
+                  </p>
                 )}
 
                 {/* Row 2: Highlights only (category is now eyebrow above name) */}
@@ -1157,6 +1168,18 @@ export default async function ProviderPage({
                       <span className="font-semibold text-gray-900">{rating.toFixed(1)}</span>
                       <span>on Google</span>
                     </span>
+                  )}
+                  {/* Brand hub link: every tagged location points at its brand page */}
+                  {parentOrganization?.name && (
+                    <>
+                      <span className="text-gray-300">·</span>
+                      <span>
+                        Part of{" "}
+                        <a href={brandPath(parentOrganization.name)} className="text-primary-600 hover:text-primary-700 font-medium">
+                          {parentOrganization.name}
+                        </a>
+                      </span>
+                    </>
                   )}
                 </div>
 
@@ -1622,6 +1645,7 @@ export default async function ProviderPage({
                   <p className="text-sm text-gray-500">Are you the owner of this business?</p>
                   <a
                     href={`/provider/onboarding?org=${profile.slug}`}
+                    rel="nofollow"
                     className="text-sm text-primary-600 hover:text-primary-700 font-medium transition-colors"
                   >
                     Manage this page <span aria-hidden="true">→</span>

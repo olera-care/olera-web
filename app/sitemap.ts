@@ -8,6 +8,7 @@ import {
 import { allStates } from "@/data/waiver-library";
 import { pipelineDrafts } from "@/data/pipeline-drafts";
 import { shouldIndexBenefitsProgram } from "@/lib/benefits/program-content-quality";
+import { listBrands, BRANDS_BASE_PATH } from "@/lib/brands";
 import {
   countActiveProviders,
   getActiveProviderGeoByCategory,
@@ -107,6 +108,29 @@ export default async function sitemap({
           changeFrequency: page.changeFrequency,
           priority: page.priority,
         });
+      }
+
+      // Brand hub pages (one per franchise / multi-location operator)
+      try {
+        const brands = await listBrands();
+        if (brands.length > 0) {
+          entries.push({
+            url: `${SITE_URL}${BRANDS_BASE_PATH}`,
+            lastModified: new Date(),
+            changeFrequency: "weekly",
+            priority: 0.7,
+          });
+          for (const brand of brands) {
+            entries.push({
+              url: `${SITE_URL}${BRANDS_BASE_PATH}/${brand.slug}`,
+              lastModified: new Date(),
+              changeFrequency: "weekly",
+              priority: 0.7,
+            });
+          }
+        }
+      } catch (err) {
+        console.error("[sitemap] brands error:", err);
       }
 
       // Waiver library pages (static data)

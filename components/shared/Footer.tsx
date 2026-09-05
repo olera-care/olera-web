@@ -259,6 +259,11 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                   </Link>
                 </li>
                 <li>
+                  <Link href="/brands" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                    Senior Care Brands
+                  </Link>
+                </li>
+                <li>
                   <Link href="/benefits/finder" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
                     Benefits Finder
                   </Link>
@@ -278,7 +283,7 @@ export default function Footer({ hideDiscoveryZone = false }: { hideDiscoveryZon
                   </Link>
                 </li>
                 <li>
-                  <Link href="/provider/onboarding" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
+                  <Link href="/provider/onboarding" rel="nofollow" className="flex items-center min-h-[44px] text-gray-500 hover:text-primary-600 transition-colors text-sm">
                     Find Your Organization
                   </Link>
                 </li>

@@ -11,6 +11,7 @@ import { generateProviderSlug } from "@/lib/slugify";
 import type { BusinessProfile, ProfileCategory, GoogleReviewsData, CMSData, AiTrustSignals } from "@/lib/types";
 import { getRegionalEstimate, getPricingConfig } from "@/lib/pricing-config";
 import { buildHighlights } from "@/lib/provider-highlights";
+import { filterDeadImageUrls, liveImageUrlOrNull } from "@/lib/images/dead-hosts";
 
 export interface Provider {
   provider_id: string;
@@ -54,7 +55,9 @@ export interface Provider {
  */
 export function parseProviderImages(images: string | null): string[] {
   if (!images) return [];
-  return images.split(" | ").filter(Boolean);
+  // Dead hosts (cdn-api.olera.care, expired Places photoUri) are dropped here so
+  // every consumer falls through to the stock image instead of a 502.
+  return filterDeadImageUrls(images.split(" | ").filter(Boolean));
 }
 
 /** Categories where pricing is per-hour rather than per-month */
@@ -101,8 +104,7 @@ export function getPrimaryImage(provider: Provider): string | null {
   if (provider.hero_image_url) return provider.hero_image_url;
   const images = parseProviderImages(provider.provider_images);
   if (images[0]) return images[0];
-  if (provider.provider_logo) return provider.provider_logo;
-  return null;
+  return liveImageUrlOrNull(provider.provider_logo);
 }
 
 /**

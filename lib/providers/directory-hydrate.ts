@@ -1,6 +1,7 @@
 import { SUPABASE_CAT_TO_PROFILE_CATEGORY } from "@/lib/types/provider";
 import { getCategoryServices } from "@/lib/provider-utils";
 import { normalizeCareLabel } from "@/lib/provider-highlights";
+import { filterDeadImageUrls, liveImageUrlOrNull } from "@/lib/images/dead-hosts";
 
 /**
  * One provider, one record. When a directory (`olera-providers`) listing is
@@ -35,7 +36,7 @@ export interface DirectoryHydration {
 /** Parse olera-providers' pipe-joined `provider_images` into a clean array. */
 export function parseDirectoryImages(provider_images: string | null | undefined): string[] {
   return provider_images
-    ? provider_images.split(" | ").map((s) => s.trim()).filter(Boolean)
+    ? filterDeadImageUrls(provider_images.split(" | ").map((s) => s.trim()).filter(Boolean))
     : [];
 }
 
@@ -72,7 +73,7 @@ export function directoryHydrationFields(row: DirectoryRowForHydration): Directo
     description: row.provider_description ?? null,
     care_types: careTypes,
     category,
-    image_url: row.provider_logo ?? null,
+    image_url: liveImageUrlOrNull(row.provider_logo),
     images: parseDirectoryImages(row.provider_images),
   };
 }

@@ -12,11 +12,16 @@
  *
  * Any of these URLs routed through `/_next/image` makes the optimizer answer
  * 502. Googlebot recorded ~21K such 5xx in 90 days, which Search Console counts
- * against host availability. Google keeps re-fetching image URLs it learned
- * months ago, so the fix has to happen at the request (middleware) as well as
- * at render time (don't emit the URL in the first place).
+ * against host availability. This module is the render-time half of the fix:
+ * never emit a dead URL, so pages fall through to the category stock image.
  *
- * This module is pure and dependency-free so it can run in Edge middleware.
+ * The request-time half cannot live in code. On Vercel the image optimizer
+ * answers `/_next/image` before Next middleware and before next.config
+ * redirects run (both were tried on a preview and never fired). Google keeps
+ * re-fetching image URLs it learned months ago, so stale requests are handled
+ * by a Vercel Firewall rule: Request Path is `/_next/image` AND Query `url`
+ * contains one of the dead hosts → Redirect to `DEAD_IMAGE_REDIRECT_PATH`.
+ * Keep the two lists in sync by hand.
  */
 
 export function isDeadImageUrl(url: string | null | undefined): boolean {
@@ -44,8 +49,10 @@ export function liveImageUrlOrNull(url: string | null | undefined): string | nul
 }
 
 /**
- * Static stock image served when a dead image URL is requested through the
- * optimizer. A single general image on purpose: the request does not carry
- * provider category, and the point is a 200 instead of a 502.
+ * Static stock image the Vercel Firewall redirect rule points at when a dead
+ * image URL is requested through the optimizer. A single general image on
+ * purpose: the request does not carry provider category, and the point is a
+ * 200 instead of a 502. Referenced here so the dashboard rule has a source of
+ * truth in the repo.
  */
 export const DEAD_IMAGE_REDIRECT_PATH = "/images/fallback/general-02.jpg";

@@ -30,26 +30,6 @@ const nextConfig: NextConfig = {
   // ── 301 Redirects (v1.0 → v2.0 migration) ──
   async redirects() {
     return [
-      // ── Dead image sources through the optimizer ──
-      // /_next/image?url=https://cdn-api.olera.care/... (the iOS-era CDN, gone)
-      // and .../place-photos/... (expired Places API photoUri) make the
-      // optimizer answer 502. Googlebot logged ~21K of these in 90 days and
-      // Search Console counts them against host availability. Google keeps
-      // re-fetching image URLs it learned months ago, so this must be answered
-      // at the request, before the optimizer. Send them to a static stock image.
-      // See lib/images/dead-hosts.ts for the render-time half of this fix.
-      {
-        source: "/_next/image",
-        has: [{ type: "query", key: "url", value: "https://cdn-api.olera.care/(?<rest>.*)" }],
-        destination: "/images/fallback/general-02.jpg",
-        permanent: false,
-      },
-      {
-        source: "/_next/image",
-        has: [{ type: "query", key: "url", value: "https://lh3.googleusercontent.com/place-photos/(?<rest>.*)" }],
-        destination: "/images/fallback/general-02.jpg",
-        permanent: false,
-      },
       // MedJobs provider board: /provider/medjobs/candidates IS the gated Hire
       // Caregivers board (candidate cards + campus map + welcome banner). The
       // public marketing + preview surface is /medjobs/candidates. An earlier G3

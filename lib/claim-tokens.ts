@@ -729,3 +729,37 @@ export function generateProviderConnectionStatusUrls(
     noCapacity: urls.no_capacity,
   };
 }
+
+// ============================================================
+// City lead offer tokens (lib/city-ads)
+// ============================================================
+//
+// A provider receives an offer by email and text. The link in both opens
+// /p/offer/{token}, which shows the request and two buttons; the buttons POST
+// (an email link never writes). Compact on purpose so it fits in a text:
+// `{offerId}.{sig}`. No expiry inside the token: the offer row's own state
+// decides what the page shows, and a late click on a taken lead should still
+// land on an honest "already taken" screen rather than a dead link.
+
+function cityOfferSignatureData(offerId: string): string {
+  return `cityoffer:${offerId}`;
+}
+
+export function generateCityOfferToken(offerId: string): string {
+  return `${offerId}.${hmacSignature(cityOfferSignatureData(offerId), TOKEN_SECRET)}`;
+}
+
+export function validateCityOfferToken(token: string): { valid: true; offerId: string } | { valid: false; error: string } {
+  const dot = token.lastIndexOf(".");
+  if (dot <= 0) return { valid: false, error: "Invalid token format" };
+  const offerId = token.slice(0, dot);
+  const signature = token.slice(dot + 1);
+  if (!/^[0-9a-f-]{36}$/i.test(offerId) || !/^[0-9a-f]{32}$/i.test(signature)) return { valid: false, error: "Invalid token format" };
+  if (!signatureMatches(cityOfferSignatureData(offerId), signature)) return { valid: false, error: "Invalid token signature" };
+  return { valid: true, offerId };
+}
+
+export function generateCityOfferUrl(offerId: string, baseUrl?: string): string {
+  const base = (baseUrl || process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care").replace(/\/$/, "");
+  return `${base}/p/offer/${generateCityOfferToken(offerId)}`;
+}

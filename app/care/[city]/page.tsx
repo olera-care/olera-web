@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { getServiceClient } from "@/lib/admin";
 import { getCityConfig } from "@/lib/city-ads/config";
+import { parseProviderImages } from "@/lib/types/provider";
 import CityLandingClient, { type CityProviderCard } from "./CityLandingClient";
 
 /**
@@ -61,9 +62,20 @@ export default async function CityCarePage({
     if (ids.length > 0) {
       const { data: rows } = await db
         .from("business_profiles")
-        .select("id, display_name, city, verification_state")
+        .select("id, display_name, city, verification_state, image_url, slug")
         .in("id", ids);
       const byId = new Map((rows ?? []).map((r) => [r.id as string, r]));
+      // Photos: the account's own image first, then the directory listing's
+      // photos or logo, then initials on the client.
+      const slugs = (rows ?? []).map((r) => r.slug as string).filter(Boolean);
+      const { data: dir } = slugs.length
+        ? await db.from("olera-providers").select("slug, provider_images, provider_logo").in("slug", slugs)
+        : { data: [] as Record<string, unknown>[] };
+      const photoBySlug = new Map<string, string | null>();
+      for (const d of dir ?? []) {
+        const imgs = parseProviderImages((d.provider_images as string | null) ?? null);
+        photoBySlug.set(d.slug as string, (d.provider_logo as string | null) || imgs[0] || null);
+      }
       providers = (pool ?? [])
         .map((p) => {
           const r = byId.get(p.provider_id as string);
@@ -74,6 +86,7 @@ export default async function CityCarePage({
             town: (r.city as string) ?? cfg.city,
             careLabel: types.includes("assisted_living") ? "Assisted living" : "In-home care",
             verified: ["verified", "not_required"].includes(String(r.verification_state)),
+            photo: (r.image_url as string | null) || photoBySlug.get(r.slug as string) || null,
           } as CityProviderCard;
         })
         .filter((x): x is CityProviderCard => x !== null)

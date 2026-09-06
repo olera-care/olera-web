@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import type { CityConfig, CityCareType, CityRecipient, CityUrgency } from "@/lib/city-ads/config";
 import { CITY_FORM_VERSION } from "@/lib/city-ads/config";
 import { getOrCreateSessionId } from "@/lib/analytics/session";
@@ -11,6 +12,7 @@ export interface CityProviderCard {
   town: string;
   careLabel: string;
   verified: boolean;
+  photo: string | null;
 }
 
 interface Utm {
@@ -183,11 +185,14 @@ export default function CityLandingClient({
                 <p className="text-xs font-semibold uppercase tracking-wider text-gray-500">Local providers on Olera</p>
                 <ul className="mt-2 space-y-2">
                   {providers.map((p) => (
-                    <li key={p.name} className="rounded-xl border border-gray-200 bg-white p-3">
-                      <div className="text-[15px] font-semibold">{p.name}</div>
-                      <div className="mt-0.5 text-xs text-gray-600">
-                        {p.careLabel} · {p.town}
-                        {p.verified ? " · Verified on Olera" : ""}
+                    <li key={p.name} className="flex items-center gap-3 rounded-xl border border-gray-200 bg-white p-3">
+                      <Avatar name={p.name} photo={p.photo} />
+                      <div className="min-w-0">
+                        <div className="truncate text-[15px] font-semibold">{p.name}</div>
+                        <div className="mt-0.5 text-xs text-gray-600">
+                          {p.careLabel} · {p.town}
+                          {p.verified ? " · Verified on Olera" : ""}
+                        </div>
                       </div>
                     </li>
                   ))}
@@ -442,6 +447,20 @@ function Option({ label, sub, selected, onClick }: { label: string; sub?: string
       <span className="block">{label}</span>
       {sub && <span className="mt-0.5 block text-xs text-gray-500">{sub}</span>}
     </button>
+  );
+}
+
+function Avatar({ name, photo }: { name: string; photo: string | null }) {
+  const initials = name
+    .split(/\s+/)
+    .filter((w) => /^[A-Za-z]/.test(w))
+    .slice(0, 2)
+    .map((w) => w[0]!.toUpperCase())
+    .join("");
+  return (
+    <span className="relative flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-full bg-primary-100 text-sm font-semibold text-primary-800">
+      {photo ? <Image src={photo} alt="" fill sizes="44px" className="object-cover" /> : initials}
+    </span>
   );
 }
 

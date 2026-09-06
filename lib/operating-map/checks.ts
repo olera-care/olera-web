@@ -32,6 +32,10 @@ const n = (v: number | null | undefined): number | null =>
 export interface CheckInputs {
   /** CR4's provider + editorial + benefits, summed by the caller. */
   cr4PartsSum?: number;
+  /** CP1's claimed + unclaimed, summed by the caller. */
+  cp1PartsSum?: number;
+  /** CP1's unclaimed half — the set CP2 is drawn from. */
+  cp1Unclaimed?: number;
 }
 
 export function runChecks(values: NodeValues, inputs: CheckInputs = {}): MapCheck[] {
@@ -79,14 +83,29 @@ export function runChecks(values: NodeValues, inputs: CheckInputs = {}): MapChec
 
   const cp1 = n(values.cp1);
   const cp2 = n(values.cp2);
-  if (cp1 !== null && cp2 !== null) {
-    // Outreach happens to providers we list, so the worked set cannot be
-    // larger than the directory it is drawn from.
+
+  if (typeof inputs.cp1PartsSum === "number" && cp1 !== null) {
     checks.push({
-      id: "cp2-under-cp1",
-      label: "Providers in outreach do not exceed providers listed",
-      ok: cp2 <= cp1,
-      detail: cp2 <= cp1 ? undefined : `CP2 is ${cp2}, CP1 is ${cp1}`,
+      id: "cp1-parts",
+      label: "Providers listed equals claimed plus unclaimed",
+      ok: cp1 === inputs.cp1PartsSum,
+      detail:
+        cp1 === inputs.cp1PartsSum
+          ? undefined
+          : `CP1 is ${cp1}, its parts add to ${inputs.cp1PartsSum}`,
+    });
+  }
+
+  if (cp2 !== null && typeof inputs.cp1Unclaimed === "number") {
+    // CP2 counts unclaimed providers, so it cannot exceed how many there are.
+    checks.push({
+      id: "cp2-under-unclaimed",
+      label: "Providers in outreach do not exceed unclaimed providers",
+      ok: cp2 <= inputs.cp1Unclaimed,
+      detail:
+        cp2 <= inputs.cp1Unclaimed
+          ? undefined
+          : `CP2 is ${cp2}, unclaimed is ${inputs.cp1Unclaimed}`,
     });
   }
 

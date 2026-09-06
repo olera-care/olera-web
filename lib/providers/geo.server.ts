@@ -224,3 +224,48 @@ export async function listedProviderIdsInCity(
 
   return ids;
 }
+
+/**
+ * Which of these provider ids have been claimed.
+ *
+ * Claimed means a business profile exists with an account behind it — the
+ * same test the Directory's Unclaimed tab uses. Batched because PostgREST
+ * carries filters in the URL.
+ */
+export async function claimedIdsAmong(
+  db: SupabaseClient,
+  ids: string[],
+): Promise<Set<string>> {
+  const claimed = new Set<string>();
+  for (let i = 0; i < ids.length; i += PROVIDER_ID_CHUNK) {
+    const chunk = ids.slice(i, i + PROVIDER_ID_CHUNK);
+    const { data, error } = await db
+      .from("business_profiles")
+      .select("source_provider_id")
+      .not("account_id", "is", null)
+      .in("source_provider_id", chunk);
+    if (error) throw error;
+    for (const row of (data ?? []) as { source_provider_id: string | null }[]) {
+      if (row.source_provider_id) claimed.add(row.source_provider_id);
+    }
+  }
+  return claimed;
+}
+
+/**
+ * Claimed providers overall.
+ *
+ * Counts business profiles with an account rather than intersecting with the
+ * directory, which would mean reading every provider row. A provider claimed
+ * and later deleted would still be counted here; the map's own check that
+ * claimed cannot exceed listed is what catches that if it ever matters.
+ */
+export async function countClaimedProviders(db: SupabaseClient): Promise<number> {
+  const { count, error } = await db
+    .from("business_profiles")
+    .select("source_provider_id", { count: "exact", head: true })
+    .not("account_id", "is", null)
+    .not("source_provider_id", "is", null);
+  if (error) throw error;
+  return count ?? 0;
+}

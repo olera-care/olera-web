@@ -70,6 +70,8 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
     const nodes: Record<string, OperatingMapNode> = {};
     let cr4PartsSum: number | undefined;
+    let cp1PartsSum: number | undefined;
+    let cp1Unclaimed: number | undefined;
 
     // A city filter over a range that starts before visitor geo was recorded
     // returns a structural zero, not a quiet market. Every city-scoped node
@@ -150,14 +152,27 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-      // Standing counts: the directory as it is now, so no date range. The
-      // city here is the provider's, not the visitor's — see the module note.
+      // CP1 is a standing count of the directory; CP2 is a flow, because
+      // being contacted happens on a date. The city on both is the
+      // provider's, not the visitor's — see the module note.
       const [listed, inOutreach] = await Promise.all([
         getProvidersListed(db, city),
-        getProvidersInOutreach(db, city),
+        getProvidersInOutreach(db, { from, to }, city),
       ]);
-      nodes.cp1 = { value: listed, caveat: null };
-      nodes.cp2 = { value: inOutreach, caveat: null };
+      cp1Unclaimed = listed.unclaimed;
+      cp1PartsSum = listed.claimed + listed.unclaimed;
+      nodes.cp1 = {
+        value: listed.total,
+        breakdown: [
+          { label: "claimed", value: listed.claimed },
+          { label: "unclaimed", value: listed.unclaimed },
+        ],
+        caveat: null,
+      };
+      nodes.cp2 = {
+        value: inOutreach.value,
+        caveat: inOutreach.truncated ? "Row ceiling reached — this is a floor." : null,
+      };
     } catch (error) {
       console.error("[operating-map/metrics] cp1/cp2 failed:", error);
       nodes.cp1 = { value: null, caveat: "This metric failed to load." };
@@ -169,7 +184,7 @@ export async function GET(request: NextRequest) {
     const values = Object.fromEntries(
       Object.entries(nodes).map(([id, node]) => [id, node.value]),
     );
-    const checks = runChecks(values, { cr4PartsSum });
+    const checks = runChecks(values, { cr4PartsSum, cp1PartsSum, cp1Unclaimed });
 
     return NextResponse.json({ nodes, checks });
   } catch (error) {

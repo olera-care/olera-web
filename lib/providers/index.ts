@@ -58,6 +58,8 @@ export {
   countListedProviders,
   listedProviderIdsInCity,
   cityFilterFromSlug,
+  claimedIdsAmong,
+  countClaimedProviders,
   PROVIDER_ID_CHUNK,
 } from "./geo.server";
 export type { ProviderCity } from "./geo.server";

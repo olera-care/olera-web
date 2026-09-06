@@ -88,9 +88,9 @@ const NODE_HELP: Record<string, string> = {
   cr6b: "Requests to be connected to a provider, however they started.",
   cr6c: "Care posts published, making a care recipient visible to providers.",
   cp1:
-    "Every provider in the directory that has not been deleted. Same rule as the Directory's Published tab. A standing count — the date range does not change it.",
+    "Every provider in the directory that has not been deleted, split by whether anyone has claimed them. Scoped by the provider's city. A standing count — the date range does not change it.",
   cp2:
-    "Providers we have started contacting and not yet finished with. Excludes not-contacted, claimed, not-interested and archived. A standing count.",
+    "Unclaimed providers who heard from us in this range — any email, call or MedJobs contact. Counts providers, not messages, so twenty emails to one provider is one.",
 };
 
 /** Tooltip anchored to a node, positioned outside the scaled figure. */
@@ -644,10 +644,16 @@ export default function OperatingMap({
             {/* care provider */}
             <div className={styles.lane}>
               <div className={`${styles.chips} ${styles.solo}`}>
-                <Chip
+                <Card
                   id="cp1"
                   code="CP1"
-                  label="Providers listed"
+                  label={
+                    <>
+                      Providers listed
+                      <br />
+                      <Surfaces metric={nodes.cp1} fallback="claimed · unclaimed" />
+                    </>
+                  }
                   metric={nodes.cp1}
                   loading={metricsLoading}
                   onTip={openTip}
@@ -833,12 +839,19 @@ export type TipOpener = (el: HTMLElement, key: string, caveat?: string | null) =
  * The three surfaces CR4 spans. This line already named them; instrumenting
  * the node fills in the numbers rather than adding a row of its own.
  */
-function Surfaces({ metric }: { metric?: MetricNode }) {
+function Surfaces({
+  metric,
+  fallback,
+}: {
+  metric?: MetricNode;
+  /** Shown before the node is instrumented. */
+  fallback?: string;
+}) {
   const parts = metric?.breakdown;
   if (!parts?.length) {
     return (
       <span className={styles.dim}>
-        provider page &middot; editorial page &middot; benefits page
+        {fallback ?? "provider page · editorial page · benefits page"}
       </span>
     );
   }

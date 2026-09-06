@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminUser, getAuthUser, getServiceClient } from "@/lib/admin";
 import { CONTENT_PAGE_FILTERS } from "@/lib/analytics/content-pages";
-import { ACTIVE_OUTREACH_STAGES } from "@/lib/operating-map/providers.server";
+import { CP2_CHANNELS } from "@/lib/operating-map/providers.server";
 import { cityFilterFromSlug } from "@/lib/providers";
 
 /**
@@ -41,6 +41,8 @@ const SOURCES: Record<
     providerCityScoped?: boolean;
     /** Rows without a created_at order by this instead. */
     orderColumn?: string;
+    /** Describes the world as it is now, so a date range would mislead. */
+    standing?: boolean;
     summarize: (row: Record<string, unknown>) => string;
   }
 > = {
@@ -99,19 +101,24 @@ const SOURCES: Record<
     where: ["not deleted", "standing count — the date range does not apply"],
     cityScoped: false,
     providerCityScoped: true,
+    standing: true,
     summarize: (r) => `${String(r.provider_name ?? "—")} · ${String(r.city ?? "")}`,
   },
   cp2: {
+    // Sampled from email_log, the largest of the three channels. The others
+    // are named in `where` so the sample never implies it is the whole story.
     title: "Providers in outreach",
-    table: "provider_outreach_tracking",
-    select: "stage_changed_at, provider_id, stage",
+    table: "email_log",
+    select: "created_at, provider_id, email_type",
     where: [
-      `stage is one of ${ACTIVE_OUTREACH_STAGES.join(", ")}`,
-      "standing count — the date range does not apply",
+      `counted across ${CP2_CHANNELS.join(", ")}`,
+      "recipient is a provider",
+      "claimed providers excluded",
+      "rows below are from email_log only",
     ],
     cityScoped: false,
-    orderColumn: "stage_changed_at",
-    summarize: (r) => `${String(r.provider_id ?? "—")} · ${String(r.stage ?? "")}`,
+    summarize: (r) =>
+      `${String(r.provider_id ?? "—")} · ${String(r.email_type ?? "email")}`,
   },
   cr6c: {
     title: "Profiles made live",
@@ -158,6 +165,9 @@ export async function GET(request: NextRequest) {
 
     const where = [...source.where];
     if (source.eventType) query = query.eq("event_type", source.eventType);
+    if (node === "cp2") {
+      query = query.eq("recipient_type", "provider").not("provider_id", "is", null);
+    }
     if (node === "cr2") {
       query = query.filter("metadata->>referrer_class", "eq", "search");
     }
@@ -181,7 +191,7 @@ export async function GET(request: NextRequest) {
     }
     // Standing counts describe the directory as it is now, so a date range
     // would describe a different thing than the number above them.
-    const dated = !source.orderColumn && source.table !== "olera-providers";
+    const dated = !source.standing;
     if (dated && from) query = query.gte("created_at", from);
     if (dated && to) query = query.lt("created_at", to);
 

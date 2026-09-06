@@ -1,8 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import {
   claimedIdsAmong,
-  countClaimedProviders,
+  claimedProviderIds,
+  countListedAmong,
   countListedProviders,
+  listedIdsAmong,
   listedProviderIdsInCity,
   PROVIDER_ID_CHUNK,
 } from "@/lib/providers";
@@ -26,8 +28,15 @@ const MAX_ROWS = 150_000;
 export interface ProvidersListed {
   /** Every provider in the directory. */
   total: number;
+  /** Claimed AND still listed — the two conditions both have to hold. */
   claimed: number;
   unclaimed: number;
+  /**
+   * Claims pointing at a provider that is not in the directory: deleted
+   * since, or never there. Not an error on its own, but if it grows it means
+   * `claimed` and the Directory's Unclaimed tab are drifting apart.
+   */
+  orphanedClaims: number;
 }
 
 /**
@@ -44,19 +53,32 @@ export async function getProvidersListed(
   citySlug: string | null = null,
 ): Promise<ProvidersListed> {
   if (!citySlug) {
-    const [total, claimed] = await Promise.all([
+    // Unclaimed has to be the whole directory minus everyone claimed, so
+    // `claimed` must mean claimed AND still listed. Counting claim records
+    // alone would include claims on providers since deleted and make the
+    // unclaimed pool look smaller than it is.
+    const [total, claimIds] = await Promise.all([
       countListedProviders(db, null),
-      countClaimedProviders(db),
+      claimedProviderIds(db),
     ]);
-    return { total, claimed, unclaimed: Math.max(0, total - claimed) };
+    const claimed = await countListedAmong(db, claimIds);
+    return {
+      total,
+      claimed,
+      unclaimed: total - claimed,
+      orphanedClaims: claimIds.length - claimed,
+    };
   }
 
+  // Within a city both sides start from the directory, so the intersection
+  // is exact and no claim can be orphaned by construction.
   const ids = await listedProviderIdsInCity(db, citySlug);
   const claimedSet = await claimedIdsAmong(db, ids);
   return {
     total: ids.length,
     claimed: claimedSet.size,
     unclaimed: ids.length - claimedSet.size,
+    orphanedClaims: 0,
   };
 }
 
@@ -184,8 +206,15 @@ export async function getProvidersInOutreach(
   let ids = [...contacted];
 
   if (citySlug) {
+    // The city list comes from the directory, so this narrows to listed
+    // providers at the same time.
     const inCity = new Set(await listedProviderIdsInCity(db, citySlug));
     ids = ids.filter((id) => inCity.has(id));
+  } else {
+    // CP2 is a share of CP1's unclaimed pool, so a provider we contacted and
+    // have since removed from the directory must not count here either.
+    const listed = await listedIdsAmong(db, ids);
+    ids = ids.filter((id) => listed.has(id));
   }
 
   if (ids.length === 0) {

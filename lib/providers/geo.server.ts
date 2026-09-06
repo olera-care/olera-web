@@ -253,19 +253,61 @@ export async function claimedIdsAmong(
 }
 
 /**
- * Claimed providers overall.
+ * Every provider id that has been claimed.
  *
- * Counts business profiles with an account rather than intersecting with the
- * directory, which would mean reading every provider row. A provider claimed
- * and later deleted would still be counted here; the map's own check that
- * claimed cannot exceed listed is what catches that if it ever matters.
+ * Small next to the directory — claiming is rare — so this is read in full
+ * and intersected with the directory rather than counted in place. Counting
+ * business profiles alone would include claims pointing at providers since
+ * deleted, or at no provider at all, and quietly understate how many
+ * providers are still unclaimed.
  */
-export async function countClaimedProviders(db: SupabaseClient): Promise<number> {
-  const { count, error } = await db
-    .from("business_profiles")
-    .select("source_provider_id", { count: "exact", head: true })
-    .not("account_id", "is", null)
-    .not("source_provider_id", "is", null);
-  if (error) throw error;
-  return count ?? 0;
+export async function claimedProviderIds(db: SupabaseClient): Promise<string[]> {
+  const ids: string[] = [];
+  let scanned = 0;
+
+  for (;;) {
+    if (scanned >= MAX_ROWS) break;
+    const { data, error } = await db
+      .from("business_profiles")
+      .select("source_provider_id")
+      .not("account_id", "is", null)
+      .not("source_provider_id", "is", null)
+      .range(scanned, scanned + PAGE_SIZE - 1);
+    if (error) throw error;
+    const rows = (data ?? []) as { source_provider_id: string | null }[];
+    if (rows.length === 0) break;
+    for (const r of rows) if (r.source_provider_id) ids.push(r.source_provider_id);
+    scanned += rows.length;
+    if (rows.length < PAGE_SIZE) break;
+  }
+
+  return ids;
+}
+
+/** Which of these ids are providers currently listed in the directory. */
+export async function listedIdsAmong(
+  db: SupabaseClient,
+  ids: string[],
+): Promise<Set<string>> {
+  const listed = new Set<string>();
+  for (let i = 0; i < ids.length; i += PROVIDER_ID_CHUNK) {
+    const { data, error } = await db
+      .from("olera-providers")
+      .select("provider_id")
+      .or("deleted.is.null,deleted.eq.false")
+      .in("provider_id", ids.slice(i, i + PROVIDER_ID_CHUNK));
+    if (error) throw error;
+    for (const row of (data ?? []) as { provider_id: string | null }[]) {
+      if (row.provider_id) listed.add(row.provider_id);
+    }
+  }
+  return listed;
+}
+
+/** How many of these ids are providers currently listed in the directory. */
+export async function countListedAmong(
+  db: SupabaseClient,
+  ids: string[],
+): Promise<number> {
+  return (await listedIdsAmong(db, ids)).size;
 }

@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
     const nodes: Record<string, OperatingMapNode> = {};
     let cr4PartsSum: number | undefined;
-    let cp1PartsSum: number | undefined;
+    let cp1OrphanedClaims: number | undefined;
     let cp1Unclaimed: number | undefined;
 
     // A city filter over a range that starts before visitor geo was recorded
@@ -160,7 +160,7 @@ export async function GET(request: NextRequest) {
         getProvidersInOutreach(db, { from, to }, city),
       ]);
       cp1Unclaimed = listed.unclaimed;
-      cp1PartsSum = listed.claimed + listed.unclaimed;
+      cp1OrphanedClaims = listed.orphanedClaims;
       nodes.cp1 = {
         value: listed.total,
         breakdown: [
@@ -184,7 +184,11 @@ export async function GET(request: NextRequest) {
     const values = Object.fromEntries(
       Object.entries(nodes).map(([id, node]) => [id, node.value]),
     );
-    const checks = runChecks(values, { cr4PartsSum, cp1PartsSum, cp1Unclaimed });
+    const checks = runChecks(values, {
+      cr4PartsSum,
+      cp1OrphanedClaims,
+      cp1Unclaimed,
+    });
 
     return NextResponse.json({ nodes, checks });
   } catch (error) {

@@ -32,8 +32,8 @@ const n = (v: number | null | undefined): number | null =>
 export interface CheckInputs {
   /** CR4's provider + editorial + benefits, summed by the caller. */
   cr4PartsSum?: number;
-  /** CP1's claimed + unclaimed, summed by the caller. */
-  cp1PartsSum?: number;
+  /** Claim records that point at a provider not in the directory. */
+  cp1OrphanedClaims?: number;
   /** CP1's unclaimed half — the set CP2 is drawn from. */
   cp1Unclaimed?: number;
 }
@@ -84,15 +84,18 @@ export function runChecks(values: NodeValues, inputs: CheckInputs = {}): MapChec
   const cp1 = n(values.cp1);
   const cp2 = n(values.cp2);
 
-  if (typeof inputs.cp1PartsSum === "number" && cp1 !== null) {
+  if (typeof inputs.cp1OrphanedClaims === "number") {
+    // CP1's split is a subtraction, so "parts add to the total" would be
+    // true by construction and prove nothing. This asks the question that
+    // can actually be false: does every claim point at a listed provider?
     checks.push({
-      id: "cp1-parts",
-      label: "Providers listed equals claimed plus unclaimed",
-      ok: cp1 === inputs.cp1PartsSum,
+      id: "cp1-claims-resolve",
+      label: "Every claimed profile matches a listed provider",
+      ok: inputs.cp1OrphanedClaims === 0,
       detail:
-        cp1 === inputs.cp1PartsSum
+        inputs.cp1OrphanedClaims === 0
           ? undefined
-          : `CP1 is ${cp1}, its parts add to ${inputs.cp1PartsSum}`,
+          : `${inputs.cp1OrphanedClaims} claim${inputs.cp1OrphanedClaims === 1 ? "" : "s"} point at a provider not in the directory`,
     });
   }
 

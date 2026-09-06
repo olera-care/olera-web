@@ -8,6 +8,9 @@ import DateRangePopover, {
 } from "@/components/admin/DateRangePopover";
 import { useUrlDateRangeState } from "@/hooks/useUrlDateRangeState";
 import OperatingMap, { type MetricNodes } from "./OperatingMap";
+import MapChecks from "./MapChecks";
+import NodeInspector from "./NodeInspector";
+import type { MapCheck } from "@/lib/operating-map/checks";
 
 /**
  * Scope and period for the map, both held in the URL so a view can be linked
@@ -35,6 +38,8 @@ export default function OperatingMapView() {
   const resolved = useMemo(() => resolveRange(range), [range]);
 
   const [nodes, setNodes] = useState<MetricNodes>({});
+  const [checks, setChecks] = useState<MapCheck[]>([]);
+  const [inspecting, setInspecting] = useState<string | null>(null);
   const [metricsLoading, setMetricsLoading] = useState(true);
 
   const onSelectCity = useCallback(
@@ -60,21 +65,36 @@ export default function OperatingMapView() {
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error("metrics failed"))))
       .then((d) => {
         setNodes((d.nodes ?? {}) as MetricNodes);
+        setChecks((d.checks ?? []) as MapCheck[]);
         setMetricsLoading(false);
       })
       .catch((e: unknown) => {
         if ((e as Error)?.name === "AbortError") return;
         // Every instrumented node renders as unavailable rather than zero.
         setNodes({ cr2: { value: null, caveat: "This metric failed to load." } });
+        setChecks([]);
         setMetricsLoading(false);
       });
 
     return () => controller.abort();
   }, [resolved.from, resolved.to, selectedCity]);
 
+  // The inspector reads the same window and city the numbers were counted
+  // over, so its rows can never describe a different query than the value.
+  const inspectParams = useMemo(() => {
+    const p = new URLSearchParams();
+    if (resolved.from) p.set("date_from", resolved.from);
+    if (resolved.to) p.set("date_to", resolved.to);
+    if (selectedCity) p.set("city", selectedCity);
+    return p.toString();
+  }, [resolved.from, resolved.to, selectedCity]);
+
   return (
     <div>
-      <div className="mb-4 flex items-center justify-end">
+      <div className="mb-4 flex items-center justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <MapChecks checks={checks} />
+        </div>
         <DateRangePopover value={range} onChange={setRange} />
       </div>
 
@@ -83,7 +103,16 @@ export default function OperatingMapView() {
         onSelectCity={onSelectCity}
         nodes={nodes}
         metricsLoading={metricsLoading}
+        onInspect={setInspecting}
       />
+
+      {inspecting && (
+        <NodeInspector
+          node={inspecting}
+          params={inspectParams}
+          onClose={() => setInspecting(null)}
+        />
+      )}
     </div>
   );
 }

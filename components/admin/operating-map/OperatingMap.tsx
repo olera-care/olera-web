@@ -102,6 +102,7 @@ export default function OperatingMap({
   onSelectCity,
   nodes,
   metricsLoading,
+  onInspect,
 }: {
   /** Slug of the city the map is scoped to, or null for all cities. */
   selectedCity: string | null;
@@ -109,6 +110,8 @@ export default function OperatingMap({
   /** Instrumented node values, keyed by node id. Missing = not instrumented. */
   nodes: MetricNodes;
   metricsLoading: boolean;
+  /** Open the receipts for a node. Omitted when inspection is unavailable. */
+  onInspect?: (nodeKey: string) => void;
 }) {
   const [cities, setCities] = useState<CitiesState>({ status: "loading" });
   const [tip, setTip] = useState<Tip | null>(null);
@@ -554,6 +557,7 @@ export default function OperatingMap({
                   loading={metricsLoading}
                   onTip={openTip}
                   onTipClose={() => setTip(null)}
+                  onInspect={onInspect}
                 />
                 <Chip id="cr3" code="CR3" label="Paid ad visitors" />
               </div>
@@ -582,6 +586,7 @@ export default function OperatingMap({
                     loading={metricsLoading}
                     onTip={openTip}
                     onTipClose={() => setTip(null)}
+                    onInspect={onInspect}
                   />
                 </div>
                 <div style={{ marginTop: 24 }}>
@@ -593,6 +598,7 @@ export default function OperatingMap({
                     loading={metricsLoading}
                     onTip={openTip}
                     onTipClose={() => setTip(null)}
+                    onInspect={onInspect}
                   />
                 </div>
                 <div className={styles.offshoots} style={{ marginTop: 20 }}>
@@ -604,6 +610,7 @@ export default function OperatingMap({
                     loading={metricsLoading}
                     onTip={openTip}
                     onTipClose={() => setTip(null)}
+                    onInspect={onInspect}
                   />
                   <Chip
                     id="cr6b"
@@ -613,6 +620,7 @@ export default function OperatingMap({
                     loading={metricsLoading}
                     onTip={openTip}
                     onTipClose={() => setTip(null)}
+                    onInspect={onInspect}
                   />
                   <Chip
                     id="cr6c"
@@ -622,6 +630,7 @@ export default function OperatingMap({
                     loading={metricsLoading}
                     onTip={openTip}
                     onTipClose={() => setTip(null)}
+                    onInspect={onInspect}
                   />
                 </div>
                 <div style={{ height: 30 }} />
@@ -726,6 +735,7 @@ function Card({
   loading,
   onTip,
   onTipClose,
+  onInspect,
 }: {
   id: string;
   code: string;
@@ -737,6 +747,7 @@ function Card({
   loading?: boolean;
   onTip?: TipOpener;
   onTipClose?: () => void;
+  onInspect?: (nodeKey: string) => void;
 }) {
   return (
     <div className={`${styles.card}${hi ? ` ${styles.hi}` : ""}`} id={nodeId(id)}>
@@ -750,7 +761,7 @@ function Card({
           )}
         </div>
         <span style={{ whiteSpace: "nowrap" }}>
-          <MetricValue metric={metric} loading={loading} />
+          <MetricValue metric={metric} loading={loading} nodeKey={id} onInspect={onInspect} />
           <InfoButton nodeKey={id} metric={metric} onTip={onTip} onTipClose={onTipClose} />
         </span>
       </div>
@@ -767,6 +778,7 @@ function Chip({
   loading,
   onTip,
   onTipClose,
+  onInspect,
 }: {
   id: string;
   code: string;
@@ -775,6 +787,7 @@ function Chip({
   loading?: boolean;
   onTip?: TipOpener;
   onTipClose?: () => void;
+  onInspect?: (nodeKey: string) => void;
 }) {
   return (
     <div className={styles.chip} id={nodeId(id)}>
@@ -783,7 +796,7 @@ function Chip({
           <b>{code}</b>
         </span>
         <span style={{ whiteSpace: "nowrap" }}>
-          <MetricValue metric={metric} loading={loading} />
+          <MetricValue metric={metric} loading={loading} nodeKey={id} onInspect={onInspect} />
           <InfoButton nodeKey={id} metric={metric} onTip={onTip} onTipClose={onTipClose} />
         </span>
       </div>
@@ -849,7 +862,17 @@ function InfoButton({
 
 /** The number, or an honest placeholder. Never a zero standing in for
  *  "we don't know". */
-function MetricValue({ metric, loading }: { metric?: MetricNode; loading?: boolean }) {
+function MetricValue({
+  metric,
+  loading,
+  nodeKey,
+  onInspect,
+}: {
+  metric?: MetricNode;
+  loading?: boolean;
+  nodeKey?: string;
+  onInspect?: (nodeKey: string) => void;
+}) {
   if (!metric) {
     return <span className={`${styles.value} ${styles.valueMuted}`}>{NOT_INSTRUMENTED}</span>;
   }
@@ -857,7 +880,25 @@ function MetricValue({ metric, loading }: { metric?: MetricNode; loading?: boole
   if (metric.value === null) {
     return <span className={`${styles.value} ${styles.valueMuted}`}>{NOT_INSTRUMENTED}</span>;
   }
-  return <span className={styles.value}>{metric.value.toLocaleString()}</span>;
+  const text = metric.value.toLocaleString();
+  // A number you can open is a number you can check. Nodes without a source
+  // descriptor stay plain text rather than offering a dead click.
+  if (!onInspect || !nodeKey || !INSPECTABLE.has(nodeKey)) {
+    return <span className={styles.value}>{text}</span>;
+  }
+  return (
+    <button
+      type="button"
+      className={`${styles.value} ${styles.valueButton}`}
+      onClick={() => onInspect(nodeKey)}
+      title="Show where this number comes from"
+    >
+      {text}
+    </button>
+  );
 }
+
+/** Nodes the inspect endpoint can produce rows for. */
+const INSPECTABLE = new Set(["cr2", "cr4", "cr5", "cr6a", "cr6b", "cr6c"]);
 
 

@@ -7,6 +7,7 @@ import {
 } from "@/lib/operating-map/organic.server";
 import { getPageVisits } from "@/lib/operating-map/page-visits.server";
 import { getConversions } from "@/lib/operating-map/conversions.server";
+import { runChecks } from "@/lib/operating-map/checks";
 
 /**
  * GET /api/admin/operating-map/metrics?date_from&date_to
@@ -64,6 +65,7 @@ export async function GET(request: NextRequest) {
 
     const db = getServiceClient();
     const nodes: Record<string, OperatingMapNode> = {};
+    let cr4PartsSum: number | undefined;
 
     // A city filter over a range that starts before visitor geo was recorded
     // returns a structural zero, not a quiet market. Every city-scoped node
@@ -105,6 +107,7 @@ export async function GET(request: NextRequest) {
 
     try {
       const visits = await getPageVisits(db, { from, to }, city);
+      cr4PartsSum = visits.provider + visits.editorial + visits.benefit;
       nodes.cr4 = {
         value: visits.total,
         // Order matches the labels printed on the card.
@@ -142,7 +145,14 @@ export async function GET(request: NextRequest) {
       nodes.cr6c = failed;
     }
 
-    return NextResponse.json({ nodes });
+    // Relationships that must hold if the map is counting correctly. Sent
+    // with the numbers so a broken one is visible where the numbers are.
+    const values = Object.fromEntries(
+      Object.entries(nodes).map(([id, node]) => [id, node.value]),
+    );
+    const checks = runChecks(values, { cr4PartsSum });
+
+    return NextResponse.json({ nodes, checks });
   } catch (error) {
     console.error("[operating-map/metrics] Failed:", error);
     return NextResponse.json({ error: "Failed to load metrics" }, { status: 500 });

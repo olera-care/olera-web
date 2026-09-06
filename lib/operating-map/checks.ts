@@ -11,6 +11,11 @@
  *
  * Checks skip themselves when an input is missing, so an unavailable node
  * reports as unavailable rather than manufacturing a failure.
+ *
+ * These are not rendered on the map. They ride along in the metrics response
+ * under `checks`, to be read on demand rather than shown to everyone who
+ * opens the page — an audit is something you run, not something you sit
+ * under while trying to read a number.
  */
 
 export interface NodeValues {

@@ -8,9 +8,7 @@ import DateRangePopover, {
 } from "@/components/admin/DateRangePopover";
 import { useUrlDateRangeState } from "@/hooks/useUrlDateRangeState";
 import OperatingMap, { type MetricNodes } from "./OperatingMap";
-import MapChecks from "./MapChecks";
 import NodeInspector from "./NodeInspector";
-import type { MapCheck } from "@/lib/operating-map/checks";
 
 /**
  * Scope and period for the map, both held in the URL so a view can be linked
@@ -38,7 +36,6 @@ export default function OperatingMapView() {
   const resolved = useMemo(() => resolveRange(range), [range]);
 
   const [nodes, setNodes] = useState<MetricNodes>({});
-  const [checks, setChecks] = useState<MapCheck[]>([]);
   const [inspecting, setInspecting] = useState<string | null>(null);
   const [metricsLoading, setMetricsLoading] = useState(true);
 
@@ -64,15 +61,16 @@ export default function OperatingMapView() {
     fetch(`/api/admin/operating-map/metrics?${params}`, { signal: controller.signal })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error("metrics failed"))))
       .then((d) => {
+        // The response also carries `checks`. They are deliberately not
+        // rendered — the map is for reading numbers, not auditing them. Hit
+        // the endpoint directly when you want to audit.
         setNodes((d.nodes ?? {}) as MetricNodes);
-        setChecks((d.checks ?? []) as MapCheck[]);
         setMetricsLoading(false);
       })
       .catch((e: unknown) => {
         if ((e as Error)?.name === "AbortError") return;
         // Every instrumented node renders as unavailable rather than zero.
         setNodes({ cr2: { value: null, caveat: "This metric failed to load." } });
-        setChecks([]);
         setMetricsLoading(false);
       });
 
@@ -91,10 +89,7 @@ export default function OperatingMapView() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <MapChecks checks={checks} />
-        </div>
+      <div className="mb-4 flex items-center justify-end">
         <DateRangePopover value={range} onChange={setRange} />
       </div>
 

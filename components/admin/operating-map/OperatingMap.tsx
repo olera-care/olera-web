@@ -57,13 +57,27 @@ type CitiesState =
   | { status: "ready"; cities: City[]; truncated: boolean }
   | { status: "error" };
 
+/** One instrumented node, as /api/admin/operating-map/metrics returns it. */
+export interface MetricNode {
+  value: number | null;
+  note: string | null;
+  allCities?: boolean;
+}
+
+export type MetricNodes = Record<string, MetricNode | undefined>;
+
 export default function OperatingMap({
   selectedCity,
   onSelectCity,
+  nodes,
+  metricsLoading,
 }: {
   /** Slug of the city the map is scoped to, or null for all cities. */
   selectedCity: string | null;
   onSelectCity: (slug: string | null) => void;
+  /** Instrumented node values, keyed by node id. Missing = not instrumented. */
+  nodes: MetricNodes;
+  metricsLoading: boolean;
 }) {
   const [cities, setCities] = useState<CitiesState>({ status: "loading" });
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -310,6 +324,12 @@ export default function OperatingMap({
     return () => window.removeEventListener("resize", onResize);
   }, [draw]);
 
+  // A value or its caveat can change a card's height, and every arrow is
+  // measured from those heights.
+  useLayoutEffect(() => {
+    draw();
+  }, [draw, nodes, metricsLoading]);
+
   useEffect(() => {
     const controller = new AbortController();
     fetch("/api/admin/operating-map/cities", { signal: controller.signal })
@@ -457,7 +477,14 @@ export default function OperatingMap({
             <div className={styles.lane}>
               <div className={styles.chips}>
                 <Chip id="cr1" code="CR1" label="Referrals" />
-                <Chip id="cr2" code="CR2" label="Organic visitors" />
+                <Chip
+                  id="cr2"
+                  code="CR2"
+                  label="Organic visitors"
+                  metric={nodes.cr2}
+                  loading={metricsLoading}
+                  scoped={Boolean(selectedCity)}
+                />
                 <Chip id="cr3" code="CR3" label="Paid ad visitors" />
               </div>
               <div className={styles.indent} style={{ marginTop: 32 }}>
@@ -583,6 +610,9 @@ function Card({
   label,
   hi,
   money,
+  metric,
+  loading,
+  scoped,
 }: {
   id: string;
   code: string;
@@ -590,27 +620,76 @@ function Card({
   hi?: boolean;
   /** Tooltip shown on the $ marker. Omit for nodes that carry no money. */
   money?: string;
+  metric?: MetricNode;
+  loading?: boolean;
+  scoped?: boolean;
 }) {
   return (
     <div className={`${styles.card}${hi ? ` ${styles.hi}` : ""}`} id={nodeId(id)}>
-      <div className={styles.k}>
-        {code}
-        {money && (
-          <span className={styles.paid} title={money}>
-            $
-          </span>
-        )}
+      <div className={styles.cardHead}>
+        <div className={styles.k}>
+          {code}
+          {money && (
+            <span className={styles.paid} title={money}>
+              $
+            </span>
+          )}
+        </div>
+        <MetricValue metric={metric} loading={loading} />
       </div>
       <div className={styles.n}>{label}</div>
+      <MetricNote metric={metric} scoped={scoped} />
     </div>
   );
 }
 
-function Chip({ id, code, label }: { id: string; code: string; label: string }) {
+function Chip({
+  id,
+  code,
+  label,
+  metric,
+  loading,
+  scoped,
+}: {
+  id: string;
+  code: string;
+  label: string;
+  metric?: MetricNode;
+  loading?: boolean;
+  /** A city is selected, so an all-cities node has to say it ignored it. */
+  scoped?: boolean;
+}) {
   return (
     <div className={styles.chip} id={nodeId(id)}>
-      <b>{code}</b>
+      <div className={styles.chipHead}>
+        <b>{code}</b>
+        <MetricValue metric={metric} loading={loading} />
+      </div>
       {label}
+      <MetricNote metric={metric} scoped={scoped} />
     </div>
   );
+}
+
+/** The number, or an honest placeholder. Never a zero standing in for
+ *  "we don't know". */
+function MetricValue({ metric, loading }: { metric?: MetricNode; loading?: boolean }) {
+  if (!metric) {
+    return <span className={`${styles.value} ${styles.valueMuted}`}>{NOT_INSTRUMENTED}</span>;
+  }
+  if (loading) return <span className={`${styles.value} ${styles.valueMuted}`}>…</span>;
+  if (metric.value === null) {
+    return <span className={`${styles.value} ${styles.valueMuted}`}>{NOT_INSTRUMENTED}</span>;
+  }
+  return <span className={styles.value}>{metric.value.toLocaleString()}</span>;
+}
+
+/** Caveats sit on the card, not in a legend somewhere else on the page. */
+function MetricNote({ metric, scoped }: { metric?: MetricNode; scoped?: boolean }) {
+  if (!metric) return null;
+  const parts: string[] = [];
+  if (scoped && metric.allCities) parts.push("all cities");
+  if (metric.note) parts.push(metric.note);
+  if (!parts.length) return null;
+  return <span className={styles.note}>{parts.join(" · ")}</span>;
 }

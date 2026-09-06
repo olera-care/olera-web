@@ -31,10 +31,11 @@ export async function GET() {
   if ("error" in auth) return auth.error;
   const db = getServiceClient();
 
-  const [{ data: campaigns }, { data: pool }, { data: leads }] = await Promise.all([
+  const [{ data: campaigns }, { data: pool }, { data: leads }, { data: lastRun }] = await Promise.all([
     db.from("city_campaigns").select("*").order("slug").order("channel"),
     db.from("city_pool").select("*").order("slug").order("position"),
     db.from("city_leads").select("*").order("created_at", { ascending: false }).limit(200),
+    db.from("cron_runs").select("started_at, status").eq("job_id", "city-lead-offers").order("started_at", { ascending: false }).limit(1).maybeSingle(),
   ]);
 
   const leadIds = (leads ?? []).map((l) => l.id as string);
@@ -51,6 +52,7 @@ export async function GET() {
   const byId = new Map((providers ?? []).map((p) => [p.id as string, p]));
 
   return NextResponse.json({
+    lastClockRun: lastRun?.started_at ?? null,
     campaigns: campaigns ?? [],
     pool: (pool ?? []).map((p) => ({ ...p, provider: byId.get(p.provider_id as string) ?? null })),
     leads: (leads ?? []).map((l) => ({

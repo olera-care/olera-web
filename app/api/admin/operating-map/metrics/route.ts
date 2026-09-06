@@ -6,6 +6,7 @@ import {
   VISITOR_GEO_START,
 } from "@/lib/operating-map/organic.server";
 import { getPageVisits } from "@/lib/operating-map/page-visits.server";
+import { getConversions } from "@/lib/operating-map/conversions.server";
 
 /**
  * GET /api/admin/operating-map/metrics?date_from&date_to
@@ -70,6 +71,13 @@ export async function GET(request: NextRequest) {
     const cityPredatesGeo =
       Boolean(city) && (!from || from < VISITOR_GEO_START);
 
+    // Visitor geo rides on page views. Form submissions are written through
+    // their own routes and carry none, so those nodes ignore the city filter
+    // and must say so rather than look like a quiet market.
+    const notCityScoped = city
+      ? "Not scoped by city — city is only recorded on page views."
+      : null;
+
     try {
       const organic = await getOrganicVisitors(db, { from, to }, city);
       const caveats: string[] = [];
@@ -112,6 +120,26 @@ export async function GET(request: NextRequest) {
     } catch (error) {
       console.error("[operating-map/metrics] cr4 failed:", error);
       nodes.cr4 = { value: null, caveat: "This metric failed to load." };
+    }
+
+    try {
+      const c = await getConversions(db, { from, to });
+      nodes.cr5 = { value: c.questions, caveat: notCityScoped };
+      // No breakdown here: CR6a/b/c render as their own chips directly
+      // below, so a split on the parent would print the same three numbers
+      // twice.
+      nodes.cr6 = { value: c.ctasTotal, caveat: notCityScoped };
+      nodes.cr6a = { value: c.benefitsCtas, caveat: notCityScoped };
+      nodes.cr6b = { value: c.connectionCtas, caveat: notCityScoped };
+      nodes.cr6c = { value: c.profilesLive, caveat: notCityScoped };
+    } catch (error) {
+      console.error("[operating-map/metrics] cr5/cr6 failed:", error);
+      const failed = { value: null, caveat: "This metric failed to load." };
+      nodes.cr5 = failed;
+      nodes.cr6 = failed;
+      nodes.cr6a = failed;
+      nodes.cr6b = failed;
+      nodes.cr6c = failed;
     }
 
     return NextResponse.json({ nodes });

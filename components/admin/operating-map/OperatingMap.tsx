@@ -80,6 +80,13 @@ const NODE_HELP: Record<string, string> = {
     "Unique people who arrived from a search engine, from Olera's own page events. Compare with GA4 Organic Search users, not sessions.",
   cr4:
     "Page views across the three surfaces we publish, from all traffic sources. Counts views, not people, so it runs higher than CR2.",
+  cr5:
+    "Questions submitted to providers through Q&A. Same source as the Overview's Questions Asked card, so the two always agree.",
+  cr6:
+    "Every care recipient action that asks us for something: the three CTA types below, added together.",
+  cr6a: "Benefits screeners completed to the end, where results are saved.",
+  cr6b: "Requests to be connected to a provider, however they started.",
+  cr6c: "Care posts published, making a care recipient visible to providers.",
 };
 
 /** Tooltip anchored to a node, positioned outside the scaled figure. */
@@ -567,15 +574,55 @@ export default function OperatingMap({
                   }
                 />
                 <div className={styles.offshoot} style={{ marginTop: 24 }}>
-                  <Chip id="cr5" code="CR5" label="Questions asked" />
+                  <Chip
+                    id="cr5"
+                    code="CR5"
+                    label="Questions asked"
+                    metric={nodes.cr5}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={() => setTip(null)}
+                  />
                 </div>
                 <div style={{ marginTop: 24 }}>
-                  <Card id="cr6" code="CR6" label="CTAs submitted" />
+                  <Card
+                    id="cr6"
+                    code="CR6"
+                    label="CTAs submitted"
+                    metric={nodes.cr6}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={() => setTip(null)}
+                  />
                 </div>
                 <div className={styles.offshoots} style={{ marginTop: 20 }}>
-                  <Chip id="cr6a" code="CR6a" label="Benefits CTAs" />
-                  <Chip id="cr6b" code="CR6b" label="Connection CTAs" />
-                  <Chip id="cr6c" code="CR6c" label="Profiles made live" />
+                  <Chip
+                    id="cr6a"
+                    code="CR6a"
+                    label="Benefits CTAs"
+                    metric={nodes.cr6a}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={() => setTip(null)}
+                  />
+                  <Chip
+                    id="cr6b"
+                    code="CR6b"
+                    label="Connection CTAs"
+                    metric={nodes.cr6b}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={() => setTip(null)}
+                  />
+                  <Chip
+                    id="cr6c"
+                    code="CR6c"
+                    label="Profiles made live"
+                    metric={nodes.cr6c}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={() => setTip(null)}
+                  />
                 </div>
                 <div style={{ height: 30 }} />
               </div>

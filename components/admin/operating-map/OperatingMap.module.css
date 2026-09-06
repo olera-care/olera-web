@@ -46,11 +46,22 @@
 .root *::before,
 .root *::after { box-sizing: border-box; }
 
-.scroll { overflow-x: auto; padding-bottom: 6px; }
+/*
+ * .fit is the space available; .stage is the figure's painted size, written
+ * by OperatingMap.tsx. A transform paints smaller without shrinking the
+ * layout box, so the stage clips that box to what you actually see —
+ * otherwise the scaling would not remove the scrollbar it exists to remove.
+ * Horizontal scroll survives only as the escape hatch for windows too
+ * narrow to scale into (MIN_SCALE).
+ */
+.fit { overflow-x: auto; overflow-y: hidden; padding-bottom: 6px; }
+.stage { overflow: hidden; }
 
 .system {
   position: relative;
+  /* Keep in sync with FIGURE_WIDTH in OperatingMap.tsx. */
   width: 1660px;
+  transform-origin: top left;
   background: var(--ground);
   border: 1px solid var(--panel-line);
   border-radius: 14px;

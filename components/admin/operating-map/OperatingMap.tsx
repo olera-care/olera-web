@@ -17,7 +17,23 @@ import styles from "./OperatingMap.module.css";
  * namespaces them so short keys like "m1" cannot collide with anything else
  * rendered on an admin page. Rename a label freely; renaming an id breaks
  * the wire that references it.
+ *
+ * The figure is laid out at a fixed FIGURE_WIDTH and then scaled down to
+ * whatever width it is given, so the whole map is always visible at once —
+ * the landscape-PDF view, not a pane you scroll sideways. Laying it out at
+ * a fixed width and shrinking it keeps every proportion and line break
+ * identical at any size; a fluid layout would reflow labels and quietly
+ * change the shape of the funnel on different monitors.
  */
+
+/** The width the figure is designed at. Everything scales from here. */
+const FIGURE_WIDTH = 1660;
+
+/**
+ * Below this the type is too small to read, so we stop shrinking and let
+ * the container scroll instead. Only reachable in a very narrow window.
+ */
+const MIN_SCALE = 0.4;
 
 /** Namespace every DOM id this component owns. */
 const nodeId = (key: string) => `om-${key}`;
@@ -26,18 +42,43 @@ const nodeId = (key: string) => `om-${key}`;
 const NOT_INSTRUMENTED = "—";
 
 export default function OperatingMap() {
+  const fitRef = useRef<HTMLDivElement>(null);
+  const stageRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
   const draw = useCallback(() => {
     const sys = rootRef.current;
     const svg = svgRef.current;
-    if (!sys || !svg) return;
+    const fit = fitRef.current;
+    const stage = stageRef.current;
+    if (!sys || !svg || !fit || !stage) return;
+
+    // Fit the figure to the space we were given. Written before measuring,
+    // so the geometry below is read from the layout we actually ship.
+    const available = fit.clientWidth;
+    const scale = available > 0
+      ? Math.max(MIN_SCALE, Math.min(1, available / FIGURE_WIDTH))
+      : 1;
+    const nextTransform = scale < 1 ? `scale(${scale})` : "";
+    if (sys.style.transform !== nextTransform) sys.style.transform = nextTransform;
+
+    // A transform paints smaller but still occupies its full layout box, so
+    // the figure would keep reserving FIGURE_WIDTH and grow a scrollbar the
+    // scaling was meant to remove. The stage is sized to what you actually
+    // see and clips the untransformed box behind it.
+    const stageWidth = `${Math.ceil(FIGURE_WIDTH * scale)}px`;
+    const stageHeight = `${Math.ceil(sys.offsetHeight * scale)}px`;
+    if (stage.style.width !== stageWidth) stage.style.width = stageWidth;
+    if (stage.style.height !== stageHeight) stage.style.height = stageHeight;
 
     const SVG_NS = "http://www.w3.org/2000/svg";
     /** Gap left between a card's edge and the arrow that touches it. */
     const G = 5;
 
+    // Unscaled layout dimensions: getBoundingClientRect below is divided by
+    // the same scale, so the SVG and the measurements share one coordinate
+    // space no matter what the figure is rendered at.
     const w = sys.scrollWidth;
     const h = sys.scrollHeight;
     svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
@@ -53,13 +94,16 @@ export default function OperatingMap() {
       if (!node) throw new Error(`operating map: missing node "${key}"`);
       const r = node.getBoundingClientRect();
       const c = sys!.getBoundingClientRect();
+      // Both rects are scaled by the same factor, so dividing the deltas by
+      // it returns unscaled figure coordinates.
+      const k = scale;
       return {
-        l: r.left - c.left,
-        r: r.right - c.left,
-        t: r.top - c.top,
-        b: r.bottom - c.top,
-        cx: (r.left + r.right) / 2 - c.left,
-        cy: (r.top + r.bottom) / 2 - c.top,
+        l: (r.left - c.left) / k,
+        r: (r.right - c.left) / k,
+        t: (r.top - c.top) / k,
+        b: (r.bottom - c.top) / k,
+        cx: ((r.left + r.right) / 2 - c.left) / k,
+        cy: ((r.top + r.bottom) / 2 - c.top) / k,
       };
     }
 
@@ -203,8 +247,12 @@ export default function OperatingMap() {
     const node = rootRef.current;
     if (!node) return;
 
+    // ResizeObserver reports layout size, which the transform does not
+    // affect, so watching both the wrapper (available width) and the figure
+    // (content height) cannot feed back into itself.
     const observer = new ResizeObserver(() => draw());
     observer.observe(node);
+    if (fitRef.current) observer.observe(fitRef.current);
 
     let cancelled = false;
     if (document.fonts?.ready) {
@@ -227,8 +275,9 @@ export default function OperatingMap() {
 
   return (
     <div className={styles.root}>
-      <div className={styles.scroll}>
-        <section className={styles.system} ref={rootRef}>
+      <div className={styles.fit} ref={fitRef}>
+        <div className={styles.stage} ref={stageRef}>
+          <section className={styles.system} ref={rootRef}>
           <svg className={styles.wires} ref={svgRef} aria-hidden="true" />
 
           <div className={`${styles.pill} ${styles.full}`}>All cities</div>
@@ -359,7 +408,8 @@ export default function OperatingMap() {
               </div>
             </div>
           </div>
-        </section>
+          </section>
+        </div>
       </div>
     </div>
   );

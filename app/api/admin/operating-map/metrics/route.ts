@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminUser, getAuthUser, getServiceClient } from "@/lib/admin";
-import { getOrganicVisitors } from "@/lib/operating-map/organic.server";
+import {
+  getOrganicVisitors,
+  REFERRER_INSTRUMENTATION_START,
+  VISITOR_GEO_START,
+} from "@/lib/operating-map/organic.server";
 
 /**
  * GET /api/admin/operating-map/metrics?date_from&date_to
@@ -23,10 +27,12 @@ export const dynamic = "force-dynamic";
 
 export interface OperatingMapNode {
   value: number | null;
-  /** Short note the UI shows next to the value. Null when unqualified. */
-  note: string | null;
-  /** True when this node ignores the selected city. */
-  allCities?: boolean;
+  /**
+   * A caveat that applies to this value right now — a range reaching back
+   * past the instrumentation, a hit row ceiling. Shown only inside the
+   * node's tooltip, never as text on the card.
+   */
+  caveat?: string | null;
 }
 
 export async function GET(request: NextRequest) {
@@ -44,32 +50,34 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const from = searchParams.get("date_from");
     const to = searchParams.get("date_to");
+    const city = searchParams.get("city");
 
     const db = getServiceClient();
     const nodes: Record<string, OperatingMapNode> = {};
 
     try {
-      const organic = await getOrganicVisitors(db, { from, to });
-      const notes: string[] = [];
+      const organic = await getOrganicVisitors(db, { from, to }, city);
+      const caveats: string[] = [];
+      if (organic.partialCityData) {
+        // Without this a city filter over an older range reads as no demand
+        // when it is really no data.
+        caveats.push(`City is only recorded from ${VISITOR_GEO_START}.`);
+      }
       if (organic.partialInstrumentation) {
         // Without this the chart reads as a traffic collapse before August.
-        notes.push("partly before referrer tracking");
+        caveats.push(`Search traffic is only identified from ${REFERRER_INSTRUMENTATION_START}.`);
       }
-      if (organic.truncated) notes.push("floor — row ceiling hit");
+      if (organic.truncated) caveats.push("Row ceiling reached — this is a floor.");
 
       nodes.cr2 = {
         value: organic.value,
-        note: notes.length ? notes.join(" · ") : null,
-        // Most organic traffic lands on benefits and editorial pages, which
-        // carry no city. Scoping only the provider share would change the
-        // meaning of the number depending on the filter.
-        allCities: true,
+        caveat: caveats.length ? caveats.join(" ") : null,
       };
     } catch (error) {
       console.error("[operating-map/metrics] cr2 failed:", error);
       // One failed node must not blank the others. Null is rendered as
       // unavailable, never as zero.
-      nodes.cr2 = { value: null, note: "unavailable", allCities: true };
+      nodes.cr2 = { value: null, caveat: "This metric failed to load." };
     }
 
     return NextResponse.json({ nodes });

@@ -8,18 +8,21 @@ import type { SupabaseClient } from "@supabase/supabase-js";
  * `lib/analytics/referrer.ts` and are deliberately NOT counted here, so this
  * number stays comparable to the GA figure it is meant to be read against.
  *
- * "Visitors" is distinct sessions, not page views. CR4 below it counts page
- * views; counting them here too would make the two nodes restate each other.
+ * "Visitors", precisely: distinct `olera_session` ids. That cookie is a
+ * 30-day sliding id (see lib/analytics/session.ts), so it identifies a
+ * returning person, not a GA-style 30-minute session. Compare this to GA4
+ * Organic Search *users*; comparing it to GA sessions will always read low,
+ * because one person visiting twice in a day is two sessions and one visitor.
  *
  * The population is the same one CR4 covers — provider pages plus the
  * editorial and benefits content pages — which the platform splits across two
  * tables with two different shapes:
  *
- *   provider_activity  session in metadata->>session_id
- *   page_events        session in a top-level session_id column
+ *   provider_activity  visitor id in metadata->>session_id
+ *   page_events        visitor id in a top-level session_id column
  *
- * Sessions are unioned across both, so someone who read a benefits guide and
- * then a provider page in one session counts once.
+ * Ids are unioned across both, so someone who read a benefits guide and then
+ * a provider page counts once.
  */
 
 /** Traffic class that counts as organic. Kept explicit — see the note above. */
@@ -43,13 +46,22 @@ const MAX_ROWS = 150_000;
  */
 export const REFERRER_INSTRUMENTATION_START = "2026-08-12";
 
+/**
+ * The date visitor city started being recorded on page events. Before this
+ * no event carries a city, so a city-scoped count over an earlier range is
+ * structurally zero rather than genuinely quiet.
+ */
+export const VISITOR_GEO_START = "2026-09-06";
+
 export interface OrganicVisitors {
-  /** Distinct sessions with at least one organic page view. */
+  /** Distinct visitors with at least one organic page view. */
   value: number;
   /** A row ceiling was hit, so `value` is a floor. */
   truncated: boolean;
   /** The range reaches back before referrer classification existed. */
   partialInstrumentation: boolean;
+  /** The range reaches back before visitor city was recorded. */
+  partialCityData: boolean;
 }
 
 async function collectSessions(
@@ -58,6 +70,7 @@ async function collectSessions(
   sessions: Set<string>,
   from: string | null,
   to: string | null,
+  citySlug: string | null,
 ): Promise<boolean> {
   let scanned = 0;
 
@@ -73,6 +86,8 @@ async function collectSessions(
       .eq("event_type", "page_view")
       .filter("metadata->>referrer_class", "eq", ORGANIC_REFERRER_CLASS);
 
+    // Visitor city, recorded from Vercel's edge headers since VISITOR_GEO_START.
+    if (citySlug) query = query.filter("metadata->>geo_city", "eq", citySlug);
     if (from) query = query.gte("created_at", from);
     if (to) query = query.lt("created_at", to);
 
@@ -92,17 +107,16 @@ async function collectSessions(
 }
 
 /**
- * Distinct organic sessions in a date range.
+ * Distinct organic visitors in a date range, optionally in one city.
  *
- * Not city-scopable today, and the caller must say so when a city is
- * selected: provider page views could be attributed to a city through their
- * provider, but the benefits and editorial pages that make up most of this
- * traffic have no city at all. Scoping only the provider third would quietly
- * change what the number means depending on the filter.
+ * The city is the visitor's own location, resolved at the edge — not the
+ * market a page is about. Someone in Chicago reading about Houston providers
+ * counts as Chicago.
  */
 export async function getOrganicVisitors(
   db: SupabaseClient,
   range: { from: string | null; to: string | null },
+  citySlug: string | null = null,
 ): Promise<OrganicVisitors> {
   const sessions = new Set<string>();
 
@@ -112,6 +126,7 @@ export async function getOrganicVisitors(
     sessions,
     range.from,
     range.to,
+    citySlug,
   );
   const truncatedContent = await collectSessions(
     db,
@@ -119,6 +134,7 @@ export async function getOrganicVisitors(
     sessions,
     range.from,
     range.to,
+    citySlug,
   );
 
   return {
@@ -126,5 +142,7 @@ export async function getOrganicVisitors(
     truncated: truncatedProvider || truncatedContent,
     partialInstrumentation:
       !range.from || range.from < REFERRER_INSTRUMENTATION_START,
+    partialCityData:
+      Boolean(citySlug) && (!range.from || range.from < VISITOR_GEO_START),
   };
 }

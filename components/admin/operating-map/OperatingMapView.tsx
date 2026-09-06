@@ -53,6 +53,7 @@ export default function OperatingMapView() {
     const params = new URLSearchParams();
     if (resolved.from) params.set("date_from", resolved.from);
     if (resolved.to) params.set("date_to", resolved.to);
+    if (selectedCity) params.set("city", selectedCity);
 
     setMetricsLoading(true);
     fetch(`/api/admin/operating-map/metrics?${params}`, { signal: controller.signal })
@@ -64,12 +65,12 @@ export default function OperatingMapView() {
       .catch((e: unknown) => {
         if ((e as Error)?.name === "AbortError") return;
         // Every instrumented node renders as unavailable rather than zero.
-        setNodes({ cr2: { value: null, note: "unavailable", allCities: true } });
+        setNodes({ cr2: { value: null, caveat: "This metric failed to load." } });
         setMetricsLoading(false);
       });
 
     return () => controller.abort();
-  }, [resolved.from, resolved.to]);
+  }, [resolved.from, resolved.to, selectedCity]);
 
   return (
     <div>

@@ -60,11 +60,31 @@ type CitiesState =
 /** One instrumented node, as /api/admin/operating-map/metrics returns it. */
 export interface MetricNode {
   value: number | null;
-  note: string | null;
-  allCities?: boolean;
+  /** Live caveat, shown in the tooltip only — never as text on the card. */
+  caveat?: string | null;
 }
 
 export type MetricNodes = Record<string, MetricNode | undefined>;
+
+/**
+ * What a node's number means, in the fewest words that still let someone act
+ * on it: what is counted, where it comes from, how to read it. Only nodes
+ * that show a number get one — a dash needs no explanation.
+ */
+const NODE_HELP: Record<string, string> = {
+  cities:
+    "Cities with at least one live provider. Wider than the cities we have deliberately launched.",
+  cr2:
+    "Unique people who arrived from a search engine, from Olera's own page events. Compare with GA4 Organic Search users, not sessions.",
+};
+
+/** Tooltip anchored to a node, positioned outside the scaled figure. */
+interface Tip {
+  text: string;
+  caveat?: string | null;
+  x: number;
+  y: number;
+}
 
 export default function OperatingMap({
   selectedCity,
@@ -80,8 +100,10 @@ export default function OperatingMap({
   metricsLoading: boolean;
 }) {
   const [cities, setCities] = useState<CitiesState>({ status: "loading" });
+  const [tip, setTip] = useState<Tip | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const pickerRef = useRef<HTMLDivElement>(null);
+  const rootWrapRef = useRef<HTMLDivElement>(null);
   const fitRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -378,8 +400,32 @@ export default function OperatingMap({
     ? `${active.city}, ${active.state}`
     : "All cities";
 
+  /**
+   * Anchor a tooltip under the element that triggered it. Measured against
+   * the unscaled root so the tooltip renders at full size, whatever the
+   * figure has been scaled to.
+   */
+  const openTip = useCallback((el: HTMLElement, key: string, caveat?: string | null) => {
+    const text = NODE_HELP[key];
+    if (!text) return;
+    const root = rootWrapRef.current;
+    if (!root) return;
+    const r = el.getBoundingClientRect();
+    const c = root.getBoundingClientRect();
+    const TIP_WIDTH = 320;
+    // Keep it inside the wrapper rather than letting it hang off the edge.
+    const x = Math.min(Math.max(r.left - c.left - 8, 8), Math.max(c.width - TIP_WIDTH - 8, 8));
+    setTip({ text, caveat, x, y: r.bottom - c.top + 8 });
+  }, []);
+
   return (
-    <div className={styles.root}>
+    <div className={styles.root} ref={rootWrapRef} style={{ position: "relative" }}>
+      {tip && (
+        <div className={styles.tip} style={{ left: tip.x, top: tip.y }} role="tooltip">
+          {tip.text}
+          {tip.caveat && <span className={styles.tipCaveat}>{tip.caveat}</span>}
+        </div>
+      )}
       <div className={styles.fit} ref={fitRef}>
         <div className={styles.stage} ref={stageRef}>
           <section className={styles.system} ref={rootRef}>
@@ -409,6 +455,18 @@ export default function OperatingMap({
                 </span>
               )}
               <span className={styles.pillCaret}>▼</span>
+            </button>
+            <button
+              type="button"
+              className={styles.info}
+              aria-label="About this number"
+              style={{ position: "absolute", right: 10, top: 12 }}
+              onMouseEnter={(e) => openTip(e.currentTarget, "cities")}
+              onMouseLeave={() => setTip(null)}
+              onFocus={(e) => openTip(e.currentTarget, "cities")}
+              onBlur={() => setTip(null)}
+            >
+              ⓘ
             </button>
 
             {pickerOpen && (
@@ -483,7 +541,8 @@ export default function OperatingMap({
                   label="Organic visitors"
                   metric={nodes.cr2}
                   loading={metricsLoading}
-                  scoped={Boolean(selectedCity)}
+                  onTip={openTip}
+                  onTipClose={() => setTip(null)}
                 />
                 <Chip id="cr3" code="CR3" label="Paid ad visitors" />
               </div>
@@ -612,7 +671,6 @@ function Card({
   money,
   metric,
   loading,
-  scoped,
 }: {
   id: string;
   code: string;
@@ -622,7 +680,6 @@ function Card({
   money?: string;
   metric?: MetricNode;
   loading?: boolean;
-  scoped?: boolean;
 }) {
   return (
     <div className={`${styles.card}${hi ? ` ${styles.hi}` : ""}`} id={nodeId(id)}>
@@ -638,7 +695,6 @@ function Card({
         <MetricValue metric={metric} loading={loading} />
       </div>
       <div className={styles.n}>{label}</div>
-      <MetricNote metric={metric} scoped={scoped} />
     </div>
   );
 }
@@ -649,25 +705,60 @@ function Chip({
   label,
   metric,
   loading,
-  scoped,
+  onTip,
+  onTipClose,
 }: {
   id: string;
   code: string;
   label: string;
   metric?: MetricNode;
   loading?: boolean;
-  /** A city is selected, so an all-cities node has to say it ignored it. */
-  scoped?: boolean;
+  onTip?: TipOpener;
+  onTipClose?: () => void;
 }) {
   return (
     <div className={styles.chip} id={nodeId(id)}>
       <div className={styles.chipHead}>
-        <b>{code}</b>
-        <MetricValue metric={metric} loading={loading} />
+        <span>
+          <b>{code}</b>
+        </span>
+        <span style={{ whiteSpace: "nowrap" }}>
+          <MetricValue metric={metric} loading={loading} />
+          <InfoButton nodeKey={id} metric={metric} onTip={onTip} onTipClose={onTipClose} />
+        </span>
       </div>
       {label}
-      <MetricNote metric={metric} scoped={scoped} />
     </div>
+  );
+}
+
+export type TipOpener = (el: HTMLElement, key: string, caveat?: string | null) => void;
+
+/** Only rendered where there is something to explain. */
+function InfoButton({
+  nodeKey,
+  metric,
+  onTip,
+  onTipClose,
+}: {
+  nodeKey: string;
+  metric?: MetricNode;
+  onTip?: TipOpener;
+  onTipClose?: () => void;
+}) {
+  if (!onTip || !NODE_HELP[nodeKey]) return null;
+  return (
+    <button
+      type="button"
+      className={styles.info}
+      aria-label="About this number"
+      onMouseEnter={(e) => onTip(e.currentTarget, nodeKey, metric?.caveat)}
+      onMouseLeave={onTipClose}
+      onFocus={(e) => onTip(e.currentTarget, nodeKey, metric?.caveat)}
+      onBlur={onTipClose}
+    >
+      ⓘ
+    </button>
   );
 }
 
@@ -684,12 +775,4 @@ function MetricValue({ metric, loading }: { metric?: MetricNode; loading?: boole
   return <span className={styles.value}>{metric.value.toLocaleString()}</span>;
 }
 
-/** Caveats sit on the card, not in a legend somewhere else on the page. */
-function MetricNote({ metric, scoped }: { metric?: MetricNode; scoped?: boolean }) {
-  if (!metric) return null;
-  const parts: string[] = [];
-  if (scoped && metric.allCities) parts.push("all cities");
-  if (metric.note) parts.push(metric.note);
-  if (!parts.length) return null;
-  return <span className={styles.note}>{parts.join(" · ")}</span>;
-}
+

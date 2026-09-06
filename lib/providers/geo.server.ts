@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { citiesWithAliases, expandCityAliases } from "@/lib/city-aliases";
+import { cityKey, normalizeCityName } from "@/lib/city-key";
 
 /** One city Olera has live providers in. */
 export interface ProviderCity {
@@ -31,11 +32,10 @@ const MAX_ROWS = 200_000;
  * inflate the total with case and spacing variants, so everything collapses
  * to one normalized key first.
  *
- * The convention matches `market_diagnostics`: city lower-cased, state upper.
+ * Slugs come from `lib/city-key.ts`, shared with the visitor geo recorded on
+ * page events, so a provider's city and a visitor's city are the same string.
  */
-function normalizeCity(city: string): string {
-  return city.trim().replace(/\s+/g, " ").toLowerCase();
-}
+const normalizeCity = normalizeCityName;
 
 /** Reverse of `expandCityAliases`: the name a group of aliases rolls up to. */
 function buildAliasIndex(): Map<string, string> {
@@ -64,10 +64,6 @@ function toDisplay(normalized: string): string {
         .join("-"),
     )
     .join(" ");
-}
-
-function toSlug(normalizedCity: string, state: string): string {
-  return `${normalizedCity.replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}-${state.toLowerCase()}`;
 }
 
 /**
@@ -120,7 +116,7 @@ export async function getProviderCities(
         counts.set(key, {
           city: toDisplay(canonical),
           state: rawState,
-          slug: toSlug(canonical, rawState),
+          slug: cityKey(canonical, rawState) ?? `${canonical}-${rawState.toLowerCase()}`,
           providers: 1,
         });
       }

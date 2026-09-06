@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import styles from "./OperatingMap.module.css";
 
@@ -44,7 +44,30 @@ const nodeId = (key: string) => `om-${key}`;
 /** Placeholder for a node with no confident data source yet. */
 const NOT_INSTRUMENTED = "—";
 
-export default function OperatingMap() {
+/** A city Olera has live providers in, as /api/admin/operating-map/cities returns it. */
+interface City {
+  city: string;
+  state: string;
+  slug: string;
+  providers: number;
+}
+
+type CitiesState =
+  | { status: "loading" }
+  | { status: "ready"; cities: City[]; truncated: boolean }
+  | { status: "error" };
+
+export default function OperatingMap({
+  selectedCity,
+  onSelectCity,
+}: {
+  /** Slug of the city the map is scoped to, or null for all cities. */
+  selectedCity: string | null;
+  onSelectCity: (slug: string | null) => void;
+}) {
+  const [cities, setCities] = useState<CitiesState>({ status: "loading" });
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const pickerRef = useRef<HTMLDivElement>(null);
   const fitRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -287,6 +310,54 @@ export default function OperatingMap() {
     return () => window.removeEventListener("resize", onResize);
   }, [draw]);
 
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/admin/operating-map/cities", { signal: controller.signal })
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error("cities failed"))))
+      .then((d) =>
+        setCities({
+          status: "ready",
+          cities: (d.cities ?? []) as City[],
+          truncated: Boolean(d.truncated),
+        }),
+      )
+      .catch((e: unknown) => {
+        if ((e as Error)?.name === "AbortError") return;
+        // No fallback number: the top node is the scope everything else is
+        // read against, so a wrong count there is worse than no count.
+        setCities({ status: "error" });
+      });
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    if (!pickerOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (!pickerRef.current?.contains(e.target as Node)) setPickerOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setPickerOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [pickerOpen]);
+
+  const active = useMemo(
+    () =>
+      cities.status === "ready"
+        ? cities.cities.find((c) => c.slug === selectedCity) ?? null
+        : null,
+    [cities, selectedCity],
+  );
+
+  const pillLabel = active
+    ? `${active.city}, ${active.state}`
+    : "All cities";
+
   return (
     <div className={styles.root}>
       <div className={styles.fit} ref={fitRef}>
@@ -294,7 +365,84 @@ export default function OperatingMap() {
           <section className={styles.system} ref={rootRef}>
           <svg className={styles.wires} ref={svgRef} aria-hidden="true" />
 
-          <div className={`${styles.pill} ${styles.full}`}>All cities</div>
+          <div className={styles.full} ref={pickerRef} style={{ position: "relative" }}>
+            <button
+              type="button"
+              className={`${styles.pill} ${styles.pillButton}`}
+              onClick={() => setPickerOpen((v) => !v)}
+              aria-expanded={pickerOpen}
+              aria-haspopup="listbox"
+            >
+              {pillLabel}
+              {!active && (
+                <span className={styles.pillCount}>
+                  {cities.status === "ready"
+                    ? `${cities.truncated ? "≥" : ""}${cities.cities.length.toLocaleString()}`
+                    : cities.status === "loading"
+                      ? "…"
+                      : NOT_INSTRUMENTED}
+                </span>
+              )}
+              {active && (
+                <span className={styles.pillCount}>
+                  {active.providers.toLocaleString()} providers
+                </span>
+              )}
+              <span className={styles.pillCaret}>▼</span>
+            </button>
+
+            {pickerOpen && (
+              <div className={styles.picker} role="listbox">
+                <button
+                  type="button"
+                  className={styles.pickerItem}
+                  aria-current={!selectedCity}
+                  onClick={() => {
+                    onSelectCity(null);
+                    setPickerOpen(false);
+                  }}
+                >
+                  <span>All cities</span>
+                  {cities.status === "ready" && (
+                    <span className={styles.pickerCount}>
+                      {cities.cities.length.toLocaleString()}
+                    </span>
+                  )}
+                </button>
+                {cities.status === "ready" &&
+                  cities.cities.map((c) => (
+                    <button
+                      key={c.slug}
+                      type="button"
+                      className={styles.pickerItem}
+                      aria-current={c.slug === selectedCity}
+                      onClick={() => {
+                        onSelectCity(c.slug);
+                        setPickerOpen(false);
+                      }}
+                    >
+                      <span>{`${c.city}, ${c.state}`}</span>
+                      <span className={styles.pickerCount}>
+                        {c.providers.toLocaleString()}
+                      </span>
+                    </button>
+                  ))}
+                {cities.status === "loading" && (
+                  <div className={styles.pickerNote}>Loading cities…</div>
+                )}
+                {cities.status === "error" && (
+                  <div className={styles.pickerNote}>
+                    Could not load cities. The count is not reported as zero.
+                  </div>
+                )}
+                {cities.status === "ready" && cities.truncated && (
+                  <div className={styles.pickerNote}>
+                    Row ceiling reached — this list is a floor, not the full set.
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
           <div style={{ height: 18 }} />
 
           <div className={styles.lanes3} style={{ marginBottom: 8 }}>

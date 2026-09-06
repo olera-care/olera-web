@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import OperatingMap from "@/components/admin/operating-map/OperatingMap";
+import { Suspense } from "react";
+import OperatingMapView from "@/components/admin/operating-map/OperatingMapView";
 
 export const metadata: Metadata = {
   title: "Operating Map",
@@ -12,7 +13,10 @@ export default function AdminOperatingMapPage() {
         <h1 className="text-2xl font-semibold text-gray-900">Operating Map</h1>
       </div>
 
-      <OperatingMap />
+      {/* useSearchParams needs a Suspense boundary to prerender. */}
+      <Suspense fallback={null}>
+        <OperatingMapView />
+      </Suspense>
     </div>
   );
 }

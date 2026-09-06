@@ -1030,7 +1030,7 @@
           }
         ]
       },
-      "intro": "If your loved one's income is at or below 200% of the Federal Poverty Level (about $30,120/year for one person in 2026), they may qualify for free home energy efficiency improvements through Georgia's Weatherization Assistance Program. Because this program provides services based on an energy audit, your loved one gets customized improvements like air sealing, insulation, HVAC upgrades, and energy-efficient lighting at no cost.\n\nThe program serves both homeowners and renters (renters need landlord permission). Because elderly households receive priority, your loved one may move through the process faster than younger applicants. The improvements are designed to reduce monthly utility bills, though savings vary based on the home's current condition and which improvements are installed.",
+      "intro": "If your loved one's income is at or below 200% of the Federal Poverty Level (about $31,920/year for one person in 2026), they may qualify for free home energy efficiency improvements through Georgia's Weatherization Assistance Program. Because this program provides services based on an energy audit, your loved one gets customized improvements like air sealing, insulation, HVAC upgrades, and energy-efficient lighting at no cost.\n\nThe program serves both homeowners and renters (renters need landlord permission). Because elderly households receive priority, your loved one may move through the process faster than younger applicants. The improvements are designed to reduce monthly utility bills, though savings vary based on the home's current condition and which improvements are installed.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -1038,7 +1038,7 @@
         "summary": [
           "Income at or below 200% Federal Poverty Level",
           "Homeowners and renters eligible",
-          "Single-family or manufactured homes",
+          "Single-family homes, manufactured homes, and apartments",
           "Priority given to elderly households"
         ],
         "ageRequirement": null,
@@ -1071,7 +1071,7 @@
         "assetLimits": null,
         "functionalRequirement": null,
         "otherRequirements": [
-          "Must live in single-family home or manufactured home (campers and non-stationary trailers ineligible)",
+          "Must live in a single-family home, manufactured home, or multifamily building (campers and non-stationary trailers ineligible)",
           "Renters need written landlord permission",
           "Program does not fix structural issues like roofing, walls, or flooring holes"
         ],
@@ -1124,7 +1124,7 @@
       "documentsNeeded": [
         "Proof of income for the last 30 days for everyone in the household (Social Security or pension award letter dated this year, or recent pay stubs: 4 if paid weekly, 2 if biweekly, 1 if monthly)",
         "Social Security cards for all household members",
-        "Photo ID for the applicant (driver license, state ID, or passport). Georgia law requires it for benefit programs, and the application has to be notarized.",
+        "Photo ID for the applicant (driver license, state ID, or passport). Georgia's public-benefits law requires a sworn statement of lawful presence with a copy of this ID. The agency usually notarizes it at the appointment, so bring the original.",
         "Written landlord permission if renting. Georgia requires the owner to agree in writing before the energy audit, so start this early.",
         "Proof of residency (utility bill, lease agreement, or mortgage statement)",
         "Most recent electric and gas utility bills",
@@ -1211,7 +1211,7 @@
       "sourceUrl": "https://gefa.georgia.gov/weatherization-assistance-program",
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-03"
+      "lastVerifiedDate": "2026-09-06"
     },
     {
       "id": "ship-medicare-counseling",

@@ -23,14 +23,10 @@
           {
             "name": "Blue Rivers AAA - regional Area Agency on Aging",
             "type": "service-area"
-          },
-          {
-            "name": "AmanaCare - listed as service provider/application assistance",
-            "type": "service-area"
           }
         ]
       },
-      "intro": "If your loved one needs help with bathing, dressing, or medication management but wants to avoid nursing home placement, Nebraska's Aged and Disabled HCBS Waiver provides home care services at no cost. This Medicaid waiver covers personal care assistance, light housekeeping, meal preparation, medical transportation, and emergency response systems for qualifying residents.\n\nYour loved one must be 65+ or have a qualifying disability, already be enrolled in Nebraska Medicaid, and meet Nursing Facility Level of Care requirements (needing help with at least 3 daily activities like toileting, bathing, or eating). Because this waiver is designed as an alternative to nursing home care, your loved one's home equity cannot exceed $752,000 in 2026.\n\nThis is a two-step process: first qualify for Nebraska Medicaid, then apply for the waiver. Level of Care assessment is scheduled within 14 days of waiver application submission.",
+      "intro": "If your loved one needs help with bathing, dressing, or medication management but wants to avoid nursing home placement, Nebraska's Aged and Disabled HCBS Waiver provides home care services at no cost. This Medicaid waiver covers personal care assistance, light housekeeping, meal preparation, medical transportation, and emergency response systems for qualifying residents.\n\nYour loved one must be 65+ or have a qualifying disability, already be enrolled in Nebraska Medicaid, and meet Nursing Facility Level of Care requirements (needing help with at least 3 daily activities like toileting, bathing, or eating). Because this waiver is designed as an alternative to nursing home care, your loved one's home equity cannot exceed $752,000 in 2026.\n\nYou can apply for Nebraska Medicaid and the waiver at the same time on iServe Nebraska. After the application is in, DHHS calls to schedule the Level of Care assessment.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -64,22 +60,22 @@
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at iServe Nebraska or call DHHS at 877-667-6266; Level of Care assessment scheduled within 14 days.",
+        "summary": "Apply online at iServe Nebraska or call DHHS at 877-667-6266 to have an application mailed; DHHS then calls to schedule the Level of Care assessment.",
         "steps": [
           {
             "step": 1,
             "title": "Confirm Nebraska Medicaid enrollment",
-            "description": "You must be enrolled in Nebraska Medicaid before applying for the waiver. If not enrolled, apply for Medicaid first through DHHS at 877-667-6266."
+            "description": "You need Nebraska Medicaid for the waiver. You can apply for both at once on iServe Nebraska. For Medicaid questions call ACCESSNebraska at (855) 632-7633."
           },
           {
             "step": 2,
             "title": "Submit waiver application",
-            "description": "Apply online at iServe Nebraska, call DHHS at 877-667-6266 or 402-471-8501, or mail application to DDD Eligibility, PO Box 98947, Lincoln, NE 68509-8947."
+            "description": "Apply online at iServe Nebraska, call DHHS at 877-667-6266 or 402-471-8501, or mail the application to HCBS Waiver Eligibility, PO Box 98947, Lincoln, NE 68509-8947, email it to DHHS.HCBSWaiverApp@nebraska.gov, or fax (402) 328-6257."
           },
           {
             "step": 3,
             "title": "Complete Level of Care assessment",
-            "description": "DHHS will schedule your functional assessment within 14 days. This clinical evaluation determines if you meet nursing facility level of care requirements."
+            "description": "DHHS will call to schedule your functional assessment. This clinical evaluation determines if you meet nursing facility level of care requirements."
           },
           {
             "step": 4,
@@ -87,7 +83,7 @@
             "description": "If you qualify for Level of Care, a safety assessment determines if waiver services can safely meet your needs at home. Service plan is developed based on your specific care requirements."
           }
         ],
-        "processingTime": "Level of Care assessment scheduled within 14 days of application submission",
+        "processingTime": "DHHS calls to schedule the Level of Care assessment after it receives the application",
         "waitlist": null,
         "tip": "Gather all medical records showing your loved one's daily care needs before applying, the Level of Care assessment is the key requirement that determines eligibility.",
         "urls": [
@@ -121,14 +117,14 @@
         {
           "label": "DHHS HCBS Waiver Line",
           "phone": "(877) 667-6266",
-          "description": "Primary application and eligibility questions",
-          "hours": "Business hours"
+          "description": "Request an application or ask questions. One line for the AD, DD, and TBI waivers. Fax (402) 328-6257.",
+          "hours": "Mon-Fri 8am-5pm CT"
         },
         {
           "label": "DHHS Lincoln Office",
           "phone": "(402) 471-8501",
           "description": "Local DHHS office for waiver applications",
-          "hours": "Business hours"
+          "hours": "Mon-Fri 8am-5pm CT"
         },
         {
           "label": "Blue Rivers AAA",
@@ -145,10 +141,9 @@
       ],
       "applicationNotes": [
         "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
-        "You cannot apply for the AD Waiver until you are already enrolled in Nebraska Medicaid, this is a strict prerequisite, not something that happens automatically",
+        "The waiver needs Nebraska Medicaid. You can apply for both at once on iServe Nebraska, and DHHS checks Medicaid eligibility as part of the waiver application",
         "The Nursing Facility Level of Care assessment uses specific clinical criteria, having a disability or being elderly alone does not guarantee qualification",
-        "Home equity limit of $752,000 is for 2026 and may change annually, verify current limits when applying",
-        "The waiver program expires 07/31/2026 and requires federal renewal, confirm current program status before applying"
+        "Home equity limit of $752,000 is for 2026 and may change annually, verify current limits when applying"
       ],
       "relatedPrograms": [
         "Nebraska Medicaid",
@@ -160,7 +155,7 @@
       "faqs": [
         {
           "question": "Can my loved one apply for this waiver if they're not on Medicaid yet?",
-          "answer": "No. Your loved one must be enrolled in Nebraska Medicaid before applying for the AD Waiver. Apply for Medicaid first through DHHS at 877-667-6266, then submit the waiver application once Medicaid enrollment is confirmed."
+          "answer": "They need Nebraska Medicaid for the waiver, but you can apply for both at the same time on iServe Nebraska. For Medicaid questions call ACCESSNebraska at (855) 632-7633."
         },
         {
           "question": "What if my loved one's house is worth more than $752,000?",
@@ -196,7 +191,7 @@
       "sourceUrl": "https://dhhs.ne.gov/Pages/Medicaid-Aged-and-Disabled-Waiver.aspx",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-06"
     },
     {
       "id": "pace-elder-care",
@@ -253,17 +248,17 @@
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call Immanuel Pathways directly to start eligibility assessment, processing time varies by individual assessment needs.",
+        "summary": "Call Immanuel Pathways at (402) 512-6199 or submit their online form. Enrollment is a 5-step process and new participants start on the first of the month.",
         "steps": [
           {
             "step": 1,
             "title": "Contact Immanuel Pathways",
-            "description": "Call Immanuel Pathways Eastern Nebraska to request enrollment information and schedule initial assessment. You can also call Nebraska DHHS Medicaid line at (855) 632-7633 for referral."
+            "description": "Call Immanuel Pathways at (402) 512-6199, Monday to Friday 7am to 5pm, or submit the form at immanuel.com/pace-enrollment. An enrollment specialist calls you back, explains eligibility and payment options, and sets up a home or center visit."
           },
           {
             "step": 2,
             "title": "Complete eligibility assessment",
-            "description": "PACE team conducts comprehensive assessment to determine if your loved one meets nursing facility level of care requirements and can live safely in community with services."
+            "description": "PACE team conducts comprehensive assessment to determine if your loved one meets nursing facility level of care requirements and can live safely in community with services. Immanuel's specialist completes the enrollment paperwork at this visit and can apply for Medicaid for you if needed."
           },
           {
             "step": 3,
@@ -273,7 +268,7 @@
           {
             "step": 4,
             "title": "Enrollment and care planning",
-            "description": "Once approved, interdisciplinary team creates personalized care plan covering all medical, social, and support services."
+            "description": "Once approved, interdisciplinary team creates personalized care plan covering all medical, social, and support services. New participants start on the first of the month."
           }
         ],
         "processingTime": "Not specified, varies by individual assessment complexity",
@@ -283,36 +278,50 @@
           {
             "label": "Nebraska DHHS PACE Information",
             "url": "https://dhhs.ne.gov/Pages/Medicaid-Provider-All-Inclusive-Care-for-the-Elderly.aspx"
+          },
+          {
+            "label": "Immanuel Pathways Eastern Nebraska (PACE)",
+            "url": "https://immanuel.com/pathways-pace/immanuel-pathways-eastern-nebraska"
+          },
+          {
+            "label": "PACE enrollment form",
+            "url": "https://immanuel.com/pace-enrollment"
           }
         ]
       },
       "documentsNeeded": [
         "Medicaid card (if applicable)",
+        "Medicare card if they have one (Medicare is not required for this program)",
+        "List of current medications and prescriptions",
         "Social Security card",
         "Birth certificate or other proof of age",
-        "Medicare card if they have one (Medicare is not required for this program)",
         "Proof of Nebraska residency (utility bill, lease, or state-issued document)",
         "Most recent Social Security award letter",
         "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Investment documents (stocks, bonds, annuities)",
         "Life insurance policies with face values",
         "Medical records documenting current health conditions and care needs",
-        "List of current medications and prescriptions",
         "Names and contact information for current doctors",
         "Pre-need burial contracts or irrevocable burial trusts (if applicable)",
         "Power of attorney documents (if family member is applying on behalf of parent)"
       ],
       "contacts": [
         {
-          "label": "Nebraska DHHS Medicaid Line",
-          "phone": "(855) 632-7633",
-          "description": "General Medicaid information and PACE referrals",
+          "label": "Immanuel Pathways Eastern Nebraska (start here)",
+          "phone": "(402) 512-6199",
+          "description": "Nebraska's only PACE program. Call to ask about eligibility, whether your address is covered, and to start enrollment. TTY (800) 833-7352. You can also submit the form at immanuel.com/pace-enrollment.",
+          "hours": "Mon-Fri 7am-5pm CT"
+        },
+        {
+          "label": "Nebraska Aging and Disability Resource Center (ADRC)",
+          "phone": "(844) 843-6364",
+          "description": "Free help comparing long-term care options if PACE does not fit or your loved one lives outside the service area.",
           "hours": "Mon-Fri 8am-5pm CT"
         },
         {
-          "label": "Aging and Disability Services",
-          "phone": "(800) 942-7830",
-          "description": "Information on long-term care options and assessments",
+          "label": "ACCESSNebraska Medicaid Line",
+          "phone": "(855) 632-7633",
+          "description": "Nebraska Medicaid questions only. Does not handle PACE enrollment.",
           "hours": "Mon-Fri 8am-5pm CT"
         }
       ],
@@ -372,11 +381,11 @@
         "visualTone": "editorial"
       },
       "icon": "Hospital",
-      "phone": "(855) 632-7633",
+      "phone": "(402) 512-6199",
       "sourceUrl": "https://dhhs.ne.gov/Pages/Medicaid-Provider-All-Inclusive-Care-for-the-Elderly.aspx",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-07"
+      "lastVerifiedDate": "2026-09-06"
     },
     {
       "id": "medicare-savings-program",
@@ -2209,9 +2218,9 @@
       ],
       "contacts": [
         {
-          "label": "DHHS AD Waiver Application",
+          "label": "DHHS HCBS Waiver Line (start here)",
           "phone": "(877) 667-6266",
-          "description": "Apply for Aged and Disabled Waiver and Medicaid",
+          "description": "Ask for an AD Waiver application by mail or ask a question. This is the state's one line for all HCBS waivers. Lincoln local: (402) 471-8501. Fax: (402) 328-6257.",
           "hours": "Mon-Fri 8am-5pm CT"
         },
         {
@@ -2219,6 +2228,12 @@
           "phone": null,
           "description": "Email applications to dhhs.hcbswaiverapp@nebraska.gov",
           "hours": "Business days"
+        },
+        {
+          "label": "ACCESSNebraska (Medicaid only)",
+          "phone": "(855) 632-7633",
+          "description": "Apply for or ask about Nebraska Medicaid. The waiver needs Medicaid.",
+          "hours": "Mon-Fri 8am-5pm CT"
         },
         {
           "label": "Nebraska 2-1-1",
@@ -2232,7 +2247,8 @@
         "You must apply for Nebraska Medicaid and the AD Waiver at the same time, the waiver cannot be approved without active Medicaid coverage",
         "The interRAI-HC functional assessment is required and determines whether you meet nursing facility level of care, prepare to demonstrate specific limitations in daily activities",
         "Service availability varies by region, western Nebraska uses different coordinators (like Aging Office of Western Nebraska) than other areas",
-        "Your total cost of waiver services cannot exceed what Medicaid would pay for nursing home care in your area"
+        "Your total cost of waiver services cannot exceed what Medicaid would pay for nursing home care in your area",
+        "Mail paper applications to HCBS Waiver Eligibility, PO Box 98947, Lincoln NE 68509-8947, email DHHS.HCBSWaiverApp@nebraska.gov, or fax (402) 328-6257."
       ],
       "relatedPrograms": [
         "Nebraska Medicaid",
@@ -2288,7 +2304,7 @@
       "sourceUrl": "https://dhhs.ne.gov/Pages/Medicaid-Aged-and-Disabled-Waiver.aspx",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-08-07"
+      "lastVerifiedDate": "2026-09-06"
     },
     {
       "id": "community-aging-services",

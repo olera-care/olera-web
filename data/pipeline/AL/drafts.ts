@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/AL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-23T08:40:32.509Z
+ * Last updated: 2026-09-06T12:14:31.502Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2638,7 +2638,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 55+ with chronic conditions like diabetes or heart disease, they may qualify for free brand-name prescription medications through pharmaceutical company assistance programs. SenioRx helps Alabama residents navigate these programs when they have no prescription coverage, inadequate Medicare Part D coverage, or fall into the Medicare \"donut hole.\"\n\nThe program provides 3-month supplies of medications with refills, plus connections to low-cost generic mail-order options. Because each pharmaceutical company sets its own guidelines, your loved one might qualify even if their income exceeds the initial screening threshold of 200% of the federal poverty level.\n\nYou must apply in your loved one's county of residence through their local Area Agency on Aging office. The program serves all 67 Alabama counties but requires an in-person appointment or phone consultation for eligibility screening.",
+      "intro": "If your loved one is 55+ with chronic conditions like diabetes or heart disease, they may qualify for free brand-name prescription medications through pharmaceutical company assistance programs. SenioRx helps Alabama residents navigate these programs when they have no prescription coverage, inadequate Medicare Part D coverage, or fall into the Medicare \"donut hole.\"\n\nThe program provides 3-month supplies of medications with refills, plus connections to low-cost generic mail-order options. Because each pharmaceutical company sets its own guidelines, your loved one might qualify even if their income is above the screening guideline many offices use, about 200% of the federal poverty level.\n\nYou apply in your loved one's county through their Area Agency on Aging. Start by calling 1-800-AGE-LINE (1-800-243-5463). It covers all 67 counties and sends you to the right office, which screens your loved one by phone or in person.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2646,7 +2646,7 @@ export const drafts: PipelineStateDrafts = {
         "summary": [
           "Age 55+ OR any age with disability",
           "Chronic condition requiring daily medication",
-          "Income at or below 200% federal poverty level",
+          "Income limits apply (offices screen at about 200% of the federal poverty level)",
           "No/inadequate prescription coverage"
         ],
         "ageRequirement": "55+",
@@ -2663,12 +2663,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "in-person",
-        "summary": "Call your local Area Agency on Aging to schedule an appointment for eligibility screening.",
+        "summary": "Call 1-800-AGE-LINE. They send you to your county's Area Agency on Aging, which screens your loved one and files the drug company forms.",
         "steps": [
           {
             "step": 1,
-            "title": "Find your county's Area Agency on Aging",
-            "description": "Each Alabama county has a designated office. For example, NW Alabama residents (Colbert, Franklin, Lauderdale, Marion, Winston counties) call 1-800-838-5845."
+            "title": "Call 1-800-AGE-LINE",
+            "description": "Call 1-800-243-5463 and give your loved one's county. Alabama has 13 Area Agencies on Aging and this line connects you to the right one. You can also find your office on the county map at alabamaageline.gov/helpservices."
           },
           {
             "step": 2,
@@ -2693,6 +2693,10 @@ export const drafts: PipelineStateDrafts = {
           {
             "label": "Alabama Ageline SenioRx Page",
             "url": "https://alabamaageline.gov/seniorx/"
+          },
+          {
+            "label": "Find your Area Agency on Aging by county",
+            "url": "https://alabamaageline.gov/helpservices/"
           }
         ]
       },
@@ -2707,16 +2711,16 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "NW Alabama SenioRx (Colbert, Franklin, Lauderdale, Marion, Winston)",
-          "phone": "(800) 838-5845",
-          "description": "Eligibility screening and application assistance",
-          "hours": "Mon-Fri 8am-5pm CT"
+          "label": "1-800-AGE-LINE, Alabama Department of Senior Services (start here)",
+          "phone": "(800) 243-5463",
+          "description": "Statewide line. Tell them your county. They connect you to the Area Agency on Aging that runs SenioRx where your loved one lives.",
+          "hours": "Mon-Fri, business hours CT"
         },
         {
-          "label": "Alabama 2-1-1",
-          "phone": "2-1-1",
-          "description": "Find your local Area Agency on Aging office",
-          "hours": "24 hours, 7 days a week"
+          "label": "NW Alabama SenioRx, NACOLG (Colbert, Franklin, Lauderdale, Marion, Winston counties only)",
+          "phone": "(800) 838-5845",
+          "description": "Eligibility screening and application help for these five counties only",
+          "hours": "Mon-Fri, business hours CT"
         }
       ],
       "applicationNotes": null,
@@ -2749,10 +2753,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "Pill",
-      "phone": "(800) 838-5845",
+      "phone": "(800) 243-5463",
       "sourceUrl": "https://alabamaageline.gov/seniorx/",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-06"
     }
   ],
   "stateOverview": {

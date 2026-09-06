@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/FL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-09-03T11:25:55.870Z
+ * Last updated: 2026-09-06T12:14:31.508Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -2622,28 +2622,28 @@ export const drafts: PipelineStateDrafts = {
       "id": "cce-community-care-elderly",
       "name": "Community Care for the Elderly (CCE) Program",
       "shortName": "CCE Program",
-      "tagline": "Free home care services to help your loved one age in place instead of moving to a nursing home.",
+      "tagline": "Home care services, free or low cost based on income, to help your loved one age in place instead of moving to a nursing home.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your loved one is 60+ and struggling with daily tasks like bathing or medication management, Florida's Community Care for the Elderly (CCE) Program provides home care services to help them stay in their own home. The program serves as an alternative to nursing home placement by offering community-based care for seniors at risk of institutionalization.\n\nCCE prioritizes those most at risk of needing nursing home care due to functional impairments. Because this is a state-funded program with limited capacity, there are often waiting lists for services. Eligibility is determined through a comprehensive assessment of functional needs; unlike standard entitlement programs, CCE may require a monthly co-payment based on the senior's income level.\n\nThe program operates statewide through the Florida Department of Elder Affairs, but your loved one cannot receive CCE services while enrolled in a Medicaid capitated long-term care program. To begin the process, call the Elder Helpline at 1-800-963-5337 for a free initial screening.",
+      "intro": "If your loved one is 60+ and struggling with daily tasks like bathing or medication management, Florida's Community Care for the Elderly (CCE) Program provides home care services to help them stay in their own home. The program serves as an alternative to nursing home placement by offering community-based care for seniors at risk of institutionalization.\n\nCCE prioritizes those most at risk of needing nursing home care due to functional impairments. Because this is a state-funded program with limited capacity, there are often waiting lists for services. Eligibility is determined through a comprehensive assessment of functional needs; unlike standard entitlement programs, CCE charges a sliding co-payment on income above the federal poverty level. At or below it, services are free.\n\nThe program operates statewide through the Florida Department of Elder Affairs, but your loved one cannot receive CCE services while enrolled in a Medicaid capitated long-term care program. To start, call the Elder Helpline at 1-800-963-5337. A screener asks a few questions by phone. No paperwork is needed for that call.",
       "savingsRange": "",
-      "savingsSource": "Free service",
+      "savingsSource": "Sliding co-pay on income above the federal poverty level; free at or below it",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Age 60+",
           "Functional impairment affecting daily activities",
-          "Risk of nursing home placement",
+          "Higher risk of nursing home placement moves you up the list",
           "Annual reassessment required"
         ],
         "ageRequirement": "60+",
         "incomeTable": null,
         "assetLimits": null,
-        "functionalRequirement": "Must have functional impairments that affect ability to perform daily activities and create risk of needing nursing home care",
+        "functionalRequirement": "Physical or mental limits that keep them from daily activities and from living alone without help, found by the state's assessment",
         "otherRequirements": [
           "Cannot be enrolled in Medicaid capitated long-term care programs simultaneously",
           "Must complete annual comprehensive assessment to maintain eligibility"
@@ -2652,27 +2652,27 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Contact the Florida Department of Elder Affairs for an in-person assessment, processing time not specified.",
+        "summary": "Call the Elder Helpline. A phone screening ranks your loved one. When a slot opens, a local case manager visits to do the full assessment.",
         "steps": [
           {
             "step": 1,
-            "title": "Contact Florida Department of Elder Affairs",
-            "description": "Call or visit your local office to request an intake assessment. The department will schedule a comprehensive evaluation to determine eligibility."
+            "title": "Call the Elder Helpline",
+            "description": "Call 1-800-963-5337. It routes to your county's Aging and Disability Resource Center. Ask for CCE screening. They must try to reach you within 3 business days."
           },
           {
             "step": 2,
-            "title": "Complete CARES assessment",
-            "description": "Undergo a clinical assessment that evaluates functional impairment and risk of institutionalization. This determines both eligibility and priority level."
+            "title": "Do the phone screening (701S)",
+            "description": "A trained screener asks about age, address, daily tasks, health, caregiver, and income. This gives a priority score of 1 to 5. Most people go on the pre-enrollment list, ranked by need, not by date."
           },
           {
             "step": 3,
-            "title": "Provide required documentation",
-            "description": "Submit medical records documenting functional impairment and evidence of risk of needing nursing home care."
+            "title": "Get the home assessment (701B)",
+            "description": "When funding opens, a lead agency case manager visits. They do the full assessment, confirm functional impairment, and set your co-pay from self-declared income."
           },
           {
             "step": 4,
             "title": "Receive eligibility determination",
-            "description": "If you don't qualify for CCE, the department must refer you to other appropriate agencies for alternative services."
+            "description": "If they clearly do not qualify, the intake worker must explain why and refer you to other help when appropriate."
           },
           {
             "step": 5,
@@ -2682,33 +2682,31 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": "Not specified by the Florida Department of Elder Affairs",
         "waitlist": "Not specified, contact local office for current availability",
-        "tip": "If your loved one doesn't qualify for CCE, ask about the referral to other agencies, it's required by the program.",
+        "tip": "If your loved one doesn't qualify for CCE, ask the intake worker what other programs fit. They are required to explain the rules and point you to other help.",
         "urls": []
       },
       "documentsNeeded": [
-        "Medical records documenting functional impairments",
-        "Documentation showing risk of institutionalization",
-        "Proof of age (birth certificate or driver's license)",
-        "Proof of Florida residency",
-        "Current medication list",
-        "List of current healthcare providers",
-        "Insurance cards (Medicare, Medicaid if applicable)",
-        "Documentation of current home care services received",
-        "Emergency contact information",
-        "Power of attorney documents if applicable"
+        "Your loved one's date of birth (must be 60 or older)",
+        "Their home address (the screener uses it to route you to the right local agency)",
+        "What they can no longer do alone: bathing, dressing, eating, using the bathroom, walking, meals, medications, shopping, money",
+        "Any help they get now, and whether the caregiver can keep it up",
+        "A rough monthly income and savings figure (self-declared, used for priority and co-pay; you can decline)",
+        "Any diagnosis a doctor has given, including memory loss or dementia",
+        "Their Social Security number (optional) and Medicaid number if they have one",
+        "Power of attorney or health care surrogate papers if you will sign for them later"
       ],
       "contacts": [
         {
           "label": "Elder Helpline (start here)",
           "phone": "1-800-963-5337",
-          "description": "Statewide entry point (1-800-963-5337). Routes to your loved one's local CCE provider for screening and assessment.",
-          "hours": "Monday-Friday 8:00 AM-5:00 PM ET"
+          "description": "Statewide entry point. Routes to your county's Aging and Disability Resource Center, which does the phone screening.",
+          "hours": null
         },
         {
           "label": "Florida Department of Elder Affairs",
           "phone": "(850) 414-2000",
-          "description": "State agency that oversees CCE and other senior programs. Use for general elder rights and program information.",
-          "hours": "Monday-Friday 8:00 AM-5:00 PM ET"
+          "description": "State agency that oversees CCE. It does not take applications. Use for general questions.",
+          "hours": null
         },
         {
           "label": "Florida 2-1-1",
@@ -2721,7 +2719,8 @@ export const drafts: PipelineStateDrafts = {
         "You cannot be enrolled in both CCE and Medicaid capitated long-term care programs at the same time, you must choose one",
         "Priority is given to individuals most at risk of nursing home placement, which may affect wait times",
         "Annual reassessment is mandatory, missing this appointment could result in loss of services",
-        "If you're denied CCE services, the department is required to refer you to other appropriate agencies"
+        "If your loved one clearly does not qualify, the intake worker must explain the rules and refer you to other help when appropriate",
+        "If your loved one looks eligible for Medicaid, they must also apply for Medicaid long-term care as a condition of CCE"
       ],
       "relatedPrograms": [
         "Medicaid Nursing Home Program",
@@ -2742,15 +2741,15 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "What happens if my loved one misses their annual reassessment?",
-          "answer": "Missing the annual comprehensive assessment can result in loss of CCE services. The reassessment is mandatory to verify continued eligibility. Contact your local Department of Elder Affairs office immediately if you've missed an appointment to reschedule."
+          "answer": "Missing the annual comprehensive assessment can result in loss of CCE services. The reassessment is mandatory to verify continued eligibility. Contact your case manager at the lead agency immediately if you've missed an appointment to reschedule."
         },
         {
           "question": "How do they determine if my loved one is 'at risk of institutionalization'?",
-          "answer": "A case manager performs a functional assessment (often using the 701B form) to calculate a frailty score. They evaluate your loved one's ability to perform Activities of Daily Living (ADLs) such as bathing, dressing, eating, and transferring (e.g., getting out of bed), as well as memory issues or cognitive impairments like Alzheimer's."
+          "answer": "The phone screener uses the shorter 701S form first. Later a case manager performs a full functional assessment (the 701B form) to calculate a frailty score. They evaluate your loved one's ability to perform Activities of Daily Living (ADLs) such as bathing, dressing, eating, and transferring (e.g., getting out of bed), as well as memory issues or cognitive impairments like Alzheimer's."
         },
         {
           "question": "What if my loved one doesn't qualify for CCE services?",
-          "answer": "The Department of Elder Affairs is required to refer denied applicants to other appropriate agencies for alternative services. Ask specifically about this referral process and what other programs might be available."
+          "answer": "If your loved one clearly does not qualify, the intake worker must explain the rules and refer you to other help when appropriate. Ask specifically about this referral process and what other programs might be available."
         },
         {
           "question": "Can I apply for CCE while my loved one is in the hospital?",
@@ -2781,7 +2780,8 @@ export const drafts: PipelineStateDrafts = {
       "phone": "1-800-963-5337",
       "sourceUrl": "https://elderaffairs.org/programs-and-services/community-care-for-the-elderly-cce-program/",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-06"
     },
     {
       "id": "elder-options-home-services",

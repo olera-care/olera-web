@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/NC/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-09-02T03:10:35.696Z
+ * Last updated: 2026-09-06T12:14:31.523Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -27,14 +27,14 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home instead of entering a nursing facility, North Carolina's HCBS waivers can provide those services at no cost. These Medicaid programs cover personal care assistants, adult day health services, respite care for family caregivers, home modifications like ramps and grab bars, and medical transportation.\n\nFour different waivers serve different needs: CAP/DA for disabled adults with physical limitations, CAP/C for medically fragile children, TBI for traumatic brain injury survivors, and Innovations for people with intellectual or developmental disabilities. Your loved one must qualify for NC Medicaid (income limit around $2,901/month for an individual in 2026) and meet Nursing Facility Level of Care (a clinical assessment of whether they need daily assistance with basic activities).\n\nBecause these programs have limited slots and waitlists, early application matters. The services are designed to cost no more than nursing home care while allowing your loved one to remain in their own home.",
+      "intro": "If your loved one needs daily help with bathing, dressing, or medication management but wants to stay home instead of entering a nursing facility, North Carolina's HCBS waivers can provide those services at no cost. These Medicaid programs cover personal care assistants, adult day health services, respite care for family caregivers, home modifications like ramps and grab bars, and medical transportation.\n\nFour different waivers serve different needs: CAP/DA for disabled adults with physical limitations, CAP/C for medically fragile children, TBI for traumatic brain injury survivors, and Innovations for people with intellectual or developmental disabilities. Your loved one must qualify for NC Medicaid (income limit around $2,982/month for an individual in 2026) and meet Nursing Facility Level of Care (a clinical assessment of whether they need daily assistance with basic activities).\n\nBecause these programs have limited slots and waitlists, early application matters. The services are designed to cost no more than nursing home care while allowing your loved one to remain in their own home.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
           "Must qualify for NC Medicaid",
-          "Income limit ~$2,901/month individual",
+          "Income limit ~$2,982/month individual",
           "Need daily care help (NFLOC assessment)",
           "Assets under $2,000",
           "Able to remain safely at home with services"
@@ -77,12 +77,12 @@ export const drafts: PipelineStateDrafts = {
           {
             "step": 2,
             "title": "Contact the correct waiver program",
-            "description": "CAP/DA (disabled adults): Request assessment through local DSS after Medicaid approval. CAP/C (children): Contact local Case Management Agency from CAP-C directory. TBI: Contact your local LME/MCO from NC DHHS directory. Innovations (I/DD): Contact your local LME/MCO."
+            "description": "CAP/DA (adults) and CAP/C (children): Call NC LIFTSS at 1-833-522-5429 to make a referral, or contact a CAP case management agency in your county. TBI: Contact your local LME/MCO from NC DHHS directory. Innovations (I/DD): Contact your local LME/MCO."
           },
           {
             "step": 3,
             "title": "Complete functional assessment",
-            "description": "A clinical assessor will evaluate whether your loved one meets Nursing Facility Level of Care through in-person assessment of daily living activities and medical needs."
+            "description": "A clinical assessor will evaluate whether your loved one meets Nursing Facility Level of Care through in-person assessment of daily living activities and medical needs. After your referral, NC LIFTSS mails a packet within 2 business days. It has a consent form, a case manager choice form, and a worksheet for the doctor. Return all three within 7 days or the request is dropped."
           },
           {
             "step": 4,
@@ -100,14 +100,18 @@ export const drafts: PipelineStateDrafts = {
           },
           {
             "label": "NC Medicaid HCBS Information",
-            "url": "https://medicaid.ncdhhs.gov/"
+            "url": "https://medicaid.ncdhhs.gov/providers/programs-and-services/long-term-care/community-alternatives-program-disabled-adults-capda"
+          },
+          {
+            "label": "NC LIFTSS (CAP referrals)",
+            "url": "https://ncliftss.acentra.com/cap-da/"
           }
         ]
       },
       "documentsNeeded": [
-        "Social Security cards for applicant and spouse",
-        "Birth certificate or other proof of age",
-        "Proof of North Carolina residency (utility bill, lease, or state-issued document)",
+        "Your loved one's Medicaid ID number (or Social Security number if Medicaid is not approved yet), plus their Medicare ID if they have one",
+        "Their primary doctor's name, practice, phone and fax number. NC LIFTSS mails the doctor a worksheet, and the doctor must send it back.",
+        "Their date of birth, home address, county, and the best phone number to reach you",
         "Most recent Social Security award letter or disability determination",
         "Bank account details for every account: the bank name, account type, and current balance. A recent statement is the easiest proof.",
         "Proof of any other income (pensions, retirement, employment)",
@@ -123,9 +127,9 @@ export const drafts: PipelineStateDrafts = {
       "contacts": [
         {
           "label": "NC LIFTSS (start here)",
-          "phone": "1-833-470-0597",
-          "description": "NC Medicaid's named door for learning how to apply for CAP/DA services",
-          "hours": "Monday-Friday 8am-5pm"
+          "phone": "1-833-522-5429",
+          "description": "Takes CAP/DA and CAP/C referrals by phone from families. Can also tell you the waitlist status in your county. Local line: (919) 568-1717. The referral form faxes to 833-470-0597.",
+          "hours": "Monday-Friday 8am-5pm ET"
         },
         {
           "label": "NC 2-1-1",
@@ -141,7 +145,7 @@ export const drafts: PipelineStateDrafts = {
         }
       ],
       "applicationNotes": [
-        "Your first call is a needs and level-of-care screen, not a financial review. Financial paperwork comes later. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
+        "Your first call is a short referral, not a financial review. The operator asks for your loved one's Medicaid ID, birth date, address, county, doctor's name and fax number, and your relationship to them. Financial paperwork comes later with the Medicaid application. When you do apply you sign a form letting the state pull your bank records electronically, at no cost to you, so you may never be asked for statements at all. If the office needs something specific it sends a written list with a due date.",
         "Each waiver serves different populations, make sure you're contacting the right one for your loved one's specific condition and age",
         "Waitlist times vary dramatically by region and waiver type, ask about current wait times in your specific county when applying",
         "You can appeal Medicaid denials or functional assessments if you disagree with the determination",
@@ -192,7 +196,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How long are the waitlists really?",
-          "answer": "It varies dramatically by waiver and location. Some areas have immediate CAP/DA openings while Innovations waitlists can stretch years. Ask specifically about wait times in your county when you apply, don't rely on statewide averages."
+          "answer": "It varies dramatically by waiver and location. Some areas have immediate CAP/DA openings while Innovations waitlists can stretch years. Ask specifically about wait times in your county when you apply, don't rely on statewide averages. NC LIFTSS at 1-833-522-5429 can tell you the current CAP/DA waitlist status for your county."
         },
         {
           "question": "Can I apply on behalf of my loved one?",
@@ -224,11 +228,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "editorial"
       },
       "icon": "House",
-      "phone": "1-833-470-0597",
-      "sourceUrl": "https://medicaid.ncdhhs.gov/",
+      "phone": "1-833-522-5429",
+      "sourceUrl": "https://medicaid.ncdhhs.gov/providers/programs-and-services/long-term-care/community-alternatives-program-disabled-adults-capda",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-06"
     },
     {
       "id": "pace-comprehensive-care",
@@ -251,7 +255,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one needs nursing home-level care but wants to stay at home, NC PACE provides everything, doctors, specialists, medications, transportation, and daily support, under one coordinated program. Because PACE becomes both your loved one's insurance and their care provider, they won't juggle multiple doctors or worry about copays for approved services.\n\nYour loved one must be 55+ and certified as needing nursing facility level of care (extensive help with bathing, dressing, toileting, walking, transferring, or eating). Income limit: $2,901/month for Medicaid coverage, though higher-income families can still enroll by paying a monthly fee. Asset limit: $2,000 (excluding primary home).\n\nPACE is only available in certain North Carolina counties where PACE organizations operate, you must live in a designated service area to qualify.",
+      "intro": "If your loved one needs nursing home-level care but wants to stay at home, NC PACE provides everything, doctors, specialists, medications, transportation, and daily support, under one coordinated program. Because PACE becomes both your loved one's insurance and their care provider, they won't juggle multiple doctors or worry about copays for approved services.\n\nYour loved one must be 55+ and certified as needing nursing facility level of care (extensive help with bathing, dressing, toileting, walking, transferring, or eating). Income limit: $2,982/month for Medicaid coverage, though higher-income families can still enroll by paying a monthly fee. Asset limit: $2,000 (excluding primary home).\n\nPACE is only available in certain North Carolina counties where PACE organizations operate, you must live in a designated service area to qualify.",
       "savingsRange": "",
       "savingsSource": "Free comprehensive healthcare service",
       "savingsVerified": false,
@@ -260,7 +264,7 @@ export const drafts: PipelineStateDrafts = {
           "Age 55+",
           "Needs nursing home level of care",
           "Lives in PACE service area",
-          "Income below $2,901/month for Medicaid coverage"
+          "Income below $2,982/month for Medicaid coverage"
         ],
         "ageRequirement": "55+",
         "incomeTable": null,
@@ -373,7 +377,7 @@ export const drafts: PipelineStateDrafts = {
           "answer": "Yes. The primary residence is exempt from the $2,000 asset limit regardless of value. Your loved one can own their home and still qualify for Medicaid coverage through PACE."
         },
         {
-          "question": "What happens if my loved one's income is above $2,901/month?",
+          "question": "What happens if my loved one's income is above $2,982/month?",
           "answer": "They can still enroll in PACE but will pay a Patient Monthly Liability fee determined by Medicaid based on their income and assets. If they have only Medicare (no Medicaid), they pay a set monthly fee to the PACE organization."
         },
         {

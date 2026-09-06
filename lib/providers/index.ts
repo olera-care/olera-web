@@ -53,7 +53,13 @@ export {
   getActiveClaimedProviderSlugs,
 } from "./sitemap.server";
 export type { ProviderGeoCombo, SitemapProviderRow } from "./sitemap.server";
-export { getProviderCities } from "./geo.server";
+export {
+  getProviderCities,
+  countListedProviders,
+  listedProviderIdsInCity,
+  cityFilterFromSlug,
+  PROVIDER_ID_CHUNK,
+} from "./geo.server";
 export type { ProviderCity } from "./geo.server";
 export {
   scanProvidersForPrewarm,

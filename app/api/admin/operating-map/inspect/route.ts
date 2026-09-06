@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAdminUser, getAuthUser, getServiceClient } from "@/lib/admin";
 import { CONTENT_PAGE_FILTERS } from "@/lib/analytics/content-pages";
+import { ACTIVE_OUTREACH_STAGES } from "@/lib/operating-map/providers.server";
+import { cityFilterFromSlug } from "@/lib/providers";
 
 /**
  * GET /api/admin/operating-map/inspect?node=cr2&date_from&date_to&city
@@ -33,8 +35,12 @@ const SOURCES: Record<
     where: string[];
     eventType?: string;
     contentFilter?: string;
-    /** These nodes count page views, so a visitor city applies. */
+    /** These nodes count page views, so the VISITOR's city applies. */
     cityScoped: boolean;
+    /** These sit on provider rows, so the PROVIDER's city applies instead. */
+    providerCityScoped?: boolean;
+    /** Rows without a created_at order by this instead. */
+    orderColumn?: string;
     summarize: (row: Record<string, unknown>) => string;
   }
 > = {
@@ -86,6 +92,27 @@ const SOURCES: Record<
     cityScoped: false,
     summarize: (r) => `Provider ${String(r.provider_id ?? "—")}`,
   },
+  cp1: {
+    title: "Providers listed",
+    table: "olera-providers",
+    select: "created_at, provider_name, city, state",
+    where: ["not deleted", "standing count — the date range does not apply"],
+    cityScoped: false,
+    providerCityScoped: true,
+    summarize: (r) => `${String(r.provider_name ?? "—")} · ${String(r.city ?? "")}`,
+  },
+  cp2: {
+    title: "Providers in outreach",
+    table: "provider_outreach_tracking",
+    select: "stage_changed_at, provider_id, stage",
+    where: [
+      `stage is one of ${ACTIVE_OUTREACH_STAGES.join(", ")}`,
+      "standing count — the date range does not apply",
+    ],
+    cityScoped: false,
+    orderColumn: "stage_changed_at",
+    summarize: (r) => `${String(r.provider_id ?? "—")} · ${String(r.stage ?? "")}`,
+  },
   cr6c: {
     title: "Profiles made live",
     table: "seeker_activity",
@@ -126,7 +153,7 @@ export async function GET(request: NextRequest) {
     let query = db
       .from(source.table)
       .select(source.select)
-      .order("created_at", { ascending: false })
+      .order(source.orderColumn ?? "created_at", { ascending: false })
       .limit(SAMPLE_SIZE);
 
     const where = [...source.where];
@@ -140,20 +167,29 @@ export async function GET(request: NextRequest) {
       );
       where.push("benefits and editorial pages (provider pages counted separately)");
     }
-    if (city && source.cityScoped) {
+    if (city && source.providerCityScoped) {
+      const f = cityFilterFromSlug(city);
+      if (f) {
+        query = query.in("city", f.names).eq("state", f.state);
+        where.push(`provider city is ${f.names.join(" / ")}, ${f.state}`);
+      }
+    } else if (city && source.cityScoped) {
       query = query.filter("metadata->>geo_city", "eq", city);
       where.push(`visitor city is ${city}`);
     } else if (city) {
       where.push("city filter does not apply — city is only recorded on page views");
     }
-    if (from) query = query.gte("created_at", from);
-    if (to) query = query.lt("created_at", to);
+    // Standing counts describe the directory as it is now, so a date range
+    // would describe a different thing than the number above them.
+    const dated = !source.orderColumn && source.table !== "olera-providers";
+    if (dated && from) query = query.gte("created_at", from);
+    if (dated && to) query = query.lt("created_at", to);
 
     const { data, error } = await query;
     if (error) throw error;
 
     const rows = ((data ?? []) as unknown as Record<string, unknown>[]).map((r) => ({
-      when: String(r.created_at ?? ""),
+      when: String(r.created_at ?? r.stage_changed_at ?? ""),
       summary: source.summarize(r),
     }));
 

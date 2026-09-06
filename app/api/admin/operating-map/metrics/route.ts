@@ -8,6 +8,10 @@ import {
 import { getPageVisits } from "@/lib/operating-map/page-visits.server";
 import { getConversions } from "@/lib/operating-map/conversions.server";
 import { runChecks } from "@/lib/operating-map/checks";
+import {
+  getProvidersInOutreach,
+  getProvidersListed,
+} from "@/lib/operating-map/providers.server";
 
 /**
  * GET /api/admin/operating-map/metrics?date_from&date_to
@@ -143,6 +147,21 @@ export async function GET(request: NextRequest) {
       nodes.cr6a = failed;
       nodes.cr6b = failed;
       nodes.cr6c = failed;
+    }
+
+    try {
+      // Standing counts: the directory as it is now, so no date range. The
+      // city here is the provider's, not the visitor's — see the module note.
+      const [listed, inOutreach] = await Promise.all([
+        getProvidersListed(db, city),
+        getProvidersInOutreach(db, city),
+      ]);
+      nodes.cp1 = { value: listed, caveat: null };
+      nodes.cp2 = { value: inOutreach, caveat: null };
+    } catch (error) {
+      console.error("[operating-map/metrics] cp1/cp2 failed:", error);
+      nodes.cp1 = { value: null, caveat: "This metric failed to load." };
+      nodes.cp2 = { value: null, caveat: "This metric failed to load." };
     }
 
     // Relationships that must hold if the map is counting correctly. Sent

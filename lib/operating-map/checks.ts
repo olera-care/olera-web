@@ -77,6 +77,19 @@ export function runChecks(values: NodeValues, inputs: CheckInputs = {}): MapChec
     });
   }
 
+  const cp1 = n(values.cp1);
+  const cp2 = n(values.cp2);
+  if (cp1 !== null && cp2 !== null) {
+    // Outreach happens to providers we list, so the worked set cannot be
+    // larger than the directory it is drawn from.
+    checks.push({
+      id: "cp2-under-cp1",
+      label: "Providers in outreach do not exceed providers listed",
+      ok: cp2 <= cp1,
+      detail: cp2 <= cp1 ? undefined : `CP2 is ${cp2}, CP1 is ${cp1}`,
+    });
+  }
+
   const cr5 = n(values.cr5);
   if (cr5 !== null && cr4 !== null) {
     checks.push({

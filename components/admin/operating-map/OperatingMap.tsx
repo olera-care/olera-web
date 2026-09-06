@@ -87,6 +87,10 @@ const NODE_HELP: Record<string, string> = {
   cr6a: "Benefits screeners completed to the end, where results are saved.",
   cr6b: "Requests to be connected to a provider, however they started.",
   cr6c: "Care posts published, making a care recipient visible to providers.",
+  cp1:
+    "Every provider in the directory that has not been deleted. Same rule as the Directory's Published tab. A standing count — the date range does not change it.",
+  cp2:
+    "Providers we have started contacting and not yet finished with. Excludes not-contacted, claimed, not-interested and archived. A standing count.",
 };
 
 /** Tooltip anchored to a node, positioned outside the scaled figure. */
@@ -640,10 +644,28 @@ export default function OperatingMap({
             {/* care provider */}
             <div className={styles.lane}>
               <div className={`${styles.chips} ${styles.solo}`}>
-                <Chip id="cp1" code="CP1" label="Providers listed" />
+                <Chip
+                  id="cp1"
+                  code="CP1"
+                  label="Providers listed"
+                  metric={nodes.cp1}
+                  loading={metricsLoading}
+                  onTip={openTip}
+                  onTipClose={() => setTip(null)}
+                  onInspect={onInspect}
+                />
               </div>
               <div className={styles.soloWrap}>
-                <Card id="cp2" code="CP2" label="In outreach" />
+                <Card
+                  id="cp2"
+                  code="CP2"
+                  label="In outreach"
+                  metric={nodes.cp2}
+                  loading={metricsLoading}
+                  onTip={openTip}
+                  onTipClose={() => setTip(null)}
+                  onInspect={onInspect}
+                />
               </div>
             </div>
 
@@ -899,6 +921,6 @@ function MetricValue({
 }
 
 /** Nodes the inspect endpoint can produce rows for. */
-const INSPECTABLE = new Set(["cr2", "cr4", "cr5", "cr6a", "cr6b", "cr6c"]);
+const INSPECTABLE = new Set(["cr2", "cr4", "cr5", "cr6a", "cr6b", "cr6c", "cp1", "cp2"]);
 
 

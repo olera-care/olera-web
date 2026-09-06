@@ -131,3 +131,96 @@ export async function getProviderCities(
   );
   return { cities, truncated };
 }
+
+/** PostgREST puts filters in the URL, so id batches stay short. */
+export const PROVIDER_ID_CHUNK = 100;
+
+/**
+ * Turn a city slug back into the values providers are actually stored under.
+ *
+ * "fort-worth-tx" becomes { names: ["Fort Worth"], state: "TX" }. Aliases are
+ * expanded, so New York also matches the borough names the directory really
+ * uses. A city whose real name contains a hyphen (Winston-Salem) will not
+ * round-trip through the slug — a known limit, not a silent one.
+ */
+export function cityFilterFromSlug(
+  slug: string,
+): { names: string[]; state: string } | null {
+  const match = /^(.+)-([a-z]{2})$/.exec(slug.trim().toLowerCase());
+  if (!match) return null;
+  const [, cityPart, state] = match;
+  const name = cityPart
+    .split("-")
+    .map((w) => (w ? w[0].toUpperCase() + w.slice(1) : w))
+    .join(" ");
+  return { names: expandCityAliases(name), state: state.toUpperCase() };
+}
+
+/** The subset of the query builder this file needs, kept explicit. */
+interface CityFilterable<T> {
+  in: (column: string, values: string[]) => T;
+  eq: (column: string, value: string) => T;
+}
+
+function applyCity<T>(query: T, citySlug: string | null): T {
+  if (!citySlug) return query;
+  const filter = cityFilterFromSlug(citySlug);
+  if (!filter) return query;
+  // `in` on the alias list keeps New York's boroughs together; state is an
+  // exact match because it is always stored as a two-letter code.
+  const q = query as CityFilterable<T>;
+  return (q.in("city", filter.names) as unknown as CityFilterable<T>).eq(
+    "state",
+    filter.state,
+  );
+}
+
+/**
+ * Providers listed, optionally in one city.
+ *
+ * Same rule as the admin Directory's Published tab and the operating map's
+ * city picker: any provider row that has not been deleted. Those three
+ * agreeing matters more than any of them being cleverer.
+ */
+export async function countListedProviders(
+  db: SupabaseClient,
+  citySlug: string | null = null,
+): Promise<number> {
+  let query = db
+    .from("olera-providers")
+    .select("provider_id", { count: "exact", head: true })
+    .or("deleted.is.null,deleted.eq.false");
+  query = applyCity(query, citySlug);
+
+  const { count, error } = await query;
+  if (error) throw error;
+  return count ?? 0;
+}
+
+/** Every non-deleted provider id in one city. Bounded, like every scan here. */
+export async function listedProviderIdsInCity(
+  db: SupabaseClient,
+  citySlug: string,
+): Promise<string[]> {
+  const ids: string[] = [];
+  let scanned = 0;
+
+  for (;;) {
+    if (scanned >= MAX_ROWS) break;
+    let query = db
+      .from("olera-providers")
+      .select("provider_id")
+      .or("deleted.is.null,deleted.eq.false");
+    query = applyCity(query, citySlug);
+
+    const { data, error } = await query.range(scanned, scanned + PAGE_SIZE - 1);
+    if (error) throw error;
+    const rows = (data ?? []) as { provider_id: string | null }[];
+    if (rows.length === 0) break;
+    for (const r of rows) if (r.provider_id) ids.push(r.provider_id);
+    scanned += rows.length;
+    if (rows.length < PAGE_SIZE) break;
+  }
+
+  return ids;
+}

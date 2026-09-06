@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/OR/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-09-03T11:25:55.889Z
+ * Last updated: 2026-09-06T12:14:31.530Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1504,9 +1504,9 @@ export const drafts: PipelineStateDrafts = {
     },
     {
       "id": "family-caregiver-assistance-support",
-      "name": "Family Caregiver Assistance Program (FCAP) / Family Caregiver Support Program (FCSP)",
-      "shortName": "Family Caregiver Programs",
-      "tagline": "Get up to $500/month in services to help care for your aging loved one at home, plus respite and support for yourself as a caregiver.",
+      "name": "Family Caregiver Support Program (FCSP)",
+      "shortName": "Family Caregiver Support",
+      "tagline": "Free respite, training, counseling and support for you as a caregiver. No income test. Your local Area Agency on Aging sets what it can offer.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
@@ -1519,121 +1519,96 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If you're caring for an aging loved one who wants to stay in their own home, Oregon offers two programs that can provide up to $500 per month in services like personal care, adult day programs, and respite care. The Family Caregiver Assistance Program (FCAP) is Medicaid-funded with strict income limits, while the Family Caregiver Support Program (FCSP) focuses on supporting you as the caregiver with training, counseling, and respite services.\n\nFCAP serves adults who meet Oregon's Service Priority Levels 1-18 (indicating need for daily assistance) and have income below $4,163/month for individuals or $5,637/month for couples. Because FCAP covers services through one coordinated program, your loved one won't need to navigate multiple Medicaid programs, but they cannot use other Medicaid services while enrolled.\n\nFCSP has more flexible eligibility and serves caregivers of adults 60+ or anyone with Alzheimer's/dementia, plus grandparents 55+ caring for children or disabled adults. Both programs are administered locally through Area Agencies on Aging, so available services may vary by county.",
-      "savingsRange": "$500 – $6,000/year in 2026",
-      "savingsSource": "Up to $500/month in services through FCAP",
-      "savingsVerified": true,
+      "intro": "If you care for a parent, spouse or friend who is 60 or older, or anyone with dementia, Oregon's Family Caregiver Support Program is for you. It is paid for by the federal Older Americans Act and run by your local Area Agency on Aging. It is free, and there is no income test.\n\nThe program supports the caregiver. Services can include respite care so you get a break, caregiver training and counseling, support groups, and limited help with things like supplies, equipment or transportation. Each agency decides which services it offers, sets its own dollar limits for respite and supplemental help, and may keep a wait list.\n\nGrandparents and other relatives 55 or older who are raising a child, or caring for an adult with a disability age 18 to 59, also qualify. If your loved one needs hands-on help with bathing, dressing or walking, ask the same office about Oregon Project Independence-Medicaid (OPI-M), a separate program that also has caregiver training and respite.",
+      "savingsRange": "Varies by county",
+      "savingsSource": "Federal Title III-E funds; each Area Agency on Aging sets its own respite and supplemental-service dollar limits (FCSP Standards, Aug 2022)",
+      "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
-          "Lives in own home (not facility)",
-          "Meets functional assessment levels 1-18",
-          "Income below $4,163/month (individual) or $5,637/month (couple)",
-          "Cannot use other Medicaid services",
-          "Assets below 6 months nursing home cost"
+          "Caregiver is 18 or older",
+          "Caring for someone 60+, or anyone with Alzheimer's or dementia",
+          "Or age 55+ raising a child 18 or under, or caring for an adult 18-59 with a disability",
+          "No income or asset test",
+          "Services and wait lists vary by Area Agency on Aging"
         ],
         "ageRequirement": null,
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 4163
-          },
-          {
-            "householdSize": 2,
-            "monthlyLimit": 5637
-          }
-        ],
-        "assetLimits": {
-          "individual": null,
-          "couple": null,
-          "countedAssets": [
-            "Bank accounts",
-            "Investments",
-            "Property other than primary home"
-          ],
-          "exemptAssets": [
-            "Primary residence",
-            "One vehicle",
-            "Burial funds"
-          ],
-          "homeEquityCap": null
-        },
-        "functionalRequirement": "Must meet Oregon's Service Priority Level 1 through 18, which assesses need for daily help with activities like bathing, dressing, medication management, or safety supervision",
+        "incomeTable": null,
+        "assetLimits": null,
+        "functionalRequirement": null,
         "otherRequirements": [
-          "Must live in own home, not in assisted living, foster care, or care facility",
-          "Cannot be receiving other Medicaid long-term services",
-          "Exempt from Medicaid estate recovery",
-          "For FCSP: Caregiver must be 18+ caring for adult 60+ or person with Alzheimer's/dementia"
+          "Priority goes to caregivers of frail older adults, those with low income or high social need, and caregivers of people with dementia",
+          "Voluntary contributions are accepted; no one is denied for not paying"
         ],
-        "povertyLevelReference": "400% FPL"
+        "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call the Aging and Disability Resource Connection at 1-855-673-2372 for eligibility screening and referral to your local program.",
+        "summary": "Call the ADRC at 1-855-673-2372. They connect you to the Family Caregiver Support coordinator at your Area Agency on Aging.",
         "steps": [
           {
             "step": 1,
-            "title": "Contact ADRC for screening",
-            "description": "Call 1-855-ORE-ADRC (673-2372) or visit ADRCofOregon.org to get options counseling and determine which program fits your family's needs."
+            "title": "Call the ADRC",
+            "description": "Call 1-855-ORE-ADRC (673-2372) or visit ADRCofOregon.org. Say you are a family caregiver and want the Family Caregiver Support Program."
           },
           {
             "step": 2,
-            "title": "Complete functional assessment",
-            "description": "A care coordinator will assess your loved one's daily living needs to determine Service Priority Level for FCAP eligibility."
+            "title": "Do the caregiver intake",
+            "description": "A coordinator asks about your loved one, your caregiving, and what you need most. This may be by phone or at home."
           },
           {
             "step": 3,
-            "title": "Submit income and asset documentation",
-            "description": "Provide proof of income, bank statements, and asset information to verify financial eligibility for FCAP, or complete simpler screening for FCSP."
+            "title": "Get a caregiver assessment and plan",
+            "description": "The coordinator picks services that fit and are available in your area, such as respite hours, training or supplies."
           },
           {
             "step": 4,
-            "title": "Work with local Area Agency on Aging",
-            "description": "Your local AAA will coordinate services and create a care plan based on available funding and your family's priorities."
+            "title": "Ask about OPI-M if your loved one needs hands-on care",
+            "description": "OPI-M is a separate Medicaid program with income and asset limits. The same office can start that application."
           }
         ],
-        "processingTime": "Processing time not specified in available sources",
-        "waitlist": "Funding is limited under federal Older Americans Act for FCSP; waitlist information varies by county",
-        "tip": "Apply to both programs if eligible, FCSP can provide caregiver support services even if you're waiting for FCAP services to begin.",
+        "processingTime": "Varies by agency",
+        "waitlist": "Funding is limited under the federal Older Americans Act. Each Area Agency on Aging may keep a wait list for respite and supplemental services.",
+        "tip": "You can be on a wait list for respite and still get training, counseling and support groups right away.",
         "urls": [
           {
             "label": "ADRC of Oregon",
             "url": "https://www.ADRCofOregon.org"
+          },
+          {
+            "label": "Oregon caregiver support (ODHS)",
+            "url": "https://www.oregon.gov/odhs/aging-disability-services/pages/caregivers.aspx"
           }
         ]
       },
       "documentsNeeded": [
-        "Valid photo ID for care recipient",
-        "Proof of Oregon residency (utility bills, lease, or mortgage statements for 3+ months)",
-        "Social Security award letters for all household members",
-        "Income statements from last 30 days (pay stubs, pension statements, or benefit letters)",
-        "Medicare and insurance cards",
-        "Property ownership documents if applicable",
-        "Investment account statements",
-        "Medical documentation supporting functional need assessment",
-        "Proof of current living situation (lease, mortgage, or property tax statements)"
+        "Your name, phone and address",
+        "Your loved one's name, birth date and any diagnosis (dementia counts)",
+        "Your relationship and how long you have been caregiving",
+        "What your loved one needs help with (bathing, meals, medicines)",
+        "Any other services either of you already gets",
+        "Any income question is self-reported and only for agency records"
       ],
       "contacts": [
         {
-          "label": "Aging and Disability Resource Connection",
+          "label": "Aging and Disability Resource Connection (start here)",
           "phone": "(855) 673-2372",
           "description": "Statewide helpline for eligibility screening and local program referrals",
-          "hours": "Business hours, Monday-Friday"
+          "hours": "Weekdays; hours vary by local ADRC office"
         },
         {
-          "label": "Oregon DHS Local Offices",
+          "label": "Local Area Agency on Aging",
           "phone": null,
-          "description": "Local Department of Human Services offices for Medicaid application support",
+          "description": "Runs the Family Caregiver Support Program in your county. The ADRC routes you there.",
           "hours": "Varies by location"
         }
       ],
       "applicationNotes": [
         "No financial documents. These services are open regardless of income or savings, and federal law bars the provider from means-testing you. Some intakes ask you to self-declare whether income is above or below the poverty line; that is for the agency’s own reporting and you can decline without losing the service.",
-        "FCAP and FCSP are separate programs with different funding sources, you may qualify for one but not the other",
-        "Services and availability vary significantly by county since programs are administered by local Area Agencies on Aging",
-        "If your loved one is currently receiving other Medicaid long-term services, they cannot enroll in FCAP",
-        "Asset limits are tied to average nursing home costs in Oregon, which change annually, verify current thresholds when applying"
+        "The Family Caregiver Assistance Program (FCAP) was proposed in 2022 but never opened. Its caregiver supports became part of OPI-M. There is no $500-a-month caregiver program.",
+        "Services and availability vary significantly by county since the program is run by local Area Agencies on Aging"
       ],
       "relatedPrograms": [
+        "Oregon Project Independence-Medicaid (OPI-M)",
         "Oregon Medicaid (Oregon Health Plan)",
         "SNAP Food Benefits",
         "Low Income Home Energy Assistance Program (LIHEAP)",
@@ -1642,41 +1617,25 @@ export const drafts: PipelineStateDrafts = {
       "contentSections": [],
       "faqs": [
         {
-          "question": "Can my loved one receive FCAP services while also getting other Medicaid benefits?",
-          "answer": "No, your loved one cannot use other Medicaid long-term services and supports while enrolled in FCAP. This includes programs like Community First Choice or other home and community-based waiver services. However, they can still receive regular Medicaid health coverage."
+          "question": "Can I get this and OPI-M?",
+          "answer": "They are separate programs. Your loved one can be on OPI-M and you can still use caregiver services this program offers, but the same service cannot be paid twice. Ask the coordinator which program covers what."
         },
         {
-          "question": "What's the difference between FCAP and FCSP, and can we apply for both?",
-          "answer": "FCAP provides up to $500/month in direct services for the care recipient and has strict Medicaid income/asset limits. FCSP focuses on supporting you as the caregiver with respite, training, and counseling, with more flexible eligibility. Yes, you can apply for both programs simultaneously."
-        },
-        {
-          "question": "My loved one lives in assisted living, can they still get these services?",
-          "answer": "No, both FCAP and FCSP require that your loved one live in their own home. This includes their own apartment or house, but excludes assisted living facilities, adult foster homes, or residential care facilities."
-        },
-        {
-          "question": "How do I know if my loved one meets the Service Priority Level requirements?",
-          "answer": "Service Priority Levels 1-18 generally mean your loved one needs daily help with activities like bathing, dressing, medication management, or requires safety supervision due to cognitive issues. A care coordinator will conduct this assessment as part of the application process."
-        },
-        {
-          "question": "What happens if my loved one's income is just over the FCAP limit?",
-          "answer": "If income exceeds $4,163/month for an individual or $5,637/month for a couple, your loved one won't qualify for FCAP. However, they may still be eligible for FCSP services, which focus on caregiver support and have more flexible financial requirements."
-        },
-        {
-          "question": "Are the asset limits the same statewide, or do they vary by county?",
-          "answer": "Asset limits are tied to the average cost of six months in a nursing facility, which may vary by region. Contact your local ADRC at 1-855-673-2372 to verify current asset thresholds in your area, as these amounts change annually."
-        },
-        {
-          "question": "Can I get respite care through these programs even if my loved one doesn't qualify for FCAP?",
-          "answer": "Yes, FCSP specifically provides respite services, caregiver training, and emotional support for family caregivers, even if the care recipient doesn't meet FCAP's stricter financial requirements. Contact your local Area Agency on Aging to learn about available FCSP services in your county."
+          "question": "What does respite care look like?",
+          "answer": "Respite can happen at home, in an adult day program, or as a short overnight stay in a care setting. Ask your agency what it offers."
         },
         {
           "question": "What services are actually available, and do they vary by where we live?",
-          "answer": "FCAP can provide up to $500/month in services including personal care, adult day programs, and home support services. FCSP offers respite care, caregiver training, support groups, and counseling. Available services do vary by county since local Area Agencies on Aging administer the programs differently."
+          "answer": "Services can include respite, training, counseling, support groups and limited supplemental help. Each Area Agency on Aging chooses what it offers and sets its own dollar limits."
+        },
+        {
+          "question": "Is there an income limit?",
+          "answer": "No. The program is open regardless of income or savings. Intake may ask you to self-report income for the agency's reporting, and you can decline."
         }
       ],
       "layoutIntent": {
         "aboutHighlight": "coverage",
-        "eligibilityDisplay": "income-table",
+        "eligibilityDisplay": "checklist",
         "applyDisplay": "step-journey",
         "hasLocationFinder": true,
         "hasDocumentChecklist": true,
@@ -1687,7 +1646,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://www.oregon.gov/odhs/providers-partners/community-services-supports/pages/family-caregiver-program.aspx",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-06"
     },
     {
       "id": "scsep-senior-employment",
@@ -2629,7 +2588,7 @@ export const drafts: PipelineStateDrafts = {
     }
   ],
   "stateOverview": {
-    "intro": "Oregon offers 15 programs to help your aging loved one stay safe and independent at home. These range from monthly financial benefits (like $100-300 for groceries through SNAP or up to $500/month for caregiver support) to free resources that don't require income qualification. The state covers some unique benefits, including rent and utility assistance for OHP members in crisis, and free college course auditing for seniors 65+. Start by checking the highest-value programs first: Medicare Savings Programs can cut hundreds from monthly healthcare costs, while OPI-M provides Medicaid-funded home care even if your loved one's income is too high for regular Medicaid.",
+    "intro": "Oregon offers 15 programs to help your aging loved one stay safe and independent at home. These range from monthly financial benefits (like $100-300 for groceries through SNAP or free respite and training for family caregivers) to free resources that don't require income qualification. The state covers some unique benefits, including rent and utility assistance for OHP members in crisis, and free college course auditing for seniors 65+. Start by checking the highest-value programs first: Medicare Savings Programs can cut hundreds from monthly healthcare costs, while OPI-M provides Medicaid-funded home care even if your loved one's income is too high for regular Medicaid.",
     "startHere": [
       {
         "name": "Medicare Savings Programs (MSP)",
@@ -2658,7 +2617,7 @@ export const drafts: PipelineStateDrafts = {
         "programs": [
           "OPI-M (Medicaid-funded)",
           "Program of All-Inclusive Care for the Elderly (PACE)",
-          "Family Caregiver Assistance Program (FCAP) / Family Caregiver Support Program (FCSP)"
+          "Family Caregiver Support Program (FCSP)"
         ],
         "description": "Programs that fund professional caregivers or provide support for family caregivers."
       },

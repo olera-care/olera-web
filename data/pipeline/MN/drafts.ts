@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MN/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-09-03T11:25:55.878Z
+ * Last updated: 2026-09-06T12:14:31.519Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -1086,7 +1086,7 @@ export const drafts: PipelineStateDrafts = {
         "steps": [
           {
             "step": 1,
-            "title": "Call the Senior LinkAge Line",
+            "title": "Call Minnesota Aging Pathways (formerly the Senior LinkAge Line)",
             "description": "Call (800) 333-2433 to speak with a trained Medicare counselor immediately. Available Monday through Friday during business hours."
           },
           {
@@ -1117,7 +1117,7 @@ export const drafts: PipelineStateDrafts = {
       "documentsNeeded": null,
       "contacts": [
         {
-          "label": "Senior LinkAge Line",
+          "label": "Minnesota Aging Pathways (formerly the Senior LinkAge Line)",
           "phone": "(800) 333-2433",
           "description": "Free Medicare counseling and assistance",
           "hours": "Monday-Friday during business hours"
@@ -1176,26 +1176,22 @@ export const drafts: PipelineStateDrafts = {
         "stateVariation": true,
         "localEntities": [
           {
-            "name": "Three Rivers CAP (southeast MN): (507) 316-0610",
+            "name": "Minnesota Aging Pathways (statewide): (800) 333-2433",
             "type": "service-area"
           },
           {
-            "name": "Meals on Wheels of Ramsey County",
+            "name": "Metro Meals on Wheels (Twin Cities): (612) 623-3363",
             "type": "service-area"
           },
           {
-            "name": "Otter Tail County Nutrition Assistance",
-            "type": "service-area"
-          },
-          {
-            "name": "43 congregate sites and Meals on Wheels in southeast MN via local services",
+            "name": "Three Rivers Community Action (Goodhue, Rice, Wabasha counties): (507) 316-0610",
             "type": "service-area"
           }
         ]
       },
-      "intro": "If your loved one is 60+ and struggles to prepare nutritious meals or get to the grocery store, Minnesota's Senior Nutrition Program delivers hot, fresh meals directly to their door. Your loved one can receive home-delivered meals up to 5 days a week (Monday-Friday), with low-sodium options standard and diabetic meals available.\n\nBecause the program focuses on need rather than strict income limits, your loved one won't be turned away due to inability to pay. The service includes daily safety checks by volunteers and one-on-one support from nutrition specialists. Spouses and caregivers may also qualify if caregiving prevents meal preparation.\n\nThe program operates through local providers across Minnesota, so availability and exact services vary by region. Some areas may not deliver outside city limits or to rural locations.",
+      "intro": "If your loved one is 60+ and struggles to prepare nutritious meals or get to the grocery store, Minnesota's Senior Nutrition Program delivers hot, fresh meals directly to their door. Your loved one can receive home-delivered meals up to 5 days a week (Monday-Friday), and menu options such as low-sodium or diabetic meals vary by provider.\n\nBecause the program focuses on need rather than strict income limits, your loved one won't be turned away due to inability to pay. Many providers also do a quick safety check at each delivery. Spouses and caregivers may also qualify if caregiving prevents meal preparation.\n\nThe program operates through local providers across Minnesota, so availability and exact services vary by region. Some areas may not deliver outside city limits or to rural locations.",
       "savingsRange": "",
-      "savingsSource": "Free service",
+      "savingsSource": "Donation-based, no one turned away",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
@@ -1217,12 +1213,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "phone",
-        "summary": "Call your local provider directly, no universal application exists statewide.",
+        "summary": "Call Minnesota Aging Pathways at (800) 333-2433. They send you to the provider that delivers to your loved one's address. That provider takes the application by phone.",
         "steps": [
           {
             "step": 1,
-            "title": "Find your local provider",
-            "description": "Contact varies by region: Three Rivers CAP serves southeast MN at (507) 316-0610 or (800) 277-8418. Meals on Wheels of Ramsey County serves the Twin Cities metro. Other areas served by local providers, call 2-1-1 to find yours."
+            "title": "Call Minnesota Aging Pathways",
+            "description": "Call (800) 333-2433, Monday to Friday, 8am to 4:30pm. This is the state's aging help line, formerly the Senior LinkAge Line. Give them your loved one's city. They connect you to the Meals on Wheels program for that area. In the Twin Cities you can call Metro Meals on Wheels directly at (612) 623-3363."
           },
           {
             "step": 2,
@@ -1237,34 +1233,44 @@ export const drafts: PipelineStateDrafts = {
         ],
         "processingTime": null,
         "waitlist": null,
-        "tip": "Have your loved one's address, medical conditions, and dietary restrictions ready when you call.",
-        "urls": []
+        "tip": "Have your loved one's address, a short note on why cooking is hard for them, and any diet needs ready when you call.",
+        "urls": [
+          {
+            "label": "Minnesota Aging Pathways: food and meals",
+            "url": "https://mn.gov/aging-pathways/older-adults/housing/aging-in-place/support-service/food/"
+          }
+        ]
       },
       "documentsNeeded": [
-        "Valid photo ID or driver's license",
-        "Proof of address (utility bill or lease)",
-        "Information about medical conditions affecting meal preparation",
-        "List of dietary restrictions or special needs",
-        "Emergency contact information",
-        "Details about current living situation and mobility challenges"
+        "Your loved one's home address (delivery depends on it)",
+        "A short note on why cooking or shopping is hard for them",
+        "Any diet needs, such as low sodium or diabetic",
+        "A phone number for them and for you",
+        "Whether the need is short term (after a hospital stay) or ongoing"
       ],
       "contacts": [
         {
-          "label": "Three Rivers CAP (Southeast MN)",
-          "phone": "(507) 316-0610",
-          "description": "Serves southeast Minnesota counties",
+          "label": "Minnesota Aging Pathways (start here)",
+          "phone": "(800) 333-2433",
+          "description": "Formerly the Senior LinkAge Line. Run by the Minnesota Board on Aging. Tell them your loved one's city. They connect you to the Meals on Wheels program that delivers there. TTY: (800) 627-3529.",
+          "hours": "Mon-Fri 8am-4:30pm CT"
+        },
+        {
+          "label": "Metro Meals on Wheels (Twin Cities)",
+          "phone": "(612) 623-3363",
+          "description": "Sign-up line for the Twin Cities metro. You can also enroll online at meals-on-wheels.com.",
           "hours": "Business hours"
         },
         {
-          "label": "Three Rivers CAP Toll-Free",
-          "phone": "(800) 277-8418",
-          "description": "Southeast MN toll-free line",
-          "hours": "Business hours"
+          "label": "Three Rivers Community Action (Goodhue, Rice and Wabasha counties only)",
+          "phone": "(507) 316-0610",
+          "description": "Local provider for southeast Minnesota only. Toll-free (800) 277-8418.",
+          "hours": "Mon-Fri 8am-4pm CT"
         },
         {
           "label": "Minnesota 2-1-1",
           "phone": "2-1-1",
-          "description": "Find local Meals on Wheels providers statewide",
+          "description": "Backup locator for food help if the Aging Pathways line is closed.",
           "hours": "24/7"
         }
       ],
@@ -1306,7 +1312,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "Are gluten-free or other special diet meals available?",
-          "answer": "Availability of gluten-free meals and menu customization varies by local provider. Low-sodium options are standard statewide, and diabetic meals are generally available. Ask your specific provider about accommodating other dietary needs when you apply."
+          "answer": "Availability of gluten-free meals and menu customization varies by local provider. Low-sodium and diabetic meals are common but not universal. Ask your specific provider about accommodating other dietary needs when you apply."
         },
         {
           "question": "How quickly can meal delivery start once approved?",
@@ -1322,10 +1328,11 @@ export const drafts: PipelineStateDrafts = {
         "visualTone": "warm"
       },
       "icon": "BowlFood",
-      "phone": "(507) 316-0610",
+      "phone": "(800) 333-2433",
       "sourceUrl": "https://mn.gov/dhs/people-we-serve/seniors/services/home-community/programs-and-services/senior-nutrition.jsp",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-06"
     },
     {
       "id": "family-adult-assistance-alternative-care-grants",

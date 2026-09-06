@@ -648,7 +648,7 @@
           {
             "step": 2,
             "title": "Apply online or by phone",
-            "description": "Visit healthandwelfare.idaho.gov/services-programs/medicaid-health/medicare-savings-program or call 208-334-5500 for your local office number."
+            "description": "Visit healthandwelfare.idaho.gov/services-programs/medicaid-health/medicare-savings-program or call 877-456-1233 for your local office number."
           },
           {
             "step": 3,
@@ -978,21 +978,21 @@
       "id": "energy-assistance-liheap",
       "name": "Idaho Energy Assistance (LIHEAP)",
       "shortName": "Energy Assistance",
-      "tagline": "Get $400–$1,800 per year to help cover your loved one's heating bills if they're on a fixed income.",
+      "tagline": "Get a one-time payment of up to $1,285 toward your loved one's heating bill if they're on a fixed income.",
       "programType": "benefit",
       "complexity": "deep",
       "geographicScope": {
         "type": "federal",
         "stateVariation": true
       },
-      "intro": "If your loved one struggles with heating bills on a fixed income, Idaho Energy Assistance can provide $400–$1,800 per year toward heating costs. The program covers part of heating bills based on household income, location within Idaho, and heating expenses, with higher benefits for households with lower incomes and higher energy costs.\n\nFunding is extremely limited and distributed first-come, first-serve. Families with children under six, elderly members, or disabled members can apply starting in October, while all other families must wait until November. Applications may close early if funds run out, making timing critical. The program only covers heating assistance, cooling assistance is not available in Idaho.",
-      "savingsRange": "$400 – $1,800/year in 2026",
-      "savingsSource": "Idaho Department of Health and Welfare benefit amounts",
+      "intro": "If your loved one struggles with heating bills on a fixed income, Idaho Energy Assistance can pay up to $1,285 toward one winter's heating costs. Most families get less. The amount depends on income, household size, and heating cost. The program covers part of heating bills based on household income, location within Idaho, and heating expenses, with higher benefits for households with lower incomes and higher energy costs.\n\nFunding is extremely limited and distributed first-come, first-serve. Families with children under six, elderly members, or disabled members can apply starting in October, while all other families must wait until November. Applications may close early if funds run out, making timing critical. The program only covers heating assistance, cooling assistance is not available in Idaho.",
+      "savingsRange": "$122 – $1,285 one-time heating payment in 2025-26",
+      "savingsSource": "Idaho LIHEAP FY2026 State Plan section 2.6: minimum $122, maximum $1,285 per program year; crisis help up to $1,500",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
           "Must live in Idaho",
-          "Income at or below 150% Federal Poverty Level",
+          "Income at or below 60% of state median income (about $2,736/month for one person, $3,578 for two, from Oct 1, 2025)",
           "Must have heating bills",
           "Priority for elderly, disabled, or families with young children"
         ],
@@ -1006,16 +1006,16 @@
           "Must have a heating expense with proof of heating bill",
           "Applies on first-come, first-serve basis with limited funding"
         ],
-        "povertyLevelReference": "150% FPL"
+        "povertyLevelReference": "60% SMI"
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online, by phone, or in-person through your local Community Action Agency, processing takes 7–30 days.",
+        "summary": "Apply through the Community Action Agency for your county. Call 2-1-1 to find it.",
         "steps": [
           {
             "step": 1,
             "title": "Find your local Community Action Agency",
-            "description": "Contact Idaho Department of Health and Welfare to locate the Community Action Agency serving your county, or visit Idaho Power's assistance page to select your nearest city."
+            "description": "Call 2-1-1 or (800) 926-2588 and ask for the Community Action Agency that handles heating assistance in your county."
           },
           {
             "step": 2,
@@ -1025,21 +1025,25 @@
           {
             "step": 3,
             "title": "Submit application",
-            "description": "Apply online through the U.S. Department of Health & Human Services portal (contact local agency for access), or submit by mail, email, or in-person at your local Community Action Agency office."
+            "description": "Fill out the Idaho Application for Energy Assistance and give it to your Community Action Agency in person, by mail, email, fax, or drop box. Some agencies also take applications by phone."
           },
           {
             "step": 4,
             "title": "Wait for processing",
-            "description": "Applications are processed in 7–30 days. Crisis cases with disconnection notices may receive expedited processing."
+            "description": "Processing time varies by agency. Crisis cases with disconnection notices are handled first; the state aims to resolve a crisis within 48 hours."
           }
         ],
-        "processingTime": "7–30 days",
+        "processingTime": "Varies by agency",
         "waitlist": "No formal waitlist, but funding is limited and distributed first-come, first-serve. Applications may close early if funds are exhausted.",
         "tip": "Apply as early as possible when your application window opens, funds often run out before the season ends.",
         "urls": [
           {
             "label": "Idaho Department of Health and Welfare",
             "url": "https://healthandwelfare.idaho.gov/services-programs/financial-assistance/home-heating-and-utility-assistance/about-heating-assistance"
+          },
+          {
+            "label": "How to apply for heating assistance (DHW)",
+            "url": "https://healthandwelfare.idaho.gov/services-programs/financial-assistance/home-heating-and-utility-assistance/apply-heating-assistance"
           }
         ]
       },
@@ -1056,23 +1060,23 @@
       ],
       "contacts": [
         {
-          "label": "Idaho Department of Health and Welfare",
-          "phone": "(208) 334-5500",
-          "description": "Main line for program information and local agency referrals",
-          "hours": "Mon-Fri 8am-5pm MT"
+          "label": "211 Idaho CareLine (start here)",
+          "phone": "(800) 926-2588",
+          "description": "Free statewide line run by Idaho Health and Welfare. Dial 2-1-1 or (800) 926-2588. Tells you which Community Action Agency takes heating assistance applications for your county. It does not take the application itself.",
+          "hours": "Mon-Fri 8am-6pm MT"
         },
         {
-          "label": "Idaho 2-1-1",
-          "phone": "2-1-1",
-          "description": "Free helpline for all social services and local Community Action Agency contacts",
-          "hours": "24 hours, 7 days a week"
+          "label": "Your local Community Action Agency",
+          "phone": null,
+          "description": "Seven agencies cover every Idaho county. They take the application and decide eligibility. Examples: Eastern Idaho Community Action Partnership (Idaho Falls) (208) 522-5391; SouthEastern Idaho Community Action Agency (Pocatello) (208) 232-1114.",
+          "hours": "Varies by agency"
         }
       ],
       "applicationNotes": [
         "If your loved one faces a heating emergency or utility shutoff notice, ask about Crisis LIHEAP for emergency assistance",
         "Roommates living at the same address covered by the same utility bill count as one household, even if they don't share expenses",
         "Income limits are based on gross income (before taxes), not take-home pay",
-        "The online application portal may be unavailable, be prepared to submit by mail or email to your local agency"
+        "There is no statewide online application. Your Community Action Agency handles it."
       ],
       "relatedPrograms": [
         "Idaho Weatherization Assistance Program",
@@ -1091,7 +1095,7 @@
         },
         {
           "question": "How much will my loved one actually receive for heating assistance?",
-          "answer": "Benefits range from $400–$1,800 per year depending on household income, location within Idaho, household size, and heating costs. Lower-income households with higher energy burdens typically receive larger benefits."
+          "answer": "For the 2025-26 season the payment is between $122 and $1,285, paid once per program year. It depends on household income, household size, and heating costs. Lower-income households with higher energy burdens typically receive larger benefits."
         },
         {
           "question": "Can my loved one get both regular heating assistance and crisis assistance in the same year?",
@@ -1099,7 +1103,7 @@
         },
         {
           "question": "What if my loved one's income is slightly over the limit one month but under the next?",
-          "answer": "Income eligibility is based on gross income from the previous month when applying. If income varies month to month, it may be worth applying when income is lowest to meet the 150% Federal Poverty Level requirement."
+          "answer": "Income eligibility is based on gross income from the previous month when applying. If income varies month to month, it may be worth applying when income is lowest to meet the income limit."
         },
         {
           "question": "Does my loved one need to reapply every year for heating assistance?",
@@ -1123,10 +1127,11 @@
         "visualTone": "editorial"
       },
       "icon": "Lightning",
-      "phone": "(208) 334-5500",
+      "phone": "(800) 926-2588",
       "sourceUrl": "https://healthandwelfare.idaho.gov/services-programs/financial-assistance/home-heating-and-utility-assistance/about-heating-assistance",
       "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-06"
     },
     {
       "id": "weatherization-assistance-program",

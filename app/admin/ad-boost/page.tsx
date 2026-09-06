@@ -167,12 +167,20 @@ export default function AdminAdBoostPage() {
             <h1 className="text-2xl font-semibold text-gray-900">Ad Boost — provider queue</h1>
             <RevenueChip requests={requests} />
           </div>
-          <Link
-            href="/admin/ad-boost/preview"
-            className="shrink-0 rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
-          >
-            See what providers see ↗
-          </Link>
+          <div className="flex shrink-0 items-center gap-2">
+            <Link
+              href="/admin/city-ads"
+              className="rounded-lg border border-primary-200 bg-primary-25 px-3 py-1.5 text-sm font-medium text-primary-800 hover:bg-primary-50"
+            >
+              Olera city campaigns →
+            </Link>
+            <Link
+              href="/admin/ad-boost/preview"
+              className="rounded-lg border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700 hover:bg-gray-50"
+            >
+              See what providers see ↗
+            </Link>
+          </div>
         </div>
         <p className="text-gray-500 mt-1 text-sm">
           One provider, one continuous campaign history.

@@ -2522,16 +2522,16 @@
       "id": "enhanced-star-property-tax",
       "name": "Enhanced STAR Program",
       "shortName": "Enhanced STAR",
-      "tagline": "Property tax exemption on school taxes for homeowners 65+ with income under $110,750",
+      "tagline": "School tax credit or exemption for homeowners 65+ with income under $110,750",
       "programType": "benefit",
       "complexity": "medium",
       "geographicScope": {
         "type": "state",
         "stateVariation": false
       },
-      "intro": "If your loved one is 65+ and owns their home in New York, Enhanced STAR can reduce their school property taxes every year. This state program provides greater tax savings than Basic STAR, with benefits that increase by 2% annually.\n\nTo qualify, your loved one's combined household income (including all property owners and spouses living there) must be below $110,750 for 2026 benefits. Starting in 2026, if your loved one already receives Basic STAR and becomes eligible for Enhanced STAR, New York State will automatically upgrade them, no separate application needed.",
+      "intro": "If your loved one is 65+ and owns their home in New York, Enhanced STAR can reduce their school property taxes every year. This state program provides greater tax savings than Basic STAR. For 2026-27 it exempts the first $88,500 of home value from school taxes.\n\nTo qualify, your loved one's combined household income (owners who live in the home and their spouses; owners who live elsewhere do not count) must be below $110,750 for 2026 benefits. Starting in 2026, if your loved one already receives Basic STAR and becomes eligible for Enhanced STAR, New York State will automatically upgrade them, no separate application needed.",
       "savingsRange": "",
-      "savingsSource": "Property tax exemption amount varies by local school tax rates",
+      "savingsSource": "Enhanced STAR exempts the first $88,500 of full home value from school taxes for 2026-27, capped by the state's per-district maximum savings table",
       "savingsVerified": false,
       "structuredEligibility": {
         "summary": [
@@ -2547,64 +2547,66 @@
         "otherRequirements": [
           "Property must be owner-occupied primary residence.",
           "Combined income: For the 2026 benefit year, the combined income of all resident owners and their spouses must be $110,750 or less.",
-          "Income Verification Program (IVP): First-time applicants must enroll in the Income Verification Program to allow the state to automatically verify income eligibility in future years. You do not need to re-enroll annually once in the program."
+          "New York State checks income each year on its own. You do not re-apply."
         ],
         "povertyLevelReference": null
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online at tax.ny.gov/star or call (518) 457-2036, processing handled by New York State starting in 2026.",
+        "summary": "Most seniors do not apply. If you already get Basic STAR, the state upgrades you at 65. New homeowners register once for the STAR credit online. Questions: (518) 457-2036.",
         "steps": [
           {
             "step": 1,
             "title": "Check if you need to apply",
-            "description": "Starting in 2026, if you already receive Basic STAR, New York State will automatically upgrade you to Enhanced STAR if eligible. New homeowners and first-time applicants still need to apply."
+            "description": "If you already get Basic STAR (credit or exemption), New York State upgrades you to Enhanced STAR the year a resident owner turns 65, if your income qualifies. You do not apply. Watch for letter RP-5300-ENH."
           },
           {
             "step": 2,
-            "title": "Apply online or by phone",
-            "description": "Visit www.tax.ny.gov/star or call (518) 457-2036. You'll need your 2024 tax return (for 2026 benefits) and proof of age."
+            "title": "New homeowners: register for the STAR credit",
+            "description": "The STAR exemption is closed to new applicants. Register once at www.tax.ny.gov/pit/property/star/ through your Individual Online Services account. Have your 2024 tax return, Social Security numbers, and school district ready. The state pays Enhanced STAR by check or direct deposit if you qualify."
           },
           {
             "step": 3,
-            "title": "Complete Income Verification Program enrollment",
-            "description": "Submit Form RP-425-IVP along with your Enhanced STAR application. This is required unless you're a new homeowner or first-time STAR applicant."
+            "title": "If you get letter RP-425-MBE",
+            "description": "Some Basic STAR exemption recipients get this letter. Fill out the enclosed Form RP-425-E and Form RP-425-IVP. Bring them with proof of age and your 2024 tax return to your local assessor by your town's taxable status date."
           },
           {
             "step": 4,
-            "title": "Submit by March 1 deadline",
-            "description": "Most towns have a March 1 deadline, but verify with your local assessor. If you miss the deadline, you may still qualify if you can demonstrate good cause."
+            "title": "Know the deadline that applies to you",
+            "description": "Assessor deadlines are the taxable status date, March 1 in most towns but earlier in some. That only applies to the letter path. STAR credit registration has no March 1 deadline."
           }
         ],
         "processingTime": "Starting in 2026, automatic upgrades eliminate processing delays for those already receiving Basic STAR",
         "waitlist": null,
-        "tip": "You can apply in the year you turn 65, even if your 65th birthday is December 31, as long as you apply before the March 1 deadline.",
+        "tip": "A resident owner only needs to turn 65 by December 31 of the benefit year, even December 31 itself.",
         "urls": [
           {
-            "label": "Enhanced STAR Application",
-            "url": "https://www.tax.ny.gov/star"
+            "label": "Register for STAR",
+            "url": "https://www.tax.ny.gov/pit/property/star/"
           },
           {
             "label": "STAR Eligibility Information",
             "url": "https://www.tax.ny.gov/pit/property/star/eligibility.htm"
+          },
+          {
+            "label": "STAR changes for 2026",
+            "url": "https://www.tax.ny.gov/star/changes/"
           }
         ]
       },
       "documentsNeeded": [
-        "Copy of federal or New York State tax return from 2 years prior (Pages 1 and 2), for 2026 benefits, provide your 2024 tax return",
-        "Proof of age: driver's license, birth certificate, or passport",
-        "Form RP-425-E (Enhanced STAR Application)",
-        "Form RP-425-IVP (Income Verification Program supplement)",
-        "School district name where your property is located",
-        "Most recent school tax bill (if available)",
-        "Income worksheet (if not required to file annual NYS Income Tax Return)"
+        "Your 2024 federal or New York State income tax return (for 2026 benefits), for every owner who lives in the home",
+        "Names and Social Security numbers of all owners and their spouses",
+        "School district name and most recent school tax bill (if you have one)",
+        "If you got letter RP-425-MBE: the enclosed Form RP-425-E and Form RP-425-IVP, plus proof of age (driver's license, birth certificate, or passport), filed with your local assessor",
+        "Income worksheet (Form RP-425-Wkst) if you were not required to file a tax return"
       ],
       "contacts": [
         {
           "label": "New York State STAR Program",
           "phone": "(518) 457-2036",
-          "description": "Enhanced STAR applications and questions",
-          "hours": "Monday-Friday, business hours"
+          "description": "STAR questions and registration help",
+          "hours": "Monday-Friday 8:30am-4:30pm ET"
         },
         {
           "label": "New York State 2-1-1",
@@ -2614,9 +2616,9 @@
         }
       ],
       "applicationNotes": [
-        "Beginning with the 2026 benefit year, income eligibility is based on the combined income of only the resident owners and their spouses who live at the property — non-resident owners' income is no longer counted toward the $110,750 limit",
-        "Once enrolled in the Income Verification Program, New York State verifies your income eligibility annually with no further deadlines to miss",
-        "Application deadlines vary by town but are typically March 1, always verify the exact deadline with your local assessor",
+        "Beginning with the 2026 benefit year, income eligibility is based on the combined income of only the resident owners and their spouses who live at the property. Non-resident owners' income is no longer counted toward the $110,750 limit",
+        "New York State checks income every year for all STAR recipients. There are no yearly forms.",
+        "The March 1 deadline only applies if you file with your assessor after getting letter RP-425-MBE. Deadlines vary by town.",
         "If you miss the deadline, you may still be eligible if you can demonstrate good cause, but this requires additional documentation"
       ],
       "relatedPrograms": [
@@ -2645,11 +2647,11 @@
         },
         {
           "question": "How much will Enhanced STAR actually save on property taxes?",
-          "answer": "The exact dollar savings depends on your local school tax rates, but Enhanced STAR provides greater savings than Basic STAR and increases by 2% yearly. Contact your local assessor or check your school tax bill to estimate specific savings for your loved one's property."
+          "answer": "The exact dollar savings depends on your local school tax rates, but Enhanced STAR provides greater savings than Basic STAR. The state's maximum savings table at tax.ny.gov/pit/property/star/max-savings/ shows the cap for your district. Contact your local assessor or check your school tax bill to estimate specific savings for your loved one's property."
         },
         {
           "question": "What if my loved one turns 65 in December, can they still apply that year?",
-          "answer": "Yes, your loved one can apply for Enhanced STAR in the year they turn 65, even if they turn 65 on December 31, as long as they submit the application before the March 1 deadline (or whatever deadline applies in their town)."
+          "answer": "Yes, your loved one can apply for Enhanced STAR in the year they turn 65, even if they turn 65 on December 31, Basic STAR recipients are upgraded automatically that year. New homeowners just register for the STAR credit."
         }
       ],
       "layoutIntent": {
@@ -2664,7 +2666,8 @@
       "phone": "(518) 457-2036",
       "sourceUrl": "https://www.tax.ny.gov/pit/property/star/eligibility.htm",
       "contentStatus": "approved",
-      "draftedAt": "2026-04-13"
+      "draftedAt": "2026-04-13",
+      "lastVerifiedDate": "2026-09-06"
     },
     {
       "id": "eisep-home-services",

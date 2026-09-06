@@ -41,6 +41,21 @@ Three corrections to this list from 2026-09-03, all of which cost real time:
 - **`mn.gov` and every subdomain (incl. `dcyf.mn.gov`) is Radware CAPTCHA-walled and returns HTTP 200 with a CAPTCHA body**, so it *looks* like a success. Wayback works. `r.jina.ai` returns garbage for this domain (tracker-pixel titles) — do not trust it here. `dhs.state.mn.us` separately returns "Unusual Activity Blocked".
 - **`floridajobs.org` answers 403 to `curl -I` (HEAD) and 200 to a GET with a browser UA.** Do not let a HEAD check convince a future round that a live page is dead.
 
+Host notes from 2026-09-06 (ten programs, one verifier each):
+
+- **`dhhs.ne.gov` is DNS-unreachable from the sandbox** (curl exit 000, WebFetch ENOTFOUND), not on the list above. `r.jina.ai` returns the live HTML cleanly and Wayback holds the PDFs. `/Pages/ADRC.aspx` and `/Pages/Developmental-Disabilities.aspx` are 404; the real pages are `Aging-and-Disability-Resource-Center.aspx` and `ACCESSNebraska-Contact-Us.aspx`.
+- **`hfs.illinois.gov` no longer fetches live** despite the "fetched fine" note; `r.jina.ai` works for it and for `dhs.state.il.us`, and matched the March 2026 Wayback text. `abe.illinois.gov` has no readable copy anywhere.
+- **`mn.gov/senior-linkage-line` now redirects to `mn.gov/aging-pathways`**; the Senior LinkAge Line was renamed Minnesota Aging Pathways in 2025 (same number). `seniorlinkageline.com` is a hijacked domain serving casino spam. Never link it.
+- **`gefa.georgia.gov`'s CAA list renders "Loading..." in any text view**; the data is in the raw HTML. `law.justia.com` 403s and Wayback has nothing; Georgia statutes are readable as PDFs on `audits2.ga.gov`. `actionpact.org` redirects to a Milwaukee organization, not Georgia's Waycross agency.
+- **`csraeoa.org`'s 2024 WAP packet is a scanned PDF with no text layer**; `pdftotext` returns nothing, render pages with `pdftoppm` and read them as images.
+- `oregon.gov` PDFs and HTML all fetched live; `secure.sos.state.or.us` (OAR text) needs `r.jina.ai`. The reviewer's `opi-m-1115-waiver-qa.pdf` citation is 404 live and dates from January 2022.
+- `alabamaageline.gov`, `nacolg.org`, `immanuel.com`, `elderaffairs.org` (HTML and handbook PDFs), `leg.state.fl.us`, `threeriverscap.org`, `meals-on-wheels.com`, `capai.org`, `healthandwelfare.idaho.gov`, `liheapch.acf.gov` (state plan PDFs), `ncliftss.acentra.com`, `medicaid.ncdhhs.gov`, `tax.ny.gov` all fetched live with a browser UA. `idahocap.org` does not resolve; the Idaho CAA association is `capai.org`. `publicdocuments.dhw.idaho.gov` (Laserfiche) times out and Wayback holds only the viewer shell.
+
+Two lessons from the same round worth more than the host list:
+
+- **A state's own fact sheet can carry the wrong number.** NC's Feb 2025 CAP/DA fact sheet says "call 1-833-470-0597" for CAP/DA; that is the referral fax, and every other page on the same site says so. The operator's contact page settles it, not the agency's PDF.
+- **A verified record can still be built on a proposal.** Every FCAP fact in the Oregon caregiver record came from a 2022 OHA sheet describing a program that "would" exist; the waiver CMS approved in 2024 contains no FCAP. When a record's numbers all trace to one document, check whether that document describes something that launched.
+
 **Verify rather than trusting this list, and correct it when it drifts.** Two entries here were wrong on 2026-09-03 and the previous round's `goea.la.gov` note was wrong before that.
 
 Fetched fine: `wvdrs.org`, `portal.ct.gov`, `hfs.illinois.gov`, `fhb.hhs.texas.gov`, `elderaffairs.org` (PDFs via curl), `flrules.org` (cleanest route to Florida rule text), `broc.org`, `dcf.vermont.gov`, `nmwic.org`, `dfcs.georgia.gov`, `activegenerations.org`, `oregon.gov`, and parish/county `.gov` sites, plus `oregon.gov`, `dphhs.mt.gov`, `commerce.wa.gov`, `wa211.org`, `cdss.ca.gov`, `cmca.us`, `regulations.delaware.gov`, `delawareadrc.com`, `legis.la.gov`, `dcfs.louisiana.gov`, `liheapch.acf.gov` (the LIHEAP Clearinghouse state profiles, a good federal cross-check on benefit amounts and program dates), `ecfr.gov`, `mountainpacific.org`, `trinityhealthpace.org`, and county/parish `.gov` sites.

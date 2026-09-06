@@ -18,12 +18,12 @@ import styles from "./OperatingMap.module.css";
  * rendered on an admin page. Rename a label freely; renaming an id breaks
  * the wire that references it.
  *
- * The figure is laid out at a fixed FIGURE_WIDTH and then scaled down to
- * whatever width it is given, so the whole map is always visible at once —
- * the landscape-PDF view, not a pane you scroll sideways. Laying it out at
- * a fixed width and shrinking it keeps every proportion and line break
- * identical at any size; a fluid layout would reflow labels and quietly
- * change the shape of the funnel on different monitors.
+ * The figure is laid out at a fixed FIGURE_WIDTH and then scaled to fit the
+ * space on screen — both directions, so the whole map is visible at once
+ * without scrolling either way. Laying it out at a fixed size and shrinking
+ * it keeps every proportion and line break identical at any size; a fluid
+ * layout would reflow labels and quietly change the shape of the funnel on
+ * different monitors.
  */
 
 /** The width the figure is designed at. Everything scales from here. */
@@ -31,9 +31,12 @@ const FIGURE_WIDTH = 1660;
 
 /**
  * Below this the type is too small to read, so we stop shrinking and let
- * the container scroll instead. Only reachable in a very narrow window.
+ * the page scroll instead. Only reachable in a very small window.
  */
 const MIN_SCALE = 0.4;
+
+/** Breathing room kept below the figure when fitting it to the viewport. */
+const BOTTOM_GUTTER = 32;
 
 /** Namespace every DOM id this component owns. */
 const nodeId = (key: string) => `om-${key}`;
@@ -54,12 +57,23 @@ export default function OperatingMap() {
     const stage = stageRef.current;
     if (!sys || !svg || !fit || !stage) return;
 
-    // Fit the figure to the space we were given. Written before measuring,
-    // so the geometry below is read from the layout we actually ship.
-    const available = fit.clientWidth;
-    const scale = available > 0
-      ? Math.max(MIN_SCALE, Math.min(1, available / FIGURE_WIDTH))
-      : 1;
+    // Fit the figure to the space we were given, in both directions: the
+    // map is only worth drawing as one picture if the whole picture is on
+    // screen. Written before measuring, so the geometry below is read from
+    // the layout we actually ship.
+    const availableW = fit.clientWidth;
+    // Distance from the top of the document, so a scrolled page cannot
+    // inflate the room we think we have.
+    const docTop = fit.getBoundingClientRect().top + window.scrollY;
+    const availableH = document.documentElement.clientHeight - docTop - BOTTOM_GUTTER;
+    const figureHeight = sys.offsetHeight;
+    const byWidth = availableW > 0 ? availableW / FIGURE_WIDTH : 1;
+    const byHeight = availableH > 0 && figureHeight > 0 ? availableH / figureHeight : 1;
+    // Rounded so sub-pixel jitter cannot ping-pong between two scales.
+    const scale = Math.max(
+      MIN_SCALE,
+      Math.round(Math.min(1, byWidth, byHeight) * 1000) / 1000,
+    );
     const nextTransform = scale < 1 ? `scale(${scale})` : "";
     if (sys.style.transform !== nextTransform) sys.style.transform = nextTransform;
 
@@ -68,7 +82,7 @@ export default function OperatingMap() {
     // scaling was meant to remove. The stage is sized to what you actually
     // see and clips the untransformed box behind it.
     const stageWidth = `${Math.ceil(FIGURE_WIDTH * scale)}px`;
-    const stageHeight = `${Math.ceil(sys.offsetHeight * scale)}px`;
+    const stageHeight = `${Math.ceil(figureHeight * scale)}px`;
     if (stage.style.width !== stageWidth) stage.style.width = stageWidth;
     if (stage.style.height !== stageHeight) stage.style.height = stageHeight;
 

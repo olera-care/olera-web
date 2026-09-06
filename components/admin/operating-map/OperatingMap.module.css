@@ -55,7 +55,13 @@
  * narrow to scale into (MIN_SCALE).
  */
 .fit { overflow-x: auto; overflow-y: hidden; padding-bottom: 6px; }
-.stage { overflow: hidden; }
+.stage {
+  overflow: hidden;
+  /* Centred in the column. Once the figure is height-limited it is narrower
+     than the space available, and auto margins collapse to zero rather than
+     clipping when it is not. */
+  margin-inline: auto;
+}
 
 .system {
   position: relative;

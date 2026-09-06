@@ -89,7 +89,11 @@ export default function OperatingMapView() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-end">
+      {/* The figure scales into whatever height is left below this row, so
+          the control sits beside the heading rather than on a line of its
+          own — a row of chrome here costs the map a row of legibility. */}
+      <div className="mb-3 flex items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold text-gray-900">Operating Map</h1>
         <DateRangePopover value={range} onChange={setRange} />
       </div>
 

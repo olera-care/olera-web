@@ -9,10 +9,8 @@ export const metadata: Metadata = {
 export default function AdminOperatingMapPage() {
   return (
     <div>
-      <div className="mb-4">
-        <h1 className="text-2xl font-semibold text-gray-900">Operating Map</h1>
-      </div>
-
+      {/* The heading lives in the view, on the same row as the date range,
+          so it costs one row of chrome instead of two. */}
       {/* useSearchParams needs a Suspense boundary to prerender. */}
       <Suspense fallback={null}>
         <OperatingMapView />

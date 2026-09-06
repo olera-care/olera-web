@@ -26,8 +26,16 @@ import styles from "./OperatingMap.module.css";
  * different monitors.
  */
 
-/** The width the figure is designed at. Everything scales from here. */
-const FIGURE_WIDTH = 1660;
+/**
+ * The width the figure is designed at. Everything scales from here.
+ *
+ * Deliberately wider than the space it usually lands in. The figure is
+ * height-limited on every normal screen — six levels deep on the left — so
+ * widening the design costs nothing in scale and spends the horizontal room
+ * that was otherwise going to waste, while letting the type be set larger
+ * for the same rendered height.
+ */
+const FIGURE_WIDTH = 1900;
 
 /**
  * Below this the type is too small to read, so we stop shrinking and let
@@ -36,7 +44,7 @@ const FIGURE_WIDTH = 1660;
 const MIN_SCALE = 0.4;
 
 /** Breathing room kept below the figure when fitting it to the viewport. */
-const BOTTOM_GUTTER = 32;
+const BOTTOM_GUTTER = 16;
 
 /** Namespace every DOM id this component owns. */
 const nodeId = (key: string) => `om-${key}`;
@@ -551,7 +559,7 @@ export default function OperatingMap({
               </div>
             )}
           </div>
-          <div style={{ height: 18 }} />
+          <div style={{ height: 14 }} />
 
           <div className={styles.lanes3} style={{ marginBottom: 8 }}>
             <div className={styles.lab}>Care recipient</div>
@@ -577,7 +585,7 @@ export default function OperatingMap({
                 />
                 <Chip id="cr3" code="CR3" label="Paid ad visitors" />
               </div>
-              <div className={styles.indent} style={{ marginTop: 32 }}>
+              <div className={styles.indent} style={{ marginTop: 22 }}>
                 <Card
                   id="cr4"
                   code="CR4"
@@ -593,7 +601,7 @@ export default function OperatingMap({
                     </>
                   }
                 />
-                <div className={styles.offshoot} style={{ marginTop: 24 }}>
+                <div className={styles.offshoot} style={{ marginTop: 16 }}>
                   <Chip
                     id="cr5"
                     code="CR5"
@@ -605,7 +613,7 @@ export default function OperatingMap({
                     onInspect={onInspect}
                   />
                 </div>
-                <div style={{ marginTop: 24 }}>
+                <div style={{ marginTop: 16 }}>
                   <Card
                     id="cr6"
                     code="CR6"
@@ -617,7 +625,7 @@ export default function OperatingMap({
                     onInspect={onInspect}
                   />
                 </div>
-                <div className={styles.offshoots} style={{ marginTop: 20 }}>
+                <div className={styles.offshoots} style={{ marginTop: 14 }}>
                   <Chip
                     id="cr6a"
                     code="CR6a"
@@ -649,7 +657,7 @@ export default function OperatingMap({
                     onInspect={onInspect}
                   />
                 </div>
-                <div style={{ height: 30 }} />
+                <div style={{ height: 14 }} />
               </div>
             </div>
 
@@ -715,7 +723,7 @@ export default function OperatingMap({
             </div>
           </div>
 
-          <div style={{ height: 54 }} />
+          <div style={{ height: 30 }} />
 
           {/* ---------------- bottom ---------------- */}
           <div id={nodeId("bottom")}>

@@ -462,6 +462,22 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    // City lead offer chain FIRST. "YES" is also a TCPA opt-in keyword, so a
+    // provider accepting an offer must be recognised before that branch, or
+    // the acceptance is swallowed as a re-subscribe. Scoped to numbers with a
+    // recent offer, so a family's YES never reaches this.
+    if (messageBody && !OPT_OUT_KEYWORDS.has(keyword)) {
+      const db = getServiceDb();
+      if (db) {
+        try {
+          const { handleProviderReply } = await import("@/lib/city-ads/offers.server");
+          const reply = await handleProviderReply(db, normalizedFrom, messageBody);
+          if (reply) return twiml(reply);
+        } catch (err) {
+          console.error("[sms-webhook] City offer reply handling failed:", err);
+        }
+      }
+    }
     if (OPT_OUT_KEYWORDS.has(keyword)) {
       // Cross-channel suppression first — this is the only opt-out record that
       // covers a sender with no family profile, and sendSMS enforces it.

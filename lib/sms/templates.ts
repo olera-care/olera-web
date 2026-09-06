@@ -133,3 +133,63 @@ export function familyAnswerFollowupSms(): string {
 export function familyAnswerAckSms(): string {
   return "Thanks for reaching out. We're looking into this and will get back to you with what we find. We share free resources and can get things wrong, so please confirm anything important with the agency.";
 }
+
+// ── Olera city campaigns (lib/city-ads) ─────────────────────────────────────
+// Sequential offer chain: one provider at a time, no contact details until YES.
+// Provider copy is plain and short (feedback_provider_comms_plain_not_hedged).
+
+/** Offer to provider #N. No name, no number. */
+export function cityOfferSms(p: { city: string; careLabel: string; recipientLabel: string; urgencyLabel: string; paymentLabel?: string | null; minutes: number }): string {
+  const pay = p.paymentLabel ? `, ${p.paymentLabel}` : "";
+  return `Olera: a family in ${p.city} needs ${p.careLabel} for ${p.recipientLabel}, ${p.urgencyLabel}${pay}. Reply YES in the next ${p.minutes} min to take it, or NO to pass.`;
+}
+
+/** Provider said YES: the family's details, and the expectation. */
+export function cityAcceptedProviderSms(p: { firstName: string; phone: string; careLabel: string; recipientLabel: string; urgencyLabel: string; note?: string | null; callBy: string }): string {
+  const note = p.note ? ` Note: "${p.note.slice(0, 120)}"` : "";
+  return `It is yours. ${p.firstName}, ${p.phone}. ${cap(p.careLabel)} for ${p.recipientLabel}, ${p.urgencyLabel}.${note} ${p.firstName} is expecting your call ${p.callBy}. We told them it will come from this number's business line. We will check with them tomorrow.`;
+}
+
+/** Provider said NO: one more question, one digit. */
+export function cityDeclinedAskReasonSms(): string {
+  return `Got it, passing it on. One thing: reply 1 no capacity, 2 outside your area, 3 payment, 4 needs medical care.`;
+}
+
+/** Provider's YES arrived after someone else took it. */
+export function cityOfferGoneSms(): string {
+  return `Thanks, that one was already taken. The next offer will come from this number.`;
+}
+
+/** Provider texted YES with no open offer. */
+export function cityNoOpenOfferSms(): string {
+  return `Olera: thanks. There is no open request for you right now; the next one will come from this number.`;
+}
+
+/** Family, right after submit, during staffed hours. */
+export function cityFamilyConfirmSms(p: { firstName: string; city: string }): string {
+  return `Olera: Thanks ${p.firstName}. We are asking a ${p.city} provider to take your request now. We will text you their name as soon as they confirm. Reply STOP to opt out.`;
+}
+
+/** Family, right after submit, outside staffed hours. */
+export function cityFamilyConfirmMorningSms(p: { firstName: string; city: string }): string {
+  return `Olera: Thanks ${p.firstName}. A ${p.city} provider will confirm in the morning and call you tomorrow. We will text you their name first. Reply STOP to opt out.`;
+}
+
+/** Family: a provider accepted. Names them and the number that will call. */
+export function cityFamilyAcceptedSms(p: { providerName: string; city: string; providerPhone: string; callBy: string }): string {
+  return `Olera: ${p.providerName} in ${p.city} has taken your request. Expect a call from ${p.providerPhone} ${p.callBy}. Save the number so you know it is them.`;
+}
+
+/** Family: three providers missed it; a human is on it. */
+export function cityFamilyStillWorkingSms(p: { firstName: string; city: string }): string {
+  return `Olera: Still working on your request, ${p.firstName}. We are lining up a ${p.city} provider by hand and will text you their name today.`;
+}
+
+/** Family, medical scope: honest redirect, not a lead. */
+export function cityFamilyMedicalSms(p: { firstName: string }): string {
+  return `Olera: Thanks ${p.firstName}. Olera arranges non-medical help at home and assisted living, not nursing care. For skilled nursing at home ask the discharge planner or doctor for a home health referral, which Medicare usually covers. Reply STOP to opt out.`;
+}
+
+function cap(s: string): string {
+  return s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
+}

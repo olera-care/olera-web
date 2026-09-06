@@ -133,6 +133,10 @@
       "schedule": "40 * * * *"
     },
     {
+      "path": "/api/cron/city-lead-offers",
+      "schedule": "*/5 * * * *"
+    },
+    {
       "path": "/api/cron/support-email-sync",
       "schedule": "*/5 * * * *"
     },

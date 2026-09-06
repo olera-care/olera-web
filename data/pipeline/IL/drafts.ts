@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/IL/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-09-04T09:57:48.372Z
+ * Last updated: 2026-09-06T12:14:31.513Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -76,7 +76,7 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through Illinois ABE or call 1-800-843-6154; processing takes 45 days (90 days if disability determination needed).",
+        "summary": "Apply online through Illinois ABE or call 1-800-843-6154 for help with the application; processing takes 45 days (90 days if disability determination needed).",
         "steps": [
           {
             "step": 1,
@@ -140,7 +140,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Illinois DHS Benefits Helpline",
           "phone": "(800) 843-6154",
           "description": "Medicaid application assistance and general questions",
-          "hours": "Mon-Fri 8am-5pm CT"
+          "hours": "Mon-Fri 8:30am-5pm CT, except state holidays"
         },
         {
           "label": "Illinois 2-1-1",
@@ -337,7 +337,7 @@ export const drafts: PipelineStateDrafts = {
           "label": "Illinois DHS Main Line",
           "phone": "(800) 843-6154",
           "description": "General information about HSP Waiver and local office referrals",
-          "hours": "Mon-Fri 8am-5pm CT"
+          "hours": "Mon-Fri 8:30am-5pm CT, except state holidays"
         },
         {
           "label": "Illinois 2-1-1",
@@ -653,12 +653,12 @@ export const drafts: PipelineStateDrafts = {
       },
       "applicationGuide": {
         "method": "multiple",
-        "summary": "Apply online through the Application for Benefits Eligibility (ABE) portal at abe.illinois.gov, by phone at 1-800-843-6154, or by visiting your local Department of Human Services (DHS) office. Applications are typically processed within 30 to 45 days.",
+        "summary": "Apply online through the Application for Benefits Eligibility (ABE) portal at abe.illinois.gov, with phone help at 1-800-843-6154, or by visiting your local Department of Human Services (DHS) office. Applications are typically processed within 30 to 45 days.",
         "steps": [
           {
             "step": 1,
             "title": "Choose your application method",
-            "description": "Call 1-800-843-6154 (Monday-Friday, 8:30am-5pm) for phone application, visit your local DHS Family Community Resource Center, or mail a written request for application forms."
+            "description": "Call 1-800-843-6154 (Monday-Friday, 8:30am-5pm Central, except state holidays) for help with the application, visit your local DHS Family Community Resource Center, or mail a written request for application forms."
           },
           {
             "step": 2,
@@ -702,8 +702,8 @@ export const drafts: PipelineStateDrafts = {
         {
           "label": "Illinois DHS Benefits Line",
           "phone": "1-800-843-6154",
-          "description": "Apply by phone or get program information",
-          "hours": "Monday-Friday 8:30am-5pm"
+          "description": "Program information and help with the application",
+          "hours": "Mon-Fri 8:30am-5pm CT, except state holidays"
         },
         {
           "label": "TTY Line for Hearing Impaired",
@@ -936,10 +936,10 @@ export const drafts: PipelineStateDrafts = {
       ],
       "contacts": [
         {
-          "label": "Illinois DHS SNAP Hotline",
+          "label": "IDHS Customer Help Line",
           "phone": "(800) 843-6154",
-          "description": "Find your local IDHS office and get application help",
-          "hours": "Mon-Fri 8am-5pm CT"
+          "description": "Questions about SNAP, help with the online application, and your local IDHS office. It does not take the application itself.",
+          "hours": "Mon-Fri 8:30am-5pm CT, except state holidays"
         },
         {
           "label": "Illinois 2-1-1",
@@ -984,7 +984,7 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "question": "How quickly can SNAP start if my loved one has an emergency food situation?",
-          "answer": "Expedited processing is available and provides benefits within 5 calendar days if your loved one has very low income and limited cash on hand. Call 1-800-843-6154 to request an expedited review when you apply."
+          "answer": "Expedited processing is available and provides benefits within 5 calendar days if your loved one has very low income and limited cash on hand. Ask for expedited (emergency) SNAP when you apply online or at your local office. You can call 1-800-843-6154 with questions."
         },
         {
           "question": "What happens to SNAP benefits if my loved one enters a nursing home?",
@@ -1008,7 +1008,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://www.dhs.state.il.us/page.aspx?item=30357",
       "contentStatus": "approved",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": "2026-07-14"
+      "lastVerifiedDate": "2026-09-06"
     },
     {
       "id": "home-weatherization-assistance",

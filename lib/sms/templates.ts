@@ -145,9 +145,10 @@ export function cityOfferSms(p: { city: string; careLabel: string; recipientLabe
 }
 
 /** Provider said YES: the family's details, and the expectation. */
-export function cityAcceptedProviderSms(p: { firstName: string; phone: string; careLabel: string; recipientLabel: string; urgencyLabel: string; note?: string | null; callBy: string }): string {
+export function cityAcceptedProviderSms(p: { firstName: string; phone: string; careLabel: string; recipientLabel: string; urgencyLabel: string; note?: string | null; callBy: string; providerPhone?: string }): string {
   const note = p.note ? ` Note: "${p.note.slice(0, 120)}"` : "";
-  return `It is yours. ${p.firstName}, ${p.phone}. ${cap(p.careLabel)} for ${p.recipientLabel}, ${p.urgencyLabel}.${note} ${p.firstName} is expecting your call ${p.callBy}. We told them it will come from this number's business line. We will check with them tomorrow.`;
+  const told = p.providerPhone ? ` We told them to expect a call from ${p.providerPhone}.` : "";
+  return `It is yours. ${p.firstName}, ${p.phone}. ${cap(p.careLabel)} for ${p.recipientLabel}, ${p.urgencyLabel}.${note} ${p.firstName} is expecting your call ${p.callBy}.${told} We will check with them tomorrow.`;
 }
 
 /** Provider said NO: one more question, one digit. */

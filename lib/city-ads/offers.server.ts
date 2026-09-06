@@ -25,7 +25,6 @@ import {
   cityAcceptedProviderSms,
   cityDeclinedAskReasonSms,
   cityOfferGoneSms,
-  cityNoOpenOfferSms,
   cityFamilyAcceptedSms,
   cityFamilyStillWorkingSms,
 } from "@/lib/sms/templates";
@@ -187,7 +186,7 @@ export async function startOrAdvance(
       .maybeSingle();
     candidate = (data as PoolEntry | null) ?? { id: "", provider_id: opts.providerId, position: 0, care_types: [], enabled: true, phone_override: null };
   } else {
-    if (nextPosition > MAX_OFFERS_PER_LEAD) {
+    if (nextPosition > MAX_OFFERS_PER_LEAD && !opts.force) {
       return markUnfilled(db, lead, city);
     }
     const { data: pool } = await db
@@ -264,7 +263,9 @@ export async function startOrAdvance(
 }
 
 async function markUnfilled(db: SupabaseClient, lead: CityLeadRow, city: string) {
+  const alreadyUnfilled = lead.status === "unfilled";
   await db.from("city_leads").update({ status: "unfilled", next_offer_at: null, updated_at: new Date().toISOString() }).eq("id", lead.id);
+  if (alreadyUnfilled) return { action: "unfilled" as const };
   await sendSlackAlert(
     `⚠️ City lead ${lead.id.slice(0, 8)} (${city}) is UNFILLED: no enabled provider left for ${CARE_LABEL[lead.care_type]}. ${lead.first_name}, ${formatUSPhone(lead.phone)}. Route by hand at /admin/city-ads.`,
   );
@@ -327,6 +328,7 @@ export async function acceptOffer(
         urgencyLabel: l.urgencyLabel,
         note: lead.note,
         callBy,
+        providerPhone: formatUSPhone(provider?.phone ?? provPhone ?? ""),
       }),
       emailType: "city_lead_accepted_provider",
       recipientType: "provider",
@@ -398,11 +400,10 @@ export async function handleProviderReply(
     .order("offered_at", { ascending: false })
     .limit(5);
   const list = (offers ?? []) as CityOfferRow[];
-  if (list.length === 0) {
-    // A YES from a provider we know but with nothing open is still worth an
-    // answer; NO or a digit with nothing open is noise for the normal path.
-    return isYes ? cityNoOpenOfferSms() : null;
-  }
+  // No offer has ever gone to this number: not ours. Fall through so a family's
+  // YES still reaches the TCPA opt-in branch and a family's "1" still reaches
+  // the benefits and outcome handlers.
+  if (list.length === 0) return null;
 
   if (digit) {
     const declined = list.find((o) => o.declined_at && !o.decline_reason);
@@ -413,7 +414,9 @@ export async function handleProviderReply(
   }
 
   const open = list.find((o) => !o.accepted_at && !o.declined_at);
-  if (!open) return isYes ? cityOfferGoneSms() : null;
+  // Nothing open for this provider ("Ok thanks" after their own acceptance, a
+  // second NO): not a chain message. Let the webhook's normal path handle it.
+  if (!open) return null;
 
   if (isYes) {
     // An expired-but-unclaimed offer may still win: the lead is not taken and

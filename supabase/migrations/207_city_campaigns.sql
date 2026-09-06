@@ -148,9 +148,13 @@ CREATE INDEX IF NOT EXISTS city_lead_offers_open_idx ON city_lead_offers (provid
   WHERE accepted_at IS NULL AND declined_at IS NULL AND expired_at IS NULL;
 CREATE INDEX IF NOT EXISTS city_lead_offers_lead_idx ON city_lead_offers (lead_id, position);
 
-ALTER TABLE city_leads
-  ADD CONSTRAINT city_leads_accepted_offer_fk
-  FOREIGN KEY (accepted_offer_id) REFERENCES city_lead_offers(id) ON DELETE SET NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'city_leads_accepted_offer_fk') THEN
+    ALTER TABLE city_leads
+      ADD CONSTRAINT city_leads_accepted_offer_fk
+      FOREIGN KEY (accepted_offer_id) REFERENCES city_lead_offers(id) ON DELETE SET NULL;
+  END IF;
+END $$;
 
 -- Case history carries over. An entry may now attach to a city campaign instead.
 ALTER TABLE ad_campaign_log ADD COLUMN IF NOT EXISTS city_campaign_id UUID REFERENCES city_campaigns(id) ON DELETE SET NULL;

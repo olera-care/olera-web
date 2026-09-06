@@ -73,6 +73,7 @@ Only after all three fail should you use WebSearch, and then you must name the d
 ### Code dependencies
 
 - **`scripts/benefits-lint.js` — BUILT (2026-08-07), use it.** Every check in the section above is implemented. Run `node scripts/benefits-lint.js --state=<states>` before touching the report, and `--json` when you want to filter to the report's programs. It confirmed KY's null-lead-phone on 2026-08-11 before a single web call. When a round turns up a recurring pattern the script does not catch, add the check rather than describing it here — `medicare-card-parts` was added on 2026-08-11 for exactly that reason, after `medicare-not-required`'s `/parts a and b/` pattern missed the `(both parts)` phrasing and let a wrong Alabama letter reach the pending queue.
+- **`scripts/benefits-draft-patch.js` and `scripts/benefits-draft-schedule.js` — BUILT (2026-09-06), use them.** Draft patching and scheduling are no longer per-round scratch scripts. Both dry-run by default, locate `node_modules` and `.env.local` themselves, and are allow-listed for auto mode in TJ's user settings (`~/.claude/settings.json`). Shared plumbing (pick rebuild, Eastern-time slot math, holiday list mirror of `lib/business-day.ts`) lives in `scripts/lib/benefits-draft-db.js`; update the holiday list there when `lib/business-day.ts` rolls a year.
 - **`lastVerifiedDate` gate in the export — still not built.** `lib/benefits/navigator-review-prompt.ts` should omit programs verified within N days so the prompt, TJ's wait, and the verification all shrink together. Until it exists, drop fresh programs by hand and say so in the report.
 
 ## Procedure
@@ -107,29 +108,40 @@ Only after all three fail should you use WebSearch, and then you must name the d
 
 5. **Branch + PR to staging** (`benefits-data-corrections-<date>` off `origin/staging`). PR body: what was verified against what source, what was deliberately not applied and why. Never merge — TJ merges via /pr-merge. **One PR per round, not one per discovery.** On 2026-08-07 a late finding produced a second PR and a second full regen/de-churn/tsc/merge cycle. Hold every data change until the whole report is triaged, then open once.
 
-6. **Patch the pending drafts directly — do not hand TJ an edit list.** Already-composed navigator drafts carry the old facts, and drafts are DATABASE rows (`business_profiles.metadata.benefits_navigator`), so corrections reach them without any deploy. For each pending draft citing corrected data: write a patch script with exact-string replacements on the letter body (miss = throw, never silently half-patch), keep the letter's voice (short sentences, 6th grade, no em dashes), fresh-read merge on write, stamp `factcheck_patched_at`. TJ still gates every send, so patched text gets his read at send time. First run: 2026-07-31, 10 letters patched in place. Special cases: a letter whose program was REMOVED can't be text-patched — flag it for TJ to dismiss, or recompose it after the data PR deploys (recompose re-picks from the deployed bundle and will choose the next-best program). Drafts for programs the report didn't cover stay untouched and are named in the summary for the next run.
+6. **Patch the pending drafts in the same run. Do not stop and wait for "update messages."** Already-composed navigator drafts carry the old facts, and drafts are DATABASE rows (`business_profiles.metadata.benefits_navigator`), so corrections reach them without any deploy. The data PR and the draft patch are one motion: the moment the data edits are verified, build the edits file and run the patcher. TJ still gates every send, so patched text gets his read at send time.
+
+   The patcher is checked in: `scripts/benefits-draft-patch.js`. It is driven by a JSON edits file (find/replace pairs are data, not code), refreshes the frozen `pick` snapshot from the pipeline in the same write, stamps `factcheck_patched_at`, and throws on any edit that does not match exactly once. It locates `node_modules` and `.env.local` itself, so it runs from a bare worktree:
+
+   ```
+   node scripts/benefits-draft-patch.js --edits=<scratchpad>/edits.json --pipeline=data/pipeline          # dry run, read every letter
+   node scripts/benefits-draft-patch.js --edits=<scratchpad>/edits.json --pipeline=data/pipeline --apply
+   ```
+
+   Edits file shape: `{ "<8-char profile id prefix>": [["body", "old", "new"], ["sms", "old", "new"]], "<prefix>": [] }`. An empty array is a pick-only refresh, for a draft whose data changed but whose prose did not print the stale value (a relabeled contact, a reordered document list). Find the drafts with `scripts/benefits-draft-lint.js`: after the data edits, every affected pending draft reports `snapshot-drift`, and that list IS the patch list, including drafts for programs the report never named (2026-09-06: an Illinois Medicaid letter and a Georgia Senior SNAP letter surfaced this way).
+
+   **Both scripts are allow-listed in TJ's user settings (`~/.claude/settings.json`, `permissions.allow`)**, so auto mode does not block the write. The rules live at user level because the repo gitignores `.claude/settings.json`, so a project file would not reach other worktrees. On 2026-09-06 the write was refused twice by the auto-mode classifier and TJ had to paste two commands into a terminal, which is the delay this step now exists to remove. If a write is still refused, say so in one sentence, hand TJ exactly one command, and continue; never present a hand-run as the plan.
 
    **Mechanics that cost real time on 2026-08-07 — get them right the first time:**
-   - **Apostrophes.** Letter bodies in the DB use straight `'`, not curly `’`. A patch string with the wrong one throws on the exact-match guard. Normalize before writing the script, and remember single-quoted JS literals then need double quotes or escaping.
-   - **Drive the patcher from the CORRECTIONS block**, not hand-written per-state blocks. The find/replace pairs are data and belong in a table.
-   - **Refresh the `pick` snapshot in the same write as the body**, rebuilt from current pipeline data using the composer's own rules: first contact with a non-null phone, `documentsNeeded.slice(0, 3)`.
+   - **Apostrophes.** Letter bodies in the DB use straight `'`, not curly `’`. A patch string with the wrong one throws on the exact-match guard.
+   - **Chain edits on one field.** Two body edits on the same letter must each read the result of the last; on 2026-09-06 a first draft of the patcher read the original each time and only the last edit survived. The checked-in script chains correctly. Read the dry-run output anyway.
    - **Sanity-check counts after editing.** Removing a document from a letter that says "have three things nearby" leaves it listing two. Grep the patched body for number words.
-   - **Run DB scripts from a checkout that has `node_modules`.** Worktrees usually don't.
+   - **Vanity names read as phone numbers.** "1-800-AGE-LINE" in prose trips the lint's `stale-phone-in-text` check because it is not on the contact list. Write "the Alabama AgeLine at (800) 243-5463", not the vanity form.
+   - **A removed program cannot be text-patched.** `rebuildPick` throws when the program is gone from the pipeline. Flag that draft for TJ to dismiss, or recompose it after the data PR deploys (recompose re-picks from the deployed bundle; staging and production share one database, so recompose from the STAGING admin until the data is promoted).
 
-   **Patch all four text fields, not just the body.** A draft carries `subject`, `body`, and `sms`, plus `edited_subject` / `edited_body` / `edited_sms` when TJ has edited it in the drawer. Prefer the edited variant when present and write back to the same key. On 2026-08-11 this step said only "the letter body", so a Georgia letter was corrected to "Elderly and Disabled Waiver Program" while its SMS still said "CCSP", the name Georgia retired. The SMS was skipped through compliance, not carelessness. **A body change and its SMS change move together, always.**
+   **Patch all four text fields, not just the body.** A draft carries `subject`, `body`, and `sms`, plus `edited_subject` / `edited_body` / `edited_sms` when TJ has edited it in the drawer. The script prefers the edited variant when present and writes back to the same key. On 2026-08-11 a Georgia letter was corrected to "Elderly and Disabled Waiver Program" while its SMS still said "CCSP", the name Georgia retired. **A body change and its SMS change move together, always.**
 
-6b. **Gate on `scripts/benefits-draft-lint.js` before you report anything.** It reads pending drafts from the database and checks them against pipeline data. Because a worktree has no `node_modules` and no `.env.local`, run it from a checkout that does and point `--pipeline` at the worktree holding the corrections:
+6b. **Gate on `scripts/benefits-draft-lint.js` before saying anything is updated.** It reads pending drafts from the database and checks them against pipeline data. The lint still needs `dotenv` and `@supabase/supabase-js`, so from a worktree borrow them and point `--pipeline` at the worktree holding the corrections:
 
    ```
-   cd ~/Desktop/olera-web && node scripts/benefits-draft-lint.js \
-     --pipeline=~/.claude-worktrees/olera-web/<name>/data/pipeline
+   NODE_PATH=~/Desktop/olera-web/node_modules node scripts/benefits-draft-lint.js \
+     --env=~/Desktop/olera-web/.env.local --pipeline=data/pipeline --state=<states>
    ```
 
-   **Check the `Branch:` line it prints before believing any finding.** Every `snapshot-drift` result is relative to the pipeline it loaded; aim it at a branch that predates your corrections and every corrected program reports as drifted. The same command produced 15 highs and 0 highs minutes apart during development purely because the worktree had moved.
+   **Check the `Branch:` line it prints before believing any finding.** Every `snapshot-drift` result is relative to the pipeline it loaded; aim it at a branch that predates your corrections and every corrected program reports as drifted. The same command produced 15 highs and 0 highs minutes apart during development purely because the worktree had moved. `~/Desktop/olera-web` itself is a stale checkout (no draft lint script in it as of 2026-09-06); run the worktree's copy.
 
    Fix until `--high` is empty, then read the `low` findings, which are deliberately advisory rather than automatic:
 
-   - `snapshot-drift` — the frozen `pick` disagrees with live data. This is the ghost that kept re-surfacing corrected programs in later review exports. It compares `contactLabel` as of 2026-08-22: a correction that only renames a contact (CA LIHEAP "Application Line" → "CSD Call Center", because that line answers questions and cannot take an application) leaves phone, name and documents identical, so every other comparison passed while the letter kept telling the family to apply on the wrong line. **A clean lint run before that date did not cover label drift.**
+   - `snapshot-drift` — the frozen `pick` disagrees with live data. This is the ghost that kept re-surfacing corrected programs in later review exports. It compares `contactLabel` as of 2026-08-22: a correction that only renames a contact (CA LIHEAP "Application Line" → "CSD Call Center", because that line answers questions and cannot take an application) leaves phone, name and documents identical, so every other comparison passed while the letter kept telling the family to apply on the wrong line.
    - `stale-phone-in-text` / `cross-field-drift` — a number or retired program name printed in one field and not the others. This is the class the body-only patch created.
    - `sms-assembly` — simulates what is actually transmitted, since the send path appends the STOP and CALLED lines at send time. Catches doubled suffixes, a missing `{link}`, and punctuation flush against `{link}` (some clients pull it into the tapped URL and the link 404s).
    - `banned-phrase` — voice-spec violations, especially speed promises. "It's one phone call" is the banned "just one call" with the qualifier removed.
@@ -138,7 +150,18 @@ Only after all three fail should you use WebSearch, and then you must name the d
 
    **A clean run is not verification.** The lint catches inconsistency, not wrongness. A draft whose phone is wrong but consistent everywhere passes. That is the 2026-08-11 SoonerCare case: a real, staffed, official number that could not take the caller's application. Only reading the operator's own page catches that.
 
-7. **Report to TJ:** corrections applied (with the one-line-each summary), disputes flagged, pick-fit/voice observations from the report worth a composer-rail change, and the recompose-after-deploy checklist.
+6c. **Scheduling walkthrough. Tell TJ where the letters stand, then ask one question.** Visibility is the point of this step: TJ should never have to ask "did the messages get updated?" or "are they scheduled?".
+
+   1. Run the scheduler dry run first, so the question shows the real list:
+      ```
+      node scripts/benefits-draft-schedule.js --patched=<today>
+      ```
+      It proposes the next business-day slot (Mon–Fri, not a US federal holiday, 11:00 AM Eastern, which fires at 11:10 ET and lands at 8:10 AM Pacific, inside every text window), reports how many drafts are already due at or before that slot against the cron's 20-per-run cap, and **skips any draft whose packet route is `recompose` or `ask`**. The scheduler cron enforces that gate at fire time and would clear the schedule with a Slack ping, so scheduling those is a wasted Tuesday.
+   2. Say the status in one line, in these words or close to them: **"Messages updated: N letters patched, lint clean. Not yet scheduled."** Then list the held letters with the packet's reason (2026-09-06: three held, each because both fit models preferred a different first program, the same three the external reviewer flagged in its pick-fit notes).
+   3. Ask with AskUserQuestion, one question: **"Do you want to schedule the N ready letters for <slot>?"** Options: schedule for that slot (recommended), pick a different time (`--at=YYYY-MM-DDTHH:MM`, Eastern wall-clock), hold. A second question only if letters are held: recompose from the staging admin, send anyway in the drawer, or dismiss, per letter or as a group.
+   4. On yes: `--apply`, re-run the dry run (everything should now report "already scheduled"), and close with **"Scheduled: N letters for <slot>. You're good to go."** plus the held ones and what TJ chose for them. The scheduler pings Slack after each run; a blocked fire shows its reason on the draft in `/admin/benefits`.
+
+7. **Report to TJ:** corrections applied (with the one-line-each summary), disputes flagged, pick-fit/voice observations from the report worth a composer-rail change, the status line from 6c, and the held-letter decisions still open.
 
 ## What the reviewer is actually looking at (read before trusting a verdict)
 

@@ -6674,3 +6674,47 @@ export function day10AwaitingEmail(opts: {
     ${careUnsubscribeFooter(opts.unsubscribeId)}
   `, `You heard back from ${opts.providerName}. Here's how to weigh your options.`);
 }
+
+// ============================================================
+// Olera city campaigns (lib/city-ads) — provider offer emails
+// ============================================================
+// Email is the primary channel for offers: many provider numbers are office
+// lines that cannot receive a text. No family name or number in any email;
+// the page behind the button carries them, after the provider has taken it.
+
+export function cityOfferEmail(opts: {
+  providerName: string;
+  city: string;
+  careLabel: string;
+  recipientLabel: string;
+  urgencyLabel: string;
+  paymentLabel?: string | null;
+  minutes: number;
+  offerUrl: string;
+}): string {
+  const pay = opts.paymentLabel ? `, ${escapeHtml(opts.paymentLabel)}` : "";
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Olera · ${escapeHtml(opts.city)}</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">A family near you needs ${escapeHtml(opts.careLabel)}</h1>
+    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:0 0 20px;">
+      <p style="font-size:15px;color:#111827;margin:0;line-height:1.6;">A family in <b>${escapeHtml(opts.city)}</b> is looking for <b>${escapeHtml(opts.careLabel)}</b> for ${escapeHtml(opts.recipientLabel)}, ${escapeHtml(opts.urgencyLabel)}${pay}.</p>
+    </div>
+    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.65;">It is offered to <b>${escapeHtml(opts.providerName)}</b> first. You have <b>${opts.minutes} minutes</b> before we also offer it to the next provider. Take it and their name and number are on the next screen; you call them today.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">Free during the pilot. Olera does not sell this request to anyone else.</p>
+    <div>${button("See the request and take it", opts.offerUrl)}</div>
+    <p style="font-size:13px;color:#6b7280;margin:20px 0 0;line-height:1.6;">Cannot take it? <a href="${opts.offerUrl}" style="color:#6b7280;text-decoration:underline;">Pass</a> on the same page so it moves on faster. If you also got a text from us, replying YES there works too. Replies to this email are not read.</p>`,
+    `A family in ${opts.city} needs ${opts.careLabel}. ${opts.minutes} minutes to take it.`,
+  );
+}
+
+export function cityOfferAcceptedEmail(opts: { providerName: string; city: string; careLabel: string; callBy: string; offerUrl: string }): string {
+  return layout(
+    `
+    <p style="font-size:12px;font-weight:600;color:${BRAND_COLOR};text-transform:uppercase;letter-spacing:0.5px;margin:0 0 8px;">Olera · ${escapeHtml(opts.city)}</p>
+    <h1 style="font-size:24px;font-weight:700;color:#111827;margin:0 0 16px;line-height:1.3;">It is yours. Call them ${escapeHtml(opts.callBy)}.</h1>
+    <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">${escapeHtml(opts.providerName)} took a family's request for ${escapeHtml(opts.careLabel)} in ${escapeHtml(opts.city)}. Their name, number and note are on your Olera page. We told them to expect your call ${escapeHtml(opts.callBy)}, and we will check with them tomorrow.</p>
+    <div>${button("Open the family's details", opts.offerUrl)}</div>`,
+    `You took a family's request in ${opts.city}. Details on your Olera page.`,
+  );
+}

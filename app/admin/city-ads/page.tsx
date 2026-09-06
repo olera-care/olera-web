@@ -39,7 +39,7 @@ type Campaign = {
   metrics_updated_at: string | null;
 };
 
-type Provider = { id: string; display_name: string | null; city: string | null; phone: string | null } | null;
+type Provider = { id: string; display_name: string | null; city: string | null; phone: string | null; email: string | null } | null;
 type PoolRow = { id: string; slug: string; provider_id: string; position: number; care_types: string[]; enabled: boolean; phone_override: string | null; provider: Provider };
 type Offer = { id: string; provider_id: string; position: number; offered_at: string; expires_at: string; accepted_at: string | null; declined_at: string | null; decline_reason: string | null; expired_at: string | null; provider: Provider };
 type Lead = {
@@ -591,11 +591,11 @@ function PoolLine({ p, busy, act }: { p: PoolRow; busy: boolean; act: (label: st
         <span className="text-xs text-gray-500">
           {p.provider?.city} · {p.care_types.map((t) => CARE[t] ?? t).join(", ")}
         </span>
-        <span className="ml-auto text-xs tabular-nums text-gray-600">{phoneFmt(p.phone_override ?? p.provider?.phone)}</span>
+        <span className="ml-auto text-xs text-gray-600">{p.provider?.email ?? <span className="text-warm-700">no email on file</span>}</span>
       </label>
       {p.enabled && (
         <div className="ml-6 mt-1 text-xs text-gray-500">
-          Offers go to {phoneFmt(p.phone_override ?? p.provider?.phone) || "no number on file"}.{" "}
+          Offers go by email to {p.provider?.email ?? "nobody (add an email)"}, and by text to {phoneFmt(p.phone_override ?? p.provider?.phone) || "no number"} if it can take one.{" "}
           {ovr === null ? (
             <button className="text-primary-700" onClick={() => setOvr(current)}>
               {current ? "change" : "Different mobile?"}

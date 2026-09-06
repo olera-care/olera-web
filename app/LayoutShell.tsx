@@ -12,7 +12,7 @@ import { useAuth } from "@/components/auth/AuthProvider";
  * Client-side layout shell that conditionally renders navbar/footer
  * based on the current route. Standalone pages like /welcome opt out.
  */
-const STANDALONE_ROUTES: string[] = ["/review", "/caregiver/apply", "/care"];
+const STANDALONE_ROUTES: string[] = ["/review", "/caregiver/apply", "/care", "/p/offer"];
 
 // Provider portal routes where bottom tabs appear (must match Navbar's isProviderPortal logic EXACTLY)
 // Note: /provider/[slug] detail pages are NOT included - they don't show bottom tabs

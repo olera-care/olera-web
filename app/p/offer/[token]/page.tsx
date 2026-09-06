@@ -123,8 +123,8 @@ export default async function OfferPage({ params }: { params: Promise<Params> })
       {summary}
       <p className="mt-3 text-sm text-gray-600">
         {late
-          ? "Your 30 minutes have passed, but if nobody else has taken it yet, you still can."
-          : "You have 30 minutes before we offer it to the next provider. Take it and their name and number appear here; you call them today."}
+          ? "The next provider has been asked too, but if nobody has taken it yet, you still can."
+          : "You have 30 minutes before we also offer it to the next provider. Take it and their name and number appear here; you call them today."}
       </p>
       <form method="post" action="/api/city-offers/respond" className="mt-5 grid gap-2">
         <input type="hidden" name="token" value={token} />

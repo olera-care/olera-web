@@ -6700,7 +6700,7 @@ export function cityOfferEmail(opts: {
     <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:16px;margin:0 0 20px;">
       <p style="font-size:15px;color:#111827;margin:0;line-height:1.6;">A family in <b>${escapeHtml(opts.city)}</b> is looking for <b>${escapeHtml(opts.careLabel)}</b> for ${escapeHtml(opts.recipientLabel)}, ${escapeHtml(opts.urgencyLabel)}${pay}.</p>
     </div>
-    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.65;">It is offered to <b>${escapeHtml(opts.providerName)}</b> first. You have <b>${opts.minutes} minutes</b> before we offer it to the next provider. Take it and their name and number are on the next screen; you call them today.</p>
+    <p style="font-size:15px;color:#374151;margin:0 0 8px;line-height:1.65;">It is offered to <b>${escapeHtml(opts.providerName)}</b> first. You have <b>${opts.minutes} minutes</b> before we also offer it to the next provider. Take it and their name and number are on the next screen; you call them today.</p>
     <p style="font-size:15px;color:#374151;margin:0 0 24px;line-height:1.65;">Free during the pilot. Olera does not sell this request to anyone else.</p>
     <div>${button("See the request and take it", opts.offerUrl)}</div>
     <p style="font-size:13px;color:#6b7280;margin:20px 0 0;line-height:1.6;">Cannot take it? <a href="${opts.offerUrl}" style="color:#6b7280;text-decoration:underline;">Pass</a> on the same page so it moves on faster. If you also got a text from us, replying YES there works too. Replies to this email are not read.</p>`,

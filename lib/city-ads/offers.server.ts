@@ -19,6 +19,10 @@
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendSMS, normalizeUSPhone } from "@/lib/twilio";
+import { sendEmail } from "@/lib/email";
+import { cityOfferEmail, cityOfferAcceptedEmail } from "@/lib/email-templates";
+import { generateCityOfferUrl } from "@/lib/claim-tokens";
+import { getSiteUrl } from "@/lib/site-url";
 import { sendSlackAlert } from "@/lib/slack";
 import {
   cityOfferSms,
@@ -90,6 +94,7 @@ interface ProviderLite {
   display_name: string | null;
   city: string | null;
   phone: string | null;
+  email: string | null;
 }
 
 const LEAD_COLS =
@@ -123,7 +128,7 @@ async function getLead(db: SupabaseClient, leadId: string): Promise<CityLeadRow 
 async function getProviders(db: SupabaseClient, ids: string[]): Promise<Map<string, ProviderLite>> {
   const out = new Map<string, ProviderLite>();
   if (ids.length === 0) return out;
-  const { data } = await db.from("business_profiles").select("id, display_name, city, phone").in("id", ids);
+  const { data } = await db.from("business_profiles").select("id, display_name, city, phone, email").in("id", ids);
   for (const p of (data ?? []) as ProviderLite[]) out.set(p.id, p);
   return out;
 }
@@ -212,10 +217,11 @@ export async function startOrAdvance(
   const providers = await getProviders(db, [candidate.provider_id]);
   const provider = providers.get(candidate.provider_id);
   const phone = providerPhone(candidate, provider);
+  const email = provider?.email?.trim() || null;
   const name = provider?.display_name ?? "a provider";
-  if (!phone) {
+  if (!phone && !email) {
     await sendSlackAlert(
-      `City lead ${lead.id.slice(0, 8)} (${city}): ${name} has no usable mobile on file, skipping. Fix the pool at /admin/city-ads.`,
+      `City lead ${lead.id.slice(0, 8)} (${city}): ${name} has no email or phone on file, skipping. Fix the pool at /admin/city-ads.`,
     );
     // Record a skipped offer so we do not loop on the same provider.
     await db.from("city_lead_offers").insert({
@@ -231,33 +237,57 @@ export async function startOrAdvance(
   }
 
   const expiresAt = new Date(Date.now() + OFFER_WINDOW_MINUTES * 60 * 1000).toISOString();
-  const { error: offerErr } = await db.from("city_lead_offers").insert({
-    lead_id: lead.id,
-    provider_id: candidate.provider_id,
-    position: nextPosition,
-    provider_phone: last10(phone),
-    expires_at: expiresAt,
-  });
-  if (offerErr) {
+  const { data: inserted, error: offerErr } = await db
+    .from("city_lead_offers")
+    .insert({
+      lead_id: lead.id,
+      provider_id: candidate.provider_id,
+      position: nextPosition,
+      provider_phone: last10(phone),
+      expires_at: expiresAt,
+    })
+    .select("id")
+    .single();
+  if (offerErr || !inserted) {
     console.error("[city-ads] offer insert failed", offerErr);
     return { action: "noop" };
   }
+  const offerUrl = generateCityOfferUrl(inserted.id as string, getSiteUrl());
   await db
     .from("city_leads")
     .update({ status: "offered", offer_count: nextPosition, next_offer_at: null, updated_at: new Date().toISOString() })
     .eq("id", lead.id);
 
   const l = labels(lead);
-  await sendSMS({
-    to: phone,
-    body: cityOfferSms({ city, ...l, minutes: OFFER_WINDOW_MINUTES }),
-    emailType: "city_lead_offer",
-    recipientType: "provider",
-    recipientLogProfileId: candidate.provider_id,
-    metadata: { lead_id: lead.id, slug: lead.slug, position: nextPosition },
-  });
+  // Email first: many provider numbers are office lines. The text goes only
+  // where a text can land (requireMobile), and carries the same link.
+  const channels: string[] = [];
+  if (email) {
+    const r = await sendEmail({
+      to: email,
+      subject: `A family in ${city} is looking for ${l.careLabel}`,
+      html: cityOfferEmail({ providerName: name, city, ...l, minutes: OFFER_WINDOW_MINUTES, offerUrl }),
+      emailType: "city_lead_offer",
+      recipientType: "provider",
+      providerId: candidate.provider_id,
+      metadata: { lead_id: lead.id, offer_id: inserted.id, slug: lead.slug, position: nextPosition },
+    });
+    if (r.success && !r.skipped) channels.push("email");
+  }
+  if (phone) {
+    const r = await sendSMS({
+      to: phone,
+      body: `${cityOfferSms({ city, ...l, minutes: OFFER_WINDOW_MINUTES })} Details: ${offerUrl}`,
+      emailType: "city_lead_offer",
+      recipientType: "provider",
+      recipientLogProfileId: candidate.provider_id,
+      requireMobile: !candidate.phone_override, // a number typed as the override was given for texts
+      metadata: { lead_id: lead.id, offer_id: inserted.id, slug: lead.slug, position: nextPosition },
+    });
+    if (r.success && !r.skipped) channels.push("text");
+  }
   await sendSlackAlert(
-    `City lead ${lead.id.slice(0, 8)} (${city}): offer #${nextPosition} texted to ${name}. ${l.careLabel} for ${l.recipientLabel}, ${l.urgencyLabel}. ${OFFER_WINDOW_MINUTES} min clock. /admin/city-ads`,
+    `City lead ${lead.id.slice(0, 8)} (${city}): offer #${nextPosition} to ${name} by ${channels.length ? channels.join(" and ") : "NOTHING (both sends failed)"}. ${l.careLabel} for ${l.recipientLabel}, ${l.urgencyLabel}. ${OFFER_WINDOW_MINUTES} min clock. /admin/city-ads`,
   );
   return { action: "offered", providerName: name };
 }
@@ -286,7 +316,7 @@ async function markUnfilled(db: SupabaseClient, lead: CityLeadRow, city: string)
 export async function acceptOffer(
   db: SupabaseClient,
   offer: CityOfferRow,
-  source: "provider_sms" | "admin" = "provider_sms",
+  source: "provider_sms" | "provider_page" | "admin" = "provider_sms",
 ): Promise<{ won: boolean; reply: string }> {
   const now = new Date().toISOString();
   const { data: claimed } = await db
@@ -313,10 +343,25 @@ export async function acceptOffer(
     .eq("slug", lead.slug)
     .eq("provider_id", offer.provider_id)
     .maybeSingle();
-  const provPhone = providerPhone((poolRow as PoolEntry | null) ?? undefined, provider);
+  const pool = (poolRow as PoolEntry | null) ?? undefined;
+  const provPhone = providerPhone(pool, provider);
   const providerName = provider?.display_name ?? "The provider";
   const l = labels(lead);
+  const offerUrl = generateCityOfferUrl(offer.id, getSiteUrl());
 
+  // Details by text where a text can land; by link in email everywhere. The
+  // email itself carries no name or number.
+  if (provider?.email) {
+    await sendEmail({
+      to: provider.email,
+      subject: `You took a family's request in ${city}`,
+      html: cityOfferAcceptedEmail({ providerName, city, careLabel: l.careLabel, callBy, offerUrl }),
+      emailType: "city_lead_accepted_provider",
+      recipientType: "provider",
+      providerId: offer.provider_id,
+      metadata: { lead_id: lead.id, offer_id: offer.id },
+    });
+  }
   if (provPhone) {
     await sendSMS({
       to: provPhone,
@@ -333,6 +378,7 @@ export async function acceptOffer(
       emailType: "city_lead_accepted_provider",
       recipientType: "provider",
       recipientLogProfileId: offer.provider_id,
+      requireMobile: !pool?.phone_override,
       metadata: { lead_id: lead.id, offer_id: offer.id },
     });
   }
@@ -349,7 +395,7 @@ export async function acceptOffer(
     metadata: { lead_id: lead.id, offer_id: offer.id },
   });
   await sendSlackAlert(
-    `✅ City lead ${lead.id.slice(0, 8)} (${city}) ACCEPTED by ${providerName}${source === "admin" ? " (admin)" : ""}. ${lead.first_name} told to expect a call ${callBy}. /admin/city-ads`,
+    `✅ City lead ${lead.id.slice(0, 8)} (${city}) ACCEPTED by ${providerName}${source === "admin" ? " (admin)" : source === "provider_page" ? " (link)" : " (text)"}. ${lead.first_name} told to expect a call ${callBy}. /admin/city-ads`,
   );
   // The reply to the provider's YES itself: the details went in a separate text
   // so they survive as their own message in the thread.

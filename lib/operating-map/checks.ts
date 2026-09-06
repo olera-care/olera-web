@@ -117,6 +117,19 @@ export function runChecks(values: NodeValues, inputs: CheckInputs = {}): MapChec
     });
   }
 
+  const cw1 = n(values.cw1);
+  const cw2 = n(values.cw2);
+  if (cw1 !== null && cw2 !== null && cw1 === 0) {
+    // Advisors hang off campuses, so contacts with no campus behind them
+    // would mean the join is broken rather than the pipeline being empty.
+    checks.push({
+      id: "cw2-needs-cw1",
+      label: "Advisors only exist where a university is listed",
+      ok: cw2 === 0,
+      detail: cw2 === 0 ? undefined : `CW2 is ${cw2} with no universities listed`,
+    });
+  }
+
   const cr5 = n(values.cr5);
   if (cr5 !== null && cr4 !== null) {
     checks.push({

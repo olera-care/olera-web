@@ -168,6 +168,30 @@ const SOURCES: Record<
     cityScoped: false,
     summarize: (r) => `Outreach ${String(r.outreach_id ?? "—")}`,
   },
+  cw1: {
+    title: "Universities listed",
+    table: "student_outreach_campuses",
+    select: "created_at, name, city, state",
+    where: ["campus is active", "standing count — the date range does not apply"],
+    cityScoped: false,
+    providerCityScoped: true,
+    standing: true,
+    summarize: (r) => `${String(r.name ?? "—")} · ${String(r.city ?? "")}`,
+  },
+  cw2: {
+    title: "Advisors listed",
+    table: "student_outreach_contacts",
+    select: "created_at, name, title, outreach_id",
+    where: [
+      "contact record is active",
+      "at a listed university, reached through student_outreach",
+      "standing count — the date range does not apply",
+    ],
+    cityScoped: false,
+    standing: true,
+    summarize: (r) =>
+      `${String(r.name ?? "—")}${r.title ? ` · ${String(r.title)}` : ""}`,
+  },
   cr6c: {
     title: "Profiles made live",
     table: "seeker_activity",
@@ -216,6 +240,8 @@ export async function GET(request: NextRequest) {
     if (node === "m1") query = query.eq("type", "family").eq("is_active", true);
     if (node === "m2") query = query.eq("type", "student").eq("is_active", true);
     if (node === "m5") query = query.eq("type", "system_activated");
+    if (node === "cw1") query = query.eq("is_active", true);
+    if (node === "cw2") query = query.eq("status", "active");
     if (node === "cp2") {
       query = query.eq("recipient_type", "provider").not("provider_id", "is", null);
     }

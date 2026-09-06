@@ -99,6 +99,10 @@ const NODE_HELP: Record<string, string> = {
     "Providers who finished claiming their listing in this range. An event, unlike CP1's claimed total, which is a standing count.",
   m4: "Providers who requested a managed ad campaign in this range.",
   m5: "Providers who activated MedJobs staffing in this range.",
+  cw1:
+    "Universities we have listed and are working, scoped by the university's city. A standing count — the date range does not change it.",
+  cw2:
+    "Advisors we can reach at those universities, counted where the contact record is still active. A standing count.",
 };
 
 /** Tooltip anchored to a node, positioned outside the scaled figure. */
@@ -685,9 +689,27 @@ export default function OperatingMap({
 
             {/* care worker */}
             <div className={styles.lane}>
-              <Card id="cw1" code="CW1" label="Universities listed" />
+              <Card
+                id="cw1"
+                code="CW1"
+                label="Universities listed"
+                metric={nodes.cw1}
+                loading={metricsLoading}
+                onTip={openTip}
+                onTipClose={() => setTip(null)}
+                onInspect={onInspect}
+              />
               <div className={styles.gap} />
-              <Card id="cw2" code="CW2" label="In outreach" />
+              <Card
+                id="cw2"
+                code="CW2"
+                label="Advisors listed"
+                metric={nodes.cw2}
+                loading={metricsLoading}
+                onTip={openTip}
+                onTipClose={() => setTip(null)}
+                onInspect={onInspect}
+              />
               <div className={styles.gap} />
               <Card id="cw3" code="CW3" label="University channels activated" />
             </div>
@@ -996,6 +1018,7 @@ const INSPECTABLE = new Set([
   "cr2", "cr4", "cr5", "cr6a", "cr6b", "cr6c",
   "cp1", "cp2",
   "m1", "m2", "m3", "m4", "m5",
+  "cw1", "cw2",
 ]);
 
 

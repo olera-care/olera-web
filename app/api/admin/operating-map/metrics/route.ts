@@ -13,6 +13,7 @@ import {
   getProvidersListed,
 } from "@/lib/operating-map/providers.server";
 import { getMilestones } from "@/lib/operating-map/milestones.server";
+import { getCampusSupply } from "@/lib/operating-map/campuses.server";
 
 /**
  * GET /api/admin/operating-map/metrics?date_from&date_to
@@ -203,6 +204,19 @@ export async function GET(request: NextRequest) {
       nodes.m3 = failed;
       nodes.m4 = failed;
       nodes.m5 = failed;
+    }
+
+    try {
+      // Standing counts, like CP1 — a university is listed or it is not.
+      const supply = await getCampusSupply(db, city);
+      nodes.cw1 = { value: supply.universities, caveat: null };
+      nodes.cw2 = { value: supply.advisors, caveat: null };
+      // CW3 has no source yet: activating a channel is not recorded
+      // anywhere, so it stays a dash rather than a guess.
+    } catch (error) {
+      console.error("[operating-map/metrics] cw1/cw2 failed:", error);
+      nodes.cw1 = { value: null, caveat: "This metric failed to load." };
+      nodes.cw2 = { value: null, caveat: "This metric failed to load." };
     }
 
     // Relationships that must hold if the map is counting correctly. Sent

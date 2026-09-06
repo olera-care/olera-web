@@ -117,6 +117,23 @@ export function runChecks(values: NodeValues, inputs: CheckInputs = {}): MapChec
     });
   }
 
+  for (const [parent, child, label] of [
+    ["tb1", "tb2", "Connections confirmed do not exceed connections made"],
+    ["tc1", "tc2", "Interviews confirmed do not exceed interviews proposed"],
+    ["tc2", "tc3", "Hires do not exceed confirmed interviews"],
+  ] as const) {
+    const p = n(values[parent]);
+    const c = n(values[child]);
+    if (p !== null && c !== null) {
+      checks.push({
+        id: `${child}-under-${parent}`,
+        label,
+        ok: c <= p,
+        detail: c <= p ? undefined : `${child.toUpperCase()} is ${c}, ${parent.toUpperCase()} is ${p}`,
+      });
+    }
+  }
+
   const cw1 = n(values.cw1);
   const cw2 = n(values.cw2);
   if (cw1 !== null && cw2 !== null && cw1 === 0) {

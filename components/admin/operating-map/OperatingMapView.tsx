@@ -31,6 +31,8 @@ export default function OperatingMapView() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const selectedCity = searchParams.get("city");
+  // Numbers off gives the plain structure — the funnel without the reporting.
+  const showNumbers = searchParams.get("numbers") !== "off";
 
   const [range, setRange] = useUrlDateRangeState(DEFAULT_RANGE);
   const resolved = useMemo(() => resolveRange(range), [range]);
@@ -38,6 +40,14 @@ export default function OperatingMapView() {
   const [nodes, setNodes] = useState<MetricNodes>({});
   const [inspecting, setInspecting] = useState<string | null>(null);
   const [metricsLoading, setMetricsLoading] = useState(true);
+
+  const toggleNumbers = useCallback(() => {
+    const next = new URLSearchParams(searchParams.toString());
+    if (showNumbers) next.set("numbers", "off");
+    else next.delete("numbers");
+    const query = next.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, { scroll: false });
+  }, [pathname, router, searchParams, showNumbers]);
 
   const onSelectCity = useCallback(
     (slug: string | null) => {
@@ -89,20 +99,32 @@ export default function OperatingMapView() {
 
   return (
     <div>
-      {/* The figure scales into whatever height is left below this row, so
-          the control sits beside the heading rather than on a line of its
-          own — a row of chrome here costs the map a row of legibility. */}
-      <div className="mb-3 flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-gray-900">Operating Map</h1>
+      {/* No heading: the figure names itself, and the map scales into
+          whatever height is left under this row, so every pixel spent here
+          comes straight out of how big the map can be. */}
+      <div className="mb-2 flex items-center justify-end gap-2">
+        <button
+          type="button"
+          onClick={toggleNumbers}
+          aria-pressed={!showNumbers}
+          className={`rounded-lg border px-3 py-1.5 text-sm font-medium transition-colors ${
+            showNumbers
+              ? "border-gray-200 bg-white text-gray-600 hover:text-gray-900"
+              : "border-gray-900 bg-gray-900 text-white"
+          }`}
+        >
+          {showNumbers ? "Hide numbers" : "Numbers hidden"}
+        </button>
         <DateRangePopover value={range} onChange={setRange} />
       </div>
 
       <OperatingMap
         selectedCity={selectedCity}
         onSelectCity={onSelectCity}
-        nodes={nodes}
-        metricsLoading={metricsLoading}
-        onInspect={setInspecting}
+        nodes={showNumbers ? nodes : {}}
+        metricsLoading={showNumbers && metricsLoading}
+        onInspect={showNumbers ? setInspecting : undefined}
+        showNumbers={showNumbers}
       />
 
       {inspecting && (

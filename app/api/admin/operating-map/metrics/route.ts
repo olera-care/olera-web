@@ -14,6 +14,7 @@ import {
 } from "@/lib/operating-map/providers.server";
 import { getMilestones } from "@/lib/operating-map/milestones.server";
 import { getCampusSupply } from "@/lib/operating-map/campuses.server";
+import { getTracks } from "@/lib/operating-map/tracks.server";
 
 /**
  * GET /api/admin/operating-map/metrics?date_from&date_to
@@ -39,6 +40,13 @@ export const dynamic = "force-dynamic";
  * profiles created in the window that are complete now. Stated on the node
  * rather than left for someone to discover.
  */
+/**
+ * Only a row's creation is timestamped, not the status it later reached, so
+ * these count rows created in the window that have since got there.
+ */
+const STATUS_TIMING_CAVEAT =
+  "Counts rows created in this range that have since reached this state — the status change itself is not timestamped.";
+
 const PROFILE_TIMING_CAVEAT =
   "Counts profiles created in this range that are complete now — completion itself is not timestamped.";
 
@@ -217,6 +225,25 @@ export async function GET(request: NextRequest) {
       console.error("[operating-map/metrics] cw1/cw2 failed:", error);
       nodes.cw1 = { value: null, caveat: "This metric failed to load." };
       nodes.cw2 = { value: null, caveat: "This metric failed to load." };
+    }
+
+    try {
+      const t = await getTracks(db, { from, to });
+      nodes.tb1 = { value: t.inquiries, caveat: notCityScoped };
+      nodes.tb2 = { value: t.inquiriesResponded, caveat: STATUS_TIMING_CAVEAT };
+      nodes.tc1 = { value: t.interviews, caveat: notCityScoped };
+      nodes.tc2 = { value: t.interviewsConfirmed, caveat: STATUS_TIMING_CAVEAT };
+      nodes.tc3 = { value: t.hires, caveat: STATUS_TIMING_CAVEAT };
+      // TA1-TA4, TB3, TB4 and TC4 have no source. Aid, care and hours all
+      // continue off the platform, so they stay dashes rather than guesses.
+    } catch (error) {
+      console.error("[operating-map/metrics] tracks failed:", error);
+      const failed = { value: null, caveat: "This metric failed to load." };
+      nodes.tb1 = failed;
+      nodes.tb2 = failed;
+      nodes.tc1 = failed;
+      nodes.tc2 = failed;
+      nodes.tc3 = failed;
     }
 
     // Relationships that must hold if the map is counting correctly. Sent

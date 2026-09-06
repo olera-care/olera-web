@@ -192,6 +192,46 @@ const SOURCES: Record<
     summarize: (r) =>
       `${String(r.name ?? "—")}${r.title ? ` · ${String(r.title)}` : ""}`,
   },
+  tb1: {
+    title: "Care recipient–provider matched",
+    table: "connections",
+    select: "created_at, from_profile_id, to_profile_id, status",
+    where: ["type is inquiry"],
+    cityScoped: false,
+    summarize: (r) => `${String(r.to_profile_id ?? "—")} · ${String(r.status ?? "")}`,
+  },
+  tb2: {
+    title: "Connection confirmed",
+    table: "connections",
+    select: "created_at, to_profile_id, status",
+    where: ["type is inquiry", "status is responded"],
+    cityScoped: false,
+    summarize: (r) => `${String(r.to_profile_id ?? "—")} · ${String(r.status ?? "")}`,
+  },
+  tc1: {
+    title: "Care worker–provider matched",
+    table: "interviews",
+    select: "created_at, status",
+    where: ["every row is one interview proposed"],
+    cityScoped: false,
+    summarize: (r) => `Interview · ${String(r.status ?? "")}`,
+  },
+  tc2: {
+    title: "Interviews held",
+    table: "interviews",
+    select: "created_at, status",
+    where: ["status is confirmed", "attendance itself is not recorded"],
+    cityScoped: false,
+    summarize: (r) => `Interview · ${String(r.status ?? "")}`,
+  },
+  tc3: {
+    title: "Hires confirmed",
+    table: "medjobs_placements",
+    select: "created_at, status",
+    where: ["status is accepted or confirmed"],
+    cityScoped: false,
+    summarize: (r) => `Placement · ${String(r.status ?? "")}`,
+  },
   cr6c: {
     title: "Profiles made live",
     table: "seeker_activity",
@@ -242,6 +282,10 @@ export async function GET(request: NextRequest) {
     if (node === "m5") query = query.eq("type", "system_activated");
     if (node === "cw1") query = query.eq("is_active", true);
     if (node === "cw2") query = query.eq("status", "active");
+    if (node === "tb1") query = query.eq("type", "inquiry");
+    if (node === "tb2") query = query.eq("type", "inquiry").eq("status", "responded");
+    if (node === "tc2") query = query.eq("status", "confirmed");
+    if (node === "tc3") query = query.in("status", ["accepted", "confirmed"]);
     if (node === "cp2") {
       query = query.eq("recipient_type", "provider").not("provider_id", "is", null);
     }

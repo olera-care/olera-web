@@ -111,6 +111,11 @@ const NODE_HELP: Record<string, string> = {
     "Universities we have listed and are working, scoped by the university's city. A standing count — the date range does not change it.",
   cw2:
     "Advisors we can reach at those universities, counted where the contact record is still active. A standing count.",
+  tb1: "Inquiries raised between a care recipient and a provider in this range.",
+  tb2: "Of those inquiries, the ones a provider answered.",
+  tc1: "Interviews proposed between a care worker and a provider in this range.",
+  tc2: "Of those interviews, the ones that reached confirmed. We do not record whether the interview was actually held.",
+  tc3: "Placements the care worker accepted.",
 };
 
 /** Tooltip anchored to a node, positioned outside the scaled figure. */
@@ -127,6 +132,7 @@ export default function OperatingMap({
   nodes,
   metricsLoading,
   onInspect,
+  showNumbers = true,
 }: {
   /** Slug of the city the map is scoped to, or null for all cities. */
   selectedCity: string | null;
@@ -136,6 +142,8 @@ export default function OperatingMap({
   metricsLoading: boolean;
   /** Open the receipts for a node. Omitted when inspection is unavailable. */
   onInspect?: (nodeKey: string) => void;
+  /** False strips every value, dash and marker, leaving the structure. */
+  showNumbers?: boolean;
 }) {
   const [cities, setCities] = useState<CitiesState>({ status: "loading" });
   const [tip, setTip] = useState<Tip | null>(null);
@@ -582,6 +590,7 @@ export default function OperatingMap({
                   onTip={openTip}
                   onTipClose={() => setTip(null)}
                   onInspect={onInspect}
+                  showNumbers={showNumbers}
                 />
                 <Chip id="cr3" code="CR3" label="Paid ad visitors" />
               </div>
@@ -611,6 +620,7 @@ export default function OperatingMap({
                     onTip={openTip}
                     onTipClose={() => setTip(null)}
                     onInspect={onInspect}
+                  showNumbers={showNumbers}
                   />
                 </div>
                 <div style={{ marginTop: 16 }}>
@@ -623,6 +633,7 @@ export default function OperatingMap({
                     onTip={openTip}
                     onTipClose={() => setTip(null)}
                     onInspect={onInspect}
+                  showNumbers={showNumbers}
                   />
                 </div>
                 <div className={styles.offshoots} style={{ marginTop: 14 }}>
@@ -635,6 +646,7 @@ export default function OperatingMap({
                     onTip={openTip}
                     onTipClose={() => setTip(null)}
                     onInspect={onInspect}
+                  showNumbers={showNumbers}
                   />
                   <Chip
                     id="cr6b"
@@ -645,6 +657,7 @@ export default function OperatingMap({
                     onTip={openTip}
                     onTipClose={() => setTip(null)}
                     onInspect={onInspect}
+                  showNumbers={showNumbers}
                   />
                   <Chip
                     id="cr6c"
@@ -655,6 +668,7 @@ export default function OperatingMap({
                     onTip={openTip}
                     onTipClose={() => setTip(null)}
                     onInspect={onInspect}
+                  showNumbers={showNumbers}
                   />
                 </div>
                 <div style={{ height: 14 }} />
@@ -679,6 +693,7 @@ export default function OperatingMap({
                   onTip={openTip}
                   onTipClose={() => setTip(null)}
                   onInspect={onInspect}
+                  showNumbers={showNumbers}
                 />
               </div>
               <div className={styles.soloWrap}>
@@ -691,6 +706,7 @@ export default function OperatingMap({
                   onTip={openTip}
                   onTipClose={() => setTip(null)}
                   onInspect={onInspect}
+                  showNumbers={showNumbers}
                 />
               </div>
             </div>
@@ -706,6 +722,7 @@ export default function OperatingMap({
                 onTip={openTip}
                 onTipClose={() => setTip(null)}
                 onInspect={onInspect}
+                  showNumbers={showNumbers}
               />
               <div className={styles.gap} />
               <Card
@@ -717,6 +734,7 @@ export default function OperatingMap({
                 onTip={openTip}
                 onTipClose={() => setTip(null)}
                 onInspect={onInspect}
+                  showNumbers={showNumbers}
               />
               <div className={styles.gap} />
               <Card id="cw3" code="CW3" label="University channels activated" />
@@ -740,6 +758,7 @@ export default function OperatingMap({
                   onTip={openTip}
                   onTipClose={() => setTip(null)}
                   onInspect={onInspect}
+                  showNumbers={showNumbers}
                 />
                 <Card
                   hi
@@ -751,6 +770,7 @@ export default function OperatingMap({
                   onTip={openTip}
                   onTipClose={() => setTip(null)}
                   onInspect={onInspect}
+                  showNumbers={showNumbers}
                 />
                 <Card
                   hi
@@ -762,6 +782,7 @@ export default function OperatingMap({
                   onTip={openTip}
                   onTipClose={() => setTip(null)}
                   onInspect={onInspect}
+                  showNumbers={showNumbers}
                 />
                 <Card
                   hi
@@ -773,6 +794,7 @@ export default function OperatingMap({
                   onTip={openTip}
                   onTipClose={() => setTip(null)}
                   onInspect={onInspect}
+                  showNumbers={showNumbers}
                 />
                 <Card
                   hi
@@ -784,6 +806,7 @@ export default function OperatingMap({
                   onTip={openTip}
                   onTipClose={() => setTip(null)}
                   onInspect={onInspect}
+                  showNumbers={showNumbers}
                 />
               </div>
             </div>
@@ -802,8 +825,28 @@ export default function OperatingMap({
               <div className={styles.col} id={nodeId("tb")}>
                 <span className={styles.lab}>TB care establishment</span>
                 <div className={styles.stack}>
-                  <Card id="tb1" code="TB1" label="Care recipient–provider matched" />
-                  <Card id="tb2" code="TB2" label="Connection confirmed" />
+                  <Card
+                    id="tb1"
+                    code="TB1"
+                    label="Care recipient–provider matched"
+                    metric={nodes.tb1}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={() => setTip(null)}
+                    onInspect={onInspect}
+                    showNumbers={showNumbers}
+                  />
+                  <Card
+                    id="tb2"
+                    code="TB2"
+                    label="Connection confirmed"
+                    metric={nodes.tb2}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={() => setTip(null)}
+                    onInspect={onInspect}
+                    showNumbers={showNumbers}
+                  />
                   <Card id="tb3" code="TB3" label="Care established" />
                   <Card id="tb4" code="TB4" label="Care delivered" />
                 </div>
@@ -812,9 +855,39 @@ export default function OperatingMap({
               <div className={styles.col} id={nodeId("tc")}>
                 <span className={styles.lab}>TC care worker hiring</span>
                 <div className={styles.stack}>
-                  <Card id="tc1" code="TC1" label="Care worker–provider matched" />
-                  <Card id="tc2" code="TC2" label="Interviews held" />
-                  <Card id="tc3" code="TC3" label="Hires confirmed" />
+                  <Card
+                    id="tc1"
+                    code="TC1"
+                    label="Care worker–provider matched"
+                    metric={nodes.tc1}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={() => setTip(null)}
+                    onInspect={onInspect}
+                    showNumbers={showNumbers}
+                  />
+                  <Card
+                    id="tc2"
+                    code="TC2"
+                    label="Interviews held"
+                    metric={nodes.tc2}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={() => setTip(null)}
+                    onInspect={onInspect}
+                    showNumbers={showNumbers}
+                  />
+                  <Card
+                    id="tc3"
+                    code="TC3"
+                    label="Hires confirmed"
+                    metric={nodes.tc3}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={() => setTip(null)}
+                    onInspect={onInspect}
+                    showNumbers={showNumbers}
+                  />
                   <Card id="tc4" code="TC4" money="Revenue generating" label="Hours worked" />
                 </div>
               </div>
@@ -852,6 +925,7 @@ function Card({
   onTip,
   onTipClose,
   onInspect,
+  showNumbers,
 }: {
   id: string;
   code: string;
@@ -864,6 +938,7 @@ function Card({
   onTip?: TipOpener;
   onTipClose?: () => void;
   onInspect?: (nodeKey: string) => void;
+  showNumbers?: boolean;
 }) {
   return (
     <div className={`${styles.card}${hi ? ` ${styles.hi}` : ""}`} id={nodeId(id)}>
@@ -877,8 +952,20 @@ function Card({
           )}
         </div>
         <span style={{ whiteSpace: "nowrap" }}>
-          <MetricValue metric={metric} loading={loading} nodeKey={id} onInspect={onInspect} />
-          <InfoButton nodeKey={id} metric={metric} onTip={onTip} onTipClose={onTipClose} />
+          <MetricValue
+            metric={metric}
+            loading={loading}
+            nodeKey={id}
+            onInspect={onInspect}
+            showNumbers={showNumbers}
+          />
+          <InfoButton
+            nodeKey={id}
+            metric={metric}
+            onTip={onTip}
+            onTipClose={onTipClose}
+            showNumbers={showNumbers}
+          />
         </span>
       </div>
       <div className={styles.n}>{label}</div>
@@ -895,6 +982,7 @@ function Chip({
   onTip,
   onTipClose,
   onInspect,
+  showNumbers,
 }: {
   id: string;
   code: string;
@@ -904,6 +992,7 @@ function Chip({
   onTip?: TipOpener;
   onTipClose?: () => void;
   onInspect?: (nodeKey: string) => void;
+  showNumbers?: boolean;
 }) {
   return (
     <div className={styles.chip} id={nodeId(id)}>
@@ -912,8 +1001,20 @@ function Chip({
           <b>{code}</b>
         </span>
         <span style={{ whiteSpace: "nowrap" }}>
-          <MetricValue metric={metric} loading={loading} nodeKey={id} onInspect={onInspect} />
-          <InfoButton nodeKey={id} metric={metric} onTip={onTip} onTipClose={onTipClose} />
+          <MetricValue
+            metric={metric}
+            loading={loading}
+            nodeKey={id}
+            onInspect={onInspect}
+            showNumbers={showNumbers}
+          />
+          <InfoButton
+            nodeKey={id}
+            metric={metric}
+            onTip={onTip}
+            onTipClose={onTipClose}
+            showNumbers={showNumbers}
+          />
         </span>
       </div>
       {label}
@@ -961,13 +1062,15 @@ function InfoButton({
   metric,
   onTip,
   onTipClose,
+  showNumbers = true,
 }: {
   nodeKey: string;
   metric?: MetricNode;
   onTip?: TipOpener;
   onTipClose?: () => void;
+  showNumbers?: boolean;
 }) {
-  if (!onTip || !NODE_HELP[nodeKey]) return null;
+  if (!showNumbers || !onTip || !NODE_HELP[nodeKey]) return null;
   return (
     <button
       type="button"
@@ -990,12 +1093,17 @@ function MetricValue({
   loading,
   nodeKey,
   onInspect,
+  showNumbers = true,
 }: {
   metric?: MetricNode;
   loading?: boolean;
   nodeKey?: string;
   onInspect?: (nodeKey: string) => void;
+  showNumbers?: boolean;
 }) {
+  // With numbers off there is nothing to say here, not even that we do not
+  // know — a dash is still reporting.
+  if (!showNumbers) return null;
   if (!metric) {
     return <span className={`${styles.value} ${styles.valueMuted}`}>{NOT_INSTRUMENTED}</span>;
   }
@@ -1027,6 +1135,7 @@ const INSPECTABLE = new Set([
   "cp1", "cp2",
   "m1", "m2", "m3", "m4", "m5",
   "cw1", "cw2",
+  "tb1", "tb2", "tc1", "tc2", "tc3",
 ]);
 
 

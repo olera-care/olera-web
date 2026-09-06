@@ -60,6 +60,8 @@ type CitiesState =
 /** One instrumented node, as /api/admin/operating-map/metrics returns it. */
 export interface MetricNode {
   value: number | null;
+  /** Named parts summing to `value`, printed under the node's label. */
+  breakdown?: { label: string; value: number }[];
   /** Live caveat, shown in the tooltip only — never as text on the card. */
   caveat?: string | null;
 }
@@ -76,6 +78,8 @@ const NODE_HELP: Record<string, string> = {
     "Cities with at least one live provider. Wider than the cities we have deliberately launched.",
   cr2:
     "Unique people who arrived from a search engine, from Olera's own page events. Compare with GA4 Organic Search users, not sessions.",
+  cr4:
+    "Page views across the three surfaces we publish, from all traffic sources. Counts views, not people, so it runs higher than CR2.",
 };
 
 /** Tooltip anchored to a node, positioned outside the scaled figure. */
@@ -550,13 +554,15 @@ export default function OperatingMap({
                 <Card
                   id="cr4"
                   code="CR4"
+                  metric={nodes.cr4}
+                  loading={metricsLoading}
+                  onTip={openTip}
+                  onTipClose={() => setTip(null)}
                   label={
                     <>
                       Page visits
                       <br />
-                      <span className={styles.dim}>
-                        provider page &middot; editorial page &middot; benefits page
-                      </span>
+                      <Surfaces metric={nodes.cr4} />
                     </>
                   }
                 />
@@ -671,6 +677,8 @@ function Card({
   money,
   metric,
   loading,
+  onTip,
+  onTipClose,
 }: {
   id: string;
   code: string;
@@ -680,6 +688,8 @@ function Card({
   money?: string;
   metric?: MetricNode;
   loading?: boolean;
+  onTip?: TipOpener;
+  onTipClose?: () => void;
 }) {
   return (
     <div className={`${styles.card}${hi ? ` ${styles.hi}` : ""}`} id={nodeId(id)}>
@@ -692,7 +702,10 @@ function Card({
             </span>
           )}
         </div>
-        <MetricValue metric={metric} loading={loading} />
+        <span style={{ whiteSpace: "nowrap" }}>
+          <MetricValue metric={metric} loading={loading} />
+          <InfoButton nodeKey={id} metric={metric} onTip={onTip} onTipClose={onTipClose} />
+        </span>
       </div>
       <div className={styles.n}>{label}</div>
     </div>
@@ -733,6 +746,31 @@ function Chip({
 }
 
 export type TipOpener = (el: HTMLElement, key: string, caveat?: string | null) => void;
+
+/**
+ * The three surfaces CR4 spans. This line already named them; instrumenting
+ * the node fills in the numbers rather than adding a row of its own.
+ */
+function Surfaces({ metric }: { metric?: MetricNode }) {
+  const parts = metric?.breakdown;
+  if (!parts?.length) {
+    return (
+      <span className={styles.dim}>
+        provider page &middot; editorial page &middot; benefits page
+      </span>
+    );
+  }
+  return (
+    <span className={styles.dim}>
+      {parts.map((p, i) => (
+        <span key={p.label}>
+          {i > 0 && " · "}
+          {p.label} <b className={styles.surfaceValue}>{p.value.toLocaleString()}</b>
+        </span>
+      ))}
+    </span>
+  );
+}
 
 /** Only rendered where there is something to explain. */
 function InfoButton({

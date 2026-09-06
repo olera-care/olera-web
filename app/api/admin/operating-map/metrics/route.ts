@@ -5,6 +5,7 @@ import {
   REFERRER_INSTRUMENTATION_START,
   VISITOR_GEO_START,
 } from "@/lib/operating-map/organic.server";
+import { getPageVisits } from "@/lib/operating-map/page-visits.server";
 
 /**
  * GET /api/admin/operating-map/metrics?date_from&date_to
@@ -12,7 +13,7 @@ import {
  * The operating map's flow metrics — the nodes that count something over a
  * period, as opposed to the city list, which is a standing set.
  *
- * One node so far (CR2). The response is shaped as a map of node id to value
+ * The response is shaped as a map of node id to value
  * so later nodes are added here rather than each growing its own endpoint and
  * its own round trip.
  *
@@ -25,8 +26,16 @@ import {
 /** Authorized response — never handed to Next's shared cache. See cities/. */
 export const dynamic = "force-dynamic";
 
+/** A named part of a node's total, rendered on the card under its label. */
+export interface OperatingMapBreakdown {
+  label: string;
+  value: number;
+}
+
 export interface OperatingMapNode {
   value: number | null;
+  /** Parts that sum to `value`. Omitted when a node has no split. */
+  breakdown?: OperatingMapBreakdown[];
   /**
    * A caveat that applies to this value right now — a range reaching back
    * past the instrumentation, a hit row ceiling. Shown only inside the
@@ -55,6 +64,12 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
     const nodes: Record<string, OperatingMapNode> = {};
 
+    // A city filter over a range that starts before visitor geo was recorded
+    // returns a structural zero, not a quiet market. Every city-scoped node
+    // has to say so.
+    const cityPredatesGeo =
+      Boolean(city) && (!from || from < VISITOR_GEO_START);
+
     try {
       const organic = await getOrganicVisitors(db, { from, to }, city);
       const caveats: string[] = [];
@@ -78,6 +93,25 @@ export async function GET(request: NextRequest) {
       // One failed node must not blank the others. Null is rendered as
       // unavailable, never as zero.
       nodes.cr2 = { value: null, caveat: "This metric failed to load." };
+    }
+
+    try {
+      const visits = await getPageVisits(db, { from, to }, city);
+      nodes.cr4 = {
+        value: visits.total,
+        // Order matches the labels printed on the card.
+        breakdown: [
+          { label: "provider", value: visits.provider },
+          { label: "editorial", value: visits.editorial },
+          { label: "benefits", value: visits.benefit },
+        ],
+        caveat: cityPredatesGeo
+          ? `City is only recorded from ${VISITOR_GEO_START}.`
+          : null,
+      };
+    } catch (error) {
+      console.error("[operating-map/metrics] cr4 failed:", error);
+      nodes.cr4 = { value: null, caveat: "This metric failed to load." };
     }
 
     return NextResponse.json({ nodes });

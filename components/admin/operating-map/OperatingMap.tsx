@@ -91,6 +91,14 @@ const NODE_HELP: Record<string, string> = {
     "Every provider in the directory that has not been deleted, split by whether anyone has claimed them. Scoped by the provider's city. A standing count — the date range does not change it.",
   cp2:
     "Unclaimed providers who heard from us in this range — any email, call or MedJobs contact. Counts providers, not messages, so twenty emails to one provider is one.",
+  m1:
+    "Care recipient profiles that are complete. Completion is not timestamped, so this counts profiles created in this range that are complete today.",
+  m2:
+    "Care worker profiles that are complete — a MedJobs application goes live once the intro video is in. Same timing caveat as M1.",
+  m3:
+    "Providers who finished claiming their listing in this range. An event, unlike CP1's claimed total, which is a standing count.",
+  m4: "Providers who requested a managed ad campaign in this range.",
+  m5: "Providers who activated MedJobs staffing in this range.",
 };
 
 /** Tooltip anchored to a node, positioned outside the scaled figure. */
@@ -692,11 +700,61 @@ export default function OperatingMap({
             <div className={`${styles.col} ${styles.strip}`}>
               <span className={styles.lab}>User milestone</span>
               <div className={styles.stripRow}>
-                <Card hi id="m1" code="M1" label="Care recipient profiles completed" />
-                <Card hi id="m2" code="M2" label="Care worker profiles completed" />
-                <Card hi id="m3" code="M3" label="Provider profiles claimed" />
-                <Card hi id="m4" code="M4" money="Paid product" label="Managed ad signups" />
-                <Card hi id="m5" code="M5" label="Provider staffing signups" />
+                <Card
+                  hi
+                  id="m1"
+                  code="M1"
+                  label="Care recipient profiles completed"
+                  metric={nodes.m1}
+                  loading={metricsLoading}
+                  onTip={openTip}
+                  onTipClose={() => setTip(null)}
+                  onInspect={onInspect}
+                />
+                <Card
+                  hi
+                  id="m2"
+                  code="M2"
+                  label="Care worker profiles completed"
+                  metric={nodes.m2}
+                  loading={metricsLoading}
+                  onTip={openTip}
+                  onTipClose={() => setTip(null)}
+                  onInspect={onInspect}
+                />
+                <Card
+                  hi
+                  id="m3"
+                  code="M3"
+                  label="Provider profiles claimed"
+                  metric={nodes.m3}
+                  loading={metricsLoading}
+                  onTip={openTip}
+                  onTipClose={() => setTip(null)}
+                  onInspect={onInspect}
+                />
+                <Card
+                  hi
+                  id="m4"
+                  code="M4" money="Paid product"
+                  label="Managed ad signups"
+                  metric={nodes.m4}
+                  loading={metricsLoading}
+                  onTip={openTip}
+                  onTipClose={() => setTip(null)}
+                  onInspect={onInspect}
+                />
+                <Card
+                  hi
+                  id="m5"
+                  code="M5"
+                  label="Provider staffing signups"
+                  metric={nodes.m5}
+                  loading={metricsLoading}
+                  onTip={openTip}
+                  onTipClose={() => setTip(null)}
+                  onInspect={onInspect}
+                />
               </div>
             </div>
 
@@ -934,6 +992,10 @@ function MetricValue({
 }
 
 /** Nodes the inspect endpoint can produce rows for. */
-const INSPECTABLE = new Set(["cr2", "cr4", "cr5", "cr6a", "cr6b", "cr6c", "cp1", "cp2"]);
+const INSPECTABLE = new Set([
+  "cr2", "cr4", "cr5", "cr6a", "cr6b", "cr6c",
+  "cp1", "cp2",
+  "m1", "m2", "m3", "m4", "m5",
+]);
 
 

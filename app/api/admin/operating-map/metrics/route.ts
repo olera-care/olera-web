@@ -12,6 +12,7 @@ import {
   getProvidersInOutreach,
   getProvidersListed,
 } from "@/lib/operating-map/providers.server";
+import { getMilestones } from "@/lib/operating-map/milestones.server";
 
 /**
  * GET /api/admin/operating-map/metrics?date_from&date_to
@@ -31,6 +32,14 @@ import {
 
 /** Authorized response — never handed to Next's shared cache. See cities/. */
 export const dynamic = "force-dynamic";
+
+/**
+ * Completing a profile is not recorded with a timestamp, so M1 and M2 count
+ * profiles created in the window that are complete now. Stated on the node
+ * rather than left for someone to discover.
+ */
+const PROFILE_TIMING_CAVEAT =
+  "Counts profiles created in this range that are complete now — completion itself is not timestamped.";
 
 /** A named part of a node's total, rendered on the card under its label. */
 export interface OperatingMapBreakdown {
@@ -177,6 +186,23 @@ export async function GET(request: NextRequest) {
       console.error("[operating-map/metrics] cp1/cp2 failed:", error);
       nodes.cp1 = { value: null, caveat: "This metric failed to load." };
       nodes.cp2 = { value: null, caveat: "This metric failed to load." };
+    }
+
+    try {
+      const m = await getMilestones(db, { from, to }, city);
+      nodes.m1 = { value: m.careRecipientProfiles, caveat: PROFILE_TIMING_CAVEAT };
+      nodes.m2 = { value: m.careWorkerProfiles, caveat: PROFILE_TIMING_CAVEAT };
+      nodes.m3 = { value: m.providersClaimed, caveat: null };
+      nodes.m4 = { value: m.managedAdSignups, caveat: null };
+      nodes.m5 = { value: m.staffingSignups, caveat: null };
+    } catch (error) {
+      console.error("[operating-map/metrics] m1-m5 failed:", error);
+      const failed = { value: null, caveat: "This metric failed to load." };
+      nodes.m1 = failed;
+      nodes.m2 = failed;
+      nodes.m3 = failed;
+      nodes.m4 = failed;
+      nodes.m5 = failed;
     }
 
     // Relationships that must hold if the map is counting correctly. Sent

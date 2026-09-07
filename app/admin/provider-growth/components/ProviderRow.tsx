@@ -22,12 +22,15 @@ interface ProviderRowProps {
 }
 
 export function ProviderRow({ provider, onClick, selected }: ProviderRowProps) {
-  // Build subtitle: city, state · email
-  const locationPart = [provider.city, provider.state].filter(Boolean).join(", ");
-  const subtitle = [locationPart, provider.email].filter(Boolean).join(" · ");
-
-  // Build category from care_types
+  // Line 2: Location · Category
+  const location = [provider.city, provider.state].filter(Boolean).join(", ");
   const category = provider.care_types?.slice(0, 2).join(", ") || null;
+  const locationCategory = [location, category].filter(Boolean).join(" · ");
+
+  // Line 3: Phone · Email
+  const contactParts: string[] = [];
+  if (provider.phone) contactParts.push(provider.phone);
+  if (provider.email) contactParts.push(provider.email);
 
   return (
     <div
@@ -37,9 +40,9 @@ export function ProviderRow({ provider, onClick, selected }: ProviderRowProps) {
       }`}
     >
       <div className="flex items-start justify-between gap-4">
-        {/* Left: Provider info */}
+        {/* Left: Provider info (3 lines) */}
         <div className="min-w-0 flex-1">
-          {/* Title row: Name + verification badge */}
+          {/* Line 1: Name + verification badge */}
           <div className="flex items-center gap-2">
             <h3 className="truncate text-sm font-medium text-gray-900">
               {provider.display_name || "Unnamed Provider"}
@@ -47,33 +50,25 @@ export function ProviderRow({ provider, onClick, selected }: ProviderRowProps) {
             <VerificationBadge state={provider.verification_state} providerName={provider.display_name} />
           </div>
 
-          {/* Subtitle: Location · Email */}
-          {subtitle && (
-            <p className="mt-0.5 truncate text-xs text-gray-500">{subtitle}</p>
+          {/* Line 2: Location · Category */}
+          {locationCategory && (
+            <p className="mt-0.5 truncate text-xs text-gray-500">{locationCategory}</p>
           )}
 
-          {/* Phone (clickable) */}
-          {provider.phone && (
+          {/* Line 3: Phone · Email */}
+          {contactParts.length > 0 && (
             <p className="mt-0.5 text-xs text-gray-500">
-              <a
-                href={`tel:${provider.phone}`}
-                onClick={(e) => e.stopPropagation()}
-                className="text-blue-600 hover:text-blue-800 hover:underline"
-              >
-                {provider.phone}
-              </a>
-            </p>
-          )}
-
-          {/* Category */}
-          {category && (
-            <p className="mt-0.5 truncate text-[11px] text-gray-400">{category}</p>
-          )}
-
-          {/* Claim date - only show if we have the date */}
-          {provider.claimed_at && (
-            <p className="mt-1 text-[10px] text-gray-400">
-              {timeAgo(provider.claimed_at)}
+              {provider.phone && (
+                <a
+                  href={`tel:${provider.phone}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  {provider.phone}
+                </a>
+              )}
+              {provider.phone && provider.email && <span className="text-gray-400"> · </span>}
+              {provider.email && <span>{provider.email}</span>}
             </p>
           )}
         </div>

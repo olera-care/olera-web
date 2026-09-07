@@ -53,8 +53,12 @@ export interface ManagedAdsStats {
   /**
    * Server-confirmed, campaign-attributed conversions on provider pages,
    * internal traffic stripped. Not hand-entered.
+   *
+   * null means we could not compute it, which is NOT the same as zero and must
+   * not render as one: the campaign table failing to read would otherwise print
+   * "0 families delivered" on a page telling providers our numbers are real.
    */
-  familiesDelivered: number;
+  familiesDelivered: number | null;
   /** Care requests captured on the city landing pages. */
   cityRequests: number;
   /** Most recent metrics reconciliation across either table, ISO or null. */
@@ -132,16 +136,20 @@ export async function getManagedAdsStats(): Promise<ManagedAdsStats | null> {
 
     // Attributed conversions on provider pages. Distinct tags only — a revived
     // flight reuses one campaign object but carries its own tag.
+    //
+    // A failed campaign read and a genuine zero are different answers. If the
+    // campaign table did not come back there are no tags to count against, so
+    // report null rather than the zero that read would imply.
     const tags = Array.from(
       new Set(providerRows.map((r) => r.campaign_tag).filter((t): t is string => !!t)),
     );
-    let familiesDelivered = 0;
-    if (tags.length) {
+    let familiesDelivered: number | null = providerRes.error ? null : 0;
+    if (!providerRes.error && tags.length) {
       try {
         const delivered = await countDeliveredByCampaign(db, tags);
         familiesDelivered = Object.values(delivered).reduce((a, b) => a + b, 0);
       } catch {
-        familiesDelivered = 0;
+        familiesDelivered = null;
       }
     }
 

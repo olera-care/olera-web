@@ -1,4 +1,5 @@
 import Link from "next/link";
+import StartCampaignLink from "@/components/managed-ads/StartCampaignLink";
 import {
   BUDGET_STOPS,
   BUDGET_ESTIMATE_CAVEAT,
@@ -48,12 +49,9 @@ export default function Pricing() {
             </div>
             <h3 className="mt-4 font-serif text-text-lg font-bold text-gray-900">{intro.name}</h3>
             <p className="mt-2 text-text-sm leading-relaxed text-gray-600">{intro.blurb}</p>
-            <Link
-              href="/provider/boost"
-              className="mt-6 inline-flex min-h-[48px] w-full items-center justify-center rounded-lg bg-primary-600 px-6 py-3 text-text-md font-semibold text-white transition-colors hover:bg-primary-700"
-            >
+            <StartCampaignLink className="mt-6 w-full">
               Request your free campaign
-            </Link>
+            </StartCampaignLink>
             <p className="mt-3 text-text-xs leading-relaxed text-gray-500">
               No card. You see what it delivered before there is any question of paying.
             </p>

@@ -66,11 +66,15 @@ export default async function ManagedAdsPage() {
   // would otherwise print a confident row of zeroes next to a page arguing that
   // our numbers are checkable, which is the worst available outcome.
   const hasSignal =
-    !!stats && (stats.spendCents > 0 || stats.clicks > 0 || stats.familiesDelivered > 0);
+    !!stats &&
+    (stats.spendCents > 0 ||
+      stats.clicks > 0 ||
+      (stats.familiesDelivered ?? 0) > 0 ||
+      stats.cityRequests > 0);
 
   return (
     <main>
-      <ManagedAdsHero />
+      <ManagedAdsHero hasResults={hasSignal} />
       {hasSignal && stats ? <ResultsTicker stats={stats} /> : null}
       <TwoEngines />
       <WhatWeKnow />

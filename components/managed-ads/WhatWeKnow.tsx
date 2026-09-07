@@ -20,7 +20,7 @@ const FINDINGS = [
   {
     title: "A campaign can be approved, eligible, and completely invisible",
     body:
-      "One provider's flight drew 320 of its 338 impressions from five broad keywords. The rebuild kept only the neighbourhood variations and served zero impressions in two days, while the interface reported the campaign as eligible and the ad as approved. Nothing anywhere flags this. We now count those terms before a campaign is allowed to publish.",
+      "One provider's flight drew 320 of its 338 impressions from five broad keywords. The rebuild kept only the neighborhood variations and served zero impressions in two days, while the interface reported the campaign as eligible and the ad as approved. Nothing anywhere flags this. We now count those terms before a campaign is allowed to publish.",
   },
   {
     title: "Near me is the obvious keyword and it quietly costs you",

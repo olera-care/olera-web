@@ -1,5 +1,5 @@
 import Link from "next/link";
-import PlatformMarquee from "@/components/provider/PlatformMarquee";
+import StartCampaignLink from "@/components/managed-ads/StartCampaignLink";
 
 /**
  * Hero for the public Managed Ads explainer.
@@ -10,7 +10,7 @@ import PlatformMarquee from "@/components/provider/PlatformMarquee";
  * subhead names the compounding, and neither promises a result — the offer and
  * the honest-limits section carry that weight further down.
  */
-export default function ManagedAdsHero() {
+export default function ManagedAdsHero({ hasResults }: { hasResults: boolean }) {
   return (
     <section className="bg-vanilla-100">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
@@ -29,18 +29,18 @@ export default function ManagedAdsHero() {
         </p>
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <Link
-            href="/provider/boost"
-            className="inline-flex min-h-[48px] items-center justify-center rounded-lg bg-primary-600 px-7 py-3 text-text-md font-semibold text-white transition-colors hover:bg-primary-700"
-          >
-            Start your first campaign
-          </Link>
-          <Link
-            href="#results"
-            className="inline-flex min-h-[48px] items-center justify-center rounded-lg border border-gray-300 bg-white px-7 py-3 text-text-md font-semibold text-gray-700 transition-colors hover:bg-gray-50"
-          >
-            See our real numbers
-          </Link>
+          <StartCampaignLink>Start your first campaign</StartCampaignLink>
+          {/* #results only exists when the strip has numbers to show, so this
+              is gated on the same condition rather than left as an anchor that
+              silently goes nowhere. */}
+          {hasResults && (
+            <Link
+              href="#results"
+              className="inline-flex min-h-[48px] items-center justify-center rounded-lg border border-gray-300 bg-white px-7 py-3 text-text-md font-semibold text-gray-700 transition-colors hover:bg-gray-50"
+            >
+              See our real numbers
+            </Link>
+          )}
         </div>
 
         <p className="mt-4 text-text-sm text-gray-500">
@@ -48,7 +48,21 @@ export default function ManagedAdsHero() {
           on its own.
         </p>
 
-        <PlatformMarquee />
+        {/* Deliberately NOT the shared PlatformMarquee. That strip shows
+            Facebook, Instagram, YouTube and X, and we have never run a campaign
+            on any of them — on a page whose closing section says so out loud,
+            the logos would contradict the copy. Name what we actually run. */}
+        <div className="mt-10 border-t border-primary-200 pt-6">
+          <div className="text-text-xs font-semibold uppercase tracking-wider text-gray-500">
+            Where we buy
+          </div>
+          <p className="mt-2 max-w-2xl text-text-md text-gray-700">
+            <span className="font-semibold text-gray-900">Google Search</span> for families
+            actively looking, and <span className="font-semibold text-gray-900">Nextdoor</span> for
+            the neighborhood feed. Facebook and Instagram are next, and we will publish what they
+            do when we have run them.
+          </p>
+        </div>
       </div>
     </section>
   );

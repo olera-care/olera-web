@@ -7,7 +7,7 @@
 -- `city_leads` holds the loop-test requests TJ files against production to prove
 -- the relay (one on 7 Sep at 06:59Z, and more will follow every time the chain
 -- changes). Nothing distinguishes them from a real family. That was harmless
--- while the only reader was the admin queue, where a human recognises their own
+-- while the only reader was the admin queue, where a human recognizes their own
 -- test. It stops being harmless the moment a count of these rows is published:
 -- the /managed-ads explainer prints families-delivered to providers we are
 -- asking to trust our numbers, and a test row inflating that count is exactly

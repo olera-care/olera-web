@@ -81,7 +81,9 @@ function useSeen<T extends HTMLElement>() {
           io.disconnect();
         }
       },
-      { rootMargin: "-10% 0px" },
+      // No negative inset: the moment any of the strip is on screen the count
+      // may start. Insetting the root lets a visible tile sit at zero.
+      { rootMargin: "0px" },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -89,10 +91,17 @@ function useSeen<T extends HTMLElement>() {
   return { ref, seen };
 }
 
-/** null until we have actually asked the browser. Never assume motion is fine. */
+/**
+ * null until we have actually asked the browser. Never assume motion is fine.
+ *
+ * Resolved in a LAYOUT effect, not a normal one. A normal effect runs after the
+ * browser has painted, so the true value would be on screen for a frame before
+ * the count-up zeroed it — which looks like the number changing its mind rather
+ * than like an animation.
+ */
 function useReducedMotion(): boolean | null {
   const [reduced, setReduced] = useState<boolean | null>(null);
-  useEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setReduced(mq.matches);
     const onChange = () => setReduced(mq.matches);
@@ -127,7 +136,7 @@ function StatTile({ tile, primed, run }: { tile: Tile; primed: boolean; run: boo
       })}`;
 
   return (
-    <div className="px-5 py-6 sm:px-6">
+    <div className="h-full bg-white px-5 py-6 sm:px-6">
       <div className="text-text-xs font-medium uppercase tracking-wider text-gray-500">{tile.label}</div>
       {/* Sans, not the page's serif: a figure in a display face reads as
           decoration. Proportional figures — tabular-nums looks loose at size. */}
@@ -166,7 +175,7 @@ export default function ResultsTicker({ stats }: { stats: ManagedAdsStats }) {
     },
     {
       label: "Families delivered",
-      value: stats.familiesDelivered + stats.cityRequests,
+      value: stats.familiesDelivered === null ? null : stats.familiesDelivered + stats.cityRequests,
       note: "Confirmed inquiries and care requests, with our own traffic stripped out.",
     },
     {
@@ -182,7 +191,16 @@ export default function ResultsTicker({ stats }: { stats: ManagedAdsStats }) {
   ];
 
   const recorded = stats.recordedThrough
-    ? new Date(stats.recordedThrough).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+    ? new Date(stats.recordedThrough).toLocaleDateString("en-US", {
+        // Pinned. Without a timeZone this formats in the runtime's local zone,
+        // so the server (UTC) and the reader's browser can disagree on the date
+        // for any timestamp near midnight, and React reports a hydration
+        // mismatch on a line whose whole job is to say when we last checked.
+        timeZone: "America/New_York",
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      })
     : null;
 
   return (
@@ -197,7 +215,7 @@ export default function ResultsTicker({ stats }: { stats: ManagedAdsStats }) {
 
         <div
           ref={ref}
-          className="mt-8 grid grid-cols-2 divide-x divide-y divide-gray-200 overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm md:grid-cols-3"
+          className="mt-8 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-gray-200 bg-gray-200 shadow-sm md:grid-cols-3"
         >
           {tiles.map((t) => (
             <StatTile key={t.label} tile={t} primed={primed} run={seen} />

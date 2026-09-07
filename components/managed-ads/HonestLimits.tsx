@@ -1,4 +1,5 @@
 import Link from "next/link";
+import StartCampaignLink from "@/components/managed-ads/StartCampaignLink";
 
 /**
  * The section that makes the rest of the page believable.
@@ -76,12 +77,7 @@ export default function HonestLimits() {
             contacts you, and we show you exactly what your money bought.
           </p>
           <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center">
-            <Link
-              href="/provider/boost"
-              className="inline-flex min-h-[48px] items-center justify-center rounded-lg bg-white px-7 py-3 text-text-md font-semibold text-gray-900 transition-colors hover:bg-gray-100"
-            >
-              Start your first campaign
-            </Link>
+            <StartCampaignLink tone="onDark">Start your first campaign</StartCampaignLink>
             <Link
               href="/contact"
               className="inline-flex min-h-[48px] items-center justify-center rounded-lg border border-gray-600 px-7 py-3 text-text-md font-semibold text-white transition-colors hover:bg-gray-800"

@@ -114,24 +114,24 @@ export const CLAIM_SOURCES = [
 export type ClaimSource = (typeof CLAIM_SOURCES)[number];
 
 export const CLAIM_SOURCE_LABELS: Record<ClaimSource, string> = {
-  cold_outreach: "Cold Outreach",
-  city_broadcast: "City Broadcast",
-  email: "Email",
-  page: "Directory Page",
-  lead_email: "Lead Email",
-  completion_email: "Completion Email",
-  instant_claim: "Instant Claim",
-  new_org_signup: "New Org Signup",
+  cold_outreach: "Directory Claim",
+  city_broadcast: "Directory Claim",
+  email: "Directory Claim",
+  page: "Directory Claim",
+  lead_email: "Directory Claim",
+  completion_email: "Directory Claim",
+  instant_claim: "Directory Claim",
+  new_org_signup: "Self-Created",
 };
 
 export const CLAIM_SOURCE_COLORS: Record<ClaimSource, string> = {
-  cold_outreach: "text-blue-700 bg-blue-50 border-blue-200",
-  city_broadcast: "text-purple-700 bg-purple-50 border-purple-200",
-  email: "text-gray-700 bg-gray-50 border-gray-200",
-  page: "text-teal-700 bg-teal-50 border-teal-200",
-  lead_email: "text-indigo-700 bg-indigo-50 border-indigo-200",
-  completion_email: "text-cyan-700 bg-cyan-50 border-cyan-200",
-  instant_claim: "text-amber-700 bg-amber-50 border-amber-200",
+  cold_outreach: "text-gray-600 bg-gray-50 border-gray-200",
+  city_broadcast: "text-gray-600 bg-gray-50 border-gray-200",
+  email: "text-gray-600 bg-gray-50 border-gray-200",
+  page: "text-gray-600 bg-gray-50 border-gray-200",
+  lead_email: "text-gray-600 bg-gray-50 border-gray-200",
+  completion_email: "text-gray-600 bg-gray-50 border-gray-200",
+  instant_claim: "text-gray-600 bg-gray-50 border-gray-200",
   new_org_signup: "text-emerald-700 bg-emerald-50 border-emerald-200",
 };
 

@@ -223,13 +223,16 @@ export async function listProviders(options: ListProvidersOptions = {}): Promise
   if (claimedTo) {
     query = query.lte("claimed_at", claimedTo);
   }
-  // Note: Search filtering is done in memory after fetch because
-  // Supabase PostgREST doesn't support ilike on joined columns
 
-  // Apply ordering and pagination
-  query = query
-    .order(orderBy, { ascending: orderDirection === "asc" })
-    .range(offset, offset + limit - 1);
+  // Apply ordering
+  query = query.order(orderBy, { ascending: orderDirection === "asc" });
+
+  // When searching, fetch all matching rows then filter + paginate in memory
+  // because PostgREST doesn't support ilike on joined columns.
+  // Without search, apply pagination at DB level for efficiency.
+  if (!search) {
+    query = query.range(offset, offset + limit - 1);
+  }
 
   const { data, error, count } = await query;
 
@@ -280,11 +283,15 @@ export async function listProviders(options: ListProvidersOptions = {}): Promise
     providers = providers.filter(
       (p) => p.display_name?.toLowerCase().includes(searchLower)
     );
+    // Paginate in memory after filtering
+    const filteredTotal = providers.length;
+    providers = providers.slice(offset, offset + limit);
+    return { providers, total: filteredTotal };
   }
 
   return {
     providers,
-    total: search ? providers.length : (count ?? 0),  // Adjust total if filtered in memory
+    total: count ?? 0,
   };
 }
 

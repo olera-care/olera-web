@@ -35,10 +35,22 @@ export default function ProviderGrowthPage() {
 
   // Tab state
   const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
-    const tab = searchParams.get("tab") as PipelineStage | null;
+    const tab = searchParams.get("tab");
+    const sub = searchParams.get("sub") as "ads" | "medjobs" | "both" | null;
+
+    // Check for pipeline stage tabs
     if (tab && ["new_claim", "meeting_scheduled", "pitched", "not_interested"].includes(tab)) {
       return { type: "pipeline", stage: tab as PipelineStage };
     }
+
+    // Check for conversion tabs (converted/paying with subtab)
+    if (tab === "converted" && sub && ["ads", "medjobs", "both"].includes(sub)) {
+      return { type: "conversion", tab: "converted", subTab: sub };
+    }
+    if (tab === "paying" && sub && ["ads", "medjobs", "both"].includes(sub)) {
+      return { type: "conversion", tab: "paying", subTab: sub };
+    }
+
     return { type: "pipeline", stage: "new_claim" };
   });
 

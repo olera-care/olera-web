@@ -188,7 +188,7 @@ export function MeetingScheduler({
                 </a>
               </div>
               <p className="text-xs text-gray-500">
-                When the provider books, the meeting will be automatically linked via webhook.
+                After the provider books, return here to manually enter the meeting time.
               </p>
             </div>
           )}

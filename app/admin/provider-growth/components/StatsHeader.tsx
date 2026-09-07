@@ -4,6 +4,7 @@
  * StatsHeader - Summary statistics for provider growth pipeline
  *
  * Shows counts for each pipeline stage and conversion status.
+ * Note: Stats are always "all time" regardless of date filter.
  */
 
 import type { GrowthStats } from "@/lib/provider-growth/queries";
@@ -16,13 +17,18 @@ interface StatsHeaderProps {
 export function StatsHeader({ stats, loading }: StatsHeaderProps) {
   if (loading) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <div key={i} className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 animate-pulse">
-            <div className="h-6 w-12 bg-gray-200 rounded mb-1" />
-            <div className="h-3 w-20 bg-gray-100 rounded" />
-          </div>
-        ))}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-2">
+          <div className="h-4 w-16 bg-gray-200 rounded animate-pulse" />
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="rounded-xl border border-gray-200 bg-white px-3 py-2.5 animate-pulse">
+              <div className="h-6 w-12 bg-gray-200 rounded mb-1" />
+              <div className="h-3 w-20 bg-gray-100 rounded" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -41,24 +47,31 @@ export function StatsHeader({ stats, loading }: StatsHeaderProps) {
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mb-6">
-      {statItems.map((item) => (
-        <div
-          key={item.label}
-          className={`rounded-xl border px-3 py-2.5 ${
-            item.highlight
-              ? "border-emerald-200 bg-emerald-50/50"
-              : "border-gray-200 bg-white"
-          }`}
-        >
-          <div className={`text-xl font-semibold tabular-nums ${item.color}`}>
-            {item.value.toLocaleString()}
+    <div className="mb-6">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+          All Time
+        </span>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+        {statItems.map((item) => (
+          <div
+            key={item.label}
+            className={`rounded-xl border px-3 py-2.5 ${
+              item.highlight
+                ? "border-emerald-200 bg-emerald-50/50"
+                : "border-gray-200 bg-white"
+            }`}
+          >
+            <div className={`text-xl font-semibold tabular-nums ${item.color}`}>
+              {item.value.toLocaleString()}
+            </div>
+            <div className="mt-0.5 text-xs text-gray-500 truncate" title={item.label}>
+              {item.label}
+            </div>
           </div>
-          <div className="mt-0.5 text-xs text-gray-500 truncate" title={item.label}>
-            {item.label}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }

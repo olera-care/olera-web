@@ -200,15 +200,14 @@ async function main() {
   console.log(`   Found ${claimSourceMap.size} claim events with source`);
 
   // Step 4: Get ad campaign requests for ads status
+  // Note: ad_campaign_requests.provider_id is the business_profiles.id (UUID)
   console.log("📋 Fetching ad campaign data...");
-  const providerSlugs = providersToBackfill.map((p) => p.slug).filter(Boolean) as string[];
-  const providerIds = providersToBackfill.map((p) => p.source_provider_id).filter(Boolean) as string[];
-  const allProviderKeys = Array.from(new Set([...providerSlugs, ...providerIds]));
+  const businessProfileIds = providersToBackfill.map((p) => p.id);
 
   const { data: adCampaigns, error: adError } = await db
     .from("ad_campaign_requests")
     .select("provider_id, status, plan_status, created_at, subscribed_at")
-    .in("provider_id", allProviderKeys.length > 0 ? allProviderKeys : ["__none__"])
+    .in("provider_id", businessProfileIds.length > 0 ? businessProfileIds : ["__none__"])
     .is("deleted_at", null);
 
   if (adError) {
@@ -261,9 +260,8 @@ async function main() {
     const medjobs = getMedjobsStatus(provider.metadata);
     if (medjobs.status !== "none") medjobsActiveCount++;
 
-    // Get Ads status from campaigns
-    const providerKey = provider.slug || provider.source_provider_id;
-    const campaigns = providerKey ? adCampaignMap.get(providerKey) : undefined;
+    // Get Ads status from campaigns (provider_id is business_profiles.id)
+    const campaigns = adCampaignMap.get(provider.id);
     const ads = getAdsStatus(campaigns || []);
     if (ads.status !== "none") adsActiveCount++;
 

@@ -25,7 +25,7 @@ const FINDINGS = [
   {
     title: "Near me is the obvious keyword and it quietly costs you",
     body:
-      "It is not that nobody searches it. In one market it drew 47 impressions at a 2.13% click rate against a 7.69% campaign average. On a click-maximising budget, a keyword that serves badly is worse than one that never enters the auction, because it spends your money and drags the quality score that sets your price.",
+      "It is not that nobody searches it. In one market it drew 47 impressions at a 2.13% click rate against a 7.69% campaign average. On a click-maximizing budget, a keyword that serves badly is worse than one that never enters the auction, because it spends your money and drags the quality score that sets your price.",
   },
   {
     title: "We were wrong about competitor searches, and our own data proved it",
@@ -49,11 +49,11 @@ export default function WhatWeKnow() {
     <section className="bg-gray-50 px-4 py-16 sm:px-6 md:py-24 lg:px-8">
       <div className="mx-auto max-w-6xl">
         <h2 className="max-w-3xl font-serif text-display-sm font-bold text-gray-900 md:text-display-md">
-          Six things that cost us money to find out
+          We run senior care ads for a living
         </h2>
         <p className="mt-3 max-w-2xl text-text-md text-gray-600">
-          None of these are visible from inside one account. They are what running many campaigns,
-          in many markets, on the same product buys you.
+          Six things that cost us money to find out. None are visible from inside one account: they
+          are what running many campaigns, in many markets, on the same product buys you.
         </p>
 
         <div className="mt-10 grid gap-px overflow-hidden rounded-2xl border border-gray-200 bg-gray-200 sm:grid-cols-2">

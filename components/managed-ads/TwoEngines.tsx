@@ -18,8 +18,8 @@ const ENGINES = [
     title: "Ads pointed at your page",
     lede: "A family searching for care in your town lands on your Olera profile: your name, your photos, your reviews, your service area.",
     points: [
-      "They see your business before they see a form, which is why this is the one that builds recognition.",
-      "Some of them inquire on the spot. Across every provider campaign we have run, about one click in thirty becomes an inquiry.",
+      "They see your business before they see a form. This is the engine that builds recognition for your name.",
+      "Some of them inquire on the spot. What that has actually cost us per inquiry is a few screens down, in full.",
       "The inquiry lands in your Olera inbox and we email you the moment it does.",
     ],
   },
@@ -28,7 +28,7 @@ const ENGINES = [
     title: "Ads pointed at a page built to convert",
     lede: "Olera buys the ad for a whole metro and lands the family on a page with one job: capture a care request and get it to a provider who calls back.",
     points: [
-      "Four questions, contact details last, no phone number on the page and nothing to browse. Everything that could distract from the request was removed.",
+      "Everything that could distract from the request was removed, down to the phone number and the navigation.",
       "Olera funds this one. We are spending our own money to find out what a page built purely to convert is worth.",
       "It is running in two metros now. A person at Olera calls every family personally while we prove the routing.",
     ],

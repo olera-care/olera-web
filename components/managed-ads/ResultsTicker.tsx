@@ -155,15 +155,28 @@ export default function ResultsTicker({ stats }: { stats: ManagedAdsStats }) {
 
   const tiles: Tile[] = [
     {
-      label: "Ad spend managed",
+      label: "Ad spend measured",
       value: stats.spendCents > 0 ? Math.round(stats.spendCents / 100) : null,
       prefix: "$",
-      note: "Across provider and city campaigns, reconciled from each platform.",
+      note: "Every dollar we have put through an ad platform for a provider.",
     },
     {
       label: "Clicks delivered",
       value: stats.clicks > 0 ? stats.clicks : null,
       note: "Families who clicked an ad we wrote and landed on a page we built.",
+    },
+    {
+      label: "Family inquiries",
+      value: stats.familiesDelivered,
+      note: "Server-confirmed, with our own internal traffic stripped out.",
+    },
+    {
+      label: "Cost per inquiry",
+      value: stats.costPerInquiryCents !== null ? stats.costPerInquiryCents / 100 : null,
+      prefix: "$",
+      decimals: 2,
+      animate: false,
+      note: "The published benchmark for home care is $80 to $150, usually shared.",
     },
     {
       label: "Average cost per click",
@@ -174,43 +187,36 @@ export default function ResultsTicker({ stats }: { stats: ManagedAdsStats }) {
       note: "Home care search runs $5.50 to $6.30 nationally. We buy the tail.",
     },
     {
-      label: "Families delivered",
-      value: stats.familiesDelivered === null ? null : stats.familiesDelivered + stats.cityRequests,
-      note: "Confirmed inquiries and care requests, with our own traffic stripped out.",
-    },
-    {
       label: "Providers advertised",
       value: stats.providersServed > 0 ? stats.providersServed : null,
       note: "Every one teaches the next campaign something the last one paid for.",
     },
-    {
-      label: "Metros running",
-      value: stats.metrosRun > 0 ? stats.metrosRun : null,
-      note: "Olera-funded city campaigns routing families to local providers.",
-    },
   ];
 
-  const recorded = stats.recordedThrough
-    ? new Date(stats.recordedThrough).toLocaleDateString("en-US", {
-        // Pinned. Without a timeZone this formats in the runtime's local zone,
-        // so the server (UTC) and the reader's browser can disagree on the date
-        // for any timestamp near midnight, and React reports a hydration
-        // mismatch on a line whose whole job is to say when we last checked.
-        timeZone: "America/New_York",
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      })
-    : null;
+  const fmtDate = (iso: string | null) =>
+    iso
+      ? new Date(iso).toLocaleDateString("en-US", {
+          // Pinned. Without a timeZone this formats in the runtime's local zone,
+          // so the server (UTC) and the reader's browser can disagree on the
+          // date for any timestamp near midnight, and React reports a hydration
+          // mismatch on a line whose whole job is to say when we last checked.
+          timeZone: "America/New_York",
+          month: "long",
+          day: "numeric",
+          year: "numeric",
+        })
+      : null;
+  const asOf = fmtDate(stats.economicsAsOf);
+  const recorded = fmtDate(stats.recordedThrough);
 
   return (
-    <section className="px-4 sm:px-6 lg:px-8 py-12 md:py-16" id="results">
+    <section className="bg-white px-4 pb-10 pt-16 sm:px-6 md:pt-24 lg:px-8" id="results">
       <div className="mx-auto max-w-6xl">
         <h2 className="font-serif text-display-sm md:text-display-md font-bold text-gray-900">
-          Where the money has gone, and what it bought
+          Every dollar we have spent, and what it bought
         </h2>
         <p className="mt-3 max-w-2xl text-text-md text-gray-600">
-          These are our real operating numbers, not a case study. They update as campaigns run.
+          Our whole ledger, not a selected case study. Small, and shown in full.
         </p>
 
         <div
@@ -223,11 +229,23 @@ export default function ResultsTicker({ stats }: { stats: ManagedAdsStats }) {
         </div>
 
         <p className="mt-4 max-w-3xl text-text-sm leading-relaxed text-gray-500">
-          Spend, clicks and impressions are read off Google and Nextdoor by hand during our
-          optimization sweep, so they are a floor rather than an estimate
-          {recorded ? <> — recorded through {recorded}</> : null}. Inquiry counts come from our own
-          event trail with internal traffic removed, which is why they run lower than a platform&apos;s
-          conversion column and are the ones we trust.
+          {stats.basis === "verified" ? (
+            <>
+              Spend, clicks and impressions above are the totals read directly in Google Ads
+              {asOf ? <> on {asOf}</> : null}, across every provider campaign. Our own tracker is
+              filled in by hand during each optimization sweep and is currently behind that read,
+              so we quote the larger figure rather than the flattering one — understating what we
+              spent would make the cost per inquiry look better than we earned.
+            </>
+          ) : (
+            <>
+              Spend, clicks and impressions are read off Google and Nextdoor by hand during our
+              optimization sweep, so they are a floor rather than an estimate
+              {recorded ? <> — recorded through {recorded}</> : null}.
+            </>
+          )}{" "}
+          Inquiry counts come from our own event trail with internal traffic removed, which is why
+          they run lower than a platform&apos;s conversion column and are the ones we trust.
         </p>
       </div>
     </section>

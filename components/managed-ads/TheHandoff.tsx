@@ -17,7 +17,7 @@ const FAMILY = [
   {
     title: "Four questions, and the phone number last",
     body:
-      "Who needs care, what kind of help, how soon, and where to reach them. Nothing is asked that a provider would not need on the first call, and contact details come only after the family has already told us what they want.",
+      "Who needs care, what kind of help, how soon, and where to reach them. Nothing a provider would not need on the first call, and contact details come last. A confirmation text goes out within seconds so nobody wonders whether it worked.",
   },
   {
     title: "Written permission, with the proof kept",
@@ -29,28 +29,18 @@ const FAMILY = [
     body:
       "If someone picks skilled nursing or medical care, we say plainly that it is not what Olera arranges, point them at a home health referral through their doctor or discharge planner, and note that Medicare usually covers it. That request is never sent to a provider. It would waste your time and it is not what they need.",
   },
-  {
-    title: "A text within seconds, so nobody wonders if it worked",
-    body:
-      "The family gets a confirmation immediately telling them what happens next and when. Every message we send them carries a way to stop.",
-  },
 ];
 
 const PROVIDER = [
   {
     title: "You are asked before you are given anything",
     body:
-      "The first message carries the type of care, the area, how urgent it is and how it would be paid for. It does not carry the family's name or number. Those move only when you say yes.",
+      "The first message carries the type of care, the area, how urgent it is and how it would be paid for. It does not carry the family's name or number. Those move only when you say yes, and passing costs you one digit.",
   },
   {
     title: "One provider at a time, not a blast",
     body:
       "A request goes to one provider, with thirty minutes to take it, then the next. Nobody is racing three agencies to a phone call, and the family is never handed round.",
-  },
-  {
-    title: "Passing costs you one digit",
-    body:
-      "Reply with a number for no capacity, outside your area, payment, or needs medical care. We use it to stop sending you the ones you would pass on anyway.",
   },
   {
     title: "We check whether the call actually happened",

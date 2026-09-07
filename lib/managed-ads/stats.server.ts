@@ -35,6 +35,33 @@ import { countDeliveredByCampaign } from "@/lib/ad-boost/delivered.server";
  * never 500 because a count did not come back.
  */
 
+/**
+ * Program totals read directly in the Google Ads console, all time through
+ * 5 Sep 2026, across every provider campaign. Recorded here for one reason: the
+ * hand-entered columns below are known to sit BEHIND the platforms — on 4 Sep
+ * one campaign's row read $0.00 against Google's $43.52 — and a page that
+ * quotes a cost per inquiry off a stale spend figure reports a rate better than
+ * the one we actually achieved. Understating spend flatters us. That is the one
+ * direction this page must not be wrong in.
+ *
+ * So the economics tiles take whichever record is HIGHER, whole, never field by
+ * field (mixing a spend from one source with clicks from another invents a cost
+ * per click that nobody measured). Recorded spend can only lag, so once the
+ * sweep writes back past this point the database wins on its own and this
+ * constant stops mattering. Do not edit it to make a number look better; the
+ * only valid reason to change it is a fresh read at source, with the date.
+ *
+ * Scope is deliberately Google provider campaigns. The Nextdoor pilot and the
+ * Olera-funded city campaigns are separate spends and are described separately.
+ */
+const VERIFIED_PROGRAM_TOTALS = {
+  spendCents: 53528,
+  clicks: 255,
+  impressions: 4473,
+  inquiries: 7,
+  measuredOn: "2026-09-06",
+} as const;
+
 export interface ManagedAdsStats {
   /** Provider campaigns that have actually served (live or ended). */
   campaignsRun: number;
@@ -50,6 +77,16 @@ export interface ManagedAdsStats {
   impressions: number;
   /** spendCents / clicks, or null when either side is missing. */
   avgCpcCents: number | null;
+  /** spendCents / inquiries, from the same record. null when unknown. */
+  costPerInquiryCents: number | null;
+  /**
+   * Which record the economics came from. "verified" means the hand-entered
+   * columns are still behind the last read at source, so the page is quoting
+   * that read and saying so.
+   */
+  basis: "verified" | "recorded";
+  /** The date the economics figures are true as of. */
+  economicsAsOf: string | null;
   /**
    * Server-confirmed, campaign-attributed conversions on provider pages,
    * internal traffic stripped. Not hand-entered.
@@ -174,15 +211,37 @@ export async function getManagedAdsStats(): Promise<ManagedAdsStats | null> {
       cityRequests = 0;
     }
 
+    // Whole-record choice, not field by field. Recorded totals can only lag the
+    // platforms, so the larger spend is the more complete picture; taking spend
+    // from one record and clicks from another would fabricate a cost per click.
+    const useRecorded = spendCents > VERIFIED_PROGRAM_TOTALS.spendCents;
+    const economics = useRecorded
+      ? { spendCents, clicks, impressions, inquiries: familiesDelivered }
+      : {
+          spendCents: VERIFIED_PROGRAM_TOTALS.spendCents,
+          clicks: VERIFIED_PROGRAM_TOTALS.clicks,
+          impressions: VERIFIED_PROGRAM_TOTALS.impressions,
+          inquiries: VERIFIED_PROGRAM_TOTALS.inquiries as number | null,
+        };
+
     return {
       campaignsRun: providerRows.length,
       providersServed: providers.size,
       metrosRun: metros.size,
-      spendCents,
-      clicks,
-      impressions,
-      avgCpcCents: clicks > 0 && spendCents > 0 ? Math.round(spendCents / clicks) : null,
-      familiesDelivered,
+      spendCents: economics.spendCents,
+      clicks: economics.clicks,
+      impressions: economics.impressions,
+      avgCpcCents:
+        economics.clicks > 0 && economics.spendCents > 0
+          ? Math.round(economics.spendCents / economics.clicks)
+          : null,
+      costPerInquiryCents:
+        economics.inquiries && economics.inquiries > 0 && economics.spendCents > 0
+          ? Math.round(economics.spendCents / economics.inquiries)
+          : null,
+      basis: useRecorded ? "recorded" : "verified",
+      economicsAsOf: useRecorded ? recordedThrough : VERIFIED_PROGRAM_TOTALS.measuredOn,
+      familiesDelivered: economics.inquiries,
       cityRequests,
       recordedThrough,
     };

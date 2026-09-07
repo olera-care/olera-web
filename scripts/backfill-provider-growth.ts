@@ -104,14 +104,14 @@ function getAdsStatus(campaigns: AdCampaignRequest[]): {
     };
   }
 
-  // Check for free intro (any active campaign without subscription)
-  const activeCampaign = campaigns.find((c) =>
-    ["pending_profile", "requested", "scheduled", "live"].includes(c.status)
-  );
-  if (activeCampaign) {
+  // Check for free intro (any campaign that indicates trial engagement)
+  // "ended" = completed free trial but didn't convert to paying
+  const freeTrialStatuses = ["pending_profile", "requested", "scheduled", "live", "ended"];
+  const trialCampaign = campaigns.find((c) => freeTrialStatuses.includes(c.status));
+  if (trialCampaign) {
     return {
       status: "free_intro",
-      freeIntroAt: activeCampaign.created_at,
+      freeIntroAt: trialCampaign.created_at,
       subscribedAt: null,
     };
   }

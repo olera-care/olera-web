@@ -66,12 +66,17 @@ export default function ManagedAdsHero({
           </p>
         )}
 
-        {/* Only the two platforms we have actually bought media on. The strip
-            defaults to six; four of those we have never run, and the section
-            further down says so outright. Anything else here — greying the
-            others, tagging them "soon" — puts words back into a graphic whose
-            job is to be wordless. The roadmap is already stated in prose where
-            it belongs. */}
+        {/* Only the platforms we have actually bought media on. The shared strip
+            defaults to six; the four omitted here have never served an
+            impression for us, and the limits section says so outright.
+
+            TO ADD ONE: append { name, slug } below — slug matches a file in
+            public/images/platform-logos. Add it the day that campaign serves
+            its first impression, NOT the day it is built. We have built and
+            paused a whole batch before: five Nextdoor campaigns went up on
+            26 Aug 2026 and were paused two days later having spent nothing.
+            Built is not running, and this strip is a claim about running. */
+        }
         <div className="mt-12">
           <PlatformMarquee
             platforms={[

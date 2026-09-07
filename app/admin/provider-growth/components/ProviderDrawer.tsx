@@ -56,24 +56,11 @@ export function ProviderDrawer({ provider, onClose, onUpdate }: ProviderDrawerPr
     fetchTouchpoints();
   }, [fetchTouchpoints]);
 
-  const handleScheduleMeeting = async (meetingInfo: { scheduled_at: string }) => {
-    try {
-      const res = await fetch(`/api/admin/provider-growth/${provider.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pipeline_stage: "meeting_scheduled",
-          meeting_scheduled_at: meetingInfo.scheduled_at,
-        }),
-      });
-      if (!res.ok) {
-        throw new Error("Failed to schedule meeting");
-      }
-      setActiveAction(null);
-      onUpdate();
-    } catch (e) {
-      console.error("Failed to schedule meeting:", e);
-    }
+  // Called by MeetingScheduler after it successfully schedules via API
+  // The schedule-meeting route already updated the tracking, so we just refresh
+  const handleScheduleMeeting = async (_meetingInfo: { scheduled_at: string }) => {
+    setActiveAction(null);
+    onUpdate();
   };
 
   const handleLogPitch = async (data: PitchLogData) => {

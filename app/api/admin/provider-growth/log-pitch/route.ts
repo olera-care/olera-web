@@ -54,6 +54,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Tracking record not found" }, { status: 404 });
     }
 
+    // Validate stage - can only log pitch from meeting_scheduled or pitched (follow-up)
+    if (current.pipeline_stage !== "meeting_scheduled" && current.pipeline_stage !== "pitched") {
+      return NextResponse.json(
+        { error: `Cannot log pitch from stage: ${current.pipeline_stage}. Must be in meeting_scheduled or pitched.` },
+        { status: 400 }
+      );
+    }
+
     // Determine target stage
     const targetStage = mark_not_interested ? "not_interested" : "pitched";
 

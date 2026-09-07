@@ -6,6 +6,7 @@ import {
   createTouchpoint,
 } from "@/lib/provider-growth/queries";
 import { generateBookingUrl } from "@/lib/provider-growth/calendly";
+import { canTransitionTo } from "@/lib/provider-growth/stages";
 
 /**
  * POST /api/admin/provider-growth/schedule-meeting
@@ -48,6 +49,14 @@ export async function POST(request: NextRequest) {
 
     // If manually scheduling (without Calendly)
     if (meeting_scheduled_at) {
+      // Validate stage transition
+      if (!canTransitionTo(current.pipeline_stage, "meeting_scheduled")) {
+        return NextResponse.json(
+          { error: `Cannot schedule meeting from stage: ${current.pipeline_stage}` },
+          { status: 400 }
+        );
+      }
+
       const updated = await updateTracking(
         tracking_id,
         {

@@ -73,6 +73,13 @@ export default function ProviderGrowthPage() {
   const [selectedProvider, setSelectedProvider] = useState<ProviderGrowthWithProfile | null>(null);
   const selectedProviderIdRef = useRef<string | null>(null);
 
+  // Delete state
+  const [pendingDelete, setPendingDelete] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
+  const [deleting, setDeleting] = useState(false);
+
   // Keep ref in sync with selected provider
   useEffect(() => {
     selectedProviderIdRef.current = selectedProvider?.id ?? null;
@@ -199,6 +206,31 @@ export default function ProviderGrowthPage() {
     fetchStats();
   };
 
+  // Handle delete from tracking
+  const handleDelete = async () => {
+    if (!pendingDelete) return;
+    setDeleting(true);
+    try {
+      const res = await fetch(
+        `/api/admin/provider-growth?tracking_id=${encodeURIComponent(pendingDelete.id)}`,
+        { method: "DELETE" }
+      );
+      if (res.ok) {
+        setPendingDelete(null);
+        // If we deleted the selected provider, clear selection
+        if (selectedProvider?.id === pendingDelete.id) {
+          setSelectedProvider(null);
+        }
+        await fetchProviders();
+        fetchStats();
+      }
+    } catch (e) {
+      console.error("Failed to delete:", e);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   // Update selected provider when providers list changes
   useEffect(() => {
     const currentId = selectedProviderIdRef.current;
@@ -283,6 +315,10 @@ export default function ProviderGrowthPage() {
                 <ProviderRow
                   provider={provider}
                   onClick={() => setSelectedProvider(provider)}
+                  onDelete={() => setPendingDelete({
+                    id: provider.id,
+                    name: provider.display_name || "Unnamed Provider",
+                  })}
                   selected={selectedProvider?.id === provider.id}
                 />
               </li>
@@ -327,6 +363,34 @@ export default function ProviderGrowthPage() {
           onClose={() => setSelectedProvider(null)}
           onUpdate={handleProviderUpdate}
         />
+      )}
+
+      {/* Delete confirmation modal */}
+      {pendingDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full mx-4">
+            <h3 className="text-lg font-semibold text-gray-900">Remove from tracking</h3>
+            <p className="mt-2 text-sm text-gray-600">
+              Remove <strong>{pendingDelete.name}</strong> from growth tracking? This does not delete the provider from the directory.
+            </p>
+            <div className="mt-4 flex justify-end gap-3">
+              <button
+                onClick={() => setPendingDelete(null)}
+                disabled={deleting}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {deleting ? "Removing..." : "Remove"}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -18,10 +18,11 @@ import { EligibilityBadges } from "./EligibilityBadges";
 interface ProviderRowProps {
   provider: ProviderGrowthWithProfile;
   onClick: () => void;
+  onDelete?: () => void;
   selected?: boolean;
 }
 
-export function ProviderRow({ provider, onClick, selected }: ProviderRowProps) {
+export function ProviderRow({ provider, onClick, onDelete, selected }: ProviderRowProps) {
   // Line 2: Location · Category
   const location = [provider.city, provider.state].filter(Boolean).join(", ");
   const category = provider.care_types?.slice(0, 2).join(", ") || null;
@@ -35,7 +36,7 @@ export function ProviderRow({ provider, onClick, selected }: ProviderRowProps) {
   return (
     <div
       onClick={onClick}
-      className={`px-4 py-3 cursor-pointer transition-colors ${
+      className={`group px-4 py-3 cursor-pointer transition-colors ${
         selected ? "bg-primary-50" : "hover:bg-gray-50"
       }`}
     >
@@ -73,23 +74,20 @@ export function ProviderRow({ provider, onClick, selected }: ProviderRowProps) {
           )}
         </div>
 
-        {/* Right: Status indicators + CTA */}
-        <div className="flex shrink-0 flex-col items-end justify-between gap-2">
-          {/* Top: Overflow/status */}
-          <div className="flex items-center gap-2">
-            {/* Profile completeness */}
-            <ProfileProgress value={provider.profile_completeness || 0} />
+        {/* Right: All badges on one line + trash icon */}
+        <div className="flex shrink-0 items-center gap-2">
+          {/* Profile completeness */}
+          <ProfileProgress value={provider.profile_completeness || 0} />
 
-            {/* Conversion status badges */}
-            {provider.ads_status !== "none" && (
-              <StatusBadge type="ads" status={provider.ads_status as AdsStatus} />
-            )}
-            {provider.medjobs_status !== "none" && (
-              <StatusBadge type="medjobs" status={provider.medjobs_status as MedjobsStatus} />
-            )}
-          </div>
+          {/* Conversion status badges */}
+          {provider.ads_status !== "none" && (
+            <StatusBadge type="ads" status={provider.ads_status as AdsStatus} />
+          )}
+          {provider.medjobs_status !== "none" && (
+            <StatusBadge type="medjobs" status={provider.medjobs_status as MedjobsStatus} />
+          )}
 
-          {/* Bottom: Eligibility badges */}
+          {/* Eligibility badges */}
           <EligibilityBadges
             adsEligible={provider.ads_eligible}
             medjobsEligible={provider.medjobs_eligible}
@@ -98,18 +96,30 @@ export function ProviderRow({ provider, onClick, selected }: ProviderRowProps) {
 
           {/* Meeting/pitch info */}
           {provider.pipeline_stage === "meeting_scheduled" && provider.meeting_scheduled_at && (
-            <div className="text-right">
-              <div className="text-xs font-medium text-blue-600">
-                {formatDate(provider.meeting_scheduled_at)}
-              </div>
-            </div>
+            <span className="text-xs font-medium text-blue-600">
+              {formatDate(provider.meeting_scheduled_at)}
+            </span>
           )}
           {provider.pipeline_stage === "pitched" && provider.pitched_at && (
-            <div className="text-right">
-              <div className="text-xs text-gray-400">
-                Pitched {timeAgo(provider.pitched_at)}
-              </div>
-            </div>
+            <span className="text-xs text-gray-400">
+              Pitched {timeAgo(provider.pitched_at)}
+            </span>
+          )}
+
+          {/* Trash icon - appears on hover */}
+          {onDelete && (
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete();
+              }}
+              className="p-1 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+              title="Remove from tracking"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+              </svg>
+            </button>
           )}
         </div>
       </div>

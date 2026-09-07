@@ -36,10 +36,8 @@ export function ProviderRow({ provider, onClick, selected }: ProviderRowProps) {
   return (
     <div
       onClick={onClick}
-      className={`rounded-lg border bg-white px-4 py-3 cursor-pointer transition-colors hover:bg-gray-50 ${
-        selected
-          ? "border-blue-500 ring-1 ring-blue-500"
-          : "border-gray-200"
+      className={`px-4 py-3 cursor-pointer transition-colors ${
+        selected ? "bg-primary-50" : "hover:bg-gray-50"
       }`}
     >
       <div className="flex items-start justify-between gap-4">

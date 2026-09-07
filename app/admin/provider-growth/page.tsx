@@ -213,74 +213,71 @@ export default function ProviderGrowthPage() {
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Provider Growth</h1>
-              <p className="mt-1 text-sm text-gray-500">
-                Track claimed providers from claim to conversion
-              </p>
-            </div>
-            <div className="flex items-center gap-3">
-              {/* Date range filter */}
-              <DateRangePopover
-                value={dateRange}
-                onChange={setDateRange}
-                ariaLabel="Filter by claim date"
-              />
+    <div>
+      {/* Page Header */}
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900">Provider Growth</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Track claimed providers from claim to conversion
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            {/* Date range filter */}
+            <DateRangePopover
+              value={dateRange}
+              onChange={setDateRange}
+              ariaLabel="Filter by claim date"
+            />
 
-              {/* Search */}
-              <div className="relative">
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Search providers..."
-                  className="w-64 pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+            {/* Search */}
+            <div className="relative">
+              <svg
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                 />
-                <svg
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                  />
-                </svg>
-              </div>
+              </svg>
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search providers..."
+                className="w-64 pl-9 pr-4 py-2 text-sm border border-gray-300 rounded-lg focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+              />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Stats */}
-        <StatsHeader stats={stats} loading={loadingStats} />
+      {/* Stats */}
+      <StatsHeader stats={stats} loading={loadingStats} />
 
-        {/* Tabs */}
-        <GrowthTabs activeTab={activeTab} onTabChange={handleTabChange} stats={stats} />
+      {/* Tabs */}
+      <GrowthTabs activeTab={activeTab} onTabChange={handleTabChange} stats={stats} />
 
-        {/* Provider list */}
+      {/* Provider list */}
+      <div className="bg-white rounded-xl border border-gray-200">
         {loading ? (
-          <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-gray-500">
             Loading providers...
           </div>
         ) : providers.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-gray-500">
+          <div className="p-8 text-center text-gray-500">
             {debouncedSearch
               ? `No providers found matching "${debouncedSearch}"`
               : "No providers in this stage"}
           </div>
         ) : (
-          <ul className="space-y-2">
+          <ul className="divide-y divide-gray-100">
             {providers.map((provider) => (
               <li key={provider.id}>
                 <ProviderRow
@@ -292,36 +289,36 @@ export default function ProviderGrowthPage() {
             ))}
           </ul>
         )}
-
-        {/* Pagination */}
-        {!loading && total > 0 && (
-          <div className="flex items-center justify-between mt-6 px-2">
-            <p className="text-sm text-gray-500">
-              {total <= PAGE_SIZE
-                ? `${total} total`
-                : `${page * PAGE_SIZE + 1}–${Math.min((page + 1) * PAGE_SIZE, total)} of ${total}`}
-            </p>
-            {totalPages > 1 && (
-              <div className="flex gap-2">
-                <button
-                  onClick={() => setPage((p) => Math.max(0, p - 1))}
-                  disabled={page === 0}
-                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
-                  disabled={page >= totalPages - 1}
-                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
-                >
-                  Next
-                </button>
-              </div>
-            )}
-          </div>
-        )}
       </div>
+
+      {/* Pagination */}
+      {!loading && total > 0 && (
+        <div className="flex items-center justify-between mt-6 px-2">
+          <p className="text-sm text-gray-500">
+            {total <= PAGE_SIZE
+              ? `${total} total`
+              : `${page * PAGE_SIZE + 1}–${Math.min((page + 1) * PAGE_SIZE, total)} of ${total}`}
+          </p>
+          {totalPages > 1 && (
+            <div className="flex gap-2">
+              <button
+                onClick={() => setPage((p) => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Drawer */}
       {selectedProvider && (

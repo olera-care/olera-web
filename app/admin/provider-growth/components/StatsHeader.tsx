@@ -36,14 +36,14 @@ export function StatsHeader({ stats, loading }: StatsHeaderProps) {
   if (!stats) return null;
 
   const statItems = [
-    { label: "New Claims", value: stats.new_claim, color: "text-gray-900" },
-    { label: "Meeting Scheduled", value: stats.meeting_scheduled, color: "text-blue-600" },
-    { label: "Pitched", value: stats.pitched, color: "text-indigo-600" },
-    { label: "Not Interested", value: stats.not_interested, color: "text-gray-500" },
-    { label: "Ads Free Trial", value: stats.ads_free_intro, color: "text-amber-600", highlight: true },
-    { label: "Ads Paying", value: stats.ads_subscribed, color: "text-emerald-600", highlight: true },
-    { label: "MedJobs Pilot", value: stats.medjobs_in_pilot, color: "text-purple-600", highlight: true },
-    { label: "MedJobs Paying", value: stats.medjobs_subscribed, color: "text-emerald-600", highlight: true },
+    { label: "New Claims", value: stats.new_claim },
+    { label: "Meeting Scheduled", value: stats.meeting_scheduled },
+    { label: "Pitched", value: stats.pitched },
+    { label: "Not Interested", value: stats.not_interested },
+    { label: "Ads Free Trial", value: stats.ads_free_intro },
+    { label: "Ads Paying", value: stats.ads_subscribed },
+    { label: "MedJobs Pilot", value: stats.medjobs_in_pilot },
+    { label: "MedJobs Paying", value: stats.medjobs_subscribed },
   ];
 
   return (
@@ -57,13 +57,9 @@ export function StatsHeader({ stats, loading }: StatsHeaderProps) {
         {statItems.map((item) => (
           <div
             key={item.label}
-            className={`rounded-xl border px-3 py-2.5 ${
-              item.highlight
-                ? "border-emerald-200 bg-emerald-50/50"
-                : "border-gray-200 bg-white"
-            }`}
+            className="rounded-xl border border-gray-200 bg-white px-3 py-2.5"
           >
-            <div className={`text-xl font-semibold tabular-nums ${item.color}`}>
+            <div className="text-xl font-semibold tabular-nums text-gray-900">
               {item.value.toLocaleString()}
             </div>
             <div className="mt-0.5 text-xs text-gray-500 truncate" title={item.label}>

@@ -70,10 +70,12 @@ export function ProviderRow({ provider, onClick, selected }: ProviderRowProps) {
             <p className="mt-0.5 truncate text-[11px] text-gray-400">{category}</p>
           )}
 
-          {/* Claim date */}
-          <p className="mt-1 text-[10px] text-gray-400">
-            Claimed {timeAgo(provider.claimed_at)}
-          </p>
+          {/* Claim date - only show if we have the date */}
+          {provider.claimed_at && (
+            <p className="mt-1 text-[10px] text-gray-400">
+              {timeAgo(provider.claimed_at)}
+            </p>
+          )}
         </div>
 
         {/* Right: Status indicators + CTA */}

@@ -8,6 +8,7 @@
  * Follows the MedjobsCard pattern for consistency across admin pages.
  */
 
+import Link from "next/link";
 import type { ProviderGrowthWithProfile } from "@/lib/provider-growth/queries";
 import {
   CLAIM_SOURCE_LABELS,
@@ -49,7 +50,7 @@ export function ProviderRow({ provider, onClick, selected }: ProviderRowProps) {
             <h3 className="truncate text-sm font-medium text-gray-900">
               {provider.display_name || "Unnamed Provider"}
             </h3>
-            <VerificationBadge state={provider.verification_state} />
+            <VerificationBadge state={provider.verification_state} providerName={provider.display_name} />
           </div>
 
           {/* Subtitle: Location · Email */}
@@ -132,38 +133,45 @@ export function ProviderRow({ provider, onClick, selected }: ProviderRowProps) {
   );
 }
 
-function VerificationBadge({ state }: { state: string | null }) {
-  if (!state) return null;
+function VerificationBadge({ state, providerName }: { state: string | null; providerName: string | null }) {
+  const verificationLink = `/admin/verification?search=${encodeURIComponent(providerName || "")}`;
 
-  const config: Record<string, { label: string; className: string }> = {
-    verified: {
-      label: "Verified",
-      className: "bg-emerald-50 text-emerald-700 border-emerald-200",
-    },
-    pending: {
-      label: "Pending",
-      className: "bg-amber-50 text-amber-700 border-amber-200",
-    },
-    not_required: {
-      label: "not_required",
-      className: "bg-gray-50 text-gray-500 border-gray-200",
-    },
-    rejected: {
-      label: "rejected",
-      className: "bg-red-50 text-red-700 border-red-200",
-    },
-  };
+  // Verified or not_required: show green checkmark
+  if (state === "verified" || state === "not_required") {
+    return (
+      <Link
+        href={verificationLink}
+        onClick={(e) => e.stopPropagation()}
+        className="text-emerald-600 hover:text-emerald-700 transition-colors"
+        title="Verified — click to view"
+      >
+        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+          <path
+            fillRule="evenodd"
+            d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </Link>
+    );
+  }
 
-  const cfg = config[state];
-  if (!cfg) return null;
+  // Pending verification: show amber badge linking to verification page
+  if (state === "pending") {
+    return (
+      <Link
+        href={verificationLink}
+        onClick={(e) => e.stopPropagation()}
+        className="px-1.5 py-0.5 text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200 rounded hover:bg-amber-100 transition-colors"
+        title="Click to review verification"
+      >
+        Pending Verification
+      </Link>
+    );
+  }
 
-  return (
-    <span
-      className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded border ${cfg.className}`}
-    >
-      {cfg.label}
-    </span>
-  );
+  // Everything else (unverified, rejected, etc.): show nothing
+  return null;
 }
 
 function SourceBadge({ source }: { source: ClaimSource }) {

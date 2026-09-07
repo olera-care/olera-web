@@ -3,17 +3,13 @@
 /**
  * ProviderRow - Card-based provider row in the growth tracking list
  *
- * Shows provider name, contact info (phone/email), source, claim date,
+ * Shows provider name, contact info (phone/email), claim date,
  * verification status, profile completeness, and eligibility badges.
- * Follows the MedjobsCard pattern for consistency across admin pages.
  */
 
 import Link from "next/link";
 import type { ProviderGrowthWithProfile } from "@/lib/provider-growth/queries";
 import {
-  CLAIM_SOURCE_LABELS,
-  CLAIM_SOURCE_COLORS,
-  type ClaimSource,
   type AdsStatus,
   type MedjobsStatus,
 } from "@/lib/provider-growth/stages";
@@ -74,17 +70,10 @@ export function ProviderRow({ provider, onClick, selected }: ProviderRowProps) {
             <p className="mt-0.5 truncate text-[11px] text-gray-400">{category}</p>
           )}
 
-          {/* Badges row: Source + Claim date */}
-          <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-            {provider.claim_source && (
-              <SourceBadge source={provider.claim_source as ClaimSource} />
-            )}
-            {provider.claimed_at && (
-              <span className="text-[10px] text-gray-400">
-                Claimed {timeAgo(provider.claimed_at)}
-              </span>
-            )}
-          </div>
+          {/* Claim date */}
+          <p className="mt-1 text-[10px] text-gray-400">
+            Claimed {timeAgo(provider.claimed_at)}
+          </p>
         </div>
 
         {/* Right: Status indicators + CTA */}
@@ -170,19 +159,6 @@ function VerificationBadge({ state, providerName }: { state: string | null; prov
 
   // Everything else (unverified, rejected, etc.): show nothing
   return null;
-}
-
-function SourceBadge({ source }: { source: ClaimSource }) {
-  const label = CLAIM_SOURCE_LABELS[source] || source;
-  const colorClass = CLAIM_SOURCE_COLORS[source] || "text-gray-600 bg-gray-50 border-gray-200";
-
-  return (
-    <span
-      className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded border ${colorClass}`}
-    >
-      {label}
-    </span>
-  );
 }
 
 function StatusBadge({

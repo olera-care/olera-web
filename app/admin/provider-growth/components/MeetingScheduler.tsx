@@ -110,7 +110,10 @@ export function MeetingScheduler({
       <div className="flex gap-2">
         <button
           type="button"
-          onClick={() => setMode("calendly")}
+          onClick={() => {
+            setMode("calendly");
+            setError(null);
+          }}
           className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
             mode === "calendly"
               ? "bg-blue-50 text-blue-700 border-blue-200"
@@ -121,7 +124,10 @@ export function MeetingScheduler({
         </button>
         <button
           type="button"
-          onClick={() => setMode("manual")}
+          onClick={() => {
+            setMode("manual");
+            setError(null);
+          }}
           className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
             mode === "manual"
               ? "bg-blue-50 text-blue-700 border-blue-200"

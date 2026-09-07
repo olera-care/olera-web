@@ -7,7 +7,6 @@
  * Conversion tabs: Converted (with Ads/MedJobs subtabs) | Paying (with subtabs)
  */
 
-import { useState } from "react";
 import type { GrowthStats } from "@/lib/provider-growth/queries";
 
 export type PipelineTab = "new_claim" | "meeting_scheduled" | "pitched" | "not_interested";
@@ -42,10 +41,6 @@ const CONVERSION_SUB_TABS: Array<{ id: ConversionSubTab; label: string }> = [
 ];
 
 export function GrowthTabs({ activeTab, onTabChange, stats }: GrowthTabsProps) {
-  const [showConversionSubTabs, setShowConversionSubTabs] = useState(
-    activeTab.type === "conversion"
-  );
-
   const getCount = (tab: PipelineTab | ConversionTab | ConversionSubTab): number => {
     if (!stats) return 0;
 
@@ -100,7 +95,6 @@ export function GrowthTabs({ activeTab, onTabChange, stats }: GrowthTabsProps) {
             key={tab.id}
             onClick={() => {
               onTabChange({ type: "pipeline", stage: tab.id });
-              setShowConversionSubTabs(false);
             }}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               isPipelineActive(tab.id)
@@ -130,7 +124,6 @@ export function GrowthTabs({ activeTab, onTabChange, stats }: GrowthTabsProps) {
             key={tab.id}
             onClick={() => {
               onTabChange({ type: "conversion", tab: tab.id, subTab: "ads" });
-              setShowConversionSubTabs(true);
             }}
             className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
               isConversionActive(tab.id)

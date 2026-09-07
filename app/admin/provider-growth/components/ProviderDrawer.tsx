@@ -7,7 +7,7 @@
  * for managing the provider through the growth pipeline.
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import type { ProviderGrowthWithProfile, ProviderGrowthTouchpoint } from "@/lib/provider-growth/queries";
@@ -38,11 +38,7 @@ export function ProviderDrawer({ provider, onClose, onUpdate }: ProviderDrawerPr
   const [notes, setNotes] = useState(provider.notes || "");
   const [savingNotes, setSavingNotes] = useState(false);
 
-  useEffect(() => {
-    fetchTouchpoints();
-  }, [provider.id]);
-
-  const fetchTouchpoints = async () => {
+  const fetchTouchpoints = useCallback(async () => {
     try {
       const res = await fetch(`/api/admin/provider-growth/${provider.id}`);
       if (res.ok) {
@@ -54,11 +50,15 @@ export function ProviderDrawer({ provider, onClose, onUpdate }: ProviderDrawerPr
     } finally {
       setLoadingTouchpoints(false);
     }
-  };
+  }, [provider.id]);
+
+  useEffect(() => {
+    fetchTouchpoints();
+  }, [fetchTouchpoints]);
 
   const handleScheduleMeeting = async (meetingInfo: { scheduled_at: string }) => {
     try {
-      await fetch(`/api/admin/provider-growth/${provider.id}`, {
+      const res = await fetch(`/api/admin/provider-growth/${provider.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -66,6 +66,9 @@ export function ProviderDrawer({ provider, onClose, onUpdate }: ProviderDrawerPr
           meeting_scheduled_at: meetingInfo.scheduled_at,
         }),
       });
+      if (!res.ok) {
+        throw new Error("Failed to schedule meeting");
+      }
       setActiveAction(null);
       onUpdate();
     } catch (e) {
@@ -75,7 +78,7 @@ export function ProviderDrawer({ provider, onClose, onUpdate }: ProviderDrawerPr
 
   const handleLogPitch = async (data: PitchLogData) => {
     try {
-      await fetch("/api/admin/provider-growth/log-pitch", {
+      const res = await fetch("/api/admin/provider-growth/log-pitch", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -83,6 +86,9 @@ export function ProviderDrawer({ provider, onClose, onUpdate }: ProviderDrawerPr
           ...data,
         }),
       });
+      if (!res.ok) {
+        throw new Error("Failed to log pitch");
+      }
       setActiveAction(null);
       onUpdate();
     } catch (e) {
@@ -93,11 +99,14 @@ export function ProviderDrawer({ provider, onClose, onUpdate }: ProviderDrawerPr
   const handleSaveNotes = async () => {
     setSavingNotes(true);
     try {
-      await fetch(`/api/admin/provider-growth/${provider.id}`, {
+      const res = await fetch(`/api/admin/provider-growth/${provider.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ notes }),
       });
+      if (!res.ok) {
+        throw new Error("Failed to save notes");
+      }
       setActiveAction(null);
       onUpdate();
     } catch (e) {
@@ -111,7 +120,7 @@ export function ProviderDrawer({ provider, onClose, onUpdate }: ProviderDrawerPr
     if (!confirm("Mark this provider as not interested?")) return;
 
     try {
-      await fetch(`/api/admin/provider-growth/${provider.id}`, {
+      const res = await fetch(`/api/admin/provider-growth/${provider.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -119,6 +128,9 @@ export function ProviderDrawer({ provider, onClose, onUpdate }: ProviderDrawerPr
           not_interested_at: new Date().toISOString(),
         }),
       });
+      if (!res.ok) {
+        throw new Error("Failed to mark not interested");
+      }
       onUpdate();
     } catch (e) {
       console.error("Failed to mark not interested:", e);
@@ -127,11 +139,14 @@ export function ProviderDrawer({ provider, onClose, onUpdate }: ProviderDrawerPr
 
   const handleReEngage = async () => {
     try {
-      await fetch(`/api/admin/provider-growth/${provider.id}`, {
+      const res = await fetch(`/api/admin/provider-growth/${provider.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ pipeline_stage: "new_claim" }),
       });
+      if (!res.ok) {
+        throw new Error("Failed to re-engage");
+      }
       onUpdate();
     } catch (e) {
       console.error("Failed to re-engage:", e);
@@ -147,9 +162,11 @@ export function ProviderDrawer({ provider, onClose, onUpdate }: ProviderDrawerPr
             {provider.display_name || "Unnamed Provider"}
           </h2>
           <div className="flex items-center gap-2 mt-1">
-            <span className="text-sm text-gray-500">
-              {provider.city}, {provider.state}
-            </span>
+            {(provider.city || provider.state) && (
+              <span className="text-sm text-gray-500">
+                {[provider.city, provider.state].filter(Boolean).join(", ")}
+              </span>
+            )}
             <span className="text-gray-300">·</span>
             <span className={`text-sm font-medium ${getStageColor(provider.pipeline_stage)}`}>
               {PIPELINE_STAGE_LABELS[provider.pipeline_stage]}

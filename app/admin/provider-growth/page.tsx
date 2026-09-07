@@ -10,7 +10,7 @@
  * Conversion: Ads (free_intro → subscribed) | MedJobs (in_pilot → subscribed)
  */
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { ProviderGrowthWithProfile, GrowthStats } from "@/lib/provider-growth/queries";
 import type { PipelineStage, AdsStatus, MedjobsStatus, ClaimSource } from "@/lib/provider-growth/stages";
@@ -47,6 +47,12 @@ export default function ProviderGrowthPage() {
 
   // Selection state
   const [selectedProvider, setSelectedProvider] = useState<ProviderGrowthWithProfile | null>(null);
+  const selectedProviderIdRef = useRef<string | null>(null);
+
+  // Keep ref in sync with selected provider
+  useEffect(() => {
+    selectedProviderIdRef.current = selectedProvider?.id ?? null;
+  }, [selectedProvider]);
 
   // Debounce search
   useEffect(() => {
@@ -86,12 +92,17 @@ export default function ProviderGrowthPage() {
             params.set("adsStatus", "free_intro");
           } else if (activeTab.subTab === "medjobs") {
             params.set("medjobsStatus", "in_pilot");
+          } else if (activeTab.subTab === "both") {
+            params.set("adsStatus", "free_intro");
+            params.set("medjobsStatus", "in_pilot");
           }
-          // "both" would need special handling
         } else if (activeTab.tab === "paying") {
           if (activeTab.subTab === "ads") {
             params.set("adsStatus", "subscribed");
           } else if (activeTab.subTab === "medjobs") {
+            params.set("medjobsStatus", "subscribed");
+          } else if (activeTab.subTab === "both") {
+            params.set("adsStatus", "subscribed");
             params.set("medjobsStatus", "subscribed");
           }
         }
@@ -136,17 +147,21 @@ export default function ProviderGrowthPage() {
   };
 
   // Handle provider update (after drawer action)
-  const handleProviderUpdate = () => {
-    fetchProviders();
+  const handleProviderUpdate = async () => {
+    await fetchProviders();
     fetchStats();
-    // Refresh selected provider
-    if (selectedProvider) {
-      const updated = providers.find((p) => p.id === selectedProvider.id);
+  };
+
+  // Update selected provider when providers list changes
+  useEffect(() => {
+    const currentId = selectedProviderIdRef.current;
+    if (currentId) {
+      const updated = providers.find((p) => p.id === currentId);
       if (updated) {
         setSelectedProvider(updated);
       }
     }
-  };
+  }, [providers]);
 
   return (
     <div className="min-h-screen bg-gray-50">

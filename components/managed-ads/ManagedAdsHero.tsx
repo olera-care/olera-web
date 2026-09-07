@@ -1,3 +1,4 @@
+import PlatformMarquee from "@/components/provider/PlatformMarquee";
 import StartCampaignLink from "@/components/managed-ads/StartCampaignLink";
 
 /**
@@ -57,15 +58,21 @@ export default function ManagedAdsHero({
           </div>
         )}
 
-        {/* Deliberately NOT the shared PlatformMarquee. That strip scrolls
-            Facebook, Instagram, YouTube and X, we have never run a campaign on
-            any of them, and this page says so out loud a few screens later. */}
-        <p className="mt-8 max-w-2xl text-text-sm text-gray-600">
-          <span className="font-semibold text-gray-900">Google Search</span> for families actively
-          looking, <span className="font-semibold text-gray-900">Nextdoor</span> for the
-          neighborhood feed. Facebook and Instagram are next, and we will publish what they do when
-          we have run them.
-        </p>
+        {/* The shared strip, narrowed. It defaults to six platforms and we have
+            only ever bought media on two, which would contradict the section
+            further down that says so in plain words. Passing the list keeps the
+            graphic and puts the roadmap inside it: Google and Nextdoor at full
+            strength, the two we are heading for greyed and tagged. */}
+        <div className="mt-12">
+          <PlatformMarquee
+            platforms={[
+              { name: "Google", slug: "google" },
+              { name: "Nextdoor", slug: "nextdoor" },
+              { name: "Facebook", slug: "facebook", soon: true },
+              { name: "Instagram", slug: "instagram", soon: true },
+            ]}
+          />
+        </div>
       </div>
     </section>
   );

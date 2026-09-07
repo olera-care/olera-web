@@ -79,6 +79,7 @@ export default function ProviderGrowthPage() {
     name: string;
   } | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Keep ref in sync with selected provider
   useEffect(() => {
@@ -210,6 +211,7 @@ export default function ProviderGrowthPage() {
   const handleDelete = async () => {
     if (!pendingDelete) return;
     setDeleting(true);
+    setDeleteError(null);
     try {
       const res = await fetch(
         `/api/admin/provider-growth?tracking_id=${encodeURIComponent(pendingDelete.id)}`,
@@ -223,9 +225,13 @@ export default function ProviderGrowthPage() {
         }
         await fetchProviders();
         fetchStats();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setDeleteError(data.error || "Failed to remove");
       }
     } catch (e) {
       console.error("Failed to delete:", e);
+      setDeleteError("Network error");
     } finally {
       setDeleting(false);
     }
@@ -373,9 +379,15 @@ export default function ProviderGrowthPage() {
             <p className="mt-2 text-sm text-gray-600">
               Remove <strong>{pendingDelete.name}</strong> from growth tracking? This does not delete the provider from the directory.
             </p>
+            {deleteError && (
+              <p className="mt-3 text-sm text-red-600">{deleteError}</p>
+            )}
             <div className="mt-4 flex justify-end gap-3">
               <button
-                onClick={() => setPendingDelete(null)}
+                onClick={() => {
+                  setPendingDelete(null);
+                  setDeleteError(null);
+                }}
                 disabled={deleting}
                 className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
               >

@@ -78,6 +78,16 @@ export async function GET(request: NextRequest) {
       options.search = search;
     }
 
+    // Date range filtering
+    const claimedFrom = searchParams.get("claimedFrom");
+    if (claimedFrom) {
+      options.claimedFrom = claimedFrom;
+    }
+    const claimedTo = searchParams.get("claimedTo");
+    if (claimedTo) {
+      options.claimedTo = claimedTo;
+    }
+
     const limit = parseInt(searchParams.get("limit") || "50", 10);
     const offset = parseInt(searchParams.get("offset") || "0", 10);
     options.limit = Math.min(limit, 100);

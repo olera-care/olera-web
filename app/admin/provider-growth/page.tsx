@@ -13,7 +13,11 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { ProviderGrowthWithProfile, GrowthStats } from "@/lib/provider-growth/queries";
-import type { PipelineStage, AdsStatus, MedjobsStatus, ClaimSource } from "@/lib/provider-growth/stages";
+import type { PipelineStage } from "@/lib/provider-growth/stages";
+import DateRangePopover, {
+  resolveRange,
+  type DateRangeValue,
+} from "@/components/admin/DateRangePopover";
 import {
   GrowthTabs,
   StatsHeader,
@@ -21,6 +25,9 @@ import {
   ProviderDrawer,
   type ActiveTab,
 } from "./components";
+
+const PAGE_SIZE = 50;
+const DEFAULT_DATE_RANGE: DateRangeValue = { preset: "all", customFrom: "", customTo: "" };
 
 export default function ProviderGrowthPage() {
   const router = useRouter();
@@ -40,10 +47,15 @@ export default function ProviderGrowthPage() {
   const [stats, setStats] = useState<GrowthStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingStats, setLoadingStats] = useState(true);
+  const [total, setTotal] = useState(0);
 
   // Filter state
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [dateRange, setDateRange] = useState<DateRangeValue>(DEFAULT_DATE_RANGE);
+
+  // Pagination state
+  const [page, setPage] = useState(0);
 
   // Selection state
   const [selectedProvider, setSelectedProvider] = useState<ProviderGrowthWithProfile | null>(null);
@@ -56,9 +68,17 @@ export default function ProviderGrowthPage() {
 
   // Debounce search
   useEffect(() => {
-    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    const timer = setTimeout(() => {
+      setDebouncedSearch(search);
+      setPage(0); // Reset to first page on search
+    }, 300);
     return () => clearTimeout(timer);
   }, [search]);
+
+  // Reset page when date range changes
+  useEffect(() => {
+    setPage(0);
+  }, [dateRange]);
 
   // Fetch stats
   const fetchStats = useCallback(async () => {
@@ -112,17 +132,31 @@ export default function ProviderGrowthPage() {
         params.set("search", debouncedSearch);
       }
 
+      // Date range filtering
+      const resolved = resolveRange(dateRange);
+      if (resolved.from) {
+        params.set("claimedFrom", resolved.from);
+      }
+      if (resolved.to) {
+        params.set("claimedTo", resolved.to);
+      }
+
+      // Pagination
+      params.set("limit", String(PAGE_SIZE));
+      params.set("offset", String(page * PAGE_SIZE));
+
       const res = await fetch(`/api/admin/provider-growth?${params}`);
       if (res.ok) {
         const data = await res.json();
         setProviders(data.providers);
+        setTotal(data.total);
       }
     } catch (e) {
       console.error("Failed to fetch providers:", e);
     } finally {
       setLoading(false);
     }
-  }, [activeTab, debouncedSearch]);
+  }, [activeTab, debouncedSearch, dateRange, page]);
 
   // Initial fetch
   useEffect(() => {
@@ -137,6 +171,7 @@ export default function ProviderGrowthPage() {
   const handleTabChange = (tab: ActiveTab) => {
     setActiveTab(tab);
     setSelectedProvider(null);
+    setPage(0); // Reset to first page
 
     // Update URL
     if (tab.type === "pipeline") {
@@ -163,6 +198,8 @@ export default function ProviderGrowthPage() {
     }
   }, [providers]);
 
+  const totalPages = Math.ceil(total / PAGE_SIZE);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -175,7 +212,14 @@ export default function ProviderGrowthPage() {
                 Track claimed providers from claim to conversion
               </p>
             </div>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              {/* Date range filter */}
+              <DateRangePopover
+                value={dateRange}
+                onChange={setDateRange}
+                ariaLabel="Filter by claim date"
+              />
+
               {/* Search */}
               <div className="relative">
                 <input
@@ -237,10 +281,32 @@ export default function ProviderGrowthPage() {
           </ul>
         )}
 
-        {/* Results count */}
-        {!loading && providers.length > 0 && (
-          <div className="mt-4 text-sm text-gray-500">
-            Showing {providers.length} provider{providers.length !== 1 ? "s" : ""}
+        {/* Pagination */}
+        {!loading && total > 0 && (
+          <div className="flex items-center justify-between mt-6 px-2">
+            <p className="text-sm text-gray-500">
+              {total <= PAGE_SIZE
+                ? `${total} total`
+                : `${page * PAGE_SIZE + 1}–${Math.min((page + 1) * PAGE_SIZE, total)} of ${total}`}
+            </p>
+            {totalPages > 1 && (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPage((p) => Math.max(0, p - 1))}
+                  disabled={page === 0}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+                  disabled={page >= totalPages - 1}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

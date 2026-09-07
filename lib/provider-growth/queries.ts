@@ -145,6 +145,9 @@ export interface ListProvidersOptions {
   claimSource?: ClaimSource;
   medjobsEligible?: boolean;
   search?: string;
+  // Date range filtering (ISO strings)
+  claimedFrom?: string;
+  claimedTo?: string;
   limit?: number;
   offset?: number;
   orderBy?: "claimed_at" | "meeting_scheduled_at" | "pipeline_stage_changed_at" | "last_activity_at";
@@ -163,6 +166,8 @@ export async function listProviders(options: ListProvidersOptions = {}): Promise
     claimSource,
     medjobsEligible,
     search,
+    claimedFrom,
+    claimedTo,
     limit = 50,
     offset = 0,
     orderBy = "claimed_at",
@@ -210,6 +215,13 @@ export async function listProviders(options: ListProvidersOptions = {}): Promise
   }
   if (medjobsEligible !== undefined) {
     query = query.eq("medjobs_eligible", medjobsEligible);
+  }
+  // Date range filtering
+  if (claimedFrom) {
+    query = query.gte("claimed_at", claimedFrom);
+  }
+  if (claimedTo) {
+    query = query.lte("claimed_at", claimedTo);
   }
   // Note: Search filtering is done in memory after fetch because
   // Supabase PostgREST doesn't support ilike on joined columns

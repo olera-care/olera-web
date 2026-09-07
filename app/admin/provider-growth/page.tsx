@@ -213,28 +213,29 @@ export default function ProviderGrowthPage() {
         <GrowthTabs activeTab={activeTab} onTabChange={handleTabChange} stats={stats} />
 
         {/* Provider list */}
-        <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-          {loading ? (
-            <div className="p-8 text-center text-gray-500">Loading providers...</div>
-          ) : providers.length === 0 ? (
-            <div className="p-8 text-center text-gray-500">
-              {debouncedSearch
-                ? `No providers found matching "${debouncedSearch}"`
-                : "No providers in this stage"}
-            </div>
-          ) : (
-            <div>
-              {providers.map((provider) => (
+        {loading ? (
+          <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-gray-500">
+            Loading providers...
+          </div>
+        ) : providers.length === 0 ? (
+          <div className="rounded-lg border border-dashed border-gray-200 bg-gray-50 p-8 text-center text-gray-500">
+            {debouncedSearch
+              ? `No providers found matching "${debouncedSearch}"`
+              : "No providers in this stage"}
+          </div>
+        ) : (
+          <ul className="space-y-2">
+            {providers.map((provider) => (
+              <li key={provider.id}>
                 <ProviderRow
-                  key={provider.id}
                   provider={provider}
                   onClick={() => setSelectedProvider(provider)}
                   selected={selectedProvider?.id === provider.id}
                 />
-              ))}
-            </div>
-          )}
-        </div>
+              </li>
+            ))}
+          </ul>
+        )}
 
         {/* Results count */}
         {!loading && providers.length > 0 && (

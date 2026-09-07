@@ -62,6 +62,10 @@ export interface ProviderGrowthWithProfile extends ProviderGrowthTracking {
   city: string | null;
   state: string | null;
   verification_state: string | null;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
+  care_types: string[] | null;
   // Profile completeness (computed)
   profile_completeness?: number;
   // Engagement metrics (joined)
@@ -250,6 +254,10 @@ export async function listProviders(options: ListProvidersOptions = {}): Promise
       city: profile.city,
       state: profile.state,
       verification_state: profile.verification_state,
+      phone: profile.phone,
+      email: profile.email,
+      website: profile.website,
+      care_types: profile.care_types,
       profile_completeness: computeProfileCompleteness(profile),
     } as ProviderGrowthWithProfile;
   });

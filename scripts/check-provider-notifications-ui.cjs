@@ -4,9 +4,9 @@ Object.assign(globalThis,{window:win,self:win,document:win.document,HTMLElement:
 Object.defineProperty(globalThis,'navigator',{value:win.navigator,configurable:true});
 const React=require('react'),{createRoot}=require('react-dom/client');
 let search=new URLSearchParams('tab=notifications&provider=provider-a&eid=email-a');
-let profile={id:'profile-a',slug:'provider-a',type:'organization',phone:'5125550100',metadata:{},display_name:'Test Care'};
+let profile={id:'profile-a',slug:'provider-a',type:'organization',phone:'5125550100',metadata:{notification_prefs:{new_leads:{sms:false}}},display_name:'Test Care'};
 const profiles=[profile,{...profile,id:'profile-b',slug:'provider-b'}];
-const calls=[];let pendingSave;
+const calls=[];let pendingSave;let verificationOpens=0;
 globalThis.fetch=(url,opts)=>{
  const body=JSON.parse(opts.body);calls.push(body);
  if(body.kind==='view') return Promise.resolve({ok:true});
@@ -25,7 +25,7 @@ new Function('require','module','exports',code)(id=>{
  if(id==='next/link')return {__esModule:true,default:({children,...props})=>React.createElement('a',props,children)};
  if(id==='@/components/auth/AuthProvider')return {useAuth:()=>({user:{email:'test@example.com'},activeProfile:profile,profiles,refreshAccountData:refresh,switchProfile:noop})};
  if(id==='@/lib/supabase/client')return {isSupabaseConfigured:()=>true,createClient:()=>{throw Error('Direct metadata writes forbidden');}};
- if(id==='@/lib/hooks/useVerificationModal')return {useVerificationModal:()=>({isOpen:false,open:noop,close:noop,handleSubmit:noop,handleDismiss:noop})};
+ if(id==='@/lib/hooks/useVerificationModal')return {useVerificationModal:()=>({isOpen:false,open:()=>{verificationOpens++;},close:noop,handleSubmit:noop,handleDismiss:noop})};
  if(id==='@/hooks/use-mobile-nav-variant')return {useMobileNavVariant:()=>null};
  if(id.startsWith('@/'))return {__esModule:true,default:noop};
  return require(id);
@@ -87,6 +87,39 @@ const switches=()=>[...target.querySelectorAll('[role="switch"]')];
  await React.act(render);
  assert.equal(search.get('tab'),'account');
  assert.ok(!target.textContent.includes('New leads'));
+ // Unset must offer both explicit choices, and a failed first choice
+ // must return to unset rather than display a preference that never saved.
+ profile={...profile,metadata:{}};
+ search=new URLSearchParams('tab=notifications');
+ await React.act(()=>mounted.unmount());mounted=createRoot(target);
+ await React.act(render);
+ assert.ok(target.textContent.includes('Using existing notification settings'));
+ const choice=label=>[...target.querySelectorAll('button')].find(button=>button.textContent.trim()===label);
+ await React.act(()=>choice('Turn SMS off').click());
+ assert.equal(pendingSave.body.enabled,false);
+ await React.act(async()=>pendingSave.resolve({ok:false}));
+ assert.ok(target.textContent.includes('Using existing notification settings'));
+ await React.act(()=>choice('Turn SMS off').click());
+ await React.act(async()=>pendingSave.resolve({ok:true}));
+ assert.ok(!target.textContent.includes('Using existing notification settings'));
+ assert.equal(switches()[1].getAttribute('aria-checked'),'false');
+ // Fresh unset profile: choosing on also persists through a stale refresh.
+ profile={...profile,id:'profile-c',metadata:{}};
+ await React.act(render);
+ await React.act(()=>choice('Turn SMS on').click());
+ assert.equal(pendingSave.body.enabled,true);
+ await React.act(async()=>pendingSave.resolve({ok:true}));
+ assert.equal(switches()[1].getAttribute('aria-checked'),'true');
+ // Verification deep link only opens for its owned, unverified target.
+ profile={...profile,id:'profile-a',slug:'provider-a',verification_state:'unverified'};
+ search=new URLSearchParams('tab=account&verify=1&provider=unknown');
+ await React.act(render);assert.equal(verificationOpens,0);
+ search=new URLSearchParams('tab=account&verify=1&provider=provider-a');
+ await React.act(render);assert.equal(verificationOpens,1);
+ await React.act(render);assert.equal(verificationOpens,1,'rerenders do not reopen modal');
+ await React.act(()=>mounted.unmount());mounted=createRoot(target);
+ profile={...profile,verification_state:'verified'};
+ await React.act(render);assert.equal(verificationOpens,1,'verified profiles need no modal');
  await React.act(()=>mounted.unmount());await win.happyDOM.close();
  console.log('Settings UI passed: linked destination, no automatic opt-in, save serialization, failure rollback, success and multi-profile isolation.');
 })().catch(e=>{console.error(e);process.exitCode=1;win.happyDOM.close()});

@@ -322,7 +322,7 @@ export default function ProviderCommsReportView({
               failure; these are excluded from delivered totals. Notification outcomes
               count distinct messages with a linked action within seven days of send.
               Recent messages have an incomplete observation window. Saved preferences
-              include disabling a channel; SMS enabled counts an off-to-on change,
+              include disabling a channel; SMS enabled counts an explicit choice of on from off or unset,
               not proof of a delivered text.
             </p>
             {rows.length === 0 && (
@@ -354,7 +354,7 @@ export default function ProviderCommsReportView({
               <h2 className="font-semibold text-gray-900">What comes next</h2>
               <p className="mt-2 text-sm text-gray-600">
                 Notification setup is registered; check its automation for launch or pause status.
-                Verification messaging is pending a product decision.
+                The 21-day verification reminder is registered; check its automation for launch status. Verification completion is not yet attributed to emails.
               </p>
               <p className="mt-2 text-xs text-gray-500">
                 Eligibility and messages waiting for a business-hour send window

@@ -6227,6 +6227,11 @@ export default function ProviderOutreachPage() {
                               if (res.ok) {
                                 setClaimLinkSent(true);
                                 setPendingClaimLink(false);
+                                // Refresh email health to show updated delivery status
+                                fetch(`/api/admin/provider-outreach/email-health?provider_id=${actionModalProvider.provider_id}`)
+                                  .then((healthRes) => healthRes.json())
+                                  .then((data) => setEmailHealth({ ...data, loading: false }))
+                                  .catch(() => {/* silent - already sent successfully */});
                               } else {
                                 const err = await res.json();
                                 alert(err.error || "Failed to send claim link");

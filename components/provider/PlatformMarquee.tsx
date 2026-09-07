@@ -5,9 +5,9 @@
  * look" visual. Shared by the boost-page pitch (`default`: logo + name pills)
  * and the dashboard Managed Ads card (`compact`: logo-only chips).
  *
- * Callers may pass their own `platforms` list. A platform marked `soon` renders
- * greyed with a tag, which is how /managed-ads keeps the strip without claiming
- * channels it has never bought.
+ * Callers may pass their own `platforms` list. /managed-ads passes only the two
+ * we have actually bought media on, because that page states which channels we
+ * have and have not run and the strip must not contradict it.
  *
  * Uses the real full-color brand marks (local SVGs in
  * /public/images/platform-logos, sourced from vectorlogo.zone) rather than
@@ -17,17 +17,7 @@
  * there's no runtime CDN dependency on a provider-facing surface.
  */
 
-export type MarqueePlatform = {
-  name: string;
-  slug: string;
-  /**
-   * A platform we have not bought media on yet. Rendered greyed with a "soon"
-   * tag rather than omitted, so a surface that names what we actually run can
-   * still show where it is going. Never mark a live platform muted to make the
-   * strip look longer.
-   */
-  soon?: boolean;
-};
+export type MarqueePlatform = { name: string; slug: string };
 
 const PLATFORMS: MarqueePlatform[] = [
   { name: "Google", slug: "google" },
@@ -93,30 +83,17 @@ export default function PlatformMarquee({
           compact ? (
             <span
               key={i}
-              className={`mr-2.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border bg-white ${
-                p.soon ? "border-dashed border-gray-300 opacity-45 grayscale" : "border-gray-100"
-              }`}
+              className="mr-2.5 inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-gray-100 bg-white"
             >
               <Logo slug={p.slug} name={p.name} size={16} />
             </span>
           ) : (
             <span
               key={i}
-              className={`mr-3 inline-flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 ${
-                p.soon
-                  ? "border-dashed border-gray-300 bg-gray-50 text-gray-500"
-                  : "border-gray-200/80 bg-white text-gray-700"
-              }`}
+              className="mr-3 inline-flex shrink-0 items-center gap-2 rounded-full border border-gray-200/80 bg-white px-4 py-2 text-gray-700"
             >
-              <span className={p.soon ? "opacity-45 grayscale" : undefined}>
-                <Logo slug={p.slug} name={p.name} size={18} />
-              </span>
+              <Logo slug={p.slug} name={p.name} size={18} />
               <span className="text-sm font-medium">{p.name}</span>
-              {p.soon && (
-                <span className="rounded-full bg-gray-200 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-gray-500">
-                  soon
-                </span>
-              )}
             </span>
           ),
         )}

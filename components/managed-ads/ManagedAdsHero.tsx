@@ -44,32 +44,26 @@ export default function ManagedAdsHero({
         </div>
 
         {costPerInquiry && (
-          <div className="mt-10 max-w-2xl rounded-xl border border-primary-200 bg-white p-5 sm:p-6">
-            <p className="text-text-md leading-relaxed text-gray-700">
-              Across every provider campaign we have run, a family inquiry has cost{" "}
-              <span className="font-semibold text-gray-900">{costPerInquiry}</span>. The published
-              benchmark for home care lead generation is $80 to $150, and those leads are usually
-              sold to several agencies at once. Ours are yours alone.
-            </p>
-            <p className="mt-2 text-text-sm text-gray-500">
-              Measured on our own spend{asOf ? `, as of ${asOf}` : ""}. It is a small sample and we
-              say exactly how small further down.
-            </p>
-          </div>
+          <p className="mt-5 max-w-xl text-text-sm leading-relaxed text-gray-500">
+            A family inquiry has cost us{" "}
+            <span className="font-semibold text-gray-900">{costPerInquiry}</span> across every
+            campaign we have run. The published home care benchmark is $80 to $150, and those leads
+            are usually sold to several agencies at once.
+            {asOf ? ` Measured on our own spend, as of ${asOf}.` : ""}
+          </p>
         )}
 
-        {/* The shared strip, narrowed. It defaults to six platforms and we have
-            only ever bought media on two, which would contradict the section
-            further down that says so in plain words. Passing the list keeps the
-            graphic and puts the roadmap inside it: Google and Nextdoor at full
-            strength, the two we are heading for greyed and tagged. */}
+        {/* Only the two platforms we have actually bought media on. The strip
+            defaults to six; four of those we have never run, and the section
+            further down says so outright. Anything else here — greying the
+            others, tagging them "soon" — puts words back into a graphic whose
+            job is to be wordless. The roadmap is already stated in prose where
+            it belongs. */}
         <div className="mt-12">
           <PlatformMarquee
             platforms={[
               { name: "Google", slug: "google" },
               { name: "Nextdoor", slug: "nextdoor" },
-              { name: "Facebook", slug: "facebook", soon: true },
-              { name: "Instagram", slug: "instagram", soon: true },
             ]}
           />
         </div>

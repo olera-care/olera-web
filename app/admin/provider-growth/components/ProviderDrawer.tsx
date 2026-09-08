@@ -246,7 +246,6 @@ function ActionsSection({
   onScheduleMeeting,
   onLogPitch,
   onLogUpgradeOutcome,
-  onAddNote,
   onMarkNotInterested,
   onReEngage,
 }: {
@@ -254,7 +253,6 @@ function ActionsSection({
   onScheduleMeeting: () => void;
   onLogPitch: () => void;
   onLogUpgradeOutcome: () => void;
-  onAddNote: () => void;
   onMarkNotInterested: () => void;
   onReEngage: () => void;
 }) {
@@ -318,12 +316,6 @@ function ActionsSection({
             Re-engage
           </button>
         )}
-        <button
-          onClick={onAddNote}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-        >
-          Add Note
-        </button>
         {provider.pipeline_stage !== "not_interested" && (
           <button
             onClick={onMarkNotInterested}
@@ -553,9 +545,7 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
   const [touchpoints, setTouchpoints] = useState<ProviderGrowthTouchpoint[]>([]);
   const [engagement, setEngagement] = useState<EngagementData | null>(null);
   const [loadingData, setLoadingData] = useState(true);
-  const [activeAction, setActiveAction] = useState<"schedule" | "pitch" | "upgrade" | "notes" | null>(null);
-  const [notes, setNotes] = useState(provider.notes || "");
-  const [savingNotes, setSavingNotes] = useState(false);
+  const [activeAction, setActiveAction] = useState<"schedule" | "pitch" | "upgrade" | null>(null);
 
   const fetchProviderData = useCallback(async () => {
     try {
@@ -576,11 +566,10 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
     fetchProviderData();
   }, [fetchProviderData]);
 
-  // Reset notes when provider changes
+  // Reset action when provider changes
   useEffect(() => {
-    setNotes(provider.notes || "");
     setActiveAction(null);
-  }, [provider.id, provider.notes]);
+  }, [provider.id]);
 
   const handleScheduleMeeting = async (_meetingInfo: { scheduled_at: string }) => {
     setActiveAction(null);
@@ -604,26 +593,6 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
       onUpdate();
     } catch (e) {
       console.error("Failed to log pitch:", e);
-    }
-  };
-
-  const handleSaveNotes = async () => {
-    setSavingNotes(true);
-    try {
-      const res = await fetch(`/api/admin/provider-growth/${provider.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notes }),
-      });
-      if (!res.ok) {
-        throw new Error("Failed to save notes");
-      }
-      setActiveAction(null);
-      onUpdate();
-    } catch (e) {
-      console.error("Failed to save notes:", e);
-    } finally {
-      setSavingNotes(false);
     }
   };
 
@@ -749,7 +718,6 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
       onScheduleMeeting={() => setActiveAction("schedule")}
       onLogPitch={() => setActiveAction("pitch")}
       onLogUpgradeOutcome={() => setActiveAction("upgrade")}
-      onAddNote={() => setActiveAction("notes")}
       onMarkNotInterested={handleMarkNotInterested}
       onReEngage={handleReEngage}
     />
@@ -804,35 +772,6 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
               }}
               onCancel={() => setActiveAction(null)}
             />
-          </div>
-        )}
-
-        {activeAction === "notes" && (
-          <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <label className="block text-sm font-medium text-gray-700 mb-2">Notes</label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              rows={4}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
-              placeholder="Add notes about this provider..."
-              autoFocus
-            />
-            <div className="flex justify-end gap-2 mt-3">
-              <button
-                onClick={() => setActiveAction(null)}
-                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveNotes}
-                disabled={savingNotes}
-                className="px-4 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
-              >
-                {savingNotes ? "Saving..." : "Save"}
-              </button>
-            </div>
           </div>
         )}
 
@@ -973,8 +912,8 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
           onUpdateStatus={handleUpdateConversionStatus}
         />
 
-        {/* Notes */}
-        {provider.notes && !activeAction && (
+        {/* Notes (legacy - displayed if any exist from previous entries) */}
+        {provider.notes && (
           <>
             <SectionDivider />
             <div className="p-4 bg-amber-50 rounded-lg border border-amber-100">
@@ -997,31 +936,36 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
 
         <SectionDivider />
 
-        {/* Admin Activity - touchpoints log */}
-        <div>
-          <SectionHeader>Admin Activity</SectionHeader>
-          {loadingData ? (
-            <div className="flex items-center justify-center py-4">
-              <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
-            </div>
-          ) : touchpoints.length === 0 ? (
-            <p className="text-sm text-gray-400 italic">No activity yet</p>
-          ) : (
-            <div className="space-y-3">
-              {touchpoints.map((tp) => (
-                <div key={tp.id} className="flex gap-3">
-                  <div className="w-2 h-2 mt-1.5 rounded-full bg-gray-300 flex-shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm text-gray-900">
-                      {TOUCHPOINT_TYPE_LABELS[tp.touchpoint_type] || tp.touchpoint_type}
-                    </div>
-                    <div className="text-xs text-gray-500">{timeAgo(tp.created_at)}</div>
-                  </div>
+        {/* Admin Activity - touchpoints log (excluding calls, which are shown in Call Log) */}
+        {(() => {
+          const nonCallTouchpoints = touchpoints.filter(tp => tp.touchpoint_type !== "call_attempted");
+          return (
+            <div>
+              <SectionHeader>Admin Activity</SectionHeader>
+              {loadingData ? (
+                <div className="flex items-center justify-center py-4">
+                  <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
                 </div>
-              ))}
+              ) : nonCallTouchpoints.length === 0 ? (
+                <p className="text-sm text-gray-400 italic">No activity yet</p>
+              ) : (
+                <div className="space-y-3">
+                  {nonCallTouchpoints.map((tp) => (
+                    <div key={tp.id} className="flex gap-3">
+                      <div className="w-2 h-2 mt-1.5 rounded-full bg-gray-300 flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-gray-900">
+                          {TOUCHPOINT_TYPE_LABELS[tp.touchpoint_type] || tp.touchpoint_type}
+                        </div>
+                        <div className="text-xs text-gray-500">{timeAgo(tp.created_at)}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
-        </div>
+          );
+        })()}
       </div>
     </DrawerShell>
   );

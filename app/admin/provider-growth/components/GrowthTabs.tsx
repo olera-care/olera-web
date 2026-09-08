@@ -65,21 +65,14 @@ export function GrowthTabs({ activeTab, onTabChange, stats, newClaimSubtabCounts
       case "paying":
         return stats.ads_subscribed + stats.medjobs_subscribed;
       case "ads":
-        // Context-dependent: converted, upgrade_meeting, or paying
+        // Context-dependent: converted or paying
         if (activeTab.type === "conversion") {
           return activeTab.tab === "converted" ? stats.ads_free_intro : stats.ads_subscribed;
-        }
-        // For upgrade_meeting, show free_intro count (they're converted but with meeting scheduled)
-        if (activeTab.type === "pipeline" && activeTab.stage === "upgrade_meeting") {
-          return stats.ads_free_intro;
         }
         return 0;
       case "medjobs":
         if (activeTab.type === "conversion") {
           return activeTab.tab === "converted" ? stats.medjobs_in_pilot : stats.medjobs_subscribed;
-        }
-        if (activeTab.type === "pipeline" && activeTab.stage === "upgrade_meeting") {
-          return stats.medjobs_in_pilot;
         }
         return 0;
       case "both":
@@ -274,6 +267,7 @@ export function GrowthTabs({ activeTab, onTabChange, stats, newClaimSubtabCounts
       )}
 
       {/* Upgrade Meeting sub-tabs (Ads/MedJobs/Both) */}
+      {/* Note: No counts shown because we'd need intersection stats (upgrade_meeting + ads_status) */}
       {activeTab.type === "pipeline" && activeTab.stage === "upgrade_meeting" && (
         <div className="flex gap-1 mt-2 pl-4">
           {CONVERSION_SUB_TABS.map((subTab) => (
@@ -293,11 +287,6 @@ export function GrowthTabs({ activeTab, onTabChange, stats, newClaimSubtabCounts
               }`}
             >
               {subTab.label}
-              {subTab.id !== "both" && (
-                <span className="ml-1 text-[10px] opacity-70">
-                  ({getCount(subTab.id)})
-                </span>
-              )}
             </button>
           ))}
         </div>

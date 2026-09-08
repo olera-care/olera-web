@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     // Generate the booking URL
     const bookingUrl = generateBookingUrl({
       trackingId: tracking_id,
-      providerName: profile.display_name || undefined,
+      contactName: profile.display_name || undefined,
       contactEmail: providerEmail,
     });
 

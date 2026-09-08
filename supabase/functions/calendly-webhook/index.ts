@@ -611,46 +611,69 @@ Deno.serve(async (req: Request) => {
 
     const extract = extractInvitee(raw);
 
-    // ── ROUTING: Try MedJobs first, then Provider Growth ──────────────────
-    // Both use utm_content to carry tracking IDs. First match wins.
+    // ── ROUTING ───────────────────────────────────────────────────────────
+    // If utm_content is provided, it's a deterministic booking link.
+    // Try both ID lookups first (MedJobs, then Provider Growth).
+    // Email fallback ONLY when no utm_content (organic/direct booking).
 
-    // 1. Try MedJobs (student_outreach)
-    const medjobsRow =
-      (extract.utm_content
-        ? await resolveRowByOutreachId(extract.utm_content)
-        : null) ?? (await resolveRow(extract.invitee_email));
+    if (extract.utm_content) {
+      // Deterministic: booking link carried a tracking ID
 
-    if (medjobsRow) {
-      console.log("[calendly-webhook] matched MedJobs row:", medjobsRow.id);
-      switch (kind) {
-        case "created":
-        case "rescheduled":
-          await handleCreated(medjobsRow, extract);
-          break;
-        case "canceled":
-          await handleCanceled(medjobsRow, extract);
-          break;
+      // 1a. Try MedJobs by ID
+      const medjobsRow = await resolveRowByOutreachId(extract.utm_content);
+      if (medjobsRow) {
+        console.log("[calendly-webhook] matched MedJobs row by ID:", medjobsRow.id);
+        switch (kind) {
+          case "created":
+          case "rescheduled":
+            await handleCreated(medjobsRow, extract);
+            break;
+          case "canceled":
+            await handleCanceled(medjobsRow, extract);
+            break;
+        }
+        return new Response("ok (medjobs)", { status: 200 });
       }
-      return new Response("ok (medjobs)", { status: 200 });
+
+      // 1b. Try Provider Growth by ID
+      const providerGrowthRow = await resolveProviderGrowthTracking(extract.utm_content);
+      if (providerGrowthRow) {
+        console.log("[calendly-webhook] matched Provider Growth row by ID:", providerGrowthRow.id);
+        switch (kind) {
+          case "created":
+          case "rescheduled":
+            await handleProviderGrowthCreated(providerGrowthRow, extract);
+            break;
+          case "canceled":
+            await handleProviderGrowthCanceled(providerGrowthRow, extract);
+            break;
+        }
+        return new Response("ok (provider-growth)", { status: 200 });
+      }
+
+      // utm_content provided but didn't match either table
+      console.warn("[calendly-webhook] utm_content didn't match any tracking ID", {
+        utm_content: extract.utm_content,
+        email: extract.invitee_email,
+        kind,
+      });
+      return new Response("ok (unmatched-id)", { status: 200 });
     }
 
-    // 2. Try Provider Growth (provider_growth_tracking)
-    const providerGrowthRow = extract.utm_content
-      ? await resolveProviderGrowthTracking(extract.utm_content)
-      : null;
-
-    if (providerGrowthRow) {
-      console.log("[calendly-webhook] matched Provider Growth row:", providerGrowthRow.id);
+    // 2. No utm_content — try email fallback for MedJobs (organic booking)
+    const medjobsRowByEmail = await resolveRow(extract.invitee_email);
+    if (medjobsRowByEmail) {
+      console.log("[calendly-webhook] matched MedJobs row by email:", medjobsRowByEmail.id);
       switch (kind) {
         case "created":
         case "rescheduled":
-          await handleProviderGrowthCreated(providerGrowthRow, extract);
+          await handleCreated(medjobsRowByEmail, extract);
           break;
         case "canceled":
-          await handleProviderGrowthCanceled(providerGrowthRow, extract);
+          await handleCanceled(medjobsRowByEmail, extract);
           break;
       }
-      return new Response("ok (provider-growth)", { status: 200 });
+      return new Response("ok (medjobs-email)", { status: 200 });
     }
 
     // 3. No match found

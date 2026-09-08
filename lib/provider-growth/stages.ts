@@ -15,6 +15,7 @@ export const PIPELINE_STAGES = [
   "meeting_scheduled",
   "pitched",
   "not_interested",
+  "upgrade_meeting",
 ] as const;
 
 export type PipelineStage = (typeof PIPELINE_STAGES)[number];
@@ -24,6 +25,7 @@ export const PIPELINE_STAGE_LABELS: Record<PipelineStage, string> = {
   meeting_scheduled: "Meeting Scheduled",
   pitched: "Pitched",
   not_interested: "Not Interested",
+  upgrade_meeting: "Upgrade Meeting",
 };
 
 export const PIPELINE_STAGE_DESCRIPTIONS: Record<PipelineStage, string> = {
@@ -31,6 +33,7 @@ export const PIPELINE_STAGE_DESCRIPTIONS: Record<PipelineStage, string> = {
   meeting_scheduled: "Providers with upcoming Calendly meetings",
   pitched: "Providers who've had their pitch meeting",
   not_interested: "Providers who declined after being pitched",
+  upgrade_meeting: "Free trial providers with meeting scheduled to discuss paying",
 };
 
 // Valid stage transitions
@@ -39,6 +42,7 @@ export const VALID_STAGE_TRANSITIONS: Record<PipelineStage, PipelineStage[]> = {
   meeting_scheduled: ["pitched", "new_claim", "not_interested"],  // can cancel meeting
   pitched: ["meeting_scheduled", "not_interested"],  // can schedule follow-up meeting
   not_interested: ["new_claim"],  // can re-engage
+  upgrade_meeting: ["pitched", "not_interested"],  // after upgrade meeting: pitched again or not interested
 };
 
 export function canTransitionTo(from: PipelineStage, to: PipelineStage): boolean {

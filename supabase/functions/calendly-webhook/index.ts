@@ -44,7 +44,9 @@
 //
 // ── EVENT MAPPING (Provider Growth) ───────────────────────────────────────
 //   invitee.created
-//     → Update provider_growth_tracking to meeting_scheduled stage
+//     → Check conversion status (ads_status/medjobs_status)
+//     → If Converted (free_intro or in_pilot): move to 'upgrade_meeting' stage
+//     → If not Converted: move to 'meeting_scheduled' stage
 //     → Create meeting_scheduled touchpoint
 //
 //   invitee.canceled
@@ -381,6 +383,8 @@ interface ResolvedProviderGrowthRow {
   id: string;
   business_profile_id: string;
   pipeline_stage: string;
+  ads_status: string;
+  medjobs_status: string;
 }
 
 /** Check if utm_content matches a Provider Growth tracking ID. */
@@ -389,7 +393,7 @@ async function resolveProviderGrowthTracking(
 ): Promise<ResolvedProviderGrowthRow | null> {
   const { data } = await supabase
     .from("provider_growth_tracking")
-    .select("id, business_profile_id, pipeline_stage")
+    .select("id, business_profile_id, pipeline_stage, ads_status, medjobs_status")
     .eq("id", trackingId)
     .maybeSingle();
   if (!data) return null;
@@ -397,6 +401,8 @@ async function resolveProviderGrowthTracking(
     id: data.id as string,
     business_profile_id: data.business_profile_id as string,
     pipeline_stage: data.pipeline_stage as string,
+    ads_status: data.ads_status as string,
+    medjobs_status: data.medjobs_status as string,
   };
 }
 
@@ -438,11 +444,18 @@ async function handleProviderGrowthCreated(
 
   const now = new Date().toISOString();
 
-  // Update tracking to meeting_scheduled stage
+  // Determine the target stage based on conversion status:
+  // - Converted providers (free trial) → upgrade_meeting
+  // - Non-converted providers → meeting_scheduled
+  const isConverted =
+    row.ads_status === "free_intro" || row.medjobs_status === "in_pilot";
+  const targetStage = isConverted ? "upgrade_meeting" : "meeting_scheduled";
+
+  // Update tracking to the appropriate stage
   await supabase
     .from("provider_growth_tracking")
     .update({
-      pipeline_stage: "meeting_scheduled",
+      pipeline_stage: targetStage,
       pipeline_stage_changed_at: now,
       meeting_scheduled_at: extract.start_time,
       calendly_event_id: extract.event_uri?.split("/").pop() ?? null,
@@ -460,9 +473,14 @@ async function handleProviderGrowthCreated(
     invitee_email: extract.invitee_email,
     scheduled_at: extract.start_time,
     method: "calendly_webhook",
+    target_stage: targetStage,
   });
 
-  console.log("[calendly-webhook] Provider Growth meeting scheduled:", row.id);
+  console.log(`[calendly-webhook] Provider Growth ${targetStage}:`, row.id, {
+    isConverted,
+    ads_status: row.ads_status,
+    medjobs_status: row.medjobs_status,
+  });
 }
 
 async function handleProviderGrowthCanceled(

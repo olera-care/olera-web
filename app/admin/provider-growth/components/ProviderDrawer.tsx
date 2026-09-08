@@ -576,17 +576,14 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
 
         <SectionDivider />
 
-        {/* Call Log - only show for new_claim stage */}
-        {provider.pipeline_stage === "new_claim" && (
-          <>
-            <CallLogSection
-              trackingId={provider.id}
-              businessProfileId={provider.business_profile_id}
-              onCallLogged={onCallLogged}
-            />
-            <SectionDivider />
-          </>
-        )}
+        {/* Call Log */}
+        <CallLogSection
+          trackingId={provider.id}
+          businessProfileId={provider.business_profile_id}
+          onCallLogged={onCallLogged}
+        />
+
+        <SectionDivider />
 
         {/* Activity timeline */}
         <div>

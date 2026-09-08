@@ -32,39 +32,51 @@ async function getEngagementMetrics(businessProfileId: string): Promise<{
 }> {
   const db = getServiceClient();
 
-  // First get the provider slug from business_profiles (needed for questions query)
-  const { data: profile } = await db
-    .from("business_profiles")
-    .select("slug, source_provider_id")
-    .eq("id", businessProfileId)
-    .single();
+  try {
+    // First get the provider slug from business_profiles (needed for questions query)
+    const { data: profile } = await db
+      .from("business_profiles")
+      .select("slug, source_provider_id")
+      .eq("id", businessProfileId)
+      .single();
 
-  // The provider_id in provider_questions can be either slug or source_provider_id
-  const providerSlug = profile?.slug || profile?.source_provider_id || null;
+    const slug = profile?.slug || null;
+    const sourceProviderId = profile?.source_provider_id || null;
 
-  // Query questions count (using slug)
-  let questionsCount = 0;
-  if (providerSlug) {
-    const { count } = await db
-      .from("provider_questions")
+    // Query questions count - check both slug and source_provider_id since either could be used
+    let questionsCount = 0;
+    const providerIds = [slug, sourceProviderId].filter(Boolean) as string[];
+
+    if (providerIds.length > 0) {
+      const { count } = await db
+        .from("provider_questions")
+        .select("id", { count: "exact", head: true })
+        .in("provider_id", providerIds)
+        .is("canonical_question_id", null); // Only count original questions, not duplicates
+      questionsCount = count || 0;
+    }
+
+    // Query leads count (connections where type='inquiry' and to_profile_id = this provider)
+    const { count: leadsCount } = await db
+      .from("connections")
       .select("id", { count: "exact", head: true })
-      .eq("provider_id", providerSlug)
-      .is("canonical_question_id", null); // Only count original questions, not duplicates
-    questionsCount = count || 0;
+      .eq("to_profile_id", businessProfileId)
+      .eq("type", "inquiry");
+
+    return {
+      questions_count: questionsCount,
+      leads_count: leadsCount || 0,
+      provider_slug: slug || sourceProviderId,
+    };
+  } catch (e) {
+    // Degrade gracefully - don't fail the whole drawer if engagement queries fail
+    console.error("[provider-growth] Failed to fetch engagement metrics:", e);
+    return {
+      questions_count: 0,
+      leads_count: 0,
+      provider_slug: null,
+    };
   }
-
-  // Query leads count (connections where type='inquiry' and to_profile_id = this provider)
-  const { count: leadsCount } = await db
-    .from("connections")
-    .select("id", { count: "exact", head: true })
-    .eq("to_profile_id", businessProfileId)
-    .eq("type", "inquiry");
-
-  return {
-    questions_count: questionsCount,
-    leads_count: leadsCount || 0,
-    provider_slug: providerSlug,
-  };
 }
 
 interface RouteContext {

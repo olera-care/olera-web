@@ -578,30 +578,16 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
               {/* Questions */}
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Questions from families</span>
-                {engagement.questions_count > 0 && engagement.provider_slug ? (
-                  <Link
-                    href={`/admin/questions?provider_id=${engagement.provider_slug}`}
-                    className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
-                  >
-                    {engagement.questions_count}
-                  </Link>
-                ) : (
-                  <span className="text-sm text-gray-400">0</span>
-                )}
+                <span className={`text-sm font-medium ${engagement.questions_count > 0 ? "text-gray-900" : "text-gray-400"}`}>
+                  {engagement.questions_count}
+                </span>
               </div>
               {/* Leads */}
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Leads received</span>
-                {engagement.leads_count > 0 ? (
-                  <Link
-                    href={`/admin/connections?provider_id=${provider.business_profile_id}`}
-                    className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
-                  >
-                    {engagement.leads_count}
-                  </Link>
-                ) : (
-                  <span className="text-sm text-gray-400">0</span>
-                )}
+                <span className={`text-sm font-medium ${engagement.leads_count > 0 ? "text-gray-900" : "text-gray-400"}`}>
+                  {engagement.leads_count}
+                </span>
               </div>
               {/* Helpful context for sales */}
               {(engagement.questions_count > 0 || engagement.leads_count > 0) && (

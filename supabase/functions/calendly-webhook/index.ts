@@ -1,8 +1,8 @@
 // Calendly webhook receiver — Supabase Edge Function (Deno).
 //
-// Routes Calendly invitee lifecycle events into the MedJobs CRM as
-// meeting state transitions, so a provider who self-books a slot with
-// Dr. DuBose surfaces in the In-Basket Meetings tab automatically.
+// Routes Calendly invitee lifecycle events into:
+// 1. MedJobs CRM (student_outreach) — providers who book via outreach emails
+// 2. Provider Growth (provider_growth_tracking) — claimed providers scheduling calls
 //
 // WHY an Edge Function (not a Vercel route): same WAF wall as the
 // Smartlead webhook (Vercel Bot Protection 403s provider-origin POSTs).
@@ -10,7 +10,12 @@
 // replicating mark_meeting_scheduled / flag_wants_meeting handlers
 // inline (see app/api/admin/student-outreach/[id]/route.ts).
 //
-// ── EVENT MAPPING ─────────────────────────────────────────────────────────
+// ── ROUTING LOGIC ─────────────────────────────────────────────────────────
+// Both MedJobs and Provider Growth use utm_content to carry tracking IDs.
+// We try MedJobs first (student_outreach), then Provider Growth
+// (provider_growth_tracking). First match wins.
+//
+// ── EVENT MAPPING (MedJobs) ───────────────────────────────────────────────
 //   invitee.created
 //     → match invitee.email → outreach row (case-insensitive against
 //        research_data.general_contact.email,
@@ -36,6 +41,15 @@
 //     → Calendly emits canceled + created together for reschedules; we
 //        treat the new created as the active meeting. The 60s pair window
 //        in canceled handler emits the reschedule note.
+//
+// ── EVENT MAPPING (Provider Growth) ───────────────────────────────────────
+//   invitee.created
+//     → Update provider_growth_tracking to meeting_scheduled stage
+//     → Create meeting_scheduled touchpoint
+//
+//   invitee.canceled
+//     → Create meeting_cancelled touchpoint
+//     → Clear meeting fields but keep stage (admin decides next step)
 //
 // ── INERT until activated ────────────────────────────────────────────────
 // No CALENDLY_WEBHOOK_SECRET set → every request is a logged no-op (200).
@@ -359,6 +373,130 @@ async function handleCanceled(row: ResolvedRow, extract: InviteeExtract) {
     .eq("id", row.id);
 }
 
+// ═══════════════════════════════════════════════════════════════════════════
+// PROVIDER GROWTH HANDLERS
+// ═══════════════════════════════════════════════════════════════════════════
+
+interface ResolvedProviderGrowthRow {
+  id: string;
+  business_profile_id: string;
+  pipeline_stage: string;
+}
+
+/** Check if utm_content matches a Provider Growth tracking ID. */
+async function resolveProviderGrowthTracking(
+  trackingId: string,
+): Promise<ResolvedProviderGrowthRow | null> {
+  const { data } = await supabase
+    .from("provider_growth_tracking")
+    .select("id, business_profile_id, pipeline_stage")
+    .eq("id", trackingId)
+    .maybeSingle();
+  if (!data) return null;
+  return {
+    id: data.id as string,
+    business_profile_id: data.business_profile_id as string,
+    pipeline_stage: data.pipeline_stage as string,
+  };
+}
+
+/** Dedup: has this Calendly invitee URI been processed for this tracking already? */
+async function alreadyProcessedProviderGrowth(
+  trackingId: string,
+  inviteeUri: string | null,
+): Promise<boolean> {
+  if (!inviteeUri) return false;
+  const { data } = await supabase
+    .from("provider_growth_touchpoints")
+    .select("id")
+    .eq("tracking_id", trackingId)
+    .in("touchpoint_type", ["meeting_scheduled", "meeting_cancelled", "note_added"])
+    .filter("details->>calendly_invitee_uri", "eq", inviteeUri)
+    .limit(1);
+  return (data ?? []).length > 0;
+}
+
+async function insertProviderGrowthTouchpoint(
+  trackingId: string,
+  businessProfileId: string,
+  type: "meeting_scheduled" | "meeting_cancelled" | "note_added",
+  details: Record<string, unknown>,
+) {
+  await supabase.from("provider_growth_touchpoints").insert({
+    tracking_id: trackingId,
+    business_profile_id: businessProfileId,
+    touchpoint_type: type,
+    details,
+  });
+}
+
+async function handleProviderGrowthCreated(
+  row: ResolvedProviderGrowthRow,
+  extract: InviteeExtract,
+) {
+  if (await alreadyProcessedProviderGrowth(row.id, extract.invitee_uri)) return;
+
+  const now = new Date().toISOString();
+
+  // Update tracking to meeting_scheduled stage
+  await supabase
+    .from("provider_growth_tracking")
+    .update({
+      pipeline_stage: "meeting_scheduled",
+      pipeline_stage_changed_at: now,
+      meeting_scheduled_at: extract.start_time,
+      calendly_event_id: extract.event_uri?.split("/").pop() ?? null,
+      last_activity_at: now,
+      updated_at: now,
+    })
+    .eq("id", row.id);
+
+  // Create touchpoint
+  await insertProviderGrowthTouchpoint(row.id, row.business_profile_id, "meeting_scheduled", {
+    source: "calendly",
+    calendly_invitee_uri: extract.invitee_uri,
+    calendly_event_uri: extract.event_uri,
+    invitee_name: extract.invitee_name,
+    invitee_email: extract.invitee_email,
+    scheduled_at: extract.start_time,
+    method: "calendly_webhook",
+  });
+
+  console.log("[calendly-webhook] Provider Growth meeting scheduled:", row.id);
+}
+
+async function handleProviderGrowthCanceled(
+  row: ResolvedProviderGrowthRow,
+  extract: InviteeExtract,
+) {
+  if (await alreadyProcessedProviderGrowth(row.id, extract.invitee_uri)) return;
+
+  const now = new Date().toISOString();
+
+  // Create cancellation touchpoint
+  await insertProviderGrowthTouchpoint(row.id, row.business_profile_id, "meeting_cancelled", {
+    source: "calendly",
+    calendly_invitee_uri: extract.invitee_uri,
+    calendly_event_uri: extract.event_uri,
+    invitee_name: extract.invitee_name,
+    scheduled_at: extract.start_time,
+    canceled_at: now,
+  });
+
+  // Clear meeting fields but keep stage (admin decides next step)
+  await supabase
+    .from("provider_growth_tracking")
+    .update({
+      meeting_scheduled_at: null,
+      calendly_event_id: null,
+      last_activity_at: now,
+      updated_at: now,
+    })
+    .eq("id", row.id);
+
+  console.log("[calendly-webhook] Provider Growth meeting canceled:", row.id);
+}
+
 /** Verify Calendly's HMAC-SHA256 signature. Signature scheme:
  *
  *   Header: Calendly-Webhook-Signature: t=<timestamp>,v1=<signature>
@@ -472,31 +610,56 @@ Deno.serve(async (req: Request) => {
     if (kind === "ignore") return new Response("ok (ignored)", { status: 200 });
 
     const extract = extractInvitee(raw);
-    // Deterministic utm_content match first; fall back to invitee email.
-    const row =
+
+    // ── ROUTING: Try MedJobs first, then Provider Growth ──────────────────
+    // Both use utm_content to carry tracking IDs. First match wins.
+
+    // 1. Try MedJobs (student_outreach)
+    const medjobsRow =
       (extract.utm_content
         ? await resolveRowByOutreachId(extract.utm_content)
         : null) ?? (await resolveRow(extract.invitee_email));
-    if (!row) {
-      console.warn("[calendly-webhook] could not map event to a row", {
-        utm_content: extract.utm_content,
-        email: extract.invitee_email,
-        kind,
-      });
-      return new Response("ok (unmatched)", { status: 200 });
+
+    if (medjobsRow) {
+      console.log("[calendly-webhook] matched MedJobs row:", medjobsRow.id);
+      switch (kind) {
+        case "created":
+        case "rescheduled":
+          await handleCreated(medjobsRow, extract);
+          break;
+        case "canceled":
+          await handleCanceled(medjobsRow, extract);
+          break;
+      }
+      return new Response("ok (medjobs)", { status: 200 });
     }
 
-    switch (kind) {
-      case "created":
-      case "rescheduled":
-        await handleCreated(row, extract);
-        break;
-      case "canceled":
-        await handleCanceled(row, extract);
-        break;
+    // 2. Try Provider Growth (provider_growth_tracking)
+    const providerGrowthRow = extract.utm_content
+      ? await resolveProviderGrowthTracking(extract.utm_content)
+      : null;
+
+    if (providerGrowthRow) {
+      console.log("[calendly-webhook] matched Provider Growth row:", providerGrowthRow.id);
+      switch (kind) {
+        case "created":
+        case "rescheduled":
+          await handleProviderGrowthCreated(providerGrowthRow, extract);
+          break;
+        case "canceled":
+          await handleProviderGrowthCanceled(providerGrowthRow, extract);
+          break;
+      }
+      return new Response("ok (provider-growth)", { status: 200 });
     }
 
-    return new Response("ok", { status: 200 });
+    // 3. No match found
+    console.warn("[calendly-webhook] could not map event to any row", {
+      utm_content: extract.utm_content,
+      email: extract.invitee_email,
+      kind,
+    });
+    return new Response("ok (unmatched)", { status: 200 });
   } catch (err) {
     console.error(
       "[calendly-webhook] handler error:",

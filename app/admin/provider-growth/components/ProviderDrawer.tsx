@@ -24,14 +24,16 @@ import {
 import { EligibilityBadges } from "./EligibilityBadges";
 import { MeetingScheduler } from "./MeetingScheduler";
 import { PitchLogger, type PitchLogData } from "./PitchLogger";
+import { CallLogSection } from "./CallLogSection";
 
 interface ProviderDrawerProps {
   provider: ProviderGrowthWithProfile;
   onClose: () => void;
   onUpdate: () => void;
+  onCallLogged?: (providerId: string, newCallCount: number) => void;
 }
 
-export function ProviderDrawer({ provider, onClose, onUpdate }: ProviderDrawerProps) {
+export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: ProviderDrawerProps) {
   const [touchpoints, setTouchpoints] = useState<ProviderGrowthTouchpoint[]>([]);
   const [loadingTouchpoints, setLoadingTouchpoints] = useState(true);
   const [activeAction, setActiveAction] = useState<"schedule" | "pitch" | "notes" | null>(null);
@@ -379,6 +381,19 @@ export function ProviderDrawer({ provider, onClose, onUpdate }: ProviderDrawerPr
             <div className="text-xs font-medium text-amber-700 mb-2">Notes</div>
             <p className="text-sm text-gray-700">{provider.notes}</p>
           </div>
+        )}
+
+        {/* Call Log - only show for new_claim stage */}
+        {provider.pipeline_stage === "new_claim" && (
+          <CallLogSection
+            trackingId={provider.id}
+            businessProfileId={provider.business_profile_id}
+            onCallLogged={(newCallCount) => {
+              if (onCallLogged) {
+                onCallLogged(provider.id, newCallCount);
+              }
+            }}
+          />
         )}
 
         {/* Activity timeline */}

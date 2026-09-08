@@ -11,13 +11,12 @@
  */
 
 import type { GrowthStats } from "@/lib/provider-growth/queries";
-
-export type PipelineTab = "new_claim" | "meeting_scheduled" | "pitched" | "not_interested" | "upgrade_meeting";
+import type { PipelineStage } from "@/lib/provider-growth/stages";
 export type NewClaimSubTab = "not_contacted" | "in_progress";
 export type ConversionTab = "converted" | "paying";
 export type ConversionSubTab = "ads" | "medjobs" | "both";
 export type ActiveTab =
-  | { type: "pipeline"; stage: PipelineTab; subTab?: NewClaimSubTab | ConversionSubTab }
+  | { type: "pipeline"; stage: PipelineStage; subTab?: NewClaimSubTab | ConversionSubTab }
   | { type: "conversion"; tab: ConversionTab; subTab: ConversionSubTab };
 
 interface GrowthTabsProps {
@@ -32,7 +31,7 @@ const NEW_CLAIM_SUB_TABS: Array<{ id: NewClaimSubTab; label: string }> = [
   { id: "in_progress", label: "In Progress" },
 ];
 
-const PIPELINE_TABS: Array<{ id: PipelineTab; label: string }> = [
+const PIPELINE_TABS: Array<{ id: PipelineStage; label: string }> = [
   { id: "new_claim", label: "New Claims" },
   { id: "meeting_scheduled", label: "Meeting Scheduled" },
   { id: "pitched", label: "Pitched" },
@@ -46,7 +45,7 @@ const CONVERSION_SUB_TABS: Array<{ id: ConversionSubTab; label: string }> = [
 ];
 
 export function GrowthTabs({ activeTab, onTabChange, stats, newClaimSubtabCounts }: GrowthTabsProps) {
-  const getCount = (tab: PipelineTab | ConversionTab | ConversionSubTab): number => {
+  const getCount = (tab: PipelineStage | ConversionTab | ConversionSubTab): number => {
     if (!stats) return 0;
 
     switch (tab) {
@@ -83,7 +82,7 @@ export function GrowthTabs({ activeTab, onTabChange, stats, newClaimSubtabCounts
     }
   };
 
-  const isPipelineActive = (id: PipelineTab) =>
+  const isPipelineActive = (id: PipelineStage) =>
     activeTab.type === "pipeline" && activeTab.stage === id;
 
   const isConversionActive = (id: ConversionTab) =>

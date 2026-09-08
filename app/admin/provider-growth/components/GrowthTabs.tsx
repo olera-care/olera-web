@@ -75,7 +75,10 @@ export function GrowthTabs({ activeTab, onTabChange, stats, newClaimSubtabCounts
         }
         return 0;
       case "both":
-        // This would need additional data - providers with BOTH statuses
+        // Providers with BOTH ads AND medjobs active
+        if (activeTab.type === "conversion") {
+          return activeTab.tab === "converted" ? stats.both_converted : stats.both_paying;
+        }
         return 0;
       default:
         return 0;
@@ -255,11 +258,9 @@ export function GrowthTabs({ activeTab, onTabChange, stats, newClaimSubtabCounts
               }`}
             >
               {subTab.label}
-              {subTab.id !== "both" && (
-                <span className="ml-1 text-[10px] opacity-70">
-                  ({getCount(subTab.id)})
-                </span>
-              )}
+              <span className="ml-1 text-[10px] opacity-70">
+                ({getCount(subTab.id)})
+              </span>
             </button>
           ))}
         </div>

@@ -85,6 +85,9 @@ export interface GrowthStats {
   ads_subscribed: number;
   medjobs_in_pilot: number;
   medjobs_subscribed: number;
+  // Providers with BOTH products active
+  both_converted: number;  // ads_free_intro AND medjobs_in_pilot
+  both_paying: number;     // ads_subscribed AND medjobs_subscribed
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -109,6 +112,8 @@ export async function getGrowthStats(): Promise<GrowthStats> {
   const stageCounts: Record<string, number> = {};
   const adsCounts: Record<string, number> = {};
   const medjobsCounts: Record<string, number> = {};
+  let bothConverted = 0;
+  let bothPaying = 0;
 
   for (const row of allRecords ?? []) {
     // Pipeline stage
@@ -123,6 +128,14 @@ export async function getGrowthStats(): Promise<GrowthStats> {
     if (row.medjobs_status && row.medjobs_status !== "none") {
       medjobsCounts[row.medjobs_status] = (medjobsCounts[row.medjobs_status] || 0) + 1;
     }
+
+    // Count providers with BOTH products active
+    if (row.ads_status === "free_intro" && row.medjobs_status === "in_pilot") {
+      bothConverted++;
+    }
+    if (row.ads_status === "subscribed" && row.medjobs_status === "subscribed") {
+      bothPaying++;
+    }
   }
 
   return {
@@ -135,6 +148,8 @@ export async function getGrowthStats(): Promise<GrowthStats> {
     ads_subscribed: adsCounts.subscribed || 0,
     medjobs_in_pilot: medjobsCounts.in_pilot || 0,
     medjobs_subscribed: medjobsCounts.subscribed || 0,
+    both_converted: bothConverted,
+    both_paying: bothPaying,
   };
 }
 

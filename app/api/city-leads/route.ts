@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
+import { markAdsLeadConversion } from "@/lib/ad-boost/ads-conversion.server";
 import { normalizeUSPhone, sendSMS } from "@/lib/twilio";
 import { sendSlackAlert, slackCityLead } from "@/lib/slack";
 import {
@@ -13,6 +14,7 @@ import {
   CITY_FORM_VERSION,
   RECIPIENT_LABEL,
   URGENCY_LABEL,
+  classifyCityTraffic,
   formatUSPhone,
   getCityConfig,
   isStaffedNow,
@@ -161,9 +163,11 @@ export async function POST(req: NextRequest) {
   // Paid means the ads produced this, which is the event the pilot exists to
   // produce. A gclid is proof of a Google click; our own utm_source covers
   // Nextdoor and anything else we tag.
-  const medium = str(utm.medium);
-  const paid = Boolean(utm.gclid) || String(utm.source ?? "") === "olera_city" || (medium ?? "").startsWith("paid_");
-  const channel = utm.gclid || medium === "paid_search" ? "Google" : medium === "paid_social" ? "Nextdoor" : medium;
+  const { paid, channel } = classifyCityTraffic({
+    source: str(utm.source),
+    medium: str(utm.medium),
+    gclid: str(utm.gclid),
+  });
   const concierge = cfg.routingMode === "concierge";
   const alert = slackCityLead({
     city: cfg.city,
@@ -211,6 +215,20 @@ export async function POST(req: NextRequest) {
       console.error("[city-leads] chain start failed", err);
     }
   }
+
+  // Google Ads conversion, same choke point every other lead route uses: this
+  // sets the one-shot cookie AdsConversionPing (root layout) turns into the
+  // gtag event. Without it the city campaigns report 0 conversions in Google
+  // forever, however many real leads arrive — and the day-14 read that decides
+  // the next flight would see that false zero.
+  //
+  // Fired for routable leads only. Medical requests return above: they are
+  // redirected and never offered to a provider, so counting them would inflate
+  // the one column the flight is judged on. Duplicates return earlier for the
+  // same reason.
+  //
+  // Awaited: the cookie rides on the response headers (feedback_serverless_fire_and_forget).
+  await markAdsLeadConversion();
 
   return NextResponse.json({ ok: true, leadId: lead.id, redirected: false, staffed, concierge });
 }

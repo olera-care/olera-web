@@ -28,6 +28,9 @@ export function ProviderRow({ provider, onClick, onDelete, selected }: ProviderR
   const category = provider.care_types?.slice(0, 2).join(", ") || null;
   const locationCategory = [location, category].filter(Boolean).join(" · ");
 
+  // Claim date - computed once, used conditionally
+  const claimDateDisplay = provider.claimed_at ? formatClaimDate(provider.claimed_at) : null;
+
   // Line 3: Phone · Email
   const contactParts: string[] = [];
   if (provider.phone) contactParts.push(provider.phone);
@@ -51,9 +54,17 @@ export function ProviderRow({ provider, onClick, onDelete, selected }: ProviderR
             <VerificationBadge state={provider.verification_state} providerName={provider.display_name} />
           </div>
 
-          {/* Line 2: Location · Category */}
-          {locationCategory && (
-            <p className="mt-0.5 truncate text-xs text-gray-500">{locationCategory}</p>
+          {/* Line 2: Location · Category · Claim date */}
+          {(locationCategory || claimDateDisplay) && (
+            <p className="mt-0.5 truncate text-xs text-gray-500">
+              {locationCategory}
+              {locationCategory && claimDateDisplay && <span className="text-gray-400"> · </span>}
+              {claimDateDisplay && (
+                <span className="text-gray-400">
+                  Claimed {claimDateDisplay}
+                </span>
+              )}
+            </p>
           )}
 
           {/* Line 3: Phone · Email */}
@@ -224,6 +235,34 @@ function timeAgo(isoDate: string | undefined | null): string {
   if (days < 7) return `${days}d ago`;
   if (days < 30) return `${Math.floor(days / 7)}w ago`;
   return `${Math.floor(days / 30)}mo ago`;
+}
+
+function formatClaimDate(isoDate: string): string {
+  const date = new Date(isoDate);
+
+  // Guard against invalid dates - return empty string (caller shows nothing)
+  if (isNaN(date.getTime())) {
+    return "";
+  }
+
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  // Future dates: show actual date instead of nonsensical "-Xd ago"
+  if (diffDays < 0) {
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+
+  if (diffDays === 0) return "today";
+  if (diffDays === 1) return "yesterday";
+  if (diffDays < 7) return `${diffDays}d ago`;
+
+  // Show actual date for older claims
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+  });
 }
 
 function formatDate(isoDate: string): string {

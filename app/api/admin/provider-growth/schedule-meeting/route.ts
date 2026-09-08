@@ -83,10 +83,10 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate Calendly booking URL
+    // Use contact_name if available, otherwise fall back to provider_name
     const bookingUrl = generateBookingUrl({
       trackingId: tracking_id,
-      providerName: provider_name,
-      contactName: contact_name,
+      contactName: contact_name || provider_name,
       contactEmail: contact_email,
     });
 

@@ -27,7 +27,7 @@ interface CallLogEntry {
 interface CallLogSectionProps {
   trackingId: string;
   businessProfileId: string;
-  onCallLogged?: (newCallCount: number) => void;
+  onCallLogged?: () => void;
 }
 
 export function CallLogSection({ trackingId, businessProfileId, onCallLogged }: CallLogSectionProps) {
@@ -97,10 +97,8 @@ export function CallLogSection({ trackingId, businessProfileId, onCallLogged }: 
       setCallNotes("");
       setSelectedStatus("voicemail");
 
-      // Notify parent
-      if (onCallLogged) {
-        onCallLogged(logs.length + 1);
-      }
+      // Notify parent to refresh
+      onCallLogged?.()
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to log call");
     } finally {
@@ -163,10 +161,8 @@ export function CallLogSection({ trackingId, businessProfileId, onCallLogged }: 
       setLogs((prev) => prev.filter((l) => l.id !== id));
       setDeleteConfirmId(null);
 
-      // Notify parent
-      if (onCallLogged) {
-        onCallLogged(logs.length - 1);
-      }
+      // Notify parent to refresh
+      onCallLogged?.()
     } catch (e) {
       console.error("Failed to delete:", e);
     }
@@ -221,7 +217,7 @@ export function CallLogSection({ trackingId, businessProfileId, onCallLogged }: 
       ) : (
         <div className="space-y-2 max-h-48 overflow-y-auto">
           {logs.map((log) => (
-            <div key={log.id} className="p-2 bg-white border border-gray-200 rounded-lg">
+            <div key={log.id} className="group p-2 bg-white border border-gray-200 rounded-lg">
               {editingId === log.id ? (
                 // Edit mode
                 <div className="space-y-2">

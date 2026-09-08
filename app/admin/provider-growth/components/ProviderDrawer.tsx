@@ -30,7 +30,7 @@ interface ProviderDrawerProps {
   provider: ProviderGrowthWithProfile;
   onClose: () => void;
   onUpdate: () => void;
-  onCallLogged?: (providerId: string, newCallCount: number) => void;
+  onCallLogged?: () => void;
 }
 
 export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: ProviderDrawerProps) {
@@ -388,11 +388,7 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
           <CallLogSection
             trackingId={provider.id}
             businessProfileId={provider.business_profile_id}
-            onCallLogged={(newCallCount) => {
-              if (onCallLogged) {
-                onCallLogged(provider.id, newCallCount);
-              }
-            }}
+            onCallLogged={onCallLogged}
           />
         )}
 

@@ -62,8 +62,8 @@ function CallScriptSection({ provider }: { provider: ProviderGrowthWithProfile }
     : "recently";
 
   return (
-    <div className="mb-4 px-3 py-2.5 bg-blue-50 border border-blue-100 rounded-lg">
-      <div className="text-[10px] font-semibold text-blue-500 uppercase tracking-wide mb-1.5">
+    <div className="mb-4 px-3 py-2.5 bg-gray-50 rounded-lg">
+      <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-1.5">
         Script
       </div>
       <p className="text-[12px] leading-relaxed text-gray-600">
@@ -184,7 +184,7 @@ function ActionsSection({
         {provider.pipeline_stage === "new_claim" && (
           <button
             onClick={onScheduleMeeting}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+            className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
           >
             Schedule Meeting
           </button>
@@ -192,7 +192,7 @@ function ActionsSection({
         {provider.pipeline_stage === "meeting_scheduled" && (
           <button
             onClick={onLogPitch}
-            className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-lg hover:bg-indigo-700"
+            className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
           >
             Log Pitch
           </button>
@@ -200,7 +200,7 @@ function ActionsSection({
         {provider.pipeline_stage === "pitched" && (
           <button
             onClick={onScheduleMeeting}
-            className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 border border-blue-200"
+            className="px-4 py-2 text-sm font-medium text-primary-700 bg-primary-50 rounded-lg hover:bg-primary-100 border border-primary-200"
           >
             Schedule Follow-up
           </button>
@@ -208,7 +208,7 @@ function ActionsSection({
         {provider.pipeline_stage === "not_interested" && (
           <button
             onClick={onReEngage}
-            className="px-4 py-2 text-sm font-medium text-emerald-600 bg-emerald-50 rounded-lg hover:bg-emerald-100 border border-emerald-200"
+            className="px-4 py-2 text-sm font-medium text-primary-700 bg-primary-50 rounded-lg hover:bg-primary-100 border border-primary-200"
           >
             Re-engage
           </button>
@@ -431,7 +431,7 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={4}
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
               placeholder="Add notes about this provider..."
               autoFocus
             />
@@ -445,7 +445,7 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
               <button
                 onClick={handleSaveNotes}
                 disabled={savingNotes}
-                className="px-4 py-1.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                className="px-4 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 disabled:opacity-50"
               >
                 {savingNotes ? "Saving..." : "Save"}
               </button>
@@ -458,38 +458,19 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
 
         {(provider.phone || provider.email) && <SectionDivider />}
 
-        {/* Status Cards */}
-        <div className="grid grid-cols-2 gap-3">
-          {/* Eligibility */}
-          <div className="p-3 bg-gray-50 rounded-lg">
-            <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">
-              Eligibility
-            </div>
+        {/* Eligibility & Profile - inline row */}
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center gap-2">
             <EligibilityBadges
               adsEligible={provider.ads_eligible}
               medjobsEligible={provider.medjobs_eligible}
               medjobsUniversity={provider.medjobs_catchment_university}
-              size="md"
+              size="sm"
             />
           </div>
-
-          {/* Profile completeness */}
-          <div className="p-3 bg-gray-50 rounded-lg">
-            <div className="text-[10px] font-semibold text-gray-400 uppercase tracking-wide mb-2">
-              Profile
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-emerald-500 rounded-full transition-all"
-                  style={{ width: `${provider.profile_completeness || 0}%` }}
-                />
-              </div>
-              <span className="text-sm font-medium text-gray-700">
-                {provider.profile_completeness || 0}%
-              </span>
-            </div>
-          </div>
+          <span className="text-gray-500">
+            Profile {provider.profile_completeness || 0}%
+          </span>
         </div>
 
         {/* Conversion status */}
@@ -590,7 +571,7 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
           <SectionHeader>Activity</SectionHeader>
           {loadingTouchpoints ? (
             <div className="flex items-center justify-center py-4">
-              <span className="w-4 h-4 border-2 border-gray-200 border-t-blue-600 rounded-full animate-spin" />
+              <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
             </div>
           ) : touchpoints.length === 0 ? (
             <p className="text-sm text-gray-400 italic">No activity yet</p>

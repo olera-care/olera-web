@@ -146,14 +146,14 @@ export function ProviderRow({ provider, onClick, onDelete, selected }: ProviderR
               </>
             )}
 
-            {/* Trash icon - appears on hover */}
+            {/* Trash icon - always visible but subtle, more prominent on hover */}
             {onDelete && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
                   onDelete();
                 }}
-                className="p-1 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                className="p-1 text-gray-200 hover:text-red-500 transition-colors"
                 title="Remove from tracking"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

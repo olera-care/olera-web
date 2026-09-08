@@ -208,7 +208,34 @@ function VerificationBadge({ state, providerName }: { state: string | null; prov
     );
   }
 
-  // Everything else (unverified, rejected, etc.): show nothing
+  // Unverified: show orange badge linking to verification page
+  if (state === "unverified") {
+    return (
+      <Link
+        href={verificationLink}
+        onClick={(e) => e.stopPropagation()}
+        className="px-1.5 py-0.5 text-[10px] font-medium bg-orange-100 text-orange-700 rounded hover:bg-orange-200 transition-colors"
+        title="Click to verify this provider"
+      >
+        Unverified
+      </Link>
+    );
+  }
+
+  // Rejected: show red badge linking to verification page (for context/history)
+  if (state === "rejected") {
+    return (
+      <Link
+        href={verificationLink}
+        onClick={(e) => e.stopPropagation()}
+        className="px-1.5 py-0.5 text-[10px] font-medium bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+        title="Verification rejected — click for details"
+      >
+        Rejected
+      </Link>
+    );
+  }
+
   return null;
 }
 

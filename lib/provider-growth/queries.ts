@@ -353,10 +353,12 @@ export async function listProviders(options: ListProvidersOptions = {}): Promise
   // Apply ordering
   query = query.order(orderBy, { ascending: orderDirection === "asc" });
 
-  // When searching, fetch all matching rows then filter + paginate in memory
-  // because PostgREST doesn't support ilike on joined columns.
-  // Without search, apply pagination at DB level for efficiency.
-  if (!search) {
+  // When searching or filtering by hasCallAttempts, fetch all matching rows
+  // then filter + paginate in memory because:
+  // - PostgREST doesn't support ilike on joined columns (search)
+  // - hasCallAttempts requires joining with touchpoints (in memory)
+  // Without these filters, apply pagination at DB level for efficiency.
+  if (!search && hasCallAttempts === undefined) {
     query = query.range(offset, offset + limit - 1);
   }
 

@@ -159,6 +159,70 @@ function formatPhone(phone: string): string {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Meeting Info Section (when meeting is scheduled)
+// ─────────────────────────────────────────────────────────────────────────────
+
+function MeetingInfoSection({
+  provider,
+  onMarkComplete,
+}: {
+  provider: ProviderGrowthWithProfile;
+  onMarkComplete: () => void;
+}) {
+  if (provider.pipeline_stage !== "meeting_scheduled" || !provider.meeting_scheduled_at) {
+    return null;
+  }
+
+  const meetingDate = new Date(provider.meeting_scheduled_at);
+  const isPast = meetingDate < new Date();
+  const formattedDate = meetingDate.toLocaleDateString("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+    year: "numeric",
+  });
+  const formattedTime = meetingDate.toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  });
+
+  return (
+    <div className="p-4 bg-primary-50 border border-primary-100 rounded-lg">
+      <div className="flex items-start justify-between">
+        <div>
+          <div className="text-[10px] font-semibold text-primary-600 uppercase tracking-wide mb-1">
+            {isPast ? "Meeting Was Scheduled" : "Meeting Scheduled"}
+          </div>
+          <div className="text-sm font-medium text-gray-900">{formattedDate}</div>
+          <div className="text-sm text-gray-600">{formattedTime}</div>
+        </div>
+        {isPast && (
+          <button
+            onClick={onMarkComplete}
+            className="px-3 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
+          >
+            Mark Complete
+          </button>
+        )}
+      </div>
+      {provider.calendly_event_id && (
+        <a
+          href={`https://calendly.com/app/scheduled_events/${provider.calendly_event_id}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-1 mt-2 text-xs text-primary-600 hover:text-primary-700 hover:underline"
+        >
+          View in Calendly
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+          </svg>
+        </a>
+      )}
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Actions Section (sticky footer)
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -190,12 +254,20 @@ function ActionsSection({
           </button>
         )}
         {provider.pipeline_stage === "meeting_scheduled" && (
-          <button
-            onClick={onLogPitch}
-            className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
-          >
-            Log Pitch
-          </button>
+          <>
+            <button
+              onClick={onLogPitch}
+              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
+            >
+              Log Pitch
+            </button>
+            <button
+              onClick={onScheduleMeeting}
+              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
+            >
+              Reschedule
+            </button>
+          </>
         )}
         {provider.pipeline_stage === "pitched" && (
           <button
@@ -318,6 +390,28 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
       console.error("Failed to save notes:", e);
     } finally {
       setSavingNotes(false);
+    }
+  };
+
+  const handleMarkMeetingComplete = async () => {
+    // When meeting is complete, move to "pitched" stage and open the pitch logger
+    try {
+      const res = await fetch(`/api/admin/provider-growth/${provider.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pipeline_stage: "pitched",
+          meeting_completed_at: new Date().toISOString(),
+        }),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to mark meeting complete");
+      }
+      // Open the pitch logger to capture pitch details
+      setActiveAction("pitch");
+      onUpdate();
+    } catch (e) {
+      console.error("Failed to mark meeting complete:", e);
     }
   };
 
@@ -466,6 +560,16 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
         <ContactSection provider={provider} />
 
         {(provider.phone || provider.email) && <SectionDivider />}
+
+        {/* Meeting Info - when meeting is scheduled */}
+        <MeetingInfoSection
+          provider={provider}
+          onMarkComplete={handleMarkMeetingComplete}
+        />
+
+        {provider.pipeline_stage === "meeting_scheduled" && provider.meeting_scheduled_at && (
+          <SectionDivider />
+        )}
 
         {/* Eligibility & Profile - inline row */}
         <div className="flex items-center justify-between text-sm">

@@ -9,6 +9,10 @@
 // TODO: Make this configurable via env var or admin settings
 const CALENDLY_BASE_URL = "https://calendly.com/olera-partnerships/provider-growth-call";
 
+// Webhook URL for receiving Calendly events (configure in Calendly dashboard)
+// Set CALENDLY_WEBHOOK_SECRET env var to the same value used when registering the webhook
+export const CALENDLY_WEBHOOK_URL = "/api/webhooks/calendly/provider-growth";
+
 export interface CalendlyBookingParams {
   trackingId: string;  // provider_growth_tracking.id for callback
   providerName?: string;

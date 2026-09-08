@@ -38,9 +38,9 @@ export const PIPELINE_STAGE_DESCRIPTIONS: Record<PipelineStage, string> = {
 
 // Valid stage transitions
 export const VALID_STAGE_TRANSITIONS: Record<PipelineStage, PipelineStage[]> = {
-  new_claim: ["meeting_scheduled", "not_interested"],
+  new_claim: ["meeting_scheduled", "upgrade_meeting", "not_interested"],  // upgrade_meeting for self-converted providers
   meeting_scheduled: ["pitched", "new_claim", "not_interested"],  // can cancel meeting
-  pitched: ["meeting_scheduled", "not_interested"],  // can schedule follow-up meeting
+  pitched: ["meeting_scheduled", "upgrade_meeting", "not_interested"],  // upgrade_meeting for Converted providers
   not_interested: ["new_claim"],  // can re-engage
   upgrade_meeting: ["pitched", "not_interested"],  // after upgrade meeting: pitched again or not interested
 };

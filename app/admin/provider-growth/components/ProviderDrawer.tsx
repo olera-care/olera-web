@@ -236,30 +236,39 @@ function ActionsSection({
 // Main Drawer Component
 // ─────────────────────────────────────────────────────────────────────────────
 
+// Engagement data from API
+interface EngagementData {
+  questions_count: number;
+  leads_count: number;
+  provider_slug: string | null;
+}
+
 export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: ProviderDrawerProps) {
   const [touchpoints, setTouchpoints] = useState<ProviderGrowthTouchpoint[]>([]);
-  const [loadingTouchpoints, setLoadingTouchpoints] = useState(true);
+  const [engagement, setEngagement] = useState<EngagementData | null>(null);
+  const [loadingData, setLoadingData] = useState(true);
   const [activeAction, setActiveAction] = useState<"schedule" | "pitch" | "notes" | null>(null);
   const [notes, setNotes] = useState(provider.notes || "");
   const [savingNotes, setSavingNotes] = useState(false);
 
-  const fetchTouchpoints = useCallback(async () => {
+  const fetchProviderData = useCallback(async () => {
     try {
       const res = await fetch(`/api/admin/provider-growth/${provider.id}`);
       if (res.ok) {
         const data = await res.json();
         setTouchpoints(data.touchpoints || []);
+        setEngagement(data.engagement || null);
       }
     } catch (e) {
-      console.error("Failed to fetch touchpoints:", e);
+      console.error("Failed to fetch provider data:", e);
     } finally {
-      setLoadingTouchpoints(false);
+      setLoadingData(false);
     }
   }, [provider.id]);
 
   useEffect(() => {
-    fetchTouchpoints();
-  }, [fetchTouchpoints]);
+    fetchProviderData();
+  }, [fetchProviderData]);
 
   // Reset notes when provider changes
   useEffect(() => {
@@ -557,6 +566,57 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
 
         <SectionDivider />
 
+        {/* Engagement - Questions and Leads from families */}
+        <div>
+          <SectionHeader>Platform Engagement</SectionHeader>
+          {loadingData ? (
+            <div className="flex items-center justify-center py-4">
+              <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
+            </div>
+          ) : engagement ? (
+            <div className="space-y-2">
+              {/* Questions */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Questions from families</span>
+                {engagement.questions_count > 0 && engagement.provider_slug ? (
+                  <Link
+                    href={`/admin/questions?provider_id=${engagement.provider_slug}`}
+                    className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
+                  >
+                    {engagement.questions_count}
+                  </Link>
+                ) : (
+                  <span className="text-sm text-gray-400">0</span>
+                )}
+              </div>
+              {/* Leads */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Leads received</span>
+                {engagement.leads_count > 0 ? (
+                  <Link
+                    href={`/admin/connections?provider_id=${provider.business_profile_id}`}
+                    className="text-sm font-medium text-primary-600 hover:text-primary-700 hover:underline"
+                  >
+                    {engagement.leads_count}
+                  </Link>
+                ) : (
+                  <span className="text-sm text-gray-400">0</span>
+                )}
+              </div>
+              {/* Helpful context for sales */}
+              {(engagement.questions_count > 0 || engagement.leads_count > 0) && (
+                <p className="text-xs text-gray-400 mt-2 italic">
+                  Use this to show the provider they&apos;re getting value from the platform.
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-400 italic">No engagement data</p>
+          )}
+        </div>
+
+        <SectionDivider />
+
         {/* Call Log */}
         <CallLogSection
           trackingId={provider.id}
@@ -566,10 +626,10 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
 
         <SectionDivider />
 
-        {/* Activity timeline */}
+        {/* Admin Activity - touchpoints log */}
         <div>
-          <SectionHeader>Activity</SectionHeader>
-          {loadingTouchpoints ? (
+          <SectionHeader>Admin Activity</SectionHeader>
+          {loadingData ? (
             <div className="flex items-center justify-center py-4">
               <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
             </div>

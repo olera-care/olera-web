@@ -124,6 +124,18 @@ export async function POST(request: NextRequest) {
 }
 
 /**
+ * Escape HTML special characters to prevent XSS/broken rendering.
+ */
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+/**
  * Generate HTML for the booking link email.
  */
 function generateBookingEmailHtml({
@@ -133,6 +145,7 @@ function generateBookingEmailHtml({
   providerName: string;
   bookingUrl: string;
 }): string {
+  const safeName = escapeHtml(providerName);
   return `
 <!DOCTYPE html>
 <html>
@@ -156,7 +169,7 @@ function generateBookingEmailHtml({
           <tr>
             <td style="padding: 0 40px 32px 40px;">
               <h1 style="margin: 0 0 16px 0; font-size: 24px; font-weight: 600; color: #111827;">
-                Hi ${providerName},
+                Hi ${safeName},
               </h1>
 
               <p style="margin: 0 0 16px 0; font-size: 16px; line-height: 24px; color: #4b5563;">

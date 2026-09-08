@@ -53,11 +53,15 @@ function verifySignature(
     .update(signedPayload)
     .digest("hex");
 
-  // Constant-time comparison
-  return crypto.timingSafeEqual(
-    Buffer.from(providedSignature),
-    Buffer.from(expectedSignature)
-  );
+  // Constant-time comparison (must check lengths first to avoid crash)
+  const providedBuf = Buffer.from(providedSignature);
+  const expectedBuf = Buffer.from(expectedSignature);
+
+  if (providedBuf.length !== expectedBuf.length) {
+    return false;
+  }
+
+  return crypto.timingSafeEqual(providedBuf, expectedBuf);
 }
 
 export async function POST(request: NextRequest) {
@@ -111,6 +115,14 @@ export async function POST(request: NextRequest) {
 
     // Handle based on event type
     if (payload.event === "invitee.created" && eventInfo.status === "active") {
+      // Validate stage transition - only new_claim and pitched can go to meeting_scheduled
+      const validFromStages = ["new_claim", "pitched", "meeting_scheduled"];
+      if (!validFromStages.includes(tracking.pipeline_stage)) {
+        console.warn(
+          `[calendly-webhook] Unexpected stage transition: ${tracking.pipeline_stage} → meeting_scheduled for tracking ${trackingId}. Allowing anyway (re-engagement).`
+        );
+      }
+
       // Meeting booked - update to meeting_scheduled
       const now = new Date().toISOString();
 

@@ -24,7 +24,6 @@ import {
   type AdsStatus,
   type MedjobsStatus,
 } from "@/lib/provider-growth/stages";
-import { EligibilityBadges } from "./EligibilityBadges";
 import { MeetingScheduler } from "./MeetingScheduler";
 import { PitchLogger, type PitchLogData } from "./PitchLogger";
 import { CallLogSection } from "./CallLogSection";
@@ -854,19 +853,49 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
           <SectionDivider />
         )}
 
-        {/* Eligibility & Profile - inline row */}
-        <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2">
-            <EligibilityBadges
-              adsEligible={provider.ads_eligible}
-              medjobsEligible={provider.medjobs_eligible}
-              medjobsUniversity={provider.medjobs_catchment_university}
-              size="sm"
-            />
+        {/* Provider Stats - unified row matching Provider Outreach pattern */}
+        <div>
+          <SectionHeader>Provider Stats</SectionHeader>
+          <div className="flex items-center gap-6">
+            <div>
+              <span className="text-2xl font-semibold text-gray-900">
+                {provider.profile_completeness || 0}%
+              </span>
+              <span className="ml-1.5 text-sm text-gray-500">Profile</span>
+            </div>
+            <div>
+              <span className={`text-2xl font-semibold ${
+                loadingData ? "text-gray-400" :
+                (engagement?.questions_count ?? 0) > 0 ? "text-gray-900" : "text-gray-400"
+              }`}>
+                {loadingData ? "·" : (engagement?.questions_count ?? 0)}
+              </span>
+              <span className="ml-1.5 text-sm text-gray-500">Questions</span>
+            </div>
+            <div>
+              <span className={`text-2xl font-semibold ${
+                loadingData ? "text-gray-400" :
+                (engagement?.leads_count ?? 0) > 0 ? "text-gray-900" : "text-gray-400"
+              }`}>
+                {loadingData ? "·" : (engagement?.leads_count ?? 0)}
+              </span>
+              <span className="ml-1.5 text-sm text-gray-500">Leads</span>
+            </div>
+            <div>
+              <span className={`text-2xl font-semibold ${provider.ads_eligible ? "text-gray-900" : "text-gray-400"}`}>
+                {provider.ads_eligible ? "✓" : "—"}
+              </span>
+              <span className="ml-1.5 text-sm text-gray-500">Ads</span>
+            </div>
+            {provider.medjobs_eligible && (
+              <div>
+                <span className="text-2xl font-semibold text-gray-900">✓</span>
+                <span className="ml-1.5 text-sm text-gray-500">
+                  MJ{provider.medjobs_catchment_university ? `: ${provider.medjobs_catchment_university}` : ""}
+                </span>
+              </div>
+            )}
           </div>
-          <span className="text-gray-500">
-            Profile {provider.profile_completeness || 0}%
-          </span>
         </div>
 
         {/* Conversion status */}
@@ -956,43 +985,6 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
             </div>
           </>
         )}
-
-        <SectionDivider />
-
-        {/* Engagement - Questions and Leads from families */}
-        <div>
-          <SectionHeader>Platform Engagement</SectionHeader>
-          {loadingData ? (
-            <div className="flex items-center justify-center py-4">
-              <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
-            </div>
-          ) : engagement ? (
-            <div className="space-y-2">
-              {/* Questions */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Questions from families</span>
-                <span className={`text-sm font-medium ${engagement.questions_count > 0 ? "text-gray-900" : "text-gray-400"}`}>
-                  {engagement.questions_count}
-                </span>
-              </div>
-              {/* Leads */}
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Leads received</span>
-                <span className={`text-sm font-medium ${engagement.leads_count > 0 ? "text-gray-900" : "text-gray-400"}`}>
-                  {engagement.leads_count}
-                </span>
-              </div>
-              {/* Helpful context for sales */}
-              {(engagement.questions_count > 0 || engagement.leads_count > 0) && (
-                <p className="text-xs text-gray-400 mt-2 italic">
-                  Use this to show the provider they&apos;re getting value from the platform.
-                </p>
-              )}
-            </div>
-          ) : (
-            <p className="text-sm text-gray-400 italic">No engagement data</p>
-          )}
-        </div>
 
         <SectionDivider />
 

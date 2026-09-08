@@ -165,11 +165,16 @@ function formatPhone(phone: string): string {
 function MeetingInfoSection({
   provider,
   onMarkComplete,
+  onMarkUpgradeComplete,
 }: {
   provider: ProviderGrowthWithProfile;
   onMarkComplete: () => void;
+  onMarkUpgradeComplete: () => void;
 }) {
-  if (provider.pipeline_stage !== "meeting_scheduled" || !provider.meeting_scheduled_at) {
+  const isUpgradeMeeting = provider.pipeline_stage === "upgrade_meeting";
+  const isMeetingScheduled = provider.pipeline_stage === "meeting_scheduled";
+
+  if ((!isMeetingScheduled && !isUpgradeMeeting) || !provider.meeting_scheduled_at) {
     return null;
   }
 
@@ -186,20 +191,31 @@ function MeetingInfoSection({
     minute: "2-digit",
   });
 
+  // Different styling for upgrade meetings
+  const bgColor = isUpgradeMeeting ? "bg-amber-50" : "bg-primary-50";
+  const borderColor = isUpgradeMeeting ? "border-amber-100" : "border-primary-100";
+  const textColor = isUpgradeMeeting ? "text-amber-600" : "text-primary-600";
+  const btnBg = isUpgradeMeeting ? "bg-amber-600 hover:bg-amber-700" : "bg-primary-600 hover:bg-primary-700";
+  const linkColor = isUpgradeMeeting ? "text-amber-600 hover:text-amber-700" : "text-primary-600 hover:text-primary-700";
+
+  const label = isUpgradeMeeting
+    ? isPast ? "Upgrade Meeting Was Scheduled" : "Upgrade Meeting Scheduled"
+    : isPast ? "Meeting Was Scheduled" : "Meeting Scheduled";
+
   return (
-    <div className="p-4 bg-primary-50 border border-primary-100 rounded-lg">
+    <div className={`p-4 ${bgColor} border ${borderColor} rounded-lg`}>
       <div className="flex items-start justify-between">
         <div>
-          <div className="text-[10px] font-semibold text-primary-600 uppercase tracking-wide mb-1">
-            {isPast ? "Meeting Was Scheduled" : "Meeting Scheduled"}
+          <div className={`text-[10px] font-semibold ${textColor} uppercase tracking-wide mb-1`}>
+            {label}
           </div>
           <div className="text-sm font-medium text-gray-900">{formattedDate}</div>
           <div className="text-sm text-gray-600">{formattedTime}</div>
         </div>
         {isPast && (
           <button
-            onClick={onMarkComplete}
-            className="px-3 py-1.5 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
+            onClick={isUpgradeMeeting ? onMarkUpgradeComplete : onMarkComplete}
+            className={`px-3 py-1.5 text-sm font-medium text-white ${btnBg} rounded-lg`}
           >
             Mark Complete
           </button>
@@ -210,7 +226,7 @@ function MeetingInfoSection({
           href={`https://calendly.com/app/scheduled_events/${provider.calendly_event_id}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center gap-1 mt-2 text-xs text-primary-600 hover:text-primary-700 hover:underline"
+          className={`inline-flex items-center gap-1 mt-2 text-xs ${linkColor} hover:underline`}
         >
           View in Calendly
           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -230,6 +246,7 @@ function ActionsSection({
   provider,
   onScheduleMeeting,
   onLogPitch,
+  onLogUpgradeOutcome,
   onAddNote,
   onMarkNotInterested,
   onReEngage,
@@ -237,6 +254,7 @@ function ActionsSection({
   provider: ProviderGrowthWithProfile;
   onScheduleMeeting: () => void;
   onLogPitch: () => void;
+  onLogUpgradeOutcome: () => void;
   onAddNote: () => void;
   onMarkNotInterested: () => void;
   onReEngage: () => void;
@@ -260,6 +278,22 @@ function ActionsSection({
               className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
             >
               Log Pitch
+            </button>
+            <button
+              onClick={onScheduleMeeting}
+              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
+            >
+              Reschedule
+            </button>
+          </>
+        )}
+        {provider.pipeline_stage === "upgrade_meeting" && (
+          <>
+            <button
+              onClick={onLogUpgradeOutcome}
+              className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700"
+            >
+              Log Upgrade Outcome
             </button>
             <button
               onClick={onScheduleMeeting}
@@ -305,6 +339,138 @@ function ActionsSection({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Upgrade Outcome Logger
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface UpgradeOutcome {
+  pipeline_stage: "pitched" | "not_interested";
+  ads_status?: "subscribed";
+  medjobs_status?: "subscribed";
+  meeting_completed_at?: string;
+}
+
+function UpgradeOutcomeLogger({
+  provider,
+  onSubmit,
+  onCancel,
+}: {
+  provider: ProviderGrowthWithProfile;
+  onSubmit: (outcome: UpgradeOutcome) => void;
+  onCancel: () => void;
+}) {
+  const [adsUpgraded, setAdsUpgraded] = useState(false);
+  const [medjobsUpgraded, setMedjobsUpgraded] = useState(false);
+  const [notInterested, setNotInterested] = useState(false);
+
+  const hasAds = provider.ads_status === "free_intro";
+  const hasMedjobs = provider.medjobs_status === "in_pilot";
+
+  const handleSubmit = () => {
+    const outcome: UpgradeOutcome = {
+      pipeline_stage: notInterested ? "not_interested" : "pitched",
+      meeting_completed_at: new Date().toISOString(),
+    };
+
+    if (adsUpgraded) {
+      outcome.ads_status = "subscribed";
+    }
+    if (medjobsUpgraded) {
+      outcome.medjobs_status = "subscribed";
+    }
+
+    onSubmit(outcome);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="text-sm font-medium text-amber-800">
+        Log Upgrade Meeting Outcome
+      </div>
+
+      {/* Upgrade checkboxes */}
+      <div className="space-y-2">
+        {hasAds && (
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={adsUpgraded}
+              onChange={(e) => {
+                setAdsUpgraded(e.target.checked);
+                if (e.target.checked) setNotInterested(false);
+              }}
+              className="w-4 h-4 text-emerald-600 border-gray-300 rounded focus:ring-emerald-500"
+            />
+            <span className="text-sm text-gray-700">
+              Upgraded to Ads Subscription
+            </span>
+          </label>
+        )}
+        {hasMedjobs && (
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={medjobsUpgraded}
+              onChange={(e) => {
+                setMedjobsUpgraded(e.target.checked);
+                if (e.target.checked) setNotInterested(false);
+              }}
+              className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+            />
+            <span className="text-sm text-gray-700">
+              Upgraded to MedJobs Subscription
+            </span>
+          </label>
+        )}
+        <div className="border-t border-amber-200 pt-2 mt-2">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={notInterested}
+              onChange={(e) => {
+                setNotInterested(e.target.checked);
+                if (e.target.checked) {
+                  setAdsUpgraded(false);
+                  setMedjobsUpgraded(false);
+                }
+              }}
+              className="w-4 h-4 text-gray-600 border-gray-300 rounded focus:ring-gray-500"
+            />
+            <span className="text-sm text-gray-700">
+              Not interested in upgrading
+            </span>
+          </label>
+        </div>
+      </div>
+
+      {/* Info text */}
+      <p className="text-xs text-amber-700">
+        {adsUpgraded || medjobsUpgraded
+          ? "Provider will be marked as Paying and moved to Pitched stage."
+          : notInterested
+          ? "Provider will be marked as Not Interested."
+          : "If no upgrade, provider returns to Pitched for future follow-up."}
+      </p>
+
+      {/* Buttons */}
+      <div className="flex justify-end gap-2">
+        <button
+          onClick={onCancel}
+          className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSubmit}
+          className="px-4 py-1.5 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700"
+        >
+          Save Outcome
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Main Drawer Component
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -319,7 +485,7 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
   const [touchpoints, setTouchpoints] = useState<ProviderGrowthTouchpoint[]>([]);
   const [engagement, setEngagement] = useState<EngagementData | null>(null);
   const [loadingData, setLoadingData] = useState(true);
-  const [activeAction, setActiveAction] = useState<"schedule" | "pitch" | "notes" | null>(null);
+  const [activeAction, setActiveAction] = useState<"schedule" | "pitch" | "upgrade" | "notes" | null>(null);
   const [notes, setNotes] = useState(provider.notes || "");
   const [savingNotes, setSavingNotes] = useState(false);
 
@@ -415,6 +581,12 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
     }
   };
 
+  const handleMarkUpgradeComplete = async () => {
+    // When upgrade meeting is complete, open the upgrade outcome logger
+    // The user will then choose whether they upgraded or not
+    setActiveAction("upgrade");
+  };
+
   const handleMarkNotInterested = async () => {
     if (!confirm("Mark this provider as not interested?")) return;
 
@@ -492,6 +664,7 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
       provider={provider}
       onScheduleMeeting={() => setActiveAction("schedule")}
       onLogPitch={() => setActiveAction("pitch")}
+      onLogUpgradeOutcome={() => setActiveAction("upgrade")}
       onAddNote={() => setActiveAction("notes")}
       onMarkNotInterested={handleMarkNotInterested}
       onReEngage={handleReEngage}
@@ -522,6 +695,29 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
               providerName={provider.display_name || "Provider"}
               medjobsEligible={provider.medjobs_eligible}
               onSubmit={handleLogPitch}
+              onCancel={() => setActiveAction(null)}
+            />
+          </div>
+        )}
+
+        {activeAction === "upgrade" && (
+          <div className="mb-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
+            <UpgradeOutcomeLogger
+              provider={provider}
+              onSubmit={async (outcome) => {
+                try {
+                  const res = await fetch(`/api/admin/provider-growth/${provider.id}`, {
+                    method: "PATCH",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(outcome),
+                  });
+                  if (!res.ok) throw new Error("Failed to log outcome");
+                  setActiveAction(null);
+                  onUpdate();
+                } catch (e) {
+                  console.error("Failed to log upgrade outcome:", e);
+                }
+              }}
               onCancel={() => setActiveAction(null)}
             />
           </div>
@@ -565,9 +761,11 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
         <MeetingInfoSection
           provider={provider}
           onMarkComplete={handleMarkMeetingComplete}
+          onMarkUpgradeComplete={handleMarkUpgradeComplete}
         />
 
-        {provider.pipeline_stage === "meeting_scheduled" && provider.meeting_scheduled_at && (
+        {(provider.pipeline_stage === "meeting_scheduled" || provider.pipeline_stage === "upgrade_meeting") &&
+          provider.meeting_scheduled_at && (
           <SectionDivider />
         )}
 

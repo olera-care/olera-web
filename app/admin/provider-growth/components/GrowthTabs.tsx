@@ -4,19 +4,20 @@
  * GrowthTabs - Tab navigation for provider growth pipeline
  *
  * Pipeline tabs: New Claims | Meeting Scheduled | Pitched | Not Interested
- * Conversion tabs: Converted (with Ads/MedJobs subtabs) | Paying (with subtabs)
+ * Conversion tabs: Converted | Upgrade Meeting | Paying (all with Ads/MedJobs subtabs)
  *
  * New Claims has subtabs: Not Contacted | In Progress
+ * Upgrade Meeting is a pipeline stage but rendered in the conversion section
  */
 
 import type { GrowthStats } from "@/lib/provider-growth/queries";
 
-export type PipelineTab = "new_claim" | "meeting_scheduled" | "pitched" | "not_interested";
+export type PipelineTab = "new_claim" | "meeting_scheduled" | "pitched" | "not_interested" | "upgrade_meeting";
 export type NewClaimSubTab = "not_contacted" | "in_progress";
 export type ConversionTab = "converted" | "paying";
 export type ConversionSubTab = "ads" | "medjobs" | "both";
 export type ActiveTab =
-  | { type: "pipeline"; stage: PipelineTab; subTab?: NewClaimSubTab }
+  | { type: "pipeline"; stage: PipelineTab; subTab?: NewClaimSubTab | ConversionSubTab }
   | { type: "conversion"; tab: ConversionTab; subTab: ConversionSubTab };
 
 interface GrowthTabsProps {
@@ -38,11 +39,6 @@ const PIPELINE_TABS: Array<{ id: PipelineTab; label: string }> = [
   { id: "not_interested", label: "Not Interested" },
 ];
 
-const CONVERSION_TABS: Array<{ id: ConversionTab; label: string }> = [
-  { id: "converted", label: "Converted" },
-  { id: "paying", label: "Paying" },
-];
-
 const CONVERSION_SUB_TABS: Array<{ id: ConversionSubTab; label: string }> = [
   { id: "ads", label: "Ads" },
   { id: "medjobs", label: "MedJobs" },
@@ -62,19 +58,28 @@ export function GrowthTabs({ activeTab, onTabChange, stats, newClaimSubtabCounts
         return stats.pitched;
       case "not_interested":
         return stats.not_interested;
+      case "upgrade_meeting":
+        return stats.upgrade_meeting;
       case "converted":
         return stats.ads_free_intro + stats.medjobs_in_pilot;
       case "paying":
         return stats.ads_subscribed + stats.medjobs_subscribed;
       case "ads":
-        // Context-dependent: converted or paying
+        // Context-dependent: converted, upgrade_meeting, or paying
         if (activeTab.type === "conversion") {
           return activeTab.tab === "converted" ? stats.ads_free_intro : stats.ads_subscribed;
+        }
+        // For upgrade_meeting, show free_intro count (they're converted but with meeting scheduled)
+        if (activeTab.type === "pipeline" && activeTab.stage === "upgrade_meeting") {
+          return stats.ads_free_intro;
         }
         return 0;
       case "medjobs":
         if (activeTab.type === "conversion") {
           return activeTab.tab === "converted" ? stats.medjobs_in_pilot : stats.medjobs_subscribed;
+        }
+        if (activeTab.type === "pipeline" && activeTab.stage === "upgrade_meeting") {
+          return stats.medjobs_in_pilot;
         }
         return 0;
       case "both":
@@ -140,31 +145,74 @@ export function GrowthTabs({ activeTab, onTabChange, stats, newClaimSubtabCounts
         {/* Separator */}
         <div className="w-px bg-gray-200 mx-2 my-1" />
 
-        {/* Conversion tabs */}
-        {CONVERSION_TABS.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => {
-              onTabChange({ type: "conversion", tab: tab.id, subTab: "ads" });
-            }}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-              isConversionActive(tab.id)
-                ? "border-emerald-500 text-emerald-600"
-                : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
+        {/* Converted tab */}
+        <button
+          onClick={() => {
+            onTabChange({ type: "conversion", tab: "converted", subTab: "ads" });
+          }}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            isConversionActive("converted")
+              ? "border-emerald-500 text-emerald-600"
+              : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
+          }`}
+        >
+          Converted
+          <span
+            className={`ml-1.5 px-1.5 py-0.5 text-xs rounded-full ${
+              isConversionActive("converted")
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-gray-100 text-gray-600"
             }`}
           >
-            {tab.label}
-            <span
-              className={`ml-1.5 px-1.5 py-0.5 text-xs rounded-full ${
-                isConversionActive(tab.id)
-                  ? "bg-emerald-100 text-emerald-700"
-                  : "bg-gray-100 text-gray-600"
-              }`}
-            >
-              {getCount(tab.id)}
-            </span>
-          </button>
-        ))}
+            {getCount("converted")}
+          </span>
+        </button>
+
+        {/* Upgrade Meeting tab (pipeline stage, but rendered here) */}
+        <button
+          onClick={() => {
+            onTabChange({ type: "pipeline", stage: "upgrade_meeting", subTab: "ads" });
+          }}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            isPipelineActive("upgrade_meeting")
+              ? "border-amber-500 text-amber-600"
+              : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
+          }`}
+        >
+          Upgrade Meeting
+          <span
+            className={`ml-1.5 px-1.5 py-0.5 text-xs rounded-full ${
+              isPipelineActive("upgrade_meeting")
+                ? "bg-amber-100 text-amber-700"
+                : "bg-gray-100 text-gray-600"
+            }`}
+          >
+            {getCount("upgrade_meeting")}
+          </span>
+        </button>
+
+        {/* Paying tab */}
+        <button
+          onClick={() => {
+            onTabChange({ type: "conversion", tab: "paying", subTab: "ads" });
+          }}
+          className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+            isConversionActive("paying")
+              ? "border-emerald-500 text-emerald-600"
+              : "border-transparent text-gray-600 hover:text-gray-900 hover:border-gray-300"
+          }`}
+        >
+          Paying
+          <span
+            className={`ml-1.5 px-1.5 py-0.5 text-xs rounded-full ${
+              isConversionActive("paying")
+                ? "bg-emerald-100 text-emerald-700"
+                : "bg-gray-100 text-gray-600"
+            }`}
+          >
+            {getCount("paying")}
+          </span>
+        </button>
       </div>
 
       {/* New Claims sub-tabs */}
@@ -211,6 +259,36 @@ export function GrowthTabs({ activeTab, onTabChange, stats, newClaimSubtabCounts
               className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
                 isSubTabActive(subTab.id)
                   ? "bg-emerald-100 text-emerald-700"
+                  : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+              }`}
+            >
+              {subTab.label}
+              {subTab.id !== "both" && (
+                <span className="ml-1 text-[10px] opacity-70">
+                  ({getCount(subTab.id)})
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Upgrade Meeting sub-tabs (Ads/MedJobs/Both) */}
+      {activeTab.type === "pipeline" && activeTab.stage === "upgrade_meeting" && (
+        <div className="flex gap-1 mt-2 pl-4">
+          {CONVERSION_SUB_TABS.map((subTab) => (
+            <button
+              key={subTab.id}
+              onClick={() =>
+                onTabChange({
+                  type: "pipeline",
+                  stage: "upgrade_meeting",
+                  subTab: subTab.id,
+                })
+              }
+              className={`px-3 py-1 text-xs font-medium rounded-full transition-colors ${
+                activeTab.subTab === subTab.id
+                  ? "bg-amber-100 text-amber-700"
                   : "bg-gray-100 text-gray-600 hover:bg-gray-200"
               }`}
             >

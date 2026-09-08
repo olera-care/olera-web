@@ -339,6 +339,75 @@ function ActionsSection({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Conversion Actions Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+function ConversionActionsSection({
+  provider,
+  onUpdateStatus,
+}: {
+  provider: ProviderGrowthWithProfile;
+  onUpdateStatus: (updates: { ads_status?: string; medjobs_status?: string }) => void;
+}) {
+  // Only show conversion actions for providers who have been pitched
+  const canShowConversion = ["pitched", "upgrade_meeting"].includes(provider.pipeline_stage);
+
+  if (!canShowConversion) return null;
+
+  const showAdsFreeTrial = provider.ads_status === "none";
+  const showAdsPaying = provider.ads_status === "free_intro";
+  const showMedjobsPilot = provider.medjobs_status === "none" && provider.medjobs_eligible;
+  const showMedjobsPaying = provider.medjobs_status === "in_pilot";
+
+  if (!showAdsFreeTrial && !showAdsPaying && !showMedjobsPilot && !showMedjobsPaying) {
+    return null;
+  }
+
+  return (
+    <>
+      <SectionDivider />
+      <div>
+        <SectionHeader>Conversion Actions</SectionHeader>
+        <div className="flex flex-wrap gap-2">
+          {showAdsFreeTrial && (
+            <button
+              onClick={() => onUpdateStatus({ ads_status: "free_intro" })}
+              className="px-3 py-1.5 text-sm font-medium text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100 border border-emerald-200"
+            >
+              Start Ads Free Trial
+            </button>
+          )}
+          {showAdsPaying && (
+            <button
+              onClick={() => onUpdateStatus({ ads_status: "subscribed" })}
+              className="px-3 py-1.5 text-sm font-medium text-emerald-700 bg-emerald-50 rounded-lg hover:bg-emerald-100 border border-emerald-200"
+            >
+              Mark Ads Paying
+            </button>
+          )}
+          {showMedjobsPilot && (
+            <button
+              onClick={() => onUpdateStatus({ medjobs_status: "in_pilot" })}
+              className="px-3 py-1.5 text-sm font-medium text-purple-700 bg-purple-50 rounded-lg hover:bg-purple-100 border border-purple-200"
+            >
+              Start MedJobs Pilot
+            </button>
+          )}
+          {showMedjobsPaying && (
+            <button
+              onClick={() => onUpdateStatus({ medjobs_status: "subscribed" })}
+              className="px-3 py-1.5 text-sm font-medium text-purple-700 bg-purple-50 rounded-lg hover:bg-purple-100 border border-purple-200"
+            >
+              Mark MedJobs Paying
+            </button>
+          )}
+        </div>
+      </div>
+    </>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Upgrade Outcome Logger
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -624,6 +693,22 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
     }
   };
 
+  const handleUpdateConversionStatus = async (updates: { ads_status?: string; medjobs_status?: string }) => {
+    try {
+      const res = await fetch(`/api/admin/provider-growth/${provider.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updates),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to update conversion status");
+      }
+      onUpdate();
+    } catch (e) {
+      console.error("Failed to update conversion status:", e);
+    }
+  };
+
   // Show call script only for new_claim providers
   const showCallScript = provider.pipeline_stage === "new_claim";
 
@@ -852,6 +937,12 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
             </div>
           </>
         )}
+
+        {/* Conversion Actions - for pitched/upgrade_meeting providers */}
+        <ConversionActionsSection
+          provider={provider}
+          onUpdateStatus={handleUpdateConversionStatus}
+        />
 
         {/* Notes */}
         {provider.notes && !activeAction && (

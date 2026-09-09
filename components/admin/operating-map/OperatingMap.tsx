@@ -144,7 +144,7 @@ const NODE_HELP: Record<string, string> = {
   cp1:
     "Providers in the directory nobody has claimed — the supply outreach works through. Scoped by the provider's city. A standing count, so the date range does not change it.",
   cp2:
-    "Unclaimed providers who heard from us in this range — any email, call or MedJobs contact. Counts providers, not messages, so twenty emails to one provider is one.",
+    "Inactive providers who heard from us in this range — any email, call or MedJobs contact. Counts providers, not messages, so twenty emails to one provider is one.",
   cp3:
     "Providers who became active in this range. Claiming the listing is all it takes — verification is a further step, counted separately.",
   cp4: "Providers who requested a managed ad campaign in this range.",
@@ -688,7 +688,7 @@ export default function OperatingMap({
                 <Card
                   id="cs1"
                   code="CS1"
-                  label="Families engaged"
+                  label="Care Seekers engaged"
                   parts="connect requests · benefits assessments"
                   metric={nodes.cs1}
                   trend={trends.cs1}
@@ -701,7 +701,7 @@ export default function OperatingMap({
                 <Card
                   id="cs2"
                   code="CS2"
-                  label="Families in outreach"
+                  label="Care Seekers in outreach"
                   metric={nodes.cs2}
                   trend={trends.cs2}
                   loading={metricsLoading}
@@ -728,7 +728,7 @@ export default function OperatingMap({
                   <Card
                     id="cs4"
                     code="CS4"
-                    label="Application submitted"
+                    label="Aid Application Submitted"
                     metric={nodes.cs4}
                     trend={trends.cs4}
                     loading={metricsLoading}
@@ -756,7 +756,7 @@ export default function OperatingMap({
                 <Card
                   id="cp1"
                   code="CP1"
-                  label="Unclaimed providers"
+                  label="Inactive Providers (unclaimed)"
                   metric={nodes.cp1}
                   trend={trends.cp1}
                   loading={metricsLoading}
@@ -781,7 +781,7 @@ export default function OperatingMap({
                   hi
                   id="cp3"
                   code="CP3"
-                  label="Active providers"
+                  label="Active Providers (claimed)"
                   metric={nodes.cp3}
                   trend={trends.cp3}
                   loading={metricsLoading}
@@ -838,7 +838,7 @@ export default function OperatingMap({
                 <Card
                   id="cw2"
                   code="CW2"
-                  label="Advisors in outreach"
+                  label="Student Advisors in outreach"
                   metric={nodes.cw2}
                   trend={trends.cw2}
                   loading={metricsLoading}
@@ -851,7 +851,7 @@ export default function OperatingMap({
                   hi
                   id="cw3"
                   code="CW3"
-                  label="Care worker profiles"
+                  label="Student Care Worker Profiles"
                   metric={nodes.cw3}
                   trend={trends.cw3}
                   loading={metricsLoading}
@@ -875,7 +875,7 @@ export default function OperatingMap({
                 <Card
                   id="o1"
                   code="O1"
-                  label="Family–provider connected"
+                  label="Safe Care Seeker Provider Connected"
                   metric={nodes.o1}
                   trend={trends.o1}
                   loading={metricsLoading}

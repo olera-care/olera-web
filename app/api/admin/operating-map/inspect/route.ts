@@ -108,7 +108,7 @@ const SOURCES: Record<
     summarize: (r) => `Provider ${String(r.provider_id ?? "—")}`,
   },
   cs2: {
-    title: "Families in outreach",
+    title: "Care Seekers in outreach",
     table: "email_log",
     select: "created_at, recipient, email_type",
     where: [
@@ -120,7 +120,7 @@ const SOURCES: Record<
       `${String(r.recipient ?? "—")} · ${String(r.email_type ?? "email")}`,
   },
   cp1: {
-    title: "Unclaimed providers",
+    title: "Inactive Providers (unclaimed)",
     table: "olera-providers",
     select: "created_at, provider_name, city, state",
     where: [
@@ -213,7 +213,7 @@ const SOURCES: Record<
     summarize: (r) => `${String(r.name ?? "—")} · ${String(r.city ?? "")}`,
   },
   cw2: {
-    title: "Advisors in outreach",
+    title: "Student Advisors in outreach",
     table: "student_outreach_contacts",
     select: "created_at, name, title, outreach_id",
     where: [
@@ -243,7 +243,7 @@ const SOURCES: Record<
   o1: {
     // Sampled as inquiries; Connected is decided in code from six signals,
     // none of them a column, so the rows below are the pool it is drawn from.
-    title: "Family–provider connected",
+    title: "Safe Care Seeker Provider Connected",
     table: "connections",
     select: "created_at, to_profile_id, status, metadata",
     where: [

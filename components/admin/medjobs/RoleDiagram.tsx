@@ -56,8 +56,8 @@ function InBasket({ y, h }: { y: number; h: number }) {
 
 /** The same five, in the same order, as the System map's match chain. */
 const MATCH_CHAIN: Array<Omit<Stage, "x" | "y" | "w">> = [
-  { key: "MA1", code: "O5", name: "Provider–care worker connected", dest: "portal" },
-  { key: "MA3", code: "O6", name: "Hires confirmed", dest: "ma3" },
+  { key: "MA1", code: "O3", name: "Provider–care worker connected", dest: "portal" },
+  { key: "MA3", code: "O4", name: "Hires confirmed", dest: "ma3" },
 ];
 
 type Props = {

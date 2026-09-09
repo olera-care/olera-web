@@ -172,7 +172,7 @@ const SOURCES: Record<
     summarize: (r) => `Provider ${String(r.provider_id ?? "—")}`,
   },
   cp4: {
-    title: "Provider managed ad product signups",
+    title: "Premium growth suite signups",
     table: "ad_campaign_requests",
     select: "created_at, provider_id, status",
     where: ["every row is one campaign request"],
@@ -181,7 +181,7 @@ const SOURCES: Record<
       `${String(r.provider_id ?? "—")} · ${String(r.status ?? "")}`,
   },
   cp5: {
-    title: "Provider staffing product signups",
+    title: "Student caregiver program signups",
     table: "staffing_touchpoints",
     select: "created_at, outreach_id, type",
     where: ["type is system_activated — the provider activated staffing"],
@@ -245,7 +245,7 @@ const SOURCES: Record<
   o1: {
     // Sampled as inquiries; Connected is decided in code from six signals,
     // none of them a column, so the rows below are the pool it is drawn from.
-    title: "Care seeker–care provider connected",
+    title: "Care seekers connected",
     table: "connections",
     select: "created_at, to_profile_id, status, metadata",
     where: [

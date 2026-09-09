@@ -43,9 +43,9 @@ export interface CheckInputs {
   cp1Unclaimed?: number;
   /** TRAFFIC's ten channels, summed by the caller. */
   trafficChannelSum?: number;
-  /** Inquiries raised — the set O1's answered count is drawn from. */
+  /** Inquiries raised — the set CP3B's answered count is drawn from. */
   inquiriesRaised?: number;
-  /** Interviews proposed — the set O5's confirmed count is drawn from. */
+  /** Interviews proposed — the set O3's confirmed count is drawn from. */
   interviewsProposed?: number;
 }
 
@@ -164,7 +164,7 @@ export function runChecks(values: NodeValues, inputs: CheckInputs = {}): MapChec
       id: "o5-under-o4",
       label: "Hires do not exceed confirmed interviews",
       ok: o5 <= o4,
-      detail: o5 <= o4 ? undefined : `O6 is ${o5}, O5 is ${o4}`,
+      detail: o5 <= o4 ? undefined : `O4 is ${o5}, O3 is ${o4}`,
     });
   }
 

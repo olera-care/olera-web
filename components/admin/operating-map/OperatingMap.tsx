@@ -348,7 +348,7 @@ export default function OperatingMap({
     const cs3 = box("cs3");
     const cs4 = box("cs4");
     const cs5 = box("cs5");
-    const o1 = box("o1");
+    const careConfirmed = box("o2");
 
     /*
      * One stem off CS3's left carries both of the things a profile becomes.
@@ -357,9 +357,9 @@ export default function OperatingMap({
      * connection directly, not through the aid track it passes.
      */
     const seekStem = cs3.l + IN;
-    seg(seekStem, cs3.b + G, seekStem, o1.cy);
+    seg(seekStem, cs3.b + G, seekStem, careConfirmed.cy);
     hArrow(cs4.cy, seekStem, cs4.l - G);
-    hArrow(o1.cy, seekStem, o1.l - G);
+    hArrow(careConfirmed.cy, seekStem, careConfirmed.l - G);
     vArrow(cs4.l + IN, cs4.b + G, cs5.t - G);
 
     /* care provider: supply, then the products, then the connection */
@@ -379,12 +379,13 @@ export default function OperatingMap({
     const cp5 = box("cp5");
     const o4 = box("o4");
 
-    /* one stem down CP3's left: a head into the completed profile and each
-       paid product, then on into the connection the active provider is the
-       other half of */
+    /* one stem down CP3's left: a head into everything a claimed provider
+       does, then on into the confirmed care those conversations produce */
     const provStem = cp3.l + IN;
-    vArrow(provStem, cp3.b + G, o1.t - G);
+    vArrow(provStem, cp3.b + G, careConfirmed.t - G);
     fromStem(provStem, "cp3a");
+    fromStem(provStem, "o1");
+    fromStem(provStem, "questionsAnswered");
     fromStem(provStem, "cp4");
     fromStem(provStem, "cp5");
 
@@ -399,8 +400,6 @@ export default function OperatingMap({
     vArrow(cw3.l + IN, cw3.b + G, o4.t - G);
 
     /* each join runs on down between the lanes that fed it */
-    vDown("o1", "questionsAnswered");
-    vDown("questionsAnswered", "o2");
     vDown("o2", "o3");
     vDown("o4", "o5");
     vDown("o5", "o6");
@@ -853,8 +852,9 @@ export default function OperatingMap({
                   onInspect={onInspect}
                 />
 
-              {/* what a claimed provider does next: finishes the profile, and
-                  takes one or both of the paid products */}
+              {/* everything a claimed provider does: finishes the profile, takes
+                  the care seekers the profile brings, and buys one or both of
+                  the products */}
               <div className={styles.branchR}>
                   <Card
                     id="cp3a"
@@ -869,10 +869,34 @@ export default function OperatingMap({
                   />
                 <div className={styles.gap} />
                   <Card
+                    id="o1"
+                    code="CP3B"
+                    label="Care seekers connected"
+                    metric={nodes.o1}
+                    trend={trends.o1}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+                <div className={styles.gap} />
+                  <Card
+                    id="questionsAnswered"
+                    code="CP3C"
+                    label="Questions answered"
+                    metric={nodes.questionsAnswered}
+                    trend={trends.questionsAnswered}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+                <div className={styles.gap} />
+                  <Card
                     hi
                     id="cp4"
-                    code="CP3B"
-                    label="Provider managed ad product signups"
+                    code="CP3D"
+                    label="Premium growth suite signups"
                     money="Paid product"
                     metric={nodes.cp4}
                     trend={trends.cp4}
@@ -885,8 +909,8 @@ export default function OperatingMap({
                   <Card
                     hi
                     id="cp5"
-                    code="CP3C"
-                    label="Provider staffing product signups"
+                    code="CP3E"
+                    label="Student caregiver program signups"
                     metric={nodes.cp5}
                     trend={trends.cp5}
                     loading={metricsLoading}
@@ -949,32 +973,8 @@ export default function OperatingMap({
             <div className={`${styles.lane} ${styles.join12}`}>
               <div className={`${styles.lab} ${styles.joinLab}`}>Care navigation outcomes</div>
                 <Card
-                  id="o1"
-                  code="O1"
-                  label="Care seeker–care provider connected"
-                  metric={nodes.o1}
-                  trend={trends.o1}
-                  loading={metricsLoading}
-                  onTip={openTip}
-                  onTipClose={closeTip}
-                  onInspect={onInspect}
-                />
-              <div className={styles.gap} />
-                <Card
-                  id="questionsAnswered"
-                  code="O2"
-                  label="Care seeker questions answered by provider"
-                  metric={nodes.questionsAnswered}
-                  trend={trends.questionsAnswered}
-                  loading={metricsLoading}
-                  onTip={openTip}
-                  onTipClose={closeTip}
-                  onInspect={onInspect}
-                />
-              <div className={styles.gap} />
-                <Card
                   id="o2"
-                  code="O3"
+                  code="O1"
                   label="Care confirmed"
                   metric={nodes.o2}
                   trend={trends.o2}
@@ -987,7 +987,7 @@ export default function OperatingMap({
                 <Card
                   hi
                   id="o3"
-                  code="O4"
+                  code="O2"
                   label="Est. healthcare utilization reduction"
                   money="Value created"
                   metric={nodes.o3}
@@ -1003,7 +1003,7 @@ export default function OperatingMap({
               <div className={`${styles.lab} ${styles.joinLab}`}>Caregiver workforce outcomes</div>
                 <Card
                   id="o4"
-                  code="O5"
+                  code="O3"
                   label="Provider–care worker connected"
                   metric={nodes.o4}
                   trend={trends.o4}
@@ -1016,7 +1016,7 @@ export default function OperatingMap({
                 <Card
                   hi
                   id="o5"
-                  code="O6"
+                  code="O4"
                   label="Hires confirmed"
                   money="Olera charges"
                   metric={nodes.o5}
@@ -1029,7 +1029,7 @@ export default function OperatingMap({
               <div className={styles.gap} />
                 <Card
                   id="o6"
-                  code="O7"
+                  code="O5"
                   label="Est. new care workers"
                   metric={nodes.o6}
                   trend={trends.o6}

@@ -141,7 +141,7 @@ const PORTAL_BOTTOM = MATCH_Y + ROW_H + 16;
 /**
  * Two boxes, not five. The operations map carries the fulfilment outcomes,
  * so this row names the same two it does rather than restating the internal
- * MA steps. O5 reads MA1's number and O6 reads MA3's, which is where the
+ * MA steps. O3 reads MA1's number and O4 reads MA3's, which is where the
  * connection and the confirmed hire are actually recorded.
  *
  * Shifts worked and revenue billed were MA4 and MA5 here. Neither has ever
@@ -149,8 +149,8 @@ const PORTAL_BOTTOM = MATCH_Y + ROW_H + 16;
  * operations map yet. Where they land is still open.
  */
 const MATCH: Stage[] = [
-  { key: "MA1", code: "O5", name: "Provider–care worker connected", dest: "ma1-candidate-intro", x: 0, y: 0, w: 0 },
-  { key: "MA3", code: "O6", name: "Hires confirmed", dest: "ma3-hire-confirmed", x: 0, y: 0, w: 0 },
+  { key: "MA1", code: "O3", name: "Provider–care worker connected", dest: "ma1-candidate-intro", x: 0, y: 0, w: 0 },
+  { key: "MA3", code: "O4", name: "Hires confirmed", dest: "ma3-hire-confirmed", x: 0, y: 0, w: 0 },
 ];
 
 export default function SystemArchitecture({

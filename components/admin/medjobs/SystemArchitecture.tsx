@@ -110,8 +110,13 @@ const CARE_WORKER: Stage[] = [
   { key: "QUAL", code: "CW3C", name: "Qualified student care worker applicants", dest: "qual-portal-vets-the-application" },
 ].map((st, i) => ({ ...st, x: RIGHT, y: cwY(i), w: LANE_W }));
 
-/** The five channels run in parallel, so no arrow joins one to the next. */
-const CARE_WORKER_LINKS = [0, 1, 2, 7, 8, 9];
+/**
+ * The five channels run in parallel, so no arrow joins one to the next — and
+ * nothing joins CW2H to CW3A either: what reaches the Portal is an activated
+ * university, not the last channel in the list, so that arrow leaves the
+ * activation block itself.
+ */
+const CARE_WORKER_LINKS = [0, 1, 2, 8, 9];
 
 /** The two group boxes down the care worker column, and the Portal around one. */
 const ACTIVATION_BOTTOM = cwY(ACTIVATION_ROWS - 1) + ROW_H + 12;
@@ -237,9 +242,15 @@ export default function SystemArchitecture({
       {CARE_WORKER.map((st) => box(st))}
       {CARE_WORKER_LINKS.map((i) => link(i))}
 
-      {/* The signed-up provider and the qualified applicant are what
-          fulfilment matches, so both stems meet on one line into it. */}
-      <line x1={230} y1={pY(3) + ROW_H} x2={230} y2={JOIN_Y} stroke="#cbd5e1" strokeWidth={1.5} />
+      {/* Both columns hand to the Portal, and the Portal does the rest. The
+          provider hands over a signed-up client and the campus an activated
+          university — neither hands over a match, which is why both arrows
+          stop at the Portal rather than reaching into it. */}
+      {arrow(LEFT + 20, pY(3) + ROW_H, PORTAL_TOP)}
+      {arrow(RIGHT + 20, ACTIVATION_BOTTOM, PORTAL_TOP)}
+
+      {/* Inside the Portal, the qualified applicant is what fulfilment
+          matches on. */}
       <line x1={RMID} y1={FUNNEL_BOTTOM} x2={RMID} y2={JOIN_Y} stroke="#cbd5e1" strokeWidth={1.5} />
       <line x1={230} y1={JOIN_Y} x2={RMID} y2={JOIN_Y} stroke="#cbd5e1" strokeWidth={1.5} />
       {arrow(230, JOIN_Y, MATCH_Y)}

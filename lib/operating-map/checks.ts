@@ -62,7 +62,7 @@ export function runChecks(values: NodeValues, inputs: CheckInputs = {}): MapChec
     const sum = cs1b + cs1c;
     checks.push({
       id: "cs1-parts",
-      label: "Families engaged equals connect requests plus benefits assessments",
+      label: "Care Seekers engaged equals connect requests plus benefits assessments",
       ok: cs1 === sum,
       detail: cs1 === sum ? undefined : `CS1 is ${cs1}, its parts add to ${sum}`,
     });
@@ -184,7 +184,7 @@ export function runChecks(values: NodeValues, inputs: CheckInputs = {}): MapChec
   if (cs1 !== null && visits !== null) {
     checks.push({
       id: "engaged-under-visits",
-      label: "Families engaged do not exceed page visits",
+      label: "Care Seekers engaged do not exceed page visits",
       ok: cs1 <= visits,
       detail: cs1 <= visits ? undefined : `CS1 is ${cs1}, page visits is ${visits}`,
     });

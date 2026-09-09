@@ -322,13 +322,15 @@ export default function OperatingMap({
       svg!.appendChild(ln);
     }
 
-    function head(x: number, y: number, dir: "d" | "r") {
+    function head(x: number, y: number, dir: "d" | "r" | "l") {
       const p = document.createElementNS(SVG_NS, "polygon");
       p.setAttribute(
         "points",
         dir === "d"
           ? [`${x},${y}`, `${x - 4.4},${y - 8}`, `${x + 4.4},${y - 8}`].join(" ")
-          : [`${x},${y}`, `${x - 8},${y - 4.4}`, `${x - 8},${y + 4.4}`].join(" "),
+          : dir === "r"
+            ? [`${x},${y}`, `${x - 8},${y - 4.4}`, `${x - 8},${y + 4.4}`].join(" ")
+            : [`${x},${y}`, `${x + 8},${y - 4.4}`, `${x + 8},${y + 4.4}`].join(" "),
       );
       svg!.appendChild(p);
     }
@@ -341,6 +343,10 @@ export default function OperatingMap({
       seg(x1, y, x2 - 8, y);
       head(x2, y, "r");
     };
+    const hArrowLeft = (y: number, x1: number, x2: number) => {
+      seg(x1, y, x2 + 8, y);
+      head(x2, y, "l");
+    };
 
     const vDown = (a: string, b: string) => {
       const A = box(a);
@@ -352,16 +358,6 @@ export default function OperatingMap({
     const fromStem = (x: number, b: string) => {
       const B = maybe(b);
       if (B) hArrow(B.cy, x + 1, B.l - G);
-    };
-
-    /**
-     * Straight down a card's right-hand side into a card below it. The two
-     * do not share a column, but they overlap far enough that the right edge
-     * of the one is over the other — so this reads as a drop rather than the
-     * detour a turn would draw.
-     */
-    const rightDown = (a: Box, b: Box) => {
-      vArrow(a.r - IN, a.b + G, b.t - G);
     };
 
     /*
@@ -379,7 +375,6 @@ export default function OperatingMap({
     const cs3 = box("cs3");
     const cs4 = box("cs4");
     const cs5 = box("cs5");
-    const careConfirmed = box("o2");
 
     /*
      * One stem off CS3's left carries both of the things a profile becomes.
@@ -388,10 +383,9 @@ export default function OperatingMap({
      * connection directly, not through the aid track it passes.
      */
     const seekStem = cs3.l + IN;
-    seg(seekStem, cs3.b + G, seekStem, careConfirmed.cy);
+    seg(seekStem, cs3.b + G, seekStem, cs5.cy);
     hArrow(cs4.cy, seekStem, cs4.l - G);
-    hArrow(careConfirmed.cy, seekStem, careConfirmed.l - G);
-    vArrow(cs4.l + IN, cs4.b + G, cs5.t - G);
+    hArrow(cs5.cy, seekStem, cs5.l - G);
 
     /* care provider: supply, then the products, then the connection */
     vDown("cp1", "cp2");
@@ -417,7 +411,6 @@ export default function OperatingMap({
     /* one stem down CP3's left: a head into everything a claimed provider
        does, then on into the confirmed care those conversations produce */
     const provStem = cp3.l + IN;
-    vArrow(provStem, cp3.b + G, careConfirmed.t - G);
     for (const k of ["cp3a", "o1", "questionsAnswered", "cp4", "cp5"]) fromStem(provStem, k);
 
     /* care worker: campuses, then the campus run, then the applicants it
@@ -436,15 +429,25 @@ export default function OperatingMap({
     for (const k of ["cw3a", "cw3b"]) fromStem(appStem, k);
     vDown("cw3", "o4");
 
-    /* The confirmed hire needs both halves: a provider signed up to the
-       programme and a care worker put in front of them. The match drops into
-       it down its own left; the signup drops down its right, which is the
-       same line whether or not the provider's substeps are showing, because
-       a branch and the card it hangs off share a right edge. */
-    rightDown(maybe("cp5") ?? cp3, box("o5"));
+    /* Confirmed care and a confirmed hire each need the claimed provider,
+       and each now sits in the lane that produced its other half. So the
+       provider reaches sideways out of both its edges: left into the care
+       the seeker lane confirms, right into the hire the worker lane makes.
+       Down its own left first, because both sit well below it. */
+    const confirmedCare = box("o2");
+    const confirmedHire = box("o5");
+    seg(cp3.l + IN, cp3.b + G, cp3.l + IN, confirmedCare.cy);
+    hArrowLeft(confirmedCare.cy, cp3.l + IN, confirmedCare.r + G);
+    // Down the gutter rather than the card: inside the lane it would run
+    // over whatever the provider's branch is showing.
+    const gutter = cp3.r + 13;
+    seg(gutter, cp3.b + G, gutter, confirmedHire.cy);
+    hArrow(confirmedHire.cy, gutter, confirmedHire.l - G);
+
+    /* The match drops straight into the hire it is confirmed from. */
     vDown("o4", "o5");
 
-    /* each join runs on down between the lanes that fed it */
+    /* and each outcome runs on down the lane it belongs to */
     vDown("o2", "o3");
     vDown("o5", "o6");
   }, []);
@@ -808,6 +811,31 @@ export default function OperatingMap({
                     onInspect={onInspect}
                   />
               </div>
+              <div className={styles.gapLg} />
+                  <Card
+                    id="o2"
+                    code="O1"
+                    label="Care confirmed"
+                    metric={nodes.o2}
+                    trend={trends.o2}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+              <div className={styles.gap} />
+                  <Card
+                    money="Value created"
+                    id="o3"
+                    code="O2"
+                    label="Est. healthcare utilization reduction"
+                    metric={nodes.o3}
+                    trend={trends.o3}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
             </div>
 
             {/* care provider */}
@@ -1190,77 +1218,36 @@ export default function OperatingMap({
                     onTipClose={closeTip}
                     onInspect={onInspect}
                   />
+              <div className={styles.gapLg} />
+                  <Card
+                    money="Paid product"
+                    id="o5"
+                    code="O3"
+                    label="Hires confirmed"
+                    metric={nodes.o5}
+                    trend={trends.o5}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+              <div className={styles.gap} />
+                  <Card
+                    id="o6"
+                    code="O4"
+                    label="Est. new care workers"
+                    metric={nodes.o6}
+                    trend={trends.o6}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
             </div>
 
           </div>
 
-          {/*
-            What two lanes make together. The connection sits between the
-            seeker and the provider, the hire between the provider and the
-            worker — each centred on the gutter of the two lanes feeding it.
-          */}
-          <div className={styles.lanesJoin}>
-
-            <div className={`${styles.lane} ${styles.join12}`}>
-              <div className={`${styles.lab} ${styles.joinLab}`}>Care navigation outcomes</div>
-                <Card
-                  id="o2"
-                  code="O1"
-                  label="Care confirmed"
-                  metric={nodes.o2}
-                  trend={trends.o2}
-                  loading={metricsLoading}
-                  onTip={openTip}
-                  onTipClose={closeTip}
-                  onInspect={onInspect}
-                />
-              <div className={styles.gap} />
-                <Card
-                  hi
-                  id="o3"
-                  code="O2"
-                  label="Est. healthcare utilization reduction"
-                  money="Value created"
-                  metric={nodes.o3}
-                  trend={trends.o3}
-                  loading={metricsLoading}
-                  onTip={openTip}
-                  onTipClose={closeTip}
-                  onInspect={onInspect}
-                />
-            </div>
-
-            <div className={`${styles.lane} ${styles.join23}`}>
-              <div className={`${styles.lab} ${styles.joinLab}`}>Caregiver workforce outcomes</div>
-                <Card
-                  hi
-                  id="o5"
-                  code="O3"
-                  label="Hires confirmed"
-                  money="Olera charges"
-                  metric={nodes.o5}
-                  trend={trends.o5}
-                  loading={metricsLoading}
-                  onTip={openTip}
-                  onTipClose={closeTip}
-                  onInspect={onInspect}
-                />
-              <div className={styles.gap} />
-                <Card
-                  id="o6"
-                  code="O4"
-                  label="Est. new care workers"
-                  metric={nodes.o6}
-                  trend={trends.o6}
-                  loading={metricsLoading}
-                  onTip={openTip}
-                  onTipClose={closeTip}
-                  onInspect={onInspect}
-                />
-            </div>
-
-          </div>
-          </section>
+</section>
         </div>
       </div>
     </div>

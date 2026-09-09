@@ -399,42 +399,9 @@
    join rather than a gap. */
 .gap { height: 16px; }
 .gapSm { height: 16px; }
+/* The break between a lane's steps and the outcome they add up to. */
+.gapLg { height: 30px; }
 
-/*
- * The two joins sit between the lanes that feed them rather than inside
- * either one. A connection is a family and a provider; a hire is a provider
- * and a worker. The figure should say that before the arrows do.
- *
- * Same three columns as the lanes above, so a stack that spans two of them
- * and is centred in that span lands exactly halfway between the two lane
- * centres — over the gutter, with one lane's width to itself.
- */
-.lanesJoin {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 26px;
-  margin-top: 26px;
-}
-.join12,
-.join23 {
-  grid-row: 1;
-  justify-self: center;
-  /* One lane wide: the span is two lanes plus the gutter between them. */
-  width: calc((100% - 26px) / 2);
-}
-/*
- * Each join stack gets its own heading, the same rule the three lanes get.
- * It sits inside the stack rather than in a row of its own, because a stack
- * that straddles two lanes has no column of its own to be labelled from.
- *
- * Set to the right, clear of the spine: the lines feeding this stack come
- * down from the lanes above and enter its cards near the left, which is
- * exactly where a flush heading would be. Text with a wire through it is
- * worse than a heading that sits at the other end of the card below it.
- */
-.joinLab { margin-bottom: 8px; text-align: right; }
-.join12 { grid-column: 1 / span 2; }
-.join23 { grid-column: 2 / span 2; }
 
 /*
  * A branch hangs off the card above it and says so by indenting. Narrower

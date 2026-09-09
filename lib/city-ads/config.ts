@@ -147,20 +147,25 @@ export function classifyCityTraffic(utm: {
   fbclid?: string | null;
 }): { paid: boolean; channel: string | null } {
   const medium = utm.medium ?? null;
+  // Matched case-insensitively because utm_medium is typed by hand into an ad
+  // URL. A stray "Paid_Meta" would otherwise read as neither paid nor Meta, and
+  // surface in the rollup as its own phantom channel next to the real one.
+  // The fallback below still returns the medium as written, for display.
+  const m = (medium ?? "").toLowerCase();
   const paid =
     Boolean(utm.gclid) ||
     Boolean(utm.fbclid) ||
-    String(utm.source ?? "") === "olera_city" ||
-    (medium ?? "").startsWith("paid_");
+    String(utm.source ?? "").toLowerCase() === "olera_city" ||
+    m.startsWith("paid_");
   // A click id is stronger evidence than a medium we typed into an ad URL by
   // hand, so it wins. Meta is checked before the medium fallbacks because a
   // Meta ad can arrive with fbclid and a mistyped medium, and mislabelling it
   // Nextdoor would corrupt the one comparison the Charlotte arm exists to make.
-  const channel = utm.fbclid || medium === CITY_MEDIUM_META
+  const channel = utm.fbclid || m === CITY_MEDIUM_META
     ? "Meta"
-    : utm.gclid || medium === CITY_MEDIUM_GOOGLE
+    : utm.gclid || m === CITY_MEDIUM_GOOGLE
       ? "Google"
-      : medium === CITY_MEDIUM_NEXTDOOR
+      : m === CITY_MEDIUM_NEXTDOOR
         ? "Nextdoor"
         : medium;
   return { paid, channel };

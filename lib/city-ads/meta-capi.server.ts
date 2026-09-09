@@ -106,6 +106,12 @@ export async function sendMetaLeadEvent(ev: MetaLeadEvent): Promise<void> {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
+        // Bounded because this is awaited on the family's submit path. The lead
+        // is already saved by the time we get here, so a hang would cost the
+        // family their confirmation screen over an analytics call — they would
+        // see a failure for a request that actually succeeded. Losing the event
+        // is the cheaper failure.
+        signal: AbortSignal.timeout(4000),
       },
     );
     if (!res.ok) {

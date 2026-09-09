@@ -53,19 +53,30 @@ export interface ChannelRow {
   clickToLead: number | null;
 }
 
+/** A lead we cannot attribute to any channel. Counted, never hidden. */
+export const UNATTRIBUTED = "unattributed";
+
 /**
  * classifyCityTraffic returns a display name ("Meta"); city_campaigns keys on a
  * lower-case slug ("meta"). One lower-case is the whole mapping, kept here so
  * the two representations cannot drift apart silently.
+ *
+ * A lead with no channel at all becomes UNATTRIBUTED rather than null. It is a
+ * real family who really arrived, and it happens for real reasons — someone
+ * typing the URL, a link shared without tags, or an ad platform rewriting the
+ * final URL and dropping utm_medium on the way (Google's AI Max URL expansion
+ * does exactly that). Dropping those would make this table's lead count
+ * disagree with the lead list beside it, which is the confusion the orphan row
+ * below exists to prevent.
  */
-export function leadChannelKey(lead: RollupLead): string | null {
+export function leadChannelKey(lead: RollupLead): string {
   const { channel } = classifyCityTraffic({
     source: lead.utm_source,
     medium: lead.utm_medium,
     gclid: lead.gclid,
     fbclid: lead.fbclid,
   });
-  return channel ? channel.toLowerCase() : null;
+  return channel ? channel.toLowerCase() : UNATTRIBUTED;
 }
 
 export function buildChannelRollup(campaigns: RollupCampaign[], leads: RollupLead[]): ChannelRow[] {
@@ -77,7 +88,7 @@ export function buildChannelRollup(campaigns: RollupCampaign[], leads: RollupLea
   const counts = new Map<string, number>();
   for (const lead of real) {
     const channel = leadChannelKey(lead);
-    if (!lead.slug || !channel) continue;
+    if (!lead.slug) continue;
     const key = `${lead.slug}::${channel}`;
     counts.set(key, (counts.get(key) ?? 0) + 1);
   }

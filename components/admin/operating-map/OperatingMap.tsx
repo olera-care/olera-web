@@ -796,7 +796,7 @@ export default function OperatingMap({
                     hi
                     id="cp4"
                     code="CP4"
-                    label="Managed ads"
+                    label="Provider managed ad product signups"
                     money="Paid product"
                     metric={nodes.cp4}
                     trend={trends.cp4}
@@ -810,7 +810,7 @@ export default function OperatingMap({
                     hi
                     id="cp5"
                     code="CP5"
-                    label="Provider staffing signups"
+                    label="Provider staffing product signups"
                     metric={nodes.cp5}
                     trend={trends.cp5}
                     loading={metricsLoading}

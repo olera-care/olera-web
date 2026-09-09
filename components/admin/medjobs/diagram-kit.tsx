@@ -31,18 +31,18 @@ export const HEALTH: Record<Health, { dot: string; fill: string; stroke: string;
 };
 
 /**
- * Ownership, as one teal scale from the brand's primary palette. Four steps of
- * the same colour rather than four different hues, so that anything on the map
- * which is not teal is a health state.
+ * The card ground, taken from the operating map so a stage on this map and a
+ * node on that one are visibly the same object. One ground for every stage:
+ * ownership used to be four shades of teal, but who owns a step is a fact for
+ * the role manuals, not a colour to decode, and dropping it leaves health as
+ * the only thing on the map that is coloured.
  */
-export const OWNERS = {
-  admin: { fill: "#f4fafa", stroke: "#d8edec", ink: "#417272", label: "Admin Team" },
-  sales: { fill: "#edf7f7", stroke: "#bee0e0", ink: "#385e5e", label: "Sales Lead" },
-  usm: { fill: "#d8edec", stroke: "#96c8c8", ink: "#1a3030", label: "Consumer Relations Manager" },
-  portal: { fill: "#f9fafb", stroke: "#eaecf0", ink: "#475467", label: "Portal" },
+export const CARD = {
+  fill: "#e9f3f1",
+  stroke: "#cbe0da",
+  ink: "#14282c",
+  name: "#475d62",
 } as const;
-
-export type Owner = keyof typeof OWNERS;
 
 
 export interface Stage {
@@ -50,7 +50,6 @@ export interface Stage {
   key?: string;
   code: string;
   name: string;
-  owner: Owner;
   dest: string;
   x: number;
   y: number;
@@ -101,7 +100,9 @@ export function metricTitle(stageKey: string, code: string, name: string, m: Sta
 }
 
 /**
- * One stage. Greyed stages are the neighbours just past a handoff, drawn on a
+ * One stage, drawn as the operating map draws a node: the code and the name on
+ * one line, because a name on its own second line is a line of mostly
+ * whitespace. Greyed stages are the neighbours just past a handoff, drawn on a
  * role view so the reader sees where their work goes; they carry no metric and
  * are not clickable, because they are not that person's step.
  */
@@ -109,23 +110,26 @@ export function StageBox({
   stage,
   metric,
   onJump,
-  sub,
   greyed,
   showStats = true,
 }: {
   stage: Stage;
   metric?: StageMetric;
   onJump?: (dest: string) => void;
-  sub?: string;
   greyed?: boolean;
   /** Off hides the number and leaves the health dot, which is the summary. */
   showStats?: boolean;
 }) {
   const s = stage;
-  const o = OWNERS[s.owner];
   const h = s.h ?? 44;
   const read = greyed || !showStats ? null : metric ? readMetric(metric) : null;
   const jump = greyed ? undefined : onJump;
+  const dot = !greyed && showStats && metric?.health ? metric.health : null;
+  // One line of text, so it sits on the box's centre line rather than a third
+  // of the way down where the old two-line stack started.
+  const baseline = s.y + h / 2 + 5;
+  const tx = s.x + (dot ? 25 : 12);
+  const narrow = s.w < 200;
   return (
     <g
       role={jump ? "button" : undefined}
@@ -153,45 +157,41 @@ export function StageBox({
         y={s.y}
         width={s.w}
         height={h}
-        rx={5}
-        fill={greyed ? "#fafafa" : o.fill}
-        stroke={greyed ? "#e5e7eb" : o.stroke}
+        rx={6}
+        fill={greyed ? "#fafafa" : CARD.fill}
+        stroke={greyed ? "#e5e7eb" : CARD.stroke}
         strokeDasharray={greyed ? "4 3" : undefined}
       />
-      {!greyed && showStats && metric?.health ? (
+      {dot && metric ? (
         <g>
           {!read ? <title>{metricTitle(s.key ?? s.code, s.code, s.name, metric)}</title> : null}
-          <circle cx={s.x + 13} cy={s.y + 16} r={4.5} fill={HEALTH[metric.health].dot} />
+          <circle cx={s.x + 13} cy={s.y + h / 2} r={4.5} fill={HEALTH[dot].dot} />
         </g>
       ) : null}
-      <text
-        x={s.x + (!greyed && showStats && metric?.health ? 25 : 12)}
-        y={s.y + 21}
-        fontSize={s.w < 200 ? 14 : 16}
-        fontWeight={700}
-        fill={greyed ? "#9ca3af" : o.ink}
-      >
-        {s.code}
+      <text x={tx} y={baseline} fill={greyed ? "#9ca3af" : CARD.ink}>
+        <tspan fontSize={narrow ? 13 : 15} fontWeight={700}>
+          {s.code}
+        </tspan>
+        <tspan
+          dx={9}
+          fontSize={narrow ? 11.5 : 13}
+          fontWeight={500}
+          fill={greyed ? "#9ca3af" : CARD.name}
+        >
+          {s.name}
+        </tspan>
       </text>
-      <text x={s.x + (!greyed && showStats && metric?.health ? 25 : 12)} y={s.y + 39} fontSize={s.w < 200 ? 12 : 13.5} fill={greyed ? "#9ca3af" : "#374151"}>
-        {s.name}
-      </text>
-      {sub ? (
-        <text x={s.x + (!greyed && showStats && metric?.health ? 25 : 12)} y={s.y + 56} fontSize={12} fill={greyed ? "#b0b6be" : "#6b7280"}>
-          {sub}
-        </text>
-      ) : null}
       {read && metric ? (
         <>
           <title>{metricTitle(s.key ?? s.code, s.code, s.name, metric)}</title>
           <text
             x={s.x + s.w - 12}
-            y={s.y + 21}
-            fontSize={read.gap ? 11 : s.w < 200 ? 12 : 15}
+            y={baseline}
+            fontSize={read.gap ? 11 : narrow ? 12 : 14}
             fontWeight={read.gap ? 400 : 700}
             fontStyle={read.gap ? "italic" : undefined}
             textAnchor="end"
-            fill={read.gap ? "#94a3b8" : "#0f172a"}
+            fill={read.gap ? "#94a3b8" : CARD.ink}
           >
             {read.text}
           </text>
@@ -225,22 +225,6 @@ export function HandoffRule({ y, text, lanes }: { y: number; text: string; lanes
           <line x1={x} y1={y} x2={x + w} y2={y} stroke="#e2e8f0" strokeWidth={1} strokeDasharray="3 3" />
           <text x={x} y={y - 5} fontSize={9.5} fontWeight={600} fill="#94a3b8" letterSpacing="0.4">
             {text}
-          </text>
-        </g>
-      ))}
-    </>
-  );
-}
-
-/** The ownership key. Same four, same order, on every diagram that shows it. */
-export function Legend({ y, owners }: { y: number; owners: Owner[] }) {
-  return (
-    <>
-      {owners.map((k, i) => (
-        <g key={k}>
-          <rect x={44 + i * 190} y={y} width={11} height={11} rx={2} fill={OWNERS[k].fill} stroke={OWNERS[k].stroke} />
-          <text x={63 + i * 190} y={y + 10} fontSize={11.5} fill="#475569">
-            {OWNERS[k].label}
           </text>
         </g>
       ))}

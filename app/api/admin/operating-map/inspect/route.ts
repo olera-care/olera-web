@@ -172,7 +172,7 @@ const SOURCES: Record<
     summarize: (r) => `Provider ${String(r.provider_id ?? "—")}`,
   },
   cp4: {
-    title: "Managed ad signups",
+    title: "Provider managed ad product signups",
     table: "ad_campaign_requests",
     select: "created_at, provider_id, status",
     where: ["every row is one campaign request"],
@@ -181,7 +181,7 @@ const SOURCES: Record<
       `${String(r.provider_id ?? "—")} · ${String(r.status ?? "")}`,
   },
   cp5: {
-    title: "Provider staffing signups",
+    title: "Provider staffing product signups",
     table: "staffing_touchpoints",
     select: "created_at, outreach_id, type",
     where: ["type is system_activated — the provider activated staffing"],

@@ -5,12 +5,9 @@ import {
   ArrowDefs,
   Arrow,
   HandoffRule,
-  Legend,
-  OWNERS,
   SiteHeader,
   StageBox,
   BottomLine,
-  type Owner,
   type Stage,
 } from "@/components/admin/medjobs/diagram-kit";
 
@@ -18,10 +15,10 @@ import {
  * The MedJobs operating system on one screen, drawn from the flow map at the
  * top of the master implementation matrix.
  *
- * Colour is ownership, which is the thing the map is actually for: two
- * pipelines built in parallel, each handed from the Admin Team to the Sales
- * Lead at the booked meeting and from the Sales Lead to the Consumer Relations
- * Manager after it, both feeding the Portal.
+ * Two pipelines built in parallel — providers on the left, care workers on the
+ * right — handed along at the booked meeting and after it, both feeding the
+ * Portal. Every stage sits on the same card ground, so the only colour on the
+ * map is a health state.
  *
  * Every stage is a button. Clicking one jumps the reader below to that stage's
  * section by its PDF named destination.
@@ -32,9 +29,14 @@ import {
  */
 
 
-const LANE_W = 380;
-const LEFT = 40;
-const RIGHT = 540;
+// The same lane geometry as the three role views, so a stage is the same
+// width wherever it is drawn. Wide enough that a code, its name and its
+// number sit on one line without meeting in the middle.
+const LANE_W = 426;
+const LEFT = 44;
+const RIGHT = 490;
+const LMID = LEFT + LANE_W / 2;
+const RMID = RIGHT + LANE_W / 2;
 
 /**
  * Codes shown here are the operations map's, so reading the two maps in
@@ -48,14 +50,14 @@ const RIGHT = 540;
  * database all keep working while the naming settles.
  */
 const STAGES: Stage[] = [
-  { key: "PR1", code: "CP2A", name: "MedJobs provider target list built", owner: "admin", dest: "pr1-target-list-built-and-pre-flight-complete", x: LEFT, y: 118, w: LANE_W },
-  { key: "ST1", code: "CW1A", name: "Student advisors target list", owner: "admin", dest: "st1-target-advisors", x: RIGHT, y: 118, w: LANE_W },
-  { key: "PR-OUT", code: "CP2B", name: "MedJobs outbound work", owner: "admin", dest: "pr-out-outbound-work", x: LEFT, y: 172, w: LANE_W },
-  { key: "ST-OUT", code: "CW2A", name: "Student advisors in outreach", owner: "admin", dest: "st-out-university-outbound", x: RIGHT, y: 172, w: LANE_W },
-  { key: "PR2", code: "CP2C", name: "MedJobs provider meeting held", owner: "sales", dest: "pr2-provider-meeting-held", x: LEFT, y: 262, w: LANE_W },
-  { key: "ST2", code: "CW2B", name: "Advisor meeting held", owner: "sales", dest: "st2-advisor-meeting-held", x: RIGHT, y: 262, w: LANE_W },
-  { key: "PR3", code: "CP5A", name: "MedJobs provider success management", owner: "usm", dest: "pr3-client-success", x: LEFT, y: 352, w: LANE_W },
-  { key: "ST3-ST7", code: "CW2C–G", name: "University activation", owner: "usm", dest: "st3st7-university-activation", x: RIGHT, y: 352, w: LANE_W },
+  { key: "PR1", code: "CP2A", name: "MedJobs provider target list built", dest: "pr1-target-list-built-and-pre-flight-complete", x: LEFT, y: 118, w: LANE_W },
+  { key: "ST1", code: "CW1A", name: "Student advisors target list", dest: "st1-target-advisors", x: RIGHT, y: 118, w: LANE_W },
+  { key: "PR-OUT", code: "CP2B", name: "MedJobs outbound work", dest: "pr-out-outbound-work", x: LEFT, y: 172, w: LANE_W },
+  { key: "ST-OUT", code: "CW2", name: "Student advisors in outreach", dest: "st-out-university-outbound", x: RIGHT, y: 172, w: LANE_W },
+  { key: "PR2", code: "CP2C", name: "MedJobs provider meeting held", dest: "pr2-provider-meeting-held", x: LEFT, y: 262, w: LANE_W },
+  { key: "ST2", code: "CW2A", name: "Advisor meeting held", dest: "st2-advisor-meeting-held", x: RIGHT, y: 262, w: LANE_W },
+  { key: "PR3", code: "CP5", name: "Provider staffing product signups", dest: "pr3-client-success", x: LEFT, y: 352, w: LANE_W },
+  { key: "ST3-ST7", code: "CW2B–F", name: "University activation", dest: "st3st7-university-activation", x: RIGHT, y: 352, w: LANE_W },
 ];
 
 /**
@@ -64,14 +66,13 @@ const STAGES: Stage[] = [
  * MA steps. O4 reads MA1's number and O5 reads MA3's, which is where the
  * connection and the confirmed hire are actually recorded.
  *
- * Shifts worked and revenue billed now live on the operations map as O7 and
- * O8. They were MA4 and MA5 here, and neither has ever been measurable, so
- * the honest place for them is the map that describes the whole business
- * rather than the one a Consumer Relations Manager works from.
+ * Shifts worked and revenue billed were MA4 and MA5 here. Neither has ever
+ * been measurable, so both came off this map and neither has a home on the
+ * operations map yet. Where they land is still open.
  */
 const MATCH: Stage[] = [
-  { key: "MA1", code: "O4", name: "Provider–care worker connected", owner: "portal", dest: "ma1-candidate-intro", x: 0, y: 0, w: 0 },
-  { key: "MA3", code: "O5", name: "Hires confirmed", owner: "usm", dest: "ma3-hire-confirmed", x: 0, y: 0, w: 0 },
+  { key: "MA1", code: "O4", name: "Provider–care worker connected", dest: "ma1-candidate-intro", x: 0, y: 0, w: 0 },
+  { key: "MA3", code: "O5", name: "Hires confirmed", dest: "ma3-hire-confirmed", x: 0, y: 0, w: 0 },
 ];
 
 export default function SystemArchitecture({
@@ -99,13 +100,12 @@ export default function SystemArchitecture({
     instrumented: { successfulStudents: boolean; revenue: boolean };
   };
 }) {
-  const box = (st: Stage, sub?: string) => (
+  const box = (st: Stage) => (
     <StageBox
       key={st.code + st.x}
       stage={st}
       metric={metrics?.[st.key ?? st.code]}
       onJump={onJump}
-      sub={sub}
       showStats={showStats}
     />
   );
@@ -114,10 +114,10 @@ export default function SystemArchitecture({
     <HandoffRule key={text + y} y={y} text={text} lanes={[[LEFT, LANE_W], [RIGHT, LANE_W]]} />
   );
 
-  // Two boxes now, so they can be wide enough to read.
-  const mw = 420;
-  const mgap = 16;
-  const mx0 = 60;
+  // Two boxes, on the same two lanes as everything above them.
+  const mw = LANE_W;
+  const mgap = RIGHT - (LEFT + LANE_W);
+  const mx0 = LEFT;
 
   return (
     <svg
@@ -132,9 +132,9 @@ export default function SystemArchitecture({
 
       {/* One site: a university and the providers around it */}
       <SiteHeader site={site} />
-      {arrow(230, 46, 68)}
-      {arrow(730, 46, 68)}
-      <line x1={230} y1={46} x2={730} y2={46} stroke="#cbd5e1" strokeWidth={1.5} />
+      {arrow(LMID, 56, 72)}
+      {arrow(RMID, 56, 72)}
+      <line x1={LMID} y1={56} x2={RMID} y2={56} stroke="#cbd5e1" strokeWidth={1.5} />
 
       <text x={LEFT} y={80} fontSize={12.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
         PROVIDER SIDE
@@ -172,14 +172,14 @@ export default function SystemArchitecture({
         PORTAL
       </text>
 
-      {box({ key: "ST8", code: "CW3A", name: "Student application submitted", owner: "portal", dest: "st8-student-application-submitted", x: 556, y: 464, w: 360 })}
-      {arrow(576, 508, 520)}
-      {box({ key: "QUAL", code: "CW3B", name: "Portal vets the application", owner: "portal", dest: "qual-portal-vets-the-application", x: 556, y: 522, w: 360 })}
+      {box({ key: "ST8", code: "CW3A", name: "Student application submitted", dest: "st8-student-application-submitted", x: RIGHT, y: 464, w: LANE_W })}
+      {arrow(RIGHT + 20, 508, 520)}
+      {box({ key: "QUAL", code: "CW3B", name: "Portal vets the application", dest: "qual-portal-vets-the-application", x: RIGHT, y: 522, w: LANE_W })}
 
       {/* The vetted application is the only thing feeding fulfilment now that
           the staffing-need box has gone, so one stem rather than two. */}
-      <line x1={736} y1={566} x2={736} y2={574} stroke="#cbd5e1" strokeWidth={1.5} />
-      <line x1={200} y1={574} x2={736} y2={574} stroke="#cbd5e1" strokeWidth={1.5} />
+      <line x1={RMID} y1={566} x2={RMID} y2={574} stroke="#cbd5e1" strokeWidth={1.5} />
+      <line x1={200} y1={574} x2={RMID} y2={574} stroke="#cbd5e1" strokeWidth={1.5} />
       {arrow(200, 574, 588)}
 
       <text x={44} y={562} fontSize={12} fontWeight={700} fill="#64748b" letterSpacing="0.5">
@@ -192,8 +192,6 @@ export default function SystemArchitecture({
       {yields && outcomes ? (
         <BottomLine y={650} yields={yields} outcomes={outcomes} showStats={showStats} />
       ) : null}
-
-      <Legend y={720} owners={Object.keys(OWNERS) as Owner[]} />
     </svg>
   );
 }

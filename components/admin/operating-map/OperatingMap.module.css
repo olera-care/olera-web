@@ -401,8 +401,6 @@
 .gapSm { height: 16px; }
 /* The break between a lane's steps and the outcome they add up to. */
 .gapLg { height: 30px; }
-/* The outcome row sits clear of the lanes that feed it. */
-.outcomes { margin-top: 30px; }
 
 
 /*
@@ -418,7 +416,7 @@
 }
 /* A node's substeps, indented but full width — nothing runs down their right. */
 .branchR {
-  margin: 22px 0 0 72px;
+  margin: 22px 26px 0 72px;
   display: flex;
   flex-direction: column;
 }

@@ -348,6 +348,30 @@ export default function OperatingMap({
       head(x2, y, "l");
     };
 
+    /**
+     * One card reaching sideways into another in the next column along.
+     * While the two are level it is a single line across, edge to edge.
+     * Once a branch somewhere has moved one of them it leaves the card just
+     * inside the edge it is heading for, so the line starts on the card
+     * rather than beside it, and drops or climbs to meet the other.
+     */
+    const NUDGE = 11;
+    const reach = (a: Box, b: Box, dir: "l" | "r") => {
+      const to = dir === "l" ? hArrowLeft : hArrow;
+      const edge = dir === "l" ? b.r + G : b.l - G;
+      const overlapTop = Math.max(a.t, b.t);
+      const overlapBottom = Math.min(a.b, b.b);
+      if (overlapBottom - overlapTop > 2 * G) {
+        const y = (overlapTop + overlapBottom) / 2;
+        to(y, dir === "l" ? a.l - G : a.r + G, edge);
+        return;
+      }
+      const x = dir === "l" ? a.l + NUDGE : a.r - NUDGE;
+      const from = b.t > a.b ? a.b + G : a.t - G;
+      seg(x, from, x, b.cy);
+      to(b.cy, x, edge);
+    };
+
     const vDown = (a: string, b: string) => {
       const A = box(a);
       const B = box(b);
@@ -433,19 +457,14 @@ export default function OperatingMap({
     vDown("cw3", "o4");
 
     /* Confirmed care and a confirmed hire each need the claimed provider,
-       and each sits under the lane that produced its other half. So the
-       provider reaches out of both its edges — left into the care the seeker
-       lane confirms, right into the hire the worker lane makes — mirrored
-       down the two gutters beside it. Down a gutter rather than down the
-       lane, because inside the lane the line would run over whatever the
-       provider's branches are showing. */
-    const confirmedHire = box("o5");
-    const gutterL = cp3.l - 13;
-    const gutterR = cp3.r + 13;
-    seg(gutterL, cp3.b + G, gutterL, confirmedCare.cy);
-    hArrowLeft(confirmedCare.cy, gutterL, confirmedCare.r + G);
-    seg(gutterR, cp3.b + G, gutterR, confirmedHire.cy);
-    hArrow(confirmedHire.cy, gutterR, confirmedHire.l - G);
+       and each sits in the lane that produced its other half. So the
+       provider reaches out of both its edges, mirrored: left into the care
+       the seeker lane confirms, right into the hire the worker lane makes.
+       Level with it, that is one straight line across; once a branch has
+       moved one of them, the line leaves the card a few pixels in from the
+       edge and drops or climbs to meet it. */
+    reach(cp3, confirmedCare, "l");
+    reach(cp3, box("o5"), "r");
 
     /* The match drops straight into the hire it is confirmed from. */
     vDown("o4", "o5");
@@ -808,7 +827,7 @@ export default function OperatingMap({
                     substeps={sub("cs2", 3)}
                     id="cs3"
                     code="CS2"
-                    label="Care seeker profiles"
+                    label="Active care seeker profiles"
                     metric={nodes.cs3}
                     trend={trends.cs3}
                     loading={metricsLoading}
@@ -855,6 +874,31 @@ export default function OperatingMap({
                   />
                 </div>
               )}
+              <div className={styles.gapLg} />
+                  <Card
+                    id="o2"
+                    code="O1"
+                    label="Care confirmed"
+                    metric={nodes.o2}
+                    trend={trends.o2}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+              <div className={styles.gap} />
+                  <Card
+                    money="Value created"
+                    id="o3"
+                    code="O2"
+                    label="Est. healthcare utilization reduction"
+                    metric={nodes.o3}
+                    trend={trends.o3}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
             </div>
 
             {/* care provider */}
@@ -969,7 +1013,7 @@ export default function OperatingMap({
                     substeps={sub("cp3", 5)}
                     id="cp3"
                     code="CP3"
-                    label="Active Providers (claimed)"
+                    label="Active provider profiles"
                     metric={nodes.cp3}
                     trend={trends.cp3}
                     loading={metricsLoading}
@@ -1237,48 +1281,7 @@ export default function OperatingMap({
                     onTipClose={closeTip}
                     onInspect={onInspect}
                   />
-            </div>
-
-          </div>
-
-          {/*
-            The outcomes, in a row of their own below the lanes. Inside a
-            lane they would ride up with that lane's height, and opening a
-            branch in another lane would leave a line running back up the
-            figure to reach them. Here they cannot move relative to each
-            other, whatever is expanded.
-          */}
-          <div className={`${styles.lanes3} ${styles.outcomes}`}>
-            <div className={styles.lane}>
-                  <Card
-                    id="o2"
-                    code="O1"
-                    label="Care confirmed"
-                    metric={nodes.o2}
-                    trend={trends.o2}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
-              <div className={styles.gap} />
-                  <Card
-                    money="Value created"
-                    id="o3"
-                    code="O2"
-                    label="Est. healthcare utilization reduction"
-                    metric={nodes.o3}
-                    trend={trends.o3}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
-            </div>
-
-            <div />
-
-            <div className={styles.lane}>
+              <div className={styles.gapLg} />
                   <Card
                     money="Paid product"
                     id="o5"
@@ -1304,6 +1307,7 @@ export default function OperatingMap({
                     onInspect={onInspect}
                   />
             </div>
+
           </div>
 
 </section>

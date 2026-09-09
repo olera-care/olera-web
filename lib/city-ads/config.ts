@@ -129,21 +129,40 @@ export const PAYMENT_LABEL: Record<string, string> = {
  * disagree about whether a family came from paid. A gclid is proof of a Google
  * click; our own utm_source covers Nextdoor and anything else we tag.
  */
+/**
+ * Per-platform utm_medium. Each paid channel gets its own so a lead can be
+ * attributed without guessing: Google and Nextdoor were already live under
+ * `paid_search` and `paid_social` when Meta was added, so Meta took a third
+ * value rather than sharing `paid_social` with Nextdoor and making every
+ * Charlotte social lead ambiguous. `paid_` prefix = paid, for the `paid` flag.
+ */
+export const CITY_MEDIUM_GOOGLE = "paid_search";
+export const CITY_MEDIUM_NEXTDOOR = "paid_social";
+export const CITY_MEDIUM_META = "paid_meta";
+
 export function classifyCityTraffic(utm: {
   source?: string | null;
   medium?: string | null;
   gclid?: string | null;
+  fbclid?: string | null;
 }): { paid: boolean; channel: string | null } {
   const medium = utm.medium ?? null;
   const paid =
     Boolean(utm.gclid) ||
+    Boolean(utm.fbclid) ||
     String(utm.source ?? "") === "olera_city" ||
     (medium ?? "").startsWith("paid_");
-  const channel = utm.gclid || medium === "paid_search"
-    ? "Google"
-    : medium === "paid_social"
-      ? "Nextdoor"
-      : medium;
+  // A click id is stronger evidence than a medium we typed into an ad URL by
+  // hand, so it wins. Meta is checked before the medium fallbacks because a
+  // Meta ad can arrive with fbclid and a mistyped medium, and mislabelling it
+  // Nextdoor would corrupt the one comparison the Charlotte arm exists to make.
+  const channel = utm.fbclid || medium === CITY_MEDIUM_META
+    ? "Meta"
+    : utm.gclid || medium === CITY_MEDIUM_GOOGLE
+      ? "Google"
+      : medium === CITY_MEDIUM_NEXTDOOR
+        ? "Nextdoor"
+        : medium;
   return { paid, channel };
 }
 

@@ -318,9 +318,10 @@ export function BottomLine({
 }
 
 /**
- * The header block naming the site a diagram is filtered to, or the whole
- * network. Shared so the System map and the three role maps say which site
- * they are showing in exactly the same way.
+ * The header block: the operations map's CW1, either the whole targeted set
+ * or the one university this diagram is filtered to. Carrying the code here
+ * is what lets a reader flip between the two maps and see that this one is
+ * the same funnel in more detail.
  */
 export function SiteHeader({
   site,
@@ -347,7 +348,7 @@ export function SiteHeader({
       {/* Just the mark and the name. The block sits above the map it heads;
           nothing else needs saying. */}
       <text x={480} y={y + 25} fontSize={15} fontWeight={700} fill="#fff" textAnchor="middle">
-        {site ? site.name : "All sites"}
+        CW1 · {site ? site.name : "Universities targeted"}
       </text>
     </>
   );

@@ -4,13 +4,9 @@ import type { FunnelMetrics, StageMetric } from "@/lib/medjobs/funnel-30d";
 import {
   ArrowDefs,
   Arrow,
-  HandoffRule,
   SiteHeader,
   StageBox,
   BottomLine,
-  HEALTH,
-  metricTitle,
-  readMetric,
   type Stage,
 } from "@/components/admin/medjobs/diagram-kit";
 
@@ -19,9 +15,12 @@ import {
  * top of the master implementation matrix.
  *
  * Two pipelines built in parallel — providers on the left, care workers on the
- * right — handed along at the booked meeting and after it, both feeding the
- * Portal. Every stage sits on the same card ground, so the only colour on the
- * map is a health state.
+ * right — both feeding the Portal. Every stage sits on the same card ground,
+ * so the only colour on the map is a health state.
+ *
+ * No containers and no handoff rules for now: the grouping a reader needs is
+ * in the codes themselves, since CW2 and CW3 name their own blocks. Where a
+ * step is worked, and who hands it to whom, is in the role manuals.
  *
  * Every stage is a button. Clicking one jumps the reader below to that stage's
  * section by its PDF named destination.
@@ -52,61 +51,61 @@ const RMID = RIGHT + LANE_W / 2;
  * address, so the matrix, the role manuals, the tracker and the activation
  * database all keep working while the naming settles.
  */
-const STAGES: Stage[] = [
-  { key: "PR1", code: "CP2A", name: "MedJobs provider target list built", dest: "pr1-target-list-built-and-pre-flight-complete", x: LEFT, y: 118, w: LANE_W },
-  { key: "ST1", code: "CW2A", name: "Student advisors targeted", dest: "st1-target-advisors", x: RIGHT, y: 118, w: LANE_W },
-  { key: "PR-OUT", code: "CP2B", name: "MedJobs outbound work", dest: "pr-out-outbound-work", x: LEFT, y: 172, w: LANE_W },
-  { key: "ST-OUT", code: "CW2B", name: "Student advisors in outreach", dest: "st-out-university-outbound", x: RIGHT, y: 172, w: LANE_W },
-  { key: "PR2", code: "CP2C", name: "MedJobs provider meeting held", dest: "pr2-provider-meeting-held", x: LEFT, y: 262, w: LANE_W },
-  { key: "ST2", code: "CW2C", name: "Advisor meetings held", dest: "st2-advisor-meeting-held", x: RIGHT, y: 262, w: LANE_W },
-  { key: "PR3", code: "CP5", name: "Provider staffing product signups", dest: "pr3-client-success", x: LEFT, y: 352, w: LANE_W },
-];
+/**
+ * The rows. One pitch for every step on either side, so a step is the same
+ * object wherever it sits and the two columns read against each other.
+ */
+const ROW_H = 44;
+const PITCH = 58;
+const TOP = 102;
+const row = (i: number) => TOP + i * PITCH;
 
 /**
- * The five channels a university is activated through, drawn one per row
- * because that is how the Consumer Relations Manager works them: five
- * separate commitments to secure and then keep alive, not one stage that
- * closes. They carry no arrows between them — they run in parallel, and a
- * campus may open two of them and never the others.
- *
- * No single channel is instrumented, so the number stays on the group band
- * above them, where ST3-ST7 is actually measured. Adding a per-channel
- * metric means adding its row to docs/medjobs/FUNNEL_MEASUREMENT_MAP.md
- * first. They share the activation section's anchor because the matrix
- * documents them as one section.
+ * The provider column. Four steps, from the target list to the product the
+ * provider signs up to.
  */
-const CHANNEL_H = 38;
-const CHANNEL_TOP = 378;
-const CHANNELS: Stage[] = [
-  "University job board",
-  "Advisor listservs",
-  "Student organisations",
-  "Campus events",
-  "Professors and class visits",
-].map((name, i) => ({
-  code: `CW2${"DEFGH"[i]}`,
-  name,
-  dest: "st3st7-university-activation",
-  x: RIGHT,
-  y: CHANNEL_TOP + i * (CHANNEL_H + 6),
-  w: LANE_W,
-  h: CHANNEL_H,
-}));
+const PROVIDER: Stage[] = [
+  { key: "PR1", code: "CP2A", name: "MedJobs provider target list built", dest: "pr1-target-list-built-and-pre-flight-complete" },
+  { key: "PR-OUT", code: "CP2B", name: "MedJobs outbound work", dest: "pr-out-outbound-work" },
+  { key: "PR2", code: "CP2C", name: "MedJobs provider meeting held", dest: "pr2-provider-meeting-held" },
+  { key: "PR3", code: "CP5", name: "Provider staffing product signups", dest: "pr3-client-success" },
+].map((st, i) => ({ ...st, x: LEFT, y: row(i), w: LANE_W }));
 
 /**
- * What the Portal does with a care worker once activation has produced one.
- * The Portal takes over at the submitted application, which is why the
- * container starts here and not earlier.
+ * The care worker column, in one sequence.
  *
- * CW2J has no section in the matrix and nothing measures it yet, so it
- * borrows the submitted application's anchor and carries no number. The
- * matrix needs the stage before this box means anything.
+ * CW2A-H is university activation: getting to an advisor, then the five
+ * channels that activation actually consists of. The five run in parallel and
+ * carry no arrows between them — a campus may open two of them and never the
+ * others — and none of them is instrumented on its own, so none carries a
+ * number. ST3-ST7 is measured as a group; that number has nowhere to sit now
+ * that the group is not drawn as a block.
+ *
+ * CW3A-C is what the Portal does with the care worker activation produced.
+ * CW3B has no section in the matrix and nothing measures it, so it borrows
+ * the submitted application's anchor and carries no number; the matrix needs
+ * the stage before that row means anything. CW3C is the operations map's CW3.
  */
-const PORTAL_STAGES: Stage[] = [
-  { key: "ST8", code: "CW2I", name: "Student application submitted", dest: "st8-student-application-submitted", x: RIGHT, y: 656, w: LANE_W },
-  { code: "CW2J", name: "Student applications completed", dest: "st8-student-application-submitted", x: RIGHT, y: 710, w: LANE_W },
-  { key: "QUAL", code: "CW3", name: "Qualified student care worker applicants", dest: "qual-portal-vets-the-application", x: RIGHT, y: 764, w: LANE_W },
-];
+const CARE_WORKER: Stage[] = [
+  { key: "ST1", code: "CW2A", name: "Student advisors targeted", dest: "st1-target-advisors" },
+  { key: "ST-OUT", code: "CW2B", name: "Student advisors in outreach", dest: "st-out-university-outbound" },
+  { key: "ST2", code: "CW2C", name: "Advisor meetings held", dest: "st2-advisor-meeting-held" },
+  { code: "CW2D", name: "University job board", dest: "st3st7-university-activation" },
+  { code: "CW2E", name: "Advisor listservs", dest: "st3st7-university-activation" },
+  { code: "CW2F", name: "Student organisations", dest: "st3st7-university-activation" },
+  { code: "CW2G", name: "Campus events", dest: "st3st7-university-activation" },
+  { code: "CW2H", name: "Professors and class visits", dest: "st3st7-university-activation" },
+  { key: "ST8", code: "CW3A", name: "Student application submitted", dest: "st8-student-application-submitted" },
+  { code: "CW3B", name: "Student applications completed", dest: "st8-student-application-submitted" },
+  { key: "QUAL", code: "CW3C", name: "Qualified student care worker applicants", dest: "qual-portal-vets-the-application" },
+].map((st, i) => ({ ...st, x: RIGHT, y: row(i), w: LANE_W }));
+
+/** The five channels run in parallel, so no arrow joins one to the next. */
+const CARE_WORKER_LINKS = [0, 1, 2, 7, 8, 9];
+
+const LAST_ROW = row(CARE_WORKER.length - 1) + ROW_H;
+const JOIN_Y = LAST_ROW + 30;
+const MATCH_Y = JOIN_Y + 14;
 
 /**
  * Two boxes, not five. The operations map carries the fulfilment outcomes,
@@ -150,7 +149,7 @@ export default function SystemArchitecture({
 }) {
   const box = (st: Stage) => (
     <StageBox
-      key={st.code + st.x}
+      key={st.code}
       stage={st}
       metric={metrics?.[st.key ?? st.code]}
       onJump={onJump}
@@ -158,15 +157,8 @@ export default function SystemArchitecture({
     />
   );
   const arrow = (x: number, y1: number, y2: number) => <Arrow key={`a${x}${y1}`} x={x} y1={y1} y2={y2} />;
-  const handoff = (y: number, text: string) => (
-    <HandoffRule key={text + y} y={y} text={text} lanes={[[LEFT, LANE_W], [RIGHT, LANE_W]]} />
-  );
-
-  // The activation band's own number: the ST3-ST7 group, read once here
-  // rather than repeated on five channels that nothing measures.
-  const activationMetric = metrics?.["ST3-ST7"];
-  const activation = showStats && activationMetric ? readMetric(activationMetric) : null;
-  const activationHealth = showStats ? activationMetric?.health : undefined;
+  /** The stub between one step and the next in the same column. */
+  const link = (x: number, i: number) => arrow(x, row(i) + ROW_H, row(i + 1) - 4);
 
   // Two boxes, on the same two lanes as everything above them.
   const mw = LANE_W;
@@ -175,7 +167,7 @@ export default function SystemArchitecture({
 
   return (
     <svg
-      viewBox="0 0 960 970"
+      viewBox={`0 0 960 ${MATCH_Y + 180}`}
       width="100%"
       fontFamily="ui-sans-serif, system-ui, -apple-system, Segoe UI, Arial, sans-serif"
       role="img"
@@ -184,101 +176,42 @@ export default function SystemArchitecture({
     >
       <ArrowDefs />
 
-      {/* One site: a university and the providers around it */}
+      {/* The header is the operations map's CW1: the universities targeted,
+          or the one this map is filtered to. */}
       <SiteHeader site={site} />
       {arrow(LMID, 56, 72)}
       {arrow(RMID, 56, 72)}
       <line x1={LMID} y1={56} x2={RMID} y2={56} stroke="#cbd5e1" strokeWidth={1.5} />
 
-      <text x={LEFT} y={80} fontSize={12.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
+      <text x={LEFT} y={90} fontSize={12.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
         PROVIDER SIDE
       </text>
-      <text x={RIGHT} y={80} fontSize={12.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
+      <text x={RIGHT} y={90} fontSize={12.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
         CAREGIVER
       </text>
 
-      {/* The six stages worked in the In Basket. Drawn before the stage boxes
-          so it sits behind them, and sized to close under PR2 / ST2:
-          everything below the Sales-to-Consumer-Relations handoff runs by hand
-          or in the Portal. This is the tech-on-duty's boundary. */}
-      <rect x={30} y={88} width={900} height={228} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
-      <text x={44} y={106} fontSize={12} fontWeight={700} fill="#334155" letterSpacing="0.5">
-        IN BASKET
-      </text>
+      {PROVIDER.map((st) => box(st))}
+      {PROVIDER.slice(0, -1).map((_, i) => link(LEFT + 20, i))}
 
-      {STAGES.filter((s) => s.y < 226).map((s) => box(s))}
-      {arrow(LEFT + 20, 162, 170)}
-      {arrow(RIGHT + 20, 162, 170)}
+      {CARE_WORKER.map((st) => box(st))}
+      {CARE_WORKER_LINKS.map((i) => link(RIGHT + 20, i))}
 
-      {handoff(238, "HANDOFF · ADMIN TEAM → SALES LEAD")}
-      {STAGES.filter((s) => s.y === 262).map((s) => box(s))}
-
-      {handoff(336, "HANDOFF · SALES LEAD → CONSUMER RELATIONS MANAGER")}
-      {box(STAGES[6])}
-
-      {/* The five activation channels, banded so they read as one stage of
-          the funnel worked five ways. The band carries the number because
-          ST3-ST7 is measured as a group and no channel is measured alone. */}
-      <rect x={RIGHT - 14} y={344} width={LANE_W + 28} height={262} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
-      {activationHealth ? (
-        <circle cx={RIGHT + 9} cy={362} r={4.5} fill={HEALTH[activationHealth].dot} />
-      ) : null}
-      <text
-        x={RIGHT + (activationHealth ? 21 : 0)}
-        y={366}
-        fontSize={12}
-        fontWeight={700}
-        fill="#334155"
-        letterSpacing="0.5"
-      >
-        CW2D–H · UNIVERSITY ACTIVATION
-      </text>
-      {activation ? (
-        <g>
-          <title>{metricTitle("ST3-ST7", "CW2D–H", "University activation", activationMetric!)}</title>
-          <text
-            x={RIGHT + LANE_W - 11}
-            y={366}
-            fontSize={activation.gap ? 11 : 13}
-            fontWeight={activation.gap ? 400 : 700}
-            fontStyle={activation.gap ? "italic" : undefined}
-            textAnchor="end"
-            fill={activation.gap ? "#94a3b8" : "#14282c"}
-          >
-            {activation.text}
-          </text>
-        </g>
-      ) : null}
-      {CHANNELS.map((c) => box(c))}
-
-      {/* Both sides feed the Portal */}
-      {arrow(RIGHT + 20, 606, 650)}
-
-      <rect x={24} y={622} width={912} height={324} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
-      <text x={44} y={645} fontSize={12} fontWeight={700} fill="#334155" letterSpacing="0.5">
-        PORTAL
-      </text>
-
-      {PORTAL_STAGES.map((st) => box(st))}
-      {arrow(RIGHT + 20, 700, 712)}
-      {arrow(RIGHT + 20, 754, 766)}
-
-      {/* The qualified applicant and the signed-up provider are what
+      {/* The signed-up provider and the qualified applicant are what
           fulfilment matches, so both stems meet on one line into it. */}
-      <line x1={230} y1={396} x2={230} y2={812} stroke="#cbd5e1" strokeWidth={1.5} />
-      <line x1={RMID} y1={808} x2={RMID} y2={812} stroke="#cbd5e1" strokeWidth={1.5} />
-      <line x1={230} y1={812} x2={RMID} y2={812} stroke="#cbd5e1" strokeWidth={1.5} />
-      {arrow(230, 812, 826)}
+      <line x1={230} y1={row(3) + ROW_H} x2={230} y2={JOIN_Y} stroke="#cbd5e1" strokeWidth={1.5} />
+      <line x1={RMID} y1={LAST_ROW} x2={RMID} y2={JOIN_Y} stroke="#cbd5e1" strokeWidth={1.5} />
+      <line x1={230} y1={JOIN_Y} x2={RMID} y2={JOIN_Y} stroke="#cbd5e1" strokeWidth={1.5} />
+      {arrow(230, JOIN_Y, MATCH_Y)}
 
-      <text x={44} y={800} fontSize={12} fontWeight={700} fill="#64748b" letterSpacing="0.5">
+      <text x={LEFT} y={JOIN_Y - 12} fontSize={12} fontWeight={700} fill="#64748b" letterSpacing="0.5">
         MATCH / FULFILMENT
       </text>
       {MATCH.map((st, i) =>
-        box({ ...st, x: mx0 + i * (mw + mgap), y: 826, w: mw }),
+        box({ ...st, x: mx0 + i * (mw + mgap), y: MATCH_Y, w: mw }),
       )}
 
       {yields && outcomes ? (
-        <BottomLine y={890} yields={yields} outcomes={outcomes} showStats={showStats} />
+        <BottomLine y={MATCH_Y + 78} yields={yields} outcomes={outcomes} showStats={showStats} />
       ) : null}
     </svg>
   );

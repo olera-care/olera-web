@@ -164,8 +164,8 @@ export default function RoleDiagram({
           <text x={L} y={134} fontSize={12} fontWeight={700} fill="#334155" letterSpacing="0.5">
             PORTAL
           </text>
-          {box({ key: "ST8", code: "CW2I", name: "Student application submitted", dest: "portal", x: L, y: 146, w: W })}
-          {box({ key: "QUAL", code: "CW3", name: "Qualified student care worker applicants", dest: "portal", x: R, y: 146, w: W })}
+          {box({ key: "ST8", code: "CW3A", name: "Student application submitted", dest: "portal", x: L, y: 146, w: W })}
+          {box({ key: "QUAL", code: "CW3C", name: "Qualified student care worker applicants", dest: "portal", x: R, y: 146, w: W })}
           <Arrow x={480} y1={190} y2={222} />
           <text x={L} y={218} fontSize={12} fontWeight={700} fill="#64748b" letterSpacing="0.5">
             MATCH / FULFILMENT

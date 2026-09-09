@@ -3,18 +3,18 @@
 /**
  * GrowthTabs - Tab navigation for provider growth pipeline
  *
- * Pipeline tabs: New Claims | Meeting Scheduled | Follow-up (with Active/Not Interested subtabs)
+ * Pipeline tabs: New Claims | Meeting Scheduled | Follow-up
  * Conversion tabs: Converted | Upgrade Meeting | Paying (all with Ads/MedJobs subtabs)
  *
  * New Claims has subtabs: Not Contacted | In Progress
- * Follow-up has subtabs: Active (pitched) | Not Interested (not_interested)
+ * Follow-up has subtabs: Active (pitched) | No-show (no_show) | Not Interested (not_interested)
  * Upgrade Meeting is a pipeline stage but rendered in the conversion section
  */
 
 import type { GrowthStats } from "@/lib/provider-growth/queries";
 import type { PipelineStage } from "@/lib/provider-growth/stages";
 export type NewClaimSubTab = "not_contacted" | "in_progress";
-export type FollowUpSubTab = "active" | "not_interested";
+export type FollowUpSubTab = "active" | "no_show" | "not_interested";
 export type ConversionTab = "converted" | "paying";
 export type ConversionSubTab = "ads" | "medjobs" | "both";
 export type ActiveTab =
@@ -26,7 +26,7 @@ interface GrowthTabsProps {
   onTabChange: (tab: ActiveTab) => void;
   stats: GrowthStats | null;
   newClaimSubtabCounts?: { notContacted: number; inProgress: number };
-  followUpSubtabCounts?: { active: number; notInterested: number };
+  followUpSubtabCounts?: { active: number; noShow: number; notInterested: number };
 }
 
 const NEW_CLAIM_SUB_TABS: Array<{ id: NewClaimSubTab; label: string }> = [
@@ -36,6 +36,7 @@ const NEW_CLAIM_SUB_TABS: Array<{ id: NewClaimSubTab; label: string }> = [
 
 const FOLLOW_UP_SUB_TABS: Array<{ id: FollowUpSubTab; label: string }> = [
   { id: "active", label: "Active" },
+  { id: "no_show", label: "No-show" },
   { id: "not_interested", label: "Not Interested" },
 ];
 
@@ -63,8 +64,8 @@ export function GrowthTabs({ activeTab, onTabChange, stats, newClaimSubtabCounts
       case "meeting_scheduled":
         return stats.meeting_scheduled;
       case "pitched":
-        // Follow-up tab shows combined count of pitched + not_interested
-        return stats.pitched + stats.not_interested;
+        // Follow-up tab shows combined count of pitched + no_show + not_interested
+        return stats.pitched + (stats.no_show ?? 0) + stats.not_interested;
       case "not_interested":
         return stats.not_interested;
       case "upgrade_meeting":
@@ -97,11 +98,15 @@ export function GrowthTabs({ activeTab, onTabChange, stats, newClaimSubtabCounts
 
   const getFollowUpSubTabCount = (id: FollowUpSubTab): number => {
     if (followUpSubtabCounts) {
-      return id === "active" ? followUpSubtabCounts.active : followUpSubtabCounts.notInterested;
+      if (id === "active") return followUpSubtabCounts.active;
+      if (id === "no_show") return followUpSubtabCounts.noShow;
+      return followUpSubtabCounts.notInterested;
     }
     // Fallback to stats if subtab counts not provided
     if (!stats) return 0;
-    return id === "active" ? stats.pitched : stats.not_interested;
+    if (id === "active") return stats.pitched;
+    if (id === "no_show") return stats.no_show ?? 0;
+    return stats.not_interested;
   };
 
   const isPipelineActive = (id: PipelineStage) =>
@@ -116,6 +121,8 @@ export function GrowthTabs({ activeTab, onTabChange, stats, newClaimSubtabCounts
   const isNewClaimSubTabActive = (id: NewClaimSubTab) =>
     activeTab.type === "pipeline" && activeTab.stage === "new_claim" && activeTab.subTab === id;
 
+  // Follow-up subtabs map to different stages: active=pitched, no_show=no_show, not_interested=not_interested
+  // But the main tab is always "pitched" in the activeTab.stage for Follow-up
   const isFollowUpSubTabActive = (id: FollowUpSubTab) =>
     activeTab.type === "pipeline" && activeTab.stage === "pitched" && activeTab.subTab === id;
 

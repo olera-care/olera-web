@@ -83,6 +83,7 @@ export interface GrowthStats {
   meeting_scheduled: number;
   pitched: number;
   not_interested: number;
+  no_show: number;
   upgrade_meeting: number;
   ads_free_intro: number;
   ads_subscribed: number;
@@ -146,6 +147,7 @@ export async function getGrowthStats(): Promise<GrowthStats> {
     meeting_scheduled: stageCounts.meeting_scheduled || 0,
     pitched: stageCounts.pitched || 0,
     not_interested: stageCounts.not_interested || 0,
+    no_show: stageCounts.no_show || 0,
     upgrade_meeting: stageCounts.upgrade_meeting || 0,
     ads_free_intro: adsCounts.free_intro || 0,
     ads_subscribed: adsCounts.subscribed || 0,

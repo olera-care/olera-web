@@ -36,7 +36,7 @@ export default function ProviderGrowthPage() {
   // Tab state
   const [activeTab, setActiveTab] = useState<ActiveTab>(() => {
     const tab = searchParams.get("tab");
-    const sub = searchParams.get("sub") as "ads" | "medjobs" | "both" | "not_contacted" | "in_progress" | "active" | "not_interested" | null;
+    const sub = searchParams.get("sub") as "ads" | "medjobs" | "both" | "not_contacted" | "in_progress" | "active" | "no_show" | "not_interested" | null;
 
     // Check for new_claim with subtab
     if (tab === "new_claim") {
@@ -47,8 +47,8 @@ export default function ProviderGrowthPage() {
 
     // Check for pitched (Follow-up) with subtab
     if (tab === "pitched") {
-      const validSubTabs = ["active", "not_interested"];
-      const subTab = sub && validSubTabs.includes(sub) ? (sub as "active" | "not_interested") : "active";
+      const validSubTabs = ["active", "no_show", "not_interested"];
+      const subTab = sub && validSubTabs.includes(sub) ? (sub as "active" | "no_show" | "not_interested") : "active";
       return { type: "pipeline", stage: "pitched", subTab };
     }
 
@@ -161,10 +161,13 @@ export default function ProviderGrowthPage() {
       if (activeTab.type === "pipeline") {
         // For Follow-up tab (pitched), filter based on subtab
         if (activeTab.stage === "pitched") {
-          // "active" subtab (or no subtab) shows pitched stage, "not_interested" shows not_interested stage
-          if (activeTab.subTab === "not_interested") {
+          // Each subtab maps to a different pipeline stage
+          if (activeTab.subTab === "no_show") {
+            params.set("pipelineStage", "no_show");
+          } else if (activeTab.subTab === "not_interested") {
             params.set("pipelineStage", "not_interested");
           } else {
+            // "active" subtab (or no subtab) shows pitched stage
             params.set("pipelineStage", "pitched");
           }
         } else {
@@ -372,7 +375,7 @@ export default function ProviderGrowthPage() {
         onTabChange={handleTabChange}
         stats={stats}
         newClaimSubtabCounts={newClaimSubtabCounts ?? undefined}
-        followUpSubtabCounts={stats ? { active: stats.pitched, notInterested: stats.not_interested } : undefined}
+        followUpSubtabCounts={stats ? { active: stats.pitched, noShow: stats.no_show ?? 0, notInterested: stats.not_interested } : undefined}
       />
 
       {/* Provider list */}

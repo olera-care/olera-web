@@ -14,9 +14,9 @@ import { sendEmail } from "@/lib/email";
 /**
  * POST /api/admin/provider-growth/log-no-show
  *
- * Log a meeting no-show. Updates the tracking record with no-show count,
- * creates a touchpoint, and sends a reschedule email to the provider.
- * The provider stays in meeting_scheduled stage for follow-up.
+ * Log a meeting no-show. Moves the provider to the no_show pipeline stage,
+ * updates the tracking record with no-show count, creates a touchpoint,
+ * and sends a reschedule email to the provider.
  */
 export async function POST(request: NextRequest) {
   try {
@@ -43,24 +43,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Tracking record not found" }, { status: 404 });
     }
 
-    // Validate stage - can only log no-show from meeting_scheduled
-    if (current.pipeline_stage !== "meeting_scheduled") {
+    // Validate stage - can only log no-show from stages with scheduled meetings
+    const STAGES_WITH_MEETINGS = ["meeting_scheduled", "upgrade_meeting"];
+    if (!STAGES_WITH_MEETINGS.includes(current.pipeline_stage)) {
       return NextResponse.json(
-        { error: `Cannot log no-show from stage: ${current.pipeline_stage}. Must be in meeting_scheduled.` },
+        { error: `Cannot log no-show from stage: ${current.pipeline_stage}. Must be in meeting_scheduled or upgrade_meeting.` },
         { status: 400 }
       );
     }
 
     const db = getServiceClient();
     const now = new Date().toISOString();
+    const previousStage = current.pipeline_stage;
 
-    // Update the tracking record with no-show count
-    // Note: no_show_count and last_no_show_at columns will be added by migration
+    // Update the tracking record: move to no_show stage and increment count
     const { data: updated, error: updateError } = await db
       .from("provider_growth_tracking")
       .update({
+        pipeline_stage: "no_show",
+        pipeline_stage_changed_at: now,
         no_show_count: (current.no_show_count ?? 0) + 1,
         last_no_show_at: now,
+        // Clear the missed meeting (they'll get a new one when they reschedule)
+        meeting_scheduled_at: null,
+        calendly_event_id: null,
         last_activity_at: now,
         updated_at: now,
       })
@@ -81,6 +87,8 @@ export async function POST(request: NextRequest) {
       details: {
         no_show_count: (current.no_show_count ?? 0) + 1,
         original_meeting_at: current.meeting_scheduled_at,
+        previous_stage: previousStage,
+        new_stage: "no_show",
       },
       admin_user_id: adminUser.id,
     });

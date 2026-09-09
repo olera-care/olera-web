@@ -438,7 +438,8 @@ async function insertProviderGrowthTouchpoint(
 
 // Stages that should advance to meeting_scheduled when a meeting is booked.
 // Stages NOT in this list are "past" meeting_scheduled and should not regress.
-const STAGES_BEFORE_MEETING = ["new_claim"];
+// Exception: no_show can transition back to meeting_scheduled (rescheduling).
+const STAGES_BEFORE_MEETING = ["new_claim", "no_show"];
 
 async function handleProviderGrowthCreated(
   row: ResolvedProviderGrowthRow,

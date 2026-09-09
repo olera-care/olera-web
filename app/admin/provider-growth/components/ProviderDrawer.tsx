@@ -22,7 +22,6 @@ import {
   type MedjobsStatus,
 } from "@/lib/provider-growth/stages";
 import { MeetingScheduler } from "./MeetingScheduler";
-import { PitchLogger, type PitchLogData } from "./PitchLogger";
 import { ActivityLog } from "./ActivityLog";
 
 interface ProviderDrawerProps {
@@ -160,12 +159,8 @@ function formatPhone(phone: string): string {
 
 function MeetingInfoSection({
   provider,
-  onMarkComplete,
-  onMarkUpgradeComplete,
 }: {
   provider: ProviderGrowthWithProfile;
-  onMarkComplete: () => void;
-  onMarkUpgradeComplete: () => void;
 }) {
   const isUpgradeMeeting = provider.pipeline_stage === "upgrade_meeting";
   const isMeetingScheduled = provider.pipeline_stage === "meeting_scheduled";
@@ -191,7 +186,6 @@ function MeetingInfoSection({
   const bgColor = isUpgradeMeeting ? "bg-amber-50" : "bg-primary-50";
   const borderColor = isUpgradeMeeting ? "border-amber-100" : "border-primary-100";
   const textColor = isUpgradeMeeting ? "text-amber-600" : "text-primary-600";
-  const btnBg = isUpgradeMeeting ? "bg-amber-600 hover:bg-amber-700" : "bg-primary-600 hover:bg-primary-700";
   const linkColor = isUpgradeMeeting ? "text-amber-600 hover:text-amber-700" : "text-primary-600 hover:text-primary-700";
 
   const label = isUpgradeMeeting
@@ -200,21 +194,16 @@ function MeetingInfoSection({
 
   return (
     <div className={`p-4 ${bgColor} border ${borderColor} rounded-lg`}>
-      <div className="flex items-start justify-between">
-        <div>
-          <div className={`text-[10px] font-semibold ${textColor} uppercase tracking-wide mb-1`}>
-            {label}
-          </div>
-          <div className="text-sm font-medium text-gray-900">{formattedDate}</div>
-          <div className="text-sm text-gray-600">{formattedTime}</div>
+      <div>
+        <div className={`text-[10px] font-semibold ${textColor} uppercase tracking-wide mb-1`}>
+          {label}
         </div>
+        <div className="text-sm font-medium text-gray-900">{formattedDate}</div>
+        <div className="text-sm text-gray-600">{formattedTime}</div>
         {isPast && (
-          <button
-            onClick={isUpgradeMeeting ? onMarkUpgradeComplete : onMarkComplete}
-            className={`px-3 py-1.5 text-sm font-medium text-white ${btnBg} rounded-lg`}
-          >
-            Mark Complete
-          </button>
+          <p className="mt-2 text-xs text-gray-500">
+            Use the Activity Log below to record the outcome.
+          </p>
         )}
       </div>
       {provider.calendly_event_id && (
@@ -241,16 +230,12 @@ function MeetingInfoSection({
 function ActionsSection({
   provider,
   onScheduleMeeting,
-  onLogPitch,
   onLogUpgradeOutcome,
-  onMarkNotInterested,
   onReEngage,
 }: {
   provider: ProviderGrowthWithProfile;
   onScheduleMeeting: () => void;
-  onLogPitch: () => void;
   onLogUpgradeOutcome: () => void;
-  onMarkNotInterested: () => void;
   onReEngage: () => void;
 }) {
   return (
@@ -266,20 +251,12 @@ function ActionsSection({
           </button>
         )}
         {provider.pipeline_stage === "meeting_scheduled" && (
-          <>
-            <button
-              onClick={onLogPitch}
-              className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700"
-            >
-              Log Pitch
-            </button>
-            <button
-              onClick={onScheduleMeeting}
-              className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
-            >
-              Reschedule
-            </button>
-          </>
+          <button
+            onClick={onScheduleMeeting}
+            className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
+          >
+            Reschedule
+          </button>
         )}
         {provider.pipeline_stage === "upgrade_meeting" && (
           <>
@@ -319,14 +296,6 @@ function ActionsSection({
             className="px-4 py-2 text-sm font-medium text-primary-700 bg-primary-50 rounded-lg hover:bg-primary-100 border border-primary-200"
           >
             Re-engage
-          </button>
-        )}
-        {provider.pipeline_stage !== "not_interested" && (
-          <button
-            onClick={onMarkNotInterested}
-            className="px-4 py-2 text-sm font-medium text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg"
-          >
-            Not Interested
           </button>
         )}
       </div>
@@ -549,7 +518,7 @@ interface EngagementData {
 export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: ProviderDrawerProps) {
   const [engagement, setEngagement] = useState<EngagementData | null>(null);
   const [loadingData, setLoadingData] = useState(true);
-  const [activeAction, setActiveAction] = useState<"schedule" | "pitch" | "upgrade" | null>(null);
+  const [activeAction, setActiveAction] = useState<"schedule" | "upgrade" | null>(null);
 
   const fetchProviderData = useCallback(async () => {
     try {
@@ -579,96 +548,8 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
     onUpdate();
   };
 
-  const handleLogPitch = async (data: PitchLogData) => {
-    try {
-      const res = await fetch("/api/admin/provider-growth/log-pitch", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tracking_id: provider.id,
-          ...data,
-        }),
-      });
-      if (!res.ok) {
-        throw new Error("Failed to log pitch");
-      }
-      setActiveAction(null);
-      onUpdate();
-    } catch (e) {
-      console.error("Failed to log pitch:", e);
-    }
-  };
-
-  const handleNoShow = async () => {
-    try {
-      const res = await fetch("/api/admin/provider-growth/log-no-show", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          tracking_id: provider.id,
-        }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Failed to log no-show");
-      }
-      setActiveAction(null);
-      onUpdate();
-    } catch (e) {
-      console.error("Failed to log no-show:", e);
-      alert(e instanceof Error ? e.message : "Failed to log no-show. Please try again.");
-    }
-  };
-
-  const handleMarkMeetingComplete = async () => {
-    // When meeting is complete, move to "pitched" stage and open the pitch logger
-    try {
-      const res = await fetch(`/api/admin/provider-growth/${provider.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pipeline_stage: "pitched",
-          meeting_completed_at: new Date().toISOString(),
-        }),
-      });
-      if (!res.ok) {
-        throw new Error("Failed to mark meeting complete");
-      }
-      // Open the pitch logger to capture pitch details
-      setActiveAction("pitch");
-      onUpdate();
-    } catch (e) {
-      console.error("Failed to mark meeting complete:", e);
-    }
-  };
-
-  const handleMarkUpgradeComplete = async () => {
-    // When upgrade meeting is complete, open the upgrade outcome logger
-    // The user will then choose whether they upgraded or not
-    setActiveAction("upgrade");
-  };
-
-  const handleMarkNotInterested = async () => {
-    if (!confirm("Mark this provider as not interested?")) return;
-
-    try {
-      const res = await fetch(`/api/admin/provider-growth/${provider.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          pipeline_stage: "not_interested",
-          not_interested_at: new Date().toISOString(),
-        }),
-      });
-      if (!res.ok) {
-        throw new Error("Failed to mark not interested");
-      }
-      onUpdate();
-    } catch (e) {
-      console.error("Failed to mark not interested:", e);
-    }
-  };
-
+  
+      
   const handleReEngage = async () => {
     try {
       const res = await fetch(`/api/admin/provider-growth/${provider.id}`, {
@@ -740,9 +621,7 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
     <ActionsSection
       provider={provider}
       onScheduleMeeting={() => setActiveAction("schedule")}
-      onLogPitch={() => setActiveAction("pitch")}
       onLogUpgradeOutcome={() => setActiveAction("upgrade")}
-      onMarkNotInterested={handleMarkNotInterested}
       onReEngage={handleReEngage}
     />
   );
@@ -762,18 +641,6 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
               contactEmail={provider.email || undefined}
               onScheduled={handleScheduleMeeting}
               onCancel={() => setActiveAction(null)}
-            />
-          </div>
-        )}
-
-        {activeAction === "pitch" && (
-          <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-            <PitchLogger
-              providerName={provider.display_name || "Provider"}
-              medjobsEligible={provider.medjobs_eligible}
-              onSubmit={handleLogPitch}
-              onCancel={() => setActiveAction(null)}
-              onNoShow={handleNoShow}
             />
           </div>
         )}
@@ -807,11 +674,7 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
         {(provider.phone || provider.email) && <SectionDivider />}
 
         {/* Meeting Info - when meeting is scheduled */}
-        <MeetingInfoSection
-          provider={provider}
-          onMarkComplete={handleMarkMeetingComplete}
-          onMarkUpgradeComplete={handleMarkUpgradeComplete}
-        />
+        <MeetingInfoSection provider={provider} />
 
         {(provider.pipeline_stage === "meeting_scheduled" || provider.pipeline_stage === "upgrade_meeting") &&
           provider.meeting_scheduled_at && (

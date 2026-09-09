@@ -439,7 +439,7 @@ export default function OperatingMap({
 
     const workerStem = qualified.l + IN;
     vArrow(workerStem, qualified.b + G, box("o5").t - G);
-    fromStem(workerStem, "o4");
+    for (const k of ["o4", "careWorkerSeeker"]) fromStem(workerStem, k);
 
     /* the campus run, and the applications it produces, each carry their own */
     const campus = maybe("cw2");
@@ -1321,7 +1321,7 @@ export default function OperatingMap({
               )}
               <div className={styles.gap} />
                   <Card
-                    substeps={sub("cw2", 1)}
+                    substeps={sub("cw2", 2)}
                     id="cw3"
                     code="CW2"
                     label="Qualified care workers"
@@ -1344,6 +1344,16 @@ export default function OperatingMap({
                       onTip={openTip}
                       onTipClose={closeTip}
                       onInspect={onInspect}
+                    />
+                    <div className={styles.gap} />
+                    <Card
+                      planned
+                      id="careWorkerSeeker"
+                      code="CW2B"
+                      label="Care worker–care seeker connected"
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
                     />
                 </div>
               )}
@@ -1378,6 +1388,7 @@ function Card({
   parts,
   hi,
   money,
+  planned,
   substeps,
   metric,
   trend,
@@ -1400,6 +1411,11 @@ function Card({
   /** Tooltip shown on the $ marker. Omit for nodes that carry no money. */
   money?: string;
   /**
+   * A step we intend to build and have not. Reads as a placeholder rather
+   * than as a step sitting at zero, which is a different thing entirely.
+   */
+  planned?: boolean;
+  /**
    * The detail underneath this node. Given, the card grows a disclosure that
    * shows or hides it, so the map is one screen by default and the steps of
    * whichever node you are working are one click away.
@@ -1413,7 +1429,10 @@ function Card({
   onInspect?: (nodeKey: string) => void;
 }) {
   return (
-    <div className={`${styles.card}${hi ? ` ${styles.hi}` : ""}`} id={nodeId(id)}>
+    <div
+      className={`${styles.card}${hi ? ` ${styles.hi}` : ""}${planned ? ` ${styles.planned}` : ""}`}
+      id={nodeId(id)}
+    >
       <div className={styles.cardHead}>
         <div className={styles.k}>
           {code}
@@ -1440,6 +1459,7 @@ function Card({
             metric={metric}
             trend={trend}
             loading={loading}
+            planned={planned}
             nodeKey={id}
             onInspect={onInspect}
             onTip={onTip}
@@ -1503,6 +1523,7 @@ function MetricValue({
   metric,
   trend,
   loading,
+  planned,
   nodeKey,
   onInspect,
   onTip,
@@ -1511,6 +1532,7 @@ function MetricValue({
   metric?: MetricNode;
   trend?: NodeTrend;
   loading?: boolean;
+  planned?: boolean;
   nodeKey?: string;
   onInspect?: (nodeKey: string) => void;
   onTip?: TipOpener;
@@ -1543,6 +1565,7 @@ function MetricValue({
     </span>
   );
 
+  if (planned) return placeholder("not built");
   if (!metric) return placeholder(NOT_INSTRUMENTED);
   if (loading) return placeholder("…");
   if (metric.value === null) return placeholder(NOT_INSTRUMENTED);

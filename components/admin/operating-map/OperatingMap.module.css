@@ -191,6 +191,16 @@
  */
 .hi { background: var(--card); border-color: var(--card-line); }
 .dim { color: var(--ink-2); opacity: 0.72; }
+/*
+ * A step that is planned and not built. Dashed rather than solid, because a
+ * card sitting at a dash already means "built, nothing counts it yet" — and
+ * a reader deciding where to look needs those two apart.
+ */
+.planned {
+  background: transparent;
+  border-style: dashed;
+  opacity: 0.66;
+}
 /* Numbers inside the surface line — readable without shouting over the total. */
 .surfaceValue { font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
 .paid { color: var(--accent); font-weight: 700; margin-left: 4px; }

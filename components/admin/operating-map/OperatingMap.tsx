@@ -425,7 +425,7 @@ export default function OperatingMap({
     }
 
     const claimStem = claimed.l + IN;
-    vArrow(claimStem, claimed.b + G, box("careDelivered").t - G);
+    vArrow(claimStem, claimed.b + G, box("newClients").t - G);
     for (const k of ["cp3a", "o1", "questionsAnswered", "cp4", "cp5"]) fromStem(claimStem, k);
 
     /*
@@ -451,6 +451,10 @@ export default function OperatingMap({
         fromStem(activationStem, k);
       }
     }
+    /* each lane runs on down its own outcomes */
+    vDown("o2", "aidReceived");
+    vDown("newClients", "newCareWorkers");
+
     const apps = maybe("studentApplications");
     const appsLast = maybe("cw3b");
     if (apps && appsLast) {
@@ -912,10 +916,22 @@ export default function OperatingMap({
               <div className={styles.gapLg} />
                   <Card
                     id="o2"
-                    code="O1"
+                    code="CSO1"
                     label="Care received"
                     metric={nodes.o2}
                     trend={trends.o2}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+              <div className={styles.gap} />
+                  <Card
+                    id="aidReceived"
+                    code="CSO2"
+                    label="Aid received"
+                    metric={nodes.aidReceived}
+                    trend={trends.aidReceived}
                     loading={metricsLoading}
                     onTip={openTip}
                     onTipClose={closeTip}
@@ -1097,11 +1113,23 @@ export default function OperatingMap({
               )}
               <div className={styles.gapLg} />
                   <Card
-                    id="careDelivered"
-                    code="CP3"
-                    label="Care delivered"
-                    metric={nodes.careDelivered}
-                    trend={trends.careDelivered}
+                    id="newClients"
+                    code="CPO1"
+                    label="New clients"
+                    metric={nodes.newClients}
+                    trend={trends.newClients}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+              <div className={styles.gap} />
+                  <Card
+                    id="newCareWorkers"
+                    code="CPO2"
+                    label="New care workers"
+                    metric={nodes.newCareWorkers}
+                    trend={trends.newCareWorkers}
                     loading={metricsLoading}
                     onTip={openTip}
                     onTipClose={closeTip}
@@ -1312,8 +1340,8 @@ export default function OperatingMap({
                   <Card
                     money="Paid product"
                     id="o5"
-                    code="CW3"
-                    label="Hires confirmed"
+                    code="CWO1"
+                    label="Care workers hired"
                     metric={nodes.o5}
                     trend={trends.o5}
                     loading={metricsLoading}

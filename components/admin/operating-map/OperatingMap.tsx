@@ -433,19 +433,22 @@ export default function OperatingMap({
      * produces, then the hires confirmed out of them.
      */
     const qualified = box("cw3");
-    vDown("cw1", "cw3");
+    const campusStem = box("cw1").l + IN;
+    vArrow(campusStem, box("cw1").b + G, qualified.t - G);
+    for (const k of ["cw2", "studentApplications"]) fromStem(campusStem, k);
+
     const workerStem = qualified.l + IN;
     vArrow(workerStem, qualified.b + G, box("o5").t - G);
-    for (const k of ["cw2", "studentApplications", "o4"]) fromStem(workerStem, k);
+    fromStem(workerStem, "o4");
 
     /* the campus run, and the applications it produces, each carry their own */
     const campus = maybe("cw2");
     const campusLast = maybe("cw2h");
     if (campus && campusLast) {
-      const campusStem = campus.l + IN;
-      seg(campusStem, campus.b + G, campusStem, campusLast.cy);
+      const activationStem = campus.l + IN;
+      seg(activationStem, campus.b + G, activationStem, campusLast.cy);
       for (const k of ["cw2a", "cw2b", "cw2c", "cw2d", "cw2e", "cw2f", "cw2g", "cw2h"]) {
-        fromStem(campusStem, k);
+        fromStem(activationStem, k);
       }
     }
     const apps = maybe("studentApplications");
@@ -1109,6 +1112,7 @@ export default function OperatingMap({
             {/* care worker */}
             <div className={styles.lane}>
                   <Card
+                    substeps={sub("cw1", 2)}
                     id="cw1"
                     code="CW1"
                     label="Universities targeted"
@@ -1119,27 +1123,14 @@ export default function OperatingMap({
                     onTipClose={closeTip}
                     onInspect={onInspect}
                   />
-              <div className={styles.gap} />
-                  <Card
-                    substeps={sub("cw2", 3)}
-                    id="cw3"
-                    code="CW2"
-                    label="Qualified care workers"
-                    metric={nodes.cw3}
-                    trend={trends.cw3}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
-              {/* the campus run that produces one, and the provider they are
-                  put in front of once qualified */}
-              {open.cw2 && (
+              {/* the campus run: activating a university, and the
+                  applications the activated channels produce */}
+              {open.cw1 && (
                 <div className={styles.branchR}>
                     <Card
-                      substeps={sub("cw2a", 8)}
+                      substeps={sub("cw1a", 8)}
                       id="cw2"
-                      code="CW2A"
+                      code="CW1A"
                       label="Universities activated"
                       metric={nodes.cw2}
                       trend={trends.cw2}
@@ -1148,11 +1139,11 @@ export default function OperatingMap({
                       onTipClose={closeTip}
                       onInspect={onInspect}
                     />
-                {open.cw2a && (
+                {open.cw1a && (
                   <div className={styles.branchR2}>
                       <Card
                         id="cw2a"
-                        code="CW2A1"
+                        code="CW1A1"
                         label="Student advisors targeted"
                         metric={nodes.cw2a}
                         trend={trends.cw2a}
@@ -1164,7 +1155,7 @@ export default function OperatingMap({
                       <div className={styles.gap} />
                       <Card
                         id="cw2b"
-                        code="CW2A2"
+                        code="CW1A2"
                         label="Student advisors in outreach"
                         metric={nodes.cw2b}
                         trend={trends.cw2b}
@@ -1176,7 +1167,7 @@ export default function OperatingMap({
                       <div className={styles.gap} />
                       <Card
                         id="cw2c"
-                        code="CW2A3"
+                        code="CW1A3"
                         label="Advisor meetings held"
                         metric={nodes.cw2c}
                         trend={trends.cw2c}
@@ -1188,7 +1179,7 @@ export default function OperatingMap({
                       <div className={styles.gap} />
                       <Card
                         id="cw2d"
-                        code="CW2A4"
+                        code="CW1A4"
                         label="University job board"
                         metric={nodes.cw2d}
                         trend={trends.cw2d}
@@ -1200,7 +1191,7 @@ export default function OperatingMap({
                       <div className={styles.gap} />
                       <Card
                         id="cw2e"
-                        code="CW2A5"
+                        code="CW1A5"
                         label="Advisor listservs"
                         metric={nodes.cw2e}
                         trend={trends.cw2e}
@@ -1212,7 +1203,7 @@ export default function OperatingMap({
                       <div className={styles.gap} />
                       <Card
                         id="cw2f"
-                        code="CW2A6"
+                        code="CW1A6"
                         label="Student organisations"
                         metric={nodes.cw2f}
                         trend={trends.cw2f}
@@ -1224,7 +1215,7 @@ export default function OperatingMap({
                       <div className={styles.gap} />
                       <Card
                         id="cw2g"
-                        code="CW2A7"
+                        code="CW1A7"
                         label="Campus events"
                         metric={nodes.cw2g}
                         trend={trends.cw2g}
@@ -1236,7 +1227,7 @@ export default function OperatingMap({
                       <div className={styles.gap} />
                       <Card
                         id="cw2h"
-                        code="CW2A8"
+                        code="CW1A8"
                         label="Professors and class visits"
                         metric={nodes.cw2h}
                         trend={trends.cw2h}
@@ -1249,9 +1240,9 @@ export default function OperatingMap({
                 )}
                     <div className={styles.gap} />
                     <Card
-                      substeps={sub("cw2b", 2)}
+                      substeps={sub("cw1b", 2)}
                       id="studentApplications"
-                      code="CW2B"
+                      code="CW1B"
                       label="Student applications"
                       metric={nodes.studentApplications}
                       trend={trends.studentApplications}
@@ -1260,11 +1251,11 @@ export default function OperatingMap({
                       onTipClose={closeTip}
                       onInspect={onInspect}
                     />
-                {open.cw2b && (
+                {open.cw1b && (
                   <div className={styles.branchR2}>
                       <Card
                         id="cw3a"
-                        code="CW2B1"
+                        code="CW1B1"
                         label="Student applications initiated"
                         metric={nodes.cw3a}
                         trend={trends.cw3a}
@@ -1276,7 +1267,7 @@ export default function OperatingMap({
                       <div className={styles.gap} />
                       <Card
                         id="cw3b"
-                        code="CW2B2"
+                        code="CW1B2"
                         label="Student applications completed"
                         metric={nodes.cw3b}
                         trend={trends.cw3b}
@@ -1287,10 +1278,26 @@ export default function OperatingMap({
                       />
                   </div>
                 )}
-                    <div className={styles.gap} />
+                </div>
+              )}
+              <div className={styles.gap} />
+                  <Card
+                    substeps={sub("cw2", 1)}
+                    id="cw3"
+                    code="CW2"
+                    label="Qualified care workers"
+                    metric={nodes.cw3}
+                    trend={trends.cw3}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+              {open.cw2 && (
+                <div className={styles.branchR}>
                     <Card
                       id="o4"
-                      code="CW2C"
+                      code="CW2A"
                       label="Care worker–provider connected"
                       metric={nodes.o4}
                       trend={trends.o4}

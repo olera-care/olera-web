@@ -170,9 +170,21 @@ export async function GET(request: NextRequest) {
           ? `City is only recorded from ${VISITOR_GEO_START}.`
           : null,
       };
+      // The same three, one node each, for the map to name them as steps
+      // rather than as a line of small print under the total.
+      const surfaceCaveat = cityPredatesGeo
+        ? `City is only recorded from ${VISITOR_GEO_START}.`
+        : null;
+      nodes.visitsProvider = { value: visits.provider, caveat: surfaceCaveat };
+      nodes.visitsEditorial = { value: visits.editorial, caveat: surfaceCaveat };
+      nodes.visitsBenefits = { value: visits.benefit, caveat: surfaceCaveat };
     } catch (error) {
       console.error("[operating-map/metrics] visits failed:", error);
-      nodes.visits = { value: null, caveat: "This metric failed to load." };
+      const failed = { value: null, caveat: "This metric failed to load." };
+      nodes.visits = failed;
+      nodes.visitsProvider = failed;
+      nodes.visitsEditorial = failed;
+      nodes.visitsBenefits = failed;
     }
 
     try {

@@ -404,7 +404,19 @@ export default function OperatingMap({
 
     const pageStem = pages.l + IN;
     vArrow(pageStem, pages.b + G, cs3.t - G);
-    fromStem(pageStem, "cs1a");
+    for (const k of ["csHomePage", "visitsProvider", "visitsEditorial", "visitsBenefits"]) {
+      fromStem(pageStem, k);
+    }
+
+    /* and one more down the provider surface's left, for the question it
+       produces — a question is asked from a provider's page */
+    const providerPages = maybe("visitsProvider");
+    const question = maybe("cs1a");
+    if (providerPages && question) {
+      const askStem = providerPages.l + IN;
+      seg(askStem, providerPages.b + G, askStem, question.cy);
+      fromStem(askStem, "cs1a");
+    }
 
     const seekStem = cs3.l + IN;
     vArrow(seekStem, cs3.b + G, confirmedCare.t - G);
@@ -780,11 +792,10 @@ export default function OperatingMap({
             {/* care seeker */}
             <div className={styles.lane}>
                   <Card
-                    parts="provider pages · editorial pages · benefits pages"
-                    substeps={sub("cs1", 1)}
+                    substeps={sub("cs1", 4)}
                     id="visits"
                     code="CS1"
-                    label="Care seeker pages engaged"
+                    label="Directory website traffic"
                     metric={nodes.visits}
                     trend={trends.visits}
                     loading={metricsLoading}
@@ -792,14 +803,68 @@ export default function OperatingMap({
                     onTipClose={closeTip}
                     onInspect={onInspect}
                   />
+              {/* the four surfaces the traffic lands on, and the question a
+                  provider page produces */}
               {open.cs1 && (
                 <div className={styles.branchR}>
                     <Card
-                      id="cs1a"
+                      id="csHomePage"
                       code="CS1A"
-                      label="Questions asked"
-                      metric={nodes.cs1a}
-                      trend={trends.cs1a}
+                      label="Home page"
+                      metric={nodes.csHomePage}
+                      trend={trends.csHomePage}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                    <div className={styles.gap} />
+                    <Card
+                      substeps={sub("cs1b", 1)}
+                      id="visitsProvider"
+                      code="CS1B"
+                      label="Provider pages"
+                      metric={nodes.visitsProvider}
+                      trend={trends.visitsProvider}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                {open.cs1b && (
+                  <div className={styles.branchR2}>
+                      <Card
+                        id="cs1a"
+                        code="CS1B1"
+                        label="Questions asked"
+                        metric={nodes.cs1a}
+                        trend={trends.cs1a}
+                        loading={metricsLoading}
+                        onTip={openTip}
+                        onTipClose={closeTip}
+                        onInspect={onInspect}
+                      />
+                  </div>
+                )}
+                    <div className={styles.gap} />
+                    <Card
+                      id="visitsEditorial"
+                      code="CS1C"
+                      label="Editorial pages"
+                      metric={nodes.visitsEditorial}
+                      trend={trends.visitsEditorial}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                    <div className={styles.gap} />
+                    <Card
+                      id="visitsBenefits"
+                      code="CS1D"
+                      label="Benefits pages"
+                      metric={nodes.visitsBenefits}
+                      trend={trends.visitsBenefits}
                       loading={metricsLoading}
                       onTip={openTip}
                       onTipClose={closeTip}

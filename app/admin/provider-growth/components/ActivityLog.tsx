@@ -262,7 +262,7 @@ function ActivityEntry({ activity }: { activity: ActivityEntry }) {
 
   // Determine if this was a stage change
   const details = activity.details || {};
-  const isStageChange = details.previous_stage && details.new_stage;
+  const isStageChange = Boolean(details.previous_stage && details.new_stage);
 
   return (
     <div className="text-sm">

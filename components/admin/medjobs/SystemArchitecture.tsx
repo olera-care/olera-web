@@ -36,23 +36,42 @@ const LANE_W = 380;
 const LEFT = 40;
 const RIGHT = 540;
 
+/**
+ * Codes shown here are the operations map's, so reading the two maps in
+ * sequence is one continuous index rather than two schemes for the same
+ * funnel. The operations map holds the parent; MedJobs holds the detail
+ * step, suffixed A, B, C.
+ *
+ * Only the displayed `code` changes. `key` keeps the metric identity the
+ * 30-day tracker uses and `dest` keeps the PDF anchor the jump bars
+ * address, so the matrix, the role manuals, the tracker and the activation
+ * database all keep working while the naming settles.
+ */
 const STAGES: Stage[] = [
-  { code: "PR1", name: "Target list built", owner: "admin", dest: "pr1-target-list-built-and-pre-flight-complete", x: LEFT, y: 118, w: LANE_W },
-  { code: "ST1", name: "Target advisors", owner: "admin", dest: "st1-target-advisors", x: RIGHT, y: 118, w: LANE_W },
-  { code: "PR-OUT", name: "Outbound work", owner: "admin", dest: "pr-out-outbound-work", x: LEFT, y: 172, w: LANE_W },
-  { code: "ST-OUT", name: "University outbound", owner: "admin", dest: "st-out-university-outbound", x: RIGHT, y: 172, w: LANE_W },
-  { code: "PR2", name: "Provider meeting held", owner: "sales", dest: "pr2-provider-meeting-held", x: LEFT, y: 262, w: LANE_W },
-  { code: "ST2", name: "Advisor meeting held", owner: "sales", dest: "st2-advisor-meeting-held", x: RIGHT, y: 262, w: LANE_W },
-  { code: "PR3", name: "Client success", owner: "usm", dest: "pr3-client-success", x: LEFT, y: 352, w: LANE_W },
-  { key: "ST3-ST7", code: "ST3–ST7", name: "University activation", owner: "usm", dest: "st3st7-university-activation", x: RIGHT, y: 352, w: LANE_W },
+  { key: "PR1", code: "CP1A", name: "Target list built", owner: "admin", dest: "pr1-target-list-built-and-pre-flight-complete", x: LEFT, y: 118, w: LANE_W },
+  { key: "ST1", code: "CW2", name: "Target advisors", owner: "admin", dest: "st1-target-advisors", x: RIGHT, y: 118, w: LANE_W },
+  { key: "PR-OUT", code: "CP2A", name: "Outbound work", owner: "admin", dest: "pr-out-outbound-work", x: LEFT, y: 172, w: LANE_W },
+  { key: "ST-OUT", code: "CW2A", name: "University outbound", owner: "admin", dest: "st-out-university-outbound", x: RIGHT, y: 172, w: LANE_W },
+  { key: "PR2", code: "CP2B", name: "Provider meeting held", owner: "sales", dest: "pr2-provider-meeting-held", x: LEFT, y: 262, w: LANE_W },
+  { key: "ST2", code: "CW2B", name: "Advisor meeting held", owner: "sales", dest: "st2-advisor-meeting-held", x: RIGHT, y: 262, w: LANE_W },
+  { key: "PR3", code: "CP5A", name: "Client success", owner: "usm", dest: "pr3-client-success", x: LEFT, y: 352, w: LANE_W },
+  { key: "ST3-ST7", code: "CW2C–G", name: "University activation", owner: "usm", dest: "st3st7-university-activation", x: RIGHT, y: 352, w: LANE_W },
 ];
 
+/**
+ * Two boxes, not five. The operations map carries the fulfilment outcomes,
+ * so this row names the same two it does rather than restating the internal
+ * MA steps. O4 reads MA1's number and O5 reads MA3's, which is where the
+ * connection and the confirmed hire are actually recorded.
+ *
+ * Shifts worked and revenue billed now live on the operations map as O7 and
+ * O8. They were MA4 and MA5 here, and neither has ever been measurable, so
+ * the honest place for them is the map that describes the whole business
+ * rather than the one a Consumer Relations Manager works from.
+ */
 const MATCH: Stage[] = [
-  { code: "MA1", name: "Candidate intro", owner: "portal", dest: "ma1-candidate-intro", x: 0, y: 0, w: 0 },
-  { code: "MA2", name: "Interview held", owner: "portal", dest: "ma2-interview-held", x: 0, y: 0, w: 0 },
-  { code: "MA3", name: "Hire confirmed", owner: "usm", dest: "ma3-hire-confirmed", x: 0, y: 0, w: 0 },
-  { code: "MA4", name: "6+ shifts confirmed", owner: "usm", dest: "ma4-six-or-more-shifts-worked-confirmed", x: 0, y: 0, w: 0 },
-  { code: "MA5", name: "Bill issued and paid", owner: "usm", dest: "ma5-bill-issued-and-collected", x: 0, y: 0, w: 0 },
+  { key: "MA1", code: "O4", name: "Provider–care worker connected", owner: "portal", dest: "ma1-candidate-intro", x: 0, y: 0, w: 0 },
+  { key: "MA3", code: "O5", name: "Hires confirmed", owner: "usm", dest: "ma3-hire-confirmed", x: 0, y: 0, w: 0 },
 ];
 
 export default function SystemArchitecture({
@@ -95,8 +114,9 @@ export default function SystemArchitecture({
     <HandoffRule key={text + y} y={y} text={text} lanes={[[LEFT, LANE_W], [RIGHT, LANE_W]]} />
   );
 
-  const mw = 168;
-  const mgap = 8;
+  // Two boxes now, so they can be wide enough to read.
+  const mw = 420;
+  const mgap = 16;
   const mx0 = 60;
 
   return (
@@ -144,7 +164,7 @@ export default function SystemArchitecture({
       {box(STAGES[7])}
 
       {/* Both sides feed the Portal */}
-      {arrow(LEFT + 20, 396, 426)}
+      <line x1={200} y1={396} x2={200} y2={574} stroke="#cbd5e1" strokeWidth={1.5} />
       {arrow(RIGHT + 20, 396, 426)}
 
       <rect x={24} y={428} width={912} height={274} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
@@ -152,19 +172,15 @@ export default function SystemArchitecture({
         PORTAL
       </text>
 
-      <rect x={44} y={464} width={360} height={44} rx={5} fill="#d8edec" stroke="#96c8c8" />
-      <text x={56} y={491} fontSize={13.5} fontWeight={700} fill="#1a3030">
-        Active client with a staffing need
-      </text>
-
-      {box({ code: "ST8", name: "Student application submitted", owner: "portal", dest: "st8-student-application-submitted", x: 556, y: 464, w: 360 })}
+      {box({ key: "ST8", code: "CW3A", name: "Student application submitted", owner: "portal", dest: "st8-student-application-submitted", x: 556, y: 464, w: 360 })}
       {arrow(576, 508, 520)}
-      {box({ code: "QUAL", name: "Portal vets the application", owner: "portal", dest: "qual-portal-vets-the-application", x: 556, y: 522, w: 360 })}
+      {box({ key: "QUAL", code: "CW3B", name: "Portal vets the application", owner: "portal", dest: "qual-portal-vets-the-application", x: 556, y: 522, w: 360 })}
 
-      <line x1={224} y1={508} x2={224} y2={574} stroke="#cbd5e1" strokeWidth={1.5} />
+      {/* The vetted application is the only thing feeding fulfilment now that
+          the staffing-need box has gone, so one stem rather than two. */}
       <line x1={736} y1={566} x2={736} y2={574} stroke="#cbd5e1" strokeWidth={1.5} />
-      <line x1={142} y1={574} x2={736} y2={574} stroke="#cbd5e1" strokeWidth={1.5} />
-      {arrow(142, 574, 588)}
+      <line x1={200} y1={574} x2={736} y2={574} stroke="#cbd5e1" strokeWidth={1.5} />
+      {arrow(200, 574, 588)}
 
       <text x={44} y={562} fontSize={12} fontWeight={700} fill="#64748b" letterSpacing="0.5">
         MATCH / FULFILMENT

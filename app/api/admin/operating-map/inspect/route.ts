@@ -243,7 +243,7 @@ const SOURCES: Record<
   o1: {
     // Sampled as inquiries; Connected is decided in code from six signals,
     // none of them a column, so the rows below are the pool it is drawn from.
-    title: "Safe Care Seeker Provider Connected",
+    title: "Care seeker–care provider connected",
     table: "connections",
     select: "created_at, to_profile_id, status, metadata",
     where: [

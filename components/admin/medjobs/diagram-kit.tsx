@@ -128,8 +128,11 @@ export function StageBox({
   // One line of text, so it sits on the box's centre line rather than a third
   // of the way down where the old two-line stack started.
   const baseline = s.y + h / 2 + 5;
-  const tx = s.x + (dot ? 25 : 12);
+  const tx = s.x + (dot ? 23 : 12);
   const narrow = s.w < 200;
+  // A long name sets a step smaller so it still clears the number on its
+  // right. The alternative is a name that runs into its own metric.
+  const nameSize = narrow || s.name.length > 34 ? 11.5 : 12.5;
   return (
     <g
       role={jump ? "button" : undefined}
@@ -174,7 +177,7 @@ export function StageBox({
         </tspan>
         <tspan
           dx={9}
-          fontSize={narrow ? 11.5 : 13}
+          fontSize={nameSize}
           fontWeight={500}
           fill={greyed ? "#9ca3af" : CARD.name}
         >
@@ -185,9 +188,9 @@ export function StageBox({
         <>
           <title>{metricTitle(s.key ?? s.code, s.code, s.name, metric)}</title>
           <text
-            x={s.x + s.w - 12}
+            x={s.x + s.w - 11}
             y={baseline}
-            fontSize={read.gap ? 11 : narrow ? 12 : 14}
+            fontSize={read.gap ? 11 : narrow ? 12 : 13.5}
             fontWeight={read.gap ? 400 : 700}
             fontStyle={read.gap ? "italic" : undefined}
             textAnchor="end"

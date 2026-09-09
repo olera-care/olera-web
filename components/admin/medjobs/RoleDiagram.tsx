@@ -124,14 +124,14 @@ export default function RoleDiagram({
           <Lanes y={22} />
           <InBasket y={32} h={222} />
           {box({ key: "PR1", code: "CP2A", name: "MedJobs provider target list built", dest: "pr1", x: L, y: 62, w: W })}
-          {box({ key: "ST1", code: "CW1A", name: "Student advisors target list", dest: "st1", x: R, y: 62, w: W })}
+          {box({ key: "ST1", code: "CW2A", name: "Student advisors targeted", dest: "st1", x: R, y: 62, w: W })}
           <Arrow x={L + 20} y1={106} y2={114} />
           <Arrow x={R + 20} y1={106} y2={114} />
           {box({ key: "PR-OUT", code: "CP2B", name: "MedJobs outbound work", dest: "pr1", x: L, y: 116, w: W })}
-          {box({ key: "ST-OUT", code: "CW2", name: "Student advisors in outreach", dest: "st1", x: R, y: 116, w: W })}
+          {box({ key: "ST-OUT", code: "CW2B", name: "Student advisors in outreach", dest: "st1", x: R, y: 116, w: W })}
           <HandoffRule y={186} text="HANDOFF · YOU → SALES LEAD" lanes={[[L, W], [R, W]]} />
           {box({ key: "PR2", code: "CP2C", name: "MedJobs provider meeting held", dest: "booking", x: L, y: 196, w: W }, true)}
-          {box({ key: "ST2", code: "CW2A", name: "Advisor meeting held", dest: "booking", x: R, y: 196, w: W }, true)}
+          {box({ key: "ST2", code: "CW2C", name: "Advisor meetings held", dest: "booking", x: R, y: 196, w: W }, true)}
         </>
       )}
 
@@ -140,11 +140,11 @@ export default function RoleDiagram({
           <Lanes y={22} />
           <InBasket y={34} h={92} />
           {box({ key: "PR2", code: "CP2C", name: "MedJobs provider meeting held", dest: "pr2", x: L, y: 62, w: W })}
-          {box({ key: "ST2", code: "CW2A", name: "Advisor meeting held", dest: "st2", x: R, y: 62, w: W })}
+          {box({ key: "ST2", code: "CW2C", name: "Advisor meetings held", dest: "st2", x: R, y: 62, w: W })}
           <HandoffRule y={148} text="HANDOFF · YOU → CONSUMER RELATIONS MANAGER" lanes={[[L, W], [R, W]]} />
           {box({ key: "PR3", code: "CP5", name: "Provider staffing product signups", dest: "handoff", x: L, y: 160, w: W }, true)}
           {box(
-            { key: "ST3-ST7", code: "CW2B–F", name: "University activation", dest: "after", x: R, y: 160, w: W },
+            { key: "ST3-ST7", code: "CW2D–H", name: "University activation", dest: "after", x: R, y: 160, w: W },
             true,
           )}
         </>
@@ -155,7 +155,7 @@ export default function RoleDiagram({
           <Lanes y={22} />
           {box({ key: "PR3", code: "CP5", name: "Provider staffing product signups", dest: "pr3", x: L, y: 36, w: W })}
           {box(
-            { key: "ST3-ST7", code: "CW2B–F", name: "University activation", dest: "st", x: R, y: 36, w: W },
+            { key: "ST3-ST7", code: "CW2D–H", name: "University activation", dest: "st", x: R, y: 36, w: W },
           )}
           <Arrow x={L + 20} y1={80} y2={110} />
           <Arrow x={R + 20} y1={80} y2={110} />
@@ -164,8 +164,8 @@ export default function RoleDiagram({
           <text x={L} y={134} fontSize={12} fontWeight={700} fill="#334155" letterSpacing="0.5">
             PORTAL
           </text>
-          {box({ key: "ST8", code: "CW3A", name: "Student application submitted", dest: "portal", x: L, y: 146, w: W })}
-          {box({ key: "QUAL", code: "CW3B", name: "Portal vets the application", dest: "portal", x: R, y: 146, w: W })}
+          {box({ key: "ST8", code: "CW2I", name: "Student application submitted", dest: "portal", x: L, y: 146, w: W })}
+          {box({ key: "QUAL", code: "CW3", name: "Qualified student care worker applicants", dest: "portal", x: R, y: 146, w: W })}
           <Arrow x={480} y1={190} y2={222} />
           <text x={L} y={218} fontSize={12} fontWeight={700} fill="#64748b" letterSpacing="0.5">
             MATCH / FULFILMENT

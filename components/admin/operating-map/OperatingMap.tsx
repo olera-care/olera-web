@@ -838,7 +838,7 @@ export default function OperatingMap({
                 <Card
                   id="cw2"
                   code="CW2"
-                  label="Student Advisors in outreach"
+                  label="Universities activated"
                   metric={nodes.cw2}
                   trend={trends.cw2}
                   loading={metricsLoading}
@@ -851,7 +851,7 @@ export default function OperatingMap({
                   hi
                   id="cw3"
                   code="CW3"
-                  label="Student Care Worker Profiles"
+                  label="Qualified student care worker applicants"
                   metric={nodes.cw3}
                   trend={trends.cw3}
                   loading={metricsLoading}

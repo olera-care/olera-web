@@ -8,6 +8,9 @@ import {
   SiteHeader,
   StageBox,
   BottomLine,
+  HEALTH,
+  metricTitle,
+  readMetric,
   type Stage,
 } from "@/components/admin/medjobs/diagram-kit";
 
@@ -51,13 +54,58 @@ const RMID = RIGHT + LANE_W / 2;
  */
 const STAGES: Stage[] = [
   { key: "PR1", code: "CP2A", name: "MedJobs provider target list built", dest: "pr1-target-list-built-and-pre-flight-complete", x: LEFT, y: 118, w: LANE_W },
-  { key: "ST1", code: "CW1A", name: "Student advisors target list", dest: "st1-target-advisors", x: RIGHT, y: 118, w: LANE_W },
+  { key: "ST1", code: "CW2A", name: "Student advisors targeted", dest: "st1-target-advisors", x: RIGHT, y: 118, w: LANE_W },
   { key: "PR-OUT", code: "CP2B", name: "MedJobs outbound work", dest: "pr-out-outbound-work", x: LEFT, y: 172, w: LANE_W },
-  { key: "ST-OUT", code: "CW2", name: "Student advisors in outreach", dest: "st-out-university-outbound", x: RIGHT, y: 172, w: LANE_W },
+  { key: "ST-OUT", code: "CW2B", name: "Student advisors in outreach", dest: "st-out-university-outbound", x: RIGHT, y: 172, w: LANE_W },
   { key: "PR2", code: "CP2C", name: "MedJobs provider meeting held", dest: "pr2-provider-meeting-held", x: LEFT, y: 262, w: LANE_W },
-  { key: "ST2", code: "CW2A", name: "Advisor meeting held", dest: "st2-advisor-meeting-held", x: RIGHT, y: 262, w: LANE_W },
+  { key: "ST2", code: "CW2C", name: "Advisor meetings held", dest: "st2-advisor-meeting-held", x: RIGHT, y: 262, w: LANE_W },
   { key: "PR3", code: "CP5", name: "Provider staffing product signups", dest: "pr3-client-success", x: LEFT, y: 352, w: LANE_W },
-  { key: "ST3-ST7", code: "CW2B–F", name: "University activation", dest: "st3st7-university-activation", x: RIGHT, y: 352, w: LANE_W },
+];
+
+/**
+ * The five channels a university is activated through, drawn one per row
+ * because that is how the Consumer Relations Manager works them: five
+ * separate commitments to secure and then keep alive, not one stage that
+ * closes. They carry no arrows between them — they run in parallel, and a
+ * campus may open two of them and never the others.
+ *
+ * No single channel is instrumented, so the number stays on the group band
+ * above them, where ST3-ST7 is actually measured. Adding a per-channel
+ * metric means adding its row to docs/medjobs/FUNNEL_MEASUREMENT_MAP.md
+ * first. They share the activation section's anchor because the matrix
+ * documents them as one section.
+ */
+const CHANNEL_H = 38;
+const CHANNEL_TOP = 378;
+const CHANNELS: Stage[] = [
+  "University job board",
+  "Advisor listservs",
+  "Student organisations",
+  "Campus events",
+  "Professors and class visits",
+].map((name, i) => ({
+  code: `CW2${"DEFGH"[i]}`,
+  name,
+  dest: "st3st7-university-activation",
+  x: RIGHT,
+  y: CHANNEL_TOP + i * (CHANNEL_H + 6),
+  w: LANE_W,
+  h: CHANNEL_H,
+}));
+
+/**
+ * What the Portal does with a care worker once activation has produced one.
+ * The Portal takes over at the submitted application, which is why the
+ * container starts here and not earlier.
+ *
+ * CW2J has no section in the matrix and nothing measures it yet, so it
+ * borrows the submitted application's anchor and carries no number. The
+ * matrix needs the stage before this box means anything.
+ */
+const PORTAL_STAGES: Stage[] = [
+  { key: "ST8", code: "CW2I", name: "Student application submitted", dest: "st8-student-application-submitted", x: RIGHT, y: 656, w: LANE_W },
+  { code: "CW2J", name: "Student applications completed", dest: "st8-student-application-submitted", x: RIGHT, y: 710, w: LANE_W },
+  { key: "QUAL", code: "CW3", name: "Qualified student care worker applicants", dest: "qual-portal-vets-the-application", x: RIGHT, y: 764, w: LANE_W },
 ];
 
 /**
@@ -114,6 +162,12 @@ export default function SystemArchitecture({
     <HandoffRule key={text + y} y={y} text={text} lanes={[[LEFT, LANE_W], [RIGHT, LANE_W]]} />
   );
 
+  // The activation band's own number: the ST3-ST7 group, read once here
+  // rather than repeated on five channels that nothing measures.
+  const activationMetric = metrics?.["ST3-ST7"];
+  const activation = showStats && activationMetric ? readMetric(activationMetric) : null;
+  const activationHealth = showStats ? activationMetric?.health : undefined;
+
   // Two boxes, on the same two lanes as everything above them.
   const mw = LANE_W;
   const mgap = RIGHT - (LEFT + LANE_W);
@@ -121,7 +175,7 @@ export default function SystemArchitecture({
 
   return (
     <svg
-      viewBox="0 0 960 738"
+      viewBox="0 0 960 970"
       width="100%"
       fontFamily="ui-sans-serif, system-ui, -apple-system, Segoe UI, Arial, sans-serif"
       role="img"
@@ -161,36 +215,70 @@ export default function SystemArchitecture({
 
       {handoff(336, "HANDOFF · SALES LEAD → CONSUMER RELATIONS MANAGER")}
       {box(STAGES[6])}
-      {box(STAGES[7])}
+
+      {/* The five activation channels, banded so they read as one stage of
+          the funnel worked five ways. The band carries the number because
+          ST3-ST7 is measured as a group and no channel is measured alone. */}
+      <rect x={RIGHT - 14} y={344} width={LANE_W + 28} height={262} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
+      {activationHealth ? (
+        <circle cx={RIGHT + 9} cy={362} r={4.5} fill={HEALTH[activationHealth].dot} />
+      ) : null}
+      <text
+        x={RIGHT + (activationHealth ? 21 : 0)}
+        y={366}
+        fontSize={12}
+        fontWeight={700}
+        fill="#334155"
+        letterSpacing="0.5"
+      >
+        CW2D–H · UNIVERSITY ACTIVATION
+      </text>
+      {activation ? (
+        <g>
+          <title>{metricTitle("ST3-ST7", "CW2D–H", "University activation", activationMetric!)}</title>
+          <text
+            x={RIGHT + LANE_W - 11}
+            y={366}
+            fontSize={activation.gap ? 11 : 13}
+            fontWeight={activation.gap ? 400 : 700}
+            fontStyle={activation.gap ? "italic" : undefined}
+            textAnchor="end"
+            fill={activation.gap ? "#94a3b8" : "#14282c"}
+          >
+            {activation.text}
+          </text>
+        </g>
+      ) : null}
+      {CHANNELS.map((c) => box(c))}
 
       {/* Both sides feed the Portal */}
-      <line x1={200} y1={396} x2={200} y2={574} stroke="#cbd5e1" strokeWidth={1.5} />
-      {arrow(RIGHT + 20, 396, 426)}
+      {arrow(RIGHT + 20, 606, 650)}
 
-      <rect x={24} y={428} width={912} height={274} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
-      <text x={44} y={451} fontSize={12} fontWeight={700} fill="#334155" letterSpacing="0.5">
+      <rect x={24} y={622} width={912} height={324} rx={7} fill="#f8fafc" stroke="#e2e8f0" />
+      <text x={44} y={645} fontSize={12} fontWeight={700} fill="#334155" letterSpacing="0.5">
         PORTAL
       </text>
 
-      {box({ key: "ST8", code: "CW3A", name: "Student application submitted", dest: "st8-student-application-submitted", x: RIGHT, y: 464, w: LANE_W })}
-      {arrow(RIGHT + 20, 508, 520)}
-      {box({ key: "QUAL", code: "CW3B", name: "Portal vets the application", dest: "qual-portal-vets-the-application", x: RIGHT, y: 522, w: LANE_W })}
+      {PORTAL_STAGES.map((st) => box(st))}
+      {arrow(RIGHT + 20, 700, 712)}
+      {arrow(RIGHT + 20, 754, 766)}
 
-      {/* The vetted application is the only thing feeding fulfilment now that
-          the staffing-need box has gone, so one stem rather than two. */}
-      <line x1={RMID} y1={566} x2={RMID} y2={574} stroke="#cbd5e1" strokeWidth={1.5} />
-      <line x1={200} y1={574} x2={RMID} y2={574} stroke="#cbd5e1" strokeWidth={1.5} />
-      {arrow(200, 574, 588)}
+      {/* The qualified applicant and the signed-up provider are what
+          fulfilment matches, so both stems meet on one line into it. */}
+      <line x1={230} y1={396} x2={230} y2={812} stroke="#cbd5e1" strokeWidth={1.5} />
+      <line x1={RMID} y1={808} x2={RMID} y2={812} stroke="#cbd5e1" strokeWidth={1.5} />
+      <line x1={230} y1={812} x2={RMID} y2={812} stroke="#cbd5e1" strokeWidth={1.5} />
+      {arrow(230, 812, 826)}
 
-      <text x={44} y={562} fontSize={12} fontWeight={700} fill="#64748b" letterSpacing="0.5">
+      <text x={44} y={800} fontSize={12} fontWeight={700} fill="#64748b" letterSpacing="0.5">
         MATCH / FULFILMENT
       </text>
-      {MATCH.map((s, i) =>
-        box({ ...s, x: mx0 + i * (mw + mgap), y: 592, w: mw }),
+      {MATCH.map((st, i) =>
+        box({ ...st, x: mx0 + i * (mw + mgap), y: 826, w: mw }),
       )}
 
       {yields && outcomes ? (
-        <BottomLine y={650} yields={yields} outcomes={outcomes} showStats={showStats} />
+        <BottomLine y={890} yields={yields} outcomes={outcomes} showStats={showStats} />
       ) : null}
     </svg>
   );

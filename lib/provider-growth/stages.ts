@@ -278,22 +278,23 @@ export const ACTIVITY_OUTCOME_LABELS: Record<ActivityOutcome, string> = {
 };
 
 // Which outcomes are available for each stage
+// Note: meeting_scheduled and meeting_rescheduled are intentionally excluded
+// because they should use MeetingScheduler which sets the actual meeting time
 export const STAGE_OUTCOMES: Record<PipelineStage, ActivityOutcome[]> = {
-  new_claim: ["voicemail", "hung_up", "callback_requested", "left_message", "note", "meeting_scheduled"],
+  new_claim: ["voicemail", "hung_up", "callback_requested", "left_message", "note"],
   meeting_scheduled: ["note", "interested", "not_interested", "no_show"],
   pitched: ["voicemail", "hung_up", "callback_requested", "left_message", "note", "not_interested"],
   not_interested: ["note", "re_engage"],
-  no_show: ["voicemail", "hung_up", "callback_requested", "left_message", "note", "meeting_rescheduled", "not_interested"],
+  no_show: ["voicemail", "hung_up", "callback_requested", "left_message", "note", "not_interested"],
   upgrade_meeting: ["note", "interested", "not_interested", "no_show"],
 };
 
 // Outcomes that trigger a confirmation modal (because they change stage)
+// Note: meeting_scheduled and meeting_rescheduled excluded - use MeetingScheduler instead
 export const STAGE_CHANGING_OUTCOMES: ActivityOutcome[] = [
-  "meeting_scheduled",
   "interested",
   "not_interested",
   "no_show",
-  "meeting_rescheduled",
   "re_engage",
 ];
 
@@ -325,7 +326,7 @@ export const OUTCOME_STAGE_TRANSITIONS: Record<ActivityOutcome, Partial<Record<P
     no_show: "meeting_scheduled",
   },
   re_engage: {
-    not_interested: "pitched",
+    not_interested: "new_claim",
   },
 };
 
@@ -341,5 +342,5 @@ export const OUTCOME_DESCRIPTIONS: Record<ActivityOutcome, string> = {
   not_interested: "Provider not interested",
   no_show: "Provider missed the meeting",
   meeting_rescheduled: "Provider rescheduled the meeting",
-  re_engage: "Try again, move back to Active",
+  re_engage: "Try again, move back to New Claims",
 };

@@ -305,6 +305,14 @@ function ActionsSection({
             Schedule Follow-up
           </button>
         )}
+        {provider.pipeline_stage === "no_show" && (
+          <button
+            onClick={onScheduleMeeting}
+            className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700"
+          >
+            Reschedule Meeting
+          </button>
+        )}
         {provider.pipeline_stage === "not_interested" && (
           <button
             onClick={onReEngage}

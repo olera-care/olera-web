@@ -3,6 +3,7 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { getTrackingById } from "@/lib/provider-growth/queries";
 import {
   ACTIVITY_OUTCOMES,
+  STAGE_OUTCOMES,
   STAGE_CHANGING_OUTCOMES,
   OUTCOME_STAGE_TRANSITIONS,
   type ActivityOutcome,
@@ -55,6 +56,16 @@ export async function POST(request: NextRequest) {
     const current = await getTrackingById(tracking_id);
     if (!current) {
       return NextResponse.json({ error: "Tracking record not found" }, { status: 404 });
+    }
+
+    // Validate that the outcome is valid for the current pipeline stage
+    const currentStage = current.pipeline_stage as PipelineStage;
+    const validOutcomes = STAGE_OUTCOMES[currentStage] || [];
+    if (!validOutcomes.includes(outcome as ActivityOutcome)) {
+      return NextResponse.json(
+        { error: `Invalid outcome "${outcome}" for stage "${currentStage}". Valid outcomes: ${validOutcomes.join(", ")}` },
+        { status: 400 }
+      );
     }
 
     const db = getServiceClient();

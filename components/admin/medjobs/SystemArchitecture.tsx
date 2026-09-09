@@ -92,9 +92,8 @@ const PROVIDER: Stage[] = [
  *
  * CW3A-C is what the Portal does with the care worker activation produced.
  * CW3B has no section in the matrix and nothing measures it, so it borrows
- * the submitted application's anchor and carries no number; the matrix needs
- * the stage before that row means anything. CW3C is the operations map's
- * CW3C.
+ * CW3A's anchor and carries no number; the matrix needs the stage before
+ * that row means anything. CW3C is the operations map's CW3C.
  */
 const CARE_WORKER: Stage[] = [
   { key: "ST1", code: "CW2A", name: "Student advisors targeted", dest: "st1-target-advisors" },
@@ -105,7 +104,7 @@ const CARE_WORKER: Stage[] = [
   { code: "CW2F", name: "Student organisations", dest: "st3st7-university-activation" },
   { code: "CW2G", name: "Campus events", dest: "st3st7-university-activation" },
   { code: "CW2H", name: "Professors and class visits", dest: "st3st7-university-activation" },
-  { key: "ST8", code: "CW3A", name: "Student application submitted", dest: "st8-student-application-submitted" },
+  { key: "ST8", code: "CW3A", name: "Student applications initiated", dest: "st8-student-application-submitted" },
   { code: "CW3B", name: "Student applications completed", dest: "st8-student-application-submitted" },
   { key: "QUAL", code: "CW3C", name: "Qualified student care worker applicants", dest: "qual-portal-vets-the-application" },
 ].map((st, i) => ({ ...st, x: RIGHT, y: cwY(i), w: LANE_W }));

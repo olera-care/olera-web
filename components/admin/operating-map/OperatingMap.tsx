@@ -420,7 +420,7 @@ export default function OperatingMap({
 
     const seekStem = cs3.l + IN;
     vArrow(seekStem, cs3.b + G, confirmedCare.t - G);
-    for (const k of ["cs1b", "cs1c", "csProfileComplete"]) fromStem(seekStem, k);
+    for (const k of ["cs1b", "cs1c"]) fromStem(seekStem, k);
 
     /* and one more down the assessment's own left, for the aid it starts */
     const assessment = maybe("cs1c");
@@ -874,7 +874,7 @@ export default function OperatingMap({
               )}
               <div className={styles.gap} />
                   <Card
-                    substeps={sub("cs2", 3)}
+                    substeps={sub("cs2", 2)}
                     id="cs3"
                     code="CS2"
                     label="Active care seekers"
@@ -941,18 +941,6 @@ export default function OperatingMap({
                       />
                   </div>
                 )}
-                    <div className={styles.gap} />
-                    <Card
-                      id="csProfileComplete"
-                      code="CS2C"
-                      label="Care seeker profiles completed"
-                      metric={nodes.csProfileComplete}
-                      trend={trends.csProfileComplete}
-                      loading={metricsLoading}
-                      onTip={openTip}
-                      onTipClose={closeTip}
-                      onInspect={onInspect}
-                    />
                 </div>
               )}
               <div className={styles.gapLg} />

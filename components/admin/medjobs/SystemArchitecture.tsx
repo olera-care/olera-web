@@ -66,19 +66,31 @@ const TOP = 132;
 const ACTIVATION_ROWS = 8;
 const GROUP_GAP = 72;
 const pY = (i: number) => TOP + i * PITCH;
+/** The provider column drops out of its group box before its last step. */
+const pvY = (i: number) => (i < 3 ? pY(i) : pY(2) + ROW_H + 12 + 20);
 const cwY = (i: number) =>
   i < ACTIVATION_ROWS ? pY(i) : pY(ACTIVATION_ROWS) + GROUP_GAP + (i - ACTIVATION_ROWS) * PITCH;
 
 /**
- * The provider column. Four steps, from the target list to the product the
- * provider signs up to.
+ * The provider column.
+ *
+ * CP2A1-3 are the city-based cold start: pick a city, build the list, work
+ * it, hold the meeting. That whole run is one of the four ways a provider
+ * enters outreach on the operations map, which is why the three sit inside a
+ * box named for it rather than carrying top-level codes of their own.
+ *
+ * CP3C is what a claimed provider signs up to, so it sits below the box.
  */
+const COLD_START_ROWS = 3;
 const PROVIDER: Stage[] = [
-  { key: "PR1", code: "CP2A", name: "MedJobs provider target list built", dest: "pr1-target-list-built-and-pre-flight-complete" },
-  { key: "PR-OUT", code: "CP2B", name: "MedJobs outbound work", dest: "pr-out-outbound-work" },
-  { key: "PR2", code: "CP2C", name: "MedJobs provider meeting held", dest: "pr2-provider-meeting-held" },
+  { key: "PR1", code: "CP2A1", name: "MedJobs provider target list built", dest: "pr1-target-list-built-and-pre-flight-complete" },
+  { key: "PR-OUT", code: "CP2A2", name: "MedJobs outbound work", dest: "pr-out-outbound-work" },
+  { key: "PR2", code: "CP2A3", name: "MedJobs provider meetings held", dest: "pr2-provider-meeting-held" },
   { key: "PR3", code: "CP3C", name: "Provider staffing product signups", dest: "pr3-client-success" },
-].map((st, i) => ({ ...st, x: LEFT, y: pY(i), w: LANE_W }));
+].map((st, i) => ({ ...st, x: LEFT, y: pvY(i), w: LANE_W }));
+
+/** The cold-start box, and the step that sits under it. */
+const COLD_START_BOTTOM = pY(COLD_START_ROWS - 1) + ROW_H + 12;
 
 /**
  * The care worker column, in one sequence.
@@ -213,6 +225,13 @@ export default function SystemArchitecture({
 
       {/* The group boxes are drawn first so every stage sits on top of them. */}
       <GroupBox
+        x={LEFT - 16}
+        y={TOP - 28}
+        w={LANE_W + 32}
+        h={COLD_START_BOTTOM - (TOP - 28)}
+        label="CP2A · CITY-BASED COLD START"
+      />
+      <GroupBox
         x={RIGHT - 16}
         y={TOP - 28}
         w={LANE_W + 32}
@@ -236,7 +255,10 @@ export default function SystemArchitecture({
       />
 
       {PROVIDER.map((st) => box(st))}
-      {PROVIDER.slice(0, -1).map((_, i) => arrow(LEFT + 20, pY(i) + ROW_H, pY(i + 1) - 4))}
+      {[0, 1].map((i) => arrow(LEFT + 20, pY(i) + ROW_H, pY(i + 1) - 4))}
+      {/* The cold start hands over a provider who took the meeting, so this
+          arrow leaves the block rather than its last step. */}
+      {arrow(LEFT + 20, COLD_START_BOTTOM, pvY(3) - 4)}
 
       {CARE_WORKER.map((st) => box(st))}
       {CARE_WORKER_LINKS.map((i) => link(i))}
@@ -245,7 +267,7 @@ export default function SystemArchitecture({
           provider hands over a signed-up client and the campus an activated
           university — neither hands over a match, which is why both arrows
           stop at the Portal rather than reaching into it. */}
-      {arrow(LEFT + 20, pY(3) + ROW_H, PORTAL_TOP)}
+      {arrow(LEFT + 20, pvY(3) + ROW_H, PORTAL_TOP)}
       {arrow(RIGHT + 20, ACTIVATION_BOTTOM, PORTAL_TOP)}
 
       {/* Inside the Portal, the qualified applicant is what fulfilment

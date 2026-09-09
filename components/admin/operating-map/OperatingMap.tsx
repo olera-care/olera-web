@@ -364,9 +364,18 @@ export default function OperatingMap({
 
     /* care provider: supply, then the products, then the connection */
     vDown("cp1", "cp2");
-    vDown("cp2", "cp3");
 
+    /* one stem down CP2's left: a head into each of the four ways a provider
+       enters outreach, then on into the claim those conversations produce */
+    const cp2 = box("cp2");
     const cp3 = box("cp3");
+    const outreachStem = cp2.l + IN;
+    vArrow(outreachStem, cp2.b + G, cp3.t - G);
+    fromStem(outreachStem, "cp2a");
+    fromStem(outreachStem, "cp2b");
+    fromStem(outreachStem, "cp2c");
+    fromStem(outreachStem, "cp2d");
+
     const cp5 = box("cp5");
     const o4 = box("o4");
 
@@ -778,6 +787,57 @@ export default function OperatingMap({
                   onTipClose={closeTip}
                   onInspect={onInspect}
                 />
+
+              {/* the four ways a provider enters outreach */}
+              <div className={styles.branchR}>
+                  <Card
+                    id="cp2a"
+                    code="CP2A"
+                    label="City-based cold start"
+                    metric={nodes.cp2a}
+                    trend={trends.cp2a}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+                <div className={styles.gap} />
+                  <Card
+                    id="cp2b"
+                    code="CP2B"
+                    label="MedJobs target"
+                    metric={nodes.cp2b}
+                    trend={trends.cp2b}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+                <div className={styles.gap} />
+                  <Card
+                    id="cp2c"
+                    code="CP2C"
+                    label="Provider question unanswered"
+                    metric={nodes.cp2c}
+                    trend={trends.cp2c}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+                <div className={styles.gap} />
+                  <Card
+                    id="cp2d"
+                    code="CP2D"
+                    label="Provider connection request"
+                    metric={nodes.cp2d}
+                    trend={trends.cp2d}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+              </div>
               <div className={styles.gap} />
                 <Card
                   hi

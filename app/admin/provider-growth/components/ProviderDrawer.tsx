@@ -596,6 +596,27 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
     }
   };
 
+  const handleNoShow = async () => {
+    try {
+      const res = await fetch("/api/admin/provider-growth/log-no-show", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tracking_id: provider.id,
+        }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to log no-show");
+      }
+      setActiveAction(null);
+      onUpdate();
+    } catch (e) {
+      console.error("Failed to log no-show:", e);
+      alert(e instanceof Error ? e.message : "Failed to log no-show. Please try again.");
+    }
+  };
+
   const handleMarkMeetingComplete = async () => {
     // When meeting is complete, move to "pitched" stage and open the pitch logger
     try {
@@ -749,6 +770,7 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
               medjobsEligible={provider.medjobs_eligible}
               onSubmit={handleLogPitch}
               onCancel={() => setActiveAction(null)}
+              onNoShow={handleNoShow}
             />
           </div>
         )}

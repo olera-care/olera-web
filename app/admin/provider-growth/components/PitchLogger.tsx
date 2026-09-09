@@ -20,6 +20,7 @@ import {
 interface PitchLoggerProps {
   onSubmit: (data: PitchLogData) => Promise<void>;
   onCancel: () => void;
+  onNoShow?: () => Promise<void>;
   providerName: string;
   medjobsEligible?: boolean;
 }
@@ -33,12 +34,18 @@ export interface PitchLogData {
   not_interested_reason?: NotInterestedReason;
 }
 
+type MeetingOutcome = "happened" | "no_show" | null;
+
 export function PitchLogger({
   onSubmit,
   onCancel,
+  onNoShow,
   providerName,
   medjobsEligible = false,
 }: PitchLoggerProps) {
+  // Initial meeting outcome question
+  const [meetingOutcome, setMeetingOutcome] = useState<MeetingOutcome>(onNoShow ? null : "happened");
+
   const [pitchedAds, setPitchedAds] = useState(true);
   const [pitchedMedjobs, setPitchedMedjobs] = useState(medjobsEligible);
   const [interestLevel, setInterestLevel] = useState<InterestLevel | null>(null);
@@ -66,6 +73,65 @@ export function PitchLogger({
       setSubmitting(false);
     }
   };
+
+  const handleNoShow = async () => {
+    if (!onNoShow) return;
+    setSubmitting(true);
+    try {
+      await onNoShow();
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Show meeting outcome question first (only if onNoShow is provided)
+  if (onNoShow && meetingOutcome === null) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-sm font-medium text-gray-900 mb-3">
+            Log meeting with {providerName}
+          </h3>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-3">
+            Did the meeting happen?
+          </label>
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => setMeetingOutcome("happened")}
+              className="flex-1 px-4 py-3 text-sm font-medium rounded-lg border-2 border-gray-200 text-gray-700 hover:border-blue-300 hover:bg-blue-50 transition-colors"
+            >
+              Yes, meeting happened
+            </button>
+            <button
+              type="button"
+              onClick={handleNoShow}
+              disabled={submitting}
+              className="flex-1 px-4 py-3 text-sm font-medium rounded-lg border-2 border-gray-200 text-gray-700 hover:border-amber-300 hover:bg-amber-50 transition-colors disabled:opacity-50"
+            >
+              {submitting ? "Logging..." : "No-show"}
+            </button>
+          </div>
+          <p className="mt-2 text-xs text-gray-500">
+            No-show will log the missed meeting and send a reschedule email.
+          </p>
+        </div>
+
+        <div className="flex justify-end pt-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

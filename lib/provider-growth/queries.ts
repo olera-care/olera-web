@@ -38,6 +38,8 @@ export interface ProviderGrowthTracking {
   medjobs_subscribed_at: string | null;
   not_interested_at: string | null;
   not_interested_reason: string | null;
+  no_show_count: number | null;
+  last_no_show_at: string | null;
   assigned_to: string | null;
   notes: string | null;
   last_activity_at: string | null;
@@ -600,6 +602,8 @@ export interface UpdateTrackingInput {
   medjobs_subscribed_at?: string;
   not_interested_at?: string;
   not_interested_reason?: string;
+  no_show_count?: number;
+  last_no_show_at?: string;
   assigned_to?: string;
   notes?: string;
   // Meeting reminder tracking - cleared when meeting is rescheduled

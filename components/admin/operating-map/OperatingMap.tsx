@@ -361,7 +361,7 @@ export default function OperatingMap({
      * otherwise have to travel down past its own target and back up.
      */
     const elbow = (a: Box, b: Box) => {
-      if (b.t <= a.b + 2 * G) {
+      if (b.t <= a.b + 2 * G && b.l > a.r) {
         hArrow(b.cy, a.r + G, b.l - G);
         return;
       }
@@ -432,19 +432,27 @@ export default function OperatingMap({
        qualifies and the provider they are put in front of */
     vDown("cw1", "cw2");
     const cw2 = box("cw2");
-    const cw3 = box("cw3");
+    const apps = box("studentApplications");
     const campusStem = cw2.l + IN;
-    vArrow(campusStem, cw2.b + G, cw3.t - G);
-    for (const k of ["cw2a", "cw2b", "cw2c", "cw2d", "cw2e", "cw2f", "cw2g", "cw2h", "cw3a", "cw3b"]) {
+    vArrow(campusStem, cw2.b + G, apps.t - G);
+    for (const k of ["cw2a", "cw2b", "cw2c", "cw2d", "cw2e", "cw2f", "cw2g", "cw2h"]) {
       fromStem(campusStem, k);
     }
+    const cw3 = box("cw3");
+    const appStem = apps.l + IN;
+    vArrow(appStem, apps.b + G, cw3.t - G);
+    for (const k of ["cw3a", "cw3b"]) fromStem(appStem, k);
     vDown("cw3", "o4");
 
-    /* Staffing is what makes a hire possible, and the match is what the hire
-       is confirmed from — both cross columns, so both turn rather than
-       hanging a vertical beside a card they do not touch. */
-    elbow(maybe("cp5") ?? cp3, box("o4"));
-    elbow(box("o4"), box("o5"));
+    /* The confirmed hire needs both halves: a provider signed up to the
+       programme and a care worker put in front of them. The match sits above
+       it and overlaps it, so that one runs straight down; the signup is a
+       column away and has to turn. Collapse the provider's substeps and the
+       signup's arrow goes with them — the parent is a different claim, not a
+       stand-in for the step underneath it. */
+    const staffing = maybe("cp5");
+    if (staffing) elbow(staffing, box("o5"));
+    vDown("o4", "o5");
 
     /* each join runs on down between the lanes that fed it */
     vDown("o2", "o3");
@@ -1015,7 +1023,7 @@ export default function OperatingMap({
                   />
               <div className={styles.gap} />
                   <Card
-                    substeps={sub("cw2", 10)}
+                    substeps={sub("cw2", 8)}
                     id="cw2"
                     code="CW2"
                     label="Universities activated"
@@ -1026,9 +1034,8 @@ export default function OperatingMap({
                     onTipClose={closeTip}
                     onInspect={onInspect}
                   />
-              {/* the whole MedJobs campus run: reaching an advisor, the five
-                  channels activation consists of, and the applications the
-                  channels produce */}
+              {/* reaching an advisor, then the five channels activation
+                  consists of */}
               {open.cw2 && (
                 <div className={styles.branchR}>
                     <Card
@@ -1126,7 +1133,23 @@ export default function OperatingMap({
                       onTipClose={closeTip}
                       onInspect={onInspect}
                     />
-                    <div className={styles.gap} />
+                </div>
+              )}
+              <div className={styles.gap} />
+                  <Card
+                    substeps={sub("cw3", 2)}
+                    id="studentApplications"
+                    code="CW3"
+                    label="Student applications"
+                    metric={nodes.studentApplications}
+                    trend={trends.studentApplications}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+              {open.cw3 && (
+                <div className={styles.branchR}>
                     <Card
                       id="cw3a"
                       code="CW3A"
@@ -1156,7 +1179,7 @@ export default function OperatingMap({
                   <Card
                     hi
                     id="cw3"
-                    code="CW3"
+                    code="CW4"
                     label="Qualified student care worker applicants"
                     metric={nodes.cw3}
                     trend={trends.cw3}
@@ -1168,8 +1191,8 @@ export default function OperatingMap({
               <div className={styles.gap} />
                   <Card
                     id="o4"
-                    code="CW4"
-                    label="Provider–care worker connected"
+                    code="CW5"
+                    label="Care worker–provider connected"
                     metric={nodes.o4}
                     trend={trends.o4}
                     loading={metricsLoading}

@@ -584,7 +584,7 @@ export async function createTracking(
 
 export interface UpdateTrackingInput {
   pipeline_stage?: PipelineStage;
-  calendly_event_id?: string;
+  calendly_event_id?: string | null;
   meeting_scheduled_at?: string;
   meeting_completed_at?: string;
   pitched_at?: string;
@@ -602,6 +602,9 @@ export interface UpdateTrackingInput {
   not_interested_reason?: string;
   assigned_to?: string;
   notes?: string;
+  // Meeting reminder tracking - cleared when meeting is rescheduled
+  reminder_2d_sent_at?: string | null;
+  reminder_1d_sent_at?: string | null;
 }
 
 export async function updateTracking(

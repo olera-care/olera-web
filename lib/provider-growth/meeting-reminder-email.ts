@@ -9,7 +9,6 @@
 export interface MeetingReminderParams {
   providerName: string;
   meetingDate: Date;
-  rescheduleUrl?: string;
 }
 
 /**
@@ -74,13 +73,6 @@ export function generateReminderEmailHtml(
       ? "Just a quick reminder that our call is <strong>tomorrow</strong>!"
       : "Just a friendly reminder about our upcoming call.";
 
-  const rescheduleSection = params.rescheduleUrl
-    ? `
-              <p style="margin: 24px 0 0 0; font-size: 14px; line-height: 20px; color: #6b7280;">
-                Need to reschedule? <a href="${params.rescheduleUrl}" style="color: #0d9488; text-decoration: none;">Click here</a> to pick a new time.
-              </p>`
-    : "";
-
   return `
 <!DOCTYPE html>
 <html>
@@ -141,7 +133,6 @@ export function generateReminderEmailHtml(
               <p style="margin: 0; font-size: 16px; line-height: 24px; color: #4b5563;">
                 Looking forward to speaking with you!
               </p>
-              ${rescheduleSection}
             </td>
           </tr>
 

@@ -361,6 +361,20 @@ export const CRON_REGISTRY: CronJob[] = [
     relatedAdminPath: "/admin/provider-outreach",
   },
   {
+    id: "provider-growth-meeting-reminders",
+    name: "Provider Growth — meeting reminders",
+    description: "Sends automated reminder emails to providers with upcoming growth meetings. 2-day reminder and 1-day (tomorrow) reminder. Tracks which reminders have been sent to avoid duplicates.",
+    recipientCohort: "Providers in meeting_scheduled or upgrade_meeting stage with a meeting in the next 2 days.",
+    audience: "Providers",
+    fn: "nudge",
+    schedule: "0 * * * *",
+    humanSchedule: "Hourly, on the hour",
+    path: "/api/cron/provider-growth-meeting-reminders",
+    emailTypes: ["provider_growth_meeting_reminder_2d", "provider_growth_meeting_reminder_1d"],
+    successSignal: "Provider attends the scheduled meeting.",
+    relatedAdminPath: "/admin/provider-growth",
+  },
+  {
     id: "city-broadcasts",
     name: "City broadcasts",
     description:

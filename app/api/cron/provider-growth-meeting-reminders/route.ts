@@ -11,6 +11,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
+import { withCronRun } from "@/lib/crons/run";
 import {
   generateReminderEmailHtml,
   generateReminderSubject,
@@ -40,16 +41,16 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const db = getServiceClient();
-  const now = new Date();
-  const results = {
-    checked: 0,
-    reminders_2d_sent: 0,
-    reminders_1d_sent: 0,
-    errors: [] as string[],
-  };
+  return withCronRun("provider-growth-meeting-reminders", async () => {
+    const db = getServiceClient();
+    const now = new Date();
+    const results = {
+      checked: 0,
+      reminders_2d_sent: 0,
+      reminders_1d_sent: 0,
+      errors: [] as string[],
+    };
 
-  try {
     // Query meetings in meeting_scheduled or upgrade_meeting stage
     // that have a meeting_scheduled_at in the future
     const { data: meetings, error } = await db
@@ -71,7 +72,7 @@ export async function GET(request: NextRequest) {
 
     if (error) {
       console.error("[cron/provider-growth-meeting-reminders] Query error:", error);
-      return NextResponse.json({ error: "Database query failed" }, { status: 500 });
+      throw new Error("Database query failed");
     }
 
     results.checked = meetings?.length || 0;
@@ -132,14 +133,8 @@ export async function GET(request: NextRequest) {
     }
 
     console.log("[cron/provider-growth-meeting-reminders] Completed:", results);
-    return NextResponse.json(results);
-  } catch (e) {
-    console.error("[cron/provider-growth-meeting-reminders] Error:", e);
-    return NextResponse.json(
-      { error: e instanceof Error ? e.message : "Unknown error" },
-      { status: 500 }
-    );
-  }
+    return results;
+  });
 }
 
 async function sendReminder(
@@ -147,7 +142,23 @@ async function sendReminder(
   meeting: MeetingToRemind,
   reminderType: "2d" | "1d"
 ): Promise<boolean> {
+  const updateField = reminderType === "2d" ? "reminder_2d_sent_at" : "reminder_1d_sent_at";
+  const timestamp = new Date().toISOString();
+
   try {
+    // IMPORTANT: Update database FIRST to prevent duplicate sends if email succeeds
+    // but a subsequent step fails. This is a "claim" pattern - we mark it as sent
+    // before actually sending, then roll back if the send fails.
+    const { error: updateError } = await db
+      .from("provider_growth_tracking")
+      .update({ [updateField]: timestamp })
+      .eq("id", meeting.id);
+
+    if (updateError) {
+      console.error(`[cron/provider-growth-meeting-reminders] DB update failed:`, updateError);
+      return false;
+    }
+
     const meetingDate = new Date(meeting.meeting_scheduled_at);
     const providerName = meeting.provider_name || "there";
 
@@ -170,19 +181,17 @@ async function sendReminder(
     });
 
     if (!emailResult.success) {
-      console.error(`[cron/provider-growth-meeting-reminders] Email failed:`, emailResult.error);
+      // Roll back the timestamp since email failed
+      console.error(`[cron/provider-growth-meeting-reminders] Email failed, rolling back:`, emailResult.error);
+      await db
+        .from("provider_growth_tracking")
+        .update({ [updateField]: null })
+        .eq("id", meeting.id);
       return false;
     }
 
-    // Update tracking record with reminder sent timestamp
-    const updateField = reminderType === "2d" ? "reminder_2d_sent_at" : "reminder_1d_sent_at";
-    await db
-      .from("provider_growth_tracking")
-      .update({ [updateField]: new Date().toISOString() })
-      .eq("id", meeting.id);
-
     // Create touchpoint for audit trail
-    await db.from("provider_growth_touchpoints").insert({
+    const { error: touchpointError } = await db.from("provider_growth_touchpoints").insert({
       tracking_id: meeting.id,
       business_profile_id: meeting.business_profile_id,
       touchpoint_type: "reminder_sent",
@@ -194,10 +203,24 @@ async function sendReminder(
       },
     });
 
+    if (touchpointError) {
+      // Log but don't fail - email was sent successfully
+      console.error(`[cron/provider-growth-meeting-reminders] Touchpoint insert failed:`, touchpointError);
+    }
+
     console.log(`[cron/provider-growth-meeting-reminders] Sent ${reminderType} reminder for ${meeting.id}`);
     return true;
   } catch (e) {
+    // If we get here, try to roll back the timestamp
     console.error(`[cron/provider-growth-meeting-reminders] Error sending reminder:`, e);
+    try {
+      await db
+        .from("provider_growth_tracking")
+        .update({ [updateField]: null })
+        .eq("id", meeting.id);
+    } catch {
+      // Ignore rollback errors
+    }
     return false;
   }
 }

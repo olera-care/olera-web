@@ -132,14 +132,14 @@ export default function RoleDiagram({
         <>
           <Lanes y={22} />
           <InBasket y={32} h={222} />
-          {box({ key: "PR1", code: "CP1A", name: "Target list built", owner: "admin", dest: "pr1", x: L, y: 62, w: W })}
-          {box({ key: "ST1", code: "CW2", name: "Target advisors", owner: "admin", dest: "st1", x: R, y: 62, w: W })}
+          {box({ key: "PR1", code: "CP2A", name: "MedJobs provider target list built", owner: "admin", dest: "pr1", x: L, y: 62, w: W })}
+          {box({ key: "ST1", code: "CW1A", name: "Student advisors target list", owner: "admin", dest: "st1", x: R, y: 62, w: W })}
           <Arrow x={L + 20} y1={106} y2={114} />
           <Arrow x={R + 20} y1={106} y2={114} />
-          {box({ key: "PR-OUT", code: "CP2A", name: "Outbound work", owner: "admin", dest: "pr1", x: L, y: 116, w: W })}
-          {box({ key: "ST-OUT", code: "CW2A", name: "University outbound", owner: "admin", dest: "st1", x: R, y: 116, w: W })}
+          {box({ key: "PR-OUT", code: "CP2B", name: "MedJobs outbound work", owner: "admin", dest: "pr1", x: L, y: 116, w: W })}
+          {box({ key: "ST-OUT", code: "CW2A", name: "Student advisors in outreach", owner: "admin", dest: "st1", x: R, y: 116, w: W })}
           <HandoffRule y={186} text="HANDOFF · YOU → SALES LEAD" lanes={[[L, W], [R, W]]} />
-          {box({ key: "PR2", code: "CP2B", name: "Provider meeting held", owner: "sales", dest: "booking", x: L, y: 196, w: W }, undefined, true)}
+          {box({ key: "PR2", code: "CP2C", name: "MedJobs provider meeting held", owner: "sales", dest: "booking", x: L, y: 196, w: W }, undefined, true)}
           {box({ key: "ST2", code: "CW2B", name: "Advisor meeting held", owner: "sales", dest: "booking", x: R, y: 196, w: W }, undefined, true)}
           <Legend y={276} owners={LEGEND.admin} />
         </>
@@ -149,10 +149,10 @@ export default function RoleDiagram({
         <>
           <Lanes y={22} />
           <InBasket y={34} h={92} />
-          {box({ key: "PR2", code: "CP2B", name: "Provider meeting held", owner: "sales", dest: "pr2", x: L, y: 62, w: W })}
+          {box({ key: "PR2", code: "CP2C", name: "MedJobs provider meeting held", owner: "sales", dest: "pr2", x: L, y: 62, w: W })}
           {box({ key: "ST2", code: "CW2B", name: "Advisor meeting held", owner: "sales", dest: "st2", x: R, y: 62, w: W })}
           <HandoffRule y={148} text="HANDOFF · YOU → CONSUMER RELATIONS MANAGER" lanes={[[L, W], [R, W]]} />
-          {box({ key: "PR3", code: "CP5A", name: "Client success", owner: "usm", dest: "handoff", x: L, y: 160, w: W }, undefined, true)}
+          {box({ key: "PR3", code: "CP5A", name: "MedJobs provider success management", owner: "usm", dest: "handoff", x: L, y: 160, w: W }, undefined, true)}
           {box(
             { key: "ST3-ST7", code: "CW2C–G", name: "University activation", owner: "usm", dest: "after", x: R, y: 160, w: W },
             undefined,
@@ -165,7 +165,7 @@ export default function RoleDiagram({
       {role === "crm" && (
         <>
           <Lanes y={22} />
-          {box({ key: "PR3", code: "CP5A", name: "Client success", owner: "usm", dest: "pr3", x: L, y: 36, w: W })}
+          {box({ key: "PR3", code: "CP5A", name: "MedJobs provider success management", owner: "usm", dest: "pr3", x: L, y: 36, w: W })}
           {box(
             { key: "ST3-ST7", code: "CW2C–G", name: "University activation", owner: "usm", dest: "st", x: R, y: 36, w: W },
           )}

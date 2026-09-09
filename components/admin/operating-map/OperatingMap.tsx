@@ -940,30 +940,6 @@ export default function OperatingMap({
                 />
               <div className={styles.gap} />
                 <Card
-                  id="o7"
-                  code="O7"
-                  label="Shifts worked confirmed"
-                  metric={nodes.o7}
-                  trend={trends.o7}
-                  loading={metricsLoading}
-                  onTip={openTip}
-                  onTipClose={closeTip}
-                  onInspect={onInspect}
-                />
-              <div className={styles.gap} />
-                <Card
-                  id="o8"
-                  code="O8"
-                  label="Revenue billed"
-                  metric={nodes.o8}
-                  trend={trends.o8}
-                  loading={metricsLoading}
-                  onTip={openTip}
-                  onTipClose={closeTip}
-                  onInspect={onInspect}
-                />
-              <div className={styles.gap} />
-                <Card
                   id="o6"
                   code="O6"
                   label="Est. new care workers"

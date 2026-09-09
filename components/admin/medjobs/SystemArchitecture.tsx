@@ -48,13 +48,13 @@ const RIGHT = 540;
  * database all keep working while the naming settles.
  */
 const STAGES: Stage[] = [
-  { key: "PR1", code: "CP1A", name: "Target list built", owner: "admin", dest: "pr1-target-list-built-and-pre-flight-complete", x: LEFT, y: 118, w: LANE_W },
-  { key: "ST1", code: "CW2", name: "Target advisors", owner: "admin", dest: "st1-target-advisors", x: RIGHT, y: 118, w: LANE_W },
-  { key: "PR-OUT", code: "CP2A", name: "Outbound work", owner: "admin", dest: "pr-out-outbound-work", x: LEFT, y: 172, w: LANE_W },
-  { key: "ST-OUT", code: "CW2A", name: "University outbound", owner: "admin", dest: "st-out-university-outbound", x: RIGHT, y: 172, w: LANE_W },
-  { key: "PR2", code: "CP2B", name: "Provider meeting held", owner: "sales", dest: "pr2-provider-meeting-held", x: LEFT, y: 262, w: LANE_W },
+  { key: "PR1", code: "CP2A", name: "MedJobs provider target list built", owner: "admin", dest: "pr1-target-list-built-and-pre-flight-complete", x: LEFT, y: 118, w: LANE_W },
+  { key: "ST1", code: "CW1A", name: "Student advisors target list", owner: "admin", dest: "st1-target-advisors", x: RIGHT, y: 118, w: LANE_W },
+  { key: "PR-OUT", code: "CP2B", name: "MedJobs outbound work", owner: "admin", dest: "pr-out-outbound-work", x: LEFT, y: 172, w: LANE_W },
+  { key: "ST-OUT", code: "CW2A", name: "Student advisors in outreach", owner: "admin", dest: "st-out-university-outbound", x: RIGHT, y: 172, w: LANE_W },
+  { key: "PR2", code: "CP2C", name: "MedJobs provider meeting held", owner: "sales", dest: "pr2-provider-meeting-held", x: LEFT, y: 262, w: LANE_W },
   { key: "ST2", code: "CW2B", name: "Advisor meeting held", owner: "sales", dest: "st2-advisor-meeting-held", x: RIGHT, y: 262, w: LANE_W },
-  { key: "PR3", code: "CP5A", name: "Client success", owner: "usm", dest: "pr3-client-success", x: LEFT, y: 352, w: LANE_W },
+  { key: "PR3", code: "CP5A", name: "MedJobs provider success management", owner: "usm", dest: "pr3-client-success", x: LEFT, y: 352, w: LANE_W },
   { key: "ST3-ST7", code: "CW2C–G", name: "University activation", owner: "usm", dest: "st3st7-university-activation", x: RIGHT, y: 352, w: LANE_W },
 ];
 

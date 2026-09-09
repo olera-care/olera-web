@@ -375,6 +375,20 @@ export const CRON_REGISTRY: CronJob[] = [
     relatedAdminPath: "/admin/provider-growth",
   },
   {
+    id: "provider-growth-conversion-sync",
+    name: "Provider Growth — conversion sync",
+    description: "Auto-detects provider conversions from source systems. Syncs Ad Boost campaigns (ad_campaign_requests) and MedJobs pilot status (business_profiles.metadata) into Provider Growth tracking. Catches self-service conversions that bypass the pitch meeting flow.",
+    recipientCohort: "(No recipients — a data sync job.)",
+    audience: "Providers",
+    fn: "maintenance",
+    schedule: "0 * * * *",
+    humanSchedule: "Hourly, on the hour",
+    path: "/api/cron/provider-growth-conversion-sync",
+    emailTypes: [],
+    successSignal: "Providers who self-converted appear in the Converted tab without manual admin action.",
+    relatedAdminPath: "/admin/provider-growth",
+  },
+  {
     id: "city-broadcasts",
     name: "City broadcasts",
     description:

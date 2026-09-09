@@ -204,6 +204,20 @@ export default function OperatingMap({
   const [cities, setCities] = useState<CitiesState>({ status: "loading" });
   const [tip, setTip] = useState<Tip | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  /**
+   * Which parents have their substeps showing. Everything starts closed: the
+   * map is one picture of the business first, and the detail underneath a
+   * node is there for whoever is working that node today.
+   */
+  const [open, setOpen] = useState<Record<string, boolean>>({});
+  const sub = useCallback(
+    (key: string, count: number) => ({
+      open: Boolean(open[key]),
+      count,
+      onToggle: () => setOpen((o) => ({ ...o, [key]: !o[key] })),
+    }),
+    [open],
+  );
   const pickerRef = useRef<HTMLDivElement>(null);
   const rootWrapRef = useRef<HTMLDivElement>(null);
   const fitRef = useRef<HTMLDivElement>(null);
@@ -275,6 +289,11 @@ export default function OperatingMap({
 
     type Box = { l: number; r: number; t: number; b: number; cx: number; cy: number };
 
+    /** Measure a node, or null when it is collapsed out of the figure. */
+    function maybe(key: string): Box | null {
+      return document.getElementById(nodeId(key)) ? box(key) : null;
+    }
+
     /** Measure a node in the figure's own coordinate space. */
     function box(key: string): Box {
       const node = document.getElementById(nodeId(key));
@@ -328,10 +347,30 @@ export default function OperatingMap({
       const B = box(b);
       vArrow(A.l + IN, A.b + G, B.t - G);
     };
-    /** Branch off a vertical stem into a card sitting to its right. */
+    /** Branch off a vertical stem into a card sitting to its right. Silent
+        when that card is collapsed away — a hidden step has no arrow. */
     const fromStem = (x: number, b: string) => {
-      const B = box(b);
-      hArrow(B.cy, x + 1, B.l - G);
+      const B = maybe(b);
+      if (B) hArrow(B.cy, x + 1, B.l - G);
+    };
+
+    /**
+     * The join between two cards that do not share a column. Down, across and
+     * down again while the second sits below the first; a plain reach across
+     * once opening a branch has brought them level, because the elbow would
+     * otherwise have to travel down past its own target and back up.
+     */
+    const elbow = (a: Box, b: Box) => {
+      if (b.t <= a.b + 2 * G) {
+        hArrow(b.cy, a.r + G, b.l - G);
+        return;
+      }
+      const ax = a.l + IN;
+      const bx = b.l + IN;
+      const midY = (a.b + b.t) / 2;
+      seg(ax, a.b + G, ax, midY);
+      seg(ax, midY, bx, midY);
+      vArrow(bx, midY, b.t - G);
     };
     /*
      * Every arrow is a claim about what causes what, so the geometry makes
@@ -371,39 +410,50 @@ export default function OperatingMap({
     const cp3 = box("cp3");
     const outreachStem = cp2.l + IN;
     vArrow(outreachStem, cp2.b + G, cp3.t - G);
-    fromStem(outreachStem, "cp2a");
-    fromStem(outreachStem, "cp2b");
-    fromStem(outreachStem, "cp2c");
-    fromStem(outreachStem, "cp2d");
+    for (const k of ["cp2a", "cp2b", "cp2c", "cp2d"]) fromStem(outreachStem, k);
 
-    const cp5 = box("cp5");
-    const o4 = box("o4");
+    /* and one more down MedJobs target's own left, when it is open */
+    const cp2b = maybe("cp2b");
+    const cp2bLast = maybe("cp2b2");
+    if (cp2b && cp2bLast) {
+      const medStem = cp2b.l + IN;
+      seg(medStem, cp2b.b + G, medStem, cp2bLast.cy);
+      fromStem(medStem, "cp2b1");
+      fromStem(medStem, "cp2b2");
+    }
 
     /* one stem down CP3's left: a head into everything a claimed provider
        does, then on into the confirmed care those conversations produce */
     const provStem = cp3.l + IN;
     vArrow(provStem, cp3.b + G, careConfirmed.t - G);
-    fromStem(provStem, "cp3a");
-    fromStem(provStem, "o1");
-    fromStem(provStem, "questionsAnswered");
-    fromStem(provStem, "cp4");
-    fromStem(provStem, "cp5");
+    for (const k of ["cp3a", "o1", "questionsAnswered", "cp4", "cp5"]) fromStem(provStem, k);
 
-    /* staffing is what makes a hire possible; the line lands over O4's
-       own label so it reads as belonging to that card */
-    vArrow(o4.l + IN, cp5.b + G, o4.t - G);
-
-    /* care worker: campuses, then advisors, then applicants */
+    /* care worker: campuses, then the campus run, then the applicants it
+       qualifies and the provider they are put in front of */
     vDown("cw1", "cw2");
-    vDown("cw2", "cw3");
+    const cw2 = box("cw2");
     const cw3 = box("cw3");
-    vArrow(cw3.l + IN, cw3.b + G, o4.t - G);
+    const campusStem = cw2.l + IN;
+    vArrow(campusStem, cw2.b + G, cw3.t - G);
+    for (const k of ["cw2a", "cw2b", "cw2c", "cw2d", "cw2e", "cw2f", "cw2g", "cw2h", "cw3a", "cw3b"]) {
+      fromStem(campusStem, k);
+    }
+    vDown("cw3", "o4");
+
+    /* Staffing is what makes a hire possible, and the match is what the hire
+       is confirmed from — both cross columns, so both turn rather than
+       hanging a vertical beside a card they do not touch. */
+    elbow(maybe("cp5") ?? cp3, box("o4"));
+    elbow(box("o4"), box("o5"));
 
     /* each join runs on down between the lanes that fed it */
     vDown("o2", "o3");
-    vDown("o4", "o5");
     vDown("o5", "o6");
   }, []);
+
+  useLayoutEffect(() => {
+    draw();
+  }, [draw, open]);
 
   useLayoutEffect(() => {
     // Two passes: once on mount, once after the web font settles. Inter
@@ -764,201 +814,369 @@ export default function OperatingMap({
 
             {/* care provider */}
             <div className={styles.lane}>
-                <Card
-                  id="cp1"
-                  code="CP1"
-                  label="Inactive Providers (unclaimed)"
-                  metric={nodes.cp1}
-                  trend={trends.cp1}
-                  loading={metricsLoading}
-                  onTip={openTip}
-                  onTipClose={closeTip}
-                  onInspect={onInspect}
-                />
+                  <Card
+                    id="cp1"
+                    code="CP1"
+                    label="Inactive Providers (unclaimed)"
+                    metric={nodes.cp1}
+                    trend={trends.cp1}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
               <div className={styles.gap} />
-                <Card
-                  id="cp2"
-                  code="CP2"
-                  label="Providers in outreach"
-                  metric={nodes.cp2}
-                  trend={trends.cp2}
-                  loading={metricsLoading}
-                  onTip={openTip}
-                  onTipClose={closeTip}
-                  onInspect={onInspect}
-                />
-
+                  <Card
+                    substeps={sub("cp2", 4)}
+                    id="cp2"
+                    code="CP2"
+                    label="Providers in outreach"
+                    metric={nodes.cp2}
+                    trend={trends.cp2}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
               {/* the four ways a provider enters outreach */}
-              <div className={styles.branchR}>
-                  <Card
-                    id="cp2a"
-                    code="CP2A"
-                    label="City-based cold start"
-                    metric={nodes.cp2a}
-                    trend={trends.cp2a}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
-                <div className={styles.gap} />
-                  <Card
-                    id="cp2b"
-                    code="CP2B"
-                    label="MedJobs target"
-                    metric={nodes.cp2b}
-                    trend={trends.cp2b}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
-                <div className={styles.gap} />
-                  <Card
-                    id="cp2c"
-                    code="CP2C"
-                    label="Provider question unanswered"
-                    metric={nodes.cp2c}
-                    trend={trends.cp2c}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
-                <div className={styles.gap} />
-                  <Card
-                    id="cp2d"
-                    code="CP2D"
-                    label="Provider connection request"
-                    metric={nodes.cp2d}
-                    trend={trends.cp2d}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
-              </div>
+              {open.cp2 && (
+                <div className={styles.branchR}>
+                    <Card
+                      id="cp2a"
+                      code="CP2A"
+                      label="City-based cold start"
+                      metric={nodes.cp2a}
+                      trend={trends.cp2a}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                    <div className={styles.gap} />
+                    <Card
+                      substeps={sub("cp2b", 2)}
+                      id="cp2b"
+                      code="CP2B"
+                      label="MedJobs target"
+                      metric={nodes.cp2b}
+                      trend={trends.cp2b}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                {open.cp2b && (
+                  <div className={styles.branchR2}>
+                      <Card
+                        id="cp2b1"
+                        code="CP2B1"
+                        label="MedJobs outbound work"
+                        metric={nodes.cp2b1}
+                        trend={trends.cp2b1}
+                        loading={metricsLoading}
+                        onTip={openTip}
+                        onTipClose={closeTip}
+                        onInspect={onInspect}
+                      />
+                      <div className={styles.gap} />
+                      <Card
+                        id="cp2b2"
+                        code="CP2B2"
+                        label="MedJobs provider meetings held"
+                        metric={nodes.cp2b2}
+                        trend={trends.cp2b2}
+                        loading={metricsLoading}
+                        onTip={openTip}
+                        onTipClose={closeTip}
+                        onInspect={onInspect}
+                      />
+                  </div>
+                )}
+                    <div className={styles.gap} />
+                    <Card
+                      id="cp2c"
+                      code="CP2C"
+                      label="Provider question unanswered"
+                      metric={nodes.cp2c}
+                      trend={trends.cp2c}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                    <div className={styles.gap} />
+                    <Card
+                      id="cp2d"
+                      code="CP2D"
+                      label="Provider connection request"
+                      metric={nodes.cp2d}
+                      trend={trends.cp2d}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                </div>
+              )}
               <div className={styles.gap} />
-                <Card
-                  hi
-                  id="cp3"
-                  code="CP3"
-                  label="Active Providers (claimed)"
-                  metric={nodes.cp3}
-                  trend={trends.cp3}
-                  loading={metricsLoading}
-                  onTip={openTip}
-                  onTipClose={closeTip}
-                  onInspect={onInspect}
-                />
-
-              {/* everything a claimed provider does: finishes the profile, takes
-                  the care seekers the profile brings, and buys one or both of
-                  the products */}
-              <div className={styles.branchR}>
-                  <Card
-                    id="cp3a"
-                    code="CP3A"
-                    label="Profiles completed"
-                    metric={nodes.cp3a}
-                    trend={trends.cp3a}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
-                <div className={styles.gap} />
-                  <Card
-                    id="o1"
-                    code="CP3B"
-                    label="Care seekers connected"
-                    metric={nodes.o1}
-                    trend={trends.o1}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
-                <div className={styles.gap} />
-                  <Card
-                    id="questionsAnswered"
-                    code="CP3C"
-                    label="Questions answered"
-                    metric={nodes.questionsAnswered}
-                    trend={trends.questionsAnswered}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
-                <div className={styles.gap} />
                   <Card
                     hi
-                    id="cp4"
-                    code="CP3D"
-                    label="Premium growth suite signups"
-                    money="Paid product"
-                    metric={nodes.cp4}
-                    trend={trends.cp4}
+                    substeps={sub("cp3", 5)}
+                    id="cp3"
+                    code="CP3"
+                    label="Active Providers (claimed)"
+                    metric={nodes.cp3}
+                    trend={trends.cp3}
                     loading={metricsLoading}
                     onTip={openTip}
                     onTipClose={closeTip}
                     onInspect={onInspect}
                   />
-                <div className={styles.gap} />
-                  <Card
-                    hi
-                    id="cp5"
-                    code="CP3E"
-                    label="Student caregiver program signups"
-                    metric={nodes.cp5}
-                    trend={trends.cp5}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
-              </div>
+              {open.cp3 && (
+                <div className={styles.branchR}>
+                    <Card
+                      id="cp3a"
+                      code="CP3A"
+                      label="Profiles completed"
+                      metric={nodes.cp3a}
+                      trend={trends.cp3a}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                    <div className={styles.gap} />
+                    <Card
+                      id="o1"
+                      code="CP3B"
+                      label="Care seekers connected"
+                      metric={nodes.o1}
+                      trend={trends.o1}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                    <div className={styles.gap} />
+                    <Card
+                      id="questionsAnswered"
+                      code="CP3C"
+                      label="Questions answered"
+                      metric={nodes.questionsAnswered}
+                      trend={trends.questionsAnswered}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                    <div className={styles.gap} />
+                    <Card
+                      hi
+                      money="Paid product"
+                      id="cp4"
+                      code="CP3D"
+                      label="Premium growth suite signups"
+                      metric={nodes.cp4}
+                      trend={trends.cp4}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                    <div className={styles.gap} />
+                    <Card
+                      hi
+                      id="cp5"
+                      code="CP3E"
+                      label="Student caregiver program signups"
+                      metric={nodes.cp5}
+                      trend={trends.cp5}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                </div>
+              )}
             </div>
 
             {/* care worker */}
             <div className={styles.lane}>
-                <Card
-                  id="cw1"
-                  code="CW1"
-                  label="Universities targeted"
-                  metric={nodes.cw1}
-                  trend={trends.cw1}
-                  loading={metricsLoading}
-                  onTip={openTip}
-                  onTipClose={closeTip}
-                  onInspect={onInspect}
-                />
+                  <Card
+                    id="cw1"
+                    code="CW1"
+                    label="Universities targeted"
+                    metric={nodes.cw1}
+                    trend={trends.cw1}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
               <div className={styles.gap} />
-                <Card
-                  id="cw2"
-                  code="CW2"
-                  label="Universities activated"
-                  metric={nodes.cw2}
-                  trend={trends.cw2}
-                  loading={metricsLoading}
-                  onTip={openTip}
-                  onTipClose={closeTip}
-                  onInspect={onInspect}
-                />
+                  <Card
+                    substeps={sub("cw2", 10)}
+                    id="cw2"
+                    code="CW2"
+                    label="Universities activated"
+                    metric={nodes.cw2}
+                    trend={trends.cw2}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+              {/* the whole MedJobs campus run: reaching an advisor, the five
+                  channels activation consists of, and the applications the
+                  channels produce */}
+              {open.cw2 && (
+                <div className={styles.branchR}>
+                    <Card
+                      id="cw2a"
+                      code="CW2A"
+                      label="Student advisors targeted"
+                      metric={nodes.cw2a}
+                      trend={trends.cw2a}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                    <div className={styles.gap} />
+                    <Card
+                      id="cw2b"
+                      code="CW2B"
+                      label="Student advisors in outreach"
+                      metric={nodes.cw2b}
+                      trend={trends.cw2b}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                    <div className={styles.gap} />
+                    <Card
+                      id="cw2c"
+                      code="CW2C"
+                      label="Advisor meetings held"
+                      metric={nodes.cw2c}
+                      trend={trends.cw2c}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                    <div className={styles.gap} />
+                    <Card
+                      id="cw2d"
+                      code="CW2D"
+                      label="University job board"
+                      metric={nodes.cw2d}
+                      trend={trends.cw2d}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                    <div className={styles.gap} />
+                    <Card
+                      id="cw2e"
+                      code="CW2E"
+                      label="Advisor listservs"
+                      metric={nodes.cw2e}
+                      trend={trends.cw2e}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                    <div className={styles.gap} />
+                    <Card
+                      id="cw2f"
+                      code="CW2F"
+                      label="Student organisations"
+                      metric={nodes.cw2f}
+                      trend={trends.cw2f}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                    <div className={styles.gap} />
+                    <Card
+                      id="cw2g"
+                      code="CW2G"
+                      label="Campus events"
+                      metric={nodes.cw2g}
+                      trend={trends.cw2g}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                    <div className={styles.gap} />
+                    <Card
+                      id="cw2h"
+                      code="CW2H"
+                      label="Professors and class visits"
+                      metric={nodes.cw2h}
+                      trend={trends.cw2h}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                    <div className={styles.gap} />
+                    <Card
+                      id="cw3a"
+                      code="CW3A"
+                      label="Student applications initiated"
+                      metric={nodes.cw3a}
+                      trend={trends.cw3a}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                    <div className={styles.gap} />
+                    <Card
+                      id="cw3b"
+                      code="CW3B"
+                      label="Student applications completed"
+                      metric={nodes.cw3b}
+                      trend={trends.cw3b}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                </div>
+              )}
               <div className={styles.gap} />
-                <Card
-                  hi
-                  id="cw3"
-                  code="CW3C"
-                  label="Qualified student care worker applicants"
-                  metric={nodes.cw3}
-                  trend={trends.cw3}
-                  loading={metricsLoading}
-                  onTip={openTip}
-                  onTipClose={closeTip}
-                  onInspect={onInspect}
-                />
+                  <Card
+                    hi
+                    id="cw3"
+                    code="CW3"
+                    label="Qualified student care worker applicants"
+                    metric={nodes.cw3}
+                    trend={trends.cw3}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+              <div className={styles.gap} />
+                  <Card
+                    id="o4"
+                    code="CW4"
+                    label="Provider–care worker connected"
+                    metric={nodes.o4}
+                    trend={trends.o4}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
             </div>
 
           </div>
@@ -1002,21 +1220,9 @@ export default function OperatingMap({
             <div className={`${styles.lane} ${styles.join23}`}>
               <div className={`${styles.lab} ${styles.joinLab}`}>Caregiver workforce outcomes</div>
                 <Card
-                  id="o4"
-                  code="O3"
-                  label="Provider–care worker connected"
-                  metric={nodes.o4}
-                  trend={trends.o4}
-                  loading={metricsLoading}
-                  onTip={openTip}
-                  onTipClose={closeTip}
-                  onInspect={onInspect}
-                />
-              <div className={styles.gap} />
-                <Card
                   hi
                   id="o5"
-                  code="O4"
+                  code="O3"
                   label="Hires confirmed"
                   money="Olera charges"
                   metric={nodes.o5}
@@ -1029,7 +1235,7 @@ export default function OperatingMap({
               <div className={styles.gap} />
                 <Card
                   id="o6"
-                  code="O5"
+                  code="O4"
                   label="Est. new care workers"
                   metric={nodes.o6}
                   trend={trends.o6}
@@ -1055,6 +1261,7 @@ function Card({
   parts,
   hi,
   money,
+  substeps,
   metric,
   trend,
   loading,
@@ -1075,6 +1282,12 @@ function Card({
   hi?: boolean;
   /** Tooltip shown on the $ marker. Omit for nodes that carry no money. */
   money?: string;
+  /**
+   * The detail underneath this node. Given, the card grows a disclosure that
+   * shows or hides it, so the map is one screen by default and the steps of
+   * whichever node you are working are one click away.
+   */
+  substeps?: { open: boolean; count: number; onToggle: () => void };
   metric?: MetricNode;
   trend?: NodeTrend;
   loading?: boolean;
@@ -1093,6 +1306,17 @@ function Card({
             </span>
           )}
           <span className={styles.name}>{label}</span>
+          {substeps && (
+            <button
+              type="button"
+              className={styles.disc}
+              aria-expanded={substeps.open}
+              aria-label={`${substeps.open ? "Hide" : "Show"} the ${substeps.count} steps under ${code}`}
+              onClick={substeps.onToggle}
+            >
+              <span aria-hidden>{substeps.open ? "▾" : "▸"}</span> {substeps.count}
+            </button>
+          )}
         </div>
         <span style={{ whiteSpace: "nowrap" }}>
           <MetricValue

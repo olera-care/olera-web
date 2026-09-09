@@ -441,12 +441,40 @@
   display: flex;
   flex-direction: column;
 }
-/* The paid products, indented but full width — nothing runs down their right. */
+/* A node's substeps, indented but full width — nothing runs down their right. */
 .branchR {
   margin: 22px 0 0 72px;
   display: flex;
   flex-direction: column;
 }
+/* Substeps of a substep. A smaller step in, so the nesting reads as one
+   level deeper rather than as a second column. */
+.branchR2 {
+  margin: 16px 0 0 40px;
+  display: flex;
+  flex-direction: column;
+}
+/*
+ * The disclosure on a node that has detail under it. Quiet: a count and a
+ * caret, sized to sit inside the title line without becoming a second thing
+ * to look at on every card that has one.
+ */
+.disc {
+  margin-left: 9px;
+  padding: 1px 6px;
+  border: 1px solid var(--card-line);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink-2);
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  cursor: pointer;
+  vertical-align: 1px;
+}
+.disc:hover { background: var(--ground); color: var(--ink); }
+.disc:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 
 /* Revenue generated rides in the control row: an outcome of the whole map
    rather than of any one lane, so it belongs beside the scope, not inside

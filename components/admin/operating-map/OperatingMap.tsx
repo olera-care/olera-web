@@ -945,7 +945,7 @@ export default function OperatingMap({
                     <Card
                       id="csProfileComplete"
                       code="CS2C"
-                      label="Completed profiles"
+                      label="Care seeker profiles completed"
                       metric={nodes.csProfileComplete}
                       trend={trends.csProfileComplete}
                       loading={metricsLoading}

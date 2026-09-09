@@ -393,7 +393,7 @@ export default function OperatingMap({
      */
 
     /*
-     * Care seeker: pages, then the profiles they turn into, then the care
+     * Care seeker: pages, then the seekers they turn into, then the care
      * that gets confirmed. One stem down each parent's left, with a head
      * into whichever of its steps are showing, carrying on to the next
      * parent below it.
@@ -402,13 +402,21 @@ export default function OperatingMap({
     const cs3 = box("cs3");
     const confirmedCare = box("o2");
 
-    const pageStem = pages.l + IN;
-    vArrow(pageStem, pages.b + G, cs3.t - G);
-    for (const k of ["cs1a", "cs1b", "cs1c"]) fromStem(pageStem, k);
+    vArrow(pages.l + IN, pages.b + G, cs3.t - G);
 
     const seekStem = cs3.l + IN;
     vArrow(seekStem, cs3.b + G, confirmedCare.t - G);
-    for (const k of ["csProfileComplete", "cs4", "cs5"]) fromStem(seekStem, k);
+    for (const k of ["cs1a", "cs1b", "cs1c", "csProfileComplete"]) fromStem(seekStem, k);
+
+    /* and one more down the assessment's own left, for the aid it starts */
+    const assessment = maybe("cs1c");
+    const lastAid = maybe("cs5");
+    if (assessment && lastAid) {
+      const aidStem = assessment.l + IN;
+      seg(aidStem, assessment.b + G, aidStem, lastAid.cy);
+      fromStem(aidStem, "cs4");
+      fromStem(aidStem, "cs5");
+    }
 
     /* care provider: supply, then the products, then the connection */
     vDown("cp1", "cp2");
@@ -771,7 +779,6 @@ export default function OperatingMap({
             <div className={styles.lane}>
                   <Card
                     parts="provider pages · editorial pages · benefits pages"
-                    substeps={sub("cs1", 3)}
                     id="visits"
                     code="CS1"
                     label="Care seeker pages engaged"
@@ -782,52 +789,12 @@ export default function OperatingMap({
                     onTipClose={closeTip}
                     onInspect={onInspect}
                   />
-              {/* what a page visit turns into, when it turns into anything */}
-              {open.cs1 && (
-                <div className={styles.branchR}>
-                  <Card
-                    id="cs1a"
-                    code="CS1A"
-                    label="Questions asked"
-                    metric={nodes.cs1a}
-                    trend={trends.cs1a}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
-                    <div className={styles.gap} />
-                  <Card
-                    id="cs1b"
-                    code="CS1B"
-                    label="Connections requested"
-                    metric={nodes.cs1b}
-                    trend={trends.cs1b}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
-                    <div className={styles.gap} />
-                  <Card
-                    id="cs1c"
-                    code="CS1C"
-                    label="Benefits assessment submitted"
-                    metric={nodes.cs1c}
-                    trend={trends.cs1c}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
-                </div>
-              )}
               <div className={styles.gap} />
                   <Card
-                    substeps={sub("cs2", 3)}
+                    substeps={sub("cs2", 4)}
                     id="cs3"
                     code="CS2"
-                    label="Active care seeker profiles"
+                    label="Active care seekers"
                     metric={nodes.cs3}
                     trend={trends.cs3}
                     loading={metricsLoading}
@@ -835,43 +802,86 @@ export default function OperatingMap({
                     onTipClose={closeTip}
                     onInspect={onInspect}
                   />
+              {/* what an active care seeker actually does. The aid track
+                  hangs off the assessment that starts it, not off the
+                  seeker, because that is the order it happens in. */}
               {open.cs2 && (
                 <div className={styles.branchR}>
-                  <Card
-                    id="csProfileComplete"
-                    code="CS2A"
-                    label="Completed profiles"
-                    metric={nodes.csProfileComplete}
-                    trend={trends.csProfileComplete}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
+                    <Card
+                      id="cs1a"
+                      code="CS2A"
+                      label="Questions asked"
+                      metric={nodes.cs1a}
+                      trend={trends.cs1a}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
                     <div className={styles.gap} />
-                  <Card
-                    id="cs4"
-                    code="CS2B"
-                    label="Aid application submitted"
-                    metric={nodes.cs4}
-                    trend={trends.cs4}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
+                    <Card
+                      id="cs1b"
+                      code="CS2B"
+                      label="Connect requests submitted"
+                      metric={nodes.cs1b}
+                      trend={trends.cs1b}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
                     <div className={styles.gap} />
-                  <Card
-                    id="cs5"
-                    code="CS2C"
-                    label="Aid confirmed"
-                    metric={nodes.cs5}
-                    trend={trends.cs5}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
+                    <Card
+                      substeps={sub("cs2c", 2)}
+                      id="cs1c"
+                      code="CS2C"
+                      label="Benefits assessment submitted"
+                      metric={nodes.cs1c}
+                      trend={trends.cs1c}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                {open.cs2c && (
+                  <div className={styles.branchR2}>
+                      <Card
+                        id="cs4"
+                        code="CS2C1"
+                        label="Aid applications submitted"
+                        metric={nodes.cs4}
+                        trend={trends.cs4}
+                        loading={metricsLoading}
+                        onTip={openTip}
+                        onTipClose={closeTip}
+                        onInspect={onInspect}
+                      />
+                      <div className={styles.gap} />
+                      <Card
+                        id="cs5"
+                        code="CS2C2"
+                        label="Aid confirmed"
+                        metric={nodes.cs5}
+                        trend={trends.cs5}
+                        loading={metricsLoading}
+                        onTip={openTip}
+                        onTipClose={closeTip}
+                        onInspect={onInspect}
+                      />
+                  </div>
+                )}
+                    <div className={styles.gap} />
+                    <Card
+                      id="csProfileComplete"
+                      code="CS2D"
+                      label="Completed profiles"
+                      metric={nodes.csProfileComplete}
+                      trend={trends.csProfileComplete}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
                 </div>
               )}
               <div className={styles.gapLg} />
@@ -1013,7 +1023,7 @@ export default function OperatingMap({
                     substeps={sub("cp3", 5)}
                     id="cp3"
                     code="CP3"
-                    label="Active provider profiles"
+                    label="Active Providers (claimed)"
                     metric={nodes.cp3}
                     trend={trends.cp3}
                     loading={metricsLoading}

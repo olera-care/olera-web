@@ -402,11 +402,13 @@ export default function OperatingMap({
     const cs3 = box("cs3");
     const confirmedCare = box("o2");
 
-    vArrow(pages.l + IN, pages.b + G, cs3.t - G);
+    const pageStem = pages.l + IN;
+    vArrow(pageStem, pages.b + G, cs3.t - G);
+    fromStem(pageStem, "cs1a");
 
     const seekStem = cs3.l + IN;
     vArrow(seekStem, cs3.b + G, confirmedCare.t - G);
-    for (const k of ["cs1a", "cs1b", "cs1c", "csProfileComplete"]) fromStem(seekStem, k);
+    for (const k of ["cs1b", "cs1c", "csProfileComplete"]) fromStem(seekStem, k);
 
     /* and one more down the assessment's own left, for the aid it starts */
     const assessment = maybe("cs1c");
@@ -779,6 +781,7 @@ export default function OperatingMap({
             <div className={styles.lane}>
                   <Card
                     parts="provider pages · editorial pages · benefits pages"
+                    substeps={sub("cs1", 1)}
                     id="visits"
                     code="CS1"
                     label="Care seeker pages engaged"
@@ -789,9 +792,24 @@ export default function OperatingMap({
                     onTipClose={closeTip}
                     onInspect={onInspect}
                   />
+              {open.cs1 && (
+                <div className={styles.branchR}>
+                    <Card
+                      id="cs1a"
+                      code="CS1A"
+                      label="Questions asked"
+                      metric={nodes.cs1a}
+                      trend={trends.cs1a}
+                      loading={metricsLoading}
+                      onTip={openTip}
+                      onTipClose={closeTip}
+                      onInspect={onInspect}
+                    />
+                </div>
+              )}
               <div className={styles.gap} />
                   <Card
-                    substeps={sub("cs2", 4)}
+                    substeps={sub("cs2", 3)}
                     id="cs3"
                     code="CS2"
                     label="Active care seekers"
@@ -808,20 +826,8 @@ export default function OperatingMap({
               {open.cs2 && (
                 <div className={styles.branchR}>
                     <Card
-                      id="cs1a"
-                      code="CS2A"
-                      label="Questions asked"
-                      metric={nodes.cs1a}
-                      trend={trends.cs1a}
-                      loading={metricsLoading}
-                      onTip={openTip}
-                      onTipClose={closeTip}
-                      onInspect={onInspect}
-                    />
-                    <div className={styles.gap} />
-                    <Card
                       id="cs1b"
-                      code="CS2B"
+                      code="CS2A"
                       label="Connect requests submitted"
                       metric={nodes.cs1b}
                       trend={trends.cs1b}
@@ -832,9 +838,9 @@ export default function OperatingMap({
                     />
                     <div className={styles.gap} />
                     <Card
-                      substeps={sub("cs2c", 2)}
+                      substeps={sub("cs2b", 2)}
                       id="cs1c"
-                      code="CS2C"
+                      code="CS2B"
                       label="Benefits assessment submitted"
                       metric={nodes.cs1c}
                       trend={trends.cs1c}
@@ -843,11 +849,11 @@ export default function OperatingMap({
                       onTipClose={closeTip}
                       onInspect={onInspect}
                     />
-                {open.cs2c && (
+                {open.cs2b && (
                   <div className={styles.branchR2}>
                       <Card
                         id="cs4"
-                        code="CS2C1"
+                        code="CS2B1"
                         label="Aid applications submitted"
                         metric={nodes.cs4}
                         trend={trends.cs4}
@@ -859,7 +865,7 @@ export default function OperatingMap({
                       <div className={styles.gap} />
                       <Card
                         id="cs5"
-                        code="CS2C2"
+                        code="CS2B2"
                         label="Aid confirmed"
                         metric={nodes.cs5}
                         trend={trends.cs5}
@@ -873,7 +879,7 @@ export default function OperatingMap({
                     <div className={styles.gap} />
                     <Card
                       id="csProfileComplete"
-                      code="CS2D"
+                      code="CS2C"
                       label="Completed profiles"
                       metric={nodes.csProfileComplete}
                       trend={trends.csProfileComplete}

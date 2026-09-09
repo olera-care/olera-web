@@ -452,6 +452,7 @@ async function handleProviderGrowthCreated(
   const targetStage = isConverted ? "upgrade_meeting" : "meeting_scheduled";
 
   // Update tracking to the appropriate stage
+  // Clear reminder flags so new reminders will be sent for the rescheduled meeting
   await supabase
     .from("provider_growth_tracking")
     .update({
@@ -461,6 +462,9 @@ async function handleProviderGrowthCreated(
       calendly_event_id: extract.event_uri?.split("/").pop() ?? null,
       last_activity_at: now,
       updated_at: now,
+      // Reset reminder flags for rescheduled meetings
+      reminder_2d_sent_at: null,
+      reminder_1d_sent_at: null,
     })
     .eq("id", row.id);
 

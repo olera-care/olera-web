@@ -7,6 +7,7 @@ import {
   SiteHeader,
   StageBox,
   BottomLine,
+  GroupBox,
   type Stage,
 } from "@/components/admin/medjobs/diagram-kit";
 
@@ -54,11 +55,19 @@ const RMID = RIGHT + LANE_W / 2;
 /**
  * The rows. One pitch for every step on either side, so a step is the same
  * object wherever it sits and the two columns read against each other.
+ *
+ * The care worker column breaks once: CW2A-H is university activation and
+ * CW3A-C is the application funnel, and the gap between them is the room
+ * their two group boxes need for their labels.
  */
 const ROW_H = 44;
 const PITCH = 58;
-const TOP = 102;
-const row = (i: number) => TOP + i * PITCH;
+const TOP = 132;
+const ACTIVATION_ROWS = 8;
+const GROUP_GAP = 72;
+const pY = (i: number) => TOP + i * PITCH;
+const cwY = (i: number) =>
+  i < ACTIVATION_ROWS ? pY(i) : pY(ACTIVATION_ROWS) + GROUP_GAP + (i - ACTIVATION_ROWS) * PITCH;
 
 /**
  * The provider column. Four steps, from the target list to the product the
@@ -69,22 +78,23 @@ const PROVIDER: Stage[] = [
   { key: "PR-OUT", code: "CP2B", name: "MedJobs outbound work", dest: "pr-out-outbound-work" },
   { key: "PR2", code: "CP2C", name: "MedJobs provider meeting held", dest: "pr2-provider-meeting-held" },
   { key: "PR3", code: "CP5", name: "Provider staffing product signups", dest: "pr3-client-success" },
-].map((st, i) => ({ ...st, x: LEFT, y: row(i), w: LANE_W }));
+].map((st, i) => ({ ...st, x: LEFT, y: pY(i), w: LANE_W }));
 
 /**
  * The care worker column, in one sequence.
  *
  * CW2A-H is university activation: getting to an advisor, then the five
- * channels that activation actually consists of. The five run in parallel and
+ * channels activation actually consists of. The five run in parallel and
  * carry no arrows between them — a campus may open two of them and never the
- * others — and none of them is instrumented on its own, so none carries a
- * number. ST3-ST7 is measured as a group; that number has nowhere to sit now
- * that the group is not drawn as a block.
+ * others — and none is instrumented on its own, so none carries a number.
+ * ST3-ST7 is measured as a group of those five; that number has no home on
+ * the map, because the box around them is CW2A-H, which is wider.
  *
  * CW3A-C is what the Portal does with the care worker activation produced.
  * CW3B has no section in the matrix and nothing measures it, so it borrows
  * the submitted application's anchor and carries no number; the matrix needs
- * the stage before that row means anything. CW3C is the operations map's CW3.
+ * the stage before that row means anything. CW3C is the operations map's
+ * CW3C.
  */
 const CARE_WORKER: Stage[] = [
   { key: "ST1", code: "CW2A", name: "Student advisors targeted", dest: "st1-target-advisors" },
@@ -98,14 +108,19 @@ const CARE_WORKER: Stage[] = [
   { key: "ST8", code: "CW3A", name: "Student application submitted", dest: "st8-student-application-submitted" },
   { code: "CW3B", name: "Student applications completed", dest: "st8-student-application-submitted" },
   { key: "QUAL", code: "CW3C", name: "Qualified student care worker applicants", dest: "qual-portal-vets-the-application" },
-].map((st, i) => ({ ...st, x: RIGHT, y: row(i), w: LANE_W }));
+].map((st, i) => ({ ...st, x: RIGHT, y: cwY(i), w: LANE_W }));
 
 /** The five channels run in parallel, so no arrow joins one to the next. */
 const CARE_WORKER_LINKS = [0, 1, 2, 7, 8, 9];
 
-const LAST_ROW = row(CARE_WORKER.length - 1) + ROW_H;
-const JOIN_Y = LAST_ROW + 30;
+/** The two group boxes down the care worker column, and the Portal around one. */
+const ACTIVATION_BOTTOM = cwY(ACTIVATION_ROWS - 1) + ROW_H + 12;
+const PORTAL_TOP = ACTIVATION_BOTTOM + 20;
+const FUNNEL_TOP = PORTAL_TOP + 26;
+const FUNNEL_BOTTOM = cwY(CARE_WORKER.length - 1) + ROW_H + 12;
+const JOIN_Y = FUNNEL_BOTTOM + 18;
 const MATCH_Y = JOIN_Y + 14;
+const PORTAL_BOTTOM = MATCH_Y + ROW_H + 16;
 
 /**
  * Two boxes, not five. The operations map carries the fulfilment outcomes,
@@ -129,6 +144,7 @@ export default function SystemArchitecture({
   outcomes,
   showStats = true,
   site,
+  siteCount,
 }: {
   /** Jump the reader to a PDF named destination. */
   onJump: (dest: string) => void;
@@ -140,6 +156,8 @@ export default function SystemArchitecture({
   showStats?: boolean;
   /** The site in view, which titles the header block. Null is the whole network. */
   site?: { name: string; logoUrl: string | null } | null;
+  /** How many universities are targeted — the header's CW1 number. */
+  siteCount?: number | null;
   /** The bottom line's outcome figures. */
   outcomes?: {
     successfulStudents: number;
@@ -157,8 +175,8 @@ export default function SystemArchitecture({
     />
   );
   const arrow = (x: number, y1: number, y2: number) => <Arrow key={`a${x}${y1}`} x={x} y1={y1} y2={y2} />;
-  /** The stub between one step and the next in the same column. */
-  const link = (x: number, i: number) => arrow(x, row(i) + ROW_H, row(i + 1) - 4);
+  /** The stub between one care worker step and the next. */
+  const link = (i: number) => arrow(RIGHT + 20, cwY(i) + ROW_H, cwY(i + 1) - 4);
 
   // Two boxes, on the same two lanes as everything above them.
   const mw = LANE_W;
@@ -167,7 +185,7 @@ export default function SystemArchitecture({
 
   return (
     <svg
-      viewBox={`0 0 960 ${MATCH_Y + 180}`}
+      viewBox={`0 0 960 ${PORTAL_BOTTOM + 100}`}
       width="100%"
       fontFamily="ui-sans-serif, system-ui, -apple-system, Segoe UI, Arial, sans-serif"
       role="img"
@@ -176,34 +194,57 @@ export default function SystemArchitecture({
     >
       <ArrowDefs />
 
-      {/* The header is the operations map's CW1: the universities targeted,
-          or the one this map is filtered to. */}
-      <SiteHeader site={site} />
-      {arrow(LMID, 56, 72)}
-      {arrow(RMID, 56, 72)}
-      <line x1={LMID} y1={56} x2={RMID} y2={56} stroke="#cbd5e1" strokeWidth={1.5} />
+      {/* The header is the operations map's CW1. */}
+      <SiteHeader site={site} count={showStats ? siteCount : null} />
+      {arrow(LMID, 60, 76)}
+      {arrow(RMID, 60, 76)}
+      <line x1={LMID} y1={60} x2={RMID} y2={60} stroke="#cbd5e1" strokeWidth={1.5} />
 
-      <text x={LEFT} y={90} fontSize={12.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
+      <text x={LEFT} y={94} fontSize={12.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
         PROVIDER SIDE
       </text>
-      <text x={RIGHT} y={90} fontSize={12.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
+      <text x={RIGHT} y={94} fontSize={12.5} fontWeight={700} fill="#64748b" letterSpacing="0.6">
         CAREGIVER
       </text>
 
+      {/* The group boxes are drawn first so every stage sits on top of them. */}
+      <GroupBox
+        x={RIGHT - 16}
+        y={TOP - 28}
+        w={LANE_W + 32}
+        h={ACTIVATION_BOTTOM - (TOP - 28)}
+        label="CW2 · UNIVERSITY ACTIVATION"
+      />
+      <GroupBox
+        x={20}
+        y={PORTAL_TOP}
+        w={920}
+        h={PORTAL_BOTTOM - PORTAL_TOP}
+        label="PORTAL"
+      />
+      <GroupBox
+        x={RIGHT - 8}
+        y={FUNNEL_TOP}
+        w={LANE_W + 16}
+        h={FUNNEL_BOTTOM - FUNNEL_TOP}
+        label="CW3 · APPLICATION FUNNEL"
+        fill="#ffffff"
+      />
+
       {PROVIDER.map((st) => box(st))}
-      {PROVIDER.slice(0, -1).map((_, i) => link(LEFT + 20, i))}
+      {PROVIDER.slice(0, -1).map((_, i) => arrow(LEFT + 20, pY(i) + ROW_H, pY(i + 1) - 4))}
 
       {CARE_WORKER.map((st) => box(st))}
-      {CARE_WORKER_LINKS.map((i) => link(RIGHT + 20, i))}
+      {CARE_WORKER_LINKS.map((i) => link(i))}
 
       {/* The signed-up provider and the qualified applicant are what
           fulfilment matches, so both stems meet on one line into it. */}
-      <line x1={230} y1={row(3) + ROW_H} x2={230} y2={JOIN_Y} stroke="#cbd5e1" strokeWidth={1.5} />
-      <line x1={RMID} y1={LAST_ROW} x2={RMID} y2={JOIN_Y} stroke="#cbd5e1" strokeWidth={1.5} />
+      <line x1={230} y1={pY(3) + ROW_H} x2={230} y2={JOIN_Y} stroke="#cbd5e1" strokeWidth={1.5} />
+      <line x1={RMID} y1={FUNNEL_BOTTOM} x2={RMID} y2={JOIN_Y} stroke="#cbd5e1" strokeWidth={1.5} />
       <line x1={230} y1={JOIN_Y} x2={RMID} y2={JOIN_Y} stroke="#cbd5e1" strokeWidth={1.5} />
       {arrow(230, JOIN_Y, MATCH_Y)}
 
-      <text x={LEFT} y={JOIN_Y - 12} fontSize={12} fontWeight={700} fill="#64748b" letterSpacing="0.5">
+      <text x={LEFT} y={JOIN_Y - 10} fontSize={12} fontWeight={700} fill="#64748b" letterSpacing="0.5">
         MATCH / FULFILMENT
       </text>
       {MATCH.map((st, i) =>
@@ -211,7 +252,7 @@ export default function SystemArchitecture({
       )}
 
       {yields && outcomes ? (
-        <BottomLine y={MATCH_Y + 78} yields={yields} outcomes={outcomes} showStats={showStats} />
+        <BottomLine y={PORTAL_BOTTOM + 22} yields={yields} outcomes={outcomes} showStats={showStats} />
       ) : null}
     </svg>
   );

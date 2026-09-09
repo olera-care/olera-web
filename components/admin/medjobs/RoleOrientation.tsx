@@ -6,6 +6,7 @@ import RoleDiagram from "@/components/admin/medjobs/RoleDiagram";
 import SiteNavigator from "@/components/admin/medjobs/SiteNavigator";
 import StatsToggle from "@/components/admin/medjobs/StatsToggle";
 import { useFunnel30d } from "@/components/admin/medjobs/useFunnel30d";
+import { useSites } from "@/components/admin/medjobs/useSites";
 
 /**
  * What sits above the reader on a role page: that role's steps, with their
@@ -25,6 +26,7 @@ export default function RoleOrientation({
   const [site, setSite] = useState<string | null>(null);
   const [showStats, setShowStats] = useState(false);
   const { funnel, failed } = useFunnel30d(site);
+  const { rows, failed: sitesFailed, reload } = useSites();
 
   return (
     <div className="grid items-stretch gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
@@ -51,7 +53,14 @@ export default function RoleOrientation({
         </div>
       </div>
 
-      <SiteNavigator active={site} onPick={setSite} showStats={showStats} />
+      <SiteNavigator
+        active={site}
+        onPick={setSite}
+        showStats={showStats}
+        rows={rows}
+        failed={sitesFailed}
+        onReload={() => void reload()}
+      />
     </div>
   );
 }

@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import HealthBadge from "@/components/admin/medjobs/HealthBadge";
 import { AddSiteModal } from "@/components/admin/medjobs/AddSiteModal";
+import type { SiteRow as Row } from "@/components/admin/medjobs/useSites";
 import type { Health } from "@/lib/medjobs/funnel-health";
 
 /**
@@ -10,15 +11,6 @@ import type { Health } from "@/lib/medjobs/funnel-health";
  * first question — which site needs attention right now — is answered without
  * reading anything else. Clicking a row filters the architecture to it.
  */
-
-interface Row {
-  slug: string;
-  name: string;
-  logoUrl: string | null;
-  score: number;
-  status: Health;
-  reads: string;
-}
 
 /** The school's mark, or its initials while no logo is loaded. */
 function Mark({ row }: { row: Row }) {
@@ -45,33 +37,23 @@ export default function SiteNavigator({
   active,
   onPick,
   showStats = true,
+  rows,
+  failed,
+  onReload,
 }: {
   /** Currently filtered site slug, or null for all sites. */
   active: string | null;
   onPick: (slug: string | null) => void;
   /** Off hides every score and health mark, leaving a plain list of schools. */
   showStats?: boolean;
+  /** The scored sites, or null while they load. Owned by the page, because
+      the map's CW1 header counts the same list. */
+  rows: Row[] | null;
+  failed: boolean;
+  onReload: () => void;
 }) {
-  const [rows, setRows] = useState<Row[] | null>(null);
-  const [failed, setFailed] = useState(false);
   const [q, setQ] = useState("");
   const [adding, setAdding] = useState(false);
-
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch("/api/admin/medjobs/site-health");
-      if (!res.ok) throw new Error(String(res.status));
-      const d = (await res.json()) as { sites: Row[] };
-      setRows(d.sites);
-      setFailed(false);
-    } catch {
-      setFailed(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
 
   const shown = useMemo(() => {
     if (!rows) return [];
@@ -162,7 +144,7 @@ export default function SiteNavigator({
           onClose={() => setAdding(false)}
           onCreated={(slug) => {
             setAdding(false);
-            void load();
+            onReload();
             onPick(slug);
           }}
         />

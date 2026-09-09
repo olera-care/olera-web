@@ -318,37 +318,93 @@ export function BottomLine({
 }
 
 /**
- * The header block: the operations map's CW1, either the whole targeted set
- * or the one university this diagram is filtered to. Carrying the code here
- * is what lets a reader flip between the two maps and see that this one is
- * the same funnel in more detail.
+ * The header block. It is the operations map's CW1 — the universities
+ * targeted, or the one this diagram is filtered to — so it is drawn as that
+ * map draws a node rather than as a title bar: same card ground, same code
+ * and name on one line, same number on the right. Flipping between the two
+ * maps should show the same object twice, once in more detail.
  */
 export function SiteHeader({
   site,
   y = 8,
+  x = 44,
+  w = 872,
+  count,
 }: {
   site?: { name: string; logoUrl: string | null } | null;
   y?: number;
+  x?: number;
+  w?: number;
+  /** The CW1 count, when the caller knows it and numbers are switched on. */
+  count?: number | null;
 }) {
+  // The mark only exists for a named school; across the network the row
+  // starts at its own padding like any other stage.
+  const tx = x + (site ? 42 : 12);
   return (
     <>
-      <rect x={250} y={y} width={460} height={40} rx={5} fill="#1a3030" />
+      <rect x={x} y={y} width={w} height={44} rx={6} fill={CARD.fill} stroke={CARD.stroke} />
       {site?.logoUrl ? (
         // eslint-disable-next-line @next/next/no-img-element
-        <image href={site.logoUrl} x={266} y={y + 8} width={24} height={24} preserveAspectRatio="xMidYMid meet" />
+        <image href={site.logoUrl} x={x + 12} y={y + 11} width={22} height={22} preserveAspectRatio="xMidYMid meet" />
       ) : site ? (
         // No logo loaded for this school, so a monogram holds the slot.
         <>
-          <circle cx={278} cy={y + 20} r={12} fill="#385e5e" />
-          <text x={278} y={y + 24} fontSize={11} fontWeight={700} fill="#d8edec" textAnchor="middle">
+          <circle cx={x + 23} cy={y + 22} r={11} fill="#bee0e0" />
+          <text x={x + 23} y={y + 26} fontSize={10} fontWeight={700} fill="#1a3030" textAnchor="middle">
             {site.name.replace(/^(The|University of)\s+/i, "").slice(0, 2).toUpperCase()}
           </text>
         </>
       ) : null}
-      {/* Just the mark and the name. The block sits above the map it heads;
-          nothing else needs saying. */}
-      <text x={480} y={y + 25} fontSize={15} fontWeight={700} fill="#fff" textAnchor="middle">
-        CW1 · {site ? site.name : "Universities targeted"}
+      <text x={tx} y={y + 27} fill={CARD.ink}>
+        <tspan fontSize={15} fontWeight={700}>
+          CW1
+        </tspan>
+        <tspan dx={9} fontSize={12.5} fontWeight={500} fill={CARD.name}>
+          {site ? site.name : "Universities targeted"}
+        </tspan>
+      </text>
+      {count != null ? (
+        <text
+          x={x + w - 11}
+          y={y + 27}
+          fontSize={13.5}
+          fontWeight={700}
+          textAnchor="end"
+          fill={CARD.ink}
+        >
+          {count}
+        </text>
+      ) : null}
+    </>
+  );
+}
+
+/**
+ * A named group of steps: the grey ground behind a block of the funnel, with
+ * the operations-map code it corresponds to. Grouping only — the number, if
+ * the group ever has one, belongs on the operations map node.
+ */
+export function GroupBox({
+  x,
+  y,
+  w,
+  h,
+  label,
+  fill = "#f8fafc",
+}: {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  label: string;
+  fill?: string;
+}) {
+  return (
+    <>
+      <rect x={x} y={y} width={w} height={h} rx={7} fill={fill} stroke="#e2e8f0" />
+      <text x={x + 14} y={y + 18} fontSize={12} fontWeight={700} fill="#334155" letterSpacing="0.5">
+        {label}
       </text>
     </>
   );

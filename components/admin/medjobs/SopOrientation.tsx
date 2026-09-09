@@ -5,6 +5,7 @@ import SystemArchitecture from "@/components/admin/medjobs/SystemArchitecture";
 import SiteNavigator from "@/components/admin/medjobs/SiteNavigator";
 import StatsToggle from "@/components/admin/medjobs/StatsToggle";
 import { useFunnel30d } from "@/components/admin/medjobs/useFunnel30d";
+import { useSites } from "@/components/admin/medjobs/useSites";
 
 /**
  * The operating command centre: the architecture, a site list beside it that
@@ -21,6 +22,7 @@ export default function SopOrientation({ onJump }: { onJump: (dest: string) => v
   // is also the scoreboard.
   const [showStats, setShowStats] = useState(false);
   const { funnel, failed } = useFunnel30d(site);
+  const { rows, failed: sitesFailed, reload } = useSites();
 
   return (
     <div className="grid items-stretch gap-6 lg:grid-cols-[minmax(0,1fr)_18rem]">
@@ -32,6 +34,7 @@ export default function SopOrientation({ onJump }: { onJump: (dest: string) => v
           outcomes={funnel?.outcomes}
           showStats={showStats}
           site={funnel?.site ?? null}
+          siteCount={rows?.length ?? null}
         />
 
         {failed ? (
@@ -46,7 +49,14 @@ export default function SopOrientation({ onJump }: { onJump: (dest: string) => v
         </div>
       </div>
 
-      <SiteNavigator active={site} onPick={setSite} showStats={showStats} />
+      <SiteNavigator
+        active={site}
+        onPick={setSite}
+        showStats={showStats}
+        rows={rows}
+        failed={sitesFailed}
+        onReload={() => void reload()}
+      />
     </div>
   );
 }

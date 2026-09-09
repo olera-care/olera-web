@@ -77,7 +77,7 @@ const PROVIDER: Stage[] = [
   { key: "PR1", code: "CP2A", name: "MedJobs provider target list built", dest: "pr1-target-list-built-and-pre-flight-complete" },
   { key: "PR-OUT", code: "CP2B", name: "MedJobs outbound work", dest: "pr-out-outbound-work" },
   { key: "PR2", code: "CP2C", name: "MedJobs provider meeting held", dest: "pr2-provider-meeting-held" },
-  { key: "PR3", code: "CP5", name: "Provider staffing product signups", dest: "pr3-client-success" },
+  { key: "PR3", code: "CP3C", name: "Provider staffing product signups", dest: "pr3-client-success" },
 ].map((st, i) => ({ ...st, x: LEFT, y: pY(i), w: LANE_W }));
 
 /**

@@ -142,7 +142,7 @@ export default function RoleDiagram({
           {box({ key: "PR2", code: "CP2C", name: "MedJobs provider meeting held", dest: "pr2", x: L, y: 62, w: W })}
           {box({ key: "ST2", code: "CW2C", name: "Advisor meetings held", dest: "st2", x: R, y: 62, w: W })}
           <HandoffRule y={148} text="HANDOFF · YOU → CONSUMER RELATIONS MANAGER" lanes={[[L, W], [R, W]]} />
-          {box({ key: "PR3", code: "CP5", name: "Provider staffing product signups", dest: "handoff", x: L, y: 160, w: W }, true)}
+          {box({ key: "PR3", code: "CP3C", name: "Provider staffing product signups", dest: "handoff", x: L, y: 160, w: W }, true)}
           {box(
             { key: "ST3-ST7", code: "CW2D–H", name: "University activation", dest: "after", x: R, y: 160, w: W },
             true,
@@ -153,7 +153,7 @@ export default function RoleDiagram({
       {role === "crm" && (
         <>
           <Lanes y={22} />
-          {box({ key: "PR3", code: "CP5", name: "Provider staffing product signups", dest: "pr3", x: L, y: 36, w: W })}
+          {box({ key: "PR3", code: "CP3C", name: "Provider staffing product signups", dest: "pr3", x: L, y: 36, w: W })}
           {box(
             { key: "ST3-ST7", code: "CW2D–H", name: "University activation", dest: "st", x: R, y: 36, w: W },
           )}

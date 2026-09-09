@@ -370,10 +370,12 @@ export default function OperatingMap({
     const cp5 = box("cp5");
     const o4 = box("o4");
 
-    /* one stem down CP3's left: a head into each paid product, then on into
-       the connection the active provider is the other half of */
+    /* one stem down CP3's left: a head into the completed profile and each
+       paid product, then on into the connection the active provider is the
+       other half of */
     const provStem = cp3.l + IN;
     vArrow(provStem, cp3.b + G, o1.t - G);
+    fromStem(provStem, "cp3a");
     fromStem(provStem, "cp4");
     fromStem(provStem, "cp5");
 
@@ -790,12 +792,25 @@ export default function OperatingMap({
                   onInspect={onInspect}
                 />
 
-              {/* the two paid products hang off the active provider */}
+              {/* what a claimed provider does next: finishes the profile, and
+                  takes one or both of the paid products */}
               <div className={styles.branchR}>
+                  <Card
+                    id="cp3a"
+                    code="CP3A"
+                    label="Profiles completed"
+                    metric={nodes.cp3a}
+                    trend={trends.cp3a}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+                <div className={styles.gap} />
                   <Card
                     hi
                     id="cp4"
-                    code="CP4"
+                    code="CP3B"
                     label="Provider managed ad product signups"
                     money="Paid product"
                     metric={nodes.cp4}
@@ -809,7 +824,7 @@ export default function OperatingMap({
                   <Card
                     hi
                     id="cp5"
-                    code="CP5"
+                    code="CP3C"
                     label="Provider staffing product signups"
                     metric={nodes.cp5}
                     trend={trends.cp5}

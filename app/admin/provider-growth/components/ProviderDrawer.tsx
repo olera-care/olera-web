@@ -13,20 +13,17 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
-import type { ProviderGrowthWithProfile, ProviderGrowthTouchpoint } from "@/lib/provider-growth/queries";
+import type { ProviderGrowthWithProfile } from "@/lib/provider-growth/queries";
 import {
-  PIPELINE_STAGE_LABELS,
   ADS_STATUS_LABELS,
   MEDJOBS_STATUS_LABELS,
-  TOUCHPOINT_TYPE_LABELS,
   INTEREST_LEVEL_LABELS,
-  type PipelineStage,
   type AdsStatus,
   type MedjobsStatus,
 } from "@/lib/provider-growth/stages";
 import { MeetingScheduler } from "./MeetingScheduler";
 import { PitchLogger, type PitchLogData } from "./PitchLogger";
-import { CallLogSection } from "./CallLogSection";
+import { ActivityLog } from "./ActivityLog";
 
 interface ProviderDrawerProps {
   provider: ProviderGrowthWithProfile;
@@ -542,7 +539,6 @@ interface EngagementData {
 }
 
 export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: ProviderDrawerProps) {
-  const [touchpoints, setTouchpoints] = useState<ProviderGrowthTouchpoint[]>([]);
   const [engagement, setEngagement] = useState<EngagementData | null>(null);
   const [loadingData, setLoadingData] = useState(true);
   const [activeAction, setActiveAction] = useState<"schedule" | "pitch" | "upgrade" | null>(null);
@@ -552,7 +548,6 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
       const res = await fetch(`/api/admin/provider-growth/${provider.id}`);
       if (res.ok) {
         const data = await res.json();
-        setTouchpoints(data.touchpoints || []);
         setEngagement(data.engagement || null);
       }
     } catch (e) {
@@ -950,45 +945,16 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
 
         <SectionDivider />
 
-        {/* Call Log */}
-        <CallLogSection
+        {/* Unified Activity Log - replaces separate Call Log and Admin Activity */}
+        <ActivityLog
           trackingId={provider.id}
           businessProfileId={provider.business_profile_id}
-          onCallLogged={onCallLogged}
+          pipelineStage={provider.pipeline_stage}
+          onActivityLogged={() => {
+            onCallLogged?.();
+            onUpdate();
+          }}
         />
-
-        <SectionDivider />
-
-        {/* Admin Activity - touchpoints log (excluding calls, which are shown in Call Log) */}
-        {(() => {
-          const nonCallTouchpoints = touchpoints.filter(tp => tp.touchpoint_type !== "call_attempted");
-          return (
-            <div>
-              <SectionHeader>Admin Activity</SectionHeader>
-              {loadingData ? (
-                <div className="flex items-center justify-center py-4">
-                  <span className="w-4 h-4 border-2 border-gray-200 border-t-primary-600 rounded-full animate-spin" />
-                </div>
-              ) : nonCallTouchpoints.length === 0 ? (
-                <p className="text-sm text-gray-400 italic">No activity yet</p>
-              ) : (
-                <div className="space-y-3">
-                  {nonCallTouchpoints.map((tp) => (
-                    <div key={tp.id} className="flex gap-3">
-                      <div className="w-2 h-2 mt-1.5 rounded-full bg-gray-300 flex-shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm text-gray-900">
-                          {TOUCHPOINT_TYPE_LABELS[tp.touchpoint_type] || tp.touchpoint_type}
-                        </div>
-                        <div className="text-xs text-gray-500">{timeAgo(tp.created_at)}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })()}
       </div>
     </DrawerShell>
   );

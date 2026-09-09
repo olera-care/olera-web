@@ -252,7 +252,11 @@ function ActionsSection({
             Schedule Meeting
           </button>
         )}
-        {/* meeting_scheduled: No action buttons - use ActivityLog to mark outcome */}
+        {provider.pipeline_stage === "meeting_scheduled" && (
+          <p className="text-sm text-gray-500 py-1">
+            Use Activity Log to record the meeting outcome
+          </p>
+        )}
         {provider.pipeline_stage === "upgrade_meeting" && (
           <>
             <button

@@ -322,15 +322,13 @@ export default function OperatingMap({
       svg!.appendChild(ln);
     }
 
-    function head(x: number, y: number, dir: "d" | "r" | "l") {
+    function head(x: number, y: number, dir: "d" | "r") {
       const p = document.createElementNS(SVG_NS, "polygon");
       p.setAttribute(
         "points",
         dir === "d"
           ? [`${x},${y}`, `${x - 4.4},${y - 8}`, `${x + 4.4},${y - 8}`].join(" ")
-          : dir === "r"
-            ? [`${x},${y}`, `${x - 8},${y - 4.4}`, `${x - 8},${y + 4.4}`].join(" ")
-            : [`${x},${y}`, `${x + 8},${y - 4.4}`, `${x + 8},${y + 4.4}`].join(" "),
+          : [`${x},${y}`, `${x - 8},${y - 4.4}`, `${x - 8},${y + 4.4}`].join(" "),
       );
       svg!.appendChild(p);
     }
@@ -342,34 +340,6 @@ export default function OperatingMap({
     const hArrow = (y: number, x1: number, x2: number) => {
       seg(x1, y, x2 - 8, y);
       head(x2, y, "r");
-    };
-    const hArrowLeft = (y: number, x1: number, x2: number) => {
-      seg(x1, y, x2 + 8, y);
-      head(x2, y, "l");
-    };
-
-    /**
-     * One card reaching sideways into another in the next column along.
-     * While the two are level it is a single line across, edge to edge.
-     * Once a branch somewhere has moved one of them it leaves the card just
-     * inside the edge it is heading for, so the line starts on the card
-     * rather than beside it, and drops or climbs to meet the other.
-     */
-    const NUDGE = 11;
-    const reach = (a: Box, b: Box, dir: "l" | "r") => {
-      const to = dir === "l" ? hArrowLeft : hArrow;
-      const edge = dir === "l" ? b.r + G : b.l - G;
-      const overlapTop = Math.max(a.t, b.t);
-      const overlapBottom = Math.min(a.b, b.b);
-      if (overlapBottom - overlapTop > 2 * G) {
-        const y = (overlapTop + overlapBottom) / 2;
-        to(y, dir === "l" ? a.l - G : a.r + G, edge);
-        return;
-      }
-      const x = dir === "l" ? a.l + NUDGE : a.r - NUDGE;
-      const from = b.t > a.b ? a.b + G : a.t - G;
-      seg(x, from, x, b.cy);
-      to(b.cy, x, edge);
     };
 
     const vDown = (a: string, b: string) => {
@@ -477,16 +447,6 @@ export default function OperatingMap({
     vArrow(appStem, apps.b + G, cw3.t - G);
     for (const k of ["cw3a", "cw3b"]) fromStem(appStem, k);
     vDown("cw3", "o4");
-
-    /* Confirmed care and a confirmed hire each need the claimed provider,
-       and each sits in the lane that produced its other half. So the
-       provider reaches out of both its edges, mirrored: left into the care
-       the seeker lane confirms, right into the hire the worker lane makes.
-       Level with it, that is one straight line across; once a branch has
-       moved one of them, the line leaves the card a few pixels in from the
-       edge and drops or climbs to meet it. */
-    reach(cp3, confirmedCare, "l");
-    reach(cp3, box("o5"), "r");
 
     /* The match drops straight into the hire it is confirmed from. */
     vDown("o4", "o5");

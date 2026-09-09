@@ -45,7 +45,7 @@ export interface CheckInputs {
   trafficChannelSum?: number;
   /** Inquiries raised — the set O1's answered count is drawn from. */
   inquiriesRaised?: number;
-  /** Interviews proposed — the set O4's confirmed count is drawn from. */
+  /** Interviews proposed — the set O5's confirmed count is drawn from. */
   interviewsProposed?: number;
 }
 
@@ -164,7 +164,7 @@ export function runChecks(values: NodeValues, inputs: CheckInputs = {}): MapChec
       id: "o5-under-o4",
       label: "Hires do not exceed confirmed interviews",
       ok: o5 <= o4,
-      detail: o5 <= o4 ? undefined : `O5 is ${o5}, O4 is ${o4}`,
+      detail: o5 <= o4 ? undefined : `O6 is ${o5}, O5 is ${o4}`,
     });
   }
 

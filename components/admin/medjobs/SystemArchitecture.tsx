@@ -74,18 +74,18 @@ const cwY = (i: number) =>
 /**
  * The provider column.
  *
- * CP2A1-3 are the city-based cold start: pick a city, build the list, work
- * it, hold the meeting. That whole run is one of the four ways a provider
- * enters outreach on the operations map, which is why the three sit inside a
- * box named for it rather than carrying top-level codes of their own.
+ * CP2B1-3 are the MedJobs target: build the list, work it, hold the meeting.
+ * That whole run is one of the four ways a provider enters outreach on the
+ * operations map, which is why the three sit inside a box named for it
+ * rather than carrying top-level codes of their own.
  *
  * CP3C is what a claimed provider signs up to, so it sits below the box.
  */
 const COLD_START_ROWS = 3;
 const PROVIDER: Stage[] = [
-  { key: "PR1", code: "CP2A1", name: "MedJobs provider target list built", dest: "pr1-target-list-built-and-pre-flight-complete" },
-  { key: "PR-OUT", code: "CP2A2", name: "MedJobs outbound work", dest: "pr-out-outbound-work" },
-  { key: "PR2", code: "CP2A3", name: "MedJobs provider meetings held", dest: "pr2-provider-meeting-held" },
+  { key: "PR1", code: "CP2B1", name: "MedJobs provider target list built", dest: "pr1-target-list-built-and-pre-flight-complete" },
+  { key: "PR-OUT", code: "CP2B2", name: "MedJobs outbound work", dest: "pr-out-outbound-work" },
+  { key: "PR2", code: "CP2B3", name: "MedJobs provider meetings held", dest: "pr2-provider-meeting-held" },
   { key: "PR3", code: "CP3C", name: "Provider staffing product signups", dest: "pr3-client-success" },
 ].map((st, i) => ({ ...st, x: LEFT, y: pvY(i), w: LANE_W }));
 
@@ -141,7 +141,7 @@ const PORTAL_BOTTOM = MATCH_Y + ROW_H + 16;
 /**
  * Two boxes, not five. The operations map carries the fulfilment outcomes,
  * so this row names the same two it does rather than restating the internal
- * MA steps. O4 reads MA1's number and O5 reads MA3's, which is where the
+ * MA steps. O5 reads MA1's number and O6 reads MA3's, which is where the
  * connection and the confirmed hire are actually recorded.
  *
  * Shifts worked and revenue billed were MA4 and MA5 here. Neither has ever
@@ -149,8 +149,8 @@ const PORTAL_BOTTOM = MATCH_Y + ROW_H + 16;
  * operations map yet. Where they land is still open.
  */
 const MATCH: Stage[] = [
-  { key: "MA1", code: "O4", name: "Provider–care worker connected", dest: "ma1-candidate-intro", x: 0, y: 0, w: 0 },
-  { key: "MA3", code: "O5", name: "Hires confirmed", dest: "ma3-hire-confirmed", x: 0, y: 0, w: 0 },
+  { key: "MA1", code: "O5", name: "Provider–care worker connected", dest: "ma1-candidate-intro", x: 0, y: 0, w: 0 },
+  { key: "MA3", code: "O6", name: "Hires confirmed", dest: "ma3-hire-confirmed", x: 0, y: 0, w: 0 },
 ];
 
 export default function SystemArchitecture({
@@ -229,7 +229,7 @@ export default function SystemArchitecture({
         y={TOP - 28}
         w={LANE_W + 32}
         h={COLD_START_BOTTOM - (TOP - 28)}
-        label="CP2A · CITY-BASED COLD START"
+        label="CP2B · MEDJOBS TARGET"
       />
       <GroupBox
         x={RIGHT - 16}

@@ -399,7 +399,8 @@ export default function OperatingMap({
     vArrow(cw3.l + IN, cw3.b + G, o4.t - G);
 
     /* each join runs on down between the lanes that fed it */
-    vDown("o1", "o2");
+    vDown("o1", "questionsAnswered");
+    vDown("questionsAnswered", "o2");
     vDown("o2", "o3");
     vDown("o4", "o5");
     vDown("o5", "o6");
@@ -960,8 +961,20 @@ export default function OperatingMap({
                 />
               <div className={styles.gap} />
                 <Card
-                  id="o2"
+                  id="questionsAnswered"
                   code="O2"
+                  label="Care seeker questions answered by provider"
+                  metric={nodes.questionsAnswered}
+                  trend={trends.questionsAnswered}
+                  loading={metricsLoading}
+                  onTip={openTip}
+                  onTipClose={closeTip}
+                  onInspect={onInspect}
+                />
+              <div className={styles.gap} />
+                <Card
+                  id="o2"
+                  code="O3"
                   label="Care confirmed"
                   metric={nodes.o2}
                   trend={trends.o2}
@@ -974,7 +987,7 @@ export default function OperatingMap({
                 <Card
                   hi
                   id="o3"
-                  code="O3"
+                  code="O4"
                   label="Est. healthcare utilization reduction"
                   money="Value created"
                   metric={nodes.o3}
@@ -990,7 +1003,7 @@ export default function OperatingMap({
               <div className={`${styles.lab} ${styles.joinLab}`}>Caregiver workforce outcomes</div>
                 <Card
                   id="o4"
-                  code="O4"
+                  code="O5"
                   label="Provider–care worker connected"
                   metric={nodes.o4}
                   trend={trends.o4}
@@ -1003,7 +1016,7 @@ export default function OperatingMap({
                 <Card
                   hi
                   id="o5"
-                  code="O5"
+                  code="O6"
                   label="Hires confirmed"
                   money="Olera charges"
                   metric={nodes.o5}
@@ -1016,7 +1029,7 @@ export default function OperatingMap({
               <div className={styles.gap} />
                 <Card
                   id="o6"
-                  code="O6"
+                  code="O7"
                   label="Est. new care workers"
                   metric={nodes.o6}
                   trend={trends.o6}

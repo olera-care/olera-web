@@ -56,8 +56,8 @@ function InBasket({ y, h }: { y: number; h: number }) {
 
 /** The same five, in the same order, as the System map's match chain. */
 const MATCH_CHAIN: Array<Omit<Stage, "x" | "y" | "w">> = [
-  { key: "MA1", code: "O4", name: "Provider–care worker connected", dest: "portal" },
-  { key: "MA3", code: "O5", name: "Hires confirmed", dest: "ma3" },
+  { key: "MA1", code: "O5", name: "Provider–care worker connected", dest: "portal" },
+  { key: "MA3", code: "O6", name: "Hires confirmed", dest: "ma3" },
 ];
 
 type Props = {
@@ -123,14 +123,14 @@ export default function RoleDiagram({
         <>
           <Lanes y={22} />
           <InBasket y={32} h={222} />
-          {box({ key: "PR1", code: "CP2A1", name: "MedJobs provider target list built", dest: "pr1", x: L, y: 62, w: W })}
+          {box({ key: "PR1", code: "CP2B1", name: "MedJobs provider target list built", dest: "pr1", x: L, y: 62, w: W })}
           {box({ key: "ST1", code: "CW2A", name: "Student advisors targeted", dest: "st1", x: R, y: 62, w: W })}
           <Arrow x={L + 20} y1={106} y2={114} />
           <Arrow x={R + 20} y1={106} y2={114} />
-          {box({ key: "PR-OUT", code: "CP2A2", name: "MedJobs outbound work", dest: "pr1", x: L, y: 116, w: W })}
+          {box({ key: "PR-OUT", code: "CP2B2", name: "MedJobs outbound work", dest: "pr1", x: L, y: 116, w: W })}
           {box({ key: "ST-OUT", code: "CW2B", name: "Student advisors in outreach", dest: "st1", x: R, y: 116, w: W })}
           <HandoffRule y={186} text="HANDOFF · YOU → SALES LEAD" lanes={[[L, W], [R, W]]} />
-          {box({ key: "PR2", code: "CP2A3", name: "MedJobs provider meetings held", dest: "booking", x: L, y: 196, w: W }, true)}
+          {box({ key: "PR2", code: "CP2B3", name: "MedJobs provider meetings held", dest: "booking", x: L, y: 196, w: W }, true)}
           {box({ key: "ST2", code: "CW2C", name: "Advisor meetings held", dest: "booking", x: R, y: 196, w: W }, true)}
         </>
       )}
@@ -139,7 +139,7 @@ export default function RoleDiagram({
         <>
           <Lanes y={22} />
           <InBasket y={34} h={92} />
-          {box({ key: "PR2", code: "CP2A3", name: "MedJobs provider meetings held", dest: "pr2", x: L, y: 62, w: W })}
+          {box({ key: "PR2", code: "CP2B3", name: "MedJobs provider meetings held", dest: "pr2", x: L, y: 62, w: W })}
           {box({ key: "ST2", code: "CW2C", name: "Advisor meetings held", dest: "st2", x: R, y: 62, w: W })}
           <HandoffRule y={148} text="HANDOFF · YOU → CONSUMER RELATIONS MANAGER" lanes={[[L, W], [R, W]]} />
           {box({ key: "PR3", code: "CP3C", name: "Provider staffing product signups", dest: "handoff", x: L, y: 160, w: W }, true)}

@@ -451,9 +451,15 @@ export default function OperatingMap({
         fromStem(activationStem, k);
       }
     }
-    /* each lane runs on down its own outcomes */
-    vDown("o2", "aidReceived");
-    vDown("newClients", "newCareWorkers");
+    /* The second outcome of a lane follows from the first rather than under
+       it, so the two share a row and the arrow between them runs across. */
+    const across = (a: string, b: string) => {
+      const A = box(a);
+      const B = box(b);
+      hArrow(B.cy, A.r + G, B.l - G);
+    };
+    across("o2", "aidReceived");
+    across("newClients", "newCareWorkers");
 
     const apps = maybe("studentApplications");
     const appsLast = maybe("cw3b");
@@ -914,6 +920,7 @@ export default function OperatingMap({
                 </div>
               )}
               <div className={styles.gapLg} />
+              <div className={styles.pair}>
                   <Card
                     id="o2"
                     code="CSO1"
@@ -925,7 +932,6 @@ export default function OperatingMap({
                     onTipClose={closeTip}
                     onInspect={onInspect}
                   />
-              <div className={styles.gap} />
                   <Card
                     id="aidReceived"
                     code="CSO2"
@@ -937,6 +943,7 @@ export default function OperatingMap({
                     onTipClose={closeTip}
                     onInspect={onInspect}
                   />
+              </div>
             </div>
 
             {/* care provider */}
@@ -1112,6 +1119,7 @@ export default function OperatingMap({
                 </div>
               )}
               <div className={styles.gapLg} />
+              <div className={styles.pair}>
                   <Card
                     id="newClients"
                     code="CPO1"
@@ -1123,7 +1131,6 @@ export default function OperatingMap({
                     onTipClose={closeTip}
                     onInspect={onInspect}
                   />
-              <div className={styles.gap} />
                   <Card
                     id="newCareWorkers"
                     code="CPO2"
@@ -1135,6 +1142,7 @@ export default function OperatingMap({
                     onTipClose={closeTip}
                     onInspect={onInspect}
                   />
+              </div>
             </div>
 
             {/* care worker */}

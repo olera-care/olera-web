@@ -407,6 +407,14 @@
 .gap { height: 16px; }
 .gapSm { height: 16px; }
 .gapLg { height: 16px; }
+/*
+ * Two outcomes of one lane, side by side rather than stacked. The second
+ * follows from the first — a lane's last row is one row, not two — and the
+ * gutter between them is the lane gutter, so the arrow across has the same
+ * room to itself that every other arrow does.
+ */
+.pair { display: flex; gap: 26px; }
+.pair > * { flex: 1 1 0; min-width: 0; }
 
 
 /*

@@ -401,6 +401,8 @@
 .gapSm { height: 16px; }
 /* The break between a lane's steps and the outcome they add up to. */
 .gapLg { height: 30px; }
+/* The outcome row sits clear of the lanes that feed it. */
+.outcomes { margin-top: 30px; }
 
 
 /*

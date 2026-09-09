@@ -368,24 +368,23 @@ export default function OperatingMap({
      * meeting over the card that sits between them.
      */
 
-    /* care seeker: demand, then the profile it produces */
-    vDown("cs1", "cs2");
-    vDown("cs2", "cs3");
-
-    const cs3 = box("cs3");
-    const cs4 = box("cs4");
-    const cs5 = box("cs5");
-
     /*
-     * One stem off CS3's left carries both of the things a profile becomes.
-     * It puts a head into the aid track on the way past and then keeps
-     * going, turning once into the connection — so the profile reaches the
-     * connection directly, not through the aid track it passes.
+     * Care seeker: pages, then the profiles they turn into, then the care
+     * that gets confirmed. One stem down each parent's left, with a head
+     * into whichever of its steps are showing, carrying on to the next
+     * parent below it.
      */
+    const pages = box("visits");
+    const cs3 = box("cs3");
+    const confirmedCare = box("o2");
+
+    const pageStem = pages.l + IN;
+    vArrow(pageStem, pages.b + G, cs3.t - G);
+    for (const k of ["cs1a", "cs1b", "cs1c"]) fromStem(pageStem, k);
+
     const seekStem = cs3.l + IN;
-    seg(seekStem, cs3.b + G, seekStem, cs5.cy);
-    hArrow(cs4.cy, seekStem, cs4.l - G);
-    hArrow(cs5.cy, seekStem, cs5.l - G);
+    vArrow(seekStem, cs3.b + G, confirmedCare.t - G);
+    for (const k of ["csProfileComplete", "cs4", "cs5"]) fromStem(seekStem, k);
 
     /* care provider: supply, then the products, then the connection */
     vDown("cp1", "cp2");
@@ -411,7 +410,11 @@ export default function OperatingMap({
     /* one stem down CP3's left: a head into everything a claimed provider
        does, then on into the confirmed care those conversations produce */
     const provStem = cp3.l + IN;
-    for (const k of ["cp3a", "o1", "questionsAnswered", "cp4", "cp5"]) fromStem(provStem, k);
+    const lastClaimStep = maybe("cp5");
+    if (lastClaimStep) {
+      seg(provStem, cp3.b + G, provStem, lastClaimStep.cy);
+      for (const k of ["cp3a", "o1", "questionsAnswered", "cp4", "cp5"]) fromStem(provStem, k);
+    }
 
     /* care worker: campuses, then the campus run, then the applicants it
        qualifies and the provider they are put in front of */
@@ -430,19 +433,19 @@ export default function OperatingMap({
     vDown("cw3", "o4");
 
     /* Confirmed care and a confirmed hire each need the claimed provider,
-       and each now sits in the lane that produced its other half. So the
-       provider reaches sideways out of both its edges: left into the care
-       the seeker lane confirms, right into the hire the worker lane makes.
-       Down its own left first, because both sit well below it. */
-    const confirmedCare = box("o2");
+       and each sits under the lane that produced its other half. So the
+       provider reaches out of both its edges — left into the care the seeker
+       lane confirms, right into the hire the worker lane makes — mirrored
+       down the two gutters beside it. Down a gutter rather than down the
+       lane, because inside the lane the line would run over whatever the
+       provider's branches are showing. */
     const confirmedHire = box("o5");
-    seg(cp3.l + IN, cp3.b + G, cp3.l + IN, confirmedCare.cy);
-    hArrowLeft(confirmedCare.cy, cp3.l + IN, confirmedCare.r + G);
-    // Down the gutter rather than the card: inside the lane it would run
-    // over whatever the provider's branch is showing.
-    const gutter = cp3.r + 13;
-    seg(gutter, cp3.b + G, gutter, confirmedHire.cy);
-    hArrow(confirmedHire.cy, gutter, confirmedHire.l - G);
+    const gutterL = cp3.l - 13;
+    const gutterR = cp3.r + 13;
+    seg(gutterL, cp3.b + G, gutterL, confirmedCare.cy);
+    hArrowLeft(confirmedCare.cy, gutterL, confirmedCare.r + G);
+    seg(gutterR, cp3.b + G, gutterR, confirmedHire.cy);
+    hArrow(confirmedHire.cy, gutterR, confirmedHire.l - G);
 
     /* The match drops straight into the hire it is confirmed from. */
     vDown("o4", "o5");
@@ -747,50 +750,90 @@ export default function OperatingMap({
 
             {/* care seeker */}
             <div className={styles.lane}>
-                <Card
-                  id="cs1"
-                  code="CS1"
-                  label="Care Seekers engaged"
-                  parts="connect requests · benefits assessments"
-                  metric={nodes.cs1}
-                  trend={trends.cs1}
-                  loading={metricsLoading}
-                  onTip={openTip}
-                  onTipClose={closeTip}
-                  onInspect={onInspect}
-                />
+                  <Card
+                    parts="provider pages · editorial pages · benefits pages"
+                    substeps={sub("cs1", 3)}
+                    id="visits"
+                    code="CS1"
+                    label="Care seeker pages engaged"
+                    metric={nodes.visits}
+                    trend={trends.visits}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+              {/* what a page visit turns into, when it turns into anything */}
+              {open.cs1 && (
+                <div className={styles.branchR}>
+                  <Card
+                    id="cs1a"
+                    code="CS1A"
+                    label="Questions asked"
+                    metric={nodes.cs1a}
+                    trend={trends.cs1a}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+                    <div className={styles.gap} />
+                  <Card
+                    id="cs1b"
+                    code="CS1B"
+                    label="Connections requested"
+                    metric={nodes.cs1b}
+                    trend={trends.cs1b}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+                    <div className={styles.gap} />
+                  <Card
+                    id="cs1c"
+                    code="CS1C"
+                    label="Benefits assessment submitted"
+                    metric={nodes.cs1c}
+                    trend={trends.cs1c}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+                </div>
+              )}
               <div className={styles.gap} />
-                <Card
-                  id="cs2"
-                  code="CS2"
-                  label="Care Seekers in outreach"
-                  metric={nodes.cs2}
-                  trend={trends.cs2}
-                  loading={metricsLoading}
-                  onTip={openTip}
-                  onTipClose={closeTip}
-                  onInspect={onInspect}
-                />
-              <div className={styles.gap} />
-                <Card
-                  hi
-                  id="cs3"
-                  code="CS3"
-                  label="Care seeker profiles"
-                  metric={nodes.cs3}
-                  trend={trends.cs3}
-                  loading={metricsLoading}
-                  onTip={openTip}
-                  onTipClose={closeTip}
-                  onInspect={onInspect}
-                />
-
-              {/* the aid track hangs off the profile, indented to say so */}
-              <div className={styles.branch}>
+                  <Card
+                    substeps={sub("cs2", 3)}
+                    id="cs3"
+                    code="CS2"
+                    label="Care seeker profiles"
+                    metric={nodes.cs3}
+                    trend={trends.cs3}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+              {open.cs2 && (
+                <div className={styles.branchR}>
+                  <Card
+                    id="csProfileComplete"
+                    code="CS2A"
+                    label="Completed profiles"
+                    metric={nodes.csProfileComplete}
+                    trend={trends.csProfileComplete}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+                    <div className={styles.gap} />
                   <Card
                     id="cs4"
-                    code="CS4"
-                    label="Aid Application Submitted"
+                    code="CS2B"
+                    label="Aid application submitted"
                     metric={nodes.cs4}
                     trend={trends.cs4}
                     loading={metricsLoading}
@@ -798,10 +841,10 @@ export default function OperatingMap({
                     onTipClose={closeTip}
                     onInspect={onInspect}
                   />
-                <div className={styles.gapSm} />
+                    <div className={styles.gap} />
                   <Card
                     id="cs5"
-                    code="CS5"
+                    code="CS2C"
                     label="Aid confirmed"
                     metric={nodes.cs5}
                     trend={trends.cs5}
@@ -810,32 +853,8 @@ export default function OperatingMap({
                     onTipClose={closeTip}
                     onInspect={onInspect}
                   />
-              </div>
-              <div className={styles.gapLg} />
-                  <Card
-                    id="o2"
-                    code="O1"
-                    label="Care confirmed"
-                    metric={nodes.o2}
-                    trend={trends.o2}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
-              <div className={styles.gap} />
-                  <Card
-                    money="Value created"
-                    id="o3"
-                    code="O2"
-                    label="Est. healthcare utilization reduction"
-                    metric={nodes.o3}
-                    trend={trends.o3}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
+                </div>
+              )}
             </div>
 
             {/* care provider */}
@@ -1218,7 +1237,48 @@ export default function OperatingMap({
                     onTipClose={closeTip}
                     onInspect={onInspect}
                   />
-              <div className={styles.gapLg} />
+            </div>
+
+          </div>
+
+          {/*
+            The outcomes, in a row of their own below the lanes. Inside a
+            lane they would ride up with that lane's height, and opening a
+            branch in another lane would leave a line running back up the
+            figure to reach them. Here they cannot move relative to each
+            other, whatever is expanded.
+          */}
+          <div className={`${styles.lanes3} ${styles.outcomes}`}>
+            <div className={styles.lane}>
+                  <Card
+                    id="o2"
+                    code="O1"
+                    label="Care confirmed"
+                    metric={nodes.o2}
+                    trend={trends.o2}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+              <div className={styles.gap} />
+                  <Card
+                    money="Value created"
+                    id="o3"
+                    code="O2"
+                    label="Est. healthcare utilization reduction"
+                    metric={nodes.o3}
+                    trend={trends.o3}
+                    loading={metricsLoading}
+                    onTip={openTip}
+                    onTipClose={closeTip}
+                    onInspect={onInspect}
+                  />
+            </div>
+
+            <div />
+
+            <div className={styles.lane}>
                   <Card
                     money="Paid product"
                     id="o5"
@@ -1244,7 +1304,6 @@ export default function OperatingMap({
                     onInspect={onInspect}
                   />
             </div>
-
           </div>
 
 </section>
@@ -1467,7 +1526,8 @@ function MetricValue({
 
 /** Nodes the inspect endpoint can produce rows for. */
 const INSPECTABLE = new Set([
-  "cs2", "cs3", "cs4",
+  "visits", "cs1a", "cs1b", "cs1c",
+  "cs3", "cs4",
   "cp1", "cp2", "cp3", "cp4", "cp5",
   "cw1", "cw2", "cw3",
   "o1", "o4", "o5",

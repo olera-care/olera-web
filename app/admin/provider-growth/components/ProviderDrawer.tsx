@@ -735,6 +735,7 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
             <MeetingScheduler
               trackingId={provider.id}
               providerName={provider.display_name || "Provider"}
+              contactEmail={provider.email || undefined}
               onScheduled={handleScheduleMeeting}
               onCancel={() => setActiveAction(null)}
             />

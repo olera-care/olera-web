@@ -44,7 +44,7 @@ export const VALID_STAGE_TRANSITIONS: Record<PipelineStage, PipelineStage[]> = {
   new_claim: ["meeting_scheduled", "upgrade_meeting", "not_interested"],  // upgrade_meeting for self-converted providers
   meeting_scheduled: ["pitched", "no_show", "not_interested"],  // meeting outcomes
   pitched: ["meeting_scheduled", "upgrade_meeting", "not_interested"],  // upgrade_meeting for Converted providers
-  not_interested: ["pitched"],  // can re-engage to active
+  not_interested: ["new_claim", "pitched"],  // can re-engage to new_claim or pitched
   no_show: ["meeting_scheduled", "not_interested"],  // can reschedule or mark not interested
   upgrade_meeting: ["upgrade_meeting", "pitched", "not_interested"],  // can reschedule, complete, or decline
 };

@@ -355,23 +355,15 @@ export default function OperatingMap({
     };
 
     /**
-     * The join between two cards that do not share a column. Down, across and
-     * down again while the second sits below the first; a plain reach across
-     * once opening a branch has brought them level, because the elbow would
-     * otherwise have to travel down past its own target and back up.
+     * Straight down a card's right-hand side into a card below it. The two
+     * do not share a column, but they overlap far enough that the right edge
+     * of the one is over the other — so this reads as a drop rather than the
+     * detour a turn would draw.
      */
-    const elbow = (a: Box, b: Box) => {
-      if (b.t <= a.b + 2 * G && b.l > a.r) {
-        hArrow(b.cy, a.r + G, b.l - G);
-        return;
-      }
-      const ax = a.l + IN;
-      const bx = b.l + IN;
-      const midY = (a.b + b.t) / 2;
-      seg(ax, a.b + G, ax, midY);
-      seg(ax, midY, bx, midY);
-      vArrow(bx, midY, b.t - G);
+    const rightDown = (a: Box, b: Box) => {
+      vArrow(a.r - IN, a.b + G, b.t - G);
     };
+
     /*
      * Every arrow is a claim about what causes what, so the geometry makes
      * the same claim: a lane's own steps run down its middle, a branch hangs
@@ -445,13 +437,11 @@ export default function OperatingMap({
     vDown("cw3", "o4");
 
     /* The confirmed hire needs both halves: a provider signed up to the
-       programme and a care worker put in front of them. The match sits above
-       it and overlaps it, so that one runs straight down; the signup is a
-       column away and has to turn. Collapse the provider's substeps and the
-       signup's arrow goes with them — the parent is a different claim, not a
-       stand-in for the step underneath it. */
-    const staffing = maybe("cp5");
-    if (staffing) elbow(staffing, box("o5"));
+       programme and a care worker put in front of them. The match drops into
+       it down its own left; the signup drops down its right, which is the
+       same line whether or not the provider's substeps are showing, because
+       a branch and the card it hangs off share a right edge. */
+    rightDown(maybe("cp5") ?? cp3, box("o5"));
     vDown("o4", "o5");
 
     /* each join runs on down between the lanes that fed it */

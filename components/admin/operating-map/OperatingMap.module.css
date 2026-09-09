@@ -183,7 +183,13 @@
   margin-left: 9px;
   font-size: 15.5px;
 }
-.hi { background: var(--card-hi); border-color: var(--card-hi-line); }
+/*
+ * Emphasis, currently off. Two greens across the figure read as two kinds
+ * of thing rather than as one kind emphasised, which is a distinction the
+ * map does not make. The prop stays wired so an accent can come back to the
+ * blocks that earn it.
+ */
+.hi { background: var(--card); border-color: var(--card-line); }
 .dim { color: var(--ink-2); opacity: 0.72; }
 /* Numbers inside the surface line — readable without shouting over the total. */
 .surfaceValue { font-weight: 700; color: var(--ink); font-variant-numeric: tabular-nums; }
@@ -421,12 +427,12 @@
  * It sits inside the stack rather than in a row of its own, because a stack
  * that straddles two lanes has no column of its own to be labelled from.
  *
- * Indented clear of the spine: the lines feeding this stack come down from
- * the lanes above and enter its cards 22px in from the left, which is
+ * Set to the right, clear of the spine: the lines feeding this stack come
+ * down from the lanes above and enter its cards near the left, which is
  * exactly where a flush heading would be. Text with a wire through it is
- * worse than a heading that does not line up with the card below it.
+ * worse than a heading that sits at the other end of the card below it.
  */
-.joinLab { margin-bottom: 8px; padding-left: 40px; }
+.joinLab { margin-bottom: 8px; text-align: right; }
 .join12 { grid-column: 1 / span 2; }
 .join23 { grid-column: 2 / span 2; }
 

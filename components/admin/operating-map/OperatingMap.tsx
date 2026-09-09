@@ -451,15 +451,18 @@ export default function OperatingMap({
         fromStem(activationStem, k);
       }
     }
-    /* The second outcome of a lane follows from the first rather than under
-       it, so the two share a row and the arrow between them runs across. */
-    const across = (a: string, b: string) => {
+    /* Both outcomes of a lane come out of the same step above them, so both
+       drop out of it: the first down its left, where the lane's own spine
+       runs, the second down its right, over the half of the row it lands in.
+       The right-hand line runs in the channel a branch leaves beside it, so
+       expanding one does not put it over the substeps. */
+    const downRight = (a: string, b: string) => {
       const A = box(a);
       const B = box(b);
-      hArrow(B.cy, A.r + G, B.l - G);
+      vArrow(A.r - IN, A.b + G, B.t - G);
     };
-    across("o2", "aidReceived");
-    across("newClients", "newCareWorkers");
+    downRight("cs3", "aidReceived");
+    downRight("cp3", "newCareWorkers");
 
     const apps = maybe("studentApplications");
     const appsLast = maybe("cw3b");

@@ -451,9 +451,6 @@ export default function OperatingMap({
     /* The match drops straight into the hire it is confirmed from. */
     vDown("o4", "o5");
 
-    /* and each outcome runs on down the lane it belongs to */
-    vDown("o2", "o3");
-    vDown("o5", "o6");
   }, []);
 
   useLayoutEffect(() => {
@@ -915,19 +912,6 @@ export default function OperatingMap({
                     onTipClose={closeTip}
                     onInspect={onInspect}
                   />
-              <div className={styles.gap} />
-                  <Card
-                    money="Value created"
-                    id="o3"
-                    code="O2"
-                    label="Est. healthcare utilization reduction"
-                    metric={nodes.o3}
-                    trend={trends.o3}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
             </div>
 
             {/* care provider */}
@@ -1318,18 +1302,6 @@ export default function OperatingMap({
                     label="Hires confirmed"
                     metric={nodes.o5}
                     trend={trends.o5}
-                    loading={metricsLoading}
-                    onTip={openTip}
-                    onTipClose={closeTip}
-                    onInspect={onInspect}
-                  />
-              <div className={styles.gap} />
-                  <Card
-                    id="o6"
-                    code="O4"
-                    label="Est. new care workers"
-                    metric={nodes.o6}
-                    trend={trends.o6}
                     loading={metricsLoading}
                     onTip={openTip}
                     onTipClose={closeTip}

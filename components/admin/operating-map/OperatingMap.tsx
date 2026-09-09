@@ -426,7 +426,9 @@ export default function OperatingMap({
 
     const claimStem = claimed.l + IN;
     vArrow(claimStem, claimed.b + G, box("newClients").t - G);
-    for (const k of ["cp3a", "o1", "questionsAnswered", "cp4", "cp5"]) fromStem(claimStem, k);
+    for (const k of ["o1", "questionReceived", "questionsAnswered", "cp3a", "cp4", "cp5"]) {
+      fromStem(claimStem, k);
+    }
 
     /*
      * Care worker: campuses, then the qualified workers the campus run
@@ -815,7 +817,7 @@ export default function OperatingMap({
                       <Card
                         id="cs1a"
                         code="CS1B1"
-                        label="Provider questions asked"
+                        label="Question submitted"
                         metric={nodes.cs1a}
                         trend={trends.cs1a}
                         loading={metricsLoading}
@@ -872,7 +874,7 @@ export default function OperatingMap({
                     <Card
                       id="cs1b"
                       code="CS2A"
-                      label="Provider connection requests submitted"
+                      label="Connect request submitted"
                       metric={nodes.cs1b}
                       trend={trends.cs1b}
                       loading={metricsLoading}
@@ -885,7 +887,7 @@ export default function OperatingMap({
                       substeps={sub("cs2b", 2)}
                       id="cs1c"
                       code="CS2B"
-                      label="Benefits assessment submitted"
+                      label="Benefits request submitted"
                       metric={nodes.cs1c}
                       trend={trends.cs1c}
                       loading={metricsLoading}
@@ -1021,7 +1023,7 @@ export default function OperatingMap({
                     <Card
                       id="cp2c"
                       code="CP1C"
-                      label="Provider questions sent"
+                      label="Question sent"
                       metric={nodes.cp2c}
                       trend={trends.cp2c}
                       loading={metricsLoading}
@@ -1033,7 +1035,7 @@ export default function OperatingMap({
                     <Card
                       id="cp2d"
                       code="CP1D"
-                      label="Provider connection requests sent"
+                      label="Connect request sent"
                       metric={nodes.cp2d}
                       trend={trends.cp2d}
                       loading={metricsLoading}
@@ -1045,7 +1047,7 @@ export default function OperatingMap({
               )}
               <div className={styles.gap} />
                   <Card
-                    substeps={sub("cp2", 5)}
+                    substeps={sub("cp2", 6)}
                     id="cp3"
                     code="CP2"
                     label="Active providers"
@@ -1059,66 +1061,78 @@ export default function OperatingMap({
               {/* everything a claimed provider does */}
               {open.cp2 && (
                 <div className={styles.branchR}>
-                    <Card
-                      id="cp3a"
-                      code="CP2A"
-                      label="Profiles completed"
-                      metric={nodes.cp3a}
-                      trend={trends.cp3a}
-                      loading={metricsLoading}
-                      onTip={openTip}
-                      onTipClose={closeTip}
-                      onInspect={onInspect}
-                    />
+                      <Card
+                        id="o1"
+                        code="CP2A"
+                        label="Provider–care seeker connected"
+                        metric={nodes.o1}
+                        trend={trends.o1}
+                        loading={metricsLoading}
+                        onTip={openTip}
+                        onTipClose={closeTip}
+                        onInspect={onInspect}
+                      />
                     <div className={styles.gap} />
-                    <Card
-                      id="o1"
-                      code="CP2B"
-                      label="Provider–care seeker connected"
-                      metric={nodes.o1}
-                      trend={trends.o1}
-                      loading={metricsLoading}
-                      onTip={openTip}
-                      onTipClose={closeTip}
-                      onInspect={onInspect}
-                    />
+                      <Card
+                        id="questionReceived"
+                        code="CP2B"
+                        label="Question received"
+                        metric={nodes.questionReceived}
+                        trend={trends.questionReceived}
+                        loading={metricsLoading}
+                        onTip={openTip}
+                        onTipClose={closeTip}
+                        onInspect={onInspect}
+                      />
                     <div className={styles.gap} />
-                    <Card
-                      id="questionsAnswered"
-                      code="CP2C"
-                      label="Questions answered"
-                      metric={nodes.questionsAnswered}
-                      trend={trends.questionsAnswered}
-                      loading={metricsLoading}
-                      onTip={openTip}
-                      onTipClose={closeTip}
-                      onInspect={onInspect}
-                    />
+                      <Card
+                        id="questionsAnswered"
+                        code="CP2C"
+                        label="Question answered"
+                        metric={nodes.questionsAnswered}
+                        trend={trends.questionsAnswered}
+                        loading={metricsLoading}
+                        onTip={openTip}
+                        onTipClose={closeTip}
+                        onInspect={onInspect}
+                      />
                     <div className={styles.gap} />
-                    <Card
-                      money="Paid product"
-                      id="cp4"
-                      code="CP2D"
-                      label="Premium growth suite signups"
-                      metric={nodes.cp4}
-                      trend={trends.cp4}
-                      loading={metricsLoading}
-                      onTip={openTip}
-                      onTipClose={closeTip}
-                      onInspect={onInspect}
-                    />
+                      <Card
+                        id="cp3a"
+                        code="CP2D"
+                        label="Profiles completed"
+                        metric={nodes.cp3a}
+                        trend={trends.cp3a}
+                        loading={metricsLoading}
+                        onTip={openTip}
+                        onTipClose={closeTip}
+                        onInspect={onInspect}
+                      />
                     <div className={styles.gap} />
-                    <Card
-                      id="cp5"
-                      code="CP2E"
-                      label="Student caregiver program signups"
-                      metric={nodes.cp5}
-                      trend={trends.cp5}
-                      loading={metricsLoading}
-                      onTip={openTip}
-                      onTipClose={closeTip}
-                      onInspect={onInspect}
-                    />
+                      <Card
+                        money="Paid product"
+                        id="cp4"
+                        code="CP2E"
+                        label="Premium growth suite signups"
+                        metric={nodes.cp4}
+                        trend={trends.cp4}
+                        loading={metricsLoading}
+                        onTip={openTip}
+                        onTipClose={closeTip}
+                        onInspect={onInspect}
+                      />
+                    <div className={styles.gap} />
+                      <Card
+                        id="cp5"
+                        code="CP2F"
+                        label="Student caregiver program signups"
+                        metric={nodes.cp5}
+                        trend={trends.cp5}
+                        loading={metricsLoading}
+                        onTip={openTip}
+                        onTipClose={closeTip}
+                        onInspect={onInspect}
+                      />
                 </div>
               )}
               <div className={styles.gapLg} />

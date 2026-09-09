@@ -231,11 +231,13 @@ function ActionsSection({
   provider,
   onScheduleMeeting,
   onLogUpgradeOutcome,
+  onSendReschedule,
   onReEngage,
 }: {
   provider: ProviderGrowthWithProfile;
   onScheduleMeeting: () => void;
   onLogUpgradeOutcome: () => void;
+  onSendReschedule: () => void;
   onReEngage: () => void;
 }) {
   return (
@@ -250,14 +252,7 @@ function ActionsSection({
             Schedule Meeting
           </button>
         )}
-        {provider.pipeline_stage === "meeting_scheduled" && (
-          <button
-            onClick={onScheduleMeeting}
-            className="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg hover:bg-gray-200"
-          >
-            Reschedule
-          </button>
-        )}
+        {/* meeting_scheduled: No action buttons - use ActivityLog to mark outcome */}
         {provider.pipeline_stage === "upgrade_meeting" && (
           <>
             <button
@@ -284,10 +279,10 @@ function ActionsSection({
         )}
         {provider.pipeline_stage === "no_show" && (
           <button
-            onClick={onScheduleMeeting}
+            onClick={onSendReschedule}
             className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700"
           >
-            Reschedule Meeting
+            Send Reschedule Email
           </button>
         )}
         {provider.pipeline_stage === "not_interested" && (
@@ -518,7 +513,8 @@ interface EngagementData {
 export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: ProviderDrawerProps) {
   const [engagement, setEngagement] = useState<EngagementData | null>(null);
   const [loadingData, setLoadingData] = useState(true);
-  const [activeAction, setActiveAction] = useState<"schedule" | "upgrade" | null>(null);
+  const [activeAction, setActiveAction] = useState<"schedule" | "upgrade" | "send_reschedule" | null>(null);
+  const [sendingReschedule, setSendingReschedule] = useState(false);
 
   const fetchProviderData = useCallback(async () => {
     try {
@@ -548,8 +544,28 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
     onUpdate();
   };
 
-  
-      
+  const handleSendRescheduleEmail = async () => {
+    setSendingReschedule(true);
+    try {
+      const res = await fetch("/api/admin/provider-growth/send-booking-link", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ tracking_id: provider.id }),
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to send email");
+      }
+      setActiveAction(null);
+      onUpdate();
+    } catch (e) {
+      console.error("Failed to send reschedule email:", e);
+      alert(e instanceof Error ? e.message : "Failed to send email. Please try again.");
+    } finally {
+      setSendingReschedule(false);
+    }
+  };
+
   const handleReEngage = async () => {
     try {
       const res = await fetch(`/api/admin/provider-growth/${provider.id}`, {
@@ -622,6 +638,7 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
       provider={provider}
       onScheduleMeeting={() => setActiveAction("schedule")}
       onLogUpgradeOutcome={() => setActiveAction("upgrade")}
+      onSendReschedule={() => setActiveAction("send_reschedule")}
       onReEngage={handleReEngage}
     />
   );
@@ -642,6 +659,61 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
               onScheduled={handleScheduleMeeting}
               onCancel={() => setActiveAction(null)}
             />
+          </div>
+        )}
+
+        {activeAction === "send_reschedule" && (
+          <div className="mb-4 p-4 bg-amber-50 rounded-lg border border-amber-200">
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-sm font-medium text-gray-900">
+                  Send Reschedule Email
+                </h3>
+              </div>
+
+              {provider.email ? (
+                <>
+                  <p className="text-sm text-gray-600">
+                    Send a booking link to <span className="font-medium">{provider.email}</span> so they can pick a new meeting time.
+                  </p>
+                  <div className="flex justify-end gap-3">
+                    <button
+                      onClick={() => setActiveAction(null)}
+                      disabled={sendingReschedule}
+                      className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900 disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      onClick={handleSendRescheduleEmail}
+                      disabled={sendingReschedule}
+                      className="px-4 py-2 text-sm font-medium text-white bg-amber-600 rounded-lg hover:bg-amber-700 disabled:opacity-50"
+                    >
+                      {sendingReschedule ? "Sending..." : "Send Email"}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-sm text-amber-700">
+                    No email on file for this provider. You can call them to reschedule.
+                  </p>
+                  <div className="flex justify-end">
+                    <button
+                      onClick={() => setActiveAction(null)}
+                      className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         )}
 

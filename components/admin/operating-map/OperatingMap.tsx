@@ -893,7 +893,7 @@ export default function OperatingMap({
                     <Card
                       id="cs1b"
                       code="CS2A"
-                      label="Connect requests submitted"
+                      label="Provider connection requests submitted"
                       metric={nodes.cs1b}
                       trend={trends.cs1b}
                       loading={metricsLoading}
@@ -1078,7 +1078,7 @@ export default function OperatingMap({
                     <Card
                       id="cp2d"
                       code="CP2D"
-                      label="Provider connection request"
+                      label="Provider connection requests sent"
                       metric={nodes.cp2d}
                       trend={trends.cp2d}
                       loading={metricsLoading}
@@ -1119,7 +1119,7 @@ export default function OperatingMap({
                     <Card
                       id="o1"
                       code="CP3B"
-                      label="Care seekers connected"
+                      label="Provider–care seeker connected"
                       metric={nodes.o1}
                       trend={trends.o1}
                       loading={metricsLoading}

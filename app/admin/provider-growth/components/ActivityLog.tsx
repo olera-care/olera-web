@@ -275,7 +275,7 @@ function ActivityEntry({ activity }: { activity: ActivityEntry }) {
         </span>
         {isStageChange && (
           <span className="text-xs text-gray-400">
-            → {PIPELINE_STAGE_LABELS[details.new_stage as PipelineStage] || details.new_stage}
+            → {PIPELINE_STAGE_LABELS[details.new_stage as PipelineStage] || String(details.new_stage)}
           </span>
         )}
         <span className="text-xs text-gray-400 ml-auto">

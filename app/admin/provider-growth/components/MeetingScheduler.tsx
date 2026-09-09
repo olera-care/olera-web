@@ -51,7 +51,8 @@ export function MeetingScheduler({
     setError(null);
 
     try {
-      const scheduledAt = new Date(`${manualDate}T${manualTime}`).toISOString();
+      // Treat input as UTC (matching Calendly's timezone)
+      const scheduledAt = new Date(`${manualDate}T${manualTime}:00Z`).toISOString();
 
       const res = await fetch("/api/admin/provider-growth/schedule-meeting", {
         method: "POST",
@@ -81,7 +82,7 @@ export function MeetingScheduler({
           Confirm meeting with {providerName}
         </h3>
         <p className="mt-1 text-xs text-gray-500">
-          Calendly opened in a new tab. Enter the meeting time you booked:
+          Calendly opened in a new tab. Enter the meeting time you booked (in UTC):
         </p>
       </div>
 
@@ -108,7 +109,7 @@ export function MeetingScheduler({
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Time
+              Time <span className="text-gray-400 font-normal">(UTC)</span>
             </label>
             <input
               type="time"

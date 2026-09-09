@@ -836,7 +836,7 @@ export default function OperatingMap({
                       <Card
                         id="cs1a"
                         code="CS1B1"
-                        label="Questions asked"
+                        label="Provider questions asked"
                         metric={nodes.cs1a}
                         trend={trends.cs1a}
                         loading={metricsLoading}
@@ -1066,7 +1066,7 @@ export default function OperatingMap({
                     <Card
                       id="cp2c"
                       code="CP2C"
-                      label="Provider question unanswered"
+                      label="Provider questions sent"
                       metric={nodes.cp2c}
                       trend={trends.cp2c}
                       loading={metricsLoading}

@@ -180,26 +180,28 @@ export default function ProviderGrowthPage() {
         }
 
         // For upgrade_meeting, apply Ads/MedJobs/Both filter based on subtab
+        // Include pilot_expired for MedJobs since they still need to convert to paying
         if (activeTab.stage === "upgrade_meeting" && activeTab.subTab) {
           if (activeTab.subTab === "ads") {
             params.set("adsStatus", "free_intro");
           } else if (activeTab.subTab === "medjobs") {
-            params.set("medjobsStatus", "in_pilot");
+            params.set("medjobsStatus", "in_pilot,pilot_expired");
           } else if (activeTab.subTab === "both") {
             params.set("adsStatus", "free_intro");
-            params.set("medjobsStatus", "in_pilot");
+            params.set("medjobsStatus", "in_pilot,pilot_expired");
           }
         }
       } else {
         // Conversion tabs
+        // For MedJobs, include both in_pilot and pilot_expired (they still need to convert to paying)
         if (activeTab.tab === "converted") {
           if (activeTab.subTab === "ads") {
             params.set("adsStatus", "free_intro");
           } else if (activeTab.subTab === "medjobs") {
-            params.set("medjobsStatus", "in_pilot");
+            params.set("medjobsStatus", "in_pilot,pilot_expired");
           } else if (activeTab.subTab === "both") {
             params.set("adsStatus", "free_intro");
-            params.set("medjobsStatus", "in_pilot");
+            params.set("medjobsStatus", "in_pilot,pilot_expired");
           }
         } else if (activeTab.tab === "paying") {
           if (activeTab.subTab === "ads") {

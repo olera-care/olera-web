@@ -71,7 +71,8 @@ export function GrowthTabs({ activeTab, onTabChange, stats, newClaimSubtabCounts
       case "upgrade_meeting":
         return stats.upgrade_meeting;
       case "converted":
-        return stats.ads_free_intro + stats.medjobs_in_pilot;
+        // Include pilot_expired - they still need to convert to paying
+        return stats.ads_free_intro + stats.medjobs_in_pilot + (stats.medjobs_pilot_expired ?? 0);
       case "paying":
         return stats.ads_subscribed + stats.medjobs_subscribed;
       case "ads":
@@ -82,7 +83,10 @@ export function GrowthTabs({ activeTab, onTabChange, stats, newClaimSubtabCounts
         return 0;
       case "medjobs":
         if (activeTab.type === "conversion") {
-          return activeTab.tab === "converted" ? stats.medjobs_in_pilot : stats.medjobs_subscribed;
+          // Include pilot_expired for converted tab
+          return activeTab.tab === "converted"
+            ? stats.medjobs_in_pilot + (stats.medjobs_pilot_expired ?? 0)
+            : stats.medjobs_subscribed;
         }
         return 0;
       case "both":

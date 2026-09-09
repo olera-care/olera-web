@@ -88,9 +88,10 @@ export interface GrowthStats {
   ads_free_intro: number;
   ads_subscribed: number;
   medjobs_in_pilot: number;
+  medjobs_pilot_expired: number;
   medjobs_subscribed: number;
   // Providers with BOTH products active
-  both_converted: number;  // ads_free_intro AND medjobs_in_pilot
+  both_converted: number;  // ads_free_intro AND (medjobs_in_pilot OR medjobs_pilot_expired)
   both_paying: number;     // ads_subscribed AND medjobs_subscribed
 }
 
@@ -134,7 +135,9 @@ export async function getGrowthStats(): Promise<GrowthStats> {
     }
 
     // Count providers with BOTH products active
-    if (row.ads_status === "free_intro" && row.medjobs_status === "in_pilot") {
+    // "Converted" means on free trial - includes pilot_expired since they still need to convert to paying
+    const medjobsConverted = row.medjobs_status === "in_pilot" || row.medjobs_status === "pilot_expired";
+    if (row.ads_status === "free_intro" && medjobsConverted) {
       bothConverted++;
     }
     if (row.ads_status === "subscribed" && row.medjobs_status === "subscribed") {
@@ -152,6 +155,7 @@ export async function getGrowthStats(): Promise<GrowthStats> {
     ads_free_intro: adsCounts.free_intro || 0,
     ads_subscribed: adsCounts.subscribed || 0,
     medjobs_in_pilot: medjobsCounts.in_pilot || 0,
+    medjobs_pilot_expired: medjobsCounts.pilot_expired || 0,
     medjobs_subscribed: medjobsCounts.subscribed || 0,
     both_converted: bothConverted,
     both_paying: bothPaying,
@@ -268,7 +272,7 @@ export async function getNewClaimSubtabCounts(): Promise<{
 export interface ListProvidersOptions {
   pipelineStage?: PipelineStage;
   adsStatus?: AdsStatus;
-  medjobsStatus?: MedjobsStatus;
+  medjobsStatus?: MedjobsStatus | MedjobsStatus[];  // Can be single or array (e.g., for in_pilot OR pilot_expired)
   claimSource?: ClaimSource;
   medjobsEligible?: boolean;
   search?: string;
@@ -337,8 +341,16 @@ export async function listProviders(options: ListProvidersOptions = {}): Promise
   if (adsStatus && adsStatus !== "none") {
     query = query.eq("ads_status", adsStatus);
   }
-  if (medjobsStatus && medjobsStatus !== "none") {
-    query = query.eq("medjobs_status", medjobsStatus);
+  // medjobsStatus can be a single value or array (e.g., ["in_pilot", "pilot_expired"] for Converted tab)
+  if (medjobsStatus) {
+    if (Array.isArray(medjobsStatus)) {
+      const filtered = medjobsStatus.filter((s) => s !== "none");
+      if (filtered.length > 0) {
+        query = query.in("medjobs_status", filtered);
+      }
+    } else if (medjobsStatus !== "none") {
+      query = query.eq("medjobs_status", medjobsStatus);
+    }
   }
   if (claimSource) {
     query = query.eq("claim_source", claimSource);

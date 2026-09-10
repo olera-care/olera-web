@@ -40,7 +40,8 @@ export async function GET(request: NextRequest) {
       .from("business_profiles")
       .select("id, slug, display_name, email, city, image_url, metadata, created_at")
       .eq("type", "student")
-      .not("email", "is", null);
+      .not("email", "is", null)
+      .not("display_name", "is", null);
 
     if (error) {
       console.error("[medjobs-nudge] query error:", error);
@@ -48,10 +49,17 @@ export async function GET(request: NextRequest) {
     }
 
     let nudged = 0;
+    let activated = 0;
     let skipped = 0;
     const now = Date.now();
 
     for (const student of (students || [])) {
+      // Skip if display_name is empty (belt and suspenders)
+      if (!student.display_name?.trim()) {
+        skipped++;
+        continue;
+      }
+
       const meta = (student.metadata || {}) as StudentMetadata;
       const hasPhoto = !!student.image_url;
 
@@ -93,14 +101,26 @@ export async function GET(request: NextRequest) {
               emailType: "student_activation",
               recipientType: "student",
             });
+
+            // Re-fetch metadata to reduce race condition risk
+            const { data: freshProfile } = await db
+              .from("business_profiles")
+              .select("metadata")
+              .eq("id", student.id)
+              .single();
+            const freshMeta = (freshProfile?.metadata || meta) as Record<string, unknown>;
+
             await db.from("business_profiles").update({
-              metadata: { ...(meta as Record<string, unknown>), activation_email_sent: true },
+              metadata: { ...freshMeta, activation_email_sent: true },
             }).eq("id", student.id);
+
+            activated++;
           } catch (err) {
             console.error(`[medjobs-nudge] activation email error for ${student.email}:`, err);
           }
+        } else {
+          skipped++;
         }
-        skipped++;
         continue;
       }
 
@@ -155,12 +175,20 @@ export async function GET(request: NextRequest) {
           recipientType: "student",
         });
 
+        // Re-fetch metadata to reduce race condition risk
+        const { data: freshProfile } = await db
+          .from("business_profiles")
+          .select("metadata")
+          .eq("id", student.id)
+          .single();
+        const freshMeta = (freshProfile?.metadata || meta) as Record<string, unknown>;
+
         // Update nudge tracking
         await db
           .from("business_profiles")
           .update({
             metadata: {
-              ...(meta as Record<string, unknown>),
+              ...freshMeta,
               last_nudge_sent_at: new Date().toISOString(),
               nudge_count: nudgeCount + 1,
             },
@@ -173,7 +201,7 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ nudged, skipped });
+    return NextResponse.json({ nudged, activated, skipped });
   } catch (err) {
     console.error("[medjobs-nudge] unexpected error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });

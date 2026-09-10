@@ -284,12 +284,12 @@ export function studentActivationEmail({
   profileUrl: string;
   magicLink?: string;
 }): string {
-  const firstName = studentName.split(" ")[0];
+  const safeName = firstName(studentName, "there");
   const locationLine = city ? ` in ${city}` : "";
   const dashboardUrl = magicLink || `${BASE_URL}/medjobs/providers`;
 
   return layout(`
-    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Your profile is live, ${firstName}!</h2>
+    <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Your profile is live, ${safeName}!</h2>
     <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
       Congratulations — your MedJobs profile is 100% complete and verified. Providers${locationLine} can now find you and reach out via the platform, email, or phone.
     </p>
@@ -493,14 +493,15 @@ export function profileIncompleteNudgeEmail({
   magicLink?: string;
 }): string {
   const completeProfileUrl = magicLink || `${BASE_URL}/portal/medjobs/profile`;
+  const safeName = firstName(studentName, "there");
   const itemsList = missingItems
-    .map((item) => `<li>${item}</li>`)
+    .map((item) => `<li>${escapeHtml(item)}</li>`)
     .join("");
 
   return layout(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Complete Your Profile</h2>
     <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
-      Hi ${studentName}, your MedJobs profile is ${completeness}% complete.
+      Hi ${safeName}, your MedJobs profile is ${completeness}% complete.
       Students with complete profiles get significantly more responses from providers.
     </p>
     <p style="font-size:14px;color:#6b7280;margin:0 0 8px;font-weight:600;">

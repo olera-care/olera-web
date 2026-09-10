@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { calculateCompleteness } from "@/lib/medjobs-completeness";
 import type { StudentMetadata } from "@/lib/types";
 
 // Must match the threshold in the main route
@@ -8,25 +9,29 @@ const INCOMPLETE_THRESHOLD = 80;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = ReturnType<typeof getServiceClient>;
 
-interface ProfileWithMetadata {
+interface ProfileForCompleteness {
   id: string;
+  display_name: string;
+  image_url: string | null;
+  city: string | null;
+  state: string | null;
   metadata: StudentMetadata | null;
 }
 
 /**
  * Fetch all caregiver/student profiles to count incomplete ones.
- * Profile completeness is stored in JSONB metadata, so we need to check client-side.
+ * We need display_name, image_url, city, state, and metadata to calculate completeness.
  */
-async function fetchAllForIncompleteCount(db: DB): Promise<ProfileWithMetadata[]> {
+async function fetchAllForIncompleteCount(db: DB): Promise<ProfileForCompleteness[]> {
   const PAGE_SIZE = 1000;
-  const allProfiles: ProfileWithMetadata[] = [];
+  const allProfiles: ProfileForCompleteness[] = [];
   let offset = 0;
   let hasMore = true;
 
   while (hasMore) {
     const { data, error } = await db
       .from("business_profiles")
-      .select("id, metadata")
+      .select("id, display_name, image_url, city, state, metadata")
       .in("type", ["caregiver", "student"])
       .range(offset, offset + PAGE_SIZE - 1);
 
@@ -36,7 +41,7 @@ async function fetchAllForIncompleteCount(db: DB): Promise<ProfileWithMetadata[]
     }
 
     if (data && data.length > 0) {
-      allProfiles.push(...(data as ProfileWithMetadata[]));
+      allProfiles.push(...(data as ProfileForCompleteness[]));
       offset += PAGE_SIZE;
       hasMore = data.length === PAGE_SIZE;
     } else {
@@ -45,6 +50,22 @@ async function fetchAllForIncompleteCount(db: DB): Promise<ProfileWithMetadata[]
   }
 
   return allProfiles;
+}
+
+/**
+ * Calculate profile completeness for a caregiver/student.
+ * Uses the comprehensive section-based calculation from medjobs-completeness.
+ */
+function computeProfileCompleteness(profile: ProfileForCompleteness): number {
+  const meta = (profile.metadata || {}) as StudentMetadata;
+  const hasPhoto = !!profile.image_url;
+  const hasBasicInfo = {
+    hasName: !!profile.display_name,
+    hasUniversity: !!meta.university,
+    hasLocation: !!(profile.city && profile.state),
+  };
+
+  return calculateCompleteness(meta, hasPhoto, hasBasicInfo);
 }
 
 /**
@@ -113,10 +134,10 @@ export async function GET() {
     if (pausedRes.error) console.error("Stats paused query error:", pausedRes.error);
     if (thisWeekRes.error) console.error("Stats thisWeek query error:", thisWeekRes.error);
 
-    // Count incomplete profiles (completeness < threshold)
+    // Count incomplete profiles using the live calculation
     let incompleteCount = 0;
     for (const profile of allProfiles) {
-      const completeness = (profile.metadata as StudentMetadata)?.profile_completeness ?? 0;
+      const completeness = computeProfileCompleteness(profile);
       if (completeness < INCOMPLETE_THRESHOLD) {
         incompleteCount++;
       }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
+import { calculateCompleteness } from "@/lib/medjobs-completeness";
 import type { CaregiverMetadata, StudentMetadata } from "@/lib/types";
 
 // Incomplete threshold - profiles below this are considered incomplete
@@ -25,6 +26,23 @@ interface CaregiverQueryResult {
   source: string;
   is_active: boolean;
   created_at: string;
+}
+
+/**
+ * Calculate profile completeness for a caregiver/student.
+ * Uses the comprehensive section-based calculation from medjobs-completeness.
+ */
+function computeProfileCompleteness(row: CaregiverQueryResult): number {
+  const meta = (row.metadata || {}) as StudentMetadata;
+  const hasPhoto = !!row.image_url;
+  const hasBasicInfo = {
+    hasName: !!row.display_name,
+    hasUniversity: !!meta.university,
+    hasLocation: !!(row.city && row.state),
+  };
+
+  // Use the comprehensive calculation from medjobs-completeness
+  return calculateCompleteness(meta, hasPhoto, hasBasicInfo);
 }
 
 /**
@@ -119,7 +137,7 @@ export async function GET(request: NextRequest) {
     const db = getServiceClient();
 
     // For incomplete filter, we need to fetch ALL data and filter client-side
-    // because profile_completeness is in JSONB metadata and can't be filtered in SQL
+    // because completeness is calculated on-the-fly from metadata fields
     const needsClientSideFilter = incompleteOnly;
 
     let data: CaregiverQueryResult[] | null;
@@ -176,11 +194,12 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: `Failed to fetch caregivers: ${error.message}` }, { status: 500 });
     }
 
-    // Transform data with computed fields
+    // Transform data with computed fields - calculate completeness on-the-fly
     let caregivers = (data ?? []).map((row: CaregiverQueryResult) => {
-      const meta = row.metadata || {};
-      const completeness = (meta as StudentMetadata).profile_completeness ?? 0;
-      const university = (meta as StudentMetadata).university ?? null;
+      const meta = (row.metadata || {}) as StudentMetadata;
+      const university = meta.university ?? null;
+      // Calculate completeness using the comprehensive section-based formula
+      const completeness = computeProfileCompleteness(row);
 
       return {
         ...row,

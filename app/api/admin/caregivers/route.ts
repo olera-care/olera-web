@@ -29,20 +29,49 @@ interface CaregiverQueryResult {
 }
 
 /**
+ * Calculate completeness for a regular caregiver (non-student).
+ * Simpler formula based on CaregiverMetadata fields.
+ */
+function computeCaregiverCompleteness(
+  row: CaregiverQueryResult,
+  meta: CaregiverMetadata
+): number {
+  const fields = [
+    { filled: !!row.display_name, weight: 20 },
+    { filled: !!row.image_url, weight: 15 },
+    { filled: !!(row.city && row.state), weight: 15 },
+    { filled: (meta.certifications?.length ?? 0) > 0, weight: 15 },
+    { filled: meta.years_experience != null, weight: 10 },
+    { filled: (meta.languages?.length ?? 0) > 0, weight: 10 },
+    { filled: !!meta.availability, weight: 10 },
+    { filled: meta.hourly_rate_min != null || meta.hourly_rate_max != null, weight: 5 },
+  ];
+  return fields.reduce((sum, f) => sum + (f.filled ? f.weight : 0), 0);
+}
+
+/**
  * Calculate profile completeness for a caregiver/student.
- * Uses the comprehensive section-based calculation from medjobs-completeness.
+ * Uses different formulas based on profile type:
+ * - Students: Comprehensive section-based calculation from medjobs-completeness
+ * - Caregivers: Simpler formula based on CaregiverMetadata fields
  */
 function computeProfileCompleteness(row: CaregiverQueryResult): number {
-  const meta = (row.metadata || {}) as StudentMetadata;
-  const hasPhoto = !!row.image_url;
-  const hasBasicInfo = {
-    hasName: !!row.display_name,
-    hasUniversity: !!meta.university,
-    hasLocation: !!(row.city && row.state),
-  };
+  const meta = row.metadata || {};
 
-  // Use the comprehensive calculation from medjobs-completeness
-  return calculateCompleteness(meta, hasPhoto, hasBasicInfo);
+  // For students, use the comprehensive MedJobs completeness calculation
+  if (row.type === "student") {
+    const studentMeta = meta as StudentMetadata;
+    const hasPhoto = !!row.image_url;
+    const hasBasicInfo = {
+      hasName: !!row.display_name,
+      hasUniversity: !!studentMeta.university,
+      hasLocation: !!(row.city && row.state),
+    };
+    return calculateCompleteness(studentMeta, hasPhoto, hasBasicInfo);
+  }
+
+  // For regular caregivers, use a simpler formula
+  return computeCaregiverCompleteness(row, meta as CaregiverMetadata);
 }
 
 /**

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { calculateCompleteness } from "@/lib/medjobs-completeness";
-import type { StudentMetadata } from "@/lib/types";
+import type { CaregiverMetadata, StudentMetadata } from "@/lib/types";
 
 // Must match the threshold in the main route
 const INCOMPLETE_THRESHOLD = 80;
@@ -11,16 +11,17 @@ type DB = ReturnType<typeof getServiceClient>;
 
 interface ProfileForCompleteness {
   id: string;
+  type: "caregiver" | "student";
   display_name: string;
   image_url: string | null;
   city: string | null;
   state: string | null;
-  metadata: StudentMetadata | null;
+  metadata: StudentMetadata | CaregiverMetadata | null;
 }
 
 /**
  * Fetch all caregiver/student profiles to count incomplete ones.
- * We need display_name, image_url, city, state, and metadata to calculate completeness.
+ * We need type, display_name, image_url, city, state, and metadata to calculate completeness.
  */
 async function fetchAllForIncompleteCount(db: DB): Promise<ProfileForCompleteness[]> {
   const PAGE_SIZE = 1000;
@@ -31,7 +32,7 @@ async function fetchAllForIncompleteCount(db: DB): Promise<ProfileForCompletenes
   while (hasMore) {
     const { data, error } = await db
       .from("business_profiles")
-      .select("id, display_name, image_url, city, state, metadata")
+      .select("id, type, display_name, image_url, city, state, metadata")
       .in("type", ["caregiver", "student"])
       .range(offset, offset + PAGE_SIZE - 1);
 
@@ -53,19 +54,49 @@ async function fetchAllForIncompleteCount(db: DB): Promise<ProfileForCompletenes
 }
 
 /**
+ * Calculate completeness for a regular caregiver (non-student).
+ * Simpler formula based on CaregiverMetadata fields.
+ */
+function computeCaregiverCompleteness(
+  profile: ProfileForCompleteness,
+  meta: CaregiverMetadata
+): number {
+  const fields = [
+    { filled: !!profile.display_name, weight: 20 },
+    { filled: !!profile.image_url, weight: 15 },
+    { filled: !!(profile.city && profile.state), weight: 15 },
+    { filled: (meta.certifications?.length ?? 0) > 0, weight: 15 },
+    { filled: meta.years_experience != null, weight: 10 },
+    { filled: (meta.languages?.length ?? 0) > 0, weight: 10 },
+    { filled: !!meta.availability, weight: 10 },
+    { filled: meta.hourly_rate_min != null || meta.hourly_rate_max != null, weight: 5 },
+  ];
+  return fields.reduce((sum, f) => sum + (f.filled ? f.weight : 0), 0);
+}
+
+/**
  * Calculate profile completeness for a caregiver/student.
- * Uses the comprehensive section-based calculation from medjobs-completeness.
+ * Uses different formulas based on profile type:
+ * - Students: Comprehensive section-based calculation from medjobs-completeness
+ * - Caregivers: Simpler formula based on CaregiverMetadata fields
  */
 function computeProfileCompleteness(profile: ProfileForCompleteness): number {
-  const meta = (profile.metadata || {}) as StudentMetadata;
-  const hasPhoto = !!profile.image_url;
-  const hasBasicInfo = {
-    hasName: !!profile.display_name,
-    hasUniversity: !!meta.university,
-    hasLocation: !!(profile.city && profile.state),
-  };
+  const meta = profile.metadata || {};
 
-  return calculateCompleteness(meta, hasPhoto, hasBasicInfo);
+  // For students, use the comprehensive MedJobs completeness calculation
+  if (profile.type === "student") {
+    const studentMeta = meta as StudentMetadata;
+    const hasPhoto = !!profile.image_url;
+    const hasBasicInfo = {
+      hasName: !!profile.display_name,
+      hasUniversity: !!studentMeta.university,
+      hasLocation: !!(profile.city && profile.state),
+    };
+    return calculateCompleteness(studentMeta, hasPhoto, hasBasicInfo);
+  }
+
+  // For regular caregivers, use a simpler formula
+  return computeCaregiverCompleteness(profile, meta as CaregiverMetadata);
 }
 
 /**

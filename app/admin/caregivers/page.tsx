@@ -2,21 +2,21 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import type { CaregiverMetadata, StudentMetadata } from "@/lib/types";
+import type { StudentMetadata } from "@/lib/types";
 
 type FilterTab = "all" | "active" | "paused" | "complete" | "incomplete";
 
-interface CaregiverRow {
+interface StudentRow {
   id: string;
   slug: string;
-  type: "caregiver" | "student";
+  type: "student";
   display_name: string;
   email: string | null;
   phone: string | null;
   image_url: string | null;
   city: string | null;
   state: string | null;
-  metadata: CaregiverMetadata | StudentMetadata;
+  metadata: StudentMetadata;
   account_id: string | null;
   claim_state: string;
   verification_state: string;
@@ -35,7 +35,6 @@ interface TabCounts {
   incomplete: number;
   thisWeek: number;
   students: number;
-  caregivers: number;
 }
 
 // Format date as "Feb 02, 2026"
@@ -50,10 +49,10 @@ function formatJoinedDate(isoDate: string): string {
 
 const PAGE_SIZE = 25;
 
-export default function AdminCaregiversPage() {
+export default function AdminStudentsPage() {
   const router = useRouter();
 
-  const [caregivers, setCaregivers] = useState<CaregiverRow[]>([]);
+  const [students, setStudents] = useState<StudentRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -67,7 +66,7 @@ export default function AdminCaregiversPage() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const toastRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
-  const [pendingDelete, setPendingDelete] = useState<CaregiverRow | null>(null);
+  const [pendingDelete, setPendingDelete] = useState<StudentRow | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
@@ -89,7 +88,7 @@ export default function AdminCaregiversPage() {
     setPage(1);
   }, [filter]);
 
-  const fetchCaregivers = useCallback(async () => {
+  const fetchStudents = useCallback(async () => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
@@ -104,11 +103,11 @@ export default function AdminCaregiversPage() {
       const res = await fetch(`/api/admin/caregivers?${params}`);
       if (res.ok) {
         const data = await res.json();
-        setCaregivers(data.caregivers ?? []);
+        setStudents(data.students ?? []);
         setTotal(data.total ?? 0);
       }
     } catch (err) {
-      console.error("Failed to fetch caregivers:", err);
+      console.error("Failed to fetch students:", err);
     } finally {
       setLoading(false);
     }
@@ -127,7 +126,6 @@ export default function AdminCaregiversPage() {
           incomplete: statsData.incomplete ?? 0,
           thisWeek: statsData.thisWeek ?? 0,
           students: statsData.students ?? 0,
-          caregivers: statsData.caregivers ?? 0,
         });
       }
     } catch { /* ignore */ }
@@ -138,8 +136,8 @@ export default function AdminCaregiversPage() {
   }, [fetchTabCounts]);
 
   useEffect(() => {
-    fetchCaregivers();
-  }, [fetchCaregivers]);
+    fetchStudents();
+  }, [fetchStudents]);
 
   async function confirmDelete() {
     if (!pendingDelete) return;
@@ -147,25 +145,25 @@ export default function AdminCaregiversPage() {
     setDeleting(true);
     setDeleteError(null);
 
-    const caregiver = pendingDelete;
-    setCaregivers((prev) => prev.filter((c) => c.id !== caregiver.id));
+    const student = pendingDelete;
+    setStudents((prev) => prev.filter((s) => s.id !== student.id));
     setTotal((prev) => prev - 1);
 
     try {
-      const res = await fetch(`/api/admin/caregivers/${caregiver.id}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/caregivers/${student.id}`, { method: "DELETE" });
       if (res.ok) {
-        showToast(`Deleted ${caregiver.display_name}`);
+        showToast(`Deleted ${student.display_name}`);
         fetchTabCounts();
         setPendingDelete(null);
       } else {
-        setCaregivers((prev) => [...prev, caregiver].sort(
+        setStudents((prev) => [...prev, student].sort(
           (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         ));
         setTotal((prev) => prev + 1);
-        setDeleteError("Failed to delete caregiver");
+        setDeleteError("Failed to delete student");
       }
     } catch {
-      setCaregivers((prev) => [...prev, caregiver].sort(
+      setStudents((prev) => [...prev, student].sort(
         (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
       ));
       setTotal((prev) => prev + 1);
@@ -206,9 +204,9 @@ export default function AdminCaregiversPage() {
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Caregivers</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Students</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Students and caregivers on the platform
+            MedJobs student applicants
           </p>
         </div>
       </div>
@@ -216,11 +214,8 @@ export default function AdminCaregiversPage() {
       {/* Stats */}
       <div className="grid grid-cols-4 gap-4 mb-6">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
-          <p className="text-sm text-gray-500">Total</p>
-          <p className="text-2xl font-bold text-gray-900">{tabCounts ? tabCounts.total : "—"}</p>
-          <p className="text-xs text-gray-400 mt-1">
-            {tabCounts ? `${tabCounts.students} students · ${tabCounts.caregivers} caregivers` : ""}
-          </p>
+          <p className="text-sm text-gray-500">Total Students</p>
+          <p className="text-2xl font-bold text-gray-900">{tabCounts ? tabCounts.students : "—"}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Active</p>
@@ -290,7 +285,7 @@ export default function AdminCaregiversPage() {
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {/* Header */}
         <div className="grid grid-cols-[2fr_1.5fr_100px_120px_32px] gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
-          <div>Caregiver</div>
+          <div>Student</div>
           <div>School & Location</div>
           <div className="text-center">Status</div>
           <div className="text-right">Joined</div>
@@ -299,36 +294,27 @@ export default function AdminCaregiversPage() {
 
         {loading ? (
           <div className="p-8 text-center text-gray-400">Loading...</div>
-        ) : caregivers.length === 0 ? (
-          <div className="p-8 text-center text-gray-400">No caregivers found</div>
+        ) : students.length === 0 ? (
+          <div className="p-8 text-center text-gray-400">No students found</div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {caregivers.map((caregiver) => {
-              const location = [caregiver.city, caregiver.state].filter(Boolean).join(", ");
-              const completeness = caregiver.profile_completeness;
+            {students.map((student) => {
+              const location = [student.city, student.state].filter(Boolean).join(", ");
+              const completeness = student.profile_completeness;
 
               return (
                 <div
-                  key={caregiver.id}
+                  key={student.id}
                   className="group grid grid-cols-[2fr_1.5fr_100px_120px_32px] gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer items-start"
-                  onClick={() => router.push(`/admin/caregivers/${caregiver.id}`)}
+                  onClick={() => router.push(`/admin/caregivers/${student.id}`)}
                 >
-                  {/* Caregiver Info */}
+                  {/* Student Info */}
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="font-medium text-gray-900 truncate">
-                        {caregiver.display_name}
-                      </p>
-                      <span className={`shrink-0 text-xs px-1.5 py-0.5 rounded ${
-                        caregiver.type === "student"
-                          ? "bg-blue-100 text-blue-700"
-                          : "bg-purple-100 text-purple-700"
-                      }`}>
-                        {caregiver.type === "student" ? "Student" : "Caregiver"}
-                      </span>
-                    </div>
+                    <p className="font-medium text-gray-900 truncate">
+                      {student.display_name}
+                    </p>
                     <p className="text-sm text-gray-500 truncate">
-                      {caregiver.email || "No email"}
+                      {student.email || "No email"}
                     </p>
                     <p className="text-sm mt-0.5">
                       <span className={completeness >= 80 ? "text-emerald-600" : "text-gray-400"}>
@@ -339,9 +325,9 @@ export default function AdminCaregiversPage() {
 
                   {/* School & Location (stacked) */}
                   <div className="min-w-0">
-                    {caregiver.university ? (
-                      <p className="text-sm text-gray-900 truncate" title={caregiver.university}>
-                        {caregiver.university}
+                    {student.university ? (
+                      <p className="text-sm text-gray-900 truncate" title={student.university}>
+                        {student.university}
                       </p>
                     ) : (
                       <p className="text-sm text-gray-400 italic">No school</p>
@@ -356,18 +342,18 @@ export default function AdminCaregiversPage() {
                   {/* Status */}
                   <div className="text-center pt-0.5">
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      caregiver.is_active
+                      student.is_active
                         ? "bg-green-100 text-green-700"
                         : "bg-gray-100 text-gray-600"
                     }`}>
-                      {caregiver.is_active ? "Active" : "Paused"}
+                      {student.is_active ? "Active" : "Paused"}
                     </span>
                   </div>
 
                   {/* Joined */}
                   <div className="text-right pt-0.5">
                     <p className="text-sm text-gray-400">
-                      {formatJoinedDate(caregiver.created_at)}
+                      {formatJoinedDate(student.created_at)}
                     </p>
                   </div>
 
@@ -378,10 +364,10 @@ export default function AdminCaregiversPage() {
                       onClick={(e) => {
                         e.stopPropagation();
                         setDeleteError(null);
-                        setPendingDelete(caregiver);
+                        setPendingDelete(student);
                       }}
                       className="opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity text-gray-300 hover:text-red-500 p-1"
-                      aria-label="Delete this caregiver"
+                      aria-label="Delete this student"
                       title="Delete"
                     >
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -397,7 +383,7 @@ export default function AdminCaregiversPage() {
       </div>
 
       {/* Pagination */}
-      {!loading && caregivers.length > 0 && (
+      {!loading && students.length > 0 && (
         <div className="flex items-center justify-between mt-6 px-2">
           <p className="text-sm text-gray-500">
             {total <= PAGE_SIZE
@@ -432,20 +418,16 @@ export default function AdminCaregiversPage() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 px-4"
           role="dialog"
           aria-modal="true"
-          aria-labelledby="delete-caregiver-title"
+          aria-labelledby="delete-student-title"
         >
           <div className="bg-white rounded-xl shadow-xl p-6 max-w-md w-full">
-            <h3 id="delete-caregiver-title" className="text-base font-semibold text-gray-900 mb-3">
-              Delete this caregiver?
+            <h3 id="delete-student-title" className="text-base font-semibold text-gray-900 mb-3">
+              Delete this student?
             </h3>
             <dl className="text-sm text-gray-700 space-y-1.5 mb-4">
               <div className="flex gap-2">
                 <dt className="w-20 shrink-0 text-gray-400">Name</dt>
                 <dd className="text-gray-900">{pendingDelete.display_name}</dd>
-              </div>
-              <div className="flex gap-2">
-                <dt className="w-20 shrink-0 text-gray-400">Type</dt>
-                <dd className="text-gray-900 capitalize">{pendingDelete.type}</dd>
               </div>
               {pendingDelete.email && (
                 <div className="flex gap-2">
@@ -461,7 +443,7 @@ export default function AdminCaregiversPage() {
               )}
             </dl>
             <p className="text-[12px] text-gray-500 leading-relaxed mb-5">
-              This will permanently delete this caregiver and all their applications. This cannot be undone.
+              This will permanently delete this student and all their applications. This cannot be undone.
             </p>
             {deleteError && (
               <p className="text-[12px] text-red-600 mb-3">{deleteError}</p>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { calculateCompleteness } from "@/lib/medjobs-completeness";
-import type { CaregiverMetadata, StudentMetadata } from "@/lib/types";
+import type { StudentMetadata } from "@/lib/types";
 
 // Completeness threshold - profiles at or above this are considered complete
 const COMPLETENESS_THRESHOLD = 80;
@@ -9,17 +9,17 @@ const COMPLETENESS_THRESHOLD = 80;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = ReturnType<typeof getServiceClient>;
 
-interface CaregiverQueryResult {
+interface StudentQueryResult {
   id: string;
   slug: string;
-  type: "caregiver" | "student";
+  type: "student";
   display_name: string;
   email: string | null;
   phone: string | null;
   image_url: string | null;
   city: string | null;
   state: string | null;
-  metadata: CaregiverMetadata | StudentMetadata | null;
+  metadata: StudentMetadata | null;
   account_id: string | null;
   claim_state: string;
   verification_state: string;
@@ -29,64 +29,32 @@ interface CaregiverQueryResult {
 }
 
 /**
- * Calculate completeness for a regular caregiver (non-student).
- * Simpler formula based on CaregiverMetadata fields.
+ * Calculate profile completeness for a student.
+ * Uses comprehensive section-based calculation from medjobs-completeness.
  */
-function computeCaregiverCompleteness(
-  row: CaregiverQueryResult,
-  meta: CaregiverMetadata
-): number {
-  const fields = [
-    { filled: !!row.display_name, weight: 20 },
-    { filled: !!row.image_url, weight: 15 },
-    { filled: !!(row.city && row.state), weight: 15 },
-    { filled: (meta.certifications?.length ?? 0) > 0, weight: 15 },
-    { filled: meta.years_experience != null, weight: 10 },
-    { filled: (meta.languages?.length ?? 0) > 0, weight: 10 },
-    { filled: !!meta.availability, weight: 10 },
-    { filled: meta.hourly_rate_min != null || meta.hourly_rate_max != null, weight: 5 },
-  ];
-  return fields.reduce((sum, f) => sum + (f.filled ? f.weight : 0), 0);
+function computeProfileCompleteness(row: StudentQueryResult): number {
+  const studentMeta = (row.metadata || {}) as StudentMetadata;
+  const hasPhoto = !!row.image_url;
+  const hasBasicInfo = {
+    hasName: !!row.display_name,
+    hasUniversity: !!studentMeta.university,
+    hasLocation: !!(row.city && row.state),
+  };
+  return calculateCompleteness(studentMeta, hasPhoto, hasBasicInfo);
 }
 
 /**
- * Calculate profile completeness for a caregiver/student.
- * Uses different formulas based on profile type:
- * - Students: Comprehensive section-based calculation from medjobs-completeness
- * - Caregivers: Simpler formula based on CaregiverMetadata fields
- */
-function computeProfileCompleteness(row: CaregiverQueryResult): number {
-  const meta = row.metadata || {};
-
-  // For students, use the comprehensive MedJobs completeness calculation
-  if (row.type === "student") {
-    const studentMeta = meta as StudentMetadata;
-    const hasPhoto = !!row.image_url;
-    const hasBasicInfo = {
-      hasName: !!row.display_name,
-      hasUniversity: !!studentMeta.university,
-      hasLocation: !!(row.city && row.state),
-    };
-    return calculateCompleteness(studentMeta, hasPhoto, hasBasicInfo);
-  }
-
-  // For regular caregivers, use a simpler formula
-  return computeCaregiverCompleteness(row, meta as CaregiverMetadata);
-}
-
-/**
- * Fetch all matching caregiver/student profiles in batches (handles >1000 rows).
+ * Fetch all student profiles in batches (handles >1000 rows).
  * Used when client-side filtering requires full dataset.
  */
-async function fetchAllCaregivers(
+async function fetchAllStudents(
   db: DB,
   activeOnly: boolean,
   pausedOnly: boolean,
-  cityFilter: string,
-  typeFilter: string
-): Promise<CaregiverQueryResult[]> {
+  cityFilter: string
+): Promise<StudentQueryResult[]> {
   const PAGE_SIZE = 1000;
-  const allCaregivers: CaregiverQueryResult[] = [];
+  const allStudents: StudentQueryResult[] = [];
   let offset = 0;
   let hasMore = true;
 
@@ -96,13 +64,9 @@ async function fetchAllCaregivers(
       .select(
         "id, slug, type, display_name, email, phone, image_url, city, state, metadata, account_id, claim_state, verification_state, source, is_active, created_at"
       )
-      .in("type", ["caregiver", "student"])
+      .eq("type", "student")
       .order("created_at", { ascending: false })
       .range(offset, offset + PAGE_SIZE - 1);
-
-    if (typeFilter === "student" || typeFilter === "caregiver") {
-      query = query.eq("type", typeFilter);
-    }
 
     if (activeOnly) {
       query = query.eq("is_active", true);
@@ -119,12 +83,12 @@ async function fetchAllCaregivers(
     const { data, error } = await query;
 
     if (error) {
-      console.error("fetchAllCaregivers error:", error);
+      console.error("fetchAllStudents error:", error);
       break;
     }
 
     if (data && data.length > 0) {
-      allCaregivers.push(...(data as CaregiverQueryResult[]));
+      allStudents.push(...(data as StudentQueryResult[]));
       offset += PAGE_SIZE;
       hasMore = data.length === PAGE_SIZE;
     } else {
@@ -132,21 +96,21 @@ async function fetchAllCaregivers(
     }
   }
 
-  return allCaregivers;
+  return allStudents;
 }
 
 /**
- * Check if a caregiver matches the search term.
+ * Check if a student matches the search term.
  * Searches name, email, phone, and university.
  */
-function matchesSearch(caregiver: CaregiverQueryResult, search: string): boolean {
+function matchesSearch(student: StudentQueryResult, search: string): boolean {
   const term = search.toLowerCase();
-  const meta = (caregiver.metadata || {}) as StudentMetadata;
+  const meta = (student.metadata || {}) as StudentMetadata;
 
   return (
-    (caregiver.display_name?.toLowerCase().includes(term) ?? false) ||
-    (caregiver.email?.toLowerCase().includes(term) ?? false) ||
-    (caregiver.phone?.toLowerCase().includes(term) ?? false) ||
+    (student.display_name?.toLowerCase().includes(term) ?? false) ||
+    (student.email?.toLowerCase().includes(term) ?? false) ||
+    (student.phone?.toLowerCase().includes(term) ?? false) ||
     (meta.university?.toLowerCase().includes(term) ?? false)
   );
 }
@@ -154,7 +118,7 @@ function matchesSearch(caregiver: CaregiverQueryResult, search: string): boolean
 /**
  * GET /api/admin/caregivers
  *
- * List caregiver and student profiles with search, filters, and pagination.
+ * List student profiles with search, filters, and pagination.
  */
 export async function GET(request: NextRequest) {
   try {
@@ -173,7 +137,6 @@ export async function GET(request: NextRequest) {
     const completeOnly = searchParams.get("complete_only") === "true";
     const incompleteOnly = searchParams.get("incomplete_only") === "true";
     const cityFilter = searchParams.get("city")?.trim() || "";
-    const typeFilter = searchParams.get("type")?.trim() || "";
 
     const db = getServiceClient();
 
@@ -182,7 +145,7 @@ export async function GET(request: NextRequest) {
     // - Searching (to include university from JSONB metadata)
     const needsClientSideFilter = completeOnly || incompleteOnly || !!search;
 
-    let data: CaregiverQueryResult[] | null;
+    let data: StudentQueryResult[] | null;
     let count: number | null;
     let error: Error | null = null;
 
@@ -194,12 +157,8 @@ export async function GET(request: NextRequest) {
           "id, slug, type, display_name, email, phone, image_url, city, state, metadata, account_id, claim_state, verification_state, source, is_active, created_at",
           { count: "exact" }
         )
-        .in("type", ["caregiver", "student"])
+        .eq("type", "student")
         .order("created_at", { ascending: false });
-
-      if (typeFilter === "student" || typeFilter === "caregiver") {
-        query = query.eq("type", typeFilter);
-      }
 
       if (activeOnly) {
         query = query.eq("is_active", true);
@@ -218,22 +177,22 @@ export async function GET(request: NextRequest) {
       query = query.range(from, to);
 
       const result = await query;
-      data = result.data as CaregiverQueryResult[] | null;
+      data = result.data as StudentQueryResult[] | null;
       count = result.count;
       error = result.error;
     } else {
       // Fetch ALL data for client-side filtering
-      data = await fetchAllCaregivers(db, activeOnly, pausedOnly, cityFilter, typeFilter);
+      data = await fetchAllStudents(db, activeOnly, pausedOnly, cityFilter);
       count = data.length;
     }
 
     if (error) {
-      console.error("Admin caregivers list error:", error);
-      return NextResponse.json({ error: `Failed to fetch caregivers: ${error.message}` }, { status: 500 });
+      console.error("Admin students list error:", error);
+      return NextResponse.json({ error: `Failed to fetch students: ${error.message}` }, { status: 500 });
     }
 
     // Transform data with computed fields - calculate completeness on-the-fly
-    let caregivers = (data ?? []).map((row: CaregiverQueryResult) => {
+    let students = (data ?? []).map((row: StudentQueryResult) => {
       const meta = (row.metadata || {}) as StudentMetadata;
       const university = meta.university ?? null;
       const completeness = computeProfileCompleteness(row);
@@ -247,41 +206,41 @@ export async function GET(request: NextRequest) {
 
     // Apply client-side filters
     if (search) {
-      caregivers = caregivers.filter((c) => matchesSearch(c, search));
+      students = students.filter((s) => matchesSearch(s, search));
     }
 
     if (completeOnly) {
-      caregivers = caregivers.filter((c) => c.profile_completeness >= COMPLETENESS_THRESHOLD);
+      students = students.filter((s) => s.profile_completeness >= COMPLETENESS_THRESHOLD);
     } else if (incompleteOnly) {
-      caregivers = caregivers.filter((c) => c.profile_completeness < COMPLETENESS_THRESHOLD);
+      students = students.filter((s) => s.profile_completeness < COMPLETENESS_THRESHOLD);
     }
 
     // Calculate totals and pagination
     let total: number;
-    let paginatedCaregivers: typeof caregivers;
+    let paginatedStudents: typeof students;
 
     if (needsClientSideFilter) {
       // For client-side filtered data, paginate the filtered results
-      total = caregivers.length;
+      total = students.length;
       const from = (page - 1) * perPage;
-      paginatedCaregivers = caregivers.slice(from, from + perPage);
+      paginatedStudents = students.slice(from, from + perPage);
     } else {
       // For DB-paginated data, use the DB count
       total = count ?? 0;
-      paginatedCaregivers = caregivers;
+      paginatedStudents = students;
     }
 
     const totalPages = Math.ceil(total / perPage);
 
     return NextResponse.json({
-      caregivers: paginatedCaregivers,
+      students: paginatedStudents,
       total,
       page,
       per_page: perPage,
       total_pages: totalPages,
     });
   } catch (err) {
-    console.error("Admin caregivers list error:", err);
+    console.error("Admin students list error:", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }

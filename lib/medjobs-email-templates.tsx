@@ -284,9 +284,10 @@ export function studentActivationEmail({
   profileUrl: string;
   magicLink?: string;
 }): string {
-  const safeName = firstName(studentName, "there");
-  const locationLine = city ? ` in ${city}` : "";
+  const safeName = escapeHtml(firstName(studentName, "there"));
+  const locationLine = city ? ` in ${escapeHtml(city)}` : "";
   const dashboardUrl = magicLink || `${BASE_URL}/medjobs/providers`;
+  const safeProfileUrl = escapeHtml(profileUrl);
 
   return layout(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Your profile is live, ${safeName}!</h2>
@@ -307,7 +308,7 @@ export function studentActivationEmail({
       <strong>Your profile link:</strong>
     </p>
     <p style="font-size:13px;margin:0 0 20px;">
-      <a href="${profileUrl}" style="color:${BRAND_COLOR};">${profileUrl}</a>
+      <a href="${profileUrl}" style="color:${BRAND_COLOR};">${safeProfileUrl}</a>
     </p>
     <p style="font-size:14px;color:#6b7280;margin:0 0 20px;line-height:1.6;">
       Share this link when reaching out — it shows your video, availability, and background at a glance.
@@ -493,7 +494,7 @@ export function profileIncompleteNudgeEmail({
   magicLink?: string;
 }): string {
   const completeProfileUrl = magicLink || `${BASE_URL}/portal/medjobs/profile`;
-  const safeName = firstName(studentName, "there");
+  const safeName = escapeHtml(firstName(studentName, "there"));
   const itemsList = missingItems
     .map((item) => `<li>${escapeHtml(item)}</li>`)
     .join("");

@@ -74,8 +74,18 @@ export function MeetingScheduler({
     setError(null);
 
     try {
-      // Treat input as UTC (matching Calendly's timezone)
-      const scheduledAt = new Date(`${manualDate}T${manualTime}:00Z`).toISOString();
+      // Treat input as America/New_York (EST/EDT) and convert to UTC for storage
+      // Create a date string with the input values, then use timezone conversion
+      const inputDateStr = `${manualDate}T${manualTime}:00`;
+      // Get the EST/EDT offset for this specific date (handles daylight saving automatically)
+      const testDate = new Date(inputDateStr);
+      const estString = testDate.toLocaleString("en-US", { timeZone: "America/New_York" });
+      const utcString = testDate.toLocaleString("en-US", { timeZone: "UTC" });
+      const estTime = new Date(estString).getTime();
+      const utcTime = new Date(utcString).getTime();
+      const offsetMs = utcTime - estTime;
+      // The input is in EST, so we need to ADD the offset to get UTC
+      const scheduledAt = new Date(testDate.getTime() + offsetMs).toISOString();
 
       const res = await fetch("/api/admin/provider-growth/schedule-meeting", {
         method: "POST",
@@ -111,7 +121,7 @@ export function MeetingScheduler({
           Confirm meeting with {providerName}
         </h3>
         <p className="mt-1 text-xs text-gray-500">
-          Calendly opened in a new tab. Enter the meeting time you booked (in UTC):
+          Calendly opened in a new tab. Enter the meeting time you booked (in Eastern Time):
         </p>
       </div>
 
@@ -139,7 +149,7 @@ export function MeetingScheduler({
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Time <span className="text-gray-400 font-normal">(UTC)</span>
+              Time <span className="text-gray-400 font-normal">(ET)</span>
             </label>
             <input
               type="time"

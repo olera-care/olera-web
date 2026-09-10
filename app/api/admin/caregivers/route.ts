@@ -134,6 +134,7 @@ export async function GET(request: NextRequest) {
     const perPage = Math.min(100, Math.max(1, parseInt(searchParams.get("per_page") || "50", 10)));
     const activeOnly = searchParams.get("active_only") === "true";
     const pausedOnly = searchParams.get("paused_only") === "true";
+    const notLiveOnly = searchParams.get("not_live_only") === "true";
     const completeOnly = searchParams.get("complete_only") === "true";
     const incompleteOnly = searchParams.get("incomplete_only") === "true";
     const cityFilter = searchParams.get("city")?.trim() || "";
@@ -142,8 +143,9 @@ export async function GET(request: NextRequest) {
 
     // Client-side filtering needed when:
     // - Filtering by completeness (requires calculation from metadata)
+    // - Filtering by paused/not_live (requires checking application_completed in metadata)
     // - Searching (to include university from JSONB metadata)
-    const needsClientSideFilter = completeOnly || incompleteOnly || !!search;
+    const needsClientSideFilter = completeOnly || incompleteOnly || pausedOnly || notLiveOnly || !!search;
 
     let data: StudentQueryResult[] | null;
     let count: number | null;
@@ -182,7 +184,10 @@ export async function GET(request: NextRequest) {
       error = result.error;
     } else {
       // Fetch ALL data for client-side filtering
-      data = await fetchAllStudents(db, activeOnly, pausedOnly, cityFilter);
+      // When filtering by paused/notLive, we need inactive profiles, so don't pass pausedOnly to DB
+      const dbActiveOnly = activeOnly;
+      const dbInactiveOnly = pausedOnly || notLiveOnly;
+      data = await fetchAllStudents(db, dbActiveOnly, dbInactiveOnly, cityFilter);
       count = data.length;
     }
 
@@ -193,14 +198,16 @@ export async function GET(request: NextRequest) {
 
     // Transform data with computed fields - calculate completeness on-the-fly
     let students = (data ?? []).map((row: StudentQueryResult) => {
-      const meta = (row.metadata || {}) as StudentMetadata;
+      const meta = (row.metadata || {}) as StudentMetadata & { application_completed?: boolean };
       const university = meta.university ?? null;
       const completeness = computeProfileCompleteness(row);
+      const applicationCompleted = !!meta.application_completed;
 
       return {
         ...row,
         profile_completeness: completeness,
         university,
+        application_completed: applicationCompleted,
       };
     });
 
@@ -213,6 +220,15 @@ export async function GET(request: NextRequest) {
       students = students.filter((s) => s.profile_completeness >= COMPLETENESS_THRESHOLD);
     } else if (incompleteOnly) {
       students = students.filter((s) => s.profile_completeness < COMPLETENESS_THRESHOLD);
+    }
+
+    // Filter by lifecycle status (paused vs not live)
+    // Paused = was live, then deactivated (is_active=false AND application_completed=true)
+    // Not Live = never went live (is_active=false AND application_completed is falsy)
+    if (pausedOnly) {
+      students = students.filter((s) => !s.is_active && s.application_completed);
+    } else if (notLiveOnly) {
+      students = students.filter((s) => !s.is_active && !s.application_completed);
     }
 
     // Calculate totals and pagination

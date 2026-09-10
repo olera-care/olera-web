@@ -15,6 +15,7 @@ interface StudentProfile {
   image_url: string | null;
   city: string | null;
   state: string | null;
+  is_active: boolean;
   metadata: StudentMetadata | null;
 }
 
@@ -30,7 +31,7 @@ async function fetchAllStudents(db: DB): Promise<StudentProfile[]> {
   while (hasMore) {
     const { data, error } = await db
       .from("business_profiles")
-      .select("id, display_name, image_url, city, state, metadata")
+      .select("id, display_name, image_url, city, state, is_active, metadata")
       .eq("type", "student")
       .range(offset, offset + PAGE_SIZE - 1);
 
@@ -80,28 +81,8 @@ export async function GET() {
 
     const db = getServiceClient();
 
-    // Run count queries and fetch for completeness counts in parallel
-    const [totalRes, activeRes, pausedRes, thisWeekRes, allStudents] = await Promise.all([
-      // Total students
-      db
-        .from("business_profiles")
-        .select("id", { count: "exact", head: true })
-        .eq("type", "student"),
-
-      // Active (is_active = true)
-      db
-        .from("business_profiles")
-        .select("id", { count: "exact", head: true })
-        .eq("type", "student")
-        .eq("is_active", true),
-
-      // Paused (is_active = false)
-      db
-        .from("business_profiles")
-        .select("id", { count: "exact", head: true })
-        .eq("type", "student")
-        .eq("is_active", false),
-
+    // Run count query for thisWeek and fetch all students for other counts
+    const [thisWeekRes, allStudents] = await Promise.all([
       // New this week
       db
         .from("business_profiles")
@@ -109,36 +90,53 @@ export async function GET() {
         .eq("type", "student")
         .gte("created_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()),
 
-      // Fetch all for completeness count
+      // Fetch all for all counts (need metadata for application_completed)
       fetchAllStudents(db),
     ]);
 
-    // Log any query errors for debugging
-    if (totalRes.error) console.error("Stats total query error:", totalRes.error);
-    if (activeRes.error) console.error("Stats active query error:", activeRes.error);
-    if (pausedRes.error) console.error("Stats paused query error:", pausedRes.error);
     if (thisWeekRes.error) console.error("Stats thisWeek query error:", thisWeekRes.error);
 
-    // Count complete and incomplete profiles
+    // Count all states by iterating through profiles
+    let activeCount = 0;
+    let pausedCount = 0;     // is_active=false AND application_completed=true
+    let notLiveCount = 0;    // is_active=false AND application_completed is falsy
     let completeCount = 0;
     let incompleteCount = 0;
+
     for (const profile of allStudents) {
+      const meta = (profile.metadata || {}) as StudentMetadata & { application_completed?: boolean };
       const completeness = computeProfileCompleteness(profile);
+
+      // Completeness counts
       if (completeness >= INCOMPLETE_THRESHOLD) {
         completeCount++;
       } else {
         incompleteCount++;
       }
+
+      // Lifecycle state counts
+      if (profile.is_active) {
+        activeCount++;
+      } else if (meta.application_completed) {
+        // Was live, now paused
+        pausedCount++;
+      } else {
+        // Never went live
+        notLiveCount++;
+      }
     }
 
+    const total = allStudents.length;
+
     return NextResponse.json({
-      total: totalRes.count ?? 0,
-      active: activeRes.count ?? 0,
-      paused: pausedRes.count ?? 0,
+      total,
+      active: activeCount,
+      paused: pausedCount,
+      notLive: notLiveCount,
       complete: completeCount,
       incomplete: incompleteCount,
       thisWeek: thisWeekRes.count ?? 0,
-      students: totalRes.count ?? 0, // For backwards compatibility
+      students: total, // For backwards compatibility
     });
   } catch (err) {
     console.error("Admin students stats error:", err);

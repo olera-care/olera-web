@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { StudentMetadata } from "@/lib/types";
 
-type FilterTab = "all" | "active" | "paused" | "complete" | "incomplete";
+type FilterTab = "all" | "active" | "paused" | "notLive" | "complete" | "incomplete";
 
 interface StudentRow {
   id: string;
@@ -22,6 +22,7 @@ interface StudentRow {
   verification_state: string;
   source: string;
   is_active: boolean;
+  application_completed: boolean;
   created_at: string;
   profile_completeness: number;
   university: string | null;
@@ -31,6 +32,7 @@ interface TabCounts {
   total: number;
   active: number;
   paused: number;
+  notLive: number;
   complete: number;
   incomplete: number;
   thisWeek: number;
@@ -97,6 +99,7 @@ export default function AdminStudentsPage() {
       if (debouncedSearch) params.set("search", debouncedSearch);
       if (filter === "active") params.set("active_only", "true");
       if (filter === "paused") params.set("paused_only", "true");
+      if (filter === "notLive") params.set("not_live_only", "true");
       if (filter === "complete") params.set("complete_only", "true");
       if (filter === "incomplete") params.set("incomplete_only", "true");
 
@@ -122,6 +125,7 @@ export default function AdminStudentsPage() {
           total: statsData.total ?? 0,
           active: statsData.active ?? 0,
           paused: statsData.paused ?? 0,
+          notLive: statsData.notLive ?? 0,
           complete: statsData.complete ?? 0,
           incomplete: statsData.incomplete ?? 0,
           thisWeek: statsData.thisWeek ?? 0,
@@ -184,6 +188,7 @@ export default function AdminStudentsPage() {
     { label: "All", value: "all", count: tabCounts?.total ?? null },
     { label: "Active", value: "active", count: tabCounts?.active ?? null },
     { label: "Paused", value: "paused", count: tabCounts?.paused ?? null },
+    { label: "Not Live", value: "notLive", count: tabCounts?.notLive ?? null },
     { label: "Complete", value: "complete", count: tabCounts?.complete ?? null },
     { label: "Incomplete", value: "incomplete", count: tabCounts?.incomplete ?? null },
   ];
@@ -212,7 +217,7 @@ export default function AdminStudentsPage() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-5 gap-4 mb-6">
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Total Students</p>
           <p className="text-2xl font-bold text-gray-900">{tabCounts ? tabCounts.students : "—"}</p>
@@ -224,6 +229,10 @@ export default function AdminStudentsPage() {
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-500">Paused</p>
           <p className="text-2xl font-bold text-amber-600">{tabCounts ? tabCounts.paused : "—"}</p>
+        </div>
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <p className="text-sm text-gray-500">Not Live</p>
+          <p className="text-2xl font-bold text-gray-400">{tabCounts ? tabCounts.notLive : "—"}</p>
         </div>
         <div className="bg-white rounded-xl border border-gray-200 p-4">
           <p className="text-sm text-gray-500">New This Week</p>
@@ -341,13 +350,19 @@ export default function AdminStudentsPage() {
 
                   {/* Status */}
                   <div className="text-center pt-0.5">
-                    <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                      student.is_active
-                        ? "bg-green-100 text-green-700"
-                        : "bg-gray-100 text-gray-600"
-                    }`}>
-                      {student.is_active ? "Active" : "Paused"}
-                    </span>
+                    {student.is_active ? (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
+                        Active
+                      </span>
+                    ) : student.application_completed ? (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-700">
+                        Paused
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-500">
+                        Not Live
+                      </span>
+                    )}
                   </div>
 
                   {/* Joined */}

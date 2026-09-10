@@ -286,19 +286,19 @@ export function studentActivationEmail({
 }): string {
   const firstName = studentName.split(" ")[0];
   const locationLine = city ? ` in ${city}` : "";
-  const dashboardUrl = magicLink || `${BASE_URL}/medjobs/families`;
+  const dashboardUrl = magicLink || `${BASE_URL}/medjobs/providers`;
 
   return layout(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Your profile is live, ${firstName}!</h2>
     <p style="font-size:14px;color:#6b7280;margin:0 0 16px;line-height:1.6;">
-      Congratulations — your MedJobs profile is 100% complete and verified. Families${locationLine} can now find you and reach out via the platform, email, or phone.
+      Congratulations — your MedJobs profile is 100% complete and verified. Providers${locationLine} can now find you and reach out via the platform, email, or phone.
     </p>
     <table cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;padding:16px;width:100%;margin:0 0 16px;">
       <tr><td>
         <p style="font-size:13px;font-weight:600;color:#166534;margin:0 0 8px;">What happens now?</p>
         <ol style="font-size:13px;color:#166534;margin:0;padding-left:16px;line-height:1.8;">
-          <li>Families and care teams can view your profile and reach out to you</li>
-          <li>You can browse families hiring near you and ask to be introduced</li>
+          <li>Providers can view your profile and reach out to you</li>
+          <li>You can browse providers hiring near you and ask to be introduced</li>
           <li>Reaching out directly often leads to conversations faster</li>
         </ol>
       </td></tr>
@@ -313,7 +313,7 @@ export function studentActivationEmail({
       Share this link when reaching out — it shows your video, availability, and background at a glance.
     </p>
     <p style="margin:0 0 16px;">
-      ${button("See families hiring near you", dashboardUrl)}
+      ${button("See providers hiring near you", dashboardUrl)}
     </p>
   `);
 }

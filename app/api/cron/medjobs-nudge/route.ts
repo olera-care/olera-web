@@ -72,7 +72,7 @@ export async function GET(request: NextRequest) {
               const { data: linkData } = await db.auth.admin.generateLink({
                 type: "magiclink",
                 email: student.email!,
-                options: { redirectTo: `${siteUrl}/medjobs/families` },
+                options: { redirectTo: `${siteUrl}/medjobs/providers` },
               });
               if (linkData?.properties?.action_link) {
                 magicLink = linkData.properties.action_link;

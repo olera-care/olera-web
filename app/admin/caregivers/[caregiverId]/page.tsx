@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Badge from "@/components/ui/Badge";
-import type { StudentMetadata, CaregiverMetadata } from "@/lib/types";
+import type { StudentMetadata } from "@/lib/types";
 
 interface ConnectionRow {
   id: string;
@@ -66,47 +66,47 @@ function getStatusVariant(status: string): "pending" | "verified" | "rejected" |
   }
 }
 
-export default function AdminCaregiverDetailPage() {
-  const { caregiverId } = useParams<{ caregiverId: string }>();
+export default function AdminStudentDetailPage() {
+  const { caregiverId: studentId } = useParams<{ caregiverId: string }>();
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [caregiver, setCaregiver] = useState<any>(null);
+  const [student, setStudent] = useState<any>(null);
   const [connections, setConnections] = useState<ConnectionRow[]>([]);
   const [invitations, setInvitations] = useState<InvitationRow[]>([]);
   const [interviews, setInterviews] = useState<InterviewRow[]>([]);
   const [connectionCount, setConnectionCount] = useState(0);
 
-  const fetchCaregiver = useCallback(async () => {
+  const fetchStudent = useCallback(async () => {
     try {
-      const res = await fetch(`/api/admin/caregivers/${caregiverId}`);
+      const res = await fetch(`/api/admin/caregivers/${studentId}`);
       if (!res.ok) {
         router.push("/admin/caregivers");
         return;
       }
       const data = await res.json();
-      setCaregiver(data.caregiver);
+      setStudent(data.student);
       setConnections(data.connections ?? []);
       setInvitations(data.invitations ?? []);
       setInterviews(data.interviews ?? []);
       setConnectionCount(data.connectionCount ?? 0);
     } catch (err) {
-      console.error("Failed to fetch caregiver:", err);
+      console.error("Failed to fetch student:", err);
     } finally {
       setLoading(false);
     }
-  }, [caregiverId, router]);
+  }, [studentId, router]);
 
   useEffect(() => {
-    fetchCaregiver();
-  }, [fetchCaregiver]);
+    fetchStudent();
+  }, [fetchStudent]);
 
   async function handleDelete() {
-    if (!confirm(`Permanently delete "${caregiver?.display_name}"? This will also delete all their applications. This cannot be undone.`)) return;
+    if (!confirm(`Permanently delete "${student?.display_name}"? This will also delete all their applications. This cannot be undone.`)) return;
     setDeleting(true);
     try {
-      const res = await fetch(`/api/admin/caregivers/${caregiverId}`, { method: "DELETE" });
+      const res = await fetch(`/api/admin/caregivers/${studentId}`, { method: "DELETE" });
       if (res.ok) {
         router.push("/admin/caregivers");
       }
@@ -125,11 +125,10 @@ export default function AdminCaregiverDetailPage() {
     );
   }
 
-  if (!caregiver) return null;
+  if (!student) return null;
 
-  const meta = (caregiver.metadata || {}) as StudentMetadata & CaregiverMetadata;
-  const isStudent = caregiver.type === "student";
-  const isGuest = !caregiver.account_id;
+  const meta = (student.metadata || {}) as StudentMetadata;
+  const isGuest = !student.account_id;
 
   return (
     <div className="max-w-4xl">
@@ -142,20 +141,16 @@ export default function AdminCaregiverDetailPage() {
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
-          Back to Caregivers
+          Back to Students
         </Link>
       </div>
 
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">{caregiver.display_name}</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{student.display_name}</h1>
         <div className="flex items-center gap-3 mt-2">
-          <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            isStudent
-              ? "bg-blue-100 text-blue-800"
-              : "bg-purple-100 text-purple-800"
-          }`}>
-            {isStudent ? "Student" : "Caregiver"}
+          <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            Student
           </span>
           {isGuest ? (
             <span className="px-2.5 py-0.5 bg-amber-100 text-amber-800 rounded-full text-xs font-medium">
@@ -167,11 +162,11 @@ export default function AdminCaregiverDetailPage() {
             </span>
           )}
           <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${
-            caregiver.is_active
+            student.is_active
               ? "bg-green-100 text-green-700"
               : "bg-gray-100 text-gray-600"
           }`}>
-            {caregiver.is_active ? "Active" : "Paused"}
+            {student.is_active ? "Active" : "Paused"}
           </span>
           <span className="text-sm text-gray-500">
             {connectionCount} application{connectionCount !== 1 ? "s" : ""}
@@ -183,14 +178,14 @@ export default function AdminCaregiverDetailPage() {
         {/* Identity */}
         <Section title="Identity">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <ReadOnlyField label="Name" value={caregiver.display_name} />
-            <ReadOnlyField label="Email" value={caregiver.email} />
-            <ReadOnlyField label="Phone" value={caregiver.phone} />
+            <ReadOnlyField label="Name" value={student.display_name} />
+            <ReadOnlyField label="Email" value={student.email} />
+            <ReadOnlyField label="Phone" value={student.phone} />
             <ReadOnlyField
               label="Location"
-              value={caregiver.city && caregiver.state ? `${caregiver.city}, ${caregiver.state}` : caregiver.city || caregiver.state}
+              value={student.city && student.state ? `${student.city}, ${student.state}` : student.city || student.state}
             />
-            <ReadOnlyField label="Source" value={caregiver.source} />
+            <ReadOnlyField label="Source" value={student.source} />
             <ReadOnlyField
               label="Profile Completeness"
               value={meta.profile_completeness ? `${meta.profile_completeness}%` : null}
@@ -198,9 +193,8 @@ export default function AdminCaregiverDetailPage() {
           </div>
         </Section>
 
-        {/* Education (Students only) */}
-        {isStudent && (
-          <Section title="Education">
+        {/* Education */}
+        <Section title="Education">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <ReadOnlyField label="University" value={meta.university} />
               <ReadOnlyField label="Campus" value={meta.campus} />
@@ -211,7 +205,6 @@ export default function AdminCaregiverDetailPage() {
               <ReadOnlyField label="Intended Professional School" value={meta.intended_professional_school} />
             </div>
           </Section>
-        )}
 
         {/* Experience */}
         <Section title="Experience">
@@ -222,7 +215,7 @@ export default function AdminCaregiverDetailPage() {
             />
             <ReadOnlyField
               label="Years of Experience"
-              value={isStudent ? meta.years_caregiving?.toString() : meta.years_experience?.toString()}
+              value={meta.years_caregiving?.toString()}
             />
             <ReadOnlyField
               label="Languages"
@@ -265,7 +258,7 @@ export default function AdminCaregiverDetailPage() {
         {/* Availability */}
         <Section title="Availability">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <ReadOnlyField label="Availability Type" value={meta.availability_type || meta.availability} />
+            <ReadOnlyField label="Availability Type" value={meta.availability_type} />
             <ReadOnlyField label="Hours Per Week" value={meta.hours_per_week?.toString() || meta.hours_per_week_range} />
             <ReadOnlyField label="Available Start" value={meta.available_start} />
             <ReadOnlyField label="Duration Commitment" value={meta.duration_commitment} />
@@ -414,7 +407,7 @@ export default function AdminCaregiverDetailPage() {
           </Section>
         )}
 
-        {/* Applications (connections made by caregiver) */}
+        {/* Applications (connections made by student) */}
         <Section title="Applications">
           {connections.length === 0 ? (
             <p className="text-sm text-gray-400">No applications found</p>
@@ -510,7 +503,7 @@ export default function AdminCaregiverDetailPage() {
             <div>
               <h2 className="text-lg font-semibold text-red-800">Danger Zone</h2>
               <p className="text-sm text-red-600 mt-1">
-                Permanently delete this {isStudent ? "student" : "caregiver"} and all their applications. This cannot be undone.
+                Permanently delete this student and all their applications. This cannot be undone.
               </p>
             </div>
             <button
@@ -518,7 +511,7 @@ export default function AdminCaregiverDetailPage() {
               disabled={deleting}
               className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
             >
-              {deleting ? "Deleting..." : `Delete ${isStudent ? "Student" : "Caregiver"}`}
+              {deleting ? "Deleting..." : "Delete Student"}
             </button>
           </div>
         </div>

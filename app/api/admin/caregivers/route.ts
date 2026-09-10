@@ -3,8 +3,8 @@ import { getAuthUser, getAdminUser, getServiceClient } from "@/lib/admin";
 import { calculateCompleteness } from "@/lib/medjobs-completeness";
 import type { CaregiverMetadata, StudentMetadata } from "@/lib/types";
 
-// Incomplete threshold - profiles below this are considered incomplete
-const INCOMPLETE_THRESHOLD = 80;
+// Completeness threshold - profiles at or above this are considered complete
+const COMPLETENESS_THRESHOLD = 80;
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type DB = ReturnType<typeof getServiceClient>;
@@ -78,9 +78,8 @@ function computeProfileCompleteness(row: CaregiverQueryResult): number {
  * Fetch all matching caregiver/student profiles in batches (handles >1000 rows).
  * Used when client-side filtering requires full dataset.
  */
-async function fetchAllCaregiversWithFilters(
+async function fetchAllCaregivers(
   db: DB,
-  search: string,
   activeOnly: boolean,
   pausedOnly: boolean,
   cityFilter: string,
@@ -105,10 +104,6 @@ async function fetchAllCaregiversWithFilters(
       query = query.eq("type", typeFilter);
     }
 
-    if (search) {
-      query = query.or(`display_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`);
-    }
-
     if (activeOnly) {
       query = query.eq("is_active", true);
     } else if (pausedOnly) {
@@ -124,7 +119,7 @@ async function fetchAllCaregiversWithFilters(
     const { data, error } = await query;
 
     if (error) {
-      console.error("fetchAllCaregiversWithFilters error:", error);
+      console.error("fetchAllCaregivers error:", error);
       break;
     }
 
@@ -138,6 +133,22 @@ async function fetchAllCaregiversWithFilters(
   }
 
   return allCaregivers;
+}
+
+/**
+ * Check if a caregiver matches the search term.
+ * Searches name, email, phone, and university.
+ */
+function matchesSearch(caregiver: CaregiverQueryResult, search: string): boolean {
+  const term = search.toLowerCase();
+  const meta = (caregiver.metadata || {}) as StudentMetadata;
+
+  return (
+    (caregiver.display_name?.toLowerCase().includes(term) ?? false) ||
+    (caregiver.email?.toLowerCase().includes(term) ?? false) ||
+    (caregiver.phone?.toLowerCase().includes(term) ?? false) ||
+    (meta.university?.toLowerCase().includes(term) ?? false)
+  );
 }
 
 /**
@@ -159,22 +170,24 @@ export async function GET(request: NextRequest) {
     const perPage = Math.min(100, Math.max(1, parseInt(searchParams.get("per_page") || "50", 10)));
     const activeOnly = searchParams.get("active_only") === "true";
     const pausedOnly = searchParams.get("paused_only") === "true";
+    const completeOnly = searchParams.get("complete_only") === "true";
     const incompleteOnly = searchParams.get("incomplete_only") === "true";
     const cityFilter = searchParams.get("city")?.trim() || "";
     const typeFilter = searchParams.get("type")?.trim() || "";
 
     const db = getServiceClient();
 
-    // For incomplete filter, we need to fetch ALL data and filter client-side
-    // because completeness is calculated on-the-fly from metadata fields
-    const needsClientSideFilter = incompleteOnly;
+    // Client-side filtering needed when:
+    // - Filtering by completeness (requires calculation from metadata)
+    // - Searching (to include university from JSONB metadata)
+    const needsClientSideFilter = completeOnly || incompleteOnly || !!search;
 
     let data: CaregiverQueryResult[] | null;
     let count: number | null;
     let error: Error | null = null;
 
     if (!needsClientSideFilter) {
-      // Standard DB pagination
+      // Standard DB pagination - no search or completeness filters
       let query = db
         .from("business_profiles")
         .select(
@@ -186,10 +199,6 @@ export async function GET(request: NextRequest) {
 
       if (typeFilter === "student" || typeFilter === "caregiver") {
         query = query.eq("type", typeFilter);
-      }
-
-      if (search) {
-        query = query.or(`display_name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`);
       }
 
       if (activeOnly) {
@@ -214,7 +223,7 @@ export async function GET(request: NextRequest) {
       error = result.error;
     } else {
       // Fetch ALL data for client-side filtering
-      data = await fetchAllCaregiversWithFilters(db, search, activeOnly, pausedOnly, cityFilter, typeFilter);
+      data = await fetchAllCaregivers(db, activeOnly, pausedOnly, cityFilter, typeFilter);
       count = data.length;
     }
 
@@ -227,7 +236,6 @@ export async function GET(request: NextRequest) {
     let caregivers = (data ?? []).map((row: CaregiverQueryResult) => {
       const meta = (row.metadata || {}) as StudentMetadata;
       const university = meta.university ?? null;
-      // Calculate completeness using the comprehensive section-based formula
       const completeness = computeProfileCompleteness(row);
 
       return {
@@ -237,9 +245,15 @@ export async function GET(request: NextRequest) {
       };
     });
 
-    // Apply client-side filter for incomplete profiles
-    if (incompleteOnly) {
-      caregivers = caregivers.filter((c) => c.profile_completeness < INCOMPLETE_THRESHOLD);
+    // Apply client-side filters
+    if (search) {
+      caregivers = caregivers.filter((c) => matchesSearch(c, search));
+    }
+
+    if (completeOnly) {
+      caregivers = caregivers.filter((c) => c.profile_completeness >= COMPLETENESS_THRESHOLD);
+    } else if (incompleteOnly) {
+      caregivers = caregivers.filter((c) => c.profile_completeness < COMPLETENESS_THRESHOLD);
     }
 
     // Calculate totals and pagination

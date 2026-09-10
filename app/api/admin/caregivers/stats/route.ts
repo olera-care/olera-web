@@ -165,11 +165,14 @@ export async function GET() {
     if (pausedRes.error) console.error("Stats paused query error:", pausedRes.error);
     if (thisWeekRes.error) console.error("Stats thisWeek query error:", thisWeekRes.error);
 
-    // Count incomplete profiles using the live calculation
+    // Count complete and incomplete profiles using the live calculation
+    let completeCount = 0;
     let incompleteCount = 0;
     for (const profile of allProfiles) {
       const completeness = computeProfileCompleteness(profile);
-      if (completeness < INCOMPLETE_THRESHOLD) {
+      if (completeness >= INCOMPLETE_THRESHOLD) {
+        completeCount++;
+      } else {
         incompleteCount++;
       }
     }
@@ -178,6 +181,7 @@ export async function GET() {
       total: totalRes.count ?? 0,
       active: activeRes.count ?? 0,
       paused: pausedRes.count ?? 0,
+      complete: completeCount,
       incomplete: incompleteCount,
       thisWeek: thisWeekRes.count ?? 0,
       students: studentsRes.count ?? 0,

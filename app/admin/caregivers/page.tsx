@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import type { CaregiverMetadata, StudentMetadata } from "@/lib/types";
 
-type FilterTab = "all" | "active" | "paused" | "incomplete";
+type FilterTab = "all" | "active" | "paused" | "complete" | "incomplete";
 
 interface CaregiverRow {
   id: string;
@@ -31,6 +31,7 @@ interface TabCounts {
   total: number;
   active: number;
   paused: number;
+  complete: number;
   incomplete: number;
   thisWeek: number;
   students: number;
@@ -97,6 +98,7 @@ export default function AdminCaregiversPage() {
       if (debouncedSearch) params.set("search", debouncedSearch);
       if (filter === "active") params.set("active_only", "true");
       if (filter === "paused") params.set("paused_only", "true");
+      if (filter === "complete") params.set("complete_only", "true");
       if (filter === "incomplete") params.set("incomplete_only", "true");
 
       const res = await fetch(`/api/admin/caregivers?${params}`);
@@ -121,6 +123,7 @@ export default function AdminCaregiversPage() {
           total: statsData.total ?? 0,
           active: statsData.active ?? 0,
           paused: statsData.paused ?? 0,
+          complete: statsData.complete ?? 0,
           incomplete: statsData.incomplete ?? 0,
           thisWeek: statsData.thisWeek ?? 0,
           students: statsData.students ?? 0,
@@ -183,6 +186,7 @@ export default function AdminCaregiversPage() {
     { label: "All", value: "all", count: tabCounts?.total ?? null },
     { label: "Active", value: "active", count: tabCounts?.active ?? null },
     { label: "Paused", value: "paused", count: tabCounts?.paused ?? null },
+    { label: "Complete", value: "complete", count: tabCounts?.complete ?? null },
     { label: "Incomplete", value: "incomplete", count: tabCounts?.incomplete ?? null },
   ];
 
@@ -275,7 +279,7 @@ export default function AdminCaregiversPage() {
       <div className="mb-4">
         <input
           type="text"
-          placeholder="Search by name, email, or phone..."
+          placeholder="Search by name, email, phone, or school..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full px-4 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm"
@@ -285,13 +289,12 @@ export default function AdminCaregiversPage() {
       {/* List */}
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         {/* Header */}
-        <div className="flex items-center gap-6 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
-          <div className="flex-[2] min-w-0">Caregiver</div>
-          <div className="flex-1">School</div>
-          <div className="flex-1">Location</div>
-          <div className="w-24 text-center">Status</div>
-          <div className="w-28 text-right">Joined</div>
-          <div className="w-8"></div>
+        <div className="grid grid-cols-[2fr_1.5fr_100px_120px_32px] gap-4 px-5 py-3 border-b border-gray-200 bg-gray-50 text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <div>Caregiver</div>
+          <div>School & Location</div>
+          <div className="text-center">Status</div>
+          <div className="text-right">Joined</div>
+          <div></div>
         </div>
 
         {loading ? (
@@ -307,16 +310,16 @@ export default function AdminCaregiversPage() {
               return (
                 <div
                   key={caregiver.id}
-                  className="group flex items-center gap-6 px-5 py-4 hover:bg-gray-50 cursor-pointer"
+                  className="group grid grid-cols-[2fr_1.5fr_100px_120px_32px] gap-4 px-5 py-4 hover:bg-gray-50 cursor-pointer items-start"
                   onClick={() => router.push(`/admin/caregivers/${caregiver.id}`)}
                 >
                   {/* Caregiver Info */}
-                  <div className="flex-[2] min-w-0">
+                  <div className="min-w-0">
                     <div className="flex items-center gap-2">
                       <p className="font-medium text-gray-900 truncate">
                         {caregiver.display_name}
                       </p>
-                      <span className={`text-xs px-1.5 py-0.5 rounded ${
+                      <span className={`shrink-0 text-xs px-1.5 py-0.5 rounded ${
                         caregiver.type === "student"
                           ? "bg-blue-100 text-blue-700"
                           : "bg-purple-100 text-purple-700"
@@ -334,28 +337,24 @@ export default function AdminCaregiversPage() {
                     </p>
                   </div>
 
-                  {/* School */}
-                  <div className="flex-1">
+                  {/* School & Location (stacked) */}
+                  <div className="min-w-0">
                     {caregiver.university ? (
-                      <p className="text-sm text-gray-600 truncate" title={caregiver.university}>
+                      <p className="text-sm text-gray-900 truncate" title={caregiver.university}>
                         {caregiver.university}
                       </p>
                     ) : (
-                      <p className="text-sm text-gray-400 italic">—</p>
+                      <p className="text-sm text-gray-400 italic">No school</p>
                     )}
-                  </div>
-
-                  {/* Location */}
-                  <div className="flex-1">
                     {location ? (
-                      <p className="text-sm text-gray-600">{location}</p>
+                      <p className="text-sm text-gray-500 truncate">{location}</p>
                     ) : (
                       <p className="text-sm text-gray-400 italic">No location</p>
                     )}
                   </div>
 
                   {/* Status */}
-                  <div className="w-24 text-center">
+                  <div className="text-center pt-0.5">
                     <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                       caregiver.is_active
                         ? "bg-green-100 text-green-700"
@@ -366,14 +365,14 @@ export default function AdminCaregiversPage() {
                   </div>
 
                   {/* Joined */}
-                  <div className="w-28 text-right">
+                  <div className="text-right pt-0.5">
                     <p className="text-sm text-gray-400">
                       {formatJoinedDate(caregiver.created_at)}
                     </p>
                   </div>
 
                   {/* Delete */}
-                  <div className="w-8">
+                  <div className="pt-0.5">
                     <button
                       type="button"
                       onClick={(e) => {

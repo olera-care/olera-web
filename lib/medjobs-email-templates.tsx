@@ -277,13 +277,16 @@ export function studentActivationEmail({
   studentName,
   city,
   profileUrl,
+  magicLink,
 }: {
   studentName: string;
   city?: string;
   profileUrl: string;
+  magicLink?: string;
 }): string {
   const firstName = studentName.split(" ")[0];
   const locationLine = city ? ` in ${city}` : "";
+  const dashboardUrl = magicLink || `${BASE_URL}/medjobs/families`;
 
   return layout(`
     <h2 style="font-size:20px;font-weight:700;color:#111827;margin:0 0 8px;">Your profile is live, ${firstName}!</h2>
@@ -310,7 +313,7 @@ export function studentActivationEmail({
       Share this link when reaching out — it shows your video, availability, and background at a glance.
     </p>
     <p style="margin:0 0 16px;">
-      ${button("See families hiring near you", `${BASE_URL}/medjobs/families`)}
+      ${button("See families hiring near you", dashboardUrl)}
     </p>
   `);
 }
@@ -482,11 +485,14 @@ export function profileIncompleteNudgeEmail({
   studentName,
   completeness,
   missingItems,
+  magicLink,
 }: {
   studentName: string;
   completeness: number;
   missingItems: string[];
+  magicLink?: string;
 }): string {
+  const completeProfileUrl = magicLink || `${BASE_URL}/portal/medjobs/profile`;
   const itemsList = missingItems
     .map((item) => `<li>${item}</li>`)
     .join("");
@@ -504,7 +510,7 @@ export function profileIncompleteNudgeEmail({
       ${itemsList}
     </ul>
     <p style="margin:0;">
-      ${button("Complete Your Profile", `${BASE_URL}/portal/medjobs/profile`)}
+      ${button("Complete Your Profile", completeProfileUrl)}
     </p>
   `);
 }

@@ -63,7 +63,24 @@ export async function GET(request: NextRequest) {
         const activationSent = (meta as Record<string, unknown>).activation_email_sent as boolean;
         if (!activationSent) {
           try {
-            const profileUrl = `${process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care"}/medjobs/candidates/${student.slug}`;
+            const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+            const profileUrl = `${siteUrl}/medjobs/candidates/${student.slug}`;
+
+            // Generate magic link for one-click sign-in
+            let magicLink: string | undefined;
+            try {
+              const { data: linkData } = await db.auth.admin.generateLink({
+                type: "magiclink",
+                email: student.email!,
+                options: { redirectTo: `${siteUrl}/medjobs/families` },
+              });
+              if (linkData?.properties?.action_link) {
+                magicLink = linkData.properties.action_link;
+              }
+            } catch (linkErr) {
+              console.error(`[medjobs-nudge] magic link error for ${student.email}:`, linkErr);
+            }
+
             await sendEmail({
               to: student.email!,
               subject: "Your MedJobs profile is live!",
@@ -71,6 +88,7 @@ export async function GET(request: NextRequest) {
                 studentName: student.display_name,
                 city: student.city || undefined,
                 profileUrl,
+                magicLink,
               }),
               emailType: "student_activation",
               recipientType: "student",
@@ -107,6 +125,23 @@ export async function GET(request: NextRequest) {
       if (incompleteItems.length === 0) { skipped++; continue; }
 
       try {
+        const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://olera.care";
+
+        // Generate magic link for one-click sign-in
+        let magicLink: string | undefined;
+        try {
+          const { data: linkData } = await db.auth.admin.generateLink({
+            type: "magiclink",
+            email: student.email!,
+            options: { redirectTo: `${siteUrl}/portal/medjobs/profile` },
+          });
+          if (linkData?.properties?.action_link) {
+            magicLink = linkData.properties.action_link;
+          }
+        } catch (linkErr) {
+          console.error(`[medjobs-nudge] magic link error for ${student.email}:`, linkErr);
+        }
+
         await sendEmail({
           to: student.email!,
           subject: `Your MedJobs profile is ${completeness}% complete`,
@@ -114,6 +149,7 @@ export async function GET(request: NextRequest) {
             studentName: student.display_name,
             completeness,
             missingItems: incompleteItems.slice(0, 5),
+            magicLink,
           }),
           emailType: "profile_incomplete_nudge",
           recipientType: "student",

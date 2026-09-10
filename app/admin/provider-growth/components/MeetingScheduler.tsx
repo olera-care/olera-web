@@ -75,17 +75,18 @@ export function MeetingScheduler({
 
     try {
       // Treat input as America/New_York (EST/EDT) and convert to UTC for storage
-      // Create a date string with the input values, then use timezone conversion
-      const inputDateStr = `${manualDate}T${manualTime}:00`;
-      // Get the EST/EDT offset for this specific date (handles daylight saving automatically)
-      const testDate = new Date(inputDateStr);
-      const estString = testDate.toLocaleString("en-US", { timeZone: "America/New_York" });
-      const utcString = testDate.toLocaleString("en-US", { timeZone: "UTC" });
-      const estTime = new Date(estString).getTime();
-      const utcTime = new Date(utcString).getTime();
-      const offsetMs = utcTime - estTime;
-      // The input is in EST, so we need to ADD the offset to get UTC
-      const scheduledAt = new Date(testDate.getTime() + offsetMs).toISOString();
+      // Use Intl.DateTimeFormat to get the actual offset for the target date (handles DST)
+      const refDate = new Date(`${manualDate}T12:00:00Z`);
+      const formatter = new Intl.DateTimeFormat("en-US", {
+        timeZone: "America/New_York",
+        timeZoneName: "longOffset",
+      });
+      const parts = formatter.formatToParts(refDate);
+      const offsetPart = parts.find((p) => p.type === "timeZoneName");
+      // offsetPart.value is like "GMT-05:00" or "GMT-04:00"
+      const offsetStr = offsetPart?.value?.replace("GMT", "") || "-05:00";
+      // Construct ISO string with the correct offset, then parse to get UTC
+      const scheduledAt = new Date(`${manualDate}T${manualTime}:00${offsetStr}`).toISOString();
 
       const res = await fetch("/api/admin/provider-growth/schedule-meeting", {
         method: "POST",

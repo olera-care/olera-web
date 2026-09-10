@@ -50,7 +50,7 @@ function layout(body: string, preheader?: string): string {
 }
 
 function button(label: string, href: string): string {
-  return `<a href="${href}" style="display:inline-block;padding:12px 24px;background:${BRAND_COLOR};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">${label}</a>`;
+  return `<a href="${escapeHtml(href)}" style="display:inline-block;padding:12px 24px;background:${BRAND_COLOR};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">${label}</a>`;
 }
 
 /**
@@ -308,7 +308,7 @@ export function studentActivationEmail({
       <strong>Your profile link:</strong>
     </p>
     <p style="font-size:13px;margin:0 0 20px;">
-      <a href="${profileUrl}" style="color:${BRAND_COLOR};">${safeProfileUrl}</a>
+      <a href="${safeProfileUrl}" style="color:${BRAND_COLOR};">${safeProfileUrl}</a>
     </p>
     <p style="font-size:14px;color:#6b7280;margin:0 0 20px;line-height:1.6;">
       Share this link when reaching out — it shows your video, availability, and background at a glance.
@@ -459,7 +459,7 @@ export function newCandidateAlertEmail({
         <p style="font-size:13px;color:#6b7280;margin:4px 0 0;">${escapeHtml(c.university)} &middot; ${escapeHtml(c.programTrack)}</p>
       </td>
       <td style="padding:12px 0;border-bottom:1px solid #f3f4f6;text-align:right;">
-        <a href="${BASE_URL}/medjobs/candidates/${c.slug}" style="font-size:13px;color:${BRAND_COLOR};text-decoration:none;font-weight:600;">View</a>
+        <a href="${escapeHtml(`${BASE_URL}/medjobs/candidates/${c.slug}`)}" style="font-size:13px;color:${BRAND_COLOR};text-decoration:none;font-weight:600;">View</a>
       </td>
     </tr>`
     )

@@ -94,6 +94,15 @@ const PREVIEWS: {
 
 export default function AdBoostPreviewPage() {
   const [view, setView] = useState<PreviewKey>("wrapup");
+  // The receipt's arrival animation fires once per campaign_tag and then
+  // remembers. That is right for a provider and wrong for a gallery: every
+  // sample shares one tag, so without a per-view, per-load tag you would see it
+  // animate once, reload, see nothing, and reasonably report it broken.
+  const [previewNonce] = useState(() => Date.now().toString(36));
+  const sampleFor = (v: PreviewKey, base: BoostRequest = SAMPLE_BASE): BoostRequest => ({
+    ...base,
+    campaign_tag: `preview-${v}-${previewNonce}`,
+  });
   const [fakeSubmitting, setFakeSubmitting] = useState(false);
   const [fakeError, setFakeError] = useState<string | null>(null);
 
@@ -181,7 +190,7 @@ export default function AdBoostPreviewPage() {
           {view === "live" && (
             <CampaignInMotion
               key="live"
-              request={{ ...SAMPLE_BASE, flight_end_date: "2026-08-03", promo_complete_email_sent_at: null }}
+              request={{ ...sampleFor("live"), flight_end_date: "2026-08-03", promo_complete_email_sent_at: null }}
               campaignStats={stats(1)}
               receipt={RECEIPT_STRONG}
               onCheckout={stubCheckout}
@@ -192,7 +201,7 @@ export default function AdBoostPreviewPage() {
           {view === "wrapup" && (
             <WrapUpMoment
               key="wrapup"
-              request={SAMPLE_BASE}
+              request={sampleFor("wrapup")}
               campaignStats={stats(3)}
               receipt={RECEIPT_STRONG}
               onCheckout={stubCheckout}
@@ -203,7 +212,7 @@ export default function AdBoostPreviewPage() {
           {view === "wrapup_one" && (
             <WrapUpMoment
               key="wrapup_one"
-              request={SAMPLE_BASE}
+              request={sampleFor("wrapup_one")}
               campaignStats={stats(1)}
               onCheckout={stubCheckout}
               submitting={fakeSubmitting}
@@ -213,7 +222,7 @@ export default function AdBoostPreviewPage() {
           {view === "weak" && (
             <WrapUpMoment
               key="weak"
-              request={SAMPLE_BASE}
+              request={sampleFor("weak")}
               campaignStats={stats(0)}
               receipt={RECEIPT_ZERO}
               onCheckout={stubCheckout}
@@ -222,10 +231,10 @@ export default function AdBoostPreviewPage() {
             />
           )}
           {view === "celebrate" && (
-            <PlanActive request={active} campaignStats={stats(3)} celebrate />
+            <PlanActive request={sampleFor(view, active)} campaignStats={stats(3)} celebrate />
           )}
           {view === "steady" && (
-            <PlanActive request={active} campaignStats={stats(5)} celebrate={false} />
+            <PlanActive request={sampleFor(view, active)} campaignStats={stats(5)} celebrate={false} />
           )}
         </div>
       </div>

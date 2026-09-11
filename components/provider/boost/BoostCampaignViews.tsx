@@ -208,23 +208,29 @@ function DotRow({
 }) {
   const scale = n > MAX_DOTS ? Math.ceil(n / MAX_DOTS) : 1;
   const drawn = Math.ceil(n / scale);
-  const perRow = 46;
+  const maxPerRow = 46;
   const gap = 9.4;
-  const rows = Math.max(1, Math.ceil(drawn / perRow));
-  const width = perRow * gap + 5;
+  const width = maxPerRow * gap + 5;
 
-  // EVERY ROW IS CENTRED, and that is the whole reason this reads as a shape
-  // rather than a mistake. Left-aligned, 64 dots at 46 per row renders a full
-  // row and then a ragged stub of 18 that looks like a broken dotted rule.
-  // Centred, the rows stack into a taper -- wide at "shown", narrow at
-  // "clicked" -- so the block draws the funnel it is describing.
-  const dots = Array.from({ length: drawn }, (_, i) => {
-    const row = Math.floor(i / perRow);
-    const col = i % perRow;
-    const inRow = Math.min(perRow, drawn - row * perRow);
-    const indent = ((perRow - inRow) * gap) / 2;
-    return { cx: 4 + indent + col * gap, cy: 5 + row * gap };
-  });
+  // BALANCE THE ROWS, DO NOT CENTRE THEM.
+  //
+  // The problem was never alignment, it was one full row of 46 followed by a
+  // stub of 18. Centring that stub only moved the raggedness to the middle and
+  // made single-row counts float away from their label, which read worse.
+  //
+  // So pick the row width from the count instead: 64 dots become two rows of 32
+  // rather than 46 + 18, and 268 becomes six rows of ~45. Everything stays left
+  // aligned against the label, and the block ends up rectangular on its own
+  // terms. Spacing is constant across every row and every stat, because the
+  // density IS the quantity -- stretching a short row to fill the width would
+  // make twenty people look like two hundred.
+  const rows = Math.max(1, Math.ceil(drawn / maxPerRow));
+  const perRow = Math.ceil(drawn / rows);
+
+  const dots = Array.from({ length: drawn }, (_, i) => ({
+    cx: 4 + (i % perRow) * gap,
+    cy: 5 + Math.floor(i / perRow) * gap,
+  }));
 
   return (
     <div className="py-3">

@@ -25,6 +25,18 @@ import { useBoostState } from "@/hooks/useBoostState";
  * `/api/provider/ad-boost/request` payload that /provider/boost renders, so the
  * card and the full receipt can never disagree. This is a condensed view of
  * that data, never a second calculation of it.
+ *
+ * MOUNT IT BEHIND `hasActiveBoostRequest`. This component fetches on mount, and
+ * that endpoint runs an eligibility lookup plus a demand-signal count -- not
+ * something to put on every dashboard load for every provider when almost none
+ * of them have a campaign. DashboardPage already knows who does.
+ *
+ * KNOWN GAP: `hasActiveBoostRequest` covers pending_profile / requested /
+ * scheduled / live but NOT `ended`, so a finished flight does not mount the
+ * card on a fresh page load. The live window is what this was built for and an
+ * ended flight already has the wrap-up view; closing the gap properly needs a
+ * flag on the dashboard payload that knows about ended campaigns, rather than
+ * an unconditional fetch here.
  */
 
 /** Compact two-tone dot strip. Same idea as the receipt, sized for a card. */

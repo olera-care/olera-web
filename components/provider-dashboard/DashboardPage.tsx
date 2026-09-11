@@ -481,9 +481,15 @@ function DashboardContent({
           {/* Where a running campaign stands. The two nudges below are pitches to
               BUY, and the contextual one correctly suppresses itself once a
               flight is active — so without this the dashboard goes silent about
-              ads at exactly the moment the provider becomes a customer. Renders
-              itself to null unless a flight is live or finished. */}
-          {!previewMode && <LiveCampaignCard />}
+              ads at exactly the moment the provider becomes a customer.
+
+              MOUNTED ONLY FOR PROVIDERS WHO HAVE A CAMPAIGN. The card fetches
+              /api/provider/ad-boost/request, which runs an eligibility lookup
+              and a demand-signal count. Mounting it unconditionally would put
+              that on every dashboard load for every provider, the overwhelming
+              majority of whom have no campaign and would render nothing. The
+              dashboard already knows, so use what it knows. */}
+          {!previewMode && v2Data?.hasActiveBoostRequest && <LiveCampaignCard />}
 
           {/* Post-edit Managed Ads nudge — fires once per session after a save,
               not as an always-on card. The earned, high-intent moment. Hidden

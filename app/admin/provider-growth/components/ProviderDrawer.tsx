@@ -184,15 +184,27 @@ function MeetingInfoSection({
     minute: "2-digit",
   });
 
+  // Meeting focus (Ads/MedJobs/Both)
+  const focusLabels: Record<string, string> = {
+    ads: "Ads",
+    medjobs: "MedJobs",
+    both: "Ads + MedJobs",
+  };
+  const focusLabel = provider.meeting_focus ? focusLabels[provider.meeting_focus] : null;
+
   // Different styling for upgrade meetings
   const bgColor = isUpgradeMeeting ? "bg-amber-50" : "bg-primary-50";
   const borderColor = isUpgradeMeeting ? "border-amber-100" : "border-primary-100";
   const textColor = isUpgradeMeeting ? "text-amber-600" : "text-primary-600";
   const linkColor = isUpgradeMeeting ? "text-amber-600 hover:text-amber-700" : "text-primary-600 hover:text-primary-700";
 
-  const label = isUpgradeMeeting
-    ? isPast ? "Upgrade Meeting Was Scheduled" : "Upgrade Meeting Scheduled"
-    : isPast ? "Meeting Was Scheduled" : "Meeting Scheduled";
+  // Build label with focus info
+  let label: string;
+  if (isUpgradeMeeting) {
+    label = isPast ? "Upgrade Meeting Was Scheduled" : "Upgrade Meeting Scheduled";
+  } else {
+    label = isPast ? "Meeting Was Scheduled" : "Meeting Scheduled";
+  }
 
   return (
     <div className={`p-4 ${bgColor} border ${borderColor} rounded-lg`}>
@@ -200,6 +212,11 @@ function MeetingInfoSection({
         <div className={`text-[10px] font-semibold ${textColor} uppercase tracking-wide mb-1`}>
           {label}
         </div>
+        {focusLabel && (
+          <div className="text-xs text-gray-500 mb-1">
+            Topic: {focusLabel}
+          </div>
+        )}
         <div className="text-sm font-medium text-gray-900">{formattedDate}</div>
         <div className="text-sm text-gray-600">{formattedTime}</div>
         {isPast && (

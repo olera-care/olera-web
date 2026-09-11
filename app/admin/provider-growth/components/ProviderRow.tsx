@@ -13,7 +13,7 @@ import {
   type AdsStatus,
   type MedjobsStatus,
   type MeetingType,
-  MEETING_TYPE_LABELS,
+  type MeetingFocus,
 } from "@/lib/provider-growth/stages";
 import { EligibilityBadges } from "./EligibilityBadges";
 
@@ -136,9 +136,10 @@ export function ProviderRow({ provider, onClick, onDelete, selected }: ProviderR
             {/* Meeting/pitch info */}
             {(provider.pipeline_stage === "meeting_scheduled" || provider.pipeline_stage === "upgrade_meeting") && provider.meeting_scheduled_at && (
               <>
-                {provider.meeting_type && (
-                  <MeetingTypeBadge type={provider.meeting_type as MeetingType} />
-                )}
+                <MeetingBadge
+                  type={provider.meeting_type as MeetingType | null}
+                  focus={provider.meeting_focus as MeetingFocus | null}
+                />
                 <span className="text-xs font-medium text-blue-600">
                   {formatDate(provider.meeting_scheduled_at)}
                 </span>
@@ -353,18 +354,33 @@ function InterestBadge({ level }: { level: string }) {
   );
 }
 
-function MeetingTypeBadge({ type }: { type: MeetingType }) {
-  const config: Record<MeetingType, { label: string; className: string }> = {
-    new: { label: "New", className: "bg-blue-50 text-blue-700 border-blue-200" },
-    upgrade: { label: "Upgrade", className: "bg-amber-50 text-amber-700 border-amber-200" },
+function MeetingBadge({ type, focus }: { type: MeetingType | null; focus: MeetingFocus | null }) {
+  const focusLabels: Record<MeetingFocus, string> = {
+    ads: "Ads",
+    medjobs: "MedJobs",
+    both: "Both",
   };
 
-  const { label, className } = config[type];
+  const focusLabel = focus ? focusLabels[focus] : null;
+  const isUpgrade = type === "upgrade";
+
+  // Build clear, self-explanatory label
+  let label: string;
+  if (isUpgrade) {
+    label = focusLabel ? `Upgrade: ${focusLabel}` : "Upgrade Meeting";
+  } else {
+    label = focusLabel ? `Scheduled for ${focusLabel}` : "Meeting Scheduled";
+  }
+
+  // Color based on meeting type (upgrade = amber, new = blue)
+  const colorClass = isUpgrade
+    ? "bg-amber-50 text-amber-700 border-amber-200"
+    : "bg-blue-50 text-blue-700 border-blue-200";
 
   return (
     <span
-      className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded border ${className}`}
-      title={MEETING_TYPE_LABELS[type]}
+      className={`inline-flex items-center px-1.5 py-0.5 text-[10px] font-medium rounded border ${colorClass}`}
+      title={isUpgrade ? `Upgrade meeting for ${focusLabel || "products"}` : `New meeting for ${focusLabel || "products"}`}
     >
       {label}
     </span>

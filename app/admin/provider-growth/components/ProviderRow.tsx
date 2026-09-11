@@ -439,27 +439,44 @@ function formatClaimDate(isoDate: string): string {
 
 function formatDate(isoDate: string): string {
   const date = new Date(isoDate);
-  const now = new Date();
-  const isToday = date.toDateString() === now.toDateString();
-  const isTomorrow =
-    date.toDateString() === new Date(now.getTime() + 86400000).toDateString();
+  // Compare dates in Eastern Time for accurate "Today"/"Tomorrow" detection
+  const etFormatter = new Intl.DateTimeFormat("en-US", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const etDateStr = etFormatter.format(date);
+  const nowEtStr = etFormatter.format(new Date());
+
+  // Get tomorrow in ET by parsing today's ET date and adding 1 day
+  // This handles DST correctly (avoids 24-hour assumption)
+  const [month, day, year] = nowEtStr.split("/").map(Number);
+  const tomorrowInET = new Date(year, month - 1, day + 1, 12, 0, 0); // noon to avoid edge cases
+  const tomorrowEtStr = etFormatter.format(tomorrowInET);
+
+  const isToday = etDateStr === nowEtStr;
+  const isTomorrow = etDateStr === tomorrowEtStr;
 
   if (isToday) {
     return `Today ${date.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
-    })}`;
+      timeZone: "America/New_York",
+    })} ET`;
   }
   if (isTomorrow) {
     return `Tomorrow ${date.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
-    })}`;
+      timeZone: "America/New_York",
+    })} ET`;
   }
-  return date.toLocaleDateString("en-US", {
+  return `${date.toLocaleDateString("en-US", {
     month: "short",
     day: "numeric",
     hour: "numeric",
     minute: "2-digit",
-  });
+    timeZone: "America/New_York",
+  })} ET`;
 }

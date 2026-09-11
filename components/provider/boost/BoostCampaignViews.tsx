@@ -154,27 +154,99 @@ export function CampaignPerformance({
  * figures. Outcome lines (became a client / still talking) come from the
  * provider's own one-tap reports.
  */
+/**
+ * One dot per person.
+ *
+ * The funnel these rows describe is brutally top-heavy -- the best flight this
+ * product has run went 391 shown -> 18 clicked -> 7 visited. A proportional bar
+ * renders the second stage as a sliver and the third as nothing, and easing the
+ * scale would mean smoothing a number we are asking a provider to trust. Dots
+ * stay literal: a provider can count the eighteen.
+ *
+ * Above MAX_DOTS one dot can no longer be one person, so it says so rather than
+ * quietly thinning them. Not hypothetical -- Graceful Concord ran 608
+ * impressions and LumiWell 435.
+ */
+const MAX_DOTS = 300;
+
+function DotRow({
+  n,
+  label,
+  sub,
+  lit,
+}: {
+  n: number;
+  label: string;
+  sub?: string;
+  lit: boolean;
+}) {
+  const scale = n > MAX_DOTS ? Math.ceil(n / MAX_DOTS) : 1;
+  const drawn = Math.ceil(n / scale);
+  const perRow = 46;
+  const gap = 9.4;
+  const rows = Math.max(1, Math.ceil(drawn / perRow));
+
+  return (
+    <div className="py-3">
+      <div className="flex items-baseline justify-between gap-4">
+        <dt className="min-w-0 text-sm text-gray-600">
+          {label}
+          {sub && <span className="ml-2 text-xs text-gray-400">{sub}</span>}
+        </dt>
+        <dd className="shrink-0 text-lg font-display font-bold text-gray-900 tabular-nums">
+          {n.toLocaleString()}
+        </dd>
+      </div>
+      <svg
+        viewBox={`0 0 ${perRow * gap + 5} ${rows * gap + 4}`}
+        className="mt-2 block w-full h-auto"
+        aria-hidden="true"
+      >
+        {Array.from({ length: drawn }, (_, i) => (
+          <circle
+            key={i}
+            cx={4 + (i % perRow) * gap}
+            cy={5 + Math.floor(i / perRow) * gap}
+            r={lit ? 2.8 : 1.9}
+            fill={lit ? "#B57F1E" : "#DED8CC"}
+          />
+        ))}
+      </svg>
+      {scale > 1 && (
+        <p className="mt-1 text-[10px] text-gray-400">each dot is {scale} people</p>
+      )}
+    </div>
+  );
+}
+
 export function CampaignReceiptBlock({ receipt }: { receipt: CampaignReceiptData }) {
   const { google, engagement, outcomes } = receipt;
   const rows: { label: string; value: string; sub?: string }[] = [];
 
+  // The first three stages are drawn as dots instead of list rows -- same
+  // numbers, same order, but the shape of the drop-off is the finding and a
+  // right-aligned figure cannot carry it.
+  const dotRows: { n: number; label: string; sub?: string; lit: boolean }[] = [];
   if (google.impressions != null && google.impressions > 0) {
-    rows.push({
+    dotRows.push({
+      n: google.impressions,
       label: "Times your ad was shown",
-      value: google.impressions.toLocaleString(),
       sub: "local families searching for care",
+      lit: false,
     });
   }
   if (google.clicks != null && google.clicks > 0) {
-    rows.push({
+    dotRows.push({
+      n: google.clicks,
       label: "Clicked through to your page",
-      value: google.clicks.toLocaleString(),
       sub: google.ctr != null ? `${google.ctr}% click rate` : undefined,
+      lit: true,
     });
   }
   if (engagement.visitors > 0) {
-    rows.push({ label: "Visited your page", value: engagement.visitors.toLocaleString() });
+    dotRows.push({ n: engagement.visitors, label: "Visited your page", lit: true });
   }
+
   if (engagement.saves > 0) {
     rows.push({
       label: "Saved you to their shortlist",
@@ -191,7 +263,14 @@ export function CampaignReceiptBlock({ receipt }: { receipt: CampaignReceiptData
           : undefined,
     });
   }
-  if (rows.length === 0 && outcomes.client === 0 && outcomes.talking === 0) return null;
+  if (
+    dotRows.length === 0 &&
+    rows.length === 0 &&
+    outcomes.client === 0 &&
+    outcomes.talking === 0
+  ) {
+    return null;
+  }
 
   return (
     <div className="mt-8">
@@ -199,6 +278,9 @@ export function CampaignReceiptBlock({ receipt }: { receipt: CampaignReceiptData
         What your campaign bought
       </p>
       <dl className="mt-3 divide-y divide-gray-100 border-y border-gray-100">
+        {dotRows.map((d) => (
+          <DotRow key={d.label} n={d.n} label={d.label} sub={d.sub} lit={d.lit} />
+        ))}
         {rows.map((r) => (
           <div key={r.label} className="flex items-baseline justify-between gap-4 py-3">
             <dt className="min-w-0 text-sm text-gray-600">

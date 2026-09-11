@@ -8,8 +8,6 @@ import {
   PlanActive,
   WrapUpMoment,
 } from "@/components/provider/boost/BoostCampaignViews";
-import FlightFunnelCard from "@/components/provider/FlightFunnel";
-import type { FlightFunnel } from "@/lib/ad-boost/flight-funnel.server";
 
 /**
  * Wrap-up moment preview gallery — renders the EXACT provider-facing Phase 2
@@ -24,9 +22,7 @@ type PreviewKey =
   | "wrapup_one"
   | "weak"
   | "celebrate"
-  | "steady"
-  | "funnel_ended"
-  | "funnel_live";
+  | "steady";
 
 /** Sample receipts — Miracle-Lightstar-shaped numbers for the zero-lead demand
  *  receipt, Franchil-shaped for the outcome receipt. */
@@ -44,44 +40,6 @@ const RECEIPT_STRONG: CampaignReceiptData = {
   outcomes: { client: 1, talking: 1, no: 0, unanswered: 1 },
   expectedLeads: 0.5,
   week: { visitors: 7, questions: 1, leads: 1 },
-};
-
-/**
- * Edmonds-shaped, and deliberately so. These are the real figures the Google Ads
- * Script returned for edmonds-villa-edmonds-aug26 on 2026-09-11 -- the flight
- * whose row had been hand-typed as $0.00 / 4 impressions. Using the true numbers
- * keeps the preview honest about what a thin flight actually looks like: the ad
- * works, the page does not, and the last stage is a real zero.
- */
-const FUNNEL_ENDED: FlightFunnel = {
-  campaignTag: "edmonds-villa-edmonds-aug26",
-  status: "ended",
-  flightStart: "2026-08-03",
-  flightEnd: "2026-08-30",
-  impressions: 391,
-  clicks: 18,
-  spendCents: 4352,
-  trustedTop: true,
-  metricsUpdatedAt: "2026-09-11T12:05:00Z",
-  arrived: 7,
-  engaged: 0,
-  called: 0,
-};
-
-/** The same provider's live September flight, mid-flight and still thin. */
-const FUNNEL_LIVE: FlightFunnel = {
-  campaignTag: "edmonds-villa-edmonds-90d-sep26",
-  status: "live",
-  flightStart: "2026-08-31",
-  flightEnd: null,
-  impressions: 172,
-  clicks: 10,
-  spendCents: 1773,
-  trustedTop: true,
-  metricsUpdatedAt: "2026-09-11T12:05:00Z",
-  arrived: 7,
-  engaged: 2,
-  called: 0,
 };
 
 const SAMPLE_BASE: BoostRequest = {
@@ -131,18 +89,6 @@ const PREVIEWS: {
     key: "steady",
     label: "Plan · steady state",
     blurb: "Every later visit to /provider/boost while the plan runs.",
-  },
-  {
-    key: "funnel_ended",
-    label: "Funnel · ended flight",
-    blurb:
-      "The results view at /provider/boost/results once a flight is over — a receipt, in past tense, with the renewal ask. One dot is one person, so a provider can count the 18 who clicked out of the 391 who saw it. Real Edmonds Villa August figures, including the genuine zero at the bottom.",
-  },
-  {
-    key: "funnel_live",
-    label: "Funnel · live flight",
-    blurb:
-      "The same component mid-flight. Present tense, and the ask changes from “run it again” to fixing the page while there is still traffic left to catch.",
   },
 ];
 
@@ -281,8 +227,6 @@ export default function AdBoostPreviewPage() {
           {view === "steady" && (
             <PlanActive request={active} campaignStats={stats(5)} celebrate={false} />
           )}
-          {view === "funnel_ended" && <FlightFunnelCard key="funnel_ended" flight={FUNNEL_ENDED} />}
-          {view === "funnel_live" && <FlightFunnelCard key="funnel_live" flight={FUNNEL_LIVE} />}
         </div>
       </div>
     </div>

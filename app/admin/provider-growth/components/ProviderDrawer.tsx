@@ -180,10 +180,12 @@ function MeetingInfoSection({
     month: "long",
     day: "numeric",
     year: "numeric",
+    timeZone: "America/New_York",
   });
   const formattedTime = meetingDate.toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
+    timeZone: "America/New_York",
   });
 
   // Different styling for upgrade meetings
@@ -203,7 +205,7 @@ function MeetingInfoSection({
           {label}
         </div>
         <div className="text-sm font-medium text-gray-900">{formattedDate}</div>
-        <div className="text-sm text-gray-600">{formattedTime}</div>
+        <div className="text-sm text-gray-600">{formattedTime} ET</div>
         {/* Meeting format display */}
         {provider.meeting_format && (
           <div className="mt-2 flex items-center gap-2">

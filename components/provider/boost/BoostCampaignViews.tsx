@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   boostChannelLabel,
@@ -297,9 +297,35 @@ export function CampaignReceiptBlock({
   // paint than the HTML it hydrates. Starting false also means the no-JS and
   // reduced-motion paths get the finished state, which is the correct default.
   const [animate, setAnimate] = useState(false);
+  const blockRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
-    if (!seenFlightBefore(flightKey)) setAnimate(true);
+    const el = blockRef.current;
+    if (!el) return;
+
+    // WAIT UNTIL IT IS ACTUALLY ON SCREEN. Firing on mount both plays the
+    // arrival and spends the one-per-flight allowance -- so a provider whose
+    // receipt sits below the fold (the live view puts a facts row, a 3-up stat
+    // row and a momentum line above it) would scroll down to a finished list and
+    // never see it, on this visit or any future one. The feature would have been
+    // silently dead for exactly the people it was built for.
+    const start = () => {
+      if (!seenFlightBefore(flightKey)) setAnimate(true);
+    };
+    if (typeof IntersectionObserver === "undefined") {
+      start();
+      return;
+    }
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        start();
+      },
+      { threshold: 0.2 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
   }, [flightKey]);
 
   // The first three stages are drawn as dots instead of list rows -- same
@@ -358,7 +384,7 @@ export function CampaignReceiptBlock({
   }
 
   return (
-    <div className="mt-8">
+    <div className="mt-8" ref={blockRef}>
       <style>{"@keyframes olera-dots-in{from{opacity:0}to{opacity:1}}"}</style>
       <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400">
         What your campaign bought

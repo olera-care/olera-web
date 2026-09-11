@@ -18,17 +18,17 @@ interface MeetingSchedulerProps {
   providerName: string;
   contactName?: string;
   contactEmail?: string;
-  /** Provider's phone number (prefills phone field) */
-  providerPhone?: string;
   /** Whether provider is already converted (has free trial) - used to default meeting type */
   isConverted?: boolean;
   /** Initial meeting type (for rescheduling - preserves existing selection) */
   initialMeetingType?: MeetingType;
   /** Initial meeting focus (for rescheduling - preserves existing selection) */
   initialMeetingFocus?: MeetingFocus;
+  /** Provider's phone number (to prefill for phone calls) */
+  providerPhone?: string;
   /** Initial meeting format (for rescheduling - preserves existing selection) */
   initialMeetingFormat?: MeetingFormat;
-  /** Initial phone number (for rescheduling - preserves existing selection) */
+  /** Initial meeting phone (for rescheduling - preserves existing selection) */
   initialMeetingPhone?: string;
   onScheduled: (meetingInfo: {
     scheduled_at: string;
@@ -46,10 +46,10 @@ export function MeetingScheduler({
   providerName,
   contactName,
   contactEmail,
-  providerPhone,
   isConverted = false,
   initialMeetingType,
   initialMeetingFocus,
+  providerPhone,
   initialMeetingFormat,
   initialMeetingPhone,
   onScheduled,
@@ -287,11 +287,11 @@ export function MeetingScheduler({
           </div>
         </div>
 
-        {/* Phone Number (only shown when phone format is selected) */}
+        {/* Phone Number (shown when phone format selected) */}
         {meetingFormat === "phone" && (
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Phone Number to Call
+              Phone Number
             </label>
             <input
               type="tel"
@@ -301,7 +301,7 @@ export function MeetingScheduler({
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
             />
             <p className="mt-1 text-xs text-gray-500">
-              Provider&apos;s preferred number for this call
+              Number to call for this meeting
             </p>
           </div>
         )}

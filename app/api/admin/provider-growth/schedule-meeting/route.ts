@@ -58,16 +58,17 @@ export async function POST(request: NextRequest) {
 
     // If manually scheduling (without Calendly)
     if (meeting_scheduled_at) {
-      // Validate meeting_type, meeting_focus, and meeting_format
+      // Validate meeting_type and meeting_focus
       const validMeetingType: MeetingType | undefined = meeting_type && MEETING_TYPES.includes(meeting_type)
         ? meeting_type
         : undefined;
       const validMeetingFocus: MeetingFocus | undefined = meeting_focus && MEETING_FOCUS_OPTIONS.includes(meeting_focus)
         ? meeting_focus
         : undefined;
-      const validMeetingFormat: MeetingFormat | undefined = meeting_format && MEETING_FORMAT_OPTIONS.includes(meeting_format)
+      // Default to video if not specified
+      const validMeetingFormat: MeetingFormat = meeting_format && MEETING_FORMAT_OPTIONS.includes(meeting_format)
         ? meeting_format
-        : "video"; // Default to video if not specified
+        : "video";
 
       if (!validMeetingType || !validMeetingFocus) {
         return NextResponse.json(
@@ -115,7 +116,7 @@ export async function POST(request: NextRequest) {
           meeting_type: validMeetingType,
           meeting_focus: validMeetingFocus,
           meeting_format: validMeetingFormat,
-          meeting_phone: validMeetingFormat === "phone" ? meeting_phone : null,
+          meeting_phone: validMeetingFormat === "phone" ? meeting_phone : undefined,
         },
         admin_user_id: adminUser.id,
       });

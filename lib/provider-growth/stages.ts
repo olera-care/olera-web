@@ -110,6 +110,19 @@ export const MEETING_FOCUS_LABELS: Record<MeetingFocus, string> = {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Meeting Format (video call vs phone call)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const MEETING_FORMAT_OPTIONS = ["video", "phone"] as const;
+
+export type MeetingFormat = (typeof MEETING_FORMAT_OPTIONS)[number];
+
+export const MEETING_FORMAT_LABELS: Record<MeetingFormat, string> = {
+  video: "Zoom Video Call",
+  phone: "Phone Call",
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Pitch Interest Levels
 // ─────────────────────────────────────────────────────────────────────────────
 

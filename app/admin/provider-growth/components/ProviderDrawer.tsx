@@ -18,10 +18,12 @@ import {
   ADS_STATUS_LABELS,
   MEDJOBS_STATUS_LABELS,
   INTEREST_LEVEL_LABELS,
+  MEETING_FORMAT_LABELS,
   type AdsStatus,
   type MedjobsStatus,
   type MeetingType,
   type MeetingFocus,
+  type MeetingFormat,
 } from "@/lib/provider-growth/stages";
 import { MeetingScheduler } from "./MeetingScheduler";
 import { ActivityLog } from "./ActivityLog";
@@ -184,13 +186,15 @@ function MeetingInfoSection({
     minute: "2-digit",
   });
 
-  // Meeting focus (Ads/MedJobs/Both)
+  // Meeting details
   const focusLabels: Record<string, string> = {
     ads: "Ads",
     medjobs: "MedJobs",
     both: "Ads + MedJobs",
   };
   const focusLabel = provider.meeting_focus ? focusLabels[provider.meeting_focus] : null;
+  const formatLabel = provider.meeting_format ? MEETING_FORMAT_LABELS[provider.meeting_format as MeetingFormat] : null;
+  const isPhoneCall = provider.meeting_format === "phone";
 
   // Different styling for upgrade meetings
   const bgColor = isUpgradeMeeting ? "bg-amber-50" : "bg-primary-50";
@@ -198,13 +202,9 @@ function MeetingInfoSection({
   const textColor = isUpgradeMeeting ? "text-amber-600" : "text-primary-600";
   const linkColor = isUpgradeMeeting ? "text-amber-600 hover:text-amber-700" : "text-primary-600 hover:text-primary-700";
 
-  // Build label with focus info
-  let label: string;
-  if (isUpgradeMeeting) {
-    label = isPast ? "Upgrade Meeting Was Scheduled" : "Upgrade Meeting Scheduled";
-  } else {
-    label = isPast ? "Meeting Was Scheduled" : "Meeting Scheduled";
-  }
+  const label = isUpgradeMeeting
+    ? isPast ? "Upgrade Meeting Was Scheduled" : "Upgrade Meeting Scheduled"
+    : isPast ? "Meeting Was Scheduled" : "Meeting Scheduled";
 
   return (
     <div className={`p-4 ${bgColor} border ${borderColor} rounded-lg`}>
@@ -212,9 +212,42 @@ function MeetingInfoSection({
         <div className={`text-[10px] font-semibold ${textColor} uppercase tracking-wide mb-1`}>
           {label}
         </div>
-        {focusLabel && (
-          <div className="text-xs text-gray-500 mb-1">
-            Topic: {focusLabel}
+        {/* Meeting details: topic and format */}
+        <div className="flex flex-wrap gap-2 mb-2">
+          {focusLabel && (
+            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-white/60 text-gray-700">
+              Topic: {focusLabel}
+            </span>
+          )}
+          {formatLabel && (
+            <span className={`inline-flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded ${
+              isPhoneCall ? "bg-green-100 text-green-800" : "bg-blue-100 text-blue-800"
+            }`}>
+              {isPhoneCall ? (
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                </svg>
+              ) : (
+                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                </svg>
+              )}
+              {formatLabel}
+            </span>
+          )}
+        </div>
+        {/* Phone number for phone calls */}
+        {isPhoneCall && provider.meeting_phone && (
+          <div className="mb-2">
+            <a
+              href={`tel:${provider.meeting_phone}`}
+              className="inline-flex items-center gap-1 text-sm font-medium text-green-700 hover:text-green-800 hover:underline"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+              </svg>
+              {provider.meeting_phone}
+            </a>
           </div>
         )}
         <div className="text-sm font-medium text-gray-900">{formattedDate}</div>
@@ -632,9 +665,12 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
               trackingId={provider.id}
               providerName={provider.display_name || "Provider"}
               contactEmail={provider.email || undefined}
+              providerPhone={provider.phone || undefined}
               isConverted={isConverted}
               initialMeetingType={provider.meeting_type as MeetingType | undefined}
               initialMeetingFocus={provider.meeting_focus as MeetingFocus | undefined}
+              initialMeetingFormat={provider.meeting_format as MeetingFormat | undefined}
+              initialMeetingPhone={provider.meeting_phone || undefined}
               onScheduled={handleScheduleMeeting}
               onCancel={() => setActiveAction(null)}
             />

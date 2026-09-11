@@ -11,7 +11,7 @@
 
 import { useState, useEffect } from "react";
 import { generateBookingUrl } from "@/lib/provider-growth/calendly";
-import type { MeetingType, MeetingFocus } from "@/lib/provider-growth/stages";
+import type { MeetingType, MeetingFocus, MeetingFormat } from "@/lib/provider-growth/stages";
 
 interface MeetingSchedulerProps {
   trackingId: string;
@@ -24,11 +24,19 @@ interface MeetingSchedulerProps {
   initialMeetingType?: MeetingType;
   /** Initial meeting focus (for rescheduling - preserves existing selection) */
   initialMeetingFocus?: MeetingFocus;
+  /** Provider's phone number (to prefill for phone calls) */
+  providerPhone?: string;
+  /** Initial meeting format (for rescheduling - preserves existing selection) */
+  initialMeetingFormat?: MeetingFormat;
+  /** Initial meeting phone (for rescheduling - preserves existing selection) */
+  initialMeetingPhone?: string;
   onScheduled: (meetingInfo: {
     scheduled_at: string;
     calendly_event_id?: string;
     meeting_type: MeetingType;
     meeting_focus: MeetingFocus;
+    meeting_format: MeetingFormat;
+    meeting_phone?: string;
   }) => void;
   onCancel: () => void;
 }
@@ -41,6 +49,9 @@ export function MeetingScheduler({
   isConverted = false,
   initialMeetingType,
   initialMeetingFocus,
+  providerPhone,
+  initialMeetingFormat,
+  initialMeetingPhone,
   onScheduled,
   onCancel,
 }: MeetingSchedulerProps) {
@@ -52,6 +63,12 @@ export function MeetingScheduler({
   );
   const [meetingFocus, setMeetingFocus] = useState<MeetingFocus>(
     initialMeetingFocus ?? "both"
+  );
+  const [meetingFormat, setMeetingFormat] = useState<MeetingFormat>(
+    initialMeetingFormat ?? "video"
+  );
+  const [meetingPhone, setMeetingPhone] = useState(
+    initialMeetingPhone ?? providerPhone ?? ""
   );
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -96,6 +113,8 @@ export function MeetingScheduler({
           meeting_scheduled_at: scheduledAt,
           meeting_type: meetingType,
           meeting_focus: meetingFocus,
+          meeting_format: meetingFormat,
+          meeting_phone: meetingFormat === "phone" ? meetingPhone : null,
         }),
       });
 
@@ -107,6 +126,8 @@ export function MeetingScheduler({
         scheduled_at: scheduledAt,
         meeting_type: meetingType,
         meeting_focus: meetingFocus,
+        meeting_format: meetingFormat,
+        meeting_phone: meetingFormat === "phone" ? meetingPhone : undefined,
       });
     } catch (e) {
       setError(e instanceof Error ? e.message : "An error occurred");
@@ -234,6 +255,56 @@ export function MeetingScheduler({
             </label>
           </div>
         </div>
+
+        {/* Meeting Format */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Meeting Format
+          </label>
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="meetingFormat"
+                value="video"
+                checked={meetingFormat === "video"}
+                onChange={() => setMeetingFormat("video")}
+                className="text-primary-600 focus:ring-primary-500"
+              />
+              <span className="text-sm text-gray-700">Zoom Video Call</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="radio"
+                name="meetingFormat"
+                value="phone"
+                checked={meetingFormat === "phone"}
+                onChange={() => setMeetingFormat("phone")}
+                className="text-primary-600 focus:ring-primary-500"
+              />
+              <span className="text-sm text-gray-700">Phone Call</span>
+            </label>
+          </div>
+        </div>
+
+        {/* Phone Number (shown when phone format selected) */}
+        {meetingFormat === "phone" && (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Phone Number
+            </label>
+            <input
+              type="tel"
+              value={meetingPhone}
+              onChange={(e) => setMeetingPhone(e.target.value)}
+              placeholder="(555) 123-4567"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-primary-500 focus:ring-1 focus:ring-primary-500"
+            />
+            <p className="mt-1 text-xs text-gray-500">
+              Number to call for this meeting
+            </p>
+          </div>
+        )}
 
         <div className="flex justify-end gap-2 pt-2">
           <button

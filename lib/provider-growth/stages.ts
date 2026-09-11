@@ -172,6 +172,21 @@ export const CLAIM_SOURCE_LABELS: Record<ClaimSource, string> = {
   new_org_signup: "Self-Created",
 };
 
+/**
+ * Human-readable labels for context section display.
+ * These are more descriptive than CLAIM_SOURCE_LABELS for sales rep context.
+ */
+export const CLAIM_SOURCE_CONTEXT_LABELS: Record<ClaimSource, string> = {
+  cold_outreach: "Cold outreach",
+  city_broadcast: "City Broadcast email",
+  email: "Email link",
+  page: "Profile page",
+  lead_email: "Lead notification",
+  completion_email: "Profile completion email",
+  instant_claim: "Instant claim",
+  new_org_signup: "New signup",
+};
+
 export const CLAIM_SOURCE_COLORS: Record<ClaimSource, string> = {
   cold_outreach: "text-gray-600 bg-gray-50 border-gray-200",
   city_broadcast: "text-gray-600 bg-gray-50 border-gray-200",

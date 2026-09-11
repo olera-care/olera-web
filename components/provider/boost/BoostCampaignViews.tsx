@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import {
   boostChannelLabel,
@@ -169,16 +169,42 @@ export function CampaignPerformance({
  */
 const MAX_DOTS = 300;
 
+/**
+ * Has this provider already seen this flight's results animate?
+ *
+ * ONCE PER FLIGHT, NOT ONCE PER PAGE LOAD. The wrap-up is a moment the first
+ * time and a reference every time after, and it is also the screen that asks
+ * for money -- making someone sit through an arrival animation before they can
+ * read the evidence is a bad trade on visit three. Keyed on the campaign tag so
+ * a provider's second flight gets its own first showing.
+ *
+ * Wrapped because Safari private mode throws on localStorage access rather than
+ * returning null, and a receipt that crashes is worse than one that re-animates.
+ */
+function seenFlightBefore(key: string | null): boolean {
+  if (!key || typeof window === "undefined") return true;
+  try {
+    const k = `olera_boost_receipt_seen:${key}`;
+    if (window.localStorage.getItem(k)) return true;
+    window.localStorage.setItem(k, "1");
+    return false;
+  } catch {
+    return true; // cannot remember -> never animate, rather than animate always
+  }
+}
+
 function DotRow({
   n,
   label,
   sub,
   lit,
+  animate,
 }: {
   n: number;
   label: string;
   sub?: string;
   lit: boolean;
+  animate: boolean;
 }) {
   const scale = n > MAX_DOTS ? Math.ceil(n / MAX_DOTS) : 1;
   const drawn = Math.ceil(n / scale);
@@ -211,9 +237,21 @@ function DotRow({
           {n.toLocaleString()}
         </dd>
       </div>
+      {/* THE CROWD ARRIVES AS A MASS; THE PEOPLE WHO MOVED ARRIVE ONE BY ONE.
+          A faint row is hundreds of strangers -- staggering those is half a
+          second of noise that makes the crowd look like the point. A lit row is
+          the handful who clicked, and watching them land individually is the
+          entire reason they are dots rather than a number. Opacity only: no
+          scale, no bounce. This screen sometimes has to tell a provider they
+          got zero inquiries, and the register has to hold in that case too. */}
       <svg
         viewBox={`0 0 ${width} ${rows * gap + 4}`}
         className="mt-2 block w-full h-auto"
+        style={
+          !lit && animate
+            ? { animation: "olera-dots-in .24s ease-out both" }
+            : undefined
+        }
         aria-hidden="true"
       >
         {dots.map((d, i) => (
@@ -225,6 +263,14 @@ function DotRow({
             // The faint dots were light enough to read as a dotted border rather
             // than as people. Still clearly recessive, just present.
             fill={lit ? "#B57F1E" : "#D3CABA"}
+            style={
+              lit && animate
+                ? {
+                    opacity: 0,
+                    animation: `olera-dots-in .2s ease-out ${Math.min(i * 25, 900)}ms forwards`,
+                  }
+                : undefined
+            }
           />
         ))}
       </svg>
@@ -235,9 +281,26 @@ function DotRow({
   );
 }
 
-export function CampaignReceiptBlock({ receipt }: { receipt: CampaignReceiptData }) {
+export function CampaignReceiptBlock({
+  receipt,
+  flightKey = null,
+}: {
+  receipt: CampaignReceiptData;
+  /** Campaign tag. Gates the one-time arrival animation; omit to never animate. */
+  flightKey?: string | null;
+}) {
   const { google, engagement, outcomes } = receipt;
   const rows: { label: string; value: string; sub?: string }[] = [];
+
+  // Decided after mount, never during render: localStorage does not exist on the
+  // server, and reading it in render would hand the client a different first
+  // paint than the HTML it hydrates. Starting false also means the no-JS and
+  // reduced-motion paths get the finished state, which is the correct default.
+  const [animate, setAnimate] = useState(false);
+  useEffect(() => {
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    if (!seenFlightBefore(flightKey)) setAnimate(true);
+  }, [flightKey]);
 
   // The first three stages are drawn as dots instead of list rows -- same
   // numbers, same order, but the shape of the drop-off is the finding and a
@@ -296,12 +359,13 @@ export function CampaignReceiptBlock({ receipt }: { receipt: CampaignReceiptData
 
   return (
     <div className="mt-8">
+      <style>{"@keyframes olera-dots-in{from{opacity:0}to{opacity:1}}"}</style>
       <p className="text-xs font-semibold uppercase tracking-[0.12em] text-gray-400">
         What your campaign bought
       </p>
       <dl className="mt-3 divide-y divide-gray-100 border-y border-gray-100">
         {dotRows.map((d) => (
-          <DotRow key={d.label} n={d.n} label={d.label} sub={d.sub} lit={d.lit} />
+          <DotRow key={d.label} n={d.n} label={d.label} sub={d.sub} lit={d.lit} animate={animate} />
         ))}
         {rows.map((r) => (
           <div key={r.label} className="flex items-baseline justify-between gap-4 py-3">
@@ -671,7 +735,7 @@ export function WrapUpMoment({
           bought, so you can judge it on the numbers.
         </p>
 
-        {receipt && <CampaignReceiptBlock receipt={receipt} />}
+        {receipt && <CampaignReceiptBlock receipt={receipt} flightKey={request.campaign_tag || request.id} />}
         {receipt && <ReceiptMathLine receipt={receipt} />}
 
         <p className="text-gray-500 mt-6 leading-relaxed max-w-lg">
@@ -712,7 +776,7 @@ export function WrapUpMoment({
       </p>
 
       {campaignStats && <CampaignPerformance stats={campaignStats} />}
-      {receipt && <CampaignReceiptBlock receipt={receipt} />}
+      {receipt && <CampaignReceiptBlock receipt={receipt} flightKey={request.campaign_tag || request.id} />}
 
       {/* The decision — eyebrow only; the cards say what plans are. */}
       <p className="mt-12 text-xs font-semibold uppercase tracking-[0.12em] text-primary-600">
@@ -876,7 +940,7 @@ export function CampaignInMotion({
       {isLive && receipt && <MomentumLine week={receipt.week} />}
 
       {/* The accruing receipt: ad reach, saves, questions, reported outcomes. */}
-      {isLive && receipt && <CampaignReceiptBlock receipt={receipt} />}
+      {isLive && receipt && <CampaignReceiptBlock receipt={receipt} flightKey={request.campaign_tag || request.id} />}
 
       {/* The early plan choice uses the same visible cards as the wrap-up.
           Providers should not have to discover that a section-heading-looking

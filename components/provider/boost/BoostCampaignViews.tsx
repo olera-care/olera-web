@@ -185,6 +185,20 @@ function DotRow({
   const perRow = 46;
   const gap = 9.4;
   const rows = Math.max(1, Math.ceil(drawn / perRow));
+  const width = perRow * gap + 5;
+
+  // EVERY ROW IS CENTRED, and that is the whole reason this reads as a shape
+  // rather than a mistake. Left-aligned, 64 dots at 46 per row renders a full
+  // row and then a ragged stub of 18 that looks like a broken dotted rule.
+  // Centred, the rows stack into a taper -- wide at "shown", narrow at
+  // "clicked" -- so the block draws the funnel it is describing.
+  const dots = Array.from({ length: drawn }, (_, i) => {
+    const row = Math.floor(i / perRow);
+    const col = i % perRow;
+    const inRow = Math.min(perRow, drawn - row * perRow);
+    const indent = ((perRow - inRow) * gap) / 2;
+    return { cx: 4 + indent + col * gap, cy: 5 + row * gap };
+  });
 
   return (
     <div className="py-3">
@@ -198,17 +212,19 @@ function DotRow({
         </dd>
       </div>
       <svg
-        viewBox={`0 0 ${perRow * gap + 5} ${rows * gap + 4}`}
+        viewBox={`0 0 ${width} ${rows * gap + 4}`}
         className="mt-2 block w-full h-auto"
         aria-hidden="true"
       >
-        {Array.from({ length: drawn }, (_, i) => (
+        {dots.map((d, i) => (
           <circle
             key={i}
-            cx={4 + (i % perRow) * gap}
-            cy={5 + Math.floor(i / perRow) * gap}
-            r={lit ? 2.8 : 1.9}
-            fill={lit ? "#B57F1E" : "#DED8CC"}
+            cx={d.cx}
+            cy={d.cy}
+            r={lit ? 2.8 : 2.2}
+            // The faint dots were light enough to read as a dotted border rather
+            // than as people. Still clearly recessive, just present.
+            fill={lit ? "#B57F1E" : "#D3CABA"}
           />
         ))}
       </svg>
@@ -243,9 +259,15 @@ export function CampaignReceiptBlock({ receipt }: { receipt: CampaignReceiptData
       lit: true,
     });
   }
-  if (engagement.visitors > 0) {
-    dotRows.push({ n: engagement.visitors, label: "Visited your page", lit: true });
-  }
+  // "Visited your page" is deliberately absent. It said the same thing as the
+  // row above it -- a person arriving from the ad -- but counted it from our own
+  // tracking rather than Google's, so the two disagreed: 16 clicked, 19 visited.
+  // A funnel that grows at the second step reads as broken, and a provider
+  // cannot be expected to hold "different measurement windows" in their head.
+  // Google's click count wins because it is what they paid for and it carries
+  // the click rate. The visitor figure still has a home: the VISITORS tile in
+  // CampaignPerformance directly above this block, where it is not pretending
+  // to be a separate funnel stage.
 
   if (engagement.saves > 0) {
     rows.push({
@@ -292,23 +314,36 @@ export function CampaignReceiptBlock({ receipt }: { receipt: CampaignReceiptData
             </dd>
           </div>
         ))}
-        {outcomes.client > 0 && (
+        {/* ONE OUTCOME ROW, NEVER TWO.
+            "Became a paying client 1" stacked on "Still in conversation 1" made
+            a provider read two separate results and work out how they relate.
+            They are stages of one thing, so the strongest one leads and the
+            other rides along as a sub -- the same pattern the click-rate sub
+            already uses. Nothing is lost: with no clients, the conversation row
+            leads on its own. */}
+        {outcomes.client > 0 ? (
           <div className="flex items-baseline justify-between gap-4 py-3">
             <dt className="min-w-0 text-sm font-medium text-primary-700">
               Became {outcomes.client === 1 ? "a paying client" : "paying clients"}
+              {outcomes.talking > 0 && (
+                <span className="ml-2 text-xs font-normal text-gray-400">
+                  {outcomes.talking.toLocaleString()} still in conversation
+                </span>
+              )}
             </dt>
             <dd className="shrink-0 text-lg font-display font-bold text-primary-700 tabular-nums">
               {outcomes.client.toLocaleString()}
             </dd>
           </div>
-        )}
-        {outcomes.talking > 0 && (
-          <div className="flex items-baseline justify-between gap-4 py-3">
-            <dt className="min-w-0 text-sm text-gray-600">Still in conversation</dt>
-            <dd className="shrink-0 text-lg font-display font-bold text-gray-900 tabular-nums">
-              {outcomes.talking.toLocaleString()}
-            </dd>
-          </div>
+        ) : (
+          outcomes.talking > 0 && (
+            <div className="flex items-baseline justify-between gap-4 py-3">
+              <dt className="min-w-0 text-sm text-gray-600">Still in conversation</dt>
+              <dd className="shrink-0 text-lg font-display font-bold text-gray-900 tabular-nums">
+                {outcomes.talking.toLocaleString()}
+              </dd>
+            </div>
+          )
         )}
       </dl>
     </div>

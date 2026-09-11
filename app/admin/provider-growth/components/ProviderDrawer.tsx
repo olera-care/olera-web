@@ -19,11 +19,13 @@ import {
   MEDJOBS_STATUS_LABELS,
   INTEREST_LEVEL_LABELS,
   MEETING_FORMAT_LABELS,
+  CLAIM_SOURCE_CONTEXT_LABELS,
   type AdsStatus,
   type MedjobsStatus,
   type MeetingType,
   type MeetingFocus,
   type MeetingFormat,
+  type ClaimSource,
 } from "@/lib/provider-growth/stages";
 import { MeetingScheduler } from "./MeetingScheduler";
 import { ActivityLog } from "./ActivityLog";
@@ -49,6 +51,167 @@ function SectionHeader({ children }: { children: React.ReactNode }) {
 
 function SectionDivider() {
   return <div className="border-t border-gray-100 my-5" />;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Context Section
+// ─────────────────────────────────────────────────────────────────────────────
+
+interface ClaimerInfo {
+  name: string;
+  position?: string;
+  email: string;
+}
+
+interface EmailEngagement {
+  total_sent: number;
+  opened: number;
+  clicked: number;
+  last_clicked_at: string | null;
+}
+
+interface ProviderContextData {
+  claimer: ClaimerInfo | null;
+  emailEngagement: EmailEngagement | null;
+}
+
+function ContextSection({
+  context,
+  claimSource,
+  claimedAt,
+  expanded,
+  onToggle,
+}: {
+  context: ProviderContextData | null;
+  claimSource: ClaimSource | null;
+  claimedAt: string | null;
+  expanded: boolean;
+  onToggle: () => void;
+}) {
+  // Build collapsed summary
+  const claimerName = context?.claimer?.name || "Unknown";
+  const claimSourceLabel = claimSource
+    ? CLAIM_SOURCE_CONTEXT_LABELS[claimSource] || claimSource
+    : null;
+  const claimDateShort = claimedAt ? formatDateShort(claimedAt) : null;
+  const emailStats = context?.emailEngagement;
+  const openedRatio = emailStats && emailStats.total_sent > 0
+    ? `${emailStats.opened}/${emailStats.total_sent} opened`
+    : null;
+
+  // Collapsed summary parts
+  const summaryParts = [
+    claimSourceLabel && `via ${claimSourceLabel}`,
+    claimDateShort,
+    openedRatio,
+  ].filter(Boolean);
+
+  return (
+    <div className="mb-4">
+      <button
+        onClick={onToggle}
+        className="flex w-full items-center gap-2 text-left group"
+      >
+        <span className="text-[11px] font-semibold text-gray-400 uppercase tracking-wide">
+          Context
+        </span>
+        <span className="text-gray-400 text-[10px]" aria-hidden>
+          {expanded ? "▾" : "▸"}
+        </span>
+        {!expanded && (
+          <span className="text-[12px] text-gray-500 truncate">
+            {claimerName} claimed {summaryParts.join(" · ")}
+          </span>
+        )}
+      </button>
+
+      {expanded && (
+        <div className="mt-2 px-3 py-2.5 bg-gray-50 rounded-lg space-y-3">
+          {/* Claimer info */}
+          {context?.claimer && (
+            <div className="text-sm">
+              <span className="text-gray-500">Claimed by: </span>
+              <span className="text-gray-900 font-medium">{context.claimer.name}</span>
+              {context.claimer.position && (
+                <span className="text-gray-500"> ({context.claimer.position})</span>
+              )}
+              {context.claimer.email && (
+                <span className="text-gray-600"> – {context.claimer.email}</span>
+              )}
+            </div>
+          )}
+
+          {/* Claim source */}
+          {claimSourceLabel && (
+            <div className="text-sm">
+              <span className="text-gray-500">Found us via: </span>
+              <span className="text-gray-900">{claimSourceLabel}</span>
+            </div>
+          )}
+
+          {/* Claim date with relative time */}
+          {claimedAt && (
+            <div className="text-sm">
+              <span className="text-gray-500">Claimed: </span>
+              <span className="text-gray-900">
+                {formatDateFull(claimedAt)} ({daysAgo(claimedAt)})
+              </span>
+            </div>
+          )}
+
+          {/* Email engagement */}
+          <div className="pt-1 border-t border-gray-200">
+            <div className="text-[11px] font-medium text-gray-500 uppercase tracking-wide mb-1">
+              Email Engagement (30 days)
+            </div>
+            {emailStats && emailStats.total_sent > 0 ? (
+              <div className="space-y-1">
+                <div className="text-sm text-gray-700">
+                  • {emailStats.total_sent} emails sent, {emailStats.opened} opened, {emailStats.clicked} clicked
+                </div>
+                {emailStats.last_clicked_at && (
+                  <div className="text-sm text-gray-700">
+                    • Last clicked: {formatDateShort(emailStats.last_clicked_at)}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-sm text-gray-400">No emails sent</div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function formatDateShort(isoDate: string): string {
+  const date = new Date(isoDate);
+  if (isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+function formatDateFull(isoDate: string): string {
+  const date = new Date(isoDate);
+  if (isNaN(date.getTime())) return "";
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function daysAgo(isoDate: string): string {
+  const date = new Date(isoDate);
+  if (isNaN(date.getTime())) return "";
+
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return "today";
+  if (diffDays === 1) return "1 day ago";
+  return `${diffDays} days ago`;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -540,6 +703,8 @@ interface EngagementData {
 
 export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: ProviderDrawerProps) {
   const [engagement, setEngagement] = useState<EngagementData | null>(null);
+  const [contextData, setContextData] = useState<ProviderContextData | null>(null);
+  const [contextExpanded, setContextExpanded] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [activeAction, setActiveAction] = useState<"schedule" | "upgrade" | null>(null);
 
@@ -549,6 +714,7 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
       if (res.ok) {
         const data = await res.json();
         setEngagement(data.engagement || null);
+        setContextData(data.context || null);
       }
     } catch (e) {
       console.error("Failed to fetch provider data:", e);
@@ -688,6 +854,17 @@ export function ProviderDrawer({ provider, onClose, onUpdate, onCallLogged }: Pr
         <ContactSection provider={provider} />
 
         {(provider.phone || provider.email) && <SectionDivider />}
+
+        {/* Context Section - helps sales reps understand provider history */}
+        <ContextSection
+          context={contextData}
+          claimSource={provider.claim_source as ClaimSource | null}
+          claimedAt={provider.claimed_at}
+          expanded={contextExpanded}
+          onToggle={() => setContextExpanded((prev) => !prev)}
+        />
+
+        <SectionDivider />
 
         {/* Meeting Info - when meeting is scheduled */}
         <MeetingInfoSection provider={provider} />

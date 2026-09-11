@@ -27,6 +27,7 @@ import HireCaregiversCard from "./HireCaregiversCard";
 import VerificationStatusCard from "./VerificationStatusCard";
 import PostEditAdsNudge from "@/components/provider/PostEditAdsNudge";
 import ContextualAdsNudge from "@/components/provider/ContextualAdsNudge";
+import LiveCampaignCard from "@/components/provider/LiveCampaignCard";
 import VerificationMethodModal from "@/components/provider/VerificationMethodModal";
 import EditOverviewModal from "./edit-modals/EditOverviewModal";
 import EditGalleryModal from "./edit-modals/EditGalleryModal";
@@ -476,6 +477,13 @@ function DashboardContent({
               firstName={deriveFirstName(profile.display_name)}
             />
           )}
+
+          {/* Where a running campaign stands. The two nudges below are pitches to
+              BUY, and the contextual one correctly suppresses itself once a
+              flight is active — so without this the dashboard goes silent about
+              ads at exactly the moment the provider becomes a customer. Renders
+              itself to null unless a flight is live or finished. */}
+          {!previewMode && <LiveCampaignCard />}
 
           {/* Post-edit Managed Ads nudge — fires once per session after a save,
               not as an always-on card. The earned, high-intent moment. Hidden

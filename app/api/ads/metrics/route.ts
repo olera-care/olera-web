@@ -96,6 +96,9 @@ export async function POST(req: NextRequest) {
   const updatedCity: string[] = [];
   const unmatched: { id: string; name?: string }[] = [];
   const rejected: { id?: string; reason: string }[] = [];
+  /** Mapped, but held back because a human verified those figures. Not an
+   *  error and not a gap -- reported so the run log can say so out loud. */
+  const skippedVerified: string[] = [];
 
   for (const item of raw as IncomingCampaign[]) {
     const id = item && typeof item.id === "string" ? item.id.trim() : "";
@@ -127,10 +130,25 @@ export async function POST(req: NextRequest) {
     // Provider flights first, then the Olera-owned city campaigns. They live in
     // the same Google account and arrive in the same payload, but in different
     // tables; a campaign belongs to exactly one of them.
+    //
+    // A `verified` row is never overwritten. Those figures were read off the ad
+    // platform by a human for a specific flight window, which is the one thing
+    // this sync cannot do: it reports LAST_30_DAYS for the whole campaign, so
+    // where one Google campaign backs two Olera flights, or a flight has aged
+    // past the window, the script's number is wrong and the human's is right.
+    // Without this guard the hourly run silently reverts the correction inside
+    // the hour and re-stamps it `script`, which the provider-facing gate then
+    // trusts. Deliberately written as `is.null OR neq`: a bare `.neq()` drops
+    // NULL rows too, because SQL `NULL <> 'verified'` is NULL, not true -- and
+    // a brand-new flight has NULL here, so that form would stop syncing exactly
+    // the campaigns that need it most.
+    const notVerified = "metrics_source.is.null,metrics_source.neq.verified";
+
     const { data: prov, error: provErr } = await db
       .from("ad_campaign_requests")
       .update(patch)
       .eq("platform_campaign_id", id)
+      .or(notVerified)
       .select("id");
 
     if (provErr) {
@@ -142,10 +160,29 @@ export async function POST(req: NextRequest) {
       continue;
     }
 
+    // A zero-row update above is ambiguous: either no row carries this
+    // platform_campaign_id, or one does and it is verified. Those need
+    // different responses from whoever reads the run log -- one is "backfill
+    // the mapping", the other is "working as intended" -- so tell them apart
+    // before falling through to the city table. Without this, every verified
+    // campaign would be reported as UNMATCHED every hour, and the log line that
+    // exists to surface real gaps would fill up with noise.
+    const { data: heldProv } = await db
+      .from("ad_campaign_requests")
+      .select("id")
+      .eq("platform_campaign_id", id)
+      .eq("metrics_source", "verified")
+      .limit(1);
+    if (heldProv && heldProv.length > 0) {
+      skippedVerified.push(id);
+      continue;
+    }
+
     const { data: city, error: cityErr } = await db
       .from("city_campaigns")
       .update(patch)
       .eq("platform_campaign_id", id)
+      .or(notVerified)
       .select("id");
 
     if (cityErr) {
@@ -154,6 +191,17 @@ export async function POST(req: NextRequest) {
     }
     if (city && city.length > 0) {
       updatedCity.push(id);
+      continue;
+    }
+
+    const { data: heldCity } = await db
+      .from("city_campaigns")
+      .select("id")
+      .eq("platform_campaign_id", id)
+      .eq("metrics_source", "verified")
+      .limit(1);
+    if (heldCity && heldCity.length > 0) {
+      skippedVerified.push(id);
       continue;
     }
 
@@ -170,6 +218,7 @@ export async function POST(req: NextRequest) {
     received: raw.length,
     updatedProvider: updatedProvider.length,
     updatedCity: updatedCity.length,
+    skippedVerified,
     unmatched,
     rejected,
   });

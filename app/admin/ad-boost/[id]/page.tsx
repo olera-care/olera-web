@@ -173,6 +173,7 @@ function Detail({
   );
   const [budgetType, setBudgetType] = useState(request.ad_budget_type ?? "");
   const [tag, setTag] = useState(request.campaign_tag ?? "");
+  const [platformId, setPlatformId] = useState(request.platform_campaign_id ?? "");
   const [note, setNote] = useState(request.admin_note ?? "");
   // Launch-email schedule: datetime-local as US EASTERN wall-clock (TJ
   // schedules from anywhere in the world — see lib/eastern-time.ts).
@@ -282,6 +283,7 @@ function Detail({
     flightBudgetCents !== request.ad_budget_cents ||
     budgetType !== (request.ad_budget_type ?? "") ||
     tag !== (request.campaign_tag ?? "") ||
+    platformId !== (request.platform_campaign_id ?? "") ||
     note !== (request.admin_note ?? "") ||
     launchEmailDirty ||
     wrapUpDirty;
@@ -318,6 +320,7 @@ function Detail({
           ad_budget_cents: flightBudgetCents,
           ad_budget_type: budgetType || null,
           campaign_tag: tag || null,
+          platform_campaign_id: platformId.trim() || null,
           admin_note: note || null,
           // Only when touched: re-sending a stored time would trip the
           // route's not-in-the-past validation between due time and the
@@ -896,6 +899,31 @@ function Detail({
             placeholder={request.id}
             className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 bg-white"
           />
+        </label>
+
+        {/* The join the hourly sync uses. It matches on this id and NOTHING else
+            -- never on campaign name -- so a flight left unmapped silently syncs
+            no figures at all, and whatever gets typed in the Performance box
+            below is withheld from the provider as unverified. Until this field
+            existed the column was settable only by raw SQL. */}
+        <label className="block text-sm mt-3">
+          <span className="block text-gray-500 mb-1">Ad-platform campaign ID</span>
+          <input
+            value={platformId}
+            onChange={(e) => setPlatformId(e.target.value)}
+            placeholder="e.g. 24223751948"
+            inputMode="numeric"
+            className="w-full rounded-lg border border-gray-200 px-2.5 py-1.5 bg-white font-mono text-[13px]"
+          />
+          <span
+            className={`mt-1.5 block text-xs ${
+              request.platform_campaign_id ? "text-gray-500" : "text-amber-600"
+            }`}
+          >
+            {request.platform_campaign_id
+              ? "Metrics sync hourly from the ad platform."
+              : "Not mapped, so nothing syncs for this flight. Copy the numeric campaign ID from the ad platform URL. The sync's run log lists unmapped campaigns under UNMATCHED."}
+          </span>
         </label>
 
         <label className="block text-sm mt-3">

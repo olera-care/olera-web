@@ -1,4 +1,5 @@
 import { getServiceClient } from "@/lib/admin";
+import { isTrustedMetricsSource } from "@/lib/ad-boost/metrics-provenance";
 import {
   getCampaignQuestions,
   getCampaignStats,
@@ -148,7 +149,7 @@ export async function getCampaignReceipt(
   // receipt admin renders IS the provider's receipt, so the two must agree. The
   // raw typed figures stay visible to admin where they are actually needed --
   // the ad-boost detail page, which is the form they were typed into.
-  const metricsTrusted = request.metrics_source === "script";
+  const metricsTrusted = isTrustedMetricsSource(request.metrics_source);
   const impressions = metricsTrusted ? (request.ad_impressions ?? null) : null;
   const clicks = metricsTrusted ? (request.ad_clicks ?? null) : null;
   const spendCents = metricsTrusted ? (request.ad_spend_cents ?? null) : null;

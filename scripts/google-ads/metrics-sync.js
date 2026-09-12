@@ -30,6 +30,12 @@
  *   4. Preview once and read the log before scheduling.
  *   5. Schedule: Hourly.
  *
+ * UPDATING. Editing this file changes nothing on its own -- the running copy
+ * lives in the Ads UI. Paste it over the existing script and Preview once. On
+ * the 2026-09-12 window change the log should show figures going UP for ended
+ * flights, not down: Pacesetter's July flight from 143 back to 285. If they are
+ * unchanged, the paste did not take.
+ *
  * THE FIREWALL DEPENDENCY. Vercel's WAF 429s Google's script servers. The custom
  * rule `ads-metrics-ingest` on the olera-web project bypasses it for the ingest
  * path only. If this script starts failing with 429, check that rule still
@@ -43,26 +49,40 @@ var ENDPOINT = 'https://olera.care/api/ads/metrics';
 var SECRET = 'REPLACE_ME';
 
 /**
- * Google reports against the account time zone, which is Central for this
- * account.
+ * THE WINDOW IS THE CAMPAIGN'S WHOLE LIFE, NOT A ROLLING ONE.
  *
- * KNOWN WRONG FOR ENDED FLIGHTS, AND DATED. This is a ROLLING window, not the
- * flight's window, so a campaign's figure changes every day and decays to zero
- * about 30 days after it stops serving. On 2026-09-12 four ended flights had
- * already reached zero that way (Franchil, Abode, Miracle-Lightstar, Impact --
- * Miracle-Lightstar really ran 338 impressions) and six more were mid-decay.
+ * This was LAST_30_DAYS until 2026-09-12, which was wrong in a way that was
+ * invisible until someone reconciled a receipt against Google by hand.
  *
- * An earlier version of this comment claimed the window "matches the one
- * /ad-boost-audit reads". It does not, and the audit doc says the opposite:
- * "Set the date range to All time once... The default 30-day window renders
- * ended campaigns as zeros and looks like 'no data.'" That failure was
- * diagnosed in the manual workflow before this script shipped.
+ * A rolling window means a campaign's figure CHANGES EVERY DAY and decays to
+ * zero about thirty days after it stops serving. Four ended flights had already
+ * reached zero that way -- Franchil, Abode, Miracle-Lightstar and Impact --
+ * while Miracle-Lightstar had really run 338 impressions. Pacesetter's July
+ * flight had halved, from a real 285 down to 143, and would have told that
+ * provider their $51.82 bought half what it did. These numbers are stamped
+ * metrics_source='script', which the provider-facing gate trusts, so a decayed
+ * figure is shown to the provider as fact.
  *
- * The server now refuses to overwrite a `verified` row, so a human correction
- * survives. That is a patch over this, not a fix for it. The fix is to report
- * each campaign against its own flight window rather than a rolling one.
+ * ALL_TIME is right because THE CAMPAIGN IS THE FLIGHT. One Google campaign is
+ * built per flight -- see the names: "LumiWell Home Care - Fresno - Aug 2026"
+ * -- so a campaign's lifetime total IS what that flight bought, and it stops
+ * moving once the flight ends. That is also what the receipt claims the number
+ * means ("Times your ad was shown"), and what /ad-boost-audit has always told a
+ * human to do: "Set the date range to All time once... The default 30-day
+ * window renders ended campaigns as zeros and looks like 'no data.'" That
+ * failure was diagnosed in the manual workflow before this script ever shipped.
+ *
+ * THE ONE EXCEPTION is a Google campaign that backs TWO Olera flights, where
+ * no single window can be right for either. HomeWell Oak Ridge is the known
+ * case: one campaign, a July flight and an August one. Those are entered by
+ * hand as metrics_source='verified', and the server refuses to let this script
+ * overwrite them. Do not try to solve that case here -- splitting a campaign's
+ * total across flight windows needs the flight dates, which live in Olera and
+ * not in Google.
+ *
+ * Google reports against the account time zone, which is Central for this one.
  */
-var WINDOW = 'LAST_30_DAYS';
+var WINDOW = 'ALL_TIME';
 
 function main() {
   var campaigns = [];

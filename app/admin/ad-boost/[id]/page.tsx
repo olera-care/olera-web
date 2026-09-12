@@ -21,6 +21,7 @@ import {
   fmtMetricsAge,
 } from "@/components/admin/AdBoostShared";
 import AdBoostCaseTimeline from "@/components/admin/AdBoostCaseTimeline";
+import { isTrustedMetricsSource } from "@/lib/ad-boost/metrics-provenance";
 import { etInputToUtcIso, toEtInputValue, formatEt } from "@/lib/eastern-time";
 import {
   type AdBoostAttentionLevel,
@@ -1043,6 +1044,19 @@ function Detail({
           {metricsAge
             ? `Ad-platform figures last entered ${metricsAge.label}.`
             : "Ad-platform figures have no recorded entry date."}
+          {/* WHETHER THE PROVIDER CAN SEE THESE. The receipt and the dashboard
+              hero both withhold figures that are neither script-synced nor
+              admin-verified, so a `typed` row shows the provider nothing while
+              showing an admin four confident tiles. Without this line that gap
+              is invisible from here, and the fix (re-enter them) is not
+              obviously the fix. */}
+          {request.metrics_source !== "script" && (
+            <span className="block mt-1">
+              {isTrustedMetricsSource(request.metrics_source)
+                ? "Verified by hand. The provider sees these."
+                : "Not verified, so the provider sees no ad figures. Re-enter them below to release them."}
+            </span>
+          )}
           {(metricsAge?.days ?? 0) >= 7 && " Re-check the dashboard before acting on them."}
         </p>
 

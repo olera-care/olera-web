@@ -42,17 +42,32 @@ const RECEIPT_STRONG: CampaignReceiptData = {
   week: { visitors: 7, questions: 1, leads: 1 },
 };
 
+/**
+ * Sample dates are RELATIVE, not literal.
+ *
+ * They were written as fixed strings in June and by September the "Live ·
+ * mid-flight" preview read "Your campaign is live" above "Flight: Ended Aug 3".
+ * That contradiction is a fixture going stale, not a bug in CampaignInMotion,
+ * but it looks exactly like one and it gets worse every month.
+ */
+function daysFromNow(n: number): string {
+  return new Date(Date.now() + n * 86_400_000).toISOString().slice(0, 10);
+}
+function isoFromNow(n: number): string {
+  return new Date(Date.now() + n * 86_400_000).toISOString();
+}
+
 const SAMPLE_BASE: BoostRequest = {
   id: "preview",
   status: "live",
-  requested_setup_week: "2026-06-22",
+  requested_setup_week: daysFromNow(-24),
   channel: "google",
   intended_monthly_budget: 50,
   campaign_tag: "preview-campaign",
-  created_at: "2026-06-16T12:00:00Z",
+  created_at: isoFromNow(-30),
   plan_status: null,
   plan_value: null,
-  promo_complete_email_sent_at: "2026-07-06T12:00:00Z",
+  promo_complete_email_sent_at: isoFromNow(-3),
 };
 
 const PREVIEWS: {
@@ -122,7 +137,7 @@ export default function AdBoostPreviewPage() {
     visitors: 19,
     leads,
     questions: { received: 4, unanswered: 1 },
-    since: "2026-06-22T00:00:00Z",
+    since: isoFromNow(-24),
   });
 
   const active: BoostRequest = {
@@ -190,7 +205,7 @@ export default function AdBoostPreviewPage() {
           {view === "live" && (
             <CampaignInMotion
               key="live"
-              request={{ ...sampleFor("live"), flight_end_date: "2026-08-03", promo_complete_email_sent_at: null }}
+              request={{ ...sampleFor("live"), flight_end_date: daysFromNow(6), promo_complete_email_sent_at: null }}
               campaignStats={stats(1)}
               receipt={RECEIPT_STRONG}
               onCheckout={stubCheckout}

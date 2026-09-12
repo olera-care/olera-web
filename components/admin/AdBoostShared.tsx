@@ -42,6 +42,14 @@ export interface CampaignRequest {
   /** When the three fields above were last saved. NULL = entered before this
    *  was tracked (2026-08-20), so their age is unknown. */
   metrics_updated_at?: string | null;
+  /** Where those three came from, and so whether the provider is allowed to see
+   *  them: `script` (hourly Google Ads Script), `verified` (an admin read them
+   *  off the platform and entered them here), `typed` / null (historical, never
+   *  re-checked -- withheld). See `lib/ad-boost/metrics-provenance.ts`. Keep
+   *  this on the type: it has now been forgotten twice in admin plumbing, once
+   *  in a row SELECT that would have blanked every synced campaign's figures,
+   *  and TypeScript cannot catch it where a whole row object is passed. */
+  metrics_source?: string | null;
   /** Idempotency markers for request/readiness messages. A value means the
    *  provider communication completed successfully. */
   queued_email_sent_at?: string | null;

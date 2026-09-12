@@ -44,8 +44,23 @@ var SECRET = 'REPLACE_ME';
 
 /**
  * Google reports against the account time zone, which is Central for this
- * account. LAST_30_DAYS matches the window the provider dashboard shows and the
- * one /ad-boost-audit reads. Change both together or they will disagree.
+ * account.
+ *
+ * KNOWN WRONG FOR ENDED FLIGHTS, AND DATED. This is a ROLLING window, not the
+ * flight's window, so a campaign's figure changes every day and decays to zero
+ * about 30 days after it stops serving. On 2026-09-12 four ended flights had
+ * already reached zero that way (Franchil, Abode, Miracle-Lightstar, Impact --
+ * Miracle-Lightstar really ran 338 impressions) and six more were mid-decay.
+ *
+ * An earlier version of this comment claimed the window "matches the one
+ * /ad-boost-audit reads". It does not, and the audit doc says the opposite:
+ * "Set the date range to All time once... The default 30-day window renders
+ * ended campaigns as zeros and looks like 'no data.'" That failure was
+ * diagnosed in the manual workflow before this script shipped.
+ *
+ * The server now refuses to overwrite a `verified` row, so a human correction
+ * survives. That is a patch over this, not a fix for it. The fix is to report
+ * each campaign against its own flight window rather than a rolling one.
  */
 var WINDOW = 'LAST_30_DAYS';
 
@@ -112,6 +127,14 @@ function main() {
     }
     if (parsed && parsed.rejected && parsed.rejected.length) {
       Logger.log('REJECTED: ' + JSON.stringify(parsed.rejected));
+    }
+    // Not a gap and not an error: a human entered these off the ad platform for
+    // a specific flight window, and the server is protecting them from this
+    // script. Logged so a run that "updated fewer than expected" explains
+    // itself instead of looking like a mapping problem.
+    if (parsed && parsed.skippedVerified && parsed.skippedVerified.length) {
+      Logger.log('HELD (verified by hand, not overwritten): ' +
+        parsed.skippedVerified.join(' | '));
     }
   } catch (e) {
     Logger.log('Could not parse response body: ' + e);

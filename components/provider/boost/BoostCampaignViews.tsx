@@ -170,27 +170,62 @@ export function CampaignPerformance({
 const MAX_DOTS = 300;
 
 /**
- * Has this provider already seen this flight's results animate?
+ * Should the dots animate in on this visit?
  *
- * ONCE PER FLIGHT, NOT ONCE PER PAGE LOAD. The wrap-up is a moment the first
- * time and a reference every time after, and it is also the screen that asks
- * for money -- making someone sit through an arrival animation before they can
- * read the evidence is a bad trade on visit three. Keyed on the campaign tag so
- * a provider's second flight gets its own first showing.
+ * WHEN THE NUMBERS CHANGE, NOT ON A TIMER AND NOT ONCE PER FLIGHT. Once per
+ * flight was too rare: the animation is the best thing on this page and most
+ * providers spent their single showing before there was anything to see. Every
+ * load is worse -- this is also the screen that asks for money, and making
+ * someone sit through an arrival before they can read the evidence is a bad
+ * trade on visit three.
+ *
+ * The rule that falls out of both: replay when the picture actually changed.
+ * That is what the animation MEANS -- people arriving -- so firing it on
+ * unchanged data is a small lie, and firing it on changed data is the honest
+ * reading of the same gesture. It also happens to be what the habituation
+ * literature points at: a repeated identical stimulus decays, and it is a
+ * CHANGE in the stimulus that restores the response. Here the data is the
+ * stimulus, so the two rules are the same rule.
+ *
+ * Metrics sync hourly, so a live flight earns a replay roughly when something
+ * really happened, and an ended flight whose numbers are final animates once
+ * and then stays still. Both are correct.
  *
  * Wrapped because Safari private mode throws on localStorage access rather than
  * returning null, and a receipt that crashes is worse than one that re-animates.
  */
-function seenFlightBefore(key: string | null): boolean {
-  if (!key || typeof window === "undefined") return true;
+function shouldAnimate(key: string | null, signature: string): boolean {
+  if (!key || typeof window === "undefined") return false;
   try {
     const k = `olera_boost_receipt_seen:${key}`;
-    if (window.localStorage.getItem(k)) return true;
-    window.localStorage.setItem(k, "1");
-    return false;
+    const seen = window.localStorage.getItem(k);
+    if (seen === signature) return false;
+    window.localStorage.setItem(k, signature);
+    return true;
   } catch {
-    return true; // cannot remember -> never animate, rather than animate always
+    return false; // cannot remember -> never animate, rather than animate always
   }
+}
+
+/** What the dots currently say. The animation replays when this changes.
+ *
+ *  Everything the block actually draws goes in, so the signature moves exactly
+ *  when the picture does and never when it doesn't. A provider who reloads
+ *  four times in an hour sees it once; one who comes back after the hourly
+ *  sync added eleven impressions sees it again, because eleven more people
+ *  really did see their ad. */
+function receiptSignature(receipt: CampaignReceiptData): string {
+  const g = receipt.google;
+  const o = receipt.outcomes;
+  return [
+    g.impressions ?? "-",
+    g.clicks ?? "-",
+    receipt.engagement.visitors,
+    receipt.engagement.saves,
+    receipt.engagement.questionsReceived,
+    o.client,
+    o.talking,
+  ].join(".");
 }
 
 function DotRow({
@@ -304,19 +339,20 @@ export function CampaignReceiptBlock({
   // reduced-motion paths get the finished state, which is the correct default.
   const [animate, setAnimate] = useState(false);
   const blockRef = useRef<HTMLDivElement>(null);
+  const signature = receiptSignature(receipt);
   useEffect(() => {
     if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
     const el = blockRef.current;
     if (!el) return;
 
     // WAIT UNTIL IT IS ACTUALLY ON SCREEN. Firing on mount both plays the
-    // arrival and spends the one-per-flight allowance -- so a provider whose
-    // receipt sits below the fold (the live view puts a facts row, a 3-up stat
-    // row and a momentum line above it) would scroll down to a finished list and
-    // never see it, on this visit or any future one. The feature would have been
-    // silently dead for exactly the people it was built for.
+    // arrival and spends the allowance -- so a provider whose receipt sits
+    // below the fold (the live view puts a facts row, a 3-up stat row and a
+    // momentum line above it) would scroll down to a finished list and never
+    // see it. The feature would have been silently dead for exactly the people
+    // it was built for.
     const start = () => {
-      if (!seenFlightBefore(flightKey)) setAnimate(true);
+      if (shouldAnimate(flightKey, signature)) setAnimate(true);
     };
     if (typeof IntersectionObserver === "undefined") {
       start();
@@ -332,7 +368,7 @@ export function CampaignReceiptBlock({
     );
     io.observe(el);
     return () => io.disconnect();
-  }, [flightKey]);
+  }, [flightKey, signature]);
 
   // The first three stages are drawn as dots instead of list rows -- same
   // numbers, same order, but the shape of the drop-off is the finding and a

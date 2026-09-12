@@ -517,18 +517,34 @@ export async function GET(request: NextRequest) {
 
     if (campaignRow && (campaignRow.status === "live" || campaignRow.status === "ended")) {
       const endedAnchor = campaignRow.ended_at || campaignRow.flight_end_date;
-      const endedDaysAgo = endedAnchor
-        ? (Date.now() - new Date(endedAnchor).getTime()) / 86_400_000
-        : 0;
+      // An ended row with no anchor at all is treated as EXPIRED, not as
+      // ended-just-now. Both paths that end a flight set `ended_at` (the
+      // scheduler and the admin status flip) so this should be unreachable,
+      // and no such row exists today -- but the two defaults fail in opposite
+      // directions, and the wrong one pins a mystery campaign to the top of
+      // the dashboard permanently with nobody able to say when it ran.
       const withinWindow =
-        campaignRow.status === "live" || endedDaysAgo <= ENDED_HERO_WINDOW_DAYS;
+        campaignRow.status === "live" ||
+        (!!endedAnchor &&
+          (Date.now() - new Date(endedAnchor).getTime()) / 86_400_000 <=
+            ENDED_HERO_WINDOW_DAYS);
 
       if (withinWindow) {
         const trusted = isTrustedMetricsSource(campaignRow.metrics_source);
         // Effective tag is `campaign_tag || id`, matching the ad links — so the
         // count is right whether or not a tag was set explicitly.
         const tag = campaignRow.campaign_tag || campaignRow.id;
-        const delivered = await countDeliveredByCampaign(db, [tag]);
+        // Isolated on purpose. This is the one query in the whole payload that
+        // exists only for a banner, and it is the newest: before this the
+        // dashboard had no dependency on the ad-boost readers at all. A lead
+        // count that fails should cost the campaign banner its strongest line,
+        // not 500 the entire provider dashboard.
+        let delivered: Record<string, number> = {};
+        try {
+          delivered = await countDeliveredByCampaign(db, [tag]);
+        } catch (e) {
+          console.error("[provider/dashboard] campaign lead count failed:", e);
+        }
         campaign = {
           status: campaignRow.status,
           shown: trusted ? (campaignRow.ad_impressions ?? null) : null,

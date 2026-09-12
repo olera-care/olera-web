@@ -679,6 +679,22 @@ export async function POST(request: NextRequest) {
     body.ad_impressions !== undefined
   ) {
     update.metrics_updated_at = new Date().toISOString();
+    // ...and stamps them `verified`: an admin read them off the ad platform
+    // just now and entered them deliberately. That is what earns them the
+    // provenance gate on the receipt and the dashboard hero, which otherwise
+    // withhold anything not machine-synced.
+    //
+    // This ALSO closes a laundering hole. Until now this branch re-dated the
+    // figures but never touched `metrics_source`, so typing over a row the
+    // script had synced left it still claiming `script` -- hand-entered numbers
+    // wearing the sync's credibility, with nothing in the record to say so.
+    // Now every manual entry says what it is.
+    //
+    // The historical `typed` rows stay `typed` and stay withheld. They are the
+    // reason the gate exists (Edmonds Villa's August flight read $0.00 / 4
+    // impressions against a real $43.52 / 391) and nobody has re-checked them.
+    // Re-entering one here is exactly how it gets released.
+    update.metrics_source = "verified";
   }
 
   // Launch-email schedule (UTC ISO; the admin UI collects it as US Eastern).

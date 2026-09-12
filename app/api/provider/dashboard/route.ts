@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getServiceClient } from "@/lib/admin";
 import { countDeliveredByCampaign } from "@/lib/ad-boost/delivered.server";
+import { isTrustedMetricsSource } from "@/lib/ad-boost/metrics-provenance";
 
 /**
  * GET /api/provider/dashboard
@@ -523,7 +524,7 @@ export async function GET(request: NextRequest) {
         campaignRow.status === "live" || endedDaysAgo <= ENDED_HERO_WINDOW_DAYS;
 
       if (withinWindow) {
-        const trusted = campaignRow.metrics_source === "script";
+        const trusted = isTrustedMetricsSource(campaignRow.metrics_source);
         // Effective tag is `campaign_tag || id`, matching the ad links — so the
         // count is right whether or not a tag was set explicitly.
         const tag = campaignRow.campaign_tag || campaignRow.id;

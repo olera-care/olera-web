@@ -50,6 +50,12 @@ export interface CampaignRequest {
    *  in a row SELECT that would have blanked every synced campaign's figures,
    *  and TypeScript cannot catch it where a whole row object is passed. */
   metrics_source?: string | null;
+  /** The ad-platform campaign id this flight maps to. The hourly sync joins on
+   *  this and only this -- it never matches on name -- so an unmapped flight
+   *  syncs nothing and falls back to hand-typed figures the provider-facing
+   *  gate then withholds. Must be unique across flights: two rows sharing an id
+   *  means one campaign's figures are written onto both. */
+  platform_campaign_id?: string | null;
   /** Idempotency markers for request/readiness messages. A value means the
    *  provider communication completed successfully. */
   queued_email_sent_at?: string | null;

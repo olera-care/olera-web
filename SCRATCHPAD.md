@@ -7,6 +7,78 @@
 
 ## Current Focus
 
+### 2026-09-13 — Provider banner browsing and dismissal
+
+- Branch `codex/provider-banner-updates`, rebased onto current `origin/staging`; ready for preview PR and human QA. One visible update, arrows/counter, X advances to the next, and View updates restores the queue. Full implementation and pre-test findings are recorded in today's Session Log below.
+
+### 2026-09-13 — City message scheduling and lead archiving
+
+- Preview QA follow-up (PR #1897): TJ's screenshots show Ann archived/opted out and a saved pending SMS. Fixed `nextStaffedStart` preserving the request's minute offset (8:02/8:03); new schedules now land exactly at 8:00. Added off-quarter, boundary, and 25-hour DST regressions in `scripts/check-city-send-window.ts`. TypeScript, all 14 window checks, and cron registry pass. Existing queued timestamps unchanged; actual delivery/cancellation still unverified.
+- Branch `codex/city-scheduling-archive`, based on staging. Adds SMS/email composition, next-8-AM city-local scheduling, pending cancellation, delivery history, and Active/Archived lead views with archive reasons.
+- Files: city-ads admin page/API; `lib/city-ads/{messages.server,send-window,offers.server,followups.server}.ts`; existing city-lead-offers cron; migration 228; focused checks and `docs/city-ads/scheduled-messages.md`.
+- Archive cancels pending messages/open offers and prevents stale replies reopening leads. Do Not Contact changes archive matching city leads; migration backfills existing opt-outs. Ann McDade was suppressed and her SMS inbox handled during this session; city archival is handled by migration. TJ confirmed migration 228 applied (not independently verified).
+- Validation: TypeScript, cron registry, nine timezone/DST checks, isolated PostgreSQL migration/backfill/cancellation/claim checks passed. No live messages sent during implementation; authenticated preview UI and real delivery still need QA.
+- Next: preview `/admin/city-ads` using a test lead; verify scheduling/cancel/archive for both channels. Do not merge without TJ's request. Ambiguous delivery remains held for review rather than automatically retrying.
+
+### 2026-09-13 — The CPL ladder rewritten around visit-intent, and the action list rebuilt on verified rather than asserted facts (`joyful-hopper`, ops only, no code)
+
+Review session on the 12 Sep CPL report (artifact `b946978d-89e6-415c-b753-cd344313252c`, v4 → v6). No product code changed. Everything below is either a correction to the report or a verified fact about live code and data that the next session should not re-derive.
+
+**TJ's objection, which is the session.** The report factored CPL into cost-per-visit and conversion, and proposed buying Meta's cheaper clicks. TJ: user intent differs by platform, so a visit is not a fungible unit. Google sells someone who typed a care query, Meta and Nextdoor sell someone who was scrolling. **The ladder multiplies a price observed on one platform by a conversion rate observed on another.** Worst cell is the $48 rung, which pairs Meta's $1.30 click with 2.7%, a rate only ever seen on Google search traffic to provider pages. The report already carried the evidence in two places without connecting them: Nextdoor's 0-from-168, and its own note that the 2.8% provider-page rate "comes almost entirely from Google search traffic," filed under confounds. Applied as provenance marks on every rung (one MEASURED, four BORROWED/TARGET), a replacement for the false "neither multiplier is speculative" note, and a new free lever the equation cannot express: **buy better intent**, i.e. measure what share of Google clicks are competitor-review lookups and exclude them.
+
+**The equation block was unreadable and is now a term grid.** It was one `white-space:nowrap` code line where `$2.45` did not sit under `cost per landed visit`. Each term now has its own column with the number under its label, plus a one-line cohort reading, because nobody can feel a division by the product of two percentages.
+
+**Next Steps went 8 → 11 items and changed ordering axis** from "by multiplier on CPL" to what is verified true today. The old axis put two forecasts at the top and buried a live phone bug in a hygiene blob.
+
+**What `/push` broke in my own rewrite, all verified against code or the database:**
+
+- **A server-only phone fix would have made things worse.** `normalizeUSPhone` (`lib/twilio.ts:238`) takes any ten digits and prefixes `+1`, so Jillanna's `1214870172` stored as `+11214870172` (area code 121 cannot exist). But `app/api/city-leads/route.ts:106` is `if (!phone) return 400`, so tightening the normaliser **rejects the submission** rather than saving it, at the highest-drop-off moment on the page whose conversion rate is the ladder's second multiplier. The client has the same defect at `app/care/[city]/CityLandingClient.tsx:378` (`length < 10`) next to an existing inline error path. **That is where the fix belongs**; the server change is a backstop and it is not three lines, it is **14 importers** including `app/api/claim/send-code/route.ts`, the provider login OTP. NANP needs two conditions: area code and exchange code must each start 2-9.
+- **The 200-click Meta stopping rule was wrong.** Fisher at 200 clicks / 1 outcome vs Google's 10/376 is **p = 0.061**. It would have declared the cheap-click half of the ladder dead on non-significant evidence, in a report that called Nextdoor at p = 0.036. **300 clicks** gives p = 0.0148 at one outcome and p = 0.0027 at zero. About $390 at $1.30/click, ~$320 incremental.
+- **Hoop Cares is not a $129/month leak.** Campaign `24235451655` **has** its `platform_campaign_id` set, `metrics_source = script`, synced 09-13 05:55, and has spent **$1.87 across 1 click** since 8 Sep. Live with no end date and delivering nothing, which is worth closing and is not urgent.
+- **The metrics-sync item is confirmed dead**, from data not memory: the four previously-zeroed flights read $36.50 / $41.49 / $49.26 / $49.97, all re-synced under `src script`. The `verified` guard is live at `app/api/ads/metrics/route.ts:145`. **The comment at `:136` still claims `LAST_30_DAYS` and is stale prose** that will mislead the next reader.
+- **The real orphan is Aggie Assisted Living**, not Hoop: status `live`, `platform_campaign_id` **null**, yet `$28.40` with `metrics_source = script`. The sync matches on that id, so it should not have been able to write that row. Unexplained. Also **Graceful's ended flight reads `$0.00 / clicks None / src None`** — no Nextdoor sync path exists.
+- **Reallocation reverses.** The report said move Google's share to Meta. That moves budget out of the only intent-native channel into an attention channel on a price ratio. **Fund Meta from the Nextdoor money plus incremental, leave Google whole.**
+
+**The finding that is not in the report at all: `city_leads` contains two rows, ever.** Jillanna (12 Sep, Dallas Meta arm) and Ann McDade (7 Sep, called, no pickup). **Both still `unfilled`, both `offer_count: 0`.** No provider was ever offered either lead. The report treats acquisition as the problem and delivery as solved; the delivery half has a 0-for-2 record for two unrelated reasons. At this volume hand-working leads is the correct operating mode, not a defect.
+
+**Jillanna was emailed and TJ sent it.** Drafted in `tj@olera.care` via the automation Dia profile (windowless, so screenshots fail; the draft saved server-side and TJ sent from his own browser). Bcc `support@olera.care`. Two rounds of voice correction from TJ, both about the same defect: the draft opened *"nobody has gotten back to you yet"*, which informs her of a grievance she may not have registered, and my own readout led with the 0-for-2 record. Saved as `feedback_dont_lead_with_the_deficit` — not apologising is not enough, a sentence can carry no apology and still lead with the deficit.
+
+**Shipped, and it is the session's only code.** `lib/phone.ts` (new) carries the NANP rule, `normalizeUSPhone` defers to it, and the landing form checks before submit. **PR #1896, merged to staging, NOT in production.** The important part is what the obvious fix would have done: tightening the normaliser alone does not save the lead, because `app/api/city-leads/route.ts:106` answers a bad number with a 400, so a server-only change converts a salvageable typo into a rejected submission at the highest-drop-off moment on the page whose conversion rate is the ladder's second multiplier. **The check had to go in the page**, at `CityLandingClient.tsx:378`, where the length check already lived. Measured against all 2,653 production provider numbers before merge: 15 newly rejected, all already undialable, 13 of them test rows. Fourteen importers, not eight as first written, including the provider login OTP, which answers a null with "use email verification instead".
+
+**Both families have now been contacted, by TJ, personally.** He emailed Jillanna from `tj@olera.care` and followed up with Ann McDade the same day. **Neither was ever offered to a provider** — both rows still `offer_count: 0`, `reached_at` null. Correction to this entry as first written: Ann McDade's status is `stopped`, not `unfilled`. The claim that survives is the one that matters: the offer path has never run once, so the delivery half of this product is untested at any traffic volume.
+
+**Five PRs merged to staging this session:** #1896 (the phone fix), #1895 (this entry), #1835 (Ad Boost attribution in Slack, 165 commits behind — verified by typechecking the *merged tree*, not the branch), #1887 (the 12 Sep audit record), #1861 (the 10 Sep city-ads record, **the only one that conflicted**; resolved by rebuilding from staging, inserting the unique entry and applying its 5 deletions, no force-push). Artifact now at **v7**, with items 1 and 2 greyed out so the next session opens on item 3.
+
+**GitHub was unreliable all session.** Every merge needed retries — 500s, 502s and truncated JSON while githubstatus reported all systems operational. #1861 took eight attempts, and on #1835 a call that returned HTTP 500 **had actually merged**. State was checked between every attempt, so nothing merged twice. If merging by hand: a failed response does not mean a failed merge.
+
+**Next session starts here.** (1) **Verify `META_CAPI_ACCESS_TOKEN` in Vercel** — TJ only, cheapest of the three gate items, and under the intent reading it is not measurement on Meta but the sole mechanism by which Meta can find intent inside an audience. (2) Pull Google's search-terms report to size the non-intent share; free, and the only lever with no dependency on the gate. (3) TJ's call on the phone-or-email fallback, which needs a migration (`city_leads.phone` is `TEXT NOT NULL`, `207_city_campaigns.sql:96`) plus null handling through the SMS relay, offer engine, follow-up cron and the PATCH route's `leadId + phone` auth key. Recommendation: wait for evidence someone drops off at the phone field. (4) Review **#1897** `codex/city-scheduling-archive`, which landed mid-session in the same city-leads code.
+
+**Open and unexplained:** the Aggie Assisted Living row (`live`, `platform_campaign_id` null, yet `$28.40` under `src script`, which the id-matching sync should not have been able to write). Two provider records carry undialable numbers and are now skipped rather than failing at the carrier: Zahav of Berwyn `(092) 292-9902`, Bina H. `203-000-0000`. The comment at `app/api/ads/metrics/route.ts:136` still claims `LAST_30_DAYS` and is stale. Three worktrees hold branches **ahead of what was merged** — `quick-lamarr` `e520d9b3d`, `fancy-rosalind` `452849cf1`, `fancy-wright` — worth checking for unpushed work before cleanup.
+
+
+### 2026-09-10 — "Still just one lead": three separate silent defects, one shipped fix, and a reset gate (`fancy-wright`, PR #1859 → staging, #1860 → main, live in prod 07:22 UTC)
+
+**The question and the reframe.** TJ opened with *"Still just one lead. What in the world is going on?"* The honest first move was to refuse the metric. At 25 paid visitors, a healthy 8% page predicts 2 leads; getting 1 is consistent with a page that works *and* one that is broken. **Zero leads at n=25 is roughly a coin flip and could never have answered the question.** The same worry measured where it carries signal: `growth_attribution_events`, `page_category='city_landing'` — **25 unique genuine paid visitors, ZERO `cta_engaged`.** 19 of 25 on mobile (Google's own device split is 84–90%). At a 20% advance rate that is ~1-in-260. The instrument was proved first, not assumed: control sessions fired 7 `cta_engaged`, and a live mobile tap on the production page advanced to "Who needs care?" and wrote the event.
+
+**Defect 1 — the provider cards had never rendered, for anyone, since launch.** `app/care/[city]/page.tsx:66` filtered the pool on `.eq("enabled", true)`. **`city_pool.enabled` is the ON CALL flag** — it decides whether a provider gets *texted* when a lead lands (`offers.server.ts:198`; `/admin/city-ads` renders it as "N on call"). Both cities are `routingMode: "concierge"`, so all 13 rows are correctly `enabled=false`. The landing page reused a **routing** flag to decide what the family **sees**, and the query error was swallowed on top, so a page rendering nothing looked identical to one converting badly. Fixed in #1859: display gets its own rule — under concierge show any **claimed, active** pool account; under the provider chain keep gating on `enabled`, because there the page promises the request goes to one of them. "Has said yes" is now the account being *claimed*, not the on-call flag, so a scraped prospect can never become social proof. All 12 accounts checked first: every one `claim_state='claimed'` with an `account_id`.
+
+**Defect 2 — Charlotte's Meta ad never pointed at the landing page.** Ad `120251360116140487` destination read **`http://olera.care/`** — the bare homepage, over plain http. Three independent instruments agreed, which is why it is a FACT not a theory: Meta's own *Website landing page views* read `—` against 7 link clicks (Dallas 3 of 7); `growth_attribution_events` has **zero** `paid_meta` rows for `/care/charlotte-nc` ever (Dallas reconciles 7-for-7); and the homepage does not mount `MetaPixel`, which explains Meta's zero exactly. The 9 Sep candidates "clicks never completed navigation" and "reporting lag" are both **ruled out**. Fixed at source with real keystrokes (scripted writes revert in that account), published, then hard-reloaded and re-opened to confirm it stuck.
+
+**Defect 3 — the ad and the page disagree about when we call. NOT YET FIXED.** Both Google ads run the headline **"We Call You Back Today"** and the description *"Someone from Olera calls you back today."* The page computes `staffedNow` from `STAFFED_HOURS {8,12}` and shows **"in the morning"** outside it. **17 of the 25 paid landings (68%) arrived outside the window** and were walked back on the promise within two seconds. Load-bearing caveat: **the 8 who saw "today" also advanced at zero**, so the mismatch is real but *not proven* to be the cause. Nothing generates the ad copy from `STAFFED_HOURS` — that is the systemic version of the bug.
+
+**What the whole thing has in common: every failure was silent.** The page swallowed its query error. A homepage destination URL still produced normal-looking clicks and spend. The ad/page mismatch has nothing that could ever catch it. **There is no end-to-end assertion from ad → destination → landing → event.** That preflight is the durable build, not another one-off fix.
+
+**The gate was reset, and flagged honestly as the thing it is.** Flight extended **20 Sep → 24 Sep** on TJ's approval, all three channels aligned. **No new money** — authorisation stays $600; $135.90 spent, $464.10 left, which at the realised $3.58 blended CPC buys the same ~130 clicks the original gate was written against. The date, not the budget, was the binding constraint. **This is a pre-committed threshold being changed after a bad result, which is exactly the move the gate existed to prevent**, and it is justified *only* because the instrument was defective. So the replacement is not softer: lead thresholds are identical (≥8 continue / 3–7 stop / ≤2 stop) and an **early stop was added** — zero `cta_engaged` at 40 clean landings stops both arms for ~$145 instead of ~$465. Primary read is now the engagement rate, because 130 clicks cannot resolve an 8-lead threshold but resolves a 15% engagement rate cleanly.
+
+**Calibrated expectation, recorded before the data so it can be scored later.** I expect the cards to help *modestly* and would **not** bet on clearing 15%. The reason confidence dropped: all 13 pool rows were created 6 Sep already `enabled=false`, so **the cards were missing on day 1 too — and day 1 is when the one lead converted.** The page has converted a stranger in exactly the state I called broken. Full-sample click-to-lead is **1/38 = 2.6%** (day 1 ~8 clicks/1 lead vs ~30 clicks/0 after, a difference not significant at this size), against the ~8% the economics need; at $3.58 CPC that is a ~$136 CPL. Probability of clearing the 15% bar: **15–20%**. Probability the 40-landing early stop fires: **20–25%**. Two caveats written into the campaign notes: the **15% threshold is judgement, not a measured base rate** (we have never measured an intro-screen advance rate on any comparable Olera page), and the early stop fires on a genuinely-3% page ~30% of the time — accepted, because 3% engagement implies a sub-3% lead rate which lands in the "stop" band anyway.
+
+**Where the biggest lever probably is, and it is not the cards.** Only **9 of 38 clicks (24%)** are visible as named search terms. Among those, Charlotte's largest identifiable spend line is *"the laurels & the haven in highland creek reviews"* ($6.54 — a reviews search for a named assisted-living community), plus *"how much does 24 7 in home care cost per month"*; Dallas carries *"questions to ask a live in caregiver"* (informational) and *"sunrise home health dallas"* (competitor brand). **4 of the 9 visible clicks are squarely on-intent and also produced zero advances**, which points back at the page — but n=4 cannot settle it. Ranked: traffic intent, then the "today" break, then the cards.
+
+**Two tooling traps that would have produced confident wrong answers.** (1) **`git show <tree>:app/care/[city]/page.tsx` returns 0 bytes on bracket paths** even when the file is in the tree — the brackets glob away. Taken at face value `/pr-merge` Phase 2.5 reports every indicator missing and flags a fake regression on a clean PR. Resolve the blob SHA via `git ls-tree` instead; the existing `--literal-pathspecs` note covers `diff` but **not** `show`. (2) **`npx tsc` in a fresh worktree is a placeholder package that exits 0 regardless** and will report "0 errors" on code that does not compile — borrow a sibling worktree's `node_modules` and run the real binary. Also: the merge preceded the live page by ~10 minutes and production served the old card-less page in between, so **the clean-window timestamp was taken from a verified browser load, not from the merge.**
+
+**Closed.** Ann McDade (`city_leads 1c4d430b`) — TJ phoned her, she did not pick up. Dead lead. `reached_at` stays NULL because a hand-placed call writes nothing. Do not re-open or report her as unworked. Nextdoor review **cleared** — both ad groups Active, the 9 Sep "start is at risk" flag is closed. Both stale Meta `city_campaigns` rows set `live` with their campaign ids (Dallas `120251362705630487` verified for the first time).
+
+
 ### 2026-09-10 — Quiz dashboard preview refinements (PR #1864)
 
 - Branch `codex/correct-city-audit-funnel`, PR #1864 targets staging; nothing merged. Latest product commit `0c40b709b`.
@@ -5021,6 +5093,8 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Next Up
 
+- Provider banner updates: preview `/provider` on desktop/mobile; test browse/X without layout jumps, dismiss-all → reload → restore, fresh inquiry/question recovery, and matching mobile CTA. Use test records because staging shares production data. No merge without TJ's request.
+
 **Ad router positioning — SHIPPED to staging 2026-09-09 (#1849, #1850)**
 - ✅ **The page carries it now.** `TrackRecord` at position two: 990 caregiver leads at $0.55, $60,300, 250+ campaigns, 2.5M impressions, with the scope line. `docs/ad-router/VALUE-PROP.md` holds the full ledger, the per-channel setup cost that is the actual moat, and the claims agreed not to make.
 - ⚪ **This page is for internal alignment, not marketing** (TJ, 9 Sep). Do not spend further passes tightening claims for a hostile reader it does not have.
@@ -5036,7 +5110,6 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 - ⚪ **Sequencing.** This is a positioning change, not a growth experiment. It does not block the 20 Sep city-ads read and should not be started mid-flight unless TJ says so.
 
 **Olera City Ads — Meta arm live 2026-09-09 (Charlotte + Dallas, $150/city, 9–23 Sep)**
-- 🔴 **~11 Sep: confirm Dallas actually left `Processing` and is delivering.** It was published minutes before session end; Charlotte took a few hours to reach Learning.
 - 🟡 **Re-export the three creatives at 1080×1350** from the `.pxd` sources and swap mid-flight. The library has zero 4:5 assets and you cannot crop upward. Swap on a live ad set is two minutes.
 - 🟡 **Business verification** ("Verification may be required soon" banner) — do it before it interrupts a flight.
 - 🟢 **Rename Charlotte's ad** from "3 creatives" to match the Dallas convention. Cosmetic; costs a re-processing cycle on a delivering ad, so only when it is paused anyway.
@@ -5044,12 +5117,8 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 - ⚪ **Read Charlotte as the three-channel city and Dallas as the clean Google-vs-Meta comparison.** Nextdoor runs 10–24 Sep on identical geography.
 
 **Olera City Ads — live 2026-09-07 (`hopeful-joliot`, campaigns `24223751948` Charlotte / `24223844624` Dallas, flight 7–20 Sep)**
-- ✅ **Day 3 CPC question: ANSWERED 8 Sep, and it is the bad half.** Live is **$4.56 Charlotte / $4.59 Dallas**, roughly double Keyword Planner's $2.28/$2.23 forecast and well above the account's $2.10 history. At ~$4.60 the $600 buys ~130 clicks across both arms, not ~280, so **a 4% conversion read cannot conclude this flight** — one lead per arm is inside noise. Day 2 stands at 193 impressions / 10 clicks / $45.75 (7.6% of budget). Decide at the 20 Sep gate whether to judge on leads-per-dollar rather than a conversion rate the sample cannot support.
-- 🔴 **Day 3 (~10 Sep): read the search terms** for negatives and intent quality, not for price. Dallas already shows out-of-country (`caregiver services in hyderabad`), price-research and competitor-brand tails; no campaign-level negatives exist on either arm yet.
 - 🔴 **THE FIRST REAL LEAD ARRIVED 7 Sep 17:44 CT — the pre-commit texts are now due.** Drafted and held at `~/Desktop/city-ads-provider-precommit.md`. The trigger condition ("send on the first real lead, not the fifth") has fired: `city_leads 1c4d430b`, Dallas, gclid-confirmed, `this_week`, phone + email. 0 of 13 providers are enabled, so TJ personally calls every family on a 4-hour daily window. The ask is now honest — send them.
-- 🔴 **Call the DeSoto family (ZIP 75115) at 8am CT.** `status=new`, `reached_at=null`, `offer_count=0`, no offer rows. Concierge means nothing is chasing her but a human. Urgency is `this_week`.
 - 🟡 **Day 5: harvest negatives.** Both campaigns start on the curated 82-term shared list, but the July audit's lesson was that competitor-brand and wrong-category junk appears fresh in every campaign.
-- 🟡 **Day 14 (20 Sep): the read.** Cost per family a provider actually reached. Under **$95** beats what Ad Boost does today; under **$60** it is the plan for every city. Flight auto-ends; Google stops itself.
 - 🟢 **Nextdoor $50 line on Charlotte** — row seeded and `draft`. Parked by TJ until Google produces a conversion rate worth spending against.
 - 🟢 **Assisted-living ad group** — deliberately omitted for message-match. Add if the home-care read is thin on volume rather than on conversion.
 - 🟢 **Day-5 / day-14 Slack reads** still unbuilt; conversion rate and $/family were kept off `/admin/city-ads` on purpose and currently arrive nowhere. Spend now lands via the `/ad-boost-optimize` sweep, so the arithmetic can be done by hand at the two gates.
@@ -5277,6 +5346,8 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 
 ## Decisions Made
 
+- 2026-09-13: Provider banners use manual browsing, no auto-rotation. X dismisses one update per provider/browser until the next local day; it does not resolve underlying tasks. Creation-time watermarks let new inquiries/questions return without treating answers or removals as new activity.
+
 **2026-08-28 — Ad Boost**
 - **Pause all five Sep Nextdoor flights rather than launch.** Only 2 of 5 had a documented authorisation and none were instrumented. Pausing costs $0 and loses a week; spending $375 outside the system produces numbers nobody can reconcile.
 - **Keep $150 Google, park the other $150.** $150 buys ~71 clicks and ~1.9 expected inquiries — a real product. Nextdoor's 0-for-134 now rejects parity with Google at p=0.027, so the second half is not justified until measurement lands.
@@ -5411,6 +5482,14 @@ Built a "pulse header" for `/admin/questions` and `/admin/leads`:
 ---
 
 ## Session Log
+
+### 2026-09-13 — Provider banner updates (`codex/provider-banner-updates`)
+
+- Updated `components/provider-dashboard/v2/DashboardHero.tsx`, `heroDismiss.ts`, `DashboardHeroSkeleton.tsx`, parent `components/provider-dashboard/DashboardPage.tsx`, and admin analytics description. Added `scripts/check-provider-banner-updates.cjs`.
+- Keeps existing priority selection, exposes other eligible banners through arrows/counter, reserves the tallest card to prevent browse/dismiss jumps, fades transitions with reduced-motion support, preserves keyboard focus, and keeps mobile CTA and impression tracking aligned with the visible card. Per-provider/day dismissals collapse to View updates; campaign-status banners remain eligible.
+- Pre-test fixed dismissed questions resurfacing on answers/removals (creation-time watermark), and full-card loading flashes after dismiss-all (stored collapsed hint). No schema changes or new event types.
+- Validation: TypeScript and behavioral regressions pass (browse/dismiss/restore, daily expiry, provider isolation, new activity, focus, mobile CTA callbacks, completion editor, impressions/click attribution, loading hint). Desktop/mobile browser checks confirmed identical content-below positions through swaps/dismissals. Core banner lint passes; broader dashboard/admin lint findings were compared with staging and are pre-existing (plain links and unescaped quotes).
+- Next: open ready-for-review PR to staging and QA using the checklist above; do not merge automatically.
 
 ### 2026-09-10 — City quiz funnel and audit attribution correction (Codex)
 
@@ -5656,3 +5735,41 @@ Charlotte `1023274174694557629` and Dallas `1023340399281833119` published after
 Updated production city_campaigns: reused Charlotte Nextdoor row `6a3dad58-e9cb-44f4-92d5-13fdb9bafe9f`, inserted Dallas `6e31d8d4-bd89-4fda-8cdf-a8e87f40ef12`. Both scheduled, budget_cents=14000 planned flight allocation, max_cpc_cents=null (Autobid), paid_social unchanged, Sep10–24 dates and full notes. Re-read exact rows; Google/Meta rows unchanged. No provider pool or lead changes. Dia admin HTTP429 prevented fresh UI verification; database readback passed.
 
 Beefed up shared ad-boost-setup entry and city track: infer subject from context; ask provider vs city only when missing; preserve authorization; Advanced mode/date/minimum checks; saved geography chips; clone creative on campaign duplication; distinguish ad-only publish from full campaign publish; payment mismatch recovery; explicit city-record mapping and idempotent reconciliation. No new migration or application code; migration220 reserved for Meta. Docs diff check passed. Changes local, not merged/deployed.
+
+
+## 2026-09-12 — Ad Boost full-book audit + CPL system model
+
+**No code changed this session.** Outputs are the artifact, the case log, the state-of-play archive and five memory files. What follows is the engineering backlog it produced.
+
+**Artifact (4 revisions):** https://claude.ai/code/artifact/b946978d-89e6-415c-b753-cd344313252c — "The CPL Ladder". Reframed twice: audit → channel comparison → acquisition system model, on TJ's steer that the goal is a machine producing leads at industry-leading cost.
+
+**The model.** `CPL = cost per landed visit ÷ (visit→start × start→submit)`. Today `$2.45 ÷ (7.7% × 11.1%) = $288` against a $76 bar. Factors into two multipliers, both already achieved elsewhere in the programme: Meta/Nextdoor click prices ($1.30/visit) and a 2× page conversion → $76. At the provider-page rate (2.7%) → $48.
+
+**Channel evidence, pooling BOTH arms (596 clicks; the city-only cohort separates nothing):** Google 10/376 = 2.7%, $85.55/outcome, proven. Meta 1/52 = 1.9%, identical to Google (Fisher p=1.0) at 40% of the click price — best expected value, n=1. Nextdoor **0 of 168**, p=0.036 vs Google; P(0|2.7%) ≈ 1%. Allocation is backwards: Google 63% / Meta 24% / Nextdoor 13% of city spend.
+
+**The gate: all three platforms optimise blind.** Google city arms 0 conversions; Meta pixel has never received a Lead; Nextdoor `Conversion type = None`. Nothing compounds until fixed.
+
+### Code defects found (none fixed — this is the backlog)
+
+- `lib/twilio.ts` `normalizeUSPhone` accepts ANY 10 digits and prefixes `+1`. NANP forbids area/exchange codes starting 0 or 1. Cost us contact with the first Meta-sourced city lead (stored `+11214870172`; Twilio rejected her confirm SMS). Two conditions. **Guards every SMS path on the site.**
+- `scripts/google-ads/metrics-sync.js` uses `WINDOW='LAST_30_DAYS'`; `app/api/ads/metrics/route.ts` writes it into `ad_spend_cents` which every reader treats as lifetime. Zeroed four ended flights on 09-12. `lib/ad-boost/receipts.server.ts` gates on `metrics_source==='script'` and nulls `typed`, so those `$0.00` rows are the ones providers are shown, badged trusted — the exact failure the gate shipped to prevent. Needs ALL_TIME/flight-bounded pull, or a `metrics_window` column the receipt respects.
+- `lib/city-ads/offers.server.ts` `startOrAdvance` still never reads `cfg.routingMode` (documented 09-08). **Latent only because all 13 `city_pool` rows are `enabled=false`** — fix this BEFORE giving the landing page its own display predicate.
+- `app/care/[city]/page.tsx:66` selects the pool on `.eq("enabled", true)`, reusing the "on call" routing flag as a display flag, so provider cards have never rendered for anyone. Likeliest cause of the 7.7% engagement rate. Needs a separate display predicate.
+- No Meta `Lead` reaching pixel `803096730985728` although both halves are correctly wired (`components/analytics/MetaPixel.tsx` `trackMetaLead` + `lib/city-ads/meta-capi.server.ts` `sendMetaLeadEvent`). Check prod `META_CAPI_ACCESS_TOKEN` first — `sendMetaLeadEvent` returns silently without it.
+- `growth_attribution_events`: `lead_started` is NOT comparable across page arms. `one_screen` fires it on first field touch (same second as `cta_engaged`, no `question_viewed`); `guidance` fires it on a real step progression. Check the `arm` field before comparing any funnel stage.
+
+### Ops backlog (not code)
+
+- **Hoop Cares** (Google `24235451655`) runs `$4.30/day with NO END DATE` from 09-11 against a note promising "$50, Sep 15–28" — ~$129/mo uncapped on a flight nobody agreed to fund. Row also has no `platform_campaign_id`, so the sync reports it unmatched.
+- **Five provider Nextdoor flights** (Graceful, Franchil, Pacesetter, Edmonds Villa, Miracle-Lightstar), all 1–7 Sep, all Paused, zero delivery, **no row in `ad_campaign_requests`**. Reachable only via the Nextdoor header account switcher.
+- **Graceful Aug Nextdoor** is `$0.00` in our DB against a real `$50.00 / 134 clicks / 8,318 impr` ($0.37 CPC, 0 inquiries) — the counter-example that kills any cost-per-click framing.
+- **Franchil-90d** "all ads under review" 20 days while serving. Support ticket, not a wait.
+- City Nextdoor rows ~2.5× stale; nothing syncs that channel.
+
+### Where the audit corrected itself
+
+"Meta is the winner" — retracted (cost-per-engaged was the CPC ratio at identical rates; one contact-step event was a `one_screen` first touch). "No channel winner" — reversed by pooling both arms, which is where Nextdoor separates. An apparent engagement step at the landing-test ship time — falsified by the daily series (`cta_engaged` ran 3/3/4/3, never zero; the step was in attribution coverage).
+
+**Durable records:** 33 `ad_campaign_log` observations, all six `city_campaigns.admin_note` appended (prior text preserved), `~/Desktop/adboost-state-of-play.md` rewritten, memories `cpl_system_model` / `cheap_clicks_not_quality` / `metrics_sync_30day_window` / `city_lead_phone_validation` / `nextdoor_account_sweep`.
+
+**Next up:** TJ is sitting on the data to decide actions. When he returns, the ordered list is in the artifact's "Next steps" — email Jillanna, then the conversion signal on all three platforms (the gate), then reallocate, then the two page defects.

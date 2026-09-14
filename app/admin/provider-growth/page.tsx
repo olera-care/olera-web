@@ -98,10 +98,34 @@ export default function ProviderGrowthPage() {
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState<string | null>(null);
 
+  // Assignment state
+  const [editingAssignmentId, setEditingAssignmentId] = useState<string | null>(null);
+  const [adminNameLookup, setAdminNameLookup] = useState<Map<string, string>>(new Map());
+
   // Keep ref in sync with selected provider
   useEffect(() => {
     selectedProviderIdRef.current = selectedProvider?.id ?? null;
   }, [selectedProvider]);
+
+  // Fetch admin list for name lookup on mount
+  useEffect(() => {
+    async function fetchAdmins() {
+      try {
+        const res = await fetch("/api/admin/provider-outreach/admins");
+        if (res.ok) {
+          const data = await res.json();
+          const lookup = new Map<string, string>();
+          for (const admin of data.admins || []) {
+            lookup.set(admin.id, admin.display_name || admin.email.split("@")[0]);
+          }
+          setAdminNameLookup(lookup);
+        }
+      } catch (err) {
+        console.error("Failed to fetch admin list:", err);
+      }
+    }
+    fetchAdmins();
+  }, []);
 
   // Debounce search
   useEffect(() => {
@@ -303,6 +327,52 @@ export default function ProviderGrowthPage() {
     }
   }, [providers]);
 
+  // Handle assignment update
+  const handleAssignmentUpdate = async (
+    trackingId: string,
+    adminId: string | null,
+    adminName: string | null
+  ) => {
+    try {
+      const res = await fetch("/api/admin/provider-growth/update-assignment", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          tracking_id: trackingId,
+          assigned_to: adminId,
+        }),
+      });
+
+      if (res.ok) {
+        // Close picker and update local state on success
+        setEditingAssignmentId(null);
+
+        setProviders((prev) =>
+          prev.map((p) =>
+            p.id === trackingId
+              ? { ...p, assigned_to: adminId }
+              : p
+          )
+        );
+
+        // Update the admin name lookup if we got a new name
+        if (adminId && adminName) {
+          setAdminNameLookup((prev) => {
+            const next = new Map(prev);
+            next.set(adminId, adminName);
+            return next;
+          });
+        }
+      } else {
+        // On failure, keep picker open so user knows something went wrong
+        console.error("Failed to update assignment");
+      }
+    } catch (err) {
+      // On network error, keep picker open
+      console.error("Failed to update assignment:", err);
+    }
+  };
+
   const totalPages = Math.ceil(total / PAGE_SIZE);
 
   return (
@@ -387,6 +457,13 @@ export default function ProviderGrowthPage() {
                     name: provider.display_name || "Unnamed Provider",
                   })}
                   selected={selectedProvider?.id === provider.id}
+                  assignedToName={provider.assigned_to ? adminNameLookup.get(provider.assigned_to) || null : null}
+                  onAssignClick={() => setEditingAssignmentId(provider.id)}
+                  isEditingAssignment={editingAssignmentId === provider.id}
+                  onAssignmentSelect={(adminId, adminName) =>
+                    handleAssignmentUpdate(provider.id, adminId, adminName)
+                  }
+                  onAssignmentCancel={() => setEditingAssignmentId(null)}
                 />
               </li>
             ))}

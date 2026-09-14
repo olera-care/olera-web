@@ -7,6 +7,14 @@
 
 ## Current Focus
 
+### 2026-09-14 — Vercel geographic challenge exceptions updated live
+
+- Diagnosed the mobile/desktop "Vercel Security Checkpoint" as edge browser verification, separate from Olera login. Live `olera/olera-web` firewall had a seven-country exception list; Vietnam was excluded. Exact screenshot request events were not matched.
+- TJ chose to retain geographic challenges for the US-focused service and exempt current team locations. Published `Block Restricted Regions` with **Ghana, Philippines, South Africa, United States, Vietnam**; removed **Colombia, Mauritius, Poland**. Ghana was explicitly retained after TJ corrected the draft.
+- Verified the persisted five-country list by reopening the rule after Save Rule → Publish. Existing Boardman OR condition and Challenge action remain unchanged. Bot Protection remains Challenge, AI Bots Deny, Attack Mode off; other rules were not edited.
+- Dia sign-in was completed by TJ; native selector clicks failed, so the update was completed through Chrome browser controls. No application code or deployment was required. No post-change timing measurement or Search Console crawl test was performed. Existing user-agent-based crawler bypass remains a separate hardening recommendation, outside this change.
+- Quicksave changes only this file on `codex/vercel-country-rule`, targeting staging. Live firewall work is complete; no further change requested. Local malformed ref `refs/heads/staging 2` interrupted git switch; worktree/index matched fetched staging and branch creation was completed without altering that unrelated ref.
+
 ### 2026-09-13 — Provider banner browsing and dismissal
 
 - Branch `codex/provider-banner-updates`, rebased onto current `origin/staging`; ready for preview PR and human QA. One visible update, arrows/counter, X advances to the next, and View updates restores the queue. Full implementation and pre-test findings are recorded in today's Session Log below.

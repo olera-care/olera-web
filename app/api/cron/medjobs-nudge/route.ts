@@ -91,7 +91,7 @@ export async function GET(request: NextRequest) {
             // Generate one-click sign-in URL with 15-day HMAC token
             const magicLink = generateStudentPortalUrl(
               student.email!,
-              "/medjobs/providers",
+              "/portal/medjobs",
               siteUrl
             );
 

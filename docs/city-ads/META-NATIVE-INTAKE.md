@@ -1,16 +1,16 @@
 # Meta Instant Forms → Olera city concierge
 
-Status: implementation prepared on `codex/meta-native-leads`; not deployed or connected to Meta. No ads launched. No real lead submitted.
+Status (15 September 2026): integration merged through PR #1919 and promoted to `main`; production live intake verified. Meta confirmed publication of the campaign, ad set and ad. Last observed ad delivery status: **Processing**, not yet confirmed serving.
 
-## Existing Meta draft (15 September 2026)
+## Published Dallas pilot (15 September 2026)
 
 - Account: `739297033485646`; Page Olera: `112405630552923`.
 - Campaign: `120251489434010487`, Olera City - Dallas - Sep 2026 - Meta Instant Form Pilot.
 - Ad set: `120251489434000487`; ad: `120251489434020487`.
-- Saved form: Olera Dallas - Home Care Callback - Native Pilot - Sep 2026 v1. **Retrieve its numeric form ID before configuration.**
+- Saved form: Olera Dallas - Home Care Callback - Native Pilot - Sep 2026 v1; ID `1331447195541992`.
 - Higher intent; required name, phone, ZIP; optional email. Required callback consent. No medical questions.
 - Existing outdoor daughter/mother image. Geography: Frisco, Garland, Plano, Richardson.
-- Proposed $100 lifetime budget in unpublished draft, **not approved spend**. Meta changed the draft schedule to 15 Sep–15 Oct; reset the proposed flight before approval. This is a separate pilot, not a randomized A/B test.
+- Approved and published: **$400 lifetime cap**, 15 September 2026 at 11:00 a.m. CDT through 29 September 2026 at 11:00 a.m. CDT. Exact saved inputs verified before publishing. This is a separate pilot, not a randomized A/B test.
 
 ## Architecture
 
@@ -25,7 +25,16 @@ Status: implementation prepared on `codex/meta-native-leads`; not deployed or co
 - Care seeker linking retries independently after import. Pending confirmations use the existing clock and message history. A durable Slack outbox announces each new real lead once and repeated import failures once per receipt. Alerts contain a receipt ID and admin link, not family contact details. System failures are limited to one alert per UTC hour. Failed or uncertain Slack sends remain visible for manual review rather than being resent automatically.
 - Native submissions have no website landing arm and are excluded from the quiz funnel and website Meta campaign CPL. Admin displays native lead, provider-offer, provider-acceptance, reached and client counts separately, plus lead-to-client conversion. It refreshes every minute and on window focus. Delivery health includes pending/failed receipts, the oldest waiting receipt, the last clock run, Slack configuration and alert failures. These are all-time metrics, not cohort analysis. Native campaign spend, qualification, and downstream Meta conversion feedback remain follow-up work; cost per client is not displayed until spend is connected.
 
-## Deployment and connection
+## Verified production setup and next steps
+
+- Migrations 231 and 232 applied. App `1100422875761079` published; Page subscribed to `leadgen`, Graph version `v26.0`. Required server settings and existing Slack webhook configured.
+- Approved Vercel firewall exception matches only hostname `olera.care` and path `/api/webhooks/meta-leads`; system mitigations remain enabled.
+- Synthetic lead `2621277464991073` successfully imported as a Dallas test lead with correct consent, no outreach and no provider offer. Earlier disposable dummy lead `4554804308083608` failed contact normalization; its historical failed test receipt remains visible and can trigger the dashboard warning. Test leads are excluded from native outcome counts.
+- Form mapping now has `testOnly: false`. Live intake verified after [production deployment](https://vercel.com/olera/olera-web/FddiLM3BtyfT6BP8J31J2o14CJ5w), preserving the intervening PR #1923 release. Existing test records remain isolated.
+- Next: confirm Meta delivery and inspect the first real lead's import, confirmation and Slack alert. Review lead quality around $100 spend; no automatic spend monitor configured. Native spend/CPL and downstream Meta conversion feedback remain follow-up work.
+- Page token debugger showed valid, no token expiry, but data access expiry Unix `1797258003`; renew access before that deadline. No credentials belong in this document.
+
+## Deployment and connection runbook
 
 1. Review PR against staging and apply `231_meta_native_leads.sql` and `232_meta_lead_alerts.sql` through the Supabase dashboard. It depends on existing migrations through 228. Deploy code after the migration. This change does not merge or promote itself.
 2. In the existing Olera Meta developer app, configure the Page `leadgen` webhook and Page lead access. Verify required access in the actual app; Page lead retrieval permissions are separate from the existing pixel/CAPI token. Use an authorized Page token, not a user password. Meta may require additional app review/access depending on the app setup.
@@ -63,7 +72,7 @@ The form also has the required checkbox: “I agree to calls and texts from Oler
 - `node --test scripts/tests/meta-native.test.cjs`
 - `PGLITE_MODULE=/path/to/@electric-sql/pglite node scripts/tests/meta-native-sql.cjs`
 
-SQL test executes the actual migration/function on isolated PostgreSQL, covering replay, contact deduplication, test isolation, opt-outs, attribution/consent, and service-role-only execution. It uses the actual city lead/message table definitions and relevant triggers in an isolated fixture, not production. Live Meta delivery, deployment and authenticated UI QA are still required.
+SQL test executes the actual migration/function on isolated PostgreSQL, covering replay, contact deduplication, test isolation, opt-outs, attribution/consent, and service-role-only execution. It uses the actual city lead/message table definitions and relevant triggers in an isolated fixture, not production. Production deployment, authenticated admin inspection and synthetic Meta delivery/import passed on 15 September 2026. Real paid delivery and live outreach outcomes remain to be observed.
 
 References: [Meta retrieving leads](https://developers.facebook.com/docs/marketing-api/guides/lead-ads/retrieving/), [Meta webhook setup](https://developers.facebook.com/docs/graph-api/webhooks/getting-started/), [Meta's reference implementation](https://github.com/fbsamples/lead-ads-webhook-sample) (archived; current access and API version must be verified in the app).
 

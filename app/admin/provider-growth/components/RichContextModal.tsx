@@ -403,8 +403,14 @@ export function RichContextModal({
                       alert={briefing.photos.count < 3}
                     />
                     <MetricCard
-                      label="Ad Spend"
-                      value={metrics.adSpendCents !== null ? `$${Math.round(metrics.adSpendCents / 100)}` : "None"}
+                      label="Ad Boost"
+                      value={
+                        data?.context?.adsStatus === "subscribed" ? "Paying"
+                        : data?.context?.adsStatus === "free_intro" ? "Free Trial"
+                        : metrics.adSpendCents !== null ? `$${Math.round(metrics.adSpendCents / 100)}`
+                        : "None"
+                      }
+                      subtext={metrics.adSpendCents !== null && metrics.adSpendCents > 0 ? `$${Math.round(metrics.adSpendCents / 100)} spent` : undefined}
                     />
                     <MetricCard
                       label="Dashboard Visits"

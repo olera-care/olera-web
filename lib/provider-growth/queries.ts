@@ -137,6 +137,7 @@ export interface RichContextData {
     city: string;
     state: string;
     careTypes: string[];
+    verificationState: string | null;
   };
 
   // Status
@@ -144,6 +145,9 @@ export interface RichContextData {
   adsStatus: string;
   medjobsStatus: string;
   claimedAt: string | null;
+
+  // Pre-computed tags (not AI-generated)
+  computedTags: string[];
 }
 
 /**
@@ -175,7 +179,7 @@ export async function getRichContextData(
     // Business profile with Google reviews data and metadata
     db
       .from("business_profiles")
-      .select("display_name, phone, email, city, state, care_types, metadata, google_reviews_data, account_id")
+      .select("display_name, phone, email, city, state, care_types, metadata, google_reviews_data, account_id, verification_state")
       .eq("id", businessProfileId)
       .single(),
 
@@ -253,6 +257,50 @@ export async function getRichContextData(
 
   // Get touch count
   const touchCount = touchpointsResult.data?.length || 0;
+  const leadCount = leadCountResult.count || 0;
+  const verificationState = profile?.verification_state || null;
+
+  // Compute tags from actual data (not AI-generated)
+  const computedTags: string[] = [];
+
+  // Lead count tag
+  if (leadCount === 0) {
+    computedTags.push("0 leads");
+  } else if (leadCount === 1) {
+    computedTags.push("1 lead");
+  } else {
+    computedTags.push(`${leadCount} leads`);
+  }
+
+  // Touch/engagement tag
+  if (touchCount === 0) {
+    computedTags.push("no touches");
+  } else if (touchCount >= 10) {
+    computedTags.push(`${touchCount} touches, highly engaged`);
+  } else {
+    computedTags.push(`${touchCount} touches`);
+  }
+
+  // Overdue tag
+  if (daysOverdue > 14) {
+    computedTags.push(`${daysOverdue} days overdue`);
+  } else if (daysOverdue > 7) {
+    computedTags.push(`${daysOverdue}d since activity`);
+  }
+
+  // Email engagement tag
+  if (emailStatsResult.sent > 0 && emailStatsResult.opened === 0) {
+    computedTags.push("not opening emails");
+  } else if (emailStatsResult.clicked > 0) {
+    computedTags.push("clicks emails");
+  }
+
+  // Verification status tag
+  if (verificationState === "verified") {
+    computedTags.push("verified");
+  } else if (verificationState === "pending") {
+    computedTags.push("pending verification");
+  }
 
   return {
     // Metrics
@@ -264,7 +312,7 @@ export async function getRichContextData(
     // Computed
     touchCount,
     daysOverdue,
-    leadCount: leadCountResult.count || 0,
+    leadCount,
 
     // Details for AI
     leads: (leadsResult.data || []).map((l) => ({
@@ -287,6 +335,7 @@ export async function getRichContextData(
       city: profile?.city || "",
       state: profile?.state || "",
       careTypes: profile?.care_types || [],
+      verificationState,
     },
 
     // Status
@@ -294,6 +343,9 @@ export async function getRichContextData(
     adsStatus: tracking?.ads_status || "none",
     medjobsStatus: tracking?.medjobs_status || "none",
     claimedAt: tracking?.claimed_at || null,
+
+    // Pre-computed tags from real data
+    computedTags,
   };
 }
 

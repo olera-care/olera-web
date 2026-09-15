@@ -15,7 +15,7 @@ export interface BriefingResponse {
   getThese: string[];
   offer: string;
   logAfterCall: string;
-  tags: string[];
+  tags: string[]; // Computed from backend data, not AI-generated
 }
 
 interface BriefingCache {
@@ -44,17 +44,16 @@ Return ONLY valid JSON with this structure:
   "openWith": ["Script 1", "Script 2", "Script 3"],
   "getThese": ["Question 1", "Question 2", "Question 3"],
   "offer": "Tactical proposal based on their stage",
-  "logAfterCall": "What to record after the call",
-  "tags": ["engagement tag", "lead count", "overdue status", "comm preference"]
+  "logAfterCall": "What to record after the call"
 }
 
 Rules:
 - THE ONE FIX must be specific and achievable in one call
-- WHAT WE OWE THEM is null unless there's a real unfulfilled promise
-- OPEN WITH scripts reference their actual data (dates, names, numbers)
+- WHAT WE OWE THEM is null unless there's a real unfulfilled promise in the touchpoint history
+- OPEN WITH scripts must reference their ACTUAL data (use exact dates, numbers, names from the data provided)
 - GET THESE are specific pieces of info to capture
-- Tags max 4, include: engagement level, lead count, overdue days, comm preference
-- Be direct and actionable, no hedging`;
+- Be direct and actionable, no hedging
+- Do NOT make up information - only use what is provided in the data`;
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -159,6 +158,7 @@ function buildUserPrompt(data: RichContextData): string {
   parts.push("");
   parts.push("STATUS:");
   parts.push(`- Pipeline Stage: ${data.pipelineStage}`);
+  parts.push(`- Verification: ${data.provider.verificationState || "unknown"}`);
   parts.push(`- Ads Status: ${data.adsStatus}`);
   parts.push(`- MedJobs Status: ${data.medjobsStatus}`);
   if (data.claimedAt) {
@@ -191,8 +191,18 @@ function buildUserPrompt(data: RichContextData): string {
   return parts.join("\n");
 }
 
+interface AIBriefingResponse {
+  theOneFix: string;
+  whatWeOweThem: string | null;
+  openWith: string[];
+  getThese: string[];
+  offer: string;
+  logAfterCall: string;
+}
+
 /**
  * Generate a new briefing using Claude.
+ * Tags are computed from backend data, not AI-generated.
  */
 async function generateBriefing(data: RichContextData): Promise<BriefingResponse> {
   const client = anthropic();
@@ -204,7 +214,7 @@ async function generateBriefing(data: RichContextData): Promise<BriefingResponse
     messages: [{ role: "user", content: buildUserPrompt(data) }],
   });
 
-  const parsed = parseJson<BriefingResponse>(textOf(message));
+  const parsed = parseJson<AIBriefingResponse>(textOf(message));
 
   if (!parsed) {
     throw new Error("Failed to parse briefing response");
@@ -216,8 +226,7 @@ async function generateBriefing(data: RichContextData): Promise<BriefingResponse
     !Array.isArray(parsed.openWith) ||
     !Array.isArray(parsed.getThese) ||
     typeof parsed.offer !== "string" ||
-    typeof parsed.logAfterCall !== "string" ||
-    !Array.isArray(parsed.tags)
+    typeof parsed.logAfterCall !== "string"
   ) {
     throw new Error("Invalid briefing response structure");
   }
@@ -240,7 +249,8 @@ async function generateBriefing(data: RichContextData): Promise<BriefingResponse
     getThese: parsed.getThese.slice(0, 3),
     offer: parsed.offer,
     logAfterCall: parsed.logAfterCall,
-    tags: parsed.tags.slice(0, 4),
+    // Use backend-computed tags, not AI-generated
+    tags: data.computedTags,
   };
 }
 

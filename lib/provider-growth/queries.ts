@@ -348,12 +348,16 @@ export async function getRichContextData(
 
   // Validate critical queries succeeded
   if (trackingResult.error) {
-    console.error("[getRichContextData] Tracking query failed:", trackingResult.error);
-    throw new Error("Failed to load tracking record");
+    console.error("[getRichContextData] Tracking query failed:", JSON.stringify(trackingResult.error), "trackingId:", trackingId);
+    throw new Error(`Failed to load tracking record: ${trackingResult.error.message || "unknown error"}`);
   }
   if (profileResult.error) {
-    console.error("[getRichContextData] Profile query failed:", profileResult.error);
-    throw new Error("Failed to load business profile");
+    console.error("[getRichContextData] Profile query failed:", JSON.stringify(profileResult.error), "businessProfileId:", businessProfileId);
+    throw new Error(`Failed to load business profile: ${profileResult.error.message || "unknown error"}`);
+  }
+  if (!profileResult.data) {
+    console.error("[getRichContextData] Profile not found for businessProfileId:", businessProfileId);
+    throw new Error("Business profile not found");
   }
 
   // Phase 2: Fetch data that depends on profile results

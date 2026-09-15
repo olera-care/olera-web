@@ -133,6 +133,9 @@ export type TaskType =
   | "outreach_email_send"
   | "outreach_followup_email"
   | "outreach_followup_call"
+  /** One round of follow-up: a call and an email together. Payload records
+   *  call_logged_at / email_logged_at; both present completes the task. */
+  | "outreach_contact"
   | "meeting_held_logging"
   | "agreement_followup"
   | "distribution_confirmation"
@@ -603,8 +606,6 @@ export interface TabCounts {
   all: number;
   /** Prospects whose cadence finished with no meeting (Follow-up tab). */
   followup?: number;
-  /** Rounds 2-7: providers due a check today. Replaces calls + replies. */
-  followups?: number;
   clients?: number;
   campuses?: number;
   /** University Activation: universities with something due, and open tasks. */
@@ -647,8 +648,6 @@ export interface TabUnreadCounts {
   all: number;
   /** Prospects whose cadence finished with no meeting (Follow-up tab). */
   followup?: number;
-  /** Rounds 2-7: providers due a check today. Replaces calls + replies. */
-  followups?: number;
   clients?: number;
   campuses?: number;
   /** University Activation: universities with something due, and open tasks. */

@@ -32,8 +32,14 @@ export function setOfTask(t: Task): number {
 
 /** Which round a task belongs to, or null when it carries no cadence day. */
 export function roundOfTask(t: Task): number | null {
+  const explicit = num(t.payload?.round);
+  if (explicit != null) return explicit;
   const day = num(t.payload?.day);
   return day == null ? null : roundFromDay(day);
+}
+
+function stamped(t: Task, key: "call_logged_at" | "email_logged_at"): boolean {
+  return typeof t.payload?.[key] === "string";
 }
 
 export interface RoundState {
@@ -45,10 +51,11 @@ export interface RoundState {
   totalRounds: number;
   /** Rounds fully behind us — drives the progress dots. */
   completedRounds: number;
-  /** The due call task for this round, if one is still pending. */
-  callTask: Task | null;
-  /** The due email task for this round, if one is still pending. */
-  emailTask: Task | null;
+  /** The pending contact task for this round, if there is one. */
+  task: Task | null;
+  /** Halves of this round already logged. */
+  callLogged: boolean;
+  emailLogged: boolean;
   /** True when no pending round task remains — the set is spent. */
   setExhausted: boolean;
 }
@@ -69,29 +76,25 @@ export function roundStateFrom(pendingTasks: Task[]): RoundState {
       round: PROVIDER_TOTAL_ROUNDS,
       totalRounds: PROVIDER_TOTAL_ROUNDS,
       completedRounds: PROVIDER_TOTAL_ROUNDS,
-      callTask: null,
-      emailTask: null,
+      task: null,
+      callLogged: false,
+      emailLogged: false,
       setExhausted: true,
     };
   }
 
-  const sorted = [...roundTasks].sort((a, b) => a.due_at.localeCompare(b.due_at));
-  const head = sorted[0];
+  const head = [...roundTasks].sort((a, b) => a.due_at.localeCompare(b.due_at))[0];
   const round = roundOfTask(head) as number;
-  const set = setOfTask(head);
-
-  // Both channels of one round share a due date, so pair them on round number
-  // rather than on the task that happened to sort first.
-  const thisRound = sorted.filter((t) => roundOfTask(t) === round && setOfTask(t) === set);
 
   return {
-    set,
+    set: setOfTask(head),
     round,
     totalRounds: PROVIDER_TOTAL_ROUNDS,
     // Round 1 is manual, so reaching round 3 means rounds 1 and 2 are behind us.
     completedRounds: Math.max(0, round - 1),
-    callTask: thisRound.find((t) => t.task_type === "outreach_followup_call") ?? null,
-    emailTask: thisRound.find((t) => t.task_type === "outreach_email_send") ?? null,
+    task: head,
+    callLogged: stamped(head, "call_logged_at"),
+    emailLogged: stamped(head, "email_logged_at"),
     setExhausted: false,
   };
 }

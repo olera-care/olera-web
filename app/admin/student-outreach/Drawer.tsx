@@ -23,6 +23,7 @@ import { LaunchActivationButton } from "@/components/admin/medjobs/LaunchActivat
 import { PreFlightCallModal } from "@/components/admin/medjobs/PreFlightCallModal";
 import { SendEmailModal } from "@/components/admin/medjobs/SendEmailModal";
 import { FollowUpDrawerBody } from "@/components/admin/medjobs/FollowUpDrawerBody";
+import { ArchivedDrawerBody } from "@/components/admin/medjobs/ArchivedDrawerBody";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
 import { getVerificationState } from "@/lib/student-outreach/verification-state";
@@ -528,10 +529,12 @@ function StakeholderDrawer({
       ) : error ? (
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
       ) : ctx ? (
-        // Opened from Follow-ups, the row is one round of the loop — the
-        // round-scoped body replaces the stage-driven one entirely rather
-        // than sitting on top of it.
-        activeTab === "followups" ? (
+        // Opened from Tasks (or from a provider row inside a university), the
+        // row is one round of the loop, so the round-scoped body replaces the
+        // stage-driven one entirely rather than sitting on top of it.
+        activeTab === "archive" ? (
+          <ArchivedDrawerBody ctx={ctx} action={action} setError={setError} />
+        ) : activeTab === "tasks" ? (
           <FollowUpDrawerBody ctx={ctx} action={action} setError={setError} />
         ) : ctx.outreach.kind === "provider" ? (
           <ProviderProspectDrawerBody

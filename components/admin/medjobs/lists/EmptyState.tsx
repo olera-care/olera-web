@@ -58,8 +58,7 @@ export function EmptyState({
     emails_sent: "Coming soon — email-send log.",
     signups: "Coming soon — student-signup feed.",
     activation: "No universities in activation yet.",
-    followups: "Nothing due today. The next round lands in two business days.",
-  tasks: "Nothing due.",
+    tasks: "Nothing due.",
   };
   return <p className="py-12 text-center text-sm text-gray-400">{blurbs[tab]}</p>;
 }

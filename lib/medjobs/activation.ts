@@ -37,6 +37,10 @@ export type TaskType =
   | "activation_event_review"
   | "activation_event_day"
   | "activation_professor_reengage"
+  // One round of follow-up with a provider or stakeholder, carrying both a
+  // call and an email. Lives in student_outreach_tasks, not site_tasks, and
+  // joins the queue through the Tasks tab's read-time union.
+  | "outreach_contact"
   | "manual_followup";
 
 /** Ticked criteria, keyed by criterion key, valued by ISO timestamp. */

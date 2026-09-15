@@ -33,9 +33,6 @@ export type TabKey =
   // University Activation (ST3-ST7) and the tasks it generates.
   | "activation"
   | "tasks"
-  // The 2-business-day follow-up loop (rounds 2-7), replacing the separate
-  // Calls and Emails queues: one row per provider due a check today.
-  | "followups"
   | "prospects"
   | "partners"
   | "meetings"
@@ -151,7 +148,6 @@ export const TAB_STATS: Record<TabKey, { metric: string; label: string }> = {
   // Per-entity metrics powering the per-tab PulseHeader in In Basket.
   clients:     { metric: "clients",          label: "new clients"          },
   activation:  { metric: "campuses",         label: "sites added"          },
-  followups:   { metric: "followups",   label: "due today" },
   tasks:       { metric: "activity",         label: "operational events"   },
   // Sites uses the same time-series metric as the legacy 'campuses' key.
   sites:       { metric: "campuses",         label: "sites added"          },

@@ -25,7 +25,14 @@ export interface TaskDef {
   kind: "check" | "criterion";
 }
 
-export const TASK_DEFS: Record<Exclude<TaskType, "manual_followup">, TaskDef> = {
+// Contact rounds are excluded alongside manual_followup: both carry their own
+// drawer rather than a static definition — a round's what/why/steps are the
+// same every time and live in the follow-up body, and its copy comes from the
+// cadence, not from here.
+export const TASK_DEFS: Record<
+  Exclude<TaskType, "manual_followup" | "outreach_contact">,
+  TaskDef
+> = {
   activation_job_board_check: {
     kind: "check",
     title: "Confirm posting still live",

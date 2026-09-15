@@ -80,11 +80,18 @@ export function FollowUpDrawerBody({
       : null;
 
   const script =
-    (typeof rs.callTask?.payload?.script === "string" ? rs.callTask.payload.script : null) ??
+    (typeof rs.task?.payload?.script === "string" ? rs.task.payload.script : null) ??
     `"Hi, this is [your name] from Dr. DuBose's office. I emailed about the Student Caregiver Program at ${ctx.campus?.name ?? "the university"} — did that reach the right person?"`;
 
-  const callDone = rs.callTask == null;
-  const emailDone = rs.emailTask == null;
+  // Halves of one task. Logging one stamps the payload; logging both
+  // completes the task, which is what advances the round.
+  const callDone = rs.callLogged;
+  const emailDone = rs.emailLogged;
+
+  const logHalf = async (half: "call" | "email") => {
+    if (!rs.task) return;
+    await action("log_contact_half", { task_id: rs.task.id, half });
+  };
 
   return (
     <div className="space-y-5">
@@ -184,7 +191,7 @@ export function FollowUpDrawerBody({
               } else {
                 await action("log_call_outcome", { outcome: outcomeKey, notes });
               }
-              if (rs.callTask) await action("complete_task", { task_id: rs.callTask.id });
+              await logHalf("call");
               setShowCall(false);
             } catch (e) {
               setError(e instanceof Error ? e.message : "Failed to log the call");
@@ -203,7 +210,7 @@ export function FollowUpDrawerBody({
           onCancel={() => setShowEmail(false)}
           onSubmit={async () => {
             await action("log_email_sent");
-            if (rs.emailTask) await action("complete_task", { task_id: rs.emailTask.id });
+            await logHalf("email");
             setShowEmail(false);
           }}
         />

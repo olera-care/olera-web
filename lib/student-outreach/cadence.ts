@@ -13,7 +13,7 @@
 
 import type { Channel, StakeholderType, TaskType } from "./types";
 
-export type StepId = "email" | "ig_dm" | "contact_form" | "phone";
+export type StepId = "email" | "ig_dm" | "contact_form" | "phone" | "contact";
 
 /** Template keys used by the email step. Match templates.ts. */
 export type TemplateKey =
@@ -99,6 +99,10 @@ export const CADENCE_END_DAY = 14;
  */
 export const BUSINESS_DAY_CADENCES: ReadonlySet<CadenceKey> = new Set<CadenceKey>([
   "provider",
+  "advisor",
+  "student_org",
+  "dept_head",
+  "professor",
 ]);
 
 /** Rounds in the provider follow-up loop, counting round 1 (worked by hand). */
@@ -113,60 +117,97 @@ export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
   // so there's no cold Day-0 paired call. Phone steps queue only when a phone is
   // on file (planSequence's has_phone gate) — most student orgs are email-only.
   student_org: [
+  // Student organisations run the same loop as providers: one contact task a round, both
+  // channels together, two business days apart. Their copy differs; the rhythm
+  // does not, which is the point of collapsing everything into one task shape.
     {
-      day: 0,
-      title: "Day 0 · intro email",
-      steps: [{ id: "email", channel: "email", required: true, template: "intro" }],
+      day: 2,
+      title: "Round 2 · call + email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "org_bump", label: "Check for a reply, then call and email" },
+      ],
     },
     {
-      day: 3,
-      title: "Day 3 · one-line bump",
-      steps: [{ id: "email", channel: "email", required: true, template: "org_bump" }],
+      day: 4,
+      title: "Round 3 · call + email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "org_bump", label: "Check for a reply, then call and email" },
+      ],
     },
     {
       day: 6,
-      title: "Day 6 · call (if phone) + follow-up email",
+      title: "Round 4 · call + email",
       steps: [
-        { id: "phone", channel: "phone", required: true, label: "Call — paid opportunity + speaker offer" },
-        { id: "email", channel: "email", required: true, template: "org_followup" },
+        { id: "contact", channel: "email", required: true, template: "org_bump", label: "Check for a reply, then call and email" },
+      ],
+    },
+    {
+      day: 8,
+      title: "Round 5 · call + email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "org_bump", label: "Check for a reply, then call and email" },
       ],
     },
     {
       day: 10,
-      title: "Day 10 · short final",
-      steps: [{ id: "email", channel: "email", required: true, template: "org_close" }],
+      title: "Round 6 · call + email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "org_bump", label: "Check for a reply, then call and email" },
+      ],
+    },
+    {
+      day: 12,
+      title: "Round 7 · call + final email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "org_close", label: "Check for a reply, then call and email" },
+      ],
     },
   ],
   advisor: [
+  // Advising offices run the same loop as providers: one contact task a round, both
+  // channels together, two business days apart. Their copy differs; the rhythm
+  // does not, which is the point of collapsing everything into one task shape.
     {
-      // No Day-0 call for advising offices — they're confirmed by a Pre-Flight
-      // call before launch, so a paired Day-0 call would be redundant.
-      day: 0,
-      title: "Day 0 · intro email (meeting-first)",
-      steps: [{ id: "email", channel: "email", required: true, template: "intro" }],
+      day: 2,
+      title: "Round 2 · call + email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "advisor_bump", label: "Check for a reply, then call and email" },
+      ],
     },
     {
-      day: 3,
-      title: "Day 3 · one-line bump",
-      steps: [{ id: "email", channel: "email", required: true, template: "advisor_bump" }],
+      day: 4,
+      title: "Round 3 · call + email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "advisor_bump", label: "Check for a reply, then call and email" },
+      ],
     },
     {
       day: 6,
-      title: "Day 6 · intro call + program info email",
+      title: "Round 4 · call + email",
       steps: [
-        { id: "phone", channel: "phone", required: true, label: "Intro call — info is coming, then the meeting" },
-        { id: "email", channel: "email", required: true, template: "advisor_info" },
+        { id: "contact", channel: "email", required: true, template: "advisor_bump", label: "Check for a reply, then call and email" },
+      ],
+    },
+    {
+      day: 8,
+      title: "Round 5 · call + email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "advisor_bump", label: "Check for a reply, then call and email" },
       ],
     },
     {
       day: 10,
-      title: "Day 10 · short nudge",
-      steps: [{ id: "email", channel: "email", required: true, template: "advisor_nudge" }],
+      title: "Round 6 · call + email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "advisor_bump", label: "Check for a reply, then call and email" },
+      ],
     },
     {
-      day: 14,
-      title: "Day 14 · seasonal close",
-      steps: [{ id: "email", channel: "email", required: true, template: "advisor_close" }],
+      day: 12,
+      title: "Round 7 · call + final email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "advisor_close", label: "Check for a reply, then call and email" },
+      ],
     },
   ],
   // Dept heads (all Drs.) get a formal, meeting-led cadence, same skeleton as
@@ -174,61 +215,97 @@ export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
   // Pre-Flight; the Day-6 call below is the in-cadence follow-up. Each email
   // stands alone; the ask is a short Zoom, professor outreach deferred.
   dept_head: [
+  // Department heads run the same loop as providers: one contact task a round, both
+  // channels together, two business days apart. Their copy differs; the rhythm
+  // does not, which is the point of collapsing everything into one task shape.
     {
-      day: 0,
-      title: "Day 0 · formal intro email",
-      steps: [{ id: "email", channel: "email", required: true, template: "intro" }],
+      day: 2,
+      title: "Round 2 · call + email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "dept_bump", label: "Check for a reply, then call and email" },
+      ],
     },
     {
-      day: 3,
-      title: "Day 3 · one-line bump",
-      steps: [{ id: "email", channel: "email", required: true, template: "dept_bump" }],
+      day: 4,
+      title: "Round 3 · call + email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "dept_bump", label: "Check for a reply, then call and email" },
+      ],
     },
     {
       day: 6,
-      title: "Day 6 · call (if phone) + follow-up email",
+      title: "Round 4 · call + email",
       steps: [
-        { id: "phone", channel: "phone", required: true, label: "Call — program + Dr. DuBose Zoom offer" },
-        { id: "email", channel: "email", required: true, template: "dept_followup" },
+        { id: "contact", channel: "email", required: true, template: "dept_bump", label: "Check for a reply, then call and email" },
       ],
     },
     {
-      day: 12,
-      title: "Day 12 · gracious close",
-      steps: [{ id: "email", channel: "email", required: true, template: "dept_close" }],
-    },
-  ],
-  professor: [
-    {
-      day: 0,
-      title: "Day 0 · intro email + paired call (post-permission)",
+      day: 8,
+      title: "Round 5 · call + email",
       steps: [
-        { id: "email", channel: "email", required: true, template: "intro" },
-        { id: "phone", channel: "phone", required: true, label: "Call referencing the email" },
-      ],
-    },
-    {
-      day: 3,
-      title: "Day 3 · email follow-up",
-      steps: [{ id: "email", channel: "email", required: true, template: "followup_light" }],
-    },
-    {
-      day: 7,
-      title: "Day 7 · email follow-up + call",
-      steps: [
-        { id: "email", channel: "email", required: true, template: "followup_socialproof" },
-        { id: "phone", channel: "phone", required: true },
+        { id: "contact", channel: "email", required: true, template: "dept_bump", label: "Check for a reply, then call and email" },
       ],
     },
     {
       day: 10,
-      title: "Day 10 · final email",
-      steps: [{ id: "email", channel: "email", required: true, template: "followup_final" }],
+      title: "Round 6 · call + email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "dept_bump", label: "Check for a reply, then call and email" },
+      ],
     },
     {
-      day: 11,
-      title: "Day 11 · call attempt",
-      steps: [{ id: "phone", channel: "phone", required: true }],
+      day: 12,
+      title: "Round 7 · call + final email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "dept_close", label: "Check for a reply, then call and email" },
+      ],
+    },
+  ],
+  professor: [
+  // Professors run the same loop as providers: one contact task a round, both
+  // channels together, two business days apart. Their copy differs; the rhythm
+  // does not, which is the point of collapsing everything into one task shape.
+    {
+      day: 2,
+      title: "Round 2 · call + email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "advisor_bump", label: "Check for a reply, then call and email" },
+      ],
+    },
+    {
+      day: 4,
+      title: "Round 3 · call + email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "advisor_bump", label: "Check for a reply, then call and email" },
+      ],
+    },
+    {
+      day: 6,
+      title: "Round 4 · call + email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "advisor_bump", label: "Check for a reply, then call and email" },
+      ],
+    },
+    {
+      day: 8,
+      title: "Round 5 · call + email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "advisor_bump", label: "Check for a reply, then call and email" },
+      ],
+    },
+    {
+      day: 10,
+      title: "Round 6 · call + email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "advisor_bump", label: "Check for a reply, then call and email" },
+      ],
+    },
+    {
+      day: 12,
+      title: "Round 7 · call + final email",
+      steps: [
+        { id: "contact", channel: "email", required: true, template: "advisor_close", label: "Check for a reply, then call and email" },
+      ],
     },
   ],
   // v10 provider cadence (Phase 1 Bullet 2, 2026-06-04). Targets non-
@@ -259,53 +336,57 @@ export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
   //
   // Copy reuses the approved provider templates rather than inventing five new
   // ones: the middle rounds bump, the last one closes.
+  // Provider follow-up, rounds 2-7. Round 1 is the qualifying call plus the
+  // first email, worked by hand in the Providers card and never scheduled.
+  //
+  // One step per round, not two. A round is a single piece of work — check for
+  // a reply, and if there isn't one, call and email — so it queues as one
+  // `outreach_contact` task carrying both channels. Two tasks listed the same
+  // person twice and let half a round look finished.
+  //
+  // `day` is a BUSINESS-day offset (see `spacing` below), so rounds sit two
+  // working days apart and never land on a weekend.
   provider: [
     {
       day: 2,
       title: "Round 2 · call + email",
       steps: [
-        { id: "phone", channel: "phone", required: true, label: "Check for a reply, then call" },
-        { id: "email", channel: "email", required: true, template: "provider_followup" },
+        { id: "contact", channel: "email", required: true, template: "provider_followup", label: "Check for a reply, then call and email" },
       ],
     },
     {
       day: 4,
       title: "Round 3 · call + email",
       steps: [
-        { id: "phone", channel: "phone", required: true, label: "Check for a reply, then call" },
-        { id: "email", channel: "email", required: true, template: "provider_followup" },
+        { id: "contact", channel: "email", required: true, template: "provider_followup", label: "Check for a reply, then call and email" },
       ],
     },
     {
       day: 6,
       title: "Round 4 · call + email",
       steps: [
-        { id: "phone", channel: "phone", required: true, label: "Check for a reply, then call" },
-        { id: "email", channel: "email", required: true, template: "provider_followup" },
+        { id: "contact", channel: "email", required: true, template: "provider_followup", label: "Check for a reply, then call and email" },
       ],
     },
     {
       day: 8,
       title: "Round 5 · call + email",
       steps: [
-        { id: "phone", channel: "phone", required: true, label: "Check for a reply, then call" },
-        { id: "email", channel: "email", required: true, template: "provider_followup" },
+        { id: "contact", channel: "email", required: true, template: "provider_followup", label: "Check for a reply, then call and email" },
       ],
     },
     {
       day: 10,
       title: "Round 6 · call + email",
       steps: [
-        { id: "phone", channel: "phone", required: true, label: "Check for a reply, then call" },
-        { id: "email", channel: "email", required: true, template: "provider_followup" },
+        { id: "contact", channel: "email", required: true, template: "provider_followup", label: "Check for a reply, then call and email" },
       ],
     },
     {
       day: 12,
       title: "Round 7 · call + final email",
       steps: [
-        { id: "phone", channel: "phone", required: true, label: "Check for a reply, then call" },
-        { id: "email", channel: "email", required: true, template: "provider_final" },
+        { id: "contact", channel: "email", required: true, template: "provider_final", label: "Check for a reply, then call and email" },
       ],
     },
   ],

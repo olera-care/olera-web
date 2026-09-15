@@ -76,10 +76,7 @@ export function RepliedModal({
           notes: said.trim(),
         });
       } else if (choice === "another_set") {
-        await action("launch_custom_cadence", {
-          reason: "another_set",
-          context_notes: said.trim(),
-        });
+        await action("launch_next_set", { context_notes: said.trim() });
       } else {
         await action("archive", { notes: said.trim() });
       }

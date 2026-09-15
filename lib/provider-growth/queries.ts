@@ -359,7 +359,7 @@ export async function getRichContextData(
     // Last 5 leads with details (including family name)
     db
       .from("connections")
-      .select("created_at, message, from_profile:business_profiles!from_profile_id(display_name)")
+      .select("created_at, message, from_profile:business_profiles!connections_from_profile_id_fkey(display_name)")
       .eq("to_profile_id", businessProfileId)
       .eq("type", "inquiry")
       .order("created_at", { ascending: false })

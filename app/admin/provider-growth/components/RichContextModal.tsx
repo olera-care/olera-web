@@ -343,10 +343,10 @@ export function RichContextModal({
                 </div>
 
                 {/* Recent Leads - show family names and messages */}
-                {b.leads.recentLeads.length > 0 && (
+                {b.leads?.recentLeads?.length > 0 && (
                   <div>
                     <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-                      Recent Leads ({b.leads.count} total)
+                      Recent Leads ({b.leads?.count ?? 0} total)
                     </p>
                     <ul className="space-y-2">
                       {b.leads.recentLeads.slice(0, 3).map((lead, i) => (

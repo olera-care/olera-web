@@ -543,12 +543,6 @@ function Board() {
           }}
           onClose={closeScreener}
           onComplete={handleScreenerComplete}
-          onExistingUser={() => {
-            // Returning student — just send them to their profile.
-            // Middleware handles auth if needed.
-            closeScreener();
-            router.push("/portal/medjobs");
-          }}
         />
       )}
     </>

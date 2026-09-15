@@ -6,6 +6,7 @@
  */
 
 import { getServiceClient } from "@/lib/admin";
+import { calculateProfileCompleteness, type ExtendedMetadata } from "@/lib/profile-completeness";
 import type { PipelineStage, AdsStatus, MedjobsStatus, TouchpointType, ClaimSource, MeetingType, MeetingFocus, MeetingFormat } from "./stages";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -247,7 +248,6 @@ export async function getRichContextData(
 ): Promise<RichContextData> {
   const db = getServiceClient();
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-  const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
 
   // Phase 1: Fetch all data in parallel
   const [
@@ -366,8 +366,13 @@ export async function getRichContextData(
   const providerSlug = profile?.slug;
   const sourceProviderId = profile?.source_provider_id;
 
+  // Build provider ID variants for querying provider_activity
+  // Activity can be logged with slug, UUID, or source_provider_id depending on context
+  const providerIdVariants: string[] = [businessProfileId];
+  if (providerSlug) providerIdVariants.push(providerSlug);
+  if (sourceProviderId) providerIdVariants.push(sourceProviderId);
+
   // Phase 2 queries wrapped in try-catch to prevent breaking if any fail
-  // Note: provider_activity.profile_id stores UUIDs, which is what we query with
   let emailStatsData: { data: Array<{ first_opened_at: string | null; first_clicked_at: string | null }> | null } = { data: [] };
   let dashboardVisitsResult: { data: Array<{ created_at: string }> | null; count: number | null } = { data: [], count: 0 };
   let profileEditsResult: { data: Array<{ created_at: string; metadata: unknown }> | null } = { data: [] };
@@ -388,46 +393,46 @@ export async function getRichContextData(
             .gte("created_at", thirtyDaysAgo)
         : Promise.resolve({ data: [] }),
 
-      // Dashboard visits (30 days) - use profile_id (UUID) not provider_id (slug)
+      // Dashboard visits (30 days) - query by all provider ID variants
       db
         .from("provider_activity")
         .select("created_at", { count: "exact" })
-        .eq("profile_id", businessProfileId)
+        .in("provider_id", providerIdVariants)
         .eq("event_type", "dashboard_arrival")
         .gte("created_at", thirtyDaysAgo)
         .order("created_at", { ascending: false })
         .limit(1),
 
-      // Profile edits (30 days) - use profile_id
+      // Profile edits (30 days) - query by all provider ID variants
       db
         .from("provider_activity")
         .select("created_at, metadata")
-        .eq("profile_id", businessProfileId)
+        .in("provider_id", providerIdVariants)
         .eq("event_type", "provider_profile_edited")
         .gte("created_at", thirtyDaysAgo)
         .order("created_at", { ascending: false }),
 
-      // Last login / one-click access - use profile_id
+      // Last login / one-click access - query by all provider ID variants
       db
         .from("provider_activity")
         .select("created_at")
-        .eq("profile_id", businessProfileId)
+        .in("provider_id", providerIdVariants)
         .eq("event_type", "one_click_access")
         .order("created_at", { ascending: false })
         .limit(1),
 
-      // Leads opened (all time) - use profile_id
+      // Leads opened (all time) - query by all provider ID variants
       db
         .from("provider_activity")
         .select("id", { count: "exact", head: true })
-        .eq("profile_id", businessProfileId)
+        .in("provider_id", providerIdVariants)
         .eq("event_type", "lead_opened"),
 
-      // Contact info revealed - use profile_id
+      // Contact info revealed - query by all provider ID variants
       db
         .from("provider_activity")
         .select("id", { count: "exact", head: true })
-        .eq("profile_id", businessProfileId)
+        .in("provider_id", providerIdVariants)
         .eq("event_type", "contact_revealed"),
 
       // Google reviews data - fetched from olera-providers via source_provider_id
@@ -546,28 +551,38 @@ export async function getRichContextData(
   const genericReason = isGenericEmail ? `"${emailPrefix}@" is a generic address - may not reach decision maker` : null;
 
   // ─────────────────────────────────────────────────────────────────────────────
-  // Profile Completeness Assessment
+  // Profile Completeness Assessment (using the canonical weighted algorithm)
   // ─────────────────────────────────────────────────────────────────────────────
-  const hasDescription = Boolean(profile?.description && profile.description.length > 50);
-  const hasPricing = Boolean(metadata.pricing || metadata.price_range);
-  const hasStaffInfo = Boolean(staff.name || metadata.staff_count || metadata.credentials);
-  const hasHours = Boolean(metadata.hours || metadata.business_hours);
-  const hasPhotos = images.length > 0;
-  const hasPhone = Boolean(profile?.phone);
-  const hasCareTypes = (profile?.care_types || []).length > 0;
+  const profileForCompleteness = {
+    display_name: profile?.display_name || null,
+    category: (metadata.category as string) || null,
+    address: (metadata.address as string) || null,
+    city: profile?.city || null,
+    state: profile?.state || null,
+    image_url: (metadata.image_url as string) || images[0] || null,
+    description: profile?.description || null,
+    care_types: profile?.care_types || [],
+  };
+  const metadataForCompleteness: ExtendedMetadata = {
+    lower_price: metadata.lower_price as number | undefined,
+    price_range: metadata.price_range as string | undefined,
+    pricing_details: metadata.pricing_details as ExtendedMetadata["pricing_details"],
+    contact_for_pricing: metadata.contact_for_pricing as boolean | undefined,
+    staff_screening: metadata.staff_screening as string[] | undefined,
+    images: images as string[],
+    accepted_payments: metadata.accepted_payments as string[] | undefined,
+  };
+  const completenessResult = calculateProfileCompleteness(profileForCompleteness, metadataForCompleteness);
+  const completenessPercentage = completenessResult.overall;
+  const missingSections = completenessResult.sections
+    .filter(s => s.percent < 100)
+    .map(s => s.label);
 
-  const completenessChecks = [
-    { name: "description", has: hasDescription },
-    { name: "pricing", has: hasPricing },
-    { name: "staff info", has: hasStaffInfo },
-    { name: "hours", has: hasHours },
-    { name: "photos", has: hasPhotos },
-    { name: "phone", has: hasPhone },
-    { name: "care types", has: hasCareTypes },
-  ];
-  const completedCount = completenessChecks.filter(c => c.has).length;
-  const completenessPercentage = Math.round((completedCount / completenessChecks.length) * 100);
-  const missingSections = completenessChecks.filter(c => !c.has).map(c => c.name);
+  // Keep simple flags for briefing display
+  const hasDescription = Boolean(profile?.description && profile.description.length > 50);
+  const hasPricing = Boolean(metadata.pricing || metadata.price_range || metadata.contact_for_pricing);
+  const hasStaffInfo = Boolean(staff.name || metadata.staff_count || (metadata.staff_screening as string[] | undefined)?.length);
+  const hasHours = Boolean(metadata.hours || metadata.business_hours);
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Build Flags (issues to address)
@@ -707,7 +722,6 @@ export async function getRichContextData(
   // ─────────────────────────────────────────────────────────────────────────────
   // Data-Driven Opening Script
   // ─────────────────────────────────────────────────────────────────────────────
-  const providerName = profile?.display_name || "there";
   const claimDaysAgoRaw = tracking?.claimed_at
     ? Math.floor((Date.now() - new Date(tracking.claimed_at).getTime()) / (1000 * 60 * 60 * 24))
     : null;

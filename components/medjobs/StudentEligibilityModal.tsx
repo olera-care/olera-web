@@ -94,6 +94,10 @@ export default function StudentEligibilityModal({
       setError("Please enter a valid email.");
       return;
     }
+    if (!email.trim().toLowerCase().endsWith(".edu")) {
+      setError("Please use your university email (.edu). We only accept .edu emails for student applications.");
+      return;
+    }
     setError(null);
     setStep("loading");
     try {

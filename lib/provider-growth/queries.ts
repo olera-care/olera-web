@@ -553,6 +553,8 @@ export async function getRichContextData(
   // ─────────────────────────────────────────────────────────────────────────────
   // Profile Completeness Assessment (using the canonical weighted algorithm)
   // ─────────────────────────────────────────────────────────────────────────────
+  // Build profile object for completeness calculation
+  // Cast to Profile since calculateProfileCompleteness only uses these fields
   const profileForCompleteness = {
     display_name: profile?.display_name || null,
     category: profile?.category || null,
@@ -562,7 +564,7 @@ export async function getRichContextData(
     image_url: profile?.image_url || images[0] || null,
     description: profile?.description || null,
     care_types: profile?.care_types || [],
-  };
+  } as import("@/lib/types").Profile;
   const metadataForCompleteness: ExtendedMetadata = {
     lower_price: metadata.lower_price as number | undefined,
     price_range: metadata.price_range as string | undefined,

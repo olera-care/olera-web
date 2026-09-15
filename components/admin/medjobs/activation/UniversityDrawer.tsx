@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { DrawerShell } from "@/components/admin/medjobs/DrawerShell";
 import ChannelCard from "./ChannelCard";
+import ProfileCard from "./ProfileCard";
 import type { ActivationUniversity } from "./types";
 import type { Channel } from "@/lib/medjobs/activation";
 
@@ -15,11 +16,15 @@ export default function UniversityDrawer({
   slug,
   onClose,
   onOpenTask,
+  onOpenProvider,
   onChanged,
 }: {
   slug: string;
   onClose: () => void;
   onOpenTask: (taskId: string) => void;
+  /** Opens a provider's detail over the drawer. Omitted where the host has
+   *  nowhere to put it, in which case provider rows are read-only. */
+  onOpenProvider?: (outreachId: string) => void;
   /** Lets the list behind refresh its dots after a change in here. */
   onChanged: () => void;
 }) {
@@ -114,6 +119,33 @@ export default function UniversityDrawer({
           {error ? (
             <p className="rounded-md bg-error-50 px-3 py-2 text-[13px] text-error-700">{error}</p>
           ) : null}
+          {/* Profiles first: the campus's providers and students, above the
+              channels you reach the campus through. */}
+          <ProfileCard
+            title="Providers"
+            primaryCount={uni.providers?.clients ?? null}
+            primaryLabel="clients"
+            secondaryCount={uni.providers?.catchment ?? null}
+            secondaryLabel="in catchment"
+            rows={(uni.providers?.rows ?? []).map((r) => ({
+              id: r.id,
+              name: r.name,
+              state: r.state,
+              detail: r.detail,
+            }))}
+            emptyText="No providers for this campus yet."
+            onOpenRow={onOpenProvider}
+          />
+          <ProfileCard
+            title="Students"
+            primaryCount={uni.students?.applicants ?? null}
+            primaryLabel="applicants"
+            secondaryCount={uni.students?.qualified ?? null}
+            secondaryLabel="qualified"
+            rows={[]}
+            emptyText="Applicant list lands with qualification."
+          />
+
           {uni.channels.map((ch) => (
             <ChannelCard
               key={ch.channel}

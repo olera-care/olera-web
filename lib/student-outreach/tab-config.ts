@@ -113,12 +113,10 @@ export interface TabDef {
 //
 // Smart-hide tucks empty tabs away; the active tab anchors the bar.
 export const TABS: TabDef[] = [
-  { key: "activation",   label: "Universities", tooltip: "University Activation: the five ST3-ST7 channels at each campus, and what is due." },
-  { key: "providers",    label: "Providers",  tooltip: "Round 1: call for the right contact, send the first email. Both logged, and the row starts the follow-up loop." },
-  { key: "followups",    label: "Follow-ups", tooltip: "Rounds 2-7. Every two business days: check for a reply, and if there isn't one, call and email." },
-  { key: "meetings",     label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
-  { key: "tasks",        label: "Tasks",      tooltip: "Every recurring check the activation workflow generated, plus custom tasks." },
-  { key: "archive",      label: "Archive",    tooltip: "Rounds ran out with no reply, or closed by hand. Revive one to start a fresh set of rounds." },
+  { key: "activation",   label: "Universities", tooltip: "Every university: its providers, students, and the five channels you reach it through." },
+  { key: "tasks",        label: "Tasks",      tooltip: "Everything due — contact rounds, job board checks, and custom work, across every university." },
+  { key: "meetings",     label: "Meetings",   tooltip: "Booked, or coordinating a time." },
+  { key: "archive",      label: "Archive",    tooltip: "Rounds ran out, or closed by hand. Revive one to start a fresh set." },
 ];
 
 // Ellipsis menu items — same shape as TABS, surfaced via a ⋯ button at

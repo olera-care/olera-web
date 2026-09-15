@@ -64,7 +64,7 @@ export interface ChannelDef {
 export const CHANNELS: Record<Channel, ChannelDef> = {
   st3: {
     channel: "st3",
-    name: "University job board",
+    name: "Job board",
     liveWhen: "The posting is submitted, approved, and confirmed visible to students.",
     rule: "all",
     cadenceMonths: 1,
@@ -77,7 +77,7 @@ export const CHANNELS: Record<Channel, ChannelDef> = {
   },
   st4: {
     channel: "st4",
-    name: "Advisor listserv",
+    name: "Advisors",
     liveWhen: "The advisor has agreed to send the flyer to their listserv.",
     rule: "all",
     cadenceMonths: 1,
@@ -98,7 +98,7 @@ export const CHANNELS: Record<Channel, ChannelDef> = {
   },
   st5: {
     channel: "st5",
-    name: "Student organizations",
+    name: "Student orgs",
     liveWhen: "At least one organization is activated.",
     rule: "any",
     records: "organization",
@@ -118,7 +118,7 @@ export const CHANNELS: Record<Channel, ChannelDef> = {
   },
   st7: {
     channel: "st7",
-    name: "Professors / class outreach",
+    name: "Professors",
     liveWhen: "Approval obtained, and at least one professor has agreed.",
     rule: "any",
     records: "professor",

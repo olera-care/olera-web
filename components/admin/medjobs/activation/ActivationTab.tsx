@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { CHANNEL_ORDER } from "@/lib/medjobs/activation";
 import StatusDot, { DueDot, statusLabel } from "./StatusDot";
 import UniversityDrawer from "./UniversityDrawer";
+import { Drawer } from "@/app/admin/student-outreach/Drawer";
 import type { ActivationUniversity } from "./types";
 
 /**
@@ -15,12 +16,20 @@ import type { ActivationUniversity } from "./types";
  * has to survive being read at a glance across dozens of rows.
  */
 
-const HEADINGS = ["Job board", "Listserv", "Student orgs", "Events", "Professors"];
+// Providers and Students come first: they are the profiles a campus holds,
+// and the five channels are how you reach it. Their counts (clients confirmed,
+// students qualified) are not instrumented yet, so they render as a dash
+// rather than a plausible-looking zero.
+const PROFILE_HEADINGS = ["Providers", "Students"];
+const HEADINGS = ["Job board", "Advisors", "Student orgs", "Events", "Professors"];
 
 export default function ActivationTab({ onOpenTask }: { onOpenTask: (taskId: string) => void }) {
   const [rows, setRows] = useState<ActivationUniversity[] | null>(null);
   const [failed, setFailed] = useState<string | null>(null);
   const [open, setOpen] = useState<string | null>(null);
+  // A provider opened from inside a university. Layered over the
+  // university drawer so closing it returns to the campus.
+  const [openProvider, setOpenProvider] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -75,7 +84,7 @@ export default function ActivationTab({ onOpenTask }: { onOpenTask: (taskId: str
               <th className="py-2 pr-3 text-[11px] font-semibold uppercase tracking-wide text-gray-500">
                 University
               </th>
-              {HEADINGS.map((h) => (
+              {[...PROFILE_HEADINGS, ...HEADINGS].map((h) => (
                 <th
                   key={h}
                   className="py-2 pr-3 text-[11px] font-semibold uppercase tracking-wide text-gray-500"
@@ -98,16 +107,19 @@ export default function ActivationTab({ onOpenTask }: { onOpenTask: (taskId: str
                     <span className="text-[13px] font-medium text-gray-900">{u.name}</span>
                   </span>
                 </td>
+                {PROFILE_HEADINGS.map((h) => (
+                  <td key={h} className="py-2.5 pr-3 text-[12px] text-gray-400">
+                    —
+                  </td>
+                ))}
+                {/* Dots only. The "N of M" that used to live here made the row
+                    too wide to scan, which is the one thing this table is for. */}
                 {CHANNEL_ORDER.map((key) => {
                   const ch = u.channels.find((c) => c.channel === key)!;
-                  const isList = ch.recordCount !== null && ch.recordCount > 0;
                   return (
                     <td key={key} className="py-2.5 pr-3">
-                      <span className="flex items-center gap-1.5">
+                      <span className="flex items-center" title={statusLabel(ch.status)}>
                         <StatusDot status={ch.status} />
-                        <span className="text-[12px] text-gray-700">
-                          {isList ? `${ch.liveCount} of ${ch.recordCount}` : statusLabel(ch.status)}
-                        </span>
                       </span>
                     </td>
                   );
@@ -128,8 +140,17 @@ export default function ActivationTab({ onOpenTask }: { onOpenTask: (taskId: str
           onClose={() => setOpen(null)}
           onOpenTask={onOpenTask}
           onChanged={() => void load()}
+                  onOpenProvider={(id) => setOpenProvider(id)}
         />
       ) : null}
-    </>
+          {openProvider && (
+        <Drawer
+          outreachId={openProvider}
+          onClose={() => setOpenProvider(null)}
+          onAction={() => { void load(); }}
+          activeTab="tasks"
+        />
+      )}
+</>
   );
 }

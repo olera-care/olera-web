@@ -66,16 +66,15 @@ export default function ChannelCard({
     if (res && res.wentLive) setWin(true);
   };
 
-  const summary =
-    def.records
-      ? channel.recordCount === 0
-        ? "None added"
-        : `${channel.liveCount} of ${channel.recordCount} live`
-      : channel.firstActivatedAt
-        ? `Activated ${shortDate(channel.firstActivatedAt)}`
-        : channel.status === "not_available"
-          ? "Not available here"
-          : "Not yet activated";
+  // Two states, nothing else. The card header is a place to find the channel,
+  // not a place to read its numbers — those are inside once it is open.
+  const summary = def.records
+    ? channel.recordCount === 0
+      ? "None added"
+      : ""
+    : channel.status === "live"
+      ? ""
+      : "Not yet activated";
 
   return (
     <div className="rounded-lg border border-gray-200 bg-white">
@@ -86,9 +85,6 @@ export default function ChannelCard({
           className="flex min-w-0 flex-1 items-center gap-2.5 text-left"
         >
           <StatusDot status={channel.status} />
-          <span className="shrink-0 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
-            {channel.channel}
-          </span>
           <span className="min-w-0 flex-1 truncate text-[13px] font-medium text-gray-900">
             {channel.name}
           </span>

@@ -30,6 +30,7 @@ import { decisionMakerEmailRecipients } from "@/lib/student-outreach/decision-ma
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 import { ProviderSnapshotCard } from "@/components/admin/medjobs/SnapshotCard";
+import { ProviderBriefCard } from "@/components/admin/medjobs/ProviderBriefCard";
 
 interface Props {
   ctx: DrawerContext;
@@ -135,10 +136,16 @@ export function ProviderProspectDrawerBody({ ctx, action, setError, activeTab }:
           live in the General Contact section below, and the campus is
           already in the panel header. */}
 
-      {/* Zone 2 · Next Step. Pre-launch (prospect/researched) the drawer now
-          starts directly with the Research Card — the old thin "Pre-Flight"
-          indicator box was redundant (the Research Card's own orienting line
-          says what to do). NextStepCard stays for post-launch stage CTAs. */}
+      {/* Zone 1 · Brief. Pre-launch the drawer opens with what this is, why
+          it matters, the steps, the call script, and Log call — the Tasks
+          drawer's orienting shape, applied to a provider. It replaces the
+          old Research-Card-first flow, where the script was buried inside
+          the outcome modal. */}
+      {isPreLaunch && (
+        <ProviderBriefCard ctx={ctx} action={action} setError={setError} />
+      )}
+
+      {/* Zone 2 · Next Step — post-launch stage CTAs only. */}
       {!isPreLaunch && (
         <NextStepCard ctx={ctx} action={action} setError={setError} activeTab={activeTab} />
       )}

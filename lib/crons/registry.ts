@@ -668,22 +668,6 @@ export const CRON_REGISTRY: CronJob[] = [
     relatedAdminPath: "/admin/medjobs/candidates",
   },
 
-  // ── Students (campus recruiting) ───────────────────────────────────
-  {
-    id: "student-outreach-send",
-    name: "Student outreach — scheduled sends",
-    description: "Every 15 minutes: scans for due student-outreach email tasks (campus stakeholder sequences) and sends them. Also triggerable manually with the cron secret.",
-    recipientCohort: "Campus stakeholders with a due step in their outreach sequence.",
-    audience: "Students",
-    fn: "outreach",
-    schedule: "*/15 * * * *",
-    humanSchedule: "Every 15 minutes",
-    path: "/api/cron/student-outreach-send",
-    // email_type set in the outreach-send helper. Refine if the rollup reads short.
-    emailTypes: [],
-    successSignal: "Stakeholder replies / a campus partnership advances.",
-    relatedAdminPath: "/admin/student-outreach/campuses",
-  },
 
   // ── Internal ───────────────────────────────────────────────────────
   {

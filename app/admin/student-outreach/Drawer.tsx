@@ -1407,7 +1407,6 @@ function ResearchModePanel({
       {showCallConfirm && (
         <PreFlightCallModal
           organizationName={ctx.outreach.organization_name}
-          campusName={ctx.campus.name}
           phone={confirmPhone}
           action={action}
           onCancel={() => setShowCallConfirm(false)}

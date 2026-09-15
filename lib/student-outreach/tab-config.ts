@@ -110,12 +110,10 @@ export interface TabDef {
 //
 // Smart-hide tucks empty tabs away; the active tab anchors the bar.
 export const TABS: TabDef[] = [
-  { key: "providers",    label: "Providers",  tooltip: "Provider side: agency prospects in catchment + active clients with a pending task." },
-  { key: "partner_book", label: "Partners",   tooltip: "Partner side: campus stakeholder prospects (student orgs, dept heads, advisors) + active partners with a pending task." },
+  { key: "providers",    label: "Providers",  tooltip: "Agency prospects in catchment plus active clients with a pending task." },
   { key: "calls",        label: "Calls",      tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
   { key: "replies",      label: "Emails",     tooltip: "Email activity — replies, opens, clicks, bounces. Triage and pick the next step." },
   { key: "meetings",     label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
-  { key: "followup",     label: "Follow-up",  tooltip: "No-response rows ready for bulk re-engagement. Select multiple and launch a new outreach cadence." },
   { key: "activation",   label: "Universities", tooltip: "University Activation: the five ST3-ST7 channels at each campus, and what is due." },
   { key: "tasks",        label: "Tasks",      tooltip: "Every recurring check the activation workflow generated, plus custom tasks." },
 ];
@@ -130,7 +128,6 @@ export const TABS: TabDef[] = [
 // via the menu and via direct sidebar URLs.
 export const MENU_TABS: TabDef[] = [
   { key: "clients",     label: "Clients",      tooltip: "Provider clients with a pending task — onboarding, trial check-in, follow-up." },
-  { key: "partners",    label: "Partners",     tooltip: "Active partners with a pending custom task." },
   { key: "candidates",  label: "Candidates",   tooltip: "Live candidates with a pending review or action." },
   { key: "all",         label: "All",          tooltip: "Search and filter every stakeholder across all stages." },
   { key: "emails_sent", label: "Emails Sent",  tooltip: "All email-send touchpoints across stakeholders. (Coming soon.)" },

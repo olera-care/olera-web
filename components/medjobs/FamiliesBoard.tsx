@@ -103,18 +103,14 @@ function Board() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, profiles]);
 
-  // Auto-redirect: logged-in students with incomplete profiles go straight to
-  // their portal — don't let them browse jobs until their profile is live.
+  // Auto-redirect: ALL logged-in students go straight to their portal.
+  // The landing page is for anonymous visitors only.
   useEffect(() => {
     if (authLoading) return;
-    if (!studentProfileId) return;
-    // Wait until we've fetched status (null = still loading, object = loaded)
-    if (studentStatus === null) return;
-    // If not live, redirect immediately to complete their profile
-    if (!studentStatus.isLive) {
+    if (studentProfileId) {
       router.replace("/portal/medjobs");
     }
-  }, [authLoading, studentProfileId, studentStatus, router]);
+  }, [authLoading, studentProfileId, router]);
 
   // Open the screener for an anon arrival with ?screener=1 (reacts to the
   // param so the marketing "Apply" buttons can trigger it via navigation).

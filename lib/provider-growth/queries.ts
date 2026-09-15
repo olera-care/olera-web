@@ -1120,6 +1120,7 @@ export async function getRichContextData(
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Data-Driven Opening Script
+  // Aligned with recommended action priorities - opener should match the call purpose
   // ─────────────────────────────────────────────────────────────────────────────
   const claimDaysAgoRaw = tracking?.claimed_at
     ? Math.floor((Date.now() - new Date(tracking.claimed_at).getTime()) / (1000 * 60 * 60 * 24))
@@ -1135,46 +1136,189 @@ export async function getRichContextData(
     : "recently";
 
   let openingScript = "";
-  if (questionsUnanswered > 0) {
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CONVERTED PROVIDERS - talk about their campaign
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (campaignStatus === "live") {
+    const delivered = campaignDetails?.delivered || 0;
+    openingScript = `Hi, this is [your name] from Olera. I'm calling about your Ad Boost campaign - you've reached ${delivered} families so far. How are things going with the leads coming in?`;
+  }
+  else if (campaignStatus === "ended") {
+    const delivered = campaignDetails?.delivered || 0;
+    openingScript = `Hi, this is [your name] from Olera. Your Ad Boost campaign just wrapped up - we reached ${delivered} families for you. I wanted to check in and see how the leads worked out.`;
+  }
+  else if (campaignStatus === "pending_profile") {
+    openingScript = `Hi, this is [your name] from Olera. I noticed you requested Ad Boost and we're ready to help get your campaign launched. I just need to go through your profile with you to make sure families see your best side.`;
+  }
+  else if (campaignStatus === "requested" || campaignStatus === "scheduled") {
+    openingScript = `Hi, this is [your name] from Olera. I'm following up on your Ad Boost request - I wanted to make sure you got everything you need and answer any questions about how the campaign will work.`;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // URGENT ISSUES - families are waiting
+  // ═══════════════════════════════════════════════════════════════════════════
+  else if (questionsUnanswered > 0) {
     openingScript = `Hi, this is [your name] from Olera. I noticed you have ${questionsUnanswered} family question${questionsUnanswered > 1 ? "s" : ""} waiting on your profile - are you getting notified when those come in?`;
-  } else if (leadCount > 0 && leadOpenRate < 50) {
-    openingScript = `Hi, this is [your name] from Olera. You've received ${leadCount} leads since claiming your profile - I wanted to make sure you're getting notified when families reach out.`;
-  } else if (sectionsEdited.length > 0) {
-    // sectionsEdited.length > 0 implies lastProfileEdit exists
+  }
+  else if (leadCount > 3 && leadOpenRate < 30) {
+    openingScript = `Hi, this is [your name] from Olera. You've received ${leadCount} leads, but it looks like some might not be getting to you. I want to make sure your notifications are set up right.`;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MEDJOBS - staffing program
+  // ═══════════════════════════════════════════════════════════════════════════
+  else if (medjobsStatus === "in_pilot") {
+    openingScript = `Hi, this is [your name] from Olera. I'm checking in on your staffing pilot - how's it going finding candidates so far?`;
+  }
+  else if (medjobsStatus === "pilot_expired") {
+    openingScript = `Hi, this is [your name] from Olera. Your staffing pilot recently ended - I wanted to see how it went and if you're still looking to hire.`;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // REVIEWS - social proof opportunity
+  // ═══════════════════════════════════════════════════════════════════════════
+  else if (reviewOpportunityLevel === "strong" && rating === null) {
+    openingScript = `Hi, this is [your name] from Olera. I noticed your profile doesn't have any Google reviews yet - would you like help getting some? Happy families often just need a reminder to leave a review.`;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // WARM LEADS - they showed interest in features
+  // ═══════════════════════════════════════════════════════════════════════════
+  else if (adBoostViews >= 2 && !adCampaigns.length && tracking?.ads_status === "none") {
+    openingScript = `Hi, this is [your name] from Olera. I saw you've been checking out Ad Boost on your dashboard. Do you have questions about how it works? I can walk you through it.`;
+  }
+  else if (adBoostApplyStarted && !adCampaigns.length) {
+    openingScript = `Hi, this is [your name] from Olera. I noticed you started an Ad Boost request but didn't finish - is there something I can help you with to complete it?`;
+  }
+  else if (marketViewCount > 0 && medjobsStatus === "none" && medjobsEligible) {
+    openingScript = `Hi, this is [your name] from Olera. I saw you've been looking at the staffing program. Are you hiring right now? I can tell you more about how it works.`;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ENGAGEMENT - recent activity or dormant
+  // ═══════════════════════════════════════════════════════════════════════════
+  else if (sectionsEdited.length > 0) {
     openingScript = `Hi, this is [your name] from Olera. I saw you recently updated your ${sectionsEdited[0]} section - how's the profile looking?`;
-  } else if (leadCount > 5) {
+  }
+  else if (dashboardVisits30d === 0 && daysOverdue > 14) {
+    openingScript = `Hi, this is [your name] from Olera. It's been a little while since we connected - I wanted to check in and see how things are going. Are you still getting leads from families?`;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // GENERAL - good status or no specific issue
+  // ═══════════════════════════════════════════════════════════════════════════
+  else if (leadCount > 5) {
     openingScript = `Hi, this is [your name] from Olera. You've gotten ${leadCount} family inquiries - that's great! I'm calling to see how things are going and if there's anything we can help with.`;
-  } else if (images.length === 0) {
-    openingScript = `Hi, this is [your name] from Olera. You claimed your profile ${claimTimePhrase} - I noticed your page doesn't have photos yet. Would you like help adding some? It really helps families connect with you.`;
-  } else {
+  }
+  else if (images.length === 0) {
+    openingScript = `Hi, this is [your name] from Olera. You claimed your profile ${claimTimePhrase} - I noticed your page doesn't have photos yet. Would you like help adding some? It really helps families connect.`;
+  }
+  else {
     openingScript = `Hi, this is [your name] from Olera. You claimed your profile ${claimTimePhrase}. I'm calling to check in - how's everything going with your page?`;
   }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // What to Capture Checklist
+  // Ordered by priority - most actionable items first, segment-specific
   // ─────────────────────────────────────────────────────────────────────────────
   const captureChecklist: Array<{ item: string; reason: string }> = [];
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CAMPAIGN-RELATED CAPTURES (for converted providers)
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (campaignStatus === "live") {
+    captureChecklist.push({ item: "Campaign satisfaction (1-10)", reason: "Active campaign" });
+    captureChecklist.push({ item: "Quality of leads received", reason: "Track campaign effectiveness" });
+  }
+  if (campaignStatus === "ended") {
+    captureChecklist.push({ item: "Ready for another campaign?", reason: "Campaign ended - renewal opportunity" });
+    captureChecklist.push({ item: "What worked/didn't work?", reason: "Improve next campaign" });
+  }
+  if (campaignStatus === "pending_profile") {
+    captureChecklist.push({ item: "When can they complete profile?", reason: "Profile blocking campaign launch" });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // URGENT ISSUES (families waiting)
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (questionsUnanswered > 0) {
+    captureChecklist.push({ item: "Will they respond to questions?", reason: `${questionsUnanswered} waiting` });
+  }
+  if (leadCount > 0 && leadOpenRate < 50) {
+    captureChecklist.push({ item: "Preferred contact method", reason: "Low lead open rate" });
+    captureChecklist.push({ item: "Best time to reach them?", reason: "Improve notification delivery" });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MEDJOBS CAPTURES
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (medjobsStatus === "in_pilot") {
+    captureChecklist.push({ item: "Finding good candidates?", reason: "Pilot satisfaction check" });
+    captureChecklist.push({ item: "Ready to subscribe?", reason: "Conversion opportunity" });
+  }
+  if (medjobsStatus === "pilot_expired") {
+    captureChecklist.push({ item: "Why didn't they continue?", reason: "Learn from churn" });
+    captureChecklist.push({ item: "Still hiring?", reason: "Re-engagement opportunity" });
+  }
+  if (medjobsEligible && medjobsStatus === "none" && marketViewCount > 0) {
+    captureChecklist.push({ item: "What roles do they hire for?", reason: "Showed staffing interest" });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // REVIEW OPPORTUNITY CAPTURES
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (reviewOpportunityLevel === "strong") {
+    captureChecklist.push({ item: "Do they ask families for reviews?", reason: "No/few reviews" });
+    captureChecklist.push({ item: "Would they use review request tool?", reason: "Feature pitch opportunity" });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // WARM LEAD CAPTURES (showed interest but didn't convert)
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (adBoostViews >= 2 && !adCampaigns.length && tracking?.ads_status === "none") {
+    captureChecklist.push({ item: "What's holding them back on Ad Boost?", reason: "Viewed multiple times" });
+  }
+  if (adBoostApplyStarted && !adCampaigns.length) {
+    captureChecklist.push({ item: "Why didn't they finish Ad Boost request?", reason: "Abandoned application" });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PROFILE OPTIMIZATION CAPTURES
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (completenessPercentage < 70) {
+    captureChecklist.push({ item: "What's blocking profile completion?", reason: "Profile incomplete" });
+  }
+  if (images.length < 2) {
+    captureChecklist.push({ item: "Can they send photos or schedule photo help?", reason: "Few/no photos" });
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CONTACT INFO CAPTURES (always important)
+  // ═══════════════════════════════════════════════════════════════════════════
   if (isGenericEmail) {
     captureChecklist.push({ item: "Direct contact email", reason: "Current email is generic" });
   }
   if (!profile?.phone) {
     captureChecklist.push({ item: "Phone number", reason: "No phone on file" });
   }
-  if (questionsUnanswered > 0) {
-    captureChecklist.push({ item: "Will they respond to questions?", reason: `${questionsUnanswered} waiting` });
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CONVERSION OPPORTUNITY CAPTURES (no specific issues)
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (tracking?.ads_status === "none" && !adBoostViews && leadCount > 3) {
+    captureChecklist.push({ item: "Interest in ads? Objections?", reason: "Good engagement, no ads" });
   }
-  if (leadCount > 0 && leadOpenRate < 50) {
-    captureChecklist.push({ item: "Preferred contact method", reason: "Low lead open rate" });
+  if (medjobsEligible && medjobsStatus === "none" && marketViewCount === 0) {
+    captureChecklist.push({ item: "Do they hire caregivers?", reason: "MedJobs eligible" });
   }
-  if (completenessPercentage < 70) {
-    captureChecklist.push({ item: "What's blocking profile completion?", reason: "Profile incomplete" });
-  }
-  if (tracking?.ads_status === "none") {
-    captureChecklist.push({ item: "Interest in ads? Objections?", reason: "Not on Ad Boost yet" });
-  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // FALLBACK
+  // ═══════════════════════════════════════════════════════════════════════════
   if (captureChecklist.length === 0) {
     captureChecklist.push({ item: "Any feedback or issues?", reason: "General check-in" });
+    captureChecklist.push({ item: "What would make Olera more useful?", reason: "Product feedback" });
   }
 
   // ─────────────────────────────────────────────────────────────────────────────

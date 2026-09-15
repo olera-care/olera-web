@@ -50,6 +50,15 @@ export interface BriefingResponse {
     urls: string[];
   };
 
+  reviews: {
+    rating: number | null;
+    count: number | null;
+    opportunityLevel: "none" | "mild" | "strong";
+    opportunityReason: string | null;
+    hasUsedReviewRequests: boolean;
+    reviewRequestsSent: number;
+  };
+
   emailAssessment: {
     isGeneric: boolean;
     genericReason: string | null;
@@ -68,8 +77,22 @@ export interface BriefingResponse {
     hasAnyCampaign: boolean;
     activeCampaign: boolean;
     totalCampaigns: number;
-    lastCampaignStatus: string | null;
+    lastCampaignStatus: "pending_profile" | "requested" | "scheduled" | "live" | "ended" | "cancelled" | null;
     totalLeadsFromAds: number;
+    // Detailed campaign performance
+    campaign: {
+      status: "pending_profile" | "requested" | "scheduled" | "live" | "ended" | "cancelled" | null;
+      channel: "google" | "meta" | "both" | null;
+      budgetCents: number | null;
+      spendCents: number | null;
+      impressions: number | null;
+      clicks: number | null;
+      landings: number | null;
+      delivered: number | null;
+      flightStartDate: string | null;
+      flightEndDate: string | null;
+      photoReadiness: "unreviewed" | "update_requested" | "review_requested" | "ready" | null;
+    } | null;
   };
 
   flags: Array<{
@@ -139,6 +162,7 @@ function buildBriefing(data: RichContextData): BriefingResponse {
     questions: data.questions,
     engagement: data.engagement,
     photos: data.photos,
+    reviews: data.reviews,
     emailAssessment: data.emailAssessment,
     profileCompleteness: data.profileCompleteness,
     adBoost: data.adBoost,

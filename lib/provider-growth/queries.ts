@@ -187,6 +187,16 @@ export interface RichContextData {
     urls: string[]; // first few for display
   };
 
+  // Google Reviews opportunity assessment
+  reviews: {
+    rating: number | null;
+    count: number | null;
+    opportunityLevel: "none" | "mild" | "strong";
+    opportunityReason: string | null;
+    hasUsedReviewRequests: boolean;
+    reviewRequestsSent: number;
+  };
+
   // Email assessment
   emailAssessment: {
     isGeneric: boolean; // info@, contact@, etc.
@@ -203,13 +213,27 @@ export interface RichContextData {
     hasHours: boolean;
   };
 
-  // Ad Boost status
+  // Ad Boost status and performance
   adBoost: {
     hasAnyCampaign: boolean;
     activeCampaign: boolean;
     totalCampaigns: number;
-    lastCampaignStatus: string | null;
+    lastCampaignStatus: "pending_profile" | "requested" | "scheduled" | "live" | "ended" | "cancelled" | null;
     totalLeadsFromAds: number;
+    // Campaign performance (from most recent/active campaign)
+    campaign: {
+      status: "pending_profile" | "requested" | "scheduled" | "live" | "ended" | "cancelled" | null;
+      channel: "google" | "meta" | "both" | null;
+      budgetCents: number | null;
+      spendCents: number | null;
+      impressions: number | null;
+      clicks: number | null;
+      landings: number | null;
+      delivered: number | null;
+      flightStartDate: string | null;
+      flightEndDate: string | null;
+      photoReadiness: "unreviewed" | "update_requested" | "review_requested" | "ready" | null;
+    } | null;
   };
 
   // Flags for issues to address
@@ -264,6 +288,8 @@ export async function getRichContextData(
     recentQuestionsResult,
     // NEW: Ad Boost campaign details
     adBoostLeadsResult,
+    // Review requests sent
+    reviewRequestsResult,
   ] = await Promise.all([
     // Tracking record
     db
@@ -279,10 +305,15 @@ export async function getRichContextData(
       .eq("id", businessProfileId)
       .single(),
 
-    // Ad campaigns (full details for status)
+    // Ad campaigns (full details for status and performance)
     db
       .from("ad_campaign_requests")
-      .select("id, status, ad_spend_cents, delivered, created_at")
+      .select(`
+        id, status, ad_spend_cents, ad_budget_cents, delivered, created_at,
+        ad_clicks, ad_impressions, ad_landings,
+        flight_start_date, flight_end_date,
+        photo_readiness_status, channel
+      `)
       .eq("provider_id", businessProfileId)
       .is("deleted_at", null)
       .order("created_at", { ascending: false }),
@@ -344,6 +375,14 @@ export async function getRichContextData(
       .select("delivered")
       .eq("provider_id", businessProfileId)
       .is("deleted_at", null),
+
+    // Review requests sent (count of review_request emails sent by this provider)
+    // Uses business_profile_id since review-requests route stamps provider_id with profile.id (UUID)
+    db
+      .from("email_log")
+      .select("id", { count: "exact", head: true })
+      .eq("email_type", "review_request")
+      .eq("provider_id", businessProfileId),
   ]);
 
   // Validate critical queries succeeded
@@ -473,6 +512,39 @@ export async function getRichContextData(
     rating: (googleReviewsRaw?.google_reviews_data as { rating?: number })?.rating ?? googleReviewsRaw?.google_rating ?? undefined,
     review_count: (googleReviewsRaw?.google_reviews_data as { review_count?: number })?.review_count,
   };
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Process Reviews Opportunity
+  // ─────────────────────────────────────────────────────────────────────────────
+  const reviewRequestsSent = reviewRequestsResult.count || 0;
+  const hasUsedReviewRequests = reviewRequestsSent > 0;
+
+  // Determine review opportunity level based on rating and count
+  let reviewOpportunityLevel: "none" | "mild" | "strong" = "none";
+  let reviewOpportunityReason: string | null = null;
+
+  const rating = googleData.rating ?? null;
+  const reviewCount = googleData.review_count ?? null;
+
+  if (reviewCount === null || reviewCount === 0) {
+    // No reviews = strong opportunity
+    reviewOpportunityLevel = "strong";
+    reviewOpportunityReason = "No Google reviews yet - help them get their first reviews";
+  } else if (rating !== null && rating < 4.0) {
+    // Low rating = opportunity to improve
+    reviewOpportunityLevel = "strong";
+    reviewOpportunityReason = `Rating is ${rating.toFixed(1)} stars - help them improve with more positive reviews`;
+  } else if (rating !== null && rating < 4.5) {
+    // Good but not great = mild opportunity
+    reviewOpportunityLevel = "mild";
+    reviewOpportunityReason = `Rating is ${rating.toFixed(1)} stars - could reach 4.5+ with a few more reviews`;
+  } else if (rating !== null && rating >= 4.5 && reviewCount < 10) {
+    // Great rating but few reviews = mild opportunity
+    reviewOpportunityLevel = "mild";
+    reviewOpportunityReason = `Great ${rating.toFixed(1)} rating but only ${reviewCount} reviews - more reviews build trust`;
+  }
+  // else: 4.5+ with 10+ reviews = no opportunity needed
+
   const images = Array.isArray(metadata.images) ? metadata.images : [];
   const staff = (metadata.staff || {}) as { name?: string };
   const verificationState = profile?.verification_state || null;
@@ -494,6 +566,38 @@ export async function getRichContextData(
     (sum, row) => sum + (row.delivered || 0),
     0
   );
+
+  // Get the most relevant campaign for briefing (prioritize active states)
+  // Priority: live > scheduled > requested > pending_profile > ended
+  const campaignPriority: Record<string, number> = {
+    live: 1,
+    scheduled: 2,
+    requested: 3,
+    pending_profile: 4,
+    ended: 5,
+    cancelled: 6,
+  };
+  const sortedCampaigns = [...adCampaigns].sort((a, b) => {
+    const aPriority = campaignPriority[a.status] ?? 99;
+    const bPriority = campaignPriority[b.status] ?? 99;
+    return aPriority - bPriority;
+  });
+  const primaryCampaign = sortedCampaigns[0] || null;
+
+  // Build detailed campaign object for briefing
+  const campaignDetails = primaryCampaign ? {
+    status: primaryCampaign.status as "pending_profile" | "requested" | "scheduled" | "live" | "ended" | "cancelled",
+    channel: primaryCampaign.channel as "google" | "meta" | "both" | null,
+    budgetCents: primaryCampaign.ad_budget_cents ?? null,
+    spendCents: primaryCampaign.ad_spend_cents ?? null,
+    impressions: primaryCampaign.ad_impressions ?? null,
+    clicks: primaryCampaign.ad_clicks ?? null,
+    landings: primaryCampaign.ad_landings ?? null,
+    delivered: primaryCampaign.delivered ?? null,
+    flightStartDate: primaryCampaign.flight_start_date ?? null,
+    flightEndDate: primaryCampaign.flight_end_date ?? null,
+    photoReadiness: primaryCampaign.photo_readiness_status as "unreviewed" | "update_requested" | "review_requested" | "ready" | null,
+  } : null;
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Calculate basic metrics
@@ -882,6 +986,15 @@ export async function getRichContextData(
       urls: images.slice(0, 4) as string[],
     },
 
+    reviews: {
+      rating: googleData.rating ?? null,
+      count: googleData.review_count ?? null,
+      opportunityLevel: reviewOpportunityLevel,
+      opportunityReason: reviewOpportunityReason,
+      hasUsedReviewRequests,
+      reviewRequestsSent,
+    },
+
     emailAssessment: {
       isGeneric: isGenericEmail,
       genericReason,
@@ -900,8 +1013,9 @@ export async function getRichContextData(
       hasAnyCampaign: adCampaigns.length > 0,
       activeCampaign,
       totalCampaigns: adCampaigns.length,
-      lastCampaignStatus: adCampaigns[0]?.status || null,
+      lastCampaignStatus: (primaryCampaign?.status as "pending_profile" | "requested" | "scheduled" | "live" | "ended" | "cancelled") || null,
       totalLeadsFromAds,
+      campaign: campaignDetails,
     },
 
     flags,

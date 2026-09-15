@@ -138,6 +138,7 @@ export interface RichContextData {
     state: string;
     careTypes: string[];
     verificationState: string | null;
+    slug: string | null;
   };
 
   // Status
@@ -148,27 +149,121 @@ export interface RichContextData {
 
   // Pre-computed tags (not AI-generated)
   computedTags: string[];
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // NEW: Data-driven briefing fields (no AI generation)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  // Questions data
+  questions: {
+    received: number;
+    answered: number;
+    unanswered: number;
+    recentQuestions: Array<{
+      question: string;
+      created_at: string;
+      answered: boolean;
+    }>;
+  };
+
+  // Provider activity/engagement data
+  engagement: {
+    lastDashboardVisit: string | null;
+    dashboardVisits30d: number;
+    lastProfileEdit: string | null;
+    profileEdits30d: number;
+    sectionsEdited: string[];
+    lastLogin: string | null;
+    leadsOpened: number;
+    leadOpenRate: number; // percentage
+    contactsRevealed: number;
+  };
+
+  // Photo assessment
+  photos: {
+    count: number;
+    hasHeroImage: boolean;
+    urls: string[]; // first few for display
+  };
+
+  // Email assessment
+  emailAssessment: {
+    isGeneric: boolean; // info@, contact@, etc.
+    genericReason: string | null;
+  };
+
+  // Profile completeness breakdown
+  profileCompleteness: {
+    percentage: number;
+    missingSections: string[];
+    hasDescription: boolean;
+    hasPricing: boolean;
+    hasStaffInfo: boolean;
+    hasHours: boolean;
+  };
+
+  // Ad Boost status
+  adBoost: {
+    hasAnyCampaign: boolean;
+    activeCampaign: boolean;
+    totalCampaigns: number;
+    lastCampaignStatus: string | null;
+    totalLeadsFromAds: number;
+  };
+
+  // Flags for issues to address
+  flags: Array<{
+    type: "warning" | "info" | "opportunity";
+    label: string;
+    detail: string;
+  }>;
+
+  // Deterministic recommended action
+  recommendedAction: {
+    priority: number;
+    action: string;
+    rationale: string;
+    pitchAngle: string;
+  };
+
+  // Data-driven opening script
+  openingScript: string;
+
+  // What to capture on the call
+  captureChecklist: Array<{
+    item: string;
+    reason: string;
+  }>;
 }
 
 /**
- * Get rich context data for AI briefing generation.
- * Aggregates all data sources needed for a comprehensive sales briefing.
+ * Get rich context data for data-driven sales briefing.
+ * Aggregates all data sources needed for a comprehensive, accurate briefing.
+ * NO AI generation - all fields are computed from real database records.
  */
 export async function getRichContextData(
   trackingId: string,
   businessProfileId: string
 ): Promise<RichContextData> {
   const db = getServiceClient();
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+  const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
 
-  // Phase 1: Fetch all data in parallel (except email stats which needs profile.email)
+  // Phase 1: Fetch all data in parallel
   const [
     trackingResult,
     profileResult,
-    adSpendResult,
+    adCampaignsResult,
     leadCountResult,
     leadsResult,
     touchpointCountResult,
     touchpointsResult,
+    // NEW: Questions data
+    questionsReceivedResult,
+    questionsAnsweredResult,
+    recentQuestionsResult,
+    // NEW: Ad Boost campaign details
+    adBoostLeadsResult,
   ] = await Promise.all([
     // Tracking record
     db
@@ -180,16 +275,17 @@ export async function getRichContextData(
     // Business profile with Google reviews data and metadata
     db
       .from("business_profiles")
-      .select("display_name, phone, email, city, state, care_types, metadata, google_reviews_data, account_id, verification_state")
+      .select("id, slug, display_name, phone, email, city, state, care_types, metadata, google_reviews_data, account_id, verification_state, description, source_provider_id")
       .eq("id", businessProfileId)
       .single(),
 
-    // Total ad spend
+    // Ad campaigns (full details for status)
     db
       .from("ad_campaign_requests")
-      .select("ad_spend_cents")
+      .select("id, status, ad_spend_cents, delivered, created_at")
       .eq("provider_id", businessProfileId)
-      .is("deleted_at", null),
+      .is("deleted_at", null)
+      .order("created_at", { ascending: false }),
 
     // Lead count (total)
     db
@@ -213,59 +309,162 @@ export async function getRichContextData(
       .select("id", { count: "exact", head: true })
       .eq("tracking_id", trackingId),
 
-    // Touchpoint history (last 20 for AI context)
+    // Touchpoint history (last 20)
     db
       .from("provider_growth_touchpoints")
       .select("touchpoint_type, details, created_at")
       .eq("tracking_id", trackingId)
       .order("created_at", { ascending: false })
       .limit(20),
+
+    // Questions received count
+    db
+      .from("provider_questions")
+      .select("id", { count: "exact", head: true })
+      .eq("business_profile_id", businessProfileId),
+
+    // Questions answered count
+    db
+      .from("provider_questions")
+      .select("id", { count: "exact", head: true })
+      .eq("business_profile_id", businessProfileId)
+      .not("answer", "is", null),
+
+    // Recent questions (last 5)
+    db
+      .from("provider_questions")
+      .select("question, answer, created_at")
+      .eq("business_profile_id", businessProfileId)
+      .order("created_at", { ascending: false })
+      .limit(5),
+
+    // Ad Boost leads delivered total
+    db
+      .from("ad_campaign_requests")
+      .select("delivered")
+      .eq("provider_id", businessProfileId)
+      .is("deleted_at", null),
   ]);
 
-  // Phase 2: Fetch email stats using email from profile (avoids redundant query)
-  let emailStatsResult = { sent: 0, opened: 0, clicked: 0 };
-  const providerEmail = profileResult.data?.email;
-  if (providerEmail) {
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
-    const { data } = await db
-      .from("email_log")
-      .select("id, first_opened_at, first_clicked_at")
-      .eq("recipient", providerEmail)
-      .eq("recipient_type", "provider")
-      .gte("created_at", thirtyDaysAgo);
-
-    emailStatsResult = {
-      sent: data?.length || 0,
-      opened: data?.filter((e) => e.first_opened_at).length || 0,
-      clicked: data?.filter((e) => e.first_clicked_at).length || 0,
-    };
+  // Validate critical queries succeeded
+  if (trackingResult.error) {
+    console.error("[getRichContextData] Tracking query failed:", trackingResult.error);
+    throw new Error("Failed to load tracking record");
+  }
+  if (profileResult.error) {
+    console.error("[getRichContextData] Profile query failed:", profileResult.error);
+    throw new Error("Failed to load business profile");
   }
 
-  const tracking = trackingResult.data;
+  // Phase 2: Fetch data that depends on profile results
   const profile = profileResult.data;
+  const providerEmail = profile?.email;
+  const providerSlug = profile?.slug;
+  const sourceProviderId = profile?.source_provider_id;
+
+  // Build provider identifiers for activity queries (can match on slug, UUID, or source_provider_id)
+  const providerIdentifiers = [businessProfileId];
+  if (providerSlug) providerIdentifiers.push(providerSlug);
+  if (sourceProviderId) providerIdentifiers.push(sourceProviderId);
+
+  const [
+    emailStatsData,
+    dashboardVisitsResult,
+    profileEditsResult,
+    lastLoginResult,
+    leadsOpenedResult,
+    contactsRevealedResult,
+  ] = await Promise.all([
+    // Email stats (30 days)
+    providerEmail
+      ? db
+          .from("email_log")
+          .select("id, first_opened_at, first_clicked_at")
+          .eq("recipient", providerEmail)
+          .eq("recipient_type", "provider")
+          .gte("created_at", thirtyDaysAgo)
+      : Promise.resolve({ data: [] }),
+
+    // Dashboard visits (30 days)
+    db
+      .from("provider_activity")
+      .select("created_at", { count: "exact" })
+      .in("provider_id", providerIdentifiers)
+      .eq("event_type", "dashboard_arrival")
+      .gte("created_at", thirtyDaysAgo)
+      .order("created_at", { ascending: false })
+      .limit(1),
+
+    // Profile edits (30 days) - includes section metadata
+    db
+      .from("provider_activity")
+      .select("created_at, metadata")
+      .in("provider_id", providerIdentifiers)
+      .eq("event_type", "provider_profile_edited")
+      .gte("created_at", thirtyDaysAgo)
+      .order("created_at", { ascending: false }),
+
+    // Last login / one-click access
+    db
+      .from("provider_activity")
+      .select("created_at")
+      .in("provider_id", providerIdentifiers)
+      .eq("event_type", "one_click_access")
+      .order("created_at", { ascending: false })
+      .limit(1),
+
+    // Leads opened (all time for this provider)
+    db
+      .from("provider_activity")
+      .select("id", { count: "exact", head: true })
+      .in("provider_id", providerIdentifiers)
+      .eq("event_type", "lead_opened"),
+
+    // Contact info revealed
+    db
+      .from("provider_activity")
+      .select("id", { count: "exact", head: true })
+      .in("provider_id", providerIdentifiers)
+      .eq("event_type", "contact_revealed"),
+  ]);
+
+  // Process email stats
+  const emailData = emailStatsData.data || [];
+  const emailStatsResult = {
+    sent: emailData.length,
+    opened: emailData.filter((e: { first_opened_at: string | null }) => e.first_opened_at).length,
+    clicked: emailData.filter((e: { first_clicked_at: string | null }) => e.first_clicked_at).length,
+  };
+
+  const tracking = trackingResult.data;
   const metadata = (profile?.metadata || {}) as Record<string, unknown>;
   // GoogleReviewsData has: rating, review_count, reviews[], last_synced
   const googleData = (profile?.google_reviews_data || {}) as { rating?: number; review_count?: number };
   const images = Array.isArray(metadata.images) ? metadata.images : [];
   const staff = (metadata.staff || {}) as { name?: string };
+  const verificationState = profile?.verification_state || null;
 
-  // Calculate ad spend - distinguish between "no data" and "actually $0"
-  const adCampaigns = adSpendResult.data || [];
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Process Ad Campaigns
+  // ─────────────────────────────────────────────────────────────────────────────
+  const adCampaigns = adCampaignsResult.data || [];
   let adSpendCents: number | null = null;
   if (adCampaigns.length > 0) {
-    // Has campaigns - check if any have spend recorded
     const hasRecordedSpend = adCampaigns.some(row => row.ad_spend_cents !== null);
     if (hasRecordedSpend) {
-      adSpendCents = adCampaigns.reduce(
-        (sum, row) => sum + (row.ad_spend_cents || 0),
-        0
-      );
+      adSpendCents = adCampaigns.reduce((sum, row) => sum + (row.ad_spend_cents || 0), 0);
     }
-    // If no campaigns have spend recorded, adSpendCents stays null
   }
-  // If no campaigns at all, adSpendCents stays null
 
-  // Calculate days overdue (days since last activity)
+  const activeCampaign = adCampaigns.some(c => c.status === "live");
+  const totalLeadsFromAds = (adBoostLeadsResult.data || []).reduce(
+    (sum, row) => sum + (row.delivered || 0),
+    0
+  );
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Calculate basic metrics
+  // ─────────────────────────────────────────────────────────────────────────────
   let daysOverdue = 0;
   if (tracking?.last_activity_at) {
     const lastActivity = new Date(tracking.last_activity_at);
@@ -273,55 +472,299 @@ export async function getRichContextData(
     daysOverdue = Math.floor((now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
   }
 
-  // Get counts (use separate count queries for accuracy)
   const touchCount = touchpointCountResult.count || 0;
   const leadCount = leadCountResult.count || 0;
-  const verificationState = profile?.verification_state || null;
 
-  // Compute tags from actual data (not AI-generated)
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Process Questions Data
+  // ─────────────────────────────────────────────────────────────────────────────
+  const questionsReceived = questionsReceivedResult.count || 0;
+  const questionsAnswered = questionsAnsweredResult.count || 0;
+  const questionsUnanswered = questionsReceived - questionsAnswered;
+  const recentQuestions = (recentQuestionsResult.data || []).map((q) => ({
+    question: q.question?.slice(0, 100) || "",
+    created_at: q.created_at,
+    answered: q.answer !== null,
+  }));
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Process Engagement Data
+  // ─────────────────────────────────────────────────────────────────────────────
+  const dashboardVisits30d = dashboardVisitsResult.count || 0;
+  const lastDashboardVisit = dashboardVisitsResult.data?.[0]?.created_at || null;
+
+  const profileEdits = profileEditsResult.data || [];
+  const profileEdits30d = profileEdits.length;
+  const lastProfileEdit = profileEdits[0]?.created_at || null;
+  const sectionsEdited = [...new Set(
+    profileEdits
+      .map((e) => (e.metadata as Record<string, unknown>)?.section as string)
+      .filter(Boolean)
+  )];
+
+  const lastLogin = lastLoginResult.data?.[0]?.created_at || null;
+  const leadsOpened = leadsOpenedResult.count || 0;
+  // Cap at 100% to handle edge cases (duplicate opens, data inconsistencies)
+  const leadOpenRate = leadCount > 0 ? Math.min(100, Math.round((leadsOpened / leadCount) * 100)) : 0;
+  const contactsRevealed = contactsRevealedResult.count || 0;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Email Assessment
+  // ─────────────────────────────────────────────────────────────────────────────
+  const genericEmailPrefixes = ["info", "contact", "admin", "hello", "support", "office", "mail", "sales", "help", "team", "inquiries", "general"];
+  const emailLower = (profile?.email || "").toLowerCase();
+  const emailPrefix = emailLower.split("@")[0];
+  const isGenericEmail = genericEmailPrefixes.some(prefix => emailPrefix === prefix || emailPrefix.startsWith(prefix + "."));
+  const genericReason = isGenericEmail ? `"${emailPrefix}@" is a generic address - may not reach decision maker` : null;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Profile Completeness Assessment
+  // ─────────────────────────────────────────────────────────────────────────────
+  const hasDescription = Boolean(profile?.description && profile.description.length > 50);
+  const hasPricing = Boolean(metadata.pricing || metadata.price_range);
+  const hasStaffInfo = Boolean(staff.name || metadata.staff_count || metadata.credentials);
+  const hasHours = Boolean(metadata.hours || metadata.business_hours);
+  const hasPhotos = images.length > 0;
+  const hasPhone = Boolean(profile?.phone);
+  const hasCareTypes = (profile?.care_types || []).length > 0;
+
+  const completenessChecks = [
+    { name: "description", has: hasDescription },
+    { name: "pricing", has: hasPricing },
+    { name: "staff info", has: hasStaffInfo },
+    { name: "hours", has: hasHours },
+    { name: "photos", has: hasPhotos },
+    { name: "phone", has: hasPhone },
+    { name: "care types", has: hasCareTypes },
+  ];
+  const completedCount = completenessChecks.filter(c => c.has).length;
+  const completenessPercentage = Math.round((completedCount / completenessChecks.length) * 100);
+  const missingSections = completenessChecks.filter(c => !c.has).map(c => c.name);
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Build Flags (issues to address)
+  // ─────────────────────────────────────────────────────────────────────────────
+  const flags: Array<{ type: "warning" | "info" | "opportunity"; label: string; detail: string }> = [];
+
+  if (questionsUnanswered > 0) {
+    flags.push({
+      type: "warning",
+      label: `${questionsUnanswered} unanswered question${questionsUnanswered > 1 ? "s" : ""}`,
+      detail: "Families are waiting for responses",
+    });
+  }
+
+  if (leadCount > 0 && leadOpenRate < 50) {
+    flags.push({
+      type: "warning",
+      label: `Low lead engagement (${leadOpenRate}% opened)`,
+      detail: `Only opened ${leadsOpened} of ${leadCount} leads`,
+    });
+  }
+
+  if (isGenericEmail) {
+    flags.push({
+      type: "info",
+      label: "Generic email address",
+      detail: genericReason || "May not reach decision maker",
+    });
+  }
+
+  if (images.length < 3) {
+    flags.push({
+      type: "opportunity",
+      label: images.length === 0 ? "No photos uploaded" : `Only ${images.length} photo${images.length > 1 ? "s" : ""}`,
+      detail: "Adding real photos helps families connect",
+    });
+  }
+
+  if (completenessPercentage < 70) {
+    flags.push({
+      type: "opportunity",
+      label: `Profile ${completenessPercentage}% complete`,
+      detail: `Missing: ${missingSections.slice(0, 3).join(", ")}`,
+    });
+  }
+
+  if (dashboardVisits30d === 0 && lastLogin === null) {
+    flags.push({
+      type: "info",
+      label: "No recent dashboard activity",
+      detail: "May not know about their provider dashboard",
+    });
+  }
+
+  if (emailStatsResult.sent > 3 && emailStatsResult.opened === 0) {
+    flags.push({
+      type: "warning",
+      label: "Not opening emails",
+      detail: `Sent ${emailStatsResult.sent} emails, 0 opened`,
+    });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Deterministic Recommended Action (priority order)
+  // ─────────────────────────────────────────────────────────────────────────────
+  let recommendedAction = {
+    priority: 99,
+    action: "General check-in",
+    rationale: "No specific issues detected",
+    pitchAngle: "See how they're doing and if they need any help",
+  };
+
+  // Priority 1: Unanswered questions
+  if (questionsUnanswered > 0) {
+    recommendedAction = {
+      priority: 1,
+      action: `Help them answer ${questionsUnanswered} waiting question${questionsUnanswered > 1 ? "s" : ""}`,
+      rationale: "Families asked questions and are waiting for responses",
+      pitchAngle: "Ask if they need help responding to family questions",
+    };
+  }
+  // Priority 2: Low lead engagement
+  else if (leadCount > 3 && leadOpenRate < 30) {
+    recommendedAction = {
+      priority: 2,
+      action: "Check notification setup",
+      rationale: `Only opened ${leadsOpened} of ${leadCount} leads (${leadOpenRate}%)`,
+      pitchAngle: "Make sure they're getting notified when families reach out",
+    };
+  }
+  // Priority 3: No dashboard visits
+  else if (dashboardVisits30d === 0 && daysOverdue > 14) {
+    recommendedAction = {
+      priority: 3,
+      action: "Re-engage dormant provider",
+      rationale: `No dashboard activity in 30 days, ${daysOverdue} days since last touch`,
+      pitchAngle: "Walk them through their dashboard and what families see",
+    };
+  }
+  // Priority 4: Incomplete profile
+  else if (completenessPercentage < 60) {
+    recommendedAction = {
+      priority: 4,
+      action: "Help complete profile",
+      rationale: `Profile only ${completenessPercentage}% complete - missing ${missingSections.slice(0, 2).join(", ")}`,
+      pitchAngle: "Offer to help fill out missing sections",
+    };
+  }
+  // Priority 5: No/few photos
+  else if (images.length < 2) {
+    recommendedAction = {
+      priority: 5,
+      action: "Photo optimization",
+      rationale: images.length === 0 ? "No photos uploaded" : "Only 1 photo uploaded",
+      pitchAngle: "Adding photos of their facility and team helps families connect",
+    };
+  }
+  // Priority 6: Generic email
+  else if (isGenericEmail) {
+    recommendedAction = {
+      priority: 6,
+      action: "Get direct contact",
+      rationale: "Using generic email that may not reach decision maker",
+      pitchAngle: "Ask for the best direct contact for the owner/manager",
+    };
+  }
+  // Priority 7: Good engagement, pitch ads
+  else if (leadCount > 5 && !activeCampaign && tracking?.ads_status === "none") {
+    recommendedAction = {
+      priority: 7,
+      action: "Pitch Ad Boost",
+      rationale: `Active provider with ${leadCount} leads, good engagement, no ads yet`,
+      pitchAngle: "They're doing well organically - ads could multiply their reach",
+    };
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Data-Driven Opening Script
+  // ─────────────────────────────────────────────────────────────────────────────
+  const providerName = profile?.display_name || "there";
+  const claimDaysAgoRaw = tracking?.claimed_at
+    ? Math.floor((Date.now() - new Date(tracking.claimed_at).getTime()) / (1000 * 60 * 60 * 24))
+    : null;
+  // Handle edge case where claimed_at is in the future (timezone issues, bad data)
+  const claimDaysAgo = claimDaysAgoRaw !== null && claimDaysAgoRaw >= 0 ? claimDaysAgoRaw : null;
+  const claimTimePhrase = claimDaysAgo !== null
+    ? claimDaysAgo === 0 ? "today"
+      : claimDaysAgo === 1 ? "yesterday"
+      : claimDaysAgo < 7 ? `${claimDaysAgo} days ago`
+      : claimDaysAgo < 30 ? `about ${Math.round(claimDaysAgo / 7)} week${Math.round(claimDaysAgo / 7) > 1 ? "s" : ""} ago`
+      : `about ${Math.round(claimDaysAgo / 30)} month${Math.round(claimDaysAgo / 30) > 1 ? "s" : ""} ago`
+    : "recently";
+
+  let openingScript = "";
+  if (questionsUnanswered > 0) {
+    openingScript = `Hi, this is [your name] from Olera. I noticed you have ${questionsUnanswered} family question${questionsUnanswered > 1 ? "s" : ""} waiting on your profile - are you getting notified when those come in?`;
+  } else if (leadCount > 0 && leadOpenRate < 50) {
+    openingScript = `Hi, this is [your name] from Olera. You've received ${leadCount} leads since claiming your profile - I wanted to make sure you're getting notified when families reach out.`;
+  } else if (sectionsEdited.length > 0) {
+    // sectionsEdited.length > 0 implies lastProfileEdit exists
+    openingScript = `Hi, this is [your name] from Olera. I saw you recently updated your ${sectionsEdited[0]} section - how's the profile looking?`;
+  } else if (leadCount > 5) {
+    openingScript = `Hi, this is [your name] from Olera. You've gotten ${leadCount} family inquiries - that's great! I'm calling to see how things are going and if there's anything we can help with.`;
+  } else if (images.length === 0) {
+    openingScript = `Hi, this is [your name] from Olera. You claimed your profile ${claimTimePhrase} - I noticed your page doesn't have photos yet. Would you like help adding some? It really helps families connect with you.`;
+  } else {
+    openingScript = `Hi, this is [your name] from Olera. You claimed your profile ${claimTimePhrase}. I'm calling to check in - how's everything going with your page?`;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // What to Capture Checklist
+  // ─────────────────────────────────────────────────────────────────────────────
+  const captureChecklist: Array<{ item: string; reason: string }> = [];
+
+  if (isGenericEmail) {
+    captureChecklist.push({ item: "Direct contact email", reason: "Current email is generic" });
+  }
+  if (!profile?.phone) {
+    captureChecklist.push({ item: "Phone number", reason: "No phone on file" });
+  }
+  if (questionsUnanswered > 0) {
+    captureChecklist.push({ item: "Will they respond to questions?", reason: `${questionsUnanswered} waiting` });
+  }
+  if (leadCount > 0 && leadOpenRate < 50) {
+    captureChecklist.push({ item: "Preferred contact method", reason: "Low lead open rate" });
+  }
+  if (completenessPercentage < 70) {
+    captureChecklist.push({ item: "What's blocking profile completion?", reason: "Profile incomplete" });
+  }
+  if (tracking?.ads_status === "none") {
+    captureChecklist.push({ item: "Interest in ads? Objections?", reason: "Not on Ad Boost yet" });
+  }
+  if (captureChecklist.length === 0) {
+    captureChecklist.push({ item: "Any feedback or issues?", reason: "General check-in" });
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Compute Tags (for backward compatibility)
+  // ─────────────────────────────────────────────────────────────────────────────
   const computedTags: string[] = [];
 
-  // Lead count tag
-  if (leadCount === 0) {
-    computedTags.push("0 leads");
-  } else if (leadCount === 1) {
-    computedTags.push("1 lead");
-  } else {
-    computedTags.push(`${leadCount} leads`);
-  }
+  if (leadCount === 0) computedTags.push("0 leads");
+  else if (leadCount === 1) computedTags.push("1 lead");
+  else computedTags.push(`${leadCount} leads`);
 
-  // Touch/engagement tag
-  if (touchCount === 0) {
-    computedTags.push("no touches");
-  } else if (touchCount >= 10) {
-    computedTags.push(`${touchCount} touches, highly engaged`);
-  } else {
-    computedTags.push(`${touchCount} touches`);
-  }
+  if (touchCount === 0) computedTags.push("no touches");
+  else if (touchCount >= 10) computedTags.push(`${touchCount} touches, highly engaged`);
+  else computedTags.push(`${touchCount} touches`);
 
-  // Overdue tag
-  if (daysOverdue > 14) {
-    computedTags.push(`${daysOverdue} days overdue`);
-  } else if (daysOverdue > 7) {
-    computedTags.push(`${daysOverdue}d since activity`);
-  }
+  if (daysOverdue > 14) computedTags.push(`${daysOverdue} days overdue`);
+  else if (daysOverdue > 7) computedTags.push(`${daysOverdue}d since activity`);
 
-  // Email engagement tag
-  if (emailStatsResult.sent > 0 && emailStatsResult.opened === 0) {
-    computedTags.push("not opening emails");
-  } else if (emailStatsResult.clicked > 0) {
-    computedTags.push("clicks emails");
-  }
+  if (emailStatsResult.sent > 0 && emailStatsResult.opened === 0) computedTags.push("not opening emails");
+  else if (emailStatsResult.clicked > 0) computedTags.push("clicks emails");
 
-  // Verification status tag
-  if (verificationState === "verified") {
-    computedTags.push("verified");
-  } else if (verificationState === "pending") {
-    computedTags.push("pending verification");
-  }
+  if (verificationState === "verified") computedTags.push("verified");
+  else if (verificationState === "pending") computedTags.push("pending verification");
 
+  if (questionsUnanswered > 0) computedTags.push(`${questionsUnanswered} unanswered Q`);
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Return Complete Data
+  // ─────────────────────────────────────────────────────────────────────────────
   return {
-    // Metrics (null = not recorded)
+    // Original metrics
     googleRating: googleData.rating ?? null,
     googleReviewCount: googleData.review_count ?? null,
     photoCount: images.length,
@@ -332,7 +775,7 @@ export async function getRichContextData(
     daysOverdue,
     leadCount,
 
-    // Details for AI
+    // Details
     leads: (leadsResult.data || []).map((l) => ({
       created_at: l.created_at,
       message: l.message || null,
@@ -354,6 +797,7 @@ export async function getRichContextData(
       state: profile?.state || "",
       careTypes: profile?.care_types || [],
       verificationState,
+      slug: providerSlug || null,
     },
 
     // Status
@@ -362,8 +806,64 @@ export async function getRichContextData(
     medjobsStatus: tracking?.medjobs_status || "none",
     claimedAt: tracking?.claimed_at || null,
 
-    // Pre-computed tags from real data
+    // Tags
     computedTags,
+
+    // ─────────────────────────────────────────────────────────────────────────────
+    // NEW: Data-driven briefing fields
+    // ─────────────────────────────────────────────────────────────────────────────
+
+    questions: {
+      received: questionsReceived,
+      answered: questionsAnswered,
+      unanswered: questionsUnanswered,
+      recentQuestions,
+    },
+
+    engagement: {
+      lastDashboardVisit,
+      dashboardVisits30d,
+      lastProfileEdit,
+      profileEdits30d,
+      sectionsEdited,
+      lastLogin,
+      leadsOpened,
+      leadOpenRate,
+      contactsRevealed,
+    },
+
+    photos: {
+      count: images.length,
+      hasHeroImage: images.length > 0,
+      urls: images.slice(0, 4) as string[],
+    },
+
+    emailAssessment: {
+      isGeneric: isGenericEmail,
+      genericReason,
+    },
+
+    profileCompleteness: {
+      percentage: completenessPercentage,
+      missingSections,
+      hasDescription,
+      hasPricing,
+      hasStaffInfo,
+      hasHours,
+    },
+
+    adBoost: {
+      hasAnyCampaign: adCampaigns.length > 0,
+      activeCampaign,
+      totalCampaigns: adCampaigns.length,
+      lastCampaignStatus: adCampaigns[0]?.status || null,
+      totalLeadsFromAds,
+    },
+
+    flags,
+    recommendedAction,
+    openingScript,
+    captureChecklist,
   };
 }
 

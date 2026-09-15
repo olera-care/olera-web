@@ -353,8 +353,10 @@ export function RichContextModal({
                             <span>Ended{b.adBoost.campaign.delivered ? ` (${b.adBoost.campaign.delivered} families)` : ""}</span>
                           ) : b.adBoost.campaign?.status === "pending_profile" ? (
                             <span className="text-amber-600">Pending profile</span>
-                          ) : b.adBoost.campaign?.status === "requested" || b.adBoost.campaign?.status === "scheduled" ? (
-                            <span className="text-blue-600">Setting up</span>
+                          ) : b.adBoost.campaign?.status === "requested" ? (
+                            <span className="text-amber-600">Requested</span>
+                          ) : b.adBoost.campaign?.status === "scheduled" ? (
+                            <span className="text-blue-600">Scheduled</span>
                           ) : adsStatus === "subscribed" ? (
                             "Paying"
                           ) : adsStatus === "free_intro" ? (

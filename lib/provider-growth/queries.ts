@@ -125,7 +125,7 @@ export interface RichContextData {
   leadCount: number;
 
   // Details for AI
-  leads: Array<{ created_at: string; message: string | null }>;
+  leads: Array<{ created_at: string; message: string | null; familyName: string | null }>;
   touchpoints: Array<{ type: string; notes: string | null; created_at: string }>;
   emailStats: { sent: number; opened: number; clicked: number };
 
@@ -356,10 +356,10 @@ export async function getRichContextData(
       .eq("to_profile_id", businessProfileId)
       .eq("type", "inquiry"),
 
-    // Last 5 leads with details
+    // Last 5 leads with details (including family name)
     db
       .from("connections")
-      .select("created_at, message")
+      .select("created_at, message, from_profile:business_profiles!from_profile_id(display_name)")
       .eq("to_profile_id", businessProfileId)
       .eq("type", "inquiry")
       .order("created_at", { ascending: false })
@@ -1372,6 +1372,7 @@ export async function getRichContextData(
     leads: (leadsResult.data || []).map((l) => ({
       created_at: l.created_at,
       message: l.message || null,
+      familyName: (l.from_profile as { display_name?: string } | null)?.display_name || null,
     })),
     touchpoints: (touchpointsResult.data || []).map((t) => ({
       type: t.touchpoint_type,

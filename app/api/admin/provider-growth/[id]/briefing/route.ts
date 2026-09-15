@@ -32,6 +32,15 @@ export interface BriefingResponse {
     }>;
   };
 
+  leads: {
+    count: number;
+    recentLeads: Array<{
+      familyName: string | null;
+      message: string | null;
+      created_at: string;
+    }>;
+  };
+
   engagement: {
     lastDashboardVisit: string | null;
     dashboardVisits30d: number;
@@ -180,6 +189,14 @@ function buildBriefing(data: RichContextData): BriefingResponse {
 
     // New structured fields
     questions: data.questions,
+    leads: {
+      count: data.leadCount,
+      recentLeads: data.leads.map(l => ({
+        familyName: l.familyName,
+        message: l.message,
+        created_at: l.created_at,
+      })),
+    },
     engagement: data.engagement,
     photos: data.photos,
     reviews: data.reviews,

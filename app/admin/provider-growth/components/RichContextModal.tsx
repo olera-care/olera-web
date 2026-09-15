@@ -24,6 +24,14 @@ interface BriefingResponse {
       answered: boolean;
     }>;
   };
+  leads: {
+    count: number;
+    recentLeads: Array<{
+      familyName: string | null;
+      message: string | null;
+      created_at: string;
+    }>;
+  };
   engagement: {
     lastDashboardVisit: string | null;
     dashboardVisits30d: number;
@@ -333,6 +341,62 @@ export function RichContextModal({
                     ))}
                   </ul>
                 </div>
+
+                {/* Recent Leads - show family names and messages */}
+                {b.leads.recentLeads.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                      Recent Leads ({b.leads.count} total)
+                    </p>
+                    <ul className="space-y-2">
+                      {b.leads.recentLeads.slice(0, 3).map((lead, i) => (
+                        <li key={i} className="text-sm bg-blue-50 rounded-lg px-3 py-2">
+                          <div className="flex justify-between items-start">
+                            <span className="font-medium text-gray-900">
+                              {lead.familyName || "Family"}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              {formatRelative(lead.created_at)}
+                            </span>
+                          </div>
+                          {lead.message && (
+                            <p className="text-gray-600 mt-1 text-xs line-clamp-2">
+                              {lead.message}
+                            </p>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Recent Questions - show question text */}
+                {b.questions.recentQuestions.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                      Recent Questions ({b.questions.received} total, {b.questions.unanswered} unanswered)
+                    </p>
+                    <ul className="space-y-2">
+                      {b.questions.recentQuestions.slice(0, 3).map((q, i) => (
+                        <li key={i} className="text-sm bg-amber-50 rounded-lg px-3 py-2">
+                          <div className="flex justify-between items-start gap-2">
+                            <p className="text-gray-700 line-clamp-2">{q.question}</p>
+                            <span className={`text-xs px-1.5 py-0.5 rounded ${
+                              q.answered
+                                ? "bg-green-100 text-green-700"
+                                : "bg-amber-100 text-amber-700"
+                            }`}>
+                              {q.answered ? "Answered" : "Unanswered"}
+                            </span>
+                          </div>
+                          <span className="text-xs text-gray-500 mt-1 block">
+                            {formatRelative(q.created_at)}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 {/* Grouped details - organized by category */}
                 <div className="pt-4 border-t border-gray-100 space-y-4">

@@ -79,12 +79,12 @@ export function ReplyBlock({ reply }: { reply: Reply }) {
           </>
         ) : (
           <p className="mt-1 text-[12px] leading-relaxed text-gray-500">
-            Reply received — open Smartlead to read the full message.
+            Reply received, but the text was not captured. Paste it into the notes below.
           </p>
         )
       ) : (
         <p className="mt-1 text-[12px] leading-relaxed text-gray-500">
-          No reply yet — open Smartlead to check the full thread.
+          No reply logged yet. Check your own inbox, then record what came back.
         </p>
       )}
     </section>

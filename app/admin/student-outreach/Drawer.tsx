@@ -22,6 +22,7 @@ import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { LaunchActivationButton } from "@/components/admin/medjobs/LaunchActivationButton";
 import { PreFlightCallModal } from "@/components/admin/medjobs/PreFlightCallModal";
 import { SendEmailModal } from "@/components/admin/medjobs/SendEmailModal";
+import { EmailFollowUpCard } from "@/components/admin/medjobs/EmailFollowUpCard";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
 import { getVerificationState } from "@/lib/student-outreach/verification-state";
@@ -1071,6 +1072,11 @@ function DrawerBody({
         // the timeline; pending email/call tasks remain visible via
         // History in More Details.
         <NextStepCard ctx={ctx} action={action} setError={setError} activeTab={activeTab} />
+      )}
+
+      {/* Emails tab: same follow-up brief the provider drawer shows. */}
+      {activeTab === "replies" && (
+        <EmailFollowUpCard ctx={ctx} action={action} setError={setError} />
       )}
 
       {/* Zone 4 · OutreachTimeline — the chronological surface. Past

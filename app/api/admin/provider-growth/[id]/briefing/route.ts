@@ -34,6 +34,7 @@ interface RouteContext {
 
 const BRIEFING_MODEL = "claude-haiku-4-5";
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const REGENERATE_COOLDOWN_MS = 10 * 60 * 1000; // 10 minutes
 
 const SYSTEM_PROMPT = `You are a sales prep assistant for Olera, a senior care marketplace. Generate a concise briefing for a rep about to call a provider.
 
@@ -301,12 +302,21 @@ export async function GET(request: NextRequest, context: RouteContext) {
     const cache = metadata.briefing_cache as BriefingCache | undefined;
 
     // Check if cache is valid
-    if (!forceRegenerate && cache) {
+    if (cache) {
       const cacheAge = Date.now() - new Date(cache.generatedAt).getTime();
       const isFresh = cacheAge < CACHE_TTL_MS;
       const isValid = cache.dataHash === currentHash;
 
-      if (isFresh && isValid) {
+      // Rate limit regeneration requests (max once per 10 minutes)
+      if (forceRegenerate && cacheAge < REGENERATE_COOLDOWN_MS) {
+        const waitSeconds = Math.ceil((REGENERATE_COOLDOWN_MS - cacheAge) / 1000);
+        return NextResponse.json(
+          { error: `Please wait ${waitSeconds} seconds before regenerating` },
+          { status: 429 }
+        );
+      }
+
+      if (!forceRegenerate && isFresh && isValid) {
         return NextResponse.json({
           briefing: cache.briefing,
           generatedAt: cache.generatedAt,

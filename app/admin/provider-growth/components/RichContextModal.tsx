@@ -132,10 +132,12 @@ export function RichContextModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [regenerating, setRegenerating] = useState(false);
+  const [rateLimitMessage, setRateLimitMessage] = useState<string | null>(null);
 
   const fetchBriefing = useCallback(async (regenerate = false) => {
     if (regenerate) {
       setRegenerating(true);
+      setRateLimitMessage(null);
     } else {
       setLoading(true);
     }
@@ -147,18 +149,24 @@ export function RichContextModal({
 
       if (!res.ok) {
         const err = await res.json();
+        // Handle rate limiting gracefully during regeneration
+        if (res.status === 429 && regenerate && data) {
+          setRateLimitMessage(err.error || "Please wait before regenerating");
+          return;
+        }
         throw new Error(err.error || "Failed to load briefing");
       }
 
       const result = await res.json();
       setData(result);
+      setRateLimitMessage(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load briefing");
     } finally {
       setLoading(false);
       setRegenerating(false);
     }
-  }, [trackingId]);
+  }, [trackingId, data]);
 
   useEffect(() => {
     if (isOpen && !data && !loading) {
@@ -171,6 +179,7 @@ export function RichContextModal({
     if (isOpen) {
       setData(null);
       setError(null);
+      setRateLimitMessage(null);
     }
   }, [trackingId, isOpen]);
 
@@ -219,11 +228,15 @@ export function RichContextModal({
             <div className="flex items-center gap-2">
               {data && (
                 <>
-                  {data.cached && (
+                  {rateLimitMessage ? (
+                    <span className="text-xs text-amber-600">
+                      {rateLimitMessage}
+                    </span>
+                  ) : data.cached ? (
                     <span className="text-xs text-gray-400">
                       Generated {formatRelativeTime(data.generatedAt)}
                     </span>
-                  )}
+                  ) : null}
                   <button
                     onClick={() => fetchBriefing(true)}
                     disabled={regenerating}
@@ -261,27 +274,29 @@ export function RichContextModal({
               </div>
             )}
 
-            {briefing && metrics && (
+            {briefing && (
               <div className="space-y-6">
                 {/* Metrics Grid */}
-                <div className="grid grid-cols-4 gap-3">
-                  <MetricCard
-                    label="Google Rating"
-                    value={metrics.googleRating?.toFixed(1) ?? "N/A"}
-                  />
-                  <MetricCard
-                    label="Google Reviews"
-                    value={metrics.googleReviewCount ?? "N/A"}
-                  />
-                  <MetricCard
-                    label="Photos"
-                    value={metrics.photoCount}
-                  />
-                  <MetricCard
-                    label="Our Spend"
-                    value={metrics.adSpendCents !== null ? `$${Math.round(metrics.adSpendCents / 100)}` : "Not recorded"}
-                  />
-                </div>
+                {metrics && (
+                  <div className="grid grid-cols-4 gap-3">
+                    <MetricCard
+                      label="Google Rating"
+                      value={metrics.googleRating?.toFixed(1) ?? "N/A"}
+                    />
+                    <MetricCard
+                      label="Google Reviews"
+                      value={metrics.googleReviewCount ?? "N/A"}
+                    />
+                    <MetricCard
+                      label="Photos"
+                      value={metrics.photoCount}
+                    />
+                    <MetricCard
+                      label="Our Spend"
+                      value={metrics.adSpendCents !== null ? `$${Math.round(metrics.adSpendCents / 100)}` : "Not recorded"}
+                    />
+                  </div>
+                )}
 
                 {/* Tags */}
                 {briefing.tags.length > 0 && (

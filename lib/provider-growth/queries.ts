@@ -167,6 +167,7 @@ export async function getRichContextData(
     adSpendResult,
     leadCountResult,
     leadsResult,
+    touchpointCountResult,
     touchpointsResult,
   ] = await Promise.all([
     // Tracking record
@@ -206,7 +207,13 @@ export async function getRichContextData(
       .order("created_at", { ascending: false })
       .limit(5),
 
-    // Touchpoint history
+    // Touchpoint count (total)
+    db
+      .from("provider_growth_touchpoints")
+      .select("id", { count: "exact", head: true })
+      .eq("tracking_id", trackingId),
+
+    // Touchpoint history (last 20 for AI context)
     db
       .from("provider_growth_touchpoints")
       .select("touchpoint_type, details, created_at")
@@ -266,8 +273,8 @@ export async function getRichContextData(
     daysOverdue = Math.floor((now.getTime() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
   }
 
-  // Get touch count
-  const touchCount = touchpointsResult.data?.length || 0;
+  // Get counts (use separate count queries for accuracy)
+  const touchCount = touchpointCountResult.count || 0;
   const leadCount = leadCountResult.count || 0;
   const verificationState = profile?.verification_state || null;
 

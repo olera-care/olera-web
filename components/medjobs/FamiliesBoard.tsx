@@ -6,7 +6,6 @@ import Link from "next/link";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { createBrowserClient } from "@supabase/ssr";
-import ScheduleInterviewModal from "@/components/medjobs/ScheduleInterviewModal";
 import BrowseCard from "@/components/browse/BrowseCard";
 import StudentEligibilityModal from "@/components/medjobs/StudentEligibilityModal";
 import { STUDENT_AGREEMENT_URL } from "@/lib/medjobs/student-eligibility";
@@ -62,8 +61,6 @@ function Board() {
 
   const [studentProfileId, setStudentProfileId] = useState<string | null>(null);
   const [studentStatus, setStudentStatus] = useState<StudentStatus | null>(null);
-  const [requested, setRequested] = useState<Set<string>>(new Set());
-  const [modalTarget, setModalTarget] = useState<FamilyCard | null>(null);
   const [showScreener, setShowScreener] = useState(false);
 
   const carouselRef = useRef<HTMLDivElement>(null);
@@ -102,7 +99,6 @@ function Board() {
       return;
     }
     setStudentProfileId(studentProfile.id);
-    fetchExistingInterviews();
     fetchStudentStatus(studentProfile.id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authLoading, profiles]);
@@ -150,24 +146,6 @@ function Board() {
       if (!campus && typeof meta.campus === "string") setCampus(meta.campus);
     } catch {
       /* note falls back to generic copy */
-    }
-  };
-
-  const fetchExistingInterviews = async () => {
-    try {
-      const res = await fetch("/api/medjobs/interviews");
-      if (!res.ok) return;
-      const data = await res.json();
-      const ids = new Set<string>();
-      const active = ["proposed", "confirmed", "rescheduled", "completed"];
-      for (const iv of data.interviews || []) {
-        if (iv.proposed_by === iv.student_profile_id && active.includes(iv.status)) {
-          ids.add(iv.provider_profile_id);
-        }
-      }
-      setRequested(ids);
-    } catch {
-      /* ignore */
     }
   };
 
@@ -239,10 +217,11 @@ function Board() {
       variant="student"
       // Cards not clickable (no link to provider detail page)
       disableLink
-      // "Apply Now" opens the general screener, not a specific provider application
+      // For anon users: "Apply Now" opens screener
+      // For signed-in users: route to their profile
       canRequest
-      requestLabel="Apply Now"
-      onRequestInterview={() => setShowScreener(true)}
+      requestLabel={studentProfileId ? (studentStatus?.isLive ? "View Profile" : "Complete Profile") : "Apply Now"}
+      onRequestInterview={() => studentProfileId ? router.push("/portal/medjobs") : setShowScreener(true)}
     />
   );
 
@@ -548,18 +527,6 @@ function Board() {
           </div>
         )}
       </div>
-
-      {modalTarget && (
-        <ScheduleInterviewModal
-          providerProfileId={modalTarget.id}
-          otherName={modalTarget.name}
-          onClose={() => setModalTarget(null)}
-          onScheduled={() => {
-            setRequested((prev) => new Set(prev).add(modalTarget.id));
-            setModalTarget(null);
-          }}
-        />
-      )}
 
       {showScreener && (
         <StudentEligibilityModal

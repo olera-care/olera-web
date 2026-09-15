@@ -1279,7 +1279,9 @@ export async function getRichContextData(
   if (adBoostViews >= 2 && !adCampaigns.length && tracking?.ads_status === "none") {
     captureChecklist.push({ item: "What's holding them back on Ad Boost?", reason: "Viewed multiple times" });
   }
-  if (adBoostApplyStarted && !adCampaigns.length) {
+  // Only show if they haven't signed up yet (ads_status is "none")
+  // Otherwise they completed signup but campaign record may not exist yet
+  if (adBoostApplyStarted && !adCampaigns.length && tracking?.ads_status === "none") {
     captureChecklist.push({ item: "Why didn't they finish Ad Boost request?", reason: "Abandoned application" });
   }
 

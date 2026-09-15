@@ -15,7 +15,13 @@ import { useState, useEffect, useCallback } from "react";
 interface BriefingResponse {
   questions: {
     received: number;
+    answered: number;
     unanswered: number;
+    recentQuestions: Array<{
+      question: string;
+      created_at: string;
+      answered: boolean;
+    }>;
   };
   engagement: {
     lastDashboardVisit: string | null;
@@ -28,7 +34,11 @@ interface BriefingResponse {
     leadOpenRate: number;
     contactsRevealed: number;
   };
-  photos: { count: number };
+  photos: {
+    count: number;
+    hasHeroImage: boolean;
+    urls: string[];
+  };
   reviews: {
     rating: number | null;
     count: number | null;
@@ -44,6 +54,10 @@ interface BriefingResponse {
   profileCompleteness: {
     percentage: number;
     missingSections: string[];
+    hasDescription: boolean;
+    hasPricing: boolean;
+    hasStaffInfo: boolean;
+    hasHours: boolean;
   };
   adBoost: {
     hasAnyCampaign: boolean;
@@ -89,6 +103,7 @@ interface BriefingResponse {
     detail: string;
   }>;
   recommendedAction: {
+    priority: number;
     action: string;
     rationale: string;
     pitchAngle: string;

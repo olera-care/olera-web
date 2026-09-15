@@ -362,13 +362,8 @@ export async function getRichContextData(
   const providerSlug = profile?.slug;
   const sourceProviderId = profile?.source_provider_id;
 
-  // Build provider identifiers for activity queries
-  // provider_activity.provider_id stores slugs (TEXT), provider_activity.profile_id stores UUIDs
-  const providerIdentifiers: string[] = [];
-  if (providerSlug) providerIdentifiers.push(providerSlug);
-  if (sourceProviderId) providerIdentifiers.push(sourceProviderId);
-
   // Phase 2 queries wrapped in try-catch to prevent breaking if any fail
+  // Note: provider_activity.profile_id stores UUIDs, which is what we query with
   let emailStatsData: { data: Array<{ first_opened_at: string | null; first_clicked_at: string | null }> | null } = { data: [] };
   let dashboardVisitsResult: { data: Array<{ created_at: string }> | null; count: number | null } = { data: [], count: 0 };
   let profileEditsResult: { data: Array<{ created_at: string; metadata: unknown }> | null } = { data: [] };
@@ -398,22 +393,14 @@ export async function getRichContextData(
         .order("created_at", { ascending: false })
         .limit(1),
 
-      // Profile edits (30 days) - use both profile_id and provider_id (slug) for wider match
-      providerIdentifiers.length > 0
-        ? db
-            .from("provider_activity")
-            .select("created_at, metadata")
-            .or(`profile_id.eq.${businessProfileId},provider_id.in.(${providerIdentifiers.join(",")})`)
-            .eq("event_type", "provider_profile_edited")
-            .gte("created_at", thirtyDaysAgo)
-            .order("created_at", { ascending: false })
-        : db
-            .from("provider_activity")
-            .select("created_at, metadata")
-            .eq("profile_id", businessProfileId)
-            .eq("event_type", "provider_profile_edited")
-            .gte("created_at", thirtyDaysAgo)
-            .order("created_at", { ascending: false }),
+      // Profile edits (30 days) - use profile_id
+      db
+        .from("provider_activity")
+        .select("created_at, metadata")
+        .eq("profile_id", businessProfileId)
+        .eq("event_type", "provider_profile_edited")
+        .gte("created_at", thirtyDaysAgo)
+        .order("created_at", { ascending: false }),
 
       // Last login / one-click access - use profile_id
       db

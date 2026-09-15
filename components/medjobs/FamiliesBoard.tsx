@@ -214,8 +214,8 @@ function Board() {
       if (data.session) {
         setShowScreener(false);
         // Land new students on their profile to complete it — providers will
-        // reach out when they see a match.
-        router.push("/portal/medjobs");
+        // reach out when they see a match. Use replace so back button works.
+        router.replace("/portal/medjobs");
         return;
       }
     } catch {

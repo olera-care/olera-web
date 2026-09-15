@@ -153,8 +153,9 @@ export default function StudentEligibilityModal({
           return;
         }
         // Auth succeeded — redirect instantly, refresh in background
+        // Use replace so back button doesn't return to landing page
         refreshAccountData();
-        router.push("/portal/medjobs");
+        router.replace("/portal/medjobs");
         return;
       }
       // No tokenHash (shouldn't happen for new users) — fallback

@@ -275,7 +275,7 @@ export async function getRichContextData(
     // Business profile with metadata (google_reviews_data is on olera-providers, not here)
     db
       .from("business_profiles")
-      .select("id, slug, display_name, phone, email, city, state, care_types, metadata, account_id, verification_state, description, source_provider_id")
+      .select("id, slug, display_name, phone, email, city, state, care_types, metadata, account_id, verification_state, description, source_provider_id, category, image_url, address")
       .eq("id", businessProfileId)
       .single(),
 
@@ -555,11 +555,11 @@ export async function getRichContextData(
   // ─────────────────────────────────────────────────────────────────────────────
   const profileForCompleteness = {
     display_name: profile?.display_name || null,
-    category: (metadata.category as string) || null,
-    address: (metadata.address as string) || null,
+    category: profile?.category || null,
+    address: profile?.address || null,
     city: profile?.city || null,
     state: profile?.state || null,
-    image_url: (metadata.image_url as string) || images[0] || null,
+    image_url: profile?.image_url || images[0] || null,
     description: profile?.description || null,
     care_types: profile?.care_types || [],
   };

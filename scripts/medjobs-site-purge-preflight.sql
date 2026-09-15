@@ -42,6 +42,11 @@ SELECT
   (SELECT count(*) FROM student_outreach_tasks t
      JOIN student_outreach so ON so.id = t.outreach_id
     WHERE so.campus_id = c.id AND t.status = 'pending')            AS tasks_pending,
+  -- The purge removes tasks of every status, not just pending, so this is
+  -- the number its report will echo back.
+  (SELECT count(*) FROM student_outreach_tasks t
+     JOIN student_outreach so ON so.id = t.outreach_id
+    WHERE so.campus_id = c.id)                                     AS tasks_all,
   (SELECT count(*) FROM student_outreach_approvals a
      JOIN student_outreach so ON so.id = a.outreach_id
     WHERE so.campus_id = c.id)                                     AS approvals,
@@ -58,7 +63,7 @@ FROM student_outreach_campuses c
 UNION ALL
 
 -- ── 2. Focus sites that do NOT resolve. Empty = good. ────────────────────
-SELECT 2, 'NAME CHECK', k.name, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
+SELECT 2, 'NAME CHECK', k.name, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
   'This focus site matches no university. The purge will ABORT until the spelling is fixed in both scripts.'
 FROM keep k
 WHERE NOT EXISTS (
@@ -68,7 +73,7 @@ WHERE NOT EXISTS (
 UNION ALL
 
 -- ── 3a. Kept rows pointing at a purged row (FK goes NULL). Empty = good. ─
-SELECT 3, 'WARNING', kc.name, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
+SELECT 3, 'WARNING', kc.name, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
   format('"%s" has %s pointing at a row on "%s"; the purge sets that link to null.',
          so.organization_name, ref.label, dc.name)
 FROM student_outreach so
@@ -86,7 +91,7 @@ WHERE so.campus_id IN (SELECT id FROM kept)
 UNION ALL
 
 -- ── 3b. Kept tasks hanging off a purged approval (cascade). Empty = good. ─
-SELECT 3, 'WARNING', kc.name, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
+SELECT 3, 'WARNING', kc.name, NULL, NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,
   format('Task %s (%s) belongs to a kept site but hangs off an approval on "%s"; deleting that approval removes this task too.',
          t.id, t.task_type, dc.name)
 FROM student_outreach_tasks t

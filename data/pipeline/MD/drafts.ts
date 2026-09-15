@@ -3,7 +3,7 @@
  * Do not edit manually. Regenerated from data/pipeline/MD/drafts.json
  * after each pipeline run for this state, or via --regen-index.
  *
- * Last updated: 2026-08-31T10:40:13.365Z
+ * Last updated: 2026-09-14T13:17:48.178Z
  */
 import type { PipelineStateDrafts } from "../../pipeline-drafts-types";
 
@@ -357,6 +357,187 @@ export const drafts: PipelineStateDrafts = {
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
       "lastVerifiedDate": null
+    },
+    {
+      "id": "soar",
+      "name": "Supporting Older Adults with Resources (SOAR)",
+      "shortName": "SOAR",
+      "tagline": "Help at home, or help with an assisted living bill, for Marylanders 62 and older.",
+      "programType": "benefit",
+      "complexity": "deep",
+      "geographicScope": {
+        "type": "state",
+        "stateVariation": true,
+        "localEntities": [
+          {
+            "name": "Maryland Access Point (statewide): 1-844-627-5465",
+            "type": "service-area"
+          },
+          {
+            "name": "Your county Area Agency on Aging runs the screening and the case management. The list of the 24 local offices is on the Maryland Access Point page.",
+            "type": "service-area"
+          }
+        ]
+      },
+      "intro": "Maryland folded three older programs into one on July 1, 2026. Senior Care, the Senior Assisted Living Subsidy and Congregate Housing are now a single program called Supporting Older Adults with Resources, or SOAR.\n\nIt pays for the kind of help that keeps someone in their own home: case management, personal care, homemaker and chore help, meals, transportation, adult day care, respite for the person doing the caring, medical supplies, an emergency response button, and small safety repairs like a grab bar or a ramp. It can also cover part of a monthly assisted living bill.\n\nOne thing to know up front. This is paid from a state grant, not an entitlement, so what a county can offer depends on the funding it has that year. There is a waiting list.",
+      "savingsRange": "",
+      "savingsSource": "Maryland does not publish a dollar figure. SOAR pays for services, and for some people part of an assisted living monthly fee. What you get depends on the assessment and on what your county has funding for.",
+      "savingsVerified": false,
+      "structuredEligibility": {
+        "summary": [
+          "Age 62 or older",
+          "Maryland resident",
+          "Income at or below $4,358/month for one person, or $4,983/month for a couple, in 2026",
+          "Assets under $20,064 for one person, or $26,400 for a couple",
+          "Needs help with daily activities, confirmed by a county nurse who visits at no cost to you",
+          "U.S. citizen, or meets the immigration criteria in 8 U.S.C. 1622"
+        ],
+        "ageRequirement": "62+",
+        "incomeTable": [
+          {
+            "householdSize": 1,
+            "monthlyLimit": 4358
+          },
+          {
+            "householdSize": 2,
+            "monthlyLimit": 4983
+          }
+        ],
+        "assetLimits": {
+          "individual": 20064,
+          "couple": 26400,
+          "countedAssets": [
+            "Bank accounts",
+            "Retirement and investment accounts"
+          ],
+          "exemptAssets": [
+            "Primary residence"
+          ],
+          "homeEquityCap": null
+        },
+        "functionalRequirement": "Needs help with daily activities. A nurse from the county health department confirms this in person, at no cost to you. You do not arrange or pay for this yourself.",
+        "otherRequirements": [
+          "Maryland resident",
+          "U.S. citizen or qualifying immigration status under 8 U.S.C. 1622"
+        ],
+        "povertyLevelReference": "Income ceiling is 60% of Maryland median income as set by DHCD, so it changes each year. Figures above are the 2026 chart, effective July 1, 2026."
+      },
+      "applicationGuide": {
+        "method": "phone",
+        "summary": "Call Maryland Access Point. They connect you to your county office, which does a short screening call and then sends you an application if SOAR looks like a fit.",
+        "steps": [
+          {
+            "step": 1,
+            "title": "Call Maryland Access Point",
+            "description": "Call 1-844-627-5465. They will ask what is going on and route you to the Area Agency on Aging for your county. You can also call your county office directly if you already know it."
+          },
+          {
+            "step": 2,
+            "title": "Do the screening call",
+            "description": "Your county office does a short screening over the phone about what help your loved one needs. Nothing to bring, and nothing to prepare."
+          },
+          {
+            "step": 3,
+            "title": "Fill out the application they send you",
+            "description": "If SOAR fits, they send an application. This is the stage where they ask for proof of income and assets. A driver’s license, state ID, birth certificate or passport all work for identity and date of birth."
+          },
+          {
+            "step": 4,
+            "title": "A county nurse visits",
+            "description": "A nurse from the county health department comes out and does the functional assessment in person. It costs you nothing and you do not need a letter from your own doctor."
+          },
+          {
+            "step": 5,
+            "title": "You go on the waiting list",
+            "description": "Applications are date-stamped and worked in the order they arrive. Because SOAR is grant funded, there is usually a wait."
+          }
+        ],
+        "processingTime": null,
+        "waitlist": "There is a waiting list, and Maryland says plainly that SOAR is not an emergency placement or funding program. Applications are date-stamped when they arrive and reviewed in the order received, so the day you get your application in is the day that counts. Neither the state nor the counties publish how long the wait runs.",
+        "tip": "Spell out \"Supporting Older Adults with Resources\" when you call. Maryland has a second, unrelated program also called SOAR, run by the health department for people experiencing homelessness.",
+        "urls": [
+          {
+            "label": "SOAR program page",
+            "url": "https://aging.maryland.gov/programs-and-services/supporting-older-adults-resources"
+          },
+          {
+            "label": "Maryland Access Point, with the phone list for all 24 counties",
+            "url": "https://aging.maryland.gov/programs-and-services/maryland-access-point"
+          },
+          {
+            "label": "2026 eligibility chart (MDoA Memorandum #26-5)",
+            "url": "https://aging.maryland.gov/media/116"
+          }
+        ]
+      },
+      "documentsNeeded": [
+        "Nothing for the first call. It is a conversation about what help your loved one needs, not a paperwork review.",
+        "They will ask their age and what county they live in.",
+        "Later, when the county sends the application: proof of income and assets. Bank statements, retirement or asset statements, and a Social Security or pension award letter are what they ask for.",
+        "For identity and date of birth, any one of a driver’s license, state ID, birth certificate or passport.",
+        "You do not need a letter from your loved one’s doctor. A county health department nurse does the assessment in person, at no cost to you."
+      ],
+      "contacts": [
+        {
+          "label": "Maryland Access Point (start here)",
+          "phone": "1-844-627-5465",
+          "hours": "",
+          "description": "The statewide number. A 211 Maryland specialist takes the call and routes you to the Maryland Access Point office for your county, which does the screening and sends the application. The list of all 24 county offices is on the Maryland Access Point page."
+        },
+        {
+          "label": "Maryland Department of Aging",
+          "phone": "(410) 767-1100",
+          "hours": "",
+          "description": "The state office that sets the rules and the funding. It does not take applications, so use this only for general questions about how the program works. Toll-free: 800-243-3425."
+        }
+      ],
+      "applicationNotes": [
+        "SOAR replaced three programs on July 1, 2026: Senior Care, the Senior Assisted Living Subsidy (SALS) and Congregate Housing. If you find a page about any of those, it is out of date.",
+        "The income ceiling is tied to 60% of Maryland median income, so it moves every year. The figures here are the 2026 chart. Ask your county for the current numbers rather than relying on a figure you read.",
+        "Counties differ in how they describe the income test, and at least one county publishes a couple figure $30 below the state chart. If you are close to the line, apply anyway and let the county work it out."
+      ],
+      "relatedPrograms": [
+        "Community First Choice (CFC)",
+        "Maryland PACE",
+        "Home Delivered Meals",
+        "National Family Caregiver Support Program"
+      ],
+      "faqs": [
+        {
+          "question": "What happened to Senior Care?",
+          "answer": "It ended on July 1, 2026. Maryland combined Senior Care, the Senior Assisted Living Subsidy and Congregate Housing into SOAR. If your loved one was already getting help under one of those, call your county Area Agency on Aging and ask how the change affects them."
+        },
+        {
+          "question": "My loved one is 63. Are they too young?",
+          "answer": "No. SOAR starts at 62, which is younger than the old Senior Care program, so some people who did not qualify before do now."
+        },
+        {
+          "question": "Does SOAR help with assisted living?",
+          "answer": "It can cover part of a monthly assisted living fee. That piece came from the old Senior Assisted Living Subsidy. It is partial help, not the whole bill, and it depends on your county having funding."
+        },
+        {
+          "question": "How long is the wait?",
+          "answer": "Nobody publishes a number, so anyone who gives you one is guessing. What Maryland does say is that applications are handled in the order they arrive and that SOAR is not an emergency program. If someone needs help right now, say that on the screening call and ask what else is available while you wait."
+        },
+        {
+          "question": "Do we need a doctor’s letter?",
+          "answer": "No. A nurse from the county health department does the assessment in person and it costs you nothing."
+        }
+      ],
+      "layoutIntent": {
+        "aboutHighlight": "coverage",
+        "eligibilityDisplay": "asset-focused",
+        "applyDisplay": "step-journey",
+        "hasLocationFinder": true,
+        "hasDocumentChecklist": true,
+        "visualTone": "editorial"
+      },
+      "icon": "House",
+      "phone": "1-844-627-5465",
+      "sourceUrl": "https://aging.maryland.gov/programs-and-services/supporting-older-adults-resources",
+      "contentStatus": "pipeline-draft",
+      "draftedAt": "2026-09-14",
+      "lastVerifiedDate": "2026-09-14"
     },
     {
       "id": "pace-comprehensive-care",
@@ -788,8 +969,8 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "intro": "If your loved one is 60+ and struggling with grocery costs, SNAP provides monthly benefits on an EBT card to buy food at grocery stores and farmers markets. The average older adult receives about $188/month, with benefits ranging from $30 to $298/month for single seniors depending on income. Maryland recently increased the minimum benefit to $30/month for seniors 62+ (nearly doubling the federal minimum).\n\nBecause seniors have higher income limits (165% of poverty vs. 130% for younger households) and different asset rules, your loved one may qualify even if their Social Security or pension seemed too high for other programs. Income limit for a single person 60+ is $2,152/month in 2026. The program covers SNAP-approved foods including fruits, vegetables, meat, dairy, and bread, but not alcohol, tobacco, or prepared hot foods.\n\nDespite these benefits, only about half of eligible seniors are enrolled in SNAP. Because medical expenses for those 60+ are deductible from income, many seniors qualify who don't realize it.",
-      "savingsRange": "$360 – $3,576/year in 2026",
-      "savingsSource": "Based on Maryland SNAP minimum $30/month to maximum $298/month for single seniors",
+      "savingsRange": "Up to $298/month ($3,576/year) for one person, through September 30, 2026",
+      "savingsSource": "USDA FY2026 maximum allotment for a one-person household in the 48 contiguous states and DC: $298/month, effective October 1, 2025 through September 30, 2026. The minimum for a one- or two-person household is $24/month. Actual amounts depend on household size, net income, and deductions; age affects deductions, not the maximum.",
       "savingsVerified": true,
       "structuredEligibility": {
         "summary": [
@@ -993,7 +1174,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://dhs.maryland.gov/supplemental-nutrition-assistance-program/",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-14"
     },
     {
       "id": "liheap-energy-assistance",
@@ -2030,9 +2211,9 @@ export const drafts: PipelineStateDrafts = {
     },
     {
       "id": "senior-legal-assistance-program",
-      "name": "Senior Legal Assistance Program (Sixty Plus Legal Program)",
+      "name": "Senior Legal Assistance Program",
       "shortName": "Senior Legal Aid",
-      "tagline": "Free legal help for seniors 60+ facing housing, benefits, or elder abuse issues in Maryland.",
+      "tagline": "Free legal advice for Maryland seniors 60+ facing housing, benefits, or elder abuse issues.",
       "programType": "resource",
       "complexity": "simple",
       "geographicScope": {
@@ -2057,7 +2238,7 @@ export const drafts: PipelineStateDrafts = {
           }
         ]
       },
-      "intro": "If your loved one is 60+ and facing legal problems with housing, benefits denials, or elder abuse, Maryland provides free legal help through local attorneys and law centers. The Senior Legal Assistance Program prioritizes civil legal issues like income maintenance, public benefits disputes, housing problems, and protective services cases.\n\nBecause this program focuses on seniors' most common legal crises, your loved one gets priority help with Social Security appeals, Medicare disputes, landlord problems, utility shutoffs, and elder abuse cases. Income limits apply (typically around $39,125/year for a single person), but the program serves those with the greatest economic or social need first.",
+      "intro": "If your loved one is 60+ and facing legal problems with housing, benefits denials, or elder abuse, Maryland offers free legal advice for older adults through its Area Agencies on Aging and legal services providers. Depending on the problem and the provider, that can mean advice over the phone, help with a document or letter, or a referral; full representation in court is not guaranteed. The Senior Legal Assistance Program prioritizes civil legal issues like income maintenance, public benefits disputes, housing problems, and protective services cases.\n\nBecause this program focuses on seniors' most common legal crises, your loved one gets priority help with Social Security appeals, Medicare disputes, landlord problems, utility shutoffs, and elder abuse cases. Income limits apply (typically around $39,125/year for a single person), but the program serves those with the greatest economic or social need first.",
       "savingsRange": "",
       "savingsSource": "Free service",
       "savingsVerified": false,
@@ -2069,32 +2250,6 @@ export const drafts: PipelineStateDrafts = {
           "Priority for greatest economic need"
         ],
         "ageRequirement": "60+",
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 3261
-          },
-          {
-            "householdSize": 2,
-            "monthlyLimit": 4406
-          },
-          {
-            "householdSize": 3,
-            "monthlyLimit": 5552
-          },
-          {
-            "householdSize": 4,
-            "monthlyLimit": 6698
-          },
-          {
-            "householdSize": 5,
-            "monthlyLimit": 7844
-          },
-          {
-            "householdSize": 6,
-            "monthlyLimit": 8990
-          }
-        ],
         "assetLimits": {
           "individual": null,
           "couple": null,
@@ -2151,12 +2306,10 @@ export const drafts: PipelineStateDrafts = {
         ]
       },
       "documentsNeeded": [
-        "Valid government-issued photo ID",
-        "Proof of age (birth certificate, driver's license, or passport)",
-        "Proof of Maryland residency (utility bill, lease, or state-issued document)",
-        "Proof of income from last 30 days (Social Security letter, pension statements, or pay stubs)",
-        "Legal documents related to your case (benefit denial letters, eviction notices, utility shutoff notices)",
-        "Medicare and Medicaid cards if applicable"
+        "Nothing needs to be gathered before you call. No Maryland provider publishes a document list for this, and there is no ID check to get advice.",
+        "They will ask your loved one’s age and what county they live in. Both are taken at their word.",
+        "They will ask roughly what the household income is and who lives there. Some providers have an income limit and some do not.",
+        "Have a short description of the legal problem ready, and any dates or deadlines on a letter your loved one received, such as a benefit denial, an eviction notice, or a utility shutoff notice."
       ],
       "contacts": [
         {
@@ -2173,9 +2326,9 @@ export const drafts: PipelineStateDrafts = {
         },
         {
           "label": "Baltimore Senior Legal Services",
-          "phone": "(410) 396-1322",
+          "phone": "(410) 396-5605",
           "description": "Direct legal services for Baltimore City residents",
-          "hours": "Business hours"
+          "hours": "Mon-Thu 10am-noon"
         },
         {
           "label": "St. Mary's County example",
@@ -2225,7 +2378,7 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://aging.maryland.gov/pages/senior-legal-assistance.aspx",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13",
-      "lastVerifiedDate": null
+      "lastVerifiedDate": "2026-09-14"
     },
     {
       "id": "long-term-care-ombudsman",
@@ -2493,410 +2646,6 @@ export const drafts: PipelineStateDrafts = {
       "sourceUrl": "https://aging.maryland.gov/pages/senior-call-check.aspx",
       "contentStatus": "pipeline-draft",
       "draftedAt": "2026-04-13"
-    },
-    {
-      "id": "sals-assisted-living-subsidy",
-      "name": "Senior Assisted Living Subsidy Program (SALS)",
-      "shortName": "SALS Subsidy",
-      "tagline": "Help your loved one afford assisted living in Maryland with up to $1,000/month toward care costs.",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Local AAAs and MAP; participating assisted living facilities (request lists from county programs, e.g., Montgomery 240-777-1138 [2])",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your loved one needs assisted living care in Maryland but can't afford the full monthly cost, SALS can bridge the gap. The program pays the difference between what your loved one can afford and their assisted living bill, up to $1,000 per month. Your loved one keeps $130 monthly for personal expenses, and SALS covers the rest of approved care costs including meals, personal care, and 24-hour supervision.\n\nYour loved one must be 62+ with a monthly income below $4,350 and less than $20,064 in countable assets. They also need a clinical assessment showing they require help with daily activities like bathing or dressing, plus 24-hour supervision. The biggest hurdle: your loved one must already live in (or be approved for) a participating assisted living facility, and there's a statewide waitlist due to limited funding.",
-      "savingsRange": "$3,000 – $12,000/year in 2026",
-      "savingsSource": "Maximum monthly subsidy of $1,000",
-      "savingsVerified": true,
-      "structuredEligibility": {
-        "summary": [
-          "Age 62+",
-          "Income below $4,350/month",
-          "Assets under $20,064",
-          "Need help with daily activities",
-          "Must be in participating facility"
-        ],
-        "ageRequirement": "62+",
-        "incomeTable": null,
-        "assetLimits": {
-          "individual": 20064,
-          "couple": 26400,
-          "countedAssets": [
-            "Bank accounts",
-            "Investment accounts",
-            "Property other than primary home"
-          ],
-          "exemptAssets": [
-            "Personal allowance for expenses",
-            "Medical expense deductions"
-          ],
-          "homeEquityCap": null
-        },
-        "functionalRequirement": "Clinical assessment showing need for assistance with activities of daily living (bathing, dressing, mobility) and requiring 24-hour supervision",
-        "otherRequirements": [
-          "Maryland resident",
-          "Must be resident in or approved for participating assisted living facility",
-          "Complete functional assessment (AERS assessment)"
-        ],
-        "povertyLevelReference": "60% of state median income"
-      },
-      "applicationGuide": {
-        "method": "phone",
-        "summary": "Call your local Area Agency on Aging to request an application, processing time varies by funding availability and you'll likely join a waitlist.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Contact your local Area Agency on Aging",
-            "description": "Call your county's AAA office to request the Assisted Living Subsidy Application. Montgomery County: 240-777-1138, Howard County: 410-313-1234, Anne Arundel County: 410-222-4257, Queen Anne's County: 410-758-0848."
-          },
-          {
-            "step": 2,
-            "title": "Complete application and gather documents",
-            "description": "Fill out the application and Attachment G-APD-20-18-SALS Program Eligibility Verification Form. Gather all required documentation including proof of age, income statements, and facility information."
-          },
-          {
-            "step": 3,
-            "title": "Schedule functional assessment",
-            "description": "Arrange for the required AERS functional assessment to document your loved one's need for assistance with daily activities and 24-hour supervision."
-          },
-          {
-            "step": 4,
-            "title": "Secure participating facility placement",
-            "description": "Your loved one must be living in or approved for admission to a participating assisted living facility. Request a list of participating facilities from your local AAA office."
-          },
-          {
-            "step": 5,
-            "title": "Submit complete application",
-            "description": "Mail or deliver the completed application with all documents to your local AAA office. Applications are date-stamped and processed based on funding availability."
-          }
-        ],
-        "processingTime": "Processing time varies based on funding availability",
-        "waitlist": "Yes, statewide and county-specific waitlists due to limited funding - first-come, first-served after complete application",
-        "tip": "Start the process early and get on the waitlist before your loved one needs care, funding is limited and waits can be lengthy.",
-        "urls": [
-          {
-            "label": "Maryland Aging Services",
-            "url": "https://aging.maryland.gov/pages/senior-assisted-living-subsidy-program.aspx"
-          }
-        ]
-      },
-      "documentsNeeded": [
-        "Birth certificate, driver's license, Maryland ID, or passport for proof of age",
-        "Social Security award letter showing monthly benefits",
-        "Earned income statements or pay stubs if still working",
-        "Most recent tax return",
-        "Bank statements for all accounts (last 3 months)",
-        "Completed Assisted Living Subsidy Application",
-        "Attachment G-APD-20-18-SALS Program Eligibility Verification Form",
-        "Functional assessment documentation (AERS assessment)",
-        "Nurse assessment documenting need for 24-hour supervision",
-        "Service agreement with participating assisted living facility",
-        "Proof of Maryland residency",
-        "Documentation of any medical expenses paid out-of-pocket"
-      ],
-      "contacts": [
-        {
-          "label": "Montgomery County AAA",
-          "phone": "(240) 777-1138",
-          "description": "Montgomery County SALS applications and information",
-          "hours": "Mon-Fri business hours"
-        },
-        {
-          "label": "Howard County MAP",
-          "phone": "(410) 313-1234",
-          "description": "Howard County Maryland Access Point for SALS",
-          "hours": "Mon-Fri business hours"
-        },
-        {
-          "label": "Anne Arundel County MAP",
-          "phone": "(410) 222-4257",
-          "description": "Anne Arundel County applications at 2666 Riva Rd., Suite 200, Annapolis",
-          "hours": "Mon-Fri business hours"
-        },
-        {
-          "label": "Queen Anne's County AAA",
-          "phone": "(410) 758-0848",
-          "description": "Queen Anne's County SALS program",
-          "hours": "Mon-Fri business hours"
-        }
-      ],
-      "applicationNotes": [
-        "You must find and secure placement in a participating assisted living facility before or during the application process, the program won't help you find one",
-        "Applications are processed first-come, first-served only after all required documents are submitted, so incomplete applications lose their place in line",
-        "Income and asset limits are tied to state median income and adjust periodically, verify current limits when applying",
-        "VA Aid & Attendance benefits are excluded from income calculations, which may help your loved one qualify if they receive both"
-      ],
-      "relatedPrograms": [
-        "Medical Assistance Program for Assisted Living (MA-P)",
-        "Maryland Medicaid Waiver Programs",
-        "Senior Nutrition Programs",
-        "Maryland Energy Assistance Program (MEAP)"
-      ],
-      "contentSections": [],
-      "faqs": [
-        {
-          "question": "What if my loved one is already paying for assisted living, can they still apply?",
-          "answer": "Yes, your loved one can apply while already living in assisted living, but they must be in a facility that participates in the SALS program. If their current facility doesn't participate, they would need to transfer to one that does. Contact your local Area Agency on Aging for a list of participating facilities in your county."
-        },
-        {
-          "question": "How long is the waitlist really?",
-          "answer": "Waitlist times vary significantly by county and funding availability, but expect several months to over a year in most areas. The program has limited funding, and applications are processed first-come, first-served only after complete documentation is submitted. Getting on the waitlist early is crucial."
-        },
-        {
-          "question": "Can I apply on behalf of my loved one?",
-          "answer": "Yes, adult children can help complete the application process, but you'll need proper legal authority (power of attorney) to sign documents on your loved one's behalf. The functional assessment and facility placement still require your loved one's direct involvement or legal guardianship."
-        },
-        {
-          "question": "What happens if my loved one's income changes after they're approved?",
-          "answer": "The subsidy amount is recalculated based on your loved one's current income minus the $130 personal allowance. If income increases significantly, they may lose eligibility. If income decreases, the subsidy may increase up to the $1,000 monthly maximum. Report income changes to your local Area Agency on Aging promptly."
-        },
-        {
-          "question": "Can my loved one own their home and still qualify?",
-          "answer": "The asset limits focus on countable assets like bank accounts and investments. The research doesn't specify whether primary residence equity counts toward the $20,064 limit. Contact your local Area Agency on Aging to clarify how home ownership affects eligibility in your specific situation."
-        },
-        {
-          "question": "What if no participating facilities near us have openings?",
-          "answer": "This is a common problem since families must secure facility placement independently. Contact multiple participating facilities to get on their waiting lists, and ask your local Area Agency on Aging for their complete list of participating providers. Some families consider facilities further from home to get faster placement."
-        },
-        {
-          "question": "Can my loved one use SALS and Medicaid waiver programs at the same time?",
-          "answer": "SALS is separate from Medicaid waiver programs like MA-P for Assisted Living, which has different eligibility rules (age 50+ instead of 62+). You cannot typically combine these programs, but you should explore which option provides better coverage for your loved one's situation. Contact both programs to compare benefits."
-        },
-        {
-          "question": "What services are covered beyond the basic room and board?",
-          "answer": "SALS covers the full approved monthly assisted living fee, which includes meals, personal care assistance with activities like bathing and dressing, medication management, and 24-hour supervision. The total monthly care rate is capped by county (for example, $3,300 in Montgomery County), and your loved one keeps $130 monthly for personal expenses."
-        }
-      ],
-      "layoutIntent": {
-        "aboutHighlight": "savings",
-        "eligibilityDisplay": "asset-focused",
-        "applyDisplay": "step-journey",
-        "hasLocationFinder": true,
-        "hasDocumentChecklist": true,
-        "visualTone": "editorial"
-      },
-      "icon": "Buildings",
-      "phone": "(240) 777-1138",
-      "sourceUrl": "https://aging.maryland.gov/pages/senior-assisted-living-subsidy-program.aspx",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
-    },
-    {
-      "id": "senior-care-program",
-      "name": "Senior Care Program",
-      "shortName": "Senior Care",
-      "tagline": "In-home care services and funding for Maryland seniors 65+ who need help with daily activities to avoid nursing home placement.",
-      "programType": "benefit",
-      "complexity": "deep",
-      "geographicScope": {
-        "type": "state",
-        "stateVariation": false,
-        "localEntities": [
-          {
-            "name": "Maryland Department of Aging (state oversight)",
-            "type": "service-area"
-          },
-          {
-            "name": "County Area Agencies on Aging (local administration)",
-            "type": "service-area"
-          },
-          {
-            "name": "County Aging and Disability Services offices",
-            "type": "service-area"
-          },
-          {
-            "name": "Example: Carroll County Senior Care Program, Montgomery County Aging and Disability Services",
-            "type": "service-area"
-          }
-        ]
-      },
-      "intro": "If your loved one is 65+ and needs help with daily activities like bathing or dressing, Maryland's Senior Care Program provides both care services and gap-filling funds to help them stay in their home instead of moving to a nursing facility. The program covers in-home personal care, transportation, medical supplies, emergency response systems, and adult day care when funding is available.\n\nYour loved one must meet both financial limits (income under $3,998/month for a single person, assets under $11,000) and need assistance with at least one activity of daily living. Because this is grant-funded rather than an entitlement program, approval depends on available funding in your county, even if your loved one qualifies, there may be a waitlist.\n\nEach county administers the program differently, so eligibility timelines, available services, and waitlist status vary significantly by location. Montgomery County might have different funding availability than Carroll County, for example.",
-      "savingsRange": "",
-      "savingsSource": "Free service with case management and gap-filling funds",
-      "savingsVerified": false,
-      "structuredEligibility": {
-        "summary": [
-          "Age 65+",
-          "Income below $3,998/month (single)",
-          "Assets under $11,000 (single)",
-          "Need help with daily activities",
-          "Maryland resident"
-        ],
-        "ageRequirement": "65+",
-        "incomeTable": [
-          {
-            "householdSize": 1,
-            "monthlyLimit": 3998
-          },
-          {
-            "householdSize": 2,
-            "monthlyLimit": 4657
-          }
-        ],
-        "assetLimits": {
-          "individual": 11000,
-          "couple": 14000,
-          "countedAssets": [
-            "Bank accounts",
-            "Investment accounts",
-            "Personal property"
-          ],
-          "exemptAssets": [
-            "Primary residence (may be exempt - varies by county)"
-          ],
-          "homeEquityCap": null
-        },
-        "functionalRequirement": "Must need assistance with at least one activity of daily living (bathing, dressing, medication management) or be moderately disabled and at risk for nursing home placement",
-        "otherRequirements": [
-          "Must be a Maryland resident",
-          "Must live in the community (not in a facility)",
-          "Must be at risk for nursing home placement"
-        ],
-        "povertyLevelReference": null
-      },
-      "applicationGuide": {
-        "method": "multiple",
-        "summary": "Contact your county's Area Agency on Aging by phone, state law requires a decision within 30 days, but actual approval time varies by county funding.",
-        "steps": [
-          {
-            "step": 1,
-            "title": "Contact your county aging office",
-            "description": "Call your local Area Agency on Aging or Aging and Disability Services office. For example: Montgomery County at 240-777-3000. Each county has its own application process."
-          },
-          {
-            "step": 2,
-            "title": "Complete county-specific application",
-            "description": "Fill out your county's application form. Form names and numbers vary by county. Some counties accept applications online, others require phone or in-person applications."
-          },
-          {
-            "step": 3,
-            "title": "Schedule in-home assessment",
-            "description": "A social worker will visit your loved one's home to assess their need for activities of daily living assistance and review financial documentation."
-          },
-          {
-            "step": 4,
-            "title": "Medical documentation review",
-            "description": "Provide physician certification of your loved one's disability or need for ADL assistance as part of the clinical assessment."
-          },
-          {
-            "step": 5,
-            "title": "Wait for funding decision",
-            "description": "Even if your loved one meets all eligibility criteria, approval depends on available grant funding in your county. You'll be notified of approval or waitlist status."
-          }
-        ],
-        "processingTime": "30 days (required by state law), but actual approval time varies by county and funding availability",
-        "waitlist": "Program is grant-funded and not an entitlement program. Waitlist times vary dramatically by county and funding availability. Some counties may have significant delays.",
-        "tip": "Apply even if you're unsure about eligibility, the in-home assessment will determine both financial and functional qualification, and caseworkers can explain county-specific variations.",
-        "urls": [
-          {
-            "label": "Maryland Department of Aging",
-            "url": "https://aging.maryland.gov/"
-          }
-        ]
-      },
-      "documentsNeeded": [
-        "Valid government-issued photo ID for your loved one",
-        "Proof of Maryland residency (utility bill, lease agreement, or state-issued document)",
-        "Social Security award letter or other income verification",
-        "Bank statements for all accounts (last 3 months)",
-        "Investment account statements (stocks, bonds, annuities)",
-        "Property documents (deeds, tax statements) if applicable",
-        "Life insurance policies with face values",
-        "Vehicle titles and registration",
-        "Physician certification of disability or need for ADL assistance",
-        "Medical documentation supporting need for daily living assistance",
-        "Medicare card",
-        "Any other health insurance cards",
-        "Documentation of current medical expenses",
-        "Legal documents if someone else is applying on behalf of your loved one"
-      ],
-      "contacts": [
-        {
-          "label": "Montgomery County Aging Services",
-          "phone": "(240) 777-3000",
-          "description": "Montgomery County Senior Care Program applications and information",
-          "hours": "Mon-Fri 8:30am-5pm"
-        },
-        {
-          "label": "Maryland Department of Aging",
-          "phone": "(410) 767-1100",
-          "description": "State oversight and general program information",
-          "hours": "Mon-Fri 8am-5pm"
-        },
-        {
-          "label": "Maryland 2-1-1",
-          "phone": "2-1-1",
-          "description": "Free helpline to find your county's Area Agency on Aging",
-          "hours": "24 hours, 7 days a week"
-        }
-      ],
-      "applicationNotes": [
-        "Final eligibility is determined at the county level, not state level, requirements and available services may differ significantly between counties",
-        "This is NOT an entitlement program, so approval is not guaranteed even if your loved one meets all eligibility criteria due to limited grant funding",
-        "Income and asset limits are updated annually, verify current 2025 limits with your county office as they may differ from these figures",
-        "Similar programs exist (Community First Choice, Community Personal Assistance Services) with different eligibility criteria, ensure you're applying to the correct program"
-      ],
-      "relatedPrograms": [
-        "Community First Choice",
-        "Community Personal Assistance Services",
-        "Senior Assisted Living Subsidy Program",
-        "Maryland Medical Assistance Program"
-      ],
-      "contentSections": [],
-      "faqs": [
-        {
-          "question": "Can my loved one keep their house if it's worth more than the asset limit?",
-          "answer": "Yes, the primary residence may be exempt from asset limits, but this varies by county and program variant. During the in-home assessment, the caseworker will determine what assets count toward the $11,000 limit for single persons or $14,000 for couples."
-        },
-        {
-          "question": "What happens if my loved one qualifies but there's no funding available?",
-          "answer": "Your loved one will be placed on a waitlist. Because this is a grant-funded program, approval depends on available money in your specific county. Waitlist times vary dramatically, some counties may have immediate openings while others have significant delays."
-        },
-        {
-          "question": "Can I apply on behalf of my elderly loved one?",
-          "answer": "Yes, adult children can apply on behalf of aging loved ones. You'll need legal documentation showing your authority to act on their behalf, such as power of attorney. The in-home assessment will still need to evaluate your loved one directly."
-        },
-        {
-          "question": "How is this different from other Maryland aging programs?",
-          "answer": "Senior Care Program is specifically for seniors 65+ at risk of nursing home placement who need ADL assistance. Community First Choice and Community Personal Assistance Services have different eligibility criteria and may serve different age groups or disability levels."
-        },
-        {
-          "question": "What if my loved one's needs change after they're enrolled?",
-          "answer": "The program includes ongoing case management, so your loved one's caseworker will reassess their needs regularly. Services can be adjusted based on changing health conditions, but any increases depend on continued funding availability."
-        },
-        {
-          "question": "Can my loved one apply for this and Medicaid at the same time?",
-          "answer": "Yes, your loved one can apply for multiple programs simultaneously. In fact, some Medicaid waiver programs work alongside Senior Care Program services. The county caseworker can help coordinate applications and explain how programs interact."
-        },
-        {
-          "question": "Why do approval times vary so much between counties?",
-          "answer": "Each county administers its own Senior Care Program with separate funding allocations. Montgomery County might have different grant money available than Carroll County, affecting both approval speed and waitlist length. Contact your specific county office for current status."
-        },
-        {
-          "question": "What specific help with daily activities qualifies my loved one?",
-          "answer": "Your loved one typically needs assistance with at least one activity of daily living: bathing, dressing, medication management, mobility, or eating. The in-home social work assessment will evaluate their specific functional limitations and determine clinical eligibility."
-        }
-      ],
-      "layoutIntent": {
-        "aboutHighlight": "coverage",
-        "eligibilityDisplay": "income-table",
-        "applyDisplay": "step-journey",
-        "hasLocationFinder": true,
-        "hasDocumentChecklist": true,
-        "visualTone": "editorial"
-      },
-      "icon": "House",
-      "phone": "(410) 767-1100",
-      "sourceUrl": "https://aging.maryland.gov/",
-      "contentStatus": "pipeline-draft",
-      "draftedAt": "2026-04-13"
     }
   ],
   "stateOverview": {
@@ -2906,6 +2655,11 @@ export const drafts: PipelineStateDrafts = {
         "name": "Community First Choice (CFC)",
         "programId": "community-first-choice-cfc",
         "why": "Covers full cost of in-home personal care, home modifications, and medical support through Medicaid, potentially saving thousands monthly."
+      },
+      {
+        "name": "Supporting Older Adults with Resources (SOAR)",
+        "programId": "soar",
+        "why": "The home-care door for people who are not on Medicaid. Covers personal care, meals, adult day care, respite and part of an assisted living bill, for Marylanders 62+ with income up to $4,358/month."
       },
       {
         "name": "Maryland Medicare Savings Program (MSP)",
@@ -2929,7 +2683,7 @@ export const drafts: PipelineStateDrafts = {
         "programs": [
           "Community First Choice (CFC)",
           "Maryland PACE",
-          "Senior Care Program"
+          "Supporting Older Adults with Resources (SOAR)"
         ],
         "description": "Programs that cover or help pay for personal care, medical services, and daily assistance at home."
       },
@@ -2946,7 +2700,7 @@ export const drafts: PipelineStateDrafts = {
         "programs": [
           "Low-Income Home Energy Assistance Program (LIHEAP)",
           "Maryland Weatherization Assistance Program",
-          "Senior Assisted Living Subsidy Program (SALS)"
+          "Supporting Older Adults with Resources (SOAR)"
         ],
         "description": "Programs that reduce heating bills, provide free energy upgrades, or help afford assisted living."
       },
@@ -2970,7 +2724,7 @@ export const drafts: PipelineStateDrafts = {
       {
         "need": "Legal help and advocacy",
         "programs": [
-          "Senior Legal Assistance Program (Sixty Plus Legal Program)",
+          "Senior Legal Assistance Program",
           "Long-Term Care Ombudsman Program"
         ],
         "description": "Free legal assistance and advocacy for seniors facing housing, benefits, or care facility issues."

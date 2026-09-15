@@ -80,6 +80,7 @@ export interface ProviderGrowthWithProfile extends ProviderGrowthTracking {
   // Call tracking
   call_count?: number;
   last_call_at?: string | null;
+  last_call_outcome?: string | null;
   // Ad campaign details (from ad_campaign_requests)
   ads_campaign_status?: "pending_profile" | "requested" | "scheduled" | "live" | "ended" | null;
   ads_campaign_count?: number;
@@ -215,6 +216,7 @@ export async function getGrowthStats(): Promise<GrowthStats> {
 export interface CallStats {
   count: number;
   lastCallAt: string | null;
+  lastCallOutcome: string | null;
 }
 
 /**
@@ -241,7 +243,7 @@ export async function getCallStatsForTrackingIds(
 
     const { data, error } = await db
       .from("provider_growth_touchpoints")
-      .select("tracking_id, created_at, touchpoint_type")
+      .select("tracking_id, created_at, touchpoint_type, details")
       .in("tracking_id", batchIds)
       .in("touchpoint_type", ["call_attempted", "activity_logged"]);
 
@@ -253,15 +255,24 @@ export async function getCallStatsForTrackingIds(
     // Count occurrences and track most recent activity per tracking_id
     for (const row of data ?? []) {
       const id = row.tracking_id;
+      const details = row.details as Record<string, unknown> | null;
+
+      // Extract outcome from details (new format: outcome, legacy: status)
+      let outcome: string | null = null;
+      if (details) {
+        outcome = (details.outcome as string) || (details.status as string) || null;
+      }
+
       const existing = stats.get(id);
       if (existing) {
         existing.count++;
-        // Update lastCallAt if this activity is more recent
+        // Update if this activity is more recent
         if (row.created_at > (existing.lastCallAt || "")) {
           existing.lastCallAt = row.created_at;
+          existing.lastCallOutcome = outcome;
         }
       } else {
-        stats.set(id, { count: 1, lastCallAt: row.created_at });
+        stats.set(id, { count: 1, lastCallAt: row.created_at, lastCallOutcome: outcome });
       }
     }
   }
@@ -411,6 +422,133 @@ export async function getNewClaimSubtabCounts(): Promise<{
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Admin Counts for Filtering
+// ─────────────────────────────────────────────────────────────────────────────
+
+export interface AdminCount {
+  count: number;
+  display_name?: string;
+}
+
+export interface AdminCounts {
+  [adminId: string]: AdminCount;
+}
+
+export interface GetAdminCountsOptions {
+  pipelineStages?: PipelineStage[];
+  hasCallAttempts?: boolean;
+  converted?: boolean;
+  notConverted?: boolean;
+  adsStatus?: AdsStatus;
+  medjobsStatus?: MedjobsStatus | MedjobsStatus[];
+}
+
+/**
+ * Get counts of providers per assigned admin for a given tab/filter combination.
+ * Used for the admin filter chips on the Provider Growth page.
+ */
+export async function getAdminCountsForTab(options: GetAdminCountsOptions): Promise<AdminCounts> {
+  const db = getServiceClient();
+
+  // Build base query
+  let query = db
+    .from("provider_growth_tracking")
+    .select("assigned_to, ads_status, medjobs_status, id");
+
+  // Apply pipeline stage filter
+  if (options.pipelineStages && options.pipelineStages.length > 0) {
+    query = query.in("pipeline_stage", options.pipelineStages);
+  }
+
+  // Apply ads status filter
+  if (options.adsStatus && options.adsStatus !== "none") {
+    query = query.eq("ads_status", options.adsStatus);
+  }
+
+  // Apply medjobs status filter
+  if (options.medjobsStatus) {
+    if (Array.isArray(options.medjobsStatus)) {
+      const filtered = options.medjobsStatus.filter((s) => s !== "none");
+      if (filtered.length > 0) {
+        query = query.in("medjobs_status", filtered);
+      }
+    } else if (options.medjobsStatus !== "none") {
+      query = query.eq("medjobs_status", options.medjobsStatus);
+    }
+  }
+
+  // Apply converted filter
+  if (options.converted) {
+    query = query.or("ads_status.eq.free_intro,medjobs_status.in.(in_pilot,pilot_expired)");
+  }
+
+  // Apply not converted filter
+  if (options.notConverted) {
+    query = query.eq("ads_status", "none");
+    query = query.neq("medjobs_status", "in_pilot");
+    query = query.neq("medjobs_status", "pilot_expired");
+  }
+
+  // Only include providers with assigned_to set
+  query = query.not("assigned_to", "is", null);
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error("[provider-growth] Admin counts query error:", error);
+    return {};
+  }
+
+  // If we need to filter by hasCallAttempts, we need to fetch touchpoints
+  let filteredData = data ?? [];
+  if (options.hasCallAttempts !== undefined) {
+    const trackingIds = filteredData.map((r) => r.id);
+    if (trackingIds.length > 0) {
+      const callStats = await getCallStatsForTrackingIds(trackingIds);
+      filteredData = filteredData.filter((r) => {
+        const hasCalls = (callStats.get(r.id)?.count || 0) > 0;
+        return options.hasCallAttempts ? hasCalls : !hasCalls;
+      });
+    }
+  }
+
+  // Group by assigned_to
+  const adminIds = new Set<string>();
+  const counts: Record<string, number> = {};
+
+  for (const row of filteredData) {
+    if (row.assigned_to) {
+      adminIds.add(row.assigned_to);
+      counts[row.assigned_to] = (counts[row.assigned_to] || 0) + 1;
+    }
+  }
+
+  // Fetch admin names
+  const adminCounts: AdminCounts = {};
+
+  if (adminIds.size > 0) {
+    const { data: admins } = await db
+      .from("admin_users")
+      .select("id, display_name")
+      .in("id", Array.from(adminIds));
+
+    const nameMap = new Map<string, string>();
+    for (const admin of admins ?? []) {
+      nameMap.set(admin.id, admin.display_name || "Unknown");
+    }
+
+    for (const adminId of adminIds) {
+      adminCounts[adminId] = {
+        count: counts[adminId] || 0,
+        display_name: nameMap.get(adminId) || "Unknown",
+      };
+    }
+  }
+
+  return adminCounts;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // List Queries
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -437,6 +575,8 @@ export interface ListProvidersOptions {
   notConverted?: boolean;
   // Filter by meeting focus (for Meeting Scheduled subtabs)
   meetingFocus?: MeetingFocus;
+  // Filter by assigned admin
+  assignedTo?: string;
 }
 
 export async function listProviders(options: ListProvidersOptions = {}): Promise<{
@@ -462,6 +602,7 @@ export async function listProviders(options: ListProvidersOptions = {}): Promise
     converted,
     notConverted,
     meetingFocus,
+    assignedTo,
   } = options;
 
   // Build the query
@@ -543,6 +684,11 @@ export async function listProviders(options: ListProvidersOptions = {}): Promise
     query = query.lte("claimed_at", claimedTo);
   }
 
+  // Assigned admin filter
+  if (assignedTo) {
+    query = query.eq("assigned_to", assignedTo);
+  }
+
   // Apply ordering
   query = query.order(orderBy, { ascending: orderDirection === "asc" });
 
@@ -612,13 +758,14 @@ export async function listProviders(options: ListProvidersOptions = {}): Promise
   const trackingIds = providers.map((p) => p.id);
   const callStats = await getCallStatsForTrackingIds(trackingIds);
 
-  // Add call_count and last_call_at to each provider
+  // Add call_count, last_call_at, and last_call_outcome to each provider
   providers = providers.map((p) => {
     const stats = callStats.get(p.id);
     return {
       ...p,
       call_count: stats?.count || 0,
       last_call_at: stats?.lastCallAt || null,
+      last_call_outcome: stats?.lastCallOutcome || null,
     };
   });
 

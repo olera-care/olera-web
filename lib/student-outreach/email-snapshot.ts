@@ -1,6 +1,6 @@
 /**
  * Build the default email-template snapshots for one stakeholder.
- * Mirrors the initialization logic in PreFlightReviewModal — same templates,
+ * Mirrors the launch-time snapshot logic — same templates,
  * same days. Used by the Research-tab bulk-start flow when admin doesn't
  * want to review each email individually before firing.
  *

@@ -65,6 +65,14 @@ interface BriefingResponse {
       photoReadiness: "unreviewed" | "update_requested" | "review_requested" | "ready" | null;
     } | null;
   };
+  medjobs: {
+    status: "none" | "in_pilot" | "pilot_expired" | "subscribed";
+    eligible: boolean;
+    pilotStartedAt: string | null;
+    subscribedAt: string | null;
+    opportunityLevel: "none" | "pitch" | "convert" | "renew";
+    opportunityReason: string | null;
+  };
   flags: Array<{
     type: "warning" | "info" | "opportunity";
     label: string;

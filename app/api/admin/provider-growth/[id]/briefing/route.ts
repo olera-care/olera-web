@@ -95,6 +95,15 @@ export interface BriefingResponse {
     } | null;
   };
 
+  medjobs: {
+    status: "none" | "in_pilot" | "pilot_expired" | "subscribed";
+    eligible: boolean;
+    pilotStartedAt: string | null;
+    subscribedAt: string | null;
+    opportunityLevel: "none" | "pitch" | "convert" | "renew";
+    opportunityReason: string | null;
+  };
+
   flags: Array<{
     type: "warning" | "info" | "opportunity";
     label: string;
@@ -166,6 +175,7 @@ function buildBriefing(data: RichContextData): BriefingResponse {
     emailAssessment: data.emailAssessment,
     profileCompleteness: data.profileCompleteness,
     adBoost: data.adBoost,
+    medjobs: data.medjobs,
     flags: data.flags,
     recommendedAction: data.recommendedAction,
     openingScript: data.openingScript,

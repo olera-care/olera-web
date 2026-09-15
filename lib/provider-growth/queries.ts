@@ -236,6 +236,17 @@ export interface RichContextData {
     } | null;
   };
 
+  // MedJobs (staffing) status and opportunity
+  medjobs: {
+    status: "none" | "in_pilot" | "pilot_expired" | "subscribed";
+    eligible: boolean;
+    pilotStartedAt: string | null;
+    subscribedAt: string | null;
+    // Computed opportunity assessment
+    opportunityLevel: "none" | "pitch" | "convert" | "renew";
+    opportunityReason: string | null;
+  };
+
   // Flags for issues to address
   flags: Array<{
     type: "warning" | "info" | "opportunity";
@@ -291,10 +302,10 @@ export async function getRichContextData(
     // Review requests sent
     reviewRequestsResult,
   ] = await Promise.all([
-    // Tracking record
+    // Tracking record (includes MedJobs eligibility and status)
     db
       .from("provider_growth_tracking")
-      .select("pipeline_stage, ads_status, medjobs_status, claimed_at, last_activity_at")
+      .select("pipeline_stage, ads_status, medjobs_status, medjobs_eligible, medjobs_pilot_started_at, medjobs_subscribed_at, claimed_at, last_activity_at")
       .eq("id", trackingId)
       .single(),
 
@@ -598,6 +609,43 @@ export async function getRichContextData(
     flightEndDate: primaryCampaign.flight_end_date ?? null,
     photoReadiness: primaryCampaign.photo_readiness_status as "unreviewed" | "update_requested" | "review_requested" | "ready" | null,
   } : null;
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Process MedJobs (Staffing) Status
+  // ─────────────────────────────────────────────────────────────────────────────
+  const medjobsStatus = (tracking?.medjobs_status || "none") as "none" | "in_pilot" | "pilot_expired" | "subscribed";
+  const medjobsEligible = tracking?.medjobs_eligible ?? false;
+  const medjobsPilotStartedAt = tracking?.medjobs_pilot_started_at ?? null;
+  const medjobsSubscribedAt = tracking?.medjobs_subscribed_at ?? null;
+
+  // Determine MedJobs opportunity level
+  let medjobsOpportunityLevel: "none" | "pitch" | "convert" | "renew" = "none";
+  let medjobsOpportunityReason: string | null = null;
+
+  if (medjobsStatus === "subscribed") {
+    // Already paying - no opportunity needed
+    medjobsOpportunityLevel = "none";
+  } else if (medjobsStatus === "pilot_expired") {
+    // Pilot expired - re-engage opportunity
+    medjobsOpportunityLevel = "renew";
+    medjobsOpportunityReason = "Their MedJobs pilot has expired - check if they want to renew";
+  } else if (medjobsStatus === "in_pilot") {
+    // In pilot - conversion opportunity
+    medjobsOpportunityLevel = "convert";
+    const pilotDaysRaw = medjobsPilotStartedAt
+      ? Math.floor((Date.now() - new Date(medjobsPilotStartedAt).getTime()) / (1000 * 60 * 60 * 24))
+      : null;
+    // Validate: must be a valid non-negative number (handles NaN and future dates)
+    const pilotDays = pilotDaysRaw !== null && !isNaN(pilotDaysRaw) && pilotDaysRaw >= 0 ? pilotDaysRaw : null;
+    medjobsOpportunityReason = pilotDays !== null
+      ? `In MedJobs pilot for ${pilotDays} days - check how it's going`
+      : "Currently in MedJobs pilot - check how it's going";
+  } else if (medjobsEligible) {
+    // Eligible but not started - pitch opportunity
+    medjobsOpportunityLevel = "pitch";
+    medjobsOpportunityReason = "Eligible for MedJobs staffing program - pitch if they hire staff";
+  }
+  // else: not eligible, no opportunity
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Calculate basic metrics
@@ -1016,6 +1064,15 @@ export async function getRichContextData(
       lastCampaignStatus: (primaryCampaign?.status as "pending_profile" | "requested" | "scheduled" | "live" | "ended" | "cancelled") || null,
       totalLeadsFromAds,
       campaign: campaignDetails,
+    },
+
+    medjobs: {
+      status: medjobsStatus,
+      eligible: medjobsEligible,
+      pilotStartedAt: medjobsPilotStartedAt,
+      subscribedAt: medjobsSubscribedAt,
+      opportunityLevel: medjobsOpportunityLevel,
+      opportunityReason: medjobsOpportunityReason,
     },
 
     flags,

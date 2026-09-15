@@ -237,11 +237,10 @@ function Board() {
       key={f.id}
       provider={f}
       variant="student"
-      campus={campus || undefined}
-      isRequested={requested.has(f.id)}
-      canRequest={!!studentProfileId}
-      requestLabel={studentStatus?.isLive ? "Request interview" : "Complete profile to apply →"}
-      onRequestInterview={() => (studentProfileId ? setModalTarget(f) : setShowScreener(true))}
+      // Cards are informational only — students complete their profile via
+      // the hero "Apply Now" and providers reach out (unidirectional flow)
+      disableLink
+      canRequest={false}
     />
   );
 

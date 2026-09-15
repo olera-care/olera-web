@@ -96,6 +96,16 @@ BEGIN
   -- ── Deletes, children first. No temp tables: each statement re-derives
   --    the target set from v_keep, so there is no state to go stale. ──────
 
+  -- site_tasks first: its record_id FK to campus_channel_records is
+  -- ON DELETE CASCADE, so deleting the records first would take bound
+  -- site to-dos with them and this count would under-report.
+  DELETE FROM site_tasks st
+   USING student_outreach_campuses c
+   WHERE c.id = st.campus_id
+     AND NOT EXISTS (SELECT 1 FROM unnest(v_keep) k
+                      WHERE lower(btrim(k)) = lower(btrim(c.name)));
+  GET DIAGNOSTICS n_stask = ROW_COUNT;
+
   DELETE FROM campus_channel_records r
    USING campus_channels ch, student_outreach_campuses c
    WHERE ch.id = r.channel_id AND c.id = ch.campus_id
@@ -110,12 +120,6 @@ BEGIN
                       WHERE lower(btrim(k)) = lower(btrim(c.name)));
   GET DIAGNOSTICS n_chan = ROW_COUNT;
 
-  DELETE FROM site_tasks st
-   USING student_outreach_campuses c
-   WHERE c.id = st.campus_id
-     AND NOT EXISTS (SELECT 1 FROM unnest(v_keep) k
-                      WHERE lower(btrim(k)) = lower(btrim(c.name)));
-  GET DIAGNOSTICS n_stask = ROW_COUNT;
 
   DELETE FROM student_outreach_tasks t
    USING student_outreach so, student_outreach_campuses c

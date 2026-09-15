@@ -50,7 +50,7 @@ export async function GET(request: NextRequest) {
     while (hasMore) {
       const { data: students, error } = await db
         .from("business_profiles")
-        .select("id, slug, display_name, email, city, image_url, metadata, created_at")
+        .select("id, slug, display_name, email, city, state, image_url, metadata, created_at")
         .eq("type", "student")
         .not("email", "is", null)
         .not("display_name", "is", null)
@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
       const hasBasicInfo = {
         hasName: !!student.display_name?.trim(),
         hasUniversity: !!meta.university,
-        hasLocation: !!student.city,
+        hasLocation: !!(student.city && student.state),
       };
 
       // Recalculate completeness fresh (single source of truth)

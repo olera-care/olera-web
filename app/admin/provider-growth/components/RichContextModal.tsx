@@ -282,13 +282,13 @@ export function RichContextModal({
     }
   }, [isOpen, data, loading, fetchBriefing]);
 
-  // Reset state when modal opens with different provider
+  // Reset state when trackingId changes (different provider selected)
   useEffect(() => {
-    if (isOpen) {
-      setData(null);
-      setError(null);
-    }
-  }, [trackingId, isOpen]);
+    // Reset all state when viewing a different provider
+    setData(null);
+    setError(null);
+    setLoading(false);
+  }, [trackingId]);
 
   // Handle escape key
   useEffect(() => {

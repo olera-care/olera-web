@@ -169,6 +169,8 @@ export function RichContextModal({
   const [data, setData] = useState<BriefingData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [leadsExpanded, setLeadsExpanded] = useState(false);
+  const [questionsExpanded, setQuestionsExpanded] = useState(false);
 
   const fetchBriefing = useCallback(async () => {
     setLoading(true);
@@ -195,6 +197,8 @@ export function RichContextModal({
     setData(null);
     setError(null);
     setLoading(false);
+    setLeadsExpanded(false);
+    setQuestionsExpanded(false);
   }, [trackingId]);
 
   useEffect(() => {
@@ -342,60 +346,67 @@ export function RichContextModal({
                   </ul>
                 </div>
 
-                {/* Recent Leads - show family names and messages */}
-                {b.leads?.recentLeads?.length > 0 && (
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-                      Recent Leads ({b.leads?.count ?? 0} total)
-                    </p>
-                    <ul className="space-y-2">
-                      {b.leads.recentLeads.slice(0, 3).map((lead, i) => (
-                        <li key={i} className="text-sm bg-blue-50 rounded-lg px-3 py-2">
-                          <div className="flex justify-between items-start">
-                            <span className="font-medium text-gray-900">
-                              {lead.familyName || "Family"}
-                            </span>
-                            <span className="text-xs text-gray-500">
+                {/* Recent Leads - collapsible */}
+                {(b.leads?.count ?? 0) > 0 && (
+                  <CollapsibleSection
+                    title="Leads"
+                    summary={`${b.leads.count} total${b.leads.recentLeads?.[0] ? ` · newest: ${parseLeadName(b.leads.recentLeads[0])}` : ""}`}
+                    expanded={leadsExpanded}
+                    onToggle={() => setLeadsExpanded(!leadsExpanded)}
+                  >
+                    <div className="space-y-2 pt-2">
+                      {b.leads.recentLeads?.map((lead, i) => {
+                        const parsed = parseLeadMessage(lead.message);
+                        return (
+                          <div key={i} className="flex justify-between items-start text-sm">
+                            <div className="flex-1 min-w-0">
+                              <span className="font-medium text-gray-900">
+                                {lead.familyName || parsed.name || "Family"}
+                              </span>
+                              {parsed.email && (
+                                <span className="text-gray-500 ml-2">{parsed.email}</span>
+                              )}
+                              {parsed.message && (
+                                <p className="text-gray-600 text-xs mt-0.5 truncate">{parsed.message}</p>
+                              )}
+                            </div>
+                            <span className="text-xs text-gray-400 ml-2 whitespace-nowrap">
                               {formatRelative(lead.created_at)}
                             </span>
                           </div>
-                          {lead.message && (
-                            <p className="text-gray-600 mt-1 text-xs line-clamp-2">
-                              {lead.message}
-                            </p>
-                          )}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                        );
+                      })}
+                    </div>
+                  </CollapsibleSection>
                 )}
 
-                {/* Recent Questions - show question text */}
-                {b.questions.recentQuestions.length > 0 && (
-                  <div>
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
-                      Recent Questions ({b.questions.received} total, {b.questions.unanswered} unanswered)
-                    </p>
-                    <ul className="space-y-2">
-                      {b.questions.recentQuestions.slice(0, 3).map((q, i) => (
-                        <li key={i} className="text-sm bg-amber-50 rounded-lg px-3 py-2">
-                          <div className="flex justify-between items-start gap-2">
-                            <p className="text-gray-700 line-clamp-2">{q.question}</p>
-                            <span className={`text-xs px-1.5 py-0.5 rounded ${
-                              q.answered
-                                ? "bg-green-100 text-green-700"
-                                : "bg-amber-100 text-amber-700"
-                            }`}>
-                              {q.answered ? "Answered" : "Unanswered"}
-                            </span>
+                {/* Recent Questions - collapsible */}
+                {b.questions.received > 0 && (
+                  <CollapsibleSection
+                    title="Questions"
+                    summary={`${b.questions.received} total${b.questions.unanswered > 0 ? ` · ${b.questions.unanswered} unanswered` : ""}`}
+                    expanded={questionsExpanded}
+                    onToggle={() => setQuestionsExpanded(!questionsExpanded)}
+                    alert={b.questions.unanswered > 0}
+                  >
+                    <div className="space-y-2 pt-2">
+                      {b.questions.recentQuestions.map((q, i) => (
+                        <div key={i} className="flex justify-between items-start gap-2 text-sm">
+                          <div className="flex-1 min-w-0">
+                            <p className="text-gray-700">{q.question}</p>
+                            <span className="text-xs text-gray-400">{formatRelative(q.created_at)}</span>
                           </div>
-                          <span className="text-xs text-gray-500 mt-1 block">
-                            {formatRelative(q.created_at)}
+                          <span className={`text-xs px-1.5 py-0.5 rounded whitespace-nowrap ${
+                            q.answered
+                              ? "bg-green-100 text-green-700"
+                              : "bg-amber-100 text-amber-700"
+                          }`}>
+                            {q.answered ? "Answered" : "Unanswered"}
                           </span>
-                        </li>
+                        </div>
                       ))}
-                    </ul>
-                  </div>
+                    </div>
+                  </CollapsibleSection>
                 )}
 
                 {/* Grouped details - organized by category */}
@@ -517,8 +528,80 @@ export function RichContextModal({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Helper Functions
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Parse the JSON message field from connections to extract useful info */
+function parseLeadMessage(message: string | null): { name?: string; email?: string; message?: string } {
+  if (!message) return {};
+  try {
+    // Try parsing as JSON
+    const parsed = JSON.parse(message);
+    return {
+      name: parsed.seeker_name || (parsed.seeker_first_name && parsed.seeker_last_name
+        ? `${parsed.seeker_first_name} ${parsed.seeker_last_name}`
+        : parsed.seeker_first_name),
+      email: parsed.seeker_email,
+      message: parsed.message || parsed.inquiry_message,
+    };
+  } catch {
+    // Not JSON - might be plain text message
+    return { message: message.length > 100 ? message.slice(0, 100) + "..." : message };
+  }
+}
+
+/** Get display name for a lead (from familyName or parsed message) */
+function parseLeadName(lead: { familyName: string | null; message: string | null }): string {
+  if (lead.familyName) return lead.familyName;
+  const parsed = parseLeadMessage(lead.message);
+  return parsed.name || "Family";
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Sub-components
 // ─────────────────────────────────────────────────────────────────────────────
+
+function CollapsibleSection({
+  title,
+  summary,
+  expanded,
+  onToggle,
+  alert,
+  children,
+}: {
+  title: string;
+  summary: string;
+  expanded: boolean;
+  onToggle: () => void;
+  alert?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="bg-gray-50 rounded-lg">
+      <button
+        onClick={onToggle}
+        className="w-full px-3 py-2.5 flex items-center justify-between text-left hover:bg-gray-100 rounded-lg transition-colors"
+      >
+        <div className="flex items-center gap-2">
+          <span className={`text-sm font-medium ${alert ? "text-amber-700" : "text-gray-900"}`}>
+            {title}
+          </span>
+          <span className="text-xs text-gray-500">{summary}</span>
+        </div>
+        <svg
+          className={`w-4 h-4 text-gray-400 transition-transform ${expanded ? "rotate-180" : ""}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {expanded && <div className="px-3 pb-3">{children}</div>}
+    </div>
+  );
+}
 
 function Stat({ label, value, alert }: { label: string; value: string | number; alert?: boolean }) {
   return (

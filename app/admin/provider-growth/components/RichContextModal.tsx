@@ -73,6 +73,16 @@ interface BriefingResponse {
     opportunityLevel: "none" | "pitch" | "convert" | "renew";
     opportunityReason: string | null;
   };
+  featureEngagement: {
+    adBoostViews: number;
+    adBoostLastViewed: string | null;
+    adBoostApplyStarted: boolean;
+    reviewsCtaClicked: boolean;
+    reviewsCtaLastClicked: string | null;
+    marketViewCount: number;
+    marketLastViewed: string | null;
+    warmLeadSignals: string[];
+  };
   flags: Array<{
     type: "warning" | "info" | "opportunity";
     label: string;

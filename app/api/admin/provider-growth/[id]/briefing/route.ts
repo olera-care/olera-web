@@ -104,6 +104,17 @@ export interface BriefingResponse {
     opportunityReason: string | null;
   };
 
+  featureEngagement: {
+    adBoostViews: number;
+    adBoostLastViewed: string | null;
+    adBoostApplyStarted: boolean;
+    reviewsCtaClicked: boolean;
+    reviewsCtaLastClicked: string | null;
+    marketViewCount: number;
+    marketLastViewed: string | null;
+    warmLeadSignals: string[];
+  };
+
   flags: Array<{
     type: "warning" | "info" | "opportunity";
     label: string;
@@ -176,6 +187,7 @@ function buildBriefing(data: RichContextData): BriefingResponse {
     profileCompleteness: data.profileCompleteness,
     adBoost: data.adBoost,
     medjobs: data.medjobs,
+    featureEngagement: data.featureEngagement,
     flags: data.flags,
     recommendedAction: data.recommendedAction,
     openingScript: data.openingScript,

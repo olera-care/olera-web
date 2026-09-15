@@ -247,6 +247,22 @@ export interface RichContextData {
     opportunityReason: string | null;
   };
 
+  // Feature engagement signals (what they've explored but not acted on)
+  featureEngagement: {
+    // Ad Boost interest
+    adBoostViews: number;
+    adBoostLastViewed: string | null;
+    adBoostApplyStarted: boolean; // Did they start the apply flow?
+    // Review generation interest
+    reviewsCtaClicked: boolean;
+    reviewsCtaLastClicked: string | null;
+    // MedJobs/staffing interest
+    marketViewCount: number;
+    marketLastViewed: string | null;
+    // Summary for pitch
+    warmLeadSignals: string[]; // e.g., ["Viewed Ad Boost 3x", "Clicked reviews CTA"]
+  };
+
   // Flags for issues to address
   flags: Array<{
     type: "warning" | "info" | "opportunity";
@@ -430,6 +446,11 @@ export async function getRichContextData(
   let leadsOpenedResult: { count: number | null } = { count: 0 };
   let contactsRevealedResult: { count: number | null } = { count: 0 };
   let googleReviewsResult: { data: { google_reviews_data: { rating?: number; review_count?: number } | null; google_rating: number | null } | null } = { data: null };
+  // Feature engagement signals
+  let adBoostViewsResult: { data: Array<{ created_at: string }> | null; count: number | null } = { data: [], count: 0 };
+  let adBoostStepResult: { data: Array<{ created_at: string }> | null; count: number | null } = { data: [], count: 0 };
+  let reviewsCtaResult: { data: Array<{ created_at: string }> | null } = { data: [] };
+  let marketViewResult: { data: Array<{ created_at: string }> | null; count: number | null } = { data: [], count: 0 };
 
   try {
     const results = await Promise.all([
@@ -493,6 +514,42 @@ export async function getRichContextData(
             .eq("provider_id", sourceProviderId)
             .maybeSingle()
         : Promise.resolve({ data: null }),
+
+      // Feature engagement: Ad Boost page views (all time)
+      db
+        .from("provider_activity")
+        .select("created_at", { count: "exact" })
+        .in("provider_id", providerIdVariants)
+        .eq("event_type", "managed_ads_boost_viewed")
+        .order("created_at", { ascending: false })
+        .limit(1),
+
+      // Feature engagement: Ad Boost apply flow started
+      db
+        .from("provider_activity")
+        .select("created_at", { count: "exact" })
+        .in("provider_id", providerIdVariants)
+        .eq("event_type", "managed_ads_step_viewed")
+        .order("created_at", { ascending: false })
+        .limit(1),
+
+      // Feature engagement: Reviews CTA clicked
+      db
+        .from("provider_activity")
+        .select("created_at")
+        .in("provider_id", providerIdVariants)
+        .eq("event_type", "reviews_cta_clicked")
+        .order("created_at", { ascending: false })
+        .limit(1),
+
+      // Feature engagement: MedJobs/market page views
+      db
+        .from("provider_activity")
+        .select("created_at", { count: "exact" })
+        .in("provider_id", providerIdVariants)
+        .eq("event_type", "your_market_viewed")
+        .order("created_at", { ascending: false })
+        .limit(1),
     ]);
 
     emailStatsData = results[0] as typeof emailStatsData;
@@ -502,6 +559,10 @@ export async function getRichContextData(
     leadsOpenedResult = results[4] as typeof leadsOpenedResult;
     contactsRevealedResult = results[5] as typeof contactsRevealedResult;
     googleReviewsResult = results[6] as typeof googleReviewsResult;
+    adBoostViewsResult = results[7] as typeof adBoostViewsResult;
+    adBoostStepResult = results[8] as typeof adBoostStepResult;
+    reviewsCtaResult = results[9] as typeof reviewsCtaResult;
+    marketViewResult = results[10] as typeof marketViewResult;
   } catch (e) {
     console.error("[getRichContextData] Phase 2 queries failed:", e);
     // Continue with default values - engagement data will show as 0/null
@@ -646,6 +707,36 @@ export async function getRichContextData(
     medjobsOpportunityReason = "Eligible for MedJobs staffing program - pitch if they hire staff";
   }
   // else: not eligible, no opportunity
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Process Feature Engagement Signals
+  // ─────────────────────────────────────────────────────────────────────────────
+  const adBoostViews = adBoostViewsResult.count || 0;
+  const adBoostLastViewed = adBoostViewsResult.data?.[0]?.created_at || null;
+  const adBoostApplyStarted = (adBoostStepResult.count || 0) > 0;
+
+  const reviewsCtaClicked = (reviewsCtaResult.data?.length || 0) > 0;
+  const reviewsCtaLastClicked = reviewsCtaResult.data?.[0]?.created_at || null;
+
+  const marketViewCount = marketViewResult.count || 0;
+  const marketLastViewed = marketViewResult.data?.[0]?.created_at || null;
+
+  // Build warm lead signals for pitch context
+  const warmLeadSignals: string[] = [];
+  if (adBoostViews >= 3) {
+    warmLeadSignals.push(`Viewed Ad Boost ${adBoostViews}x`);
+  } else if (adBoostViews > 0) {
+    warmLeadSignals.push("Viewed Ad Boost page");
+  }
+  if (adBoostApplyStarted && !adCampaigns.length) {
+    warmLeadSignals.push("Started Ad Boost apply but didn't finish");
+  }
+  if (reviewsCtaClicked && !hasUsedReviewRequests) {
+    warmLeadSignals.push("Clicked reviews CTA but hasn't sent any");
+  }
+  if (marketViewCount > 0 && medjobsStatus === "none") {
+    warmLeadSignals.push("Viewed staffing page but not enrolled");
+  }
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Calculate basic metrics
@@ -1073,6 +1164,17 @@ export async function getRichContextData(
       subscribedAt: medjobsSubscribedAt,
       opportunityLevel: medjobsOpportunityLevel,
       opportunityReason: medjobsOpportunityReason,
+    },
+
+    featureEngagement: {
+      adBoostViews,
+      adBoostLastViewed,
+      adBoostApplyStarted,
+      reviewsCtaClicked,
+      reviewsCtaLastClicked,
+      marketViewCount,
+      marketLastViewed,
+      warmLeadSignals,
     },
 
     flags,

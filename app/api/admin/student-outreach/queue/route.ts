@@ -89,6 +89,8 @@ export interface TabCounts {
   replies: number;
   meetings: number;
   followup: number;
+  /** Rounds 2-7: providers with a round task due now or overdue. */
+  followups?: number;
   partners: number;
   archive: number;
   all: number;
@@ -426,8 +428,8 @@ async function computeTabCounts(
   db: DB,
   filters: { campusId: string | null; type: StakeholderType | null },
 ): Promise<{ counts: TabCounts; unread: TabCounts; callsTotal: number }> {
-  const counts: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, followup: 0, partners: 0, archive: 0, all: 0, clients: 0, campuses: 0 };
-  const unread: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, followup: 0, partners: 0, archive: 0, all: 0, clients: 0, campuses: 0 };
+  const counts: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, followup: 0, followups: 0, partners: 0, archive: 0, all: 0, clients: 0, campuses: 0 };
+  const unread: TabCounts = { candidates: 0, prospects: 0, calls: 0, replies: 0, meetings: 0, followup: 0, followups: 0, partners: 0, archive: 0, all: 0, clients: 0, campuses: 0 };
   // Total pending calls across ALL days (Calls-tab denominator); counts.calls
   // stays "due today" (the numerator).
   let callsTotal = 0;
@@ -540,6 +542,24 @@ async function computeTabCounts(
   // Unread = due-today tasks whose outreach row is unread. viewed_at lives on
   // student_outreach, so all per-recipient cards on a row share that state.
   for (const t of dueTodayCallTasks) if (unreadIds.has(t.outreach_id)) unread.calls++;
+
+  // Follow-ups count: providers with a round task due now or overdue, call or
+  // email, de-duped to one per row so the badge matches the list length.
+  let followupsQ = db
+    .from("student_outreach_tasks")
+    .select("outreach_id, student_outreach!inner(campus_id, stakeholder_type)")
+    .eq("status", "pending")
+    .in("task_type", ["outreach_followup_call", "outreach_email_send"])
+    .lte("due_at", new Date().toISOString())
+    .not("student_outreach.status", "in", `(${PARTNER_ALL.map((s) => `"${s}"`).join(",")})`);
+  if (filters.campusId) followupsQ = followupsQ.eq("student_outreach.campus_id", filters.campusId);
+  if (filters.type) followupsQ = followupsQ.eq("student_outreach.stakeholder_type", filters.type);
+  const { data: followupTasks } = await followupsQ;
+  const followupRowIds = new Set(
+    ((followupTasks ?? []) as Array<{ outreach_id: string }>).map((t) => t.outreach_id),
+  );
+  counts.followups = followupRowIds.size;
+  for (const id of followupRowIds) if (unreadIds.has(id)) unread.followups = (unread.followups ?? 0) + 1;
 
   // v9.0 Phase 6.5: Partners count for the In Basket tab is task-driven
   // (smart-hide when no partners have open tasks). Override the
@@ -973,6 +993,15 @@ async function fetchRowIdsForTab(
       const followupPageSize = Math.max(pageSize, 300);
       return await idsByFollowup(db, { campusId, type, searchIds, page, pageSize: followupPageSize });
     }
+    case "followups": {
+      // Rounds 2-7. One row per provider with a round task due, whichever
+      // channel it is — the drawer works the call and the email together, so
+      // listing them separately would show the same provider twice.
+      const followupsPageSize = Math.max(pageSize, 300);
+      return await idsByFollowupsDue(db, {
+        campusId, type, searchIds, page, pageSize: followupsPageSize,
+      });
+    }
     case "archive":
       return await idsByArchive(db, { campusId, type, searchIds, page, pageSize });
     default:
@@ -1170,6 +1199,43 @@ async function idsByCallsDue(db: DB, opts: QueryOpts): Promise<string[]> {
     ids.push(t.outreach_id);
     // No pageSize cap on Calls — every queued call surfaces (grouped per day
     // client-side). The query's own row ceiling is the only bound.
+  }
+  return ids;
+}
+
+/**
+ * Follow-ups tab: rows with a round task due now or overdue, call or email.
+ *
+ * Deliberately one row per outreach rather than one per task. A round queues a
+ * call and an email on the same day and the drawer works both, so de-duping on
+ * outreach_id is what makes the tab read as "providers to check today" rather
+ * than a task list with everything twice.
+ *
+ * Future-dated tasks are excluded: this is today's queue, not the schedule.
+ */
+async function idsByFollowupsDue(db: DB, opts: QueryOpts): Promise<string[]> {
+  const nowIso = new Date().toISOString();
+  let q = db
+    .from("student_outreach_tasks")
+    .select("outreach_id, due_at, student_outreach!inner(campus_id, stakeholder_type)")
+    .eq("status", "pending")
+    .in("task_type", ["outreach_followup_call", "outreach_email_send"])
+    .lte("due_at", nowIso)
+    .not("student_outreach.status", "in", `(${PARTNER_ALL.map((s) => `"${s}"`).join(",")})`)
+    .order("due_at", { ascending: true })
+    .order("id", { ascending: true })
+    .limit(10000);
+  if (opts.campusId) q = q.eq("student_outreach.campus_id", opts.campusId);
+  if (opts.type) q = q.eq("student_outreach.stakeholder_type", opts.type);
+  if (opts.searchIds) q = q.in("student_outreach.id", opts.searchIds);
+  const { data } = await q;
+  const ids: string[] = [];
+  const seen = new Set<string>();
+  for (const t of (data ?? []) as Array<{ outreach_id: string }>) {
+    if (seen.has(t.outreach_id)) continue;
+    seen.add(t.outreach_id);
+    ids.push(t.outreach_id);
+    if (ids.length >= opts.pageSize) break;
   }
   return ids;
 }

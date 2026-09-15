@@ -33,6 +33,11 @@ export type TabKey =
   // University Activation (ST3-ST7) and the tasks it generates.
   | "activation"
   | "tasks"
+  // The 2-business-day follow-up loop (rounds 2-7), replacing the separate
+  // Calls and Emails queues: one row per provider due a check today.
+  | "followups"
+  // Historical record, previously reachable only by URL.
+  | "logs"
   | "prospects"
   | "partners"
   | "meetings"
@@ -110,12 +115,13 @@ export interface TabDef {
 //
 // Smart-hide tucks empty tabs away; the active tab anchors the bar.
 export const TABS: TabDef[] = [
-  { key: "providers",    label: "Providers",  tooltip: "Agency prospects in catchment plus active clients with a pending task." },
-  { key: "calls",        label: "Calls",      tooltip: "Phone calls due today. Tap to dial; log the outcome from the row." },
-  { key: "replies",      label: "Emails",     tooltip: "Email activity — replies, opens, clicks, bounces. Triage and pick the next step." },
-  { key: "meetings",     label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
   { key: "activation",   label: "Universities", tooltip: "University Activation: the five ST3-ST7 channels at each campus, and what is due." },
+  { key: "providers",    label: "Providers",  tooltip: "Round 1: call for the right contact, send the first email. Both logged, and the row starts the follow-up loop." },
+  { key: "followups",    label: "Follow-ups", tooltip: "Rounds 2-7. Every two business days: check for a reply, and if there isn't one, call and email." },
+  { key: "meetings",     label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
   { key: "tasks",        label: "Tasks",      tooltip: "Every recurring check the activation workflow generated, plus custom tasks." },
+  { key: "archive",      label: "Archive",    tooltip: "Rounds ran out with no reply, or closed by hand. Revive one to start a fresh set of rounds." },
+  { key: "logs",         label: "Logs",       tooltip: "Everything already actioned — the historical record." },
 ];
 
 // Ellipsis menu items — same shape as TABS, surfaced via a ⋯ button at
@@ -133,7 +139,6 @@ export const MENU_TABS: TabDef[] = [
   { key: "emails_sent", label: "Emails Sent",  tooltip: "All email-send touchpoints across stakeholders. (Coming soon.)" },
   { key: "outbound",    label: "Outbound",     tooltip: "Aggregated outbound activity log — emails, IG DMs, contact-form sends. Replied threads float to the top. (Coming soon.)" },
   { key: "signups",     label: "Signups",      tooltip: "Every student who entered the funnel — broader acquisition volume (live + incomplete profiles). Candidates ⊂ Signups." },
-  { key: "archive",     label: "Archive",      tooltip: "Stale and no-response outreach. Cadence ran out without engagement. They auto-rejoin Emails if they reply or call back later." },
 ];
 
 // v8.10.38: per-tab PulseHeader metric. Each tab points at a server
@@ -151,6 +156,8 @@ export const TAB_STATS: Record<TabKey, { metric: string; label: string }> = {
   // Per-entity metrics powering the per-tab PulseHeader in In Basket.
   clients:     { metric: "clients",          label: "new clients"          },
   activation:  { metric: "campuses",         label: "sites added"          },
+  followups:   { metric: "followups",   label: "due today" },
+  logs:        { metric: "logs",        label: "logged" },
   tasks:       { metric: "activity",         label: "operational events"   },
   // Sites uses the same time-series metric as the legacy 'campuses' key.
   sites:       { metric: "campuses",         label: "sites added"          },

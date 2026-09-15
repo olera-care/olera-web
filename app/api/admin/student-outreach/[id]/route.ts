@@ -2350,25 +2350,11 @@ async function handleScheduleSequence(
     user_id: userId,
     has_phone: hasPhone,
   });
-  // Smartlead is the delivery engine for all MedJobs cold EMAIL outreach.
-  // Enroll FIRST so any skip / API failure aborts BEFORE any CRM mutation.
-  // Pass the launch-modal recipient selection so Smartlead fans out to exactly
-  // the individuals the admin kept checked, matching the per-recipient calls.
-  //
-  // Phone-only (calls-only) launch: when there is NO email recipient at all
-  // (no general email AND no email-bearing recipient) — e.g. a provider with a
-  // phone but only a decision maker who has no email, launched via Override —
-  // there's nothing for Smartlead to send, so we skip enrollment entirely
-  // instead of throwing `no_email`. The row still queues its call tasks below.
-  const gcEmail = (row.research_data?.general_contact?.email ?? "").trim();
-  const hasEmailRecipient =
-    Boolean(gcEmail) || (body.recipients ?? []).some((r) => r.channels?.email === true);
-  if (hasEmailRecipient) {
-    await enrollRowIntoSmartlead(db, row, userId, body.recipients);
-  }
-
-  // Smartlead owns the email drip — we only queue CRM-side call tasks.
-  const tasksToInsert = plan.filter((p) => p.task_type === "outreach_followup_call");
+  // Nothing sends outreach for us any more: no Smartlead enrollment, no cron.
+  // Every step of the cadence is a reminder for a person, so BOTH channels
+  // queue as tasks. Dropping the email tasks here is what used to make the
+  // email half of a round invisible — Smartlead was expected to cover it.
+  const tasksToInsert = plan;
   let insertedTasks: Array<{
     id: string;
     task_type: string;

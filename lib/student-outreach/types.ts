@@ -597,6 +597,10 @@ export interface TabCounts {
   all: number;
   /** Prospects whose cadence finished with no meeting (Follow-up tab). */
   followup?: number;
+  /** Rounds 2-7: providers due a check today. Replaces calls + replies. */
+  followups?: number;
+  /** Historical record — actioned rows. Rendered without a count badge. */
+  logs?: number;
   clients?: number;
   campuses?: number;
   /** University Activation: universities with something due, and open tasks. */
@@ -639,6 +643,10 @@ export interface TabUnreadCounts {
   all: number;
   /** Prospects whose cadence finished with no meeting (Follow-up tab). */
   followup?: number;
+  /** Rounds 2-7: providers due a check today. Replaces calls + replies. */
+  followups?: number;
+  /** Historical record — actioned rows. Rendered without a count badge. */
+  logs?: number;
   clients?: number;
   campuses?: number;
   /** University Activation: universities with something due, and open tasks. */

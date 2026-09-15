@@ -1408,8 +1408,6 @@ function ResearchActionFooter({
   // Effective values: per-outreach override OR directory fallback. Mirrors
   // the same precedence used in GeneralContactSection so the footer
   // reflects whatever the admin sees in the General Contact rows above.
-  const generalContactPhone =
-    generalContactSlot.phone ?? ctx.provider_business_profile?.phone ?? null;
   const generalContactWebsite =
     generalContactSlot.website ??
     ctx.provider_business_profile?.website ??
@@ -1421,8 +1419,7 @@ function ResearchActionFooter({
       : (ctx.outreach.stakeholder_type ?? "student_org");
 
   const showVisitWebsite = Boolean(generalContactWebsite);
-  const showCallToConfirm =
-    ctx.outreach.kind === "provider" && Boolean(generalContactPhone);
+  const isProviderRow = ctx.outreach.kind === "provider";
 
   const launchLabel =
     verificationState.status === "overridden"
@@ -1498,7 +1495,7 @@ function ResearchActionFooter({
           the launch gate (logged from the brief card at the top of the
           drawer); this is the documented exception, written as an explicit
           override so the row records why it skipped verification. */}
-      {showCallToConfirm && verificationState.status !== "overridden" && !verificationState.can_launch && (
+      {isProviderRow && verificationState.status !== "overridden" && !verificationState.can_launch && (
         <button
           onClick={async () => {
             setError(null);
@@ -1510,7 +1507,7 @@ function ResearchActionFooter({
           }}
           className="mt-2 text-[11px] font-medium text-gray-500 underline-offset-2 hover:text-gray-700 hover:underline"
         >
-          Can&apos;t reach them by phone — launch without a confirm call
+          No confirm call possible — launch without one
         </button>
       )}
 

@@ -19,7 +19,6 @@ import {
   type PdfAudience,
 } from "@/lib/program-pdf/configs";
 import type { SmartleadPreviewSnapshot } from "@/lib/student-outreach/types";
-import { CallScriptBlock } from "@/components/admin/medjobs/CallScriptBlock";
 
 /** Rendered email HTML → plain text good enough to paste anywhere. */
 export function htmlToPlainText(html: string): string {
@@ -143,14 +142,16 @@ export function SendEmailModal({
   const canLog = recipients.length > 0;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/40 p-4">
-      <div className="mt-8 w-full max-w-2xl rounded-lg bg-white shadow-xl">
-        <div className="border-b border-gray-200 px-5 py-3">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+      {/* Capped at the viewport with a scrolling middle, so the dialog always
+          fits and the header + actions stay reachable however long the copy. */}
+      <div className="flex max-h-[92vh] w-full max-w-2xl flex-col rounded-lg bg-white shadow-xl">
+        <div className="shrink-0 border-b border-gray-200 px-5 py-3">
           <h2 className="text-sm font-semibold text-gray-900">Send the intro email</h2>
           <p className="mt-0.5 text-xs text-gray-500">{organizationName}</p>
         </div>
 
-        <div className="space-y-4 px-5 py-4">
+        <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-5 py-4">
           <Block
             label="What this is"
             text="The first email to this provider, sent by you from your own inbox."
@@ -206,7 +207,11 @@ export function SendEmailModal({
                 </p>
                 <CopyButton text={bodyText} html={bodyHtml} label="Copy email" />
               </div>
-              <CallScriptBlock label="" script={bodyText} />
+              <section className="max-h-[38vh] overflow-y-auto rounded-md border border-gray-200 bg-gray-50 px-3 py-2.5">
+                <pre className="whitespace-pre-wrap font-sans text-[12px] leading-relaxed text-gray-700">
+                  {bodyText}
+                </pre>
+              </section>
             </div>
           ) : (
             <p className="rounded-md border border-dashed border-gray-300 px-3 py-4 text-center text-xs text-gray-400">
@@ -232,7 +237,7 @@ export function SendEmailModal({
           )}
         </div>
 
-        <div className="flex items-center justify-end gap-2 border-t border-gray-200 px-5 py-3">
+        <div className="flex shrink-0 items-center justify-end gap-2 border-t border-gray-200 px-5 py-3">
           <button
             onClick={onCancel}
             disabled={saving}

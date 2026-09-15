@@ -112,21 +112,21 @@ export function ProviderProspectDrawerBody({ ctx, action, setError, activeTab }:
     gc.phone !== undefined ? gc.phone : ctx.provider_business_profile?.phone ?? null;
   const hasMainPhone = Boolean(mainPhone && String(mainPhone).trim());
 
-  // R5: partners (stakeholder rows) often have no phone, so they can't do a
-  // confirm call — email alone is enough to launch. Providers gate on the
-  // confirm-call (or override) ONLY when a main phone exists; phoneless
-  // providers launch directly on a valid email.
+  // The confirm call is the point of the pre-flight, so a provider never
+  // launches without one — including when no main phone is on file, which
+  // used to skip the gate entirely. The documented exception is the explicit
+  // override by the Launch button, which records why verification was skipped.
+  // Stakeholder rows keep the old email-only gate: most have no phone to call.
   const isPartner = outreach.kind != null && outreach.kind !== "provider";
-  const launchEnabled =
-    isPartner || !hasMainPhone
-      ? hasEmail
-      : hasEmail && verificationState.can_launch;
+  const launchEnabled = isPartner
+    ? hasEmail
+    : hasEmail && verificationState.can_launch;
   const launchDisabledReason = !hasEmail
-    ? hasMainPhone
-      ? "No email on file. Add an email, or use Call to Confirm → Override & launch to run a calls-only cadence."
-      : "Add an email — General Contact or Decision Maker."
-    : !isPartner && hasMainPhone && !verificationState.can_launch
-      ? "Confirm contacts on a Pre-Flight call, or override Pre-Flight."
+    ? "Add an email — General Contact or Decision Maker."
+    : !isPartner && !verificationState.can_launch
+      ? hasMainPhone
+        ? "Log the confirmation call first — use Log call at the top of the drawer."
+        : "No main number on file. Use the override below the Launch button."
       : undefined;
 
   return (

@@ -362,78 +362,100 @@ export async function getRichContextData(
   const providerSlug = profile?.slug;
   const sourceProviderId = profile?.source_provider_id;
 
-  // Build provider identifiers for activity queries (can match on slug, UUID, or source_provider_id)
-  const providerIdentifiers = [businessProfileId];
+  // Build provider identifiers for activity queries
+  // provider_activity.provider_id stores slugs (TEXT), provider_activity.profile_id stores UUIDs
+  const providerIdentifiers: string[] = [];
   if (providerSlug) providerIdentifiers.push(providerSlug);
   if (sourceProviderId) providerIdentifiers.push(sourceProviderId);
 
-  const [
-    emailStatsData,
-    dashboardVisitsResult,
-    profileEditsResult,
-    lastLoginResult,
-    leadsOpenedResult,
-    contactsRevealedResult,
-  ] = await Promise.all([
-    // Email stats (30 days)
-    providerEmail
-      ? db
-          .from("email_log")
-          .select("id, first_opened_at, first_clicked_at")
-          .eq("recipient", providerEmail)
-          .eq("recipient_type", "provider")
-          .gte("created_at", thirtyDaysAgo)
-      : Promise.resolve({ data: [] }),
+  // Phase 2 queries wrapped in try-catch to prevent breaking if any fail
+  let emailStatsData: { data: Array<{ first_opened_at: string | null; first_clicked_at: string | null }> | null } = { data: [] };
+  let dashboardVisitsResult: { data: Array<{ created_at: string }> | null; count: number | null } = { data: [], count: 0 };
+  let profileEditsResult: { data: Array<{ created_at: string; metadata: unknown }> | null } = { data: [] };
+  let lastLoginResult: { data: Array<{ created_at: string }> | null } = { data: [] };
+  let leadsOpenedResult: { count: number | null } = { count: 0 };
+  let contactsRevealedResult: { count: number | null } = { count: 0 };
 
-    // Dashboard visits (30 days)
-    db
-      .from("provider_activity")
-      .select("created_at", { count: "exact" })
-      .in("provider_id", providerIdentifiers)
-      .eq("event_type", "dashboard_arrival")
-      .gte("created_at", thirtyDaysAgo)
-      .order("created_at", { ascending: false })
-      .limit(1),
+  try {
+    const results = await Promise.all([
+      // Email stats (30 days)
+      providerEmail
+        ? db
+            .from("email_log")
+            .select("id, first_opened_at, first_clicked_at")
+            .eq("recipient", providerEmail)
+            .eq("recipient_type", "provider")
+            .gte("created_at", thirtyDaysAgo)
+        : Promise.resolve({ data: [] }),
 
-    // Profile edits (30 days) - includes section metadata
-    db
-      .from("provider_activity")
-      .select("created_at, metadata")
-      .in("provider_id", providerIdentifiers)
-      .eq("event_type", "provider_profile_edited")
-      .gte("created_at", thirtyDaysAgo)
-      .order("created_at", { ascending: false }),
+      // Dashboard visits (30 days) - use profile_id (UUID) not provider_id (slug)
+      db
+        .from("provider_activity")
+        .select("created_at", { count: "exact" })
+        .eq("profile_id", businessProfileId)
+        .eq("event_type", "dashboard_arrival")
+        .gte("created_at", thirtyDaysAgo)
+        .order("created_at", { ascending: false })
+        .limit(1),
 
-    // Last login / one-click access
-    db
-      .from("provider_activity")
-      .select("created_at")
-      .in("provider_id", providerIdentifiers)
-      .eq("event_type", "one_click_access")
-      .order("created_at", { ascending: false })
-      .limit(1),
+      // Profile edits (30 days) - use both profile_id and provider_id (slug) for wider match
+      providerIdentifiers.length > 0
+        ? db
+            .from("provider_activity")
+            .select("created_at, metadata")
+            .or(`profile_id.eq.${businessProfileId},provider_id.in.(${providerIdentifiers.join(",")})`)
+            .eq("event_type", "provider_profile_edited")
+            .gte("created_at", thirtyDaysAgo)
+            .order("created_at", { ascending: false })
+        : db
+            .from("provider_activity")
+            .select("created_at, metadata")
+            .eq("profile_id", businessProfileId)
+            .eq("event_type", "provider_profile_edited")
+            .gte("created_at", thirtyDaysAgo)
+            .order("created_at", { ascending: false }),
 
-    // Leads opened (all time for this provider)
-    db
-      .from("provider_activity")
-      .select("id", { count: "exact", head: true })
-      .in("provider_id", providerIdentifiers)
-      .eq("event_type", "lead_opened"),
+      // Last login / one-click access - use profile_id
+      db
+        .from("provider_activity")
+        .select("created_at")
+        .eq("profile_id", businessProfileId)
+        .eq("event_type", "one_click_access")
+        .order("created_at", { ascending: false })
+        .limit(1),
 
-    // Contact info revealed
-    db
-      .from("provider_activity")
-      .select("id", { count: "exact", head: true })
-      .in("provider_id", providerIdentifiers)
-      .eq("event_type", "contact_revealed"),
-  ]);
+      // Leads opened (all time) - use profile_id
+      db
+        .from("provider_activity")
+        .select("id", { count: "exact", head: true })
+        .eq("profile_id", businessProfileId)
+        .eq("event_type", "lead_opened"),
 
-  // Process email stats
-  const emailData = emailStatsData.data || [];
+      // Contact info revealed - use profile_id
+      db
+        .from("provider_activity")
+        .select("id", { count: "exact", head: true })
+        .eq("profile_id", businessProfileId)
+        .eq("event_type", "contact_revealed"),
+    ]);
+
+    emailStatsData = results[0] as typeof emailStatsData;
+    dashboardVisitsResult = results[1] as typeof dashboardVisitsResult;
+    profileEditsResult = results[2] as typeof profileEditsResult;
+    lastLoginResult = results[3] as typeof lastLoginResult;
+    leadsOpenedResult = results[4] as typeof leadsOpenedResult;
+    contactsRevealedResult = results[5] as typeof contactsRevealedResult;
+  } catch (e) {
+    console.error("[getRichContextData] Phase 2 queries failed:", e);
+    // Continue with default values - engagement data will show as 0/null
+  }
+
+  // Process email stats (with null safety)
+  const emailData = emailStatsData?.data || [];
   const emailStatsResult = {
     sent: emailData.length,
-    opened: emailData.filter((e: { first_opened_at: string | null }) => e.first_opened_at).length,
-    clicked: emailData.filter((e: { first_clicked_at: string | null }) => e.first_clicked_at).length,
+    opened: emailData.filter((e) => e?.first_opened_at).length,
+    clicked: emailData.filter((e) => e?.first_clicked_at).length,
   };
 
   const tracking = trackingResult.data;

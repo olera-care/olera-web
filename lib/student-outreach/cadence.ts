@@ -92,6 +92,21 @@ export interface OutreachDay {
 
 export const CADENCE_END_DAY = 14;
 
+/**
+ * Cadences whose `day` values count BUSINESS days from launch rather than
+ * calendar days. Everything sending by hand now, so a reminder landing on a
+ * Saturday is a reminder nobody sees.
+ */
+export const BUSINESS_DAY_CADENCES: ReadonlySet<CadenceKey> = new Set<CadenceKey>([
+  "provider",
+]);
+
+/** Rounds in the provider follow-up loop, counting round 1 (worked by hand). */
+export const PROVIDER_TOTAL_ROUNDS = 7;
+
+/** Call attempts allowed in round 1 before the row is archived unanswered. */
+export const ROUND_ONE_CALL_ATTEMPTS = 7;
+
 export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
   // Student organizations mirror the advising-office (advisor) cadence exactly:
   // they're office-shaped partners confirmed at Pre-Flight (when a phone exists),
@@ -233,31 +248,65 @@ export const OUTREACH_DAYS_BY_TYPE: Record<CadenceKey, OutreachDay[]> = {
   //
   // Phone steps still gated on has_phone at queue time (planSequence
   // skips them when absent).
+  // Provider follow-up, rounds 2-7. Round 1 is the qualifying call plus the
+  // first email, worked by hand in the Providers tab; it is not scheduled, and
+  // the row only launches into this cadence once both are logged.
+  //
+  // `day` is a BUSINESS-day offset here, not a calendar one (see
+  // `spacing: "business"` below). Every round pairs a call with an email on the
+  // same day, two business days after the last, so the loop runs six rounds
+  // across roughly two and a half weeks.
+  //
+  // Copy reuses the approved provider templates rather than inventing five new
+  // ones: the middle rounds bump, the last one closes.
   provider: [
     {
-      day: 0,
-      title: "Day 0 · intro email",
+      day: 2,
+      title: "Round 2 · call + email",
       steps: [
-        { id: "email", channel: "email", required: true, template: "provider_intro" },
-      ],
-    },
-    {
-      day: 3,
-      title: "Day 3 · light follow-up + check-in call",
-      steps: [
+        { id: "phone", channel: "phone", required: true, label: "Check for a reply, then call" },
         { id: "email", channel: "email", required: true, template: "provider_followup" },
-        { id: "phone", channel: "phone", required: true, label: "\"Did you get our email Monday?\"" },
       ],
     },
     {
-      day: 5,
-      title: "Day 5 · call attempt",
-      steps: [{ id: "phone", channel: "phone", required: true }],
+      day: 4,
+      title: "Round 3 · call + email",
+      steps: [
+        { id: "phone", channel: "phone", required: true, label: "Check for a reply, then call" },
+        { id: "email", channel: "email", required: true, template: "provider_followup" },
+      ],
     },
     {
-      day: 7,
-      title: "Day 7 · final follow-up",
-      steps: [{ id: "email", channel: "email", required: true, template: "provider_final" }],
+      day: 6,
+      title: "Round 4 · call + email",
+      steps: [
+        { id: "phone", channel: "phone", required: true, label: "Check for a reply, then call" },
+        { id: "email", channel: "email", required: true, template: "provider_followup" },
+      ],
+    },
+    {
+      day: 8,
+      title: "Round 5 · call + email",
+      steps: [
+        { id: "phone", channel: "phone", required: true, label: "Check for a reply, then call" },
+        { id: "email", channel: "email", required: true, template: "provider_followup" },
+      ],
+    },
+    {
+      day: 10,
+      title: "Round 6 · call + email",
+      steps: [
+        { id: "phone", channel: "phone", required: true, label: "Check for a reply, then call" },
+        { id: "email", channel: "email", required: true, template: "provider_followup" },
+      ],
+    },
+    {
+      day: 12,
+      title: "Round 7 · call + final email",
+      steps: [
+        { id: "phone", channel: "phone", required: true, label: "Check for a reply, then call" },
+        { id: "email", channel: "email", required: true, template: "provider_final" },
+      ],
     },
   ],
   // Activation cadence (Phase 1, 2026-06-09). Launched from a warm signal

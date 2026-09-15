@@ -892,75 +892,229 @@ export async function getRichContextData(
 
   // ─────────────────────────────────────────────────────────────────────────────
   // Deterministic Recommended Action (priority order)
+  // All pitchAngles focus on scheduling a call/meeting with founders
   // ─────────────────────────────────────────────────────────────────────────────
   let recommendedAction = {
     priority: 99,
     action: "General check-in",
     rationale: "No specific issues detected",
-    pitchAngle: "See how they're doing and if they need any help",
+    pitchAngle: "Schedule a quick call to see how they're finding the platform and if we can help",
   };
 
-  // Priority 1: Unanswered questions
-  if (questionsUnanswered > 0) {
+  // Get campaign status for priority decisions
+  const campaignStatus = campaignDetails?.status || null;
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CONVERTED PROVIDERS (have active/recent campaigns)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Priority 1: Campaign is LIVE - check in on performance
+  if (campaignStatus === "live") {
+    const delivered = campaignDetails?.delivered || 0;
+    const spend = campaignDetails?.spendCents ? `$${(campaignDetails.spendCents / 100).toFixed(0)}` : "their budget";
     recommendedAction = {
       priority: 1,
-      action: `Help them answer ${questionsUnanswered} waiting question${questionsUnanswered > 1 ? "s" : ""}`,
-      rationale: "Families asked questions and are waiting for responses",
-      pitchAngle: "Ask if they need help responding to family questions",
+      action: "Campaign performance check-in",
+      rationale: `Active campaign: ${delivered} families delivered so far`,
+      pitchAngle: `Schedule a call to review their campaign results - ${delivered} families reached, ${spend} spent`,
     };
   }
-  // Priority 2: Low lead engagement
-  else if (leadCount > 3 && leadOpenRate < 30) {
+  // Priority 2: Campaign ENDED - review results and pitch renewal
+  else if (campaignStatus === "ended") {
+    const delivered = campaignDetails?.delivered || 0;
     recommendedAction = {
       priority: 2,
-      action: "Check notification setup",
-      rationale: `Only opened ${leadsOpened} of ${leadCount} leads (${leadOpenRate}%)`,
-      pitchAngle: "Make sure they're getting notified when families reach out",
+      action: "Campaign wrap-up and renewal",
+      rationale: `Campaign ended: delivered ${delivered} families`,
+      pitchAngle: `Schedule a call to review campaign ROI (${delivered} families) and discuss next steps`,
     };
   }
-  // Priority 3: No dashboard visits
-  else if (dashboardVisits30d === 0 && daysOverdue > 14) {
+  // Priority 3: Campaign PENDING PROFILE - help complete to launch
+  else if (campaignStatus === "pending_profile") {
     recommendedAction = {
       priority: 3,
-      action: "Re-engage dormant provider",
-      rationale: `No dashboard activity in 30 days, ${daysOverdue} days since last touch`,
-      pitchAngle: "Walk them through their dashboard and what families see",
+      action: "Unblock Ad Boost launch",
+      rationale: `Profile ${completenessPercentage}% complete - needs 70%+ to launch their campaign`,
+      pitchAngle: "Schedule a call to complete their profile together so we can launch their Ad Boost",
     };
   }
-  // Priority 4: Incomplete profile
-  else if (completenessPercentage < 60) {
+  // Priority 4: Campaign REQUESTED - follow up on setup
+  else if (campaignStatus === "requested" || campaignStatus === "scheduled") {
     recommendedAction = {
       priority: 4,
-      action: "Help complete profile",
-      rationale: `Profile only ${completenessPercentage}% complete - missing ${missingSections.slice(0, 2).join(", ")}`,
-      pitchAngle: "Offer to help fill out missing sections",
+      action: "Ad Boost setup follow-up",
+      rationale: "Campaign requested, awaiting setup",
+      pitchAngle: "Schedule a call to finalize their campaign setup and answer any questions",
     };
   }
-  // Priority 5: No/few photos
-  else if (images.length < 2) {
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // URGENT ISSUES (affects family experience)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Priority 5: Unanswered questions - families waiting
+  else if (questionsUnanswered > 0) {
     recommendedAction = {
       priority: 5,
-      action: "Photo optimization",
-      rationale: images.length === 0 ? "No photos uploaded" : "Only 1 photo uploaded",
-      pitchAngle: "Adding photos of their facility and team helps families connect",
+      action: `Help answer ${questionsUnanswered} waiting question${questionsUnanswered > 1 ? "s" : ""}`,
+      rationale: "Families asked questions and are waiting for responses",
+      pitchAngle: `Schedule a quick call to help them respond - ${questionsUnanswered} ${questionsUnanswered > 1 ? "families are" : "family is"} waiting`,
     };
   }
-  // Priority 6: Generic email
-  else if (isGenericEmail) {
+  // Priority 6: Low lead engagement - missing opportunities
+  else if (leadCount > 3 && leadOpenRate < 30) {
     recommendedAction = {
       priority: 6,
-      action: "Get direct contact",
-      rationale: "Using generic email that may not reach decision maker",
-      pitchAngle: "Ask for the best direct contact for the owner/manager",
+      action: "Fix notification setup",
+      rationale: `Only opened ${leadsOpened} of ${leadCount} leads (${leadOpenRate}%)`,
+      pitchAngle: "Schedule a call to make sure they're getting notified when families reach out",
     };
   }
-  // Priority 7: Good engagement, pitch ads
-  else if (leadCount > 5 && !activeCampaign && tracking?.ads_status === "none") {
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // MEDJOBS OPPORTUNITIES
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Priority 7: MedJobs pilot - check conversion
+  else if (medjobsStatus === "in_pilot") {
     recommendedAction = {
       priority: 7,
-      action: "Pitch Ad Boost",
+      action: "MedJobs pilot check-in",
+      rationale: medjobsOpportunityReason || "Currently in MedJobs pilot",
+      pitchAngle: "Schedule a call to see how the staffing pilot is going and discuss continuing",
+    };
+  }
+  // Priority 8: MedJobs expired - re-engage
+  else if (medjobsStatus === "pilot_expired") {
+    recommendedAction = {
+      priority: 8,
+      action: "MedJobs renewal",
+      rationale: "Their MedJobs pilot has expired",
+      pitchAngle: "Schedule a call to discuss renewing their staffing program access",
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // REVIEW GENERATION OPPORTUNITY
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Priority 9: No Google reviews - strong opportunity
+  else if (reviewOpportunityLevel === "strong") {
+    recommendedAction = {
+      priority: 9,
+      action: "Help get Google reviews",
+      rationale: reviewOpportunityReason || "No reviews yet",
+      pitchAngle: "Schedule a call to set up review requests - we can help them get their first reviews",
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // WARM LEADS (showed interest in features)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Priority 10: Viewed Ad Boost multiple times but hasn't requested
+  else if (adBoostViews >= 2 && !adCampaigns.length && tracking?.ads_status === "none") {
+    recommendedAction = {
+      priority: 10,
+      action: "Follow up on Ad Boost interest",
+      rationale: `Viewed Ad Boost page ${adBoostViews} times but hasn't requested`,
+      pitchAngle: "Schedule a call to answer their Ad Boost questions - they've been checking it out",
+    };
+  }
+  // Priority 11: Started Ad Boost apply but didn't finish
+  else if (adBoostApplyStarted && !adCampaigns.length) {
+    recommendedAction = {
+      priority: 11,
+      action: "Help complete Ad Boost request",
+      rationale: "Started Ad Boost application but didn't finish",
+      pitchAngle: "Schedule a call to help them finish their Ad Boost request",
+    };
+  }
+  // Priority 12: Viewed MedJobs but not enrolled
+  else if (marketViewCount > 0 && medjobsStatus === "none" && medjobsEligible) {
+    recommendedAction = {
+      priority: 12,
+      action: "Follow up on staffing interest",
+      rationale: `Viewed staffing page ${marketViewCount} time${marketViewCount > 1 ? "s" : ""} but not enrolled`,
+      pitchAngle: "Schedule a call to discuss the staffing program - they've been looking at it",
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // ENGAGEMENT ISSUES
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Priority 13: Dormant provider
+  else if (dashboardVisits30d === 0 && daysOverdue > 14) {
+    recommendedAction = {
+      priority: 13,
+      action: "Re-engage dormant provider",
+      rationale: `No dashboard activity in 30 days, ${daysOverdue} days since last touch`,
+      pitchAngle: "Schedule a call to walk them through their dashboard and what families see",
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // PROFILE OPTIMIZATION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Priority 14: Incomplete profile (blocking conversions)
+  else if (completenessPercentage < 60) {
+    recommendedAction = {
+      priority: 14,
+      action: "Help complete profile",
+      rationale: `Profile only ${completenessPercentage}% complete - missing ${missingSections.slice(0, 2).join(", ")}`,
+      pitchAngle: "Schedule a call to complete their profile together - it helps families find them",
+    };
+  }
+  // Priority 15: No photos
+  else if (images.length < 2) {
+    recommendedAction = {
+      priority: 15,
+      action: "Add photos",
+      rationale: images.length === 0 ? "No photos uploaded" : "Only 1 photo uploaded",
+      pitchAngle: "Schedule a call to help add photos - it really helps families connect",
+    };
+  }
+  // Priority 16: Mild review opportunity
+  else if (reviewOpportunityLevel === "mild") {
+    recommendedAction = {
+      priority: 16,
+      action: "Boost reviews",
+      rationale: reviewOpportunityReason || "Could use more reviews",
+      pitchAngle: "Schedule a call to set up review requests - more reviews build trust",
+    };
+  }
+  // Priority 17: Generic email
+  else if (isGenericEmail) {
+    recommendedAction = {
+      priority: 17,
+      action: "Get direct contact",
+      rationale: "Using generic email that may not reach decision maker",
+      pitchAngle: "Schedule a call to get their direct contact for better communication",
+    };
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // CONVERSION OPPORTUNITIES (no specific issues)
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // Priority 18: Good engagement, pitch free trial
+  else if (leadCount > 5 && tracking?.ads_status === "none") {
+    recommendedAction = {
+      priority: 18,
+      action: "Pitch Ad Boost free trial",
       rationale: `Active provider with ${leadCount} leads, good engagement, no ads yet`,
-      pitchAngle: "They're doing well organically - ads could multiply their reach",
+      pitchAngle: "Schedule a call to discuss Ad Boost - they're doing well, ads could multiply their reach",
+    };
+  }
+  // Priority 19: MedJobs eligible, not pitched
+  else if (medjobsEligible && medjobsStatus === "none") {
+    recommendedAction = {
+      priority: 19,
+      action: "Introduce MedJobs staffing",
+      rationale: "Eligible for MedJobs staffing program",
+      pitchAngle: "Schedule a call to discuss staffing - if they hire, we can help them find candidates",
     };
   }
 

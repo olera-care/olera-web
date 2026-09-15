@@ -237,10 +237,12 @@ function Board() {
       key={f.id}
       provider={f}
       variant="student"
-      // Cards are informational only — students complete their profile via
-      // the hero "Apply Now" and providers reach out (unidirectional flow)
+      // Cards not clickable (no link to provider detail page)
       disableLink
-      canRequest={false}
+      // "Apply Now" opens the general screener, not a specific provider application
+      canRequest
+      requestLabel="Apply Now"
+      onRequestInterview={() => setShowScreener(true)}
     />
   );
 

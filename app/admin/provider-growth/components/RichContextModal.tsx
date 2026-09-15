@@ -1,35 +1,21 @@
 "use client";
 
 /**
- * RichContextModal - Data-driven sales briefing modal
+ * RichContextModal - Clean, minimal sales briefing
  *
- * Displays a comprehensive briefing built from real database records.
- * NO AI generation - everything shown is traceable to actual data.
+ * Apple/Airbnb-inspired design: white space, typography hierarchy, minimal color.
  */
 
 import { useState, useEffect, useCallback } from "react";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Types (defined locally to avoid importing from API route)
+// Types
 // ─────────────────────────────────────────────────────────────────────────────
 
 interface BriefingResponse {
-  theOneFix: string;
-  whatWeOweThem: string | null;
-  openWith: string[];
-  getThese: string[];
-  offer: string;
-  logAfterCall: string;
-  tags: string[];
   questions: {
     received: number;
-    answered: number;
     unanswered: number;
-    recentQuestions: Array<{
-      question: string;
-      created_at: string;
-      answered: boolean;
-    }>;
   };
   engagement: {
     lastDashboardVisit: string | null;
@@ -42,11 +28,7 @@ interface BriefingResponse {
     leadOpenRate: number;
     contactsRevealed: number;
   };
-  photos: {
-    count: number;
-    hasHeroImage: boolean;
-    urls: string[];
-  };
+  photos: { count: number };
   emailAssessment: {
     isGeneric: boolean;
     genericReason: string | null;
@@ -54,16 +36,11 @@ interface BriefingResponse {
   profileCompleteness: {
     percentage: number;
     missingSections: string[];
-    hasDescription: boolean;
-    hasPricing: boolean;
-    hasStaffInfo: boolean;
-    hasHours: boolean;
   };
   adBoost: {
     hasAnyCampaign: boolean;
     activeCampaign: boolean;
     totalCampaigns: number;
-    lastCampaignStatus: string | null;
     totalLeadsFromAds: number;
   };
   flags: Array<{
@@ -72,16 +49,29 @@ interface BriefingResponse {
     detail: string;
   }>;
   recommendedAction: {
-    priority: number;
     action: string;
     rationale: string;
     pitchAngle: string;
   };
   openingScript: string;
-  captureChecklist: Array<{
-    item: string;
-    reason: string;
-  }>;
+  captureChecklist: Array<{ item: string; reason: string }>;
+}
+
+interface BriefingData {
+  briefing: BriefingResponse;
+  metrics?: {
+    googleRating: number | null;
+    googleReviewCount: number | null;
+    photoCount: number;
+    adSpendCents: number | null;
+    leadCount: number;
+    profileCompleteness: number;
+    leadOpenRate: number;
+  };
+  context?: {
+    adsStatus: string;
+    claimedAt: string | null;
+  };
 }
 
 interface RichContextModalProps {
@@ -89,155 +79,6 @@ interface RichContextModalProps {
   onClose: () => void;
   trackingId: string;
   providerName: string;
-}
-
-interface BriefingData {
-  briefing: BriefingResponse;
-  generatedAt: string;
-  cached: boolean;
-  metrics?: {
-    googleRating: number | null;
-    googleReviewCount: number | null;
-    photoCount: number;
-    adSpendCents: number | null;
-    leadCount: number;
-    questionsUnanswered: number;
-    profileCompleteness: number;
-    leadOpenRate: number;
-  };
-  context?: {
-    provider: {
-      displayName: string;
-      email: string | null;
-      phone: string | null;
-    };
-    pipelineStage: string;
-    adsStatus: string;
-    claimedAt: string | null;
-    daysOverdue: number;
-  };
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Helper Components
-// ─────────────────────────────────────────────────────────────────────────────
-
-function MetricCard({
-  label,
-  value,
-  subtext,
-  alert,
-}: {
-  label: string;
-  value: string | number;
-  subtext?: string;
-  alert?: boolean;
-}) {
-  return (
-    <div className={`rounded-lg p-3 text-center ${alert ? "bg-amber-50 border border-amber-200" : "bg-gray-50 border border-gray-200"}`}>
-      <div className={`text-2xl font-bold ${alert ? "text-amber-700" : "text-gray-900"}`}>{value}</div>
-      <div className="text-xs text-gray-500 uppercase tracking-wide mt-1">
-        {label}
-      </div>
-      {subtext && (
-        <div className={`text-xs mt-0.5 ${alert ? "text-amber-600" : "text-gray-400"}`}>{subtext}</div>
-      )}
-    </div>
-  );
-}
-
-function Tag({ children, type = "default" }: { children: React.ReactNode; type?: "default" | "warning" | "success" }) {
-  const colors = {
-    default: "bg-gray-100 text-gray-700 border-gray-200",
-    warning: "bg-amber-50 text-amber-700 border-amber-200",
-    success: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  };
-  return (
-    <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium border ${colors[type]}`}>
-      {children}
-    </span>
-  );
-}
-
-function Section({
-  title,
-  borderColor,
-  children,
-  icon,
-}: {
-  title: string;
-  borderColor: string;
-  children: React.ReactNode;
-  icon?: React.ReactNode;
-}) {
-  return (
-    <div className={`border-l-4 ${borderColor} pl-4 py-2`}>
-      <div className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-        {icon}
-        {title}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function FlagBadge({ flag }: { flag: { type: "warning" | "info" | "opportunity"; label: string; detail: string } }) {
-  const colors = {
-    warning: "bg-red-50 text-red-800 border-red-200",
-    info: "bg-blue-50 text-blue-800 border-blue-200",
-    opportunity: "bg-emerald-50 text-emerald-800 border-emerald-200",
-  };
-  const icons = {
-    warning: "⚠️",
-    info: "ℹ️",
-    opportunity: "💡",
-  };
-  return (
-    <div className={`rounded-lg border px-3 py-2 ${colors[flag.type]}`}>
-      <div className="flex items-center gap-2 text-sm font-medium">
-        <span>{icons[flag.type]}</span>
-        {flag.label}
-      </div>
-      <div className="text-xs mt-0.5 opacity-80">{flag.detail}</div>
-    </div>
-  );
-}
-
-function ChecklistItem({ item, reason }: { item: string; reason: string }) {
-  return (
-    <div className="flex items-start gap-2 text-sm">
-      <span className="text-gray-400 mt-0.5">☐</span>
-      <div>
-        <span className="text-gray-900">{item}</span>
-        <span className="text-gray-400 ml-1">— {reason}</span>
-      </div>
-    </div>
-  );
-}
-
-function LoadingSkeleton() {
-  return (
-    <div className="animate-pulse space-y-6">
-      <div className="grid grid-cols-4 gap-3">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="bg-gray-100 rounded-lg p-3 h-16" />
-        ))}
-      </div>
-      <div className="flex gap-2">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="bg-gray-100 rounded-full h-6 w-24" />
-        ))}
-      </div>
-      <div className="space-y-4">
-        {[1, 2, 3, 4].map((i) => (
-          <div key={i} className="border-l-4 border-gray-200 pl-4 py-2">
-            <div className="h-4 w-24 bg-gray-100 rounded mb-2" />
-            <div className="h-8 bg-gray-50 rounded" />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -257,296 +98,174 @@ export function RichContextModal({
   const fetchBriefing = useCallback(async () => {
     setLoading(true);
     setError(null);
-
     try {
-      const url = `/api/admin/provider-growth/${trackingId}/briefing`;
-      const res = await fetch(url);
-
+      const res = await fetch(`/api/admin/provider-growth/${trackingId}/briefing`);
       if (!res.ok) {
         const err = await res.json();
-        throw new Error(err.error || "Failed to load briefing");
+        throw new Error(err.error || "Failed to load");
       }
-
-      const result = await res.json();
-      setData(result);
+      setData(await res.json());
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to load briefing");
+      setError(e instanceof Error ? e.message : "Failed to load");
     } finally {
       setLoading(false);
     }
   }, [trackingId]);
 
   useEffect(() => {
-    if (isOpen && !data && !loading) {
-      fetchBriefing();
-    }
+    if (isOpen && !data && !loading) fetchBriefing();
   }, [isOpen, data, loading, fetchBriefing]);
 
-  // Reset state when trackingId changes (different provider selected)
   useEffect(() => {
     setData(null);
     setError(null);
     setLoading(false);
   }, [trackingId]);
 
-  // Handle escape key
   useEffect(() => {
     if (!isOpen) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        onClose();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    const handler = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
 
-  const briefing = data?.briefing;
-  const metrics = data?.metrics;
+  const b = data?.briefing;
+  const m = data?.metrics;
+  const adsStatus = data?.context?.adsStatus;
 
   return (
     <>
       {/* Backdrop */}
-      <div
-        className="fixed inset-0 z-50 bg-black/20"
-        onClick={onClose}
-        aria-label="Close modal"
-      />
+      <div className="fixed inset-0 z-50 bg-black/30" onClick={onClose} />
 
       {/* Modal */}
-      <div className="fixed inset-4 z-50 flex items-center justify-center pointer-events-none">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
         <div
-          className="bg-white rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden pointer-events-auto flex flex-col border border-gray-200"
+          className="bg-white rounded-2xl shadow-xl max-w-xl w-full max-h-[85vh] overflow-hidden pointer-events-auto"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50">
-            <div>
-              <h2 className="text-lg font-semibold text-gray-900">
-                Sales Briefing
-              </h2>
-              <p className="text-sm text-gray-500">{providerName}</p>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-emerald-600 font-medium">
-                Data-driven • No AI
-              </span>
+          <div className="px-6 pt-6 pb-4">
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-xl font-semibold text-gray-900">{providerName}</h2>
+                <p className="text-sm text-gray-500 mt-0.5">Sales Briefing</p>
+              </div>
               <button
                 onClick={onClose}
-                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md"
-                aria-label="Close"
+                className="p-2 -mr-2 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
           </div>
 
           {/* Content */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
-            {loading && <LoadingSkeleton />}
+          <div className="px-6 pb-6 overflow-y-auto max-h-[calc(85vh-100px)]">
+            {loading && <LoadingState />}
+            {error && <ErrorState error={error} onRetry={fetchBriefing} />}
 
-            {error && (
-              <div className="text-center py-8">
-                <div className="text-red-600 mb-4">{error}</div>
-                <button
-                  onClick={() => fetchBriefing()}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
-                >
-                  Try Again
-                </button>
-              </div>
-            )}
-
-            {briefing && (
+            {b && m && (
               <div className="space-y-6">
-                {/* Metrics Grid - Expanded */}
-                {metrics && (
-                  <div className="grid grid-cols-4 gap-3">
-                    <MetricCard
-                      label="Google Rating"
-                      value={metrics.googleRating?.toFixed(1) ?? "N/A"}
-                      subtext={metrics.googleReviewCount ? `${metrics.googleReviewCount} reviews` : undefined}
-                    />
-                    <MetricCard
-                      label="Leads"
-                      value={metrics.leadCount}
-                      subtext={metrics.leadOpenRate < 50 && metrics.leadCount > 0 ? `${metrics.leadOpenRate}% opened` : undefined}
-                      alert={metrics.leadOpenRate < 50 && metrics.leadCount > 3}
-                    />
-                    <MetricCard
-                      label="Questions"
-                      value={briefing.questions.received}
-                      subtext={briefing.questions.unanswered > 0 ? `${briefing.questions.unanswered} waiting` : "all answered"}
-                      alert={briefing.questions.unanswered > 0}
-                    />
-                    <MetricCard
-                      label="Profile"
-                      value={`${metrics.profileCompleteness}%`}
-                      subtext="complete"
-                      alert={metrics.profileCompleteness < 70}
-                    />
-                  </div>
-                )}
+                {/* Key Numbers - simple row */}
+                <div className="flex items-baseline gap-8 text-sm">
+                  <Stat label="Rating" value={m.googleRating?.toFixed(1) ?? "—"} />
+                  <Stat label="Leads" value={m.leadCount} />
+                  <Stat label="Questions" value={b.questions.received} alert={b.questions.unanswered > 0} />
+                  <Stat label="Profile" value={`${m.profileCompleteness}%`} />
+                  <Stat label="Photos" value={m.photoCount} />
+                </div>
 
-                {/* Second row of metrics */}
-                {metrics && (
-                  <div className="grid grid-cols-4 gap-3">
-                    <MetricCard
-                      label="Photos"
-                      value={briefing.photos.count}
-                      alert={briefing.photos.count < 3}
-                    />
-                    <MetricCard
-                      label="Ad Boost"
-                      value={
-                        data?.context?.adsStatus === "subscribed" ? "Paying"
-                        : data?.context?.adsStatus === "free_intro" ? "Free Trial"
-                        : metrics.adSpendCents !== null ? `$${Math.round(metrics.adSpendCents / 100)}`
-                        : "None"
-                      }
-                      subtext={metrics.adSpendCents !== null && metrics.adSpendCents > 0 ? `$${Math.round(metrics.adSpendCents / 100)} spent` : undefined}
-                    />
-                    <MetricCard
-                      label="Dashboard Visits"
-                      value={briefing.engagement.dashboardVisits30d}
-                      subtext="last 30 days"
-                    />
-                    <MetricCard
-                      label="Profile Edits"
-                      value={briefing.engagement.profileEdits30d}
-                      subtext="last 30 days"
-                    />
-                  </div>
-                )}
+                {/* Priority Action - the ONE thing to focus on */}
+                <div className="bg-gray-50 rounded-xl p-4">
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                    Focus of this call
+                  </p>
+                  <p className="text-base font-medium text-gray-900">{b.recommendedAction.action}</p>
+                  <p className="text-sm text-gray-600 mt-1">{b.recommendedAction.rationale}</p>
+                </div>
 
-                {/* Flags / Issues to Address */}
-                {briefing.flags.length > 0 && (
-                  <div className="space-y-2">
-                    <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                      Issues to Address
-                    </div>
-                    <div className="grid gap-2">
-                      {briefing.flags.map((flag, i) => (
-                        <FlagBadge key={i} flag={flag} />
+                {/* Opening Line */}
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                    Opening line
+                  </p>
+                  <p className="text-sm text-gray-700 leading-relaxed">
+                    "{b.openingScript}"
+                  </p>
+                </div>
+
+                {/* Issues - simple list, no colored boxes */}
+                {b.flags.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                      Things to address
+                    </p>
+                    <ul className="space-y-1.5">
+                      {b.flags.map((flag, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm">
+                          <span className="text-gray-400 mt-0.5">
+                            {flag.type === "warning" ? "•" : "○"}
+                          </span>
+                          <span className={flag.type === "warning" ? "text-gray-900" : "text-gray-600"}>
+                            {flag.label}
+                          </span>
+                        </li>
                       ))}
-                    </div>
+                    </ul>
                   </div>
                 )}
 
-                {/* Recommended Action */}
-                <Section title="Recommended Action" borderColor="border-amber-400">
-                  <div className="bg-amber-50 border border-amber-100 rounded-lg px-4 py-3">
-                    <div className="text-gray-900 font-medium">{briefing.recommendedAction.action}</div>
-                    <div className="text-sm text-gray-600 mt-1">{briefing.recommendedAction.rationale}</div>
-                    <div className="text-sm text-amber-700 mt-2 font-medium">
-                      Pitch angle: {briefing.recommendedAction.pitchAngle}
-                    </div>
-                  </div>
-                </Section>
-
-                {/* Opening Script */}
-                <Section title="Opening Script" borderColor="border-teal-400">
-                  <div className="bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-sm text-gray-700 italic">
-                    &ldquo;{briefing.openingScript}&rdquo;
-                  </div>
-                </Section>
-
-                {/* What to Capture */}
-                <Section title="What to Capture" borderColor="border-gray-300">
-                  <div className="space-y-2">
-                    {briefing.captureChecklist.map((item, i) => (
-                      <ChecklistItem key={i} item={item.item} reason={item.reason} />
+                {/* What to capture */}
+                <div>
+                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">
+                    Capture during call
+                  </p>
+                  <ul className="space-y-1.5">
+                    {b.captureChecklist.map((item, i) => (
+                      <li key={i} className="flex items-start gap-2 text-sm">
+                        <span className="text-gray-300 mt-0.5">☐</span>
+                        <span className="text-gray-700">{item.item}</span>
+                      </li>
                     ))}
-                  </div>
-                </Section>
+                  </ul>
+                </div>
 
-                {/* Engagement Details */}
-                <Section title="Engagement Details" borderColor="border-gray-200">
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-500">Last dashboard visit:</span>{" "}
+                {/* Quick facts - compact */}
+                <div className="pt-4 border-t border-gray-100">
+                  <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Ad Boost</span>
                       <span className="text-gray-900">
-                        {briefing.engagement.lastDashboardVisit
-                          ? formatRelativeTime(briefing.engagement.lastDashboardVisit)
-                          : "Never"}
+                        {adsStatus === "subscribed" ? "Paying" : adsStatus === "free_intro" ? "Trial" : "None"}
                       </span>
                     </div>
-                    <div>
-                      <span className="text-gray-500">Last profile edit:</span>{" "}
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Dashboard visits</span>
+                      <span className="text-gray-900">{b.engagement.dashboardVisits30d} (30d)</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Last login</span>
                       <span className="text-gray-900">
-                        {briefing.engagement.lastProfileEdit
-                          ? formatRelativeTime(briefing.engagement.lastProfileEdit)
-                          : "Never"}
+                        {b.engagement.lastLogin ? formatRelative(b.engagement.lastLogin) : "Never"}
                       </span>
                     </div>
-                    <div>
-                      <span className="text-gray-500">Last login:</span>{" "}
-                      <span className="text-gray-900">
-                        {briefing.engagement.lastLogin
-                          ? formatRelativeTime(briefing.engagement.lastLogin)
-                          : "Unknown"}
-                      </span>
+                    <div className="flex justify-between">
+                      <span className="text-gray-500">Leads opened</span>
+                      <span className="text-gray-900">{b.engagement.leadOpenRate}%</span>
                     </div>
-                    <div>
-                      <span className="text-gray-500">Contacts revealed:</span>{" "}
-                      <span className="text-gray-900">{briefing.engagement.contactsRevealed}</span>
-                    </div>
-                    {briefing.engagement.sectionsEdited.length > 0 && (
-                      <div className="col-span-2">
-                        <span className="text-gray-500">Sections edited:</span>{" "}
-                        <span className="text-gray-900">{briefing.engagement.sectionsEdited.join(", ")}</span>
+                    {b.emailAssessment.isGeneric && (
+                      <div className="col-span-2 flex justify-between">
+                        <span className="text-gray-500">Email</span>
+                        <span className="text-amber-600">Generic address</span>
                       </div>
                     )}
                   </div>
-                </Section>
-
-                {/* Email Assessment */}
-                {briefing.emailAssessment.isGeneric && (
-                  <Section title="Email Assessment" borderColor="border-blue-200">
-                    <div className="text-sm text-blue-800 bg-blue-50 rounded px-3 py-2">
-                      {briefing.emailAssessment.genericReason}
-                    </div>
-                  </Section>
-                )}
-
-                {/* Ad Boost Status */}
-                {briefing.adBoost.hasAnyCampaign && (
-                  <Section title="Ad Boost History" borderColor="border-purple-200">
-                    <div className="text-sm text-gray-700">
-                      <span className="font-medium">{briefing.adBoost.totalCampaigns}</span> campaign{briefing.adBoost.totalCampaigns !== 1 ? "s" : ""} total
-                      {briefing.adBoost.activeCampaign && <span className="ml-2 text-emerald-600 font-medium">(1 active)</span>}
-                      {briefing.adBoost.totalLeadsFromAds > 0 && (
-                        <span className="ml-2">• {briefing.adBoost.totalLeadsFromAds} leads from ads</span>
-                      )}
-                    </div>
-                  </Section>
-                )}
-
-                {/* Tags */}
-                {briefing.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100">
-                    {briefing.tags.map((tag, i) => (
-                      <Tag
-                        key={i}
-                        type={
-                          tag.includes("unanswered") || tag.includes("overdue") || tag.includes("not opening")
-                            ? "warning"
-                            : tag.includes("verified") || tag.includes("clicks")
-                              ? "success"
-                              : "default"
-                        }
-                      >
-                        {tag}
-                      </Tag>
-                    ))}
-                  </div>
-                )}
+                </div>
               </div>
             )}
           </div>
@@ -557,21 +276,61 @@ export function RichContextModal({
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Helpers
+// Sub-components
 // ─────────────────────────────────────────────────────────────────────────────
 
-function formatRelativeTime(isoDate: string): string {
-  const date = new Date(isoDate);
-  const now = new Date();
-  const diffMs = now.getTime() - date.getTime();
-  const diffMins = Math.floor(diffMs / (1000 * 60));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+function Stat({ label, value, alert }: { label: string; value: string | number; alert?: boolean }) {
+  return (
+    <div>
+      <div className={`text-lg font-semibold ${alert ? "text-amber-600" : "text-gray-900"}`}>
+        {value}
+      </div>
+      <div className="text-xs text-gray-500">{label}</div>
+    </div>
+  );
+}
 
-  if (diffMins < 1) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays < 7) return `${diffDays}d ago`;
-  if (diffDays < 30) return `${Math.floor(diffDays / 7)}w ago`;
-  return date.toLocaleDateString();
+function LoadingState() {
+  return (
+    <div className="space-y-4 animate-pulse">
+      <div className="flex gap-8">
+        {[1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="space-y-1">
+            <div className="h-6 w-8 bg-gray-100 rounded" />
+            <div className="h-3 w-12 bg-gray-100 rounded" />
+          </div>
+        ))}
+      </div>
+      <div className="h-24 bg-gray-50 rounded-xl" />
+      <div className="space-y-2">
+        <div className="h-3 w-20 bg-gray-100 rounded" />
+        <div className="h-4 w-full bg-gray-50 rounded" />
+      </div>
+    </div>
+  );
+}
+
+function ErrorState({ error, onRetry }: { error: string; onRetry: () => void }) {
+  return (
+    <div className="text-center py-8">
+      <p className="text-sm text-gray-600 mb-3">{error}</p>
+      <button
+        onClick={onRetry}
+        className="text-sm font-medium text-gray-900 hover:underline"
+      >
+        Try again
+      </button>
+    </div>
+  );
+}
+
+function formatRelative(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (mins < 60) return `${mins}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+  return new Date(iso).toLocaleDateString();
 }

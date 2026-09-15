@@ -57,7 +57,6 @@ import { EmailReplyModal } from "@/components/admin/medjobs/EmailReplyModal";
 import { CustomCadenceModal, type InitialStep } from "@/components/admin/medjobs/CustomCadenceModal";
 import { LaunchActivationButton } from "@/components/admin/medjobs/LaunchActivationButton";
 import { MeetingOutcomeModal } from "@/components/admin/medjobs/MeetingOutcomeModal";
-import { SmartleadInboxLink } from "@/components/admin/medjobs/SmartleadInboxLink";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { bookingUrlFor } from "@/lib/medjobs/booking-url";
 import { useToast } from "@/components/admin/Toast";
@@ -404,10 +403,6 @@ function InOutreachBody({
             </>
           )}
         </div>
-        <SmartleadInboxLink
-          linkage={linkageFromResearchData(ctx.outreach.research_data)}
-          label="Smartlead"
-        />
       </div>
 
       <div className="mt-3 flex flex-wrap items-center gap-2">

@@ -112,11 +112,11 @@ export interface GrowthStats {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export interface RichContextData {
-  // Metrics
+  // Metrics (null means not recorded, 0 means actually zero)
   googleRating: number | null;
-  googleReviewCount: number;
+  googleReviewCount: number | null;
   photoCount: number;
-  adSpendCents: number;
+  adSpendCents: number | null; // null = no campaigns or spend not recorded
 
   // Computed
   touchCount: number;
@@ -237,15 +237,26 @@ export async function getRichContextData(
   const tracking = trackingResult.data;
   const profile = profileResult.data;
   const metadata = (profile?.metadata || {}) as Record<string, unknown>;
-  const googleData = (profile?.google_reviews_data || {}) as { rating?: number; user_ratings_total?: number };
+  // GoogleReviewsData has: rating, review_count, reviews[], last_synced
+  const googleData = (profile?.google_reviews_data || {}) as { rating?: number; review_count?: number };
   const images = Array.isArray(metadata.images) ? metadata.images : [];
   const staff = (metadata.staff || {}) as { name?: string };
 
-  // Calculate ad spend
-  const adSpendCents = (adSpendResult.data || []).reduce(
-    (sum, row) => sum + (row.ad_spend_cents || 0),
-    0
-  );
+  // Calculate ad spend - distinguish between "no data" and "actually $0"
+  const adCampaigns = adSpendResult.data || [];
+  let adSpendCents: number | null = null;
+  if (adCampaigns.length > 0) {
+    // Has campaigns - check if any have spend recorded
+    const hasRecordedSpend = adCampaigns.some(row => row.ad_spend_cents !== null);
+    if (hasRecordedSpend) {
+      adSpendCents = adCampaigns.reduce(
+        (sum, row) => sum + (row.ad_spend_cents || 0),
+        0
+      );
+    }
+    // If no campaigns have spend recorded, adSpendCents stays null
+  }
+  // If no campaigns at all, adSpendCents stays null
 
   // Calculate days overdue (days since last activity)
   let daysOverdue = 0;
@@ -303,9 +314,9 @@ export async function getRichContextData(
   }
 
   return {
-    // Metrics
+    // Metrics (null = not recorded)
     googleRating: googleData.rating ?? null,
-    googleReviewCount: googleData.user_ratings_total ?? 0,
+    googleReviewCount: googleData.review_count ?? null,
     photoCount: images.length,
     adSpendCents,
 

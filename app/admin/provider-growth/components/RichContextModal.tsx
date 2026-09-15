@@ -23,9 +23,9 @@ interface BriefingData {
   cached: boolean;
   metrics?: {
     googleRating: number | null;
-    googleReviewCount: number;
+    googleReviewCount: number | null; // null = not recorded
     photoCount: number;
-    adSpendCents: number;
+    adSpendCents: number | null; // null = not recorded
   };
 }
 
@@ -271,7 +271,7 @@ export function RichContextModal({
                   />
                   <MetricCard
                     label="Google Reviews"
-                    value={metrics.googleReviewCount}
+                    value={metrics.googleReviewCount ?? "N/A"}
                   />
                   <MetricCard
                     label="Photos"
@@ -279,7 +279,7 @@ export function RichContextModal({
                   />
                   <MetricCard
                     label="Our Spend"
-                    value={`$${Math.round(metrics.adSpendCents / 100)}`}
+                    value={metrics.adSpendCents !== null ? `$${Math.round(metrics.adSpendCents / 100)}` : "Not recorded"}
                   />
                 </div>
 

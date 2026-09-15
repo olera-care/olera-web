@@ -142,9 +142,15 @@ function buildUserPrompt(data: RichContextData): string {
   // Metrics
   parts.push("");
   parts.push("METRICS:");
-  parts.push(`- Google Rating: ${data.googleRating ?? "N/A"} (${data.googleReviewCount} reviews)`);
+  const reviewInfo = data.googleRating !== null
+    ? `${data.googleRating} (${data.googleReviewCount ?? 0} reviews)`
+    : "Not recorded";
+  parts.push(`- Google Rating: ${reviewInfo}`);
   parts.push(`- Photos on Olera: ${data.photoCount}`);
-  parts.push(`- Our Ad Spend: $${(data.adSpendCents / 100).toFixed(0)}`);
+  const spendInfo = data.adSpendCents !== null
+    ? `$${(data.adSpendCents / 100).toFixed(0)}`
+    : "Not recorded (campaigns may exist but spend not entered)";
+  parts.push(`- Our Ad Spend: ${spendInfo}`);
   parts.push(`- Leads Received: ${data.leadCount}`);
   parts.push(`- Total Touches: ${data.touchCount}`);
   parts.push(`- Days Since Last Activity: ${data.daysOverdue}`);

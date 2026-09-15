@@ -732,7 +732,8 @@ export async function getRichContextData(
   } else if (adBoostViews > 0) {
     warmLeadSignals.push("Viewed Ad Boost page");
   }
-  if (adBoostApplyStarted && !adCampaigns.length) {
+  // Only show if they haven't signed up (ads_status is "none")
+  if (adBoostApplyStarted && !adCampaigns.length && tracking?.ads_status === "none") {
     warmLeadSignals.push("Started Ad Boost apply but didn't finish");
   }
   if (reviewsCtaClicked && !hasUsedReviewRequests) {
@@ -1026,7 +1027,8 @@ export async function getRichContextData(
     };
   }
   // Priority 11: Started Ad Boost apply but didn't finish
-  else if (adBoostApplyStarted && !adCampaigns.length) {
+  // Only if they haven't signed up yet (ads_status is "none")
+  else if (adBoostApplyStarted && !adCampaigns.length && tracking?.ads_status === "none") {
     recommendedAction = {
       priority: 11,
       action: "Help complete Ad Boost request",
@@ -1192,7 +1194,7 @@ export async function getRichContextData(
   else if (adBoostViews >= 2 && !adCampaigns.length && tracking?.ads_status === "none") {
     openingScript = `Hi, this is [your name] from Olera. I saw you've been checking out Ad Boost on your dashboard. Do you have questions about how it works? I can walk you through it.`;
   }
-  else if (adBoostApplyStarted && !adCampaigns.length) {
+  else if (adBoostApplyStarted && !adCampaigns.length && tracking?.ads_status === "none") {
     openingScript = `Hi, this is [your name] from Olera. I noticed you started an Ad Boost request but didn't finish - is there something I can help you with to complete it?`;
   }
   else if (marketViewCount > 0 && medjobsStatus === "none" && medjobsEligible) {

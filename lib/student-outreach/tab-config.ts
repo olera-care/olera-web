@@ -36,8 +36,6 @@ export type TabKey =
   // The 2-business-day follow-up loop (rounds 2-7), replacing the separate
   // Calls and Emails queues: one row per provider due a check today.
   | "followups"
-  // Historical record, previously reachable only by URL.
-  | "logs"
   | "prospects"
   | "partners"
   | "meetings"
@@ -121,7 +119,6 @@ export const TABS: TabDef[] = [
   { key: "meetings",     label: "Meetings",   tooltip: "Stakeholders coordinating a time, or with a meeting on the calendar." },
   { key: "tasks",        label: "Tasks",      tooltip: "Every recurring check the activation workflow generated, plus custom tasks." },
   { key: "archive",      label: "Archive",    tooltip: "Rounds ran out with no reply, or closed by hand. Revive one to start a fresh set of rounds." },
-  { key: "logs",         label: "Logs",       tooltip: "Everything already actioned — the historical record." },
 ];
 
 // Ellipsis menu items — same shape as TABS, surfaced via a ⋯ button at
@@ -157,7 +154,6 @@ export const TAB_STATS: Record<TabKey, { metric: string; label: string }> = {
   clients:     { metric: "clients",          label: "new clients"          },
   activation:  { metric: "campuses",         label: "sites added"          },
   followups:   { metric: "followups",   label: "due today" },
-  logs:        { metric: "logs",        label: "logged" },
   tasks:       { metric: "activity",         label: "operational events"   },
   // Sites uses the same time-series metric as the legacy 'campuses' key.
   sites:       { metric: "campuses",         label: "sites added"          },

@@ -31,7 +31,6 @@ import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { OutreachTimeline } from "@/components/admin/medjobs/OutreachTimeline";
 import { ProviderSnapshotCard } from "@/components/admin/medjobs/SnapshotCard";
 import { ProviderBriefCard } from "@/components/admin/medjobs/ProviderBriefCard";
-import { EmailFollowUpCard } from "@/components/admin/medjobs/EmailFollowUpCard";
 
 interface Props {
   ctx: DrawerContext;
@@ -136,13 +135,6 @@ export function ProviderProspectDrawerBody({ ctx, action, setError, activeTab }:
           redundant inner Provider Prospect box — location + catchment
           live in the General Contact section below, and the campus is
           already in the panel header. */}
-
-      {/* Zone 0 · Opened from the Emails tab, the drawer leads with the
-          follow-up brief: what to send, and where to record the reply.
-          The Emails tab is a reminder list now, not an event feed. */}
-      {activeTab === "replies" && (
-        <EmailFollowUpCard ctx={ctx} action={action} setError={setError} />
-      )}
 
       {/* Zone 1 · Brief. Pre-launch the drawer opens with what this is, why
           it matters, the steps, the call script, and Log call — the Tasks

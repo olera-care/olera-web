@@ -22,7 +22,7 @@ import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { LaunchActivationButton } from "@/components/admin/medjobs/LaunchActivationButton";
 import { PreFlightCallModal } from "@/components/admin/medjobs/PreFlightCallModal";
 import { SendEmailModal } from "@/components/admin/medjobs/SendEmailModal";
-import { EmailFollowUpCard } from "@/components/admin/medjobs/EmailFollowUpCard";
+import { FollowUpDrawerBody } from "@/components/admin/medjobs/FollowUpDrawerBody";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
 import { getVerificationState } from "@/lib/student-outreach/verification-state";
@@ -528,7 +528,12 @@ function StakeholderDrawer({
       ) : error ? (
         <p className="py-8 text-center text-sm text-red-600">{error}</p>
       ) : ctx ? (
-        ctx.outreach.kind === "provider" ? (
+        // Opened from Follow-ups, the row is one round of the loop — the
+        // round-scoped body replaces the stage-driven one entirely rather
+        // than sitting on top of it.
+        activeTab === "followups" ? (
+          <FollowUpDrawerBody ctx={ctx} action={action} setError={setError} />
+        ) : ctx.outreach.kind === "provider" ? (
           <ProviderProspectDrawerBody
             ctx={ctx}
             action={action}
@@ -1072,11 +1077,6 @@ function DrawerBody({
         // the timeline; pending email/call tasks remain visible via
         // History in More Details.
         <NextStepCard ctx={ctx} action={action} setError={setError} activeTab={activeTab} />
-      )}
-
-      {/* Emails tab: same follow-up brief the provider drawer shows. */}
-      {activeTab === "replies" && (
-        <EmailFollowUpCard ctx={ctx} action={action} setError={setError} />
       )}
 
       {/* Zone 4 · OutreachTimeline — the chronological surface. Past

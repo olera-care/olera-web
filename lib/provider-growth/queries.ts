@@ -374,6 +374,7 @@ export async function getRichContextData(
   let lastLoginResult: { data: Array<{ created_at: string }> | null } = { data: [] };
   let leadsOpenedResult: { count: number | null } = { count: 0 };
   let contactsRevealedResult: { count: number | null } = { count: 0 };
+  let googleReviewsResult: { data: { google_reviews_data: { rating?: number; review_count?: number } | null; google_rating: number | null } | null } = { data: null };
 
   try {
     const results = await Promise.all([
@@ -428,6 +429,15 @@ export async function getRichContextData(
         .select("id", { count: "exact", head: true })
         .eq("profile_id", businessProfileId)
         .eq("event_type", "contact_revealed"),
+
+      // Google reviews data - fetched from olera-providers via source_provider_id
+      sourceProviderId
+        ? db
+            .from("olera-providers")
+            .select("google_reviews_data, google_rating")
+            .eq("provider_id", sourceProviderId)
+            .maybeSingle()
+        : Promise.resolve({ data: null }),
     ]);
 
     emailStatsData = results[0] as typeof emailStatsData;
@@ -436,6 +446,7 @@ export async function getRichContextData(
     lastLoginResult = results[3] as typeof lastLoginResult;
     leadsOpenedResult = results[4] as typeof leadsOpenedResult;
     contactsRevealedResult = results[5] as typeof contactsRevealedResult;
+    googleReviewsResult = results[6] as typeof googleReviewsResult;
   } catch (e) {
     console.error("[getRichContextData] Phase 2 queries failed:", e);
     // Continue with default values - engagement data will show as 0/null
@@ -451,10 +462,12 @@ export async function getRichContextData(
 
   const tracking = trackingResult.data;
   const metadata = (profile?.metadata || {}) as Record<string, unknown>;
-  // GoogleReviewsData has: rating, review_count, reviews[], last_synced
-  // Google reviews data is on olera-providers, not business_profiles
-  // For now, return null - can be added later via source_provider_id join if needed
-  const googleData: { rating?: number; review_count?: number } = {};
+  // GoogleReviewsData comes from olera-providers via source_provider_id
+  const googleReviewsRaw = googleReviewsResult?.data;
+  const googleData: { rating?: number; review_count?: number } = {
+    rating: (googleReviewsRaw?.google_reviews_data as { rating?: number })?.rating ?? googleReviewsRaw?.google_rating ?? undefined,
+    review_count: (googleReviewsRaw?.google_reviews_data as { review_count?: number })?.review_count,
+  };
   const images = Array.isArray(metadata.images) ? metadata.images : [];
   const staff = (metadata.staff || {}) as { name?: string };
   const verificationState = profile?.verification_state || null;

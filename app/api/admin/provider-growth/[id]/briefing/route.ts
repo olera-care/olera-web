@@ -247,6 +247,7 @@ export async function GET(request: NextRequest, context: RouteContext) {
         adsStatus: contextData.adsStatus,
         medjobsStatus: contextData.medjobsStatus,
         claimedAt: contextData.claimedAt,
+        claimSource: tracking.claim_source,
         daysOverdue: contextData.daysOverdue,
         emailStats: contextData.emailStats,
       },

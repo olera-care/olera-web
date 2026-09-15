@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect, useCallback } from "react";
+import { CLAIM_SOURCE_CONTEXT_LABELS, type ClaimSource } from "@/lib/provider-growth/stages";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types
@@ -124,8 +125,19 @@ interface BriefingData {
     leadOpenRate: number;
   };
   context?: {
+    provider?: {
+      displayName: string;
+      contactName: string | null;
+      email: string | null;
+    };
     adsStatus: string;
     claimedAt: string | null;
+    claimSource: string | null;
+    emailStats?: {
+      sent: number;
+      opened: number;
+      clicked: number;
+    };
   };
 }
 
@@ -226,6 +238,33 @@ export function RichContextModal({
 
             {b && m && (
               <div className="space-y-6">
+                {/* Claim Context - who claimed, when, how */}
+                {data?.context && (
+                  <div className="text-sm text-gray-600 space-y-1">
+                    {data.context.provider?.contactName && (
+                      <div>
+                        <span className="text-gray-500">Claimed by </span>
+                        <span className="text-gray-900 font-medium">{data.context.provider.contactName}</span>
+                        {data.context.claimSource && (
+                          <span className="text-gray-500">
+                            {" "}via {CLAIM_SOURCE_CONTEXT_LABELS[data.context.claimSource as ClaimSource] || data.context.claimSource}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                    {data.context.claimedAt && (
+                      <div className="text-gray-500">
+                        {formatRelative(data.context.claimedAt)}
+                      </div>
+                    )}
+                    {data.context.emailStats && data.context.emailStats.sent > 0 && (
+                      <div className="text-gray-500">
+                        {data.context.emailStats.sent} emails sent, {data.context.emailStats.opened} opened, {data.context.emailStats.clicked} clicked
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {/* Key Numbers - simple row */}
                 <div className="flex items-baseline gap-8 text-sm">
                   <Stat label="Rating" value={m.googleRating?.toFixed(1) ?? "—"} />
@@ -255,7 +294,7 @@ export function RichContextModal({
                     Opening line
                   </p>
                   <p className="text-sm text-gray-700 leading-relaxed">
-                    "{b.openingScript}"
+                    &ldquo;{b.openingScript}&rdquo;
                   </p>
                 </div>
 
@@ -295,88 +334,112 @@ export function RichContextModal({
                   </ul>
                 </div>
 
-                {/* Quick facts - compact */}
-                <div className="pt-4 border-t border-gray-100">
-                  <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
-                    {/* Campaign status - show detailed info if campaign exists */}
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Ad Boost</span>
-                      <span className="text-gray-900">
-                        {b.adBoost.campaign?.status === "live" ? (
-                          <span className="text-green-600">
-                            Live{b.adBoost.campaign.delivered ? ` (${b.adBoost.campaign.delivered} families)` : ""}
-                          </span>
-                        ) : b.adBoost.campaign?.status === "ended" ? (
-                          <span>Ended{b.adBoost.campaign.delivered ? ` (${b.adBoost.campaign.delivered} families)` : ""}</span>
-                        ) : b.adBoost.campaign?.status === "pending_profile" ? (
-                          <span className="text-amber-600">Pending profile</span>
-                        ) : b.adBoost.campaign?.status === "requested" || b.adBoost.campaign?.status === "scheduled" ? (
-                          <span className="text-blue-600">Setting up</span>
-                        ) : adsStatus === "subscribed" ? (
-                          "Paying"
-                        ) : adsStatus === "free_intro" ? (
-                          "Trial"
-                        ) : (
-                          "None"
-                        )}
-                      </span>
-                    </div>
-                    {/* MedJobs status */}
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">MedJobs</span>
-                      <span className="text-gray-900">
-                        {b.medjobs.status === "subscribed" ? (
-                          <span className="text-green-600">Subscribed</span>
-                        ) : b.medjobs.status === "in_pilot" ? (
-                          <span className="text-blue-600">In pilot</span>
-                        ) : b.medjobs.status === "pilot_expired" ? (
-                          <span className="text-amber-600">Pilot expired</span>
-                        ) : b.medjobs.eligible ? (
-                          "Eligible"
-                        ) : (
-                          "—"
-                        )}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Dashboard visits</span>
-                      <span className="text-gray-900">{b.engagement.dashboardVisits30d} (30d)</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Last login</span>
-                      <span className="text-gray-900">
-                        {b.engagement.lastLogin ? formatRelative(b.engagement.lastLogin) : "Never"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-500">Leads opened</span>
-                      <span className="text-gray-900">{b.engagement.leadOpenRate}%</span>
-                    </div>
-                    {/* Review opportunity */}
-                    {b.reviews.opportunityLevel !== "none" && (
+                {/* Grouped details - organized by category */}
+                <div className="pt-4 border-t border-gray-100 space-y-4">
+                  {/* Products */}
+                  <div>
+                    <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1.5">
+                      Products
+                    </p>
+                    <div className="space-y-1.5 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-gray-500">Reviews</span>
-                        <span className={b.reviews.opportunityLevel === "strong" ? "text-amber-600" : "text-gray-600"}>
-                          {b.reviews.opportunityLevel === "strong" ? "Needs reviews" : "Could use more"}
+                        <span className="text-gray-500">Ad Boost</span>
+                        <span className="text-gray-900">
+                          {b.adBoost.campaign?.status === "live" ? (
+                            <span className="text-green-600">
+                              Live{b.adBoost.campaign.delivered ? ` (${b.adBoost.campaign.delivered} families)` : ""}
+                            </span>
+                          ) : b.adBoost.campaign?.status === "ended" ? (
+                            <span>Ended{b.adBoost.campaign.delivered ? ` (${b.adBoost.campaign.delivered} families)` : ""}</span>
+                          ) : b.adBoost.campaign?.status === "pending_profile" ? (
+                            <span className="text-amber-600">Pending profile</span>
+                          ) : b.adBoost.campaign?.status === "requested" || b.adBoost.campaign?.status === "scheduled" ? (
+                            <span className="text-blue-600">Setting up</span>
+                          ) : adsStatus === "subscribed" ? (
+                            "Paying"
+                          ) : adsStatus === "free_intro" ? (
+                            "Trial"
+                          ) : (
+                            "None"
+                          )}
                         </span>
                       </div>
-                    )}
-                    {b.emailAssessment.isGeneric && (
                       <div className="flex justify-between">
-                        <span className="text-gray-500">Email</span>
-                        <span className="text-amber-600">Generic address</span>
-                      </div>
-                    )}
-                    {/* Warm lead signals */}
-                    {b.featureEngagement.warmLeadSignals.length > 0 && (
-                      <div className="col-span-2 flex justify-between">
-                        <span className="text-gray-500">Interest shown</span>
-                        <span className="text-blue-600">
-                          {b.featureEngagement.warmLeadSignals.slice(0, 2).join(", ")}
+                        <span className="text-gray-500">MedJobs</span>
+                        <span className="text-gray-900">
+                          {b.medjobs.status === "subscribed" ? (
+                            <span className="text-green-600">Subscribed</span>
+                          ) : b.medjobs.status === "in_pilot" ? (
+                            <span className="text-blue-600">In pilot</span>
+                          ) : b.medjobs.status === "pilot_expired" ? (
+                            <span className="text-amber-600">Pilot expired</span>
+                          ) : b.medjobs.eligible ? (
+                            "Eligible"
+                          ) : (
+                            "—"
+                          )}
                         </span>
                       </div>
-                    )}
+                    </div>
                   </div>
+
+                  {/* Activity */}
+                  <div>
+                    <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1.5">
+                      Activity
+                    </p>
+                    <div className="space-y-1.5 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Last login</span>
+                        <span className="text-gray-900">
+                          {b.engagement.lastLogin ? formatRelative(b.engagement.lastLogin) : "Never"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Dashboard visits</span>
+                        <span className="text-gray-900">{b.engagement.dashboardVisits30d} (30d)</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-gray-500">Leads opened</span>
+                        <span className="text-gray-900">{b.engagement.leadOpenRate}%</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Opportunities - only show if there are any */}
+                  {(b.reviews.opportunityLevel !== "none" ||
+                    b.emailAssessment.isGeneric ||
+                    b.featureEngagement.warmLeadSignals.length > 0) && (
+                    <div>
+                      <p className="text-[10px] font-medium text-gray-400 uppercase tracking-wide mb-1.5">
+                        Opportunities
+                      </p>
+                      <div className="space-y-1.5 text-sm">
+                        {b.reviews.opportunityLevel !== "none" && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Reviews</span>
+                            <span className={b.reviews.opportunityLevel === "strong" ? "text-amber-600" : "text-gray-600"}>
+                              {b.reviews.opportunityLevel === "strong" ? "Needs reviews" : "Could use more"}
+                            </span>
+                          </div>
+                        )}
+                        {b.emailAssessment.isGeneric && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Email</span>
+                            <span className="text-amber-600">Generic address</span>
+                          </div>
+                        )}
+                        {b.featureEngagement.warmLeadSignals.length > 0 && (
+                          <div className="flex justify-between">
+                            <span className="text-gray-500">Interest shown</span>
+                            <span className="text-blue-600">
+                              {b.featureEngagement.warmLeadSignals.slice(0, 2).join(", ")}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             )}

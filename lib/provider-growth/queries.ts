@@ -272,10 +272,10 @@ export async function getRichContextData(
       .eq("id", trackingId)
       .single(),
 
-    // Business profile with Google reviews data and metadata
+    // Business profile with metadata (google_reviews_data is on olera-providers, not here)
     db
       .from("business_profiles")
-      .select("id, slug, display_name, phone, email, city, state, care_types, metadata, google_reviews_data, account_id, verification_state, description, source_provider_id")
+      .select("id, slug, display_name, phone, email, city, state, care_types, metadata, account_id, verification_state, description, source_provider_id")
       .eq("id", businessProfileId)
       .single(),
 
@@ -452,7 +452,9 @@ export async function getRichContextData(
   const tracking = trackingResult.data;
   const metadata = (profile?.metadata || {}) as Record<string, unknown>;
   // GoogleReviewsData has: rating, review_count, reviews[], last_synced
-  const googleData = (profile?.google_reviews_data || {}) as { rating?: number; review_count?: number };
+  // Google reviews data is on olera-providers, not business_profiles
+  // For now, return null - can be added later via source_provider_id join if needed
+  const googleData: { rating?: number; review_count?: number } = {};
   const images = Array.isArray(metadata.images) ? metadata.images : [];
   const staff = (metadata.staff || {}) as { name?: string };
   const verificationState = profile?.verification_state || null;

@@ -2311,15 +2311,20 @@ async function handleLaunchNextSet(
   body: { context_notes?: string },
   userId: string,
 ) {
-  await reviveClosedRow(db, row, userId);
-
-  // Cancel anything still pending so two sets cannot run at once.
-  await db
+  // Order matters here. An earlier version revived the row and cancelled its
+  // pending tasks BEFORE inserting the new ones, so when the insert failed the
+  // row was left live with nothing queued — its remaining rounds destroyed by
+  // a save that reported an error. Nothing is mutated until the insert lands.
+  //
+  // Capture what to supersede first, so cancelling later cannot catch the
+  // tasks this call is about to create.
+  const { data: supersede } = await db
     .from("student_outreach_tasks")
-    .update({ status: "cancelled" })
+    .select("id")
     .eq("outreach_id", row.id)
     .eq("status", "pending")
     .in("task_type", ["outreach_contact", "outreach_email_send", "outreach_followup_call"]);
+  const supersedeIds = (supersede ?? []).map((t) => t.id);
 
   const rd = (row.research_data ?? {}) as Record<string, unknown>;
   const nextSet = (typeof rd.round_set === "number" ? rd.round_set : 1) + 1;
@@ -2385,18 +2390,31 @@ async function handleLaunchNextSet(
     has_phone: recipients.some((r) => r.channels?.phone === true),
   });
 
-  if (plan.length > 0) {
-    const { error } = await db.from("student_outreach_tasks").insert(
-      plan.map((t) => ({
-        outreach_id: row.id,
-        task_type: t.task_type,
-        due_at: t.due_at.toISOString(),
-        payload: { ...t.payload, set: nextSet },
-        created_by: userId,
-      })),
-    );
-    if (error) throw new Error(error.message);
+  if (plan.length === 0) {
+    throw new Error("Nothing to queue — the cadence produced no rounds");
   }
+
+  // The one step that can fail on bad data. Do it before anything destructive.
+  const { error: insertErr } = await db.from("student_outreach_tasks").insert(
+    plan.map((t) => ({
+      outreach_id: row.id,
+      task_type: t.task_type,
+      due_at: t.due_at.toISOString(),
+      payload: { ...t.payload, set: nextSet },
+      created_by: userId,
+    })),
+  );
+  if (insertErr) throw new Error(insertErr.message);
+
+  // Past here the new set exists, so superseding the old one and reviving the
+  // row are safe.
+  if (supersedeIds.length > 0) {
+    await db
+      .from("student_outreach_tasks")
+      .update({ status: "superseded" })
+      .in("id", supersedeIds);
+  }
+  await reviveClosedRow(db, row, userId);
 
   await touchOutreach(db, row.id, userId, {
     research_data: {

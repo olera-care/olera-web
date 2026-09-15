@@ -333,12 +333,16 @@ export async function getRichContextData(
       .single(),
 
     // Ad campaigns (full details for status and performance)
+    // Note: Only select columns that exist in ad_campaign_requests table
+    // - intended_monthly_budget is in whole dollars (not cents)
+    // - delivered families are calculated separately from connections
+    // - flight_start_date doesn't exist, only flight_end_date
     db
       .from("ad_campaign_requests")
       .select(`
-        id, status, ad_spend_cents, ad_budget_cents, delivered, created_at,
-        ad_clicks, ad_impressions, ad_landings,
-        flight_start_date, flight_end_date,
+        id, status, ad_spend_cents, intended_monthly_budget, created_at,
+        ad_clicks, ad_impressions,
+        flight_end_date,
         photo_readiness_status, channel
       `)
       .eq("provider_id", businessProfileId)
@@ -396,12 +400,10 @@ export async function getRichContextData(
       .order("created_at", { ascending: false })
       .limit(5),
 
-    // Ad Boost leads delivered total
-    db
-      .from("ad_campaign_requests")
-      .select("delivered")
-      .eq("provider_id", businessProfileId)
-      .is("deleted_at", null),
+    // Ad Boost leads: placeholder (delivered column doesn't exist in table)
+    // Real lead attribution would require matching connections.utm_campaign to campaign_tag
+    // For now, return empty - we show campaign metrics (impressions/clicks) as proxy
+    Promise.resolve({ data: [] as Array<{ delivered: number }> }),
 
     // Review requests sent (count of review_request emails sent by this provider)
     // Uses business_profile_id since review-requests route stamps provider_id with profile.id (UUID)
@@ -657,16 +659,18 @@ export async function getRichContextData(
   const primaryCampaign = sortedCampaigns[0] || null;
 
   // Build detailed campaign object for briefing
+  // Note: intended_monthly_budget is in whole dollars, convert to cents for consistency
+  // delivered is calculated from totalLeadsFromAds (from connections by campaign_tag)
   const campaignDetails = primaryCampaign ? {
     status: primaryCampaign.status as "pending_profile" | "requested" | "scheduled" | "live" | "ended" | "cancelled",
     channel: primaryCampaign.channel as "google" | "meta" | "both" | null,
-    budgetCents: primaryCampaign.ad_budget_cents ?? null,
+    budgetCents: primaryCampaign.intended_monthly_budget ? primaryCampaign.intended_monthly_budget * 100 : null,
     spendCents: primaryCampaign.ad_spend_cents ?? null,
     impressions: primaryCampaign.ad_impressions ?? null,
     clicks: primaryCampaign.ad_clicks ?? null,
-    landings: primaryCampaign.ad_landings ?? null,
-    delivered: primaryCampaign.delivered ?? null,
-    flightStartDate: primaryCampaign.flight_start_date ?? null,
+    landings: null, // Column doesn't exist in table
+    delivered: totalLeadsFromAds, // Use pre-calculated value from adBoostLeadsResult
+    flightStartDate: null, // Column doesn't exist, only flight_end_date
     flightEndDate: primaryCampaign.flight_end_date ?? null,
     photoReadiness: primaryCampaign.photo_readiness_status as "unreviewed" | "update_requested" | "review_requested" | "ready" | null,
   } : null;

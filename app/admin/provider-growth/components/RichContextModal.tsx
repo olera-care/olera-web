@@ -304,10 +304,10 @@ export function RichContextModal({
                       <span className="text-gray-900">
                         {b.adBoost.campaign?.status === "live" ? (
                           <span className="text-green-600">
-                            Live ({b.adBoost.campaign.delivered || 0} families)
+                            Live{b.adBoost.campaign.delivered ? ` (${b.adBoost.campaign.delivered} families)` : ""}
                           </span>
                         ) : b.adBoost.campaign?.status === "ended" ? (
-                          <span>Ended ({b.adBoost.campaign.delivered || 0} families)</span>
+                          <span>Ended{b.adBoost.campaign.delivered ? ` (${b.adBoost.campaign.delivered} families)` : ""}</span>
                         ) : b.adBoost.campaign?.status === "pending_profile" ? (
                           <span className="text-amber-600">Pending profile</span>
                         ) : b.adBoost.campaign?.status === "requested" || b.adBoost.campaign?.status === "scheduled" ? (

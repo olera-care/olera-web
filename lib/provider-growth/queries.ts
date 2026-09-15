@@ -309,10 +309,7 @@ export async function getRichContextData(
     leadsResult,
     touchpointCountResult,
     touchpointsResult,
-    // NEW: Questions data
-    questionsReceivedResult,
-    questionsAnsweredResult,
-    recentQuestionsResult,
+    // NOTE: Questions queries moved to Phase 2 to use provider_id from profile
     // NEW: Ad Boost campaign details
     adBoostLeadsResult,
     // Review requests sent
@@ -379,26 +376,8 @@ export async function getRichContextData(
       .order("created_at", { ascending: false })
       .limit(20),
 
-    // Questions received count
-    db
-      .from("provider_questions")
-      .select("id", { count: "exact", head: true })
-      .eq("business_profile_id", businessProfileId),
-
-    // Questions answered count
-    db
-      .from("provider_questions")
-      .select("id", { count: "exact", head: true })
-      .eq("business_profile_id", businessProfileId)
-      .not("answer", "is", null),
-
-    // Recent questions (last 5)
-    db
-      .from("provider_questions")
-      .select("question, answer, created_at")
-      .eq("business_profile_id", businessProfileId)
-      .order("created_at", { ascending: false })
-      .limit(5),
+    // NOTE: Questions queries moved to Phase 2 to use provider_id (slug/sourceProviderId)
+    // matching how the drawer queries them
 
     // Ad Boost leads: placeholder (delivered column doesn't exist in table)
     // Real lead attribution would require matching connections.utm_campaign to campaign_tag
@@ -453,6 +432,10 @@ export async function getRichContextData(
   let adBoostStepResult: { data: Array<{ created_at: string }> | null; count: number | null } = { data: [], count: 0 };
   let reviewsCtaResult: { data: Array<{ created_at: string }> | null } = { data: [] };
   let marketViewResult: { data: Array<{ created_at: string }> | null; count: number | null } = { data: [], count: 0 };
+  // Questions data (queried by provider_id to match drawer behavior)
+  let questionsReceivedResult: { count: number | null } = { count: 0 };
+  let questionsAnsweredResult: { count: number | null } = { count: 0 };
+  let recentQuestionsResult: { data: Array<{ question: string; answer: string | null; created_at: string }> | null } = { data: [] };
 
   try {
     const results = await Promise.all([
@@ -552,6 +535,30 @@ export async function getRichContextData(
         .eq("event_type", "your_market_viewed")
         .order("created_at", { ascending: false })
         .limit(1),
+
+      // Questions received count - use provider_id (slug/sourceProviderId) to match drawer
+      db
+        .from("provider_questions")
+        .select("id", { count: "exact", head: true })
+        .in("provider_id", providerIdVariants)
+        .is("canonical_question_id", null), // Only count original questions, not duplicates
+
+      // Questions answered count
+      db
+        .from("provider_questions")
+        .select("id", { count: "exact", head: true })
+        .in("provider_id", providerIdVariants)
+        .is("canonical_question_id", null)
+        .not("answer", "is", null),
+
+      // Recent questions (last 5)
+      db
+        .from("provider_questions")
+        .select("question, answer, created_at")
+        .in("provider_id", providerIdVariants)
+        .is("canonical_question_id", null)
+        .order("created_at", { ascending: false })
+        .limit(5),
     ]);
 
     emailStatsData = results[0] as typeof emailStatsData;
@@ -565,6 +572,9 @@ export async function getRichContextData(
     adBoostStepResult = results[8] as typeof adBoostStepResult;
     reviewsCtaResult = results[9] as typeof reviewsCtaResult;
     marketViewResult = results[10] as typeof marketViewResult;
+    questionsReceivedResult = results[11] as typeof questionsReceivedResult;
+    questionsAnsweredResult = results[12] as typeof questionsAnsweredResult;
+    recentQuestionsResult = results[13] as typeof recentQuestionsResult;
   } catch (e) {
     console.error("[getRichContextData] Phase 2 queries failed:", e);
     // Continue with default values - engagement data will show as 0/null

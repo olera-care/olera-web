@@ -21,7 +21,7 @@ import { ProviderProspectDrawerBody } from "@/components/admin/medjobs/ProviderP
 import { NextStepCard } from "@/components/admin/medjobs/NextStepCard";
 import { LaunchActivationButton } from "@/components/admin/medjobs/LaunchActivationButton";
 import { PreFlightCallModal } from "@/components/admin/medjobs/PreFlightCallModal";
-import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
+import { SendEmailModal } from "@/components/admin/medjobs/SendEmailModal";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
 import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
 import { getVerificationState } from "@/lib/student-outreach/verification-state";
@@ -1152,7 +1152,7 @@ function RelationshipBanner({ ctx }: { ctx: DrawerContext }) {
 // CTA inside a single card — admin sees one cohesive workflow instead
 // of an orientation card plus a separately-collapsed input form. CTA
 // changes by status: prospect → "Research complete", researched →
-// opens PreFlightReviewModal.
+// opens the send-it-yourself email module.
 
 function ResearchModePanel({
   ctx,
@@ -1417,55 +1417,22 @@ function ResearchModePanel({
           onOverrideLaunch={confirmLaunch}
         />
       )}
-      {showPreFlight && isOffice && (
-        <ProviderPreFlightModal
+      {/* Office and non-office stakeholders alike now get the same
+          send-it-yourself module — no cadence is scheduled. */}
+      {showPreFlight && (
+        <SendEmailModal
           organizationName={ctx.outreach.organization_name}
-          campusName={ctx.campus.name}
           campusSlug={ctx.campus.slug}
           campusProgramPdfUrl={ctx.campus.program_pdf_url ?? null}
-          contacts={ctx.contacts}
-          generalContact={{ email: officeEmail ?? null, phone: officePhone }}
-          smartleadPreview={ctx.smartlead_preview}
-          cadenceKey={type}
+          preview={ctx.smartlead_preview}
           pdfAudience="student"
-          smartleadLinkage={linkageFromResearchData(ctx.outreach.research_data)}
           onCancel={() => setShowPreFlight(false)}
-          onSubmit={async (payload) => {
+          onSubmit={async () => {
             try {
-              await action("schedule_sequence", payload);
+              await action("log_email_sent");
               setShowPreFlight(false);
             } catch (e) {
-              setError(e instanceof Error ? e.message : "Schedule failed");
-              throw e;
-            }
-          }}
-        />
-      )}
-      {showPreFlight && !isOffice && (
-        // Non-office stakeholders (dept head, professor) now use the SAME
-        // per-recipient pre-flight as offices, so the launch payload carries
-        // recipients + call_scripts and the cadence's phone-day CALL tasks
-        // actually queue (previously this path sent email snapshots only — the
-        // root cause of dept heads getting no call card). Recipients come from
-        // the named contact(s); no synthetic general recipient.
-        <ProviderPreFlightModal
-          organizationName={ctx.outreach.organization_name}
-          campusName={ctx.campus.name}
-          campusSlug={ctx.campus.slug}
-          campusProgramPdfUrl={ctx.campus.program_pdf_url ?? null}
-          contacts={ctx.contacts}
-          generalContact={{ email: null, phone: null }}
-          smartleadPreview={ctx.smartlead_preview}
-          cadenceKey={type}
-          pdfAudience="student"
-          smartleadLinkage={linkageFromResearchData(ctx.outreach.research_data)}
-          onCancel={() => setShowPreFlight(false)}
-          onSubmit={async (payload) => {
-            try {
-              await action("schedule_sequence", payload);
-              setShowPreFlight(false);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Schedule failed");
+              setError(e instanceof Error ? e.message : "Failed to log the send");
               throw e;
             }
           }}

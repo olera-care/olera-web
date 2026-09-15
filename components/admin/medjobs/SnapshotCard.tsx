@@ -51,9 +51,8 @@ import Select from "@/components/ui/Select";
 import Input from "@/components/ui/Input";
 import { LaunchActivationButton } from "@/components/admin/medjobs/LaunchActivationButton";
 import { SpecificContactsSection } from "@/components/admin/medjobs/SpecificContactsSection";
-import { ProviderPreFlightModal } from "@/components/admin/medjobs/ProviderPreFlightModal";
+import { SendEmailModal } from "@/components/admin/medjobs/SendEmailModal";
 import { linkageFromResearchData } from "@/lib/medjobs/smartlead-inbox";
-import { PreFlightReviewModal } from "@/app/admin/student-outreach/PreFlightReviewModal";
 
 type ActionFn = (
   actionName: string,
@@ -1373,7 +1372,8 @@ export function VerificationSection({ state }: { state: VerificationState }) {
  * v9.x Phase 2c: Pre-Flight action footer rendered inside the Research
  * Card. Owns the three operational affordances:
  *
- *   - Launch Outreach      → opens ProviderPreFlightModal (cadence)
+ *   - Launch Outreach      → opens SendEmailModal (copy, attach, send,
+ *                            log) — no cadence is scheduled
  *   - Override             → skip the confirm call when the provider
  *                            cannot be reached by phone
  *
@@ -1514,50 +1514,23 @@ function ResearchActionFooter({
         </button>
       )}
 
-      {showPreFlight && cadenceKey === "provider" && (
-        <ProviderPreFlightModal
+      {/* Outreach is no longer scheduled or sent by us. Both cadences open
+          the same send-it-yourself module: copy, attach the flyer, send from
+          your own client, log it. */}
+      {showPreFlight && (
+        <SendEmailModal
           organizationName={ctx.outreach.organization_name}
-          campusName={ctx.campus.name}
           campusSlug={ctx.campus.slug}
           campusProgramPdfUrl={ctx.campus.program_pdf_url ?? null}
-          contacts={ctx.contacts}
-          generalContact={{
-            email:
-              ctx.outreach.research_data?.general_contact?.email ??
-              ctx.provider_business_profile?.email ??
-              null,
-            phone:
-              ctx.outreach.research_data?.general_contact?.phone ??
-              ctx.provider_business_profile?.phone ??
-              null,
-          }}
-          smartleadPreview={ctx.smartlead_preview}
-          smartleadLinkage={linkageFromResearchData(ctx.outreach.research_data)}
+          preview={ctx.smartlead_preview}
+          pdfAudience={cadenceKey === "provider" ? "provider" : "student"}
           onCancel={() => setShowPreFlight(false)}
-          onSubmit={async (payload) => {
+          onSubmit={async () => {
             try {
-              await action("schedule_sequence", payload);
+              await action("log_email_sent");
               setShowPreFlight(false);
             } catch (e) {
-              setError(e instanceof Error ? e.message : "Schedule failed");
-              throw e;
-            }
-          }}
-        />
-      )}
-      {showPreFlight && cadenceKey !== "provider" && (
-        <PreFlightReviewModal
-          stakeholderType={cadenceKey}
-          organizationName={ctx.outreach.organization_name}
-          campusName={ctx.campus.name}
-          contacts={ctx.contacts}
-          onCancel={() => setShowPreFlight(false)}
-          onSubmit={async (snapshots) => {
-            try {
-              await action("schedule_sequence", { email_snapshots: snapshots });
-              setShowPreFlight(false);
-            } catch (e) {
-              setError(e instanceof Error ? e.message : "Schedule failed");
+              setError(e instanceof Error ? e.message : "Failed to log the send");
               throw e;
             }
           }}

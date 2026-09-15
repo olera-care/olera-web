@@ -255,35 +255,45 @@ export function RichContextModal({
   const [error, setError] = useState<string | null>(null);
 
   const fetchBriefing = useCallback(async () => {
+    console.log("[RichContextModal] fetchBriefing called for trackingId:", trackingId);
     setLoading(true);
     setError(null);
 
     try {
       const url = `/api/admin/provider-growth/${trackingId}/briefing`;
+      console.log("[RichContextModal] Fetching:", url);
       const res = await fetch(url);
+      console.log("[RichContextModal] Response status:", res.status);
 
       if (!res.ok) {
         const err = await res.json();
+        console.log("[RichContextModal] Error response:", err);
         throw new Error(err.error || "Failed to load briefing");
       }
 
       const result = await res.json();
+      console.log("[RichContextModal] Success, setting data");
       setData(result);
     } catch (e) {
+      console.error("[RichContextModal] Fetch error:", e);
       setError(e instanceof Error ? e.message : "Failed to load briefing");
     } finally {
+      console.log("[RichContextModal] Setting loading to false");
       setLoading(false);
     }
   }, [trackingId]);
 
   useEffect(() => {
+    console.log("[RichContextModal] Fetch effect - isOpen:", isOpen, "data:", !!data, "loading:", loading);
     if (isOpen && !data && !loading) {
+      console.log("[RichContextModal] Triggering fetch");
       fetchBriefing();
     }
   }, [isOpen, data, loading, fetchBriefing]);
 
   // Reset state when trackingId changes (different provider selected)
   useEffect(() => {
+    console.log("[RichContextModal] Reset effect - trackingId changed to:", trackingId);
     // Reset all state when viewing a different provider
     setData(null);
     setError(null);
@@ -305,6 +315,8 @@ export function RichContextModal({
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;
+
+  console.log("[RichContextModal] Rendering - loading:", loading, "error:", error, "data:", !!data);
 
   const briefing = data?.briefing;
   const metrics = data?.metrics;

@@ -221,10 +221,9 @@ function Board() {
       const { data } = await sb.auth.getSession();
       if (data.session) {
         setShowScreener(false);
-        // Land new students on Find Jobs (the catchment board), not the profile
-        // tab — they see real local opportunities immediately, with the board's
-        // own "complete your profile to apply" nudge.
-        router.push("/portal/medjobs/jobs");
+        // Land new students on their profile to complete it — providers will
+        // reach out when they see a match.
+        router.push("/portal/medjobs");
         return;
       }
     } catch {
@@ -503,10 +502,10 @@ function Board() {
               <button
                 type="button"
                 onClick={() => {
-                  // Signed-in students get the full Find Jobs board (map + cards);
+                  // Signed-in students go to their profile;
                   // anon visitors expand the preview inline.
                   if (studentProfileId) {
-                    router.push("/portal/medjobs/jobs");
+                    router.push("/portal/medjobs");
                     return;
                   }
                   setExpanded((e) => !e);
